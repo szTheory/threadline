@@ -1,0 +1,688 @@
+Threadline Brand Book
+
+1) Brand foundation
+
+Brand name
+
+Threadline
+
+Why the name works
+
+Threadline suggests the connecting line that lets someone follow what happened across time, systems, requests, actors, and changes. It feels more distinctive than literal audit names, while still implying traceability, continuity, and narrative clarity.
+
+It is a strong fit for the product because the library is not only about storing changes. It is about connecting:
+
+* action to change,
+* request to transaction,
+* actor to outcome,
+* event to evidence,
+* history to explanation.
+
+Core brand idea
+
+Threadline makes system history followable.
+
+Brand thesis
+
+Threadline is the audit platform for Phoenix, Ecto, and PostgreSQL that turns low-level change capture into a coherent, explainable history.
+
+One-line positioning
+
+Threadline is the audit platform that connects every change to the action, context, and story around it.
+
+Category framing
+
+Use these phrases consistently:
+
+* audit platform
+* audit infrastructure
+* audit trail for Phoenix/Ecto/Postgres
+* action-and-change history
+* explainable audit timeline
+* context-rich audit system
+
+Avoid framing it as:
+
+* just a log viewer
+* just a Carbonite UI
+* compliance software
+* SIEM
+* event sourcing
+* generic observability
+
+⸻
+
+2) Brand essence
+
+Mission
+
+Help teams understand exactly what happened, why it happened, and how to trust what they are seeing.
+
+Vision
+
+A world where audit systems are not opaque compliance chores, but clear, usable, and trustworthy sources of operational truth.
+
+Promise
+
+If something changed, Threadline helps you follow it.
+
+Values
+
+Clarity
+Make the path legible. Do not bury meaning in jargon, blobs, or magic.
+
+Integrity
+Trust is earned through correctness, explicitness, and evidence.
+
+Calmness
+When teams are investigating something important, the product should lower stress, not raise it.
+
+Precision
+The brand should feel exacting without feeling cold.
+
+Continuity
+Everything in the product and brand should reinforce connected history over isolated events.
+
+Personality
+
+Threadline is:
+
+* precise
+* grounded
+* composed
+* technical
+* lucid
+* credible
+* quietly confident
+
+Threadline is not:
+
+* flashy
+* loud
+* militaristic
+* cyberpunk
+* compliance-bureaucratic
+* cute
+* playful for its own sake
+* vague startup hype
+
+⸻
+
+3) Strategic positioning
+
+What Threadline is really selling
+
+Not merely capture.
+
+Not merely a timeline.
+
+Not merely compliance.
+
+Threadline sells confidence through connected history.
+
+Key differentiators to reinforce in messaging
+
+1. Capture plus meaning — not just row changes, but actions, actors, reasons, and request/job context.
+2. Explainable by default — designed so humans can answer “what happened?” quickly.
+3. Operationally credible — health checks, retention, redaction, exports, coverage.
+4. Native to Phoenix/Ecto/Postgres — feels built for the stack, not adapted to it.
+5. Trustworthy without becoming opaque — SQL-friendly, inspectable, composable.
+
+Emotional territory
+
+The feeling should be:
+
+* “I can follow this.”
+* “This gives me confidence.”
+* “This is serious, but not intimidating.”
+* “This helps in a real incident, not just in a demo.”
+
+⸻
+
+4) Audience lens
+
+Primary audiences
+
+Backend engineers
+Need confidence that writes are captured and history is queryable.
+
+Platform and SRE teams
+Need operational legibility, health, retention, and performance confidence.
+
+Security and compliance engineers
+Need auditability, policy, masking, and evidence.
+
+Operators and support teams
+Need readable timelines, diffs, filters, and context.
+
+Secondary audiences
+
+* engineering leaders
+* technical founders
+* OSS adopters and contributors
+* devtool buyers at infra-minded SaaS companies
+
+Audience truth
+
+Most people do not want “more logs.” They want an understandable chain of evidence.
+
+⸻
+
+5) Messaging framework
+
+Brand narrative
+
+Systems change constantly. Most tools either capture too little, or capture enough but make it hard to understand. Threadline exists to connect the raw truth of change with the human context around it, so teams can follow what happened with confidence.
+
+Elevator pitch
+
+Threadline is a batteries-included audit platform for Phoenix, Ecto, and PostgreSQL. It captures row-level changes, connects them to actions and request context, and turns that history into readable timelines, diffs, and operator workflows.
+
+10-second description
+
+Follow every important change.
+
+30-second description
+
+Threadline gives Phoenix and Ecto teams an audit system they can actually use. It captures changes at the database layer, connects them to actors, actions, and request context, and makes the result explorable through timelines, diffs, filtering, and operational tooling.
+
+Tagline options
+
+Primary recommendation:
+
+* Follow what happened.
+
+Strong alternatives:
+
+* History, with context.
+* Every change has a thread.
+* Connected audit history.
+* Traceable by design.
+* The line through every change.
+* Follow the full story.
+
+Homepage headline options
+
+* Follow what happened.
+* Audit history you can actually follow.
+* Every change, connected to its context.
+* From row changes to readable history.
+* A clear line through every action and change.
+
+Supporting subhead options
+
+* Capture row-level changes. Link them to actions, actors, and request context. Explore everything through readable timelines and diffs.
+* Threadline turns low-level database changes into clear, explainable history for Phoenix and Ecto teams.
+* Built for teams that need trustworthy audit capture and an operator experience that makes sense under pressure.
+
+Messaging pillars
+
+1. Trustworthy capture
+Hard to bypass. Grounded in real system changes.
+
+2. Context-rich history
+Who did it, why, in what request or job, and what it affected.
+
+3. Readable exploration
+Timelines, diffs, filters, drill-down, and exports that answer real questions.
+
+4. Operational confidence
+Coverage checks, health signals, retention, redaction, and upgrade ergonomics.
+
+⸻
+
+6) Brand voice
+
+Voice summary
+
+Threadline speaks like a calm senior engineer with strong product taste.
+
+Tone attributes
+
+* clear
+* direct
+* intelligent
+* unhurried
+* grounded
+* evidence-oriented
+* helpful
+* low-ego
+
+Tone spectrum
+
+Prefer:
+
+* precise over clever
+* plainspoken over buzzwordy
+* confident over swaggering
+* thoughtful over promotional
+* calm over urgent
+* technical over salesy
+
+Writing principles
+
+Say what it does plainly.
+Avoid abstract claims when concrete ones are stronger.
+
+Make technical ideas readable.
+Explain without oversimplifying.
+
+Respect the user’s intelligence.
+Do not over-market obvious capabilities.
+
+Keep it composable.
+Use language that can scale from docs to UI to enterprise pages.
+
+Be exact about boundaries.
+Distinguish changes from actions, requests from transactions, audit history from database activity auditing.
+
+Brand voice examples
+
+Instead of:
+
+* Revolutionary audit intelligence for modern teams.
+
+Prefer:
+
+* Capture changes, connect them to context, and follow the full history.
+
+Instead of:
+
+* Enterprise-grade observability for governance workflows.
+
+Prefer:
+
+* Understand what changed, who initiated it, and why.
+
+Instead of:
+
+* Compliance-ready trust infrastructure.
+
+Prefer:
+
+* A trustworthy audit system for real debugging, support, and review.
+
+Voice by surface
+
+Docs
+Sober, explanatory, practical.
+
+Marketing site
+Clear, aspirational, but still technical.
+
+Admin UI
+Plain and legible. Prioritize certainty and actionability.
+
+Launch posts
+Opinionated and crisp. Teach the category while introducing the product.
+
+Error states
+Specific, transparent, fix-oriented.
+
+⸻
+
+7) Editorial rules
+
+Terminology to prefer
+
+* action
+* change
+* transaction
+* context
+* actor
+* subject
+* correlation
+* timeline
+* diff
+* snapshot
+* coverage
+* retention
+* redaction
+* export
+
+Terminology to avoid unless necessary
+
+* provenance
+* governance
+* event fabric
+* chain of custody
+* immutable ledger
+* cyber defense
+* forensic-grade
+
+Syntax guidance
+
+* Favor short declarative sentences.
+* Use active voice.
+* Avoid exclamation marks.
+* Avoid overloaded metaphor in technical pages.
+* Use sentence case, not title case, for most UI labels.
+
+Reading level guidance
+
+Write for experienced engineers who are short on time.
+
+⸻
+
+8) Visual concept
+
+Visual idea
+
+Threadline is built around the image of a line that connects discrete points into an intelligible path.
+
+The brand should feel like:
+
+* threads pulled through fabric,
+* route lines through a map,
+* layered contours revealing structure,
+* timelines stitched together,
+* signals crossing system boundaries without getting lost.
+
+Visual keywords
+
+* threaded
+* layered
+* legible
+* structured
+* precise
+* continuous
+* quiet depth
+* evidence
+* route
+* weave
+
+Visual anti-keywords
+
+* hacker neon
+* padlocks everywhere
+* shields
+* police tape
+* aggressive cyber grids
+* generic SaaS gradients
+* faceless stock office teams
+* courtroom/compliance clichés
+
+⸻
+
+9) Logo direction
+
+Core logo idea
+
+A continuous line or set of layered lines that suggest connection, sequence, and reconstruction.
+
+Symbol directions
+
+Direction A: Continuous thread
+A single line that passes through a series of points and resolves into a subtle T or TL monogram.
+
+Direction B: Parallel strands
+Multiple thin lines traveling together, diverging briefly, then reconverging. Good metaphor for action, transaction, and change.
+
+Direction C: Stitch mark
+A restrained stitched motif that feels technical, not crafty. Better for editorial assets than the primary logo.
+
+Direction D: Cross-section linework
+Layered contour or stratified lines, implying history revealed over time.
+
+Wordmark guidance
+
+Use a crisp geometric or neo-grotesk sans wordmark with tight spacing and slightly custom letter relationships around Th, ea, or dl to create ownability.
+
+Logo traits
+
+* horizontal first
+* strong at small sizes
+* works in one color
+* legible in favicon form
+* line-based rather than bulky
+* should not rely on security tropes
+
+Logo don’ts
+
+* no shield icons
+* no magnifying glass
+* no database cylinder as the main motif
+* no checkmark compliance imagery
+* no chain links
+* no fingerprint imagery
+
+⸻
+
+10) Color system
+
+Color philosophy
+
+Threadline should feel calm, serious, and technical. The palette should support a dark, code-adjacent product experience while still feeling refined enough for marketing.
+
+The overall mood is night infrastructure with luminous signal lines.
+
+Core palette
+
+Threadline Black
+#0B1020
+Primary dark background. Deep, cool, infrastructure-like.
+
+Graphite
+#141B2D
+Secondary dark surface.
+
+Slate Line
+#23304A
+Borders, dividers, table rails, subtle structure.
+
+Fog
+#D7DEEA
+Soft high-contrast body text on dark surfaces.
+
+Paper
+#F7F9FC
+Light background for docs, diagrams, and print-like surfaces.
+
+Ink
+#0F1728
+Primary text on light surfaces.
+
+Signature accents
+
+Thread Blue
+#4F8CFF
+Primary signature accent. Use for links, active states, and key highlights.
+
+Signal Cyan
+#4EDFD1
+Secondary accent. Use for correlation, live traces, positive system flow.
+
+Iris
+#8A7CFF
+Depth and sophistication. Use sparingly in gradients, charts, and premium moments.
+
+Ember
+#FF8A5B
+Warm contrast for alerts, diffs, and emphasis. Use carefully.
+
+Support neutrals
+
+Mist
+#E7ECF4
+
+Steel
+#73819C
+
+Storm
+#3B4762
+
+Product semantic colors
+
+Success #3FD08F
+Info #4F8CFF
+Warning #F3B94C
+Danger #F06A6A
+
+Gradient guidance
+
+Use gradients sparingly. Preferred signature gradient:
+
+* #4F8CFF to #4EDFD1
+
+Premium alternate:
+
+* #8A7CFF to #4F8CFF
+
+Gradients should feel like illuminated lines moving across dark infrastructure, not soft consumer-app blobs.
+
+Color ratio guidance
+
+* 70% dark neutrals
+* 20% light neutrals / text balance
+* 10% accent color
+
+Accessibility guidance
+
+* Preserve high contrast in admin UI and docs.
+* Do not rely on color alone to distinguish change types.
+* Use accent colors as signals, not decoration.
+
+⸻
+
+11) Typography
+
+Typography philosophy
+
+The type system should feel technical, contemporary, and highly readable. It should work equally well for product UI, docs, dashboards, and marketing.
+
+Primary sans
+
+Geist
+Use as the primary brand and interface typeface.
+
+Why:
+
+* modern and technical without feeling generic,
+* excellent on screens,
+* strong for product UI and developer tools,
+* clean enough for docs and marketing.
+
+Fallbacks:
+
+* Inter
+* system-ui
+* sans-serif
+
+Secondary sans option
+
+Inter
+Acceptable alternate when Geist is unavailable or when broad tooling compatibility matters.
+
+Monospace
+
+IBM Plex Mono
+Use for code, request IDs, diff values, table names, event names, and metadata labels.
+
+Fallbacks:
+
+* JetBrains Mono
+* ui-monospace
+* SFMono-Regular
+* Menlo
+* monospace
+
+Optional editorial accent
+
+Newsreader or Instrument Serif
+Use only on marketing pages or launch assets if you want a slightly more distinctive editorial note.
+
+Rule:
+
+* never use serif in the admin UI,
+* keep serif usage restrained,
+* do not let the brand become literary or artisanal.
+
+Type roles
+
+Display / hero
+Geist Medium or Semibold, tight tracking, high line clarity.
+
+Section headings
+Geist Semibold.
+
+Body
+Geist Regular.
+
+Code / metadata
+IBM Plex Mono Regular or Medium.
+
+Typographic character
+
+* restrained
+* confident
+* not overly rounded
+* not sterile
+* strong numerals
+* excellent code pairing
+
+Rules of use
+
+* Use mono to signal data, structure, and identifiers.
+* Do not overuse mono in marketing copy.
+* Keep UI typography compact but breathable.
+* Favor optical cleanliness over stylistic experimentation.
+
+⸻
+
+12) Layout and composition
+
+Layout principles
+
+* Strong grid
+* Calm spacing
+* Clear visual hierarchy
+* Dense where needed, never cluttered
+* Structured panels and rails
+* Consistent alignment
+
+Shape language
+
+* rounded but not bubbly
+* subtle corner radius
+* thin dividers
+* linear motifs
+* layered panels
+* cards that feel infrastructural, not playful
+
+Density guidance
+
+Admin UI can be moderately dense, but always preserve:
+
+* readable line length,
+* obvious grouping,
+* strong table legibility,
+* clear hierarchy between action, context, and raw changes.
+
+⸻
+
+13) Imagery and illustration
+
+Recommended imagery themes
+
+Thread maps
+Layered lines crossing a surface and connecting points.
+
+Timelines with depth
+Not generic gantt charts. More like structured narrative rails.
+
+Topographic / contour forms
+Suggesting historical layers and revealed structure.
+
+System diagrams with elegance
+Flows between request, action, transaction, change, export.
+
+Macro linework
+Fine lines, stitching, fiber-like structures, signal traces.
+
+Illustration style
+
+* abstract but meaningful
+* line-based
+* layered
+* restrained glow
+* low
