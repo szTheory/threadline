@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GitHub, CI, and Hex
-status: defining_requirements
-stopped_at: null
-last_updated: "2026-04-22T12:00:00.000Z"
-last_activity: 2026-04-22
+status: planning
+stopped_at: Phase 5 context gathered
+last_updated: "2026-04-23T03:15:00.000Z"
+last_activity: 2026-04-23 — Phase 5 discuss; GitHub repo created and main pushed
 progress:
   total_phases: 7
   completed_phases: 4
@@ -26,15 +26,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 ## Current Position
 
-Phase: Not started (roadmap defined — begin Phase 5)
+Phase: 5 — Repository & remote (context gathered; REPO work executed on GitHub)
 
 Plan: —
 
-Status: Ready to execute Phase 5
+Status: Ready for `/gsd-plan-phase 5`
 
-Last activity: 2026-04-22 — Milestone v1.1 started (distribution)
+Last activity: 2026-04-23 — `gh repo create` + push `main`; `05-CONTEXT.md` written
 
-Progress: [████░░░░░░] v1.0 complete; v1.1 Phases 5–7 not started
+Progress: [████░░░░░░] v1.0 complete; v1.1 Phase 5 in motion (remote live)
 
 ## Performance metrics
 
@@ -58,18 +58,18 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 ### Pending todos
 
-1. Add GitHub `origin` and push `main` (Phase 5).
+1. ~~Add GitHub `origin` and push `main` (Phase 5).~~ Done — `origin` is HTTPS → `github.com/szTheory/threadline.git`, `main` pushed.
 2. Confirm Actions all green on GitHub (Phase 6).
 3. Bump `mix.exs` to `0.1.0`, finalize changelog, tag, `mix hex.publish` (Phase 7).
 
 ### Blockers / concerns
 
-- **No `git remote` configured** locally as of 2026-04-22 — maintainer must create the GitHub repo and `git remote add origin …`.
+- None for Phase 5 remote — repository exists and CI workflow was triggered on first push.
 
 ## Session continuity
 
-Last session: `/gsd-new-milestone` — v1.1 scope agreed (Git + CI + Hex)
+Last session: `/gsd-discuss-phase 5` — context + `gh repo create` / push / description
 
-Stopped at: Roadmap and requirements written; execution not started
+Stopped at: Phase 5 context gathered
 
-Resume file: —
+Resume file: `.planning/phases/05-repository-remote/05-CONTEXT.md`
