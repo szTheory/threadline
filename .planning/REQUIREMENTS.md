@@ -1,0 +1,66 @@
+# Requirements: Threadline
+
+**Defined:** 2026-04-23  
+**Milestone:** v1.2 — Before-values & developer tooling  
+**Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
+
+## v1.2 Requirements
+
+Requirements for this milestone. Each maps to exactly one roadmap phase (9–11).
+
+### Before-values capture
+
+- [ ] **BVAL-01**: When `store_changed_from` is enabled for an audited table at trigger generation time, each **UPDATE** `AuditChange` persists a JSONB **`changed_from`** field representing the previous row values relevant to that capture (semantics locked in Phase 9 plan — full `OLD` row vs changed-field subset); **INSERT** and **DELETE** rows keep `changed_from` null.
+- [ ] **BVAL-02**: `Threadline.history/3` returns `changed_from` on each `AuditChange` when the column is populated; when the feature is off or column is null, callers see `nil` without API shape breaking for existing code paths.
+
+### Maintainer tooling
+
+- [ ] **TOOL-01**: `mix threadline.verify_coverage` prints a human-readable report of audited tables and trigger presence (aligned with `Threadline.Health.trigger_coverage/1` semantics); exits **non-zero** if any expected audited table is missing a valid capture trigger (expected table list mechanism defined in Phase 10 plan).
+- [ ] **TOOL-02**: A documented **backfill / continuity** path (module and/or Mix task) lets operators introduce capture on an existing table without implying fabricated pre-trigger history; includes tests proving distinguishable or empty baseline behavior per the Phase 11 spec.
+- [ ] **TOOL-03**: Doc contract tests assert README (and linked quickstart snippets where applicable) remain **syntactically valid** and consistent with the **public** Threadline API surface.
+
+## Future Requirements
+
+_Deferred past v1.2; IDs preserved from v1.0 archive where applicable._
+
+### Retention & redaction
+
+- **RETN-01**, **RETN-02**, **REDN-01**, **REDN-02** — see `.planning/milestones/v1.0-REQUIREMENTS.md` § v2.
+
+### Export
+
+- **EXPO-01**, **EXPO-02** — CSV/JSON export; deferred.
+
+### Operator UI
+
+- LiveView-based exploration — deferred until API surface stabilizes (`PROJECT.md` Out of Scope).
+
+## Out of Scope (v1.2)
+
+| Item | Reason |
+|------|--------|
+| Retention policies & purge jobs | Requires RETN design + batching; not in v1.2 slice |
+| Redaction / masking at trigger | REDN milestone |
+| CSV/JSON export helpers | EXPO milestone |
+| WAL / logical replication capture | Explicit product non-goal for v0.x |
+| Automated Hex publish from CI | Maintainer path unchanged from v1.1 |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BVAL-01 | Phase 9 | Pending |
+| BVAL-02 | Phase 9 | Pending |
+| TOOL-01 | Phase 10 | Pending |
+| TOOL-03 | Phase 10 | Pending |
+| TOOL-02 | Phase 11 | Pending |
+
+**Coverage:**
+
+- v1.2 requirements: 5 total  
+- Mapped to phases: 5  
+- Unmapped: 0 ✓  
+
+---
+*Requirements defined: 2026-04-23*  
+*Last updated: 2026-04-23 after milestone v1.2 roadmap creation*
