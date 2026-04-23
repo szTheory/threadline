@@ -61,15 +61,48 @@ defmodule Threadline.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+      files: ~w(lib guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
 
   defp docs do
     [
       main: "Threadline",
-      source_ref: "v#{@version}",
-      source_url: @source_url
+      source_ref: "main",
+      source_url: @source_url,
+      extras: [
+        "README.md",
+        "guides/domain-reference.md",
+        "CONTRIBUTING.md",
+        "CHANGELOG.md"
+      ],
+      groups_for_extras: [
+        Overview: ~r/README/,
+        Reference: ~r{^guides/},
+        Project: ~r/(CONTRIBUTING|CHANGELOG)/
+      ],
+      groups_for_modules: [
+        "Core API": [
+          Threadline,
+          Threadline.Semantics.ActorRef,
+          Threadline.Semantics.AuditContext
+        ],
+        Integration: [
+          Threadline.Plug,
+          Threadline.Job,
+          Threadline.Health,
+          Threadline.Telemetry
+        ],
+        Schemas: [
+          Threadline.Semantics.AuditAction,
+          Threadline.Capture.AuditTransaction,
+          Threadline.Capture.AuditChange
+        ],
+        "Mix Tasks": [
+          Mix.Tasks.Threadline.Install,
+          Mix.Tasks.Threadline.Gen.Triggers
+        ]
+      ]
     ]
   end
 end
