@@ -80,6 +80,45 @@
 
 ---
 
+## Milestone: v1.2 — Before-values & developer tooling
+
+**Shipped:** 2026-04-23  
+**Phases:** 3 | **Plans:** 6
+
+### What was built
+
+- Optional **UPDATE** before-values (`changed_from`) with per-table opt-in at trigger generation and stable query loading via `history/3`.
+- **`mix threadline.verify_coverage`** plus policy module, tests, and CI-visible failure path for missing triggers.
+- **Doc contract tests** mirroring README quickstart, extended `ci.all` / Actions / Nyquist literals for new verify steps.
+- **`Threadline.Continuity`**, **`mix threadline.continuity`**, brownfield integration test, and **`guides/brownfield-continuity.md`** for honest cutover semantics.
+
+### What worked
+
+- Splitting **coverage enforcement** (TOOL-01) from **doc drift** (TOOL-03) kept CI failure modes legible.
+- Reusing **`Threadline.Health.trigger_coverage/1`** as the single source of truth for verify output avoided contradictory tooling.
+
+### What was inefficient
+
+- `gsd-sdk query milestone.complete` did not archive phase directories in this environment (`version required for phases archive`); phase trees stayed under `.planning/phases/` until optional `/gsd-cleanup`.
+
+### Patterns established
+
+- **Doc fixtures** as compile-checked mirrors of public README examples.
+- **Continuity** as an explicit operator surface (`explain_cutover`, `assert_capture_ready!`) separate from silent data fabrication.
+
+### Key lessons
+
+1. Brownfield adoption deserves **first-class docs + Mix task** alongside triggers, not an appendix note.
+2. Run **`/gsd-audit-milestone`** before close when you want a durable audit artifact (none was produced for v1.2 in `.planning/`).
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: phased execution across 9 → 10 → 11 with tight scope per plan.
+- Notable: PostgreSQL-dependent tests relied on CI when local agents lacked Postgres.
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -88,6 +127,7 @@
 | --------- | ------ | ---------- |
 | v1.0 | 4 | Established GSD phase + plan workflow for Threadline |
 | v1.1 | 4 | Shipped OSS distribution: GitHub + Actions + Hex **0.1.0** |
+| v1.2 | 3 | Capture fidelity + maintainer verify/doc contracts + brownfield continuity |
 
 ### Cumulative quality
 
@@ -95,8 +135,10 @@
 | --------- | ----- | ----- |
 | v1.0 | Growing integration + unit suite | `mix ci.all` required green at each close |
 | v1.1 | + workflow/Nyquist contract tests | CI jobs extended for docs, Hex tarball, release shape |
+| v1.2 | + verify coverage + README doc contracts + brownfield continuity | `verify.threadline` / `verify.doc_contract` on default CI path |
 
 ### Top lessons (verified across milestones)
 
 1. v1.0 — treat REQUIREMENTS traceability as part of phase “done,” not only at milestone close.
 2. v1.1 — verify **GitHub truth** (SHAs, Actions runs) alongside local green builds.
+3. v1.2 — ship **operator semantics** for brownfield (continuity module + guide) in the same milestone as the capture feature that motivates them.

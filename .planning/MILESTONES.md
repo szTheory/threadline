@@ -2,6 +2,35 @@
 
 Entries are newest first.
 
+## v1.2 — Before-values & developer tooling (shipped 2026-04-23)
+
+**Delivered:** Optional per-table **`changed_from`** on UPDATE captures with opt-in trigger generation; **`mix threadline.verify_coverage`** and CI wiring; **README doc contract** tests and Nyquist parity for expanded `ci.all`; **`Threadline.Continuity`** + **`mix threadline.continuity`** with brownfield integration coverage and **`guides/brownfield-continuity.md`**.
+
+**Phases completed:** 9–11 (6 plans).
+
+**Key accomplishments:**
+
+- Landed BVAL-01/BVAL-02: migration + `--store-changed-from` triggers, `AuditChange.changed_from`, integration tests, `history/3` documentation.
+- Shipped TOOL-01: `Threadline.Verify.CoveragePolicy`, `Mix.Tasks.Threadline.VerifyCoverage`, canary migration for CI failure path, README maintainer guidance.
+- Shipped TOOL-03: quickstart fixtures, `readme_doc_contract_test.exs`, `verify.threadline` / `verify.doc_contract` in `ci.all` and GitHub Actions.
+- Shipped TOOL-02: `Threadline.Continuity`, continuity Mix task, brownfield test, guide + README + HexDocs extras cross-links.
+
+**Stats:**
+
+- v1.2-focused window (see `git log` from `002bdf7` through tip): feature and docs commits across capture, verify, continuity; six plan summaries complete on disk.
+- 3 phases, 6 plans, 100% summaries; requirements traceability 5/5 Complete at close.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.2-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.2-REQUIREMENTS.md`
+
+**Note:** No standalone `v1.2-MILESTONE-AUDIT.md` in `.planning/` at close; optional `/gsd-audit-milestone` next time for extra assurance.
+
+**What is next:** `/gsd-new-milestone` — define the next product slice and a fresh `.planning/REQUIREMENTS.md`.
+
+---
+
 ## v1.1 — GitHub, CI, and Hex (shipped 2026-04-23)
 
 **Delivered:** Canonical GitHub `origin` with `@source_url` / docs alignment; GitHub Actions all green on `main` with maintainer-recorded CI-02 proof; **`threadline` 0.1.0** on Hex with dated `CHANGELOG.md` and **`v0.1.0`** on `origin`; Phase 8 closed audit gaps (remote/`main`, live CI, traceability).

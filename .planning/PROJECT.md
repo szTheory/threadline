@@ -10,26 +10,19 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0 MVP** (2026-04-23) and **v1.1 — GitHub, CI, and Hex** (2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `.planning/milestones/v1.1-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`.
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, and **v1.2 — Before-values & developer tooling** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/` (v1.2 execution artifacts still under `.planning/phases/09-*` … `11-*` until optionally archived with `/gsd-cleanup`).
 
-## Current Milestone: v1.2 Before-values & developer tooling
+## Next milestone
 
-**Goal:** Increase audit fidelity and operator confidence with optional UPDATE before-values in the capture path, plus maintainer-grade tooling for coverage checks, doc drift detection, and brownfield adoption.
-
-**Target features:**
-
-- Optional per-table **before-values** (`store_changed_from`) so UPDATE captures prior field values; query API exposes them when enabled at install time.
-- **`mix threadline.verify_coverage`** — human-readable audited-table report; non-zero exit when any configured table lacks a valid capture trigger.
-- **Doc contract tests** so README / guide examples stay syntactically valid against the public API.
-- **Backfill / continuity helper** for turning capture on for an existing table without pretending pre-trigger history exists.
-
-**Explicitly not in v1.2:** retention policies, redaction/masking, CSV/JSON export, LiveView UI — remain deferred per Out of Scope until this milestone closes.
+The next product slice is **not** defined in `.planning/` yet. Run `/gsd-new-milestone` to capture goals, a fresh `.planning/REQUIREMENTS.md`, and phased work on `ROADMAP.md`.
 
 ## Current state
 
-- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (distinct from planning tags like **`v1.1`**).
-- **GitHub:** Canonical `origin`, `main` tracked on `origin`, and Actions green on `main` with recorded CI-02 proof in archived phase verification.
-- **Planning:** Milestone **v1.2** complete 2026-04-23 (Phases **9–11**: before-values, verify coverage / doc contracts, backfill / continuity). Roadmap and requirements in `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
+- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (planning milestone tags **`v1.0`** … **`v1.2`** track GSD planning closes, not only Hex semver).
+- **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
+- **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
+- **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption.
+- **Planning:** Milestone **v1.2** archived 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. Requirements for the **next** milestone will appear when `/gsd-new-milestone` recreates `.planning/REQUIREMENTS.md`.
 
 ## Requirements
 
@@ -48,7 +41,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_None — v1.2 milestone closed._
+_None — awaiting `/gsd-new-milestone` for the next slice._
 
 ### Out of Scope
 
@@ -117,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — Phase 10 complete (verify coverage + doc contracts + CI); Phase 11 next.*
+*Last updated: 2026-04-23 after v1.2 milestone close (Phases 9–11 shipped and archived).*

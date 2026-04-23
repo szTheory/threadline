@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: — Before-values & developer tooling
-status: milestone_complete
+milestone: —
+milestone_name: Next milestone (undefined — use /gsd-new-milestone)
+status: awaiting_next_milestone
 last_updated: "2026-04-23T22:30:00.000Z"
 last_activity: 2026-04-23
 progress:
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone **v1.2** complete — last shipped phase **11** (backfill / continuity, TOOL-02).
+**Current focus:** v1.2 **shipped and archived** (2026-04-23). Open the next cycle with **`/gsd-new-milestone`** when ready.
 
 ## Current Position
 
@@ -55,7 +55,7 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.2 — 2026-04-23
 
-**Next:** `/gsd-new-milestone` or `/gsd-progress` — plan the next milestone when ready.
+**Next:** `/gsd-new-milestone` — author requirements and roadmap for the next version; `/gsd-progress` for a status snapshot.
 
 **Completed Phase:** 11 (Backfill / continuity) — 2026-04-23
 
