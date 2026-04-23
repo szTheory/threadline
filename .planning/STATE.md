@@ -1,32 +1,46 @@
-
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+stopped_at: "Phase 2 not started"
+last_updated: "2026-04-23T12:00:00.000Z"
+last_activity: 2026-04-23
+progress:
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 3
+  percent: 25
+---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-22)
+See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 1 — Capture Foundation
+**Current focus:** Phase 2 — Semantics Layer
 
 ## Current Position
 
-Phase: 1 of 4 (Capture Foundation)
+Phase: 2
 
-Plan: **Verification needed** — `mix new` scaffold and capture-related modules exist in-repo from automated runs, but Phase 1 **success criteria** in `ROADMAP.md` are not yet maintainer-verified (PostgreSQL test DB required for `mix test`).
+Plan: Not started (awaiting `/gsd-discuss-phase` or `/gsd-plan-phase` for 02)
 
-Status: Stabilize → prove tests → close Plan `01-03` (CI + CONTRIBUTING)
+Status: Phase 1 complete — roadmap advanced 2026-04-23
 
-Last activity: 2026-04-23 — Context pack + `gsd-sdk init`; Phase 1 plans under `.planning/phases/01-capture-foundation/`
+Last activity: 2026-04-23
 
-Progress: [███░░░░░░░] ~30% (estimated — code present, gates not re-audited)
+Progress: [████░░░░░░] Phase 1 done; Phase 2+ not started
 
 ## Performance metrics
 
 **Velocity:**
 
-- Total plans completed: *not confirmed* (do not trust removed interim SUMMARY files)
+- Total plans completed: 3 (Phase 1: 01-01, 01-02, 01-03)
 - Average duration: —
 - Total execution time: —
 
@@ -34,29 +48,27 @@ Progress: [███░░░░░░░] ~30% (estimated — code present, gat
 
 | Phase | Plans | Notes |
 |-------|-------|-------|
-| 1 | 01-01 .. 01-03 | Execute or re-run `01-01` to regenerate `gate-01-01.md` with real evidence |
+| 1 | 01-01 .. 01-03 | Complete — `gate-01-01.md`, capture modules, CI, CONTRIBUTING |
 
 ## Accumulated context
 
 ### Decisions
 
-Follow `01-CONTEXT.md` and `PROJECT.md` Key Decisions. Re-validate any capture-substrate choice against current Carbonite docs before treating Plan `01-01` as closed.
+Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per `gate-01-01.md`. Phase 2 work should not reintroduce Carbonite as a runtime dependency without a new ADR.
 
 ### Pending todos
 
-1. `createdb threadline_test` (or `MIX_ENV=test mix ecto.create`) so integration tests can run.
-2. `mix test` / `mix ci.all` green locally.
-3. Regenerate **`gate-01-01.md`** if the prior artifact was removed — keep maintainer-reviewed links and dates.
-4. Finish **Plan 01-03** (GitHub Actions + CONTRIBUTING) if not already merged.
+1. Plan Phase 2 (`02-semantics-layer`): discuss → plan → execute.
+2. Keep `MIX_ENV=test mix ci.all` green when changing semantics APIs.
 
 ### Blockers / concerns
 
-- Local / CI PostgreSQL availability for trigger integration tests.
+- None for Phase 1 closure. Phase 2 still needs schema/API design for `AuditAction`, `ActorRef`, Plug/Oban context.
 
 ## Session continuity
 
 Last session: 2026-04-23
 
-Stopped at: Planning + library scaffold present; **re-verify** Phase 1 before ticking roadmap boxes.
+Stopped at: Phase 1 marked complete on roadmap — begin Phase 2 when ready.
 
 Resume file: None

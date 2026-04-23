@@ -42,7 +42,6 @@ defmodule Threadline.MixProject do
       {:postgrex, "~> 0.17"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.2"},
-      {:carbonite, "~> 0.16"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]

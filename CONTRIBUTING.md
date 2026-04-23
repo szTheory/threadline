@@ -43,6 +43,13 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. Job keys **`verify-format`*
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
 
+## Submitting a Pull Request
+
+1. Fork the repository and create a branch from `main`.
+2. Make your changes and run the full gate: `mix ci.all` (requires PostgreSQL — see Setup above).
+3. Open a pull request against `main`. Describe what changed and why.
+4. All three CI checks (`verify-format`, `verify-credo`, `verify-test`) must pass before merge.
+
 ## Branch protection (maintainers)
 
 In GitHub repository settings, require these checks on `main` (names match the workflow `name:` fields or job summaries as shown in the PR UI):

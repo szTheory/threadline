@@ -7,6 +7,8 @@
     "plan_checker": true,
     "verifier": true,
     "auto_advance": true,
-    "skip_discuss": false
-  }
+    "skip_discuss": false,
+    "_auto_chain_active": false
+  },
+  "model_profile": "balanced"
 }

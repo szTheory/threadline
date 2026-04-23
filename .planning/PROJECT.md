@@ -12,18 +12,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] **Capture layer (Phase 1)** — Custom `Threadline.Capture` trigger SQL, `mix threadline.install` / `mix threadline.gen.triggers`, integration tests on PostgreSQL, GitHub Actions CI, CONTRIBUTING. Validated in Phase 1: Capture Foundation (2026-04-23).
 
 ### Active
 
-- [ ] **Capture layer** — PostgreSQL trigger-backed audit of row mutations (INSERT/UPDATE/DELETE) into a central `audit_changes` table linked to `audit_transactions`; evaluated against Carbonite as the likely substrate
-- [ ] **Semantics layer** — first-class `AuditAction` events with actor, intent, reason, and correlation IDs; one blessed way to attach context from Plug/Phoenix requests and Oban jobs
+- [ ] **Semantics layer** — first-class `AuditAction` events with actor, intent, reason, and correlation IDs; Plug/Phoenix and Oban context binding (Phase 2)
 - [ ] **Actor propagation** — `ActorRef` model that covers user, admin, service account, background job, system, and anonymous actors without collapsing them
 - [ ] **SQL-native storage** — JSONB columns for changed data, no opaque binary formats; operators can query without Elixir helpers
 - [ ] **Hex package `threadline`** — published on Hex, Elixir ≥ 1.15, OTP ≥ 26, compatible with Phoenix LTS and Ecto 3.x
-- [ ] **Migration helpers** — `mix threadline.install` and `mix threadline.gen.triggers` to set up audit schema and triggers
-- [ ] **CI pipeline** — GitHub Actions with `mix verify.format`, `mix verify.credo`, `mix verify.test`, and `mix ci.all` entrypoints; stable job IDs
-- [ ] **README + domain reference** — vision, architecture overview, domain language, and link to domain reference doc; CONTRIBUTING skeleton
+- [ ] **README + domain reference** — vision, architecture overview, domain language, and link to domain reference doc beyond CONTRIBUTING
 
 ### Out of Scope
 
@@ -48,7 +45,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Engineering baseline:** The project follows the same OSS quality bar as sibling libraries (Scrypath, Sigra): `mix verify.*` / `mix ci.*` entrypoints, doc contract tests once public docs exist, stable CI job IDs, release automation aligned to Hex publishing workflow.
 
-**Capture mechanism decision pending:** Phase 1 research must validate whether to build on Carbonite directly, fork/extend it, or implement trigger infrastructure independently. Do not assume the answer before the research gate closes.
+**Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/phases/01-capture-foundation/gate-01-01.md`.
 
 ## Constraints
 
@@ -56,19 +53,19 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **SQL-native**: no Erlang binary or opaque blob storage; all audit data must be introspectable with plain SQL
 - **Correct by default**: capture must not depend on developers remembering to call library functions on every write path
 - **OSS quality bar**: named `mix verify.*` / `mix ci.*` entrypoints; honest `mix test` (no silent exclusions); stable GitHub Actions job IDs
-- **Capture mechanism**: TBD after Phase 1 research — do not lock architecture before the gate
+- **Capture mechanism**: Path B (custom triggers) — see gate-01-01.md; PgBouncer transaction-mode safe
 - **No WAL/CDC as primary backend**: logical replication adds operational surface area incompatible with Threadline's "batteries-included" promise at v0.x
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Trigger-backed capture (not application-hook-based) | Harder to bypass than PaperTrail-style opt-in; correctness is the core value | — Pending validation |
-| Carbonite as likely capture substrate | Best-maintained trigger library in Elixir ecosystem; covers INSERT/UPDATE/DELETE, Ecto.Multi, outbox | — Pending Phase 1 research gate |
+| Trigger-backed capture (not application-hook-based) | Harder to bypass than PaperTrail-style opt-in; correctness is the core value | ✓ Validated (Phase 1) |
+| Carbonite vs custom (Phase 1 gate) | Carbonite metadata path uses patterns incompatible with D-06; Threadline needs D-05 schema | ✓ Path B: custom `TriggerSQL` (see gate-01-01.md) |
 | Separate capture vs. semantics models | Actions ≠ changes; transactions ≠ requests; collapsing them is how prior art created gaps | ✓ Good (design principle) |
 | JSONB + typed columns, no binary formats | Avoids YAML/Erlang-term upgrade pain documented in Audited and ExAudit | ✓ Good (design principle) |
 | Single package `threadline` to start | Avoid premature umbrella/companion split before API is known; revisit after v0.1 | — Pending |
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
 
 ---
-*Last updated: 2026-04-22 after project initialization*
+*Last updated: 2026-04-23 after Phase 1 completion*

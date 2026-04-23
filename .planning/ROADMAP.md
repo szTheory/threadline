@@ -2,11 +2,11 @@
 
 ## Overview
 
-Threadline builds from correctness upward: establish trigger-backed row capture first (Phase 1), layer on application-level action semantics (Phase 2), add the query and observability surface (Phase 3), then document and publish to Hex (Phase 4). Each phase delivers a coherent, independently verifiable capability. The capture mechanism decision (Carbonite vs. custom) is a Phase 1 research gate — nothing downstream locks before that closes.
+Threadline builds from correctness upward: establish trigger-backed row capture first (Phase 1), layer on application-level action semantics (Phase 2), add the query and observability surface (Phase 3), then document and publish to Hex (Phase 4). Each phase delivers a coherent, independently verifiable capability. Phase 1 closed the capture substrate decision (Path B: custom `Threadline.Capture` triggers — see `gate-01-01.md`); downstream phases build on that contract.
 
 ## Phases
 
-- [ ] **Phase 1: Capture Foundation** - Trigger-backed row capture with correct PgBouncer-safe schema, migration helpers, and CI pipeline
+- [x] **Phase 1: Capture Foundation** - Trigger-backed row capture with correct PgBouncer-safe schema, migration helpers, and CI pipeline (completed 2026-04-23)
 - [ ] **Phase 2: Semantics Layer** - AuditAction, typed ActorRef, AuditContext, Plug integration, and Oban job context binding
 - [ ] **Phase 3: Query & Observability** - Query API, health checks, and telemetry events
 - [ ] **Phase 4: Documentation & Release** - README, domain reference, ExDoc strings, and Hex publish readiness
@@ -26,9 +26,9 @@ Threadline builds from correctness upward: establish trigger-backed row capture 
 **Plans**: 3 defined
 
 Plans:
-- [ ] 01-01: Carbonite Research Gate — binary decision (Carbonite or custom triggers); produces `gate-01-01.md` when executed
-- [ ] 01-02: Library Scaffold + Schema + Capture Infrastructure — working trigger capture, Mix tasks, integration tests
-- [ ] 01-03: CI Pipeline + CONTRIBUTING.md — passing GitHub Actions CI, `mix ci.all` green
+- [x] 01-01: Carbonite Research Gate — binary decision (Carbonite or custom triggers); produces `gate-01-01.md` when executed
+- [x] 01-02: Library Scaffold + Schema + Capture Infrastructure — working trigger capture, Mix tasks, integration tests
+- [x] 01-03: CI Pipeline + CONTRIBUTING.md — passing GitHub Actions CI, `mix ci.all` green
 
 ### Phase 2: Semantics Layer
 **Goal**: Application code can record who did what and why, with full actor identity, request context, and correlation IDs that survive async boundaries
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Foundation | 0/3 (verify locally) | In progress | — |
+| 1. Capture Foundation | 3/3 | Complete    | 2026-04-23 |
 | 2. Semantics Layer | 0/? | Not started | - |
 | 3. Query & Observability | 0/? | Not started | - |
 | 4. Documentation & Release | 0/? | Not started | - |
