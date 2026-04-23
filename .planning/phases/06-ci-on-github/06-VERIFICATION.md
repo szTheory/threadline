@@ -45,10 +45,12 @@ Run ID **24843225885** — all three jobs **success** for the SHA above.
 
 ```bash
 gh run list --repo szTheory/threadline --workflow=ci.yml --branch=main --limit=5
-gh run view 24843225885 --repo szTheory/threadline --json conclusion,headSha,url
+gh run view RUN_ID --repo szTheory/threadline --json conclusion,headSha,url
 ```
 
-`conclusion`: `success`, `headSha`: matches `origin/main` above.
+Replace `RUN_ID` with **24843225885** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
+
+`gh run view 24843225885 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for that close-out.
 
 ### Run URL
 
