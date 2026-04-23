@@ -10,19 +10,27 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, and **v1.2 — Before-values & developer tooling** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/` (v1.2 execution artifacts still under `.planning/phases/09-*` … `11-*` until optionally archived with `/gsd-cleanup`).
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, and **v1.2 — Before-values & developer tooling** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. v1.2 phase execution directories under `.planning/phases/` were cleared when **v1.3** opened; use milestone archives and git history for v1.2 execution detail.
 
-## Next milestone
+## Current Milestone: v1.3 — Production adoption (redaction, retention, export)
 
-The next product slice is **not** defined in `.planning/` yet. Run `/gsd-new-milestone` to capture goals, a fresh `.planning/REQUIREMENTS.md`, and phased work on `ROADMAP.md`.
+**Goal:** Remove the main blockers to **production onboarding**—sensitive data in audit JSON, unbounded table growth, and “get rows out for ops”—while keeping capture **correct-by-default** and **SQL-native**.
+
+**Target features:**
+
+- **Redaction at capture time** — per-table column exclude and mask rules applied in generated triggers so raw secrets never hit `audit_changes` JSONB.
+- **Retention + batched purge** — configurable age/window semantics for `AuditChange` rows and a batch purge entrypoint suitable for cron-style operation.
+- **Export** — documented public CSV and JSON export for filtered audit rows, aligned with existing query patterns where practical.
+
+**Planning artifacts:** `.planning/REQUIREMENTS.md` (REQ-IDs), `.planning/ROADMAP.md` (Phases **12–14**). Next step: `/gsd-discuss-phase 12` or `/gsd-plan-phase 12`.
 
 ## Current state
 
-- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (planning milestone tags **`v1.0`** … **`v1.2`** track GSD planning closes, not only Hex semver).
+- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (planning milestone tags **`v1.0`** … **`v1.3`** track GSD planning cycles, not only Hex semver). **0.2.0** (or next minor) remains the intended signal once v1.3 behavior is shipped and verified.
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption.
-- **Planning:** Milestone **v1.2** archived 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. Requirements for the **next** milestone will appear when `/gsd-new-milestone` recreates `.planning/REQUIREMENTS.md`.
+- **Planning:** Milestone **v1.3** opened 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. Requirements: `.planning/REQUIREMENTS.md`.
 
 ## Requirements
 
@@ -41,7 +49,11 @@ The next product slice is **not** defined in `.planning/` yet. Run `/gsd-new-mil
 
 ### Active
 
-_None — awaiting `/gsd-new-milestone` for the next slice._
+_Milestone **v1.3** — see `.planning/REQUIREMENTS.md` for REDN / RETN / EXPO checkboxes._
+
+- [ ] **REDN-01 / REDN-02** — Capture-time column exclude + mask via trigger generation.
+- [ ] **RETN-01 / RETN-02** — Retention policy + batched purge entrypoint.
+- [ ] **EXPO-01 / EXPO-02** — CSV and JSON export for filtered audit rows.
 
 ### Out of Scope
 
@@ -110,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 after v1.2 milestone close (Phases 9–11 shipped and archived).*
+*Last updated: 2026-04-23 after opening milestone v1.3 (production adoption: redaction, retention, export).*
