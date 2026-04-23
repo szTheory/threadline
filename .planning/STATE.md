@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
 status: executing
-stopped_at: Phase 8 verification complete
-last_updated: "2026-04-23T19:30:00.000Z"
+stopped_at: Phase 7 context gathered
+last_updated: "2026-04-23T15:39:14.780Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 75
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -69,11 +69,11 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 ## Session continuity
 
-Last session: Phase 8 execute-phase
+Last session: --stopped-at
 
-Stopped at: Phase complete — tracking corrected after `phase.complete`
+Stopped at: Phase 7 context gathered
 
-Resume file: —
+Resume file: --resume-file
 
 **Completed Phase:** 8 (Publish main & verify CI) — 2/2 plans — 2026-04-23
 
