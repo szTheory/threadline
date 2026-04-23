@@ -75,7 +75,12 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
 
   describe "per-table capture with store_changed_from" do
     setup %{test: _} do
-      sql = TriggerSQL.install_function_for_table(@table, store_changed_from: true, except_columns: [])
+      sql =
+        TriggerSQL.install_function_for_table(@table,
+          store_changed_from: true,
+          except_columns: []
+        )
+
       Repo.query!(sql)
       Repo.query!(TriggerSQL.create_trigger(@table, :per_table))
       on_exit(fn -> Repo.query!(TriggerSQL.drop_trigger(@table)) end)
