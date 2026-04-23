@@ -4,6 +4,11 @@ defmodule Threadline.MixProject do
   @version "0.1.0-dev"
   @source_url "https://github.com/szTheory/threadline"
 
+  def cli do
+    # Run the whole CI chain in :test so `test` picks up config/test.exs (Postgres, repo).
+    [preferred_envs: ["ci.all": :test]]
+  end
+
   def project do
     [
       app: :threadline,
@@ -56,7 +61,7 @@ defmodule Threadline.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md)
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
 

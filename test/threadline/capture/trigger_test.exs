@@ -1,8 +1,6 @@
 defmodule Threadline.Capture.TriggerTest do
   use Threadline.DataCase
 
-  import Ecto.Query
-
   setup_all do
     # Create a temporary audited table for trigger testing
     Repo.query!("""
@@ -25,7 +23,8 @@ defmodule Threadline.Capture.TriggerTest do
   end
 
   setup do
-    Repo.query!("DELETE FROM test_audit_target")
+    # TRUNCATE avoids row-level DELETE triggers (DELETE would create audit noise).
+    Repo.query!("TRUNCATE test_audit_target CASCADE")
     :ok
   end
 
