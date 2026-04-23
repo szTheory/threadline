@@ -39,7 +39,7 @@ Integration tests use a **real** database and triggers; they are not excluded fr
 
 ## CI parity and `act`
 
-GitHub Actions workflow: `.github/workflows/ci.yml`. Job keys **`verify-format`**, **`verify-credo`**, and **`verify-test`** are stable identifiers — do not rename them (used by docs and local tooling).
+GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Job keys **`verify-format`**, **`verify-credo`**, and **`verify-test`** are stable identifiers — do not rename them (used by docs and local tooling).
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
 
