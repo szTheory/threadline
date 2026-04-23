@@ -142,6 +142,12 @@ defmodule Threadline.QueryTest do
   # ── timeline/1 ────────────────────────────────────────────────────────────
 
   describe "timeline/1 — QUERY-03" do
+    test "rejects unknown filter keys with ArgumentError" do
+      assert_raise ArgumentError, ~r/allowed|repo/, fn ->
+        Threadline.timeline([repo: @repo, not_a_real_filter: true], [])
+      end
+    end
+
     test "returns all AuditChange records when no filters given" do
       txn = insert_transaction()
       insert_change(txn, %{table_name: "users"})

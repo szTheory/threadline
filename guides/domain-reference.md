@@ -51,6 +51,15 @@ Operators cap table growth with a **global retention window** under **`config :t
 - **Long transactions:** multiple `AuditChange` rows under one `audit_transactions` row can carry **different** `captured_at` values; retention is evaluated **per change row**, not “whole transaction expires as one timestamp.”
 - **Empty parents:** after eligible changes are removed, the default purge path deletes **`audit_transactions`** rows that have **no** remaining child changes (optional `delete_empty_transactions: false` for transitional installs). See `Threadline.Retention` / `mix threadline.retention.purge`.
 
+## Export (Phase 14)
+
+Read-only exports for operator playbooks (“export then purge”, cross-checks, ad-hoc analysis).
+
+- **Filter vocabulary:** identical to `Threadline.Query.timeline/2` — `:repo`, `:table`, `:actor_ref`, `:from`, `:to`. Bounds apply to **`AuditChange.captured_at`** (inclusive). **`AuditTransaction.occurred_at`** appears inside exported transaction context and can differ from `captured_at` on the same change row.
+- **APIs:** `Threadline.Export` (`to_csv_iodata/2`, `to_json_document/2`, `count_matching/2`, `stream_changes/2`), `Threadline.export_csv/2`, `Threadline.export_json/2`, and **`mix threadline.export`** (see task `@moduledoc`).
+- **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
+- **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
+
 ## Brownfield continuity
 
 Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).

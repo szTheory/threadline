@@ -15,13 +15,13 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (12–14
 
 ### Retention & purge
 
-- [ ] **RETN-01**: Maintainer can configure a **retention window** (e.g. maximum age or cutoff timestamp semantics — exact model per phase plan) for `AuditChange` records, scoped and documented so operators know what will be deleted.
-- [ ] **RETN-02**: Maintainer can run a **batched purge** entrypoint (Mix task and/or public API) that deletes expired `AuditChange` rows according to **RETN-01**, with **configurable batch size** and documented behavior for production use (locks, repeatability, safe re-runs).
+- [x] **RETN-01**: Maintainer can configure a **retention window** (e.g. maximum age or cutoff timestamp semantics — exact model per phase plan) for `AuditChange` records, scoped and documented so operators know what will be deleted.
+- [x] **RETN-02**: Maintainer can run a **batched purge** entrypoint (Mix task and/or public API) that deletes expired `AuditChange` rows according to **RETN-01**, with **configurable batch size** and documented behavior for production use (locks, repeatability, safe re-runs).
 
 ### Export
 
-- [ ] **EXPO-01**: Caller can obtain a **CSV** representation of a **filtered** set of audit rows (minimum: `AuditChange` rows; filter options aligned with or composed from existing query patterns such as `Threadline.timeline/1` — exact API per phase plan) via a documented public function/module.
-- [ ] **EXPO-02**: Caller can obtain a **JSON** representation of the **same** filtered set via a documented public function/module, suitable for tooling and one-off investigations.
+- [x] **EXPO-01**: Caller can obtain a **CSV** representation of a **filtered** set of audit rows (minimum: `AuditChange` rows; filter options aligned with or composed from existing query patterns such as `Threadline.timeline/1` — exact API per phase plan) via a documented public function/module.
+- [x] **EXPO-02**: Caller can obtain a **JSON** representation of the **same** filtered set via a documented public function/module, suitable for tooling and one-off investigations.
 
 ## Future Requirements
 
@@ -52,10 +52,10 @@ _Deferred past v1.3._
 |-------------|-------|--------|
 | REDN-01 | Phase 12 | Complete |
 | REDN-02 | Phase 12 | Complete |
-| RETN-01 | Phase 13 | Pending |
-| RETN-02 | Phase 13 | Pending |
-| EXPO-01 | Phase 14 | Pending |
-| EXPO-02 | Phase 14 | Pending |
+| RETN-01 | Phase 13 | Complete |
+| RETN-02 | Phase 13 | Complete |
+| EXPO-01 | Phase 14 | Complete |
+| EXPO-02 | Phase 14 | Complete |
 
 **Coverage:**
 

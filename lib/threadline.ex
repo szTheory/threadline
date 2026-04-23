@@ -98,6 +98,22 @@ defmodule Threadline do
   """
   def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
 
+  @doc """
+  Exports matching audit changes as CSV (same `filters` / `opts` as `Threadline.Query.timeline/2`).
+
+  See `Threadline.Export` and `Threadline.Query.timeline/2`.
+  """
+  def export_csv(filters \\ [], opts \\ []), do: Threadline.Export.to_csv_iodata(filters, opts)
+
+  @doc """
+  Exports matching audit changes as JSON (same `filters` / `opts` as `Threadline.Query.timeline/2`).
+
+  Pass `json_format: :ndjson` in `opts` for newline-delimited objects. See `Threadline.Export`
+  and `Threadline.Query.timeline/2`.
+  """
+  def export_json(filters \\ [], opts \\ []),
+    do: Threadline.Export.to_json_document(filters, opts)
+
   defp validate_repo(nil), do: {:error, :missing_repo}
   defp validate_repo(_repo), do: :ok
 

@@ -94,6 +94,10 @@ Threadline resolves a validated **global retention window** from **`config :thre
 - **Monitoring:** inspect application logs for `threadline retention purge batch` (includes `deleted_changes`, `batch`, running totals) or wrap `purge/1` with your own telemetry.
 - **Dry-run:** `mix threadline.retention.purge --dry-run` prints eligible row counts before you enable **`enabled: true`** and run a live delete.
 
+### Export
+
+Operators can dump **`AuditChange`** rows as CSV or JSON using the **same filter vocabulary** as `Threadline.timeline/2` (`:table`, `:from`, `:to`, `:actor_ref`, `:repo`). Use **`Threadline.Export`** from code, **`Threadline.export_csv/2`** / **`Threadline.export_json/2`** from the top-level API, or **`mix threadline.export`** for file output. Exports default to a bounded row count with explicit **`truncated`** / **`returned_count`** metadata; use **`json_format: :ndjson`** for line-oriented pipelines. Read‑only — no destructive gate. Details: [`guides/domain-reference.md`](guides/domain-reference.md#export-phase-14).
+
 ## Quick Start
 
 ### 1. Add the Plug to your router or endpoint

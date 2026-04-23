@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ◆ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
+- ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
 - ✅ **v1.2 — Before-values & developer tooling** — Phases 9–11 (shipped 2026-04-23) — [full archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (shipped 2026-04-23) — [full archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
@@ -110,4 +110,4 @@ Continues phase numbering after v1.2 (last shipped phase **11**). Full requireme
 | 11. Backfill / continuity | v1.2 | 2/2 | Complete | 2026-04-23 |
 | 12. Redaction at capture time | v1.3 | 2/2 | Complete | 2026-04-23 |
 | 13. Retention & batched purge | v1.3 | 2/2 | Complete | 2026-04-23 |
-| 14. Export (CSV & JSON) | v1.3 | — | Not started | — |
+| 14. Export (CSV & JSON) | v1.3 | 2/2 | Complete | 2026-04-23 |

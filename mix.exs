@@ -41,6 +41,7 @@ defmodule Threadline.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, "~> 0.17"},
       {:jason, "~> 1.4"},
+      {:nimble_csv, "~> 1.2"},
       {:plug, "~> 1.15"},
       {:telemetry, "~> 1.2"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
@@ -104,6 +105,7 @@ defmodule Threadline.MixProject do
       groups_for_modules: [
         "Core API": [
           Threadline,
+          Threadline.Export,
           Threadline.Semantics.ActorRef,
           Threadline.Semantics.AuditContext
         ],
@@ -123,7 +125,9 @@ defmodule Threadline.MixProject do
           Mix.Tasks.Threadline.Install,
           Mix.Tasks.Threadline.Gen.Triggers,
           Mix.Tasks.Threadline.VerifyCoverage,
-          Mix.Tasks.Threadline.Continuity
+          Mix.Tasks.Threadline.Continuity,
+          Mix.Tasks.Threadline.Retention.Purge,
+          Mix.Tasks.Threadline.Export
         ]
       ]
     ]
