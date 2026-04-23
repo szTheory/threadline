@@ -2,10 +2,28 @@ defmodule Threadline.Semantics.AuditAction do
   @moduledoc """
   Ecto schema for the `audit_actions` table.
 
-  An AuditAction represents a semantic application-level event: who did what
-  and why. It is distinct from `AuditTransaction` (which groups DB-level row
-  changes) and may be linked to one or more transactions via
-  `audit_transactions.action_id`.
+  An `AuditAction` represents a semantic application-level event — who did
+  what and why. It is distinct from `AuditTransaction` (which groups DB-level
+  row changes produced by triggers) and may be linked to one or more
+  transactions via `audit_transactions.action_id`.
+
+  ## Name convention
+
+  Action names use the `"<category>.<verb>"` pattern, for example:
+
+  - `"member.role_changed"`
+  - `"order.placed"`
+  - `"account.deactivated"`
+  - `"document.archived"`
+
+  The `:category` and `:verb` fields store the components separately so you
+  can filter by either dimension in queries.
+
+  ## Usage
+
+  Create actions via `Threadline.record_action/2`, which inserts the semantic
+  row using the provided `:repo`. Linking captured transactions to an action is
+  handled separately when you associate `audit_transactions.action_id`.
   """
 
   use Ecto.Schema
