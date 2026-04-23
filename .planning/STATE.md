@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
 status: planning
-last_updated: "2026-04-23T22:30:00.000Z"
-last_activity: 2026-04-23 — Phase 14 discuss complete; `14-CONTEXT.md` captured.
+last_updated: "2026-04-23T20:57:32.306Z"
+last_activity: 2026-04-23 — Phase 14 context gathered (`14-CONTEXT.md`).
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
+  total_plans: 6
   completed_plans: 4
-  percent: 100
+  percent: 67
 ---
 
 # Project State
@@ -65,4 +65,4 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Completed phases:** 12 (Redaction) — 2026-04-23; 13 (Retention & batched purge) — 2/2 plans — 2026-04-23
 
-**Planned Phase:** 14 (export) — not started
+**Planned Phase:** 14 (Export (CSV & JSON)) — 2 plans — 2026-04-23T20:57:32.292Z
