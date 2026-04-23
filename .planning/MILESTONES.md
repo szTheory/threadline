@@ -8,7 +8,7 @@ Entries are newest first.
 
 **Phases completed:** 15–18 (adoption slice; no per-phase execution trees — `gsd-sdk query phases.clear` at milestone open).
 
-**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`.
+**Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`. **Living:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` until v1.5 opens.
 
 **What is next:** Tag **`v0.2.0`** and `mix hex.publish` when ready; **`/gsd-new-milestone`** for **v1.5**.
 
