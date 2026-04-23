@@ -32,14 +32,14 @@ The README badge alone is insufficient per `06-CONTEXT` D-11 — record a green 
 
 ### origin/main SHA
 
-SHA: `4d0a5b6514715ec3cbaf8fb34b98ee8f1bfbaa78`  
-(output of: `git fetch origin main && git rev-parse origin/main` on 2026-04-23)
+SHA: `d4b85f7f09812db0251d5596adb3dd5716d30f94`  
+(output of: `git fetch origin main && git rev-parse origin/main` after Phase 8 close-out commits)
 
 ### GitHub Actions run
 
 Workflow file: **ci.yml**. Required jobs (stable keys): **verify-format**, **verify-credo**, **verify-test**.
 
-Run ID **24843225885** — all three jobs **success** for the SHA above.
+Run ID **24843443515** — all three jobs **success** for the SHA above (includes Nyquist contract literal fix).
 
 ### gh audit (preferred)
 
@@ -48,14 +48,14 @@ gh run list --repo szTheory/threadline --workflow=ci.yml --branch=main --limit=5
 gh run view RUN_ID --repo szTheory/threadline --json conclusion,headSha,url
 ```
 
-Replace `RUN_ID` with **24843225885** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
+Replace `RUN_ID` with **24843443515** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
 
-`gh run view 24843225885 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for that close-out.
+`gh run view 24843443515 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for current `origin/main`.
 
 ### Run URL
 
-https://github.com/szTheory/threadline/actions/runs/24843225885
+https://github.com/szTheory/threadline/actions/runs/24843443515
 
 ## Gaps
 
-- **CI-02 (live):** Resolved — green run **24843225885** on SHA `4d0a5b6514715ec3cbaf8fb34b98ee8f1bfbaa78` (Phase 8).
+- **CI-02 (live):** Resolved — green run **24843443515** on SHA `d4b85f7f09812db0251d5596adb3dd5716d30f94` (Phase 8; supersedes earlier proof runs on prior SHAs).

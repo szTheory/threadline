@@ -54,7 +54,7 @@ completed: 2026-04-23
 ## Accomplishments
 
 - Re-ran CI-01 contract greps on `.github/workflows/ci.yml` — all five checks pass.
-- Confirmed green workflow run **24843225885** with `conclusion: success` and `headSha` `4d0a5b6514715ec3cbaf8fb34b98ee8f1bfbaa78` equal to `git rev-parse origin/main` before documentation commits (see follow-up commits if SHA advanced after push).
+- Confirmed green workflow runs with `headSha` matching `origin/main` at each close-out step; final recorded proof: run **24843443515** on SHA `d4b85f7f09812db0251d5596adb3dd5716d30f94` (after restoring the `gh run view RUN_ID ...` template required by `Phase06NyquistCIContractTest`).
 - CI-03 greps on `README.md` and `CONTRIBUTING.md` pass.
 - `REQUIREMENTS.md`: REPO-03 and CI-02 checkboxes set `[x]`; traceability rows updated.
 - `06-01-SUMMARY.md` / `06-02-SUMMARY.md`: removed `CI-02` from `requirements-completed`; clarified `provides` vs Phase 8 live CI-02.
