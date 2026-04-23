@@ -23,12 +23,12 @@ Threadline builds from correctness upward: establish trigger-backed row capture 
   3. Writes made directly via SQL or `Ecto.Repo` calls (bypassing application-layer callbacks) are still captured
   4. Running `mix threadline.install` twice is safe — no data corruption, no migration failure
   5. `mix ci.all` passes: `verify.format`, `verify.credo`, and `verify.test` all green; CONTRIBUTING.md skeleton exists
-**Plans**: TBD
+**Plans**: 3 defined
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01: Carbonite Research Gate — binary decision (Carbonite or custom triggers); produces gate-01-01.md
+- [ ] 01-02: Library Scaffold + Schema + Capture Infrastructure — working trigger capture, Mix tasks, integration tests
+- [ ] 01-03: CI Pipeline + CONTRIBUTING.md — passing GitHub Actions CI, mix ci.all green
 
 ### Phase 2: Semantics Layer
 **Goal**: Application code can record who did what and why, with full actor identity, request context, and correlation IDs that survive async boundaries

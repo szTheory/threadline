@@ -177,15 +177,15 @@
 | CI-05 | Phase 1 | Pending |
 | CI-06 | Phase 1 | Pending |
 | CI-07 | Phase 1 | Pending |
-| DOC-01 | Phase 3 | Pending |
-| DOC-02 | Phase 3 | Pending |
-| DOC-03 | Phase 3 | Pending |
+| DOC-01 | Phase 4 | Pending |
+| DOC-02 | Phase 4 | Pending |
+| DOC-03 | Phase 4 | Pending |
 | DOC-04 | Phase 1 | Pending |
-| DOC-05 | Phase 3 | Pending |
+| DOC-05 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 47 total
-- Mapped to phases: 47
+- v1 requirements: 51 total
+- Mapped to phases: 51
 - Unmapped: 0 ✓
 
 ---
