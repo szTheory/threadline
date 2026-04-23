@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
-status: ready_to_plan
-last_updated: "2026-04-23T20:15:00.000Z"
-last_activity: 2026-04-23 — Phase 12 execution complete (redaction at capture time)
+status: planning
+last_updated: "2026-04-23T20:24:10.208Z"
+last_activity: "2026-04-23 — Phase 12 shipped in repo (TriggerSQL redaction, `mix threadline.gen.triggers` + `:trigger_capture`, docs, integration tests)."
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 33
+  percent: 100
 ---
 
 # Project State
