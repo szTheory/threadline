@@ -46,6 +46,12 @@ mix ecto.migrate
 - Existing databases: run `ALTER TABLE audit_changes ADD COLUMN IF NOT EXISTS changed_from jsonb;` then migrate or refresh triggers.
 - To capture sparse prior values on UPDATE for specific tables, regenerate triggers with `mix threadline.gen.triggers --tables posts --store-changed-from` and optional `--except-columns col1,col2` (exact flag spelling).
 
+## Brownfield adoption
+
+- Enabling capture on tables that **already contain rows** leaves an honest **gap** before the first audited mutation: `audit_changes` stays empty until then, and `Threadline.history/3` may return `[]` for existing primary keys until that first write.
+- Full semantics, compliance snapshot guidance, and the operator checklist live in [`guides/brownfield-continuity.md`](guides/brownfield-continuity.md) — read that before cutover.
+- Use `mix threadline.continuity` with **`--dry-run`** to print cutover steps without extra validation, or pass **`--table <name>`** after triggers are installed to assert readiness via `Threadline.Continuity`.
+
 ## Maintainer checks
 
 Hosts configure which audited public tables must have Threadline capture triggers installed:

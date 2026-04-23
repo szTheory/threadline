@@ -38,6 +38,10 @@ An `AuditTransaction` is the capture substrate’s grouping record for a single 
 
 An `AuditChange` is one row-level mutation on an audited table: schema/name, primary key map, operation (`op`), optional `data_after`, changed field list, and `captured_at`. Multiple changes in one DB transaction share the same `transaction_id`.
 
+## Brownfield continuity
+
+Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).
+
 ## AuditAction
 
 `AuditAction` rows represent application-level audit events you insert via `Threadline.record_action/2`. They are independent of trigger capture until you associate them with transactions through `action_id`.

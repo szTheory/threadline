@@ -92,6 +92,7 @@ defmodule Threadline.MixProject do
       extras: [
         "README.md",
         "guides/domain-reference.md",
+        "guides/brownfield-continuity.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
@@ -110,6 +111,7 @@ defmodule Threadline.MixProject do
           Threadline.Plug,
           Threadline.Job,
           Threadline.Health,
+          Threadline.Continuity,
           Threadline.Telemetry
         ],
         Schemas: [
@@ -120,7 +122,8 @@ defmodule Threadline.MixProject do
         "Mix Tasks": [
           Mix.Tasks.Threadline.Install,
           Mix.Tasks.Threadline.Gen.Triggers,
-          Mix.Tasks.Threadline.VerifyCoverage
+          Mix.Tasks.Threadline.VerifyCoverage,
+          Mix.Tasks.Threadline.Continuity
         ]
       ]
     ]
