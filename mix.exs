@@ -57,10 +57,20 @@ defmodule Threadline.MixProject do
     ]
   end
 
+  defp doc_source_ref do
+    case Version.parse(@version) do
+      {:ok, %Version{pre: []}} -> "v#{@version}"
+      _ -> "main"
+    end
+  end
+
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
+      },
       files: ~w(lib guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
@@ -68,7 +78,7 @@ defmodule Threadline.MixProject do
   defp docs do
     [
       main: "Threadline",
-      source_ref: "main",
+      source_ref: doc_source_ref(),
       source_url: @source_url,
       extras: [
         "README.md",
