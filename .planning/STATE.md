@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
-status: ready_to_plan
-stopped_at: Phase 5 complete; ready to plan Phase 6
-last_updated: "2026-04-22T12:45:00.000Z"
-last_activity: 2026-04-22
+status: planning
+stopped_at: Phase 6 context gathered
+last_updated: "2026-04-23T04:07:59.180Z"
+last_activity: 2026-04-23
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 1
   completed_plans: 1
-  percent: 33
+  percent: 100
 ---
 
 # Project State
@@ -68,10 +68,10 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 ## Session continuity
 
-Last session: `/gsd-execute-phase 5` — plan 05-01 executed; verification passed
+Last session: --stopped-at
 
-Stopped at: Phase 5 complete; ready to plan Phase 6
+Stopped at: Phase 6 context gathered
 
-Resume file: None (start with `/gsd-discuss-phase 6` or `/gsd-plan-phase 6`)
+Resume file: --resume-file
 
 **Completed Phase:** 5 (Repository & remote) — 1/1 plans — 2026-04-22
