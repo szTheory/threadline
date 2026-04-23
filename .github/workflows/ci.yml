@@ -132,11 +132,18 @@ jobs:
             if tar tf "$t" | grep -q '^contents\.tar\.gz$'; then
               tmp=$(mktemp -d)
               tar xf "$t" -C "$tmp" contents.tar.gz
-              if tar tzf "$tmp/contents.tar.gz" | grep -qE '^lib/'; then
+              # grep -q can close the pipe early; without this, pipefail makes tar SIGPIPE fail the step
+              set +o pipefail
+              inner_ok=false
+              if tar tzf "$tmp/contents.tar.gz" | grep -qE '^lib/'; then inner_ok=true; fi
+              set -o pipefail
+              if [[ "$inner_ok" == true ]]; then
                 echo "OK: $t → contents.tar.gz contains lib/"
               else
                 echo "contents.tar.gz missing lib/: $t" >&2
+                set +o pipefail
                 tar tzf "$tmp/contents.tar.gz" | head -40 >&2
+                set -o pipefail
                 rm -rf "$tmp"
                 exit 1
               fi
