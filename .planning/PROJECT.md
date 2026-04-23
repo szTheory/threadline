@@ -18,11 +18,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Target features:**
 
-- **Redaction at capture time** — per-table column exclude and mask rules applied in generated triggers so raw secrets never hit `audit_changes` JSONB.
-- **Retention + batched purge** — configurable age/window semantics for `AuditChange` rows and a batch purge entrypoint suitable for cron-style operation.
-- **Export** — documented public CSV and JSON export for filtered audit rows, aligned with existing query patterns where practical.
+- **Redaction at capture time** — shipped Phase 12 (`:trigger_capture`, codegen validation, docs).
+- **Retention + batched purge** — shipped Phase 13 (`Threadline.Retention.*`, `mix threadline.retention.purge`).
+- **Export** — documented public CSV and JSON export for filtered audit rows, aligned with existing query patterns where practical (Phase 14).
 
-**Planning artifacts:** `.planning/REQUIREMENTS.md` (REQ-IDs), `.planning/ROADMAP.md` (Phases **12–14**). Next step: `/gsd-discuss-phase 12` or `/gsd-plan-phase 12`.
+**Planning artifacts:** `.planning/REQUIREMENTS.md` (REQ-IDs), `.planning/ROADMAP.md` (Phases **12–14**). Next step: `/gsd-discuss-phase 14` or `/gsd-plan-phase 14` (export).
 
 ## Current state
 
@@ -46,13 +46,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Before-values capture (Phase 9)** — nullable `audit_changes.changed_from`, opt-in per-table trigger SQL via `mix threadline.gen.triggers --store-changed-from`, `AuditChange.changed_from` and `Threadline.history/3` loading. Validated in Phase 9: Before-values capture (2026-04-23).
 - [x] **Verify coverage & doc contracts (Phase 10)** — `mix threadline.verify_coverage`, `Threadline.Verify.CoveragePolicy`, CI `verify.threadline` / `verify.doc_contract`, README doc contract fixtures, CONTRIBUTING parity. Validated in Phase 10: Verify coverage & doc contracts (2026-04-23).
 - [x] **Backfill / continuity (Phase 11)** — `Threadline.Continuity`, `mix threadline.continuity`, brownfield integration test, `guides/brownfield-continuity.md`, README and HexDocs discovery. Validated in Phase 11: Backfill / continuity (2026-04-23).
+- [x] **Redaction at capture (Phase 12)** — `config :threadline, :trigger_capture`, `RedactionPolicy`, `TriggerSQL` exclude/mask, tests and operator docs. Validated in Phase 12 (2026-04-23).
+- [x] **Retention + batched purge (Phase 13)** — `Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`, integration tests on PostgreSQL. Validated in Phase 13 (2026-04-23).
 
 ### Active
 
-_Milestone **v1.3** — see `.planning/REQUIREMENTS.md` for REDN / RETN / EXPO checkboxes._
+_Milestone **v1.3** — see `.planning/REQUIREMENTS.md` for EXPO checkboxes._
 
-- [ ] **REDN-01 / REDN-02** — Capture-time column exclude + mask via trigger generation.
-- [ ] **RETN-01 / RETN-02** — Retention policy + batched purge entrypoint.
 - [ ] **EXPO-01 / EXPO-02** — CSV and JSON export for filtered audit rows.
 
 ### Out of Scope
@@ -62,7 +62,7 @@ _Milestone **v1.3** — see `.planning/REQUIREMENTS.md` for REDN / RETN / EXPO c
 - **pgAudit replacement** — statement-level DB auditing is a separate concern; Threadline is application-level
 - **Data warehouse / CDC pipeline** — WAL/logical replication adds operational surface area (PgBouncer hazards, cloud caveats, cannot be reverted) that is not worth the tradeoff for v0.x
 - **LiveView operator UI** — deferred until capture + semantics are proven; premature without a stable API surface
-- **Retention, redaction, and export** — important but not v0.1 scope; listed in roadmap for v0.2+
+- **Export (EXPO)** — remaining v1.3 work; redaction and retention shipped in Phases 12–13
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
 - **Umbrella package structure or `threadline_web` companion** — defer; decide after API sketch exists and usage patterns are known
 - **Automated Hex publish from CI** — tag-triggered workflow exists; interactive `mix hex.publish` remains the documented maintainer path for early releases
@@ -122,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 after opening milestone v1.3 (production adoption: redaction, retention, export).*
+*Last updated: 2026-04-23 after completing Phase 13 (retention & batched purge); export remains for Phase 14.*

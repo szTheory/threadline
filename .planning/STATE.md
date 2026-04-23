@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
 status: planning
-last_updated: "2026-04-23T21:00:00.000Z"
-last_activity: "2026-04-23 — Phase 13 discuss complete; 13-CONTEXT.md captured (retention clock, scope, orphan txn cleanup, Mix+API surface)."
+last_updated: "2026-04-23T21:45:00.000Z"
+last_activity: 2026-04-23 — Phase 13 executed (RETN-01 / RETN-02); verification passed.
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 33
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -21,21 +21,21 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone **v1.3** — Phase **13** (retention & batched purge) next.
+**Current focus:** Milestone **v1.3** — Phase **14** (export) next.
 
 ## Current Position
 
-Phase: 13
+Phase: 14
 
 Plan: Not started
 
 Status: Ready to plan
 
-Last activity: 2026-04-23 — Phase 13 context gathered (`13-CONTEXT.md`); implementation not started.
+Last activity: 2026-04-23 — Phase 13 complete; see `13-VERIFICATION.md`.
 
 ## Performance metrics
 
-Phase 12 complete — see `.planning/phases/12-redaction-at-capture-time/12-VERIFICATION.md`.
+Phases 12–13 complete — see `12-VERIFICATION.md` and `13-VERIFICATION.md`.
 
 ## Accumulated context
 
@@ -45,7 +45,7 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Phase 12 (redaction):** Shipped — `config :threadline, :trigger_capture` with per-table `exclude` / `mask`; `RedactionPolicy` validates at codegen; README and `guides/domain-reference.md` document semantics. Context: `12-CONTEXT.md`.
 
-**Phase 13 (retention & purge):** Context only — `captured_at` retention, global default policy with extension-friendly purge API, delete empty `audit_transactions` by default, public purge module + thin Mix task. See `.planning/phases/13-retention-batched-purge/13-CONTEXT.md`.
+**Phase 13 (retention & purge):** Shipped — `Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`, config `:retention`, docs in README + `guides/domain-reference.md`. See `13-VERIFICATION.md`.
 
 ### Pending todos
 
@@ -59,8 +59,10 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.3 — 2026-04-23
 
-**Next:** `/gsd-plan-phase 13` — retention & batched purge (RETN-01, RETN-02); context in `13-CONTEXT.md`.
+**Next:** `/gsd-discuss-phase 14` or `/gsd-plan-phase 14` — export (EXPO-01, EXPO-02).
 
 **Prior milestone:** v1.2 — shipped 2026-04-23 (archive: `.planning/milestones/v1.2-*.md`).
 
-**Completed Phase:** 12 (Redaction at capture time) — 2/2 plans — 2026-04-23
+**Completed phases:** 12 (Redaction) — 2026-04-23; 13 (Retention & batched purge) — 2/2 plans — 2026-04-23
+
+**Planned Phase:** 14 (export) — not started
