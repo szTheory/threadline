@@ -119,6 +119,44 @@
 
 ---
 
+## Milestone: v1.3 — Production adoption (redaction, retention, export)
+
+**Shipped:** 2026-04-23  
+**Phases:** 3 | **Plans:** 6
+
+### What was built
+
+- **Redaction at capture:** `RedactionPolicy`, `TriggerSQL` exclude/mask paths, `config :threadline, :trigger_capture`, generator and integration tests proving JSONB payloads never carry excluded or raw masked values.
+- **Retention + purge:** `Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`, documented windows, batching, dry-run / execute gates, orphan transaction cleanup.
+- **Export:** `Threadline.Export` (CSV/JSON/stream/count), shared strict timeline filter validation with `Threadline.Query`, `mix threadline.export`, README and domain guide discovery.
+
+### What worked
+
+- Keeping export on the **same query spine** as `timeline/2` avoided a second filter dialect for operators.
+- **Codegen-time** redaction validation caught impossible policies before migrations shipped.
+
+### What was inefficient
+
+- `gsd-sdk query milestone.complete` again failed with `version required for phases archive`; milestone close required **manual** archive files + `MILESTONES.md` / `ROADMAP.md` edits (same as v1.2).
+
+### Patterns established
+
+- **Mix task** symmetry (`threadline.retention.purge`, `threadline.export`) for operator ergonomics next to library APIs.
+- **Strict filter keys** shared between query and export for predictable `ArgumentError` surfaces.
+
+### Key lessons
+
+1. Ship **retention semantics** (what “expired” means vs timeline) in docs the same week as the purge API to avoid ops misreads.
+2. Run **`/gsd-audit-milestone`** when you want a durable audit artifact (none for v1.3 in `.planning/`).
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: phased execution across 12 → 13 → 14 with PostgreSQL-dependent verification.
+- Notable: Phase directories 12–14 remain under `.planning/phases/` until optional `/gsd-cleanup`.
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -128,6 +166,7 @@
 | v1.0 | 4 | Established GSD phase + plan workflow for Threadline |
 | v1.1 | 4 | Shipped OSS distribution: GitHub + Actions + Hex **0.1.0** |
 | v1.2 | 3 | Capture fidelity + maintainer verify/doc contracts + brownfield continuity |
+| v1.3 | 3 | Production adoption: redaction, retention/purge, CSV/JSON export |
 
 ### Cumulative quality
 
@@ -136,9 +175,11 @@
 | v1.0 | Growing integration + unit suite | `mix ci.all` required green at each close |
 | v1.1 | + workflow/Nyquist contract tests | CI jobs extended for docs, Hex tarball, release shape |
 | v1.2 | + verify coverage + README doc contracts + brownfield continuity | `verify.threadline` / `verify.doc_contract` on default CI path |
+| v1.3 | + redaction + retention + export integration / Mix task tests | PostgreSQL-backed paths for capture JSON and purge |
 
 ### Top lessons (verified across milestones)
 
 1. v1.0 — treat REQUIREMENTS traceability as part of phase “done,” not only at milestone close.
 2. v1.1 — verify **GitHub truth** (SHAs, Actions runs) alongside local green builds.
 3. v1.2 — ship **operator semantics** for brownfield (continuity module + guide) in the same milestone as the capture feature that motivates them.
+4. v1.3 — align **export filters** with **timeline** so ops never learn two query dialects.

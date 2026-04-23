@@ -2,6 +2,34 @@
 
 Entries are newest first.
 
+## v1.3 — Production adoption (redaction, retention, export) (shipped 2026-04-23)
+
+**Delivered:** **Capture-time redaction** (`RedactionPolicy`, `TriggerSQL` exclude/mask, `config :threadline, :trigger_capture`, `mix threadline.gen.triggers` integration); **retention + batched purge** (`Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`); **CSV/JSON export** (`Threadline.Export`, shared timeline filter validation, `mix threadline.export`, README + domain guide).
+
+**Phases completed:** 12–14 (6 plans).
+
+**Key accomplishments:**
+
+- Landed REDN-01/REDN-02: per-table exclude/mask at trigger generation with PostgreSQL integration tests and operator docs (Path B safe).
+- Landed RETN-01/RETN-02: documented retention window, batched idempotent purge with orphan transaction cleanup and Mix task ergonomics.
+- Landed EXPO-01/EXPO-02: export APIs and Mix task aligned with `Threadline.Query.timeline/2` filters; NimbleCSV-backed CSV and JSON/NDJSON paths with stream support.
+
+**Stats:**
+
+- v1.3-focused window (see `git log` from `2b7f879` / `fb65250` through tip): phases 12–14 feature and docs commits; six plan summaries complete on disk.
+- 3 phases, 6 plans, 100% summaries; requirements traceability 6/6 Complete at close.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.3-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.3-REQUIREMENTS.md`
+
+**Note:** No standalone `v1.3-MILESTONE-AUDIT.md` in `.planning/` at close; optional `/gsd-audit-milestone` next time for extra assurance. `gsd-sdk query milestone.complete` returned `version required for phases archive` in this environment — archives were written manually to match prior milestones.
+
+**What is next:** `/gsd-new-milestone` — define the next product slice and a fresh `.planning/REQUIREMENTS.md`.
+
+---
+
 ## v1.2 — Before-values & developer tooling (shipped 2026-04-23)
 
 **Delivered:** Optional per-table **`changed_from`** on UPDATE captures with opt-in trigger generation; **`mix threadline.verify_coverage`** and CI wiring; **README doc contract** tests and Nyquist parity for expanded `ci.all`; **`Threadline.Continuity`** + **`mix threadline.continuity`** with brownfield integration coverage and **`guides/brownfield-continuity.md`**.

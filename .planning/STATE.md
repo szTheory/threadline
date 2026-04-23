@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
-status: milestone_complete
-last_updated: "2026-04-23T21:30:00.000Z"
+status: between_milestones
+last_updated: "2026-04-23T23:59:00.000Z"
 last_activity: 2026-04-23 — Phase 14 export shipped (`Threadline.Export`, `mix threadline.export`).
 progress:
   total_phases: 3
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone **v1.3** complete (phases 12–14 shipped). Next: define v1.4 / polish milestone in `ROADMAP.md` when ready.
+**Current focus:** v1.3 archived to `.planning/milestones/v1.3-*.md`; git tag **`v1.3`** records the planning close. Next: `/gsd-new-milestone` for v1.4 (fresh `REQUIREMENTS.md`).
 
 ## Current Position
 
@@ -61,7 +61,7 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.3 — 2026-04-23
 
-**Next:** Plan next milestone (v1.4 candidate: onboarding & polish in `REQUIREMENTS.md`).
+**Next:** `/gsd-new-milestone` — v1.4 candidate themes in archived `v1.3-REQUIREMENTS.md` § Future Requirements.
 
 **Prior milestone:** v1.2 — shipped 2026-04-23 (archive: `.planning/milestones/v1.2-*.md`).
 

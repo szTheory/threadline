@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, and **v1.3 — Production adoption** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. v1.2 phase execution directories under `.planning/phases/` were cleared when **v1.3** opened; use milestone archives and git history for v1.2 execution detail.
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, and **v1.3 — Production adoption** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, `v1.3-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. v1.2 phase execution directories under `.planning/phases/` were cleared when **v1.3** opened; use milestone archives and git history for v1.2 execution detail. v1.3 phase directories remain under `.planning/phases/` until optional cleanup.
 
 ## Last shipped milestone: v1.3 — Production adoption (redaction, retention, export)
 
@@ -22,7 +22,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Retention + batched purge** — Phase 13 (`Threadline.Retention.*`, `mix threadline.retention.purge`).
 - **Export** — Phase 14 (`Threadline.Export`, `mix threadline.export`, README + domain guide).
 
-**Planning artifacts:** `.planning/REQUIREMENTS.md` (REQ-IDs), `.planning/ROADMAP.md` (Phases **12–14**). **Next:** define **v1.4** (e.g. onboarding & polish in `REQUIREMENTS.md`) when ready.
+**Planning artifacts (archived):** `.planning/milestones/v1.3-REQUIREMENTS.md`, `.planning/milestones/v1.3-ROADMAP.md`. **Next:** `/gsd-new-milestone` — fresh `.planning/REQUIREMENTS.md` and **v1.4** scope (e.g. onboarding & polish).
 
 ## Current state
 
@@ -30,7 +30,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.3** shipped 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. Requirements: `.planning/REQUIREMENTS.md`.
+- **Planning:** Milestone **v1.3** archived 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. The next milestone starts with a new `.planning/REQUIREMENTS.md` via `/gsd-new-milestone`.
 
 ## Requirements
 
@@ -52,7 +52,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_None — pick the next milestone in `ROADMAP.md` / `REQUIREMENTS.md` when planning resumes._
+_None — use `/gsd-new-milestone` to add the next slice; a fresh `.planning/REQUIREMENTS.md` will be created with that flow._
 
 ### Out of Scope
 
@@ -120,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 after completing Phase 14 (export); v1.3 milestone complete.*
+*Last updated: 2026-04-23 after archiving v1.3 (roadmap + requirements); living REQUIREMENTS.md removed for next milestone.*
