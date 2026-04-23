@@ -90,6 +90,10 @@ Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverag
 
 Threadline resolves a validated **global retention window** from **`config :threadline, :retention`** (`Threadline.Retention.Policy`). Operators run batched deletes via **`Threadline.Retention.purge/1`** or **`mix threadline.retention.purge`** (see `@moduledoc` on the task for production gates). Semantics — `captured_at` vs `occurred_at`, timeline alignment, orphan `audit_transactions` cleanup — are documented in [`guides/domain-reference.md`](guides/domain-reference.md#retention-phase-13).
 
+- **Cron / batching:** schedule purge often enough that each run stays under `max_batches` for your volume; tune **`--batch-size`** so each transaction stays short vs capture load (start around **500–2000** and watch lock wait).
+- **Monitoring:** inspect application logs for `threadline retention purge batch` (includes `deleted_changes`, `batch`, running totals) or wrap `purge/1` with your own telemetry.
+- **Dry-run:** `mix threadline.retention.purge --dry-run` prints eligible row counts before you enable **`enabled: true`** and run a live delete.
+
 ## Quick Start
 
 ### 1. Add the Plug to your router or endpoint
