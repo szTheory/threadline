@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
 status: executing
-stopped_at: Phase 7 context gathered
-last_updated: "2026-04-23T15:39:14.780Z"
+stopped_at: Completed 07-01-PLAN.md (Hex dry-run pending auth)
+last_updated: "2026-04-23T16:27:51.808Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -22,19 +22,19 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 7 — Hex 0.1.0 (v1.1)
+**Current focus:** Phase 07 — hex-0-1-0
 
 ## Current Position
 
-Phase: 7
+Phase: 07 (hex-0-1-0) — EXECUTING
 
-Plan: Not started (awaiting `/gsd-plan-phase` or `/gsd-execute-phase` for Hex)
+Plan: 2 of 2
 
-Status: Executing
+Status: Ready to execute
 
 Last activity: 2026-04-23
 
-Progress: [███████░░░] 75% (3/4 v1.1 phases complete — Phase 7 remaining)
+Progress: [█████████░] 86%
 
 ## Performance metrics
 
@@ -71,7 +71,7 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 Last session: --stopped-at
 
-Stopped at: Phase 7 context gathered
+Stopped at: Completed 07-01-PLAN.md (Hex dry-run pending auth)
 
 Resume file: --resume-file
 
