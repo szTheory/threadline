@@ -3,7 +3,6 @@
 [![CI](https://github.com/szTheory/threadline/actions/workflows/ci.yml/badge.svg)](https://github.com/szTheory/threadline/actions/workflows/ci.yml)
 [![Hex.pm](https://img.shields.io/hexpm/v/threadline.svg)](https://hex.pm/packages/threadline)
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
-
 **CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions) on `main` (`verify-format`, `verify-credo`, `verify-test`). Reproduce locally with `mix ci.all` — see [CONTRIBUTING.md](CONTRIBUTING.md#ci-parity-and-act).
 
 Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger-backed row-change capture, rich action semantics (actor, intent, correlation), and operator-grade exploration via plain SQL queries — without opaque blobs or a separate event bus.
