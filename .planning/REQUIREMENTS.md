@@ -7,24 +7,24 @@
 
 ### Package & Installation
 
-- [ ] **PKG-01**: Hex package `threadline` is published with Elixir ≥ 1.15, OTP ≥ 26, and Ecto 3.x as minimum dependencies
-- [ ] **PKG-02**: `mix threadline.install` creates the `audit_transactions` and `audit_changes` tables with correct indexes via Ecto migration
-- [ ] **PKG-03**: `mix threadline.gen.triggers` installs PostgreSQL triggers on specified tables; accepts a list of table names and supports column exclusion options
-- [ ] **PKG-04**: Running `mix threadline.install` twice is idempotent (safe migration re-runs do not corrupt data or fail)
-- [ ] **PKG-05**: The package compiles without warnings under `mix compile --warnings-as-errors`
+- [x] **PKG-01**: Hex package `threadline` is published with Elixir ≥ 1.15, OTP ≥ 26, and Ecto 3.x as minimum dependencies
+- [x] **PKG-02**: `mix threadline.install` creates the `audit_transactions` and `audit_changes` tables with correct indexes via Ecto migration
+- [x] **PKG-03**: `mix threadline.gen.triggers` installs PostgreSQL triggers on specified tables; accepts a list of table names and supports column exclusion options
+- [x] **PKG-04**: Running `mix threadline.install` twice is idempotent (safe migration re-runs do not corrupt data or fail)
+- [x] **PKG-05**: The package compiles without warnings under `mix compile --warnings-as-errors`
 
 ### Capture Layer
 
-- [ ] **CAP-01**: Every INSERT on an audited table is recorded as an `AuditChange` row with `operation = :insert`, `data_after` (JSONB), and `changed_fields` list
-- [ ] **CAP-02**: Every UPDATE on an audited table is recorded as an `AuditChange` row with `operation = :update`, `data_after` (JSONB), and `changed_fields` list
-- [ ] **CAP-03**: Every DELETE on an audited table is recorded as an `AuditChange` row with `operation = :delete` and `data_after = null`; the row's primary key is preserved in `table_pk`
-- [ ] **CAP-04**: Capture fires from PostgreSQL triggers so writes made directly via SQL or `Ecto.Repo` calls without app-layer callbacks are still captured
-- [ ] **CAP-05**: Multiple row mutations within a single database transaction are grouped under one `AuditTransaction` record
-- [ ] **CAP-06**: `AuditChange` rows reference their `AuditTransaction` via a foreign key; orphaned change records are not permitted
-- [ ] **CAP-07**: All audit data is stored as JSONB or typed columns; no Erlang binary terms or YAML serialization is used anywhere in the schema
-- [ ] **CAP-08**: `AuditTransaction` records an `occurred_at` timestamp set at transaction commit time (not insert time)
-- [ ] **CAP-09**: `AuditChange` records a `captured_at` timestamp set when the trigger fires
-- [ ] **CAP-10**: Capture does not fire on the `audit_transactions` or `audit_changes` tables themselves (no recursive audit loops)
+- [x] **CAP-01**: Every INSERT on an audited table is recorded as an `AuditChange` row with `operation = :insert`, `data_after` (JSONB), and `changed_fields` list
+- [x] **CAP-02**: Every UPDATE on an audited table is recorded as an `AuditChange` row with `operation = :update`, `data_after` (JSONB), and `changed_fields` list
+- [x] **CAP-03**: Every DELETE on an audited table is recorded as an `AuditChange` row with `operation = :delete` and `data_after = null`; the row's primary key is preserved in `table_pk`
+- [x] **CAP-04**: Capture fires from PostgreSQL triggers so writes made directly via SQL or `Ecto.Repo` calls without app-layer callbacks are still captured
+- [x] **CAP-05**: Multiple row mutations within a single database transaction are grouped under one `AuditTransaction` record
+- [x] **CAP-06**: `AuditChange` rows reference their `AuditTransaction` via a foreign key; orphaned change records are not permitted
+- [x] **CAP-07**: All audit data is stored as JSONB or typed columns; no Erlang binary terms or YAML serialization is used anywhere in the schema
+- [x] **CAP-08**: `AuditTransaction` records an `occurred_at` timestamp set at transaction commit time (not insert time)
+- [x] **CAP-09**: `AuditChange` records a `captured_at` timestamp set when the trigger fires
+- [x] **CAP-10**: Capture does not fire on the `audit_transactions` or `audit_changes` tables themselves (no recursive audit loops)
 
 ### Actor Model
 
@@ -67,20 +67,20 @@
 
 ### CI & Quality
 
-- [ ] **CI-01**: `mix verify.format` exits non-zero if any file is not formatted
-- [ ] **CI-02**: `mix verify.credo` runs Credo in strict mode and exits non-zero on violations
-- [ ] **CI-03**: `mix verify.test` runs the full test suite and exits non-zero on any failure
-- [ ] **CI-04**: `mix ci.all` runs `verify.format`, `verify.credo`, and `verify.test` in sequence; exits non-zero if any step fails
-- [ ] **CI-05**: GitHub Actions workflow uses stable `id:` fields for all jobs; job `name:` fields may change freely without breaking status checks
-- [ ] **CI-06**: All CI jobs run on `push` to `main` regardless of path filters applied to PR jobs
-- [ ] **CI-07**: `mix test` runs the full suite with no silently excluded tests; any exclusion is documented in `test/test_helper.exs` and the README
+- [x] **CI-01**: `mix verify.format` exits non-zero if any file is not formatted
+- [x] **CI-02**: `mix verify.credo` runs Credo in strict mode and exits non-zero on violations
+- [x] **CI-03**: `mix verify.test` runs the full test suite and exits non-zero on any failure
+- [x] **CI-04**: `mix ci.all` runs `verify.format`, `verify.credo`, and `verify.test` in sequence; exits non-zero if any step fails
+- [x] **CI-05**: GitHub Actions workflow uses stable `id:` fields for all jobs; job `name:` fields may change freely without breaking status checks
+- [x] **CI-06**: All CI jobs run on `push` to `main` regardless of path filters applied to PR jobs
+- [x] **CI-07**: `mix test` runs the full suite with no silently excluded tests; any exclusion is documented in `test/test_helper.exs` and the README
 
 ### Documentation
 
 - [ ] **DOC-01**: README contains a working installation example (add dep, run install task, configure Plug) that a developer can follow in under 15 minutes
 - [ ] **DOC-02**: README links to a domain reference document that defines: AuditTransaction, AuditChange, AuditAction, AuditContext, ActorRef, and Correlation
 - [ ] **DOC-03**: README documents the PgBouncer transaction-mode constraint and the safe context propagation pattern Threadline uses
-- [ ] **DOC-04**: CONTRIBUTING.md skeleton exists and describes how to run the test suite and submit a PR
+- [x] **DOC-04**: CONTRIBUTING.md skeleton exists and describes how to run the test suite and submit a PR
 - [ ] **DOC-05**: All public API modules have `@moduledoc` and all public functions have `@doc` strings
 
 ## v2 Requirements
@@ -131,21 +131,21 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-01 | Phase 1 | Pending |
-| PKG-02 | Phase 1 | Pending |
-| PKG-03 | Phase 1 | Pending |
-| PKG-04 | Phase 1 | Pending |
-| PKG-05 | Phase 1 | Pending |
-| CAP-01 | Phase 1 | Pending |
-| CAP-02 | Phase 1 | Pending |
-| CAP-03 | Phase 1 | Pending |
-| CAP-04 | Phase 1 | Pending |
-| CAP-05 | Phase 1 | Pending |
-| CAP-06 | Phase 1 | Pending |
-| CAP-07 | Phase 1 | Pending |
-| CAP-08 | Phase 1 | Pending |
-| CAP-09 | Phase 1 | Pending |
-| CAP-10 | Phase 1 | Pending |
+| PKG-01 | Phase 1 | Complete |
+| PKG-02 | Phase 1 | Complete |
+| PKG-03 | Phase 1 | Complete |
+| PKG-04 | Phase 1 | Complete |
+| PKG-05 | Phase 1 | Complete |
+| CAP-01 | Phase 1 | Complete |
+| CAP-02 | Phase 1 | Complete |
+| CAP-03 | Phase 1 | Complete |
+| CAP-04 | Phase 1 | Complete |
+| CAP-05 | Phase 1 | Complete |
+| CAP-06 | Phase 1 | Complete |
+| CAP-07 | Phase 1 | Complete |
+| CAP-08 | Phase 1 | Complete |
+| CAP-09 | Phase 1 | Complete |
+| CAP-10 | Phase 1 | Complete |
 | ACTR-01 | Phase 2 | Pending |
 | ACTR-02 | Phase 2 | Pending |
 | ACTR-03 | Phase 2 | Pending |
@@ -170,17 +170,17 @@
 | HLTH-03 | Phase 3 | Pending |
 | HLTH-04 | Phase 3 | Pending |
 | HLTH-05 | Phase 3 | Pending |
-| CI-01 | Phase 1 | Pending |
-| CI-02 | Phase 1 | Pending |
-| CI-03 | Phase 1 | Pending |
-| CI-04 | Phase 1 | Pending |
-| CI-05 | Phase 1 | Pending |
-| CI-06 | Phase 1 | Pending |
-| CI-07 | Phase 1 | Pending |
+| CI-01 | Phase 1 | Complete |
+| CI-02 | Phase 1 | Complete |
+| CI-03 | Phase 1 | Complete |
+| CI-04 | Phase 1 | Complete |
+| CI-05 | Phase 1 | Complete |
+| CI-06 | Phase 1 | Complete |
+| CI-07 | Phase 1 | Complete |
 | DOC-01 | Phase 4 | Pending |
 | DOC-02 | Phase 4 | Pending |
 | DOC-03 | Phase 4 | Pending |
-| DOC-04 | Phase 1 | Pending |
+| DOC-04 | Phase 1 | Complete |
 | DOC-05 | Phase 4 | Pending |
 
 **Coverage:**

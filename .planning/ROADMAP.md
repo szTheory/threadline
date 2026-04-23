@@ -26,9 +26,9 @@ Threadline builds from correctness upward: establish trigger-backed row capture 
 **Plans**: 3 defined
 
 Plans:
-- [ ] 01-01: Carbonite Research Gate — binary decision (Carbonite or custom triggers); produces gate-01-01.md
+- [ ] 01-01: Carbonite Research Gate — binary decision (Carbonite or custom triggers); produces `gate-01-01.md` when executed
 - [ ] 01-02: Library Scaffold + Schema + Capture Infrastructure — working trigger capture, Mix tasks, integration tests
-- [ ] 01-03: CI Pipeline + CONTRIBUTING.md — passing GitHub Actions CI, mix ci.all green
+- [ ] 01-03: CI Pipeline + CONTRIBUTING.md — passing GitHub Actions CI, `mix ci.all` green
 
 ### Phase 2: Semantics Layer
 **Goal**: Application code can record who did what and why, with full actor identity, request context, and correlation IDs that survive async boundaries
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Capture Foundation | 0/? | Not started | - |
+| 1. Capture Foundation | 0/3 (verify locally) | In progress | — |
 | 2. Semantics Layer | 0/? | Not started | - |
 | 3. Query & Observability | 0/? | Not started | - |
 | 4. Documentation & Release | 0/? | Not started | - |

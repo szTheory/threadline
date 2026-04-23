@@ -1,56 +1,62 @@
+
+
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-22)
+See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
+
 **Current focus:** Phase 1 — Capture Foundation
 
 ## Current Position
 
 Phase: 1 of 4 (Capture Foundation)
-Plan: 2 of 3 in current phase
-Status: In progress — Plans 01-01 and 01-02 complete, 01-03 unblocked
-Last activity: 2026-04-22 — Plan 01-02 (library scaffold + capture infrastructure) complete
 
-Progress: [██░░░░░░░░] 20%
+Plan: **Verification needed** — `mix new` scaffold and capture-related modules exist in-repo from automated runs, but Phase 1 **success criteria** in `ROADMAP.md` are not yet maintainer-verified (PostgreSQL test DB required for `mix test`).
 
-## Performance Metrics
+Status: Stabilize → prove tests → close Plan `01-03` (CI + CONTRIBUTING)
+
+Last activity: 2026-04-23 — Context pack + `gsd-sdk init`; Phase 1 plans under `.planning/phases/01-capture-foundation/`
+
+Progress: [███░░░░░░░] ~30% (estimated — code present, gates not re-audited)
+
+## Performance metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: <10 minutes
-- Total execution time: <10 minutes
 
-**By Phase:**
+- Total plans completed: *not confirmed* (do not trust removed interim SUMMARY files)
+- Average duration: —
+- Total execution time: —
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1 | 1 | <10m | <10m |
+**By phase:**
 
-**Recent Trend:** On track
+| Phase | Plans | Notes |
+|-------|-------|-------|
+| 1 | 01-01 .. 01-03 | Execute or re-run `01-01` to regenerate `gate-01-01.md` with real evidence |
 
-## Accumulated Context
+## Accumulated context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Follow `01-CONTEXT.md` and `PROJECT.md` Key Decisions. Re-validate any capture-substrate choice against current Carbonite docs before treating Plan `01-01` as closed.
 
-- Phase 1: **DECIDED** — Use `{:carbonite, "~> 0.16"}` as dep; but trigger DDL is custom (Carbonite's table schema incompatible with D-05 columns — see 01-02-SUMMARY.md Deviation 1)
-- Phase 1: Context propagation uses `txid_current()` keyed `audit_transactions` row with `INSERT ... ON CONFLICT (txid) DO NOTHING` — PgBouncer-safe (D-06); `txid bigint UNIQUE` added to schema per D-06
+### Pending todos
 
-### Pending Todos
+1. `createdb threadline_test` (or `MIX_ENV=test mix ecto.create`) so integration tests can run.
+2. `mix test` / `mix ci.all` green locally.
+3. Regenerate **`gate-01-01.md`** if the prior artifact was removed — keep maintainer-reviewed links and dates.
+4. Finish **Plan 01-03** (GitHub Actions + CONTRIBUTING) if not already merged.
 
-None.
+### Blockers / concerns
 
-### Blockers/Concerns
+- Local / CI PostgreSQL availability for trigger integration tests.
 
-None. Carbonite compatibility gate is **closed** (PASSED).
+## Session continuity
 
-## Session Continuity
+Last session: 2026-04-23
 
-Last session: 2026-04-22
-Stopped at: Plan 01-02 complete; Plan 01-03 (GitHub Actions CI) is next
+Stopped at: Planning + library scaffold present; **re-verify** Phase 1 before ticking roadmap boxes.
+
 Resume file: None

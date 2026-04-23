@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Phase 1 delivers the trigger-backed capture substrate, correct PgBouncer-safe schema, Mix tasks, CI pipeline, and CONTRIBUTING.md skeleton. All major design decisions are already locked in CONTEXT.md (D-01 through D-12). The planner's primary job is to sequence three plans:
+Phase 1 delivers the trigger-backed capture substrate, correct PgBouncer-safe schema, Mix tasks, CI pipeline, and CONTRIBUTING.md skeleton. All major design decisions are already locked in 01-CONTEXT.md (D-01 through D-12). The planner's primary job is to sequence three plans:
 
 1. **Plan 01-01** — Carbonite research gate (binary decision: Carbonite or custom triggers)
 2. **Plan 01-02** — Library scaffolding + schema migrations + capture infrastructure (using gate result)
@@ -29,7 +29,7 @@ The gate is binary. After Plan 01-01, all subsequent plans lock to either:
 - **Path A:** `{:carbonite, "~> 0.16"}` — wrap Carbonite's migration helpers and trigger functions
 - **Path B:** Custom trigger SQL in `Threadline.Capture.TriggerSQL` module — no external capture dep
 
-### Specific Questions (from STATE.md and CONTEXT.md D-01)
+### Specific Questions (from STATE.md and 01-CONTEXT.md D-01)
 
 | Question | Why It Matters | Fail Condition |
 |----------|---------------|----------------|
@@ -63,7 +63,7 @@ If Carbonite fails: Plan 01-02 implements `Threadline.Capture.TriggerSQL` with r
 
 ## Section 2: Schema Design
 
-**Confidence: HIGH — fully specified in CONTEXT.md D-05**
+**Confidence: HIGH — fully specified in 01-CONTEXT.md D-05**
 
 ### `audit_transactions` Table (Phase 1 columns only)
 
@@ -508,7 +508,7 @@ No contribution policy, no RFC process, no CoC in Phase 1 — those are Phase 4 
 
 | Topic | Confidence | Notes |
 |-------|-----------|-------|
-| Gate questions (what to ask) | HIGH | Fully specified in STATE.md, CONTEXT.md D-01 |
+| Gate questions (what to ask) | HIGH | Fully specified in STATE.md, 01-CONTEXT.md D-01 |
 | Gate answers (pre-gate) | MEDIUM | Carbonite txid approach likely compatible; verify |
 | Schema design | HIGH | Fully locked in D-05, CAP-01 through CAP-10 |
 | Context propagation mechanism | HIGH | Non-negotiable; D-06, locked in STATE.md |

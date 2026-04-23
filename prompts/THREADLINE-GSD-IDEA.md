@@ -64,6 +64,27 @@ Subsequent milestones might add example host, LiveView operator UI, retention/re
 - Minimum supported **Phoenix / Ecto / PG** versions.
 - Whether v0.1 ships **read APIs only** or also a minimal operator surface.
 
+## GSD bootstrap commands (pick one)
+
+- **In Cursor / Claude Code (slash workflow):** run from repo root with a clean session:
+  ```text
+  /gsd-new-project --auto @prompts/THREADLINE-GSD-IDEA.md
+  ```
+  Then: `/gsd-plan-phase 1` (add `--text` in non-Claude CLIs if menus are unavailable).
+
+- **Terminal — one-shot init (creates `.planning/` end-to-end):** requires `git` in the repo root first.
+  ```bash
+  cd /path/to/threadline
+  git init   # if not already a repo
+  gsd-sdk init @prompts/THREADLINE-GSD-IDEA.md
+  ```
+
+- **Optional — plan Phase 1 without the slash command:**
+  ```bash
+  gsd-sdk run "/gsd-plan-phase 1 --text --skip-verify --skip-research"
+  ```
+  Always **re-verify** roadmap claims with `mix test` (PostgreSQL test DB) and maintainer review of `gate-01-01.md` before treating Phase 1 as complete.
+
 ---
 
 **Instruction to GSD (auto mode):** Treat this file as authoritative for **vision, constraints, non-goals, and first-milestone intent**. Pull detailed requirements from the linked domain reference and DNA doc. Run **research** to validate capture options and ecosystem overlap before locking `REQUIREMENTS.md`.
