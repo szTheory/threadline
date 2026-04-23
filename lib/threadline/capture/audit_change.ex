@@ -1,4 +1,40 @@
 defmodule Threadline.Capture.AuditChange do
+  @moduledoc """
+  Ecto schema for the `audit_changes` table.
+
+  An `AuditChange` records a single row-level mutation (`INSERT`, `UPDATE`,
+  or `DELETE`) on an audited table. Records are created automatically by
+  PostgreSQL triggers; you do not insert them from application code.
+
+  Each `AuditChange` belongs to exactly one `AuditTransaction`. Multiple
+  changes in the same database transaction share a `transaction_id`.
+
+  ## Key fields
+
+  - `:table_schema` / `:table_name` — the schema and table where the mutation
+    occurred.
+  - `:table_pk` — primary key of the mutated row, stored as a JSON map so
+    composite keys are supported.
+  - `:op` — `"INSERT"`, `"UPDATE"`, or `"DELETE"`.
+  - `:data_after` — full row snapshot after the mutation (nil for deletes).
+  - `:changed_fields` — list of column names that changed (populated for
+    updates; nil for inserts and deletes).
+  - `:captured_at` — trigger execution timestamp (microsecond precision).
+
+  ## Relationships
+
+  - `belongs_to :transaction, Threadline.Capture.AuditTransaction` — the DB
+    transaction that produced this change.
+
+  ## Setup
+
+  Triggers are installed per table by `mix threadline.gen.triggers`, which emits
+  SQL calling `threadline_capture_changes()` from `mix threadline.install`. See
+  [guides/domain-reference.md](guides/domain-reference.md) for the domain model
+  and `.planning/phases/01-capture-foundation/gate-01-01.md` for the capture
+  contract.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
