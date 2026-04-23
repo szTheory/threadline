@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: GitHub, CI, and Hex
-status: planning
+milestone_name: — GitHub, CI, and Hex
+status: Ready for `/gsd-plan-phase 5`
 stopped_at: Phase 5 context gathered
-last_updated: "2026-04-23T03:15:00.000Z"
-last_activity: 2026-04-23 — Phase 5 discuss; GitHub repo created and main pushed
+last_updated: "2026-04-23T03:27:16.970Z"
+last_activity: 2026-04-23 — `gh repo create` + push `main`; `05-CONTEXT.md` written
 progress:
-  total_phases: 7
-  completed_phases: 4
-  total_plans: 0
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -73,3 +73,5 @@ Last session: `/gsd-discuss-phase 5` — context + `gh repo create` / push / des
 Stopped at: Phase 5 context gathered
 
 Resume file: `.planning/phases/05-repository-remote/05-CONTEXT.md`
+
+**Planned Phase:** 5 (Repository & remote) — 1 plans — 2026-04-23T03:27:16.956Z
