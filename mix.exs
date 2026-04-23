@@ -95,6 +95,7 @@ defmodule Threadline.MixProject do
         "guides/domain-reference.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
+        "guides/adoption-pilot-backlog.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],

@@ -2,6 +2,18 @@
 
 Entries are newest first.
 
+## v1.5 — Adoption feedback loop (in progress, opened 2026-04-23)
+
+**Goal:** Integrator-led adoption — operator telemetry reference, **`guides/adoption-pilot-backlog.md`**, README/ExDoc wiring; **Phase 20** closes when a host pilot satisfies **ADOP-03** (evidence rows + triage).
+
+**Distribution:** **`v0.2.0`** pushed; **`threadline` 0.2.0** on Hex (same day).
+
+**Phases:** 19 (adoption operator docs) — complete in-repo; 20 (first external pilot) — pending.
+
+**Living:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/PROJECT.md`, `.planning/STATE.md`.
+
+---
+
 ## v1.4 — Adoption & release readiness (shipped 2026-04-23)
 
 **Delivered:** README **`~> 0.2`**, quickstart **export** step, documentation index links; **`guides/production-checklist.md`**; **`Threadline.Query.timeline_repo!/2`**, timeline filter validation before repo resolution, clearer `ArgumentError` messages; **`mix.exs` 0.2.0**, **CHANGELOG 0.2.0** narrative for upgraders from 0.1.0; ExDoc **extras** + **`Threadline.Retention`** / **`Policy`** in module groups.

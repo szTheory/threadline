@@ -187,4 +187,5 @@ For the full SQL bridge pattern and PgBouncer safety explanation, see [`Threadli
 - **Domain model:** [guides/domain-reference.md](guides/domain-reference.md)
 - **Brownfield / continuity:** [guides/brownfield-continuity.md](guides/brownfield-continuity.md)
 - **Production checklist:** [guides/production-checklist.md](guides/production-checklist.md)
+- **Adoption pilot backlog:** [guides/adoption-pilot-backlog.md](guides/adoption-pilot-backlog.md) (run with the checklist in staging; capture gaps as issues)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)

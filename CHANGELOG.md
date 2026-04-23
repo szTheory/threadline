@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`guides/adoption-pilot-backlog.md`** — matrix aligned to the production checklist for host pilots, plus distribution preflight and prioritized issue rows.
+- **Telemetry (operator reference)** — `[:threadline, …]` event table in **`guides/domain-reference.md`**, linked from **`guides/production-checklist.md`** observability section.
+
+### Changed
+
+- **README** — Documentation list includes the adoption pilot backlog; **ExDoc** extras include the new guide.
+
 ## [0.2.0] - 2026-04-23
 
 ### Added

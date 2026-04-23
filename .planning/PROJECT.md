@@ -8,13 +8,21 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Next milestone
+## Current Milestone: v1.5 — Adoption feedback loop
 
-**v1.5** — not started. Run **`/gsd-new-milestone`** to scope the next slice. **v1.4** artifacts: `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` (phases 15–18).
+**Goal:** Close the loop between **Hex-published releases** and **real host pilots** with operator-facing docs (telemetry reference, pilot backlog matrix) so adoption issues arrive with evidence.
+
+**Target features:**
+
+- **`guides/adoption-pilot-backlog.md`** — checklist-aligned matrix, distribution preflight, prioritized issue table for pilots.
+- **Telemetry operator reference** in **`guides/domain-reference.md`**, linked from **`guides/production-checklist.md`**.
+- **README / ExDoc** discovery for the pilot backlog; **Phase 20** closes **ADOP-03** when a host pilot fills evidence rows.
+
+**v1.5** uses **integrator-led** sequencing: ship docs and templates first; library API expansion waits for pilot-triaged pain.
 
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.3-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. Phase execution directories under `.planning/phases/` were cleared at **v1.4** open via `gsd-sdk query phases.clear`; v1.4 work landed on `main` without per-phase execution trees.
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.4-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. **v1.5** is in progress (phases 19–20); living requirements and roadmap: `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`.
 
 ## Last shipped milestone: v1.4 — Adoption & release readiness
 
@@ -29,7 +37,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
 
-**Next:** Maintainer tag **`v0.2.0`** and `mix hex.publish` when ready; then **`/gsd-new-milestone`** for **v1.5** scope.
+**Next:** **v1.5** Phase 20 — first external pilot completes **ADOP-03** (backlog evidence rows + triage). **`v0.2.0`** is on `origin` and **`threadline` 0.2.0** is on Hex.
 
 ## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
 
@@ -45,11 +53,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current state
 
-- **Hex:** `threadline` **0.1.0** is on Hex; **`main`** carries **`@version "0.2.0"`** with CHANGELOG **0.2.0** — publish annotated **`v0.2.0`** when maintainers run `mix hex.publish`. Planning milestone tags **`v1.0`** … **`v1.4`** track GSD cycles, not only Hex semver.
+- **Hex:** `threadline` **0.2.0** is on Hex (annotated tag **`v0.2.0`**); **`main`** carries **`@version "0.2.0"`** until the next semver bump. Planning milestone tags **`v1.0`** … track GSD cycles, not only Hex semver.
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.4** complete 2026-04-23. Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. Next slice: **`/gsd-new-milestone`** for **v1.5**.
+- **Planning:** Milestone **v1.5** open (adoption feedback loop). Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
 
 ## Requirements
 
@@ -72,10 +80,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Production checklist (Phase 16)** — `guides/production-checklist.md`. Validated in Phase 16 (2026-04-23).
 - [x] **Timeline/export DX (Phase 17)** — `Threadline.Query.timeline_repo!/2`, validation order, tests. Validated in Phase 17 (2026-04-23).
 - [x] **Release 0.2.0 packaging (Phase 18)** — `mix.exs` 0.2.0, CHANGELOG, ExDoc extras + retention in module groups. Validated in Phase 18 (2026-04-23).
+- [x] **Adoption operator docs (Phase 19)** — `guides/adoption-pilot-backlog.md`, README + ExDoc extras, domain-reference telemetry operator table, production-checklist cross-links (ADOP-01, ADOP-02, TELEM-01, TELEM-02). Validated in Phase 19 (2026-04-23).
 
 ### Active
 
-_None — use `/gsd-new-milestone` for **v1.5** when ready._
+- [ ] **ADOP-03** — First external pilot: adoption pilot backlog includes evidence rows (`OK` / `Issue`) and triaged follow-ups (Phase 20).
 
 ### Out of Scope
 
@@ -143,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — v1.4 adoption & 0.2.0 packaging complete in-repo.*
+*Last updated: 2026-04-23 — v1.5 opened; Hex **0.2.0** published; Phase 19 adoption operator docs landed.*

@@ -23,6 +23,11 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/production-checklist.md")
   end
 
+  test "README links adoption pilot backlog guide" do
+    readme = File.read!("README.md")
+    assert String.contains?(readme, "guides/adoption-pilot-backlog.md")
+  end
+
   test "fixture calls match public README API shapes" do
     map = Threadline.ReadmeQuickstartFixtures.actor_ref_map_examples()
     assert map.anonymous["type"] == "anonymous"

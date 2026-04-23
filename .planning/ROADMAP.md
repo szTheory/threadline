@@ -2,13 +2,24 @@
 
 ## Milestones
 
-- ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — requirements: [REQUIREMENTS.md](REQUIREMENTS.md)
+- **v1.5 — Adoption feedback loop** — Phases 19–20 (in progress) — requirements: [REQUIREMENTS.md](REQUIREMENTS.md)
+- ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
 - ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — [full archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.2 — Before-values & developer tooling** — Phases 9–11 (shipped 2026-04-23) — [full archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (shipped 2026-04-23) — [full archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+<details>
+<summary>v1.5 Adoption feedback loop (Phases 19–20) — IN PROGRESS</summary>
+
+Living requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md).
+
+- [x] **Phase 19 — Adoption operator docs** — `guides/adoption-pilot-backlog.md`, README + ExDoc extras, domain-reference telemetry table, production-checklist cross-links (ADOP-01, ADOP-02, TELEM-01, TELEM-02).
+- [ ] **Phase 20 — First external pilot** — Host team runs checklist + backlog matrix; close **ADOP-03** with evidence rows and triaged issues.
+
+</details>
 
 <details>
 <summary>✅ v1.4 Adoption & release readiness (Phases 15–18) — SHIPPED 2026-04-23</summary>
@@ -70,12 +81,14 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next milestone
 
-Use `/gsd-new-milestone` to open **v1.5** (or the next slice). v1.4 closed adoption, production checklist, DX errors for timeline/export, and **0.2.0** release packaging in-repo — publish **`v0.2.0`** when ready per CONTRIBUTING.
+**v1.5** is open (phases 19–20). **`v0.2.0`** is tagged and **`threadline` 0.2.0** is on Hex. Next: run **Phase 20** pilot against [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md), then `/gsd-transition` when **ADOP-03** is satisfied.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 19. Adoption operator docs | v1.5 | — | Complete | 2026-04-23 |
+| 20. First external pilot | v1.5 | — | Pending | — |
 | 15. Onboarding | v1.4 | — | Complete | 2026-04-23 |
 | 16. Production checklist | v1.4 | — | Complete | 2026-04-23 |
 | 17. DX: timeline/export errors | v1.4 | — | Complete | 2026-04-23 |

@@ -76,6 +76,20 @@ Tables with **pre-existing rows** still use **T0** semantics: `Threadline.histor
 
 `ActorRef` is the structured actor representation serialized to JSON for `audit_transactions.actor_ref` and `audit_actions.actor_ref`. Use `Threadline.Semantics.ActorRef.to_map/1` with `Jason.encode!()` when setting the GUC.
 
+## Telemetry (operator reference)
+
+Threadline emits **`:telemetry.execute/3`** events (no attached handler is required for correctness). Attach handlers in your application `Application.start/2` (or equivalent) for metrics and logs.
+
+| Event | When | Measurements | Metadata |
+|-------|------|--------------|----------|
+| `[:threadline, :transaction, :committed]` | After capture commits work, or as a proxy when `Threadline.record_action/2` succeeds without an explicit post-commit hook | `table_count` (non‑neg integer; accurate only if you call `Threadline.Telemetry.transaction_committed/2` after the transaction) | `%{}` |
+| `[:threadline, :action, :recorded]` | After `Threadline.record_action/2` finishes (success or failure) | `status` (`:ok` or `:error`) | `%{}` |
+| `[:threadline, :health, :checked]` | After `Threadline.Health.trigger_coverage/1` returns | `covered`, `uncovered` (counts of tables in each bucket) | `%{}` |
+
+**Retention purge** does not emit these events today; use application logs from `mix threadline.retention.purge` / `Threadline.Retention.purge/1` (see task `@moduledoc`) or wrap purge calls with your own telemetry.
+
+See also: `Threadline.Telemetry` on HexDocs for copy-paste attach examples.
+
 ## Correlation
 
 **Correlation is not a database table** in Threadline. Correlation identifiers flow through headers (`x-correlation-id`), assigns, and optional fields on `AuditAction`. Treat them like trace context: they stitch logs and actions across boundaries without implying a `correlations` schema.

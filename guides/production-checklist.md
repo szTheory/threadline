@@ -36,7 +36,7 @@ Use this after the [README quickstart](../README.md#quick-start) and before trea
 
 ## 6. Observability
 
-- [ ] `:telemetry` handlers for Threadline events are attached where you need metrics or logs.
+- [ ] `:telemetry` handlers for Threadline events are attached where you need metrics or logs. Event names and measurements: [`domain-reference.md` — Telemetry](domain-reference.md#telemetry-operator-reference).
 - [ ] Retention purge logs (`threadline retention purge batch`, etc.) visible to operators when purge runs.
 
 ## 7. Brownfield and continuity
@@ -45,5 +45,6 @@ Use this after the [README quickstart](../README.md#quick-start) and before trea
 
 ## See also
 
+- [Adoption pilot backlog](adoption-pilot-backlog.md) — matrix to run this checklist in a real environment and file issues with evidence.
 - [Domain reference](domain-reference.md) — schema, retention semantics, export behavior.
 - [HexDocs](https://hexdocs.pm/threadline) — `Threadline`, `Threadline.Export`, `Threadline.Retention`, `Threadline.Query`.
