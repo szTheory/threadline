@@ -12,11 +12,24 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **v1.0 MVP** (2026-04-23) and **v1.1 — GitHub, CI, and Hex** (2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `.planning/milestones/v1.1-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`.
 
+## Current Milestone: v1.2 Before-values & developer tooling
+
+**Goal:** Increase audit fidelity and operator confidence with optional UPDATE before-values in the capture path, plus maintainer-grade tooling for coverage checks, doc drift detection, and brownfield adoption.
+
+**Target features:**
+
+- Optional per-table **before-values** (`store_changed_from`) so UPDATE captures prior field values; query API exposes them when enabled at install time.
+- **`mix threadline.verify_coverage`** — human-readable audited-table report; non-zero exit when any configured table lacks a valid capture trigger.
+- **Doc contract tests** so README / guide examples stay syntactically valid against the public API.
+- **Backfill / continuity helper** for turning capture on for an existing table without pretending pre-trigger history exists.
+
+**Explicitly not in v1.2:** retention policies, redaction/masking, CSV/JSON export, LiveView UI — remain deferred per Out of Scope until this milestone closes.
+
 ## Current state
 
 - **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (distinct from planning tags like **`v1.1`**).
 - **GitHub:** Canonical `origin`, `main` tracked on `origin`, and Actions green on `main` with recorded CI-02 proof in archived phase verification.
-- **Next:** Run `/gsd-new-milestone` to pick up product work (v2 themes from `milestones/v1.0-REQUIREMENTS.md` — before-values, retention, export, etc.).
+- **Planning:** Milestone **v1.2** requirements and roadmap live in `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md` (Phases 9–11); execution uses `.planning/phases/` once Phase 9 starts.
 
 ## Requirements
 
@@ -32,7 +45,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **Next milestone** — capture requirements in a fresh `.planning/REQUIREMENTS.md` via `/gsd-new-milestone`
+- [ ] **BVAL — before-values capture** — optional trigger/install path and `history` behavior for UPDATE `changed_from` (see REQUIREMENTS.md)
+- [ ] **TOOL — maintainer tooling** — `mix threadline.verify_coverage`, README/doc contract tests, backfill continuity helper (see REQUIREMENTS.md)
 
 ### Out of Scope
 
@@ -101,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 after **v1.1** milestone close — Hex publish validated; planning reset for next milestone*
+*Last updated: 2026-04-23 after **v1.2** milestone start — `/gsd-new-milestone` (before-values + tooling scope)*
