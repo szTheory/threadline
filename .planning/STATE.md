@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Before-values & developer tooling
 status: Roadmap approved; ready to discuss or plan Phase 9
-last_updated: "2026-04-23T17:51:01.549Z"
+last_updated: "2026-04-23T17:56:02.996Z"
 last_activity: 2026-04-23 — Milestone v1.2 roadmap created (Phases 9–11)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -55,3 +56,5 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 **Opened milestone:** v1.2 — 2026-04-23
 
 **Next:** `/gsd-discuss-phase 9` (or `/gsd-plan-phase 9`)
+
+**Planned Phase:** 9 (Before-values capture) — 2 plans — 2026-04-23T17:56:02.986Z
