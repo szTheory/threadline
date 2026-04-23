@@ -53,7 +53,7 @@ defmodule Threadline.MixProject do
       "verify.format": ["format --check-formatted"],
       "verify.credo": ["credo --strict"],
       "verify.test": ["test"],
-      "ci.all": ["verify.format", "verify.credo", "verify.test"]
+      "ci.all": ["verify.format", "verify.credo", "compile --warnings-as-errors", "verify.test"]
     ]
   end
 
