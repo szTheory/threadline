@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
-status: Ready for `/gsd-plan-phase 5`
-stopped_at: Phase 5 context gathered
+status: Ready to execute
+stopped_at: Phase 5 planned — 05-01-PLAN.md
 last_updated: "2026-04-23T03:27:16.970Z"
-last_activity: 2026-04-23 — `gh repo create` + push `main`; `05-CONTEXT.md` written
+last_activity: 2026-04-23 — `/gsd-plan-phase 5`; research, validation, 05-01 plan written
 progress:
   total_phases: 3
   completed_phases: 0
@@ -26,13 +26,13 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 ## Current Position
 
-Phase: 5 — Repository & remote (context gathered; REPO work executed on GitHub)
+Phase: 5 — Repository & remote
 
-Plan: —
+Plan: 05-01 — Verify canonical origin, URLs, and main branch
 
-Status: Ready for `/gsd-plan-phase 5`
+Status: Ready for `/gsd-execute-phase 5`
 
-Last activity: 2026-04-23 — `gh repo create` + push `main`; `05-CONTEXT.md` written
+Last activity: 2026-04-23 — `/gsd-plan-phase 5`; RESEARCH, VALIDATION, PATTERNS, 05-01-PLAN.md
 
 Progress: [████░░░░░░] v1.0 complete; v1.1 Phase 5 in motion (remote live)
 
@@ -46,7 +46,7 @@ Progress: [████░░░░░░] v1.0 complete; v1.1 Phase 5 in motion
 
 | Phase | Plans | Notes |
 |-------|-------|-------|
-| 5 | — | Repository & remote |
+| 5 | 1 planned (05-01) | Repository & remote — verification |
 | 6 | — | CI on GitHub |
 | 7 | — | Hex 0.1.0 |
 
@@ -68,10 +68,10 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 ## Session continuity
 
-Last session: `/gsd-discuss-phase 5` — context + `gh repo create` / push / description
+Last session: `/gsd-plan-phase 5` — research + plan 05-01
 
-Stopped at: Phase 5 context gathered
+Stopped at: Phase 5 ready to execute
 
-Resume file: `.planning/phases/05-repository-remote/05-CONTEXT.md`
+Resume file: `.planning/phases/05-repository-remote/05-01-PLAN.md`
 
 **Planned Phase:** 5 (Repository & remote) — 1 plans — 2026-04-23T03:27:16.956Z
