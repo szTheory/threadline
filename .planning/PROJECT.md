@@ -27,6 +27,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Phase 17** — `timeline_repo!/2`, validation order, tests (DX-01 — DX-03).
 - **Phase 18** — `mix.exs` **0.2.0**, CHANGELOG **0.2.0**, ExDoc groups/extras (REL-01 — REL-03).
 
+**Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
+
 **Next:** Maintainer tag **`v0.2.0`** and `mix hex.publish` when ready; then **`/gsd-new-milestone`** for **v1.5** scope.
 
 ## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
