@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Planned — ready for execution
-stopped_at: Phase 2 execution finalized (summaries + verification)
-last_updated: "2026-04-23T22:15:00.000Z"
+status: planning
+stopped_at: Phase 4 context gathered (research synthesis)
+last_updated: "2026-04-23T02:16:21.003Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -22,25 +22,25 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 3 — Query & Observability
+**Current focus:** Phase 4 — Documentation & Release (not yet planned)
 
 ## Current Position
 
-Phase: 3
+Phase: 4
 
-Plan: Ready to execute (03-01 first)
+Plan: Not started
 
-Status: Planned — ready for execution
+Status: Ready to plan
 
 Last activity: 2026-04-23
 
-Progress: [██████░░░░] Phases 1–2 done; Phase 3 planned, Phase 4 not started
+Progress: [██████████] Phases 1–3 done; Phase 4 not started
 
 ## Performance metrics
 
 **Velocity:**
 
-- Total plans completed: 6 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03)
+- Total plans completed: 10 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03; Phase 3: 03-01–03-02)
 - Average duration: —
 - Total execution time: —
 
@@ -49,7 +49,8 @@ Progress: [██████░░░░] Phases 1–2 done; Phase 3 planned, P
 | Phase | Plans | Notes |
 |-------|-------|-------|
 | 1 | 01-01 .. 01-03 | Complete — `gate-01-01.md`, capture modules, CI, CONTRIBUTING |
-| 2 | 02-01 .. 02-03 | Complete — ActorRef, semantics DDL, trigger GUC bridge, Plug/Job |
+| 2 | 02-01 .. 02-03 | Complete — ActorRef, semantics DDL, AuditAction, record_action/2, Plug/Job |
+| 3 | 03-01 .. 03-02 | Complete — Query (history/actor_history/timeline), Health, Telemetry; 78 tests |
 
 ## Accumulated context
 
@@ -59,17 +60,17 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per `ga
 
 ### Pending todos
 
-1. Execute Phase 3 (`03-query-observability`): run 03-01 then 03-02.
-2. Keep `MIX_ENV=test mix ci.all` green throughout Phase 3 execution.
+1. Plan and execute Phase 4 (`04-documentation-release`).
+2. Keep `mix ci.all` green.
 
 ### Blockers / concerns
 
-- None. Phase 3 plans are written and ready for execution.
+- None. Phase 4 not yet planned — needs planning session before execution.
 
 ## Session continuity
 
-Last session: execute-phase 2
+Last session: --stopped-at
 
-Stopped at: Phase 2 closed with verification artifacts
+Stopped at: Phase 4 context gathered (research synthesis)
 
-Resume file: —
+Resume file: --resume-file
