@@ -86,6 +86,10 @@ mix threadline.verify_coverage
 
 Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverage/1`.
 
+### Data retention and purge
+
+Threadline resolves a validated **global retention window** from **`config :threadline, :retention`** (`Threadline.Retention.Policy`). Operators run batched deletes via **`Threadline.Retention.purge/1`** or **`mix threadline.retention.purge`** (see `@moduledoc` on the task for production gates). Semantics — `captured_at` vs `occurred_at`, timeline alignment, orphan `audit_transactions` cleanup — are documented in [`guides/domain-reference.md`](guides/domain-reference.md#retention-phase-13).
+
 ## Quick Start
 
 ### 1. Add the Plug to your router or endpoint

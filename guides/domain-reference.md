@@ -42,6 +42,15 @@ An `AuditChange` is one row-level mutation on an audited table: schema/name, pri
 
 Threadline can **exclude** or **mask** configured columns when PL/pgSQL capture functions are generated (`mix threadline.gen.triggers`), so JSON written to `audit_changes` never contains raw values for those keys. **`exclude`** removes keys from `data_after` (and from change lists where the generator applies the same filter). **`mask`** keeps the key but persists only a stable placeholder (default `"[REDACTED]"`) for both `data_after` and sparse **`changed_from`** when that mode is enabled. Overlap between exclude and mask is a hard error at codegen. **json/jsonb** columns use whole-value masking only. Configuration lives under **`config :threadline, :trigger_capture`** (see README). Path B is preserved: redaction is static SQL and trigger paths do not introduce new session writes.
 
+## Retention (Phase 13)
+
+Operators cap table growth with a **global retention window** under **`config :threadline, :retention`**, validated by `Threadline.Retention.Policy` before purge runs.
+
+- **Primary clock:** eligibility uses each row’s **`AuditChange.captured_at`** (`timestamptz`, microsecond precision), not `AuditTransaction.occurred_at`. This matches `Threadline.Query.timeline/2`, which applies **`captured_at >= :from`** (inclusive lower bound) and **`captured_at <= :to`** (inclusive upper bound) when those filters are set. Retention purge deletes changes with **`captured_at` strictly less than** the computed cutoff (`now` minus the configured window), so the boundary is **exclusive on the “keep” side** at the cutoff instant — slightly stricter than the inclusive `:to` filter in timeline queries; operators should treat the cutoff as “anything older than this instant is eligible.”
+- **Global window:** v1.3 is one documented interval for all captured changes (same relation Threadline owns). Per-table retention is an extension point for later releases.
+- **Long transactions:** multiple `AuditChange` rows under one `audit_transactions` row can carry **different** `captured_at` values; retention is evaluated **per change row**, not “whole transaction expires as one timestamp.”
+- **Empty parents:** after eligible changes are removed, the default purge path deletes **`audit_transactions`** rows that have **no** remaining child changes (optional `delete_empty_transactions: false` for transitional installs). See `Threadline.Retention` / `mix threadline.retention.purge`.
+
 ## Brownfield continuity
 
 Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).

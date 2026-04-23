@@ -26,4 +26,11 @@ config :threadline, :trigger_capture,
     ]
   }
 
+# RETN-01 / RETN-02 — explicit window for policy + purge tests (`Threadline.Retention.PolicyTest`,
+# `Threadline.Retention.PurgeTest`). Destructive purge stays off unless a test enables it.
+config :threadline, :retention,
+  enabled: false,
+  keep_days: 30,
+  delete_empty_transactions: true
+
 config :logger, level: :warning
