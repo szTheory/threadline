@@ -8,11 +8,28 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Next milestone
+
+**v1.5** — not started. Run **`/gsd-new-milestone`** to scope the next slice. **v1.4** artifacts: `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` (phases 15–18).
+
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, and **v1.3 — Production adoption** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `v1.1-*.md`, `v1.2-*.md`, `v1.3-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. v1.2 phase execution directories under `.planning/phases/` were cleared when **v1.3** opened; use milestone archives and git history for v1.2 execution detail. v1.3 phase directories remain under `.planning/phases/` until optional cleanup.
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.3-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. Phase execution directories under `.planning/phases/` were cleared at **v1.4** open via `gsd-sdk query phases.clear`; v1.4 work landed on `main` without per-phase execution trees.
 
-## Last shipped milestone: v1.3 — Production adoption (redaction, retention, export)
+## Last shipped milestone: v1.4 — Adoption & release readiness
+
+**Goal (achieved):** First production week narrative + **0.2.0** packaging in-repo: onboarding/README updates, production checklist guide, clearer timeline/export errors, ExDoc extras for retention and checklist.
+
+**Shipped:**
+
+- **Phase 15** — README `~> 0.2`, quickstart export step, documentation index (ONB-01 — ONB-03).
+- **Phase 16** — `guides/production-checklist.md` (PROD-01).
+- **Phase 17** — `timeline_repo!/2`, validation order, tests (DX-01 — DX-03).
+- **Phase 18** — `mix.exs` **0.2.0**, CHANGELOG **0.2.0**, ExDoc groups/extras (REL-01 — REL-03).
+
+**Next:** Maintainer tag **`v0.2.0`** and `mix hex.publish` when ready; then **`/gsd-new-milestone`** for **v1.5** scope.
+
+## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
 
 **Goal (achieved):** Remove the main blockers to **production onboarding**—sensitive data in audit JSON, unbounded table growth, and “get rows out for ops”—while keeping capture **correct-by-default** and **SQL-native**.
 
@@ -22,15 +39,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Retention + batched purge** — Phase 13 (`Threadline.Retention.*`, `mix threadline.retention.purge`).
 - **Export** — Phase 14 (`Threadline.Export`, `mix threadline.export`, README + domain guide).
 
-**Planning artifacts (archived):** `.planning/milestones/v1.3-REQUIREMENTS.md`, `.planning/milestones/v1.3-ROADMAP.md`. **Next:** `/gsd-new-milestone` — fresh `.planning/REQUIREMENTS.md` and **v1.4** scope (e.g. onboarding & polish).
+**Planning artifacts (archived):** `.planning/milestones/v1.3-REQUIREMENTS.md`, `.planning/milestones/v1.3-ROADMAP.md`.
 
 ## Current state
 
-- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (planning milestone tags **`v1.0`** … **`v1.3`** track GSD planning cycles, not only Hex semver). **0.2.0** (or next minor) remains the intended signal once maintainers publish a release that includes v1.3 capabilities.
+- **Hex:** `threadline` **0.1.0** is on Hex; **`main`** carries **`@version "0.2.0"`** with CHANGELOG **0.2.0** — publish annotated **`v0.2.0`** when maintainers run `mix hex.publish`. Planning milestone tags **`v1.0`** … **`v1.4`** track GSD cycles, not only Hex semver.
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.3** archived 2026-04-23. Living roadmap: `.planning/ROADMAP.md`. The next milestone starts with a new `.planning/REQUIREMENTS.md` via `/gsd-new-milestone`.
+- **Planning:** Milestone **v1.4** complete 2026-04-23. Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. Next slice: **`/gsd-new-milestone`** for **v1.5**.
 
 ## Requirements
 
@@ -49,10 +66,14 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Redaction at capture (Phase 12)** — `config :threadline, :trigger_capture`, `RedactionPolicy`, `TriggerSQL` exclude/mask, tests and operator docs. Validated in Phase 12 (2026-04-23).
 - [x] **Retention + batched purge (Phase 13)** — `Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`, integration tests on PostgreSQL. Validated in Phase 13 (2026-04-23).
 - [x] **Export (Phase 14)** — `Threadline.Export`, strict timeline filter validation, `mix threadline.export`, README + domain guide + ExDoc. Validated in Phase 14 (2026-04-23).
+- [x] **Onboarding & README (Phase 15)** — `~> 0.2`, quickstart export, doc index links. Validated in Phase 15 (2026-04-23).
+- [x] **Production checklist (Phase 16)** — `guides/production-checklist.md`. Validated in Phase 16 (2026-04-23).
+- [x] **Timeline/export DX (Phase 17)** — `Threadline.Query.timeline_repo!/2`, validation order, tests. Validated in Phase 17 (2026-04-23).
+- [x] **Release 0.2.0 packaging (Phase 18)** — `mix.exs` 0.2.0, CHANGELOG, ExDoc extras + retention in module groups. Validated in Phase 18 (2026-04-23).
 
 ### Active
 
-_None — use `/gsd-new-milestone` to add the next slice; a fresh `.planning/REQUIREMENTS.md` will be created with that flow._
+_None — use `/gsd-new-milestone` for **v1.5** when ready._
 
 ### Out of Scope
 
@@ -120,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 after archiving v1.3 (roadmap + requirements); living REQUIREMENTS.md removed for next milestone.*
+*Last updated: 2026-04-23 — v1.4 adoption & 0.2.0 packaging complete in-repo.*

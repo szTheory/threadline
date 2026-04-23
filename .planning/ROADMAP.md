@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — requirements: [REQUIREMENTS.md](REQUIREMENTS.md)
 - ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — [full archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.2 — Before-values & developer tooling** — Phases 9–11 (shipped 2026-04-23) — [full archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (shipped 2026-04-23) — [full archive](milestones/v1.1-ROADMAP.md)
@@ -10,9 +11,21 @@
 ## Phases
 
 <details>
+<summary>✅ v1.4 Adoption & release readiness (Phases 15–18) — SHIPPED 2026-04-23</summary>
+
+Living requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md).
+
+- [x] **Phase 15 — Onboarding** — README `~> 0.2`, quickstart export step, documentation index links (ONB-01 — ONB-03).
+- [x] **Phase 16 — Production checklist** — `guides/production-checklist.md` and README pointer (PROD-01).
+- [x] **Phase 17 — DX: timeline/export errors** — `timeline_repo!/2`, validation order, tests (DX-01 — DX-03).
+- [x] **Phase 18 — Release 0.2.0** — `mix.exs` 0.2.0, CHANGELOG narrative, ExDoc extras + module groups (REL-01 — REL-03).
+
+</details>
+
+<details>
 <summary>✅ v1.3 Production adoption (Phases 12–14) — SHIPPED 2026-04-23</summary>
 
-Phase-level specs, success criteria, and plan checklists live in [.planning/milestones/v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md). Requirements (archived): [.planning/milestones/v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md). On-disk execution directories: `.planning/phases/12-redaction-at-capture-time/`, `13-retention-batched-purge/`, `14-export-csv-json/` (optional `/gsd-cleanup` later).
+Phase-level specs, success criteria, and plan checklists live in [.planning/milestones/v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md). Requirements (archived): [.planning/milestones/v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md). v1.3 phase execution directories under `.planning/phases/` were removed when **v1.4** opened (`phases.clear`); use git history or milestone archives for on-disk artifacts.
 
 - [x] Phase 12: Redaction at capture time (2/2 plans) — completed 2026-04-23
 - [x] Phase 13: Retention & batched purge (2/2 plans) — completed 2026-04-23
@@ -57,12 +70,16 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next milestone
 
-Use `/gsd-new-milestone` to open **v1.4** (or the next slice). That flow creates a fresh `.planning/REQUIREMENTS.md` and extends this roadmap. Candidate themes from the v1.3 archive: onboarding & polish, Hex **0.2.0** packaging narrative.
+Use `/gsd-new-milestone` to open **v1.5** (or the next slice). v1.4 closed adoption, production checklist, DX errors for timeline/export, and **0.2.0** release packaging in-repo — publish **`v0.2.0`** when ready per CONTRIBUTING.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 15. Onboarding | v1.4 | — | Complete | 2026-04-23 |
+| 16. Production checklist | v1.4 | — | Complete | 2026-04-23 |
+| 17. DX: timeline/export errors | v1.4 | — | Complete | 2026-04-23 |
+| 18. Release 0.2.0 | v1.4 | — | Complete | 2026-04-23 |
 | 1. Capture Foundation | v1.0 | 3/3 | Complete | 2026-04-23 |
 | 2. Semantics Layer | v1.0 | 3/3 | Complete | 2026-04-23 |
 | 3. Query & Observability | v1.0 | 2/2 | Complete | 2026-04-23 |

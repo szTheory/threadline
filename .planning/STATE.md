@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: — Production adoption
+milestone: v1.4
+milestone_name: — Adoption & release readiness
 status: between_milestones
-last_updated: "2026-04-23T23:59:00.000Z"
-last_activity: 2026-04-23 — Phase 14 export shipped (`Threadline.Export`, `mix threadline.export`).
+last_updated: "2026-04-23T12:00:00.000Z"
+last_activity: 2026-04-23 — v1.4 phases 15–18 complete; Hex **0.2.0** in `mix.exs` (publish `v0.2.0` when ready).
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 0
+  completed_plans: 0
   percent: 100
 ---
 
@@ -21,37 +21,32 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** v1.3 archived to `.planning/milestones/v1.3-*.md`; git tag **`v1.3`** records the planning close. Next: `/gsd-new-milestone` for v1.4 (fresh `REQUIREMENTS.md`).
+**Current focus:** Between milestones — **`/gsd-new-milestone`** for **v1.5**. v1.4 delivered onboarding/README, `guides/production-checklist.md`, `Threadline.Query.timeline_repo!/2` + validation order, **0.2.0** + CHANGELOG + ExDoc updates.
 
 ## Current Position
 
-Phase: 14
+Phase: Not started (next milestone)
 
-Plan: 2/2 complete
+Plan: —
 
-Status: Milestone complete
+Status: Milestone v1.4 complete; awaiting v1.5 definition
 
-Last activity: 2026-04-23 — Phase 14 export shipped.
+Last activity: 2026-04-23 — v1.4 adoption & release readiness shipped in-repo.
 
 ## Performance metrics
 
-Phases 12–14 complete — see `12-VERIFICATION.md`, `13-VERIFICATION.md`, and `14-VERIFICATION.md`.
+Phases 15–18 — verification: `mix ci.all` (includes `verify.doc_contract`).
 
 ## Accumulated context
 
 ### Decisions
 
-Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) per archived `gate-01-01.md`. v1.3 changes must preserve PgBouncer-safe capture (no new session-local writes in the trigger path unless explicitly gated and reviewed).
-
-**Phase 12 (redaction):** Shipped — `config :threadline, :trigger_capture` with per-table `exclude` / `mask`; `RedactionPolicy` validates at codegen; README and `guides/domain-reference.md` document semantics. Context: `12-CONTEXT.md`.
-
-**Phase 13 (retention & purge):** Shipped — `Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`, config `:retention`, docs in README + `guides/domain-reference.md`. See `13-VERIFICATION.md`.
-
-**Phase 14 (export):** Shipped — `Threadline.Export`, shared `validate_timeline_filters!/1` / `timeline_query/1`, `mix threadline.export`, README + domain guide. See `14-VERIFICATION.md`.
+v1.4 intentionally avoided new capture semantics; focus was docs, operator checklist, actionable `ArgumentError` messages for timeline/export, and semver **0.2.0** to signal capabilities since the first Hex **0.1.0** release.
 
 ### Pending todos
 
-1. Run `DB_PORT=5433 MIX_ENV=test mix ci.all` when using Docker Postgres on host port 5433.
+1. Maintainer: tag **`v0.2.0`** at the 0.2.0 release commit and run **`mix hex.publish`** when ready (see CONTRIBUTING).
+2. Run `DB_PORT=5433 MIX_ENV=test mix ci.all` when using Docker Postgres on host port 5433.
 
 ### Blockers / concerns
 
@@ -59,10 +54,10 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 ## Session continuity
 
-**Opened milestone:** v1.3 — 2026-04-23
+**Closed milestone:** v1.4 — 2026-04-23
 
-**Next:** `/gsd-new-milestone` — v1.4 candidate themes in archived `v1.3-REQUIREMENTS.md` § Future Requirements.
+**Next:** `/gsd-new-milestone` — define **v1.5**.
 
-**Prior milestone:** v1.2 — shipped 2026-04-23 (archive: `.planning/milestones/v1.2-*.md`).
+**Prior milestone:** v1.3 — shipped 2026-04-23 (archive: `.planning/milestones/v1.3-*.md`).
 
-**Completed phases:** 12 (Redaction) — 2026-04-23; 13 (Retention & batched purge) — 2026-04-23; 14 (Export) — 2026-04-23
+**Completed phases:** 15 (Onboarding) — 2026-04-23; 16 (Production checklist) — 2026-04-23; 17 (DX) — 2026-04-23; 18 (Release 0.2.0) — 2026-04-23

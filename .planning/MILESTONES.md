@@ -2,6 +2,18 @@
 
 Entries are newest first.
 
+## v1.4 — Adoption & release readiness (shipped 2026-04-23)
+
+**Delivered:** README **`~> 0.2`**, quickstart **export** step, documentation index links; **`guides/production-checklist.md`**; **`Threadline.Query.timeline_repo!/2`**, timeline filter validation before repo resolution, clearer `ArgumentError` messages; **`mix.exs` 0.2.0**, **CHANGELOG 0.2.0** narrative for upgraders from 0.1.0; ExDoc **extras** + **`Threadline.Retention`** / **`Policy`** in module groups.
+
+**Phases completed:** 15–18 (adoption slice; no per-phase execution trees — `gsd-sdk query phases.clear` at milestone open).
+
+**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`.
+
+**What is next:** Tag **`v0.2.0`** and `mix hex.publish` when ready; **`/gsd-new-milestone`** for **v1.5**.
+
+---
+
 ## v1.3 — Production adoption (redaction, retention, export) (shipped 2026-04-23)
 
 **Delivered:** **Capture-time redaction** (`RedactionPolicy`, `TriggerSQL` exclude/mask, `config :threadline, :trigger_capture`, `mix threadline.gen.triggers` integration); **retention + batched purge** (`Threadline.Retention.Policy`, `Threadline.Retention.purge/1`, `mix threadline.retention.purge`); **CSV/JSON export** (`Threadline.Export`, shared timeline filter validation, `mix threadline.export`, README + domain guide).

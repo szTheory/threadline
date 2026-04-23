@@ -1,0 +1,64 @@
+# Requirements: Threadline
+
+**Defined:** 2026-04-23  
+**Milestone:** v1.4 — Adoption & release readiness  
+**Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
+
+## v1.4 Requirements
+
+### Onboarding (Phase 15)
+
+- [x] **ONB-01**: README **Installation** shows `{:threadline, "~> 0.2"}` and remains consistent with `mix.exs` `@version`.
+- [x] **ONB-02**: README **Quick Start** includes an export example using the same filter vocabulary as `timeline/2`, with links to HexDocs / domain reference.
+- [x] **ONB-03**: README **Documentation** lists brownfield continuity and production checklist guides alongside domain reference and contributing docs.
+
+### Production operator path (Phase 16)
+
+- [x] **PROD-01**: Repository includes **`guides/production-checklist.md`** covering capture/triggers, actor bridge, redaction review, retention/purge safety, export boundaries, observability, and brownfield — with “See also” links to domain reference and HexDocs.
+
+### Developer experience — errors and guardrails (Phase 17)
+
+- [x] **DX-01**: **`Threadline.Query.timeline_repo!/2`** (or equivalent) raises **`ArgumentError`** with an actionable message when `:repo` is missing or not an atom module, for timeline and export code paths.
+- [x] **DX-02**: **`validate_timeline_filters!/1`** error messages name allowed keys and point consumers at **`Threadline.Query`** / **`Threadline.Export`**; timeline and export entrypoints validate filter keys **before** resolving `:repo` so mis-typed keys surface clearly.
+- [x] **DX-03**: Automated tests assert missing-repo and unknown-filter-key behavior for **`timeline/2`** (and export if not already covered).
+
+### Release packaging (Phase 18)
+
+- [x] **REL-01**: **`mix.exs`** application version is **`0.2.0`** (no pre-release suffix on the release line).
+- [x] **REL-02**: **`CHANGELOG.md`** has a dated **`[0.2.0]`** section documenting adoption/DX changes and summarizing capabilities since **0.1.0** for consumers upgrading from the first Hex release.
+- [x] **REL-03**: **ExDoc** `extras` include the production checklist; **`Threadline.Retention`** and **`Threadline.Retention.Policy`** appear in module groups so operators find retention next to **`Threadline.Export`**.
+
+## Future Requirements
+
+_Defer to v1.5 or later._
+
+- LiveView or rich operator UI (still out of scope per `PROJECT.md` until API-first adoption matures).
+- Additional exploration-layer library APIs beyond what v1.3 export/query already provide — only when a concrete repeated integrator pain appears.
+
+## Out of Scope (v1.4)
+
+| Item | Reason |
+|------|--------|
+| New capture semantics or trigger shape | v1.4 is adoption/DX/release, not capture expansion |
+| Automated `mix hex.publish` from CI | Unchanged maintainer policy |
+| Example Phoenix apps in-repo | README + guides + contracts first |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ONB-01 | Phase 15 | Complete |
+| ONB-02 | Phase 15 | Complete |
+| ONB-03 | Phase 15 | Complete |
+| PROD-01 | Phase 16 | Complete |
+| DX-01 | Phase 17 | Complete |
+| DX-02 | Phase 17 | Complete |
+| DX-03 | Phase 17 | Complete |
+| REL-01 | Phase 18 | Complete |
+| REL-02 | Phase 18 | Complete |
+| REL-03 | Phase 18 | Complete |
+
+**Coverage:** v1.4 requirements: 10 total; mapped to phases: 10; unmapped: 0.
+
+---
+*Last updated: 2026-04-23 — v1.4 roadmap executed in-repo.*
