@@ -15,7 +15,7 @@ Phase specs below continue numbering after v1.1 (last shipped phase **8**). Cano
 | Phase | Name | Goal | Requirements |
 | ----- | ---- | ---- | -------------- |
 | 9 | 2/2 | Complete    | 2026-04-23 |
-| 10 | Verify coverage & doc contracts | CI-provable trigger coverage + README/API drift protection | TOOL-01, TOOL-03 |
+| 10 | 2/2 | Complete    | 2026-04-23 |
 | 11 | Backfill / continuity | Brownfield adoption helper with honest audit semantics | TOOL-02 |
 
 #### Phase 9: Before-values capture

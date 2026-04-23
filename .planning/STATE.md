@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Before-values & developer tooling
 status: ready_to_plan
-last_updated: "2026-04-23T18:52:16.996Z"
+last_updated: "2026-04-23T20:15:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 2
+  completed_phases: 2
+  total_plans: 4
   completed_plans: 2
-  percent: 33
+  percent: 67
 ---
 
 # Project State
@@ -21,15 +21,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 10 context gathered — plan next
+**Current focus:** Phase 11 — backfill / continuity (plan next)
 
 ## Current Position
 
-Phase: 10
+Phase: 11
 
 Plan: Not started
 
-Status: ready_to_plan
+Status: Ready to plan
 
 Last activity: 2026-04-23
 
@@ -45,16 +45,18 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 ### Pending todos
 
-1. Run `MIX_ENV=test mix ci.all` locally with PostgreSQL to confirm Phase 9 integration tests before the next Hex publish.
+1. Run `MIX_ENV=test mix ci.all` locally with PostgreSQL to confirm integration tests including verify coverage and doc contracts.
 
 ### Blockers / concerns
 
-- Agent environment lacked PostgreSQL; CI must be the authoritative signal for trigger tests.
+- Agent environment may lack PostgreSQL; CI is the authoritative signal for DB-backed tests.
 
 ## Session continuity
 
 **Opened milestone:** v1.2 — 2026-04-23
 
-**Next:** `/gsd-plan-phase 10` — Verify coverage & doc contracts (context in `10-CONTEXT.md`)
+**Next:** `/gsd-discuss-phase 11` or `/gsd-plan-phase 11` — backfill / continuity
 
-**Completed Phase:** 9 (Before-values capture) — 2026-04-23
+**Completed Phase:** 10 (Verify coverage & doc contracts) — 2026-04-23
+
+**Completed Phase (prior):** 9 (Before-values capture) — 2026-04-23

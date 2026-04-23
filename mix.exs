@@ -53,7 +53,16 @@ defmodule Threadline.MixProject do
       "verify.format": ["format --check-formatted"],
       "verify.credo": ["credo --strict"],
       "verify.test": ["test"],
-      "ci.all": ["verify.format", "verify.credo", "compile --warnings-as-errors", "verify.test"]
+      "verify.threadline": ["threadline.verify_coverage"],
+      "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
+      "ci.all": [
+        "verify.format",
+        "verify.credo",
+        "compile --warnings-as-errors",
+        "verify.test",
+        "verify.threadline",
+        "verify.doc_contract"
+      ]
     ]
   end
 
@@ -110,7 +119,8 @@ defmodule Threadline.MixProject do
         ],
         "Mix Tasks": [
           Mix.Tasks.Threadline.Install,
-          Mix.Tasks.Threadline.Gen.Triggers
+          Mix.Tasks.Threadline.Gen.Triggers,
+          Mix.Tasks.Threadline.VerifyCoverage
         ]
       ]
     ]

@@ -26,11 +26,13 @@
    DB_PORT=5433 mix ci.all
    ```
 
-4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, test) runs in the **test** environment and picks up `config/test.exs`.
+4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, compile strict, tests, Threadline trigger coverage, doc contract tests) runs in the **test** environment and picks up `config/test.exs`.
 
    ```bash
-   mix ci.all
+   MIX_ENV=test mix ci.all
    ```
+
+   `mix ci.all` is equivalent when invoked without `MIX_ENV` because of `preferred_envs`.
 
    With the alternate Compose port: `DB_PORT=5433 mix ci.all`.
 

@@ -3,7 +3,7 @@
 [![CI](https://github.com/szTheory/threadline/actions/workflows/ci.yml/badge.svg)](https://github.com/szTheory/threadline/actions/workflows/ci.yml)
 [![Hex.pm](https://img.shields.io/hexpm/v/threadline.svg)](https://hex.pm/packages/threadline)
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
-**CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions) on `main` (`verify-format`, `verify-credo`, `verify-test`, plus `verify-docs`, `verify-hex-package`, `verify-release-shape`). Reproduce locally with `mix ci.all` — see [CONTRIBUTING.md](CONTRIBUTING.md#ci-parity-and-act).
+**CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions) on `main` (`verify-format`, `verify-credo`, `verify-test`, plus `verify-docs`, `verify-hex-package`, `verify-release-shape`). The `verify-test` job runs `mix verify.test`, then `mix verify.threadline`, then `mix verify.doc_contract`. Reproduce locally with `mix ci.all` — see [CONTRIBUTING.md](CONTRIBUTING.md#ci-parity-and-act).
 
 Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger-backed row-change capture, rich action semantics (actor, intent, correlation), and operator-grade exploration via plain SQL queries — without opaque blobs or a separate event bus.
 
@@ -45,6 +45,23 @@ mix ecto.migrate
 - Fresh installs get a nullable `changed_from jsonb` column on `audit_changes` from `mix threadline.install` (migration template).
 - Existing databases: run `ALTER TABLE audit_changes ADD COLUMN IF NOT EXISTS changed_from jsonb;` then migrate or refresh triggers.
 - To capture sparse prior values on UPDATE for specific tables, regenerate triggers with `mix threadline.gen.triggers --tables posts --store-changed-from` and optional `--except-columns col1,col2` (exact flag spelling).
+
+## Maintainer checks
+
+Hosts configure which audited public tables must have Threadline capture triggers installed:
+
+```elixir
+config :threadline, :verify_coverage,
+  expected_tables: ["users", "posts", "comments"]
+```
+
+Run:
+
+```bash
+mix threadline.verify_coverage
+```
+
+Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverage/1`.
 
 ## Quick Start
 

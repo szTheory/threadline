@@ -84,6 +84,12 @@ jobs:
       - name: Run tests
         run: mix verify.test
 
+      - name: Verify Threadline trigger coverage
+        run: mix verify.threadline
+
+      - name: Doc contract tests
+        run: mix verify.doc_contract
+
   verify-docs:
     name: Build ExDoc (dev)
     runs-on: ubuntu-24.04

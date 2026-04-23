@@ -32,10 +32,26 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     test "mix.exs ci.all matches verify-test ordering (compile strict before tests)" do
       mix = read_rel!(["mix.exs"])
 
-      assert String.contains?(
-               mix,
-               ~s("ci.all": ["verify.format", "verify.credo", "compile --warnings-as-errors", "verify.test"])
-             )
+      assert String.contains?(mix, ~s("ci.all": [))
+
+      for step <- [
+            "verify.format",
+            "verify.credo",
+            "compile --warnings-as-errors",
+            "verify.test",
+            "verify.threadline",
+            "verify.doc_contract"
+          ] do
+        assert String.contains?(mix, step),
+               "expected ci.all to include #{inspect(step)}"
+      end
+
+      {pos_test, _} = :binary.match(mix, "\"verify.test\"")
+      {pos_tl, _} = :binary.match(mix, "\"verify.threadline\"")
+      {pos_dc, _} = :binary.match(mix, "\"verify.doc_contract\"")
+
+      assert pos_test < pos_tl and pos_tl < pos_dc,
+             "ci.all must list verify.test before verify.threadline before verify.doc_contract"
     end
   end
 

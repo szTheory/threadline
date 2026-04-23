@@ -10,4 +10,10 @@ config :threadline, Threadline.Test.Repo,
 
 config :threadline, ecto_repos: [Threadline.Test.Repo]
 
+if System.get_env("THREADLINE_VERIFY_COVERAGE_FAILURE_TEST") == "1" do
+  config :threadline, :verify_coverage, expected_tables: ["threadline_verify_cov_uncovered"]
+else
+  config :threadline, :verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]
+end
+
 config :logger, level: :warning
