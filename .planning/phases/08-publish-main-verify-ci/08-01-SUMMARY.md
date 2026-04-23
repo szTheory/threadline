@@ -60,7 +60,7 @@ Tasks 1–3 were verified in the working tree; deliverable is this SUMMARY (sing
 2. **Task 2: Push `main` to `origin`** — push completed; see git output in verification.
 3. **Task 3: Local CI health** — `MIX_ENV=test mix ci.all` exit 0.
 
-**Plan commit:** (populated after `git commit`)
+**Plan commit:** `b352856` — docs(08-01): complete REPO-03 — sync main to origin
 
 ## Files Created/Modified
 
