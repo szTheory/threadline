@@ -8,6 +8,8 @@
 
 ## 1. Current State — What Phase 1 Built
 
+**Repo sync (2026-04-22):** `mix.exs` has no Carbonite dependency. Top-level scaffold modules under `lib/threadline/` are **absent** in the current tree — semantics work adds **new** `lib/threadline/semantics/` and boundary modules only. If stale artifacts reappear, remove them before defining `Threadline.Semantics.*` schemas for the same tables.
+
 ### Schemas (canonical implementations)
 
 **`Threadline.Capture.AuditTransaction`** (`lib/threadline/capture/audit_transaction.ex`)
@@ -41,16 +43,6 @@
 - Groups changes by DB transaction using `ON CONFLICT DO NOTHING` on the `txid` UNIQUE constraint
 - Provides `create_trigger/1` and `drop_trigger/1` for per-table trigger SQL
 
-### Scaffold files that Phase 2 must remove
-
-Three files at `lib/threadline/` are structurally incorrect scaffolding:
-
-- `lib/threadline/audit_action.ex` — flat `actor_type`/`actor_id` columns instead of `actor_ref jsonb`; uses `timestamps/1` (wrong for append-only schema); `actor_id` is required (blocks anonymous actors)
-- `lib/threadline/audit_transaction.ex` — conflicts with `Threadline.Capture.AuditTransaction`; has wrong columns (flat actor fields, uses `timestamps/1`, missing `txid`, references `Threadline.AuditChange`)
-- `lib/threadline/audit_change.ex` — conflicts with `Threadline.Capture.AuditChange`; has wrong `table_pk` type (`:string` instead of `:map`), wrong timestamps, references `Threadline.AuditTransaction`
-
-These cannot coexist with the canonical schemas without Ecto reflection conflicts.
-
 ### Migration state
 
 One migration exists: `priv/repo/migrations/20260101000000_threadline_audit_schema.exs`
@@ -82,7 +74,6 @@ From `mix.exs`:
 - `postgrex ~> 0.17` — PostgreSQL adapter
 - `jason ~> 1.4` — JSON encode/decode (needed for JSONB custom type)
 - `telemetry ~> 1.2` — telemetry events (Phase 3 concern, but available)
-- `carbonite ~> 0.16` — in deps as prior art/reference; NOT used as a dependency of Threadline itself
 
 **Oban is NOT a dependency.** `Threadline.Job` must be designed for Oban ergonomics without a compile-time dependency on Oban. Any Oban integration must be optional or use duck-typed patterns.
 
@@ -304,33 +295,23 @@ Notes:
 - `x-request-id` extraction: if Phoenix's `Plug.RequestId` runs before `Threadline.Plug`, the request ID will already be in `conn.assigns[:request_id]` — the plug should check both sources
 - `remote_ip` from `conn.remote_ip` is an Erlang IP tuple `{127, 0, 0, 1}` — must be formatted to string with `:inet.ntoa/1`
 
-### PgBouncer Safety Analysis
+### PgBouncer Safety Analysis (CTX-03 — locked to `02-CONTEXT.md` D-09)
 
-CTX-03 requires context propagation to PostgreSQL survive PgBouncer transaction-mode pooling.
+CTX-03 requires PostgreSQL-visible context propagation **without** the Elixir process dictionary. **Locked decision (D-09):** application code runs `SELECT set_config('threadline.actor_ref', <json text>, true)` inside the **same** `Ecto.Repo.transaction/1` as audited writes. The third argument **`true`** makes the GUC **transaction-local** — it is visible to triggers in that transaction and is discarded at `COMMIT`, so it is safe under PgBouncer **transaction** pooling (no cross-transaction leakage on a pooled connection).
 
-**What this means:** In PgBouncer transaction-mode, a different backend process may handle each transaction. Session-level PostgreSQL settings (`SET` without `LOCAL`) are lost between transactions. Only `SET LOCAL` (transaction-scoped) or connection-level application state survives — but connection-level state also resets when PgBouncer reassigns the connection.
+Phase 2 extends `threadline_capture_changes()` so the `INSERT INTO audit_transactions (...)` supplies `actor_ref` from:
 
-**Phase 1 solution:** `txid_current()` inside the trigger — this is transaction-scoped and PgBouncer-safe. No session variables are needed for the capture layer.
+`NULLIF(current_setting('threadline.actor_ref', true), '')::jsonb`
 
-**Phase 2 challenge:** CTX-03 asks for context propagation using a "connection-level session variable" that survives PgBouncer transaction-mode pooling. This is a contradiction: session variables by definition do not survive PgBouncer transaction-mode pooling.
+**Hard constraint (gate-01-01 / D-10):** the trigger function must **not** call `SET LOCAL` or otherwise mutate session state on the library-owned hot path — it only **reads** a GUC the host already set in-band.
 
-**Correct interpretation of CTX-03:** The requirement means "the mechanism must not rely on process-dictionary state in the Elixir process." The PostgreSQL-level propagation for Phase 2 context (actor, request ID) must either:
+If the host never sets the GUC, `actor_ref` on new `audit_transactions` rows is NULL (CTX-04). `record_action/2` still persists `audit_actions.actor_ref` independently.
 
-1. **Not use PostgreSQL session variables at all** — instead, attach context to the `AuditTransaction` row via Elixir code before/during the DB transaction. This is the approach used by Carbonite (`insert_transaction/3` inserts a row with metadata). Phase 2 takes this approach: `actor_ref` is a column on `audit_transactions`, populated by application code via Ecto, not by a trigger reading a session variable.
+**Anti-patterns:** `SET application_name` or session-scoped `set_config(..., false)` for actor propagation — unsafe or misleading under pooling.
 
-2. **Use `SET LOCAL` within the transaction** — safe for PgBouncer transaction-mode because the variable is transaction-scoped. Carbonite uses `SET LOCAL carbonite_default.override_mode = 'capture'` for trigger behavior control. If the trigger needed to read actor context, `SET LOCAL app.actor_ref = '{"type":"user","id":"123"}'` then `current_setting('app.actor_ref')` in the trigger function would work. However, this approach requires modifying the trigger function.
+### Reference: transaction-local GUC + `current_setting`
 
-**Phase 2 decision:** Do not modify the trigger to read session variables. Instead, application code sets `actor_ref` on `audit_transactions` rows directly. The trigger creates the `audit_transactions` row with `actor_ref = NULL`; application code updates it (or the multi-step approach pre-inserts the `audit_transactions` row with context before writes). This is PgBouncer-safe and does not require session variable mechanics.
-
-**Note on `application_name`:** Some audit libraries use `SET application_name` to propagate metadata. This is a session variable and NOT safe for PgBouncer transaction-mode. Do not use it.
-
-### Carbonite's `SET LOCAL` Pattern (Reference)
-
-Carbonite uses `SET LOCAL #{prefix}.override_mode = '#{mode}'` within a transaction to control trigger behavior. This is:
-- Transaction-scoped (safe for PgBouncer transaction-mode)
-- Done by the application within an open transaction, not at session level
-
-If Threadline ever needs to propagate actor context to the trigger function (e.g., for a future trigger-read approach), `SET LOCAL threadline.actor_ref = '...'` + `current_setting('threadline.actor_ref', true)` in the trigger is the correct pattern. Phase 2 does not need this because actor context is applied at the application layer.
+Same transaction semantics as `SET LOCAL` for visibility purposes; chosen pattern matches D-09 wording and keeps control in host code.
 
 ---
 
@@ -456,15 +437,9 @@ SEM-01/SEM-05 say it returns `{:ok, action}` or error. Requiring `repo:` as an e
 
 ### D-OPEN-05: Updating `audit_transactions.actor_ref`
 
-When application code performs a write inside a DB transaction, the trigger creates an `audit_transactions` row with `actor_ref = NULL`. How does actor context get attached?
+**Locked (D-09):** Host sets transaction-local GUC `threadline.actor_ref` via `set_config(..., true)` in the same DB transaction as audited writes. The extended `threadline_capture_changes()` reads it when inserting the `audit_transactions` row so `actor_ref` is populated trigger-side without Elixir process dictionary.
 
-Options:
-A. Application code pre-inserts an `audit_transactions` row with actor context before writes; trigger's `ON CONFLICT DO NOTHING` reuses it. Requires the trigger to upsert on `txid` and respect pre-existing rows.
-B. Application code updates the `audit_transactions` row after the transaction commits (but within the same DB transaction — before `COMMIT`).
-C. `record_action/2` is called inside an `Ecto.Multi` that also sets `action_id` on the `audit_transactions` row — actor is on the action, not the transaction.
-D. Phase 2 does not populate `actor_ref` on `audit_transactions` at all. It's nullable (CTX-04). The action-to-transaction link via `action_id` gives enough context.
-
-**Recommendation**: Option D for Phase 2. The `actor_ref` on `audit_transactions` is a Phase 3 enhancement when the query layer needs it directly. For Phase 2, the actor is on `audit_actions`. The `action_id` FK provides the link. This avoids requiring application code to perform DB-level introspection within every transaction.
+**Fallback:** If the GUC is unset, `actor_ref` stays NULL (CTX-04). Semantic actor still lives on `audit_actions` via `record_action/2`.
 
 ### D-OPEN-06: `Threadline.DataCase` cleanup for `audit_actions`
 
@@ -472,7 +447,7 @@ Phase 2 adds `audit_actions`. The `DataCase` setup must also clean this table. S
 
 ### D-OPEN-07: Top-level scaffolding removal timing
 
-The three incorrect scaffold files (`lib/threadline/audit_action.ex`, `lib/threadline/audit_transaction.ex`, `lib/threadline/audit_change.ex`) must be removed before Phase 2 schemas are added — otherwise there will be duplicate module definitions for the same table. This should be the first task in Phase 2 implementation.
+If duplicate scaffold modules exist under `lib/threadline/` for capture tables, remove them before adding `Threadline.Semantics.*` — otherwise Ecto will see conflicting schema modules. Current repo snapshot has none; keep this as a guardrail task (no-op if absent).
 
 ---
 
@@ -524,7 +499,7 @@ Validation order:
 - `AuditContext` is a plain struct with four fields (CTX-02)
 - `Threadline.Plug` stores context in `conn.assigns[:audit_context]`
 - Actor extraction is caller-configured via a function option
-- No process dictionary; no ETS; no session variables
+- No process dictionary; no ETS; PostgreSQL visibility uses **transaction-local** `set_config` (D-09), not Elixir process state
 
 ### Migration Strategy
 
@@ -548,7 +523,7 @@ Creates `audit_actions` table and adds two nullable columns to `audit_transactio
 
 **CONFIDENCE: HIGH**
 
-Phase 2 does not introduce session variables. The capture layer is already PgBouncer-safe via `txid_current()`. The semantics layer adds columns to `audit_transactions` that are populated by application code (not by triggers reading session variables). CTX-03's intent is satisfied without literal session-variable propagation.
+Capture remains PgBouncer-safe via `txid_current()`. For `audit_transactions.actor_ref`, the trigger **reads** a transaction-local GUC set by host code (`set_config(..., true)`); the trigger does **not** issue `SET` / `SET LOCAL`. CTX-03 is satisfied without the Elixir process dictionary.
 
 ### Namespace
 
@@ -563,11 +538,33 @@ Phase 2 does not introduce session variables. The capture layer is already PgBou
 
 ---
 
+## Validation Architecture
+
+Nyquist sampling for Phase 2 uses **ExUnit** against a real **PostgreSQL** database (existing `Threadline.DataCase` pattern — no Sandbox; tables cleaned in `setup`).
+
+| Dimension | Strategy |
+|-----------|----------|
+| **Unit / type** | `mix compile --warnings-as-errors` after each semantic module lands. |
+| **Persistence** | Repo integration tests: insert `AuditAction`, assert columns + constraints; `record_action/2` happy path and error tuples (SEM-05). |
+| **Trigger + GUC** | Integration test in `DataCase`: inside `Repo.transaction`, run raw SQL `set_config('threadline.actor_ref', ...)` then mutate an audited fixture table; assert `audit_transactions.actor_ref` JSONB matches (CTX-03 + D-09). |
+| **Regression** | `mix verify.test` (full suite) after each plan wave; `mix verify.credo` + `mix verify.format` before phase close. |
+
+**Wave 0:** Not required — ExUnit and `Threadline.Test.Repo` already exist from Phase 1.
+
+**Feedback commands:**
+
+- Quick (after most commits): `mix test test/threadline/semantics/` (once paths exist) or targeted test file.
+- Full: `mix verify.test`
+
+**Dimension 8 (validation):** Every plan task that mutates Elixir or SQL must name an automated check (grep, compile, or test module) in its acceptance criteria — no "looks correct" language.
+
+---
+
 ## 8. Risks and Pitfalls
 
 ### R-01: Dual module conflict on the same table (HIGH PRIORITY)
 
-The three top-level scaffold files define Ecto schemas for the same tables as the canonical `Threadline.Capture.*` modules. If both are compiled simultaneously, Ecto's reflection will conflict (two modules for `audit_transactions`, two for `audit_changes`). Tests will fail or produce confusing errors. **The scaffolding files must be the very first thing removed in Phase 2 implementation.**
+If duplicate scaffold modules for `audit_transactions` / `audit_changes` / `audit_actions` are introduced alongside `Threadline.Capture.*` or `Threadline.Semantics.*`, Ecto reflection conflicts. **Keep a single schema module per table.**
 
 ### R-02: `String.to_existing_atom/1` safety on name/reason fields
 
@@ -577,9 +574,9 @@ When reading `name` or `reason` from the database, converting string to atom wit
 
 SEM-05 says invalid ActorRef returns an error tuple. The DB constraint (`actor_ref jsonb NOT NULL`) enforces this at the DB level too. But if `record_action/2` fails validation before inserting, the NOT NULL is never reached. The risk is if someone bypasses `record_action/2` and directly inserts into `audit_actions` without `actor_ref` — the DB constraint catches it correctly. No mitigation needed; this is correct behavior.
 
-### R-04: PgBouncer and `SET LOCAL` misconception
+### R-04: PgBouncer and misuse of session state
 
-The requirement CTX-03 mentions "connection-level session variable" which contradicts PgBouncer transaction-mode safety. The design recommendation (Section 4) avoids session variables entirely. If a future contributor interprets CTX-03 literally and tries to use `SET` (not `SET LOCAL`), it will silently fail in PgBouncer environments. The implementation and tests must make clear that no session variables are used.
+Contributors might use session-scoped `set_config(..., false)` or `SET` without transaction locality, or add `SET LOCAL` inside the trigger body — all hazardous under pooling or forbidden by D-10. Tests and docs must lock the **host-set transaction-local GUC + trigger read** pattern only.
 
 ### R-05: Oban not in deps — `Threadline.Job` API contract
 
@@ -601,9 +598,9 @@ The Phase 1 migration uses `IF NOT EXISTS` for all DDL. The Phase 2 migration sh
 
 Ecto's `timestamps/1` uses `inserted_at` by default. The `audit_actions` table must use `inserted_at` (not `created_at` or `insert_at`). The `audit_transactions` and `audit_changes` tables in Phase 1 do NOT use `timestamps/1` — they have `occurred_at` and `captured_at` respectively. Phase 2 `audit_actions` uses `timestamps(inserted_at: :inserted_at, updated_at: false)` matching the scaffold file's intent but correcting the schema design.
 
-### R-10: Carbonite as a listed dependency
+### R-10: Stale docs referencing Carbonite in `mix.exs`
 
-`mix.exs` includes `{:carbonite, "~> 0.16"}` as a dependency. Carbonite is currently used as prior art research but is listed as a compile-time dependency. This will be pulled into any host app that uses Threadline. If Threadline does not intend to use Carbonite as a library (the trigger SQL is hand-written), this dependency should be removed from `mix.exs` to avoid transitive dependency bloat. This is a Phase 2 housekeeping concern.
+Older research revisions mentioned Carbonite in dependencies. Current `mix.exs` does not list it — keep docs and RESEARCH aligned with the tree.
 
 ---
 
@@ -618,6 +615,6 @@ The `02-CONTEXT.md` file in this directory (gathered 2026-04-23, marked "Ready f
 - D-05: `audit_transactions.action_id` FK — confirmed correct
 - D-06: `record_action/2` with explicit `repo:` — confirmed correct
 - D-07: Explicit context passing (no process dictionary) — confirmed correct
-- D-08: Remove top-level scaffold files — confirmed correct, must be first step
+- D-08: Remove top-level scaffold files if present — guardrail before new semantics modules
 
 One clarification from this research not covered in the context file: D-07 discusses `Threadline.Job.bind_context/2` which would need to store state somewhere. This research confirms the correct design is `Threadline.Job` as a pure helper (no storage), providing `actor_ref_from_args/1` and `context_opts/2` that extract from the args map. The context file already reached the same conclusion at the end of D-07.
