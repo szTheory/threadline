@@ -21,7 +21,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current state
 
 - **Planning milestone v1.0** is archived (2026-04-23): Phases 1–4 shipped end-to-end. Historical roadmap and requirements live under `.planning/milestones/v1.0-*.md`; phase execution artifacts under `.planning/milestones/v1.0-phases/`.
-- **v1.1** (this milestone) is scoped to distribution only. Product themes from the v1.0 archive (before-values, tooling, retention, export) wait for a **later** planning milestone after Hex is live.
+- **v1.1** (this milestone) is scoped to distribution only. Phase 5 (canonical remote + URL alignment) is verified; Phases 6–7 cover CI health on GitHub and Hex **0.1.0**. Product themes from the v1.0 archive (before-values, tooling, retention, export) wait for a **later** planning milestone after Hex is live.
 
 ## Requirements
 
@@ -31,10 +31,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Semantics layer (Phase 2)** — `ActorRef`, `audit_actions` / nullable `audit_transactions.actor_ref`, `record_action/2`, `Threadline.Plug`, `Threadline.Job`, transaction-local GUC bridge for trigger-populated `actor_ref`. Validated in Phase 2: Semantics Layer (2026-04-23).
 - [x] **Query + observability (Phase 3)** — `Threadline.Query`, delegators on `Threadline`, health coverage checks, telemetry hooks. Validated in Phase 3: Query & Observability (2026-04-23).
 - [x] **Documentation + Hex readiness (Phase 4)** — root `README.md`, `guides/domain-reference.md`, `LICENSE`, `CHANGELOG.md`, ExDoc configuration, capture schema `@moduledoc`, `mix docs` / `mix hex.build` / `mix ci.all` green. Validated in Phase 4: Documentation & Release (2026-04-23).
+- [x] **Canonical GitHub hosting (Phase 5)** — `origin` → `github.com/szTheory/threadline`, `@source_url` / package links / README CI badge aligned; `main` tracks `origin/main`; CI workflow monitors `main` only. Validated in Phase 5: Repository & remote (2026-04-22).
 
 ### Active
 
-- [ ] **Canonical GitHub hosting** — `origin` remote, URL parity in `mix.exs` / docs, `main` pushed
 - [ ] **CI signal on GitHub** — Actions workflow green for all jobs on `main`; README documents where to find status
 - [ ] **Hex package `threadline` 0.1.0** — release semver, changelog, `v0.1.0` tag, `mix hex.publish` complete
 
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-22 after starting milestone v1.1 (GitHub, CI, Hex)*
+*Last updated: 2026-04-22 — Phase 5 (repository-remote) verified; PROJECT.md requirements aligned*

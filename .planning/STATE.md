@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
-status: Ready to execute
-stopped_at: Phase 5 planned — 05-01-PLAN.md
-last_updated: "2026-04-23T03:27:16.970Z"
-last_activity: 2026-04-23 — `/gsd-plan-phase 5`; research, validation, 05-01 plan written
+status: ready_to_plan
+stopped_at: Phase 5 complete — advancing to Phase 6 planning
+last_updated: "2026-04-22T12:30:00.000Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -22,31 +22,31 @@ See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone v1.1 — canonical GitHub remote, CI green on `main`, Hex **0.1.0**.
+**Current focus:** Phase 6 — CI on GitHub (v1.1)
 
 ## Current Position
 
-Phase: 5 — Repository & remote
+Phase: 6
 
-Plan: 05-01 — Verify canonical origin, URLs, and main branch
+Plan: Not started
 
-Status: Ready for `/gsd-execute-phase 5`
+Status: Ready to plan
 
-Last activity: 2026-04-23 — `/gsd-plan-phase 5`; RESEARCH, VALIDATION, PATTERNS, 05-01-PLAN.md
+Last activity: 2026-04-23
 
-Progress: [████░░░░░░] v1.0 complete; v1.1 Phase 5 in motion (remote live)
+Progress: [███░░░░░░░] Phase 5 of v1.1 complete (1/3 phases)
 
 ## Performance metrics
 
 **Velocity:** (reset for v1.1)
 
-- Total plans completed: 0 of TBD for Phases 5–7
+- Total plans completed: 1 of TBD for Phases 5–7
 
 **By phase:**
 
 | Phase | Plans | Notes |
 |-------|-------|-------|
-| 5 | 1 planned (05-01) | Repository & remote — verification |
+| 5 | 1/1 complete | Repository & remote — verified (05-01) |
 | 6 | — | CI on GitHub |
 | 7 | — | Hex 0.1.0 |
 
@@ -68,10 +68,10 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per arc
 
 ## Session continuity
 
-Last session: `/gsd-plan-phase 5` — research + plan 05-01
+Last session: `/gsd-execute-phase 5` — plan 05-01 executed; verification passed
 
-Stopped at: Phase 5 ready to execute
+Stopped at: Phase 5 complete; ready to plan Phase 6
 
-Resume file: `.planning/phases/05-repository-remote/05-01-PLAN.md`
+Resume file: None (start with `/gsd-discuss-phase 6` or `/gsd-plan-phase 6`)
 
-**Planned Phase:** 5 (Repository & remote) — 1 plans — 2026-04-23T03:27:16.956Z
+**Completed Phase:** 5 (Repository & remote) — 1/1 plans — 2026-04-22
