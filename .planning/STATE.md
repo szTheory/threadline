@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Before-values & developer tooling
-status: ready_to_plan
-last_updated: "2026-04-23T20:15:00.000Z"
+status: planning
+last_updated: "2026-04-23T22:30:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 67
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 11 — backfill / continuity (plan next)
+**Current focus:** Phase 11 — backfill / continuity (`11-CONTEXT.md` gathered; plan next)
 
 ## Current Position
 
@@ -55,7 +55,7 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.2 — 2026-04-23
 
-**Next:** `/gsd-discuss-phase 11` or `/gsd-plan-phase 11` — backfill / continuity
+**Next:** `/gsd-plan-phase 11` — backfill / continuity (discuss complete)
 
 **Completed Phase:** 10 (Verify coverage & doc contracts) — 2026-04-23
 
