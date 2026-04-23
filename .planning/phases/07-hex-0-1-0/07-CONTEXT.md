@@ -39,7 +39,7 @@ Ship **HEX-01–HEX-04** for v1.1: `mix.exs` application version **`0.1.0`** (no
   4. `mix hex.build` then **`mix hex.build --unpack`** — confirm `package:files` tarball matches intent (classic footgun: missing `lib` subtree or new path not in `files:`).
   5. **`mix hex.publish --dry-run`** — last Hex-side validation without upload.
 - **D-11:** **Then** publish for real; **then** confirm **`mix hex.info threadline`** shows **0.1.0** (HEX-04). Order relative to tag push: **tag must exist on GitHub before or when HexDocs “View Source” links are exercised** for the release ref (see D-13).
-- **D-12:** **CI job for this full chain** in this milestone remains **optional** (REQUIREMENTS Out of Scope: automated publish from CI); documenting the one-liner in a plan or CONTRIBUTING note is enough for Phase 7.
+- **D-12:** **CI on `main`** runs **`verify-docs`**, **`verify-hex-package`**, and **`verify-release-shape`** alongside the test/format/credo jobs (see `.github/workflows/ci.yml`). **`mix hex.publish --dry-run`** with registry auth remains optional locally; publish for real uses **`hex-publish.yml`** on tag push when **`HEX_API_KEY`** is set.
 
 ### HexDocs / ExDoc `source_ref` and package links
 
@@ -50,7 +50,7 @@ Ship **HEX-01–HEX-04** for v1.1: `mix.exs` application version **`0.1.0`** (no
 
 ### Cohesion with prior phases
 
-- **D-17:** **No automated `mix hex.publish` from GitHub Actions** in v1.1; maintainer runs D-10 locally (or trusted environment) with Hex credentials.
+- **D-17:** **`mix hex.publish` from GitHub Actions** runs only from **`.github/workflows/hex-publish.yml`** on **`push` of a SemVer tag `v*.*.*`**, with the **`HEX_API_KEY`** repository secret and **`mix hex.publish --yes`**. Maintainers may still run D-10 locally if they prefer; tag push is the default path to HEX-04 once the secret is configured.
 - **D-18:** **CI on `main` remains the honesty baseline** (Phase 6/8 context) — do not publish from a dirty tree that would not pass `mix ci.all` on the same commit.
 
 ### Claude's Discretion

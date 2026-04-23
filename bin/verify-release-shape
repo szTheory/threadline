@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# CI / local: assert mix.exs @version and CHANGELOG match release hygiene (HEX-01 / HEX-02 style).
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if [[ ! -f mix.exs ]] || [[ ! -f CHANGELOG.md ]]; then
+  echo "mix.exs and CHANGELOG.md required" >&2
+  exit 1
+fi
+
+VER_LINE=$(grep -E '^\s*@version\s+"' mix.exs | head -1 || true)
+if [[ -z "$VER_LINE" ]]; then
+  echo "No @version line found in mix.exs" >&2
+  exit 1
+fi
+
+VER=$(sed -n 's/.*@version "\([^"]*\)".*/\1/p' <<<"$VER_LINE" | head -1)
+if [[ -z "$VER" ]]; then
+  echo "Could not parse @version from mix.exs" >&2
+  exit 1
+fi
+
+# Pre-release (SemVer pre or -dev): skip strict changelog heading — not a shipping shape yet.
+if [[ "$VER" == *-* ]]; then
+  echo "Pre-release version \"$VER\" — skipping strict CHANGELOG release-section check."
+  exit 0
+fi
+
+if ! grep -qF "@version \"$VER\"" mix.exs; then
+  echo "Expected exactly one canonical @version \"$VER\" line (grep mismatch)." >&2
+  exit 1
+fi
+
+if ! grep -qE "^## \\[${VER//./\\.}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
+  echo "CHANGELOG.md must contain a dated heading: ## [$VER] - YYYY-MM-DD" >&2
+  exit 1
+fi
+
+if grep -qxF "## [$VER]" CHANGELOG.md 2>/dev/null; then
+  echo "CHANGELOG must not contain a bare ## [$VER] line without a date." >&2
+  exit 1
+fi
+
+echo "Release shape OK for version $VER"

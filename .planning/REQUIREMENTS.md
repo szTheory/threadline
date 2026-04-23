@@ -16,8 +16,8 @@ Scoped to shipping the library from a canonical GitHub repository with CI signal
 
 ### Continuous integration
 
-- [x] **CI-01**: GitHub Actions workflow `.github/workflows/ci.yml` is present on `main` with stable job keys `verify-format`, `verify-credo`, and `verify-test` (unchanged contract)
-- [x] **CI-02**: Latest commit on `main` has a successful Actions run for all three CI jobs on GitHub
+- [x] **CI-01**: GitHub Actions workflow `.github/workflows/ci.yml` is present on `main` with stable job keys `verify-format`, `verify-credo`, and `verify-test` (unchanged contract), plus `verify-docs`, `verify-hex-package`, and `verify-release-shape` for release hygiene
+- [x] **CI-02**: Latest commit on `main` has a successful Actions run for all jobs in `.github/workflows/ci.yml` on GitHub
 - [x] **CI-03**: README documents where to find CI status for contributors (link to Actions and/or a status badge)
 
 ### Hex release
@@ -39,7 +39,7 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 
 | Item | Reason |
 |------|--------|
-| Automated `mix hex.publish` from CI | First publish and secrets policy are maintainer-led; optional follow-up milestone |
+| `mix hex.publish` on pull requests or unauthenticated CI | Publishing runs only from `.github/workflows/hex-publish.yml` on **`push` of SemVer tags `v*.*.*`**, using the **`HEX_API_KEY`** repository secret |
 | Product features (BVAL, retention, export, etc.) | Explicitly a distribution / release milestone only |
 | Changing CI Elixir/OTP pin | Unless required for Hex or runner breakage; not a goal of v1.1 |
 
@@ -67,4 +67,4 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 
 ---
 *Requirements defined: 2026-04-22*  
-*Last updated: 2026-04-23 after `/gsd-plan-milestone-gaps` (Phase 8 gap closure; checklist aligned to v1.1 audit)*
+*Last updated: 2026-04-23 — CI release jobs + tag-triggered Hex publish (`hex-publish.yml`, `HEX_API_KEY`)*

@@ -4,6 +4,9 @@
 /doc/
 *.ez
 *.beam
+# Hex local build output
+threadline-*.tar
+threadline-*/
 erl_crash.dump
 
 # ── GSD baseline (auto-generated) ──

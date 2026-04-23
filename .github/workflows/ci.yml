@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-test
+# verify-format, verify-credo, verify-test, verify-docs, verify-hex-package, verify-release-shape
 
 name: CI
 
@@ -83,3 +83,67 @@ jobs:
 
       - name: Run tests
         run: mix verify.test
+
+  verify-docs:
+    name: Build ExDoc (dev)
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Build docs
+        run: mix docs
+
+  verify-hex-package:
+    name: Hex package tarball
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Build and inspect Hex tarball
+        run: |
+          set -euo pipefail
+          mix hex.build
+          shopt -s nullglob
+          archives=(threadline-*.tar)
+          if [[ ${#archives[@]} -eq 0 ]]; then
+            echo "No threadline-*.tar produced" >&2
+            exit 1
+          fi
+          for t in "${archives[@]}"; do
+            if tar tf "$t" | grep -qE '^lib/'; then
+              echo "OK: $t contains lib/"
+            elif tar tf "$t" | grep -qE '^[^/]+/lib/'; then
+              echo "OK: $t contains */lib/"
+            else
+              echo "Tarball missing lib/: $t" >&2
+              tar tf "$t" | head -40 >&2
+              exit 1
+            fi
+          done
+
+  verify-release-shape:
+    name: Release metadata (version / changelog)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify CHANGELOG and @version alignment
+        run: bin/verify-release-shape

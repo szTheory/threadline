@@ -1,0 +1,60 @@
+# Publishes to Hex.pm when a SemVer release tag is pushed (e.g. v0.1.0).
+# Requires repository secret HEX_API_KEY (Hex.pm API key with publish permission).
+
+name: Hex publish
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish package and docs
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Confirm tag matches mix.exs @version
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unexpected tag name: $TAG" >&2
+            exit 1
+          fi
+          VER="${TAG#v}"
+          MIX_VER=$(grep -E '^\s*@version\s+"' mix.exs | head -1 | sed -n 's/.*@version "\([^"]*\)".*/\1/p')
+          if [[ -z "$MIX_VER" ]]; then
+            echo "Could not read @version from mix.exs" >&2
+            exit 1
+          fi
+          if [[ "$MIX_VER" != "$VER" ]]; then
+            echo "Tag $TAG implies version $VER but mix.exs has @version \"$MIX_VER\"" >&2
+            exit 1
+          fi
+          echo "Publishing version $VER for tag $TAG"
+
+      - name: Publish to Hex
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${HEX_API_KEY:-}" ]]; then
+            echo "::error::Set repository secret HEX_API_KEY (Hex.pm → organization → API keys) to enable publish."
+            exit 1
+          fi
+          mix hex.publish --yes
