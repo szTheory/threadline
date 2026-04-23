@@ -13,11 +13,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 ### Validated
 
 - [x] **Capture layer (Phase 1)** — Custom `Threadline.Capture` trigger SQL, `mix threadline.install` / `mix threadline.gen.triggers`, integration tests on PostgreSQL, GitHub Actions CI, CONTRIBUTING. Validated in Phase 1: Capture Foundation (2026-04-23).
+- [x] **Semantics layer (Phase 2)** — `ActorRef`, `audit_actions` / nullable `audit_transactions.actor_ref`, `record_action/2`, `Threadline.Plug`, `Threadline.Job`, transaction-local GUC bridge for trigger-populated `actor_ref`. Validated in Phase 2: Semantics Layer (2026-04-23).
 
 ### Active
 
-- [ ] **Semantics layer** — first-class `AuditAction` events with actor, intent, reason, and correlation IDs; Plug/Phoenix and Oban context binding (Phase 2)
-- [ ] **Actor propagation** — `ActorRef` model that covers user, admin, service account, background job, system, and anonymous actors without collapsing them
 - [ ] **SQL-native storage** — JSONB columns for changed data, no opaque binary formats; operators can query without Elixir helpers
 - [ ] **Hex package `threadline`** — published on Hex, Elixir ≥ 1.15, OTP ≥ 26, compatible with Phoenix LTS and Ecto 3.x
 - [ ] **README + domain reference** — vision, architecture overview, domain language, and link to domain reference doc beyond CONTRIBUTING
@@ -68,4 +67,4 @@ Every row mutation that matters is captured durably and linked to who did it and
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
 
 ---
-*Last updated: 2026-04-23 after Phase 1 completion*
+*Last updated: 2026-04-23 after Phase 2 completion*
