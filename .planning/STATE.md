@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 ## Current Position
 
 Phase: 1 of 4 (Capture Foundation)
-Plan: 1 of 3 in current phase
-Status: In progress — Plan 01-01 complete, 01-02 unblocked
-Last activity: 2026-04-22 — Plan 01-01 (Carbonite research gate) complete; Carbonite adopted
+Plan: 2 of 3 in current phase
+Status: In progress — Plans 01-01 and 01-02 complete, 01-03 unblocked
+Last activity: 2026-04-22 — Plan 01-02 (library scaffold + capture infrastructure) complete
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -38,8 +38,8 @@ Progress: [█░░░░░░░░░] 10%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Phase 1: **DECIDED** — Use `{:carbonite, "~> 0.16"}` as capture substrate (all gate questions passed; see gate-01-01.md)
-- Phase 1: Context propagation must use transaction-row insert (not session variables) — PgBouncer safety is a schema constraint; Carbonite satisfies this via `xid8` txid column + `INSERT ... ON CONFLICT DO NOTHING`
+- Phase 1: **DECIDED** — Use `{:carbonite, "~> 0.16"}` as dep; but trigger DDL is custom (Carbonite's table schema incompatible with D-05 columns — see 01-02-SUMMARY.md Deviation 1)
+- Phase 1: Context propagation uses `txid_current()` keyed `audit_transactions` row with `INSERT ... ON CONFLICT (txid) DO NOTHING` — PgBouncer-safe (D-06); `txid bigint UNIQUE` added to schema per D-06
 
 ### Pending Todos
 
@@ -52,5 +52,5 @@ None. Carbonite compatibility gate is **closed** (PASSED).
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: Plan 01-01 complete; Plan 01-02 (capture migration scaffold) is next
+Stopped at: Plan 01-02 complete; Plan 01-03 (GitHub Actions CI) is next
 Resume file: None

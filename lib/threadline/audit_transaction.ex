@@ -14,12 +14,12 @@ defmodule Threadline.AuditTransaction do
   @timestamps_opts [type: :utc_datetime_usec]
 
   schema "audit_transactions" do
-    field :occurred_at, :utc_datetime_usec
-    field :actor_type, :string
-    field :actor_id, :string
-    field :meta, :map, default: %{}
+    field(:occurred_at, :utc_datetime_usec)
+    field(:actor_type, :string)
+    field(:actor_id, :string)
+    field(:meta, :map, default: %{})
 
-    has_many :changes, Threadline.AuditChange, foreign_key: :transaction_id
+    has_many(:changes, Threadline.AuditChange, foreign_key: :transaction_id)
 
     timestamps(inserted_at: :inserted_at, updated_at: false)
   end

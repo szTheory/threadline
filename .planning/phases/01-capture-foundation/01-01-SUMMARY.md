@@ -20,8 +20,8 @@ Carbonite passes all gate questions. Decision: **use `{:carbonite, "~> 0.16"}`**
 | Task | Status | Key Finding |
 |------|--------|-------------|
 | 1 — Version/maintenance | DONE | v0.16.1 released 2026-04-19; bitcrowd org; 248 stars; 1 open issue; actively maintained |
-| 2 — PostgreSQL ≥ 14 | DONE | PG 13+ required (uses `pg_current_xact_id()`); PG 14 fully supported |
-| 3 — Transaction-row vs SET LOCAL | DONE | Pure transaction-row: `carbonite_transactions.id` is `xid8` via `pg_current_xact_id()`; `insert_transaction/3` is `INSERT ... ON CONFLICT DO NOTHING`; no `SET LOCAL` anywhere in the metadata path |
+| 2 — PostgreSQL ≥ 14 | DONE | PG 13+ required (uses `pg_current_xact_id()`); CI confirms PG 13.12, 14.5, 16.0 tested |
+| 3 — Transaction-row vs SET LOCAL | DONE | Primary metadata path: pure transaction-row (`transactions.id` xid8 via `pg_current_xact_id()`; changes FK to this row; no `SET LOCAL`). Caveat: `current_setting('#{prefix}.override_mode')` in v10/v11/v12 trigger for optional mode-override — not in metadata path, Threadline will not use this feature |
 | 4 — API surface | DONE | `Migrations.up/2`, `create_trigger/2`, `insert_transaction/3`; `carbonite_prefix` option available; no D-05 conflicts |
 | 5 — Gate document | DONE | Written to `gate-01-01.md` with binary decision, evidence table, and Plan 01-02 implications |
 

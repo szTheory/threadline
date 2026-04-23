@@ -1,7 +1,7 @@
 defmodule Threadline.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.0-dev"
   @source_url "https://github.com/szTheory/threadline"
 
   def project do
@@ -33,12 +33,13 @@ defmodule Threadline.MixProject do
 
   defp deps do
     [
-      {:ecto_sql, "~> 3.11"},
-      {:postgrex, "~> 0.18"},
+      {:ecto_sql, "~> 3.10"},
+      {:postgrex, "~> 0.17"},
       {:jason, "~> 1.4"},
       {:telemetry, "~> 1.2"},
+      {:carbonite, "~> 0.16"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
 

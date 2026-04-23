@@ -15,18 +15,18 @@ defmodule Threadline.AuditAction do
   @timestamps_opts [type: :utc_datetime_usec]
 
   schema "audit_actions" do
-    field :name, :string
-    field :actor_type, :string
-    field :actor_id, :string
-    field :status, :string
-    field :verb, :string
-    field :category, :string
-    field :reason, :string
-    field :comment, :string
-    field :correlation_id, :string
-    field :request_id, :string
-    field :job_id, :string
-    field :meta, :map, default: %{}
+    field(:name, :string)
+    field(:actor_type, :string)
+    field(:actor_id, :string)
+    field(:status, :string)
+    field(:verb, :string)
+    field(:category, :string)
+    field(:reason, :string)
+    field(:comment, :string)
+    field(:correlation_id, :string)
+    field(:request_id, :string)
+    field(:job_id, :string)
+    field(:meta, :map, default: %{})
 
     timestamps(inserted_at: :inserted_at, updated_at: false)
   end

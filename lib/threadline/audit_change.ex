@@ -14,15 +14,15 @@ defmodule Threadline.AuditChange do
   @timestamps_opts [type: :utc_datetime_usec]
 
   schema "audit_changes" do
-    field :table_schema, :string
-    field :table_name, :string
-    field :table_pk, :string
-    field :op, Ecto.Enum, values: [:insert, :update, :delete]
-    field :data_after, :map
-    field :changed_fields, {:array, :string}, default: []
-    field :captured_at, :utc_datetime_usec
+    field(:table_schema, :string)
+    field(:table_name, :string)
+    field(:table_pk, :string)
+    field(:op, Ecto.Enum, values: [:insert, :update, :delete])
+    field(:data_after, :map)
+    field(:changed_fields, {:array, :string}, default: [])
+    field(:captured_at, :utc_datetime_usec)
 
-    belongs_to :transaction, Threadline.AuditTransaction
+    belongs_to(:transaction, Threadline.AuditTransaction)
 
     timestamps(inserted_at: :inserted_at, updated_at: false)
   end

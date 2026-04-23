@@ -1,10 +1,12 @@
 import Config
 
-config :threadline, Threadline.TestRepo,
+config :threadline, Threadline.Test.Repo,
+  hostname: System.get_env("DB_HOST", "localhost"),
   username: "postgres",
   password: "postgres",
-  hostname: "localhost",
   database: "threadline_test",
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool_size: 2
+
+config :threadline, ecto_repos: [Threadline.Test.Repo]
 
 config :logger, level: :warning
