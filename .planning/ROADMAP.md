@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ◆ **v1.1 — GitHub, CI, and Hex** — Phases 5–7 (in progress) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
@@ -18,9 +19,21 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 </details>
 
-### Next (v1.1+)
+### v1.1 — GitHub, CI, and Hex (in progress)
 
-Not planned in this file. Start the next cycle with `/gsd-new-milestone` (fresh `REQUIREMENTS.md` + roadmap).
+Phases **5–7** continue numbering after v1.0. Full requirement text: `.planning/REQUIREMENTS.md`.
+
+| Phase | Name | Goal | Requirements |
+| ----- | ---- | ---- | -------------- |
+| 5 | Repository & remote | Canonical GitHub `origin`, URLs aligned, `main` pushed | REPO-01 — REPO-03 |
+| 6 | CI on GitHub | Actions green on `main`; contributors know where to look | CI-01 — CI-03 |
+| 7 | Hex 0.1.0 | Version + changelog + tag + `mix hex.publish` | HEX-01 — HEX-04 |
+
+**Success criteria (summary):**
+
+- **Phase 5:** `git remote -v` and `mix.exs` agree on repo URL; `main` on `origin` matches local release intent.
+- **Phase 6:** GitHub Actions run for `main` is all green; README points to CI.
+- **Phase 7:** `0.1.0` / `v0.1.0` / Hex package align; maintainer has published to hex.pm.
 
 ## Progress
 
@@ -30,3 +43,6 @@ Not planned in this file. Start the next cycle with `/gsd-new-milestone` (fresh 
 | 2. Semantics Layer | v1.0 | 3/3 | Complete | 2026-04-23 |
 | 3. Query & Observability | v1.0 | 2/2 | Complete | 2026-04-23 |
 | 4. Documentation & Release | v1.0 | 2/2 | Complete | 2026-04-23 |
+| 5. Repository & remote | v1.1 | 0/? | Not started | — |
+| 6. CI on GitHub | v1.1 | 0/? | Not started | — |
+| 7. Hex 0.1.0 | v1.1 | 0/? | Not started | — |
