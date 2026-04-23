@@ -16,7 +16,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (9–11)
 ### Maintainer tooling
 
 - [x] **TOOL-01**: `mix threadline.verify_coverage` prints a human-readable report of audited tables and trigger presence (aligned with `Threadline.Health.trigger_coverage/1` semantics); exits **non-zero** if any expected audited table is missing a valid capture trigger (expected table list mechanism defined in Phase 10 plan).
-- [ ] **TOOL-02**: A documented **backfill / continuity** path (module and/or Mix task) lets operators introduce capture on an existing table without implying fabricated pre-trigger history; includes tests proving distinguishable or empty baseline behavior per the Phase 11 spec.
+- [x] **TOOL-02**: A documented **backfill / continuity** path (module and/or Mix task) lets operators introduce capture on an existing table without implying fabricated pre-trigger history; includes tests proving distinguishable or empty baseline behavior per the Phase 11 spec.
 - [x] **TOOL-03**: Doc contract tests assert README (and linked quickstart snippets where applicable) remain **syntactically valid** and consistent with the **public** Threadline API surface.
 
 ## Future Requirements
@@ -53,7 +53,7 @@ _Deferred past v1.2; IDs preserved from v1.0 archive where applicable._
 | BVAL-02 | Phase 9 | Complete |
 | TOOL-01 | Phase 10 | Complete |
 | TOOL-03 | Phase 10 | Complete |
-| TOOL-02 | Phase 11 | Pending |
+| TOOL-02 | Phase 11 | Complete |
 
 **Coverage:**
 

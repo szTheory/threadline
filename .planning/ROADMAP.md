@@ -16,7 +16,7 @@ Phase specs below continue numbering after v1.1 (last shipped phase **8**). Cano
 | ----- | ---- | ---- | -------------- |
 | 9 | 2/2 | Complete    | 2026-04-23 |
 | 10 | 2/2 | Complete    | 2026-04-23 |
-| 11 | Backfill / continuity | Brownfield adoption helper with honest audit semantics | TOOL-02 |
+| 11 | 2/2 | Complete    | 2026-04-23 |
 
 #### Phase 9: Before-values capture
 
