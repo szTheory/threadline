@@ -32,14 +32,14 @@ The README badge alone is insufficient per `06-CONTEXT` D-11 — record a green 
 
 ### origin/main SHA
 
-SHA: `d4b85f7f09812db0251d5596adb3dd5716d30f94`  
-(output of: `git fetch origin main && git rev-parse origin/main` after Phase 8 close-out commits)
+SHA: `40b150b1c4b883a9687345c71f701399eb9382da`  
+(output of: `git fetch origin main && git rev-parse origin/main` after Phase 8 documentation commits)
 
 ### GitHub Actions run
 
 Workflow file: **ci.yml**. Required jobs (stable keys): **verify-format**, **verify-credo**, **verify-test**.
 
-Run ID **24843443515** — all three jobs **success** for the SHA above (includes Nyquist contract literal fix).
+Run ID **24843525209** — all three jobs **success** for the SHA above.
 
 ### gh audit (preferred)
 
@@ -48,14 +48,16 @@ gh run list --repo szTheory/threadline --workflow=ci.yml --branch=main --limit=5
 gh run view RUN_ID --repo szTheory/threadline --json conclusion,headSha,url
 ```
 
-Replace `RUN_ID` with **24843443515** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
+Replace `RUN_ID` with **24843525209** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
 
-`gh run view 24843443515 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for current `origin/main`.
+`gh run view 24843525209 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for current `origin/main`.
 
 ### Run URL
 
-https://github.com/szTheory/threadline/actions/runs/24843443515
+https://github.com/szTheory/threadline/actions/runs/24843525209
+
+*If `origin/main` has advanced past the SHA above, list recent workflow runs and use the latest `success` run whose `headSha` matches `git rev-parse origin/main`.*
 
 ## Gaps
 
-- **CI-02 (live):** Resolved — green run **24843443515** on SHA `d4b85f7f09812db0251d5596adb3dd5716d30f94` (Phase 8; supersedes earlier proof runs on prior SHAs).
+- **CI-02 (live):** Resolved — green run **24843525209** on SHA `40b150b1c4b883a9687345c71f701399eb9382da` (Phase 8).
