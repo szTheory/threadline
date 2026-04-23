@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
-status: planning
-last_updated: "2026-04-23T20:30:00.000Z"
-last_activity: 2026-04-23 — Phase 12 discuss-phase complete (CONTEXT + research synthesis)
+status: ready_to_plan
+last_updated: "2026-04-23T20:04:29.508Z"
+last_activity: 2026-04-23 -- Phase --phase execution started
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
+  completed_phases: 1
+  total_plans: 2
   completed_plans: 0
+  percent: 33
 ---
 
 # Project State
@@ -20,17 +21,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone **v1.3** — Phase 12 context locked; next **`/gsd-plan-phase 12`** (retention / export follow in Phases 13–14).
+**Current focus:** Phase --phase — 12
 
 ## Current Position
 
-Phase: 12 (context gathered; not implemented)
+Phase: 13
 
-Plan: — / —
+Plan: Not started
 
-Status: **Discuss complete** — see `.planning/phases/12-redaction-at-capture-time/12-CONTEXT.md`
+Status: Ready to plan
 
-Last activity: 2026-04-23 — Phase 12 CONTEXT.md committed (config-first policy, mask semantics, exclude/mask/`changed_from` rules, per-table trigger layout)
+Last activity: 2026-04-23
 
 ## Performance metrics
 
@@ -59,3 +60,5 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 **Next:** `/gsd-plan-phase 12` — redaction at capture time (REDN-01, REDN-02). Resume file: `.planning/phases/12-redaction-at-capture-time/12-CONTEXT.md`.
 
 **Prior milestone:** v1.2 — shipped 2026-04-23 (archive: `.planning/milestones/v1.2-*.md`).
+
+**Planned Phase:** 12 (Redaction at capture time) — 2 plans — 2026-04-23T20:01:30.839Z

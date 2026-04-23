@@ -10,8 +10,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (12–14
 
 ### Redaction (capture-time)
 
-- [ ] **REDN-01**: Maintainer can configure **per audited table** which columns are **excluded** from capture (raw values never written to `audit_changes` JSONB fields such as `data_after` / `changed_fields`) using a documented configuration surface consumed by trigger generation (`mix threadline.gen.triggers` or successor).
-- [ ] **REDN-02**: Maintainer can configure **per audited table** which columns are **masked** at capture time with a **stable placeholder** (documented token); masked columns never persist the raw value in `data_after`, `changed_from` (when enabled), or equivalent JSONB payloads produced by triggers.
+- [x] **REDN-01**: Maintainer can configure **per audited table** which columns are **excluded** from capture (raw values never written to `audit_changes` JSONB fields such as `data_after` / `changed_fields`) using a documented configuration surface consumed by trigger generation (`mix threadline.gen.triggers` or successor).
+- [x] **REDN-02**: Maintainer can configure **per audited table** which columns are **masked** at capture time with a **stable placeholder** (documented token); masked columns never persist the raw value in `data_after`, `changed_from` (when enabled), or equivalent JSONB payloads produced by triggers.
 
 ### Retention & purge
 
@@ -50,8 +50,8 @@ _Deferred past v1.3._
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REDN-01 | Phase 12 | Pending |
-| REDN-02 | Phase 12 | Pending |
+| REDN-01 | Phase 12 | Complete |
+| REDN-02 | Phase 12 | Complete |
 | RETN-01 | Phase 13 | Pending |
 | RETN-02 | Phase 13 | Pending |
 | EXPO-01 | Phase 14 | Pending |

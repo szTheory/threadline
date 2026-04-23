@@ -50,7 +50,7 @@ Continues phase numbering after v1.2 (last shipped phase **11**). Full requireme
 
 | Phase | Name | Goal | Requirements |
 | ----- | ---- | ---- | -------------- |
-| 12 | Redaction at capture time | Teams can adopt auditing without storing raw secrets: exclude or mask configured columns in generated triggers so JSONB payloads never contain excluded values and never contain raw masked values. | REDN-01, REDN-02 |
+| 12 | 2/2 | Complete    | 2026-04-23 |
 | 13 | Retention & batched purge | Operators can bound audit table growth with a documented retention model and a safe, repeatable batched purge suitable for production cron. | RETN-01, RETN-02 |
 | 14 | Export (CSV & JSON) | Support and ops can extract filtered audit rows in standard interchange formats using a documented public API aligned with existing query patterns. | EXPO-01, EXPO-02 |
 
