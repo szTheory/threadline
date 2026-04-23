@@ -8,20 +8,15 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.1 GitHub, CI, and Hex
+## Shipped milestones
 
-**Goal:** Host the project on a canonical GitHub repository with CI proving `main`, then ship **`threadline` 0.1.0** to Hex with matching git tag and changelog.
-
-**Target features:**
-
-- **Git remote & URL alignment** — `origin` on GitHub; `@source_url` / docs match the real repo.
-- **CI on GitHub** — Existing `.github/workflows/ci.yml` runs green on `main`; README tells contributors where to look.
-- **Hex publish** — Version `0.1.0`, `CHANGELOG.md`, tag `v0.1.0`, successful `mix hex.publish`.
+**v1.0 MVP** (2026-04-23) and **v1.1 — GitHub, CI, and Hex** (2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md`, `.planning/milestones/v1.1-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`.
 
 ## Current state
 
-- **Planning milestone v1.0** is archived (2026-04-23): Phases 1–4 shipped end-to-end. Historical roadmap and requirements live under `.planning/milestones/v1.0-*.md`; phase execution artifacts under `.planning/milestones/v1.0-phases/`.
-- **v1.1** (this milestone) is scoped to distribution only. Phase 5 (canonical remote + URL alignment) is verified; Phases 6 and 8 closed **REPO-03** and live **CI-01–CI-03** on GitHub; **Phase 7** (Hex **0.1.0**) remains. Product themes from the v1.0 archive (before-values, tooling, retention, export) wait for a **later** planning milestone after Hex is live.
+- **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (distinct from planning tags like **`v1.1`**).
+- **GitHub:** Canonical `origin`, `main` tracked on `origin`, and Actions green on `main` with recorded CI-02 proof in archived phase verification.
+- **Next:** Run `/gsd-new-milestone` to pick up product work (v2 themes from `milestones/v1.0-REQUIREMENTS.md` — before-values, retention, export, etc.).
 
 ## Requirements
 
@@ -33,10 +28,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Documentation + Hex readiness (Phase 4)** — root `README.md`, `guides/domain-reference.md`, `LICENSE`, `CHANGELOG.md`, ExDoc configuration, capture schema `@moduledoc`, `mix docs` / `mix hex.build` / `mix ci.all` green. Validated in Phase 4: Documentation & Release (2026-04-23).
 - [x] **Canonical GitHub hosting (Phase 5)** — `origin` → `github.com/szTheory/threadline`, `@source_url` / package links / README CI badge aligned; `main` tracks `origin/main`; CI workflow monitors `main` only. Validated in Phase 5: Repository & remote (2026-04-22).
 - [x] **CI signal on GitHub (Phases 6 & 8)** — `ci.yml` jobs green on `main` with maintainer-recorded proof (`06-VERIFICATION.md`); README / CONTRIBUTING document Actions. Validated in Phase 8: Publish main & verify CI (2026-04-23).
+- [x] **Hex package `threadline` 0.1.0** — semver, dated changelog, `v0.1.0` on `origin`, publish to Hex. Validated in Phase 7–8 (2026-04-23).
 
 ### Active
 
-- [ ] **Hex package `threadline` 0.1.0** — release semver, changelog, `v0.1.0` tag, `mix hex.publish` complete
+- [ ] **Next milestone** — capture requirements in a fresh `.planning/REQUIREMENTS.md` via `/gsd-new-milestone`
 
 ### Out of Scope
 
@@ -48,7 +44,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Retention, redaction, and export** — important but not v0.1 scope; listed in roadmap for v0.2+
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
 - **Umbrella package structure or `threadline_web` companion** — defer; decide after API sketch exists and usage patterns are known
-- **v1.1 milestone:** automated Hex publish from CI, Elixir/OTP version bumps in CI unless required for breakage
+- **Automated Hex publish from CI** — tag-triggered workflow exists; interactive `mix hex.publish` remains the documented maintainer path for early releases
+- **Elixir/OTP version bumps in CI** — unless required for runner or dependency breakage
 
 ## Context
 
@@ -81,7 +78,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | Carbonite vs custom (Phase 1 gate) | Carbonite metadata path uses patterns incompatible with D-06; Threadline needs D-05 schema | ✓ Path B: custom `TriggerSQL` (see archived gate-01-01.md) |
 | Separate capture vs. semantics models | Actions ≠ changes; transactions ≠ requests; collapsing them is how prior art created gaps | ✓ Good (design principle) |
 | JSONB + typed columns, no binary formats | Avoids YAML/Erlang-term upgrade pain documented in Audited and ExAudit | ✓ Good (design principle) |
-| Single package `threadline` to start | Avoid premature umbrella/companion split before API is known; revisit after v0.1 | ✓ Docs + tarball ready; v1.1 completes Hex publish |
+| Single package `threadline` to start | Avoid premature umbrella/companion split before API is known; revisit after v0.1 | ✓ **0.1.0** shipped on Hex (v1.1) |
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
 
 ## Evolution
@@ -104,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — Phase 8 complete; CI on GitHub requirement moved to Validated*
+*Last updated: 2026-04-23 after **v1.1** milestone close — Hex publish validated; planning reset for next milestone*

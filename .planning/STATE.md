@@ -1,80 +1,66 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: — GitHub, CI, and Hex
-status: executing
-stopped_at: Completed 07-01-PLAN.md (Hex dry-run pending auth)
-last_updated: "2026-04-23T16:27:51.808Z"
+milestone_name: GitHub, CI, and Hex
+status: complete
+stopped_at: null
+last_updated: "2026-04-23T18:00:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-22)
+See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 07 — hex-0-1-0
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 07 (hex-0-1-0) — EXECUTING
+**Milestone v1.1** — COMPLETE (Phases 5–8, 2026-04-23)
 
-Plan: 2 of 2
-
-Status: Ready to execute
-
-Last activity: 2026-04-23
-
-Progress: [█████████░] 86%
+All distribution requirements satisfied; archives under `.planning/milestones/v1.1-*`.
 
 ## Performance metrics
 
-**Velocity:** (reset for v1.1)
+**Velocity (v1.1):**
 
-- Total plans completed: 7 across Phases 5–6 and 8 (Phase 7 plans TBD)
+- Phases 5–8: 7 plans completed across ~2 calendar days from first v1.1 planning commit to close.
 
 **By phase:**
 
 | Phase | Plans | Notes |
 |-------|-------|-------|
-| 5 | 1/1 complete | Repository & remote — verified |
-| 6 | 2/2 complete | CI on GitHub — CI-02 closed with live Actions proof (Phase 8) |
-| 7 | — | Hex 0.1.0 — next |
-| 8 | 2/2 complete | Publish main & verify CI — verified 2026-04-23 |
+| 5 | 1/1 | Repository & remote — verified |
+| 6 | 2/2 | CI on GitHub — Nyquist + human UAT |
+| 7 | 2/2 | Hex 0.1.0 — tag + publish |
+| 8 | 2/2 | Publish `main` + live CI-02 + requirement alignment |
 
 ## Accumulated context
 
 ### Decisions
 
-Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per archived `gate-01-01.md`. Phase 2 work should not reintroduce Carbonite as a runtime dependency without a new ADR.
+Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) per archived `gate-01-01.md`. Distribution evidence lives in `.planning/milestones/v1.1-phases/`.
 
 ### Pending todos
 
-1. ~~Add GitHub `origin` and push `main` (Phase 5).~~ Done — `origin` is HTTPS → `github.com/szTheory/threadline.git`, `main` pushed.
-2. ~~Confirm Actions all green on GitHub (Phase 6 / 8).~~ Done — documented in `06-VERIFICATION.md` with `gh` audit.
-3. Bump `mix.exs` to `0.1.0`, finalize changelog, tag, `mix hex.publish` (Phase 7).
+1. ~~v1.1 distribution~~ — Complete.
 
 ### Blockers / concerns
 
-- None for CI — `origin/main` has green `ci.yml` runs; REPO-03 and CI-01–CI-03 satisfied per `REQUIREMENTS.md`.
+- None at milestone close.
 
 ## Session continuity
 
-Last session: --stopped-at
+**Completed milestone:** v1.1 — 2026-04-23
 
-Stopped at: Completed 07-01-PLAN.md (Hex dry-run pending auth)
-
-Resume file: --resume-file
-
-**Completed Phase:** 8 (Publish main & verify CI) — 2/2 plans — 2026-04-23
-
-**Next:** Phase 7 (Hex 0.1.0)
+**Next:** `/gsd-new-milestone`
