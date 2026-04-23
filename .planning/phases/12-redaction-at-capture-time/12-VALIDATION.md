@@ -38,8 +38,8 @@ created: 2026-04-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 12-01-01 | 01 | 1 | REDN-01, REDN-02 | T-12-01-01 / — | No `set_config` / `SET LOCAL` in new SQL paths | unit+grep | `grep -E 'set_config|SET LOCAL' lib/threadline/capture/trigger_sql.ex` expect only docstring hits | ✅ | ⬜ pending |
-| 12-01-02 | 01 | 1 | REDN-01, REDN-02 | T-12-01-02 | Overlap fails at codegen | unit | `mix test test/threadline/capture/trigger_redaction_policy_test.exs` | ❌ W0 | ⬜ pending |
+| 12-01-01 | 01 | 1 | REDN-01, REDN-02 | T-12-01-01 / — | No `set_config` / `SET LOCAL` in trigger_sql | grep | `! grep -nE 'set_config|\\bSET LOCAL\\b' lib/threadline/capture/trigger_sql.ex` | ✅ | ⬜ pending |
+| 12-01-02 | 01 | 1 | REDN-01, REDN-02 | T-12-01-02 | Overlap fails at codegen | mix | `MIX_ENV=test mix run -e 'Application.ensure_all_started(:threadline); Threadline.Capture.RedactionPolicy.validate!(exclude: [\"x\"], mask: [\"x\"])'` exits non-zero | ✅ | ⬜ pending |
 | 12-02-01 | 02 | 2 | REDN-01, REDN-02 | — | Payloads match exclude/mask semantics | integration | `MIX_ENV=test mix test test/threadline/capture/trigger_redaction_test.exs` | ❌ W0 | ⬜ pending |
 | 12-02-02 | 02 | 2 | REDN-01, REDN-02 | — | Docs contain semantics | grep | `grep -F 'exclude' README.md guides/domain-reference.md` | ✅ | ⬜ pending |
 
