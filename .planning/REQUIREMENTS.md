@@ -10,9 +10,9 @@ Scoped to shipping the library from a canonical GitHub repository with CI signal
 
 ### Repository & hosting
 
-- [ ] **REPO-01**: `git remote -v` lists `origin` pointing at the canonical public Git repository URL
-- [ ] **REPO-02**: `mix.exs` `@source_url` and ExDoc `source_url` match that canonical repository URL
-- [ ] **REPO-03**: Branch `main` is pushed to `origin` and is the branch CI monitors (`on.push.branches` in `.github/workflows/ci.yml`)
+- [x] **REPO-01**: `git remote -v` lists `origin` pointing at the canonical public Git repository URL
+- [x] **REPO-02**: `mix.exs` `@source_url` and ExDoc `source_url` match that canonical repository URL
+- [x] **REPO-03**: Branch `main` is pushed to `origin` and is the branch CI monitors (`on.push.branches` in `.github/workflows/ci.yml`)
 
 ### Continuous integration
 
@@ -47,9 +47,9 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REPO-01 | Phase 5 | Pending |
-| REPO-02 | Phase 5 | Pending |
-| REPO-03 | Phase 5 | Pending |
+| REPO-01 | Phase 5 | Done |
+| REPO-02 | Phase 5 | Done |
+| REPO-03 | Phase 5 | Done |
 | CI-01 | Phase 6 | Pending |
 | CI-02 | Phase 6 | Pending |
 | CI-03 | Phase 6 | Pending |
