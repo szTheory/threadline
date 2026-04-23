@@ -29,7 +29,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 - **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (distinct from planning tags like **`v1.1`**).
 - **GitHub:** Canonical `origin`, `main` tracked on `origin`, and Actions green on `main` with recorded CI-02 proof in archived phase verification.
-- **Planning:** Milestone **v1.2** requirements and roadmap live in `.planning/REQUIREMENTS.md` and `.planning/ROADMAP.md` (Phases 9–11); execution uses `.planning/phases/` once Phase 9 starts.
+- **Planning:** Milestone **v1.2** — Phase **9** (before-values capture) complete 2026-04-23; next focus Phase 10. Roadmap and requirements in `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
 
 ## Requirements
 
@@ -42,10 +42,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Canonical GitHub hosting (Phase 5)** — `origin` → `github.com/szTheory/threadline`, `@source_url` / package links / README CI badge aligned; `main` tracks `origin/main`; CI workflow monitors `main` only. Validated in Phase 5: Repository & remote (2026-04-22).
 - [x] **CI signal on GitHub (Phases 6 & 8)** — `ci.yml` jobs green on `main` with maintainer-recorded proof (`06-VERIFICATION.md`); README / CONTRIBUTING document Actions. Validated in Phase 8: Publish main & verify CI (2026-04-23).
 - [x] **Hex package `threadline` 0.1.0** — semver, dated changelog, `v0.1.0` on `origin`, publish to Hex. Validated in Phase 7–8 (2026-04-23).
+- [x] **Before-values capture (Phase 9)** — nullable `audit_changes.changed_from`, opt-in per-table trigger SQL via `mix threadline.gen.triggers --store-changed-from`, `AuditChange.changed_from` and `Threadline.history/3` loading. Validated in Phase 9: Before-values capture (2026-04-23).
 
 ### Active
 
-- [ ] **BVAL — before-values capture** — optional trigger/install path and `history` behavior for UPDATE `changed_from` (see REQUIREMENTS.md)
 - [ ] **TOOL — maintainer tooling** — `mix threadline.verify_coverage`, README/doc contract tests, backfill continuity helper (see REQUIREMENTS.md)
 
 ### Out of Scope
