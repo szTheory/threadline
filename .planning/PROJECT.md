@@ -8,6 +8,16 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current state
+
+- **Planning milestone v1.0** is archived (2026-04-23): Phases 1–4 shipped end-to-end. Historical roadmap and requirements live under `.planning/milestones/v1.0-*.md`; phase execution artifacts under `.planning/milestones/v1.0-phases/`.
+- **Application release:** the codebase is Hex-build-ready; publishing to the registry remains an explicit maintainer step (`mix hex.publish`), as noted under Active requirements below.
+
+## Next milestone goals
+
+- Run **`mix hex.publish`** (and tag **`v0.1.0`** in the app repo) when credentials and release notes are ready.
+- Use **`/gsd-new-milestone`** to draft the next planning cycle (v1.1), pulling themes from archived `REQUIREMENTS.md` v2 sections (before/values, tooling, retention, export).
+
 ## Requirements
 
 ### Validated
@@ -68,4 +78,4 @@ Every row mutation that matters is captured durably and linked to who did it and
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
 
 ---
-*Last updated: 2026-04-23 after Phase 4 completion*
+*Last updated: 2026-04-23 after v1.0 milestone archive*
