@@ -12,12 +12,12 @@ Scoped to shipping the library from a canonical GitHub repository with CI signal
 
 - [x] **REPO-01**: `git remote -v` lists `origin` pointing at the canonical public Git repository URL
 - [x] **REPO-02**: `mix.exs` `@source_url` and ExDoc `source_url` match that canonical repository URL
-- [ ] **REPO-03**: Branch `main` is pushed to `origin` and is the branch CI monitors (`on.push.branches` in `.github/workflows/ci.yml`)
+- [x] **REPO-03**: Branch `main` is pushed to `origin` and is the branch CI monitors (`on.push.branches` in `.github/workflows/ci.yml`)
 
 ### Continuous integration
 
 - [x] **CI-01**: GitHub Actions workflow `.github/workflows/ci.yml` is present on `main` with stable job keys `verify-format`, `verify-credo`, and `verify-test` (unchanged contract)
-- [ ] **CI-02**: Latest commit on `main` has a successful Actions run for all three CI jobs on GitHub
+- [x] **CI-02**: Latest commit on `main` has a successful Actions run for all three CI jobs on GitHub
 - [x] **CI-03**: README documents where to find CI status for contributors (link to Actions and/or a status badge)
 
 ### Hex release
@@ -49,10 +49,10 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 |-------------|-------|--------|
 | REPO-01 | Phase 5 | Done |
 | REPO-02 | Phase 5 | Done |
-| REPO-03 | Phase 8 | Pending |
-| CI-01 | Phase 8 | Pending |
-| CI-02 | Phase 8 | Pending |
-| CI-03 | Phase 8 | Pending |
+| REPO-03 | Phase 8 | Done |
+| CI-01 | Phase 6 / 8 | Done |
+| CI-02 | Phase 8 | Done |
+| CI-03 | Phase 6 / 8 | Done |
 | HEX-01 | Phase 7 | Pending |
 | HEX-02 | Phase 7 | Pending |
 | HEX-03 | Phase 7 | Pending |
@@ -63,7 +63,7 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 - v1.1 requirements: 10 total  
 - Mapped to phases: 10  
 - Unmapped: 0 ✓  
-- Pending (traceability): 6 (REPO-03, CI-01 — CI-03, HEX-01 — HEX-04)
+- Pending (traceability): 5 (HEX-01 — HEX-04; REPO-03 and CI-01–CI-03 closed in Phase 8)
 
 ---
 *Requirements defined: 2026-04-22*  

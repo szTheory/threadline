@@ -9,7 +9,7 @@ requires:
     provides: canonical origin, ci.yml on main
 provides:
   - CI-01 grep-verified job keys and main-only triggers on ci.yml
-  - CI-02 local parity via ci.all including compile --warnings-as-errors before tests
+  - Local `mix ci.all` parity (compile `--warnings-as-errors` before tests) — supports CI-02 reproducibility on a workstation; **not** GitHub CI-02 (live green run on `origin/main` closed in Phase 8).
 affects:
   - phase-07-hex
 
@@ -31,7 +31,6 @@ patterns-established: []
 
 requirements-completed:
   - CI-01
-  - CI-02
 
 duration: 5 min
 completed: 2026-04-23

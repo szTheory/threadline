@@ -9,7 +9,7 @@ requires:
     provides: Plan 06-01 CI contract and local ci.all parity
 provides:
   - README D-05 adjacency (HexDocs badge line immediately followed by **CI:**)
-  - Maintainer-facing 06-VERIFICATION.md with gh audit commands and job key literals
+  - Maintainer-facing `06-VERIFICATION.md` with gh audit commands and job key literals (CI-02 checklist **template**; live CI-02 evidence filled in Phase 8).
 affects:
   - phase-07-hex
 
@@ -31,7 +31,6 @@ key-decisions:
 patterns-established: []
 
 requirements-completed:
-  - CI-02
   - CI-03
 
 duration: 5 min
