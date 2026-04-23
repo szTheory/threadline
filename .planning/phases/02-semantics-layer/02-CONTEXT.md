@@ -87,7 +87,7 @@ Exact names for small helper modules (e.g. context → repo wrapper), Credo/modu
 ### Repository conventions
 
 - `CLAUDE.md` — three-layer architecture definitions and vocabulary.
-- `prompts/audit-lib-domain-model-reference.md` — entity definitions and bounded-context language (if present in workspace).
+- `prompts/audit-lib-domain-model-reference.md` — entity definitions and bounded-context language.
 
 </canonical_refs>
 
