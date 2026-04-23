@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ◆ **v1.1 — GitHub, CI, and Hex** — Phases 5–7 (in progress) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
+- ◆ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (in progress) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
@@ -21,19 +21,21 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### v1.1 — GitHub, CI, and Hex (in progress)
 
-Phases **5–7** continue numbering after v1.0. Full requirement text: `.planning/REQUIREMENTS.md`.
+Phases **5–8** continue numbering after v1.0. Full requirement text: `.planning/REQUIREMENTS.md`.
 
 | Phase | Name | Goal | Requirements |
 | ----- | ---- | ---- | -------------- |
 | 5 | Repository & remote | Canonical GitHub `origin`, URLs aligned, `main` pushed | REPO-01 — REPO-03 |
 | 6 | CI on GitHub | Actions green on `main`; contributors know where to look | CI-01 — CI-03 |
 | 7 | Hex 0.1.0 | Version + changelog + tag + `mix hex.publish` | HEX-01 — HEX-04 |
+| 8 | Publish main & verify CI | Push `main` to `origin`, green Actions for CI-02, requirements aligned with evidence | REPO-03, CI-01 — CI-03 |
 
 **Success criteria (summary):**
 
 - **Phase 5:** `git remote -v` and `mix.exs` agree on repo URL; `main` on `origin` matches local release intent.
 - **Phase 6:** GitHub Actions run for `main` is all green; README points to CI.
 - **Phase 7:** `0.1.0` / `v0.1.0` / Hex package align; maintainer has published to hex.pm.
+- **Phase 8:** `main` on `origin` matches release intent; latest `main` has a successful Actions run for all three CI jobs; `REQUIREMENTS.md` checklists match verified evidence (gap closure from milestone audit).
 
 ### Phase 5: Repository & remote
 **Goal**: Canonical GitHub `origin`, URLs aligned, `main` pushed to `origin` for release intent.
@@ -50,6 +52,12 @@ Phases **5–7** continue numbering after v1.0. Full requirement text: `.plannin
 **Requirements**: HEX-01, HEX-02, HEX-03, HEX-04
 **Canonical refs**: `.planning/REQUIREMENTS.md` (v1.1 Hex release), `CHANGELOG.md`, `mix.exs`
 
+### Phase 8: Publish main & verify CI
+**Goal**: Close audit gaps for remote/`main` drift and live GitHub CI (CI-02), and align requirement checklists with phase evidence.
+**Requirements**: REPO-03, CI-01, CI-02, CI-03
+**Gap closure**: Gaps from `.planning/v1.1-MILESTONE-AUDIT.md` (origin/`main`, CI-02, CI-01/CI-03 traceability, integration notes for push and verification consistency).
+**Canonical refs**: `.planning/REQUIREMENTS.md` (v1.1), `.planning/phases/06-ci-on-github/06-VERIFICATION.md`, `.github/workflows/ci.yml`
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -61,3 +69,4 @@ Phases **5–7** continue numbering after v1.0. Full requirement text: `.plannin
 | 5. Repository & remote | v1.1 | 1/1 | Complete | 2026-04-22 |
 | 6. CI on GitHub | v1.1 | 2/2 | Awaiting CI-02 on GitHub (push) | — |
 | 7. Hex 0.1.0 | v1.1 | 0/? | Not started | — |
+| 8. Publish main & verify CI | v1.1 | 0/? | Not started | — |
