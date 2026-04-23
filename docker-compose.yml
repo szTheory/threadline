@@ -2,7 +2,8 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - "5432:5432"
+      # Default to 5433 so host PostgreSQL can own 5432 (see DB_PORT in config/test.exs).
+      - "${THREADLINE_DB_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
