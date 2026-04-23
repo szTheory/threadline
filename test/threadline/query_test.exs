@@ -234,6 +234,32 @@ defmodule Threadline.QueryTest do
     end
   end
 
+  # ── DX-03: timeline_repo and filter validation ───────────────────────────
+
+  describe "DX-03: timeline_repo!/2 and validate_timeline_filters!/1" do
+    test "timeline/2 raises ArgumentError when :repo is missing" do
+      assert_raise ArgumentError, ~r/missing :repo/, fn ->
+        Threadline.Query.timeline([table: "users"], [])
+      end
+    end
+
+    test "timeline/2 raises ArgumentError for unknown filter key before repo issues" do
+      assert_raise ArgumentError, ~r/unknown timeline filter key :nope/, fn ->
+        Threadline.Query.timeline([nope: true, repo: @repo], [])
+      end
+    end
+
+    test "timeline/2 raises ArgumentError when :repo is not a module atom" do
+      assert_raise ArgumentError, ~r/must be an Ecto\.Repo module/, fn ->
+        Threadline.Query.timeline([repo: "MyApp.Repo"], [])
+      end
+    end
+
+    test "timeline_repo!/2 resolves repo from opts" do
+      assert Threadline.Query.timeline_repo!([table: "users"], repo: @repo) == @repo
+    end
+  end
+
   # ── QUERY-04: repo option ─────────────────────────────────────────────────
 
   describe "QUERY-04: repo option" do

@@ -12,6 +12,9 @@ defmodule Threadline.Query do
   `:from`, `:to`. Unknown keys raise `ArgumentError` (breaking vs pre-1.0 callers
   that relied on silent ignores — see CHANGELOG when upgrading).
 
+  Use `timeline_repo!/2` to resolve `:repo` from filters and opts with the same
+  messages as export entrypoints.
+
   ## See also
 
   - `Threadline.Export` — CSV / JSON export using the same filter vocabulary.
@@ -39,11 +42,34 @@ defmodule Threadline.Query do
         :ok
       else
         raise ArgumentError,
-              "unknown filter key #{inspect(key)}; allowed keys: :repo, :table, :actor_ref, :from, :to"
+              "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table, :actor_ref, :from, :to. " <>
+                "See `Threadline.Query` and `Threadline.Export`."
       end
     end
 
     :ok
+  end
+
+  @doc """
+  Resolves `Ecto.Repo` for `timeline/2`, export, and related APIs.
+
+  Checks `opts` first, then `filters`. Raises `ArgumentError` if missing or not an atom module.
+  """
+  @spec timeline_repo!(keyword(), keyword()) :: module()
+  def timeline_repo!(filters \\ [], opts \\ []) when is_list(filters) and is_list(opts) do
+    case Keyword.get(opts, :repo) || Keyword.get(filters, :repo) do
+      nil ->
+        raise ArgumentError,
+              "missing :repo for timeline/export — pass `repo: MyApp.Repo` in filters or opts " <>
+                "(see `Threadline.Query.timeline/2` and `Threadline.Export`)."
+
+      repo when is_atom(repo) ->
+        repo
+
+      other ->
+        raise ArgumentError,
+              "timeline/export :repo must be an Ecto.Repo module (atom), got: #{inspect(other)}"
+    end
   end
 
   @doc """
@@ -167,11 +193,8 @@ defmodule Threadline.Query do
   - `Threadline.export_csv/2` and `Threadline.export_json/2` — top-level delegators.
   """
   def timeline(filters \\ [], opts \\ []) do
-    repo =
-      Keyword.get(opts, :repo) ||
-        Keyword.fetch!(filters, :repo)
-
     validate_timeline_filters!(filters)
+    repo = timeline_repo!(filters, opts)
 
     timeline_query(filters)
     |> select([ac, at], ac)

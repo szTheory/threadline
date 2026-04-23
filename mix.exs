@@ -1,7 +1,7 @@
 defmodule Threadline.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/szTheory/threadline"
 
   def cli do
@@ -94,6 +94,7 @@ defmodule Threadline.MixProject do
         "README.md",
         "guides/domain-reference.md",
         "guides/brownfield-continuity.md",
+        "guides/production-checklist.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
@@ -106,6 +107,8 @@ defmodule Threadline.MixProject do
         "Core API": [
           Threadline,
           Threadline.Export,
+          Threadline.Retention,
+          Threadline.Retention.Policy,
           Threadline.Semantics.ActorRef,
           Threadline.Semantics.AuditContext
         ],

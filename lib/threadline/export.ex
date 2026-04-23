@@ -63,7 +63,8 @@ defmodule Threadline.Export do
   """
   @spec to_csv_iodata(keyword(), keyword()) :: {:ok, map()}
   def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    repo = Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)
+    Query.validate_timeline_filters!(filters)
+    repo = Query.timeline_repo!(filters, opts)
     max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
     limit = max_rows + 1
 
@@ -92,7 +93,8 @@ defmodule Threadline.Export do
   """
   @spec to_json_document(keyword(), keyword()) :: {:ok, map()}
   def to_json_document(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    repo = Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)
+    Query.validate_timeline_filters!(filters)
+    repo = Query.timeline_repo!(filters, opts)
     max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
     json_format = Keyword.get(opts, :json_format, :wrapped)
     limit = max_rows + 1
@@ -134,8 +136,8 @@ defmodule Threadline.Export do
   """
   @spec count_matching(keyword(), keyword()) :: {:ok, %{count: non_neg_integer()}}
   def count_matching(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    repo = Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)
     Query.validate_timeline_filters!(filters)
+    repo = Query.timeline_repo!(filters, opts)
 
     count =
       filters
@@ -158,10 +160,9 @@ defmodule Threadline.Export do
   """
   @spec stream_changes(keyword(), keyword()) :: Enumerable.t()
   def stream_changes(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    repo = Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)
-    page_size = Keyword.get(opts, :page_size, 1000)
-
     Query.validate_timeline_filters!(filters)
+    repo = Query.timeline_repo!(filters, opts)
+    page_size = Keyword.get(opts, :page_size, 1000)
 
     Stream.resource(
       fn -> nil end,

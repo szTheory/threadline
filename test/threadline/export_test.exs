@@ -229,4 +229,18 @@ defmodule Threadline.ExportTest do
       assert timeline_ids == stream_ids
     end
   end
+
+  describe "DX-03: missing :repo and invalid filters" do
+    test "to_csv_iodata raises ArgumentError when :repo missing" do
+      assert_raise ArgumentError, ~r/missing :repo/, fn ->
+        Export.to_csv_iodata([table: "users"], [])
+      end
+    end
+
+    test "to_csv_iodata raises for unknown filter key" do
+      assert_raise ArgumentError, ~r/unknown timeline filter/, fn ->
+        Export.to_csv_iodata([repo: @repo, bad: 1], [])
+      end
+    end
+  end
 end

@@ -94,7 +94,8 @@ defmodule Threadline.Phase06NyquistCIContractTest do
 
   describe "CI-02 (Plan 06-02 Task 3): maintainer verification doc literals" do
     test "06-VERIFICATION.md includes workflow, jobs, and gh audit commands" do
-      path = [".planning", "phases", "06-ci-on-github", "06-VERIFICATION.md"]
+      # Live phase dirs may be cleared between milestones; archived v1.1 copy is canonical.
+      path = [".planning", "milestones", "v1.1-phases", "06-ci-on-github", "06-VERIFICATION.md"]
       doc = read_rel!(path)
 
       assert String.contains?(doc, "ci.yml")

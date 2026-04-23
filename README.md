@@ -21,7 +21,7 @@ Add `threadline` to your dependencies:
 # mix.exs
 def deps do
   [
-    {:threadline, "~> 0.1"}
+    {:threadline, "~> 0.2"}
   ]
 end
 ```
@@ -160,6 +160,19 @@ Threadline.actor_history(actor_ref, repo: MyApp.Repo)
 Threadline.timeline([table: "posts"], repo: MyApp.Repo)
 ```
 
+### 4. Export a slice of the audit trail (optional)
+
+Uses the same filters as `timeline/2` (`:repo` required in filters or opts):
+
+```elixir
+{:ok, %{data: iodata}} =
+  Threadline.export_csv(table: "posts", from: ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
+
+File.write!("posts_audit.csv", iodata)
+```
+
+See [`Threadline.Export`](https://hexdocs.pm/threadline/Threadline.Export.html) and [`guides/domain-reference.md`](guides/domain-reference.md#export-phase-14).
+
 ## PgBouncer and Connection Pooling
 
 Threadline is safe under PgBouncer **transaction-mode pooling**. The `Threadline.Plug` stores request metadata in `conn.assigns` only — it never issues `SET` or `SET LOCAL` on the database connection outside of a transaction.
@@ -172,4 +185,6 @@ For the full SQL bridge pattern and PgBouncer safety explanation, see [`Threadli
 
 - **Full API reference:** [hexdocs.pm/threadline](https://hexdocs.pm/threadline)
 - **Domain model:** [guides/domain-reference.md](guides/domain-reference.md)
+- **Brownfield / continuity:** [guides/brownfield-continuity.md](guides/brownfield-continuity.md)
+- **Production checklist:** [guides/production-checklist.md](guides/production-checklist.md)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
