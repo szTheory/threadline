@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: — Production adoption
 status: planning
-last_updated: "2026-04-23T20:24:10.208Z"
-last_activity: "2026-04-23 — Phase 12 shipped in repo (TriggerSQL redaction, `mix threadline.gen.triggers` + `:trigger_capture`, docs, integration tests)."
+last_updated: "2026-04-23T21:00:00.000Z"
+last_activity: "2026-04-23 — Phase 13 discuss complete; 13-CONTEXT.md captured (retention clock, scope, orphan txn cleanup, Mix+API surface)."
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 100
+  percent: 33
 ---
 
 # Project State
@@ -31,7 +31,7 @@ Plan: Not started
 
 Status: Ready to plan
 
-Last activity: 2026-04-23 — Phase 12 shipped in repo (TriggerSQL redaction, `mix threadline.gen.triggers` + `:trigger_capture`, docs, integration tests).
+Last activity: 2026-04-23 — Phase 13 context gathered (`13-CONTEXT.md`); implementation not started.
 
 ## Performance metrics
 
@@ -45,6 +45,8 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Phase 12 (redaction):** Shipped — `config :threadline, :trigger_capture` with per-table `exclude` / `mask`; `RedactionPolicy` validates at codegen; README and `guides/domain-reference.md` document semantics. Context: `12-CONTEXT.md`.
 
+**Phase 13 (retention & purge):** Context only — `captured_at` retention, global default policy with extension-friendly purge API, delete empty `audit_transactions` by default, public purge module + thin Mix task. See `.planning/phases/13-retention-batched-purge/13-CONTEXT.md`.
+
 ### Pending todos
 
 1. Run `DB_PORT=5433 MIX_ENV=test mix ci.all` when using Docker Postgres on host port 5433.
@@ -57,7 +59,7 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.3 — 2026-04-23
 
-**Next:** `/gsd-discuss-phase 13` or `/gsd-plan-phase 13` — retention & batched purge (RETN-01, RETN-02).
+**Next:** `/gsd-plan-phase 13` — retention & batched purge (RETN-01, RETN-02); context in `13-CONTEXT.md`.
 
 **Prior milestone:** v1.2 — shipped 2026-04-23 (archive: `.planning/milestones/v1.2-*.md`).
 
