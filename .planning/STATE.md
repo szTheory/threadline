@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 4 context gathered (research synthesis)
-last_updated: "2026-04-23T02:16:21.003Z"
+status: milestone_complete
+stopped_at: Phase 4 documentation and release executed
+last_updated: "2026-04-23T03:30:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -22,25 +22,25 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 4 — Documentation & Release (not yet planned)
+**Current focus:** v1.0 milestone complete — documentation, ExDoc, and Hex package gates shipped.
 
 ## Current Position
 
-Phase: 4
+Phase: 4 (complete)
 
-Plan: Not started
+Plan: 04-02 complete
 
-Status: Ready to plan
+Status: Milestone complete
 
 Last activity: 2026-04-23
 
-Progress: [██████████] Phases 1–3 done; Phase 4 not started
+Progress: [██████████] All milestone phases (1–4) complete
 
 ## Performance metrics
 
 **Velocity:**
 
-- Total plans completed: 10 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03; Phase 3: 03-01–03-02)
+- Total plans completed: 10 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03; Phase 3: 03-01–03-02; Phase 4: 04-01–04-02)
 - Average duration: —
 - Total execution time: —
 
@@ -51,6 +51,7 @@ Progress: [██████████] Phases 1–3 done; Phase 4 not starte
 | 1 | 01-01 .. 01-03 | Complete — `gate-01-01.md`, capture modules, CI, CONTRIBUTING |
 | 2 | 02-01 .. 02-03 | Complete — ActorRef, semantics DDL, AuditAction, record_action/2, Plug/Job |
 | 3 | 03-01 .. 03-02 | Complete — Query (history/actor_history/timeline), Health, Telemetry; 78 tests |
+| 4 | 04-01 .. 04-02 | Complete — README, guides, LICENSE, ExDoc/Hex metadata, capture schema docs |
 
 ## Accumulated context
 
@@ -60,17 +61,16 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per `ga
 
 ### Pending todos
 
-1. Plan and execute Phase 4 (`04-documentation-release`).
-2. Keep `mix ci.all` green.
+1. Keep `mix ci.all` green before tagging `v0.1.0` and publishing to Hex.
 
 ### Blockers / concerns
 
-- None. Phase 4 not yet planned — needs planning session before execution.
+- None.
 
 ## Session continuity
 
-Last session: --stopped-at
+Last session: Phase 4 execution
 
-Stopped at: Phase 4 context gathered (research synthesis)
+Stopped at: Phase 4 documentation and release executed
 
-Resume file: --resume-file
+Resume file: —

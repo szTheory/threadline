@@ -8,8 +8,8 @@ Threadline builds from correctness upward: establish trigger-backed row capture 
 
 - [x] **Phase 1: Capture Foundation** - Trigger-backed row capture with correct PgBouncer-safe schema, migration helpers, and CI pipeline (completed 2026-04-23)
 - [x] **Phase 2: Semantics Layer** - AuditAction, typed ActorRef, AuditContext, Plug integration, and Oban job context binding (completed 2026-04-23)
-- [ ] **Phase 3: Query & Observability** - Query API, health checks, and telemetry events
-- [ ] **Phase 4: Documentation & Release** - README, domain reference, ExDoc strings, and Hex publish readiness
+- [x] **Phase 3: Query & Observability** - Query API, health checks, and telemetry events (completed 2026-04-23)
+- [x] **Phase 4: Documentation & Release** - README, domain reference, ExDoc strings, and Hex publish readiness (completed 2026-04-23)
 
 ## Phase Details
 
@@ -60,8 +60,8 @@ Plans:
 **Plans**: 2 defined
 
 Plans:
-- [ ] 03-01: Query Core — `Threadline.Query` module with `history/2`, `actor_history/1`, `timeline/1`; delegating functions on `Threadline`; GIN index migration
-- [ ] 03-02: Health + Telemetry — `Threadline.Health.trigger_coverage/0`; `Threadline.Telemetry` helper; telemetry patch to `record_action/2`
+- [x] 03-01: Query Core — `Threadline.Query` module with `history/2`, `actor_history/1`, `timeline/1`; delegating functions on `Threadline`; GIN index migration
+- [x] 03-02: Health + Telemetry — `Threadline.Health.trigger_coverage/0`; `Threadline.Telemetry` helper; telemetry patch to `record_action/2`
 
 ### Phase 4: Documentation & Release
 **Goal**: Threadline is published on Hex with complete, tested documentation that a developer can follow in under 15 minutes to set up audit capture in a Phoenix app
@@ -72,11 +72,11 @@ Plans:
   2. The README documents the PgBouncer transaction-mode constraint and Threadline's safe context propagation pattern
   3. The domain reference document defines all six core entities: AuditTransaction, AuditChange, AuditAction, AuditContext, ActorRef, and Correlation
   4. All public API modules have `@moduledoc` and all public functions have `@doc` strings
-**Plans**: TBD
+**Plans**: 2 defined
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [x] 04-01: README, domain reference, LICENSE
+- [x] 04-02: @moduledoc, ExDoc, package metadata, Hex build gate
 
 ## Progress
 
@@ -87,5 +87,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Capture Foundation | 3/3 | Complete    | 2026-04-23 |
 | 2. Semantics Layer | 3/3 | Complete    | 2026-04-23 |
-| 3. Query & Observability | 0/2 | Ready      | - |
-| 4. Documentation & Release | 0/? | Not started | - |
+| 3. Query & Observability | 2/2 | Complete    | 2026-04-23 |
+| 4. Documentation & Release | 2/2 | Complete    | 2026-04-23 |
