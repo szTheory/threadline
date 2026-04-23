@@ -16,4 +16,14 @@ else
   config :threadline, :verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]
 end
 
+# REDN-01 / REDN-02 — fixture for `mix threadline.gen.triggers` and capture tests.
+config :threadline, :trigger_capture,
+  tables: %{
+    "test_redaction_users" => [
+      exclude: ["password"],
+      mask: ["email"],
+      store_changed_from: true
+    ]
+  }
+
 config :logger, level: :warning

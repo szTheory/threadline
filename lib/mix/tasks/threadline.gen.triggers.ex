@@ -23,16 +23,27 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
 
   That emits per-table functions `threadline_capture_changes_<table>()` and wires
   triggers to them. Migrations generated without `--store-changed-from` keep the
-  default global `threadline_capture_changes()` trigger body.
+  default global `threadline_capture_changes()` trigger body **unless** the table
+  has `:exclude` / `:mask` rules under `config :threadline, :trigger_capture` (see
+  README).
+
+  ## Redaction (`config :threadline, :trigger_capture`)
+
+  At task start the host app config is loaded (`Mix.Task.run("app.config", [])`).
+  Per-table entries under `:tables` may set `:exclude`, `:mask`, optional
+  `:mask_placeholder`, `:store_changed_from`, and `:except_columns`. Overlap
+  between `:exclude` and `:mask` is validated with `Threadline.Capture.RedactionPolicy`
+  before writing the migration.
 
   ## Options
 
-    * `--tables` — comma-separated list of table names (required)
-    * `--store-changed-from` — emit per-table capture functions that persist sparse
-      `changed_from` JSON on UPDATE (default: off)
-    * `--except-columns` — comma-separated column names excluded from both
-      `changed_fields` and `changed_from` when `--store-changed-from` is set
-      (alphanumeric and underscore only)
+  * `--tables` — comma-separated list of table names (required)
+  * `--store-changed-from` — emit per-table capture functions that persist sparse
+    `changed_from` JSON on UPDATE (default: off)
+  * `--except-columns` — comma-separated column names excluded from both
+    `changed_fields` and `changed_from` when `--store-changed-from` is set
+    (alphanumeric and underscore only). Merged with `:except_columns` from config.
+  * `--dry-run` — print `table=… exclude=… mask=…` per table and skip writing a migration
 
   ## Guards
 
@@ -44,20 +55,30 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   use Mix.Task
   import Mix.Generator
 
+  alias Threadline.Capture.RedactionPolicy
+  alias Threadline.Capture.TriggerSQL
+
   @audit_tables ~w(audit_transactions audit_changes)
 
   @column_name ~r/^[A-Za-z0-9_]+$/
 
   @impl Mix.Task
   def run(args) do
-    {opts, _rest, _invalid} =
+    Mix.Task.run("app.config", [])
+
+    {opts, _rest, invalid} =
       OptionParser.parse(args,
         strict: [
           tables: :string,
           store_changed_from: :boolean,
-          except_columns: :string
+          except_columns: :string,
+          dry_run: :boolean
         ]
       )
+
+    if invalid != [] do
+      Mix.raise("Unknown options: #{inspect(invalid)}")
+    end
 
     tables =
       opts
@@ -78,21 +99,104 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       )
     end
 
-    store_changed_from = Keyword.get(opts, :store_changed_from, false)
+    cli_store_changed_from = Keyword.get(opts, :store_changed_from, false)
 
-    except_columns =
+    cli_except_columns =
       opts
       |> Keyword.get(:except_columns, "")
       |> parse_except_columns()
 
-    path = "priv/repo/migrations"
-    File.mkdir_p!(path)
+    capture_tables = load_trigger_capture_tables()
+    dry_run? = Keyword.get(opts, :dry_run, false)
 
-    table_suffix = tables |> Enum.join("_")
-    file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
+    table_specs =
+      Enum.map(tables, fn table ->
+        {table,
+         build_table_capture_spec(
+           table,
+           cli_store_changed_from,
+           cli_except_columns,
+           capture_tables
+         )}
+      end)
 
-    create_file(file, migration_content(tables, store_changed_from, except_columns))
-    Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
+    if dry_run? do
+      Enum.each(table_specs, fn {table, spec} ->
+        o = spec.opts
+        exclude = Keyword.get(o, :exclude, [])
+        mask = Keyword.get(o, :mask, [])
+        Mix.shell().info("table=#{table} exclude=#{inspect(exclude)} mask=#{inspect(mask)}")
+      end)
+
+      Mix.shell().info("[dry-run] no migration file written")
+    else
+      path = "priv/repo/migrations"
+      File.mkdir_p!(path)
+
+      table_suffix = tables |> Enum.join("_")
+      file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
+
+      create_file(file, migration_content(table_specs))
+      Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
+    end
+  end
+
+  defp load_trigger_capture_tables do
+    case Application.get_env(:threadline, :trigger_capture) do
+      nil ->
+        %{}
+
+      kw when is_list(kw) ->
+        kw |> Keyword.get(:tables, %{}) |> normalize_tables_map()
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp normalize_tables_map(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), normalize_table_entry(v)}
+      {k, v} when is_binary(k) -> {k, normalize_table_entry(v)}
+    end)
+  end
+
+  defp normalize_table_entry(v) when is_list(v), do: v
+  defp normalize_table_entry(v) when is_map(v), do: Enum.into(v, [])
+
+  defp build_table_capture_spec(table, cli_store_changed_from, cli_except_columns, capture_tables) do
+    entry = Map.get(capture_tables, table, [])
+
+    exclude = Keyword.get(entry, :exclude, [])
+    mask = Keyword.get(entry, :mask, [])
+    cfg_store_changed_from = Keyword.get(entry, :store_changed_from, false)
+    cfg_except = Keyword.get(entry, :except_columns, [])
+
+    merged_except = (cli_except_columns ++ cfg_except) |> Enum.uniq()
+    store_changed_from = cli_store_changed_from or cfg_store_changed_from
+
+    opts =
+      [
+        store_changed_from: store_changed_from,
+        except_columns: merged_except,
+        exclude: exclude,
+        mask: mask
+      ]
+      |> maybe_put_mask_placeholder(Keyword.get(entry, :mask_placeholder))
+
+    if exclude != [] or mask != [] do
+      RedactionPolicy.validate!(opts)
+    end
+
+    needs_per_table = store_changed_from or exclude != [] or mask != []
+
+    %{needs_per_table: needs_per_table, opts: opts}
+  end
+
+  defp maybe_put_mask_placeholder(kw, nil), do: kw
+
+  defp maybe_put_mask_placeholder(kw, placeholder) when is_binary(placeholder) do
+    Keyword.put(kw, :mask_placeholder, placeholder)
   end
 
   defp parse_except_columns(""), do: []
@@ -113,54 +217,45 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     end)
   end
 
-  defp migration_content(tables, store_changed_from, except_columns) do
+  defp migration_content(table_specs) do
     function_ups =
-      if store_changed_from do
-        tables
-        |> Enum.map(fn t ->
-          sql =
-            Threadline.Capture.TriggerSQL.install_function_for_table(t,
-              store_changed_from: true,
-              except_columns: except_columns
-            )
-
-          "    execute #{inspect(sql)}"
-        end)
-        |> Enum.join("\n\n")
-      else
-        ""
-      end
+      table_specs
+      |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
+      |> Enum.map(fn {t, %{opts: opts}} ->
+        sql = TriggerSQL.install_function_for_table(t, opts)
+        "    execute #{inspect(sql)}"
+      end)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.join("\n\n")
 
     trigger_ups =
-      tables
-      |> Enum.map(fn t ->
+      table_specs
+      |> Enum.map(fn {t, %{needs_per_table: per?}} ->
         trig =
-          if store_changed_from,
-            do: Threadline.Capture.TriggerSQL.create_trigger(t, :per_table),
-            else: Threadline.Capture.TriggerSQL.create_trigger(t)
+          if per?,
+            do: TriggerSQL.create_trigger(t, :per_table),
+            else: TriggerSQL.create_trigger(t)
 
         "    execute #{inspect(trig)}"
       end)
       |> Enum.join("\n\n")
 
     trigger_downs =
-      tables
-      |> Enum.map(fn t ->
-        "    execute #{inspect(Threadline.Capture.TriggerSQL.drop_trigger(t))}"
+      table_specs
+      |> Enum.map(fn {t, _} ->
+        "    execute #{inspect(TriggerSQL.drop_trigger(t))}"
       end)
       |> Enum.join("\n\n")
 
     function_downs =
-      if store_changed_from do
-        tables
-        |> Enum.map(fn t ->
-          "    execute #{inspect(Threadline.Capture.TriggerSQL.drop_function_for_table(t))}"
-        end)
-        |> Enum.join("\n\n")
-      else
-        ""
-      end
+      table_specs
+      |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
+      |> Enum.map(fn {t, _} ->
+        "    execute #{inspect(TriggerSQL.drop_function_for_table(t))}"
+      end)
+      |> Enum.join("\n\n")
 
+    tables = Enum.map(table_specs, &elem(&1, 0))
     module_name = "ThreadlineTriggers#{Enum.map_join(tables, "", &Macro.camelize/1)}"
 
     up_body =

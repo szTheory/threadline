@@ -40,6 +40,23 @@ mix threadline.gen.triggers --tables users,posts,comments
 mix ecto.migrate
 ```
 
+### Redaction at capture (`exclude` / `mask`)
+
+Operators can drop sensitive columns from persisted `audit_changes.data_after` JSON or replace them with a stable placeholder **at trigger generation time** (no runtime policy database). Configure per audited table under **`config :threadline, :trigger_capture`** — a map **`tables`** whose keys are table name strings and values are keyword lists:
+
+- **`exclude`** — column names omitted entirely from `data_after` (and from `changed_fields` when applicable).
+- **`mask`** — column names whose values are stored as the placeholder only (default `"[REDACTED]"`). The same rules apply to sparse **`changed_from`** when you combine masking with `--store-changed-from`.
+- **`mask_placeholder`** — optional override (validated at codegen: length, no control characters).
+- **`store_changed_from`** / **`except_columns`** — same semantics as CLI flags; CLI `--except-columns` is merged with config.
+
+A column cannot appear in both **`exclude`** and **`mask`**; `mix threadline.gen.triggers` fails validation if they overlap.
+
+`mix threadline.gen.triggers` calls **`Mix.Task.run("app.config", [])`** first, so use the same **`MIX_ENV`** locally and in CI when regenerating migrations (otherwise config-driven SQL may not match what you expect).
+
+For **json / jsonb** columns, masking replaces the **entire** column value with the placeholder (no deep field redaction in this release).
+
+Use **`mix threadline.gen.triggers --tables … --dry-run`** to print one line per table with resolved `exclude` / `mask` lists without writing a migration file.
+
 ### Before-values (`changed_from`)
 
 - Fresh installs get a nullable `changed_from jsonb` column on `audit_changes` from `mix threadline.install` (migration template).
