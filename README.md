@@ -65,46 +65,40 @@ defmodule MyApp.Auth do
 end
 ```
 
-### 2. Record an action with audited writes
+### 2. Attribute writes to an actor inside a transaction
 
-Wrap your database writes in `Ecto.Repo.transaction/1` and set the actor GUC **before** the first write. This tells the PostgreSQL trigger which actor performed the changes:
+Inside the same database transaction as your audited writes, set the
+transaction-local GUC **before** the first row change. This tells the PostgreSQL
+trigger which `ActorRef` produced the mutation:
 
 ```elixir
-def update_user_role(user, new_role, conn) do
-  audit_context = conn.assigns[:audit_context]
+alias Threadline.Semantics.ActorRef
 
-  {:ok, _} = Threadline.record_action(
-    %{
-      name: "member.role_changed",
-      actor_ref: audit_context.actor_ref,
-      status: :ok,
-      reason: "Promotion approved by admin"
-    },
-    fn action ->
-      json = Threadline.Semantics.ActorRef.to_map(audit_context.actor_ref) |> Jason.encode!()
+actor_ref = ActorRef.user("user:123")
+json = ActorRef.to_map(actor_ref) |> Jason.encode!()
 
-      MyApp.Repo.transaction(fn ->
-        MyApp.Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-        MyApp.Repo.update!(Ecto.Changeset.change(user, role: new_role))
-        action
-      end)
-    end,
-    repo: MyApp.Repo
-  )
-end
+MyApp.Repo.transaction(fn ->
+  MyApp.Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+  MyApp.Repo.insert!(%MyApp.Post{title: "Ship audit logs"})
+end)
 ```
+
+Record semantic intent separately with `Threadline.record_action/2` (atom name,
+`:repo`, and `:actor_ref` / `:actor` options) when you want an `AuditAction` row.
 
 ### 3. Query the audit trail
 
+Every query helper requires an explicit `:repo` option.
+
 ```elixir
-# Full change history for a specific row
-Threadline.history("users", %{"id" => user.id}, repo: MyApp.Repo)
+alias Threadline.Semantics.ActorRef
 
-# All actions by a specific actor
-Threadline.actor_history("user:123", repo: MyApp.Repo)
+Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
 
-# Unified timeline of actions and changes
-Threadline.timeline(%{repo: MyApp.Repo})
+actor_ref = ActorRef.user("user:123")
+Threadline.actor_history(actor_ref, repo: MyApp.Repo)
+
+Threadline.timeline([table: "posts"], repo: MyApp.Repo)
 ```
 
 ## PgBouncer and Connection Pooling

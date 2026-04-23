@@ -32,7 +32,7 @@ Invariant: every `AuditChange` belongs to exactly one `AuditTransaction`; an `Au
 
 ## AuditTransaction
 
-An `AuditTransaction` is the capture substrate’s grouping record for a single database transaction. PostgreSQL assigns `txid`; Threadline stores it with `occurred_at`, optional `source`/`meta`, and optional `actor_ref` populated from a transaction-local GUC set in the same `Ecto.Repo.transaction/1` as your writes. It may reference an `AuditAction` when you connect semantic events to captured rows.
+An `AuditTransaction` is the capture substrate’s grouping record for a single database transaction. PostgreSQL assigns `txid`; Threadline stores it with `occurred_at`, optional `source`/`meta`, and optional `actor_ref` populated from a transaction-local GUC set in the same database transaction as your writes. It may reference an `AuditAction` when you connect semantic events to captured rows.
 
 ## AuditChange
 
