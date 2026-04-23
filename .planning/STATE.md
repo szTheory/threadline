@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — GitHub, CI, and Hex
 status: ready_to_plan
-stopped_at: Phase 5 complete — advancing to Phase 6 planning
-last_updated: "2026-04-22T12:30:00.000Z"
+stopped_at: Phase 5 complete; ready to plan Phase 6
+last_updated: "2026-04-22T12:45:00.000Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 3
@@ -34,7 +34,7 @@ Status: Ready to plan
 
 Last activity: 2026-04-23
 
-Progress: [███░░░░░░░] Phase 5 of v1.1 complete (1/3 phases)
+Progress: [███░░░░░░░] 33% (1/3 v1.1 phases complete)
 
 ## Performance metrics
 
