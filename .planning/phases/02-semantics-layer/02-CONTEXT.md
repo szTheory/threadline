@@ -1,232 +1,143 @@
 # Phase 2: Semantics Layer - Context
 
-**Gathered:** 2026-04-23
+**Gathered:** 2026-04-22
 **Status:** Ready for planning
-**Source:** AI self-discuss (headless mode)
 
+<domain>
 ## Phase Boundary
 
-Phase 2 delivers:
-- `ActorRef` — value object struct with six actor types, JSONB serialization, and validated construction
-- `AuditAction` — semantic application-level event schema stored in `audit_actions` table
-- `AuditContext` — execution context struct (actor, request_id, correlation_id, remote_ip)
-- `Threadline.record_action/2` — persists an AuditAction; returns `{:ok, action}` or `{:error, changeset}`
-- `Threadline.Plug` — extracts AuditContext from `Plug.Conn` and stores it in `conn.assigns[:audit_context]`
-- `Threadline.Job` — provides explicit context binding for Oban workers
-- Migration: `audit_actions` table + additive Phase 2 columns on `audit_transactions`
+Phase 2 delivers application-level audit semantics wired to the existing capture substrate:
 
-Phase 2 does NOT deliver: query API, health checks, telemetry events (Phase 3), README or Hex publish (Phase 4).
+- **`ActorRef`** — value object with the six actor types from ACTR-02, JSON-serializable per ACTR-04, validated construction per ACTR-03 / SEM-05, stored as JSONB where schemas require it.
+- **`Threadline.Semantics.AuditAction`** — Ecto schema and `audit_actions` table per SEM-01–SEM-04 (typed columns + JSONB only).
+- **`Threadline.record_action/2`** — persists an `AuditAction`; returns `{:ok, action}` or `{:error, _}`; invalid actor input returns a tagged error tuple, not a raised exception (SEM-05).
+- **`Threadline.Plug`** and **`Threadline.Job`** — CTX-01 / CTX-05 integration surfaces: request-scoped `AuditContext` on `Plug.Conn`, and explicit Oban/job-side context binding without ETS or process dictionary.
+- **Schema evolution** — additive migration(s) from Phase 1: `audit_actions` table; nullable `actor_ref` and `action_id` on `audit_transactions` for SEM-03 / CTX-04.
+- **Trigger alignment for CTX-03** — extend capture DDL so `audit_transactions.actor_ref` can be filled from a **transaction-local PostgreSQL GUC** set by application code in the same DB transaction as audited writes (details under decisions). Trigger body continues to avoid `SET LOCAL` / metadata hacks on the hot path incompatible with PgBouncer (see `gate-01-01.md`).
 
+Out of scope for Phase 2: query APIs, health checks, telemetry events (Phase 3), README / Hex / broad docs (Phase 4).
+
+</domain>
+
+<decisions>
 ## Implementation Decisions
 
-### D-01: Module Namespace — Semantics Layer Lives Under `Threadline.Semantics.*`
+### Module layout (semantics vs capture)
 
-**Decision:** Phase 2 modules use the `Threadline.Semantics.*` namespace:
-- `Threadline.Semantics.ActorRef` — value object + Ecto custom type
-- `Threadline.Semantics.AuditAction` — Ecto schema for `audit_actions` table
-- `Threadline.Semantics.AuditContext` — plain struct (not an Ecto schema)
-- `Threadline.Plug` — stays at `Threadline.Plug` (it's a boundary integration, not a domain entity)
-- `Threadline.Job` — stays at `Threadline.Job` (same rationale)
+- **D-01:** Semantics types and schemas live under `Threadline.Semantics.*` (`ActorRef`, `AuditAction`, and any small helpers co-located there). **`Threadline.Plug`** and **`Threadline.Job`** remain **top-level** modules (integration boundaries, not domain entities), matching the three-layer split in `CLAUDE.md`.
+- **D-08:** Remove legacy top-level scaffold modules under `lib/threadline/` that duplicate or conflict with `Threadline.Capture.*` (`audit_action.ex`, `audit_transaction.ex`, `audit_change.ex` as applicable). Canonical row-capture schemas stay **`Threadline.Capture.AuditTransaction`** and **`Threadline.Capture.AuditChange`**.
 
-Existing `lib/threadline/audit_action.ex`, `lib/threadline/audit_transaction.ex`, and `lib/threadline/audit_change.ex` are early scaffolding from `c1e1508`. They have structural problems (flat actor fields, wrong column names, timestamps on tables that don't have them in the real schema). Phase 2 replaces `lib/threadline/audit_action.ex` with `lib/threadline/semantics/audit_action.ex`; the other two top-level scaffolding files are removed — `Threadline.Capture.AuditTransaction` and `Threadline.Capture.AuditChange` are the canonical implementations.
+### `ActorRef` shape and storage
 
-**Rationale:** CLAUDE.md defines three distinct layers. Phase 1 established `Threadline.Capture.*`. Consistent layering keeps responsibilities clear and avoids the exploration layer (Phase 3) bleeding into capture and semantics.
+- **D-02:** Implement `ActorRef` as a plain struct plus a single **`Ecto.ParameterizedType`** (or equivalent custom type) used on both `audit_actions.actor_ref` and `audit_transactions.actor_ref`. JSONB map uses keys **`"type"`** and **`"id"`** (compact, stable). Elixir-facing `type` is one of `~w(user admin service_account job system anonymous)a`. **`anonymous`** allows `id: nil`; all other types require a non-empty string `id`. Validation errors are **`{:error, reason_atom}`** before any changeset.
+- **D-02b (indexing):** Add a **GIN** index on `audit_actions.actor_ref` JSONB to support Phase 3 `actor_history/1` style queries (`@>` / containment). Defer only if migration size is a concern; default is **yes, add the index** in Phase 2.
 
----
+### `AuditAction` table and schema
 
-### D-02: ActorRef — Elixir Struct + Custom Ecto.ParameterizedType, Stored as JSONB
+- **D-03:** `audit_actions` columns (conceptual): `id` (uuid), `name` (text, required), `actor_ref` (jsonb, required), `status` (text or enum-like string with constraint `ok` / `error`), optional `verb`, `category`, `reason`, `comment`, `correlation_id`, `request_id`, `job_id`, `inserted_at`. **Correlation fields stay flat text columns**, not nested JSON blobs. **`name`** is stored as **text** at rest; call sites may pass atom or string — **`record_action/2` normalizes to string** before cast/insert. **Do not** `String.to_existing_atom/1` on values read from the database for untrusted rows; strings from DB stay strings unless the host app adds an explicit registry later (documented deferral).
 
-**Decision:** `ActorRef` is implemented as a plain Elixir struct with a companion `Ecto.ParameterizedType` module:
+### Migrations and Phase 1 compatibility
 
-```elixir
-defmodule Threadline.Semantics.ActorRef do
-  @enforce_keys [:type]
-  defstruct [:type, :id]
+- **D-04:** Ship Phase 2 as an **additive** migration (separate file from Phase 1’s install migration): create `audit_actions`; add nullable `actor_ref` (jsonb) and nullable `action_id` (uuid FK → `audit_actions.id`, `ON DELETE SET NULL`) to `audit_transactions`. **`Threadline.Capture.Migration` (or companion semantics migration module)** grows **`up_v2/0` / `down_v2/0`** (or equivalent) so host apps can generate/apply Phase 2 DDL without rewriting Phase 1 history. Install task should generate **both** Phase 1 and Phase 2 artifacts (exact file split is planner discretion) while keeping **idempotent** re-runs safe (PKG-04 spirit).
 
-  # Six actor types per ACTR-02
-  @types ~w(user admin service_account job system anonymous)a
+### Linking actions to capture rows
 
-  # Returns {:ok, %ActorRef{}} or {:error, reason_atom}
-  def new(type, id \\ nil) do ... end
+- **D-05:** **Primary link direction:** `audit_transactions.action_id` → `audit_actions.id` (nullable). Multiple transaction rows may share one action when a logical operation spans DB transactions. **`record_action/2` does not auto-magic-link** to the open transaction; callers that need linkage use **`Ecto.Multi`** or a later Phase 3 helper. This preserves explicit composition and async-safe semantics (per SEM-03 wording).
 
-  # ACTR-04: map round-trip
-  def to_map(%ActorRef{} = ref) do ... end
-  def from_map(%{"type" => type, "id" => id}) do ... end
-end
-```
+### `Threadline.record_action/2` API
 
-Storage: `actor_ref jsonb` column on both `audit_transactions` and `audit_actions`. The custom Ecto type handles casting: `%ActorRef{}` → `%{"type" => "user", "id" => "123"}` → JSONB. Reconstruction reverses this.
+- **D-06:** Public shape: `Threadline.record_action(name, opts \\ [])` with **`repo:` required** in `opts` (no implicit `Application.get_env` repo lookup). Options include `actor` / `actor_ref` (validated `ActorRef`), `status` (`:ok` | `:error`, default `:ok`), optional `verb`, `category`, `reason`, `comment`, `correlation_id`, `request_id`, `job_id`. Returns **`{:ok, %Threadline.Semantics.AuditAction{}}`** or **`{:error, %Ecto.Changeset{}}`**. **Invalid `ActorRef` before schema** → **`{:error, :invalid_actor_ref}`** (or a small closed set of tagged errors), not a changeset, matching SEM-05 intent.
 
-`anonymous` actors are valid with `id: nil`. All other types require a non-empty string `id`. Validation is in `ActorRef.new/2` (returns error tuple per ACTR-03 + SEM-05).
+### Request and job context (CTX-01, CTX-02, CTX-05)
 
-**Rationale:** ACTR-04 requires map serializability for JSONB storage. A custom type keeps Ecto schema definitions clean (one field, not two) and centralizes all ActorRef validation logic. JSONB storage makes actor_ref fields queryable with PostgreSQL's `@>` operator without extra indexes, which the query layer (Phase 3) will exploit. Flat columns (`actor_type`, `actor_id`) on the existing scaffolding schemas are replaced.
+- **D-07:** **`AuditContext`** is a plain struct: `actor_ref`, `request_id`, `correlation_id`, `remote_ip` (CTX-02). **`Threadline.Plug`** implements Plug behaviour, parses headers / conn fields (`x-request-id`, `x-correlation-id`, `remote_ip`, plus host-supplied actor resolver hook if present — **resolver callback shape is planner discretion**), and assigns **`conn.assigns[:audit_context]`**.
+- **D-07b:** **`Threadline.Job`** exposes **small pure helpers** to derive `record_action/2` opts and/or `ActorRef` from **`Oban.Job` args** — no hidden global state, no ETS, no process dictionary (CTX-05).
 
----
+### CTX-03 — PostgreSQL bridge without breaking the capture gate
 
-### D-03: AuditAction Schema — JSONB ActorRef, Flat Correlation Fields
+- **D-09:** Satisfy **CTX-03** by documenting and implementing a **host-controlled** pattern: application code calls **`SELECT set_config('threadline.actor_ref', <json text>, true)`** (third argument **`true`** = transaction-local) **inside the same `Ecto.Repo.transaction/1`** as audited writes when they want trigger-populated `audit_transactions.actor_ref`. **Phase 2 extends `threadline_capture_changes()`** so the `INSERT INTO audit_transactions (...)` includes **`actor_ref`** sourced from **`NULLIF(current_setting('threadline.actor_ref', true), '')::jsonb`** (exact SQL is planner-owned; must treat “unset” as NULL per CTX-04). **The trigger function must not call `SET LOCAL` itself** — it only **reads** a GUC the application set in-band, avoiding the Carbonite-style “metadata via SET inside library-owned hot path” failure mode called out in `gate-01-01.md`.
+- **D-09b:** If the host never sets the GUC, **`actor_ref` on `audit_transactions` stays NULL** and capture still works (CTX-04). **`record_action/2`** still records **`audit_actions.actor_ref`** independently.
 
-**Decision:** `audit_actions` table schema:
+### Trigger / DDL ownership
 
-```sql
-id              uuid PRIMARY KEY DEFAULT gen_random_uuid()
-name            text NOT NULL                    -- atom serialized as string, e.g. "member.role_changed"
-actor_ref       jsonb NOT NULL                   -- ActorRef struct as JSONB
-status          text NOT NULL CHECK (status IN ('ok', 'error'))
-verb            text                             -- optional; e.g. "update", "delete"
-category        text                             -- optional; e.g. "membership"
-reason          text                             -- optional atom as string
-comment         text                             -- optional human explanation
-correlation_id  text                             -- optional; cross-boundary correlation
-request_id      text                             -- optional; from Plug.RequestId / x-request-id
-job_id          text                             -- optional; Oban job ID
-inserted_at     timestamptz NOT NULL DEFAULT now()
-```
+- **D-10:** **`Threadline.Capture.TriggerSQL.install_function/0`** (or a clearly named successor) remains the **single source** for the PL/pgSQL function body; Phase 2 edits that generator so regenerated installs pick up `actor_ref` behaviour. Per-table trigger shells stay thin `EXECUTE FUNCTION` wrappers.
 
-`name` is stored as a `text` column (not atom JSONB) — atoms are serialized to string at persist time, deserialized back to atom on load via a custom Ecto.Type or `String.to_existing_atom/1`.
+### Claude's Discretion
 
-No `action_id` FK on `audit_transactions` in Phase 2 (see D-05). AuditAction links to transactions via `audit_transactions.action_id` (the other direction).
+Exact names for small helper modules (e.g. context → repo wrapper), Credo/module ordering, changeset error message text, and precise SQL for `current_setting` / `set_config` edge cases (empty string vs null) — **planner/executor decide** within the constraints above.
 
-**Rationale:** SEM-01/SEM-02 enumerate the required fields. Keeping correlation fields (request_id, job_id, correlation_id) as flat text columns is simpler than nesting them in a JSONB context blob — they're flat IDs, not structured data. JSONB is reserved for ActorRef (structured value object). This schema is also identical to what the scaffolding `lib/threadline/audit_action.ex` intended, corrected to use `actor_ref jsonb` instead of flat `actor_type`/`actor_id`.
+</decisions>
 
----
+<canonical_refs>
+## Canonical References
 
-### D-04: `audit_transactions` Phase 2 Columns — Additive Migration
+**Downstream agents MUST read these before planning or implementing.**
 
-**Decision:** Phase 2 adds a second pre-committed migration: `priv/repo/migrations/20260102000000_threadline_semantics_schema.exs`.
+### Product and requirements
 
-This migration:
-1. Creates `audit_actions` table (D-03 schema)
-2. Adds `actor_ref jsonb` to `audit_transactions` (nullable — CTX-04: capture still works without context)
-3. Adds `action_id uuid REFERENCES audit_actions(id) ON DELETE SET NULL` to `audit_transactions` (nullable)
+- `.planning/ROADMAP.md` — Phase 2 goal, success criteria, dependencies.
+- `.planning/REQUIREMENTS.md` — ACTR-*, SEM-*, CTX-* IDs (especially **CTX-03** session GUC vs **CTX-05** no process dictionary).
+- `.planning/PROJECT.md` — vision, constraints, Path B capture decision references.
 
-`Threadline.Capture.AuditTransaction` Ecto schema gains `actor_ref` (ActorRef custom type) and `belongs_to(:action, Threadline.Semantics.AuditAction)` fields, but these are optional — existing Phase 1 integration tests continue passing with `nil` actor_ref.
+### Prior phase decisions
 
-The `Threadline.Capture.Migration` module gets a second function `up_v2/0` / `down_v2/0` for generating the Phase 2 migration in host apps. The install task generates BOTH migration files (or a single combined migration with `create_if_not_exists` for idempotency).
+- `.planning/phases/01-capture-foundation/gate-01-01.md` — **Path B**; PgBouncer / no `SET LOCAL` in the **library-owned capture hot path** rationale.
+- `.planning/phases/01-capture-foundation/01-CONTEXT.md` — capture schema, migration/install patterns, Phase 1 boundaries.
 
-**Rationale:** Adding Phase 2 columns as a separate migration preserves Phase 1 migration stability — existing test databases that have run `20260101000000` only need to run the new migration, not re-run from scratch. This is the Oban versioned migration pattern. The library is pre-release so breaking changes are acceptable, but the separate migration approach is still better practice.
+### Repository conventions
 
----
+- `CLAUDE.md` — three-layer architecture definitions and vocabulary.
+- `prompts/audit-lib-domain-model-reference.md` — entity definitions and bounded-context language (if present in workspace).
 
-### D-05: AuditAction ↔ AuditTransaction Linking — `audit_transactions.action_id`
+</canonical_refs>
 
-**Decision:** The link between semantics and capture goes through `audit_transactions.action_id` (nullable FK pointing to `audit_actions`). This answers "which action triggered these row changes?"
-
-`record_action/2` does NOT automatically link to the current transaction. It returns `{:ok, %AuditAction{}}`. Callers that want to link changes to the action must either:
-1. Call `record_action/2` inside an `Ecto.Multi` that also sets `action_id` on the relevant `audit_transactions` row, or
-2. Use a higher-level helper (Phase 3+ concern)
-
-SEM-03 says "can be linked to one or more AuditTransactions" — this is supported by having nullable `action_id` on `audit_transactions`. Multiple `audit_transactions` rows (from separate DB transactions within the same logical action) can all point to the same `audit_actions.id`.
-
-**Rationale:** Automatic linking requires reading `txid_current()` at action-record time, which ties the action record to a specific open DB transaction. This is fragile for async scenarios and pre/post linking. Explicit linking via Multi keeps the API honest and composable. Phase 3's query layer handles the "find all changes for this action" case by joining on `action_id`.
-
----
-
-### D-06: `Threadline.record_action/2` API Shape
-
-**Decision:**
-
-```elixir
-Threadline.record_action(name, opts \\ [])
-# name: atom — e.g. :member_role_changed
-# opts:
-#   actor: %ActorRef{} (required unless actor_ref given)
-#   actor_ref: %ActorRef{} (alias for actor:)
-#   status: :ok | :error (default: :ok)
-#   verb: atom | string (optional)
-#   category: atom | string (optional)
-#   reason: atom (optional)
-#   comment: string (optional)
-#   correlation_id: string (optional)
-#   request_id: string (optional)
-#   job_id: string (optional)
-#   repo: Ecto.Repo (required — no global config assumption)
-```
-
-Returns `{:ok, %AuditAction{}}` or `{:error, %Ecto.Changeset{}}` (SEM-05).
-
-Validation path: `ActorRef.new/2` validates the actor before the changeset. Invalid ActorRef returns `{:error, :invalid_actor_ref}` (not a changeset error, since the ActorRef itself is the problem before schema insertion).
-
-**Rationale:** Requiring explicit `repo:` avoids global application config coupling — the library does not call `Application.get_env/3` to find the repo. This is the pattern Oban and PaperTrail use for library-level DB access. Keeping `name` as a positional atom (serialized to string at persist time) gives good DX and avoids magic string typing at call sites.
-
----
-
-### D-07: Context Propagation — Explicit Passing, No Process Dictionary
-
-**Decision:**
-
-`AuditContext` is a plain Elixir struct:
-```elixir
-defstruct [:actor_ref, :request_id, :correlation_id, :remote_ip]
-```
-
-`Threadline.Plug` implements `Plug.init/1` and `Plug.call/2`. It extracts context from `conn` and stores it as `conn.assigns[:audit_context]`. Application code accesses context via `conn.assigns[:audit_context]` and passes it explicitly to `record_action/2` (as `correlation_id:`, `request_id:`, `actor:` options extracted from the context struct).
-
-`Threadline.Job` is NOT a plug or middleware — it is a helper module with a `bind_context/2` function:
-```elixir
-# Called at the start of an Oban worker's perform/1
-Threadline.Job.bind_context(%{actor_ref: actor_ref, correlation_id: id})
-```
-
-Wait — but CTX-05 says "context is explicitly passed, not stored in ETS or process dictionary." If `bind_context` stores nothing, how does context flow? It must be explicit: the Oban worker accepts context in its args, extracts it, and passes it to `record_action` explicitly. `Threadline.Job` provides helpers to extract `ActorRef` from Oban job args and build partial `record_action` opts.
-
-Revised `Threadline.Job` API:
-```elixir
-Threadline.Job.actor_ref_from_args(job.args)  # extracts ActorRef from job args map
-Threadline.Job.context_opts(job)               # builds keyword opts for record_action
-```
-
-**Rationale:** CTX-05 prohibits ETS and process dictionary. The only compliant approach is explicit threading. `Threadline.Plug` makes context available in `conn.assigns` (idiomatic Phoenix pattern). Jobs receive context in args (standard Oban pattern for serializable job state). No magic, no hidden globals.
-
----
-
-### D-08: Schema Cleanup — Remove Top-Level Scaffolding Files
-
-**Decision:** Phase 2 removes three scaffolding files that are structurally incorrect:
-- `lib/threadline/audit_transaction.ex` — conflicts with `Threadline.Capture.AuditTransaction`; has wrong columns (`actor_type`/`actor_id` flat, missing `txid`)
-- `lib/threadline/audit_action.ex` — replaced by `lib/threadline/semantics/audit_action.ex`
-- `lib/threadline/audit_change.ex` — conflicts with `Threadline.Capture.AuditChange`
-
-The canonical schemas remain `Threadline.Capture.AuditTransaction` and `Threadline.Capture.AuditChange`. The semantics layer introduces `Threadline.Semantics.AuditAction`.
-
-**Rationale:** Having two `AuditTransaction` modules pointing at the same table will cause Ecto reflection conflicts and confuse contributors. The scaffolding was useful to sketch the domain model but must be removed before integration tests would pass with both loaded.
-
----
-
-## AI Discretion
-
-Areas where requirements left room for judgment and choices were made:
-
-- **ActorRef as custom Ecto type vs. embedded schema** — chose custom `Ecto.ParameterizedType` over `Ecto.embedded_schema`. Reason: embedded schemas carry more Ecto baggage (changesets, `embed_as`) for what is a simple value object. A custom type is lighter and composable across multiple schema fields (`audit_transactions.actor_ref` and `audit_actions.actor_ref` both use the same type).
-- **`name` as atom serialized to string** — could have used a string throughout. Atom at the call site gives better DX and IDE autocomplete; string in the DB is required (atoms are not safe in untrusted JSONB). Serialization boundary is the changeset.
-- **`record_action/2` requires explicit `repo:` opt** — could have looked up a configured repo. Explicit is better for library ergonomics and testability.
-- **`Threadline.Job` as helpers, not middleware** — Oban workers are standalone processes; there's no plug pipeline. Helper functions that extract/build context opts are the minimally invasive design.
-- **Phase 2 migration as a separate file** — could have modified the Phase 1 migration. Separate file is safer and more maintainable even pre-release.
-
+<code_context>
 ## Existing Code Insights
 
-### Reusable Assets
+### Reusable assets
 
-- `Threadline.Capture.AuditTransaction` (`lib/threadline/capture/audit_transaction.ex`) — will gain `actor_ref` and `belongs_to(:action, ...)` fields in Phase 2. The schema already has the right foundation.
-- `Threadline.Capture.Migration` (`lib/threadline/capture/migration.ex`) — the pattern for generating DDL strings will be reused for the Phase 2 migration helper.
-- Test infrastructure (`Threadline.Test.Repo`, `Threadline.DataCase`) — fully reusable for Phase 2 integration tests. No changes needed.
+- `lib/threadline/capture/audit_transaction.ex` — canonical `audit_transactions` schema; Phase 2 adds nullable `actor_ref` + `belongs_to :action`.
+- `lib/threadline/capture/audit_change.ex` — unchanged contract for row-level capture.
+- `lib/threadline/capture/migration.ex` — pattern for emitting migration DDL strings from Elixir.
+- `lib/threadline/capture/trigger_sql.ex` — **must** be extended for `actor_ref` on `audit_transactions` INSERT while preserving txid upsert semantics.
+- `lib/mix/tasks/threadline.install.ex` — install entrypoint; should surface Phase 2 migration generation alongside Phase 1.
 
-### Established Patterns
+### Established patterns
 
-- **Custom type pattern**: none in codebase yet, but `Ecto.ParameterizedType` is well-established for JSONB value objects. Reference: Ecto docs, Oban's `Oban.Pro.Engines.SmartEngine` uses similar patterns.
-- **Migration helper pattern**: `Threadline.Capture.Migration.up/0` returns a DDL string. Phase 2 adds `Threadline.Semantics.Migration.up/0` following the same pattern, called by the install task.
-- **Phase 1 tests run against real PostgreSQL**: the same `DataCase` with `sandbox: false` for trigger tests applies. Phase 2 integration tests for `record_action/2` will use the same setup.
+- **PgBouncer-safe grouping** — `txid_current()` + `ON CONFLICT (txid) DO NOTHING` on `audit_transactions`; keep this invariant.
+- **No Carbonite** — do not reintroduce as runtime dependency without a new gate/ADR.
 
+### Integration points
+
+- Phoenix / Plug pipeline — consumer inserts `Threadline.Plug` and reads `conn.assigns[:audit_context]`.
+- Oban workers — pass serializable context in `args`, use `Threadline.Job` helpers, call `set_config` + `Repo.transaction` when DB-level actor propagation is required.
+
+</code_context>
+
+<specifics>
 ## Specific Ideas
 
-- **ActorRef JSONB key naming**: use `"type"` and `"id"` (not `"actor_type"` and `"actor_id"`) in the JSONB representation. This is more compact and avoids the word "actor" in the serialized form, which is redundant given the field is named `actor_ref`.
-- **`new/2` error returns**: `ActorRef.new(:anonymous)` → `{:ok, %ActorRef{type: :anonymous, id: nil}}`. `ActorRef.new(:user, nil)` → `{:error, :missing_actor_id}`. `ActorRef.new(:invalid_type)` → `{:error, :unknown_actor_type}`. Simple atom errors (not changesets) since ActorRef is not an Ecto schema.
-- **Plug header extraction**: `x-request-id` → `request_id`, `x-correlation-id` → `correlation_id`, `remote_ip` from `conn.remote_ip` converted to string. If `x-request-id` absent, generate one with `Ecto.UUID.generate/0` (or leave nil — the host app's Plug.RequestId handles this).
-- **`audit_actions` index**: add `CREATE INDEX audit_actions_actor_ref_idx ON audit_actions USING GIN (actor_ref)` for Phase 3's `actor_history/1` query.
+- JSON keys **`type` / `id`** in JSONB (not `actor_type` / `actor_id`) for a compact on-wire shape.
+- **GIN index** on `audit_actions.actor_ref` to unblock Phase 3 containment queries.
+- Plug header defaults: prefer **`x-request-id`** and **`x-correlation-id`** when present; fall back behaviour (generate vs nil) is discretion but must be documented in moduledoc.
 
+</specifics>
+
+<deferred>
 ## Deferred Ideas
 
-- **`Threadline.record_action/3` with auto-linking to current transaction** — linking action to txid_current() at record time would be convenient but fragile. Deferred to Phase 3 as an optional Multi helper.
-- **AuditContext stored in conn.private vs. conn.assigns** — `conn.assigns` is the convention for consumer-visible state; `conn.private` for library internals. Using `assigns` makes it easy for Phoenix controllers to access. If this causes namespace pollution in large apps, could move to `conn.private` in Phase 4.
-- **Telemetry event on record_action** — HLTH-04 requires `[:threadline, :action, :recorded]` telemetry. Deferred to Phase 3 (telemetry is in HLTH requirements, not SEM).
-- **`Threadline.with_context/2` wrapper** — a higher-level function that wraps a block with AuditContext injection into a Multi. Useful ergonomic but not in Phase 2 requirements; Phase 3+.
-- **Atom safety for `name` field** — using `String.to_existing_atom/1` on read is safe only if the atom was already loaded (i.e., the module defining it is compiled). For library code, document that action names must be atoms defined in the host application's modules. Enforce this at Phase 4 documentation time.
+- **Auto-link `record_action` to `txid_current()`** — convenience helper; likely Phase 3+.
+- **Telemetry `[:threadline, :action, :recorded]`** — HLTH-04; Phase 3.
+- **Richer actor resolution** (JWT claims → `ActorRef`) — host-app-specific; document recipes, not hard-wire in Phase 2.
+- **README / ExDoc polish** — Phase 4.
+
+### Reviewed Todos (not folded)
+
+- None from `todo.match-phase` for Phase 2.
+
+</deferred>
+
+---
+
+*Phase: 02-semantics-layer*
+*Context gathered: 2026-04-22*
