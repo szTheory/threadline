@@ -32,14 +32,14 @@ The README badge alone is insufficient per `06-CONTEXT` D-11 — record a green 
 
 ### origin/main SHA
 
-SHA: `40b150b1c4b883a9687345c71f701399eb9382da`  
-(output of: `git fetch origin main && git rev-parse origin/main` after Phase 8 documentation commits)
+SHA: `7c082551b4541556a54cb817b0e6b0dbb374f51b`  
+(output of: `git fetch origin && git rev-parse origin/main` on 2026-04-23)
 
 ### GitHub Actions run
 
 Workflow file: **ci.yml**. Required jobs (stable keys): **verify-format**, **verify-credo**, **verify-test**.
 
-Run ID **24843525209** — all three jobs **success** for the SHA above.
+Run ID **24847404664** — all three jobs **success** for the SHA above.
 
 ### gh audit (preferred)
 
@@ -48,16 +48,16 @@ gh run list --repo szTheory/threadline --workflow=ci.yml --branch=main --limit=5
 gh run view RUN_ID --repo szTheory/threadline --json conclusion,headSha,url
 ```
 
-Replace `RUN_ID` with **24843525209** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
+Replace `RUN_ID` with **24847404664** for the green run recorded below (or the latest run whose `headSha` matches `git rev-parse origin/main`).
 
-`gh run view 24843525209 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for current `origin/main`.
+`gh run view 24847404664 --repo szTheory/threadline --json conclusion,headSha,url` → `conclusion`: `success`, `headSha`: matches the SHA documented above for current `origin/main`.
 
 ### Run URL
 
-https://github.com/szTheory/threadline/actions/runs/24843525209
+https://github.com/szTheory/threadline/actions/runs/24847404664
 
 *If `origin/main` has advanced past the SHA above, list recent workflow runs and use the latest `success` run whose `headSha` matches `git rev-parse origin/main`.*
 
 ## Gaps
 
-- **CI-02 (live):** Resolved — green run **24843525209** on SHA `40b150b1c4b883a9687345c71f701399eb9382da` (Phase 8).
+- **CI-02 (live):** Resolved — green run **24847404664** on SHA `7c082551b4541556a54cb817b0e6b0dbb374f51b` (post–Phase 8 tip; includes release hygiene commits through `fix(ci): avoid pipefail SIGPIPE…`).

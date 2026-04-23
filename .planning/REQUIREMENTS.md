@@ -22,10 +22,10 @@ Scoped to shipping the library from a canonical GitHub repository with CI signal
 
 ### Hex release
 
-- [ ] **HEX-01**: Application version in `mix.exs` is `0.1.0` (no `-dev` suffix) at the commit tagged for release
-- [ ] **HEX-02**: `CHANGELOG.md` includes a dated **0.1.0** section describing the initial public release (replacing or tightening the placeholder stub as appropriate)
-- [ ] **HEX-03**: Git annotated or lightweight tag `v0.1.0` exists on the release commit and is pushed to `origin`
-- [ ] **HEX-04**: Package `threadline` **0.1.0** is published and installable from Hex (`mix hex.info threadline` shows 0.1.0)
+- [x] **HEX-01**: Application version in `mix.exs` is `0.1.0` (no `-dev` suffix) at the commit tagged for release
+- [x] **HEX-02**: `CHANGELOG.md` includes a dated **0.1.0** section describing the initial public release (replacing or tightening the placeholder stub as appropriate)
+- [x] **HEX-03**: Git annotated or lightweight tag `v0.1.0` exists on the release commit and is pushed to `origin`
+- [x] **HEX-04**: Package `threadline` **0.1.0** is published and installable from Hex (`mix hex.info threadline` shows 0.1.0)
 
 ## v2 Requirements
 
@@ -53,18 +53,18 @@ See `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 Requirements.
 | CI-01 | Phase 6 / 8 | Done |
 | CI-02 | Phase 8 | Done |
 | CI-03 | Phase 6 / 8 | Done |
-| HEX-01 | Phase 7 | Pending |
-| HEX-02 | Phase 7 | Pending |
-| HEX-03 | Phase 7 | Pending |
-| HEX-04 | Phase 7 | Pending |
+| HEX-01 | Phase 7 | Done |
+| HEX-02 | Phase 7 | Done |
+| HEX-03 | Phase 7 | Done |
+| HEX-04 | Phase 7 | Done |
 
 **Coverage:**
 
 - v1.1 requirements: 10 total  
 - Mapped to phases: 10  
 - Unmapped: 0 ✓  
-- Pending (traceability): 5 (HEX-01 — HEX-04; REPO-03 and CI-01–CI-03 closed in Phase 8)
+- Pending (traceability): 0 ✓
 
 ---
 *Requirements defined: 2026-04-22*  
-*Last updated: 2026-04-23 — CI release jobs + tag-triggered Hex publish (`hex-publish.yml`, `HEX_API_KEY`)*
+*Last updated: 2026-04-23 — Hex **0.1.0** shipped; `v0.1.0` on `origin`; traceability closed for HEX-01 — HEX-04.*

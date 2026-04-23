@@ -1,9 +1,9 @@
 ---
 phase: 7
 slug: hex-0-1-0
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-23
 ---
 
@@ -70,9 +70,9 @@ created: 2026-04-23
 
 ## Validation sign-off
 
-- [ ] All tasks have automated verify or manual table above
-- [ ] Sampling continuity: 07-01 uses `mix ci.all` between edits
-- [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` set in frontmatter after execution wave complete
+- [x] All tasks have automated verify or manual table above
+- [x] Sampling continuity: 07-01 uses `mix ci.all` between edits
+- [x] No watch-mode flags
+- [x] `nyquist_compliant: true` set in frontmatter after execution wave complete
 
-**Approval:** pending
+**Approval:** signed off 2026-04-23 (see `07-VERIFICATION.md`, `07-01-SUMMARY.md`, `07-02-SUMMARY.md`)

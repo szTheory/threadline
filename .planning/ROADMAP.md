@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ◆ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (in progress) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
+- ◆ **v1.1 — GitHub, CI, and Hex** — Phases 5–8 (execution complete; archive via `/gsd-complete-milestone v1.1`) — requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md)
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
@@ -19,7 +19,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 </details>
 
-### v1.1 — GitHub, CI, and Hex (in progress)
+### v1.1 — GitHub, CI, and Hex (execution complete)
 
 Phases **5–8** continue numbering after v1.0. Full requirement text: `.planning/REQUIREMENTS.md`.
 
@@ -68,5 +68,5 @@ Phases **5–8** continue numbering after v1.0. Full requirement text: `.plannin
 | 4. Documentation & Release | v1.0 | 2/2 | Complete | 2026-04-23 |
 | 5. Repository & remote | v1.1 | 1/1 | Complete | 2026-04-22 |
 | 6. CI on GitHub | v1.1 | 2/2 | Complete | 2026-04-23 |
-| 7. Hex 0.1.0 | v1.1 | 0/? | Not started | — |
+| 7. Hex 0.1.0 | v1.1 | 2/2 | Complete | 2026-04-23 |
 | 8. Publish main & verify CI | v1.1 | 2/2 | Complete | 2026-04-23 |
