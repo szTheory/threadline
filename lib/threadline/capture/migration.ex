@@ -42,6 +42,7 @@ defmodule Threadline.Capture.Migration do
           op             text        NOT NULL CHECK (op IN ('insert', 'update', 'delete')),
           data_after     jsonb,
           changed_fields text[],
+          changed_from     jsonb,
           captured_at    timestamptz NOT NULL DEFAULT now()
         )
         \"\"\"
@@ -50,7 +51,7 @@ defmodule Threadline.Capture.Migration do
         execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON audit_changes (table_name)"
         execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON audit_changes (captured_at)"
 
-        execute #{inspect(TriggerSQL.install_function())}
+        execute #{inspect(TriggerSQL.install_function([]))}
       end
 
       def down do

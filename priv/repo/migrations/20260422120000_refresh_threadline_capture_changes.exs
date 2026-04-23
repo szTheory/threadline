@@ -9,7 +9,7 @@ defmodule ThreadlineRefreshCaptureChanges do
   """
 
   def up do
-    execute(Threadline.Capture.TriggerSQL.install_function())
+    execute(Threadline.Capture.TriggerSQL.install_function([]))
   end
 
   def down do
