@@ -10,8 +10,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (9–11)
 
 ### Before-values capture
 
-- [ ] **BVAL-01**: When `store_changed_from` is enabled for an audited table at trigger generation time, each **UPDATE** `AuditChange` persists a JSONB **`changed_from`** field representing the previous row values relevant to that capture (semantics locked in Phase 9 plan — full `OLD` row vs changed-field subset); **INSERT** and **DELETE** rows keep `changed_from` null.
-- [ ] **BVAL-02**: `Threadline.history/3` returns `changed_from` on each `AuditChange` when the column is populated; when the feature is off or column is null, callers see `nil` without API shape breaking for existing code paths.
+- [x] **BVAL-01**: When `store_changed_from` is enabled for an audited table at trigger generation time, each **UPDATE** `AuditChange` persists a JSONB **`changed_from`** field representing the previous row values relevant to that capture (semantics locked in Phase 9 plan — full `OLD` row vs changed-field subset); **INSERT** and **DELETE** rows keep `changed_from` null.
+- [x] **BVAL-02**: `Threadline.history/3` returns `changed_from` on each `AuditChange` when the column is populated; when the feature is off or column is null, callers see `nil` without API shape breaking for existing code paths.
 
 ### Maintainer tooling
 
@@ -49,8 +49,8 @@ _Deferred past v1.2; IDs preserved from v1.0 archive where applicable._
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BVAL-01 | Phase 9 | Pending |
-| BVAL-02 | Phase 9 | Pending |
+| BVAL-01 | Phase 9 | Complete |
+| BVAL-02 | Phase 9 | Complete |
 | TOOL-01 | Phase 10 | Pending |
 | TOOL-03 | Phase 10 | Pending |
 | TOOL-02 | Phase 11 | Pending |
