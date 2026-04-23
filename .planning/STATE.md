@@ -1,76 +1,75 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: milestone_archived
-stopped_at: v1.0 milestone archived; REQUIREMENTS.md removed for next cycle
-last_updated: "2026-04-23T12:00:00.000Z"
-last_activity: 2026-04-23
+milestone: v1.1
+milestone_name: GitHub, CI, and Hex
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-04-22T12:00:00.000Z"
+last_activity: 2026-04-22
 progress:
-  total_phases: 4
+  total_phases: 7
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-23)
+See: `.planning/PROJECT.md` (updated 2026-04-22)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Planning next milestone — run `/gsd-new-milestone` after optional Hex publish.
+**Current focus:** Milestone v1.1 — canonical GitHub remote, CI green on `main`, Hex **0.1.0**.
 
 ## Current Position
 
-Phase: 4 (complete)
+Phase: Not started (roadmap defined — begin Phase 5)
 
-Plan: 04-02 complete
+Plan: —
 
-Status: Milestone v1.0 archived
+Status: Ready to execute Phase 5
 
-Last activity: 2026-04-23
+Last activity: 2026-04-22 — Milestone v1.1 started (distribution)
 
-Progress: [██████████] v1.0 archived — awaiting next milestone bootstrap
+Progress: [████░░░░░░] v1.0 complete; v1.1 Phases 5–7 not started
 
 ## Performance metrics
 
-**Velocity:**
+**Velocity:** (reset for v1.1)
 
-- Total plans completed: 10 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03; Phase 3: 03-01–03-02; Phase 4: 04-01–04-02)
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 0 of TBD for Phases 5–7
 
 **By phase:**
 
 | Phase | Plans | Notes |
 |-------|-------|-------|
-| 1 | 01-01 .. 01-03 | Complete — `gate-01-01.md`, capture modules, CI, CONTRIBUTING |
-| 2 | 02-01 .. 02-03 | Complete — ActorRef, semantics DDL, AuditAction, record_action/2, Plug/Job |
-| 3 | 03-01 .. 03-02 | Complete — Query (history/actor_history/timeline), Health, Telemetry; 78 tests |
-| 4 | 04-01 .. 04-02 | Complete — README, guides, LICENSE, ExDoc/Hex metadata, capture schema docs |
+| 5 | — | Repository & remote |
+| 6 | — | CI on GitHub |
+| 7 | — | Hex 0.1.0 |
 
 ## Accumulated context
 
 ### Decisions
 
-Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per `gate-01-01.md`. Phase 2 work should not reintroduce Carbonite as a runtime dependency without a new ADR.
+Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per archived `gate-01-01.md`. Phase 2 work should not reintroduce Carbonite as a runtime dependency without a new ADR.
 
 ### Pending todos
 
-1. Keep `mix ci.all` green before tagging `v0.1.0` and publishing to Hex.
+1. Add GitHub `origin` and push `main` (Phase 5).
+2. Confirm Actions all green on GitHub (Phase 6).
+3. Bump `mix.exs` to `0.1.0`, finalize changelog, tag, `mix hex.publish` (Phase 7).
 
 ### Blockers / concerns
 
-- None.
+- **No `git remote` configured** locally as of 2026-04-22 — maintainer must create the GitHub repo and `git remote add origin …`.
 
 ## Session continuity
 
-Last session: Phase 4 execution
+Last session: `/gsd-new-milestone` — v1.1 scope agreed (Git + CI + Hex)
 
-Stopped at: Phase 4 documentation and release executed
+Stopped at: Roadmap and requirements written; execution not started
 
 Resume file: —
