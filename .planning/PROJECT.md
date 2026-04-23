@@ -21,7 +21,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current state
 
 - **Planning milestone v1.0** is archived (2026-04-23): Phases 1–4 shipped end-to-end. Historical roadmap and requirements live under `.planning/milestones/v1.0-*.md`; phase execution artifacts under `.planning/milestones/v1.0-phases/`.
-- **v1.1** (this milestone) is scoped to distribution only. Phase 5 (canonical remote + URL alignment) is verified; Phases 6–7 cover CI health on GitHub and Hex **0.1.0**. Product themes from the v1.0 archive (before-values, tooling, retention, export) wait for a **later** planning milestone after Hex is live.
+- **v1.1** (this milestone) is scoped to distribution only. Phase 5 (canonical remote + URL alignment) is verified; Phases 6 and 8 closed **REPO-03** and live **CI-01–CI-03** on GitHub; **Phase 7** (Hex **0.1.0**) remains. Product themes from the v1.0 archive (before-values, tooling, retention, export) wait for a **later** planning milestone after Hex is live.
 
 ## Requirements
 
@@ -32,10 +32,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Query + observability (Phase 3)** — `Threadline.Query`, delegators on `Threadline`, health coverage checks, telemetry hooks. Validated in Phase 3: Query & Observability (2026-04-23).
 - [x] **Documentation + Hex readiness (Phase 4)** — root `README.md`, `guides/domain-reference.md`, `LICENSE`, `CHANGELOG.md`, ExDoc configuration, capture schema `@moduledoc`, `mix docs` / `mix hex.build` / `mix ci.all` green. Validated in Phase 4: Documentation & Release (2026-04-23).
 - [x] **Canonical GitHub hosting (Phase 5)** — `origin` → `github.com/szTheory/threadline`, `@source_url` / package links / README CI badge aligned; `main` tracks `origin/main`; CI workflow monitors `main` only. Validated in Phase 5: Repository & remote (2026-04-22).
+- [x] **CI signal on GitHub (Phases 6 & 8)** — `ci.yml` jobs green on `main` with maintainer-recorded proof (`06-VERIFICATION.md`); README / CONTRIBUTING document Actions. Validated in Phase 8: Publish main & verify CI (2026-04-23).
 
 ### Active
 
-- [ ] **CI signal on GitHub** — Actions workflow green for all jobs on `main`; README documents where to find status
 - [ ] **Hex package `threadline` 0.1.0** — release semver, changelog, `v0.1.0` tag, `mix hex.publish` complete
 
 ### Out of Scope
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-22 — Phase 5 (repository-remote) verified; PROJECT.md requirements aligned*
+*Last updated: 2026-04-23 — Phase 8 complete; CI on GitHub requirement moved to Validated*

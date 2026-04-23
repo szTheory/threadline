@@ -67,6 +67,6 @@ Phases **5–8** continue numbering after v1.0. Full requirement text: `.plannin
 | 3. Query & Observability | v1.0 | 2/2 | Complete | 2026-04-23 |
 | 4. Documentation & Release | v1.0 | 2/2 | Complete | 2026-04-23 |
 | 5. Repository & remote | v1.1 | 1/1 | Complete | 2026-04-22 |
-| 6. CI on GitHub | v1.1 | 2/2 | Awaiting CI-02 on GitHub (push) | — |
+| 6. CI on GitHub | v1.1 | 2/2 | Complete | 2026-04-23 |
 | 7. Hex 0.1.0 | v1.1 | 0/? | Not started | — |
-| 8. Publish main & verify CI | v1.1 | 0/? | Not started | — |
+| 8. Publish main & verify CI | v1.1 | 2/2 | Complete | 2026-04-23 |
