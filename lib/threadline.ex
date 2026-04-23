@@ -64,6 +64,10 @@ defmodule Threadline do
   Returns `AuditChange` records for a given schema record, ordered by
   `captured_at` descending.
 
+  Structs include `:changed_from` when present in the row (sparse prior values on
+  UPDATE under an opt-in per-table capture function; `nil` when disabled or on
+  INSERT/DELETE rows).
+
   ## Options
 
   - `:repo` — required `Ecto.Repo` module

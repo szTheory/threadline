@@ -19,6 +19,8 @@ defmodule Threadline.Capture.AuditChange do
   - `:data_after` — full row snapshot after the mutation (nil for deletes).
   - `:changed_fields` — list of column names that changed (populated for
     updates; nil for inserts and deletes).
+  - `:changed_from` — sparse JSON map of prior column values on UPDATE when a
+    per-table opt-in capture function is installed; otherwise nil.
   - `:captured_at` — trigger execution timestamp (microsecond precision).
 
   ## Relationships
@@ -50,6 +52,7 @@ defmodule Threadline.Capture.AuditChange do
     field(:op, :string)
     field(:data_after, :map)
     field(:changed_fields, {:array, :string})
+    field(:changed_from, :map)
     field(:captured_at, :utc_datetime_usec)
   end
 
@@ -63,6 +66,7 @@ defmodule Threadline.Capture.AuditChange do
       :op,
       :data_after,
       :changed_fields,
+      :changed_from,
       :captured_at,
       :transaction_id
     ])

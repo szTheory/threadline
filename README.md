@@ -40,6 +40,12 @@ mix threadline.gen.triggers --tables users,posts,comments
 mix ecto.migrate
 ```
 
+### Before-values (`changed_from`)
+
+- Fresh installs get a nullable `changed_from jsonb` column on `audit_changes` from `mix threadline.install` (migration template).
+- Existing databases: run `ALTER TABLE audit_changes ADD COLUMN IF NOT EXISTS changed_from jsonb;` then migrate or refresh triggers.
+- To capture sparse prior values on UPDATE for specific tables, regenerate triggers with `mix threadline.gen.triggers --tables posts --store-changed-from` and optional `--except-columns col1,col2` (exact flag spelling).
+
 ## Quick Start
 
 ### 1. Add the Plug to your router or endpoint

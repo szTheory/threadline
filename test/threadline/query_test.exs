@@ -85,6 +85,27 @@ defmodule Threadline.QueryTest do
       results = Threadline.history(FakeUser3, "u-1", repo: @repo)
       assert Enum.all?(results, &(&1.table_name == "users"))
     end
+
+    test "history/3 returns changed_from when the column is populated (BVAL-02)" do
+      txn = insert_transaction()
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "u-bval"},
+        changed_from: %{"status" => "pending"}
+      })
+
+      defmodule FakeUserBval do
+        use Ecto.Schema
+
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      [row] = Threadline.history(FakeUserBval, "u-bval", repo: @repo)
+      assert row.changed_from == %{"status" => "pending"}
+    end
   end
 
   # ── actor_history/2 ───────────────────────────────────────────────────────

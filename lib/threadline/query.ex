@@ -23,6 +23,9 @@ defmodule Threadline.Query do
   ## Example
 
       Threadline.history(MyApp.User, user.id, repo: MyApp.Repo)
+
+  Each `AuditChange` loads all table columns mapped on the schema, including
+  `changed_from` when the database column is populated (no narrowing `select`).
   """
   def history(schema_module, id, opts) do
     repo = Keyword.fetch!(opts, :repo)
