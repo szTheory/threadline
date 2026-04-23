@@ -1,17 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: Before-values & developer tooling
-status: ready
-stopped_at: null
-last_updated: "2026-04-23T12:00:00.000Z"
-last_activity: 2026-04-23
+milestone_name: — Before-values & developer tooling
+status: Roadmap approved; ready to discuss or plan Phase 9
+last_updated: "2026-04-23T17:51:01.549Z"
+last_activity: 2026-04-23 — Milestone v1.2 roadmap created (Phases 9–11)
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State
