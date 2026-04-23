@@ -29,7 +29,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 - **Hex:** `threadline` **0.1.0** is public on Hex; git **`v0.1.0`** documents the library release line (distinct from planning tags like **`v1.1`**).
 - **GitHub:** Canonical `origin`, `main` tracked on `origin`, and Actions green on `main` with recorded CI-02 proof in archived phase verification.
-- **Planning:** Milestone **v1.2** — Phases **9–10** complete 2026-04-23 (`verify_coverage`, doc contracts, CI parity); next focus **Phase 11** (backfill / continuity). Roadmap and requirements in `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
+- **Planning:** Milestone **v1.2** complete 2026-04-23 (Phases **9–11**: before-values, verify coverage / doc contracts, backfill / continuity). Roadmap and requirements in `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
 
 ## Requirements
 
@@ -44,10 +44,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Hex package `threadline` 0.1.0** — semver, dated changelog, `v0.1.0` on `origin`, publish to Hex. Validated in Phase 7–8 (2026-04-23).
 - [x] **Before-values capture (Phase 9)** — nullable `audit_changes.changed_from`, opt-in per-table trigger SQL via `mix threadline.gen.triggers --store-changed-from`, `AuditChange.changed_from` and `Threadline.history/3` loading. Validated in Phase 9: Before-values capture (2026-04-23).
 - [x] **Verify coverage & doc contracts (Phase 10)** — `mix threadline.verify_coverage`, `Threadline.Verify.CoveragePolicy`, CI `verify.threadline` / `verify.doc_contract`, README doc contract fixtures, CONTRIBUTING parity. Validated in Phase 10: Verify coverage & doc contracts (2026-04-23).
+- [x] **Backfill / continuity (Phase 11)** — `Threadline.Continuity`, `mix threadline.continuity`, brownfield integration test, `guides/brownfield-continuity.md`, README and HexDocs discovery. Validated in Phase 11: Backfill / continuity (2026-04-23).
 
 ### Active
 
-- [ ] **TOOL — backfill / continuity (Phase 11)** — documented path for introducing capture on an existing table without fabricated pre-trigger history (TOOL-02; see REQUIREMENTS.md)
+_None — v1.2 milestone closed._
 
 ### Out of Scope
 

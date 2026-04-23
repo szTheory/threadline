@@ -8,8 +8,8 @@ last_activity: 2026-04-23
 progress:
   total_phases: 3
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 11 — backfill / continuity (`11-CONTEXT.md` gathered; plan next)
+**Current focus:** Milestone **v1.2** complete — last shipped phase **11** (backfill / continuity, TOOL-02).
 
 ## Current Position
 
-Phase: 11
+Phase: 11 (complete)
 
-Plan: Not started
+Plan: 2 / 2
 
 Status: Milestone complete
 
@@ -35,7 +35,7 @@ Last activity: 2026-04-23
 
 ## Performance metrics
 
-_Velocity for v1.2 will be recorded after the first phase completes._
+_v1.2 closed 2026-04-23 — Phases 9–11 complete._
 
 ## Accumulated context
 
@@ -55,8 +55,8 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 **Opened milestone:** v1.2 — 2026-04-23
 
-**Next:** `/gsd-plan-phase 11` — backfill / continuity (discuss complete)
+**Next:** `/gsd-new-milestone` or `/gsd-progress` — plan the next milestone when ready.
 
-**Completed Phase:** 10 (Verify coverage & doc contracts) — 2026-04-23
+**Completed Phase:** 11 (Backfill / continuity) — 2026-04-23
 
-**Completed Phase (prior):** 9 (Before-values capture) — 2026-04-23
+**Completed Phase (prior):** 10 (Verify coverage & doc contracts) — 2026-04-23
