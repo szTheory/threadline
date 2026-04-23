@@ -108,6 +108,6 @@ Continues phase numbering after v1.2 (last shipped phase **11**). Full requireme
 | 9. Before-values capture | v1.2 | 2/2 | Complete | 2026-04-23 |
 | 10. Verify coverage & doc contracts | v1.2 | 2/2 | Complete | 2026-04-23 |
 | 11. Backfill / continuity | v1.2 | 2/2 | Complete | 2026-04-23 |
-| 12. Redaction at capture time | v1.3 | 0/? | Not started | — |
-| 13. Retention & batched purge | v1.3 | 0/? | Not started | — |
-| 14. Export (CSV & JSON) | v1.3 | 0/? | Not started | — |
+| 12. Redaction at capture time | v1.3 | — | Not started | — |
+| 13. Retention & batched purge | v1.3 | — | Not started | — |
+| 14. Export (CSV & JSON) | v1.3 | — | Not started | — |
