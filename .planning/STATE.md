@@ -9,7 +9,7 @@ progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 2
   percent: 33
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Milestone v1.2 — Phase 9 (before-values capture) — implementation in progress
+**Current focus:** Milestone v1.2 — Phase 10 (verify coverage & doc contracts) — not started
 
 ## Current Position
 
@@ -45,16 +45,16 @@ Capture substrate remains **Path B** (custom `Threadline.Capture.TriggerSQL`) pe
 
 ### Pending todos
 
-1. Run full `MIX_ENV=test mix ci.all` with PostgreSQL available; complete verification and roadmap updates after green CI.
+1. Run `MIX_ENV=test mix ci.all` locally with PostgreSQL to confirm Phase 9 integration tests before the next Hex publish.
 
 ### Blockers / concerns
 
-- Local PostgreSQL was unavailable during agent run; integration tests not executed here.
+- Agent environment lacked PostgreSQL; CI must be the authoritative signal for trigger tests.
 
 ## Session continuity
 
 **Opened milestone:** v1.2 — 2026-04-23
 
-**Next:** Verification (`mix ci.all`), `/gsd-progress`, then phase completion when VERIFICATION passes
+**Next:** `/gsd-discuss-phase 10` or `/gsd-plan-phase 10` — Verify coverage & doc contracts
 
-**Planned Phase:** 9 (Before-values capture) — 2 plans — 2026-04-23T17:56:02.986Z
+**Completed Phase:** 9 (Before-values capture) — 2026-04-23
