@@ -24,12 +24,28 @@ defmodule Mix.Tasks.Threadline.Install do
     path = migrations_path()
     File.mkdir_p!(path)
 
-    if existing_migration?(path) do
-      Mix.shell().info("Threadline audit schema migration already exists — skipping.")
-    else
-      file = Path.join(path, "#{timestamp()}_threadline_audit_schema.exs")
-      create_file(file, Threadline.Capture.Migration.migration_content())
-      Mix.shell().info("Run `mix ecto.migrate` to apply the migration.")
+    capture_written =
+      if existing_capture_migration?(path) do
+        Mix.shell().info("Threadline audit schema migration already exists — skipping.")
+        false
+      else
+        file = Path.join(path, "#{timestamp()}_threadline_audit_schema.exs")
+        create_file(file, Threadline.Capture.Migration.migration_content())
+        true
+      end
+
+    semantics_written =
+      if existing_semantics_migration?(path) do
+        Mix.shell().info("Threadline semantics schema migration already exists — skipping.")
+        false
+      else
+        file = Path.join(path, "#{timestamp()}_threadline_semantics_schema.exs")
+        create_file(file, Threadline.Semantics.Migration.migration_content())
+        true
+      end
+
+    if capture_written or semantics_written do
+      Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
     end
   end
 
@@ -57,10 +73,18 @@ defmodule Mix.Tasks.Threadline.Install do
     _ -> "priv/repo/migrations"
   end
 
-  defp existing_migration?(path) do
+  defp existing_capture_migration?(path) do
     path
     |> File.ls!()
     |> Enum.any?(&String.ends_with?(&1, "_threadline_audit_schema.exs"))
+  rescue
+    _ -> false
+  end
+
+  defp existing_semantics_migration?(path) do
+    path
+    |> File.ls!()
+    |> Enum.any?(&String.ends_with?(&1, "_threadline_semantics_schema.exs"))
   rescue
     _ -> false
   end

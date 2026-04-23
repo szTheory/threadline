@@ -5,8 +5,11 @@ defmodule Threadline.Capture.TriggerSQL do
   The trigger function uses `txid_current()` to group row changes from the same
   database transaction under a single `audit_transactions` row. This approach is
   PgBouncer transaction-pooling safe per D-06: no `SET LOCAL`, no session variables.
-  The `txid` column on `audit_transactions` has a `UNIQUE` constraint so concurrent
-  INSERTs with `ON CONFLICT DO NOTHING` are safe.
+  Optional `audit_transactions.actor_ref` is read from the transaction-local GUC
+  `threadline.actor_ref` (set by the host via `set_config(..., true)` in the same
+  transaction — see D-09); the trigger only **reads** this setting, never calls
+  `set_config` itself. The `txid` column on `audit_transactions` has a `UNIQUE`
+  constraint so concurrent INSERTs with `ON CONFLICT DO NOTHING` are safe.
   """
 
   @doc """
@@ -34,8 +37,13 @@ defmodule Threadline.Capture.TriggerSQL do
       -- ON CONFLICT DO NOTHING is idempotent: multiple writes in the same transaction
       -- reuse the existing row. This is PgBouncer-safe because txid_current() is
       -- transaction-scoped, not session-scoped.
-      INSERT INTO audit_transactions (id, txid, occurred_at)
-      VALUES (gen_random_uuid(), v_txid, clock_timestamp())
+      INSERT INTO audit_transactions (id, txid, occurred_at, actor_ref)
+      VALUES (
+        gen_random_uuid(),
+        v_txid,
+        clock_timestamp(),
+        NULLIF(current_setting('threadline.actor_ref', true), '')::jsonb
+      )
       ON CONFLICT (txid) DO NOTHING;
 
       SELECT id INTO v_tx_id

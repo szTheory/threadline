@@ -28,26 +28,26 @@
 
 ### Actor Model
 
-- [ ] **ACTR-01**: `ActorRef` is a value object with `actor_type` (enum) and `actor_id` (string); it is not a foreign key into any application table
-- [ ] **ACTR-02**: `ActorRef.actor_type` supports exactly: `user`, `admin`, `service_account`, `job`, `system`, `anonymous`
-- [ ] **ACTR-03**: An `anonymous` actor can be created without an `actor_id`; all other actor types require a non-empty `actor_id`
-- [ ] **ACTR-04**: `ActorRef` is serializable to/from a plain map so it can be stored in JSONB columns and reconstructed without schema coupling
+- [x] **ACTR-01**: `ActorRef` is a value object with `actor_type` (enum) and `actor_id` (string); it is not a foreign key into any application table
+- [x] **ACTR-02**: `ActorRef.actor_type` supports exactly: `user`, `admin`, `service_account`, `job`, `system`, `anonymous`
+- [x] **ACTR-03**: An `anonymous` actor can be created without an `actor_id`; all other actor types require a non-empty `actor_id`
+- [x] **ACTR-04**: `ActorRef` is serializable to/from a plain map so it can be stored in JSONB columns and reconstructed without schema coupling
 
 ### Semantics Layer
 
-- [ ] **SEM-01**: `Threadline.record_action/2` records an `AuditAction` with at minimum: `name` (atom), `actor_ref` (ActorRef), and `status` (`:ok` or `:error`)
-- [ ] **SEM-02**: `AuditAction` supports optional fields: `verb`, `category`, `reason` (atom), `comment` (string), `correlation_id`, `request_id`, `job_id`
-- [ ] **SEM-03**: An `AuditAction` can be linked to one or more `AuditTransaction` records to connect semantic events to row-level changes
-- [ ] **SEM-04**: `AuditAction` records are stored in an `audit_actions` table created by `mix threadline.install`; all fields are typed columns or JSONB — no opaque blobs
-- [ ] **SEM-05**: Recording an `AuditAction` with an invalid `ActorRef` (e.g., missing `actor_id` for a non-anonymous type) returns a tagged error tuple, not a runtime exception
+- [x] **SEM-01**: `Threadline.record_action/2` records an `AuditAction` with at minimum: `name` (atom), `actor_ref` (ActorRef), and `status` (`:ok` or `:error`)
+- [x] **SEM-02**: `AuditAction` supports optional fields: `verb`, `category`, `reason` (atom), `comment` (string), `correlation_id`, `request_id`, `job_id`
+- [x] **SEM-03**: An `AuditAction` can be linked to one or more `AuditTransaction` records to connect semantic events to row-level changes
+- [x] **SEM-04**: `AuditAction` records are stored in an `audit_actions` table created by `mix threadline.install`; all fields are typed columns or JSONB — no opaque blobs
+- [x] **SEM-05**: Recording an `AuditAction` with an invalid `ActorRef` (e.g., missing `actor_id` for a non-anonymous type) returns a tagged error tuple, not a runtime exception
 
 ### Context Propagation
 
-- [ ] **CTX-01**: `Threadline.Plug` extracts actor and request context from a `Plug.Conn` and makes it available as an `AuditContext` for the duration of the request
-- [ ] **CTX-02**: `AuditContext` carries: `actor_ref`, `request_id`, `correlation_id`, and `remote_ip`
-- [ ] **CTX-03**: Context propagation to PostgreSQL uses a connection-level session variable (not a process dictionary entry) so it survives PgBouncer transaction-mode pooling
-- [ ] **CTX-04**: When no context is set, capture still works — the `actor_ref` columns on `AuditTransaction` are nullable
-- [ ] **CTX-05**: `Threadline.Job` module binds actor and correlation context for Oban workers; context is explicitly passed, not stored in ETS or a process dictionary
+- [x] **CTX-01**: `Threadline.Plug` extracts actor and request context from a `Plug.Conn` and makes it available as an `AuditContext` for the duration of the request
+- [x] **CTX-02**: `AuditContext` carries: `actor_ref`, `request_id`, `correlation_id`, and `remote_ip`
+- [x] **CTX-03**: Context propagation to PostgreSQL uses a transaction-local custom GUC (`set_config(..., true)`) set by the host in the same transaction as audited writes (not a process dictionary entry); the capture trigger reads it without calling `SET` itself
+- [x] **CTX-04**: When no context is set, capture still works — the `actor_ref` columns on `AuditTransaction` are nullable
+- [x] **CTX-05**: `Threadline.Job` module binds actor and correlation context for Oban workers; context is explicitly passed, not stored in ETS or a process dictionary
 
 ### Query API
 
@@ -146,20 +146,20 @@
 | CAP-08 | Phase 1 | Complete |
 | CAP-09 | Phase 1 | Complete |
 | CAP-10 | Phase 1 | Complete |
-| ACTR-01 | Phase 2 | Pending |
-| ACTR-02 | Phase 2 | Pending |
-| ACTR-03 | Phase 2 | Pending |
-| ACTR-04 | Phase 2 | Pending |
-| SEM-01 | Phase 2 | Pending |
-| SEM-02 | Phase 2 | Pending |
-| SEM-03 | Phase 2 | Pending |
-| SEM-04 | Phase 2 | Pending |
-| SEM-05 | Phase 2 | Pending |
-| CTX-01 | Phase 2 | Pending |
-| CTX-02 | Phase 2 | Pending |
-| CTX-03 | Phase 2 | Pending |
-| CTX-04 | Phase 2 | Pending |
-| CTX-05 | Phase 2 | Pending |
+| ACTR-01 | Phase 2 | Complete |
+| ACTR-02 | Phase 2 | Complete |
+| ACTR-03 | Phase 2 | Complete |
+| ACTR-04 | Phase 2 | Complete |
+| SEM-01 | Phase 2 | Complete |
+| SEM-02 | Phase 2 | Complete |
+| SEM-03 | Phase 2 | Complete |
+| SEM-04 | Phase 2 | Complete |
+| SEM-05 | Phase 2 | Complete |
+| CTX-01 | Phase 2 | Complete |
+| CTX-02 | Phase 2 | Complete |
+| CTX-03 | Phase 2 | Complete |
+| CTX-04 | Phase 2 | Complete |
+| CTX-05 | Phase 2 | Complete |
 | QUERY-01 | Phase 3 | Pending |
 | QUERY-02 | Phase 3 | Pending |
 | QUERY-03 | Phase 3 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 2 context gathered (updated)
-last_updated: "2026-04-23T01:49:21.671Z"
+status: Planned — ready for execution
+stopped_at: Phase 2 execution finalized (summaries + verification)
+last_updated: "2026-04-23T22:15:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -22,25 +22,25 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 2 — Semantics Layer
+**Current focus:** Phase 3 — Query & Observability
 
 ## Current Position
 
 Phase: 3
 
-Plan: Not started
+Plan: Ready to execute (03-01 first)
 
-Status: Ready to plan
+Status: Planned — ready for execution
 
 Last activity: 2026-04-23
 
-Progress: [████░░░░░░] Phase 1 done; Phase 2+ not started
+Progress: [██████░░░░] Phases 1–2 done; Phase 3 planned, Phase 4 not started
 
 ## Performance metrics
 
 **Velocity:**
 
-- Total plans completed: 3 (Phase 1: 01-01, 01-02, 01-03)
+- Total plans completed: 6 (Phase 1: 01-01–01-03; Phase 2: 02-01–02-03)
 - Average duration: —
 - Total execution time: —
 
@@ -49,6 +49,7 @@ Progress: [████░░░░░░] Phase 1 done; Phase 2+ not started
 | Phase | Plans | Notes |
 |-------|-------|-------|
 | 1 | 01-01 .. 01-03 | Complete — `gate-01-01.md`, capture modules, CI, CONTRIBUTING |
+| 2 | 02-01 .. 02-03 | Complete — ActorRef, semantics DDL, trigger GUC bridge, Plug/Job |
 
 ## Accumulated context
 
@@ -58,17 +59,17 @@ Capture substrate is **Path B (custom `Threadline.Capture.TriggerSQL`)** per `ga
 
 ### Pending todos
 
-1. Plan Phase 2 (`02-semantics-layer`): discuss → plan → execute.
-2. Keep `MIX_ENV=test mix ci.all` green when changing semantics APIs.
+1. Execute Phase 3 (`03-query-observability`): run 03-01 then 03-02.
+2. Keep `MIX_ENV=test mix ci.all` green throughout Phase 3 execution.
 
 ### Blockers / concerns
 
-- None for Phase 1 closure. Phase 2 still needs schema/API design for `AuditAction`, `ActorRef`, Plug/Oban context.
+- None. Phase 3 plans are written and ready for execution.
 
 ## Session continuity
 
-Last session: --stopped-at
+Last session: execute-phase 2
 
-Stopped at: Phase 2 context gathered (updated)
+Stopped at: Phase 2 closed with verification artifacts
 
-Resume file: --resume-file
+Resume file: —

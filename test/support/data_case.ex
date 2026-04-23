@@ -19,8 +19,10 @@ defmodule Threadline.DataCase do
       import Ecto.Query
 
       setup do
+        # FK order: changes first, then transactions, then actions
         Repo.delete_all(AuditChange)
         Repo.delete_all(AuditTransaction)
+        Repo.delete_all(Threadline.Semantics.AuditAction)
         :ok
       end
     end

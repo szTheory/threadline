@@ -7,7 +7,7 @@ Threadline builds from correctness upward: establish trigger-backed row capture 
 ## Phases
 
 - [x] **Phase 1: Capture Foundation** - Trigger-backed row capture with correct PgBouncer-safe schema, migration helpers, and CI pipeline (completed 2026-04-23)
-- [ ] **Phase 2: Semantics Layer** - AuditAction, typed ActorRef, AuditContext, Plug integration, and Oban job context binding
+- [x] **Phase 2: Semantics Layer** - AuditAction, typed ActorRef, AuditContext, Plug integration, and Oban job context binding (completed 2026-04-23)
 - [ ] **Phase 3: Query & Observability** - Query API, health checks, and telemetry events
 - [ ] **Phase 4: Documentation & Release** - README, domain reference, ExDoc strings, and Hex publish readiness
 
@@ -40,12 +40,12 @@ Plans:
   3. `Threadline.Plug` captures request context (actor, request_id, correlation_id, remote_ip) for the duration of a Phoenix request
   4. `Threadline.Job` binds actor and correlation context for an Oban worker without using ETS or process dictionary
   5. An invalid `ActorRef` (missing actor_id for a non-anonymous type) returns a tagged error tuple, not a runtime exception
-**Plans**: TBD
+**Plans**: 3 defined
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [x] 02-01: Semantics schema, ActorRef, trigger GUC bridge
+- [x] 02-02: AuditAction, `record_action/2`, associations
+- [x] 02-03: `AuditContext`, `Threadline.Plug`, `Threadline.Job`
 
 ### Phase 3: Query & Observability
 **Goal**: Operators and application code can query audit history and monitor capture health through a composable Elixir API and telemetry events
@@ -57,11 +57,11 @@ Plans:
   3. `Threadline.timeline/1` accepts filter options (`:table`, `:actor_ref`, `:from`, `:to`) and returns a filtered result set
   4. `Threadline.Health.trigger_coverage/0` reports covered and uncovered tables; uncovered tables are explicitly flagged as `{:uncovered, table_name}`
   5. `:telemetry` events fire for transaction commit, action record, and health check; each carries the documented measurement map
-**Plans**: TBD
+**Plans**: 2 defined
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01: Query Core — `Threadline.Query` module with `history/2`, `actor_history/1`, `timeline/1`; delegating functions on `Threadline`; GIN index migration
+- [ ] 03-02: Health + Telemetry — `Threadline.Health.trigger_coverage/0`; `Threadline.Telemetry` helper; telemetry patch to `record_action/2`
 
 ### Phase 4: Documentation & Release
 **Goal**: Threadline is published on Hex with complete, tested documentation that a developer can follow in under 15 minutes to set up audit capture in a Phoenix app
@@ -86,6 +86,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Capture Foundation | 3/3 | Complete    | 2026-04-23 |
-| 2. Semantics Layer | 0/? | Not started | - |
-| 3. Query & Observability | 0/? | Not started | - |
+| 2. Semantics Layer | 3/3 | Complete    | 2026-04-23 |
+| 3. Query & Observability | 0/2 | Ready      | - |
 | 4. Documentation & Release | 0/? | Not started | - |
