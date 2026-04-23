@@ -33,7 +33,7 @@ defmodule Threadline.Verify.CoveragePolicy do
         {:ok, :covered} -> []
       end
     end)
-    |> Enum.sort_by(fn {kind, name} -> {name, violation_rank(kind)} end)
+    |> Enum.sort_by(fn {kind, name} -> {violation_rank(kind), name} end)
   end
 
   defp violation_rank(:missing), do: 0

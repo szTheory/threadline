@@ -39,15 +39,18 @@ defmodule Threadline.ContinuityBrownfieldTest do
   end
 
   test "history is empty at T0 until first audited write after trigger install" do
-    %{rows: [[id]]} =
-      Repo.query!("SELECT id FROM threadline_continuity_brownfield WHERE name = 'before_trigger'")
+    id =
+      Repo.one!(
+        from(r in Row,
+          where: r.name == "before_trigger",
+          select: r.id
+        )
+      )
 
     assert Threadline.history(Row, id, repo: Repo) == []
 
-    Repo.query!(
-      "UPDATE threadline_continuity_brownfield SET name = 'after_trigger' WHERE id = $1",
-      [id]
-    )
+    {1, _} =
+      Repo.update_all(from(r in Row, where: r.id == ^id), set: [name: "after_trigger"])
 
     changes =
       Repo.all(
