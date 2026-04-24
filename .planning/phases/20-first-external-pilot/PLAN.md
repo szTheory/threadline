@@ -24,7 +24,7 @@ One **external** host completes a **credible** pilot (see **Environment bar** be
 5. **Triage `Issue` rows** — For each: GitHub issue **or** scoped v1.6 requirement **or** reclassify to OK/N/A with rationale (D-08). Use **`AP-<section>.<row>`** IDs and the issue body shape in **D-10**; labels **`adoption-pilot`**, **`triage`**, area, severity (D-09–D-11).
 6. **Prioritized table** — Add rows for discovered gaps; link out to issues; P0/P1 per backlog legend.
 7. **Maintainer review** — Review merged backlog for redaction, link stability, and triage completeness (D-12).
-8. **Close ADOP-03** — Set ADOP-03 to **Complete** in **REQUIREMENTS.md** traceability; run **`/gsd-transition`** or milestone close per project habit (D-12).
+8. **Close ADOP-03** — Set ADOP-03 to **Complete** in **REQUIREMENTS.md** traceability; on `main`, run **`/gsd-execute-phase 20`** so verification and roadmap completion run; then milestone close per project habit (D-12).
 
 ## Success criteria
 

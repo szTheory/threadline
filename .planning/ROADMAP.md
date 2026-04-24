@@ -81,7 +81,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next milestone
 
-**v1.5** is open (phases 19–20). **`v0.2.0`** is tagged and **`threadline` 0.2.0** is on Hex. Next: run **Phase 20** pilot against [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md), then `/gsd-transition` when **ADOP-03** is satisfied.
+**v1.5** is open (phases 19–20). **`v0.2.0`** is tagged and **`threadline` 0.2.0** is on Hex. Next: run **Phase 20** pilot against [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md); when **ADOP-03** is satisfied on `main`, run **`/gsd-execute-phase 20`** to verify and close the phase (then milestone wrap-up per project habit).
 
 ## Progress
 

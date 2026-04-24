@@ -56,7 +56,7 @@
 | Maintainer review + REQ update | Traceable close | ✓ |
 | Implicit close without REQ checkbox | Breaks traceability | |
 
-**User's choice:** Host sign-off + maintainer review of merged backlog; ADOP-03 → Complete in REQUIREMENTS; `/gsd-transition` per habit.
+**User's choice:** Host sign-off + maintainer review of merged backlog; ADOP-03 → Complete in REQUIREMENTS; `/gsd-execute-phase 20` on `main`, then milestone close per habit.
 
 ---
 

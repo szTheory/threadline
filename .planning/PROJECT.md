@@ -136,7 +136,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via `/gsd-transition`):
+**After each phase transition** (e.g. GSD `phase.complete` / roadmap update after `/gsd-execute-phase` when applicable):
 
 1. Requirements invalidated? → Move to Out of Scope with reason  
 2. Requirements validated? → Move to Validated with phase reference  

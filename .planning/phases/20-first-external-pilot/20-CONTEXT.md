@@ -37,7 +37,7 @@ This phase is **process and evidence**, not new library APIs or LiveView. In-rep
 
 ### Completion and verification
 
-- **D-12:** **Verification:** host integrator sign-off + maintainer review of the **merged** backlog update; **REQUIREMENTS.md** ADOP-03 row set to **Complete**; then **`/gsd-transition`** or project milestone close per habit.
+- **D-12:** **Verification:** host integrator sign-off + maintainer review of the **merged** backlog update; **REQUIREMENTS.md** ADOP-03 row set to **Complete**; then **`/gsd-execute-phase 20`** on `main` (verifier + roadmap) and milestone close per habit.
 - **D-13:** **Cohesion with v1.5 intent:** no API expansion in this phase; pilot pain feeds **issues / v1.6 requirements** only—consistent with **integrator-led** sequencing in [`.planning/PROJECT.md`](../../PROJECT.md).
 
 ### Claude's Discretion

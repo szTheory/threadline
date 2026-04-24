@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-status: executing
-last_updated: "2026-04-24T01:05:26.117Z"
-last_activity: 2026-04-24 -- Phase 20 execution started
+status: active
+last_updated: "2026-04-24T01:35:00Z"
+last_activity: 2026-04-24 -- Repaired STATE after bad state.begin-phase argv; Phase 20 still awaiting external pilot
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
   completed_plans: 0
 ---
@@ -20,17 +20,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 20 — first-external-pilot
+**Current focus:** Phase 20 — first-external-pilot (blocked on host evidence until backlog PR merges)
 
 ## Current Position
 
-Phase: 20 (first-external-pilot) — EXECUTING
+Phase: 20 (first-external-pilot) — AWAITING EXTERNAL PILOT
 
-Plan: 1 of 1
+Plan: 0 of 1 complete (`PLAN.md` is host + maintainer checklist; no in-repo executor work until evidence exists)
 
-Status: Executing Phase 20
+Status: v1.5 open — Phase 19 complete; Phase 20 pending **ADOP-03**
 
-Last activity: 2026-04-24 -- Phase 20 execution started
+Last activity: 2026-04-24 — STATE frontmatter repaired; execution deferred to real pilot
 
 ## Performance metrics
 
@@ -45,18 +45,21 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` (includes `verify.doc_contr
 
 ### Pending todos
 
-1. Run **Phase 20**: one staging/production-like host fills [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md); triage `Issue` rows; then `/gsd-transition` or extend requirements for v1.6 as needed.
+1. **Phase 20 (external):** Host fills [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md) per [PLAN.md](phases/20-first-external-pilot/PLAN.md); merge evidence to `main`; triage every **`Issue`** row; mark **ADOP-03** complete in `REQUIREMENTS.md`. Then **`/gsd-execute-phase 20`** on `main` for verification and phase completion.
 2. When cutting the next Hex release after doc-only commits on `main`, bump **`@version`** (e.g. **0.2.1**) and add a dated **`CHANGELOG`** section.
 
 ### Blockers / concerns
 
-- None in-repo; external pilot availability is the gating item for ADOP-03.
+- **ADOP-03** requires a credible staging/production-like pilot (see [20-CONTEXT.md](phases/20-first-external-pilot/20-CONTEXT.md)); not automatable inside the repo.
 
 ## Session continuity
 
 **Open milestone:** v1.5 — opened 2026-04-23
 
-**Next:** Host runs [PLAN.md](phases/20-first-external-pilot/PLAN.md) checklist → evidence PR to `main` for [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md) → triage → maintainer closes **ADOP-03** in `REQUIREMENTS.md`. Re-run `/gsd-execute-phase 20` after evidence lands to drive verification / completion. Context: [20-CONTEXT.md](phases/20-first-external-pilot/20-CONTEXT.md).
+**Next (pick one):**
+
+- **After pilot PR is on `main`:** `/gsd-execute-phase 20` — code review, regression checks, verifier, `phase.complete` / roadmap updates.
+- **Before pilot is ready:** `/gsd-progress` — status; no need to re-run execute-phase until backlog evidence exists.
 
 **Prior shipped:** v1.4 — 2026-04-23 (archive: `.planning/milestones/v1.4-*.md`).
 
