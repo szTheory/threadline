@@ -1,6 +1,6 @@
 # Phase 22 — Research: Example app layout & runbook
 
-**Purpose:** Answer “What do I need to know to PLAN this phase well?” for implementing **REF-01** and **REF-02** (see `.planning/REQUIREMENTS.md`). Locked decisions **D-01–D-19** live in `.planning/phases/22-example-app-layout-runbook/22-CONTEXT.md`.
+**Purpose:** Answer “What do I need to know to PLAN this phase well?” for implementing **REF-01** and **REF-02** (see `.planning/milestones/v1.7-REQUIREMENTS.md`). Locked decisions **D-01–D-19** live in `.planning/milestones/v1.7-phases/22-example-app-layout-runbook/22-CONTEXT.md`.
 
 ---
 
@@ -135,7 +135,7 @@ Extend with **`ecto.create`** / migrate when the example’s tests need a prepar
 ### Test stack (ExUnit / Mix)
 
 - **Library:** Full **`mix test`** on PostgreSQL with real triggers; **`test/test_helper.exs`** ensures DB exists and runs migrations (except PgBouncer topology mode).
-- **Example:** Standard **Phoenix + Ecto** tests under **`examples/threadline_phoenix/test/`** — plan the **minimum** tests for Phase 22 (e.g. Repo connectivity, migration applied, optional smoke insert into **`posts`**). Heavy HTTP/Oban coverage belongs to **REF-03–REF-06** (Phases 23–24 per **`REQUIREMENTS.md`** traceability table).
+- **Example:** Standard **Phoenix + Ecto** tests under **`examples/threadline_phoenix/test/`** — plan the **minimum** tests for Phase 22 (e.g. Repo connectivity, migration applied, optional smoke insert into **`posts`**). Heavy HTTP/Oban coverage belongs to **REF-03–REF-06** (Phases 23–24 per **`v1.7-REQUIREMENTS.md`** traceability table).
 
 ### Commands: quick verify vs full `ci.all`
 

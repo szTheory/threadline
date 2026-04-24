@@ -8,7 +8,7 @@ Entries are newest first.
 
 **Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
 
-**Phases completed:** 22–24 (3 phases; 5 plans with `SUMMARY.md` under `.planning/phases/22-*`, `23-*`, `24-*/`).
+**Phases completed:** 22–24 (3 phases; 5 plans with `SUMMARY.md` under `.planning/milestones/v1.7-phases/`).
 
 **Key accomplishments:**
 

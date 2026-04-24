@@ -268,7 +268,7 @@
 
 - Model mix: not instrumented in-repo for this milestone.
 - Sessions: Phases 22–24 executed as a tight vertical slice over two days.
-- Notable: Phase directories **22–24** remain under **`.planning/phases/`** until optional **`/gsd-cleanup`**.
+- Notable: Phase directories **22–24** moved to **`.planning/milestones/v1.7-phases/`** after close.
 
 ---
 

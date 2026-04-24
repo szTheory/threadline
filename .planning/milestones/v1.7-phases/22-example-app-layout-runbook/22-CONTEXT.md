@@ -16,7 +16,7 @@ Ship **REF-01** and **REF-02**: a **non-published** Phoenix application under `e
 ## Implementation Decisions
 
 ### Naming, path, and OTP identity
-- **D-01:** Canonical directory **`examples/threadline_phoenix/`** — matches **REF-01** wording in `.planning/REQUIREMENTS.md`, signals Phoenix (the integration surface for v1.7), and avoids colliding with the **`:threadline`** OTP application at repo root.
+- **D-01:** Canonical directory **`examples/threadline_phoenix/`** — matches **REF-01** wording in `.planning/milestones/v1.7-REQUIREMENTS.md`, signals Phoenix (the integration surface for v1.7), and avoids colliding with the **`:threadline`** OTP application at repo root.
 - **D-02:** Example Mix project **`app: :threadline_phoenix`** with module namespace **`ThreadlinePhoenix`** (e.g. `ThreadlinePhoenix.Application`, `ThreadlinePhoenixWeb.Endpoint`). Do not name the example app `:threadline`.
 - **D-03:** **`threadline_host`** remains a valid *documentation* term for “SaaS-shaped integrator app” but the **on-disk primary** example stays **`threadline_phoenix`** unless REQUIREMENTS and root README are deliberately renamed in the same change set (avoid glossary drift).
 
@@ -60,7 +60,7 @@ Ship **REF-01** and **REF-02**: a **non-published** Phoenix application under `e
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Milestone and requirements
-- `.planning/REQUIREMENTS.md` — **REF-01**, **REF-02** acceptance text; recommended `examples/threadline_phoenix/` path.
+- `.planning/milestones/v1.7-REQUIREMENTS.md` — **REF-01**, **REF-02** acceptance text; recommended `examples/threadline_phoenix/` path.
 - `.planning/ROADMAP.md` — Phase 22 success criteria and v1.7 goal.
 - `.planning/PROJECT.md` — v1.7 goals, non-goals (no umbrella, example-only integration).
 

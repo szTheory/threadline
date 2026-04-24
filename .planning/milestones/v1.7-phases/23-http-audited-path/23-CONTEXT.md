@@ -47,12 +47,12 @@ Close **REF-03**: the **`examples/threadline_phoenix`** app wires **`Threadline.
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Requirements and roadmap
-- `.planning/REQUIREMENTS.md` — **REF-03** acceptance text.
+- `.planning/milestones/v1.7-REQUIREMENTS.md` — **REF-03** acceptance text.
 - `.planning/ROADMAP.md` — Phase 23 success criterion (HTTP + Plug + proof).
 - `.planning/PROJECT.md` — v1.7 goals, HTTP path expectation, non-goals.
 
 ### Prior phase lock-in
-- `.planning/phases/22-example-app-layout-runbook/22-CONTEXT.md` — example path, `posts` table, API-first, `verify.example`, synthetic fixtures, no `users` yet.
+- `.planning/milestones/v1.7-phases/22-example-app-layout-runbook/22-CONTEXT.md` — example path, `posts` table, API-first, `verify.example`, synthetic fixtures, no `users` yet.
 
 ### Library contracts (implementation truth)
 - `lib/threadline/plug.ex` — `Threadline.Plug` behavior, **no** `SET` on connection; CTX-03 bridge pattern in `@moduledoc`.

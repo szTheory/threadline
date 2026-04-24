@@ -63,14 +63,14 @@ Close **REF-04**, **REF-05**, and **REF-06** in **`examples/threadline_phoenix/`
 
 ### Requirements and roadmap
 
-- `.planning/REQUIREMENTS.md` — **REF-04**, **REF-05**, **REF-06** acceptance text.
+- `.planning/milestones/v1.7-REQUIREMENTS.md` — **REF-04**, **REF-05**, **REF-06** acceptance text.
 - `.planning/ROADMAP.md` — Phase 24 success criteria (Oban + `record_action` + README links).
 - `.planning/PROJECT.md` — v1.7 job path + semantics + integrator-owned STG goals.
 
 ### Prior phase lock-in
 
-- `.planning/phases/22-example-app-layout-runbook/22-CONTEXT.md` — example path, `posts`, `verify.example`, synthetic actors, CI harness.
-- `.planning/phases/23-http-audited-path/23-CONTEXT.md` — Plug on `:api`, context-owned **GUC + transaction**, ConnCase proof, **no** Oban/`record_action` in Phase 23.
+- `.planning/milestones/v1.7-phases/22-example-app-layout-runbook/22-CONTEXT.md` — example path, `posts`, `verify.example`, synthetic actors, CI harness.
+- `.planning/milestones/v1.7-phases/23-http-audited-path/23-CONTEXT.md` — Plug on `:api`, context-owned **GUC + transaction**, ConnCase proof, **no** Oban/`record_action` in Phase 23.
 
 ### Library contracts
 

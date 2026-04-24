@@ -7,7 +7,7 @@
 
 ## 1. Requirement restatement (REF-03)
 
-From `.planning/REQUIREMENTS.md`: the example **HTTP stack** includes **`Threadline.Plug`** in the pipeline used for audited writes; a **controller or context** performs at least one **audited insert or update**; an **automated test** or **documented curl/httpie** proves **`audit_changes`** and **transaction linkage**.
+From `.planning/milestones/v1.7-REQUIREMENTS.md`: the example **HTTP stack** includes **`Threadline.Plug`** in the pipeline used for audited writes; a **controller or context** performs at least one **audited insert or update**; an **automated test** or **documented curl/httpie** proves **`audit_changes`** and **transaction linkage**.
 
 **Locked in 23-CONTEXT:** Canonical proof = **ConnCase integration test** through **Endpoint → Router → plugs → handler**; **synthetic `ActorRef`** via `actor_fn`; **`POST /api/posts`** only; **context-owned** `Repo.transaction` + `set_config('threadline.actor_ref', …, true)` before audited `Repo.insert`; skinny controller passes **`conn.assigns[:audit_context]`** into the context.
 
