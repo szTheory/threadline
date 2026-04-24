@@ -8,17 +8,21 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.9 — Production confidence at volume
+## Current milestone
 
-**Goal:** Give integrators and operators a credible **ops-at-volume** story: what to watch in telemetry and health checks, how to index audit tables for real query patterns, and how retention fits growth — **docs-first**, with code changes only where an operator-relevant signal truly cannot be expressed with existing hooks.
+**v1.9 shipped** 2026-04-24 (Phases **28–30**). Open the next milestone on **`ROADMAP.md`** when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump.
 
-**Target features:**
+## Last milestone shipped: v1.9 — Production confidence at volume (Phases 28–30, 2026-04-24)
 
-- **Telemetry + health narrative** — operational reading of `[:threadline, …]` events and `Threadline.Health.trigger_coverage/1`, cross-linked from the production checklist.
-- **Indexing cookbook** — dedicated guide (or equivalent) for audit table indexes aligned with timeline, export, correlation, and retention workloads; doc contracts so guidance does not rot.
-- **Retention at scale** — production checklist + domain docs describe volume, purge cadence, and monitoring in terms of shipped `Threadline.Retention` and export APIs.
+**Goal (achieved in-repo):** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook, and **retention-at-scale** guidance grounded in shipped APIs — **docs-first**.
 
-**Non-goals (this milestone):** LiveView operator UI; `threadline_web`; new capture/redaction semantics; Hex semver bump unless a separate release decision is made.
+**Shipped:**
+
+- **Phase 28** — OPS-01, OPS-02: per-event telemetry narrative + **`## Trigger coverage (operational)`** in **`guides/domain-reference.md`**; production checklist cross-links.
+- **Phase 29** — IDX-01, IDX-02: **`guides/audit-indexing.md`**, ExDoc extra, doc contract **`test/threadline/audit_indexing_doc_contract_test.exs`**.
+- **Phase 30** — SCALE-01, SCALE-02: **`guides/production-checklist.md`** volume / purge cadence H3 + export & support hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** hub; **`README.md`** Maintainer-band discovery paragraph.
+
+**Non-goals (unchanged):** LiveView operator UI; `threadline_web`; new capture/redaction semantics; Hex semver bump unless a separate release decision is made.
 
 ## Last milestone shipped: v1.8 — Close the support loop (Phases 25–27, 2026-04-24)
 
@@ -60,7 +64,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.8** are complete (**v1.8** shipped and archived 2026-04-24). **v1.9** is **open** (Phases 28+). Archives live under `.planning/milestones/`. Living requirements: **`.planning/REQUIREMENTS.md`**. Living roadmap: **`.planning/ROADMAP.md`**. **v1.8** archive: **`.planning/milestones/v1.8-REQUIREMENTS.md`**.
+**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.8** archive: **`.planning/milestones/v1.8-REQUIREMENTS.md`**. Archives live under `.planning/milestones/`. Living requirements: **`.planning/REQUIREMENTS.md`**. Living roadmap: **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -106,7 +110,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.9** open (**Phases 28+** — ops-at-volume narrative, indexing, retention-at-scale docs). **v1.8** archived 2026-04-24 (**Phases 25–27**). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.9** shipped 2026-04-24 (**Phases 28–30**). **v1.8** archived (**Phases 25–27**). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -140,11 +144,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **LOOP-03 (Phase 27)** — **`examples/threadline_phoenix/`** correlation path: **`x-correlation-id`**, **`record_action/2`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`timeline`** / **`export_json`** with **`:correlation_id`**. Validated in Phase 27: Example app correlation path (2026-04-24).
 - [x] **OPS-01 / OPS-02 (Phase 28)** — **`guides/domain-reference.md`** per-event telemetry narrative + **`## Trigger coverage (operational)`**; **`guides/production-checklist.md`** §1/§6 cross-links; README pointer to **`guides/domain-reference.md#trigger-coverage-operational`**. Validated in Phase 28: Telemetry & health operators' narrative (2026-04-24).
 - [x] **IDX-01 / IDX-02 (Phase 29)** — **`guides/audit-indexing.md`** (installed defaults, access patterns vs **`Threadline.Query`** / **`Threadline.Export`** / **`Threadline.Retention`**, tradeoffs, optional DDL framed non-mandatory); ExDoc extra; cross-links from **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`test/threadline/audit_indexing_doc_contract_test.exs`**. Validated in Phase 29: Audit table indexing cookbook (2026-04-24).
+- [x] **SCALE-01 / SCALE-02 (Phase 30)** — **`guides/production-checklist.md`** volume / purge cadence H3 tied to **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`**; export §5 + support intro hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** discovery hub; **`README.md`** Maintainer-band pointer. Validated in Phase 30: Retention at scale & discovery (2026-04-24).
 
-### Active (v1.9)
+### Active (next milestone)
 
-- [ ] **SCALE-01** — Retention-at-scale + volume guidance in production docs.
-- [ ] **SCALE-02** — Discovery pointer(s) for the at-scale narrative (README and/or domain reference).
+_None — open scope on **`ROADMAP.md`** when ready._
 
 _Shipped **v1.8** wording: **`.planning/milestones/v1.8-REQUIREMENTS.md`**._
 
@@ -215,4 +219,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.9** — Phase **29** complete (IDX-01, IDX-02); next **Phase 30** (retention at scale & discovery).*
+*Last updated: 2026-04-24 — **v1.9** shipped (Phases **28–30**); next milestone TBD on **`ROADMAP.md`**.*

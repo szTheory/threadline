@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: milestone
-status: completed
+status: verifying
 last_updated: "2026-04-24T16:45:00.000Z"
-last_activity: 2026-04-24 — Phase 30 discuss complete (`30-CONTEXT.md`, `30-DISCUSSION-LOG.md`); GSD workflow defaults updated in `config.json`.
+last_activity: 2026-04-24 — Phase 30 executed (SCALE-01 checklist + SCALE-02 discovery hub); v1.9 milestone shipped on roadmap.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,17 +20,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.9** — Phase **30** next (retention at scale & discovery — SCALE-01, SCALE-02)
+**Current focus:** **v1.9 shipped** (Phases 28–30). Define the next milestone on **`ROADMAP.md`** when ready.
 
 ## Current Position
 
-Phase: **30** — Retention at scale & discovery — **not started** (see **`ROADMAP.md`** v1.9 block)
+Phase: **30** — Retention at scale & discovery — **complete** (see **`30-VERIFICATION.md`** — `human_needed` until **`mix test`** with Postgres)
 
-Plan: —
+Plan: **30-02** complete (2/2 plans)
 
-Status: **Phase 29 complete** — IDX-01 cookbook + IDX-02 doc contract shipped; verification **`29-VERIFICATION.md`** status `passed`.
+Status: **v1.9 milestone complete** — OPS/IDX/SCALE requirements satisfied in-repo; run **`mix test`** locally to clear human verification on **`30-HUMAN-UAT.md`**.
 
-Last activity: 2026-04-24 — Phase 29 executed (`guides/audit-indexing.md`, doc contract test, ROADMAP/REQUIREMENTS/PROJECT updated).
+Last activity: 2026-04-24 — Phase 30 docs: **`guides/production-checklist.md`** volume H3, **`guides/domain-reference.md`** Operating at scale hub, **`README.md`** Maintainer pointer; tracking updated.
 
 ## Performance metrics
 
@@ -44,10 +44,11 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 - **Phase 28 shipped:** Per-event telemetry narrative + numbered triage playbook + **`## Trigger coverage (operational)`** in **`guides/domain-reference.md`**; **`guides/production-checklist.md`** §1/§6 aligned; README link to **`guides/domain-reference.md#trigger-coverage-operational`**.
 - **GSD defaults:** **`.planning/config.json`** — `workflow.research_before_questions: true`, `workflow.discuss_default_research_synthesis: true`, **`discuss_use_subagent_research: true`**, **`discuss_default_cohesive_recommendations: true`**, **`discuss_interactive_menus_high_impact_only: true`** (see **`discuss_high_impact_tags`** for exceptions).
 - **Phase 29 shipped:** **`guides/audit-indexing.md`**, ExDoc extra, **`guides/domain-reference.md`** / **`guides/production-checklist.md`** pointers, **`test/threadline/audit_indexing_doc_contract_test.exs`** — see **`29-VERIFICATION.md`**.
+- **Phase 30 shipped:** **`guides/production-checklist.md`** §4 **`### Volume, growth, and purge cadence`**, §5 export retention hook, support intro; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** hub; **`README.md`** Maintainer-band discovery paragraph — see **`30-VERIFICATION.md`**.
 
 ### Pending todos
 
-1. **Phase 30** — SCALE-01, SCALE-02 (retention-at-scale narrative + discovery links)
+1. Run **`mix test`** (or **`mix ci.all`**) with Postgres to clear **`30-HUMAN-UAT.md`** when convenient.
 
 ### Blockers / concerns
 
@@ -59,8 +60,10 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-phases/`
 
-**Resume:** **`ROADMAP.md`** v1.9 block; Phase 30 context under **`.planning/milestones/v1.9-phases/`** when created.
+**Resume:** **`ROADMAP.md`** — open next milestone when scope is defined.
 
-**Last completed phase:** 29 (Audit table indexing cookbook) — 2026-04-24
+**Last completed phase:** 30 (Retention at scale & discovery) — 2026-04-24
 
-**Next planned phase:** 30 — Retention at scale & discovery
+**Next planned phase:** _TBD on roadmap_
+
+**Planned Phase:** —

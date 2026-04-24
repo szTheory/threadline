@@ -20,9 +20,9 @@
 
 ### Operations — retention at scale
 
-- [ ] **SCALE-01**: **`guides/production-checklist.md`** gains explicit **volume / growth** guidance tied to shipped retention APIs: **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`** — including suggested **cadence thinking**, **what to monitor** (table growth, purge duration), and how this connects to **export** and **timeline** usage already documented for support.
+- [x] **SCALE-01**: **`guides/production-checklist.md`** gains explicit **volume / growth** guidance tied to shipped retention APIs: **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`** — including suggested **cadence thinking**, **what to monitor** (table growth, purge duration), and how this connects to **export** and **timeline** usage already documented for support.
 
-- [ ] **SCALE-02**: **README** and/or **`guides/domain-reference.md`** includes a **short discovery pointer** (one paragraph + link) to the at-scale / indexing / retention narrative so new readers find v1.9 material without spelunking.
+- [x] **SCALE-02**: **README** and/or **`guides/domain-reference.md`** includes a **short discovery pointer** (one paragraph + link) to the at-scale / indexing / retention narrative so new readers find v1.9 material without spelunking.
 
 ## Future (after v1.9)
 
@@ -50,8 +50,8 @@ _Defer unless a later milestone explicitly reopens._
 | OPS-02 | Phase 28 | Complete |
 | IDX-01 | Phase 29 | Complete |
 | IDX-02 | Phase 29 | Complete |
-| SCALE-01 | Phase 30 | Pending |
-| SCALE-02 | Phase 30 | Pending |
+| SCALE-01 | Phase 30 | Complete |
+| SCALE-02 | Phase 30 | Complete |
 
 **Coverage:** v1.9 requirements: **6** total — mapped: **6** — unmapped: **0** ✓
 
