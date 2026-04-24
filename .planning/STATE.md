@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: — Support-grade exploration primitives
-status: verifying
-last_updated: "2026-04-24T17:03:30.198Z"
-last_activity: 2026-04-24 — Shipped **`audit_changes_for_transaction/2`** (**XPLO-02**); `DB_PORT=5433 mix ci.all` verified.
+status: planning
+last_updated: "2026-04-24T18:00:00.000Z"
+last_activity: 2026-04-24 — Phase **33** discuss complete; **`33-CONTEXT.md`** ready — next **`/gsd-plan-phase 33`** (**XPLO-03**).
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
+  total_plans: 4
   completed_plans: 3
-  percent: 100
+  percent: 67
 ---
 
 # Project State
@@ -47,7 +47,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. **`/gsd-discuss-phase 33`** (optional) then **`/gsd-plan-phase 33`** — operator docs routing (**XPLO-03**).
+1. **`/gsd-plan-phase 33`** — operator docs routing (**XPLO-03**); context in **`.planning/phases/33-operator-docs-contracts/33-CONTEXT.md`**.
 
 ### Blockers / concerns
 
