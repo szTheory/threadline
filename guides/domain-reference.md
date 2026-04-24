@@ -60,6 +60,10 @@ Read-only exports for operator playbooks (“export then purge”, cross-checks,
 - **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
 - **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
 
+## Audit indexing (integrator-owned)
+
+Physical PostgreSQL indexes on **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are **integrator-owned**: Threadline ships a safe baseline via migrations, but workload-specific btree/GIN choices stay with the team operating the database. For baseline inventory, join shapes (timeline vs export vs correlation), retention delete patterns, and **optional** additive DDL framed as non-mandatory, read the **[Audit table indexing cookbook](audit-indexing.md)**—do not duplicate full DDL matrices here; link to the cookbook when operators need tuning guidance.
+
 ## Brownfield continuity
 
 Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).

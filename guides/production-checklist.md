@@ -32,6 +32,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] Production: `MIX_ENV=prod mix threadline.retention.purge --execute` (requires explicit `--execute`).
 - [ ] Batch size and `max_batches` tuned so each run finishes under lock/latency budgets; schedule often enough that volume per run stays bounded.
 - [ ] Backups / point-in-time recovery: purges are **permanent** deletes of `audit_changes` (and optionally empty `audit_transactions`); align retention with compliance needs.
+- [ ] Index strategy for audit tables (baseline vs optional btree/GIN) reviewed with your DBA path; see **[`audit-indexing.md`](audit-indexing.md)** for shipped index names, timeline/export join semantics, and evidence-first additive patterns.
 
 ## 5. Export and investigation
 
