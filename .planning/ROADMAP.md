@@ -37,7 +37,7 @@
 6. Example README links **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** STG blocks.
 
 - [x] **Phase 22 — Example app layout & runbook** — REF-01, REF-02 (2026-04-24)
-- [ ] **Phase 23 — HTTP audited path** — REF-03
+- [x] **Phase 23 — HTTP audited path** — REF-03 (2026-04-24)
 - [ ] **Phase 24 — Job path, actions, adoption pointers** — REF-04, REF-05, REF-06
 
 <details>
@@ -129,14 +129,14 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.7** is open — start with **Phase 22** (`/gsd-discuss-phase 22` or `/gsd-plan-phase 22`). **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump. **v1.6** archive: `.planning/milestones/v1.6-REQUIREMENTS.md`.
+**v1.7** is open — **Phase 23** is complete; next is **Phase 24** (`/gsd-discuss-phase 24` or `/gsd-plan-phase 24`). **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump. **v1.6** archive: `.planning/milestones/v1.6-REQUIREMENTS.md`.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
 | 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |
-| 23. HTTP audited path | v1.7 | — | Open | — |
+| 23. HTTP audited path | v1.7 | 1/1 | Complete    | 2026-04-24 |
 | 24. Job path, actions, adoption pointers | v1.7 | — | Open | — |
 | 21. Host staging & pooler parity | v1.6 | 2/2 | Complete | 2026-04-24 |
 | 19. Adoption operator docs | v1.5 | — | Complete | 2026-04-23 |

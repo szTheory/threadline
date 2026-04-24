@@ -12,7 +12,7 @@ Requirements for this milestone. Each maps to **one** roadmap phase (see traceab
 
 - [x] **REF-01**: Repository contains a **non-published** example Phoenix application (recommended path: `examples/threadline_phoenix/` or equivalent) that depends on **`threadline` via `:path`** to the repo root; **README** documents prerequisites (Elixir/OTP/Postgres), **`mix setup`** or equivalent, how to run the server, and how to run tests.
 - [x] **REF-02**: Example applies **`mix threadline.install`** (or equivalent checked-in migrations), **`mix threadline.gen.triggers`** for at least **one** audited domain table, and **documents** the same **`MIX_ENV`** caveats as the root README for trigger regeneration.
-- [ ] **REF-03**: Example **HTTP stack** includes **`Threadline.Plug`** in the browser/API pipeline used for audited writes; a **controller or context** performs at least one **audited insert or update**; **automated test** or **documented curl/httpie** steps prove **`audit_changes`** (and transaction linkage) for that path.
+- [x] **REF-03**: Example **HTTP stack** includes **`Threadline.Plug`** in the browser/API pipeline used for audited writes; a **controller or context** performs at least one **audited insert or update**; **automated test** or **documented curl/httpie** steps prove **`audit_changes`** (and transaction linkage) for that path.
 - [ ] **REF-04**: Example includes an **Oban** worker that performs an **audited write** in a job using **`Threadline.Job`** (or a documented equivalent pattern from `Threadline.Job` docs); **automated test** covers actor/job linkage expectations.
 - [ ] **REF-05**: Example includes at least **`record_action/2`** invocation for a representative intent (e.g. role or settings change) with a **short comment or guide note** explaining when to prefer actions vs row capture alone.
 - [ ] **REF-06**: Example **README** links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** (STG audited-path rubric), stating that **host-class** evidence remains integrator-owned.
@@ -39,7 +39,7 @@ _Defer beyond v1.7 unless scope is explicitly reopened._
 |---------------|-------|--------|
 | REF-01 | Phase 22 | Complete |
 | REF-02 | Phase 22 | Complete |
-| REF-03 | Phase 23 | Open |
+| REF-03 | Phase 23 | Complete |
 | REF-04 | Phase 24 | Open |
 | REF-05 | Phase 24 | Open |
 | REF-06 | Phase 24 | Open |
