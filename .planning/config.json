@@ -10,7 +10,16 @@
     "skip_discuss": false,
     "_auto_chain_active": false,
     "research_before_questions": true,
-    "discuss_default_research_synthesis": true
+    "discuss_default_research_synthesis": true,
+    "discuss_use_subagent_research": true,
+    "discuss_default_cohesive_recommendations": true,
+    "discuss_interactive_menus_high_impact_only": true,
+    "discuss_high_impact_tags": [
+      "semver",
+      "security_model",
+      "breaking_public_api",
+      "scope_cut"
+    ]
   },
   "model_profile": "balanced"
 }
