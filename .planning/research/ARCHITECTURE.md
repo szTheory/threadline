@@ -1,28 +1,74 @@
-# Architecture Research — STG host parity
+# Architecture Patterns — "As-of" Reconstruction
 
-**Researched:** 2026-04-23
+**Domain:** Audit & Temporal Data
+**Researched:** 2026-04-24
 
-## Existing architecture (relevant slices)
+## Recommended Architecture
 
-1. **Capture** — PostgreSQL triggers write `audit_transactions` / `audit_changes`; grouping by `txid_current()`; no `SET LOCAL` in capture path (Path B, PgBouncer transaction–friendly design).
-2. **Semantics bridge** — Transaction-local GUC (or equivalent) populated by app code so triggers attach **actor_ref**; **`Threadline.Plug`** (HTTP) and **`Threadline.Job`** (job args → actor) are the documented integration surfaces.
-3. **CI topology job** — Direct Postgres for migrations/bootstrap; tests connect via **PgBouncer** port with **`THREADLINE_PGBOUNCER_TOPOLOGY=1`** (`test/threadline/pgbouncer_topology_test.exs`, `lib/mix/tasks/threadline/verify_topology.ex`).
+Threadline uses a **Snapshot-at-Capture** architecture. Unlike patch-based systems (like `ExAudit`) or system-period temporal tables (which clones rows into a separate table), Threadline stores the full state of the row in a `JSONB` column (`data_after`) on every change event.
 
-## Integration points for v1.6 (documentation + evidence)
+### Data Flow
 
-| Layer | What STG adds |
-|-------|----------------|
-| **Host network** | Document ports, pooler vs direct, TLS termination if it affects DB client |
-| **Phoenix / Plug** | Show one request path that performs audited write (can reference host’s own controller/service — no new library API required) |
-| **Oban / jobs** | Show one job that uses **`Threadline.Job`** (or documented equivalent) so audit rows tie to job actor |
-| **Backlog** | Map proof to adoption pilot matrix rows (especially **Connection topology** and any **AP-ENV** follow-ups) |
+```mermaid
+graph TD
+    A[Request: as_of/3] --> B[Query audit_changes]
+    B --> C{Found?}
+    C -- Yes --> D[Extract data_after JSONB]
+    C -- No --> E[Return nil]
+    D --> F[Ecto.embedded_load]
+    F --> G[Reified %Schema{}]
+```
 
-## Suggested build order (single phase)
+### Component Boundaries
 
-1. Freeze topology narrative (short markdown in host wiki or PR to pilot backlog section — maintainer may accept doc-only PRs that **template** evidence without claiming external hosts).  
-2. Capture HTTP + job evidence in host environment.  
-3. Update backlog statuses and links.
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| **Threadline.Query** | Point-in-time lookup logic (PostgreSQL) | `AuditChange` / `Repo` |
+| **Threadline.Reify** | Transforming raw maps to Ecto structs | Ecto Metadata |
+| **AuditChange** | Storage for `data_after` snapshots | PostgreSQL |
 
-## New vs modified components
+## Patterns to Follow
 
-- **No new Elixir modules required** for minimal STG closure unless evidence exposes a real gap (then file as Issue / next milestone, not scope creep in STG).
+### Pattern 1: Point-in-Time Lookup
+**What:** Find the most recent audit entry for a record at or before a given time.
+**When:** Whenever "As-of" state is requested.
+**SQL Example:**
+```sql
+SELECT data_after 
+FROM audit_changes 
+WHERE table_name = 'posts' 
+  AND table_pk @> '{"id": 1}' 
+  AND captured_at <= '2023-01-01 10:00:00Z' 
+ORDER BY captured_at DESC 
+LIMIT 1;
+```
+
+### Pattern 2: Struct Reification via `embedded_load`
+**What:** Using Ecto's internal loading logic to cast a JSON map back to a struct.
+**Example:**
+```typescript
+// Conceptual Elixir implementation
+def reify(schema, data) when is_map(data) do
+  # Uses Ecto's native type casting and embed handling
+  Ecto.embedded_load(schema, data, :json)
+end
+```
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Reconstructing via Diff Replay
+**What:** Attempting to start from the current live table and "undo" `change_diff` entries to get back to time T.
+**Why bad:** Extremely slow; fails if `changed_from` wasn't stored; prone to error if schema drifted.
+**Instead:** Use the `data_after` snapshot from the audit log directly.
+
+## Scalability Considerations
+
+| Concern | At 100 users | At 10K users | At 1M users |
+|---------|--------------|--------------|-------------|
+| **Query Latency** | Negligible | Requires Index on `(table_name, table_pk, captured_at)` | Partitioning `audit_changes` by time may be necessary. |
+| **Storage Growth** | Managed | Snapshot storage grows linearly with updates. | Implement `Threadline.Retention` policies to prune old history. |
+
+## Sources
+- `Threadline.Capture.TriggerSQL` implementation.
+- `Ecto` internal loading patterns.
+- [PostgreSQL Indexing for JSONB](https://www.postgresql.org/docs/current/datatype-json.html#JSONB-INDEXING)

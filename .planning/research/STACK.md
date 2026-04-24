@@ -1,39 +1,57 @@
-# Stack Research
+# Technology Stack — "As-of / History" Reconstruction
 
-**Domain:** Elixir / Phoenix / PostgreSQL audit library + connection poolers  
-**Researched:** 2026-04-23  
-**Confidence:** HIGH (repo-local; no new runtime deps for STG milestone)
+**Project:** Threadline
+**Researched:** 2026-04-24
+**Confidence:** HIGH
 
 ## Recommended Stack
 
-### Core Technologies (unchanged for v1.6)
+No new external library dependencies are required for "As-of" row reconstruction in Threadline. The feature can be built using existing validated primitives.
 
+### Core Framework
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| Elixir / OTP | ≥ 1.15 / ≥ 26 | Threadline runtime | Project baseline per `PROJECT.md` |
-| PostgreSQL | ≥ 14 | Audit storage + triggers | Capture layer contract |
-| Ecto | 3.x | Repo + migrations | Integrator standard path |
+| **Elixir** | ≥ 1.15 | Language | Standard for project. |
+| **Ecto** | ≥ 3.10 | Data Mapping | Use `Ecto.embedded_load/3` to reify JSONB maps into typed Elixir structs. |
+| **PostgreSQL**| ≥ 14 | Database | Leverages `JSONB` for snapshot storage and standard B-Tree indexes for point-in-time lookup. |
 
-### Pooler / topology (evidence only)
+### Supporting Libraries (Already in Project)
+| Library | Purpose | When to Use |
+|---------|---------|-------------|
+| **Jason** | JSON parsing | Internal to Ecto/Postgrex for handling `data_after` blobs. |
 
-| Component | Role | Notes |
-|-----------|------|-------|
-| **PgBouncer** | Transaction or session pooling in front of Postgres | Threadline CI uses **`edoburu/pgbouncer`** with **`POOL_MODE=transaction`** (`.github/workflows/ci.yml` → `verify-pgbouncer-topology`). Hosts may use RDS Proxy, built-in poolers, or none — STG-01 is documentation + proof, not prescribing PgBouncer. |
-| **Docker Compose** | Local parity | `docker-compose.yml` + `CONTRIBUTING.md#pgbouncer-topology-ci-parity` |
+## Alternatives Considered
 
-### Development / verification
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| **State Reconstruction** | **Snapshot-based (native)** | **Patch-based (e.g. `ExAudit`)** | Threadline already stores full `data_after` snapshots in `audit_changes`. Re-calculating state via patches adds complexity and performance overhead without gain. |
+| **Temporal Logic** | **Standard SQL + Ecto** | **PostgreSQL `temporal_tables` extension** | Requires C-extensions on the DB host; conflicts with Threadline's goal of being "application-level" and "batteries-included." |
+| **Data Mapping** | **`Ecto.embedded_load/3`** | **`jsonpatch` / `ecto_diff`** | Standard Ecto primitives are safer for schema-aware casting and handles embeds natively. |
 
-| Tool | Purpose |
-|------|---------|
-| `mix verify.topology` | Runs `@moduletag :pgbouncer_topology` tests when `THREADLINE_PGBOUNCER_TOPOLOGY=1` |
-| `mix verify.threadline` | Coverage / install checks; also run through pooler in CI job |
-| `priv/ci/topology_bootstrap.exs` | CI bootstrap before pooler verification |
+## Implementation Rationale
+
+### Why Snapshot-based?
+Threadline's `audit_changes.data_after` column stores a full row image after every mutation (INSERT/UPDATE). This makes "As-of" reconstruction a simple two-step process:
+1.  **Query:** `SELECT data_after FROM audit_changes WHERE table_name = $1 AND table_pk @> $2 AND captured_at <= $3 ORDER BY captured_at DESC LIMIT 1`.
+2.  **Reify:** Map the resulting JSONB object back into the target Ecto struct using the schema metadata.
+
+### Interaction with JSONB Fields
+If a table has a `JSONB` column (e.g., `metadata`), it is stored as a nested object within `audit_changes.data_after`. Ecto's loading mechanism (via `embeds_one`/`embeds_many`) naturally handles this recursive reconstruction as long as the application schema defines the fields.
+
+### Handling Redaction
+Columns that are `exclude`ed or `mask`ed at capture time will be missing or replaced in the reconstructed struct. This is consistent with Threadline's "honest" capture philosophy.
 
 ## Installation
 
-No new install steps for the **library** in v1.6. Integrators reproduce CI parity from **CONTRIBUTING**; STG milestone adds **host-run** checklist completion and evidence pointers.
+No new packages needed. Ensure `ecto` and `jason` are current.
 
-## Risks
+```bash
+# Verify existing deps
+mix deps.get
+```
 
-- **Session vs transaction mode:** Wrong mode choice breaks GUC / same-transaction semantics; hosts must document actual prod mode.
-- **Managed Postgres:** Some hosts hide pooler details — **matches prod: partial** is an honest outcome.
+## Sources
+- `Threadline.Capture.TriggerSQL`: Confirmed `data_after` stores full snapshots.
+- `Ecto.Schema` Documentation: Confirmed `embedded_load/3` capabilities.
+- [ExAudit](https://hexdocs.pm/ex_audit): Comparison for patch-based vs snapshot-based.
+- [Carbonite](https://hexdocs.pm/carbonite): Comparison for trigger-backed ecosystem patterns.
