@@ -31,4 +31,6 @@ config :phoenix, :plug_init_mode, :runtime
 config :phoenix,
   sort_verified_routes_query_params: true
 
-config :threadline_phoenix, Oban, testing: :manual
+# Disable Oban plugins/queues in test so the Postgres notifier/peer does not
+# contend with Ecto SQL Sandbox ownership on the Repo connection.
+config :threadline_phoenix, Oban, testing: :manual, plugins: false, queues: false
