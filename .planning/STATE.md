@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Reference integration for SaaS
-status: execution_pending
-last_updated: "2026-04-23T18:30:00Z"
-last_activity: 2026-04-23 — v1.7 roadmap committed; next `/gsd-plan-phase 22` or `/gsd-discuss-phase 22`
+status: Roadmap ready (Phases 22–24); use **`/gsd-discuss-phase 22`** or **`/gsd-plan-phase 22`** to begin execution.
+last_updated: "2026-04-24T03:33:45.836Z"
+last_activity: 2026-04-23 — Milestone v1.7 initialized (`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`); `gsd-sdk query phases.clear` cleared prior phase tree.
 progress:
-  total_phases: 3
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State
