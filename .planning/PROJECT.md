@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current milestone
 
-**v1.9 shipped** 2026-04-24 (Phases **28–30**). Open the next milestone on **`ROADMAP.md`** when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump.
+**v1.9 closed** 2026-04-24 (Phases **28–30**; archives **`.planning/milestones/v1.9-*`**). **No** living **`.planning/REQUIREMENTS.md`** — run **`/gsd-new-milestone`** then open the next slice on **`ROADMAP.md`** when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump.
 
 ## Last milestone shipped: v1.9 — Production confidence at volume (Phases 28–30, 2026-04-24)
 
