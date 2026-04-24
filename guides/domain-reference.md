@@ -172,6 +172,23 @@ Each tuple names a **public** user table the catalog query sees. `{:covered, nam
 
 **Correlation is not a database table** in Threadline. Correlation identifiers flow through headers (`x-correlation-id`), assigns, and optional fields on `AuditAction`. Treat them like trace context: they stitch logs and actions across boundaries without implying a `correlations` schema.
 
+<span id="exploration-api-routing-v110"></span>
+
+## Exploration API routing (v1.10+)
+
+This block answers **“which public API first?”** for common exploration tasks. **SQL, golden queries, and subsection detail** live under **[Support incident queries](#support-incident-queries)** — use that section when you need copy-paste SQL or full filter vocabulary.
+
+Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
+
+| Intent | Primary API | Notes / pointer |
+|--------|---------------|-----------------|
+| Single domain row over time | `Threadline.history/3` or `Threadline.Query.timeline/2` | `history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
+| Incident / time window across rows | `Threadline.Query.timeline/2` | Default listing API for bounded windows; bounds apply to `AuditChange.captured_at` (see [subsection 1](#1-row-history-pk-changes-in-a-time-window)). |
+| Correlation-scoped slice | `Threadline.Query.timeline/2`, `Threadline.Export`, `mix threadline.export` | Pass **`:correlation_id`**; timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation — see [subsection 3](#3-correlation-bundle-shared-correlation_id). |
+| Everything in one DB transaction | `Threadline.Query.audit_changes_for_transaction/2`, `Threadline.audit_changes_for_transaction/2` | **`opts[:repo]`** is required. Ordering matches timeline: **`captured_at`**, then **`id`**, descending. |
+| Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | INSERT/UPDATE/DELETE semantics; `changed_from` may be `nil` — see module docs, not duplicated here. |
+| Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.Query.timeline/2` with **`:actor_ref`** | Pairs with support table row 2; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
+
 ## Support incident queries
 
 SQL-native operator playbooks for the five canonical support questions (see `.planning/milestones/v1.8-REQUIREMENTS.md`, “Evidence-driving questions”). Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.

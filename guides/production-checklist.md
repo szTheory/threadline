@@ -62,7 +62,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 
 Incident queries assume audit rows still within the **retained** window — aggressive purges can make historical answers empty; reconcile timelines with **[retention and purge](#4-retention-and-purge)** before escalating missing data.
 
-Pre-launch: confirm operators can answer the five canonical support questions (see [`domain-reference.md`](domain-reference.md#support-incident-queries) for full SQL and API notes).
+Pre-launch: confirm operators can answer the five canonical support questions (see [`domain-reference.md`](domain-reference.md#support-incident-queries) for full SQL and API notes). For a **skimmable “which public API first?”** map before diving into playbooks, see [`domain-reference.md` — Exploration API routing](domain-reference.md#exploration-api-routing-v110).
 
 | Question (1-line) | API / Mix | SQL |
 |-------------------|-----------|-----|
