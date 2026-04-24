@@ -24,4 +24,14 @@ defmodule Threadline.CiTopologyContractTest do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
     assert String.contains?(doc, "CI-PGBOUNCER-TOPOLOGY-CONTRACT")
   end
+
+  test "adoption pilot backlog carries STG host topology template marker" do
+    doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
+    assert String.contains?(doc, "STG-HOST-TOPOLOGY-TEMPLATE")
+  end
+
+  test "adoption pilot backlog carries STG audited path rubric marker" do
+    doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
+    assert String.contains?(doc, "STG-AUDITED-PATH-RUBRIC")
+  end
 end
