@@ -2,6 +2,30 @@
 
 Entries are newest first.
 
+## v1.9 — Production confidence at volume (shipped 2026-04-24)
+
+**Goal:** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook with doc contracts, and **retention-at-scale** guidance tied to **`Threadline.Retention`** / export / timeline — **docs-first**.
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
+
+**Phases completed:** **28–30** (3 phases; 6 plans with `SUMMARY.md`; execution trees under **`.planning/milestones/v1.9-phases/`**).
+
+**Key accomplishments:**
+
+- Shipped per-event **telemetry** operator narrative + **`## Trigger coverage (operational)`** in **`guides/domain-reference.md`**; checklist cross-links (**Phase 28**, OPS-01, OPS-02).
+- Shipped **`guides/audit-indexing.md`**, ExDoc extra, cross-links, **`test/threadline/audit_indexing_doc_contract_test.exs`** (**Phase 29**, IDX-01, IDX-02).
+- Shipped **`guides/production-checklist.md`** volume / purge cadence H3; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** hub; **README** Maintainer-band discovery (**Phase 30**, SCALE-01, SCALE-02).
+
+**Stats:** 3 phases, 6 plans, 6/6 summaries; v1.9 requirements **6/6** complete at close (see archived traceability).
+
+**Archives:** `.planning/milestones/v1.9-REQUIREMENTS.md`, `.planning/milestones/v1.9-ROADMAP.md`.
+
+**Known gaps at close:** None for in-repo acceptance. No standalone **`v1.9-MILESTONE-AUDIT.md`**; optional **`/gsd-audit-milestone`** next time. **`gsd-sdk query milestone.complete`** returned **`version required for phases archive`** — archives written manually.
+
+**What is next:** **`/gsd-new-milestone`** — fresh **`.planning/REQUIREMENTS.md`** and next roadmap slice when scope is ready.
+
+---
+
 ## v1.8 — Close the support loop (shipped 2026-04-24)
 
 **Goal:** Reduce SaaS support **time-to-answer** with **correlation-aware** timeline + export, **operator playbooks** in guides, an **example app** correlation path, and **doc contract** anchors.
@@ -22,17 +46,7 @@ Entries are newest first.
 
 **Known gaps at close:** None for in-repo acceptance. No standalone `v1.8-MILESTONE-AUDIT.md`; optional **`/gsd-audit-milestone`** next time. `gsd-sdk query milestone.complete` returned `version required for phases archive` — archives written manually.
 
-**What is next:** **`/gsd-new-milestone`** — fresh `.planning/REQUIREMENTS.md` and next roadmap slice when **v1.9** scope is ready.
-
----
-
-## v1.9 — Production confidence at volume (opened 2026-04-24)
-
-**Goal:** Ops-at-volume confidence — telemetry + **`Threadline.Health`** operator narrative, **audit indexing** cookbook with doc contracts, and **retention-at-scale** alignment with shipped `Threadline.Retention` / export / timeline paths. **Docs-first**; code only where an operator-relevant signal cannot be expressed with existing hooks.
-
-**Phases:** **28–30** (see **`.planning/ROADMAP.md`** and **`.planning/REQUIREMENTS.md`**).
-
-**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
+**What is next:** **`/gsd-new-milestone`** — fresh **`.planning/REQUIREMENTS.md`** and next roadmap slice when the **next** planning milestone scope is ready.
 
 ---
 

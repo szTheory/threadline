@@ -64,7 +64,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.8** archive: **`.planning/milestones/v1.8-REQUIREMENTS.md`**. Archives live under `.planning/milestones/`. Living requirements: **`.planning/REQUIREMENTS.md`**. Living roadmap: **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** none until **`/gsd-new-milestone`** creates a fresh **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -110,7 +110,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.9** shipped 2026-04-24 (**Phases 28–30**). **v1.8** archived (**Phases 25–27**). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.9** archived 2026-04-24 (**Phases 28–30**; **`.planning/milestones/v1.9-*`**). **v1.8** archived (**Phases 25–27**). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump. No living **`.planning/REQUIREMENTS.md`** until the next milestone opens.
 
 ## Requirements
 
@@ -150,7 +150,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 _None — open scope on **`ROADMAP.md`** when ready._
 
-_Shipped **v1.8** wording: **`.planning/milestones/v1.8-REQUIREMENTS.md`**._
+_Last planning milestone requirements archived at **`.planning/milestones/v1.9-REQUIREMENTS.md`** (v1.9 close)._
 
 ### Out of Scope
 
@@ -219,4 +219,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.9** shipped (Phases **28–30**); next milestone TBD on **`ROADMAP.md`**.*
+*Last updated: 2026-04-24 — **v1.9** milestone closed (archived **Phases 28–30**); next milestone TBD on **`ROADMAP.md`**; run **`/gsd-new-milestone`** for fresh **`.planning/REQUIREMENTS.md`**.*

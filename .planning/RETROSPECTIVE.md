@@ -310,6 +310,43 @@
 
 ---
 
+## Milestone: v1.9 — Production confidence at volume
+
+**Shipped:** 2026-04-24  
+**Phases:** 3 | **Plans:** 6
+
+### What was built
+
+- Per-event **telemetry** operator narrative and **`## Trigger coverage (operational)`** for **`Threadline.Health`** / **`mix threadline.verify_coverage`**, with checklist + README cross-links (**OPS-01**, **OPS-02**).
+- **`guides/audit-indexing.md`** indexing cookbook (access patterns vs **`Threadline.Query`**, **`Threadline.Export`**, retention), ExDoc extra, and **`Threadline.AuditIndexingDocContractTest`** (**IDX-01**, **IDX-02**).
+- **`guides/production-checklist.md`** volume / purge cadence guidance tied to **`Threadline.Retention`**; **`## Operating at scale (v1.9+)`** hub in **`guides/domain-reference.md`**; **README** Maintainer-band discovery (**SCALE-01**, **SCALE-02**).
+
+### What worked
+
+- **Docs-first** milestone reused existing APIs; doc contract tests matched the **v1.8** support-playbook pattern.
+- Phase work already lived under **`.planning/milestones/v1.9-phases/`**, so close did not require moving trees.
+
+### What was inefficient
+
+- **`gsd-sdk query milestone.complete`** still failed with **`version required for phases archive`**; **`milestones/v1.9-*`** files were written manually again.
+
+### Patterns established
+
+- **Stable HTML `id=` anchors** where heading slugs are ambiguous, so fragment links from checklists and README stay reliable.
+
+### Key lessons
+
+1. Keep **`audit-open`** in the pre-close path even when the milestone is documentation-only.
+2. When **`milestone.complete` CLI** cannot archive, copy the **v1.8** close checklist (ROADMAP links, **MILESTONES.md** order, **`git rm` REQUIREMENTS.md**) so the living tree does not keep a stale requirements file.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phases **28–30** executed as a single ops-at-volume slice.
+- Notable: Execution history remains under **`.planning/milestones/v1.9-phases/`** (no extra move step at close).
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -325,6 +362,7 @@
 | v1.6 | 1 | Host STG templates + rubric + CONTRIBUTING + doc contracts (integrator-owned evidence explicit) |
 | v1.7 | 3 | In-repo Phoenix reference app: HTTP + Oban paths, `record_action/2`, adoption doc pointers |
 | v1.8 | 3 | Correlation-aware timeline/export + support playbooks + example correlation path + doc contracts |
+| v1.9 | 3 | Ops-at-volume docs: telemetry + health narrative, audit indexing cookbook + doc contract, retention-at-scale + discovery hub |
 
 ### Cumulative quality
 
@@ -339,6 +377,7 @@
 | v1.6 | + STG doc contract tests | Doc-only milestone; `mix ci.all` unchanged in spirit, added focused contract files |
 | v1.7 | + `verify.example` + example ConnCase / Oban tests | Runnable `examples/threadline_phoenix/` exercised on default CI path |
 | v1.8 | + correlation filter integration tests + support playbook doc contract + example correlation ConnCase | Same **timeline/export** vocabulary for support; **`:correlation_id`** strict join path |
+| v1.9 | + audit indexing doc contract | Doc-only milestone; default CI path unchanged; operator narrative locked to shipped **`Threadline.Telemetry`** names |
 
 ### Top lessons (verified across milestones)
 
@@ -350,3 +389,4 @@
 6. v1.6 — ship **templates + rubrics** as repo artifacts; treat integrator **OK** rows as downstream work outside maintainer attestation.
 7. v1.7 — **`verify.example`** is the cheapest guardrail that nested example apps do not rot on **`main`**.
 8. v1.8 — Keep **`PROJECT.md` Active`** aligned with the last shipped REQ the same day as phase verification.
+9. v1.9 — When **`milestone.complete` CLI** fails, still run **`git rm .planning/REQUIREMENTS.md`** at close so **`/gsd-new-milestone`** starts from a clean requirements slot.

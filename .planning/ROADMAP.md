@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](REQUIREMENTS.md) · living roadmap (this file)
+- ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](milestones/v1.9-REQUIREMENTS.md) · [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
 - ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
@@ -18,7 +18,7 @@
 <details>
 <summary>✅ v1.9 Production confidence at volume (Phases 28–30) — SHIPPED 2026-04-24</summary>
 
-**Goal:** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook, and **retention-at-scale** guidance grounded in shipped APIs — see **[REQUIREMENTS.md](REQUIREMENTS.md)**.
+**Goal:** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook, and **retention-at-scale** guidance grounded in shipped APIs — see **[v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)**.
 
 **Requirements map:** Phase 28 → OPS-01, OPS-02 · Phase 29 → IDX-01, IDX-02 · Phase 30 → SCALE-01, SCALE-02
 
@@ -42,6 +42,8 @@
 - [x] **Phase 28 — Telemetry & health operators' narrative** — OPS-01, OPS-02 — completed 2026-04-24
 - [x] **Phase 29 — Audit table indexing cookbook** — IDX-01, IDX-02 — completed 2026-04-24
 - [x] **Phase 30 — Retention at scale & discovery** — SCALE-01, SCALE-02 — completed 2026-04-24
+
+Full snapshot: [.planning/milestones/v1.9-ROADMAP.md](milestones/v1.9-ROADMAP.md).
 
 </details>
 
@@ -198,7 +200,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.9** is **shipped** (Phases **28–30**, 2026-04-24). Open the next milestone on **`ROADMAP.md`** when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`**.
+**v1.9** is **archived** (Phases **28–30**, 2026-04-24): **`.planning/milestones/v1.9-ROADMAP.md`**, **`.planning/milestones/v1.9-REQUIREMENTS.md`**. There is **no** living **`.planning/REQUIREMENTS.md`** until **`/gsd-new-milestone`** defines the next scope. Open the next milestone on **`ROADMAP.md`** when ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`**.
 
 ## Progress
 

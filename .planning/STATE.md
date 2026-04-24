@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: milestone
-status: verifying
-last_updated: "2026-04-24T16:45:00.000Z"
-last_activity: 2026-04-24 — Phase 30 executed (SCALE-01 checklist + SCALE-02 discovery hub); v1.9 milestone shipped on roadmap.
+milestone: ""
+milestone_name: ""
+status: shipped
+last_updated: "2026-04-24T23:59:00.000Z"
+last_activity: 2026-04-24 — v1.9 milestone closed; REQUIREMENTS.md archived; next scope via /gsd-new-milestone.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,17 +20,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.9 shipped** (Phases 28–30). Define the next milestone on **`ROADMAP.md`** when ready.
+**Current focus:** **v1.9 archived** (Phases 28–30). Define the next milestone on **`ROADMAP.md`** with **`/gsd-new-milestone`** when ready (fresh **`.planning/REQUIREMENTS.md`**).
 
 ## Current Position
 
-Phase: **30** — Retention at scale & discovery — **complete** (see **`30-VERIFICATION.md`** — `human_needed` until **`mix test`** with Postgres)
+Phase: **30** — Retention at scale & discovery — **complete** (archived under **`.planning/milestones/v1.9-phases/`**).
 
-Plan: **30-02** complete (2/2 plans)
+Plan: **30-02** complete (2/2 plans).
 
-Status: **v1.9 milestone complete** — OPS/IDX/SCALE requirements satisfied in-repo; run **`mix test`** locally to clear human verification on **`30-HUMAN-UAT.md`**.
+Status: **v1.9 milestone closed** — **`.planning/milestones/v1.9-ROADMAP.md`**, **`.planning/milestones/v1.9-REQUIREMENTS.md`**; living **`.planning/REQUIREMENTS.md`** removed for next milestone.
 
-Last activity: 2026-04-24 — Phase 30 docs: **`guides/production-checklist.md`** volume H3, **`guides/domain-reference.md`** Operating at scale hub, **`README.md`** Maintainer pointer; tracking updated.
+Last activity: 2026-04-24 — Milestone close: archives + **MILESTONES.md** + **ROADMAP.md** + **PROJECT.md**; optional local **`mix test`** / **`mix ci.all`** with Postgres remains the parity gate when convenient.
 
 ## Performance metrics
 
@@ -40,7 +40,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Decisions
 
-- **v1.9 roadmap:** Phases **28–30** map **OPS-***, **IDX-***, **SCALE-*** requirements (see **`.planning/REQUIREMENTS.md`** traceability).
+- **v1.9 roadmap:** Phases **28–30** map **OPS-***, **IDX-***, **SCALE-*** requirements (see **`.planning/milestones/v1.9-REQUIREMENTS.md`** traceability).
 - **Phase 28 shipped:** Per-event telemetry narrative + numbered triage playbook + **`## Trigger coverage (operational)`** in **`guides/domain-reference.md`**; **`guides/production-checklist.md`** §1/§6 aligned; README link to **`guides/domain-reference.md#trigger-coverage-operational`**.
 - **GSD defaults:** **`.planning/config.json`** — `workflow.research_before_questions: true`, `workflow.discuss_default_research_synthesis: true`, **`discuss_use_subagent_research: true`**, **`discuss_default_cohesive_recommendations: true`**, **`discuss_interactive_menus_high_impact_only: true`** (see **`discuss_high_impact_tags`** for exceptions).
 - **Phase 29 shipped:** **`guides/audit-indexing.md`**, ExDoc extra, **`guides/domain-reference.md`** / **`guides/production-checklist.md`** pointers, **`test/threadline/audit_indexing_doc_contract_test.exs`** — see **`29-VERIFICATION.md`**.
@@ -48,7 +48,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. Run **`mix test`** (or **`mix ci.all`**) with Postgres to clear **`30-HUMAN-UAT.md`** when convenient.
+1. When opening the next milestone: run **`/gsd-new-milestone`**, then refresh **`ROADMAP.md`** + **`REQUIREMENTS.md`** as needed.
 
 ### Blockers / concerns
 
@@ -56,11 +56,11 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ## Session continuity
 
-**Prior shipped:** **v1.8** — Phases 25–27 — 2026-04-24 (archived).
+**Prior shipped:** **v1.9** — Phases 28–30 — 2026-04-24 (archived).
 
-**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-phases/`
+**Archives:** `.planning/milestones/v1.9-ROADMAP.md`, `.planning/milestones/v1.9-REQUIREMENTS.md`, `.planning/milestones/v1.9-phases/`
 
-**Resume:** **`ROADMAP.md`** — open next milestone when scope is defined.
+**Resume:** **`ROADMAP.md`** + **`/gsd-new-milestone`** — open next milestone when scope is defined.
 
 **Last completed phase:** 30 (Retention at scale & discovery) — 2026-04-24
 
