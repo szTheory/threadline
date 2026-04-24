@@ -17,6 +17,7 @@
     "discuss_default_gray_areas": "all",
     "discuss_research_all_gray_areas_default": true,
     "discuss_one_shot_cohesive_context_default": true,
+    "discuss_trust_cohesive_research_unless_high_impact": true,
     "discuss_high_impact_tags": [
       "semver",
       "security_model",
