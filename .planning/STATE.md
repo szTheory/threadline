@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: — Close the support loop
-status: completed
-last_updated: "2026-04-24T12:49:07.635Z"
-last_activity: 2026-04-24 — `/gsd-execute-phase 26` — guides + `SupportPlaybookDocContractTest`.
+status: active
+last_updated: "2026-04-24T12:55:00.000Z"
+last_activity: 2026-04-24 — `/gsd-discuss-phase 27` — context + research synthesis captured.
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
+  total_plans: 6
   completed_plans: 4
-  percent: 100
+  percent: 67
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: **27** — **not started** (plan when ready).
+Phase: **27** — **context gathered** (`27-CONTEXT.md`); plan when ready.
 
 Plan: —
 
-Status: Phase 26 complete (support playbooks + doc contracts). Milestone v1.8 remains open until Phase 27 ships.
+Status: Phase 26 complete; Phase 27 discussed — implementation decisions locked in `.planning/phases/27-example-app-correlation-path/27-CONTEXT.md`. Milestone v1.8 remains open until Phase 27 ships.
 
-Last activity: 2026-04-24 — `/gsd-execute-phase 26` — guides + `SupportPlaybookDocContractTest`.
+Last activity: 2026-04-24 — `/gsd-discuss-phase 27` — LOOP-03 decisions (test + README, HTTP `record_action`, timeline CI + export snippet, layered README).
 
 ## Performance metrics
 
@@ -45,10 +45,11 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 - **v1.9 telescope:** Ops-at-volume (telemetry, health, indexing, retention alignment) after v1.8 closes.
 - **Phase 25 (LOOP-01):** Shipped — strict `AuditAction` inner join when `:correlation_id` set; export uses optional left join when unset for JSON `action` metadata; trim + reject empty/overlong; default CSV stable + `include_action_metadata`; see `CHANGELOG.md` and `25-CONTEXT.md`.
 - **Phase 26 (LOOP-02, LOOP-04):** Shipped — `## Support incident queries` in `guides/domain-reference.md` and `guides/production-checklist.md`; marker `LOOP-04-SUPPORT-INCIDENT-QUERIES`; `test/threadline/support_playbook_doc_contract_test.exs`.
+- **Phase 27 (LOOP-03) — discuss:** Example app — integration test as canonical proof (`record_action` in same txn as HTTP create, `timeline/2` + `:correlation_id`); README layered + export/`jq` snippet + cross-link to test; remove stale `action_id` disclaimer once code matches. See `27-CONTEXT.md`.
 
 ### Pending todos
 
-1. **Phase 27** — LOOP-03 (example app correlation path).
+1. **Phase 27** — LOOP-03 — **plan + execute** (`/gsd-plan-phase 27`).
 
 ### Blockers / concerns
 
@@ -60,4 +61,4 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `.planning/milestones/v1.7-REQUIREMENTS.md`
 
-**Planned Phase:** 27 (example app correlation path) — when planned.
+**Resume:** `.planning/phases/27-example-app-correlation-path/27-CONTEXT.md` — then `/gsd-plan-phase 27`.
