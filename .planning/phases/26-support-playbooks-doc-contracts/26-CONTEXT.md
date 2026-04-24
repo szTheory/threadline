@@ -18,7 +18,7 @@ Deliver **LOOP-02** and **LOOP-04** from `.planning/REQUIREMENTS.md`: **`guides/
 ### D-1 — Where the “source of truth” lives (two guides, no drift)
 
 - **Canonical depth:** **`guides/domain-reference.md`** holds the full **Support incident queries** material (hybrid layout per D-4, SQL shape per D-2).
-- **`guides/production-checklist.md`:** Same **subsection title** for discoverability, but **checklist-first**: five short items (one per canonical question) that **link** to the matching anchors in `domain-reference.md` (relative paths `domain-reference.md#...`). **Do not** duplicate long SQL or full API tables in the checklist — avoids two bodies drifting (research: Ecto/Oban pattern of one narrative + pointers; STG rubric already uses marker + cross-links).
+- **`guides/production-checklist.md`:** Same **subsection title** for discoverability. LOOP-02 explicitly requires a **small table** (question → API/Mix vs copy-paste SQL) in **both** guides: implement a **compact three-column table** here where the **SQL** column holds **short pointers** only (e.g. anchor link + “golden `SELECT` below anchor X”) — **not** duplicated multi-line fenced SQL. Below or beside the table, optional **checklist lines** (bookmarks / “have you read…”) may **link** to the same anchors in `domain-reference.md` (`domain-reference.md#...`).
 - **Rationale:** Satisfies LOOP-02 (“both guides gain a subsection”) while honoring **single source of truth** for volatile snippets and **least surprise** (pre-launch checklist points at reference, not a second encyclopedia).
 
 ### D-2 — SQL concreteness (hybrid “golden path + fragments”)
