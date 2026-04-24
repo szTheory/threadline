@@ -1,91 +1,26 @@
-# Feature Research
+# Features Research — Host staging / pooler parity
 
-**Domain:** Application-level audit / change-data capture for Elixir + Postgres teams  
 **Researched:** 2026-04-23  
-**Confidence:** HIGH
+**Milestone:** v1.6 (STG-01 follow-up from v1.5)
 
-## Feature Landscape
+## Categories
 
-### Table Stakes (Users Expect These)
+### Table stakes (must be credible for “adoption complete”)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Provable trigger install | Ops needs to know capture is actually on before trusting audits | LOW–MEDIUM | `Health.trigger_coverage/0` exists; CLI exit code for CI is the missing table stakes piece |
-| Stable query shape for history | Support reads `history/2` and expects fields to mean the same thing across versions | MEDIUM | Additive `changed_from` must be `nil` when feature off — no breaking map keys for existing callers |
-| Honest docs | README is the first “API” | LOW | Doc contract tests are standard in mature OSS Elixir libs |
+- **Topology honesty** — Written record of **app → ? → Postgres**, pooler product, **pool mode**, and whether staging matches production topology (**yes / no / partial** + why).
+- **Representative audited paths** — At least one **HTTP**-scoped write that lands in audit tables with correct **actor / transaction** linkage, and at least one **background job** path (Oban-style async is the documented expectation from v1.5 STG draft).
+- **Evidence discipline** — `OK` / `Issue` / `N/A` rows in **`guides/adoption-pilot-backlog.md`** (or integrator-maintained copy) with citations: logs, SQL, redacted config, or GitHub issue links — not assertions.
 
-### Differentiators (Competitive Advantage)
+### Differentiators (Threadline-specific)
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Optional before-values on UPDATE | Compliance / support often need “what was it before?” without separate snapshots | MEDIUM–HIGH | Must not regress Path B correctness or pool safety |
-| Brownfield backfill story | Most real apps add auditing late | HIGH | Define semantics clearly (e.g. synthetic baseline vs no false history) |
+- **GUC-safe semantics** — Library already avoids fragile `SET LOCAL` patterns in capture; host proof validates **their** stack still keeps **same transaction** for writes + trigger capture when a pooler is present.
+- **CI vs host boundary** — Clear distinction: **`verify-pgbouncer-topology`** proves **library** code through **transaction** PgBouncer; STG proves **integrator** wiring.
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-features / defer
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Before-values on every column always | “Just capture everything” | Storage + PII duplication | Opt-in per table / column list in a later iteration; v1.2 starts with boolean `store_changed_from` |
-| Automatic retention in same release | “Disk is filling” | Wrong failure mode for first audit release; needs policies + batching | Dedicated RETN milestone |
+- **Expanding `Threadline.Query` / `Threadline.Export` for pilot convenience** — Explicitly deferred until repeated pilot pain (per `PROJECT.md` Future).
+- **In-repo sample Phoenix app** — Still out of scope; guides + backlog remain the vehicle.
 
-## Feature Dependencies
+## Dependencies on existing product
 
-```
-verify_coverage (TOOL-01)
-    └──requires──> stable trigger naming / function contract (already shipped)
-
-Doc contract tests (TOOL-03)
-    └──requires──> stable public API modules referenced in README
-
-changed_from (BVAL-01/02)
-    └──requires──> migration adding column + TriggerSQL branch for UPDATE
-                       └──enhances──> history() / Query layer
-
-Backfill helper (TOOL-02)
-    └──requires──> clear AuditChange invariants
-    └──conflicts-with──> implying pre-audit history exists without an explicit baseline story
-```
-
-### Dependency Notes
-
-- **BVAL before misleading TOOL-02:** Backfill docs and helper should reference the capture schema as it exists after BVAL column lands (even if `changed_from` is null).
-
-## MVP Definition (this milestone slice)
-
-### Launch With (v1.2)
-
-- [ ] Optional `store_changed_from` + `changed_from` persisted for UPDATE when enabled  
-- [ ] `Threadline.history/3` returns `changed_from` when column populated  
-- [ ] `mix threadline.verify_coverage` with CI-friendly exit status  
-- [ ] Doc contract tests for documented code paths  
-- [ ] Documented backfill / continuity helper API (exact shape TBD in plan-phase)
-
-### Add After Validation (later)
-
-- [ ] Column-level include/exclude for `changed_from` — when storage/PII audits demand it  
-- [ ] Retention / redaction / export — separate milestones  
-
-## Feature Prioritization Matrix
-
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| verify_coverage CLI | HIGH | LOW | P1 |
-| changed_from optional | HIGH | MEDIUM | P1 |
-| Doc contract tests | MEDIUM | LOW | P2 |
-| Backfill helper | MEDIUM | HIGH | P2 |
-
-## Competitor Feature Analysis
-
-| Feature | Carbonite / PaperTrail-style | Our Approach |
-|---------|------------------------------|--------------|
-| Old values | Varies; often app-layer | Trigger `OLD` snapshot into JSONB when opted in |
-| “Is auditing on?” | Often manual | Health module + forthcoming Mix task for CI |
-
-## Sources
-
-- Archived `.planning/milestones/v1.0-REQUIREMENTS.md` § v2 (BVAL/TOOL)
-- Prior art notes in `PROJECT.md` Context
-
----
-*Feature research for: Threadline v1.2*  
-*Researched: 2026-04-23*
+- **`Threadline.Plug`**, **`Threadline.Job`**, trigger installer, **`mix verify.*`** — already shipped; STG does not require API churn.
