@@ -1,7 +1,10 @@
 defmodule ThreadlinePhoenix.Blog do
   @moduledoc false
 
-  alias Threadline.Semantics.AuditContext
+  import Ecto.Query
+
+  alias Threadline.Capture.AuditTransaction
+  alias Threadline.Semantics.{AuditAction, AuditContext}
   alias ThreadlinePhoenix.{Post, Repo}
 
   alias Threadline.Job
@@ -9,6 +12,11 @@ defmodule ThreadlinePhoenix.Blog do
   @doc """
   Creates a post inside a single DB transaction after setting the transaction-local
   `threadline.actor_ref` GUC (see `Threadline.Plug` moduledoc).
+
+  On success, `Threadline.record_action/2` runs in the **same** transaction as the
+  audited insert so capture and semantics share one `audit_transactions` row; the
+  row is then linked via `audit_transactions.action_id` so strict
+  `:correlation_id` filters on `Threadline.timeline/2` match.
   """
   def create_post(%AuditContext{} = audit_context, attrs) when is_map(attrs) do
     case audit_context.actor_ref do
@@ -25,8 +33,36 @@ defmodule ThreadlinePhoenix.Blog do
           Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
 
           case Repo.insert(Post.changeset(%Post{}, attrs)) do
-            {:ok, post} -> post
-            {:error, changeset} -> Repo.rollback(changeset)
+            {:error, changeset} ->
+              Repo.rollback(changeset)
+
+            {:ok, post} ->
+              opts = [
+                repo: Repo,
+                actor: actor_ref,
+                correlation_id: audit_context.correlation_id,
+                request_id: audit_context.request_id
+              ]
+
+              case Threadline.record_action(:post_created_via_api, opts) do
+                {:error, cs} ->
+                  Repo.rollback(cs)
+
+                {:ok, %AuditAction{id: action_id}} ->
+                  {count, _} =
+                    Repo.update_all(
+                      from(at in AuditTransaction,
+                        where: at.txid == fragment("txid_current()")
+                      ),
+                      set: [action_id: action_id]
+                    )
+
+                  if count != 1 do
+                    Repo.rollback(:missing_audit_transaction_for_link)
+                  end
+
+                  post
+              end
           end
         end)
     end
