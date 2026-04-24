@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: — Close the support loop
-status: executing
-last_updated: "2026-04-24T12:30:00.000Z"
-last_activity: 2026-04-24 — Phase 25 complete (LOOP-01 shipped); focus Phase 26
+status: verifying
+last_updated: "2026-04-24T12:29:05.681Z"
+last_activity: "2026-04-24 — `:correlation_id` timeline/export, tests, CHANGELOG, `25-VERIFICATION.md` passed."
 progress:
-  total_phases: 3
+  total_phases: 2
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 33
+  percent: 100
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-Phase: **26** — not started (plan when ready)
+Phase: **26** — **context gathered** (`26-CONTEXT.md`); implementation not started.
 
 Plan: —
 
-Status: Phase 25 execution and verification complete; LOOP-01 marked complete in `REQUIREMENTS.md`.
+Status: Phase 25 complete; Phase 26 discuss-phase locked decisions for LOOP-02 / LOOP-04 (guides + contract tests).
 
-Last activity: 2026-04-24 — `:correlation_id` timeline/export, tests, CHANGELOG, `25-VERIFICATION.md` passed.
+Last activity: 2026-04-24 — `/gsd-discuss-phase 26` — research-backed context committed.
 
 ## Performance metrics
 
@@ -44,6 +44,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 - **v1.8 scope:** SaaS trajectory chunk 1 — exploration layer focus (timeline/export + operator docs); excludes LiveView and `threadline_web`.
 - **v1.9 telescope:** Ops-at-volume (telemetry, health, indexing, retention alignment) after v1.8 closes.
 - **Phase 25 (LOOP-01):** Shipped — strict `AuditAction` inner join when `:correlation_id` set; export uses optional left join when unset for JSON `action` metadata; trim + reject empty/overlong; default CSV stable + `include_action_metadata`; see `CHANGELOG.md` and `25-CONTEXT.md`.
+- **Phase 26 (prep):** `26-CONTEXT.md` — canonical support playbooks in `guides/domain-reference.md`; checklist links in `guides/production-checklist.md`; hybrid SQL + LOOP-04 headings + marker; new `support_playbook_doc_contract_test.exs` (see context file).
 
 ### Pending todos
 
