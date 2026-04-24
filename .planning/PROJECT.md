@@ -8,6 +8,20 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.11 — Composable incident surface (Phases 37+, 2026-04-24)
+
+**Goal:** Close the integrator **composition** gap with a **two-step HTTP JSON** pattern in the reference Phoenix app: **`POST /api/posts`** returns **`audit_transaction_id`**, then **`GET /api/audit_transactions/:id/changes`** returns ordered changes plus **`change_diff`** maps — on top of shipped **`Threadline.audit_changes_for_transaction/2`** and **`Threadline.change_diff/2`**, without LiveView, **`threadline_web`**, or new capture semantics.
+
+**Target features:**
+
+- **`audit_transaction_id`** on **`POST /api/posts`** (`examples/threadline_phoenix/`)
+- **`GET /api/audit_transactions/:id/changes`** with JSON-serializable **`change_diff`** per change
+- **`guides/domain-reference.md`** anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, example README, **`PostsIncidentJsonPathTest`**, doc contract in **`Threadline.ExplorationRoutingDocContractTest`**
+
+**Non-goals (this milestone):** LiveView operator UI; published **`threadline_web`**; new capture / redaction / retention semantics; maintainer-attested third-party STG URLs; Hex semver bump unless a **separate** release milestone says so; shipping a full auth model in the example (document integrator responsibility only).
+
+**Planning KPI:** **Integrator composition speed** (chosen over a pure Hex release signal or high-cost as-of exploration for this slice).
+
 ## Last milestone shipped: v1.10 — Support-grade exploration primitives (Phases 31–36, 2026-04-24)
 
 **Goal (achieved in-repo):** Turn shipped **capture + semantics + timeline/export** into faster **incident answers** with **small, explicit library APIs** — without new capture semantics or a UI framework.
@@ -74,7 +88,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.10** are complete (**v1.10** shipped 2026-04-24, Phases 31–36). **v1.10** archive: **`.planning/milestones/v1.10-REQUIREMENTS.md`**, **`.planning/milestones/v1.10-ROADMAP.md`**, **`.planning/milestones/v1.10-MILESTONE-AUDIT.md`**. Prior milestones live under **`.planning/milestones/`**. **Living requirements:** _none until the next milestone — run **`/gsd-new-milestone`** to create **`.planning/REQUIREMENTS.md`**._ **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.10** are complete (**v1.10** shipped 2026-04-24, Phases 31–36). **v1.11** is **in flight** (composition / example incident JSON). **v1.10** archive: **`.planning/milestones/v1.10-REQUIREMENTS.md`**, **`.planning/milestones/v1.10-ROADMAP.md`**, **`.planning/milestones/v1.10-MILESTONE-AUDIT.md`**. Prior milestones live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -120,7 +134,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.10** archived 2026-04-24 (**Phases 31–36**; **`.planning/milestones/v1.10-*`**). Next milestone: **`/gsd-new-milestone`**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.11** in flight (**Composable incident surface**; **`.planning/REQUIREMENTS.md`**). **v1.10** archived 2026-04-24 (**Phases 31–36**; **`.planning/milestones/v1.10-*`**). **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -158,12 +172,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **XPLO-01 (Phase 31)** — **`Threadline.ChangeDiff.from_audit_change/2`** (primary + `:export_compat`), ExDoc matrix for INSERT/UPDATE/DELETE and `before_values` / `prior_state`, **`test/threadline/change_diff_test.exs`**, **`Threadline.change_diff/2`**. Validated in Phase 31: Field-level change presentation (2026-04-24).
 - [x] **XPLO-02 (Phase 32)** — **`Threadline.Query.audit_changes_for_transaction/2`**, **`Threadline.audit_changes_for_transaction/2`**, stable order via **`timeline_order/1`**, UUID validation + **`[]`** empty semantics, **`test/threadline/query_test.exs`**. Validated in Phase 32: Transaction-scoped change listing (2026-04-24).
 - [x] **XPLO-03 (Phase 33)** — **`guides/domain-reference.md`** **Exploration API routing (v1.10+)**, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`**. Validated in Phase 33: Operator docs & contracts (2026-04-24).
+- [x] **COMP-01 / COMP-02 / COMP-03 (Phase 37)** — Example **`POST /api/posts`** returns **`audit_transaction_id`**; **`GET /api/audit_transactions/:id/changes`** lists changes with **`Threadline.change_diff/2`** maps; **`COMP-EXAMPLE-INCIDENT-JSON`** in **`guides/domain-reference.md`**; **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. Validated in Phase 37: Example incident JSON path (2026-04-24).
 
 ### Active
 
-_No open requirements — **v1.10** is archived. Define the next slice with **`/gsd-new-milestone`** (creates **`.planning/REQUIREMENTS.md`**) and move new REQ-IDs here as work lands._
+_No additional REQ-IDs until the next milestone — **`COMP-*`** for **v1.11** are validated above; run **`/gsd-complete-milestone`** to archive **v1.11** and refresh living files._
 
-_Last shipped milestone requirements: **`.planning/milestones/v1.10-REQUIREMENTS.md`**._
+_Living milestone: **`.planning/REQUIREMENTS.md`**. Prior archive: **`.planning/milestones/v1.10-REQUIREMENTS.md`**._
 
 ### Out of Scope
 
@@ -233,4 +248,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.10** milestone **closed** (archived **`.planning/milestones/v1.10-*`**; living **`.planning/REQUIREMENTS.md`** removed for next milestone).*
+*Last updated: 2026-04-24 — **v1.11** milestone **opened** (living **`.planning/REQUIREMENTS.md`**; **v1.10** archived under **`.planning/milestones/v1.10-*`**).*

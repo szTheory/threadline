@@ -22,6 +22,15 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert idx_routing < idx_support
   end
 
+  test "domain-reference retains v1.11 example incident JSON anchor (COMP-EXAMPLE-INCIDENT-JSON)" do
+    doc = read_rel!(["guides", "domain-reference.md"])
+
+    assert String.contains?(doc, "COMP-EXAMPLE-INCIDENT-JSON")
+    assert String.contains?(doc, "examples/threadline_phoenix")
+    assert String.contains?(doc, "GET /api/audit_transactions")
+    assert String.contains?(doc, "audit_transaction_id")
+  end
+
   test "production-checklist links to Exploration API routing anchor" do
     doc = read_rel!(["guides", "production-checklist.md"])
 

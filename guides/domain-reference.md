@@ -189,6 +189,19 @@ Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
 | Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | INSERT/UPDATE/DELETE semantics; `changed_from` may be `nil` — see module docs, not duplicated here. |
 | Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.Query.timeline/2` with **`:actor_ref`** | Pairs with support table row 2; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
 
+<span id="example-incident-json-v111"></span>
+
+### Reference example: incident JSON (v1.11+)
+
+Contract marker for automated doc checks: **COMP-EXAMPLE-INCIDENT-JSON**
+
+The path-dependent Phoenix app under **`examples/threadline_phoenix/`** shows one **composition** pattern on top of the table above:
+
+1. **`POST /api/posts`** returns **`audit_transaction_id`** — the UUID of the **`audit_transactions`** row for that HTTP request’s database transaction (after `Threadline.record_action/2` links semantics in the same transaction as in prior phases).
+2. **`GET /api/audit_transactions/:id/changes`** loads every **`AuditChange`** for that transaction via **`Threadline.audit_changes_for_transaction/2`** (same ordering contract as the library) and attaches a **`change_diff`** map per row from **`Threadline.change_diff/2`**, suitable for JSON incident tools.
+
+CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Production hosts must add authorization** (and often tenancy scoping); this example is intentionally minimal and is not a security reference implementation.
+
 ## Support incident queries
 
 SQL-native operator playbooks for the five canonical support questions (see `.planning/milestones/v1.8-REQUIREMENTS.md`, “Evidence-driving questions”). Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.

@@ -10,5 +10,7 @@ defmodule ThreadlinePhoenixWeb.Router do
     pipe_through(:api)
 
     post "/posts", PostController, :create
+
+    get "/audit_transactions/:id/changes", AuditTransactionController, :changes
   end
 end

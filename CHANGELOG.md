@@ -4,6 +4,7 @@
 
 ### Added
 
+- **`examples/threadline_phoenix`** — **`audit_transaction_id`** on **`POST /api/posts`** and **`GET /api/audit_transactions/:id/changes`** returning ordered changes with **`change_diff`** maps per row (composition demo; add auth in production). **`guides/domain-reference.md`** documents the pattern under **COMP-EXAMPLE-INCIDENT-JSON**.
 - **`:correlation_id` timeline / export filter** — optional keyword on `Threadline.Query.timeline/2`,
   `timeline_query/1`, `export_changes_query/1`, and export entrypoints. Values are trimmed; empty
   after trim, `nil`, non-binary, or longer than **256 UTF-8 bytes** raise `ArgumentError`. When set,

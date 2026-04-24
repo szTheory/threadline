@@ -90,6 +90,12 @@ The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`PO
 
 In production, replace the synthetic **`actor_fn`** (see `ThreadlinePhoenix.AuditActor`) with one derived from your auth layer.
 
+## Incident JSON drill-down (`audit_transaction_id` → changes)
+
+Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (the UUID of the **`audit_transactions`** row for that request’s database transaction). Call **`GET /api/audit_transactions/:id/changes`** with that UUID to list every **`AuditChange`** in stable library order (**`Threadline.audit_changes_for_transaction/2`**) and a JSON-ready **`change_diff`** per row (**`Threadline.change_diff/2`**). See **`guides/domain-reference.md`** (anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, subsection **Reference example: incident JSON**).
+
+CI: **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Security:** add authorization (and usually tenancy checks) before exposing transaction drill-down in production; this example stays intentionally minimal.
+
 ## Correlation: HTTP → audit_actions → timeline
 
 **Operator contract:** when you pass **`:correlation_id`** to **`Threadline.timeline/2`** or **`Threadline.export_json/2`**, Threadline applies a **strict** join: only **`audit_changes`** whose **`audit_transactions`** row is linked (**`audit_transactions.action_id`**) to an **`audit_actions`** row with that correlation id are returned. Headers such as **`x-correlation-id`** populate **`AuditContext`** at the edge; durable queryability requires **`Threadline.record_action/2`** in the **same** database transaction as the audited writes, as implemented in **`Blog.create_post/2`**. Timeline and export share the same filter vocabulary (see **`Threadline.Query`** and **LOOP-01** in **`CHANGELOG.md`**).

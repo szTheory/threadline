@@ -61,7 +61,15 @@ defmodule ThreadlinePhoenix.Blog do
                     Repo.rollback(:missing_audit_transaction_for_link)
                   end
 
-                  post
+                  audit_transaction_id =
+                    Repo.one!(
+                      from(at in AuditTransaction,
+                        where: at.txid == fragment("txid_current()"),
+                        select: at.id
+                      )
+                    )
+
+                  %{post: post, audit_transaction_id: audit_transaction_id}
               end
           end
         end)

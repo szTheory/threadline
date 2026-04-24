@@ -2,6 +2,20 @@
 
 Entries are newest first.
 
+## v1.11 — Composable incident surface (in flight, 2026-04-24)
+
+**Goal:** Close the integrator **composition** gap — **`POST /api/posts`** returns **`audit_transaction_id`**, **`GET /api/audit_transactions/:id/changes`** returns ordered **`AuditChange`** rows with **`change_diff`** maps — without LiveView, **`threadline_web`**, or new capture semantics.
+
+**Phases:** **37** (example HTTP JSON path + **`COMP-EXAMPLE-INCIDENT-JSON`** doc contract + README).
+
+**Living artifacts:** **`.planning/REQUIREMENTS.md`**, **`.planning/ROADMAP.md`**, **`.planning/PROJECT.md`** (Current Milestone).
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release milestone is run.
+
+**What is next:** **`/gsd-complete-milestone`** when ready to archive **v1.11** to **`.planning/milestones/v1.11-*`**.
+
+---
+
 ## v1.10 — Support-grade exploration primitives (shipped 2026-04-24)
 
 **Goal:** Support- and integrator-facing **exploration primitives** — **field-level** change presentation from `%AuditChange{}`, **transaction-scoped** change listing, and **operator doc routing** — on top of shipped capture + semantics + timeline/export, **without** LiveView or new capture semantics.

@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ◆ **v1.11 — Composable incident surface** — Phase 37 (in flight, 2026-04-24) — [requirements](REQUIREMENTS.md) (living)
 - ✅ **v1.10 — Support-grade exploration primitives** — Phases 31–36 (31–33 core + 34–36 audit and planning hygiene, 2026-04-24) — [requirements](milestones/v1.10-REQUIREMENTS.md) · [archive](milestones/v1.10-ROADMAP.md) · [audit](milestones/v1.10-MILESTONE-AUDIT.md)
 - ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](milestones/v1.9-REQUIREMENTS.md) · [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
@@ -15,6 +16,23 @@
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+<details>
+<summary>◆ v1.11 Composable incident surface (Phase 37) — IN FLIGHT</summary>
+
+**Goal:** Prove a **copy-pasteable** HTTP JSON composition on **`Threadline.audit_changes_for_transaction/2`** + **`Threadline.change_diff/2`** in **`examples/threadline_phoenix/`** — see **[`.planning/REQUIREMENTS.md`](REQUIREMENTS.md)**.
+
+**Requirements map:** Phase 37 → COMP-01, COMP-02, COMP-03
+
+**Success criteria**
+
+1. **`POST /api/posts`** JSON includes **`audit_transaction_id`** (UUID of the capture transaction for that request).
+2. **`GET /api/audit_transactions/:id/changes`** returns **200** with a **`changes`** array; each element includes **`audit_change_id`** and a **`change_diff`** map with **`schema_version`** **1** for INSERT smoke.
+3. **`guides/domain-reference.md`** retains **`COMP-EXAMPLE-INCIDENT-JSON`** and documents the example routes; **`mix verify.example`** passes (**`PostsIncidentJsonPathTest`**).
+
+- [x] **Phase 37 — Example incident JSON path** — COMP-01, COMP-02, COMP-03 — completed 2026-04-24
+
+</details>
 
 <details>
 <summary>✅ v1.10 Support-grade exploration primitives (Phases 31–36) — SHIPPED 2026-04-24</summary>
@@ -237,12 +255,13 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.10** is **archived** under **`.planning/milestones/v1.10-*`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Start the next planning milestone with **`/gsd-new-milestone`** (creates a fresh **`.planning/REQUIREMENTS.md`**). Log release notes in **`.planning/MILESTONES.md`** when you cut the next Hex version.
+**v1.11** is **in flight** (Phase **37** — example incident JSON; living **`.planning/REQUIREMENTS.md`**). When scope is done, archive with **`/gsd-complete-milestone`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Log release notes in **`.planning/MILESTONES.md`** when you cut the next Hex version.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 37. Example incident JSON path | v1.11 | — | Complete | 2026-04-24 |
 | 36. Planning matrix & Nyquist hygiene | v1.10 | — | Complete | 2026-04-24 |
 | 35. v1.10 audit unblock | v1.10 | — | Complete | 2026-04-24 |
 | 34. v1.10 audit hygiene (doc + composed CI) | v1.10 | — | Complete | 2026-04-24 |

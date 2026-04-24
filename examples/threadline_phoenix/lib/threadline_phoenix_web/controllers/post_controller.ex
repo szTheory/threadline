@@ -31,10 +31,10 @@ defmodule ThreadlinePhoenixWeb.PostController do
             |> put_status(:unprocessable_entity)
             |> json(%{errors: ThreadlinePhoenixWeb.ErrorJSON.translate_changeset(changeset)})
 
-          {:ok, post} ->
+          {:ok, %{post: post, audit_transaction_id: audit_transaction_id}} ->
             conn
             |> put_status(:created)
-            |> render(:post, post: post)
+            |> render(:post, post: post, audit_transaction_id: audit_transaction_id)
         end
     end
   end
