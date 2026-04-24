@@ -2,6 +2,18 @@
 
 Entries are newest first.
 
+## v1.10 — Support-grade exploration primitives (opened 2026-04-24)
+
+**Goal:** Support- and integrator-facing **exploration primitives** — **field-level** change presentation from `%AuditChange{}`, **transaction-scoped** change listing, and **operator doc routing** — on top of shipped capture + semantics + timeline/export, **without** LiveView or new capture semantics.
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release milestone is run.
+
+**Phases planned:** **31–33** (see **`.planning/ROADMAP.md`** and **`.planning/REQUIREMENTS.md`**).
+
+**Status:** In progress — execution not started at open.
+
+---
+
 ## v1.9 — Production confidence at volume (shipped 2026-04-24)
 
 **Goal:** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook with doc contracts, and **retention-at-scale** guidance tied to **`Threadline.Retention`** / export / timeline — **docs-first**.

@@ -8,9 +8,19 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current milestone
+## Current Milestone: v1.10 — Support-grade exploration primitives
 
-**v1.9 closed** 2026-04-24 (Phases **28–30**; archives **`.planning/milestones/v1.9-*`**). **No** living **`.planning/REQUIREMENTS.md`** — run **`/gsd-new-milestone`** then open the next slice on **`ROADMAP.md`** when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump.
+**Goal:** Turn shipped **capture + semantics + timeline/export** into faster **incident answers** with **small, explicit library APIs** — “what changed on this row?” and “everything that moved in this transaction?” — **without** new capture semantics or a UI framework.
+
+**Target features:**
+
+- **Field-level change presentation** — pure Elixir helper(s) over `AuditChange` (`data_after`, `changed_from`, `op`) producing a **stable, JSON-serializable** structure for APIs and logs, with **documented** behavior when prior values are absent.
+- **Transaction-scoped reads** — documented **`Threadline.Query`** entrypoint (and **`Threadline`** delegator) to list **all** changes for one **`audit_transactions.id`**, **deterministically ordered** for reconstruction.
+- **Operator surfaces** — **`guides/domain-reference.md`** (and cross-links from existing **support** / **checklist** paths) explain **when to use** `history/3`, `timeline/2`, export, correlation filters, **transaction scope**, and **diff helpers**; **doc contract** coverage for any new stable anchors.
+
+**Non-goals:** LiveView operator UI; published **`threadline_web`**; **new** capture / redaction / retention **semantics** or schema; maintainer-attested third-party STG URLs; **Hex** semver bump unless a **separate** release milestone says so.
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** on Hex unchanged unless a release decision is made.
 
 ## Last milestone shipped: v1.9 — Production confidence at volume (Phases 28–30, 2026-04-24)
 
@@ -110,7 +120,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.9** archived 2026-04-24 (**Phases 28–30**; **`.planning/milestones/v1.9-*`**). **v1.8** archived (**Phases 25–27**). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump. No living **`.planning/REQUIREMENTS.md`** until the next milestone opens.
+- **Planning:** **v1.10** open (**Phases 31+** on **`.planning/ROADMAP.md`**). **v1.9** archived 2026-04-24 (**Phases 28–30**; **`.planning/milestones/v1.9-*`**). **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -146,11 +156,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **IDX-01 / IDX-02 (Phase 29)** — **`guides/audit-indexing.md`** (installed defaults, access patterns vs **`Threadline.Query`** / **`Threadline.Export`** / **`Threadline.Retention`**, tradeoffs, optional DDL framed non-mandatory); ExDoc extra; cross-links from **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`test/threadline/audit_indexing_doc_contract_test.exs`**. Validated in Phase 29: Audit table indexing cookbook (2026-04-24).
 - [x] **SCALE-01 / SCALE-02 (Phase 30)** — **`guides/production-checklist.md`** volume / purge cadence H3 tied to **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`**; export §5 + support intro hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** discovery hub; **`README.md`** Maintainer-band pointer. Validated in Phase 30: Retention at scale & discovery (2026-04-24).
 
-### Active (next milestone)
+### Active (v1.10)
 
-_None — open scope on **`ROADMAP.md`** when ready._
+- [ ] **XPLO-01** — Field-level change presentation from `AuditChange` (JSON-friendly; honest behavior without `changed_from`).
+- [ ] **XPLO-02** — Transaction-scoped `AuditChange` listing API + `Threadline` delegator.
+- [ ] **XPLO-03** — Operator docs + playbook/checklist cross-links + doc contracts for new anchors.
 
-_Last planning milestone requirements archived at **`.planning/milestones/v1.9-REQUIREMENTS.md`** (v1.9 close)._
+_Living requirements: **`.planning/REQUIREMENTS.md`**. Prior milestone: **`.planning/milestones/v1.9-REQUIREMENTS.md`**._
 
 ### Out of Scope
 
@@ -219,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.9** milestone closed (archived **Phases 28–30**); next milestone TBD on **`ROADMAP.md`**; run **`/gsd-new-milestone`** for fresh **`.planning/REQUIREMENTS.md`**.*
+*Last updated: 2026-04-24 — **`/gsd-new-milestone`**: **v1.10** — Support-grade exploration primitives; living **`.planning/REQUIREMENTS.md`** + **`.planning/ROADMAP.md`** updated.*
