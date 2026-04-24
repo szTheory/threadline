@@ -31,7 +31,11 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
     assert length(rows) >= 1
     assert {ac, %AuditTransaction{} = at} = hd(rows)
     assert ac.transaction_id == at.id
-    assert %Threadline.Semantics.ActorRef{type: :service_account, id: "threadline-phoenix-example"} =
+
+    assert %Threadline.Semantics.ActorRef{
+             type: :service_account,
+             id: "threadline-phoenix-example"
+           } =
              at.actor_ref
   end
 end

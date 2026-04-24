@@ -84,6 +84,22 @@ Or inside IEx:
 iex -S mix phx.server
 ```
 
+## Audited HTTP path (`POST /api/posts`)
+
+The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`POST /api/posts`**, which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`** GUC before insert. **`test/threadline_phoenix_web/posts_audit_path_test.exs`** is the canonical proof that capture sees **`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`** populated.
+
+In production, replace the synthetic **`actor_fn`** (see `ThreadlinePhoenix.AuditActor`) with one derived from your auth layer.
+
+Example request (include **`x-request-id`** for traceability; no credential-shaped demo values):
+
+```bash
+curl -sS -X POST "http://localhost:4000/api/posts" \
+  -H "content-type: application/json" \
+  -H "x-request-id: $(uuidgen)" \
+  -H "x-correlation-id: demo-corr" \
+  -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
+```
+
 ## Tests
 
 Create the dedicated test database once (default name **`threadline_phoenix_test`**, see `config/test.exs`):
