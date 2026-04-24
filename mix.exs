@@ -6,7 +6,14 @@ defmodule Threadline.MixProject do
 
   def cli do
     # Run the whole CI chain in :test so `test` picks up config/test.exs (Postgres, repo).
-    [preferred_envs: ["ci.all": :test]]
+    # Topology tasks need `test/support` (Threadline.Test.Repo) on the compile path.
+    [
+      preferred_envs: [
+        "ci.all": :test,
+        "verify.topology": :test,
+        "threadline.verify_topology": :test
+      ]
+    ]
   end
 
   def project do
@@ -56,6 +63,7 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
+      "verify.topology": ["threadline.verify_topology"],
       "ci.all": [
         "verify.format",
         "verify.credo",
@@ -131,7 +139,8 @@ defmodule Threadline.MixProject do
           Mix.Tasks.Threadline.VerifyCoverage,
           Mix.Tasks.Threadline.Continuity,
           Mix.Tasks.Threadline.Retention.Purge,
-          Mix.Tasks.Threadline.Export
+          Mix.Tasks.Threadline.Export,
+          Mix.Tasks.Threadline.VerifyTopology
         ]
       ]
     ]

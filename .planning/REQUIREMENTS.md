@@ -28,9 +28,11 @@ _Defer beyond v1.5 unless pilot evidence forces reprioritization._
 
 ### STG-01
 
-**Host staging / pooler parity pilot (v1.6 candidate)** — **Source:** `guides/adoption-pilot-backlog.md` prioritized row **`AP-ENV.1`**. The maintainer evidence pass that closed **ADOP-03** used **direct Postgres** (CI + local `mix ci.all`), not **PgBouncer transaction pooling** aligned with a specific host’s production topology.
+**Host staging / pooler parity pilot (v1.6 candidate)** — **Source:** `guides/adoption-pilot-backlog.md` prioritized row **`AP-ENV.1`**.
 
-**Acceptance (draft):** A host-owned **staging or production-like** environment documents **app → pooler? → Postgres** (including **PgBouncer mode** when prod uses it), **matches prod: yes/no/partial**, and records **≥1 HTTP audited write** and **≥1 job path** (Oban/async) per **Phase 20** context **D-04–D-06**; backlog rows updated with **`OK` / `Issue` / `N/A`** + evidence or linked issues.
+**CI (done on `main`):** GitHub Actions job **`verify-pgbouncer-topology`** exercises **PgBouncer `POOL_MODE=transaction`**, **`mix verify.topology`** (GUC + audited insert through pooler), and **`mix verify.threadline`** through the pooler. Contract tests: `test/threadline/ci_topology_contract_test.exs`.
+
+**Acceptance (draft — host remainder):** When the **host app** must prove more than the library CI harness, a **host-owned staging or production-like** environment documents **app → pooler? → Postgres** (including **PgBouncer mode** when prod uses it), **matches prod: yes/no/partial**, and records **≥1 HTTP audited write** and **≥1 job path** (Oban/async) per **Phase 20** context **D-04–D-06**; backlog rows updated with **`OK` / `Issue` / `N/A`** + evidence or linked issues.
 
 ## Out of Scope (v1.5)
 

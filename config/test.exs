@@ -1,12 +1,21 @@
 import Config
 
-config :threadline, Threadline.Test.Repo,
+pgbouncer_topology? = System.get_env("THREADLINE_PGBOUNCER_TOPOLOGY") == "1"
+
+repo_base = [
   hostname: System.get_env("DB_HOST", "localhost"),
   port: System.get_env("DB_PORT", "5432") |> String.to_integer(),
   username: "postgres",
   password: "postgres",
   database: "threadline_test",
   pool_size: 2
+]
+
+# Transaction-mode PgBouncer: avoid named prepared statements (Ecto + Postgrex).
+repo_opts =
+  if(pgbouncer_topology?, do: Keyword.put(repo_base, :prepare, :unnamed), else: repo_base)
+
+config :threadline, Threadline.Test.Repo, repo_opts
 
 config :threadline, ecto_repos: [Threadline.Test.Repo]
 

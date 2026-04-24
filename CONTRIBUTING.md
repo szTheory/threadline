@@ -56,6 +56,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
+| `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
@@ -63,6 +64,26 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 Hex **publish** (after a SemVer tag `v*` is pushed) runs from **`.github/workflows/hex-publish.yml`** using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
+
+## PgBouncer topology CI parity
+
+`docker-compose.yml` includes **`pgbouncer`** (transaction mode) on host port **`6432`** by default (`THREADLINE_PGBOUNCER_PORT`), alongside Postgres on **`5433`** (`THREADLINE_DB_PORT`).
+
+1. `docker compose up -d` and wait until both services are healthy.
+2. Bootstrap migrations + topology fixture on **direct** Postgres (DDL does not go through PgBouncer):
+
+   ```bash
+   MIX_ENV=test DB_HOST=localhost DB_PORT=5433 THREADLINE_TOPOLOGY_BOOTSTRAP=1 mix run priv/ci/topology_bootstrap.exs
+   ```
+
+3. Run topology tests + `verify.threadline` through the pooler:
+
+   ```bash
+   MIX_ENV=test DB_HOST=localhost DB_PORT=6432 THREADLINE_PGBOUNCER_TOPOLOGY=1 mix verify.topology
+   MIX_ENV=test DB_HOST=localhost DB_PORT=6432 THREADLINE_PGBOUNCER_TOPOLOGY=1 mix verify.threadline
+   ```
+
+`mix verify.topology` **requires** `THREADLINE_PGBOUNCER_TOPOLOGY=1` so it cannot accidentally pass against direct Postgres only.
 
 ## Submitting a Pull Request
 
@@ -78,6 +99,7 @@ In GitHub repository settings, require these checks on `main` (names match the w
 - Check formatting (`verify-format`)
 - Run Credo (strict) (`verify-credo`)
 - Run test suite (`verify-test`)
+- PgBouncer transaction topology (`verify-pgbouncer-topology`)
 - Build ExDoc (dev) (`verify-docs`)
 - Hex package tarball (`verify-hex-package`)
 - Release metadata (version / changelog) (`verify-release-shape`)

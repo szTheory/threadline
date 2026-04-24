@@ -2,7 +2,7 @@
 
 Use this with [`production-checklist.md`](production-checklist.md) when you first run Threadline in a **staging or production-like** environment. Copy rows into issues when something fails; keep **Evidence** (logs, SQL, config redacted) so maintainers can reproduce.
 
-**Evidence pass (maintainer, 2026-04-23):** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, **`.github/workflows/ci.yml`**, and **`DB_PORT=5433 MIX_ENV=test mix ci.all`** (136 tests + `verify.threadline` + doc contract). This satisfies **ADOP-03** for **in-repo / CI truth**; it is **not** a substitute for a **host-owned staging** run with **PgBouncer** parity when production uses transaction pooling — see **Connection topology** and **`AP-ENV.1`** (triage → **STG-01** in [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01)).
+**Evidence pass (maintainer, 2026-04-23):** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, **`.github/workflows/ci.yml`**, and **`DB_PORT=5433 MIX_ENV=test mix ci.all`** (136 tests + `verify.threadline` + doc contract). **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below. **STG-01** still tracks **host-owned** staging depth (HTTP + real Oban job paths in *your* app) when that bar exceeds the library CI harness — [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01).
 
 ## Distribution preflight (maintainer / CI)
 
@@ -14,9 +14,11 @@ Use this with [`production-checklist.md`](production-checklist.md) when you firs
 
 ## Connection topology (host / maintainer)
 
+**CI-PGBOUNCER-TOPOLOGY-CONTRACT:** GitHub Actions job **`verify-pgbouncer-topology`** runs **`priv/ci/topology_bootstrap.exs`** on direct Postgres, then **`mix verify.topology`** + **`mix verify.threadline`** with **`THREADLINE_PGBOUNCER_TOPOLOGY=1`** against **PgBouncer `POOL_MODE=transaction`** (`edoburu/pgbouncer` image). Doc contract: `test/threadline/ci_topology_contract_test.exs`. Local parity: [CONTRIBUTING.md](../CONTRIBUTING.md#pgbouncer-topology-ci-parity) + `docker-compose.yml`.
+
 | Question | Answer | Matches prod? |
 |----------|--------|----------------|
-| App → pooler → Postgres? | **Maintainer pass:** CI + local `mix ci.all` use **direct TCP** to PostgreSQL (`DB_HOST` / `DB_PORT` in CI and `.planning/STATE.md` metrics). **No PgBouncer** in this evidence path. | **no / partial** — If production uses **PgBouncer transaction mode**, treat this pass as **non-representative** until **STG-01** is executed (see **AP-ENV.1**). |
+| App → pooler → Postgres? | **CI:** `verify-test` / `mix ci.all` use **direct** Postgres; **`verify-pgbouncer-topology`** adds **PgBouncer transaction** path (see contract above). **Host:** still document **your** prod topology (session vs transaction, real pooler settings). | **partial** — CI proves **transaction-mode pooler class** for library paths; **STG-01** remains for **host app** HTTP + Oban realism if required. |
 
 ## Checklist walkthrough (host team)
 
@@ -28,14 +30,14 @@ Map each section of the production checklist. **Status:** `OK` | `Issue` | `N/A`
 |--------------------------|--------|----------|
 | Install + gen.triggers migrations applied | OK | Integration tests apply Threadline migrations (e.g. `priv/repo/migrations/*threadline*`, capture fixtures); capture tests under `test/threadline/capture/`. |
 | `MIX_ENV` parity for trigger regeneration | N/A | Parity for **host** `MIX_ENV=prod` codegen not exercised here; CI uses **`MIX_ENV: test`** (`.github/workflows/ci.yml` → `verify-test`). |
-| `verify_coverage` + `expected_tables` in CI / prod-like | OK | `config/test.exs` → `:verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]`; `mix threadline.verify_coverage` is **`verify.threadline`** in `mix.exs` **`ci.all`**; `test/threadline/verify_coverage_task_test.exs`. |
+| `verify_coverage` + `expected_tables` in CI / prod-like | OK | `config/test.exs` → `:verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]`; **`verify.threadline`** in **`verify-test`** and again in **`verify-pgbouncer-topology`** (through pooler); `test/threadline/verify_coverage_task_test.exs`. |
 | `Threadline.Health.trigger_coverage/1` wired | OK | `test/threadline/health_test.exs`; README doc contract calls `Threadline.ReadmeQuickstartFixtures.trigger_coverage_call/0` (`test/support/readme_quickstart_fixtures.ex`). |
 
 ### 2. Actor bridge and semantics
 
 | Checklist item (summary) | Status | Evidence |
 |--------------------------|--------|----------|
-| GUC + same transaction as writes (PgBouncer-safe) | OK | `test/threadline/capture/trigger_context_test.exs` — `set_config('threadline.actor_ref', …, true)` + audited writes in same `Repo.transaction`. **Pooler topology** still tracked under **AP-ENV.1**. |
+| GUC + same transaction as writes (PgBouncer-safe) | OK | `test/threadline/capture/trigger_context_test.exs` (direct Postgres); **`test/threadline/pgbouncer_topology_test.exs`** via **`verify-pgbouncer-topology`** (PgBouncer transaction pool). |
 | Jobs use `Threadline.Job` (or equivalent) | OK | `test/threadline/job_test.exs` — `Threadline.Job.actor_ref_from_args/1`. |
 | `record_action/2` where intent needed | OK | `test/threadline/semantics/audit_action_test.exs`, `test/threadline/telemetry_test.exs`; README fixture `record_action_call/0` in doc contract test. |
 
@@ -84,11 +86,12 @@ These do **not** replace a host pilot when production uses **PgBouncer** or besp
 |-------|--------|----------|
 | PostgreSQL integration tests | OK | `test/` — capture, retention, export, continuity, semantics. |
 | Full maintainer CI chain | OK | `mix ci.all` in `mix.exs` (`verify.format`, `verify.credo`, compile `--warnings-as-errors`, `verify.test`, `verify.threadline`, `verify.doc_contract`). Green on **`main`** via GitHub Actions. |
+| PgBouncer transaction pool (CI) | OK | **`.github/workflows/ci.yml`** → **`verify-pgbouncer-topology`**; `mix verify.topology` (`test/threadline/pgbouncer_topology_test.exs`). |
 
 ## Prioritized issues from pilot
 
 | P | ID | Symptom | Likely area | Owner | Link |
 |---|----|---------|--------------|-------|------|
-| P1 | AP-ENV.1 | Host-owned **staging/production-like** pilot with **connection topology class matching production** (especially **PgBouncer transaction vs session**) not executed in this maintainer-only pass; HTTP + job paths under realistic pooler not evidenced here. | adoption / topology | Maintainer → host | **STG-01** — [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01) |
+| P2 | AP-ENV.1 | **Residual host depth:** CI covers **PgBouncer transaction** + `verify.threadline` (see **CI-PGBOUNCER-TOPOLOGY-CONTRACT**). **Not** replaced: *your* staging with **session vs transaction** choices matching prod, plus **HTTP + Oban job** paths inside the host app. | adoption / topology | Host integrator | **STG-01** — [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01) |
 
 _Add rows as you discover gaps. P0 = wrong or missing audit data / security; P1 = ops friction or docs._

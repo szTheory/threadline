@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-test, verify-docs, verify-hex-package, verify-release-shape
+# verify-format, verify-credo, verify-test, verify-pgbouncer-topology, verify-docs, verify-hex-package, verify-release-shape
 
 name: CI
 
@@ -89,6 +89,72 @@ jobs:
 
       - name: Doc contract tests
         run: mix verify.doc_contract
+
+  verify-pgbouncer-topology:
+    name: PgBouncer transaction topology
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: threadline_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      pgbouncer:
+        image: edoburu/pgbouncer:latest
+        env:
+          DATABASE_URL: postgres://postgres:postgres@postgres:5432/threadline_test
+          AUTH_TYPE: scram-sha-256
+          POOL_MODE: transaction
+          MAX_CLIENT_CONN: 200
+          DEFAULT_POOL_SIZE: 5
+        ports:
+          - 6432:5432
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Wait for Postgres and PgBouncer
+        env:
+          PGPASSWORD: postgres
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done
+          until pg_isready -h localhost -p 6432 -U postgres; do sleep 1; done
+
+      - name: Bootstrap test DB (direct Postgres, bypass pooler)
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          THREADLINE_TOPOLOGY_BOOTSTRAP: "1"
+        run: |
+          mix deps.get
+          mix compile --warnings-as-errors
+          mix run priv/ci/topology_bootstrap.exs
+
+      - name: Topology tests + verify_coverage through PgBouncer
+        env:
+          DB_HOST: localhost
+          DB_PORT: "6432"
+          THREADLINE_PGBOUNCER_TOPOLOGY: "1"
+        run: |
+          mix verify.topology
+          mix verify.threadline
 
   verify-docs:
     name: Build ExDoc (dev)

@@ -15,6 +15,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
       assert Regex.match?(~r/^  verify-format:/m, yaml)
       assert Regex.match?(~r/^  verify-credo:/m, yaml)
       assert Regex.match?(~r/^  verify-test:/m, yaml)
+      assert Regex.match?(~r/^  verify-pgbouncer-topology:/m, yaml)
 
       assert Regex.match?(
                ~r/^  push:\n(?:.*\n)*?    branches: \[main\]/m,
@@ -88,6 +89,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
       assert String.contains?(doc, "verify-format")
       assert String.contains?(doc, "verify-credo")
       assert String.contains?(doc, "verify-test")
+      assert String.contains?(doc, "verify-pgbouncer-topology")
       assert String.contains?(doc, "https://github.com/szTheory/threadline/actions")
     end
   end

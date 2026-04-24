@@ -43,3 +43,11 @@ act -j verify-docs --container-architecture linux/amd64
 act -j verify-hex-package --container-architecture linux/amd64
 act -j verify-release-shape --container-architecture linux/amd64
 ```
+
+## PgBouncer topology job (`act`)
+
+Requires **two** service containers (Postgres + PgBouncer). `act` support varies by version; if it fails, use **Docker Compose** (`docker compose up -d`) and the commands in [CONTRIBUTING.md](../../CONTRIBUTING.md#pgbouncer-topology-ci-parity).
+
+```bash
+act -j verify-pgbouncer-topology --container-architecture linux/amd64
+```
