@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: — Close the support loop
-status: active
-last_updated: "2026-04-24T12:55:00.000Z"
-last_activity: 2026-04-24 — `/gsd-discuss-phase 27` — context + research synthesis captured.
+status: planning
+last_updated: "2026-04-24T12:58:38.149Z"
+last_activity: 2026-04-24 — `/gsd-discuss-phase 27` — LOOP-03 decisions (test + README, HTTP `record_action`, timeline CI + export snippet, layered README).
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 6
+  total_plans: 5
   completed_plans: 4
-  percent: 67
+  percent: 80
 ---
 
 # Project State
@@ -62,3 +62,5 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 **Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `.planning/milestones/v1.7-REQUIREMENTS.md`
 
 **Resume:** `.planning/phases/27-example-app-correlation-path/27-CONTEXT.md` — then `/gsd-plan-phase 27`.
+
+**Planned Phase:** 27 (Example app correlation path) — 1 plans — 2026-04-24T12:58:38.116Z
