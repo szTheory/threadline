@@ -118,6 +118,7 @@ defmodule Threadline.MixProject do
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/adoption-pilot-backlog.md",
+        "guides/audit-indexing.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
