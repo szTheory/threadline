@@ -26,9 +26,13 @@ Entries are newest first.
 
 ---
 
-## v1.9 telescope — Production confidence at volume (not opened)
+## v1.9 — Production confidence at volume (opened 2026-04-24)
 
-**Intent (chunk 2 of SaaS trajectory):** Telemetry + **`Threadline.Health`** operational narrative, indexing cookbook, retention-at-scale alignment; **docs-first** with small code gaps only where existing hooks cannot express the signal. Open with **`/gsd-new-milestone`** after **v1.8** closes.
+**Goal:** Ops-at-volume confidence — telemetry + **`Threadline.Health`** operator narrative, **audit indexing** cookbook with doc contracts, and **retention-at-scale** alignment with shipped `Threadline.Retention` / export / timeline paths. **Docs-first**; code only where an operator-relevant signal cannot be expressed with existing hooks.
+
+**Phases:** **28–30** (see **`.planning/ROADMAP.md`** and **`.planning/REQUIREMENTS.md`**).
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
 
 ---
 

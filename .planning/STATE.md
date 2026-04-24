@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.9
-milestone_name: — Production confidence at volume (telescope; not opened)
-status: planning_next
-last_updated: "2026-04-24T18:00:00.000Z"
-last_activity: 2026-04-24 — v1.8 milestone archived; REQUIREMENTS.md removed for next milestone
+milestone_name: Production confidence at volume
+status: defining_requirements
+last_updated: "2026-04-24T12:00:00.000Z"
+last_activity: 2026-04-24 — Milestone v1.9 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -17,21 +17,21 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated after **v1.8** archive)
+See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.9** planning when scheduled — ops-at-volume telescope (telemetry, health, indexing, retention-at-scale narrative); see `.planning/MILESTONES.md`. Start with **`/gsd-new-milestone`**.
+**Current focus:** **v1.9** — telemetry + health operator narrative, audit indexing cookbook, retention-at-scale alignment (docs-first).
 
 ## Current Position
 
-Phase: **—** (next milestone not opened)
+Phase: Not started (defining requirements)
 
-Plan: **—**
+Plan: —
 
-Status: **v1.8** archived (Phases 25–27). **v1.9** not opened.
+Status: Defining requirements
 
-Last activity: 2026-04-24 — `/gsd-complete-milestone` — archives **`milestones/v1.8-*`**, **`REQUIREMENTS.md`** removed
+Last activity: 2026-04-24 — Milestone v1.9 started (`/gsd-new-milestone`)
 
 ## Performance metrics
 
@@ -41,12 +41,11 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Decisions
 
-- **v1.8 closed:** LOOP-01–LOOP-04 shipped; roadmap collapsed to **`milestones/v1.8-*`**; living requirements file cleared for **v1.9** definition.
-- **v1.9 telescope:** Ops-at-volume after **v1.9** is opened with fresh **`REQUIREMENTS.md`**.
+- **v1.9 opened:** `PROJECT.md` + `MILESTONES.md` updated; living requirements and roadmap next.
 
 ### Pending todos
 
-1. **`/gsd-new-milestone`** when **v1.9** scope is ready — fresh requirements + roadmap slice.
+1. Finalize **`.planning/REQUIREMENTS.md`** and **`.planning/ROADMAP.md`** for v1.9 (Phases 28–30).
 
 ### Blockers / concerns
 
@@ -56,8 +55,8 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Prior shipped:** **v1.8** — Phases 25–27 — 2026-04-24 (archived).
 
-**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-phases/` (Phases 25–27)
+**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-phases/`
 
-**Resume:** `.planning/MILESTONES.md` — **v1.9** when scheduled.
+**Resume:** `.planning/ROADMAP.md` — **Phase 28**
 
 **Last completed phase:** 27 (Example app correlation path) — 2026-04-24
