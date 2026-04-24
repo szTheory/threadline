@@ -56,7 +56,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Prior shipped:** **v1.8** — Phases 25–27 — 2026-04-24 (archived).
 
-**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`
+**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-phases/` (Phases 25–27)
 
 **Resume:** `.planning/MILESTONES.md` — **v1.9** when scheduled.
 

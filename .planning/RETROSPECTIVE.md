@@ -306,7 +306,7 @@
 
 - Model mix: not instrumented in-repo for this milestone.
 - Sessions: Phases 25–27 executed as a focused support-loop slice.
-- Notable: Phase directories **25–27** remain under **`.planning/phases/`** (optional move to **`milestones/v1.8-phases/`** via **`/gsd-cleanup`** if desired).
+- Notable: Phase directories **25–27** archived under **`.planning/milestones/v1.8-phases/`** after tag push.
 
 ---
 
