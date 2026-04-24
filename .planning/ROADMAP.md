@@ -40,7 +40,7 @@
 6. **README** and/or **`guides/domain-reference.md`** surfaces a **single discovery link** to the new material so operators find it from onboarding paths.
 
 - [x] **Phase 28 — Telemetry & health operators' narrative** — OPS-01, OPS-02 — completed 2026-04-24
-- [ ] **Phase 29 — Audit table indexing cookbook** — IDX-01, IDX-02
+- [x] **Phase 29 — Audit table indexing cookbook** — IDX-01, IDX-02 — completed 2026-04-24
 - [ ] **Phase 30 — Retention at scale & discovery** — SCALE-01, SCALE-02
 
 </details>

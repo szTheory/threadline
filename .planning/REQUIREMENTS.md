@@ -14,9 +14,9 @@
 
 ### Performance — indexing
 
-- [ ] **IDX-01**: A **dedicated indexing guide** (new **`guides/audit-indexing.md`** or equivalent ExDoc extra) documents **recommended indexes** for **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** for workloads that match **`Threadline.Query.timeline/2`**, **`Threadline.Export`**, optional **`:correlation_id`** filtering, and **retention / purge** patterns. The guide calls out **tradeoffs** (write amplification, bloat) and **does not** mandate one-size-fits-all DDL — it explains choices integrators make on their own databases.
+- [x] **IDX-01**: A **dedicated indexing guide** (new **`guides/audit-indexing.md`** or equivalent ExDoc extra) documents **recommended indexes** for **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** for workloads that match **`Threadline.Query.timeline/2`**, **`Threadline.Export`**, optional **`:correlation_id`** filtering, and **retention / purge** patterns. The guide calls out **tradeoffs** (write amplification, bloat) and **does not** mandate one-size-fits-all DDL — it explains choices integrators make on their own databases.
 
-- [ ] **IDX-02**: At least one **doc contract test** under **`test/threadline/`** locks stable anchor strings (headings or markers) from the indexing guide so the cookbook cannot silently rot.
+- [x] **IDX-02**: At least one **doc contract test** under **`test/threadline/`** locks stable anchor strings (headings or markers) from the indexing guide so the cookbook cannot silently rot.
 
 ### Operations — retention at scale
 
@@ -48,8 +48,8 @@ _Defer unless a later milestone explicitly reopens._
 |-------------|-------|--------|
 | OPS-01 | Phase 28 | Complete |
 | OPS-02 | Phase 28 | Complete |
-| IDX-01 | Phase 29 | Pending |
-| IDX-02 | Phase 29 | Pending |
+| IDX-01 | Phase 29 | Complete |
+| IDX-02 | Phase 29 | Complete |
 | SCALE-01 | Phase 30 | Pending |
 | SCALE-02 | Phase 30 | Pending |
 

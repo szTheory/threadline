@@ -139,11 +139,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **LOOP-02 / LOOP-04 (Phase 26)** — **`guides/domain-reference.md`** + **`guides/production-checklist.md`** **Support incident queries** (five questions, API vs SQL); marker **`LOOP-04-SUPPORT-INCIDENT-QUERIES`**; **`test/threadline/support_playbook_doc_contract_test.exs`**. Validated in Phase 26: Support playbooks & doc contracts (2026-04-24).
 - [x] **LOOP-03 (Phase 27)** — **`examples/threadline_phoenix/`** correlation path: **`x-correlation-id`**, **`record_action/2`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`timeline`** / **`export_json`** with **`:correlation_id`**. Validated in Phase 27: Example app correlation path (2026-04-24).
 - [x] **OPS-01 / OPS-02 (Phase 28)** — **`guides/domain-reference.md`** per-event telemetry narrative + **`## Trigger coverage (operational)`**; **`guides/production-checklist.md`** §1/§6 cross-links; README pointer to **`guides/domain-reference.md#trigger-coverage-operational`**. Validated in Phase 28: Telemetry & health operators' narrative (2026-04-24).
+- [x] **IDX-01 / IDX-02 (Phase 29)** — **`guides/audit-indexing.md`** (installed defaults, access patterns vs **`Threadline.Query`** / **`Threadline.Export`** / **`Threadline.Retention`**, tradeoffs, optional DDL framed non-mandatory); ExDoc extra; cross-links from **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`test/threadline/audit_indexing_doc_contract_test.exs`**. Validated in Phase 29: Audit table indexing cookbook (2026-04-24).
 
 ### Active (v1.9)
 
-- [ ] **IDX-01** — Audit indexing cookbook.
-- [ ] **IDX-02** — Indexing doc contract test(s).
 - [ ] **SCALE-01** — Retention-at-scale + volume guidance in production docs.
 - [ ] **SCALE-02** — Discovery pointer(s) for the at-scale narrative (README and/or domain reference).
 
@@ -216,4 +215,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.9** — Phase **28** complete (OPS-01, OPS-02); next **Phase 29** (indexing cookbook).*
+*Last updated: 2026-04-24 — **v1.9** — Phase **29** complete (IDX-01, IDX-02); next **Phase 30** (retention at scale & discovery).*
