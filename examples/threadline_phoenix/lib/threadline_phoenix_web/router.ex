@@ -3,9 +3,12 @@ defmodule ThreadlinePhoenixWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug(Threadline.Plug, actor_fn: &ThreadlinePhoenix.AuditActor.from_conn/1)
   end
 
   scope "/api", ThreadlinePhoenixWeb do
     pipe_through(:api)
+
+    post "/posts", PostController, :create
   end
 end

@@ -18,4 +18,13 @@ defmodule ThreadlinePhoenixWeb.ErrorJSON do
   def render(template, _assigns) do
     %{errors: %{detail: Phoenix.Controller.status_message_from_template(template)}}
   end
+
+  @doc false
+  def translate_changeset(%Ecto.Changeset{} = changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
+  end
 end
