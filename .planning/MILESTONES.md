@@ -24,7 +24,7 @@ Entries are newest first.
 
 **Note:** No standalone `v1.5-MILESTONE-AUDIT.md` in `.planning/` at close; optional `/gsd-audit-milestone` next time for extra assurance. `gsd-sdk query milestone.complete` returned `version required for phases archive` in this environment — archives were written manually to match prior milestones.
 
-**What is next:** **`/gsd-new-milestone`** — define **v1.6** and a fresh `.planning/REQUIREMENTS.md` (seed **STG-01** from the v1.5 archive).
+**What is next:** **v1.6** opened 2026-04-23 — `.planning/REQUIREMENTS.md`, **Phase 21** on `.planning/ROADMAP.md`; execute **`/gsd-plan-phase 21`** (or discuss-phase) for **STG-01**–**STG-03**.
 
 ---
 
