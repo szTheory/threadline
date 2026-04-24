@@ -8,7 +8,9 @@
     "verifier": true,
     "auto_advance": true,
     "skip_discuss": false,
-    "_auto_chain_active": false
+    "_auto_chain_active": false,
+    "research_before_questions": true,
+    "discuss_default_research_synthesis": true
   },
   "model_profile": "balanced"
 }
