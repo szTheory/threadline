@@ -8,9 +8,9 @@
 
 ### Operations — telemetry & health
 
-- [ ] **OPS-01**: **`guides/domain-reference.md`** (or a clearly linked subsection) gives an **operator narrative** for each shipped **`[:threadline, …]`** telemetry event: **when it fires**, **recommended measurements** (e.g. what to chart or log), and **what “bad” looks like** in plain language. The narrative stays aligned with **`Threadline.Telemetry`** (`[:threadline, :transaction, :committed]`, `[:threadline, :action, :recorded]`, `[:threadline, :health, :checked]`) and cross-links to **`guides/production-checklist.md`** where operators run weekly checks.
+- [x] **OPS-01**: **`guides/domain-reference.md`** (or a clearly linked subsection) gives an **operator narrative** for each shipped **`[:threadline, …]`** telemetry event: **when it fires**, **recommended measurements** (e.g. what to chart or log), and **what “bad” looks like** in plain language. The narrative stays aligned with **`Threadline.Telemetry`** (`[:threadline, :transaction, :committed]`, `[:threadline, :action, :recorded]`, `[:threadline, :health, :checked]`) and cross-links to **`guides/production-checklist.md`** where operators run weekly checks.
 
-- [ ] **OPS-02**: **`guides/production-checklist.md`** and **`guides/domain-reference.md`** describe **`Threadline.Health.trigger_coverage/1`** as an **operational check**: when to run it (e.g. after deploy or schema change), how to interpret `{:covered, _}` / `{:uncovered, _}` for user tables, relationship to **`mix threadline.verify_coverage`**, and that audit catalog tables are excluded by design. Text references existing behavior (no new health semantics required for this REQ).
+- [x] **OPS-02**: **`guides/production-checklist.md`** and **`guides/domain-reference.md`** describe **`Threadline.Health.trigger_coverage/1`** as an **operational check**: when to run it (e.g. after deploy or schema change), how to interpret `{:covered, _}` / `{:uncovered, _}` for user tables, relationship to **`mix threadline.verify_coverage`**, and that audit catalog tables are excluded by design. Text references existing behavior (no new health semantics required for this REQ).
 
 ### Performance — indexing
 
@@ -46,8 +46,8 @@ _Defer unless a later milestone explicitly reopens._
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OPS-01 | Phase 28 | Pending |
-| OPS-02 | Phase 28 | Pending |
+| OPS-01 | Phase 28 | Complete |
+| OPS-02 | Phase 28 | Complete |
 | IDX-01 | Phase 29 | Pending |
 | IDX-02 | Phase 29 | Pending |
 | SCALE-01 | Phase 30 | Pending |

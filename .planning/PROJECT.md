@@ -138,11 +138,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **LOOP-01 (Phase 25)** — Optional **`:correlation_id`** on **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`**; strict `AuditAction` join when set; JSON **`action`** object and opt-in CSV **`include_action_metadata`**; integration tests + CHANGELOG. Validated in Phase 25: Correlation-aware timeline & export (2026-04-24).
 - [x] **LOOP-02 / LOOP-04 (Phase 26)** — **`guides/domain-reference.md`** + **`guides/production-checklist.md`** **Support incident queries** (five questions, API vs SQL); marker **`LOOP-04-SUPPORT-INCIDENT-QUERIES`**; **`test/threadline/support_playbook_doc_contract_test.exs`**. Validated in Phase 26: Support playbooks & doc contracts (2026-04-24).
 - [x] **LOOP-03 (Phase 27)** — **`examples/threadline_phoenix/`** correlation path: **`x-correlation-id`**, **`record_action/2`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`timeline`** / **`export_json`** with **`:correlation_id`**. Validated in Phase 27: Example app correlation path (2026-04-24).
+- [x] **OPS-01 / OPS-02 (Phase 28)** — **`guides/domain-reference.md`** per-event telemetry narrative + **`## Trigger coverage (operational)`**; **`guides/production-checklist.md`** §1/§6 cross-links; README pointer to **`guides/domain-reference.md#trigger-coverage-operational`**. Validated in Phase 28: Telemetry & health operators' narrative (2026-04-24).
 
 ### Active (v1.9)
 
-- [ ] **OPS-01** — Telemetry operator narrative (see **`.planning/REQUIREMENTS.md`**).
-- [ ] **OPS-02** — Health / trigger coverage operator narrative.
 - [ ] **IDX-01** — Audit indexing cookbook.
 - [ ] **IDX-02** — Indexing doc contract test(s).
 - [ ] **SCALE-01** — Retention-at-scale + volume guidance in production docs.
@@ -217,4 +216,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.9** milestone opened (Phases 28+); living **`REQUIREMENTS.md`** and roadmap updated.*
+*Last updated: 2026-04-24 — **v1.9** — Phase **28** complete (OPS-01, OPS-02); next **Phase 29** (indexing cookbook).*
