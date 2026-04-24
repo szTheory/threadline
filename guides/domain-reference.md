@@ -86,9 +86,72 @@ Threadline emits **`:telemetry.execute/3`** events (no attached handler is requi
 | `[:threadline, :action, :recorded]` | After `Threadline.record_action/2` finishes (success or failure) | `status` (`:ok` or `:error`) | `%{}` |
 | `[:threadline, :health, :checked]` | After `Threadline.Health.trigger_coverage/1` returns | `covered`, `uncovered` (counts of tables in each bucket) | `%{}` |
 
+### `[:threadline, :transaction, :committed]`
+
+**When it fires.** Threadline emits this event after capture-associated transactions commit their work, and also emits it as a **proxy** with `table_count: 0` when `Threadline.record_action/2` succeeds without an explicit post-commit hook that supplies real per-transaction counts.
+
+**What to measure.** Use `table_count` when you need fidelity to “how many distinct audited tables produced rows in this transaction.” Compare week-over-week after deploys or schema changes.
+
+**Metadata.** Handlers receive an empty map (`%{}`) today; keep dashboards tolerant if metadata keys are added later.
+
+**Misleading or degraded signals.** `table_count` is often **0** on the `record_action` proxy path even when semantic capture succeeded — that is not proof that triggers failed. A generic smell: steady **zero** `table_count` while application traces show audited-table writes for hours → confirm whether events are dominated by the proxy vs missing `Threadline.Telemetry.transaction_committed/2` after `Repo.transaction/1`.
+
+**Where to look next.** [`production-checklist.md` §1 — Capture and triggers](production-checklist.md#1-capture-and-triggers) for install / `mix threadline.gen.triggers` / coverage cadence; [`production-checklist.md` §6 — Observability](production-checklist.md#6-observability) for handler wiring.
+
+### `[:threadline, :action, :recorded]`
+
+**When it fires.** Immediately after `Threadline.record_action/2` completes, success or failure.
+
+**What to measure.** Emit rate split by `status` (`:ok` vs `:error`). Error spikes often track validation failures, missing `ActorRef`, or repo outages — chart both absolute errors and error ratio.
+
+**Metadata.** Empty map (`%{}`).
+
+**Misleading or degraded signals.** High `:ok` traffic does **not** imply every domain table row was captured; this event tracks the semantics helper, not each physical mutation.
+
+**Where to look next.** [`production-checklist.md` §1 — Capture and triggers](production-checklist.md#1-capture-and-triggers) for trigger coverage cadence; [`production-checklist.md` §2 — Actor bridge and semantics](production-checklist.md#2-actor-bridge-and-semantics) for GUC / `record_action` pairing.
+
+<span id="threadline-health-checked"></span>
+
+### `[:threadline, :health, :checked]`
+
+**When it fires.** After `Threadline.Health.trigger_coverage/1` returns from its catalog pass.
+
+**What to measure.** `covered` and `uncovered` are **aggregate counts** of tables in each bucket across the public user tables `Health` enumerates — telemetry does not stream per-table tuples here.
+
+**Metadata.** Empty map (`%{}`).
+
+**Misleading or degraded signals.** A rising `uncovered` count is inventory drift, not automatically a CI failure: `mix threadline.verify_coverage` enforces only the configured `expected_tables` intersection (see [`## Trigger coverage (operational)`](#trigger-coverage-operational)).
+
+**Where to look next.** Tuple-level results and Mix policy live under [`## Trigger coverage (operational)`](#trigger-coverage-operational); operational cadence in [`production-checklist.md` §1 — Capture and triggers](production-checklist.md#1-capture-and-triggers).
+
+**Weekly / post-deploy / “metrics look wrong” triage**
+
+1. Confirm `:telemetry` handlers for Threadline events are attached in the running release ([`production-checklist.md` §6 — Observability](production-checklist.md#6-observability)).
+2. For `[:threadline, :transaction, :committed]`, sample `table_count`: persistent zeros during known writes usually mean the proxy path or missing `Threadline.Telemetry.transaction_committed/2` — revisit the subsection above and `Threadline.Telemetry` on HexDocs.
+3. For `[:threadline, :action, :recorded]`, compare `:ok` vs `:error` trends against deploys and auth incidents ([`production-checklist.md` §2 — Actor bridge and semantics](production-checklist.md#2-actor-bridge-and-semantics)).
+4. For `[:threadline, :health, :checked]`, reconcile `uncovered` with [`## Trigger coverage (operational)`](#trigger-coverage-operational) before tuning alerts.
+5. After schema or trigger changes, rerun the §1 checklist items for `mix threadline.gen.triggers` and `mix threadline.verify_coverage` ([`production-checklist.md` §1 — Capture and triggers](production-checklist.md#1-capture-and-triggers)).
+6. Remember **retention purge** does not emit these events — use purge batch logs, not this triage list, when investigating purge-only windows.
+7. If correlation-scoped investigations spike, verify whether `record_action` volume alone explains `transaction_committed` traffic (proxy vs counted commits).
+8. After material Plug/Phoenix changes, re-check actor GUC wiring and telemetry boot order together (§1 + §6).
+
 **Retention purge** does not emit these events today; use application logs from `mix threadline.retention.purge` / `Threadline.Retention.purge/1` (see task `@moduledoc`) or wrap purge calls with your own telemetry.
 
 See also: `Threadline.Telemetry` on HexDocs for copy-paste attach examples.
+
+## Trigger coverage (operational)
+
+`Threadline.Health.trigger_coverage/1` takes **`repo:`** (required `Ecto.Repo` module) and returns a list of tagged tuples:
+
+`[{:covered, String.t()} | {:uncovered, String.t()}]`
+
+Each tuple names a **public** user table the catalog query sees. `{:covered, name}` means Threadline’s `threadline_audit_*` trigger was found on that relation; `{:uncovered, name}` means it was not.
+
+**Audit catalog tables.** `audit_transactions`, `audit_changes`, and `audit_actions` are **excluded** from the per-table list — they are not expected to carry capture triggers (CAP-10 / `Threadline.Health` `@moduledoc`). Do not expect them in `Health` output.
+
+**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself.
+
+**Telemetry link.** When you need how those aggregate counts surface in metrics, see the [`[:threadline, :health, :checked]`](#threadline-health-checked) subsection under [`## Telemetry (operator reference)`](#telemetry-operator-reference).
 
 ## Correlation
 
