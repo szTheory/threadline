@@ -33,7 +33,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 
 ## 5. Export and investigation
 
-- [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
+- [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
 
 ## 6. Observability

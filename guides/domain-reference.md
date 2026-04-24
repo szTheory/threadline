@@ -55,7 +55,7 @@ Operators cap table growth with a **global retention window** under **`config :t
 
 Read-only exports for operator playbooks (“export then purge”, cross-checks, ad-hoc analysis).
 
-- **Filter vocabulary:** identical to `Threadline.Query.timeline/2` — `:repo`, `:table`, `:actor_ref`, `:from`, `:to`. Bounds apply to **`AuditChange.captured_at`** (inclusive). **`AuditTransaction.occurred_at`** appears inside exported transaction context and can differ from `captured_at` on the same change row.
+- **Filter vocabulary:** identical to `Threadline.Query.timeline/2` — `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`. Bounds apply to **`AuditChange.captured_at`** (inclusive). **`AuditTransaction.occurred_at`** appears inside exported transaction context and can differ from `captured_at` on the same change row.
 - **APIs:** `Threadline.Export` (`to_csv_iodata/2`, `to_json_document/2`, `count_matching/2`, `stream_changes/2`), `Threadline.export_csv/2`, `Threadline.export_json/2`, and **`mix threadline.export`** (see task `@moduledoc`).
 - **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
 - **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
