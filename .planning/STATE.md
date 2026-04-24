@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-status: completed
-last_updated: "2026-04-23T21:55:50.169Z"
-last_activity: 2026-04-23 — Phase 20 discuss; 20-CONTEXT + DISCUSSION-LOG committed; PLAN aligned.
+status: executing
+last_updated: "2026-04-24T01:05:26.117Z"
+last_activity: 2026-04-24 -- Phase 20 execution started
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
 ---
 
@@ -20,17 +20,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.5** — close **ADOP-03** with a real host pilot using [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md) + [`guides/production-checklist.md`](../guides/production-checklist.md).
+**Current focus:** Phase 20 — first-external-pilot
 
 ## Current Position
 
-Phase: 20 — First external pilot (pending host)
+Phase: 20 (first-external-pilot) — EXECUTING
 
-Plan: —
+Plan: 1 of 1
 
-Status: Phase 19 complete; awaiting pilot evidence for ADOP-03
+Status: Executing Phase 20
 
-Last activity: 2026-04-23 — Phase 20 discuss: `20-CONTEXT.md` + `20-DISCUSSION-LOG.md` committed; PLAN aligned with pilot protocol.
+Last activity: 2026-04-24 -- Phase 20 execution started
 
 ## Performance metrics
 
@@ -56,7 +56,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` (includes `verify.doc_contr
 
 **Open milestone:** v1.5 — opened 2026-04-23
 
-**Next:** `/gsd-execute-phase 20` (or run the checklist in [PLAN.md](phases/20-first-external-pilot/PLAN.md)) — pilot execution for **ADOP-03**; context: [20-CONTEXT.md](phases/20-first-external-pilot/20-CONTEXT.md).
+**Next:** Host runs [PLAN.md](phases/20-first-external-pilot/PLAN.md) checklist → evidence PR to `main` for [`guides/adoption-pilot-backlog.md`](../guides/adoption-pilot-backlog.md) → triage → maintainer closes **ADOP-03** in `REQUIREMENTS.md`. Re-run `/gsd-execute-phase 20` after evidence lands to drive verification / completion. Context: [20-CONTEXT.md](phases/20-first-external-pilot/20-CONTEXT.md).
 
 **Prior shipped:** v1.4 — 2026-04-23 (archive: `.planning/milestones/v1.4-*.md`).
 
