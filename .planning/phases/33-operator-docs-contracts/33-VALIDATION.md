@@ -1,8 +1,8 @@
 ---
 phase: 33
 slug: operator-docs-contracts
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-04-24
 ---
@@ -60,9 +60,21 @@ created: 2026-04-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify via doc contract module
-- [ ] Sampling continuity maintained
-- [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` set in frontmatter when execution completes
+- [x] All tasks have automated verify via doc contract module
+- [x] Sampling continuity maintained
+- [x] No watch-mode flags
+- [x] `nyquist_compliant: true` set in frontmatter when execution completes
 
-**Approval:** pending
+**Approval:** signed off 2026-04-24 (Nyquist validate-phase audit)
+
+---
+
+## Validation Audit 2026-04-24
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 3 |
+| Resolved | 3 |
+| Escalated | 0 |
+
+**Gaps closed (automated):** Plan 33-01 acceptance had `support-incident-queries` in `domain-reference.md`, strict heading order (Exploration block before **Support incident queries**), and preservation of `domain-reference.md#support-incident-queries` in `production-checklist.md` — these were not asserted in `ExplorationRoutingDocContractTest` and are now covered by the same module.
