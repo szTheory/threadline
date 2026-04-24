@@ -81,7 +81,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.7** in progress — **Phases 22–23** complete (2026-04-24): example app + **`POST /api/posts`** HTTP audited path (`Threadline.Plug`, `posts_audit_path_test.exs`). **Phase 24** remains open. **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
+- **Planning:** Milestone **v1.7** — **Phases 22–24** complete (2026-04-24): example app, HTTP audited path, **Oban** job path (`PostTouchWorker`, `Blog.touch_post_for_job/2`, `Threadline.Job`), README semantics + adoption guide links. **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
 
 ## Requirements
 
@@ -109,14 +109,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **STG-01 — STG-03 (Phase 21)** — In-repo topology template, audited-path rubric, CONTRIBUTING integrator workflow, production-checklist pointer, doc contract tests. Validated in Phase 21: Host staging & pooler parity (2026-04-24). Integrators still fill matrices with host-specific evidence via fork + PR.
 - [x] **REF-01 / REF-02 (Phase 22)** — Canonical `examples/threadline_phoenix/` path-dep app, install + `gen.triggers` for `posts`, dedicated `threadline_phoenix_test`, `mix verify.example` in `ci.all`, CI + doc contracts. Validated in Phase 22: Example app layout & runbook (2026-04-24).
 - [x] **REF-03 (Phase 23)** — `Threadline.Plug` on example `:api` pipeline; `Blog.create_post/2` with transaction-local GUC; ConnCase `posts_audit_path_test.exs` proves `audit_changes` + `AuditTransaction.actor_ref`. Validated in Phase 23: HTTP audited path (2026-04-24).
+- [x] **REF-04 / REF-05 / REF-06 (Phase 24)** — Oban `PostTouchWorker` + `Blog.touch_post_for_job/2` with `Threadline.Job` and `record_action(:post_title_refreshed_from_queue, …)`; example README **Semantics in jobs** + links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`**. Validated in Phase 24: Job path, actions, adoption pointers (2026-04-24).
 
 ### Active
 
 _Scoped in **`.planning/REQUIREMENTS.md`** (milestone v1.7). Summary:_
 
-- [ ] **REF-04** — Oban job path: audited write using `Threadline.Job` (or documented equivalent).
-- [ ] **REF-05** — At least one `record_action/2` site with short operator-facing explanation.
-- [ ] **REF-06** — Cross-links from example README to production checklist and adoption-pilot STG rubric.
+_(v1.7 reference-integration requirements REF-04–REF-06 are complete; see **Validated** above.)_
 
 ### Out of Scope
 
@@ -185,4 +184,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — Phase 23 complete (HTTP audited `POST /api/posts`); Phase 24 next on `.planning/ROADMAP.md`.*
+*Last updated: 2026-04-24 — Phase 24 complete (Oban job path, `record_action`, example README adoption links); v1.7 reference integration shipped in-repo.*
