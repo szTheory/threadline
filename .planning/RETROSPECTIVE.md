@@ -196,6 +196,44 @@
 
 ---
 
+## Milestone: v1.6 — Host staging / pooler parity
+
+**Shipped:** 2026-04-24  
+**Phases:** 1 | **Plans:** 2
+
+### What was built
+
+- Adoption backlog **STG** topology template and audited-path rubric with stable markers for doc contracts.
+- CONTRIBUTING host STG evidence workflow and production-checklist pointer into the rubric.
+- `ci_topology_contract_test.exs` and `stg_doc_contract_test.exs` locking anchors for regression safety.
+
+### What worked
+
+- Treating **library CI topology** and **integrator host staging** as explicitly different proof surfaces avoided over-claiming external environments.
+- Small two-plan phase kept verification (`mix ci.all`) as the single heavy gate at the end.
+
+### What was inefficient
+
+- Living **REQUIREMENTS.md** checkboxes lagged **PROJECT.md** until milestone close; reconciliation happened in the archived requirements file.
+- `gsd-sdk query milestone.complete` still failed; manual archival duplicated prior milestone toil.
+
+### Patterns established
+
+- **OK / Issue / N/A / Not run** plus “no OK without pointer” as normative rubric text next to the pilot matrix.
+
+### Key lessons
+
+1. Update traceability tables when verification passes, not only at `/gsd-complete-milestone`.
+2. Prefer explicit “maintainer vs integrator” ownership sentences in the same doc that hosts the checklist.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phase 21 executed as a short docs + contracts slice after v1.5 adoption loop.
+- Notable: Phase directory **21** remains under `.planning/phases/` until optional **`/gsd-cleanup`**.
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -208,6 +246,7 @@
 | v1.3 | 3 | Production adoption: redaction, retention/purge, CSV/JSON export |
 | v1.4 | 4 | **0.2.0** packaging, production checklist, timeline/export DX |
 | v1.5 | 2 | Adoption feedback loop: pilot backlog + telemetry reference + honest pooler follow-up |
+| v1.6 | 1 | Host STG templates + rubric + CONTRIBUTING + doc contracts (integrator-owned evidence explicit) |
 
 ### Cumulative quality
 
@@ -219,6 +258,7 @@
 | v1.3 | + redaction + retention + export integration / Mix task tests | PostgreSQL-backed paths for capture JSON and purge |
 | v1.4 | unchanged default CI path | Release narrative + operator checklist for **0.2.0** |
 | v1.5 | + topology / pooler contract job on CI | Doc-first adoption loop; no new library surface |
+| v1.6 | + STG doc contract tests | Doc-only milestone; `mix ci.all` unchanged in spirit, added focused contract files |
 
 ### Top lessons (verified across milestones)
 
@@ -227,3 +267,4 @@
 3. v1.2 — ship **operator semantics** for brownfield (continuity module + guide) in the same milestone as the capture feature that motivates them.
 4. v1.3 — align **export filters** with **timeline** so ops never learn two query dialects.
 5. v1.5 — label **who** must prove pooler realism (library CI vs host staging) before conflating them in a pilot narrative.
+6. v1.6 — ship **templates + rubrics** as repo artifacts; treat integrator **OK** rows as downstream work outside maintainer attestation.

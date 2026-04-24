@@ -7,7 +7,7 @@
 
 ## Phase Boundary
 
-Deliver **STG-01**–**STG-03** (see `.planning/REQUIREMENTS.md`): integrator-owned **topology narrative**, **HTTP + async job** audited-path evidence with **OK / Issue / N/A** and reproducible pointers, and **backlog** rows (`guides/adoption-pilot-backlog.md` or host-linked copy per intro) that stay honest about **CI vs host**. No new capture semantics, no claiming external environments the library does not control, no in-repo Phoenix sample app in this phase (remains deferred per `REQUIREMENTS.md` / `PROJECT.md`).
+Deliver **STG-01**–**STG-03** (see `.planning/milestones/v1.6-REQUIREMENTS.md`): integrator-owned **topology narrative**, **HTTP + async job** audited-path evidence with **OK / Issue / N/A** and reproducible pointers, and **backlog** rows (`guides/adoption-pilot-backlog.md` or host-linked copy per intro) that stay honest about **CI vs host**. No new capture semantics, no claiming external environments the library does not control, no in-repo Phoenix sample app in this phase (remains deferred per archived requirements / `PROJECT.md`).
 
 **Gathering mode:** User selected **all** gray areas; decisions below synthesize parallel research (OSS doc patterns, Elixir/Hex norms, pooler/Ecto operator docs, checklist semantics) into one coherent maintainer plan.
 
@@ -19,7 +19,7 @@ Deliver **STG-01**–**STG-03** (see `.planning/REQUIREMENTS.md`): integrator-ow
 
 ### 1. Evidence shape and canonical home (STG-02 / STG-03)
 
-- **D-01 (Hybrid B + C):** Keep **versioned in-repo rubric** only in canonical markdown: definitions of OK / Issue / N/A / Not run, what counts as evidence, redaction rules, and **empty or example-only** template rows where useful. Put **host-specific outcomes and payloads** (topology detail beyond the index, log excerpts, internal URLs) in **integrator-controlled** artifacts (app repo `docs/…`, wiki, or private doc) and **link** from `guides/adoption-pilot-backlog.md` intro and/or per-row “Evidence link” cells—per `REQUIREMENTS.md` allowance for a linked host-maintained copy.
+- **D-01 (Hybrid B + C):** Keep **versioned in-repo rubric** only in canonical markdown: definitions of OK / Issue / N/A / Not run, what counts as evidence, redaction rules, and **empty or example-only** template rows where useful. Put **host-specific outcomes and payloads** (topology detail beyond the index, log excerpts, internal URLs) in **integrator-controlled** artifacts (app repo `docs/…`, wiki, or private doc) and **link** from `guides/adoption-pilot-backlog.md` intro and/or per-row “Evidence link” cells—per archived **v1.6** requirements allowance for a linked host-maintained copy.
 - **D-02:** Reject **A-alone** (single file that becomes the dumping ground for every host’s secrets and attestation): high footgun risk (git history, version skew, maintainer-as-notary). Reject relying on **C-alone** without in-repo rubric: discoverability and criterion drift.
 - **D-03:** In-repo rows may hold **short stable summaries** (e.g. status + “see [evidence doc] §STG”) when the full narrative lives off-repo; never require pasting connection strings or raw tokens into `main`.
 
@@ -47,7 +47,7 @@ Deliver **STG-01**–**STG-03** (see `.planning/REQUIREMENTS.md`): integrator-ow
 ### 5. Repo affordances (what ships in-repo this phase)
 
 - **D-16:** **Primary lever:** extend existing **doc contract** coverage (`verify.doc_contract`, `test/threadline/readme_doc_contract_test.exs`, related fixtures)—anchors, cross-links, and fixture-backed checks on **public integration surfaces** only (no capture internals).
-- **D-17:** **Do not** add a new Phoenix **example app** or expand **Docker** topology in v1.6: high maintenance and scope creep; remains aligned with `REQUIREMENTS.md` “Out of scope” and research SUMMARY.
+- **D-17:** **Do not** add a new Phoenix **example app** or expand **Docker** topology in v1.6: high maintenance and scope creep; remains aligned with archived v1.6 requirements “Out of scope” and research SUMMARY.
 - **D-18 (Claude’s discretion / optional):** A **thin** `mix threadline.*` task that only prints canonical doc paths and `mix verify.*` / CI job names is acceptable **if** it shares a single source of truth with guides (no second validation engine). If it risks duplicating policy strings, **skip** and rely on docs + doc contracts only.
 
 ### Cohesion note (cross-decision)
@@ -70,7 +70,7 @@ Evidence **B+C**, workflow **fork+PR**, topology **fixed fields + link**, and se
 
 ### Requirements and roadmap
 
-- `.planning/REQUIREMENTS.md` — STG-01–STG-03 acceptance text
+- `.planning/milestones/v1.6-REQUIREMENTS.md` — STG-01–STG-03 acceptance text (archived)
 - `.planning/ROADMAP.md` — Phase 21 goal, success criteria, notes on Hex 0.2.0
 - `.planning/PROJECT.md` — v1.6 milestone intent, non-goals
 - `.planning/milestones/v1.5-REQUIREMENTS.md` — archived STG-01 draft (linked from backlog)
@@ -130,7 +130,7 @@ Evidence **B+C**, workflow **fork+PR**, topology **fixed fields + link**, and se
 
 ## Deferred Ideas
 
-- **In-repo Phoenix sample app** — explicitly out of scope for v1.6 per `REQUIREMENTS.md` / `PROJECT.md`; would change how often integrator matrices need N/A for job/HTTP profiles.
+- **In-repo Phoenix sample app** — explicitly out of scope for v1.6 per archived requirements / `PROJECT.md`; would change how often integrator matrices need N/A for job/HTTP profiles.
 - **Automated `mix threadline.stg` “validator”** that encodes policy beyond existing `verify.*` — risks false confidence and duplicate source of truth; not part of agreed Phase 21 unless reduced to a link index (**D-18** discretion only).
 
 </deferred>

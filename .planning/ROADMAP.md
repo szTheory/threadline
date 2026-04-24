@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](REQUIREMENTS.md) · [research](research/SUMMARY.md)
+- ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
 - ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
 - ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
 - ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — [full archive](milestones/v1.3-ROADMAP.md)
@@ -25,7 +25,7 @@ Phase-level snapshot: [.planning/milestones/v1.5-ROADMAP.md](milestones/v1.5-ROA
 <details>
 <summary>✅ v1.6 Host staging / pooler parity (Phase 21) — SHIPPED 2026-04-24</summary>
 
-**Goal:** Satisfy **STG-01**–**STG-03** in [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md): integrator-owned topology narrative, HTTP + job audited-path evidence, and adoption backlog updates with citations.
+**Goal:** Satisfy **STG-01**–**STG-03** in [`.planning/milestones/v1.6-REQUIREMENTS.md`](milestones/v1.6-REQUIREMENTS.md): integrator-owned topology narrative, HTTP + job audited-path evidence, and adoption backlog updates with citations.
 
 **Requirements:** STG-01, STG-02, STG-03
 
@@ -101,7 +101,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.6** is complete (**Phase 21** shipped 2026-04-24). Open the next milestone in this file when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump.
+**v1.6** is complete (**Phase 21** shipped 2026-04-24); requirements archived under `.planning/milestones/v1.6-REQUIREMENTS.md`. Open the next milestone in this file when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump.
 
 ## Progress
 

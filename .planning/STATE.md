@@ -1,27 +1,27 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: — Host staging / pooler parity
-status: milestone_complete
-last_updated: "2026-04-24T03:15:00Z"
-last_activity: 2026-04-24 — Phase 21 executed; v1.6 STG templates, CONTRIBUTING, checklist, doc contracts landed
+milestone: next
+milestone_name: (not opened)
+status: between_milestones
+last_updated: "2026-04-23T12:00:00Z"
+last_activity: 2026-04-23 — v1.6 milestone archived; living REQUIREMENTS.md removed pending /gsd-new-milestone
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-23)
+See: `.planning/PROJECT.md` (updated 2026-04-23 after v1.6 archive)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.6** shipped (Phase **21** complete). Next milestone not yet opened on roadmap (`phase.complete` returned no next phase).
+**Current focus:** **v1.6** shipped and archived. Next milestone not yet opened — use **`/gsd-new-milestone`** when scope is ready.
 
 ## Current Position
 

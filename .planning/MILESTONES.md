@@ -2,6 +2,30 @@
 
 Entries are newest first.
 
+## v1.6 — Host staging / pooler parity (shipped 2026-04-24)
+
+**Goal:** Close the gap between **library CI** and **honest host documentation** using integrator-owned templates and evidence pointers — not maintainer attestation of third-party staging (**STG-01**–**STG-03**).
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
+
+**Phases completed:** 21 (1 phase; 2 plans with `SUMMARY.md` under `.planning/phases/21-host-staging-pooler-parity/`).
+
+**Key accomplishments:**
+
+- Landed **STG-HOST-TOPOLOGY-TEMPLATE** and **STG-AUDITED-PATH-RUBRIC** in **`guides/adoption-pilot-backlog.md`** with doc contracts in **`test/threadline/ci_topology_contract_test.exs`**.
+- Added **`CONTRIBUTING.md`** **`## Host STG evidence (integrators)`** (fork + PR workflow, redaction emphasis) and **`guides/production-checklist.md`** cross-link to the rubric.
+- Shipped **`test/threadline/stg_doc_contract_test.exs`** tying CONTRIBUTING, checklist, and backlog anchors; **`DB_PORT=5433 MIX_ENV=test mix ci.all`** green at close.
+
+**Stats:** 1 phase, 2 plans, 2/2 summaries; v1.6 requirements **3/3** complete at close (see archived traceability; living file had lagging checkboxes — reconciled in archive).
+
+**Archives:** `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`.
+
+**Known gaps at close:** None for in-repo acceptance. No standalone `v1.6-MILESTONE-AUDIT.md`; optional **`/gsd-audit-milestone`** next time. `gsd-sdk query milestone.complete` returned `version required for phases archive` — archives written manually.
+
+**What is next:** **`/gsd-new-milestone`** — fresh `.planning/REQUIREMENTS.md` and next roadmap slice when scope is ready.
+
+---
+
 ## v1.5 — Adoption feedback loop (shipped 2026-04-23)
 
 **Goal:** Integrator-led adoption — operator telemetry reference, **`guides/adoption-pilot-backlog.md`**, README/ExDoc wiring; **Phase 20** closed **ADOP-03** (2026-04-23) with maintainer CI–backed backlog evidence + **STG-01** follow-up for host pooler/staging depth.
@@ -24,7 +48,7 @@ Entries are newest first.
 
 **Note:** No standalone `v1.5-MILESTONE-AUDIT.md` in `.planning/` at close; optional `/gsd-audit-milestone` next time for extra assurance. `gsd-sdk query milestone.complete` returned `version required for phases archive` in this environment — archives were written manually to match prior milestones.
 
-**What is next:** **v1.6** opened 2026-04-23 — `.planning/REQUIREMENTS.md`, **Phase 21** on `.planning/ROADMAP.md`; execute **`/gsd-plan-phase 21`** (or discuss-phase) for **STG-01**–**STG-03**.
+**What is next (historical at v1.5 close):** v1.6 — shipped 2026-04-24; see **v1.6** entry above.
 
 ---
 

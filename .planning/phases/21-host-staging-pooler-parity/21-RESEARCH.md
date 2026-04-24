@@ -4,7 +4,7 @@
 
 ## Summary
 
-Phase 21 is **maintainer-side documentation and doc-contract work**: extend `guides/adoption-pilot-backlog.md`, cross-links in `CONTRIBUTING.md` and `guides/production-checklist.md`, and fixture-backed assertions so the **CI vs host** boundary and **OK / Issue / N/A / Not run** semantics stay stable. No capture API changes, no in-repo Phoenix sample app (per `REQUIREMENTS.md` / `PROJECT.md`). Integrators satisfy STG acceptance via **fork + PR** (short in-repo index + links to host-owned evidence).
+Phase 21 is **maintainer-side documentation and doc-contract work**: extend `guides/adoption-pilot-backlog.md`, cross-links in `CONTRIBUTING.md` and `guides/production-checklist.md`, and fixture-backed assertions so the **CI vs host** boundary and **OK / Issue / N/A / Not run** semantics stay stable. No capture API changes, no in-repo Phoenix sample app (per archived v1.6 requirements / `PROJECT.md`). Integrators satisfy STG acceptance via **fork + PR** (short in-repo index + links to host-owned evidence).
 
 ## Findings
 
@@ -26,7 +26,7 @@ Phase 21 is **maintainer-side documentation and doc-contract work**: extend `gui
 ### 4. Backlog alignment (STG-03)
 
 - **Connection topology** stays a narrow index; longform + Mermaid in host-linked doc (D-15).
-- Intro must allow **host-maintained linked copy** (REQUIREMENTS.md).
+- Intro must allow **host-maintained linked copy** (v1.6 requirements archive).
 
 ### 5. Pitfalls (from `.planning/research/PITFALLS.md`)
 

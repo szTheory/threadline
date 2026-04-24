@@ -18,11 +18,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **STG-02** — Audited HTTP/job path rubric (`STG-AUDITED-PATH-RUBRIC`) with **OK / Issue / N/A / Not run** and **Evidence / pointer** column.
 - **STG-03** — Rubric rules (no OK without pointer; **N/A** vs **Not run**; CI vs host labeling); **CONTRIBUTING** `## Host STG evidence (integrators)`; production-checklist intro cross-link; doc contracts in **`test/threadline/ci_topology_contract_test.exs`** and **`test/threadline/stg_doc_contract_test.exs`**.
 
-**Non-goals (unchanged):** New capture semantics, exploration API expansion, LiveView UI, or claiming external pilot environments the library does not control — see **Out of Scope** and **Future** in `REQUIREMENTS.md`.
+**Non-goals (unchanged):** New capture semantics, exploration API expansion, LiveView UI, or claiming external pilot environments the library does not control — see **Out of Scope** below and **Future** in **`.planning/milestones/v1.6-REQUIREMENTS.md`** (archived v1.6 scope).
 
 ## Shipped milestones
 
-**v1.0** through **v1.6** are complete (**v1.6** shipped 2026-04-24). Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.5-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **v1.6** requirements remain in **`.planning/REQUIREMENTS.md`** for traceability.
+**v1.0** through **v1.6** are complete (**v1.6** shipped 2026-04-24). Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.6-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **v1.6** requirements: **`.planning/milestones/v1.6-REQUIREMENTS.md`** (living `.planning/REQUIREMENTS.md` removed at close — recreate with **`/gsd-new-milestone`**).
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -68,7 +68,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.6** shipped (2026-04-24) — Phase **21** (STG templates, CONTRIBUTING, checklist, doc contracts). Prior: **v1.5** (2026-04-23). **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
+- **Planning:** Milestone **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. Next milestone: **`/gsd-new-milestone`** when scope is ready (no living `REQUIREMENTS.md` until then). **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
 
 ## Requirements
 
@@ -97,7 +97,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_No open requirement rows — define the next milestone in `.planning/ROADMAP.md` when scope is ready._
+_No open requirement rows — run **`/gsd-new-milestone`** to author a fresh `.planning/REQUIREMENTS.md` and the next roadmap slice when scope is ready._
 
 ### Out of Scope
 
@@ -165,4 +165,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — Phase 21 complete; v1.6 shipped; Hex **0.2.0** unchanged.*
+*Last updated: 2026-04-23 — v1.6 milestone archived (`milestones/v1.6-*.md`); living requirements file removed pending next milestone.*
