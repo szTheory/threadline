@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
 status: active
-last_updated: "2026-04-24T01:52:00Z"
-last_activity: 2026-04-24 -- /gsd-execute-phase 20 — verification gaps_found (ADOP-03); no SUMMARY until pilot lands
+last_updated: "2026-04-23T12:00:00Z"
+last_activity: 2026-04-23 -- /gsd-execute-phase 20 — regression OK; ADOP-03 still pending; no SUMMARY (external pilot gate)
 progress:
   total_phases: 2
   completed_phases: 1
@@ -30,7 +30,7 @@ Plan: 0 of 1 complete (`PLAN.md` checklist; `20-VERIFICATION.md` = gaps_found un
 
 Status: v1.5 open — Phase 19 complete; Phase 20 blocked on **ADOP-03** (see `20-VERIFICATION.md`)
 
-Last activity: 2026-04-24 -- execute-phase 20 ran verifier gate; backlog still pre-pilot
+Last activity: 2026-04-23 -- execute-phase 20 — `mix ci.all` passed; backlog unchanged; verifier gate gaps_found
 
 ## Performance metrics
 
