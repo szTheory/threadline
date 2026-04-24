@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: — Close the support loop
-status: Milestone v1.8 — requirements and roadmap defined; implementation pending
-last_updated: "2026-04-24T18:00:00.000Z"
+status: planning
+last_updated: "2026-04-24T12:16:13.318Z"
 last_activity: 2026-04-24 — Phase 25 discuss complete; 25-CONTEXT.md captured
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -59,3 +60,5 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 **Prior shipped:** v1.7 — Phases 22–24 — 2026-04-24.
 
 **Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `.planning/milestones/v1.7-REQUIREMENTS.md`
+
+**Planned Phase:** 25 (Correlation-aware timeline & export) — 2 plans — 2026-04-24T12:16:13.311Z
