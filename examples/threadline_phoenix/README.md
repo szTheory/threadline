@@ -86,9 +86,27 @@ iex -S mix phx.server
 
 ## Audited HTTP path (`POST /api/posts`)
 
-The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`POST /api/posts`**, which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`** GUC before insert. **`test/threadline_phoenix_web/posts_audit_path_test.exs`** is the canonical proof that capture sees **`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`** populated.
+The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`POST /api/posts`**, which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`** GUC before insert, then **`Threadline.record_action/2`** with correlation metadata and a link from **`audit_transactions.action_id`** to that action so strict filters work (see **Correlation** below). **`test/threadline_phoenix_web/posts_audit_path_test.exs`** proves capture sees **`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`** populated.
 
 In production, replace the synthetic **`actor_fn`** (see `ThreadlinePhoenix.AuditActor`) with one derived from your auth layer.
+
+## Correlation: HTTP → audit_actions → timeline
+
+**Operator contract:** when you pass **`:correlation_id`** to **`Threadline.timeline/2`** or **`Threadline.export_json/2`**, Threadline applies a **strict** join: only **`audit_changes`** whose **`audit_transactions`** row is linked (**`audit_transactions.action_id`**) to an **`audit_actions`** row with that correlation id are returned. Headers such as **`x-correlation-id`** populate **`AuditContext`** at the edge; durable queryability requires **`Threadline.record_action/2`** in the **same** database transaction as the audited writes, as implemented in **`Blog.create_post/2`**. Timeline and export share the same filter vocabulary (see **`Threadline.Query`** and **LOOP-01** in **`CHANGELOG.md`**).
+
+CI proof for the HTTP slice lives in **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`** (`test/threadline_phoenix_web/posts_correlation_path_test.exs`).
+
+```elixir
+filters = [
+  table: "posts",
+  correlation_id: "demo-corr",
+  repo: ThreadlinePhoenix.Repo
+]
+
+# Same filters for export — NDJSON one JSON object per line
+Threadline.export_json(filters, json_format: :ndjson)
+# |> jq -r '.table_name'   # example: read a field from each NDJSON line
+```
 
 ## Semantics in jobs
 
@@ -103,7 +121,7 @@ This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`*
 
 **Integrator responsibility:** your team owns the **host-class** staging topology matrix, evidence, and promotion criteria for *your* URLs and regions. Threadline’s CI and this example app prove **reference patterns** (capture, HTTP and job semantics, tests); they do **not** certify third-party staging hosts or production endpoints. Use your fork/PR workflow per **`CONTRIBUTING.md`** when you need project-specific evidence.
 
-A future release may tighten the optional **`audit_transactions.action_id`** link between capture transactions and semantic **`audit_actions`** rows; the example does not rely on that FK being populated today.
+For **`POST /api/posts`**, the example sets **`audit_transactions.action_id`** in the same transaction as **`record_action`**, so **`:correlation_id`** filters match the rows operators expect.
 
 Example request (include **`x-request-id`** for traceability; no credential-shaped demo values):
 
