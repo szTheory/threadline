@@ -14,6 +14,36 @@ Use this with [`production-checklist.md`](production-checklist.md) when you firs
 
 ## Connection topology (host / maintainer)
 
+## STG host topology template (STG-01)
+
+How to use this block: copy the table into your integrator-owned doc or PR, fill one row per environment, and link back here or to your fork. Keep **secrets out of `main`** — use **redacted** snippets and **links** to internal evidence only.
+
+STG-HOST-TOPOLOGY-TEMPLATE
+
+| Environment | Class (CI or host) | Chain (app to pooler to postgres) | Pooler product | Pool mode | Ecto pools | prepare policy | Sandbox note | Matches prod | Evidence link |
+|-------------|-------------------|-----------------------------------|----------------|-----------|------------|----------------|--------------|--------------|----------------|
+| _example: staging_ | _host_ | _app to pgbouncer to postgres_ | _e.g. PgBouncer / vendor_ | _transaction \| session_ | _pool_size / pool_count_ | _e.g. :unnamed \| :named_ | **Sandbox is test-only** — never a prod claim | _yes \| no \| partial_ | _link to your doc / PR / runbook_ |
+
+When **Matches prod** is **partial**, add **one paragraph** below the row explaining what differs (CI-class proof vs host-class proof, pool mode, HTTP/Oban paths, etc.) so readers do not mistake library CI for your production topology.
+
+## STG audited write paths (STG-02)
+
+STG-AUDITED-PATH-RUBRIC
+
+Use this matrix for **HTTP handlers** and **Oban (or other job) paths** that perform audited writes. Status values are **honest labels**, not a scorecard — pair every **OK** with a reproducible pointer.
+
+| Path | Kind (HTTP \| job) | Status (OK \| Issue \| N/A \| Not run) | Evidence / pointer | Notes (N/A justification if N/A) |
+|------|-------------------|----------------------------------------|---------------------|----------------------------------|
+| _e.g. `POST /api/...`_ | _HTTP_ | _Not run_ | _—_ | _Applicable once route ships._ |
+
+Normative rules (STG-03 alignment):
+
+- **Not run** means the path is **in scope** for your pilot but you have **not** exercised it yet. Do **not** use **Not run** and **N/A** interchangeably.
+- **N/A** is allowed only with an **objective one-line justification** tied to written scope (for example: “no background job executor in this deployment”). Vague “not relevant” is not acceptable.
+- **OK** requires a **reproducible pointer**: Mix/CI command, test path, PR, doc path, or scripted steps — not an unsubstantiated sentence.
+- **Issue** marks a known gap or flakiness; note owner or next step when tracked in-repo.
+- Label **CI-class** vs **host-class** evidence where a reader could confuse **`verify-pgbouncer-topology`** / `mix verify.threadline` with **your** HTTP or job paths.
+
 **CI-PGBOUNCER-TOPOLOGY-CONTRACT:** GitHub Actions job **`verify-pgbouncer-topology`** runs **`priv/ci/topology_bootstrap.exs`** on direct Postgres, then **`mix verify.topology`** + **`mix verify.threadline`** with **`THREADLINE_PGBOUNCER_TOPOLOGY=1`** against **PgBouncer `POOL_MODE=transaction`** (`edoburu/pgbouncer` image). Doc contract: `test/threadline/ci_topology_contract_test.exs`. Local parity: [CONTRIBUTING.md](../CONTRIBUTING.md#pgbouncer-topology-ci-parity) + `docker-compose.yml`.
 
 | Question | Answer | Matches prod? |
