@@ -2,6 +2,8 @@
 
 Use this after the [README quickstart](../README.md#quick-start) and before treating audit capture as production-ready. It complements [`brownfield-continuity.md`](brownfield-continuity.md) for existing data.
 
+For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md)** as the in-repo matrix and rubric: fixed-field topology (`STG-HOST-TOPOLOGY-TEMPLATE`) plus audited HTTP/job paths with honest status columns under **`STG-AUDITED-PATH-RUBRIC`**. Copy rows into issues when something fails; keep evidence pointers **redacted** and link out to integrator-controlled detail.
+
 ## 1. Capture and triggers
 
 - [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment.
