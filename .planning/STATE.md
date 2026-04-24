@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.6
-milestone_name: host-staging-pooler-parity
-status: roadmapped
-last_updated: "2026-04-23T22:00:00Z"
-last_activity: 2026-04-23 — Milestone v1.6 initialized (research, requirements, roadmap)
+milestone_name: — Host staging / pooler parity
+status: Phase 21 context gathered; ready for `/gsd-plan-phase 21`
+last_updated: "2026-04-23T23:59:00Z"
+last_activity: 2026-04-23 — `/gsd-discuss-phase 21` (research-backed CONTEXT + DISCUSSION-LOG committed)
 progress:
   total_phases: 1
   completed_phases: 0
@@ -24,13 +24,13 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 ## Current Position
 
-Phase: **21** — Host staging & pooler parity (not started)
+Phase: **21** — Host staging & pooler parity (context ready)
 
 Plan: —
 
-Status: Requirements and roadmap defined; ready for `/gsd-discuss-phase 21` or `/gsd-plan-phase 21`
+Status: `.planning/phases/21-host-staging-pooler-parity/21-CONTEXT.md` captured implementation decisions; next is `/gsd-plan-phase 21`.
 
-Last activity: 2026-04-23 — `/gsd-new-milestone` confirmed; `phases.clear`; planning docs committed
+Last activity: 2026-04-23 — Phase 21 discuss-phase completed (subagent research + synthesized CONTEXT)
 
 ## Performance metrics
 
@@ -45,7 +45,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` (includes `verify.doc_contr
 
 ### Pending todos
 
-1. **`/gsd-discuss-phase 21`** or **`/gsd-plan-phase 21`** — Execute host STG evidence and doc updates.
+1. **`/gsd-plan-phase 21`** — Break STG work into plans from `21-CONTEXT.md`.
 2. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`**.
 
 ### Blockers / concerns
