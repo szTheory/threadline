@@ -84,7 +84,7 @@ Run:
 mix threadline.verify_coverage
 ```
 
-Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverage/1`.
+Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverage/1`. For how `{:covered, _}` / `{:uncovered, _}` relate to `expected_tables` and telemetry, see [`guides/domain-reference.md#trigger-coverage-operational`](guides/domain-reference.md#trigger-coverage-operational).
 
 ### Data retention and purge
 
