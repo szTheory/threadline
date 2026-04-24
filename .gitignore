@@ -20,6 +20,7 @@ Thumbs.db
 *.swo
 *~
 .idea/
+.cursor/
 .vscode/
 *.code-workspace
 .env

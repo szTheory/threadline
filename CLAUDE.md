@@ -71,6 +71,10 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 - Capture mechanism TBD — evaluate Carbonite and alternatives; do not assume one approach.
 - Not a SIEM, not event sourcing, not a pgAudit replacement, not a data warehouse product.
 
+## GSD / local planning
+
+When running **`gsd-sdk query state.begin-phase`**, use **positional** arguments (`phase`, `slug`, `plan_count`). Flag-style `--phase` / `--name` invocations can corrupt `.planning/STATE.md` depending on `gsd-sdk` version. Phase 20 details: `.planning/phases/20-first-external-pilot/PLAN.md` (GSD execute-phase preflight).
+
 ## Reference Documents
 
 - `prompts/audit-lib-domain-model-reference.md` — full domain model, entities, bounded contexts, API shapes

@@ -41,3 +41,8 @@ One **external** host completes a **credible** pilot (see **Environment bar** be
 
 - Maintainer sign-off on merged backlog + triage links.
 - Optional: `mix verify.doc_contract` if backlog/README anchors change.
+
+## GSD execute-phase preflight
+
+- **`gsd-sdk query state.begin-phase`** — use **positional** arguments: `gsd-sdk query state.begin-phase 20 first-external-pilot 1`. A `--phase` / `--name` flag form **corrupts** `.planning/STATE.md` with some `gsd-sdk` builds.
+- Run **`/gsd-execute-phase 20`** only after **ADOP-03** evidence exists on `main` (checklist + `REQUIREMENTS.md`); earlier runs should expect **`gaps_found`** in `20-VERIFICATION.md`, not phase completion.
