@@ -2,15 +2,29 @@
 
 Entries are newest first.
 
-## v1.5 — Adoption feedback loop (in progress, opened 2026-04-23)
+## v1.5 — Adoption feedback loop (shipped 2026-04-23)
 
 **Goal:** Integrator-led adoption — operator telemetry reference, **`guides/adoption-pilot-backlog.md`**, README/ExDoc wiring; **Phase 20** closed **ADOP-03** (2026-04-23) with maintainer CI–backed backlog evidence + **STG-01** follow-up for host pooler/staging depth.
 
 **Distribution:** **`v0.2.0`** pushed; **`threadline` 0.2.0** on Hex (same day).
 
-**Phases:** 19 (adoption operator docs) — complete in-repo; 20 (first external pilot) — pending.
+**Phases completed:** 19–20 (2 phases; plans evidenced via `PLAN.md` / `VERIFICATION.md` under `.planning/phases/`).
 
-**Living:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/PROJECT.md`, `.planning/STATE.md`.
+**Key accomplishments:**
+
+- Shipped **`guides/adoption-pilot-backlog.md`** with checklist matrix, distribution preflight, and prioritized follow-ups aligned to **`guides/production-checklist.md`**.
+- Documented all **`[:threadline, …]`** telemetry events in **`guides/domain-reference.md`** with cross-links from the production checklist (**TELEM-01** / **TELEM-02**).
+- README and ExDoc extras surface the pilot backlog for integrator discovery (**ADOP-01** / **ADOP-02**).
+- Closed **ADOP-03** with maintainer CI evidence in the backlog; **`AP-ENV.1`** routed to **`STG-01`** for honest host pooler/staging depth.
+- CI: **`verify-pgbouncer-topology`** plus contract tests exercise pooler topology paths on `main`.
+
+**Stats:** 2 phases; 5/5 v1.5 requirements complete at close (traceability table).
+
+**Archives:** `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`.
+
+**Note:** No standalone `v1.5-MILESTONE-AUDIT.md` in `.planning/` at close; optional `/gsd-audit-milestone` next time for extra assurance. `gsd-sdk query milestone.complete` returned `version required for phases archive` in this environment — archives were written manually to match prior milestones.
+
+**What is next:** **`/gsd-new-milestone`** — define **v1.6** and a fresh `.planning/REQUIREMENTS.md` (seed **STG-01** from the v1.5 archive).
 
 ---
 
@@ -20,7 +34,7 @@ Entries are newest first.
 
 **Phases completed:** 15–18 (adoption slice; no per-phase execution trees — `gsd-sdk query phases.clear` at milestone open).
 
-**Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`. **Living:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` until v1.5 opens.
+**Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
 
 **What is next:** Tag **`v0.2.0`** and `mix hex.publish` when ready; **`/gsd-new-milestone`** for **v1.5**.
 

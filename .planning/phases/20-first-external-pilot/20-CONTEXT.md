@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Execute **ADOP-03**: one **external** host team runs [`guides/production-checklist.md`](../../../guides/production-checklist.md), records **`OK` / `Issue` / `N/A` / `Not run`** plus **evidence** (logs, SQL, PR, or issue links) in [`guides/adoption-pilot-backlog.md`](../../../guides/adoption-pilot-backlog.md), and triages every **`Issue`** row into a **GitHub issue** or a **scoped v1.6 requirement** with a stable link back. Update [`.planning/REQUIREMENTS.md`](../../REQUIREMENTS.md) traceability when satisfied.
+Execute **ADOP-03**: one **external** host team runs [`guides/production-checklist.md`](../../../guides/production-checklist.md), records **`OK` / `Issue` / `N/A` / `Not run`** plus **evidence** (logs, SQL, PR, or issue links) in [`guides/adoption-pilot-backlog.md`](../../../guides/adoption-pilot-backlog.md), and triages every **`Issue`** row into a **GitHub issue** or a **scoped v1.6 requirement** with a stable link back. Update requirements traceability when satisfied (living file was `.planning/REQUIREMENTS.md` during execution; archived as [`.planning/milestones/v1.5-REQUIREMENTS.md`](../../milestones/v1.5-REQUIREMENTS.md) at v1.5 close).
 
 This phase is **process and evidence**, not new library APIs or LiveView. In-repo code changes are limited to **documentation / backlog table updates** and **planning artifacts** unless a pilot-proven defect requires a hotfix (out of normal scope for v1.5).
 
@@ -53,7 +53,7 @@ This phase is **process and evidence**, not new library APIs or LiveView. In-rep
 
 ### Requirements and roadmap
 
-- [`.planning/REQUIREMENTS.md`](../../REQUIREMENTS.md) — **ADOP-03** acceptance wording and traceability table
+- [`.planning/milestones/v1.5-REQUIREMENTS.md`](../../milestones/v1.5-REQUIREMENTS.md) — **ADOP-03** acceptance wording and traceability table (archived)
 - [`.planning/ROADMAP.md`](../../ROADMAP.md) — Phase 20 goal and milestone **v1.5** scope
 - [`.planning/PROJECT.md`](../../PROJECT.md) — Vision, **PgBouncer / Logidze** lesson, integrator-led v1.5, OSS quality bar
 
@@ -86,7 +86,7 @@ This phase is **process and evidence**, not new library APIs or LiveView. In-rep
 ### Integration points
 
 - **GitHub** — Issues receive triaged `Issue` rows; labels and templates should match **D-09–D-11**.
-- **[`.planning/REQUIREMENTS.md`](../../REQUIREMENTS.md)** — ADOP-03 checkbox and traceability table updated on completion.
+- **[`.planning/milestones/v1.5-REQUIREMENTS.md`](../../milestones/v1.5-REQUIREMENTS.md)** — ADOP-03 checkbox and traceability table updated on completion (archived at milestone close).
 
 </code_context>
 

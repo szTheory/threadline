@@ -6,7 +6,7 @@
 
 ## Objective
 
-One **external** host completes a **credible** pilot (see **Environment bar** below), updates [`guides/adoption-pilot-backlog.md`](../../../guides/adoption-pilot-backlog.md) on **`main`** via merge, triages every **`Issue`** row, and satisfies **ADOP-03** traceability in [`.planning/REQUIREMENTS.md`](../../REQUIREMENTS.md).
+One **external** host completes a **credible** pilot (see **Environment bar** below), updates [`guides/adoption-pilot-backlog.md`](../../../guides/adoption-pilot-backlog.md) on **`main`** via merge, triages every **`Issue`** row, and satisfies **ADOP-03** traceability in [`.planning/milestones/v1.5-REQUIREMENTS.md`](../../milestones/v1.5-REQUIREMENTS.md) (archived at v1.5 close).
 
 ## Environment bar (from context)
 

@@ -157,6 +157,45 @@
 
 ---
 
+## Milestone: v1.5 — Adoption feedback loop
+
+**Shipped:** 2026-04-23  
+**Phases:** 2 | **Plans:** — (integrator-led; evidence in `PLAN.md` / `VERIFICATION.md`)
+
+### What was built
+
+- **`guides/adoption-pilot-backlog.md`** as the operator-facing adoption matrix with distribution preflight and prioritized follow-ups.
+- Telemetry operator table in **`guides/domain-reference.md`** with links from **`guides/production-checklist.md`**.
+- README / ExDoc wiring so pilots find the backlog beside the checklist.
+- **ADOP-03** satisfied with maintainer CI–backed backlog rows; **`AP-ENV.1`** explicitly triaged to **`STG-01`** for host pooler realism.
+- **`verify-pgbouncer-topology`** CI job plus topology contract tests for pooler paths.
+
+### What worked
+
+- Honest scoping: maintainer CI evidence counts for **ADOP-03** while **STG-01** carries external staging debt explicitly.
+- Reusing **`guides/production-checklist.md`** as the backbone for backlog sections kept docs DRY.
+
+### What was inefficient
+
+- `gsd-sdk query milestone.complete` still fails (`version required for phases archive`); milestone close again required **manual** archives + planning edits.
+
+### Patterns established
+
+- Pilot backlog rows use stable IDs (**`AP-*`**) for triage into requirements or issues without losing narrative context.
+
+### Key lessons
+
+1. Separate **library CI topology proof** from **host-owned staging proof** in writing before calling a pilot “external-complete.”
+2. Keep **`/gsd-new-milestone`** immediately after close so **`STG-01`** does not float without a living traceability table.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phases 19–20 executed as a short adoption loop on top of **0.2.0** packaging.
+- Notable: Phase directories 19–20 remain under `.planning/phases/` until optional `/gsd-cleanup`.
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -167,6 +206,8 @@
 | v1.1 | 4 | Shipped OSS distribution: GitHub + Actions + Hex **0.1.0** |
 | v1.2 | 3 | Capture fidelity + maintainer verify/doc contracts + brownfield continuity |
 | v1.3 | 3 | Production adoption: redaction, retention/purge, CSV/JSON export |
+| v1.4 | 4 | **0.2.0** packaging, production checklist, timeline/export DX |
+| v1.5 | 2 | Adoption feedback loop: pilot backlog + telemetry reference + honest pooler follow-up |
 
 ### Cumulative quality
 
@@ -176,6 +217,8 @@
 | v1.1 | + workflow/Nyquist contract tests | CI jobs extended for docs, Hex tarball, release shape |
 | v1.2 | + verify coverage + README doc contracts + brownfield continuity | `verify.threadline` / `verify.doc_contract` on default CI path |
 | v1.3 | + redaction + retention + export integration / Mix task tests | PostgreSQL-backed paths for capture JSON and purge |
+| v1.4 | unchanged default CI path | Release narrative + operator checklist for **0.2.0** |
+| v1.5 | + topology / pooler contract job on CI | Doc-first adoption loop; no new library surface |
 
 ### Top lessons (verified across milestones)
 
@@ -183,3 +226,4 @@
 2. v1.1 — verify **GitHub truth** (SHAs, Actions runs) alongside local green builds.
 3. v1.2 — ship **operator semantics** for brownfield (continuity module + guide) in the same milestone as the capture feature that motivates them.
 4. v1.3 — align **export filters** with **timeline** so ops never learn two query dialects.
+5. v1.5 — label **who** must prove pooler realism (library CI vs host staging) before conflating them in a pilot narrative.

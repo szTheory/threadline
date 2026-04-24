@@ -8,23 +8,28 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.5 — Adoption feedback loop (requirements complete)
+## Current milestone: v1.6 — Planning next
 
-**Goal (met for v1.5 requirements):** Close the loop between **Hex-published releases** and **documented pilot evidence** with operator-facing docs (telemetry reference, pilot backlog matrix) so adoption issues arrive with traceable follow-ups (**STG-01** for host pooler/staging depth).
-
-**Target features:**
-
-- **`guides/adoption-pilot-backlog.md`** — checklist-aligned matrix, distribution preflight, prioritized issue table for pilots.
-- **Telemetry operator reference** in **`guides/domain-reference.md`**, linked from **`guides/production-checklist.md`**.
-- **README / ExDoc** discovery for the pilot backlog; **Phase 20** closed **ADOP-03** (2026-04-23) with maintainer CI–backed evidence in **`guides/adoption-pilot-backlog.md`** and **STG-01** for host pooler/staging follow-up.
-
-**v1.5** uses **integrator-led** sequencing: ship docs and templates first; library API expansion waits for pilot-triaged pain.
+**Intent:** Run **`/gsd-new-milestone`** to author a fresh `.planning/REQUIREMENTS.md`. The leading candidate from v1.5 close is **STG-01** (host staging / PgBouncer parity pilot), carried from **`guides/adoption-pilot-backlog.md`** / archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01). Library exploration API expansion remains **Future** until pilots file repeated concrete pain.
 
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.4-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. **v1.5** — Phase 19–20 adoption loop **complete** on requirements (2026-04-23); living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`.
+**v1.0** through **v1.5** (all 2026-04-23) are complete. Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.5-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **Requirements** for the next slice are created by **`/gsd-new-milestone`** (`.planning/REQUIREMENTS.md` was removed at v1.5 close).
 
-## Last shipped milestone: v1.4 — Adoption & release readiness
+## Last shipped milestone: v1.5 — Adoption feedback loop
+
+**Goal (achieved):** Close the loop between **Hex-published releases** and **documented pilot evidence** with **`guides/adoption-pilot-backlog.md`**, telemetry operator reference in **`guides/domain-reference.md`**, README / ExDoc discovery, and **ADOP-03** closed with maintainer CI–backed evidence plus **STG-01** follow-up for host pooler depth.
+
+**Shipped:**
+
+- **Phase 19** — Adoption operator docs (ADOP-01, ADOP-02, TELEM-01, TELEM-02).
+- **Phase 20** — First external pilot / **ADOP-03** closure with backlog evidence and **AP-ENV.1** → **STG-01**.
+
+**Archives:** `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`.
+
+**Next:** **`/gsd-new-milestone`** for **v1.6** requirements; **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
+
+## Prior milestone: v1.4 — Adoption & release readiness
 
 **Goal (achieved):** First production week narrative + **0.2.0** packaging in-repo: onboarding/README updates, production checklist guide, clearer timeline/export errors, ExDoc extras for retention and checklist.
 
@@ -36,8 +41,6 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Phase 18** — `mix.exs` **0.2.0**, CHANGELOG **0.2.0**, ExDoc groups/extras (REL-01 — REL-03).
 
 **Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
-
-**Next:** **v1.5** milestone wrap-up (per project habit); then **v1.6** planning — **STG-01** (host staging / PgBouncer parity pilot) in `REQUIREMENTS.md`. **`v0.2.0`** is on `origin` and **`threadline` 0.2.0** is on Hex.
 
 ## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
 
@@ -57,7 +60,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.5** — **ADOP-03** complete (2026-04-23); **`guides/adoption-pilot-backlog.md`** carries maintainer CI evidence + **AP-ENV.1** → **STG-01**. Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
+- **Planning:** Milestone **v1.5** shipped (2026-04-23); archives under `.planning/milestones/v1.5-*.md`. **v1.6** requirements pending **`/gsd-new-milestone`**. Living roadmap: `.planning/ROADMAP.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
 
 ## Requirements
 
@@ -85,7 +88,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_(None — v1.5 requirement checklist complete.)_
+- [ ] **STG-01 (v1.6 candidate)** — Host staging / pooler parity pilot (scope in archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01)); formalize acceptance in the next milestone’s `REQUIREMENTS.md` via **`/gsd-new-milestone`**.
 
 ### Out of Scope
 
@@ -153,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — v1.5 opened; Hex **0.2.0** published; Phase 19 adoption operator docs landed.*
+*Last updated: 2026-04-23 — v1.5 milestone archived; `.planning/REQUIREMENTS.md` removed pending v1.6; Hex **0.2.0** unchanged.*

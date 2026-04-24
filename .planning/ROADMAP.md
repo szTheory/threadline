@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (complete 2026-04-23) — requirements: [REQUIREMENTS.md](REQUIREMENTS.md)
+- ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
 - ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
 - ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — [full archive](milestones/v1.3-ROADMAP.md)
 - ✅ **v1.2 — Before-values & developer tooling** — Phases 9–11 (shipped 2026-04-23) — [full archive](milestones/v1.2-ROADMAP.md)
@@ -12,9 +12,9 @@
 ## Phases
 
 <details>
-<summary>v1.5 Adoption feedback loop (Phases 19–20) — COMPLETE 2026-04-23</summary>
+<summary>✅ v1.5 Adoption feedback loop (Phases 19–20) — SHIPPED 2026-04-23</summary>
 
-Living requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md).
+Phase-level snapshot: [.planning/milestones/v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md). Requirements (archived): [.planning/milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md).
 
 - [x] **Phase 19 — Adoption operator docs** — `guides/adoption-pilot-backlog.md`, README + ExDoc extras, domain-reference telemetry table, production-checklist cross-links (ADOP-01, ADOP-02, TELEM-01, TELEM-02).
 - [x] **Phase 20 — First external pilot** — Maintainer CI evidence in `guides/adoption-pilot-backlog.md`; **ADOP-03** complete; **AP-ENV.1** → **STG-01** (host pooler/staging follow-up).
@@ -24,7 +24,7 @@ Living requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md).
 <details>
 <summary>✅ v1.4 Adoption & release readiness (Phases 15–18) — SHIPPED 2026-04-23</summary>
 
-Living requirements: [.planning/REQUIREMENTS.md](REQUIREMENTS.md).
+Requirements (archived): [.planning/milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md).
 
 - [x] **Phase 15 — Onboarding** — README `~> 0.2`, quickstart export step, documentation index links (ONB-01 — ONB-03).
 - [x] **Phase 16 — Production checklist** — `guides/production-checklist.md` and README pointer (PROD-01).
@@ -81,7 +81,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next milestone
 
-**v1.5** requirements are complete (phases 19–20, 2026-04-23). **`v0.2.0`** is tagged and **`threadline` 0.2.0** is on Hex. Next: **milestone wrap-up** per project habit; **STG-01** (host staging / PgBouncer parity) for v1.6 depth — see [`REQUIREMENTS.md`](REQUIREMENTS.md#stg-01).
+**v1.6** — Run **`/gsd-new-milestone`** for a fresh `.planning/REQUIREMENTS.md`. **`STG-01`** (host staging / PgBouncer parity pilot) is the primary carryover from v1.5; see archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01). **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
 
 ## Progress
 

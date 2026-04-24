@@ -2,7 +2,7 @@
 
 Use this with [`production-checklist.md`](production-checklist.md) when you first run Threadline in a **staging or production-like** environment. Copy rows into issues when something fails; keep **Evidence** (logs, SQL, config redacted) so maintainers can reproduce.
 
-**Evidence pass (maintainer, 2026-04-23):** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, **`.github/workflows/ci.yml`**, and **`DB_PORT=5433 MIX_ENV=test mix ci.all`** (136 tests + `verify.threadline` + doc contract). **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below. **STG-01** still tracks **host-owned** staging depth (HTTP + real Oban job paths in *your* app) when that bar exceeds the library CI harness — [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01).
+**Evidence pass (maintainer, 2026-04-23):** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, **`.github/workflows/ci.yml`**, and **`DB_PORT=5433 MIX_ENV=test mix ci.all`** (136 tests + `verify.threadline` + doc contract). **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below. **STG-01** still tracks **host-owned** staging depth (HTTP + real Oban job paths in *your* app) when that bar exceeds the library CI harness — [`.planning/milestones/v1.5-REQUIREMENTS.md`](../.planning/milestones/v1.5-REQUIREMENTS.md#stg-01).
 
 ## Distribution preflight (maintainer / CI)
 
@@ -92,6 +92,6 @@ These do **not** replace a host pilot when production uses **PgBouncer** or besp
 
 | P | ID | Symptom | Likely area | Owner | Link |
 |---|----|---------|--------------|-------|------|
-| P2 | AP-ENV.1 | **Residual host depth:** CI covers **PgBouncer transaction** + `verify.threadline` (see **CI-PGBOUNCER-TOPOLOGY-CONTRACT**). **Not** replaced: *your* staging with **session vs transaction** choices matching prod, plus **HTTP + Oban job** paths inside the host app. | adoption / topology | Host integrator | **STG-01** — [`.planning/REQUIREMENTS.md`](../.planning/REQUIREMENTS.md#stg-01) |
+| P2 | AP-ENV.1 | **Residual host depth:** CI covers **PgBouncer transaction** + `verify.threadline` (see **CI-PGBOUNCER-TOPOLOGY-CONTRACT**). **Not** replaced: *your* staging with **session vs transaction** choices matching prod, plus **HTTP + Oban job** paths inside the host app. | adoption / topology | Host integrator | **STG-01** — [`.planning/milestones/v1.5-REQUIREMENTS.md`](../.planning/milestones/v1.5-REQUIREMENTS.md#stg-01) |
 
 _Add rows as you discover gaps. P0 = wrong or missing audit data / security; P1 = ops friction or docs._
