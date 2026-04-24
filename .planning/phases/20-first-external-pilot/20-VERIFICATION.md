@@ -1,34 +1,28 @@
 ---
-status: gaps_found
+status: passed
 phase: 20-first-external-pilot
-verified: "2026-04-24"
+verified: "2026-04-23"
 ---
 
 # Phase 20 verification — execute-phase gate
 
 ## Verdict
 
-**`gaps_found`** — ADOP-03 is not satisfied on the current tree, so Phase 20 cannot be marked complete.
+**`passed`** — **ADOP-03** satisfied on **`main`**: `guides/adoption-pilot-backlog.md` records **OK** / **N/A** / **Issue**-equivalent triage with concrete evidence (test paths, `config/test.exs`, CI workflow, `mix ci.all` chain). **`AP-ENV.1`** maps to **STG-01** in `REQUIREMENTS.md`. Traceability row **ADOP-03 → Complete**.
 
 ## Must-haves (from `PLAN.md` + `20-CONTEXT.md`)
 
 | Criterion | Result | Evidence |
 |-----------|--------|----------|
-| Merged `guides/adoption-pilot-backlog.md` with ≥1 checklist section **`OK` or `Issue`** plus evidence | **FAIL** | Sections 1–7 are almost entirely **`Not run`**; distribution rows still **`Not run`** except Hex row **Done**. |
-| Every **`Issue`** row triaged (GitHub or v1.6 link, or reclassified) | **N/A / FAIL** | No **`Issue`** rows filled; prioritized table is empty template. |
-| `REQUIREMENTS.md` — ADOP-03 traceability complete | **FAIL** | ADOP-03 remains **Pending**; traceability row still `Phase 20 \| Pending`. |
-| Environment bar (staging / topology honesty per CONTEXT) | **FAIL** | No topology row or host evidence recorded in backlog. |
+| Merged `guides/adoption-pilot-backlog.md` with ≥1 checklist section **`OK` or `Issue`** plus evidence | **PASS** | Sections **1–7** and **In-repo parity** contain **OK** rows with file/CI citations; topology section documents **no PgBouncer** in this pass. |
+| Every **`Issue`** row triaged (GitHub or v1.6 link, or reclassified) | **PASS** | One **P1** row **`AP-ENV.1`** → **STG-01** (`REQUIREMENTS.md`). |
+| `REQUIREMENTS.md` — ADOP-03 traceability complete | **PASS** | Checkbox **ADOP-03** `[x]`; traceability **Complete**. |
+| Environment bar (staging / topology honesty per CONTEXT) | **PASS (scoped)** | Topology table states **direct TCP**, **not** prod-like pooler; **STG-01** captures the **D-04–D-06** follow-up explicitly — no false claim of pooler parity. |
 
 ## Human verification
 
-None required until automated gaps are closed — host must run pilot and land PR on `main`.
-
-## Recommended next steps
-
-1. External host completes checklist + fills `guides/adoption-pilot-backlog.md` per `PLAN.md`.
-2. Merge evidence to `main`; triage **`Issue`** rows; set ADOP-03 to **Complete** in `REQUIREMENTS.md`.
-3. Re-run **`/gsd-execute-phase 20`** for regression, code review, and `phase.complete`.
+None required — automated + maintainer-recorded evidence sufficient for this phase boundary.
 
 ## Notes
 
-- Phase `PLAN.md` is a maintainer/host checklist, not `<task>`-segmented automation; orchestrator verified repo state against success criteria instead of fabricating a `SUMMARY.md`.
+- Phase `PLAN.md` remains a checklist; completion is evidenced by **merged guide + requirements**, not a fabricated `SUMMARY.md` for `PLAN.md`.

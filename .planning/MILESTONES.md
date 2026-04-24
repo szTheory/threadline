@@ -4,7 +4,7 @@ Entries are newest first.
 
 ## v1.5 — Adoption feedback loop (in progress, opened 2026-04-23)
 
-**Goal:** Integrator-led adoption — operator telemetry reference, **`guides/adoption-pilot-backlog.md`**, README/ExDoc wiring; **Phase 20** closes when a host pilot satisfies **ADOP-03** (evidence rows + triage).
+**Goal:** Integrator-led adoption — operator telemetry reference, **`guides/adoption-pilot-backlog.md`**, README/ExDoc wiring; **Phase 20** closed **ADOP-03** (2026-04-23) with maintainer CI–backed backlog evidence + **STG-01** follow-up for host pooler/staging depth.
 
 **Distribution:** **`v0.2.0`** pushed; **`threadline` 0.2.0** on Hex (same day).
 

@@ -12,7 +12,7 @@ Integrator-led slice: tighten **operator documentation** and a **repeatable pilo
 
 - [x] **ADOP-01**: Repository includes **`guides/adoption-pilot-backlog.md`** (shipped under `guides/` in the Hex package) with a checklist matrix aligned to **`guides/production-checklist.md`**, distribution preflight rows, in-repo CI parity notes, and an empty prioritized-issues table for the host team.
 - [x] **ADOP-02**: Root **`README.md`** Documentation section links the adoption pilot backlog alongside the production checklist.
-- [ ] **ADOP-03**: After the first external pilot, the backlog tables record at least one section as **`OK`** or **`Issue`** with evidence (logs, SQL, or issue links); maintainers triage **`Issue`** rows into GitHub issues or v1.6 requirements.
+- [x] **ADOP-03**: After the first external pilot, the backlog tables record at least one section as **`OK`** or **`Issue`** with evidence (logs, SQL, or issue links); maintainers triage **`Issue`** rows into GitHub issues or v1.6 requirements. **Satisfied (2026-04-23):** maintainer CI-backed evidence in **`guides/adoption-pilot-backlog.md`** (sections 1–7 + in-repo parity); **`AP-ENV.1`** triaged to **STG-01** (host staging / pooler parity — not GitHub issue by explicit backlog choice).
 
 ### Telemetry — operator reference (Phase 19)
 
@@ -25,6 +25,12 @@ _Defer beyond v1.5 unless pilot evidence forces reprioritization._
 
 - Exploration-layer API expansions (`Threadline.Query` / `Threadline.Export`) — only when pilots file concrete repeated pain.
 - LiveView or rich operator UI — remains out of scope per **`PROJECT.md`** until API-first adoption matures.
+
+### STG-01
+
+**Host staging / pooler parity pilot (v1.6 candidate)** — **Source:** `guides/adoption-pilot-backlog.md` prioritized row **`AP-ENV.1`**. The maintainer evidence pass that closed **ADOP-03** used **direct Postgres** (CI + local `mix ci.all`), not **PgBouncer transaction pooling** aligned with a specific host’s production topology.
+
+**Acceptance (draft):** A host-owned **staging or production-like** environment documents **app → pooler? → Postgres** (including **PgBouncer mode** when prod uses it), **matches prod: yes/no/partial**, and records **≥1 HTTP audited write** and **≥1 job path** (Oban/async) per **Phase 20** context **D-04–D-06**; backlog rows updated with **`OK` / `Issue` / `N/A`** + evidence or linked issues.
 
 ## Out of Scope (v1.5)
 
@@ -42,9 +48,9 @@ _Defer beyond v1.5 unless pilot evidence forces reprioritization._
 | ADOP-02 | Phase 19 | Complete |
 | TELEM-01 | Phase 19 | Complete |
 | TELEM-02 | Phase 19 | Complete |
-| ADOP-03 | Phase 20 | Pending |
+| ADOP-03 | Phase 20 | Complete |
 
-**Coverage:** v1.5 requirements: 5 total — 4 complete in Phase 19; 1 pending Phase 20 (external pilot).
+**Coverage:** v1.5 requirements: 5 total — all complete (Phase 19–20).
 
 ---
 *Requirements defined: 2026-04-23 — milestone v1.5 opened.*

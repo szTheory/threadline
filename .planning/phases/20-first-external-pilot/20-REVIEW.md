@@ -1,13 +1,13 @@
 ---
-status: skipped
+status: clean
 phase: 20
 depth: quick
 ---
 
 # Code review — Phase 20
 
-**Scope:** No `*-SUMMARY.md` and no implementation commits in this phase directory for this execution cycle. Phase 20 is an external-pilot checklist gate (`PLAN.md`), not a code-delivery phase.
+**Scope:** `guides/adoption-pilot-backlog.md`, `.planning/REQUIREMENTS.md` (**STG-01**), `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, `.planning/MILESTONES.md`, `20-VERIFICATION.md`.
 
-**Result:** Review skipped — nothing to diff against prior shipped code for Phase 20 objectives.
+**Result:** Doc-only + planning alignment for **ADOP-03** closure. Evidence rows cite real **`test/`** paths and **CI** workflow — no fabricated staging claims; **AP-ENV.1** explicitly tracks pooler/staging gap.
 
-When a pilot PR lands with guide or code edits, re-run code review against those paths (e.g. `guides/adoption-pilot-backlog.md` and any touched lib files).
+**Risks:** None in code paths; readers should treat **STG-01** as the real external bar for PgBouncer parity.

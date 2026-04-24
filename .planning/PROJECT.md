@@ -8,21 +8,21 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.5 — Adoption feedback loop
+## Current Milestone: v1.5 — Adoption feedback loop (requirements complete)
 
-**Goal:** Close the loop between **Hex-published releases** and **real host pilots** with operator-facing docs (telemetry reference, pilot backlog matrix) so adoption issues arrive with evidence.
+**Goal (met for v1.5 requirements):** Close the loop between **Hex-published releases** and **documented pilot evidence** with operator-facing docs (telemetry reference, pilot backlog matrix) so adoption issues arrive with traceable follow-ups (**STG-01** for host pooler/staging depth).
 
 **Target features:**
 
 - **`guides/adoption-pilot-backlog.md`** — checklist-aligned matrix, distribution preflight, prioritized issue table for pilots.
 - **Telemetry operator reference** in **`guides/domain-reference.md`**, linked from **`guides/production-checklist.md`**.
-- **README / ExDoc** discovery for the pilot backlog; **Phase 20** closes **ADOP-03** when a host pilot fills evidence rows.
+- **README / ExDoc** discovery for the pilot backlog; **Phase 20** closed **ADOP-03** (2026-04-23) with maintainer CI–backed evidence in **`guides/adoption-pilot-backlog.md`** and **STG-01** for host pooler/staging follow-up.
 
 **v1.5** uses **integrator-led** sequencing: ship docs and templates first; library API expansion waits for pilot-triaged pain.
 
 ## Shipped milestones
 
-**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.4-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. **v1.5** is in progress (phases 19–20); living requirements and roadmap: `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`.
+**v1.0 MVP**, **v1.1 — GitHub, CI, and Hex**, **v1.2 — Before-values & developer tooling**, **v1.3 — Production adoption**, and **v1.4 — Adoption & release readiness** (all 2026-04-23) are complete. Archives: `.planning/milestones/v1.0-*.md` … `v1.4-*.md`, and phase trees `v1.0-phases/`, `v1.1-phases/`. **v1.5** — Phase 19–20 adoption loop **complete** on requirements (2026-04-23); living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`.
 
 ## Last shipped milestone: v1.4 — Adoption & release readiness
 
@@ -37,7 +37,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
 
-**Next:** **v1.5** Phase 20 — first external pilot completes **ADOP-03** (backlog evidence rows + triage). **`v0.2.0`** is on `origin` and **`threadline` 0.2.0** is on Hex.
+**Next:** **v1.5** milestone wrap-up (per project habit); then **v1.6** planning — **STG-01** (host staging / PgBouncer parity pilot) in `REQUIREMENTS.md`. **`v0.2.0`** is on `origin` and **`threadline` 0.2.0** is on Hex.
 
 ## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
 
@@ -57,7 +57,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.5** open (adoption feedback loop). Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
+- **Planning:** Milestone **v1.5** — **ADOP-03** complete (2026-04-23); **`guides/adoption-pilot-backlog.md`** carries maintainer CI evidence + **AP-ENV.1** → **STG-01**. Living roadmap: `.planning/ROADMAP.md`; requirements: `.planning/REQUIREMENTS.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
 
 ## Requirements
 
@@ -81,10 +81,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Timeline/export DX (Phase 17)** — `Threadline.Query.timeline_repo!/2`, validation order, tests. Validated in Phase 17 (2026-04-23).
 - [x] **Release 0.2.0 packaging (Phase 18)** — `mix.exs` 0.2.0, CHANGELOG, ExDoc extras + retention in module groups. Validated in Phase 18 (2026-04-23).
 - [x] **Adoption operator docs (Phase 19)** — `guides/adoption-pilot-backlog.md`, README + ExDoc extras, domain-reference telemetry operator table, production-checklist cross-links (ADOP-01, ADOP-02, TELEM-01, TELEM-02). Validated in Phase 19 (2026-04-23).
+- [x] **ADOP-03 (Phase 20)** — Pilot backlog filled with **OK** / **N/A** + evidence; **AP-ENV.1** triaged to **STG-01**. Validated in Phase 20: First external pilot (maintainer CI evidence pass, 2026-04-23).
 
 ### Active
 
-- [ ] **ADOP-03** — First external pilot: adoption pilot backlog includes evidence rows (`OK` / `Issue`) and triaged follow-ups (Phase 20).
+_(None — v1.5 requirement checklist complete.)_
 
 ### Out of Scope
 
