@@ -85,6 +85,14 @@ For running the test job locally with [nektos/act](https://github.com/nektos/act
 
 `mix verify.topology` **requires** `THREADLINE_PGBOUNCER_TOPOLOGY=1` so it cannot accidentally pass against direct Postgres only.
 
+## Host STG evidence (integrators)
+
+**Host staging / pooler parity** (requirements **STG-01**–**STG-03**) is **integrator-owned attestation**: detailed topology, logs, and runbooks live in **your** repo or docs under **your** control. Threadline maintainers do not operate your staging stack.
+
+To contribute a **short in-repo index** (tables, links, **redact**ed excerpts) that helps other operators, use a **fork** and open a **pull request** against this repository. Maintainers merge for **modesty** of claims, **redaction**, and **link** hygiene only — not to vouch for third-party environments.
+
+Fill the canonical scaffolds in **`guides/adoption-pilot-backlog.md`**: search for **`STG-HOST-TOPOLOGY-TEMPLATE`** (fixed-field topology narrative) and **`STG-AUDITED-PATH-RUBRIC`** (HTTP + job paths with OK / Issue / N/A / Not run and evidence pointers). Long-form evidence stays in integrator-controlled artifacts; the PR updates the **small, reviewable surface** in `main`.
+
 ## Submitting a Pull Request
 
 1. Fork the repository and create a branch from `main`.
