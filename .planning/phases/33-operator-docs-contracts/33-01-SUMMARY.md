@@ -3,6 +3,8 @@ phase: 33-operator-docs-contracts
 plan: 33-01
 subsystem: testing
 tags: [docs, XPLO-03, guides, doc-contract]
+affects: [XPLO-03]
+requirements-completed: [XPLO-03]
 
 key-files:
   created:

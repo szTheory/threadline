@@ -7,6 +7,7 @@ provides:
   - ExUnit coverage for INSERT/UPDATE/DELETE, sparse prior_state, mask pass-through, ordering, export_compat
   - Threadline.change_diff/2 delegator
 affects: [XPLO-01]
+requirements-completed: [XPLO-01]
 tech-stack:
   added: []
   patterns: [struct fixtures without DB]

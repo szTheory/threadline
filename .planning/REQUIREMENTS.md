@@ -46,6 +46,9 @@ _Defer unless a later milestone explicitly reopens._
 |-----------|---------------|--------|
 | INT-DOC-01 (`timeline/2` @doc vs query ordering) | Phase 34 | Documentation only; does not reopen XPLO-02. |
 | FLOW-TEST-01 (txn listing → `change_diff/2` in CI) | Phase 34 | Composed test; does not reopen XPLO-01/02. |
+| Missing **`34-VERIFICATION.md`** (phase verification gate) | Phase 35 | Written verification; does not reopen XPLO reqs. |
+| **PLANNING-PROJECT-01** (`PROJECT.md` Active vs shipped **XPLO-03**) | Phase 35 | Metadata only. |
+| SUMMARY **`requirements-completed`** + **`32-VALIDATION.md`** Nyquist drift | Phase 36 | Planning process hygiene; does not reopen XPLO reqs. |
 
 ---
 

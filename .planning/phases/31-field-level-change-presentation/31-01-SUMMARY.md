@@ -7,6 +7,7 @@ provides:
   - Threadline.ChangeDiff.from_audit_change/2 primary wire map
   - format: :export_compat branch mirroring Export.change_map/1 base keys
 affects: [XPLO-01]
+requirements-completed: [XPLO-01]
 tech-stack:
   added: []
   patterns: [capability module alongside Query/Export]

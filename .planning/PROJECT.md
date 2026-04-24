@@ -157,10 +157,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **SCALE-01 / SCALE-02 (Phase 30)** — **`guides/production-checklist.md`** volume / purge cadence H3 tied to **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`**; export §5 + support intro hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** discovery hub; **`README.md`** Maintainer-band pointer. Validated in Phase 30: Retention at scale & discovery (2026-04-24).
 - [x] **XPLO-01 (Phase 31)** — **`Threadline.ChangeDiff.from_audit_change/2`** (primary + `:export_compat`), ExDoc matrix for INSERT/UPDATE/DELETE and `before_values` / `prior_state`, **`test/threadline/change_diff_test.exs`**, **`Threadline.change_diff/2`**. Validated in Phase 31: Field-level change presentation (2026-04-24).
 - [x] **XPLO-02 (Phase 32)** — **`Threadline.Query.audit_changes_for_transaction/2`**, **`Threadline.audit_changes_for_transaction/2`**, stable order via **`timeline_order/1`**, UUID validation + **`[]`** empty semantics, **`test/threadline/query_test.exs`**. Validated in Phase 32: Transaction-scoped change listing (2026-04-24).
+- [x] **XPLO-03 (Phase 33)** — **`guides/domain-reference.md`** **Exploration API routing (v1.10+)**, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`**. Validated in Phase 33: Operator docs & contracts (2026-04-24).
 
-### Active (v1.10)
+### Active
 
-- [ ] **XPLO-03** — Operator docs + playbook/checklist cross-links + doc contracts for new anchors.
+_No open v1.10 requirements — **XPLO-01**–**XPLO-03** plus Phase **34** audit hygiene are complete; living traceability in **`.planning/REQUIREMENTS.md`**._
 
 _Living requirements: **`.planning/REQUIREMENTS.md`**. Prior milestone: **`.planning/milestones/v1.9-REQUIREMENTS.md`**._
 

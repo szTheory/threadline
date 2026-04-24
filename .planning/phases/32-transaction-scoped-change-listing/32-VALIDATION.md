@@ -2,8 +2,8 @@
 phase: 32
 slug: transaction-scoped-change-listing
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-24
 ---
 
@@ -38,8 +38,8 @@ created: 2026-04-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 32-01-01 | 01 | 1 | XPLO-02 | T-32-01 | Read-only; no tuple leaks for “not found” | unit + compile | `mix compile --warnings-as-errors` | ✅ | ⬜ pending |
-| 32-01-02 | 01 | 1 | XPLO-02 | T-32-02 | Delegator matches Query | integration | `mix test test/threadline/query_test.exs` | ✅ | ⬜ pending |
+| 32-01-01 | 01 | 1 | XPLO-02 | T-32-01 | Read-only; no tuple leaks for “not found” | unit + compile | `mix compile --warnings-as-errors` | ✅ | ✅ green |
+| 32-01-02 | 01 | 1 | XPLO-02 | T-32-02 | Delegator matches Query | integration | `mix test test/threadline/query_test.exs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -47,7 +47,7 @@ created: 2026-04-24
 
 ## Wave 0 Requirements
 
-- [ ] Existing infrastructure covers all phase requirements — `Threadline.DataCase` + `query_test.exs` helpers.
+- [x] Existing infrastructure covers all phase requirements — `Threadline.DataCase` + `query_test.exs` helpers.
 
 *If none: "Existing infrastructure covers all phase requirements."*
 
@@ -65,11 +65,11 @@ created: 2026-04-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** signed off — execution verified 2026-04-24 (`32-VERIFICATION.md`, `mix test test/threadline/query_test.exs`).

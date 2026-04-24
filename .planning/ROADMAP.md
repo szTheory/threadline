@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ✅ **v1.10 — Support-grade exploration primitives** — Phases 31–33 (shipped 2026-04-24) — [requirements](REQUIREMENTS.md)
+- ✅ **v1.10 — Support-grade exploration primitives** — Phases 31–36 (31–33 core + 34–36 audit and planning hygiene, 2026-04-24) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](milestones/v1.9-REQUIREMENTS.md) · [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
@@ -44,6 +44,8 @@
 - [x] **Phase 32 — Transaction-scoped change listing** — XPLO-02 — completed 2026-04-24
 - [x] **Phase 33 — Operator docs & contracts** — XPLO-03 — completed 2026-04-24
 - [x] **Phase 34 — v1.10 audit hygiene (doc + composed CI)** — closes **INT-DOC-01**, **FLOW-TEST-01** from `v1.10-MILESTONE-AUDIT.md` (XPLO-01/02 already satisfied); includes `ChangeDiff` lowercase `op` normalization for trigger-shaped rows — completed 2026-04-24
+- [x] **Phase 35 — v1.10 audit unblock** — adds **`34-VERIFICATION.md`**; aligns **`.planning/PROJECT.md`** with shipped **XPLO-03** (**PLANNING-PROJECT-01**) — completed 2026-04-24
+- [x] **Phase 36 — Planning matrix & Nyquist hygiene** — SUMMARY **`requirements-completed`** on **31-01**, **31-02**, **33-01**; **`32-VALIDATION.md`** sign-off aligned with **`32-VERIFICATION.md`** — completed 2026-04-24
 
 <details>
 <summary>✅ v1.9 Production confidence at volume (Phases 28–30) — SHIPPED 2026-04-24</summary>
@@ -230,12 +232,14 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.10** is **shipped** (Phases **31–33** complete, 2026-04-24): exploration primitives + operator routing docs — see **`.planning/REQUIREMENTS.md`** and **`33-VERIFICATION.md`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Log release notes in **`.planning/MILESTONES.md`** when you cut the next version.
+**v1.10** is **shipped** (Phases **31–33** core, 2026-04-24); Phases **34–36** close milestone-audit verification and planning-metadata hygiene — see **`34-VERIFICATION.md`**, **`35-VERIFICATION.md`**, **`36-VERIFICATION.md`**, and **`.planning/REQUIREMENTS.md`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Log release notes in **`.planning/MILESTONES.md`** when you cut the next version.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 36. Planning matrix & Nyquist hygiene | v1.10 | — | Complete | 2026-04-24 |
+| 35. v1.10 audit unblock | v1.10 | — | Complete | 2026-04-24 |
 | 34. v1.10 audit hygiene (doc + composed CI) | v1.10 | — | Complete | 2026-04-24 |
 | 31. Field-level change presentation | v1.10 | 2/2 | Complete    | 2026-04-24 |
 | 32. Transaction-scoped change listing | v1.10 | 1/1 | Complete    | 2026-04-24 |
