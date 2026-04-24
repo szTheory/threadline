@@ -8,19 +8,22 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.11 — Composable incident surface (Phases 37+, 2026-04-24)
+## Current Milestone: v1.12 — Temporal Truth & Safety (As-of Reconstruction)
 
-**Goal:** Close the integrator **composition** gap with a **two-step HTTP JSON** pattern in the reference Phoenix app: **`POST /api/posts`** returns **`audit_transaction_id`**, then **`GET /api/audit_transactions/:id/changes`** returns ordered changes plus **`change_diff`** maps — on top of shipped **`Threadline.audit_changes_for_transaction/2`** and **`Threadline.change_diff/2`**, without LiveView, **`threadline_web`**, or new capture semantics.
+**Goal:** Provide a stable, correct, and developer-friendly foundation for point-in-time row reconstruction ("Time Travel").
 
 **Target features:**
+- **Single-row reconstruction**: `Threadline.as_of(Repo, Schema, id, timestamp)` with Map/Struct support.
+- **Loose Casting**: Permissive struct loading to handle schema drift over time.
+- **Deleted record support**: Reconstruct state even for records no longer in the live table.
+- **Genesis Gap detection**: Explicit errors for queries before the audit horizon.
 
-- **`audit_transaction_id`** on **`POST /api/posts`** (`examples/threadline_phoenix/`)
-- **`GET /api/audit_transactions/:id/changes`** with JSON-serializable **`change_diff`** per change
-- **`guides/domain-reference.md`** anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, example README, **`PostsIncidentJsonPathTest`**, doc contract in **`Threadline.ExplorationRoutingDocContractTest`**
+## Last milestone shipped: v1.11 — Composable incident surface (Phase 37, 2026-04-24)
 
-**Non-goals (this milestone):** LiveView operator UI; published **`threadline_web`**; new capture / redaction / retention semantics; maintainer-attested third-party STG URLs; Hex semver bump unless a **separate** release milestone says so; shipping a full auth model in the example (document integrator responsibility only).
+**Goal (achieved):** Close the integrator **composition** gap with a **two-step HTTP JSON** pattern in the reference Phoenix app: **`POST /api/posts`** returns **`audit_transaction_id`**, then **`GET /api/audit_transactions/:id/changes`** returns ordered changes plus **`change_diff`** maps.
 
-**Planning KPI:** **Integrator composition speed** (chosen over a pure Hex release signal or high-cost as-of exploration for this slice).
+**Shipped:**
+- **Phase 37** — COMP-01/02/03: Example incident JSON path in `examples/threadline_phoenix`, `AuditTransactionController`, and `COMP-EXAMPLE-INCIDENT-JSON` doc contract.
 
 ## Last milestone shipped: v1.10 — Support-grade exploration primitives (Phases 31–36, 2026-04-24)
 
@@ -88,53 +91,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.10** are complete (**v1.10** shipped 2026-04-24, Phases 31–36). **v1.11** is **in flight** (composition / example incident JSON). **v1.10** archive: **`.planning/milestones/v1.10-REQUIREMENTS.md`**, **`.planning/milestones/v1.10-ROADMAP.md`**, **`.planning/milestones/v1.10-MILESTONE-AUDIT.md`**. Prior milestones live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
-
-## Last shipped milestone: v1.5 — Adoption feedback loop
-
-**Goal (achieved):** Close the loop between **Hex-published releases** and **documented pilot evidence** with **`guides/adoption-pilot-backlog.md`**, telemetry operator reference in **`guides/domain-reference.md`**, README / ExDoc discovery, and **ADOP-03** closed with maintainer CI–backed evidence plus **STG-01** follow-up for host pooler depth.
-
-**Shipped:**
-
-- **Phase 19** — Adoption operator docs (ADOP-01, ADOP-02, TELEM-01, TELEM-02).
-- **Phase 20** — First external pilot / **ADOP-03** closure with backlog evidence and **AP-ENV.1** → **STG-01**.
-
-**Archives:** `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`.
-
-**Next:** Open the next milestone on **`.planning/ROADMAP.md`** when scope is ready; **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
-
-## Prior milestone: v1.4 — Adoption & release readiness
-
-**Goal (achieved):** First production week narrative + **0.2.0** packaging in-repo: onboarding/README updates, production checklist guide, clearer timeline/export errors, ExDoc extras for retention and checklist.
-
-**Shipped:**
-
-- **Phase 15** — README `~> 0.2`, quickstart export step, documentation index (ONB-01 — ONB-03).
-- **Phase 16** — `guides/production-checklist.md` (PROD-01).
-- **Phase 17** — `timeline_repo!/2`, validation order, tests (DX-01 — DX-03).
-- **Phase 18** — `mix.exs` **0.2.0**, CHANGELOG **0.2.0**, ExDoc groups/extras (REL-01 — REL-03).
-
-**Archives:** `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`.
-
-## Prior milestone: v1.3 — Production adoption (redaction, retention, export)
-
-**Goal (achieved):** Remove the main blockers to **production onboarding**—sensitive data in audit JSON, unbounded table growth, and “get rows out for ops”—while keeping capture **correct-by-default** and **SQL-native**.
-
-**Shipped:**
-
-- **Redaction at capture time** — Phase 12 (`:trigger_capture`, codegen validation, docs).
-- **Retention + batched purge** — Phase 13 (`Threadline.Retention.*`, `mix threadline.retention.purge`).
-- **Export** — Phase 14 (`Threadline.Export`, `mix threadline.export`, README + domain guide).
-
-**Planning artifacts (archived):** `.planning/milestones/v1.3-REQUIREMENTS.md`, `.planning/milestones/v1.3-ROADMAP.md`.
-
-## Current state
-
-- **Hex:** `threadline` **0.2.0** is on Hex (annotated tag **`v0.2.0`**); **`main`** carries **`@version "0.2.0"`** until the next semver bump. Planning milestone tags **`v1.0`** … track GSD cycles, not only Hex semver.
-- **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
-- **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
-- **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.11** in flight (**Composable incident surface**; **`.planning/REQUIREMENTS.md`**). **v1.10** archived 2026-04-24 (**Phases 31–36**; **`.planning/milestones/v1.10-*`**). **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+**v1.0** through **v1.11** are complete (**v1.11** shipped 2026-04-24, Phase 37). **v1.12** is **in flight** (Temporal Truth & Safety). Prior milestones live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Requirements
 
@@ -176,9 +133,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_No additional REQ-IDs until the next milestone — **`COMP-*`** for **v1.11** are validated above; run **`/gsd-complete-milestone`** to archive **v1.11** and refresh living files._
-
-_Living milestone: **`.planning/REQUIREMENTS.md`**. Prior archive: **`.planning/milestones/v1.10-REQUIREMENTS.md`**._
+- [ ] **AS-OF-01**: Single-row reconstruction as Map (historical truth)
+- [ ] **AS-OF-02**: Support "As-of" for deleted records
+- [ ] **AS-OF-03**: Support Schema reification (opt-in cast back to Ecto Struct)
+- [ ] **DX-01**: Genesis Gap detection (explicit errors before audit horizon)
+- [ ] **DX-02**: Loose Casting (permissive struct loading for schema drift)
 
 ### Out of Scope
 
@@ -248,4 +207,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.11** milestone **opened** (living **`.planning/REQUIREMENTS.md`**; **v1.10** archived under **`.planning/milestones/v1.10-*`**).*
+*Last updated: 2026-04-24 after v1.12 milestone open.*

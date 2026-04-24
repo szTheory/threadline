@@ -1,47 +1,59 @@
 # Requirements: Threadline
 
-**Defined:** 2026-04-24  
-**Milestone:** v1.11 — Composable incident surface  
-**Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
+**Defined:** 2026-04-24
+**Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Planning KPI (this milestone):** **Integrator composition speed** — close the gap between shipped exploration primitives (`audit_changes_for_transaction/2`, `change_diff/2`) and a **copy-pasteable host pattern** (example JSON), rather than a Hex-only or as-of exploration bet.
+## v1.12 Requirements (Temporal Truth & Safety)
 
-## v1.11 Requirements
+Focus on providing a stable, correct, and developer-friendly foundation for point-in-time row reconstruction.
 
-### Composition — example incident JSON
+### Core Reconstruction
 
-- [x] **COMP-01**: After a successful audited write via **`examples/threadline_phoenix`** **`POST /api/posts`**, the JSON response includes **`audit_transaction_id`** (UUID of the capture **`audit_transactions`** row for that request’s DB transaction) so clients can drill in without guessing joins.
-- [x] **COMP-02**: **`GET /api/audit_transactions/:id/changes`** (UUID `:id`) returns **200** with a JSON body listing every **`AuditChange`** for that transaction via **`Threadline.audit_changes_for_transaction/2`** (or **`Threadline.Query`**) with **documented ordering** (same contract as the library); each listed change includes a **JSON-serializable** **`change_diff`** map from **`Threadline.change_diff/2`**.
-- [x] **COMP-03**: **`guides/domain-reference.md`** links this pattern under **Exploration API routing** with stable anchor **`COMP-EXAMPLE-INCIDENT-JSON`**; **`examples/threadline_phoenix/README.md`** documents the two-step flow (create → drill-down); a **doc contract test** in **`test/threadline/`** locks **`COMP-EXAMPLE-INCIDENT-JSON`** (and CI exercises the HTTP path via **`mix verify.example`**).
+- [ ] **ASOF-01**: `Threadline.as_of(Repo, Schema, id, timestamp)` returns a **Map** with string keys representing the record state at that point in time.
+- [ ] **ASOF-02**: `as_of/4` works for **deleted records** (reconstructs from the last known state in `audit_changes`).
+- [ ] **ASOF-03**: `as_of/4` supports an opt-in **`:cast`** option to return the data as an **Ecto Struct**.
 
-## Future (after v1.11)
+### DX & Safety
 
-_Defer unless a later milestone explicitly reopens._
+- [ ] **ASOF-04**: **Loose Casting**: When `:cast` is used, the system ignores fields in the audit log that no longer exist in the current Ecto schema (permissive loading).
+- [ ] **ASOF-05**: **Genesis Gap**: `as_of/4` returns `{:error, :before_audit_horizon}` if the timestamp predates the first audit entry for that record.
+- [ ] **ASOF-06**: **Documentation**: Add a "Time Travel (As-of)" section to `guides/domain-reference.md` and update the Phoenix example README.
 
-- **As-of** row reconstruction across arbitrary history (high complexity; listed post–v1.10 exploration future).
-- **Automated** index or DDL recommendations from library code (integrator-owned DDL remains default).
-- LiveView or other **hosted** operator UI.
+## Future Requirements
 
-## Out of scope (v1.11)
+### Collection & Bulk (v1.13+)
 
-| Item | Reason |
-|------|--------|
-| LiveView operator UI | Explicit product deferral (`PROJECT.md`); composition milestone only. |
-| Published **`threadline_web`** / umbrella split | Packaging deferral; example stays under **`examples/`**. |
-| New capture / redaction / retention **semantics** or migrations | Milestone consumes existing capture; no trigger or schema behavior changes. |
-| Maintainer attestation of third-party STG URLs | Unchanged integrator-owned policy. |
-| Hex semver bump | Separate release milestone unless explicitly combined. |
-| Authentication / authorization product in the example | Document “add your own auth” only; no security framework in scope. |
+- **COLL-01**: `Threadline.as_of_all(Repo, Schema, query, timestamp)` for point-in-time collection queries.
+- **COLL-02**: `LATERAL JOIN` optimization for bulk reconstruction performance.
+
+### Associations
+
+- **ASOC-01**: As-of association loading (reconstruct relationships at time T).
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| LiveView operator UI | Explicitly deferred until capture + semantics are proven stable. |
+| Automated DDL/Index recommendations | Deferred to future ops-tooling milestone. |
+| SIEM / event sourcing | Outside of project's defined product category. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COMP-01 | Phase 37 | Complete |
-| COMP-02 | Phase 37 | Complete |
-| COMP-03 | Phase 37 | Complete |
+| ASOF-01 | Phase 38 | Pending |
+| ASOF-02 | Phase 38 | Pending |
+| ASOF-03 | Phase 39 | Pending |
+| ASOF-04 | Phase 39 | Pending |
+| ASOF-05 | Phase 38 | Pending |
+| ASOF-06 | Phase 40 | Pending |
 
-**Coverage:** v1.11 requirements: **3** total — mapped: **3** — unmapped: **0** ✓
+**Coverage:**
+- v1.12 requirements: 6 total
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-04-24 — milestone v1.11*
+*Requirements defined: 2026-04-24*
+*Last updated: 2026-04-24 after v1.12 initialization.*
