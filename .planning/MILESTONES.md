@@ -2,15 +2,29 @@
 
 Entries are newest first.
 
-## v1.10 — Support-grade exploration primitives (opened 2026-04-24)
+## v1.10 — Support-grade exploration primitives (shipped 2026-04-24)
 
 **Goal:** Support- and integrator-facing **exploration primitives** — **field-level** change presentation from `%AuditChange{}`, **transaction-scoped** change listing, and **operator doc routing** — on top of shipped capture + semantics + timeline/export, **without** LiveView or new capture semantics.
 
 **Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release milestone is run.
 
-**Phases planned:** **31–33** (see **`.planning/ROADMAP.md`** and **`.planning/REQUIREMENTS.md`**).
+**Phases completed:** **31–36** (31–33 core: **4** plans with `SUMMARY.md`; **34–36** audit + planning hygiene via **`VERIFICATION.md`**).
 
-**Status:** In progress — execution not started at open.
+**Key accomplishments:**
+
+- Shipped **`Threadline.ChangeDiff`**, **`Threadline.change_diff/2`**, and **`test/threadline/change_diff_test.exs`** — deterministic JSON-serializable field maps (**XPLO-01**, Phases **31-01**, **31-02**).
+- Shipped **`Threadline.Query.audit_changes_for_transaction/2`** and **`Threadline.audit_changes_for_transaction/2`** with documented stable ordering and DB-backed tests (**XPLO-02**, Phase **32-01**).
+- Shipped **`guides/domain-reference.md`** **Exploration API routing (v1.10+)**, production-checklist cross-link, and **`Threadline.ExplorationRoutingDocContractTest`** (**XPLO-03**, Phase **33-01**).
+- Closed **INT-DOC-01** / **FLOW-TEST-01** and **`ChangeDiff`** lowercase **`op`** normalization for trigger-shaped rows (**Phase 34**).
+- Added **`34-VERIFICATION.md`** and aligned **`.planning/PROJECT.md`** with shipped **XPLO-03** (**Phase 35**); planning matrix + **`32-VALIDATION`** alignment (**Phase 36**).
+
+**Stats:** 6 phases, 4 plans with summaries; v1.10 requirements **3/3** complete at close (see archived traceability). Standalone **`v1.10-MILESTONE-AUDIT.md`** **passed** at pre-close.
+
+**Archives:** `.planning/milestones/v1.10-REQUIREMENTS.md`, `.planning/milestones/v1.10-ROADMAP.md`, `.planning/milestones/v1.10-MILESTONE-AUDIT.md`.
+
+**Known gaps at close:** None for in-repo acceptance. **`gsd-sdk query milestone.complete`** returned **`version required for phases archive`** — archives written manually (same as **v1.9**).
+
+**What is next:** **`/gsd-new-milestone`** — fresh **`.planning/REQUIREMENTS.md`** and next roadmap slice when scope is ready.
 
 ---
 

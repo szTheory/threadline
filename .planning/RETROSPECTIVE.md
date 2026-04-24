@@ -347,6 +347,44 @@
 
 ---
 
+## Milestone: v1.10 — Support-grade exploration primitives
+
+**Shipped:** 2026-04-24  
+**Phases:** 6 | **Plans (with SUMMARY):** 4
+
+### What was built
+
+- **`Threadline.ChangeDiff`** + **`Threadline.change_diff/2`** with **`test/threadline/change_diff_test.exs`** — deterministic JSON field maps for INSERT/UPDATE/DELETE (**XPLO-01**).
+- **`Threadline.Query.audit_changes_for_transaction/2`** + delegator, stable ordering, integration coverage including **FLOW-TEST-01** round-trip to **`change_diff/2`** (**XPLO-02**).
+- **`guides/domain-reference.md`** **Exploration API routing (v1.10+)** section, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`** (**XPLO-03**).
+- Audit closure phases **34–36**: **`timeline/2` @doc** parity (**INT-DOC-01**), **`34-VERIFICATION.md`**, **`PROJECT.md`** alignment (**PLANNING-PROJECT-01**), Nyquist/SUMMARY matrix hygiene.
+
+### What worked
+
+- **`/gsd-audit-milestone`** with explicit **closure_evidence** gave a single pre-close truth source before archiving.
+- Reusing **doc contract tests** for new guide anchors matched the **v1.8** / **v1.9** operator-docs pattern.
+
+### What was inefficient
+
+- **`gsd-sdk query milestone.complete`** still failed with **`version required for phases archive`**; **`milestones/v1.10-*`** files were written manually again.
+
+### Patterns established
+
+- **Primary wire map** for exploration JSON stays stable even when raw DB rows carry lowercase **`op`** values from triggers.
+
+### Key lessons
+
+1. Keep **hygiene phases** (written verification + planning matrix) in the same milestone when they unblock **audit status: passed**.
+2. When **`milestone.complete` CLI** fails, still run **`git rm .planning/REQUIREMENTS.md`** at close so **`/gsd-new-milestone`** starts from a clean requirements slot.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phases **31–36** executed as exploration + audit-unblock slice.
+- Notable: Phase directories **31–36** remain under **`.planning/phases/`** (optional **`/gsd-cleanup`** move to **`milestones/v1.10-phases/`** later).
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -363,6 +401,7 @@
 | v1.7 | 3 | In-repo Phoenix reference app: HTTP + Oban paths, `record_action/2`, adoption doc pointers |
 | v1.8 | 3 | Correlation-aware timeline/export + support playbooks + example correlation path + doc contracts |
 | v1.9 | 3 | Ops-at-volume docs: telemetry + health narrative, audit indexing cookbook + doc contract, retention-at-scale + discovery hub |
+| v1.10 | 6 | Exploration primitives (`ChangeDiff`, txn-scoped listing, routing docs) + milestone-audit hygiene phases |
 
 ### Cumulative quality
 
@@ -378,6 +417,7 @@
 | v1.7 | + `verify.example` + example ConnCase / Oban tests | Runnable `examples/threadline_phoenix/` exercised on default CI path |
 | v1.8 | + correlation filter integration tests + support playbook doc contract + example correlation ConnCase | Same **timeline/export** vocabulary for support; **`:correlation_id`** strict join path |
 | v1.9 | + audit indexing doc contract | Doc-only milestone; default CI path unchanged; operator narrative locked to shipped **`Threadline.Telemetry`** names |
+| v1.10 | + composed query→`change_diff` test path | Exploration API surface + audit-unblock phases; **`FLOW-TEST-01`** locks JSON/API integrator path in CI |
 
 ### Top lessons (verified across milestones)
 
@@ -390,3 +430,4 @@
 7. v1.7 — **`verify.example`** is the cheapest guardrail that nested example apps do not rot on **`main`**.
 8. v1.8 — Keep **`PROJECT.md` Active`** aligned with the last shipped REQ the same day as phase verification.
 9. v1.9 — When **`milestone.complete` CLI** fails, still run **`git rm .planning/REQUIREMENTS.md`** at close so **`/gsd-new-milestone`** starts from a clean requirements slot.
+10. v1.10 — Run **`/gsd-audit-milestone`** before close when the milestone ships **library + doc + CI** evidence together; archive the audit file beside requirements.

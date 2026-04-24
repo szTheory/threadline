@@ -4,10 +4,10 @@ milestone: v1.10
 milestone_name: — Support-grade exploration primitives
 status: milestone_complete
 last_updated: "2026-04-24T17:20:00.000Z"
-last_activity: 2026-04-24 — Phase **33** complete (**XPLO-03**); `DB_PORT=5433` doc contract tests + compile verified.
+last_activity: 2026-04-24 — Milestone **v1.10** archived (`.planning/milestones/v1.10-*`); living **REQUIREMENTS.md** removed for next milestone.
 progress:
-  total_phases: 3
-  completed_phases: 3
+  total_phases: 6
+  completed_phases: 6
   total_plans: 4
   completed_plans: 4
   percent: 100
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.10** milestone complete — all phases **31–33** shipped (2026-04-24). Next: choose **v1.11** scope or patch release as needed.
+**Current focus:** **v1.10** archived (2026-04-24). Next: **`/gsd-new-milestone`** when **v1.11** (or next) scope is ready.
 
 ## Current Position
 
@@ -29,9 +29,9 @@ Phase: **33** — Operator docs & contracts — **complete**
 
 Plan: **33-01** — SUMMARY + verification recorded
 
-Status: **v1.10** closed — field diff (**XPLO-01**), transaction-scoped listing (**XPLO-02**), exploration API routing docs (**XPLO-03**).
+Status: **v1.10** milestone **archived** — Phases **31–36** (core **XPLO-01**–**XPLO-03** + audit/planning hygiene **34–36**).
 
-Last activity: 2026-04-24 — Shipped routing section, production-checklist link, `ExplorationRoutingDocContractTest`; `DB_PORT=5433 mix test` (doc contracts) + `mix compile --warnings-as-errors`.
+Last activity: 2026-04-24 — Milestone close: **`milestones/v1.10-*`**, **`git rm` living REQUIREMENTS.md**, **`v1.10` planning tag**.
 
 ## Performance metrics
 
@@ -55,10 +55,10 @@ _None — v1.10 milestone complete._
 
 ## Session continuity
 
-**Shipped milestone:** **v1.10** — Phases **31–33** — 2026-04-24.
+**Shipped milestone:** **v1.10** — Phases **31–36** — 2026-04-24 — archives **`.planning/milestones/v1.10-REQUIREMENTS.md`**, **`.planning/milestones/v1.10-ROADMAP.md`**, **`.planning/milestones/v1.10-MILESTONE-AUDIT.md`**.
 
 **Prior shipped:** **v1.9** — Phases 28–30 — 2026-04-24 (archived).
 
-**Next planned phase:** TBD — open next milestone in **`.planning/ROADMAP.md`** / **`.planning/MILESTONES.md`** when scope is chosen.
+**Next planned phase:** TBD — run **`/gsd-new-milestone`** for fresh **`.planning/REQUIREMENTS.md`** and roadmap slice.
 
-**Completed:** Phase **31** — see **`31-VERIFICATION.md`**. Phase **32** — see **`32-VERIFICATION.md`**. Phase **33** — see **`33-VERIFICATION.md`**.
+**Verification pointers:** **`31-VERIFICATION.md`** through **`36-VERIFICATION.md`** under **`.planning/phases/`**.
