@@ -50,7 +50,7 @@ completed: 2026-04-24
 
 ## Task commits
 
-_(Hashes filled after commit.)_
+1. **28-02-01 + 28-02-02** — checklist §1/§6 + README discovery line — `7a83809`
 
 ## Verification
 
