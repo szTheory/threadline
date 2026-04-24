@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.8 — Close the support loop** — Phases 25–27 (in progress) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
 - ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
 - ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
@@ -12,6 +13,35 @@
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+### v1.8 — Close the support loop (Phases 25–27) — IN PROGRESS
+
+**Goal:** Faster production support using the same **timeline + export** vocabulary, **correlation-aware** filtering where actions carry `correlation_id`, and **copy-paste operator docs** — see [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md).
+
+**Requirements map:** Phase 25 → LOOP-01 · Phase 26 → LOOP-02, LOOP-04 · Phase 27 → LOOP-03
+
+**Success criteria**
+
+**Phase 25 — Correlation-aware timeline & export**
+
+1. With `:correlation_id` set, `Threadline.Query.timeline/2` and `Threadline.Export` entrypoints return only changes whose transaction links to an `audit_actions` row with that correlation; with it unset, behavior is unchanged.
+2. `validate_timeline_filters!/1` accepts `:correlation_id`; unknown keys still raise; CHANGELOG documents the addition.
+3. Integration tests cover timeline + at least one export shape with correlation filter.
+
+**Phase 26 — Support playbooks & doc contracts**
+
+4. `guides/domain-reference.md` and `guides/production-checklist.md` include **Support incident queries** material mapping the five canonical questions to API vs SQL.
+5. A doc contract test locks anchors for those sections (LOOP-04).
+
+**Phase 27 — Example app correlation path**
+
+6. `examples/threadline_phoenix/` documents and tests (or README-verifiable) flow: correlation header → audited write / action → retrieval using `:correlation_id` after Phase 25.
+
+- [ ] **Phase 25 — Correlation-aware timeline & export** — LOOP-01
+- [ ] **Phase 26 — Support playbooks & doc contracts** — LOOP-02, LOOP-04
+- [ ] **Phase 27 — Example app correlation path** — LOOP-03
+
+**Telescope:** After v1.8 ships, prefer **v1.9 — Production confidence at volume** (telemetry, health, indexing, retention-at-scale docs) — see `.planning/MILESTONES.md`.
 
 <details>
 <summary>✅ v1.7 Reference integration for SaaS (Phases 22–24) — SHIPPED 2026-04-24</summary>
@@ -134,12 +164,15 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.7** is **shipped** (2026-04-24). **Next milestone:** not opened — run **`/gsd-new-milestone`** when scope is ready (creates a fresh **`.planning/REQUIREMENTS.md`**). **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Archives: **`.planning/milestones/v1.7-REQUIREMENTS.md`**, **`.planning/milestones/v1.7-ROADMAP.md`**.
+**v1.8** is **open** — living **`.planning/REQUIREMENTS.md`**. Start with **Phase 25** (LOOP-01): `/gsd-discuss-phase 25` or `/gsd-plan-phase 25`. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume milestone — see `.planning/MILESTONES.md` (not opened).
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 25. Correlation-aware timeline & export | v1.8 | — | Not started | — |
+| 26. Support playbooks & doc contracts | v1.8 | — | Not started | — |
+| 27. Example app correlation path | v1.8 | — | Not started | — |
 | 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |
 | 23. HTTP audited path | v1.7 | 1/1 | Complete    | 2026-04-24 |
 | 24. Job path, actions, adoption pointers | v1.7 | 2/2 | Complete    | 2026-04-24 |

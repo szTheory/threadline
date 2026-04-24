@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: pending
-milestone_name: Next milestone — run /gsd-new-milestone
-status: between_milestones
+milestone: v1.8
+milestone_name: Close the support loop
+status: defining_complete_execution_pending
 last_updated: "2026-04-24T12:00:00.000Z"
-last_activity: 2026-04-24 — v1.7 milestone archived
+last_activity: 2026-04-24 — Milestone v1.8 opened (requirements + roadmap)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,21 +17,21 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated after v1.7 close)
+See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Open the next milestone with **`/gsd-new-milestone`** when scope is ready.
+**Current focus:** **v1.8** — support loop (LOOP-01 — LOOP-04); Phases **25–27**.
 
 ## Current Position
 
-Phase: —
+Phase: Not started (ready for `/gsd-discuss-phase 25` or `/gsd-plan-phase 25`)
 
 Plan: —
 
-Status: Between milestones (v1.7 shipped 2026-04-24)
+Status: Milestone v1.8 — requirements and roadmap defined; implementation pending
 
-Last activity: 2026-04-24
+Last activity: 2026-04-24 — Opened v1.8 planning artifacts
 
 ## Performance metrics
 
@@ -41,24 +41,21 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Decisions
 
-- **v1.7 closed:** Reference Phoenix integration complete under **`examples/threadline_phoenix/`** (HTTP + Oban + adoption doc pointers).
-- **Next:** Fresh **`REQUIREMENTS.md`** only after **`/gsd-new-milestone`**.
+- **v1.8 scope:** SaaS trajectory chunk 1 — exploration layer focus (timeline/export + operator docs); excludes LiveView and `threadline_web`.
+- **v1.9 telescope:** Ops-at-volume (telemetry, health, indexing, retention alignment) after v1.8 closes.
 
 ### Pending todos
 
-1. **`/gsd-new-milestone`** — define next scope, requirements, and roadmap slice.
-2. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`** (not automatic at planning milestone close).
+1. **Phase 25** — Implement LOOP-01 (`:correlation_id` on timeline + export + tests).
+2. **Phase 26** — LOOP-02 + LOOP-04 (guides + doc contract anchors).
+3. **Phase 27** — LOOP-03 (example app correlation path).
 
 ### Blockers / concerns
 
-- None for v1.7 closure.
+- None for planning open.
 
 ## Session continuity
 
-**Milestone v1.7:** shipped 2026-04-24 (Phases 22–24).
-
-**Prior shipped:** v1.6 — Phase 21 — 2026-04-24 (archive: `.planning/milestones/v1.6-*.md`).
-
-**Completed phases (v1.7):** 22 — Example app layout & runbook — 2026-04-24 · 23 — HTTP audited path — 2026-04-24 · 24 — Job path, actions, adoption pointers — 2026-04-24
+**Prior shipped:** v1.7 — Phases 22–24 — 2026-04-24.
 
 **Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `.planning/milestones/v1.7-REQUIREMENTS.md`

@@ -2,6 +2,26 @@
 
 Entries are newest first.
 
+## v1.8 — Close the support loop (opened 2026-04-24)
+
+**Goal:** Reduce SaaS support **time-to-answer** with **correlation-aware** timeline + export, **operator playbooks** in guides, an **example app** correlation path, and **doc contract** anchors.
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
+
+**Phases planned:** **25** (LOOP-01) · **26** (LOOP-02, LOOP-04) · **27** (LOOP-03) — see `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
+
+**Status:** Requirements and roadmap defined; execution not started.
+
+**What is next:** `/gsd-discuss-phase 25` or `/gsd-plan-phase 25` — implement LOOP-01 first (example LOOP-03 depends on correlation filter).
+
+---
+
+## v1.9 telescope — Production confidence at volume (not opened)
+
+**Intent (chunk 2 of SaaS trajectory):** Telemetry + **`Threadline.Health`** operational narrative, indexing cookbook, retention-at-scale alignment; **docs-first** with small code gaps only where existing hooks cannot express the signal. Open with **`/gsd-new-milestone`** after **v1.8** closes.
+
+---
+
 ## v1.7 — Reference integration for SaaS (shipped 2026-04-24)
 
 **Goal:** Runnable in-repo Phoenix example (**`examples/threadline_phoenix/`**) with HTTP + Oban audited paths, `record_action/2`, and links to production checklist + STG rubric.

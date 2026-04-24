@@ -8,9 +8,20 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Next milestone
+## Current Milestone: v1.8 — Close the support loop
 
-**Not opened** — run **`/gsd-new-milestone`** when the next slice is ready. A fresh **`.planning/REQUIREMENTS.md`** will be created there; living roadmap: **`.planning/ROADMAP.md`**.
+**Goal:** Make audit data the default way teams answer “what happened to this tenant / user / resource?” in production support — faster **time-to-answer** via shared **timeline + export** ergonomics and **operator docs**, without bespoke SQL every time.
+
+**Target features:**
+
+- **Correlation-aware timeline & export** — optional `:correlation_id` filter aligned with `audit_actions.correlation_id` (LOOP-01).
+- **Support incident playbooks** — `guides/domain-reference.md` + `guides/production-checklist.md` map five canonical support questions to API vs SQL (LOOP-02).
+- **Example app path** — `examples/threadline_phoenix/` demonstrates correlation header → retrieval (LOOP-03).
+- **Doc contracts** — anchors so support sections do not rot (LOOP-04).
+
+**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` (Phases **25–27**). **Non-goals:** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
+
+**Telescope (not opened): v1.9 — Production confidence at volume** — telemetry + health operational narrative, indexing cookbook, retention-at-scale alignment; docs-first with small code gaps only where signals cannot be expressed today.
 
 ## Last milestone shipped: v1.7 — Reference integration for SaaS (Phases 22–24, 2026-04-24)
 
@@ -40,7 +51,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.7** are complete (**v1.7** shipped 2026-04-24). Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.7-*.md`, plus `v1.0-phases/`, `v1.1-phases/`, **`v1.7-phases/`**). Living roadmap: `.planning/ROADMAP.md`. **Living requirements:** none until **`/gsd-new-milestone`** creates the next **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
+**v1.0** through **v1.7** are complete (**v1.7** shipped 2026-04-24). **v1.8** is **in progress** (support loop — see **Current Milestone** above). Archives live under `.planning/milestones/`. Living roadmap: `.planning/ROADMAP.md`. Living requirements: **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -86,7 +97,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.7** shipped and archived (2026-04-24) — **Phases 22–24** (`examples/threadline_phoenix/`, HTTP path, Oban + `record_action/2`, README adoption links). **Next milestone** not opened. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
+- **Planning:** **v1.8** opened (2026-04-24) — support loop (Phases **25–27**): correlation timeline/export, operator playbooks, example path, doc contracts. Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -118,7 +129,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_No living **`.planning/REQUIREMENTS.md`** after v1.7 close — add the next milestone via **`/gsd-new-milestone`**._
+- [ ] **LOOP-01** — Optional **`:correlation_id`** on timeline + export; tests + CHANGELOG (v1.8).
+- [ ] **LOOP-02** — Support incident query subsections in **`guides/domain-reference.md`** and **`guides/production-checklist.md`** (v1.8).
+- [ ] **LOOP-03** — **`examples/threadline_phoenix/`** correlation end-to-end demo (v1.8).
+- [ ] **LOOP-04** — Doc contract anchors for support playbooks (v1.8).
+
+_See **`.planning/REQUIREMENTS.md`** for full wording and traceability._
 
 ### Out of Scope
 
@@ -187,4 +203,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 after **v1.7** milestone archive — reference Phoenix example shipped; next milestone not opened.*
+*Last updated: 2026-04-24 — **v1.8** milestone opened (support loop); **v1.9** telescope noted for ops-at-volume follow-up.*
