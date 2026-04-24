@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
 status: active
-last_updated: "2026-04-24T01:35:00Z"
-last_activity: 2026-04-24 -- Repaired STATE after bad state.begin-phase argv; Phase 20 still awaiting external pilot
+last_updated: "2026-04-24T01:52:00Z"
+last_activity: 2026-04-24 -- /gsd-execute-phase 20 — verification gaps_found (ADOP-03); no SUMMARY until pilot lands
 progress:
   total_phases: 2
   completed_phases: 1
@@ -20,17 +20,17 @@ See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** Phase 20 — first-external-pilot (blocked on host evidence until backlog PR merges)
+**Current focus:** Phase 20 — first-external-pilot
 
 ## Current Position
 
 Phase: 20 (first-external-pilot) — AWAITING EXTERNAL PILOT
 
-Plan: 0 of 1 complete (`PLAN.md` is host + maintainer checklist; no in-repo executor work until evidence exists)
+Plan: 0 of 1 complete (`PLAN.md` checklist; `20-VERIFICATION.md` = gaps_found until ADOP-03)
 
-Status: v1.5 open — Phase 19 complete; Phase 20 pending **ADOP-03**
+Status: v1.5 open — Phase 19 complete; Phase 20 blocked on **ADOP-03** (see `20-VERIFICATION.md`)
 
-Last activity: 2026-04-24 — STATE frontmatter repaired; execution deferred to real pilot
+Last activity: 2026-04-24 -- execute-phase 20 ran verifier gate; backlog still pre-pilot
 
 ## Performance metrics
 
