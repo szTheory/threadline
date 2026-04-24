@@ -156,10 +156,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **IDX-01 / IDX-02 (Phase 29)** — **`guides/audit-indexing.md`** (installed defaults, access patterns vs **`Threadline.Query`** / **`Threadline.Export`** / **`Threadline.Retention`**, tradeoffs, optional DDL framed non-mandatory); ExDoc extra; cross-links from **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`test/threadline/audit_indexing_doc_contract_test.exs`**. Validated in Phase 29: Audit table indexing cookbook (2026-04-24).
 - [x] **SCALE-01 / SCALE-02 (Phase 30)** — **`guides/production-checklist.md`** volume / purge cadence H3 tied to **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`**; export §5 + support intro hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** discovery hub; **`README.md`** Maintainer-band pointer. Validated in Phase 30: Retention at scale & discovery (2026-04-24).
 - [x] **XPLO-01 (Phase 31)** — **`Threadline.ChangeDiff.from_audit_change/2`** (primary + `:export_compat`), ExDoc matrix for INSERT/UPDATE/DELETE and `before_values` / `prior_state`, **`test/threadline/change_diff_test.exs`**, **`Threadline.change_diff/2`**. Validated in Phase 31: Field-level change presentation (2026-04-24).
+- [x] **XPLO-02 (Phase 32)** — **`Threadline.Query.audit_changes_for_transaction/2`**, **`Threadline.audit_changes_for_transaction/2`**, stable order via **`timeline_order/1`**, UUID validation + **`[]`** empty semantics, **`test/threadline/query_test.exs`**. Validated in Phase 32: Transaction-scoped change listing (2026-04-24).
 
 ### Active (v1.10)
 
-- [ ] **XPLO-02** — Transaction-scoped `AuditChange` listing API + `Threadline` delegator.
 - [ ] **XPLO-03** — Operator docs + playbook/checklist cross-links + doc contracts for new anchors.
 
 _Living requirements: **`.planning/REQUIREMENTS.md`**. Prior milestone: **`.planning/milestones/v1.9-REQUIREMENTS.md`**._
@@ -231,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **Phase 31** (`XPLO-01`): **`Threadline.ChangeDiff`** shipped; **`REQUIREMENTS.md`** / **`ROADMAP.md`** / **`STATE.md`** updated.*
+*Last updated: 2026-04-24 — **Phase 32** (`XPLO-02`): **`audit_changes_for_transaction/2`** on **`Threadline.Query`** and **`Threadline`**; **`PROJECT.md`** / **`ROADMAP.md`** / **`STATE.md`** updated.*

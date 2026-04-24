@@ -9,7 +9,7 @@
 ### Exploration — support-grade primitives
 
 - [x] **XPLO-01**: Integrator can obtain a **deterministic, JSON-serializable** structure describing **per-field** adds, updates, and removes for a single `%AuditChange{}`, using `data_after`, `changed_fields`, and `changed_from` when present; documented, explicit behavior for **INSERT** / **UPDATE** / **DELETE** and when **`changed_from` is `nil`** (no prior values).
-- [ ] **XPLO-02**: Integrator can load **all** `%AuditChange{}` rows for a given **`audit_transactions.id`** via a documented **`Threadline.Query`** function and a **`Threadline`** delegator, with **stable ordering** (for incident reconstruction and API responses).
+- [x] **XPLO-02**: Integrator can load **all** `%AuditChange{}` rows for a given **`audit_transactions.id`** via a documented **`Threadline.Query`** function and a **`Threadline`** delegator, with **stable ordering** (for incident reconstruction and API responses).
 - [ ] **XPLO-03**: **`guides/domain-reference.md`** includes a **concise decision guide** (when to use `history/3`, `timeline/2`, export, correlation filters, transaction-scoped listing, diff helpers); at least one **cross-link** from existing **support** or **production-checklist** material; **doc contract test(s)** lock any **new** stable anchors introduced for v1.10.
 
 ## Future (after v1.10)
@@ -35,7 +35,7 @@ _Defer unless a later milestone explicitly reopens._
 | Requirement | Phase | Status |
 |---------------|-------|--------|
 | XPLO-01 | Phase 31 | Complete |
-| XPLO-02 | Phase 32 | Pending |
+| XPLO-02 | Phase 32 | Complete |
 | XPLO-03 | Phase 33 | Pending |
 
 **Coverage:** v1.10 requirements: **3** total — mapped: **3** — unmapped: **0** ✓

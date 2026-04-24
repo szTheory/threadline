@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: — Support-grade exploration primitives
-status: verifying
-last_updated: "2026-04-24T16:41:18.344Z"
-last_activity: 2026-04-24 — Phase 31 implementation and `DB_PORT=5433 mix ci.all` verification.
+status: planning
+last_updated: "2026-04-24T17:00:00.000Z"
+last_activity: 2026-04-24 — Phase 32 complete (XPLO-02); Phase 33 next.
 progress:
-  total_phases: 2
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 1
+  completed_plans: 1
+  percent: 67
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.10** — Phase **32** next (transaction-scoped change listing, **XPLO-02**).
+**Current focus:** **v1.10** — Phase **33** next (operator docs & contracts, **XPLO-03**).
 
 ## Current Position
 
-Phase: **32** — Transaction-scoped change listing (context gathered; implementation next)
+Phase: **33** — Operator docs & contracts (not started)
 
 Plan: —
 
-Status: Phase **31** complete (code + verification). Phases **32–33** remain in v1.10.
+Status: Phase **32** complete (code + verification). Phase **33** remains in v1.10.
 
-Last activity: 2026-04-24 — Phase 31 implementation and `DB_PORT=5433 mix ci.all` verification.
+Last activity: 2026-04-24 — Shipped **`audit_changes_for_transaction/2`** (**XPLO-02**); `DB_PORT=5433 mix ci.all` verified.
 
 ## Performance metrics
 
@@ -47,7 +47,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. **`/gsd-plan-phase 32`** — transaction-scoped change listing (**XPLO-02**) — context: **`.planning/phases/32-transaction-scoped-change-listing/32-CONTEXT.md`**.
+1. **`/gsd-discuss-phase 33`** (optional) then **`/gsd-plan-phase 33`** — operator docs routing (**XPLO-03**).
 
 ### Blockers / concerns
 
@@ -59,6 +59,6 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Prior shipped:** **v1.9** — Phases 28–30 — 2026-04-24 (archived).
 
-**Next planned phase:** 32 — Transaction-scoped change listing
+**Next planned phase:** 33 — Operator docs & contracts
 
-**Completed:** Phase 31 (field-level change presentation) — 2026-04-24 — see **`31-VERIFICATION.md`**.
+**Completed:** Phase **31** (field-level change presentation) — 2026-04-24 — see **`31-VERIFICATION.md`**. Phase **32** (transaction-scoped change listing) — 2026-04-24 — see **`32-VERIFICATION.md`**.

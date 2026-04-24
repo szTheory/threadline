@@ -41,7 +41,7 @@
 7. At least one **existing** support- or checklist-oriented guide cross-links to that section; new stable anchors are covered by a **`test/threadline/`** doc contract test.
 
 - [x] **Phase 31 — Field-level change presentation** — XPLO-01 — completed 2026-04-24
-- [ ] **Phase 32 — Transaction-scoped change listing** — XPLO-02
+- [x] **Phase 32 — Transaction-scoped change listing** — XPLO-02 — completed 2026-04-24
 - [ ] **Phase 33 — Operator docs & contracts** — XPLO-03
 
 <details>
@@ -229,14 +229,14 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.10** is **active** (Phases **31–33**): living **`.planning/REQUIREMENTS.md`** and this file. Phase **31** is complete; start Phase **32** with **`/gsd-discuss-phase 32`** (optional) then **`/gsd-plan-phase 32`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`** after first phase ships to log progress.
+**v1.10** is **active** (Phases **31–33**): living **`.planning/REQUIREMENTS.md`** and this file. Phases **31–32** are complete; start Phase **33** with **`/gsd-discuss-phase 33`** (optional) then **`/gsd-plan-phase 33`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`** after first phase ships to log progress.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
 | 31. Field-level change presentation | v1.10 | 2/2 | Complete    | 2026-04-24 |
-| 32. Transaction-scoped change listing | v1.10 | — | Not started | — |
+| 32. Transaction-scoped change listing | v1.10 | 1/1 | Complete    | 2026-04-24 |
 | 33. Operator docs & contracts | v1.10 | — | Not started | — |
 | 28. Telemetry & health operators' narrative | v1.9 | 2/2 | Complete    | 2026-04-24 |
 | 29. Audit table indexing cookbook | v1.9 | 2/2 | Complete    | 2026-04-24 |
