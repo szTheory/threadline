@@ -232,4 +232,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.10** milestone complete (**Phases 31–33**): field diff, transaction-scoped listing, exploration API routing docs + doc contracts (`XPLO-01`–`XPLO-03`).*
+*Last updated: 2026-04-24 — **v1.10** complete (**Phases 31–36**): **XPLO-01**–**XPLO-03** (31–33), audit hygiene + written verification + planning matrix (**34–36**).*
