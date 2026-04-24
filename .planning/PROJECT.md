@@ -8,13 +8,21 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current milestone: v1.6 — Planning next
+## Current Milestone: v1.6 — Host staging / pooler parity (STG-01)
 
-**Intent:** Run **`/gsd-new-milestone`** to author a fresh `.planning/REQUIREMENTS.md`. The leading candidate from v1.5 close is **STG-01** (host staging / PgBouncer parity pilot), carried from **`guides/adoption-pilot-backlog.md`** / archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01). Library exploration API expansion remains **Future** until pilots file repeated concrete pain.
+**Goal:** Close the gap between **library CI** (`verify-pgbouncer-topology`, transaction-mode PgBouncer) and **honest host proof** in a staging or production-like environment: documented topology, audited writes on representative HTTP and job paths, and backlog evidence the integrator owns.
+
+**Target features:**
+
+- **STG-01** — Host-owned environment documents **app → pooler → Postgres** (or direct), **PgBouncer pool mode** when a pooler is used, and **matches prod: yes / no / partial** with short rationale.
+- **STG-02** — Host records **≥1 HTTP-request** audited write path and **≥1 async job path** (e.g. Oban) with **OK / Issue / N/A** + evidence (logs, SQL, redacted config, or issue links), matching the v1.5 archived **STG-01** acceptance draft for host remainder.
+- **STG-03** — **`guides/adoption-pilot-backlog.md`** (or host copy) updated for the rows that **STG-01** implies so maintainers can trace claims without conflating CI with host staging.
+
+**Non-goals (this milestone):** New capture semantics, exploration API expansion, LiveView UI, or claiming external pilot environments the library does not control — see **Out of Scope** and **Future** in `REQUIREMENTS.md`.
 
 ## Shipped milestones
 
-**v1.0** through **v1.5** (all 2026-04-23) are complete. Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.5-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **Requirements** for the next slice are created by **`/gsd-new-milestone`** (`.planning/REQUIREMENTS.md` was removed at v1.5 close).
+**v1.0** through **v1.5** (all 2026-04-23) are complete. Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.5-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **v1.6** requirements live in **`.planning/REQUIREMENTS.md`** (opened 2026-04-23).
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -27,7 +35,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Archives:** `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`.
 
-**Next:** **`/gsd-new-milestone`** for **v1.6** requirements; **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
+**Next:** Execute **v1.6** phases from **`.planning/ROADMAP.md`**; **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
 
 ## Prior milestone: v1.4 — Adoption & release readiness
 
@@ -60,7 +68,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.5** shipped (2026-04-23); archives under `.planning/milestones/v1.5-*.md`. **v1.6** requirements pending **`/gsd-new-milestone`**. Living roadmap: `.planning/ROADMAP.md`. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
+- **Planning:** Milestone **v1.5** shipped (2026-04-23); archives under `.planning/milestones/v1.5-*.md`. **v1.6** (**STG-01** host pooler parity) is active — **`.planning/REQUIREMENTS.md`**, **`.planning/ROADMAP.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag).
 
 ## Requirements
 
@@ -88,7 +96,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **STG-01 (v1.6 candidate)** — Host staging / pooler parity pilot (scope in archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01)); formalize acceptance in the next milestone’s `REQUIREMENTS.md` via **`/gsd-new-milestone`**.
+- [ ] **STG-01 — STG-03 (v1.6)** — Host staging / pooler parity pilot: topology documentation, HTTP + job audited paths, backlog evidence — see **`.planning/REQUIREMENTS.md`** and archived [v1.5 STG-01 draft](milestones/v1.5-REQUIREMENTS.md#stg-01).
 
 ### Out of Scope
 
@@ -156,4 +164,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — v1.5 milestone archived; `.planning/REQUIREMENTS.md` removed pending v1.6; Hex **0.2.0** unchanged.*
+*Last updated: 2026-04-23 — v1.6 milestone opened (requirements + roadmap); Hex **0.2.0** unchanged.*
