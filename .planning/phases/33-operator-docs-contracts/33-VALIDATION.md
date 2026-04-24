@@ -38,9 +38,9 @@ created: 2026-04-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 33-01-01 | 01 | 1 | XPLO-03 | T-33-01 / — | N/A (public docs) | doc contract | `mix test test/threadline/exploration_routing_doc_contract_test.exs` | ✅ | ⬜ pending |
-| 33-01-02 | 01 | 1 | XPLO-03 | — | N/A | doc contract | same | ✅ | ⬜ pending |
-| 33-01-03 | 01 | 1 | XPLO-03 | — | N/A | doc contract | same | ✅ | ⬜ pending |
+| 33-01-01 | 01 | 1 | XPLO-03 | T-33-01 / — | N/A (public docs) | doc contract | `mix test test/threadline/exploration_routing_doc_contract_test.exs` | ✅ | ✅ verified |
+| 33-01-02 | 01 | 1 | XPLO-03 | — | N/A | doc contract | same | ✅ | ✅ verified |
+| 33-01-03 | 01 | 1 | XPLO-03 | — | N/A | doc contract | same | ✅ | ✅ verified |
 
 ---
 

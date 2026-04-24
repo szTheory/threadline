@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- **v1.10 — Support-grade exploration primitives** — Phases 31–33 (in progress) — [requirements](REQUIREMENTS.md)
+- ✅ **v1.10 — Support-grade exploration primitives** — Phases 31–33 (shipped 2026-04-24) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](milestones/v1.9-REQUIREMENTS.md) · [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
@@ -42,7 +42,7 @@
 
 - [x] **Phase 31 — Field-level change presentation** — XPLO-01 — completed 2026-04-24
 - [x] **Phase 32 — Transaction-scoped change listing** — XPLO-02 — completed 2026-04-24
-- [ ] **Phase 33 — Operator docs & contracts** — XPLO-03
+- [x] **Phase 33 — Operator docs & contracts** — XPLO-03 — completed 2026-04-24
 
 <details>
 <summary>✅ v1.9 Production confidence at volume (Phases 28–30) — SHIPPED 2026-04-24</summary>
@@ -229,7 +229,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.10** is **active** (Phases **31–33**): living **`.planning/REQUIREMENTS.md`** and this file. Phases **31–32** are complete; start Phase **33** with **`/gsd-discuss-phase 33`** (optional) then **`/gsd-plan-phase 33`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`** after first phase ships to log progress.
+**v1.10** is **shipped** (Phases **31–33** complete, 2026-04-24): exploration primitives + operator routing docs — see **`.planning/REQUIREMENTS.md`** and **`33-VERIFICATION.md`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Log release notes in **`.planning/MILESTONES.md`** when you cut the next version.
 
 ## Progress
 
@@ -237,7 +237,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 | ----- | --------- | -------------- | ------ | ---------- |
 | 31. Field-level change presentation | v1.10 | 2/2 | Complete    | 2026-04-24 |
 | 32. Transaction-scoped change listing | v1.10 | 1/1 | Complete    | 2026-04-24 |
-| 33. Operator docs & contracts | v1.10 | — | Not started | — |
+| 33. Operator docs & contracts | v1.10 | 1/1 | Complete    | 2026-04-24 |
 | 28. Telemetry & health operators' narrative | v1.9 | 2/2 | Complete    | 2026-04-24 |
 | 29. Audit table indexing cookbook | v1.9 | 2/2 | Complete    | 2026-04-24 |
 | 30. Retention at scale & discovery | v1.9 | 2/2 | Complete    | 2026-04-24 |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: — Support-grade exploration primitives
-status: verifying
-last_updated: "2026-04-24T17:09:53.278Z"
-last_activity: 2026-04-24 — Shipped **`audit_changes_for_transaction/2`** (**XPLO-02**); `DB_PORT=5433 mix ci.all` verified.
+status: milestone_complete
+last_updated: "2026-04-24T17:20:00.000Z"
+last_activity: 2026-04-24 — Phase **33** complete (**XPLO-03**); `DB_PORT=5433` doc contract tests + compile verified.
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -21,17 +21,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.10** — Phase **33** next (operator docs & contracts, **XPLO-03**).
+**Current focus:** **v1.10** milestone complete — all phases **31–33** shipped (2026-04-24). Next: choose **v1.11** scope or patch release as needed.
 
 ## Current Position
 
-Phase: **33** — Operator docs & contracts (not started)
+Phase: **33** — Operator docs & contracts — **complete**
 
-Plan: —
+Plan: **33-01** — SUMMARY + verification recorded
 
-Status: Phase **32** complete (code + verification). Phase **33** remains in v1.10.
+Status: **v1.10** closed — field diff (**XPLO-01**), transaction-scoped listing (**XPLO-02**), exploration API routing docs (**XPLO-03**).
 
-Last activity: 2026-04-24 — Shipped **`audit_changes_for_transaction/2`** (**XPLO-02**); `DB_PORT=5433 mix ci.all` verified.
+Last activity: 2026-04-24 — Shipped routing section, production-checklist link, `ExplorationRoutingDocContractTest`; `DB_PORT=5433 mix test` (doc contracts) + `mix compile --warnings-as-errors`.
 
 ## Performance metrics
 
@@ -47,7 +47,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. **`/gsd-plan-phase 33`** — operator docs routing (**XPLO-03**); context in **`.planning/phases/33-operator-docs-contracts/33-CONTEXT.md`**.
+_None — v1.10 milestone complete._
 
 ### Blockers / concerns
 
@@ -55,12 +55,10 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ## Session continuity
 
-**Active milestone:** **v1.10** — Phases 31–33 — opened 2026-04-24.
+**Shipped milestone:** **v1.10** — Phases **31–33** — 2026-04-24.
 
 **Prior shipped:** **v1.9** — Phases 28–30 — 2026-04-24 (archived).
 
-**Next planned phase:** 33 — Operator docs & contracts
+**Next planned phase:** TBD — open next milestone in **`.planning/ROADMAP.md`** / **`.planning/MILESTONES.md`** when scope is chosen.
 
-**Completed:** Phase **31** (field-level change presentation) — 2026-04-24 — see **`31-VERIFICATION.md`**. Phase **32** (transaction-scoped change listing) — 2026-04-24 — see **`32-VERIFICATION.md`**.
-
-**Planned Phase:** 33 (Operator docs & contracts) — 1 plans — 2026-04-24T17:09:53.256Z
+**Completed:** Phase **31** — see **`31-VERIFICATION.md`**. Phase **32** — see **`32-VERIFICATION.md`**. Phase **33** — see **`33-VERIFICATION.md`**.

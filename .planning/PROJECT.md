@@ -8,17 +8,17 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.10 — Support-grade exploration primitives
+## Last milestone shipped: v1.10 — Support-grade exploration primitives (Phases 31–33, 2026-04-24)
 
-**Goal:** Turn shipped **capture + semantics + timeline/export** into faster **incident answers** with **small, explicit library APIs** — “what changed on this row?” and “everything that moved in this transaction?” — **without** new capture semantics or a UI framework.
+**Goal (achieved in-repo):** Turn shipped **capture + semantics + timeline/export** into faster **incident answers** with **small, explicit library APIs** — without new capture semantics or a UI framework.
 
-**Target features:**
+**Shipped:**
 
-- **Field-level change presentation** — **`Threadline.ChangeDiff`** + **`Threadline.change_diff/2`** (Phase 31, 2026-04-24): pure Elixir projection over `AuditChange` (`data_after`, `changed_from`, `op`) producing a **stable, JSON-serializable** structure for APIs and logs, with **documented** behavior when prior values are absent.
-- **Transaction-scoped reads** — documented **`Threadline.Query`** entrypoint (and **`Threadline`** delegator) to list **all** changes for one **`audit_transactions.id`**, **deterministically ordered** for reconstruction.
-- **Operator surfaces** — **`guides/domain-reference.md`** (and cross-links from existing **support** / **checklist** paths) explain **when to use** `history/3`, `timeline/2`, export, correlation filters, **transaction scope**, and **diff helpers**; **doc contract** coverage for any new stable anchors.
+- **Phase 31** — XPLO-01: **`Threadline.ChangeDiff`** + **`Threadline.change_diff/2`** — JSON-serializable field-level projection; documented INSERT/UPDATE/DELETE and `changed_from` absence.
+- **Phase 32** — XPLO-02: **`Threadline.Query.audit_changes_for_transaction/2`** + **`Threadline.audit_changes_for_transaction/2`** — stable ordering for one transaction id.
+- **Phase 33** — XPLO-03: **`## Exploration API routing (v1.10+)`** in **`guides/domain-reference.md`**, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`**.
 
-**Non-goals:** LiveView operator UI; published **`threadline_web`**; **new** capture / redaction / retention **semantics** or schema; maintainer-attested third-party STG URLs; **Hex** semver bump unless a **separate** release milestone says so.
+**Non-goals (unchanged):** LiveView operator UI; published **`threadline_web`**; new capture / redaction / retention **semantics**; maintainer-attested third-party STG URLs; **Hex** semver bump unless a **separate** release milestone says so.
 
 **Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** on Hex unchanged unless a release decision is made.
 
@@ -74,7 +74,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.10** is in progress (**Phase 31** complete 2026-04-24; **Phases 32–33** remaining). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.10** are complete (**v1.10** shipped 2026-04-24, Phases 31–33). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -231,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **Phase 32** (`XPLO-02`): **`audit_changes_for_transaction/2`** on **`Threadline.Query`** and **`Threadline`**; **`PROJECT.md`** / **`ROADMAP.md`** / **`STATE.md`** updated.*
+*Last updated: 2026-04-24 — **v1.10** milestone complete (**Phases 31–33**): field diff, transaction-scoped listing, exploration API routing docs + doc contracts (`XPLO-01`–`XPLO-03`).*
