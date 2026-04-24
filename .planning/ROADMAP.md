@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🔄 **v1.6 — Host staging / pooler parity** — Phase 21 (in progress) — [requirements](REQUIREMENTS.md) · [research](research/SUMMARY.md)
 - ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
 - ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
 - ✅ **v1.3 — Production adoption (redaction, retention, export)** — Phases 12–14 (shipped 2026-04-23) — [full archive](milestones/v1.3-ROADMAP.md)
@@ -20,6 +21,20 @@ Phase-level snapshot: [.planning/milestones/v1.5-ROADMAP.md](milestones/v1.5-ROA
 - [x] **Phase 20 — First external pilot** — Maintainer CI evidence in `guides/adoption-pilot-backlog.md`; **ADOP-03** complete; **AP-ENV.1** → **STG-01** (host pooler/staging follow-up).
 
 </details>
+
+### v1.6 — Host staging / pooler parity (Phase 21)
+
+**Goal:** Satisfy **STG-01**–**STG-03** in [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md): integrator-owned topology narrative, HTTP + job audited-path evidence, and adoption backlog updates with citations.
+
+**Requirements:** STG-01, STG-02, STG-03
+
+**Success criteria**
+
+1. A reader can answer **app → pooler → Postgres** (or equivalent), **pool mode**, and **matches prod** for the integrator’s staging or production-like environment without inferring it from Threadline CI alone.
+2. Evidence exists for **≥1 HTTP** and **≥1 job** audited write path, each labeled **OK** / **Issue** / **N/A** with a reproducible pointer (log, SQL, redacted config, or issue link).
+3. **`guides/adoption-pilot-backlog.md`** (or linked host copy declared in the intro) shows updated **Connection topology** / STG-related rows consistent with that evidence.
+
+**Notes:** Maintainer work is likely **templates, checklist clarity, and merging integrator-supplied doc updates** — not claiming external environments. Hex **`0.2.0`** unchanged unless a separate release decision is made.
 
 <details>
 <summary>✅ v1.4 Adoption & release readiness (Phases 15–18) — SHIPPED 2026-04-23</summary>
@@ -79,14 +94,15 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 </details>
 
-### Next milestone
+### Next actions
 
-**v1.6** — Run **`/gsd-new-milestone`** for a fresh `.planning/REQUIREMENTS.md`. **`STG-01`** (host staging / PgBouncer parity pilot) is the primary carryover from v1.5; see archived [v1.5 requirements](milestones/v1.5-REQUIREMENTS.md#stg-01). **`v0.2.0`** / **`threadline` 0.2.0** remain current until the next semver bump.
+**Phase 21** — `/gsd-discuss-phase 21` or `/gsd-plan-phase 21`, then execute. **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 21. Host staging & pooler parity | v1.6 | — | Not started | — |
 | 19. Adoption operator docs | v1.5 | — | Complete | 2026-04-23 |
 | 20. First external pilot | v1.5 | — | Complete | 2026-04-23 |
 | 15. Onboarding | v1.4 | — | Complete | 2026-04-23 |
