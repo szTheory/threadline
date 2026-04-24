@@ -74,7 +74,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** none until **`/gsd-new-milestone`** creates a fresh **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.10** is open (Phases 31–33). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
