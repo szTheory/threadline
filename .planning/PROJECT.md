@@ -8,18 +8,17 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.8 — Close the support loop
+## Last milestone shipped: v1.8 — Close the support loop (Phases 25–27, 2026-04-24)
 
-**Goal:** Make audit data the default way teams answer “what happened to this tenant / user / resource?” in production support — faster **time-to-answer** via shared **timeline + export** ergonomics and **operator docs**, without bespoke SQL every time.
+**Goal (achieved in-repo):** Faster **time-to-answer** in production support via shared **timeline + export** vocabulary, **correlation-aware** filtering, **copy-paste operator docs**, and an **example app** slice that proves the correlation path in CI.
 
-**Target features:**
+**Shipped:**
 
-- **Correlation-aware timeline & export** — optional `:correlation_id` filter aligned with `audit_actions.correlation_id` (LOOP-01).
-- **Support incident playbooks** — `guides/domain-reference.md` + `guides/production-checklist.md` map five canonical support questions to API vs SQL (LOOP-02).
-- **Example app path** — `examples/threadline_phoenix/` demonstrates correlation header → retrieval (LOOP-03).
-- **Doc contracts** — anchors so support sections do not rot (LOOP-04).
+- **Phase 25** — LOOP-01: `:correlation_id` on timeline/export with strict `audit_actions` join; validation + integration tests.
+- **Phase 26** — LOOP-02, LOOP-04: Support incident queries in guides; doc contract anchors.
+- **Phase 27** — LOOP-03: Example **`POST /api/posts`** records **`record_action`** in the audited transaction, links **`audit_transactions.action_id`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README correlation + **`export_json`** / **`jq`**.
 
-**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` (Phases **25–27**). **Non-goals:** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
+**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`. **Non-goals (unchanged):** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
 
 **Telescope (not opened): v1.9 — Production confidence at volume** — telemetry + health operational narrative, indexing cookbook, retention-at-scale alignment; docs-first with small code gaps only where signals cannot be expressed today.
 
@@ -51,7 +50,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.7** are complete (**v1.7** shipped 2026-04-24). **v1.8** is **in progress** (support loop — see **Current Milestone** above). Archives live under `.planning/milestones/`. Living roadmap: `.planning/ROADMAP.md`. Living requirements: **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
+**v1.0** through **v1.8** are complete (**v1.8** shipped 2026-04-24). Archives live under `.planning/milestones/`. Living roadmap: `.planning/ROADMAP.md`. Living requirements: **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -97,7 +96,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.8** in progress — **Phase 25** (LOOP-01) shipped 2026-04-24; **Phases 26–27** remain (playbooks, example correlation path, doc contracts). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.8** shipped 2026-04-24 (**Phases 25–27** — LOOP-01 through LOOP-04). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -202,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.8** Phases 25–26 complete (LOOP-01, LOOP-02, LOOP-04); Phase 27 (LOOP-03) next; **v1.9** telescope noted for ops-at-volume follow-up.*
+*Last updated: 2026-04-24 — **v1.8** shipped (Phases 25–27, LOOP-01–LOOP-04); **v1.9** telescope next for ops-at-volume follow-up.*
