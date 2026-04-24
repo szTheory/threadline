@@ -45,6 +45,24 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 
 - [ ] If tables already had rows before capture: read [`brownfield-continuity.md`](brownfield-continuity.md); run `mix threadline.continuity` where applicable; document the honest “gap until first audited write” for stakeholders.
 
+## Support incident queries
+
+Pre-launch: confirm operators can answer the five canonical support questions (see [`domain-reference.md`](domain-reference.md#support-incident-queries) for full SQL and API notes).
+
+| Question (1-line) | API / Mix | SQL |
+|-------------------|-----------|-----|
+| 1. Row history — PK in a time window | `Threadline.history/3`, `Threadline.Query.timeline/2` | [Golden query](domain-reference.md#1-row-history-pk-changes-in-a-time-window) in domain reference |
+| 2. Actor window — one actor across tables | `Threadline.actor_history/2`, `timeline/2` + `:actor_ref` | [Golden query](domain-reference.md#2-actor-window-one-actor-across-tables) |
+| 3. Correlation bundle — shared `correlation_id` | `timeline/2`, `mix threadline.export` + `:correlation_id` | [Inner-join SQL + strict semantics](domain-reference.md#3-correlation-bundle-shared-correlation_id) |
+| 4. Export parity — same filters as timeline | `Threadline.Export`, `mix threadline.export` | [Filter vocabulary](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) |
+| 5. Action ↔ capture — link semantics to rows | `Threadline.record_action/2`, `action_id` | [Join pattern](domain-reference.md#5-action-and-capture-link-semantic-actions-to-changes) |
+
+- [ ] **Q1 — Row history:** Read [row history playbook](domain-reference.md#1-row-history-pk-changes-in-a-time-window) (`audit_changes`, `audit_transactions`, bounded `captured_at`).
+- [ ] **Q2 — Actor window:** Read [actor window playbook](domain-reference.md#2-actor-window-one-actor-across-tables) (`actor_ref` JSON, time bounds).
+- [ ] **Q3 — Correlation:** Read [correlation bundle playbook](domain-reference.md#3-correlation-bundle-shared-correlation_id) — with `:correlation_id`, timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation (no orphan capture rows).
+- [ ] **Q4 — Export parity:** Read [export parity notes](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) — same keys as `Threadline.Query.timeline/2`.
+- [ ] **Q5 — Action ↔ capture:** Read [action/capture join](domain-reference.md#5-action-and-capture-link-semantic-actions-to-changes) (`audit_actions`, `action_id`, `audit_changes`).
+
 ## See also
 
 - [Adoption pilot backlog](adoption-pilot-backlog.md) — matrix to run this checklist in a real environment and file issues with evidence.
