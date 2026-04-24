@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Reference integration for SaaS
 status: planning
-last_updated: "2026-04-24T12:45:00.000Z"
-last_activity: 2026-04-24 — Phase 23 executed (plan 23-01); REF-03 verified; next Phase 24.
+last_updated: "2026-04-24T18:00:00.000Z"
+last_activity: 2026-04-24 — Phase 24 discuss-phase complete (`24-CONTEXT.md`); ready for `/gsd-plan-phase 24`.
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 3
   completed_plans: 3
-  percent: 67
+  percent: 100
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: `.planning/PROJECT.md` (v1.7 current milestone)
 
 ## Current Position
 
-Phase: **24** — Job path, actions, adoption pointers (not started)
+Phase: **24** — Job path, actions, adoption pointers (**context gathered**)
 
 Plan: —
 
-Status: Phase 23 complete — see `.planning/phases/23-http-audited-path/23-VERIFICATION.md` and `23-01-SUMMARY.md`.
+Status: Phase 24 **24-CONTEXT.md** + **24-DISCUSSION-LOG.md** committed; planning not started. Phase 23 shipped — see `23-VERIFICATION.md` / `23-01-SUMMARY.md`.
 
-Last activity: 2026-04-24 — Phase 23 HTTP audited path shipped (`POST /api/posts`, ConnCase proof).
+Last activity: 2026-04-24 — Phase 24 discuss-phase complete; resume file `.planning/phases/24-job-path-actions-adoption-pointers/24-CONTEXT.md`.
 
 ## Performance metrics
 
@@ -46,7 +46,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. Execute **Phase 24** per `.planning/ROADMAP.md` (Oban path, `record_action/2`, adoption pointers).
+1. **`/gsd-plan-phase 24`** then execute (Oban path, `record_action/2`, adoption pointers) per **`24-CONTEXT.md`**.
 2. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`** (not automatic for v1.7).
 
 ### Blockers / concerns
@@ -63,4 +63,4 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Completed phases (v1.7):** 22 — Example app layout & runbook — 2026-04-24 · 23 — HTTP audited path — 2026-04-24
 
-**Next phase:** 24 — Job path, actions, adoption pointers — `/gsd-discuss-phase 24` or `/gsd-plan-phase 24`.
+**Next phase:** 24 — Job path, actions, adoption pointers — **`/gsd-plan-phase 24`** (discuss done).
