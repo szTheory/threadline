@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: host-staging-pooler-parity
-status: defining_requirements
+status: roadmapped
 last_updated: "2026-04-23T22:00:00Z"
-last_activity: 2026-04-23 — Milestone v1.6 started (STG-01); requirements + roadmap authored
+last_activity: 2026-04-23 — Milestone v1.6 initialized (research, requirements, roadmap)
 progress:
   total_phases: 1
   completed_phases: 0
