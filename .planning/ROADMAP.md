@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- **v1.7 — Reference integration for SaaS** — Phases 22–24 (in progress) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
 - ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
 - ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
@@ -11,6 +12,33 @@
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+### v1.7 Reference integration for SaaS (Phases 22–24) — IN PROGRESS
+
+**Goal:** Ship a **runnable Phoenix example** under `examples/` (name finalized in Phase 22) that demonstrates **HTTP** and **Oban** audited writes, **`record_action/2`**, and **links** to production checklist + STG rubric — see [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md).
+
+**Requirements map:** Phase 22 → REF-01, REF-02 · Phase 23 → REF-03 · Phase 24 → REF-04, REF-05, REF-06
+
+**Success criteria**
+
+**Phase 22 — Example app layout & runbook**
+
+1. A new contributor can `cd` into the example directory, follow README, start Postgres, migrate, and run the app **without** publishing `threadline` to Hex (path dep).
+2. Example migrations reflect Threadline install + generated triggers for ≥1 table; README calls out **`MIX_ENV`** parity for `mix threadline.gen.triggers`.
+
+**Phase 23 — HTTP audited path**
+
+3. Integration test or documented HTTP steps show **audit row** for an authenticated or synthetic request through **`Threadline.Plug`** pipeline.
+
+**Phase 24 — Job path, actions, adoption pointers**
+
+4. Oban job test demonstrates **audited write** with **`Threadline.Job`** actor propagation.
+5. **`record_action/2`** appears at least once with operator-facing note in README or small guide section.
+6. Example README links **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** STG blocks.
+
+- [ ] **Phase 22 — Example app layout & runbook** — REF-01, REF-02
+- [ ] **Phase 23 — HTTP audited path** — REF-03
+- [ ] **Phase 24 — Job path, actions, adoption pointers** — REF-04, REF-05, REF-06
 
 <details>
 <summary>✅ v1.5 Adoption feedback loop (Phases 19–20) — SHIPPED 2026-04-23</summary>
@@ -101,12 +129,15 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.6** is complete (**Phase 21** shipped 2026-04-24); requirements archived under `.planning/milestones/v1.6-REQUIREMENTS.md`. Open the next milestone in this file when scope is ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump.
+**v1.7** is open — start with **Phase 22** (`/gsd-discuss-phase 22` or `/gsd-plan-phase 22`). **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump. **v1.6** archive: `.planning/milestones/v1.6-REQUIREMENTS.md`.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 22. Example app layout & runbook | v1.7 | — | Open | — |
+| 23. HTTP audited path | v1.7 | — | Open | — |
+| 24. Job path, actions, adoption pointers | v1.7 | — | Open | — |
 | 21. Host staging & pooler parity | v1.6 | 2/2 | Complete | 2026-04-24 |
 | 19. Adoption operator docs | v1.5 | — | Complete | 2026-04-23 |
 | 20. First external pilot | v1.5 | — | Complete | 2026-04-23 |

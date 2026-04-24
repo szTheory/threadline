@@ -2,6 +2,18 @@
 
 Entries are newest first.
 
+## v1.7 — Reference integration for SaaS (opened 2026-04-23)
+
+**Goal:** Runnable in-repo Phoenix example (`examples/` path TBD in execution) with HTTP + Oban audited paths, `record_action/2`, and links to production checklist + STG rubric.
+
+**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
+
+**Phases planned:** 22–24 (see [`.planning/ROADMAP.md`](ROADMAP.md), [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md)).
+
+**Status:** Planning artifacts landed; execution not started.
+
+---
+
 ## v1.6 — Host staging / pooler parity (shipped 2026-04-24)
 
 **Goal:** Close the gap between **library CI** and **honest host documentation** using integrator-owned templates and evidence pointers — not maintainer attestation of third-party staging (**STG-01**–**STG-03**).
