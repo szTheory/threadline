@@ -23,6 +23,7 @@ defmodule Threadline.Query do
   ## See also
 
   - `Threadline.Export` — CSV / JSON export using the same filter vocabulary.
+  - `audit_changes_for_transaction/2` — all changes for one `audit_transactions.id` (transaction drill-down vs `timeline/2` slices).
   """
 
   import Ecto.Query
@@ -235,6 +236,68 @@ defmodule Threadline.Query do
     |> where([at], fragment("? @> ?::jsonb", at.actor_ref, ^actor_map))
     |> order_by([at], desc: at.occurred_at)
     |> repo.all()
+  end
+
+  @doc """
+  Returns every `%AuditChange{}` for a single capture transaction.
+
+  `transaction_id` is `audit_transactions.id` — the same column as
+  `AuditChange.transaction_id` (`:binary_id`). Accepts UUID strings or 16-byte
+  binaries per `Ecto.UUID.cast/1`.
+
+  ## Ordering
+
+  Same total order as `timeline/2`: `captured_at` descending, then `id` descending
+  (via `timeline_order/1`). Random `binary_id` values are **not** a monotonic
+  sequence; ordering is only defined on `(captured_at, id)`.
+
+  ## Empty results
+
+  Returns `[]` when the UUID is well-formed but no `audit_changes` rows match
+  (whether the parent transaction row exists or not).
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module (`Keyword.fetch!/2` if missing).
+  - `:preload` — optional association list for `repo.preload/3` when non-empty
+    (intended: `[:transaction]`).
+
+  ## Errors
+
+  Raises `ArgumentError` with message containing `invalid audit transaction id`
+  when `transaction_id` fails UUID cast (before hitting Postgrex).
+  """
+  @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
+  def audit_changes_for_transaction(transaction_id, opts) do
+    repo = Keyword.fetch!(opts, :repo)
+
+    uuid =
+      case Ecto.UUID.cast(transaction_id) do
+        :error ->
+          raise ArgumentError,
+                "invalid audit transaction id: #{inspect(transaction_id)}"
+
+        {:ok, canonical} ->
+          canonical
+      end
+
+    results =
+      AuditChange
+      |> where([ac], ac.transaction_id == ^uuid)
+      |> timeline_order()
+      |> repo.all()
+
+    case Keyword.get(opts, :preload) do
+      preloads when preloads in [nil, []] ->
+        results
+
+      preloads when is_list(preloads) ->
+        repo.preload(results, preloads)
+
+      other ->
+        raise ArgumentError,
+              ":preload must be nil, [], or a list, got: #{inspect(other)}"
+    end
   end
 
   @doc """
