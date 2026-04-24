@@ -137,7 +137,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 | ----- | --------- | -------------- | ------ | ---------- |
 | 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |
 | 23. HTTP audited path | v1.7 | 1/1 | Complete    | 2026-04-24 |
-| 24. Job path, actions, adoption pointers | v1.7 | — | Open | — |
+| 24. Job path, actions, adoption pointers | v1.7 | 2/2 | Complete    | 2026-04-24 |
 | 21. Host staging & pooler parity | v1.6 | 2/2 | Complete | 2026-04-24 |
 | 19. Adoption operator docs | v1.5 | — | Complete | 2026-04-23 |
 | 20. First external pilot | v1.5 | — | Complete | 2026-04-23 |
