@@ -10,6 +10,7 @@ defmodule ThreadlinePhoenix.Application do
     children = [
       ThreadlinePhoenixWeb.Telemetry,
       ThreadlinePhoenix.Repo,
+      {Oban, Application.fetch_env!(:threadline_phoenix, Oban)},
       {DNSCluster,
        query: Application.get_env(:threadline_phoenix, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: ThreadlinePhoenix.PubSub},
