@@ -14,6 +14,9 @@
     "discuss_use_subagent_research": true,
     "discuss_default_cohesive_recommendations": true,
     "discuss_interactive_menus_high_impact_only": true,
+    "discuss_default_gray_areas": "all",
+    "discuss_research_all_gray_areas_default": true,
+    "discuss_one_shot_cohesive_context_default": true,
     "discuss_high_impact_tags": [
       "semver",
       "security_model",
