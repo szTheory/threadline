@@ -2,15 +2,27 @@
 
 Entries are newest first.
 
-## v1.7 — Reference integration for SaaS (opened 2026-04-23)
+## v1.7 — Reference integration for SaaS (shipped 2026-04-24)
 
-**Goal:** Runnable in-repo Phoenix example (`examples/` path TBD in execution) with HTTP + Oban audited paths, `record_action/2`, and links to production checklist + STG rubric.
+**Goal:** Runnable in-repo Phoenix example (**`examples/threadline_phoenix/`**) with HTTP + Oban audited paths, `record_action/2`, and links to production checklist + STG rubric.
 
 **Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
 
-**Phases planned:** 22–24 (see [`.planning/ROADMAP.md`](ROADMAP.md), [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md)).
+**Phases completed:** 22–24 (3 phases; 5 plans with `SUMMARY.md` under `.planning/phases/22-*`, `23-*`, `24-*/`).
 
-**Status:** Planning artifacts landed; execution not started.
+**Key accomplishments:**
+
+- Shipped **path-dep** Phoenix example with **`mix threadline.install`**, **`mix threadline.gen.triggers`** for **`posts`**, **`mix verify.example`** in **`mix ci.all`**, and contributor README runbook (**Phase 22**).
+- Landed **HTTP audited path**: **`Threadline.Plug`** on `:api`, **`Blog.create_post/2`** with transaction-local GUC, ConnCase proof for audit rows (**Phase 23**).
+- Landed **Oban** **`PostTouchWorker`**, **`Threadline.Job`** + **`record_action(:post_title_refreshed_from_queue, …)`** with integration test (Sandbox **`unboxed_run`** where needed); README **Semantics in jobs** + links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** (**Phase 24**).
+
+**Stats:** 3 phases, 5 plans, 5/5 summaries; v1.7 requirements **6/6** complete at close (see archived traceability; living `REQUIREMENTS.md` had lagging REF-04–REF-06 checkboxes — reconciled in archive).
+
+**Archives:** `.planning/milestones/v1.7-REQUIREMENTS.md`, `.planning/milestones/v1.7-ROADMAP.md`.
+
+**Known gaps at close:** None for in-repo acceptance. No standalone `v1.7-MILESTONE-AUDIT.md`; optional **`/gsd-audit-milestone`** next time. `gsd-sdk query milestone.complete` returned `version required for phases archive` — archives written manually.
+
+**What is next:** **`/gsd-new-milestone`** — fresh `.planning/REQUIREMENTS.md` and next roadmap slice when scope is ready.
 
 ---
 

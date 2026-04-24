@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- **v1.7 — Reference integration for SaaS** — Phases 22–24 (in progress) — [requirements](REQUIREMENTS.md)
+- ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
 - ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
 - ✅ **v1.5 — Adoption feedback loop** — Phases 19–20 (shipped 2026-04-23) — [archive](milestones/v1.5-REQUIREMENTS.md)
 - ✅ **v1.4 — Adoption & release readiness** — Phases 15–18 (shipped 2026-04-23) — [archive](milestones/v1.4-REQUIREMENTS.md)
@@ -13,9 +13,10 @@
 
 ## Phases
 
-### v1.7 Reference integration for SaaS (Phases 22–24) — IN PROGRESS
+<details>
+<summary>✅ v1.7 Reference integration for SaaS (Phases 22–24) — SHIPPED 2026-04-24</summary>
 
-**Goal:** Ship a **runnable Phoenix example** under `examples/` (name finalized in Phase 22) that demonstrates **HTTP** and **Oban** audited writes, **`record_action/2`**, and **links** to production checklist + STG rubric — see [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md).
+**Goal:** Runnable Phoenix example under **`examples/threadline_phoenix/`** with **HTTP** and **Oban** audited writes, **`record_action/2`**, and **links** to production checklist + STG rubric — see [`.planning/milestones/v1.7-REQUIREMENTS.md`](milestones/v1.7-REQUIREMENTS.md).
 
 **Requirements map:** Phase 22 → REF-01, REF-02 · Phase 23 → REF-03 · Phase 24 → REF-04, REF-05, REF-06
 
@@ -38,7 +39,11 @@
 
 - [x] **Phase 22 — Example app layout & runbook** — REF-01, REF-02 (2026-04-24)
 - [x] **Phase 23 — HTTP audited path** — REF-03 (2026-04-24)
-- [ ] **Phase 24 — Job path, actions, adoption pointers** — REF-04, REF-05, REF-06
+- [x] **Phase 24 — Job path, actions, adoption pointers** — REF-04, REF-05, REF-06 (2026-04-24)
+
+Full snapshot: [.planning/milestones/v1.7-ROADMAP.md](milestones/v1.7-ROADMAP.md).
+
+</details>
 
 <details>
 <summary>✅ v1.5 Adoption feedback loop (Phases 19–20) — SHIPPED 2026-04-23</summary>
@@ -129,7 +134,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.7** is open — **Phase 23** is complete; next is **Phase 24** (`/gsd-discuss-phase 24` or `/gsd-plan-phase 24`). **`v0.2.0`** / **`threadline` 0.2.0** remain current until a deliberate semver bump. **v1.6** archive: `.planning/milestones/v1.6-REQUIREMENTS.md`.
+**v1.7** is **shipped** (2026-04-24). **Next milestone:** not opened — run **`/gsd-new-milestone`** when scope is ready (creates a fresh **`.planning/REQUIREMENTS.md`**). **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. Archives: **`.planning/milestones/v1.7-REQUIREMENTS.md`**, **`.planning/milestones/v1.7-ROADMAP.md`**.
 
 ## Progress
 

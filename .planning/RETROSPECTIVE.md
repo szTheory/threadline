@@ -234,6 +234,44 @@
 
 ---
 
+## Milestone: v1.7 — Reference integration for SaaS
+
+**Shipped:** 2026-04-24  
+**Phases:** 3 | **Plans:** 5
+
+### What was built
+
+- Canonical **`examples/threadline_phoenix/`** app with path dependency, install/triggers for **`posts`**, and **`mix verify.example`** wired into **`mix ci.all`**.
+- HTTP API path with **`Threadline.Plug`**, audited **`Blog.create_post/2`**, and ConnCase coverage for **`audit_changes`** + actor linkage.
+- Oban **`PostTouchWorker`** with **`Threadline.Job`**, **`record_action/2`**, and README guidance linking production checklist + adoption backlog (STG rubric).
+
+### What worked
+
+- Keeping the integration surface **example-only** avoided premature **`threadline_web`** / umbrella packaging decisions.
+- Reusing **`mix verify.example`** as the repo-root gate kept CI honest for the nested Mix project.
+
+### What was inefficient
+
+- Living **`REQUIREMENTS.md`** and **`ROADMAP.md`** checkboxes lagged **`PROJECT.md`** until close; reconciliation duplicated v1.6 close toil.
+- `gsd-sdk query milestone.complete` still failed (`version required for phases archive`); manual archival again.
+
+### Patterns established
+
+- **Sandbox `unboxed_run`** as an escape hatch when nested savepoints hide trigger-visible transaction-local GUC in job tests — document in plan summary when used.
+
+### Key lessons
+
+1. Mark REF/traceability rows **Complete** in the same change set as the last plan’s **`VERIFICATION.md`** refresh.
+2. Treat **`audit-open`** + a quick diff of **`REQUIREMENTS.md` vs `PROJECT.md`** as a pre-close habit even without a standalone milestone audit file.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phases 22–24 executed as a tight vertical slice over two days.
+- Notable: Phase directories **22–24** remain under **`.planning/phases/`** until optional **`/gsd-cleanup`**.
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -247,6 +285,7 @@
 | v1.4 | 4 | **0.2.0** packaging, production checklist, timeline/export DX |
 | v1.5 | 2 | Adoption feedback loop: pilot backlog + telemetry reference + honest pooler follow-up |
 | v1.6 | 1 | Host STG templates + rubric + CONTRIBUTING + doc contracts (integrator-owned evidence explicit) |
+| v1.7 | 3 | In-repo Phoenix reference app: HTTP + Oban paths, `record_action/2`, adoption doc pointers |
 
 ### Cumulative quality
 
@@ -259,6 +298,7 @@
 | v1.4 | unchanged default CI path | Release narrative + operator checklist for **0.2.0** |
 | v1.5 | + topology / pooler contract job on CI | Doc-first adoption loop; no new library surface |
 | v1.6 | + STG doc contract tests | Doc-only milestone; `mix ci.all` unchanged in spirit, added focused contract files |
+| v1.7 | + `verify.example` + example ConnCase / Oban tests | Runnable `examples/threadline_phoenix/` exercised on default CI path |
 
 ### Top lessons (verified across milestones)
 
@@ -268,3 +308,4 @@
 4. v1.3 — align **export filters** with **timeline** so ops never learn two query dialects.
 5. v1.5 — label **who** must prove pooler realism (library CI vs host staging) before conflating them in a pilot narrative.
 6. v1.6 — ship **templates + rubrics** as repo artifacts; treat integrator **OK** rows as downstream work outside maintainer attestation.
+7. v1.7 — **`verify.example`** is the cheapest guardrail that nested example apps do not rot on **`main`**.

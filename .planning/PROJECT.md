@@ -8,20 +8,25 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.7 — Reference integration for SaaS
+## Next milestone
 
-**Goal:** Give teams a **runnable, minimal Phoenix integration** that demonstrates capture and semantics on **HTTP and background-job paths**, with cross-links to the production checklist and STG adoption rubric — so SaaS integrators can **copy working patterns** instead of inferring everything from prose guides alone.
+**Not opened** — run **`/gsd-new-milestone`** when the next slice is ready. A fresh **`.planning/REQUIREMENTS.md`** will be created there; living roadmap: **`.planning/ROADMAP.md`**.
 
-**Target features:**
+## Last milestone shipped: v1.7 — Reference integration for SaaS (Phases 22–24, 2026-04-24)
 
-- **In-repo example app** — Path dependency on the parent `threadline` package, README runbook (Postgres, migrate, run), and the same install / `gen.triggers` workflow as the library README.
-- **HTTP path** — Router pipeline includes `Threadline.Plug`; a controller (or API) performs audited writes; verifiable audit rows for that request path (tests and/or scripted steps in the example README).
-- **Job path** — Oban worker performs an audited write using **`Threadline.Job`** (or documented equivalent) so job actor linkage matches library expectations.
-- **Intent / actions** — At least one **`record_action/2`** call site with documented rationale; pointers to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** (STG audited-path rubric) for host-owned evidence beyond CI.
+**Goal (achieved in-repo):** Give teams a **runnable, minimal Phoenix integration** under **`examples/threadline_phoenix/`** that demonstrates capture and semantics on **HTTP and Oban job paths**, with **`record_action/2`** and cross-links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** (STG rubric) — integrator-owned host evidence unchanged from v1.6.
 
-**Non-goals for v1.7:** LiveView operator UI; new capture or redaction semantics; Hex semver bump unless a separate release decision is made; multi-tenant capture beyond existing Ecto prefix patterns; umbrella or published `threadline_web` companion package (the example stays **non-published** under `examples/`).
+**Shipped:**
 
-## Last milestone shipped: v1.6 — Host staging / pooler parity (Phase 21, 2026-04-24)
+- **Phase 22** — Path-dep example app, install + `gen.triggers` for `posts`, **`mix verify.example`** in **`mix ci.all`**, README runbook.
+- **Phase 23** — **`Threadline.Plug`** on `:api` pipeline; **`Blog.create_post/2`** with transaction-local GUC; ConnCase audit path test.
+- **Phase 24** — Oban **`PostTouchWorker`**, **`Blog.touch_post_for_job/2`** with **`Threadline.Job`** + **`record_action(:post_title_refreshed_from_queue, …)`**; README **Semantics in jobs** + adoption doc links.
+
+**Archives:** `.planning/milestones/v1.7-REQUIREMENTS.md`, `.planning/milestones/v1.7-ROADMAP.md`.
+
+**Non-goals (unchanged):** LiveView operator UI; new capture/redaction semantics; Hex semver bump unless a separate release decision is made; published `threadline_web` — example stays under **`examples/`**.
+
+## Prior milestone shipped: v1.6 — Host staging / pooler parity (Phase 21, 2026-04-24)
 
 **Goal (achieved in-repo):** Close the gap between **library CI** and **honest host documentation** using integrator-owned templates and evidence pointers — not maintainer attestation of third-party staging.
 
@@ -35,7 +40,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.6** are complete (**v1.6** shipped 2026-04-24). **v1.7** is in progress (Phases **22+**). Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.6-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. Living requirements: **`.planning/REQUIREMENTS.md`**. **v1.6** archive: **`.planning/milestones/v1.6-REQUIREMENTS.md`**.
+**v1.0** through **v1.7** are complete (**v1.7** shipped 2026-04-24). Archives live under `.planning/milestones/` (`v1.0-*.md` … `v1.7-*.md`, plus `v1.0-phases/`, `v1.1-phases/`). Living roadmap: `.planning/ROADMAP.md`. **Living requirements:** none until **`/gsd-new-milestone`** creates the next **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -81,7 +86,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.7** — **Phases 22–24** complete (2026-04-24): example app, HTTP audited path, **Oban** job path (`PostTouchWorker`, `Blog.touch_post_for_job/2`, `Threadline.Job`), README semantics + adoption guide links. **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
+- **Planning:** Milestone **v1.7** shipped and archived (2026-04-24) — **Phases 22–24** (`examples/threadline_phoenix/`, HTTP path, Oban + `record_action/2`, README adoption links). **Next milestone** not opened. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
 
 ## Requirements
 
@@ -113,9 +118,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_Scoped in **`.planning/REQUIREMENTS.md`** (milestone v1.7). Summary:_
-
-_(v1.7 reference-integration requirements REF-04–REF-06 are complete; see **Validated** above.)_
+_No living **`.planning/REQUIREMENTS.md`** after v1.7 close — add the next milestone via **`/gsd-new-milestone`**._
 
 ### Out of Scope
 
@@ -162,7 +165,7 @@ _(v1.7 reference-integration requirements REF-04–REF-06 are complete; see **Va
 | JSONB + typed columns, no binary formats | Avoids YAML/Erlang-term upgrade pain documented in Audited and ExAudit | ✓ Good (design principle) |
 | Single package `threadline` to start | Avoid premature umbrella/companion split before API is known; revisit after v0.1 | ✓ **0.1.0** shipped on Hex (v1.1) |
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
-| v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | In progress — layout + CI gate shipped (Phase 22); HTTP/Oban demos pending (Phases 23–24) |
+| v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | ✓ Shipped (Phases 22–24, 2026-04-24) |
 
 ## Evolution
 
@@ -184,4 +187,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — Phase 24 complete (Oban job path, `record_action`, example README adoption links); v1.7 reference integration shipped in-repo.*
+*Last updated: 2026-04-24 after **v1.7** milestone archive — reference Phoenix example shipped; next milestone not opened.*
