@@ -22,11 +22,11 @@ These five questions anchor scope. Each maps to at least one REQ-ID below; imple
 
 - [x] **LOOP-01**: **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`** paths accept an optional **`:correlation_id`** filter (string). When set, results include only `audit_changes` whose joined `audit_transactions` link to an **`audit_actions`** row with that `correlation_id` (via `action_id`). When `correlation_id` is absent, behavior matches today. **`validate_timeline_filters!/1`** and **`CHANGELOG.md`** document the new key; integration tests prove timeline + CSV/JSON export agree on the same filter list.
 
-- [ ] **LOOP-02**: **`guides/domain-reference.md`** and **`guides/production-checklist.md`** gain a **Support incident queries** subsection that answers questions **1–5** with a small table: question → **API / Mix task** vs **copy-paste SQL** (with pointers to `AuditChange`, `AuditTransaction`, `AuditAction` columns). Text stays SQL-native; no LiveView.
+- [x] **LOOP-02**: **`guides/domain-reference.md`** and **`guides/production-checklist.md`** gain a **Support incident queries** subsection that answers questions **1–5** with a small table: question → **API / Mix task** vs **copy-paste SQL** (with pointers to `AuditChange`, `AuditTransaction`, `AuditAction` columns). Text stays SQL-native; no LiveView.
 
 - [ ] **LOOP-03**: **`examples/threadline_phoenix/`** demonstrates **one** end-to-end correlation path: HTTP request with **`x-correlation-id`**, audited write + optional **`record_action/2`** with correlation, and a **test or README snippet** showing retrieval via **`Threadline.timeline/2`** or export using **`:correlation_id`** after LOOP-01 ships.
 
-- [ ] **LOOP-04**: A **doc contract test** asserts stable anchor strings (or headings) from LOOP-02 exist so support sections do not rot. Prefer extending an existing doc-contract test module if the project already groups guide contracts; otherwise add a focused test under **`test/threadline/`**.
+- [x] **LOOP-04**: A **doc contract test** asserts stable anchor strings (or headings) from LOOP-02 exist so support sections do not rot. Prefer extending an existing doc-contract test module if the project already groups guide contracts; otherwise add a focused test under **`test/threadline/`**.
 
 ---
 
@@ -56,9 +56,9 @@ _Defer unless a later milestone explicitly reopens._
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | LOOP-01 | Phase 25 | Complete |
-| LOOP-02 | Phase 26 | Pending |
+| LOOP-02 | Phase 26 | Complete |
 | LOOP-03 | Phase 27 | Pending |
-| LOOP-04 | Phase 26 | Pending |
+| LOOP-04 | Phase 26 | Complete |
 
 **Coverage:** v1.8 requirements: **4** total — mapped: **4** — unmapped: **0** ✓
 

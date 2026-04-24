@@ -127,12 +127,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **REF-03 (Phase 23)** — `Threadline.Plug` on example `:api` pipeline; `Blog.create_post/2` with transaction-local GUC; ConnCase `posts_audit_path_test.exs` proves `audit_changes` + `AuditTransaction.actor_ref`. Validated in Phase 23: HTTP audited path (2026-04-24).
 - [x] **REF-04 / REF-05 / REF-06 (Phase 24)** — Oban `PostTouchWorker` + `Blog.touch_post_for_job/2` with `Threadline.Job` and `record_action(:post_title_refreshed_from_queue, …)`; example README **Semantics in jobs** + links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`**. Validated in Phase 24: Job path, actions, adoption pointers (2026-04-24).
 - [x] **LOOP-01 (Phase 25)** — Optional **`:correlation_id`** on **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`**; strict `AuditAction` join when set; JSON **`action`** object and opt-in CSV **`include_action_metadata`**; integration tests + CHANGELOG. Validated in Phase 25: Correlation-aware timeline & export (2026-04-24).
+- [x] **LOOP-02 / LOOP-04 (Phase 26)** — **`guides/domain-reference.md`** + **`guides/production-checklist.md`** **Support incident queries** (five questions, API vs SQL); marker **`LOOP-04-SUPPORT-INCIDENT-QUERIES`**; **`test/threadline/support_playbook_doc_contract_test.exs`**. Validated in Phase 26: Support playbooks & doc contracts (2026-04-24).
 
 ### Active
 
-- [ ] **LOOP-02** — Support incident query subsections in **`guides/domain-reference.md`** and **`guides/production-checklist.md`** (v1.8).
 - [ ] **LOOP-03** — **`examples/threadline_phoenix/`** correlation end-to-end demo (v1.8).
-- [ ] **LOOP-04** — Doc contract anchors for support playbooks (v1.8).
 
 _See **`.planning/REQUIREMENTS.md`** for full wording and traceability._
 
@@ -203,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.8** Phase 25 (LOOP-01) complete; **v1.9** telescope noted for ops-at-volume follow-up.*
+*Last updated: 2026-04-24 — **v1.8** Phases 25–26 complete (LOOP-01, LOOP-02, LOOP-04); Phase 27 (LOOP-03) next; **v1.9** telescope noted for ops-at-volume follow-up.*

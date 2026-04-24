@@ -38,7 +38,7 @@
 6. `examples/threadline_phoenix/` documents and tests (or README-verifiable) flow: correlation header → audited write / action → retrieval using `:correlation_id` after Phase 25.
 
 - [x] **Phase 25 — Correlation-aware timeline & export** — LOOP-01 — completed 2026-04-24
-- [ ] **Phase 26 — Support playbooks & doc contracts** — LOOP-02, LOOP-04
+- [x] **Phase 26 — Support playbooks & doc contracts** — LOOP-02, LOOP-04 — completed 2026-04-24
 - [ ] **Phase 27 — Example app correlation path** — LOOP-03
 
 **Telescope:** After v1.8 ships, prefer **v1.9 — Production confidence at volume** (telemetry, health, indexing, retention-at-scale docs) — see `.planning/MILESTONES.md`.
@@ -164,14 +164,14 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.8** is **open** — living **`.planning/REQUIREMENTS.md`**. **Phase 25** (LOOP-01) is complete; next: **Phase 26** (LOOP-02, LOOP-04) — `/gsd-discuss-phase 26` or `/gsd-plan-phase 26`. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume milestone — see `.planning/MILESTONES.md` (not opened).
+**v1.8** is **open** — living **`.planning/REQUIREMENTS.md`**. **Phases 25–26** are complete (LOOP-01, LOOP-02, LOOP-04); next: **Phase 27** (LOOP-03) — `/gsd-discuss-phase 27` or `/gsd-plan-phase 27`. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume milestone — see `.planning/MILESTONES.md` (not opened).
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
 | 25. Correlation-aware timeline & export | v1.8 | 2/2 | Complete    | 2026-04-24 |
-| 26. Support playbooks & doc contracts | v1.8 | — | Not started | — |
+| 26. Support playbooks & doc contracts | v1.8 | 2/2 | Complete    | 2026-04-24 |
 | 27. Example app correlation path | v1.8 | — | Not started | — |
 | 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |
 | 23. HTTP audited path | v1.7 | 1/1 | Complete    | 2026-04-24 |
