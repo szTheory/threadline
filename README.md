@@ -71,6 +71,8 @@ Use **`mix threadline.gen.triggers --tables … --dry-run`** to print one line p
 
 ## Maintainer checks
 
+Production **volume** and **retention cadence** guidance — including what to chart from **telemetry**, how **trigger coverage** tuples behave in CI, when to reach for the **audit indexing cookbook**, and how **purge batches** interact with **`max_batches`** — now lives in one place: **[Operating at scale (v1.9+)](guides/domain-reference.md#operating-at-scale-v19)** inside [`guides/domain-reference.md`](guides/domain-reference.md). Read that hub before tuning cron schedules or alert thresholds; the sections it links to remain the canonical depth, and the quick retention summary under **`### Data retention and purge`** below is unchanged for installers who only need the fast path.
+
 Hosts configure which audited public tables must have Threadline capture triggers installed:
 
 ```elixir

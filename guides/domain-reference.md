@@ -64,6 +64,17 @@ Read-only exports for operator playbooks (“export then purge”, cross-checks,
 
 Physical PostgreSQL indexes on **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are **integrator-owned**: Threadline ships a safe baseline via migrations, but workload-specific btree/GIN choices stay with the team operating the database. For baseline inventory, join shapes (timeline vs export vs correlation), retention delete patterns, and **optional** additive DDL framed as non-mandatory, read the **[Audit table indexing cookbook](audit-indexing.md)**—do not duplicate full DDL matrices here; link to the cookbook when operators need tuning guidance.
 
+<span id="operating-at-scale-v19"></span>
+
+## Operating at scale (v1.9+)
+
+v1.9 adds the **telemetry operator narrative**, the **audit table indexing cookbook**, and **production checklist** guidance on **volume, retention cadence, and purge monitoring** — this heading is a **map** to those homes, not a second copy of their tables or matrices.
+
+- **[Telemetry (operator reference)](#telemetry-operator-reference)** — `:telemetry` events operators should chart.
+- **[Trigger coverage (operational)](#trigger-coverage-operational)** — how `Threadline.Health.trigger_coverage/1` tuples relate to `mix threadline.verify_coverage` and on-call triage.
+- **[Audit table indexing cookbook](audit-indexing.md)** — baseline vs optional indexes and join semantics for timeline, export, and correlation workloads.
+- **[Production checklist — retention and volume](production-checklist.md#4-retention-and-purge)** — purge cadence, growth signals, and CLI/API gates (see **`### Volume, growth, and purge cadence`** under §4).
+
 ## Brownfield continuity
 
 Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).

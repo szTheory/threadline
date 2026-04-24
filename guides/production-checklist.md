@@ -34,10 +34,20 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] Backups / point-in-time recovery: purges are **permanent** deletes of `audit_changes` (and optionally empty `audit_transactions`); align retention with compliance needs.
 - [ ] Index strategy for audit tables (baseline vs optional btree/GIN) reviewed with your DBA path; see **[`audit-indexing.md`](audit-indexing.md)** for shipped index names, timeline/export join semantics, and evidence-first additive patterns.
 
+### Volume, growth, and purge cadence
+
+- Treat **`audit_changes`** (and related storage) as a **monotonically growing** dataset until retention runs; chart table size and free space alongside application traffic so growth surprises surface before purge latency spikes.
+- **Schedule purges often enough** that each run finishes well inside the configured **`max_batches`** outer loop — if you routinely hit the cap, eligible rows remain until the next run; lowering per-pass volume (smaller **`--batch-size`** / `batch_size`) or running more frequently is safer than silently leaving a long tail of old rows.
+- Start **`batch_size`** near **500** (the `Threadline.Retention.purge/1` default), then adjust with **lock wait**, **statement duration**, and **capture concurrency** in mind; the Mix task maps **`--batch-size`** / **`--max-batches`** to the same options.
+- **`Threadline.Retention.Policy`** is the validated view of **`config :threadline, :retention`**; call **`Threadline.Retention.purge/1`** with a required **`repo:`** keyword (and optional `dry_run:`, `batch_size`, `max_batches`, `cutoff:`) from automation, or use **`mix threadline.retention.purge`**: always **`--dry-run`** first, then production **`MIX_ENV=prod mix threadline.retention.purge --execute`** only after ops sign-off — until **`enabled: true`**, programmatic calls return **`{:error, :disabled}`** and the Mix task raises.
+- **Monitor each run:** Mix and library logs include batch indices and cumulative **`deleted_changes`** (and empty-transaction counts when applicable); track **wall-clock duration per run** and whether the final summary shows unused **`max_batches`** headroom.
+- Cutoff clock, orphan **`audit_transactions`**, and empty-parent semantics stay in **[`domain-reference.md` — Retention (Phase 13)](domain-reference.md#retention-phase-13)** — do not fork a second spec in this checklist.
+
 ## 5. Export and investigation
 
 - [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
+- [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export (Phase 14)](domain-reference.md#export-phase-14)**.
 
 ## 6. Observability
 
@@ -49,6 +59,8 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] If tables already had rows before capture: read [`brownfield-continuity.md`](brownfield-continuity.md); run `mix threadline.continuity` where applicable; document the honest “gap until first audited write” for stakeholders.
 
 ## Support incident queries
+
+Incident queries assume audit rows still within the **retained** window — aggressive purges can make historical answers empty; reconcile timelines with **[retention and purge](#4-retention-and-purge)** before escalating missing data.
 
 Pre-launch: confirm operators can answer the five canonical support questions (see [`domain-reference.md`](domain-reference.md#support-incident-queries) for full SQL and API notes).
 
