@@ -37,7 +37,7 @@
 
 6. `examples/threadline_phoenix/` documents and tests (or README-verifiable) flow: correlation header → audited write / action → retrieval using `:correlation_id` after Phase 25.
 
-- [ ] **Phase 25 — Correlation-aware timeline & export** — LOOP-01
+- [x] **Phase 25 — Correlation-aware timeline & export** — LOOP-01 — completed 2026-04-24
 - [ ] **Phase 26 — Support playbooks & doc contracts** — LOOP-02, LOOP-04
 - [ ] **Phase 27 — Example app correlation path** — LOOP-03
 
@@ -164,13 +164,13 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.8** is **open** — living **`.planning/REQUIREMENTS.md`**. Start with **Phase 25** (LOOP-01): `/gsd-discuss-phase 25` or `/gsd-plan-phase 25`. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume milestone — see `.planning/MILESTONES.md` (not opened).
+**v1.8** is **open** — living **`.planning/REQUIREMENTS.md`**. **Phase 25** (LOOP-01) is complete; next: **Phase 26** (LOOP-02, LOOP-04) — `/gsd-discuss-phase 26` or `/gsd-plan-phase 26`. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume milestone — see `.planning/MILESTONES.md` (not opened).
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
-| 25. Correlation-aware timeline & export | v1.8 | — | Not started | — |
+| 25. Correlation-aware timeline & export | v1.8 | 2/2 | Complete    | 2026-04-24 |
 | 26. Support playbooks & doc contracts | v1.8 | — | Not started | — |
 | 27. Example app correlation path | v1.8 | — | Not started | — |
 | 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |

@@ -97,7 +97,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.8** opened (2026-04-24) — support loop (Phases **25–27**): correlation timeline/export, operator playbooks, example path, doc contracts. Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.8** in progress — **Phase 25** (LOOP-01) shipped 2026-04-24; **Phases 26–27** remain (playbooks, example correlation path, doc contracts). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
 
 ## Requirements
 
@@ -126,10 +126,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **REF-01 / REF-02 (Phase 22)** — Canonical `examples/threadline_phoenix/` path-dep app, install + `gen.triggers` for `posts`, dedicated `threadline_phoenix_test`, `mix verify.example` in `ci.all`, CI + doc contracts. Validated in Phase 22: Example app layout & runbook (2026-04-24).
 - [x] **REF-03 (Phase 23)** — `Threadline.Plug` on example `:api` pipeline; `Blog.create_post/2` with transaction-local GUC; ConnCase `posts_audit_path_test.exs` proves `audit_changes` + `AuditTransaction.actor_ref`. Validated in Phase 23: HTTP audited path (2026-04-24).
 - [x] **REF-04 / REF-05 / REF-06 (Phase 24)** — Oban `PostTouchWorker` + `Blog.touch_post_for_job/2` with `Threadline.Job` and `record_action(:post_title_refreshed_from_queue, …)`; example README **Semantics in jobs** + links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`**. Validated in Phase 24: Job path, actions, adoption pointers (2026-04-24).
+- [x] **LOOP-01 (Phase 25)** — Optional **`:correlation_id`** on **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`**; strict `AuditAction` join when set; JSON **`action`** object and opt-in CSV **`include_action_metadata`**; integration tests + CHANGELOG. Validated in Phase 25: Correlation-aware timeline & export (2026-04-24).
 
 ### Active
 
-- [ ] **LOOP-01** — Optional **`:correlation_id`** on timeline + export; tests + CHANGELOG (v1.8).
 - [ ] **LOOP-02** — Support incident query subsections in **`guides/domain-reference.md`** and **`guides/production-checklist.md`** (v1.8).
 - [ ] **LOOP-03** — **`examples/threadline_phoenix/`** correlation end-to-end demo (v1.8).
 - [ ] **LOOP-04** — Doc contract anchors for support playbooks (v1.8).
@@ -203,4 +203,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.8** milestone opened (support loop); **v1.9** telescope noted for ops-at-volume follow-up.*
+*Last updated: 2026-04-24 — **v1.8** Phase 25 (LOOP-01) complete; **v1.9** telescope noted for ops-at-volume follow-up.*

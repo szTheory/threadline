@@ -3,7 +3,7 @@ defmodule Threadline.ExportTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Export
-  alias Threadline.Semantics.ActorRef
+  alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
 
@@ -163,6 +163,74 @@ defmodule Threadline.ExportTest do
                Export.to_json_document([repo: @repo, table: tname], [])
 
       assert Jason.decode!(IO.iodata_to_binary(data))["changes"] == []
+    end
+  end
+
+  describe "LOOP-01: correlation timeline ↔ export" do
+    defp insert_action(attrs) do
+      actor = actor!(:user, "export-loop-user")
+
+      defaults = %{
+        name: "test.loop01",
+        actor_ref: ActorRef.to_map(actor),
+        status: :ok,
+        correlation_id: "loop01-cid"
+      }
+
+      @repo.insert!(AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)))
+    end
+
+    test "JSON export change ids match timeline with :correlation_id filter" do
+      tname = table_name("loop01parity")
+      action = insert_action(%{correlation_id: "loop01-cid"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_name: tname})
+      insert_change(txn, %{table_name: tname, table_pk: %{"id" => "p2"}})
+
+      filters = [repo: @repo, table: tname, correlation_id: "loop01-cid"]
+      opts = [repo: @repo]
+
+      timeline_ids =
+        filters
+        |> Threadline.timeline(opts)
+        |> Enum.map(& &1.id)
+        |> Enum.sort()
+
+      assert {:ok, %{data: json}} = Export.to_json_document(filters, opts)
+      doc = json |> IO.iodata_to_binary() |> Jason.decode!()
+
+      export_ids =
+        doc
+        |> Map.get("changes")
+        |> Enum.map(& &1["id"])
+        |> Enum.sort()
+
+      assert timeline_ids == export_ids
+      [ch | _] = doc["changes"]
+      assert ch["action"]["id"] == to_string(action.id)
+      assert ch["action"]["correlation_id"] == "loop01-cid"
+    end
+
+    test "extended CSV includes correlation_id and action_id columns" do
+      tname = table_name("loop01csv")
+      action = insert_action(%{correlation_id: "loop01-cid"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_name: tname})
+
+      filters = [repo: @repo, table: tname, correlation_id: "loop01-cid"]
+
+      assert {:ok, %{data: iodata}} =
+               Export.to_csv_iodata(filters, include_action_metadata: true)
+
+      csv = IO.iodata_to_binary(iodata)
+      [header | _] = String.split(String.trim_trailing(csv, "\n"), "\n")
+      assert header =~ "correlation_id"
+      assert header =~ "action_id"
+
+      [cells] = NimbleCSV.RFC4180.parse_string(csv, skip_headers: true)
+      assert length(cells) == 13
+      assert Enum.at(cells, -2) == "loop01-cid"
+      assert List.last(cells) == to_string(action.id)
     end
   end
 

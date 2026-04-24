@@ -2,7 +2,7 @@ defmodule Threadline.QueryTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
-  alias Threadline.Semantics.ActorRef
+  alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
 
@@ -278,6 +278,66 @@ defmodule Threadline.QueryTest do
   end
 
   # ── QUERY-05: plain Ecto structs ──────────────────────────────────────────
+
+  describe "LOOP-01: :correlation_id filter" do
+    defp insert_action(attrs) do
+      actor = actor!(:user, "loop01-user")
+
+      defaults = %{
+        name: "test.loop01",
+        actor_ref: ActorRef.to_map(actor),
+        status: :ok,
+        correlation_id: "loop01-cid"
+      }
+
+      @repo.insert!(AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)))
+    end
+
+    test "validate_timeline_filters!/1 accepts correlation_id" do
+      assert :ok ==
+               Threadline.Query.validate_timeline_filters!(
+                 repo: @repo,
+                 correlation_id: "  loop01-cid  "
+               )
+    end
+
+    test "validate_timeline_filters!/1 rejects nil :correlation_id" do
+      assert_raise ArgumentError, ~r/omit/, fn ->
+        Threadline.Query.validate_timeline_filters!(repo: @repo, correlation_id: nil)
+      end
+    end
+
+    test "validate_timeline_filters!/1 rejects blank :correlation_id after trim" do
+      assert_raise ArgumentError, fn ->
+        Threadline.Query.validate_timeline_filters!(repo: @repo, correlation_id: "   ")
+      end
+    end
+
+    test "validate_timeline_filters!/1 unknown key still mentions unknown timeline filter" do
+      assert_raise ArgumentError, ~r/unknown timeline filter/, fn ->
+        Threadline.Query.validate_timeline_filters!(repo: @repo, booya: 1)
+      end
+    end
+
+    test "timeline/2 applies strict correlation join" do
+      tname = "loop01_tbl_#{:erlang.unique_integer([:positive])}"
+      action = insert_action(%{correlation_id: "loop01-cid"})
+      txn_ok = insert_transaction(%{action_id: action.id})
+      txn_no_action = insert_transaction()
+      insert_change(txn_no_action, %{table_name: tname})
+      insert_change(txn_ok, %{table_name: tname})
+
+      results =
+        Threadline.timeline(
+          repo: @repo,
+          table: tname,
+          correlation_id: "loop01-cid"
+        )
+
+      assert length(results) == 1
+      assert hd(results).transaction_id == txn_ok.id
+    end
+  end
 
   describe "QUERY-05: results are plain Ecto structs" do
     test "history/3 returns AuditChange structs" do

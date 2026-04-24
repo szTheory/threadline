@@ -8,8 +8,8 @@ defmodule Threadline.Export do
   `:repo` resolution: `Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)`.
 
   Filter keys are validated via `Threadline.Query.validate_timeline_filters!/1`
-  (`:repo`, `:table`, `:actor_ref`, `:from`, `:to` only). Unknown keys raise
-  `ArgumentError`.
+  (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`). Unknown keys
+  raise `ArgumentError`.
 
   ## CSV columns
 
@@ -18,11 +18,16 @@ defmodule Threadline.Export do
   `transaction_json`. The last column is a JSON object with transaction
   `id`, `occurred_at`, `actor_ref`, and `source`. Datetimes are ISO 8601 UTC.
 
+  Pass `include_action_metadata: true` in **opts** to append trailing columns
+  `correlation_id` and `action_id` (the linked `audit_actions` row, when present).
+  Default CSV shape is unchanged when this option is absent or `false`.
+
   ## JSON
 
   Wrapped format (default) is one object with `format_version`, `generated_at`,
-  and `changes`. Pass `json_format: :ndjson` for one JSON object per line (no
-  outer wrapper).
+  and `changes`. Each change may include an `"action"` object with `"id"` and
+  `"correlation_id"` when the transaction is linked to an `audit_actions` row.
+  Pass `json_format: :ndjson` for one JSON object per line (no outer wrapper).
 
   ## Row limits
 
@@ -60,19 +65,28 @@ defmodule Threadline.Export do
 
   - `:repo` — optional if `:repo` is present in `filters`
   - `:max_rows` — defaults to `#{@default_max_rows}`
+  - `:include_action_metadata` — when `true`, append `correlation_id` and `action_id` columns
   """
   @spec to_csv_iodata(keyword(), keyword()) :: {:ok, map()}
   def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     Query.validate_timeline_filters!(filters)
     repo = Query.timeline_repo!(filters, opts)
     max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
+    include_meta = Keyword.get(opts, :include_action_metadata, false)
     limit = max_rows + 1
 
     rows = repo.all(Query.export_changes_query(filters) |> limit(^limit))
     {truncated, rows} = split_truncated(rows, max_rows)
 
-    data_rows = Enum.map(rows, &csv_row/1)
-    iodata = RFC4180.dump_to_iodata([@csv_header | data_rows])
+    header =
+      if include_meta do
+        @csv_header ++ ~w(correlation_id action_id)
+      else
+        @csv_header
+      end
+
+    data_rows = Enum.map(rows, &csv_row(&1, include_meta))
+    iodata = RFC4180.dump_to_iodata([header | data_rows])
 
     {:ok,
      %{
@@ -140,10 +154,19 @@ defmodule Threadline.Export do
     repo = Query.timeline_repo!(filters, opts)
 
     count =
-      filters
-      |> Query.timeline_query()
-      |> select([ac], ac.id)
-      |> repo.aggregate(:count, :id)
+      case Keyword.get(filters, :correlation_id) do
+        nil ->
+          filters
+          |> Query.timeline_query()
+          |> select([ac, at], ac.id)
+          |> repo.aggregate(:count, :id)
+
+        _ ->
+          filters
+          |> Query.timeline_query()
+          |> select([ac, at, _aa], ac.id)
+          |> repo.aggregate(:count, :id)
+      end
 
     {:ok, %{count: count}}
   end
@@ -169,9 +192,17 @@ defmodule Threadline.Export do
       fn
         cursor ->
           base =
-            filters
-            |> Query.timeline_query()
-            |> select([ac, _at], ac)
+            case Keyword.get(filters, :correlation_id) do
+              nil ->
+                filters
+                |> Query.timeline_query()
+                |> select([ac, _at], ac)
+
+              _ ->
+                filters
+                |> Query.timeline_query()
+                |> select([ac, _at, _aa], ac)
+            end
 
           q =
             case cursor do
@@ -214,7 +245,7 @@ defmodule Threadline.Export do
     end
   end
 
-  defp csv_row(row) do
+  defp csv_row(row, include_meta) do
     tx_json =
       Jason.encode!(%{
         "id" => row.transaction_id |> to_string(),
@@ -223,7 +254,7 @@ defmodule Threadline.Export do
         "source" => row.tx_source
       })
 
-    [
+    base = [
       to_string(row.id),
       to_string(row.transaction_id),
       row.table_schema,
@@ -236,10 +267,18 @@ defmodule Threadline.Export do
       Jason.encode!(row.changed_from || %{}),
       tx_json
     ]
+
+    if include_meta do
+      cid = Map.get(row, :aa_correlation_id)
+      aid = Map.get(row, :aa_id)
+      base ++ [cid || "", if(aid, do: to_string(aid), else: "")]
+    else
+      base
+    end
   end
 
   defp change_map(row) do
-    %{
+    base = %{
       "id" => row.id |> to_string(),
       "transaction_id" => row.transaction_id |> to_string(),
       "table_schema" => row.table_schema,
@@ -257,6 +296,19 @@ defmodule Threadline.Export do
         "source" => row.tx_source
       }
     }
+
+    aid = Map.get(row, :aa_id)
+
+    if aid do
+      cid = Map.get(row, :aa_correlation_id)
+
+      Map.put(base, "action", %{
+        "id" => aid |> to_string(),
+        "correlation_id" => cid
+      })
+    else
+      base
+    end
   end
 
   defp actor_json_value(%ActorRef{} = ref), do: ActorRef.to_map(ref)

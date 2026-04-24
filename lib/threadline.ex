@@ -94,6 +94,8 @@ defmodule Threadline do
   - `:actor_ref` — `%ActorRef{}`; filters by actor via a JOIN to `audit_transactions`
   - `:from` — `DateTime`; inclusive lower bound on `captured_at`
   - `:to` — `DateTime`; inclusive upper bound on `captured_at`
+  - `:correlation_id` — non-empty binary; only changes whose transaction is linked to an
+    `audit_actions` row with that correlation id (strict semantics — see `Threadline.Query`).
   - `:repo` — required `Ecto.Repo` module
   """
   def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)

@@ -9,8 +9,13 @@ defmodule Threadline.Query do
 
   `timeline/2`, `timeline_query/1`, and `Threadline.Export` accept the same
   filter keyword list. Only these keys are allowed: `:repo`, `:table`, `:actor_ref`,
-  `:from`, `:to`. Unknown keys raise `ArgumentError` (breaking vs pre-1.0 callers
-  that relied on silent ignores — see CHANGELOG when upgrading).
+  `:from`, `:to`, `:correlation_id`. Unknown keys raise `ArgumentError` (breaking vs
+  pre-1.0 callers that relied on silent ignores — see CHANGELOG when upgrading).
+
+  When `:correlation_id` is set to a non-empty string (after trimming), results are
+  limited to changes whose transaction is linked to an `audit_actions` row with that
+  `correlation_id` (strict inner-join semantics; see CHANGELOG). Omit the key to leave
+  correlation out of the filter.
 
   Use `timeline_repo!/2` to resolve `:repo` from filters and opts with the same
   messages as export entrypoints.
@@ -25,26 +30,58 @@ defmodule Threadline.Query do
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.ActorRef
+  alias Threadline.Semantics.AuditAction
 
-  @allowed_timeline_filter_keys ~w(repo table actor_ref from to)a
+  @allowed_timeline_filter_keys ~w(repo table actor_ref from to correlation_id)a
 
   @doc """
   Validates that `filters` contains only timeline filter keys.
 
-  Allowed keys: `:repo`, `:table`, `:actor_ref`, `:from`, `:to`.
+  Allowed keys: `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`.
 
   Returns `:ok` or raises `ArgumentError`.
   """
   @spec validate_timeline_filters!(keyword()) :: :ok
   def validate_timeline_filters!(filters) when is_list(filters) do
-    for {key, _} <- filters do
-      if key in @allowed_timeline_filter_keys do
-        :ok
-      else
-        raise ArgumentError,
-              "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table, :actor_ref, :from, :to. " <>
-                "See `Threadline.Query` and `Threadline.Export`."
+    for {key, value} <- filters do
+      cond do
+        key not in @allowed_timeline_filter_keys ->
+          raise ArgumentError,
+                "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table, :actor_ref, :from, :to, :correlation_id. " <>
+                  "See `Threadline.Query` and `Threadline.Export`."
+
+        key == :correlation_id ->
+          validate_correlation_id_filter!(value)
+
+        true ->
+          :ok
       end
+    end
+
+    :ok
+  end
+
+  defp validate_correlation_id_filter!(nil) do
+    raise ArgumentError,
+          ":correlation_id cannot be nil — omit the key entirely when you do not want to filter by correlation id."
+  end
+
+  defp validate_correlation_id_filter!(value) when not is_binary(value) do
+    raise ArgumentError,
+          ":correlation_id must be a binary string, got: #{inspect(value)}"
+  end
+
+  defp validate_correlation_id_filter!(value) when is_binary(value) do
+    trimmed = String.trim(value)
+
+    if trimmed == "" do
+      raise ArgumentError,
+            ":correlation_id cannot be empty after trimming whitespace — omit the key to disable this filter."
+    end
+
+    if byte_size(trimmed) > 256 do
+      raise ArgumentError,
+            ":correlation_id must be at most 256 UTF-8 bytes after trimming (got #{byte_size(trimmed)})"
     end
 
     :ok
@@ -80,28 +117,40 @@ defmodule Threadline.Query do
   """
   @spec timeline_query(keyword()) :: Ecto.Query.t()
   def timeline_query(filters) when is_list(filters) do
-    AuditChange
-    |> join(:inner, [ac], at in AuditTransaction, on: ac.transaction_id == at.id)
-    |> filter_by_table(Keyword.get(filters, :table))
-    |> filter_by_actor(Keyword.get(filters, :actor_ref))
-    |> filter_by_from(Keyword.get(filters, :from))
-    |> filter_by_to(Keyword.get(filters, :to))
-    |> order_by([ac], desc: ac.captured_at)
-    |> order_by([ac], desc: ac.id)
+    filters
+    |> timeline_base_query()
+    |> filter_by_correlation(filters)
+    |> timeline_order()
   end
 
   @doc """
   Query returning one row per matching change with change + transaction columns
   for export (`Threadline.Export`).
 
-  Validates filters, then reuses `timeline_query/1` and extends with `select`.
+  Validates filters, then builds the same predicate stack as `timeline/2`, adds an
+  optional `LEFT JOIN` to `audit_actions` when `:correlation_id` is absent (so JSON
+  can surface linked action metadata without changing filter semantics), and selects
+  export column maps.
   """
   @spec export_changes_query(keyword()) :: Ecto.Query.t()
   def export_changes_query(filters) when is_list(filters) do
     validate_timeline_filters!(filters)
 
-    timeline_query(filters)
-    |> select([ac, at], %{
+    base =
+      case Keyword.get(filters, :correlation_id) do
+        nil ->
+          filters
+          |> timeline_base_query()
+          |> join(:left, [ac, at], aa in AuditAction, on: at.action_id == aa.id)
+
+        _ ->
+          filters
+          |> timeline_base_query()
+          |> filter_by_correlation(filters)
+      end
+      |> timeline_order()
+
+    select(base, [ac, at, aa], %{
       id: ac.id,
       transaction_id: ac.transaction_id,
       table_schema: ac.table_schema,
@@ -114,8 +163,25 @@ defmodule Threadline.Query do
       changed_from: ac.changed_from,
       tx_occurred_at: at.occurred_at,
       tx_actor_ref: at.actor_ref,
-      tx_source: at.source
+      tx_source: at.source,
+      aa_id: aa.id,
+      aa_correlation_id: aa.correlation_id
     })
+  end
+
+  defp timeline_base_query(filters) do
+    AuditChange
+    |> join(:inner, [ac], at in AuditTransaction, on: ac.transaction_id == at.id)
+    |> filter_by_table(Keyword.get(filters, :table))
+    |> filter_by_actor(Keyword.get(filters, :actor_ref))
+    |> filter_by_from(Keyword.get(filters, :from))
+    |> filter_by_to(Keyword.get(filters, :to))
+  end
+
+  defp timeline_order(query) do
+    query
+    |> order_by([ac], desc: ac.captured_at)
+    |> order_by([ac], desc: ac.id)
   end
 
   @doc """
@@ -181,6 +247,7 @@ defmodule Threadline.Query do
   - `:actor_ref` — `%ActorRef{}`; filters by actor via joined `audit_transactions`
   - `:from` — `DateTime`; inclusive lower bound on `captured_at`
   - `:to` — `DateTime`; inclusive upper bound on `captured_at`
+  - `:correlation_id` — binary; strict filter on linked `AuditAction.correlation_id` (see moduledoc / CHANGELOG)
   - `:repo` — required `Ecto.Repo` module (in `filters` or `opts`; see `Threadline.Export`)
 
   ## Example
@@ -196,9 +263,15 @@ defmodule Threadline.Query do
     validate_timeline_filters!(filters)
     repo = timeline_repo!(filters, opts)
 
-    timeline_query(filters)
-    |> select([ac, at], ac)
-    |> repo.all()
+    q = timeline_query(filters)
+
+    q =
+      case Keyword.get(filters, :correlation_id) do
+        nil -> select(q, [ac, at], ac)
+        _ -> select(q, [ac, at, _aa], ac)
+      end
+
+    repo.all(q)
   end
 
   # --- Private filter pipeline (expects `at` binding from timeline_query) ---
@@ -231,5 +304,19 @@ defmodule Threadline.Query do
 
   defp filter_by_to(query, %DateTime{} = to) do
     where(query, [ac], ac.captured_at <= ^to)
+  end
+
+  defp filter_by_correlation(query, filters) do
+    case Keyword.get(filters, :correlation_id) do
+      nil ->
+        query
+
+      cid when is_binary(cid) ->
+        cid = String.trim(cid)
+
+        join(query, :inner, [ac, at], aa in AuditAction,
+          on: at.action_id == aa.id and aa.correlation_id == ^cid
+        )
+    end
   end
 end

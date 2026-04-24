@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`:correlation_id` timeline / export filter** — optional keyword on `Threadline.Query.timeline/2`,
+  `timeline_query/1`, `export_changes_query/1`, and export entrypoints. Values are trimmed; empty
+  after trim, `nil`, non-binary, or longer than **256 UTF-8 bytes** raise `ArgumentError`. When set,
+  only `audit_changes` whose transaction has a matching `audit_actions.correlation_id` (via
+  `action_id`) are returned (inner join; omit the key for previous behavior). See `Threadline.Query`
+  moduledoc for full rules.
+- **Export JSON `action` object** — each change may include `"action": {"id", "correlation_id"}`
+  when the transaction is linked to an `audit_actions` row.
+- **Export CSV `include_action_metadata: true`** — opt-in trailing columns `correlation_id` and
+  `action_id`; default CSV column order is unchanged.
 - **`guides/adoption-pilot-backlog.md`** — matrix aligned to the production checklist for host pilots, plus distribution preflight and prioritized issue rows.
 - **Telemetry (operator reference)** — `[:threadline, …]` event table in **`guides/domain-reference.md`**, linked from **`guides/production-checklist.md`** observability section.
 

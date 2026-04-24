@@ -12,7 +12,7 @@ Entries are newest first.
 
 **Status:** Requirements and roadmap defined; execution not started.
 
-**What is next:** `/gsd-discuss-phase 25` or `/gsd-plan-phase 25` — implement LOOP-01 first (example LOOP-03 depends on correlation filter).
+**What is next:** `/gsd-discuss-phase 26` or `/gsd-plan-phase 26` — LOOP-02 + LOOP-04 (support playbooks and doc contracts). Phase 25 (LOOP-01) is complete.
 
 ---
 
