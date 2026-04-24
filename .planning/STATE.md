@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: next
-milestone_name: (not opened)
-status: between_milestones
-last_updated: "2026-04-23T12:00:00Z"
-last_activity: 2026-04-23 — v1.6 milestone archived; living REQUIREMENTS.md removed pending /gsd-new-milestone
+milestone: v1.7
+milestone_name: Reference integration for SaaS
+status: defining_requirements
+last_updated: "2026-04-23T18:00:00Z"
+last_activity: 2026-04-23 — Milestone v1.7 opened; REQUIREMENTS + ROADMAP Phases 22–24
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,48 +17,46 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-23 after v1.6 archive)
+See: `.planning/PROJECT.md` (v1.7 current milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.6** shipped and archived. Next milestone not yet opened — use **`/gsd-new-milestone`** when scope is ready.
+**Current focus:** **v1.7** — in-repo Phoenix example demonstrating HTTP + Oban audited paths, `record_action/2`, and links to production checklist + STG rubric.
 
 ## Current Position
 
-Phase: **21** — Host staging & pooler parity — **complete** (2026-04-24)
+Phase: Not started (next: **Phase 22** — Example app layout & runbook)
 
-Plan: **21-01**, **21-02** — both SUMMARY + verification recorded
+Plan: —
 
-Status: STG backlog templates, CONTRIBUTING host STG section, production-checklist pointer, `ci_topology_contract_test.exs` + `stg_doc_contract_test.exs`; `DB_PORT=5433 MIX_ENV=test mix ci.all` green.
+Status: Defining requirements complete; use **`/gsd-discuss-phase 22`** or **`/gsd-plan-phase 22`** to begin execution.
 
-Last activity: 2026-04-24 — `/gsd-execute-phase 21` finished; planning artifacts committed
+Last activity: 2026-04-23 — Milestone v1.7 initialized (`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`); `gsd-sdk query phases.clear` cleared prior phase tree.
 
 ## Performance metrics
 
-Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` (includes `verify.doc_contract`). PgBouncer topology: `THREADLINE_PGBOUNCER_TOPOLOGY=1` + CONTRIBUTING parity section.
+Verification: unchanged — `DB_PORT=5433 MIX_ENV=test mix ci.all` remains the library gate until example app adds its own documented commands.
 
 ## Accumulated context
 
 ### Decisions
 
-- **v1.6 scope:** Host-owned staging depth only; no new capture APIs unless STG evidence forces it.
-- **Phase numbering:** Continues from v1.5 (**Phase 21**); no `--reset-phase-numbers`.
+- **v1.7 theme:** Reference Phoenix integration (plan default) — not Query/Export expansion unless pilot pain is filed later.
+- **Phase numbering:** Continues after v1.6 (**Phase 22**); no `--reset-phase-numbers`.
 
 ### Pending todos
 
-1. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`**.
-2. Open the next milestone on **`.planning/ROADMAP.md`** when scope is ready (no automatic next phase after 21).
+1. Execute Phase 22 → 24 per `.planning/ROADMAP.md`.
+2. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`** (not automatic for v1.7).
 
 ### Blockers / concerns
 
-- **STG** work is **host-dependent**; maintainer can only land doc/checklist/repo affordances — not external staging.
+- Example app CI policy (include in root `mix ci.all` vs separate job) is left to **plan-phase** / execution — not blocked for planning.
 
 ## Session continuity
 
-**Milestone v1.6:** opened 2026-04-23; **Phase 21** completed 2026-04-24.
+**Milestone v1.7:** opened 2026-04-23.
 
-**Prior shipped:** v1.5 — 2026-04-23 (archive: `.planning/milestones/v1.5-*.md`).
+**Prior shipped:** v1.6 — Phase 21 — 2026-04-24 (archive: `.planning/milestones/v1.6-*.md`).
 
-**Completed phases (v1.5):** 19–20 — 2026-04-23
-
-**Completed:** Phase 21 — Host staging & pooler parity — 2/2 plans — 2026-04-24
+**Completed phases (v1.6):** 21 — 2026-04-24
