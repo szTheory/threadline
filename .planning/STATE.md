@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: — Support-grade exploration primitives
 status: executing
-last_updated: "2026-04-24T16:14:11.126Z"
-last_activity: 2026-04-24 — Milestone v1.10 initialized via `/gsd-new-milestone`.
+last_updated: "2026-04-24T17:30:00.000Z"
+last_activity: 2026-04-24 — Phase 31 executed (`Threadline.ChangeDiff`, tests, verification).
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -20,17 +21,17 @@ See: `.planning/PROJECT.md`
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.10** — Support-grade exploration primitives (Phases **31–33** on `.planning/ROADMAP.md`).
+**Current focus:** **v1.10** — Phase **32** next (transaction-scoped change listing, **XPLO-02**).
 
 ## Current Position
 
-Phase: Not started (awaiting discuss / plan)
+Phase: **32** — Transaction-scoped change listing (planned next)
 
 Plan: —
 
-Status: Ready to execute — requirements and roadmap defined for v1.10.
+Status: Phase **31** complete (code + verification). Phases **32–33** remain in v1.10.
 
-Last activity: 2026-04-24 — Milestone v1.10 initialized via `/gsd-new-milestone`.
+Last activity: 2026-04-24 — Phase 31 implementation and `DB_PORT=5433 mix ci.all` verification.
 
 ## Performance metrics
 
@@ -46,7 +47,7 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Pending todos
 
-1. `/gsd-plan-phase 31` — field-level change presentation (**XPLO-01**); context captured in **`31-CONTEXT.md`** (2026-04-24).
+1. `/gsd-discuss-phase 32` (optional) then **`/gsd-plan-phase 32`** — transaction-scoped change listing (**XPLO-02**).
 
 ### Blockers / concerns
 
@@ -58,6 +59,6 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 **Prior shipped:** **v1.9** — Phases 28–30 — 2026-04-24 (archived).
 
-**Next planned phase:** 31 — Field-level change presentation
+**Next planned phase:** 32 — Transaction-scoped change listing
 
-**Planned Phase:** 31
+**Completed:** Phase 31 (field-level change presentation) — 2026-04-24 — see **`31-VERIFICATION.md`**.

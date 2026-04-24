@@ -14,7 +14,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Target features:**
 
-- **Field-level change presentation** — pure Elixir helper(s) over `AuditChange` (`data_after`, `changed_from`, `op`) producing a **stable, JSON-serializable** structure for APIs and logs, with **documented** behavior when prior values are absent.
+- **Field-level change presentation** — **`Threadline.ChangeDiff`** + **`Threadline.change_diff/2`** (Phase 31, 2026-04-24): pure Elixir projection over `AuditChange` (`data_after`, `changed_from`, `op`) producing a **stable, JSON-serializable** structure for APIs and logs, with **documented** behavior when prior values are absent.
 - **Transaction-scoped reads** — documented **`Threadline.Query`** entrypoint (and **`Threadline`** delegator) to list **all** changes for one **`audit_transactions.id`**, **deterministically ordered** for reconstruction.
 - **Operator surfaces** — **`guides/domain-reference.md`** (and cross-links from existing **support** / **checklist** paths) explain **when to use** `history/3`, `timeline/2`, export, correlation filters, **transaction scope**, and **diff helpers**; **doc contract** coverage for any new stable anchors.
 
@@ -74,7 +74,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.10** is open (Phases 31–33). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.9** are complete (**v1.9** shipped 2026-04-24, Phases 28–30). **v1.10** is in progress (**Phase 31** complete 2026-04-24; **Phases 32–33** remaining). **v1.9** archive: **`.planning/milestones/v1.9-REQUIREMENTS.md`**, **`.planning/milestones/v1.9-ROADMAP.md`**. Archives live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -155,10 +155,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **OPS-01 / OPS-02 (Phase 28)** — **`guides/domain-reference.md`** per-event telemetry narrative + **`## Trigger coverage (operational)`**; **`guides/production-checklist.md`** §1/§6 cross-links; README pointer to **`guides/domain-reference.md#trigger-coverage-operational`**. Validated in Phase 28: Telemetry & health operators' narrative (2026-04-24).
 - [x] **IDX-01 / IDX-02 (Phase 29)** — **`guides/audit-indexing.md`** (installed defaults, access patterns vs **`Threadline.Query`** / **`Threadline.Export`** / **`Threadline.Retention`**, tradeoffs, optional DDL framed non-mandatory); ExDoc extra; cross-links from **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`test/threadline/audit_indexing_doc_contract_test.exs`**. Validated in Phase 29: Audit table indexing cookbook (2026-04-24).
 - [x] **SCALE-01 / SCALE-02 (Phase 30)** — **`guides/production-checklist.md`** volume / purge cadence H3 tied to **`Threadline.Retention.Policy`**, **`Threadline.Retention.purge/1`**, **`mix threadline.retention.purge`**; export §5 + support intro hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** discovery hub; **`README.md`** Maintainer-band pointer. Validated in Phase 30: Retention at scale & discovery (2026-04-24).
+- [x] **XPLO-01 (Phase 31)** — **`Threadline.ChangeDiff.from_audit_change/2`** (primary + `:export_compat`), ExDoc matrix for INSERT/UPDATE/DELETE and `before_values` / `prior_state`, **`test/threadline/change_diff_test.exs`**, **`Threadline.change_diff/2`**. Validated in Phase 31: Field-level change presentation (2026-04-24).
 
 ### Active (v1.10)
 
-- [ ] **XPLO-01** — Field-level change presentation from `AuditChange` (JSON-friendly; honest behavior without `changed_from`).
 - [ ] **XPLO-02** — Transaction-scoped `AuditChange` listing API + `Threadline` delegator.
 - [ ] **XPLO-03** — Operator docs + playbook/checklist cross-links + doc contracts for new anchors.
 
@@ -231,4 +231,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **`/gsd-new-milestone`**: **v1.10** — Support-grade exploration primitives; living **`.planning/REQUIREMENTS.md`** + **`.planning/ROADMAP.md`** updated.*
+*Last updated: 2026-04-24 — **Phase 31** (`XPLO-01`): **`Threadline.ChangeDiff`** shipped; **`REQUIREMENTS.md`** / **`ROADMAP.md`** / **`STATE.md`** updated.*

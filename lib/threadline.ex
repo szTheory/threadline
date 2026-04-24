@@ -116,6 +116,16 @@ defmodule Threadline do
   def export_json(filters \\ [], opts \\ []),
     do: Threadline.Export.to_json_document(filters, opts)
 
+  @doc """
+  Projects a single `%Threadline.Capture.AuditChange{}` into deterministic, JSON-friendly maps.
+
+  Delegates to `Threadline.ChangeDiff.from_audit_change/2`. See that module for `:format`
+  (including `:export_compat`) and `:expand_insert_fields`.
+  """
+  defdelegate change_diff(audit_change, opts \\ []),
+    to: Threadline.ChangeDiff,
+    as: :from_audit_change
+
   defp validate_repo(nil), do: {:error, :missing_repo}
   defp validate_repo(_repo), do: :ok
 
