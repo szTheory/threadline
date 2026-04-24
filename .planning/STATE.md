@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Reference integration for SaaS
-status: Roadmap ready (Phases 22–24); use **`/gsd-discuss-phase 22`** or **`/gsd-plan-phase 22`** to begin execution.
-last_updated: "2026-04-24T03:41:10.781Z"
-last_activity: 2026-04-23 — Milestone v1.7 initialized (`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`); `gsd-sdk query phases.clear` cleared prior phase tree.
+status: Phase 22 complete; next Phase 23 (HTTP audited path)
+last_updated: "2026-04-24T08:20:00.000Z"
+last_activity: 2026-04-24 — Phase 22 executed (`examples/threadline_phoenix`, `mix verify.example`, CI prelude, doc contracts).
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 0
-  percent: 0
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -25,17 +25,17 @@ See: `.planning/PROJECT.md` (v1.7 current milestone)
 
 ## Current Position
 
-Phase: Not started (next: **Phase 22** — Example app layout & runbook)
+Phase: **23** — HTTP audited path (next)
 
 Plan: —
 
-Status: Roadmap ready (Phases 22–24); use **`/gsd-discuss-phase 22`** or **`/gsd-plan-phase 22`** to begin execution.
+Status: Phase 22 complete — example layout, `mix verify.example`, and contracts are on `main` paths; continue with Phase 23 per `.planning/ROADMAP.md`.
 
-Last activity: 2026-04-23 — Milestone v1.7 initialized (`PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`); `gsd-sdk query phases.clear` cleared prior phase tree.
+Last activity: 2026-04-24 — Phase 22 execution and verification (`22-VERIFICATION.md`).
 
 ## Performance metrics
 
-Verification: unchanged — `DB_PORT=5433 MIX_ENV=test mix ci.all` remains the library gate until example app adds its own documented commands.
+Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (includes **`mix verify.example`** for `examples/threadline_phoenix/`).
 
 ## Accumulated context
 
@@ -46,12 +46,12 @@ Verification: unchanged — `DB_PORT=5433 MIX_ENV=test mix ci.all` remains the l
 
 ### Pending todos
 
-1. Execute Phase 22 → 24 per `.planning/ROADMAP.md`.
+1. Execute Phases **23–24** per `.planning/ROADMAP.md` (HTTP path, then Oban/actions/adoption pointers).
 2. When cutting the next Hex release after substantive `main` commits, bump **`@version`** and **`CHANGELOG`** (not automatic for v1.7).
 
 ### Blockers / concerns
 
-- Example app CI policy (include in root `mix ci.all` vs separate job) is left to **plan-phase** / execution — not blocked for planning.
+- None for Phase 22 closure.
 
 ## Session continuity
 
@@ -61,4 +61,6 @@ Verification: unchanged — `DB_PORT=5433 MIX_ENV=test mix ci.all` remains the l
 
 **Completed phases (v1.6):** 21 — 2026-04-24
 
-**Planned Phase:** 22 (Example app layout & runbook) — 2 plans — 2026-04-24T03:41:10.775Z
+**Completed phases (v1.7):** 22 — Example app layout & runbook — 2026-04-24
+
+**Next phase:** 23 — HTTP audited path

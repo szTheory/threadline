@@ -87,6 +87,15 @@ jobs:
       - name: Verify Threadline trigger coverage
         run: mix verify.threadline
 
+      - name: Ensure threadline_phoenix_test database exists
+        env:
+          PGPASSWORD: postgres
+        run: |
+          createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      - name: Verify Threadline Phoenix example
+        run: mix verify.example
+
       - name: Doc contract tests
         run: mix verify.doc_contract
 

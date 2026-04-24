@@ -11,7 +11,8 @@ defmodule Threadline.MixProject do
       preferred_envs: [
         "ci.all": :test,
         "verify.topology": :test,
-        "threadline.verify_topology": :test
+        "threadline.verify_topology": :test,
+        "verify.example": :test
       ]
     ]
   end
@@ -64,15 +65,28 @@ defmodule Threadline.MixProject do
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
       "verify.topology": ["threadline.verify_topology"],
+      "verify.example": &verify_example/1,
       "ci.all": [
         "verify.format",
         "verify.credo",
         "compile --warnings-as-errors",
         "verify.test",
         "verify.threadline",
+        "verify.example",
         "verify.doc_contract"
       ]
     ]
+  end
+
+  defp verify_example(_args) do
+    # Decline interactive Hex re-auth when nested `mix deps.get` runs without cached Hex token.
+    cmd =
+      "bash -lc 'set -euo pipefail && cd examples/threadline_phoenix && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r ThreadlinePhoenix.Repo && mix test'"
+
+    case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
+      0 -> :ok
+      status -> Mix.raise("verify.example failed (#{status})")
+    end
   end
 
   defp doc_source_ref do

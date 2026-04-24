@@ -41,18 +41,24 @@ defmodule Threadline.Phase06NyquistCIContractTest do
             "compile --warnings-as-errors",
             "verify.test",
             "verify.threadline",
+            "verify.example",
             "verify.doc_contract"
           ] do
         assert String.contains?(mix, step),
                "expected ci.all to include #{inspect(step)}"
       end
 
-      {pos_test, _} = :binary.match(mix, "\"verify.test\"")
-      {pos_tl, _} = :binary.match(mix, "\"verify.threadline\"")
-      {pos_dc, _} = :binary.match(mix, "\"verify.doc_contract\"")
+      assert [_, ci_block] =
+               Regex.run(~r/"ci\.all":\s*\[\s*\n((?:.*\n)*?)\s*\]/, mix),
+             "expected mix.exs to declare a multiline ci.all list"
 
-      assert pos_test < pos_tl and pos_tl < pos_dc,
-             "ci.all must list verify.test before verify.threadline before verify.doc_contract"
+      {pos_test, _} = :binary.match(ci_block, "\"verify.test\"")
+      {pos_tl, _} = :binary.match(ci_block, "\"verify.threadline\"")
+      {pos_ex, _} = :binary.match(ci_block, "\"verify.example\"")
+      {pos_dc, _} = :binary.match(ci_block, "\"verify.doc_contract\"")
+
+      assert pos_test < pos_tl and pos_tl < pos_ex and pos_ex < pos_dc,
+             "ci.all must list verify.test before verify.threadline before verify.example before verify.doc_contract"
     end
   end
 

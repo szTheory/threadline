@@ -28,6 +28,22 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/adoption-pilot-backlog.md")
   end
 
+  test "examples README indexes Phoenix reference app" do
+    doc = File.read!("examples/README.md")
+    assert String.contains?(doc, "threadline_phoenix")
+    assert String.contains?(doc, "threadline_phoenix/README.md")
+  end
+
+  test "example README carries runbook literals for REF-01" do
+    doc = File.read!("examples/threadline_phoenix/README.md")
+
+    assert String.contains?(doc, "mix phx.server") or
+             String.contains?(doc, "iex -S mix phx.server")
+
+    assert String.contains?(doc, "mix test")
+    assert String.contains?(doc, "ecto.migrate")
+  end
+
   test "fixture calls match public README API shapes" do
     map = Threadline.ReadmeQuickstartFixtures.actor_ref_map_examples()
     assert map.anonymous["type"] == "anonymous"

@@ -81,7 +81,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** Milestone **v1.7** opened (2026-04-23) — reference Phoenix integration (**Phase 22+**). **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
+- **Planning:** Milestone **v1.7** in progress — **Phase 22** complete (2026-04-24): `examples/threadline_phoenix/`, `mix verify.example`, CI prelude for `threadline_phoenix_test`. Phases **23–24** remain open. **v1.6** shipped and archived (2026-04-24) — Phase **21**; archives **`.planning/milestones/v1.6-*.md`**. **Hex:** `threadline` **0.2.0** published 2026-04-23 (`v0.2.0` tag) until a deliberate semver bump.
 
 ## Requirements
 
@@ -107,13 +107,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Adoption operator docs (Phase 19)** — `guides/adoption-pilot-backlog.md`, README + ExDoc extras, domain-reference telemetry operator table, production-checklist cross-links (ADOP-01, ADOP-02, TELEM-01, TELEM-02). Validated in Phase 19 (2026-04-23).
 - [x] **ADOP-03 (Phase 20)** — Pilot backlog filled with **OK** / **N/A** + evidence; **AP-ENV.1** triaged to **STG-01**. Validated in Phase 20: First external pilot (maintainer CI evidence pass, 2026-04-23).
 - [x] **STG-01 — STG-03 (Phase 21)** — In-repo topology template, audited-path rubric, CONTRIBUTING integrator workflow, production-checklist pointer, doc contract tests. Validated in Phase 21: Host staging & pooler parity (2026-04-24). Integrators still fill matrices with host-specific evidence via fork + PR.
+- [x] **REF-01 / REF-02 (Phase 22)** — Canonical `examples/threadline_phoenix/` path-dep app, install + `gen.triggers` for `posts`, dedicated `threadline_phoenix_test`, `mix verify.example` in `ci.all`, CI + doc contracts. Validated in Phase 22: Example app layout & runbook (2026-04-24).
 
 ### Active
 
 _Scoped in **`.planning/REQUIREMENTS.md`** (milestone v1.7). Summary:_
 
-- [ ] **REF-01** — In-repo example Phoenix application layout with path dependency and operator runbook.
-- [ ] **REF-02** — Example applies Threadline install + audited table triggers consistent with library README.
 - [ ] **REF-03** — HTTP request path: `Threadline.Plug` + audited write verifiable in tests or README steps.
 - [ ] **REF-04** — Oban job path: audited write using `Threadline.Job` (or documented equivalent).
 - [ ] **REF-05** — At least one `record_action/2` site with short operator-facing explanation.
@@ -164,7 +163,7 @@ _Scoped in **`.planning/REQUIREMENTS.md`** (milestone v1.7). Summary:_
 | JSONB + typed columns, no binary formats | Avoids YAML/Erlang-term upgrade pain documented in Audited and ExAudit | ✓ Good (design principle) |
 | Single package `threadline` to start | Avoid premature umbrella/companion split before API is known; revisit after v0.1 | ✓ **0.1.0** shipped on Hex (v1.1) |
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
-| v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | Open (v1.7) |
+| v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | In progress — layout + CI gate shipped (Phase 22); HTTP/Oban demos pending (Phases 23–24) |
 
 ## Evolution
 
@@ -186,4 +185,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-23 — v1.7 milestone opened; living `.planning/REQUIREMENTS.md` and Phases 22+ on `.planning/ROADMAP.md`.*
+*Last updated: 2026-04-24 — Phase 22 complete (`examples/threadline_phoenix`, `mix verify.example`); Phases 23–24 next on `.planning/ROADMAP.md`.*

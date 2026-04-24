@@ -1,3 +1,3 @@
-# Examples (optional)
+# Examples
 
-There is no Phoenix + Oban sample app in-tree yet. **STG-01** in `.planning/milestones/v1.5-REQUIREMENTS.md` describes the remaining **host-app** HTTP + Oban path when you need more than the **`verify-pgbouncer-topology`** CI job (`mix verify.topology` + `mix verify.threadline` through PgBouncer transaction pooling).
+The canonical Phoenix reference integration lives at **`examples/threadline_phoenix/`**. Start with [`threadline_phoenix/README.md`](threadline_phoenix/README.md) for prerequisites, `mix phx.new` regeneration flags, `mix threadline.install`, `mix threadline.gen.triggers`, and how to run **`mix phx.server`**, **`mix ecto.migrate`**, and **`mix test`** against **`threadline_phoenix_test`**.

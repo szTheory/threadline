@@ -36,7 +36,7 @@
 5. **`record_action/2`** appears at least once with operator-facing note in README or small guide section.
 6. Example README links **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** STG blocks.
 
-- [ ] **Phase 22 — Example app layout & runbook** — REF-01, REF-02
+- [x] **Phase 22 — Example app layout & runbook** — REF-01, REF-02 (2026-04-24)
 - [ ] **Phase 23 — HTTP audited path** — REF-03
 - [ ] **Phase 24 — Job path, actions, adoption pointers** — REF-04, REF-05, REF-06
 
@@ -135,7 +135,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
-| 22. Example app layout & runbook | v1.7 | — | Open | — |
+| 22. Example app layout & runbook | v1.7 | 2/2 | Complete    | 2026-04-24 |
 | 23. HTTP audited path | v1.7 | — | Open | — |
 | 24. Job path, actions, adoption pointers | v1.7 | — | Open | — |
 | 21. Host staging & pooler parity | v1.6 | 2/2 | Complete | 2026-04-24 |
