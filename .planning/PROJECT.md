@@ -18,7 +18,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Phase 26** — LOOP-02, LOOP-04: Support incident queries in guides; doc contract anchors.
 - **Phase 27** — LOOP-03: Example **`POST /api/posts`** records **`record_action`** in the audited transaction, links **`audit_transactions.action_id`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README correlation + **`export_json`** / **`jq`**.
 
-**Living artifacts:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`. **Non-goals (unchanged):** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
+**Archives:** `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-ROADMAP.md`. **Non-goals (unchanged):** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
 
 **Telescope (not opened): v1.9 — Production confidence at volume** — telemetry + health operational narrative, indexing cookbook, retention-at-scale alignment; docs-first with small code gaps only where signals cannot be expressed today.
 
@@ -50,7 +50,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.8** are complete (**v1.8** shipped 2026-04-24). Archives live under `.planning/milestones/`. Living roadmap: `.planning/ROADMAP.md`. Living requirements: **`.planning/REQUIREMENTS.md`**. **v1.7** archive: **`.planning/milestones/v1.7-REQUIREMENTS.md`**.
+**v1.0** through **v1.8** are complete (**v1.8** shipped and archived 2026-04-24). Archives live under `.planning/milestones/`. Living roadmap: `.planning/ROADMAP.md`. **v1.8** requirements: **`.planning/milestones/v1.8-REQUIREMENTS.md`** (living **`REQUIREMENTS.md`** removed at close — recreate with **`/gsd-new-milestone`** for **v1.9**).
 
 ## Last shipped milestone: v1.5 — Adoption feedback loop
 
@@ -96,7 +96,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **GitHub:** Canonical `origin`, `main` on `origin`, Actions contract extended in v1.2 with `verify.threadline` and `verify.doc_contract` in CI.
 - **Capture fidelity:** Optional **`changed_from`** JSONB on UPDATE when triggers are generated with **`--store-changed-from`**; `Threadline.history/3` loads the column when present.
 - **Maintainer tooling:** `mix threadline.verify_coverage`, doc contract tests for README quickstart, **`Threadline.Continuity`** + **`mix threadline.continuity`** and **`guides/brownfield-continuity.md`** for brownfield adoption; **`mix threadline.export`** and **`Threadline.Export`** for CSV/JSON dumps aligned with **`Threadline.timeline/2`** filters.
-- **Planning:** **v1.8** shipped 2026-04-24 (**Phases 25–27** — LOOP-01 through LOOP-04). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump.
+- **Planning:** **v1.8** archived 2026-04-24 (**Phases 25–27** — LOOP-01 through LOOP-04; milestones `v1.8-*`). Prior **v1.7** shipped **Phases 22–24**. **Hex:** `threadline` **0.2.0** until a deliberate semver bump. **Next:** **`/gsd-new-milestone`** for **v1.9** requirements.
 
 ## Requirements
 
@@ -127,12 +127,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **REF-04 / REF-05 / REF-06 (Phase 24)** — Oban `PostTouchWorker` + `Blog.touch_post_for_job/2` with `Threadline.Job` and `record_action(:post_title_refreshed_from_queue, …)`; example README **Semantics in jobs** + links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`**. Validated in Phase 24: Job path, actions, adoption pointers (2026-04-24).
 - [x] **LOOP-01 (Phase 25)** — Optional **`:correlation_id`** on **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`**; strict `AuditAction` join when set; JSON **`action`** object and opt-in CSV **`include_action_metadata`**; integration tests + CHANGELOG. Validated in Phase 25: Correlation-aware timeline & export (2026-04-24).
 - [x] **LOOP-02 / LOOP-04 (Phase 26)** — **`guides/domain-reference.md`** + **`guides/production-checklist.md`** **Support incident queries** (five questions, API vs SQL); marker **`LOOP-04-SUPPORT-INCIDENT-QUERIES`**; **`test/threadline/support_playbook_doc_contract_test.exs`**. Validated in Phase 26: Support playbooks & doc contracts (2026-04-24).
+- [x] **LOOP-03 (Phase 27)** — **`examples/threadline_phoenix/`** correlation path: **`x-correlation-id`**, **`record_action/2`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`timeline`** / **`export_json`** with **`:correlation_id`**. Validated in Phase 27: Example app correlation path (2026-04-24).
 
 ### Active
 
-- [ ] **LOOP-03** — **`examples/threadline_phoenix/`** correlation end-to-end demo (v1.8).
+_(None — **v1.8** closed 2026-04-24. Define **v1.9** requirements with **`/gsd-new-milestone`**.)_
 
-_See **`.planning/REQUIREMENTS.md`** for full wording and traceability._
+_See **`.planning/milestones/v1.8-REQUIREMENTS.md`** for the shipped v1.8 wording and traceability._
 
 ### Out of Scope
 
@@ -201,4 +202,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 — **v1.8** shipped (Phases 25–27, LOOP-01–LOOP-04); **v1.9** telescope next for ops-at-volume follow-up.*
+*Last updated: 2026-04-24 — **v1.8** milestone archived (Phases 25–27); living **`REQUIREMENTS.md`** removed; **v1.9** telescope next for ops-at-volume follow-up.*

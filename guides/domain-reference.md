@@ -96,7 +96,7 @@ See also: `Threadline.Telemetry` on HexDocs for copy-paste attach examples.
 
 ## Support incident queries
 
-SQL-native operator playbooks for the five canonical support questions (see `.planning/REQUIREMENTS.md`, “Evidence-driving questions”). Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.
+SQL-native operator playbooks for the five canonical support questions (see `.planning/milestones/v1.8-REQUIREMENTS.md`, “Evidence-driving questions”). Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.
 
 **Replace before run:** `your_schema` → audited schema (often `public`); `your_table` / PK values → the row under investigation; time literals → bounded window; `your_correlation_id` → trace string from logs.
 

@@ -272,6 +272,44 @@
 
 ---
 
+## Milestone: v1.8 — Close the support loop
+
+**Shipped:** 2026-04-24  
+**Phases:** 3 | **Plans:** 5
+
+### What was built
+
+- **`:correlation_id`** on **`Threadline.Query.timeline/2`**, **`timeline_query/1`**, **`export_changes_query/1`**, and **`Threadline.Export`** with strict `audit_actions` join when set; validation, CHANGELOG, integration tests (**LOOP-01**).
+- **Support incident queries** playbooks in **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; **`LOOP-04-SUPPORT-INCIDENT-QUERIES`** anchor; **`Threadline.SupportPlaybookDocContractTest`** (**LOOP-02**, **LOOP-04**).
+- Example **`POST /api/posts`** path with **`record_action`**, linked **`audit_transactions.action_id`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`export_json`** / **`jq`** (**LOOP-03**).
+
+### What worked
+
+- Reusing the **v1.7** example app as the **correlation proof surface** kept the support loop milestone vertically thin.
+- **Doc contract tests** for operator-facing guide sections continued the v1.6/v1.7 pattern of **repo-owned** evidence.
+
+### What was inefficient
+
+- **`gsd-sdk query milestone.complete`** still failed with **`version required for phases archive`**; manual **`milestones/v1.8-*`** writes matched **v1.7** close.
+- **`PROJECT.md` Active** still listed **LOOP-03** until archive; **`REQUIREMENTS.md`** was already fully checked — reconcile **Active** when the last REQ ships.
+
+### Patterns established
+
+- Linking **`record_action`** to **`audit_transactions.action_id`** in the **same** `Repo.transaction` as audited writes so **strict** correlation filters match row capture.
+
+### Key lessons
+
+1. Treat **`PROJECT.md` Active`** as part of the last phase’s “done” checklist alongside **`REQUIREMENTS.md`** checkboxes.
+2. Run **`audit-open`** at milestone close even without a standalone **`MILESTONE-AUDIT.md`**.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: Phases 25–27 executed as a focused support-loop slice.
+- Notable: Phase directories **25–27** remain under **`.planning/phases/`** (optional move to **`milestones/v1.8-phases/`** via **`/gsd-cleanup`** if desired).
+
+---
+
 ## Cross-milestone trends
 
 ### Process evolution
@@ -286,6 +324,7 @@
 | v1.5 | 2 | Adoption feedback loop: pilot backlog + telemetry reference + honest pooler follow-up |
 | v1.6 | 1 | Host STG templates + rubric + CONTRIBUTING + doc contracts (integrator-owned evidence explicit) |
 | v1.7 | 3 | In-repo Phoenix reference app: HTTP + Oban paths, `record_action/2`, adoption doc pointers |
+| v1.8 | 3 | Correlation-aware timeline/export + support playbooks + example correlation path + doc contracts |
 
 ### Cumulative quality
 
@@ -299,6 +338,7 @@
 | v1.5 | + topology / pooler contract job on CI | Doc-first adoption loop; no new library surface |
 | v1.6 | + STG doc contract tests | Doc-only milestone; `mix ci.all` unchanged in spirit, added focused contract files |
 | v1.7 | + `verify.example` + example ConnCase / Oban tests | Runnable `examples/threadline_phoenix/` exercised on default CI path |
+| v1.8 | + correlation filter integration tests + support playbook doc contract + example correlation ConnCase | Same **timeline/export** vocabulary for support; **`:correlation_id`** strict join path |
 
 ### Top lessons (verified across milestones)
 
@@ -309,3 +349,4 @@
 5. v1.5 — label **who** must prove pooler realism (library CI vs host staging) before conflating them in a pilot narrative.
 6. v1.6 — ship **templates + rubrics** as repo artifacts; treat integrator **OK** rows as downstream work outside maintainer attestation.
 7. v1.7 — **`verify.example`** is the cheapest guardrail that nested example apps do not rot on **`main`**.
+8. v1.8 — Keep **`PROJECT.md` Active`** aligned with the last shipped REQ the same day as phase verification.

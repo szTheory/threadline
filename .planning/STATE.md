@@ -1,37 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: — Close the support loop
-status: milestone_complete
-last_updated: "2026-04-24T13:09:00.639Z"
-last_activity: 2026-04-24 — Phase 27 shipped (LOOP-03); v1.8 milestone complete
+milestone: v1.9
+milestone_name: — Production confidence at volume (telescope; not opened)
+status: planning_next
+last_updated: "2026-04-24T18:00:00.000Z"
+last_activity: 2026-04-24 — v1.8 milestone archived; REQUIREMENTS.md removed for next milestone
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md`
+See: `.planning/PROJECT.md` (updated after **v1.8** archive)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Current focus:** **v1.8 closed** — next milestone planning: **v1.9** (ops-at-volume); see `.planning/MILESTONES.md`.
+**Current focus:** **v1.9** planning when scheduled — ops-at-volume telescope (telemetry, health, indexing, retention-at-scale narrative); see `.planning/MILESTONES.md`. Start with **`/gsd-new-milestone`**.
 
 ## Current Position
 
-Phase: **27** — **complete** (`27-VERIFICATION.md`, `27-01-SUMMARY.md`)
+Phase: **—** (next milestone not opened)
 
-Plan: **27-01** complete
+Plan: **—**
 
-Status: **v1.8 — Close the support loop** milestone complete (Phases 25–27).
+Status: **v1.8** archived (Phases 25–27). **v1.9** not opened.
 
-Last activity: 2026-04-24 — Phase 27 execution — LOOP-03 example correlation path shipped
+Last activity: 2026-04-24 — `/gsd-complete-milestone` — archives **`milestones/v1.8-*`**, **`REQUIREMENTS.md`** removed
 
 ## Performance metrics
 
@@ -41,15 +41,12 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ### Decisions
 
-- **v1.8 scope:** SaaS trajectory chunk 1 — exploration layer focus (timeline/export + operator docs); excludes LiveView and `threadline_web`.
-- **v1.9 telescope:** Ops-at-volume (telemetry, health, indexing, retention alignment) after v1.8 closes.
-- **Phase 25 (LOOP-01):** Shipped — strict `AuditAction` inner join when `:correlation_id` set; export uses optional left join when unset for JSON `action` metadata; trim + reject empty/overlong; default CSV stable + `include_action_metadata`; see `CHANGELOG.md` and `25-CONTEXT.md`.
-- **Phase 26 (LOOP-02, LOOP-04):** Shipped — `## Support incident queries` in `guides/domain-reference.md` and `guides/production-checklist.md`; marker `LOOP-04-SUPPORT-INCIDENT-QUERIES`; `test/threadline/support_playbook_doc_contract_test.exs`.
-- **Phase 27 (LOOP-03):** Shipped — `Blog.create_post/2` calls `record_action` + links `audit_transactions.action_id`; `ThreadlinePhoenixWeb.PostsCorrelationPathTest`; README correlation + `export_json` / `jq`; see `27-CONTEXT.md`, `27-01-SUMMARY.md`.
+- **v1.8 closed:** LOOP-01–LOOP-04 shipped; roadmap collapsed to **`milestones/v1.8-*`**; living requirements file cleared for **v1.9** definition.
+- **v1.9 telescope:** Ops-at-volume after **v1.9** is opened with fresh **`REQUIREMENTS.md`**.
 
 ### Pending todos
 
-1. **v1.9** — Open **MILESTONES.md** / roadmap when ready to start ops-at-volume work.
+1. **`/gsd-new-milestone`** when **v1.9** scope is ready — fresh requirements + roadmap slice.
 
 ### Blockers / concerns
 
@@ -57,10 +54,10 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 
 ## Session continuity
 
-**Prior shipped:** v1.7 — Phases 22–24 — 2026-04-24.
+**Prior shipped:** **v1.8** — Phases 25–27 — 2026-04-24 (archived).
 
-**Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `.planning/milestones/v1.7-REQUIREMENTS.md`
+**Archives:** `.planning/milestones/v1.8-ROADMAP.md`, `.planning/milestones/v1.8-REQUIREMENTS.md`
 
-**Resume:** `.planning/MILESTONES.md` — v1.9 planning when scheduled.
+**Resume:** `.planning/MILESTONES.md` — **v1.9** when scheduled.
 
 **Last completed phase:** 27 (Example app correlation path) — 2026-04-24

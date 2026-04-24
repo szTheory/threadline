@@ -2,17 +2,27 @@
 
 Entries are newest first.
 
-## v1.8 — Close the support loop (opened 2026-04-24)
+## v1.8 — Close the support loop (shipped 2026-04-24)
 
 **Goal:** Reduce SaaS support **time-to-answer** with **correlation-aware** timeline + export, **operator playbooks** in guides, an **example app** correlation path, and **doc contract** anchors.
 
 **Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release decision is made.
 
-**Phases planned:** **25** (LOOP-01) · **26** (LOOP-02, LOOP-04) · **27** (LOOP-03) — see `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`.
+**Phases completed:** **25–27** (3 phases; 5 plans with `SUMMARY.md` under `.planning/phases/`).
 
-**Status:** Requirements and roadmap defined; execution not started.
+**Key accomplishments:**
 
-**What is next:** `/gsd-discuss-phase 26` or `/gsd-plan-phase 26` — LOOP-02 + LOOP-04 (support playbooks and doc contracts). Phase 25 (LOOP-01) is complete.
+- Shipped **`:correlation_id`** on **`Threadline.Query`** / **`Threadline.Export`** with strict `AuditAction` join when set, validation + integration tests, CHANGELOG (**Phase 25**, LOOP-01).
+- Shipped **Support incident queries** in **`guides/domain-reference.md`** and **`guides/production-checklist.md`**; marker **`LOOP-04-SUPPORT-INCIDENT-QUERIES`**; **`test/threadline/support_playbook_doc_contract_test.exs`** (**Phase 26**, LOOP-02, LOOP-04).
+- Shipped example **`POST /api/posts`** with **`record_action`**, linked **`audit_transactions.action_id`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README **`export_json`** / **`jq`** (**Phase 27**, LOOP-03).
+
+**Stats:** 3 phases, 5 plans, 5/5 summaries; v1.8 requirements **4/4** complete at close (see archived traceability).
+
+**Archives:** `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-ROADMAP.md`.
+
+**Known gaps at close:** None for in-repo acceptance. No standalone `v1.8-MILESTONE-AUDIT.md`; optional **`/gsd-audit-milestone`** next time. `gsd-sdk query milestone.complete` returned `version required for phases archive` — archives written manually.
+
+**What is next:** **`/gsd-new-milestone`** — fresh `.planning/REQUIREMENTS.md` and next roadmap slice when **v1.9** scope is ready.
 
 ---
 
