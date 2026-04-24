@@ -90,6 +90,21 @@ The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`PO
 
 In production, replace the synthetic **`actor_fn`** (see `ThreadlinePhoenix.AuditActor`) with one derived from your auth layer.
 
+## Semantics in jobs
+
+Trigger-backed **`audit_changes`** rows record **what** changed on each audited table. When row diffs are not enough for operators (intent, correlation across async work, or queue provenance), call **`Threadline.record_action/2`** in the **same** `Ecto.Repo.transaction/1` as the audited writes so semantics stay consistent with capture.
+
+This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`** → **`ThreadlinePhoenix.Blog.touch_post_for_job/2`**: the worker passes a serialized **`actor_ref`** map (and optional correlation metadata) on the job args, merges **`job_id`** from the **`Oban.Job`**, then runs GUC + post update + **`record_action(:post_title_refreshed_from_queue, …)`** once. See **`Threadline.Job`** in the library (`../../lib/threadline/job.ex`) for **`actor_ref_from_args/1`** and **`context_opts/1`**.
+
+## Documentation & production adoption
+
+- **[Production checklist](../../guides/production-checklist.md)** — operator-facing checks before you treat an environment as production-ready.
+- **[Adoption pilot / STG backlog](../../guides/adoption-pilot-backlog.md)** — phased rollout and staging evidence expectations.
+
+**Integrator responsibility:** your team owns the **host-class** staging topology matrix, evidence, and promotion criteria for *your* URLs and regions. Threadline’s CI and this example app prove **reference patterns** (capture, HTTP and job semantics, tests); they do **not** certify third-party staging hosts or production endpoints. Use your fork/PR workflow per **`CONTRIBUTING.md`** when you need project-specific evidence.
+
+A future release may tighten the optional **`audit_transactions.action_id`** link between capture transactions and semantic **`audit_actions`** rows; the example does not rely on that FK being populated today.
+
 Example request (include **`x-request-id`** for traceability; no credential-shaped demo values):
 
 ```bash
