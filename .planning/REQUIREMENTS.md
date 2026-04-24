@@ -40,6 +40,13 @@ _Defer unless a later milestone explicitly reopens._
 
 **Coverage:** v1.10 requirements: **3** total — mapped: **3** — unmapped: **0** ✓
 
+### Post-shipment gap closure (milestone audit)
+
+| Audit gap | Closure phase | Notes |
+|-----------|---------------|--------|
+| INT-DOC-01 (`timeline/2` @doc vs query ordering) | Phase 34 | Documentation only; does not reopen XPLO-02. |
+| FLOW-TEST-01 (txn listing → `change_diff/2` in CI) | Phase 34 | Composed test; does not reopen XPLO-01/02. |
+
 ---
 
 *Requirements defined: 2026-04-24 — milestone v1.10*

@@ -109,10 +109,18 @@ defmodule Threadline.ChangeDiff do
   defp datetime_iso(nil), do: nil
 
   defp primary_map(%AuditChange{} = ch, opts) do
-    op = ch.op
+    # Capture persists lowercase per DB constraint (`lower(TG_OP)` in triggers).
+    op =
+      case ch.op do
+        "insert" -> "INSERT"
+        "update" -> "UPDATE"
+        "delete" -> "DELETE"
+        o when o in ["INSERT", "UPDATE", "DELETE"] -> o
+        other -> other
+      end
 
     unless op in ["INSERT", "UPDATE", "DELETE"] do
-      raise ArgumentError, "unsupported op: #{inspect(op)}"
+      raise ArgumentError, "unsupported op: #{inspect(ch.op)}"
     end
 
     base = %{

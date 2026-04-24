@@ -86,7 +86,8 @@ defmodule Threadline do
 
   @doc """
   Returns `AuditChange` records across tables, filtered by the given options,
-  ordered by `captured_at` descending.
+  ordered by `captured_at` descending, then `id` descending (same total order as
+  `Threadline.Query.audit_changes_for_transaction/2`; see `Threadline.Query.timeline/2`).
 
   ## Options
 

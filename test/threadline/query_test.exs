@@ -157,6 +157,32 @@ defmodule Threadline.QueryTest do
 
       assert %AuditTransaction{} = row.transaction
     end
+
+    test "each listed change round-trips through change_diff/2 (FLOW-TEST-01)" do
+      txn = insert_transaction()
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "flow-a"},
+        op: "insert",
+        data_after: %{"name" => "A"},
+        changed_fields: nil
+      })
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "flow-b"},
+        op: "update",
+        data_after: %{"name" => "B2"},
+        changed_fields: ["name"],
+        changed_from: %{"name" => "B1"}
+      })
+
+      for ch <- Threadline.audit_changes_for_transaction(txn.id, repo: @repo) do
+        map = Threadline.change_diff(ch, [])
+        assert is_map(map)
+        assert Map.has_key?(map, "field_changes")
+        assert Jason.encode!(map)
+      end
+    end
   end
 
   # ── actor_history/2 ───────────────────────────────────────────────────────

@@ -43,6 +43,7 @@
 - [x] **Phase 31 — Field-level change presentation** — XPLO-01 — completed 2026-04-24
 - [x] **Phase 32 — Transaction-scoped change listing** — XPLO-02 — completed 2026-04-24
 - [x] **Phase 33 — Operator docs & contracts** — XPLO-03 — completed 2026-04-24
+- [x] **Phase 34 — v1.10 audit hygiene (doc + composed CI)** — closes **INT-DOC-01**, **FLOW-TEST-01** from `v1.10-MILESTONE-AUDIT.md` (XPLO-01/02 already satisfied); includes `ChangeDiff` lowercase `op` normalization for trigger-shaped rows — completed 2026-04-24
 
 <details>
 <summary>✅ v1.9 Production confidence at volume (Phases 28–30) — SHIPPED 2026-04-24</summary>
@@ -235,6 +236,7 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 34. v1.10 audit hygiene (doc + composed CI) | v1.10 | — | Complete | 2026-04-24 |
 | 31. Field-level change presentation | v1.10 | 2/2 | Complete    | 2026-04-24 |
 | 32. Transaction-scoped change listing | v1.10 | 1/1 | Complete    | 2026-04-24 |
 | 33. Operator docs & contracts | v1.10 | 1/1 | Complete    | 2026-04-24 |
