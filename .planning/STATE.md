@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Reference integration for SaaS
 status: planning
-last_updated: "2026-04-24T18:00:00.000Z"
-last_activity: 2026-04-24 — Phase 24 discuss-phase complete (`24-CONTEXT.md`); ready for `/gsd-plan-phase 24`.
+last_updated: "2026-04-24T08:55:12.137Z"
+last_activity: 2026-04-24 — Phase 24 discuss-phase complete; resume file `.planning/phases/24-job-path-actions-adoption-pointers/24-CONTEXT.md`.
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
+  total_plans: 5
   completed_plans: 3
-  percent: 100
+  percent: 60
 ---
 
 # Project State
@@ -64,3 +64,5 @@ Verification: `DB_PORT=5433 MIX_ENV=test mix ci.all` is the local parity gate (i
 **Completed phases (v1.7):** 22 — Example app layout & runbook — 2026-04-24 · 23 — HTTP audited path — 2026-04-24
 
 **Next phase:** 24 — Job path, actions, adoption pointers — **`/gsd-plan-phase 24`** (discuss done).
+
+**Planned Phase:** 24 (job-path-actions-adoption-pointers) — 2 plans — 2026-04-24T08:55:12.126Z
