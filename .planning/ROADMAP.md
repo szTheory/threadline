@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- **v1.10 — Support-grade exploration primitives** — Phases 31–33 (in progress) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.9 — Production confidence at volume** — Phases 28–30 (shipped 2026-04-24) — [requirements](milestones/v1.9-REQUIREMENTS.md) · [archive](milestones/v1.9-ROADMAP.md)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
@@ -14,6 +15,34 @@
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+### v1.10 — Support-grade exploration primitives (Phases 31–33)
+
+**Goal:** Faster **time-to-answer** for support and integrators building **JSON/API** surfaces — **field-level** change presentation and **transaction-scoped** change listing on top of existing capture — without LiveView or new capture semantics. See [`.planning/REQUIREMENTS.md`](REQUIREMENTS.md).
+
+**Requirements map:** Phase 31 → XPLO-01 · Phase 32 → XPLO-02 · Phase 33 → XPLO-03
+
+**Success criteria**
+
+**Phase 31 — Field-level change presentation**
+
+1. Public API (module + function names documented in ExDoc) returns a **deterministic** structure for a given `%AuditChange{}` that callers can **encode as JSON** without library-private structs in the payload shape.
+2. **INSERT** / **UPDATE** / **DELETE** are covered; when **`changed_from`** is absent, behavior is **documented** (no silent invention of prior values).
+3. **Unit tests** lock representative shapes (including masked/redacted JSON shapes if the change row already reflects capture policy).
+
+**Phase 32 — Transaction-scoped change listing**
+
+4. **`Threadline.Query`** exposes a documented function accepting **`repo`** and **`transaction_id`** (or equivalent explicit identifiers) returning **all** matching `%AuditChange{}` rows for that transaction with **stable ordering** documented in moduledoc.
+5. **`Threadline`** delegates to that query entrypoint; **integration or repo-level test** exercises multi-change transaction ordering.
+
+**Phase 33 — Operator docs & contracts**
+
+6. **`guides/domain-reference.md`** adds a **short routing section** that tells operators/integrators **which API to use** for common questions (single row over time, incident window, correlation slice, one transaction, field diff helper).
+7. At least one **existing** support- or checklist-oriented guide cross-links to that section; new stable anchors are covered by a **`test/threadline/`** doc contract test.
+
+- [ ] **Phase 31 — Field-level change presentation** — XPLO-01
+- [ ] **Phase 32 — Transaction-scoped change listing** — XPLO-02
+- [ ] **Phase 33 — Operator docs & contracts** — XPLO-03
 
 <details>
 <summary>✅ v1.9 Production confidence at volume (Phases 28–30) — SHIPPED 2026-04-24</summary>
@@ -200,12 +229,15 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.9** is **archived** (Phases **28–30**, 2026-04-24): **`.planning/milestones/v1.9-ROADMAP.md`**, **`.planning/milestones/v1.9-REQUIREMENTS.md`**. There is **no** living **`.planning/REQUIREMENTS.md`** until **`/gsd-new-milestone`** defines the next scope. Open the next milestone on **`ROADMAP.md`** when ready. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`**.
+**v1.10** is **active** (Phases **31–33**): living **`.planning/REQUIREMENTS.md`** and this file. Start with **`/gsd-discuss-phase 31`** (optional) then **`/gsd-plan-phase 31`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`** after first phase ships to log progress.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 31. Field-level change presentation | v1.10 | — | Not started | — |
+| 32. Transaction-scoped change listing | v1.10 | — | Not started | — |
+| 33. Operator docs & contracts | v1.10 | — | Not started | — |
 | 28. Telemetry & health operators' narrative | v1.9 | 2/2 | Complete    | 2026-04-24 |
 | 29. Audit table indexing cookbook | v1.9 | 2/2 | Complete    | 2026-04-24 |
 | 30. Retention at scale & discovery | v1.9 | 2/2 | Complete    | 2026-04-24 |
