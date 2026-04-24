@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🔄 **v1.9 — Production confidence at volume** — Phases 28–30 (opened 2026-04-24) — [requirements](REQUIREMENTS.md) · living roadmap (this file)
 - ✅ **v1.8 — Close the support loop** — Phases 25–27 (shipped 2026-04-24) — [requirements](milestones/v1.8-REQUIREMENTS.md) · [archive](milestones/v1.8-ROADMAP.md)
 - ✅ **v1.7 — Reference integration for SaaS** — Phases 22–24 (shipped 2026-04-24) — [requirements](milestones/v1.7-REQUIREMENTS.md) · [archive](milestones/v1.7-ROADMAP.md)
 - ✅ **v1.6 — Host staging / pooler parity** — Phase 21 (shipped 2026-04-24) — [requirements](milestones/v1.6-REQUIREMENTS.md) · [archive](milestones/v1.6-ROADMAP.md) · [research](research/SUMMARY.md)
@@ -13,6 +14,36 @@
 - ✅ **v1.0 MVP** — Phases 1–4 (shipped 2026-04-23) — [full archive](milestones/v1.0-ROADMAP.md)
 
 ## Phases
+
+<details>
+<summary>🔄 v1.9 Production confidence at volume (Phases 28–30) — OPEN 2026-04-24</summary>
+
+**Goal:** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook, and **retention-at-scale** guidance grounded in shipped APIs — see **[REQUIREMENTS.md](REQUIREMENTS.md)**.
+
+**Requirements map:** Phase 28 → OPS-01, OPS-02 · Phase 29 → IDX-01, IDX-02 · Phase 30 → SCALE-01, SCALE-02
+
+**Success criteria**
+
+**Phase 28 — Telemetry & health operators' narrative**
+
+1. A reader can map each **`[:threadline, :transaction, :committed]`**, **`[:threadline, :action, :recorded]`**, and **`[:threadline, :health, :checked]`** event to **when it fires**, **what to measure**, and **degraded behavior** without reading Elixir implementation files first.
+2. **`Threadline.Health.trigger_coverage/1`** is documented for weekly/production checks together with **`mix threadline.verify_coverage`**, including interpretation of covered vs uncovered user tables and the audit-table exclusion rule.
+
+**Phase 29 — Audit table indexing cookbook**
+
+3. A dedicated guide lists **index strategies** (not mandatory DDL) for **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** aligned with timeline, export, optional correlation filter, and retention/purge access patterns, including **tradeoffs**.
+4. A **doc contract test** locks anchors from that guide so headings or markers cannot drift unnoticed.
+
+**Phase 30 — Retention at scale & discovery**
+
+5. **`guides/production-checklist.md`** includes **volume** guidance: growth monitoring, purge cadence thinking, and explicit ties to **`Threadline.Retention`** + export/timeline workflows already used in support narratives.
+6. **README** and/or **`guides/domain-reference.md`** surfaces a **single discovery link** to the new material so operators find it from onboarding paths.
+
+- [ ] **Phase 28 — Telemetry & health operators' narrative** — OPS-01, OPS-02
+- [ ] **Phase 29 — Audit table indexing cookbook** — IDX-01, IDX-02
+- [ ] **Phase 30 — Retention at scale & discovery** — SCALE-01, SCALE-02
+
+</details>
 
 <details>
 <summary>✅ v1.8 Close the support loop (Phases 25–27) — SHIPPED 2026-04-24</summary>
@@ -167,12 +198,15 @@ Phase-level specs, success criteria, and plan checklist live in [.planning/miles
 
 ### Next actions
 
-**v1.8** is **archived** (milestones `v1.8-*`). **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. **Telescope:** **v1.9** ops-at-volume — define requirements with **`/gsd-new-milestone`** when ready; see `.planning/MILESTONES.md`.
+**v1.9** is **open** (Phases **28–30**). Start with **`/gsd-discuss-phase 28`** or **`/gsd-plan-phase 28`**. **`v0.2.0`** / **`threadline` 0.2.0** remain current on Hex until a deliberate semver bump. See **`.planning/MILESTONES.md`**.
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | ---------- |
+| 28. Telemetry & health operators' narrative | v1.9 | — | Not started | — |
+| 29. Audit table indexing cookbook | v1.9 | — | Not started | — |
+| 30. Retention at scale & discovery | v1.9 | — | Not started | — |
 | 25. Correlation-aware timeline & export | v1.8 | 2/2 | Complete    | 2026-04-24 |
 | 26. Support playbooks & doc contracts | v1.8 | 2/2 | Complete    | 2026-04-24 |
 | 27. Example app correlation path | v1.8 | 1/1 | Complete    | 2026-04-24 |
