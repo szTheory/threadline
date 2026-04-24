@@ -101,6 +101,16 @@ defmodule Threadline do
   def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
 
   @doc """
+  Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.
+
+  Delegates to `Threadline.Query.audit_changes_for_transaction/2`. Pass **`repo:`**
+  (required). Optional **`preload:`** (e.g. `[:transaction]`) is forwarded when
+  non-empty — see the Query function for ordering and UUID rules.
+  """
+  def audit_changes_for_transaction(transaction_id, opts),
+    do: Threadline.Query.audit_changes_for_transaction(transaction_id, opts)
+
+  @doc """
   Exports matching audit changes as CSV (same `filters` / `opts` as `Threadline.Query.timeline/2`).
 
   See `Threadline.Export` and `Threadline.Query.timeline/2`.

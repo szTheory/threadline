@@ -108,6 +108,57 @@ defmodule Threadline.QueryTest do
     end
   end
 
+  # ── audit_changes_for_transaction/2 — XPLO-02 ─────────────────────────────
+
+  describe "audit_changes_for_transaction/2 — XPLO-02" do
+    test "orders multiple changes by captured_at desc (timeline tie-break stack)" do
+      txn = insert_transaction()
+      t_old = DateTime.add(DateTime.utc_now(), -120, :second)
+      t_new = DateTime.utc_now()
+      assert DateTime.compare(t_new, t_old) == :gt
+
+      insert_change(txn, %{captured_at: t_old, table_pk: %{"id" => "xplo-a"}})
+      insert_change(txn, %{captured_at: t_new, table_pk: %{"id" => "xplo-b"}})
+
+      results = Threadline.Query.audit_changes_for_transaction(txn.id, repo: @repo)
+      assert length(results) == 2
+      assert DateTime.compare(hd(results).captured_at, t_new) == :eq
+    end
+
+    test "Threadline delegator matches Threadline.Query" do
+      txn = insert_transaction()
+      insert_change(txn, %{table_pk: %{"id" => "xplo-deleg"}})
+
+      q = Threadline.Query.audit_changes_for_transaction(txn.id, repo: @repo)
+      t = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
+      assert q == t
+    end
+
+    test "returns empty list for well-formed UUID with no matching rows" do
+      uuid = Ecto.UUID.generate()
+      assert Threadline.audit_changes_for_transaction(uuid, repo: @repo) == []
+    end
+
+    test "raises ArgumentError for malformed transaction id" do
+      assert_raise ArgumentError, ~r/invalid audit transaction id/, fn ->
+        Threadline.audit_changes_for_transaction("not-a-uuid", repo: @repo)
+      end
+    end
+
+    test "preload: [:transaction] loads AuditTransaction on each change" do
+      txn = insert_transaction()
+      insert_change(txn, %{table_pk: %{"id" => "xplo-pre"}})
+
+      [row] =
+        Threadline.audit_changes_for_transaction(txn.id,
+          repo: @repo,
+          preload: [:transaction]
+        )
+
+      assert %AuditTransaction{} = row.transaction
+    end
+  end
+
   # ── actor_history/2 ───────────────────────────────────────────────────────
 
   describe "actor_history/2 — QUERY-02" do
