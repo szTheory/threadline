@@ -25,7 +25,7 @@ defmodule Threadline.QueryTest do
       transaction_id: transaction.id
     }
 
-    @repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+    @repo.insert!(AuditChange.changeset(Map.merge(defaults, Map.new(attrs))))
   end
 
   defp actor!(type, id) do
@@ -33,7 +33,87 @@ defmodule Threadline.QueryTest do
     ref
   end
 
+  defp as_of_row_fixture do
+    inserted_at = DateTime.add(DateTime.utc_now(), -90, :second)
+    updated_at = DateTime.add(inserted_at, 30, :second)
+    deleted_at = DateTime.add(updated_at, 30, :second)
+
+    insert_transaction(%{occurred_at: inserted_at})
+    |> then(fn txn ->
+      insert_change(txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-asof"},
+        op: "insert",
+        data_after: %{"id" => "u-asof", "name" => "Alpha"},
+        changed_fields: ["id", "name"],
+        captured_at: inserted_at
+      )
+    end)
+
+    insert_transaction(%{occurred_at: updated_at})
+    |> then(fn txn ->
+      insert_change(txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-asof"},
+        op: "update",
+        data_after: %{"id" => "u-asof", "name" => "Beta"},
+        changed_fields: ["name"],
+        captured_at: updated_at
+      )
+    end)
+
+    insert_transaction(%{occurred_at: deleted_at})
+    |> then(fn txn ->
+      insert_change(txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-asof"},
+        op: "delete",
+        data_after: nil,
+        changed_fields: nil,
+        captured_at: deleted_at
+      )
+    end)
+
+    %{inserted_at: inserted_at, updated_at: updated_at, deleted_at: deleted_at}
+  end
+
+  defmodule FakeAsOfUser do
+    use Ecto.Schema
+
+    schema "users" do
+      field(:name, :string)
+    end
+  end
+
+  defp fake_as_of_schema, do: FakeAsOfUser
+
   # ── history/3 ─────────────────────────────────────────────────────────────
+
+  describe "as_of/4 — ASOF-01/02/05" do
+    test "returns the latest stored snapshot at or before the requested timestamp" do
+      %{updated_at: updated_at, deleted_at: deleted_at} = as_of_row_fixture()
+
+      {:ok, row} = Threadline.as_of(fake_as_of_schema(), "u-asof", updated_at, repo: @repo)
+
+      assert row == %{"id" => "u-asof", "name" => "Beta"}
+      refute DateTime.compare(updated_at, deleted_at) == :gt
+    end
+
+    test "returns an explicit deletion error when the latest snapshot is a delete" do
+      %{deleted_at: deleted_at} = as_of_row_fixture()
+
+      assert {:error, :deleted_record} =
+               Threadline.as_of(fake_as_of_schema(), "u-asof", deleted_at, repo: @repo)
+    end
+
+    test "returns before_audit_horizon when the timestamp predates the first snapshot" do
+      %{inserted_at: inserted_at} = as_of_row_fixture()
+      before_horizon = DateTime.add(inserted_at, -1, :second)
+
+      assert {:error, :before_audit_horizon} =
+               Threadline.as_of(fake_as_of_schema(), "u-asof", before_horizon, repo: @repo)
+    end
+  end
 
   describe "history/3 — QUERY-01" do
     test "returns AuditChange records for the given schema/id, ordered by captured_at desc" do
