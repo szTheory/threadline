@@ -16,7 +16,9 @@
   1. `Threadline.as_of/4` returns a Map representing the record at the requested timestamp.
   2. Querying a deleted record returns its state at the requested historical point.
   3. Querying before the first audit entry returns `{:error, :before_audit_horizon}`.
-**Plans**: TBD
+**Plans**: 1
+Plans:
+- [ ] 38-01-PLAN.md — Single-row as-of lookup with map output, delete detection, and genesis-gap handling
 
 ### Phase 39: Reification & Schema Safety
 **Goal**: Casting historical data to Ecto structs with drift tolerance.
