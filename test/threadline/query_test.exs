@@ -80,6 +80,7 @@ defmodule Threadline.QueryTest do
   defmodule FakeAsOfUser do
     use Ecto.Schema
 
+    @primary_key {:id, :string, autogenerate: false}
     schema "users" do
       field(:name, :string)
     end
@@ -112,6 +113,52 @@ defmodule Threadline.QueryTest do
 
       assert {:error, :before_audit_horizon} =
                Threadline.as_of(fake_as_of_schema(), "u-asof", before_horizon, repo: @repo)
+    end
+  end
+
+  describe "as_of/4 — ASOF-03/04" do
+    test "returns a schema struct when cast: true is enabled" do
+      %{updated_at: updated_at} = as_of_row_fixture()
+
+      {:ok, row} =
+        Threadline.as_of(fake_as_of_schema(), "u-asof", updated_at, repo: @repo, cast: true)
+
+      assert %FakeAsOfUser{id: "u-asof", name: "Beta"} = row
+    end
+
+    test "ignores historical keys that are no longer in the schema when casting" do
+      txn = insert_transaction(%{occurred_at: DateTime.utc_now()})
+
+      insert_change(txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-legacy"},
+        op: "insert",
+        data_after: %{"id" => "u-legacy", "name" => "Legacy", "legacy_field" => "old"},
+        changed_fields: ["id", "name"],
+        captured_at: DateTime.utc_now()
+      )
+
+      {:ok, row} =
+        Threadline.as_of(fake_as_of_schema(), "u-legacy", DateTime.utc_now(), repo: @repo, cast: true)
+
+      assert %FakeAsOfUser{id: "u-legacy", name: "Legacy"} = row
+      refute Map.has_key?(Map.from_struct(row), :legacy_field)
+    end
+
+    test "returns an explicit cast error when the snapshot cannot be loaded" do
+      txn = insert_transaction(%{occurred_at: DateTime.utc_now()})
+
+      insert_change(txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-bad"},
+        op: "insert",
+        data_after: %{"id" => "u-bad", "name" => 123},
+        changed_fields: ["id", "name"],
+        captured_at: DateTime.utc_now()
+      )
+
+      assert {:error, {:cast_error, _}} =
+               Threadline.as_of(fake_as_of_schema(), "u-bad", DateTime.utc_now(), repo: @repo, cast: true)
     end
   end
 
