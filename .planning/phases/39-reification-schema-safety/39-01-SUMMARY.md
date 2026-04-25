@@ -20,7 +20,7 @@ tech-stack:
   patterns: [Ecto.embedded_load/3, opt-in cast flag, explicit cast-error tuple]
 
 key-files:
-  created: [.planning/phases/39-reification-schema-safety/39-01-PLAN.md, .planning/phases/39-reification-schema-safety/39-01-SUMMARY.md]
+  created: [.planning/phases/39-reification-schema-safety/39-01-PLAN.md, .planning/phases/39-reification-schema-safety/39-01-SUMMARY.md, .planning/phases/39-reification-schema-safety/39-CONTEXT.md]
   modified: [.planning/STATE.md, .planning/ROADMAP.md, .planning/REQUIREMENTS.md, lib/threadline/query.ex, test/threadline/query_test.exs]
 
 decisions:
