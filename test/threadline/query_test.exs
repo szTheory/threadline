@@ -139,7 +139,10 @@ defmodule Threadline.QueryTest do
       )
 
       {:ok, row} =
-        Threadline.as_of(fake_as_of_schema(), "u-legacy", DateTime.utc_now(), repo: @repo, cast: true)
+        Threadline.as_of(fake_as_of_schema(), "u-legacy", DateTime.utc_now(),
+          repo: @repo,
+          cast: true
+        )
 
       assert %FakeAsOfUser{id: "u-legacy", name: "Legacy"} = row
       refute Map.has_key?(Map.from_struct(row), :legacy_field)
@@ -158,7 +161,10 @@ defmodule Threadline.QueryTest do
       )
 
       assert {:error, {:cast_error, _}} =
-               Threadline.as_of(fake_as_of_schema(), "u-bad", DateTime.utc_now(), repo: @repo, cast: true)
+               Threadline.as_of(fake_as_of_schema(), "u-bad", DateTime.utc_now(),
+                 repo: @repo,
+                 cast: true
+               )
     end
   end
 

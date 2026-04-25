@@ -239,8 +239,21 @@ defmodule Threadline.Query do
 
     case snapshot do
       %AuditChange{op: "delete"} -> {:error, :deleted_record}
-      %AuditChange{data_after: data_after} -> {:ok, data_after}
+      %AuditChange{data_after: data_after} -> load_as_of_snapshot(schema_module, data_after, opts)
       nil -> {:error, :before_audit_horizon}
+    end
+  end
+
+  defp load_as_of_snapshot(schema_module, data_after, opts) do
+    if Keyword.get(opts, :cast, false) do
+      try do
+        {:ok, Ecto.embedded_load(schema_module, data_after, :json)}
+      rescue
+        e in [ArgumentError, Ecto.ChangeError] ->
+          {:error, {:cast_error, Exception.message(e)}}
+      end
+    else
+      {:ok, data_after}
     end
   end
 
