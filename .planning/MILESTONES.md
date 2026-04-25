@@ -2,17 +2,23 @@
 
 Entries are newest first.
 
-## v1.11 — Composable incident surface (in flight, 2026-04-24)
+## v1.11 — Composable incident surface (shipped 2026-04-24)
 
 **Goal:** Close the integrator **composition** gap — **`POST /api/posts`** returns **`audit_transaction_id`**, **`GET /api/audit_transactions/:id/changes`** returns ordered **`AuditChange`** rows with **`change_diff`** maps — without LiveView, **`threadline_web`**, or new capture semantics.
 
-**Phases:** **37** (example HTTP JSON path + **`COMP-EXAMPLE-INCIDENT-JSON`** doc contract + README).
+**Phases completed:** **37** (1 phase; 1 plan with `SUMMARY.md`; execution tree under **`.planning/milestones/v1.11-phases/`**).
 
-**Living artifacts:** **`.planning/REQUIREMENTS.md`**, **`.planning/ROADMAP.md`**, **`.planning/PROJECT.md`** (Current Milestone).
+**Key accomplishments:**
 
-**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** unchanged unless a separate release milestone is run.
+- Shipped **`POST /api/posts`** and **`GET /api/audit_transactions/:id/changes`** in **`examples/threadline_phoenix`** to prove composition of **`audit_transaction_id`**, **`audit_changes_for_transaction/2`**, and **`change_diff/2`** (**COMP-01**, **COMP-02**, Phase **37-01**).
+- Shipped **`guides/domain-reference.md`** anchor **`COMP-EXAMPLE-INCIDENT-JSON`** and verified via **`ExplorationRoutingDocContractTest`** (**COMP-03**, Phase **37-01**).
+- Formalized administrative artifacts for **v1.10** phases (**31–36**) and **v1.11** phase (**37**) to ensure complete planning history.
 
-**What is next:** **`/gsd-complete-milestone`** when ready to archive **v1.11** to **`.planning/milestones/v1.11-*`**.
+**Stats:** 1 phase (v1.11), 1 plan with summary; v1.11 requirements **3/3** complete at close (see archived traceability).
+
+**Archives:** `.planning/milestones/v1.11-REQUIREMENTS.md`, `.planning/milestones/v1.11-ROADMAP.md`.
+
+**What is next:** **`/gsd-new-milestone`** — fresh **`.planning/REQUIREMENTS.md`** and next roadmap slice when scope is ready.
 
 ---
 
