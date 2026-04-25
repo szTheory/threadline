@@ -11,11 +11,11 @@ Focus on providing a stable, correct, and developer-friendly foundation for poin
 
 - [x] **ASOF-01**: `Threadline.as_of(Schema, id, timestamp, opts)` returns `{:ok, Map}` with string keys representing the record state at that point in time.
 - [x] **ASOF-02**: `as_of/4` handles **deleted records** explicitly and returns a deletion error once the latest change at or before `timestamp` is a delete.
-- [ ] **ASOF-03**: `as_of/4` supports an opt-in **`:cast`** option to return the data as an **Ecto Struct**.
+- [x] **ASOF-03**: `as_of/4` supports an opt-in **`:cast`** option to return the data as an **Ecto Struct**.
 
 ### DX & Safety
 
-- [ ] **ASOF-04**: **Loose Casting**: When `:cast` is used, the system ignores fields in the audit log that no longer exist in the current Ecto schema (permissive loading).
+- [x] **ASOF-04**: **Loose Casting**: When `:cast` is used, the system ignores fields in the audit log that no longer exist in the current Ecto schema (permissive loading).
 - [x] **ASOF-05**: **Genesis Gap**: `as_of/4` returns a flat `{:error, atom}` from the genesis-gap atom set when the timestamp predates available history.
 - [ ] **ASOF-06**: **Documentation**: Add a "Time Travel (As-of)" section to `guides/domain-reference.md` and update the Phoenix example README.
 
@@ -44,8 +44,8 @@ Focus on providing a stable, correct, and developer-friendly foundation for poin
 |-------------|-------|--------|
 | ASOF-01 | Phase 38 | Complete |
 | ASOF-02 | Phase 38 | Complete |
-| ASOF-03 | Phase 39 | Pending |
-| ASOF-04 | Phase 39 | Pending |
+| ASOF-03 | Phase 39 | Complete |
+| ASOF-04 | Phase 39 | Complete |
 | ASOF-05 | Phase 38 | Complete |
 | ASOF-06 | Phase 40 | Pending |
 

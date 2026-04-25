@@ -27,7 +27,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `Threadline.as_of(..., cast: true)` returns an Ecto struct.
   2. Struct loading succeeds even if the audit log contains fields not present in the current schema (loose casting).
-**Plans**: TBD
+**Plans**: 1
+Plans:
+- [x] 39-01-PLAN.md — Add opt-in struct reification with loose schema loading and explicit cast errors
 
 ### Phase 40: Temporal Operator Guides
 **Goal**: User-facing documentation for time travel features.
@@ -43,5 +45,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 38. Core As-of Reconstruction | 1/1 | Complete    | 2026-04-25 |
-| 39. Reification & Schema Safety | 0/1 | Not started | - |
+| 39. Reification & Schema Safety | 1/1 | Complete    | 2026-04-25 |
 | 40. Temporal Operator Guides | 0/1 | Not started | - |
