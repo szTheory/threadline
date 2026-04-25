@@ -75,6 +75,16 @@ defmodule Threadline do
   def history(schema_module, id, opts), do: Threadline.Query.history(schema_module, id, opts)
 
   @doc """
+  Returns the row snapshot for a schema record at a point in time.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module
+  """
+  def as_of(schema_module, id, timestamp, opts),
+    do: Threadline.Query.as_of(schema_module, id, timestamp, opts)
+
+  @doc """
   Returns `AuditTransaction` records for a given actor, ordered by
   `occurred_at` descending.
 

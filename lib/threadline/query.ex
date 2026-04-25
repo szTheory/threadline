@@ -214,6 +214,37 @@ defmodule Threadline.Query do
   end
 
   @doc """
+  Returns the latest stored row snapshot for a schema record at or before `timestamp`.
+
+  Returns `{:ok, map}` when the latest matching snapshot is an insert/update row,
+  `{:error, :deleted_record}` when the latest snapshot is a delete, and
+  `{:error, :before_audit_horizon}` when the row has no snapshot at or before the
+  requested timestamp.
+  """
+  def as_of(schema_module, id, timestamp, opts) do
+    repo = Keyword.fetch!(opts, :repo)
+    table = schema_module.__schema__(:source)
+    [pk_field] = schema_module.__schema__(:primary_key)
+    pk_map = %{to_string(pk_field) => id}
+
+    snapshot =
+      AuditChange
+      |> where([ac], ac.table_name == ^table)
+      |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
+      |> where([ac], ac.captured_at <= ^timestamp)
+      |> order_by([ac], desc: ac.captured_at)
+      |> order_by([ac], desc: ac.id)
+      |> limit(1)
+      |> repo.one()
+
+    case snapshot do
+      %AuditChange{op: "delete"} -> {:error, :deleted_record}
+      %AuditChange{data_after: data_after} -> {:ok, data_after}
+      nil -> {:error, :before_audit_horizon}
+    end
+  end
+
+  @doc """
   Returns `AuditTransaction` records for a given actor, ordered by
   `occurred_at` descending.
 
