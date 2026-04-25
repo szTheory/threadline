@@ -18,7 +18,7 @@
   3. Querying before the first audit entry returns `{:error, :before_audit_horizon}`.
 **Plans**: 1
 Plans:
-- [ ] 38-01-PLAN.md — Single-row as-of lookup with map output, delete detection, and genesis-gap handling
+- [x] 38-01-PLAN.md — Single-row as-of lookup with map output, delete detection, and genesis-gap handling
 
 ### Phase 39: Reification & Schema Safety
 **Goal**: Casting historical data to Ecto structs with drift tolerance.
@@ -42,6 +42,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 38. Core As-of Reconstruction | 0/1 | Not started | - |
+| 38. Core As-of Reconstruction | 1/1 | Completed | 2026-04-25 |
 | 39. Reification & Schema Safety | 0/1 | Not started | - |
 | 40. Temporal Operator Guides | 0/1 | Not started | - |
