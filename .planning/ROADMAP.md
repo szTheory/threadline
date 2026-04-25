@@ -2,7 +2,7 @@
 
 ## Phases
 
-- [ ] **Phase 38: Core As-of Reconstruction** - Basic historical state retrieval as Maps including deleted record support and genesis gap detection.
+- [x] **Phase 38: Core As-of Reconstruction** - Basic historical state retrieval as Maps including deleted record support and genesis gap detection. (completed 2026-04-25)
 - [ ] **Phase 39: Reification & Schema Safety** - Casting historical data to Ecto structs with drift-tolerant loose casting.
 - [ ] **Phase 40: Temporal Operator Guides** - User-facing documentation for time travel features in guides and example apps.
 
@@ -42,6 +42,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 38. Core As-of Reconstruction | 1/1 | Completed | 2026-04-25 |
+| 38. Core As-of Reconstruction | 1/1 | Complete    | 2026-04-25 |
 | 39. Reification & Schema Safety | 0/1 | Not started | - |
 | 40. Temporal Operator Guides | 0/1 | Not started | - |
