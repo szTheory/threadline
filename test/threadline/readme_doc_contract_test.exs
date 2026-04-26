@@ -12,10 +12,19 @@ defmodule Threadline.ReadmeDocContractTest do
     assert Code.ensure_loaded?(Threadline.ReadmeDocContractRouter)
   end
 
-  test "README mentions export and timeline together" do
+  test "README declares the public API surface" do
     readme = File.read!("README.md")
-    assert String.contains?(readme, "export")
-    assert String.contains?(readme, "timeline")
+    assert String.contains?(readme, "Threadline.Plug")
+    assert String.contains?(readme, "Threadline.record_action/2")
+    assert String.contains?(readme, "Threadline.history/3")
+    assert String.contains?(readme, "Threadline.timeline/2")
+    assert String.contains?(readme, "Threadline.export_json/2")
+    assert String.contains?(readme, "Threadline.as_of/4")
+  end
+
+  test "README links domain reference guide" do
+    readme = File.read!("README.md")
+    assert String.contains?(readme, "guides/domain-reference.md")
   end
 
   test "README links production checklist guide" do
@@ -51,8 +60,8 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "ThreadlinePhoenix.Post")
     assert String.contains?(doc, "as_of/4")
     assert String.contains?(doc, "cast: true")
-    assert String.contains?(doc, ":deleted")
-    assert String.contains?(doc, ":genesis_gap")
+    assert String.contains?(doc, ":deleted_record")
+    assert String.contains?(doc, ":before_audit_horizon")
   end
 
   test "fixture calls match public README API shapes" do

@@ -3,191 +3,96 @@
 [![CI](https://github.com/szTheory/threadline/actions/workflows/ci.yml/badge.svg)](https://github.com/szTheory/threadline/actions/workflows/ci.yml)
 [![Hex.pm](https://img.shields.io/hexpm/v/threadline.svg)](https://hex.pm/packages/threadline)
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
-**CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions) on `main` (`verify-format`, `verify-credo`, `verify-test`, `verify-pgbouncer-topology`, plus `verify-docs`, `verify-hex-package`, `verify-release-shape`). The `verify-test` job runs `mix verify.test`, then `mix verify.threadline`, then **`mix verify.example`** (the `examples/threadline_phoenix/` reference app), then `mix verify.doc_contract`. **`verify-pgbouncer-topology`** runs `mix verify.topology` and `mix verify.threadline` through **PgBouncer transaction pooling** (see [CONTRIBUTING.md](CONTRIBUTING.md#pgbouncer-topology-ci-parity)). Reproduce the default gate locally with `mix ci.all` — see [CONTRIBUTING.md](CONTRIBUTING.md#ci-parity-and-act).
 
-Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger-backed row-change capture, rich action semantics (actor, intent, correlation), and operator-grade exploration via plain SQL queries — without opaque blobs or a separate event bus.
+Auditing for Phoenix.
 
-## Requirements
+Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
 
-- Elixir ~> 1.15
-- PostgreSQL (trigger support required)
-- Ecto and Phoenix (recommended; Plug integration included)
+Use it when you want the audit layer in your app, not a separate event system or a black box.
 
-## Installation
+## Start here
 
-Add `threadline` to your dependencies:
+- **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
+- **Integrating:** read [Quick Start](#quick-start) and then [guides/domain-reference.md](guides/domain-reference.md).
+- **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
-```elixir
-# mix.exs
-def deps do
-  [
-    {:threadline, "~> 0.2"}
-  ]
-end
-```
+## What you get
 
-Run the installer to generate the base migration:
-
-```bash
-mix threadline.install
-mix ecto.migrate
-```
-
-Register audit triggers on the tables you want to audit:
-
-```bash
-mix threadline.gen.triggers --tables users,posts,comments
-mix ecto.migrate
-```
-
-### Redaction at capture (`exclude` / `mask`)
-
-Operators can drop sensitive columns from persisted `audit_changes.data_after` JSON or replace them with a stable placeholder **at trigger generation time** (no runtime policy database). Configure per audited table under **`config :threadline, :trigger_capture`** — a map **`tables`** whose keys are table name strings and values are keyword lists:
-
-- **`exclude`** — column names omitted entirely from `data_after` (and from `changed_fields` when applicable).
-- **`mask`** — column names whose values are stored as the placeholder only (default `"[REDACTED]"`). The same rules apply to sparse **`changed_from`** when you combine masking with `--store-changed-from`.
-- **`mask_placeholder`** — optional override (validated at codegen: length, no control characters).
-- **`store_changed_from`** / **`except_columns`** — same semantics as CLI flags; CLI `--except-columns` is merged with config.
-
-A column cannot appear in both **`exclude`** and **`mask`**; `mix threadline.gen.triggers` fails validation if they overlap.
-
-`mix threadline.gen.triggers` calls **`Mix.Task.run("app.config", [])`** first, so use the same **`MIX_ENV`** locally and in CI when regenerating migrations (otherwise config-driven SQL may not match what you expect).
-
-For **json / jsonb** columns, masking replaces the **entire** column value with the placeholder (no deep field redaction in this release).
-
-Use **`mix threadline.gen.triggers --tables … --dry-run`** to print one line per table with resolved `exclude` / `mask` lists without writing a migration file.
-
-### Before-values (`changed_from`)
-
-- Fresh installs get a nullable `changed_from jsonb` column on `audit_changes` from `mix threadline.install` (migration template).
-- Existing databases: run `ALTER TABLE audit_changes ADD COLUMN IF NOT EXISTS changed_from jsonb;` then migrate or refresh triggers.
-- To capture sparse prior values on UPDATE for specific tables, regenerate triggers with `mix threadline.gen.triggers --tables posts --store-changed-from` and optional `--except-columns col1,col2` (exact flag spelling).
-
-## Brownfield adoption
-
-- Enabling capture on tables that **already contain rows** leaves an honest **gap** before the first audited mutation: `audit_changes` stays empty until then, and `Threadline.history/3` may return `[]` for existing primary keys until that first write.
-- Full semantics, compliance snapshot guidance, and the operator checklist live in [`guides/brownfield-continuity.md`](guides/brownfield-continuity.md) — read that before cutover.
-- Use `mix threadline.continuity` with **`--dry-run`** to print cutover steps without extra validation, or pass **`--table <name>`** after triggers are installed to assert readiness via `Threadline.Continuity`.
-
-## Maintainer checks
-
-Production **volume** and **retention cadence** guidance — including what to chart from **telemetry**, how **trigger coverage** tuples behave in CI, when to reach for the **audit indexing cookbook**, and how **purge batches** interact with **`max_batches`** — now lives in one place: **[Operating at scale (v1.9+)](guides/domain-reference.md#operating-at-scale-v19)** inside [`guides/domain-reference.md`](guides/domain-reference.md). Read that hub before tuning cron schedules or alert thresholds; the sections it links to remain the canonical depth, and the quick retention summary under **`### Data retention and purge`** below is unchanged for installers who only need the fast path.
-
-Hosts configure which audited public tables must have Threadline capture triggers installed:
-
-```elixir
-config :threadline, :verify_coverage,
-  expected_tables: ["users", "posts", "comments"]
-```
-
-Run:
-
-```bash
-mix threadline.verify_coverage
-```
-
-Pass or fail uses the same trigger catalog as `Threadline.Health.trigger_coverage/1`. For how `{:covered, _}` / `{:uncovered, _}` relate to `expected_tables` and telemetry, see [`guides/domain-reference.md#trigger-coverage-operational`](guides/domain-reference.md#trigger-coverage-operational).
-
-### Data retention and purge
-
-Threadline resolves a validated **global retention window** from **`config :threadline, :retention`** (`Threadline.Retention.Policy`). Operators run batched deletes via **`Threadline.Retention.purge/1`** or **`mix threadline.retention.purge`** (see `@moduledoc` on the task for production gates). Semantics — `captured_at` vs `occurred_at`, timeline alignment, orphan `audit_transactions` cleanup — are documented in [`guides/domain-reference.md`](guides/domain-reference.md#retention-phase-13).
-
-- **Cron / batching:** schedule purge often enough that each run stays under `max_batches` for your volume; tune **`--batch-size`** so each transaction stays short vs capture load (start around **500–2000** and watch lock wait).
-- **Monitoring:** inspect application logs for `threadline retention purge batch` (includes `deleted_changes`, `batch`, running totals) or wrap `purge/1` with your own telemetry.
-- **Dry-run:** `mix threadline.retention.purge --dry-run` prints eligible row counts before you enable **`enabled: true`** and run a live delete.
-
-### Export
-
-Operators can dump **`AuditChange`** rows as CSV or JSON using the **same filter vocabulary** as `Threadline.timeline/2` (`:table`, `:from`, `:to`, `:actor_ref`, `:repo`). Use **`Threadline.Export`** from code, **`Threadline.export_csv/2`** / **`Threadline.export_json/2`** from the top-level API, or **`mix threadline.export`** for file output. Exports default to a bounded row count with explicit **`truncated`** / **`returned_count`** metadata; use **`json_format: :ndjson`** for line-oriented pipelines. Read‑only — no destructive gate. Details: [`guides/domain-reference.md`](guides/domain-reference.md#export-phase-14).
+- **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.
+- **Semantics:** actor, intent, correlation, and request context via `Threadline.record_action/2`.
+- **Exploration:** timelines and history with `Threadline.timeline/2` and `Threadline.history/3`.
+- **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
 ## Quick Start
 
-### 1. Add the Plug to your router or endpoint
+1. Add `threadline` to your dependencies:
 
-```elixir
-# lib/my_app_web/router.ex
-pipeline :browser do
-  plug Threadline.Plug, actor_fn: &MyApp.Auth.to_actor_ref/1
-end
-```
+   ```elixir
+   def deps do
+     [
+       {:threadline, "~> 0.2"}
+     ]
+   end
+   ```
 
-Your `actor_fn` receives the `Plug.Conn` and returns a `Threadline.Semantics.ActorRef`:
+2. Install and migrate:
 
-```elixir
-defmodule MyApp.Auth do
-  alias Threadline.Semantics.ActorRef
+   ```bash
+   mix threadline.install
+   mix ecto.migrate
+   ```
 
-  def to_actor_ref(conn) do
-    case conn.assigns[:current_user] do
-      nil  -> ActorRef.anonymous()
-      user -> ActorRef.user("user:#{user.id}")
+3. Register triggers for the tables you want to audit:
+
+   ```bash
+   mix threadline.gen.triggers --tables users,posts,comments
+   mix ecto.migrate
+   ```
+
+4. Add the plug and set an actor inside your transaction:
+
+    ```elixir
+    # lib/my_app_web/router.ex
+    pipeline :browser do
+      plug Threadline.Plug, actor_fn: &MyApp.Auth.to_actor_ref/1
     end
-  end
-end
-```
 
-### 2. Attribute writes to an actor inside a transaction
+   alias Threadline.Semantics.ActorRef
 
-Inside the same database transaction as your audited writes, set the
-transaction-local GUC **before** the first row change. This tells the PostgreSQL
-trigger which `ActorRef` produced the mutation:
+   actor_ref = ActorRef.user("user:123")
+   json = ActorRef.to_map(actor_ref) |> Jason.encode!()
 
-```elixir
-alias Threadline.Semantics.ActorRef
+    MyApp.Repo.transaction(fn ->
+      MyApp.Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+      MyApp.Repo.insert!(%MyApp.Post{title: "Ship audit logs"})
+    end)
 
-actor_ref = ActorRef.user("user:123")
-json = ActorRef.to_map(actor_ref) |> Jason.encode!()
+    {:ok, _action} =
+      Threadline.record_action(:post_published,
+        repo: MyApp.Repo,
+        actor: actor_ref
+      )
+    ```
 
-MyApp.Repo.transaction(fn ->
-  MyApp.Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-  MyApp.Repo.insert!(%MyApp.Post{title: "Ship audit logs"})
-end)
-```
+5. Query the audit trail:
 
-Record semantic intent separately with `Threadline.record_action/2` (atom name,
-`:repo`, and `:actor_ref` / `:actor` options) when you want an `AuditAction` row.
+    ```elixir
+    Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
+    Threadline.timeline([table: "posts"], repo: MyApp.Repo)
+    Threadline.export_json([table: "posts"], repo: MyApp.Repo)
+    Threadline.as_of(MyApp.Post, post.id, DateTime.utc_now(), repo: MyApp.Repo)
+    ```
 
-### 3. Query the audit trail
+## Notes
 
-Every query helper requires an explicit `:repo` option.
-
-```elixir
-alias Threadline.Semantics.ActorRef
-
-Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
-
-actor_ref = ActorRef.user("user:123")
-Threadline.actor_history(actor_ref, repo: MyApp.Repo)
-
-Threadline.timeline([table: "posts"], repo: MyApp.Repo)
-```
-
-### 4. Export a slice of the audit trail (optional)
-
-Uses the same filters as `timeline/2` (`:repo` required in filters or opts):
-
-```elixir
-{:ok, %{data: iodata}} =
-  Threadline.export_csv(table: "posts", from: ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
-
-File.write!("posts_audit.csv", iodata)
-```
-
-See [`Threadline.Export`](https://hexdocs.pm/threadline/Threadline.Export.html) and [`guides/domain-reference.md`](guides/domain-reference.md#export-phase-14).
-
-## PgBouncer and Connection Pooling
-
-Threadline is safe under PgBouncer **transaction-mode pooling**. The `Threadline.Plug` stores request metadata in `conn.assigns` only — it never issues `SET` or `SET LOCAL` on the database connection outside of a transaction.
-
-Actor information is propagated to the PostgreSQL trigger using `set_config('threadline.actor_ref', $1::text, true)`, where the third argument `true` makes the GUC **transaction-local**: it is automatically cleared when the transaction ends and never leaks to a different connection or pooled session.
-
-For the full SQL bridge pattern and PgBouncer safety explanation, see [`Threadline.Plug`](https://hexdocs.pm/threadline/Threadline.Plug.html).
+- Threadline works with PgBouncer transaction pooling.
+- Redaction, retention, export, and continuity live in the guides and HexDocs.
 
 ## Documentation
 
-- **Full API reference:** [hexdocs.pm/threadline](https://hexdocs.pm/threadline)
-- **Domain model:** [guides/domain-reference.md](guides/domain-reference.md)
-- **Brownfield / continuity:** [guides/brownfield-continuity.md](guides/brownfield-continuity.md)
-- **Production checklist:** [guides/production-checklist.md](guides/production-checklist.md)
-- **Adoption pilot backlog:** [guides/adoption-pilot-backlog.md](guides/adoption-pilot-backlog.md) (run with the checklist in staging; capture gaps as issues)
-- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- [HexDocs](https://hexdocs.pm/threadline)
+- [Domain reference](guides/domain-reference.md)
+- [Brownfield continuity](guides/brownfield-continuity.md)
+- [Production checklist](guides/production-checklist.md)
+- [Adoption pilot backlog](guides/adoption-pilot-backlog.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
