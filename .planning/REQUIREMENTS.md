@@ -71,24 +71,22 @@
 
 ## Traceability
 
-(Populated by roadmapper after roadmap is approved.)
-
 | REQ | Phase | Status |
 |---|---|---|
-| SIGRA-01 | TBD | Pending |
-| SIGRA-02 | TBD | Pending |
-| SIGRA-03 | TBD | Pending |
-| PERF-01 | TBD | Pending |
-| PERF-02 | TBD | Pending |
-| PERF-03 | TBD | Pending |
-| INCIDENT-01 | TBD | Pending |
-| INCIDENT-02 | TBD | Pending |
-| ADOPT-01 | TBD | Pending |
-| ADOPT-02 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
+| SIGRA-01 | Phase 44 | Pending |
+| SIGRA-02 | Phase 44 | Pending |
+| SIGRA-03 | Phase 44 | Pending |
+| PERF-01 | Phase 45 | Pending |
+| PERF-02 | Phase 45 | Pending |
+| PERF-03 | Phase 45 | Pending |
+| INCIDENT-01 | Phase 46 | Pending |
+| INCIDENT-02 | Phase 46 | Pending |
+| ADOPT-01 | Phase 47 | Pending |
+| ADOPT-02 | Phase 47 | Pending |
+| REL-01 | Phase 48 | Pending |
+| REL-02 | Phase 48 | Pending |
+| REL-03 | Phase 48 | Pending |
 
 ---
 
-*Last updated: 2026-04-26 — v1.14 milestone opened; 13 requirements across 5 categories.*
+*Last updated: 2026-04-26 — v1.14 milestone roadmapped; 13 requirements mapped across Phases 44–48 (100% coverage).*
