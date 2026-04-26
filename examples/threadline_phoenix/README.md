@@ -1,6 +1,6 @@
 # ThreadlinePhoenix
 
-Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Mix commands in this document are meant to be run **from `examples/threadline_phoenix/`**; the dependency `{:threadline, path: "../.."}` points at the **repository root** (two levels up from this directory).
+Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract. Mix commands in this document are meant to be run **from `examples/threadline_phoenix/`**; the dependency `{:threadline, path: "../.."}` points at the **repository root** (two levels up from this directory).
 
 ## Prerequisites
 
@@ -107,10 +107,10 @@ case Threadline.as_of(ThreadlinePhoenix.Post, post_id, as_of: as_of_at, repo: Th
   {:ok, post} ->
     post
 
-  {:error, :deleted} ->
+  {:error, :deleted_record} ->
     :deleted
 
-  {:error, :genesis_gap} ->
+  {:error, :before_audit_horizon} ->
     :no_history_yet
 end
 ```
@@ -126,7 +126,7 @@ By default, `as_of/4` returns a map. Add `cast: true` when you want the current 
   )
 ```
 
-Deleted rows stay explicit — do not treat `:deleted` as a current record.
+Deleted rows stay explicit — do not treat `:deleted_record` as a current record.
 
 ## Correlation: HTTP → audit_actions → timeline
 

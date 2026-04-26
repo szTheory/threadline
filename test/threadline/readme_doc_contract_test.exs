@@ -39,13 +39,16 @@ defmodule Threadline.ReadmeDocContractTest do
 
   test "examples README indexes Phoenix reference app" do
     doc = File.read!("examples/README.md")
-    assert String.contains?(doc, "threadline_phoenix")
-    assert String.contains?(doc, "threadline_phoenix/README.md")
+
+    assert String.contains?(doc, "The canonical Phoenix reference integration lives at **`examples/threadline_phoenix/`**.")
+    assert String.contains?(doc, "[`threadline_phoenix/README.md`](threadline_phoenix/README.md)")
   end
 
   test "example README carries runbook literals for REF-01" do
     doc = File.read!("examples/threadline_phoenix/README.md")
 
+    assert String.contains?(doc, "mix threadline.install")
+    assert String.contains?(doc, "mix threadline.gen.triggers")
     assert String.contains?(doc, "mix phx.server") or
              String.contains?(doc, "iex -S mix phx.server")
 
@@ -62,6 +65,17 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "cast: true")
     assert String.contains?(doc, ":deleted_record")
     assert String.contains?(doc, ":before_audit_horizon")
+  end
+
+  test "example README carries audited HTTP and correlation literals" do
+    doc = File.read!("examples/threadline_phoenix/README.md")
+
+    assert String.contains?(doc, "Threadline.Plug")
+    assert String.contains?(doc, "Threadline.record_action/2")
+    assert String.contains?(doc, "Threadline.timeline/2")
+    assert String.contains?(doc, "Threadline.export_json/2")
+    assert String.contains?(doc, "guides/domain-reference.md")
+    assert String.contains?(doc, "guides/production-checklist.md")
   end
 
   test "fixture calls match public README API shapes" do
