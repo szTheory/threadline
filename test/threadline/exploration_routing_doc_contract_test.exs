@@ -31,6 +31,18 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert String.contains?(doc, "audit_transaction_id")
   end
 
+  test "domain-reference retains Time Travel hub and ASOF-06 anchor" do
+    doc = read_rel!(["guides", "domain-reference.md"])
+
+    assert String.contains?(doc, "## Time Travel (As-of)")
+    assert String.contains?(doc, "time-travel-as-of-v120")
+    assert String.contains?(doc, "ASOF-06")
+    assert String.contains?(doc, "as_of/4")
+    assert String.contains?(doc, "cast: true")
+    assert String.contains?(doc, "genesis gap")
+    assert String.contains?(doc, "deleted-record")
+  end
+
   test "production-checklist links to Exploration API routing anchor" do
     doc = read_rel!(["guides", "production-checklist.md"])
 

@@ -189,6 +189,23 @@ Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
 | Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | INSERT/UPDATE/DELETE semantics; `changed_from` may be `nil` — see module docs, not duplicated here. |
 | Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.Query.timeline/2` with **`:actor_ref`** | Pairs with support table row 2; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
 
+<span id="time-travel-as-of-v120"></span>
+
+## Time Travel (As-of)
+
+This hub maps the single-row **`as_of/4`** contract for operators who need one historical snapshot fast.
+
+Contract marker for automated doc checks: **ASOF-06**
+
+| Behavior | Result |
+|----------|--------|
+| Default call | Returns the stored snapshot as a **map**. |
+| Deleted record | Returns an explicit deleted-record error instead of a fake struct. |
+| Genesis gap | Returns an explicit genesis gap error when no historical row exists yet. |
+| `cast: true` | Reifies into the current schema via `Ecto.embedded_load/3`; unknown keys are ignored and cast failures return `{:error, {:cast_error, message}}`. |
+
+Use this when you need a one-row reconstruction by primary key. For a copy-paste walkthrough, see [the Phoenix example README](../examples/threadline_phoenix/README.md#historical-reconstruction-walkthrough).
+
 <span id="example-incident-json-v111"></span>
 
 ### Reference example: incident JSON (v1.11+)
