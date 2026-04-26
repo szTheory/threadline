@@ -69,7 +69,7 @@ completed: 2026-04-25
 1. **Task 1: Add the Time Travel hub to the operator guide** - `9b8a733` (docs)
 2. **Task 2: Add the runnable walkthrough to the Phoenix example README** - `35564a4` (docs)
 
-**Plan metadata:** pending
+**Plan metadata:** `f21f6bf` (docs: record phase execution results)
 
 ## Files Created/Modified
 
