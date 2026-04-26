@@ -38,7 +38,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. "Time Travel" guide section is live in `guides/domain-reference.md`.
   2. Phoenix example README demonstrates historical reconstruction.
-**Plans**: TBD
+**Plans**: 1
+Plans:
+- [ ] 40-01-PLAN.md — Document the Time Travel hub and example walkthrough with contract tests
 
 ## Progress Table
 
