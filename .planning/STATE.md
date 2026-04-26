@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.14
-milestone_name: drop-in production adopter slice
+milestone_name: — Drop-in Production Adopter Slice
 status: planning
-last_updated: "2026-04-26T00:00:00Z"
+last_updated: "2026-04-26T15:02:14.963Z"
+last_activity: 2026-04-26 — v1.14 roadmap created (Phases 44–48); REQUIREMENTS.md traceability filled.
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 5
+  total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Threadline
