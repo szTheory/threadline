@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready_to_plan
-last_updated: "2026-04-25T21:52:40.609Z"
+status: complete
+last_updated: "2026-04-26T00:39:49.764Z"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -29,7 +29,7 @@ progress:
 ## Performance Metrics
 
 - **Total Phases**: 40
-- **Phases Completed**: 37
+- **Phases Completed**: 38
 - **Requirements Covered**: 6/6 (v1.12)
 - **Last Milestone**: v1.11 (Shipped 2026-04-24)
 
@@ -47,6 +47,9 @@ progress:
 - Keep the default as_of/4 return shape map-only; enable struct reification only behind cast: true.
 - Use Ecto.embedded_load/3 so unknown historical keys are ignored and current schema defaults still apply.
 - Return {:error, {:cast_error, message}} when a historical snapshot cannot be loaded into the current schema.
+- Keep Time Travel as a compact hub section beside the existing exploration material instead of creating a separate guide.
+- Use the Phoenix example README for one copy-pasteable reconstruction walkthrough with ThreadlinePhoenix.Post.
+- Lock the docs with literal assertions for ASOF-06, as_of/4, cast: true, deleted rows, and genesis gaps.
 
 ### Todos
 
@@ -55,7 +58,7 @@ progress:
 - [x] Implement deleted record reconstruction (Phase 38)
 - [x] Implement Ecto Struct reification (Phase 39)
 - [x] Implement Loose Casting for schema drift (Phase 39)
-- [ ] Document Time Travel features (Phase 40)
+ - [x] Document Time Travel features (Phase 40)
 
 ### Blockers
 
@@ -63,5 +66,5 @@ progress:
 
 ## Session Continuity
 
-- **Last Action**: Completed Phase 39 Plan 01.
+- **Last Action**: Completed Phase 40 Plan 01.
 - **Next Step**: `/gsd-progress`
