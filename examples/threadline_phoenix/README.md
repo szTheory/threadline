@@ -96,6 +96,38 @@ Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (t
 
 CI: **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Security:** add authorization (and usually tenancy checks) before exposing transaction drill-down in production; this example stays intentionally minimal.
 
+## Historical reconstruction walkthrough
+
+Copy-paste this when you want one row back as it existed at a point in time:
+
+```elixir
+as_of_at = DateTime.utc_now()
+
+case Threadline.as_of(ThreadlinePhoenix.Post, post_id, as_of: as_of_at, repo: ThreadlinePhoenix.Repo) do
+  {:ok, post} ->
+    post
+
+  {:error, :deleted} ->
+    :deleted
+
+  {:error, :genesis_gap} ->
+    :no_history_yet
+end
+```
+
+By default, `as_of/4` returns a map. Add `cast: true` when you want the current `ThreadlinePhoenix.Post` struct shape back instead:
+
+```elixir
+{:ok, post} =
+  Threadline.as_of(ThreadlinePhoenix.Post, post_id,
+    as_of: as_of_at,
+    cast: true,
+    repo: ThreadlinePhoenix.Repo
+  )
+```
+
+Deleted rows stay explicit — do not treat `:deleted` as a current record.
+
 ## Correlation: HTTP → audit_actions → timeline
 
 **Operator contract:** when you pass **`:correlation_id`** to **`Threadline.timeline/2`** or **`Threadline.export_json/2`**, Threadline applies a **strict** join: only **`audit_changes`** whose **`audit_transactions`** row is linked (**`audit_transactions.action_id`**) to an **`audit_actions`** row with that correlation id are returned. Headers such as **`x-correlation-id`** populate **`AuditContext`** at the edge; durable queryability requires **`Threadline.record_action/2`** in the **same** database transaction as the audited writes, as implemented in **`Blog.create_post/2`**. Timeline and export share the same filter vocabulary (see **`Threadline.Query`** and **LOOP-01** in **`CHANGELOG.md`**).

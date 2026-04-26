@@ -44,6 +44,17 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "ecto.migrate")
   end
 
+  test "example README carries historical reconstruction walkthrough literals" do
+    doc = File.read!("examples/threadline_phoenix/README.md")
+
+    assert String.contains?(doc, "Historical reconstruction walkthrough")
+    assert String.contains?(doc, "ThreadlinePhoenix.Post")
+    assert String.contains?(doc, "as_of/4")
+    assert String.contains?(doc, "cast: true")
+    assert String.contains?(doc, ":deleted")
+    assert String.contains?(doc, ":genesis_gap")
+  end
+
   test "fixture calls match public README API shapes" do
     map = Threadline.ReadmeQuickstartFixtures.actor_ref_map_examples()
     assert map.anonymous["type"] == "anonymous"
