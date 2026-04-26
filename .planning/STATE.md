@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.12
-milestone_name: temporal_truth_and_safety
-status: complete
-last_updated: "2026-04-26T00:50:49.723Z"
+milestone: v1.13
+milestone_name: docs contract repair
+status: milestone_complete
+last_updated: "2026-04-26T02:01:06Z"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -17,45 +17,38 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Milestone v1.12 shipped; next milestone TBD.
+**Current Focus**: Milestone v1.13 shipped; next milestone planning is pending.
 
 ## Current Position
 
-**Phase**: 40
+Phase: 43 (docs-audit-evidence-repair) — COMPLETE
+Plan: 1 of 1
+**Phase**: 43
 **Plan**: 01
 **Status**: Complete
 **Progress**: [████████████████████] 100%
 
 ## Performance Metrics
 
-- **Total Phases**: 40
-- **Phases Completed**: 40
-- **Requirements Covered**: 6/6 (v1.12)
-- **Last Milestone**: v1.12 (Shipped 2026-04-25)
+- **Total Phases**: 3
+- **Phases Completed**: 3
+- **Requirements Covered**: 3/3 (v1.13)
+- **Last Milestone**: v1.13 (Shipped 2026-04-26)
 
 ## Accumulated Context
 
 ### Decisions
 
-- 2026-04-24: Use a 3-phase split for v1.12 to separate core Map reconstruction, Struct reification, and Documentation.
-- 2026-04-24: `as_of/4` will be the primary entry point for single-row reconstruction.
-- 2026-04-25: Expose `as_of/4` as a repo-backed delegator with the same explicit `:repo` option style as `history/3`.
-- 2026-04-25: Return the stored snapshot map directly and classify delete/genesis cases with explicit errors.
-- 2026-04-25: Keep the default as_of/4 return shape map-only; enable struct reification only behind cast: true.
-- 2026-04-25: Use Ecto.embedded_load/3 so unknown historical keys are ignored and current schema defaults still apply.
-- 2026-04-25: Return {:error, {:cast_error, message}} when a historical snapshot cannot be loaded into the current schema.
-- Keep Time Travel as a compact hub section beside the existing exploration material instead of creating a separate guide.
-- Use the Phoenix example README for one copy-pasteable reconstruction walkthrough with ThreadlinePhoenix.Post.
-- Lock the docs with literal assertions for ASOF-06, as_of/4, cast: true, deleted rows, and genesis gaps.
+- 2026-04-26: Start v1.13 as a docs-contract repair milestone focused on README and example README drift.
+- 2026-04-26: Keep doc-contract tests aligned with the published quickstart, guide links, and Phoenix example walkthroughs.
+- 2026-04-26: Close the v1.13 audit gap by writing verification reports for the completed docs repair phases.
 
 ### Todos
 
-- [x] Implement `Threadline.as_of/4` for Map results (Phase 38)
-- [x] Implement Genesis Gap detection (Phase 38)
-- [x] Implement deleted record reconstruction (Phase 38)
-- [x] Implement Ecto Struct reification (Phase 39)
-- [x] Implement Loose Casting for schema drift (Phase 39)
-- [x] Document Time Travel features (Phase 40)
+- [x] Repair root README contract drift (Phase 41)
+- [x] Repair example README contract drift (Phase 42)
+- [x] Keep doc-contract tests synchronized with public docs (Phases 41-42)
+- [x] Close the docs-audit evidence gap (Phase 43)
 
 ### Blockers
 
@@ -63,8 +56,8 @@ progress:
 
 ## Session Continuity
 
-- **Last Action**: Closed v1.12 milestone and archived requirements.
-- **Next Step**: `/gsd-new-milestone`
+- **Last Action**: Completed v1.13 milestone execution and audit repair.
+- **Next Step**: Decide whether to start v1.14 planning.
 
 ## Deferred Items
 

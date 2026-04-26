@@ -10,20 +10,28 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Milestone shipped:** v1.12 — Temporal Truth & Safety (As-of Reconstruction)
+**Last shipped:** v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
 
 **Shipped capabilities:**
-- `Threadline.as_of/4` reconstructs single-row history from audit snapshots.
-- `cast: true` returns an Ecto struct with loose historical loading.
-- Deleted records and genesis-gap reads return explicit errors.
+- Root `README.md` and `examples/threadline_phoenix/README.md` are aligned with the shipped public API surface and locked by `test/threadline/readme_doc_contract_test.exs`.
+- `Threadline.as_of/4` reconstructs single-row history from audit snapshots; `cast: true` returns an Ecto struct with loose historical loading; deleted records and genesis-gap reads return explicit errors.
 
 ## Next Milestone Goals
 
-- Define the next slice of point-in-time exploration via `/gsd-new-milestone`.
-- Decide whether to expand reconstruction to collections or associations.
-- Keep operator docs and contract tests aligned with any new history APIs.
+- Pending — start with `/gsd-new-milestone` to define v1.14 scope.
 
-## Last milestone shipped: v1.12 — Temporal Truth & Safety (Phases 38–40, 2026-04-25)
+## Last milestone shipped: v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
+
+**Goal (achieved):** Repair README contract drift on the root project and the Phoenix example so the published docs match the shipped public API surface, and restore the verification artifacts the milestone audit was missing.
+
+**Shipped:**
+- **Phase 41** — DOC-01: Root `README.md` aligned with the shipped public API surface; doc-contract test locks the literals.
+- **Phase 42** — DOC-02: `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to cover example install/runbook + historical reconstruction literals.
+- **Phase 43** — DOC-03: `41-VERIFICATION.md`, `42-VERIFICATION.md`, and reconciled `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap so DOC-01–03 are counted as verified.
+
+**Archives:** `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-MILESTONE-AUDIT.md`, `.planning/milestones/v1.13-phases/`.
+
+## Prior milestone shipped: v1.12 — Temporal Truth & Safety (Phases 38–40, 2026-04-25)
 
 **Goal (achieved):** Provide a stable foundation for point-in-time row reconstruction with map-first reads, opt-in struct reification, and copy-pasteable operator docs.
 
@@ -107,7 +115,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.12** are complete (**v1.12** shipped 2026-04-25, Phases 38–40). Prior milestones live under **`.planning/milestones/`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.13** are complete (**v1.13** shipped 2026-04-26, Phases 41–43). Prior milestones live under **`.planning/milestones/`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Requirements
 
@@ -149,10 +157,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **ASOF-01 / ASOF-02 / ASOF-05 (Phase 38)** — Map-first reconstruction, deleted-record handling, and genesis-gap errors. Validated in v1.12: Core As-of Reconstruction.
 - [x] **ASOF-03 / ASOF-04 (Phase 39)** — Opt-in struct reification and loose casting. Validated in v1.12: Reification & Schema Safety.
 - [x] **ASOF-06 (Phase 40)** — Time Travel docs and example walkthrough. Validated in v1.12: Temporal Operator Guides.
+- [x] **DOC-01 (Phase 41)** — Root `README.md` aligned with the shipped public API surface; locked by `test/threadline/readme_doc_contract_test.exs`. Validated in v1.13: Docs Contract Repair (2026-04-26).
+- [x] **DOC-02 (Phase 42)** — `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to assert the example surface. Validated in v1.13: Docs Contract Repair (2026-04-26).
+- [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 
 ### Active
 
-- [ ] Next milestone requirements will be defined in `/gsd-new-milestone`.
+- Pending — next milestone scope to be defined via `/gsd-new-milestone`.
 
 ### Out of Scope
 
@@ -202,6 +213,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | ✓ Shipped (Phases 22–24, 2026-04-24) |
 | `ChangeDiff` normalizes trigger `op` casing | Lowercase `op` from PostgreSQL trigger paths maps to uppercase INSERT/UPDATE/DELETE in the primary wire map | ✓ Shipped (Phase 34, v1.10) |
 | `as_of/4` map-first reconstruction and cast-based reification | Point-in-time reads now support explicit deleted/genesis errors plus opt-in struct loading | ✓ Shipped (Phases 38–40, v1.12) |
+| Treat README docs drift as a first-class milestone | README literals are public API; doc-contract tests must lock them so future drift fails CI instead of silently shipping | ✓ Shipped (Phases 41–43, v1.13) |
+| Verification artifacts are first-class milestone output | Phase 43 retroactively wrote `*-VERIFICATION.md` to close an audit gap; future phases should land verification evidence alongside SUMMARY.md, not after | ✓ Shipped (Phase 43, v1.13) |
 
 ## Evolution
 
@@ -223,4 +236,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-25 after v1.12 milestone close.*
+*Last updated: 2026-04-26 after v1.13 milestone close.*

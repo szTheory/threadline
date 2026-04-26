@@ -2,6 +2,50 @@
 
 Entries are newest first.
 
+## v1.13 — Docs Contract Repair (shipped 2026-04-26)
+
+**Goal:** Repair README contract drift on the root project and the Phoenix example so the published docs match the shipped public API surface, and restore the verification artifacts the milestone audit was missing — without new capture semantics or product surface.
+
+**Phases completed:** **41–43** (3 phases; 3 plans with `SUMMARY.md`; per-phase `VERIFICATION.md` and consolidated `v1.13-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Repaired the root **`README.md`** intro, feature list, and quickstart so they explicitly reference **`Threadline.Plug`**, **`Threadline.record_action/2`**, **`Threadline.history/3`**, **`Threadline.timeline/2`**, **`Threadline.export_json/2`**, and **`Threadline.as_of/4`**, and tightened **`test/threadline/readme_doc_contract_test.exs`** to lock the literals (**DOC-01**, Phase **41-01**).
+- Repaired **`examples/threadline_phoenix/README.md`** and **`examples/README.md`** so the Phoenix example is framed as the runnable contract (install / run / test / reconstruction) and the index points at it canonically; doc-contract test extended to assert example install/runbook + historical reconstruction literals (**DOC-02**, Phase **42-01**).
+- Closed the audit evidence gap by writing **`41-VERIFICATION.md`**, **`42-VERIFICATION.md`**, and reconciling **`v1.13-MILESTONE-AUDIT.md`** + **`REQUIREMENTS.md`** traceability so DOC-01–03 are counted as verified (**DOC-03**, Phase **43-01**).
+
+**Stats:** 3 phases, 3 plans, 3/3 summaries; v1.13 requirements **3/3** complete at close (see archived traceability). **`v1.13-MILESTONE-AUDIT.md`** **verified** with 0 gaps; targeted run `mix test test/threadline/readme_doc_contract_test.exs --seed 0` → 11 tests, 0 failures.
+
+**Archives:** `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-MILESTONE-AUDIT.md`, `.planning/milestones/v1.13-phases/`.
+
+**Known gaps at close:** None. **`SEED-001-sigra-integration-adapter`** remains dormant (acknowledged at close).
+
+**What is next:** **`/gsd-new-milestone`** — fresh **`.planning/REQUIREMENTS.md`** and next roadmap slice when scope is ready.
+
+---
+
+## v1.12 — Temporal Truth & Safety (shipped 2026-04-25)
+
+**Goal:** Stable foundation for **point-in-time row reconstruction** with map-first reads, opt-in struct reification, deleted-record / genesis-gap explicit errors, and copy-pasteable operator docs — without new capture semantics or LiveView.
+
+**Phases completed:** **38–40** (3 phases; 3 plans with `SUMMARY.md`).
+
+**Key accomplishments:**
+
+- Shipped **`Threadline.as_of/4`** with **map-first** reconstruction, explicit **deleted-record** error, and **genesis-gap** atom-set errors (**ASOF-01 / 02 / 05**, Phase **38**).
+- Shipped opt-in **`:cast`** reification that returns an Ecto struct with **loose historical loading** (ignores fields no longer in the current schema) (**ASOF-03 / 04**, Phase **39**).
+- Shipped **Time Travel (As-of)** section in **`guides/domain-reference.md`** and the historical reconstruction walkthrough in **`examples/threadline_phoenix/README.md`** (**ASOF-06**, Phase **40**).
+
+**Stats:** 3 phases, 3 plans, 3/3 summaries; v1.12 requirements **6/6** complete at close (see archived traceability). **`v1.12-MILESTONE-AUDIT.md`** **passed** at pre-close.
+
+**Archives:** `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-MILESTONE-AUDIT.md`.
+
+**Known gaps at close:** None for in-repo acceptance.
+
+**What is next:** v1.13 docs contract repair (since shipped).
+
+---
+
 ## v1.11 — Composable incident surface (shipped 2026-04-24)
 
 **Goal:** Close the integrator **composition** gap — **`POST /api/posts`** returns **`audit_transaction_id`**, **`GET /api/audit_transactions/:id/changes`** returns ordered **`AuditChange`** rows with **`change_diff`** maps — without LiveView, **`threadline_web`**, or new capture semantics.
