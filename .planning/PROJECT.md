@@ -16,9 +16,16 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Root `README.md` and `examples/threadline_phoenix/README.md` are aligned with the shipped public API surface and locked by `test/threadline/readme_doc_contract_test.exs`.
 - `Threadline.as_of/4` reconstructs single-row history from audit snapshots; `cast: true` returns an Ecto struct with loose historical loading; deleted records and genesis-gap reads return explicit errors.
 
-## Next Milestone Goals
+## Current Milestone: v1.14 Drop-in Production Adopter Slice
 
-- Pending — start with `/gsd-new-milestone` to define v1.14 scope.
+**Goal:** Make Threadline genuinely drop-in for a SaaS team running Phoenix + Sigra (or any custom auth) by closing the actor-mapping mile, proving operational behavior under realistic load with published numbers, packaging it as `threadline 0.3.0` with a clean upgrade narrative, and shipping a copy-pasteable production incident playbook.
+
+**Target features:**
+- **SIGRA** — `Threadline.Integrations.Sigra` adapter, Sigra-wired Phoenix example, integration guide + doc contract (closes SEED-001)
+- **PERF** — Reproducible benchmark harness, published baseline numbers, `guides/performance.md` with index recommendations and PgBouncer transaction-mode confirmation
+- **INCIDENT** — `guides/incident-playbook.md` with five canonical incidents (API + raw SQL), incident-replay script in the example app, doc-contract test
+- **RELEASE** — `threadline 0.3.0` on Hex (mix.exs / CHANGELOG / ExDoc extras / `v0.3.0` tag) with explicit 0.2.x → 0.3.0 upgrade notes
+- **ADOPT** — `guides/getting-started-saas.md` 30-minute SaaS quickstart; refreshed `guides/adoption-pilot-backlog.md` with one fully-filled maintainer-walked example column
 
 ## Last milestone shipped: v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
 
@@ -161,9 +168,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-02 (Phase 42)** — `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to assert the example surface. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 
-### Active
+### Active (v1.14)
 
-- Pending — next milestone scope to be defined via `/gsd-new-milestone`.
+- [ ] **SIGRA-01–03** — Threadline ↔ Sigra integration adapter (in-tree module, example wiring, integration guide + doc contract)
+- [ ] **PERF-01/02** — Benchmark harness in `bench/` and `guides/performance.md` with published baselines and recommended index sets
+- [ ] **INCIDENT-01/02** — `guides/incident-playbook.md` with five canonical incidents and an incident-replay script in the example app
+- [ ] **REL-01/02** — `threadline 0.3.0` packaging, CHANGELOG narrative, ExDoc/extras refresh, `v0.3.0` tag, maintainer publish runbook
+- [ ] **ADOPT-01/02** — `guides/getting-started-saas.md` 30-minute SaaS quickstart and one fully-walked example STG matrix column
 
 ### Out of Scope
 
@@ -236,4 +247,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-26 after v1.13 milestone close.*
+*Last updated: 2026-04-26 — v1.14 "Drop-in Production Adopter Slice" milestone opened.*
