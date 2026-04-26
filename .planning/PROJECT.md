@@ -8,15 +8,31 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.12 — Temporal Truth & Safety (As-of Reconstruction)
+## Current State
 
-**Goal:** Provide a stable, correct, and developer-friendly foundation for point-in-time row reconstruction ("Time Travel").
+**Milestone shipped:** v1.12 — Temporal Truth & Safety (As-of Reconstruction)
 
-**Target features:**
-- **Single-row reconstruction**: `Threadline.as_of(Repo, Schema, id, timestamp)` with Map/Struct support.
-- **Loose Casting**: Permissive struct loading to handle schema drift over time.
-- **Deleted record support**: Reconstruct state even for records no longer in the live table.
-- **Genesis Gap detection**: Explicit errors for queries before the audit horizon.
+**Shipped capabilities:**
+- `Threadline.as_of/4` reconstructs single-row history from audit snapshots.
+- `cast: true` returns an Ecto struct with loose historical loading.
+- Deleted records and genesis-gap reads return explicit errors.
+
+## Next Milestone Goals
+
+- Define the next slice of point-in-time exploration via `/gsd-new-milestone`.
+- Decide whether to expand reconstruction to collections or associations.
+- Keep operator docs and contract tests aligned with any new history APIs.
+
+## Last milestone shipped: v1.12 — Temporal Truth & Safety (Phases 38–40, 2026-04-25)
+
+**Goal (achieved):** Provide a stable foundation for point-in-time row reconstruction with map-first reads, opt-in struct reification, and copy-pasteable operator docs.
+
+**Shipped:**
+- **Phase 38** — ASOF-01/02/05: snapshot-first `Threadline.as_of/4` with delete and genesis-gap handling.
+- **Phase 39** — ASOF-03/04: opt-in struct reification with loose historical loading.
+- **Phase 40** — ASOF-06: Time Travel operator docs and Phoenix example walkthrough.
+
+**Archive:** `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`.
 
 ## Last milestone shipped: v1.11 — Composable incident surface (Phase 37, 2026-04-24)
 
@@ -91,7 +107,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Shipped milestones
 
-**v1.0** through **v1.11** are complete (**v1.11** shipped 2026-04-24, Phase 37). **v1.12** is **in flight** (Temporal Truth & Safety). Prior milestones live under **`.planning/milestones/`**. **Living requirements:** **`.planning/REQUIREMENTS.md`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
+**v1.0** through **v1.12** are complete (**v1.12** shipped 2026-04-25, Phases 38–40). Prior milestones live under **`.planning/milestones/`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
 
 ## Requirements
 
@@ -130,14 +146,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **XPLO-02 (Phase 32)** — **`Threadline.Query.audit_changes_for_transaction/2`**, **`Threadline.audit_changes_for_transaction/2`**, stable order via **`timeline_order/1`**, UUID validation + **`[]`** empty semantics, **`test/threadline/query_test.exs`**. Validated in Phase 32: Transaction-scoped change listing (2026-04-24).
 - [x] **XPLO-03 (Phase 33)** — **`guides/domain-reference.md`** **Exploration API routing (v1.10+)**, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`**. Validated in Phase 33: Operator docs & contracts (2026-04-24).
 - [x] **COMP-01 / COMP-02 / COMP-03 (Phase 37)** — Example **`POST /api/posts`** returns **`audit_transaction_id`**; **`GET /api/audit_transactions/:id/changes`** lists changes with **`Threadline.change_diff/2`** maps; **`COMP-EXAMPLE-INCIDENT-JSON`** in **`guides/domain-reference.md`**; **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. Validated in Phase 37: Example incident JSON path (2026-04-24).
+- [x] **ASOF-01 / ASOF-02 / ASOF-05 (Phase 38)** — Map-first reconstruction, deleted-record handling, and genesis-gap errors. Validated in v1.12: Core As-of Reconstruction.
+- [x] **ASOF-03 / ASOF-04 (Phase 39)** — Opt-in struct reification and loose casting. Validated in v1.12: Reification & Schema Safety.
+- [x] **ASOF-06 (Phase 40)** — Time Travel docs and example walkthrough. Validated in v1.12: Temporal Operator Guides.
 
 ### Active
 
-- [ ] **AS-OF-01**: Single-row reconstruction as Map (historical truth)
-- [ ] **AS-OF-02**: Support "As-of" for deleted records
-- [ ] **AS-OF-03**: Support Schema reification (opt-in cast back to Ecto Struct)
-- [ ] **DX-01**: Genesis Gap detection (explicit errors before audit horizon)
-- [ ] **DX-02**: Loose Casting (permissive struct loading for schema drift)
+- [ ] Next milestone requirements will be defined in `/gsd-new-milestone`.
 
 ### Out of Scope
 
@@ -186,6 +201,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | No LiveView UI in v0.1 | Exploration layer matures after capture + semantics prove out | ✓ Good |
 | v1.7 reference app under `examples/` | Runnable SaaS-shaped integration without publishing a companion Hex package | ✓ Shipped (Phases 22–24, 2026-04-24) |
 | `ChangeDiff` normalizes trigger `op` casing | Lowercase `op` from PostgreSQL trigger paths maps to uppercase INSERT/UPDATE/DELETE in the primary wire map | ✓ Shipped (Phase 34, v1.10) |
+| `as_of/4` map-first reconstruction and cast-based reification | Point-in-time reads now support explicit deleted/genesis errors plus opt-in struct loading | ✓ Shipped (Phases 38–40, v1.12) |
 
 ## Evolution
 
@@ -207,4 +223,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-24 after v1.12 milestone open.*
+*Last updated: 2026-04-25 after v1.12 milestone close.*

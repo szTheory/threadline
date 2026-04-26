@@ -1,51 +1,9 @@
 # Roadmap: Threadline
 
-## Phases
+## Milestones
 
-- [x] **Phase 38: Core As-of Reconstruction** - Basic historical state retrieval as Maps including deleted record support and genesis gap detection. (completed 2026-04-25)
-- [ ] **Phase 39: Reification & Schema Safety** - Casting historical data to Ecto structs with drift-tolerant loose casting.
-- [x] **Phase 40: Temporal Operator Guides** - User-facing documentation for time travel features in guides and example apps. (completed 2026-04-25)
+- ✅ **v1.12 — Temporal Truth & Safety** — Phases 38-40 (shipped 2026-04-25) — [requirements](milestones/v1.12-REQUIREMENTS.md) · [archive](milestones/v1.12-ROADMAP.md)
 
-## Phase Details
+## Next Milestone
 
-### Phase 38: Core As-of Reconstruction
-**Goal**: Basic historical state retrieval as Maps.
-**Depends on**: Phase 37
-**Requirements**: ASOF-01, ASOF-02, ASOF-05
-**Success Criteria** (what must be TRUE):
-  1. `Threadline.as_of/4` returns a Map representing the record at the requested timestamp.
-  2. Querying a deleted record returns its state at the requested historical point.
-  3. Querying before the first audit entry returns `{:error, :before_audit_horizon}`.
-**Plans**: 1
-Plans:
-- [x] 38-01-PLAN.md — Single-row as-of lookup with map output, delete detection, and genesis-gap handling
-
-### Phase 39: Reification & Schema Safety
-**Goal**: Casting historical data to Ecto structs with drift tolerance.
-**Depends on**: Phase 38
-**Requirements**: ASOF-03, ASOF-04
-**Success Criteria** (what must be TRUE):
-  1. `Threadline.as_of(..., cast: true)` returns an Ecto struct.
-  2. Struct loading succeeds even if the audit log contains fields not present in the current schema (loose casting).
-**Plans**: 1
-Plans:
-- [x] 39-01-PLAN.md — Add opt-in struct reification with loose schema loading and explicit cast errors
-
-### Phase 40: Temporal Operator Guides
-**Goal**: User-facing documentation for time travel features.
-**Depends on**: Phase 39
-**Requirements**: ASOF-06
-**Success Criteria** (what must be TRUE):
-  1. "Time Travel" guide section is live in `guides/domain-reference.md`.
-  2. Phoenix example README demonstrates historical reconstruction.
-**Plans**: 1
-Plans:
-- [x] 40-01-PLAN.md — Document the Time Travel hub and example walkthrough with contract tests
-
-## Progress Table
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 38. Core As-of Reconstruction | 1/1 | Complete    | 2026-04-25 |
-| 39. Reification & Schema Safety | 1/1 | Complete    | 2026-04-25 |
-| 40. Temporal Operator Guides | 1/1 | Complete | 2026-04-25 |
+- TBD via `/gsd-new-milestone`
