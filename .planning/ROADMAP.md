@@ -34,7 +34,10 @@
   3. A reader of `guides/integrations/sigra.md` can copy the install snippet, the Plug callback line, and the six SPEC-answered behaviors verbatim and the wiring works end-to-end against the shipped `examples/threadline_phoenix/` reference app.
   4. A maintainer running `mix test` against the Threadline library suite (without `:sigra` installed) sees the three-conn-shape baseline (no `:current_scope`, `current_scope: nil`, `current_scope: %{user: nil}`) all pass deterministically against the test doubles.
   5. A reviewer running the doc-contract test for `guides/integrations/sigra.md` sees CI fail if the install/wire-up literals or the documented six-question outcomes drift from the guide.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 44-01-PLAN.md — adapter module (`Threadline.Integrations.Sigra`), test doubles, and adapter unit tests (SIGRA-01)
+- [ ] 44-02-PLAN.md — example app rewiring: `:sigra` optional dep, `SigraContextPlug`, two-plug pipeline, posts_audit_path_test fix (SIGRA-02)
+- [ ] 44-03-PLAN.md — `guides/integrations/sigra.md` ExDoc extra and paired doc-contract test locking 5 literal groups (SIGRA-03)
 **Notes**: Six-question SPEC is non-negotiable prerequisite. No `{:sigra, ...}` in library `mix.exs` (not even `optional: true`). Adapter must NOT pre-answer Q1–Q6 — SPEC encodes the choices.
 
 #### Phase 45: bench-harness-published-baselines
@@ -89,7 +92,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 44. sigra-integration-adapter | 0/1 | Not started | — |
+| 44. sigra-integration-adapter | 0/3 | Not started | — |
 | 45. bench-harness-published-baselines | 0/1 | Not started | — |
 | 46. incident-playbook-replay-script | 0/1 | Not started | — |
 | 47. saas-adopter-onramp | 0/1 | Not started | — |
@@ -97,4 +100,4 @@
 
 ## Next Milestone
 
-- Run `/gsd-spec-phase sigra-integration-adapter` to produce `SPEC.md` answering SEED-001 Q1–Q6, then `/gsd-plan-phase 44`.
+- Phase 44 plans landed (3 plans, 3 waves). Run `/gsd-execute-phase 44` to begin Wave 1 (Plan 01: adapter module + test doubles + unit tests).
