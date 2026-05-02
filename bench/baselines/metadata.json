@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-05-02T15:03:03.122880Z",
+  "elixir_version": "1.19.5",
+  "preset": "cold_single_table",
+  "commit_sha": "daaf4a8476f9078ec996580bb7569819b93f9414"
+}

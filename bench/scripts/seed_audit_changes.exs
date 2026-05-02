@@ -21,17 +21,19 @@ try do
 
   now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
+  Threadline.Test.Repo.query!("TRUNCATE TABLE audit_transactions CASCADE")
+
   # Base transaction for seeding
   {1, [%{id: tx_id}]} =
     Threadline.Test.Repo.insert_all(
       "audit_transactions",
       [
         %{
-          id: Ecto.UUID.generate(),
+          id: Ecto.UUID.bingenerate(),
           txid: 1,
           occurred_at: now,
           source: "bench",
-          actor_ref: "bench_actor"
+          meta: %{"actor_ref" => "bench_actor"}
         }
       ],
       returning: [:id]
@@ -44,15 +46,16 @@ try do
       changes =
         for i <- 1..1000 do
           %{
-            id: Ecto.UUID.generate(),
+            id: Ecto.UUID.bingenerate(),
             transaction_id: tx_id,
-            schema: "bench_tables",
-            table: "users",
-            operation: "INSERT",
-            record_id: "#{i}",
-            changed_fields: "{}",
-            changed_from: "{}",
-            row_data: "{\"name\": \"bench_user\"}"
+            table_schema: "bench_tables",
+            table_name: "users",
+            table_pk: %{"id" => "#{i}"},
+            op: "insert",
+            data_after: %{"name" => "bench_user"},
+            changed_fields: nil,
+            changed_from: nil,
+            captured_at: now
           }
         end
 
@@ -64,15 +67,16 @@ try do
       changes =
         for i <- 1..5000 do
           %{
-            id: Ecto.UUID.generate(),
+            id: Ecto.UUID.bingenerate(),
             transaction_id: tx_id,
-            schema: "bench_tables",
-            table: "posts",
-            operation: "UPDATE",
-            record_id: "#{i}",
-            changed_fields: "[\"title\"]",
-            changed_from: "{\"title\": \"old\"}",
-            row_data: "{\"title\": \"new\"}"
+            table_schema: "bench_tables",
+            table_name: "posts",
+            table_pk: %{"id" => "#{i}"},
+            op: "update",
+            data_after: %{"title" => "new"},
+            changed_fields: ["title"],
+            changed_from: %{"title" => "old"},
+            captured_at: now
           }
         end
 
@@ -88,11 +92,11 @@ try do
           "audit_transactions",
           [
             %{
-              id: Ecto.UUID.generate(),
+              id: Ecto.UUID.bingenerate(),
               txid: 2,
               occurred_at: old_now,
               source: "bench_old",
-              actor_ref: "bench_actor"
+              meta: %{"actor_ref" => "bench_actor"}
             }
           ],
           returning: [:id]
@@ -101,15 +105,16 @@ try do
       changes =
         for i <- 1..10000 do
           %{
-            id: Ecto.UUID.generate(),
+            id: Ecto.UUID.bingenerate(),
             transaction_id: old_tx_id,
-            schema: "bench_tables",
-            table: "logs",
-            operation: "INSERT",
-            record_id: "#{i}",
-            changed_fields: "{}",
-            changed_from: "{}",
-            row_data: "{\"status\": \"ok\"}"
+            table_schema: "bench_tables",
+            table_name: "logs",
+            table_pk: %{"id" => "#{i}"},
+            op: "insert",
+            data_after: %{"status" => "ok"},
+            changed_fields: nil,
+            changed_from: nil,
+            captured_at: old_now
           }
         end
 

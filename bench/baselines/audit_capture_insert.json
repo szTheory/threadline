@@ -1,0 +1,78 @@
+[
+  {
+    "Execution Time": 19.695,
+    "Plan": {
+      "Actual Loops": 1,
+      "Actual Rows": 0,
+      "Actual Startup Time": 1.522,
+      "Actual Total Time": 1.523,
+      "Alias": "bench_capture_target",
+      "Async Capable": false,
+      "Local Dirtied Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Written Blocks": 0,
+      "Node Type": "ModifyTable",
+      "Operation": "Insert",
+      "Parallel Aware": false,
+      "Plan Rows": 0,
+      "Plan Width": 0,
+      "Plans": [
+        {
+          "Actual Loops": 1,
+          "Actual Rows": 1,
+          "Actual Startup Time": 0.103,
+          "Actual Total Time": 0.105,
+          "Async Capable": false,
+          "Local Dirtied Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Written Blocks": 0,
+          "Node Type": "Result",
+          "Parallel Aware": false,
+          "Parent Relationship": "Outer",
+          "Plan Rows": 1,
+          "Plan Width": 60,
+          "Shared Dirtied Blocks": 0,
+          "Shared Hit Blocks": 13,
+          "Shared Read Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Startup Cost": 0.0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Total Cost": 0.02
+        }
+      ],
+      "Relation Name": "bench_capture_target",
+      "Shared Dirtied Blocks": 3,
+      "Shared Hit Blocks": 32,
+      "Shared Read Blocks": 1,
+      "Shared Written Blocks": 2,
+      "Startup Cost": 0.0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Total Cost": 0.02
+    },
+    "Planning": {
+      "Local Dirtied Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Written Blocks": 0,
+      "Shared Dirtied Blocks": 0,
+      "Shared Hit Blocks": 3,
+      "Shared Read Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 0.047,
+    "Triggers": [
+      {
+        "Calls": 1,
+        "Relation": "bench_capture_target",
+        "Time": 18.143,
+        "Trigger Name": "threadline_audit_bench_capture_target"
+      }
+    ]
+  }
+]
