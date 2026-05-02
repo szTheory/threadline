@@ -1,129 +1,134 @@
-defmodule ThreadlinePhoenix.IncidentReplay do
-  @moduledoc false
-  
+# priv/scripts/incident_replay.exs
+require Logger
+
+alias ThreadlinePhoenix.Repo
+alias ThreadlinePhoenix.Post
+
+defmodule IncidentReplay do
   def run do
-    # 1. Guard check
-    if System.get_env("THREADLINE_REPLAY_DISPOSABLE_DB") != "1" do
-      IO.puts(Enum.join(["Error: THREADLINE_REPLAY_DISPOSABLE_DB=1 is required."], ""))
-      System.halt(1)
+    # Ensure the app and its Repo are started
+    Application.ensure_all_started(:threadline_phoenix)
+    
+    if Repo.config()[:pool] == Ecto.Adapters.SQL.Sandbox do
+      Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+      Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
     end
 
-    config = ThreadlinePhoenix.Repo.config()
-    db_name = Keyword.fetch!(config, :database)
-
-    if not String.ends_with?(db_name, "_test") and not String.ends_with?(db_name, "_dev") do
-      IO.puts(Enum.join(["Error: Database name must end with _test or _dev. Current DB: ", db_name], ""))
-      System.halt(1)
-    end
-
-    # 2. Argument Parsing
-    {opts, _args, _invalid} = OptionParser.parse(System.argv(), strict: [incident: :string, execute: :boolean])
+    {opts, _args, _invalid} =
+      OptionParser.parse(System.argv(),
+        strict: [incident: :string, execute: :boolean]
+      )
 
     incident = Keyword.get(opts, :incident)
     execute? = Keyword.get(opts, :execute, false)
 
-    alias ThreadlinePhoenix.{Repo, Post}
+    validate_environment!()
 
-    # Ensure seed data exists
-    if Repo.aggregate(Post, :count) == 0 do
-      %Post{} |> Post.changeset(%{title: "Synthetic note A", slug: "synthetic-note-a"}) |> Repo.insert!()
-      %Post{} |> Post.changeset(%{title: "Synthetic note B", slug: "synthetic-note-b"}) |> Repo.insert!()
+    unless incident do
+      IO.puts(format_json(:error, "Missing --incident flag"))
+      System.halt(1)
     end
 
-    # Helper to run an incident scenario
-    run_scenario = fn slug, run_fn ->
-      if incident == nil or incident == slug do
-        if execute? do
-          run_fn.()
-        else
-          IO.puts(Jason.encode!(%{incident: slug, status: "dry-run"}))
-        end
+    if not execute? do
+      IO.puts(format_json(:info, "Dry run enabled. Pass --execute to perform mutations.", incident: incident))
+      System.halt(0)
+    end
+
+    case incident do
+      "who-changed-row" ->
+        scenario_who_changed_row()
+      "service-account-today" ->
+        scenario_service_account()
+      "oban-job-mutation" ->
+        scenario_oban_job()
+      _ ->
+        IO.puts(format_json(:error, "Unknown incident slug: #{incident}"))
+        System.halt(1)
+    end
+  end
+
+  defp validate_environment! do
+    if System.get_env("THREADLINE_REPLAY_DISPOSABLE_DB") != "1" do
+      IO.puts(format_json(:error, "THREADLINE_REPLAY_DISPOSABLE_DB must be set to 1"))
+      System.halt(1)
+    end
+
+    db_name = Repo.config()[:database]
+    unless String.contains?(db_name, ["test", "disposable", "dev"]) do
+      IO.puts(format_json(:error, "Database name must indicate it is disposable (test/dev/disposable). Current: #{db_name}"))
+      System.halt(1)
+    end
+  end
+
+  defp set_context_guc(repo, context_map) do
+    # context_map usually should be an ActorRef map. For this script we will use the type "user" or "system"
+    # or just encode whatever map was provided. We must shape it like an ActorRef for the database trigger to parse it correctly, e.g. %{"type" => "user", "id" => ...}
+    actor_map =
+      cond do
+        Map.has_key?(context_map, "actor_id") ->
+          %{"type" => "user", "id" => context_map["actor_id"]}
+        true ->
+          %{"type" => "system", "id" => "unknown"}
       end
-    end
+    
+    json = Jason.encode!(actor_map)
+    Ecto.Adapters.SQL.query!(repo, "SELECT set_config('threadline.actor_ref', $1::text, false)", [json])
+  end
 
-    # 3. Implement 3 scenarios
-
-    run_scenario.("who-changed-this-row", fn ->
-      post = Repo.get_by!(Post, slug: "synthetic-note-a")
-      
-      alias Threadline.Semantics.ActorRef
-      
-      actor_ref = ActorRef.user("hacker_99")
-      json = ActorRef.to_map(actor_ref) |> Jason.encode!()
-      
-      Repo.transaction(fn ->
-        Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-        post
-        |> Post.changeset(%{title: "Hacked Title"})
-        |> Repo.update!()
-      end)
-      Threadline.record_action(:hacked_post, repo: Repo, actor: actor_ref, correlation_id: "hacker-123")
-      
-      timeline = Threadline.Query.timeline(table: "posts", row_pk: to_string(post.id), repo: Repo) |> Repo.preload(:transaction)
-      
-      change = Enum.find(timeline, &(&1.op == "update" and &1.transaction.actor_ref.id == "hacker_99"))
-      
-      IO.puts(Jason.encode!(%{
-        incident: "who-changed-this-row",
-        status: "executed",
-        found_actor: change.transaction.actor_ref.id,
-        action: change.op
-      }))
-    end)
-
-    run_scenario.("service-account-actions", fn ->
-      alias Threadline.Semantics.ActorRef
-
-      actor_ref = ActorRef.service_account("svc_worker_456")
-      json = ActorRef.to_map(actor_ref) |> Jason.encode!()
-      
-      Repo.transaction(fn ->
-        Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+  defp scenario_who_changed_row do
+    post = case Repo.all(Post) |> List.first() do
+      nil ->
         %Post{}
-        |> Post.changeset(%{title: "Worker created note", slug: "worker-note-#{System.unique_integer([:positive])}"})
+        |> Ecto.Changeset.change(%{title: "Seed Post", slug: "seed-#{System.unique_integer()}"})
         |> Repo.insert!()
-      end)
-      Threadline.record_action(:worker_create, repo: Repo, actor: actor_ref, correlation_id: "worker-req-1")
-      
-      timeline = Threadline.Query.timeline(actor_ref: actor_ref, repo: Repo)
-      
-      IO.puts(Jason.encode!(%{
-        incident: "service-account-actions",
-        status: "executed",
-        actor_actions: length(timeline)
-      }))
-    end)
+      existing_post -> existing_post
+    end
 
-    run_scenario.("single-transaction", fn ->
-      alias Threadline.Semantics.ActorRef
+    set_context_guc(Repo, %{"actor_id" => "user-123", "reason" => "scenario_who_changed_row"})
+    
+    {:ok, updated_post} =
+      post
+      |> Ecto.Changeset.change(%{title: "Updated Title for Incident"})
+      |> Repo.update()
+      
+    # Read back audit log
+    changes = Threadline.Query.history(Post, to_string(updated_post.id), repo: Repo)
 
-      {:ok, actor_ref} = ActorRef.new(:job, "batch_process")
-      json = ActorRef.to_map(actor_ref) |> Jason.encode!()
+    IO.puts(format_json(:success, "Scenario completed", incident: "who-changed-row", changes_count: length(changes)))
+  end
 
-      Repo.transaction(fn ->
-        Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-        Repo.insert!(Post.changeset(%Post{}, %{title: "Batch 1", slug: "batch-1-#{System.unique_integer([:positive])}"}))
-        Repo.insert!(Post.changeset(%Post{}, %{title: "Batch 2", slug: "batch-2-#{System.unique_integer([:positive])}"}))
-      end)
-      Threadline.record_action(:batch_insert, repo: Repo, actor: actor_ref, correlation_id: "batch-req-1")
-      
-      txs = Repo.all(Threadline.Capture.AuditTransaction)
-      if length(txs) > 0 do
-        IO.puts(Enum.join(["All audit txs: ", inspect(txs)], ""))
-      end
-      
-      [recent_change | _] = Threadline.Query.timeline(actor_ref: actor_ref, repo: Repo) |> Repo.preload(:transaction)
-      tx_id = recent_change.transaction_id
-      
-      tx_timeline = Threadline.Query.audit_changes_for_transaction(tx_id, repo: Repo)
-      
-      IO.puts(Jason.encode!(%{
-        incident: "single-transaction",
-        status: "executed",
-        tx_changes: length(tx_timeline)
-      }))
-    end)
+  defp scenario_service_account do
+    service_account_id = "service-acct-#{System.unique_integer([:positive])}"
+    set_context_guc(Repo, %{"actor_id" => service_account_id})
+    
+    %Post{}
+    |> Ecto.Changeset.change(%{title: "Batch Post", slug: "batch-#{System.unique_integer([:positive])}"})
+    |> Repo.insert!()
+    
+    # Actually Threadline doesn't have changes_by_actor by default, we just get history for this run
+    # For now let's just use Ecto directly to fetch the transactions
+    changes = Ecto.Adapters.SQL.query!(Repo, "SELECT * FROM audit_transactions WHERE actor_ref->>'id' = $1", [service_account_id])
+    
+    IO.puts(format_json(:success, "Scenario completed", incident: "service-account-today", changes_count: changes.num_rows))
+  end
+
+  defp scenario_oban_job do
+    job_id = "job-#{System.unique_integer([:positive])}"
+    set_context_guc(Repo, %{"oban_job_id" => job_id, "actor_id" => "oban-worker"})
+    
+    %Post{}
+    |> Ecto.Changeset.change(%{title: "Oban Post", slug: "oban-#{System.unique_integer([:positive])}"})
+    |> Repo.insert!()
+    
+    changes = Ecto.Adapters.SQL.query!(Repo, "SELECT * FROM audit_transactions WHERE actor_ref->>'id' = 'oban-worker'")
+    
+    IO.puts(format_json(:success, "Scenario completed", incident: "oban-job-mutation", changes_count: changes.num_rows))
+  end
+
+  defp format_json(status, message, extra \\ []) do
+    map = Map.merge(%{status: status, message: message}, Map.new(extra))
+    Jason.encode!(map)
   end
 end
 
-ThreadlinePhoenix.IncidentReplay.run()
+IncidentReplay.run()
