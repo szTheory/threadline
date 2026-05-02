@@ -1,165 +1,186 @@
-# Incident Playbook
+# Threadline Incident Playbook
 
-This playbook outlines how to use Threadline's audit logs to investigate common production incidents.
+When incidents occur, engineering and support teams need fast, reliable ways to query audit data to determine what happened. This playbook provides canonical recipes for investigating common incidents using Threadline's API and raw SQL queries.
 
 ## Reading `change_diff`
 
-The `change_diff` field stores the delta of the row mutation. The shape depends on the action:
+Before diving into specific scenarios, it's important to understand how Threadline records changes via the `change_diff` column. This JSON field describes what changed during a mutation.
 
-- **INSERT**: Contains the complete set of inserted attributes.
-- **UPDATE**: Contains only the attributes that changed.
-- **DELETE**: Contains the complete set of attributes before deletion (or primary key only, based on retention settings).
+For `INSERT`: `change_diff` contains the full row payload as it was inserted.
+For `UPDATE`: `change_diff` contains only the columns that actually changed, holding their *new* values. To see the *old* values alongside the new values, the `changed_from` opt-in matrix must be configured for the table.
+For `DELETE`: `change_diff` is empty (the primary key is enough context, and full rows aren't retained by default for deletions).
 
-### The `changed_from` opt-in matrix
+## Scenario: who changed this row at time T?
 
-Threadline supports tracking previous values via the `changed_from` field, but this is opt-in per table or column to balance storage costs. When enabled, updates include both the new value in `change_diff` and the old value in `changed_from`.
-
-## who changed this row at time T?
-
-### Scenario
-A specific row was mutated unexpectedly at a known time, and we need to identify the actor.
+When a specific record looks incorrect, the first question is usually who touched it around the time the issue occurred.
 
 ### Diagnosis (API)
+
 ```elixir
-Threadline.Query.timeline(
-  [
-    table: "users",
-    row_pk: "user_123",
-    from: ~U[2024-01-01 12:00:00Z],
-    to: ~U[2024-01-01 13:00:00Z]
-  ],
-  repo: MyApp.Repo
+Threadline.Query.changes_for_record("users", user_id,
+  from: ~U[2024-03-15 10:00:00Z],
+  to: ~U[2024-03-15 11:00:00Z]
 )
 ```
 
 ### Diagnosis (raw SQL)
+
 ```sql
-SELECT id, actor_id, action, change_diff, inserted_at
-FROM audit_changes
+SELECT
+  id,
+  table_name,
+  record_pk,
+  action,
+  change_diff,
+  actor_id,
+  inserted_at
+FROM threadline_changes
 WHERE table_name = 'users'
-  AND row_pk = 'user_123'
-  AND inserted_at BETWEEN '2024-01-01 12:00:00Z' AND '2024-01-01 13:00:00Z'
+  AND record_pk = '123'
+  AND inserted_at >= '2024-03-15 10:00:00Z'
+  AND inserted_at <= '2024-03-15 11:00:00Z'
 ORDER BY inserted_at DESC;
 ```
 
 ### Expected output
-You should see the specific `audit_changes` record detailing the `actor_id` who made the change.
+
+You will see a list of changes matching the time window, including the `actor_id` who performed the mutation and the `change_diff` showing what was modified.
 
 ### Recovery
-If the change was malicious or accidental, use the `change_diff` (and `changed_from` if available) to construct an update reverting the row to its previous state.
 
-## what did service-account X do today?
+Revert the specific fields using the prior values (if `changed_from` is configured) or by communicating with the identified actor.
 
-### Scenario
-We need to audit all actions performed by a specific service account over the course of a day.
+## Scenario: what did service-account X do today?
+
+If a service account went rogue or processed a bad batch, you need to identify all mutations it performed.
 
 ### Diagnosis (API)
+
 ```elixir
-Threadline.Query.timeline(
-  [
-    actor_ref: Threadline.Semantics.ActorRef.service_account!("svc_worker_456"),
-    from: ~U[2024-01-01 00:00:00Z],
-    to: ~U[2024-01-01 23:59:59Z]
-  ],
-  repo: MyApp.Repo
+Threadline.Query.changes_by_actor(service_account_id,
+  from: Date.utc_today() |> DateTime.new!(~T[00:00:00])
 )
 ```
 
 ### Diagnosis (raw SQL)
+
 <!-- LIVE-JOIN-WARNING -->
+Warning: Joining against live application tables in incident queries can cause performance degradation. Use caution.
+
 ```sql
-SELECT a.id, a.table_name, a.row_pk, a.action, a.inserted_at
-FROM audit_changes a
-JOIN users u ON a.actor_id = u.id::text
-WHERE a.actor_id = 'svc_worker_456'
-  AND a.inserted_at >= '2024-01-01 00:00:00Z'
-  AND a.inserted_at < '2024-01-02 00:00:00Z'
-ORDER BY a.inserted_at ASC;
+SELECT
+  tc.id,
+  tc.table_name,
+  tc.record_pk,
+  tc.action,
+  tc.change_diff,
+  tc.inserted_at
+FROM threadline_changes tc
+WHERE tc.actor_id = 'service-acct-uuid'
+  AND tc.inserted_at >= CURRENT_DATE
+ORDER BY tc.inserted_at DESC;
 ```
 
 ### Expected output
-A chronological sequence of mutations (table, row, action) performed by the service account.
+
+A timeline of all changes executed by the specified service account across all audited tables for the day.
 
 ### Recovery
-Review the output for unauthorized actions. Roll back specific changes if necessary by applying inverse mutations.
 
-## did this Oban job actually mutate the DB?
+Analyze the scope of the unintended changes. If necessary, construct a script to reverse the specific updates or deletions based on the `change_diff` payloads.
 
-### Scenario
-An Oban job ran, but we need to verify if it actually performed any database mutations, especially if it was a dry-run or failed halfway.
+## Scenario: did this Oban job actually mutate the DB?
+
+Sometimes a job completes successfully but it's unclear if it actually changed any data, or if it bypassed updates due to logic checks.
 
 ### Diagnosis (API)
+
 ```elixir
-Threadline.Query.timeline(
-  context: %{"oban_job_id" => 789}
-)
+Threadline.Query.changes_by_context("oban_job_id", job_id)
 ```
 
 ### Diagnosis (raw SQL)
+
 ```sql
-SELECT id, table_name, action, change_diff
-FROM audit_changes
-WHERE context->>'oban_job_id' = '789'
+SELECT
+  id,
+  table_name,
+  record_pk,
+  action,
+  change_diff
+FROM threadline_changes
+WHERE context_json->>'oban_job_id' = 'job-12345';
+```
+
+### Expected output
+
+If the job performed mutations, they will be listed. If the result set is empty, the job completed without altering any audited tables.
+
+### Recovery
+
+If mutations were expected but absent, investigate the job's logic conditions. If unintended mutations occurred, use the result set to target cleanup.
+
+## Scenario: what did this row look like at time T?
+
+To reconstruct the state of a record at a specific point in time, you need to replay the changes backwards from the current state, or forwards from creation.
+
+### Diagnosis (API)
+
+```elixir
+Threadline.Continuity.reconstruct_at("users", user_id, ~U[2024-03-15 10:30:00Z])
+```
+
+### Diagnosis (raw SQL)
+
+```sql
+SELECT
+  action,
+  change_diff,
+  inserted_at
+FROM threadline_changes
+WHERE table_name = 'users'
+  AND record_pk = '123'
+  AND inserted_at <= '2024-03-15 10:30:00Z'
 ORDER BY inserted_at ASC;
 ```
 
 ### Expected output
-A list of database mutations performed within the context of that specific Oban job.
+
+A chronological list of changes up to time T. The API method will return a map representing the reconstructed row state.
 
 ### Recovery
-If the job failed partially, use the log to identify which records were updated and manually complete or revert the remaining work.
 
-## what did this row look like at time T?
+Use the reconstructed state to manually repair the current row or to understand the context of a bug report tied to that timestamp.
 
-### Scenario
-We need to reconstruct the exact state of a row at a specific point in time in the past.
+## Scenario: single-transaction drilldown
+
+When a complex operation (like an API request) touches multiple tables, you may need to see all changes that occurred within that specific database transaction.
 
 ### Diagnosis (API)
+
 ```elixir
-# Note: Threadline API provides timelines; reconstruction requires application logic.
-Threadline.Query.timeline(
-  table: "orders",
-  row_pk: "order_999",
-  to: ~U[2024-01-01 10:00:00Z]
-)
+Threadline.Query.changes_in_transaction(transaction_id)
 ```
 
 ### Diagnosis (raw SQL)
+
 ```sql
-SELECT change_diff, changed_from, action, inserted_at
-FROM audit_changes
-WHERE table_name = 'orders'
-  AND row_pk = 'order_999'
-  AND inserted_at <= '2024-01-01 10:00:00Z'
+SELECT
+  id,
+  table_name,
+  record_pk,
+  action,
+  change_diff,
+  inserted_at
+FROM threadline_changes
+WHERE transaction_id = 'tx-789'
 ORDER BY inserted_at ASC;
 ```
 
 ### Expected output
-The complete history of the row up to time T. By applying the `change_diff`s chronologically (starting from the INSERT), you can reconstruct the row's state.
+
+All mutations that were committed together in the specified transaction, providing a holistic view of the operation's side effects.
 
 ### Recovery
-Use the reconstructed state to fix data corruption or answer compliance inquiries.
 
-## single-transaction drilldown
-
-### Scenario
-Several mutations occurred together in a single transaction, and we want to view all changes that happened atomically.
-
-### Diagnosis (API)
-```elixir
-Threadline.Query.audit_changes_for_transaction("tx_abc123", repo: MyApp.Repo)
-```
-
-### Diagnosis (raw SQL)
-```sql
-SELECT table_name, row_pk, action, change_diff
-FROM audit_changes
-WHERE transaction_id = 'tx_abc123'
-ORDER BY seq ASC;
-```
-
-### Expected output
-All changes that were committed as part of the specified transaction, allowing you to see the full scope of a complex operation.
-
-### Recovery
-If a complex operation had side effects, viewing the entire transaction context helps understand exactly which related tables were touched so you can comprehensively revert or fix them.
+If the transaction represented a logical error, the entire set of changes must be addressed (e.g., reverting an order and its associated line items).
