@@ -66,6 +66,7 @@ defmodule Threadline.MixProject do
       "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
+      "verify.bench": &verify_bench/1,
       "ci.all": [
         "verify.format",
         "verify.credo",
@@ -76,6 +77,16 @@ defmodule Threadline.MixProject do
         "verify.doc_contract"
       ]
     ]
+  end
+
+  defp verify_bench(_args) do
+    cmd =
+      "bash -lc 'set -euo pipefail && cd bench && mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs'"
+
+    case Mix.shell().cmd(cmd) do
+      0 -> :ok
+      status -> Mix.raise("verify.bench failed (#{status})")
+    end
   end
 
   defp verify_example(_args) do
@@ -114,11 +125,13 @@ defmodule Threadline.MixProject do
       source_url: @source_url,
       extras: [
         "README.md",
+        "guides/performance.md",
         "guides/domain-reference.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/adoption-pilot-backlog.md",
         "guides/audit-indexing.md",
+        "guides/integrations/sigra.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
@@ -141,7 +154,8 @@ defmodule Threadline.MixProject do
           Threadline.Job,
           Threadline.Health,
           Threadline.Continuity,
-          Threadline.Telemetry
+          Threadline.Telemetry,
+          Threadline.Integrations.Sigra
         ],
         Schemas: [
           Threadline.Semantics.AuditAction,

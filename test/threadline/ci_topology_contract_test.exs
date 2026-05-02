@@ -20,6 +20,17 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "edoburu/pgbouncer:")
   end
 
+  test "ci.all alias does not include verify.bench" do
+    mix_exs = read_rel!(["mix.exs"])
+    
+    assert mix_exs =~ "\"ci.all\": ["
+    
+    [_, ci_all_block] = String.split(mix_exs, "\"ci.all\": [")
+    [ci_all_list | _] = String.split(ci_all_block, "]")
+    
+    refute String.contains?(ci_all_list, "\"verify.bench\"")
+  end
+
   test "adoption pilot backlog carries CI topology contract marker" do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
     assert String.contains?(doc, "CI-PGBOUNCER-TOPOLOGY-CONTRACT")
