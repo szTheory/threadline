@@ -40,3 +40,6 @@ vendor/
 coverage/
 .cache/
 tmp/
+/bench/_build/
+/bench/deps/
+/bench/.formatter.exs
