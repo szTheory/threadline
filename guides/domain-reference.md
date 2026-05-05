@@ -217,7 +217,10 @@ The path-dependent Phoenix app under **`examples/threadline_phoenix/`** shows on
 1. **`POST /api/posts`** returns **`audit_transaction_id`** — the UUID of the **`audit_transactions`** row for that HTTP request’s database transaction (after `Threadline.record_action/2` links semantics in the same transaction as in prior phases).
 2. **`GET /api/audit_transactions/:id/changes`** loads every **`AuditChange`** for that transaction via **`Threadline.audit_changes_for_transaction/2`** (same ordering contract as the library) and attaches a **`change_diff`** map per row from **`Threadline.change_diff/2`**, suitable for JSON incident tools.
 
-CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Production hosts must add authorization** (and often tenancy scoping); this example is intentionally minimal and is not a security reference implementation.
+CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**.
+The reference app requires an authenticated actor before it serves the
+drill-down endpoint. Production hosts still own tenancy scoping and any richer
+authorization policy beyond that baseline.
 
 ## Support incident queries
 
