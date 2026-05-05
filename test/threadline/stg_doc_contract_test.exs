@@ -36,7 +36,9 @@ defmodule Threadline.StgDocContractTest do
     section = walked_example_section()
 
     assert String.contains?(section, "| `POST /api/posts` | HTTP | OK |")
+    assert String.contains?(section, "| `GET /api/audit_transactions/:id/changes` | HTTP | OK |")
     assert String.contains?(section, "test/threadline/getting_started_saas_doc_contract_test.exs")
+    assert String.contains?(section, "Host teams still own tenancy and richer authorization review.")
     refute String.contains?(section, "https://staging.")
     refute String.contains?(section, "http://staging.")
   end

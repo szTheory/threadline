@@ -29,6 +29,8 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert String.contains?(doc, "examples/threadline_phoenix")
     assert String.contains?(doc, "GET /api/audit_transactions")
     assert String.contains?(doc, "audit_transaction_id")
+    assert String.contains?(doc, "requires an authenticated actor before it serves the")
+    assert String.contains?(doc, "Production hosts still own tenancy scoping and any richer")
   end
 
   test "domain-reference retains Time Travel hub and ASOF-06 anchor" do

@@ -25,6 +25,30 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
       assert content =~ "<!-- LIVE-JOIN-WARNING -->"
     end
 
+    test "locks the incident drill-down auth baseline and host-owned policy boundary", %{content: content} do
+      assert content =~ "GET /api/audit_transactions/:id/changes"
+      assert content =~ "incident drill-down requires an"
+      assert content =~ "authenticated actor"
+      assert content =~ "Treat that as the minimum host shape, then layer your own"
+      assert content =~ "tenancy and policy rules on top"
+    end
+
+    test "uses the shipped Threadline public surface", %{content: content} do
+      assert content =~ "Threadline.history("
+      assert content =~ "Threadline.actor_history("
+      assert content =~ "Threadline.audit_changes_for_transaction("
+      assert content =~ "Threadline.as_of("
+
+      refute content =~ "Threadline.Query.changes_for_record"
+      refute content =~ "Threadline.Query.changes_by_actor"
+      refute content =~ "Threadline.Query.changes_by_context"
+      refute content =~ "Threadline.Query.changes_in_transaction"
+      refute content =~ "Threadline.Continuity.reconstruct_at"
+      refute content =~ "threadline_changes"
+      refute content =~ "record_pk"
+      refute content =~ "context_json"
+    end
+
     test "does not contain SELECT * in raw SQL blocks", %{content: content} do
       # Extract all SQL blocks
       sql_blocks = Regex.scan(~r/```sql\n(.*?)```/s, content)
