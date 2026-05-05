@@ -129,6 +129,7 @@ defmodule Threadline.MixProject do
         "guides/domain-reference.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
+        "guides/getting-started-saas.md",
         "guides/adoption-pilot-backlog.md",
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",

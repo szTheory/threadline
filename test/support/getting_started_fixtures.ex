@@ -19,15 +19,17 @@ defmodule Threadline.GettingStartedFixtures do
       Enum.reduce(Enum.with_index(lines), {:before, 0, 0, []}, fn {line, index},
                                                                    {status, start_count,
                                                                     end_count, interior} ->
+        trimmed = String.trim(line)
+
         cond do
-          line == start_marker ->
+          trimmed == start_marker ->
             case status do
               :before -> {:inside, start_count + 1, end_count, interior}
               :inside -> raise_issue!(:duplicate_anchor, path, anchor, index + 1)
               :after -> raise_issue!(:duplicate_anchor, path, anchor, index + 1)
             end
 
-          line == end_marker ->
+          trimmed == end_marker ->
             case status do
               :before -> raise_issue!(:unbalanced_anchor, path, anchor, index + 1)
               :inside -> {:after, start_count, end_count + 1, interior}
