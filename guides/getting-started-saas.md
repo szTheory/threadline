@@ -46,17 +46,33 @@ mix ecto.migrate
 
 Threadline reads your app config when it generates trigger SQL, so use the same `MIX_ENV` locally and in CI when you regenerate.
 
-## 5. Wire Sigra-backed actor capture
+## 5. Wire `Threadline.Plug` with actor and additive request metadata
 
-The Phoenix example keeps request capture small and explicit by putting the Sigra context plug ahead of `Threadline.Plug` in the `:api` pipeline:
+The Phoenix example keeps request capture small and explicit by wiring both
+Sigra callbacks directly into `Threadline.Plug`:
 
 ```elixir
     plug(:accepts, ["json"])
-    plug(ThreadlinePhoenixWeb.SigraContextPlug)
-    plug(Threadline.Plug, actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1)
+
+    plug(Threadline.Plug,
+      actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1,
+      context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
+    )
 ```
 
-If you do not use Sigra, keep the same shape: populate the conn with authenticated request context first, then hand `Threadline.Plug` an `actor_fn`.
+If you do not use Sigra, keep the same shape: populate the conn with authenticated
+request context first, then hand `Threadline.Plug` an `actor_fn` and any
+request-derived context overrides you need.
+
+`actor_fn` remains the only actor-authority path. `context_overrides_fn` is
+for additive `request_id` and `correlation_id` metadata only, and those values
+fill missing fields only. Explicit `x-request-id`, explicit
+`x-correlation-id`, and the actor derived by `actor_fn` still win when present.
+
+Keep `Threadline.Plug` in the router pipeline after auth setup and after any
+host-owned proxy/IP normalization. If `context_overrides_fn` returns unknown
+keys or any non-map value, `Threadline.Plug` raises `ArgumentError`
+immediately so the wiring contract fails loudly.
 
 ## 6. Exercise the first audited write
 
@@ -142,7 +158,7 @@ Open IEx in the app and use the same first request to inspect row history, trans
 ```elixir
 filters = [table: "posts", correlation_id: "demo-corr", repo: MyApp.Repo]
 
-timeline = Threadline.timeline(filters, order_by: [asc: :captured_at])
+timeline = Threadline.timeline(filters)
 
 first_change =
   Threadline.audit_changes_for_transaction(audit_transaction_id, repo: MyApp.Repo)
@@ -153,11 +169,13 @@ diff = Threadline.change_diff(first_change, json_ready: true)
 as_of_at = DateTime.utc_now()
 
 {:ok, post_as_of} =
-  Threadline.as_of(MyApp.Post, post_id,
-    as_of: as_of_at,
-    repo: MyApp.Repo
-  )
+  Threadline.as_of(MyApp.Post, post_id, as_of_at, repo: MyApp.Repo)
 ```
+
+The reference app also requires an authenticated actor before it serves
+`GET /api/audit_transactions/:id/changes`. That keeps the example honest about
+incident drill-down: auth is included, while tenancy rules still belong to the
+host app.
 
 That sequence gives you the three first-hour operator questions:
 

@@ -86,15 +86,31 @@ iex -S mix phx.server
 
 ## Audited HTTP path (`POST /api/posts`)
 
-The example wires **`Threadline.Plug`** on the `:api` pipeline and exposes **`POST /api/posts`**, which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`** GUC before insert, then **`Threadline.record_action/2`** with correlation metadata and a link from **`audit_transactions.action_id`** to that action so strict filters work (see **Correlation** below). **`test/threadline_phoenix_web/posts_audit_path_test.exs`** proves capture sees **`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`** populated.
+The example wires **`Threadline.Plug`** with both **`actor_fn`** and
+**`context_overrides_fn`** on the `:api` pipeline and exposes **`POST /api/posts`**,
+which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a
+single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`**
+GUC before insert, then **`Threadline.record_action/2`** with correlation
+metadata and a link from **`audit_transactions.action_id`** to that action so
+strict filters work (see **Correlation** below).
+**`test/threadline_phoenix_web/posts_audit_path_test.exs`** proves capture sees
+**`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`**
+populated.
 
-In production, replace the synthetic **`actor_fn`** (see `ThreadlinePhoenix.AuditActor`) with one derived from your auth layer.
+In the shipped example, both callbacks are wired directly into `Threadline.Plug`:
+**`Threadline.Integrations.Sigra.actor_ref_from_conn/1`** decides actor identity and
+**`Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1`** fills additive
+request metadata only when `x-correlation-id` is absent. In production, feed
+Sigra-authenticated request state into the conn before the Threadline plug runs.
 
 ## Incident JSON drill-down (`audit_transaction_id` → changes)
 
 Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (the UUID of the **`audit_transactions`** row for that request’s database transaction). Call **`GET /api/audit_transactions/:id/changes`** with that UUID to list every **`AuditChange`** in stable library order (**`Threadline.audit_changes_for_transaction/2`**) and a JSON-ready **`change_diff`** per row (**`Threadline.change_diff/2`**). See **`guides/domain-reference.md`** (anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, subsection **Reference example: incident JSON**).
 
-CI: **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Security:** add authorization (and usually tenancy checks) before exposing transaction drill-down in production; this example stays intentionally minimal.
+CI: **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Security:**
+the reference app now requires an authenticated actor before it serves the
+drill-down endpoint. Hosts still need their own tenancy and policy checks
+before exposing transaction drill-down in production.
 
 ## Historical reconstruction walkthrough
 
@@ -103,7 +119,7 @@ Copy-paste this when you want one row back as it existed at a point in time:
 ```elixir
 as_of_at = DateTime.utc_now()
 
-case Threadline.as_of(ThreadlinePhoenix.Post, post_id, as_of: as_of_at, repo: ThreadlinePhoenix.Repo) do
+case Threadline.as_of(ThreadlinePhoenix.Post, post_id, as_of_at, repo: ThreadlinePhoenix.Repo) do
   {:ok, post} ->
     post
 
@@ -119,8 +135,7 @@ By default, `as_of/4` returns a map. Add `cast: true` when you want the current 
 
 ```elixir
 {:ok, post} =
-  Threadline.as_of(ThreadlinePhoenix.Post, post_id,
-    as_of: as_of_at,
+  Threadline.as_of(ThreadlinePhoenix.Post, post_id, as_of_at,
     cast: true,
     repo: ThreadlinePhoenix.Repo
   )
@@ -132,7 +147,7 @@ Deleted rows stay explicit — do not treat `:deleted_record` as a current recor
 
 **Operator contract:** when you pass **`:correlation_id`** to **`Threadline.timeline/2`** or **`Threadline.export_json/2`**, Threadline applies a **strict** join: only **`audit_changes`** whose **`audit_transactions`** row is linked (**`audit_transactions.action_id`**) to an **`audit_actions`** row with that correlation id are returned. Headers such as **`x-correlation-id`** populate **`AuditContext`** at the edge; durable queryability requires **`Threadline.record_action/2`** in the **same** database transaction as the audited writes, as implemented in **`Blog.create_post/2`**. Timeline and export share the same filter vocabulary (see **`Threadline.Query`** and **LOOP-01** in **`CHANGELOG.md`**).
 
-CI proof for the HTTP slice lives in **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`** (`test/threadline_phoenix_web/posts_correlation_path_test.exs`).
+CI proof for the HTTP slice lives in **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`** (`test/threadline_phoenix_web/posts_correlation_path_test.exs`), including both the explicit-header path and the no-header Sigra fallback path.
 
 ```elixir
 filters = [
