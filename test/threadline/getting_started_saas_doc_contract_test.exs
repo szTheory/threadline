@@ -19,7 +19,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
       "## 2. Add Threadline to your app",
       "## 3. Install the audit schema",
       "## 4. Generate triggers for posts",
-      "## 5. Wire Sigra-backed actor capture",
+      "## 5. Wire `Threadline.Plug` with actor and additive request metadata",
       "## 6. Exercise the first audited write",
       "## 7. Check trigger coverage",
       "## 8. Investigate the captured timeline"
@@ -32,6 +32,16 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "{:covered, _}")
     assert String.contains?(doc, router_block())
     assert String.contains?(doc, blog_block())
+    assert String.contains?(doc, "`actor_fn` remains the only actor-authority path")
+    assert String.contains?(doc, "additive `request_id` and `correlation_id` metadata only")
+    assert String.contains?(doc, "Explicit `x-request-id`, explicit")
+    assert String.contains?(doc, "raises `ArgumentError`")
+    assert String.contains?(doc, "timeline = Threadline.timeline(filters)")
+    assert String.contains?(doc, "Threadline.as_of(MyApp.Post, post_id, as_of_at, repo: MyApp.Repo)")
+    assert String.contains?(doc, "requires an authenticated actor before it serves")
+    assert String.contains?(doc, "incident drill-down: auth is included")
+    assert String.contains?(doc, "tenancy rules still belong to the")
+    assert String.contains?(doc, "host app")
   end
 
   test "quickstart closing pointers stay in-repo and present" do
@@ -55,6 +65,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
   test "mix docs extras includes the SaaS quickstart" do
     mix_exs = read_rel!(["mix.exs"])
     assert String.contains?(mix_exs, "\"guides/getting-started-saas.md\"")
+    assert String.contains?(mix_exs, "\"guides/incident-playbook.md\"")
   end
 
   defp router_block do
