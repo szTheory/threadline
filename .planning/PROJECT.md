@@ -11,17 +11,26 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current State
 
 **Last shipped:** v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
+**Current planning focus:** v1.16 — Investigation Table Stakes (opened 2026-05-05)
 
 **Shipped capabilities:**
 - `Threadline.Plug` now accepts a native additive `:context_overrides_fn` for request metadata while keeping actor identity and transport-derived values authoritative.
 - `Threadline.Integrations.Sigra` is now the canonical direct host-wiring path through `Threadline.Plug`, and the Phoenix example app teaches the same callback contract.
 - The example incident drill-down path now ships with an authenticated baseline, and the adopter-facing docs/contracts all align on that boundary plus the host-owned authorization story.
 
-## Next Milestone Goals
+## Current Milestone: v1.16 — Investigation Table Stakes
 
-- No active milestone is open.
-- Start the next planning pass with `/gsd-new-milestone`.
-- The next decision is whether to deepen the Sigra/operator story, promote another deferred seed, or widen scope beyond host integration into UI or additional adapters.
+**Goal:** Make Threadline answer the first serious audit investigation questions with library APIs and reference surfaces, not custom SQL, ad-hoc joins, or per-app controller glue.
+
+**Target features:**
+- Stable, explicit paging for timeline-style investigation reads so operators can traverse larger audit windows without inventing offset semantics.
+- Higher-level investigation helpers for the most common support slices: row history, actor window, correlation bundle, and transaction drill-down with linked semantics context.
+- A first-class incident bundle surface that returns ordered changes, linked action/transaction context, and JSON-ready field diffs in one place.
+- Docs, example app usage, and contract tests aligned around canonical investigation workflows instead of bespoke composition snippets.
+
+**Why now:** Host wiring, Sigra integration, and the authenticated incident baseline are in place. The biggest remaining adoption gap is time-to-answer after install: teams still have to assemble their own investigation workflows out of low-level primitives. Closing that gap creates the exploration backbone future UI, onboarding, and broader integrations can build on safely.
+
+**Strategic arc:** `.planning/MILESTONE-ARC.md` now records the standing recommendation order for future milestones so `/gsd-new-milestone` can start from a durable gameplan instead of a blank prompt.
 
 ## Last milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
 
@@ -190,7 +199,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- No active milestone requirements. Start `/gsd-new-milestone` to define the next scoped set.
+- [ ] **Investigation table stakes (v1.16)** — Package the common audit investigation workflows into stable, paged library APIs and reference surfaces instead of leaving adopters to compose them from low-level queries and example-only controller code.
+- [ ] **Operator-surface foundation (next candidate)** — Once v1.16 lands, decide whether to publish a lightweight operator-facing package or reference UI on top of the stabilized exploration contracts.
+- [ ] **Adoption and policy hardening (next candidate)** — After the investigation surface settles, tighten the production adoption story around policy guardrails, lifecycle ergonomics, and safer operator defaults.
 
 ### Out of Scope
 
@@ -242,6 +253,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 | `as_of/4` map-first reconstruction and cast-based reification | Point-in-time reads now support explicit deleted/genesis errors plus opt-in struct loading | ✓ Shipped (Phases 38–40, v1.12) |
 | Treat README docs drift as a first-class milestone | README literals are public API; doc-contract tests must lock them so future drift fails CI instead of silently shipping | ✓ Shipped (Phases 41–43, v1.13) |
 | Verification artifacts are first-class milestone output | Phase 43 retroactively wrote `*-VERIFICATION.md` to close an audit gap; future phases should land verification evidence alongside SUMMARY.md, not after | ✓ Shipped (Phase 43, v1.13) |
+| Investigation workflows before UI breadth | The library already captures and correlates rich audit data, but adopters still need packaged answers to the first support questions before a UI or new adapter layer will feel durable | — Active in v1.16 planning |
+| Persist a standing milestone arc in `.planning/MILESTONE-ARC.md` | Future milestone starts should begin from a recorded strategic recommendation, not from memory or a fresh prompt | — Active in v1.16 planning |
 
 ## Evolution
 
@@ -263,4 +276,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-05 - v1.15 "Host Integration Completion" milestone archived as shipped.*
+*Last updated: 2026-05-05 - opened v1.16 "Investigation Table Stakes" and recorded the forward milestone arc.*

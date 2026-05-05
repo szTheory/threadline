@@ -2,12 +2,65 @@
 
 ## Milestones
 
+- 🚧 **v1.16 — Investigation Table Stakes** — Phases 53-56 (planned 2026-05-05) — [requirements](REQUIREMENTS.md)
 - ✅ **v1.15 — Host Integration Completion** — Phases 49-52 (shipped 2026-05-05) — [requirements](milestones/v1.15-REQUIREMENTS.md) · [archive](milestones/v1.15-ROADMAP.md)
 - ✅ **v1.14 — Drop-in Production Adopter Slice** — Phases 44-48 (shipped 2026-05-05) — [requirements](milestones/v1.14-REQUIREMENTS.md) · [archive](milestones/v1.14-ROADMAP.md)
 - ✅ **v1.13 — Docs Contract Repair** — Phases 41-43 (shipped 2026-04-26) — [archive](milestones/v1.13-ROADMAP.md)
 - ✅ **v1.12 — Temporal Truth & Safety** — Phases 38-40 (shipped 2026-04-25) — [archive](milestones/v1.12-ROADMAP.md)
 
-## Next Milestone
+## Active Milestone
 
-- No active milestone is open.
-- Run `/gsd-new-milestone` to create a fresh `.planning/REQUIREMENTS.md` and define the next roadmap slice.
+- **v1.16 — Investigation Table Stakes**
+- **Goal:** Make Threadline materially easier to use for the first real support and incident questions by shipping stable, paged investigation APIs and a first-class incident bundle surface.
+- **Why this milestone first:** The library already captures and correlates rich audit data, but adopters still need custom query/controller composition to answer common investigation questions. That is the current table-stakes gap.
+- **Strategic context:** See `.planning/MILESTONE-ARC.md` for the standing candidate order after v1.16.
+
+## Phases
+
+### Phase 53: Timeline Paging Contract
+
+**Goal**: Add an explicit paging contract to timeline-style investigation reads without breaking the existing stable `(captured_at, id)` ordering.
+**Depends on**: Phase 52
+**Requirements**: EXPLORE-01
+**Plans**: 2 plans
+
+Plans:
+
+- [ ] 53-01: Define and implement the public paging contract, validations, and query tests for investigation timelines
+- [ ] 53-02: Expose the new usage path cleanly at the library surface and lock the intended semantics in docs or fixtures where needed
+
+### Phase 54: Investigation Slice APIs
+
+**Goal**: Package the canonical support questions as higher-level library helpers instead of leaving adopters to compose them manually from low-level queries and joins.
+**Depends on**: Phase 53
+**Requirements**: EXPLORE-02
+**Plans**: 2 plans
+
+Plans:
+
+- [ ] 54-01: Add the new investigation helper surface for row, actor, and correlation-driven reads
+- [ ] 54-02: Align the returned shapes and focused tests around linked transaction/action context instead of raw ad-hoc composition
+
+### Phase 55: Incident Bundle Surface
+
+**Goal**: Turn transaction drill-down into a first-class library contract that packages ordered changes, linked semantics, and JSON-ready diffs together.
+**Depends on**: Phase 54
+**Requirements**: INCIDENT-06, INCIDENT-07
+**Plans**: 2 plans
+
+Plans:
+
+- [ ] 55-01: Ship the incident bundle API and the focused projections it needs
+- [ ] 55-02: Converge the Phoenix example incident endpoint on the new public surface and prove it with request-path coverage
+
+### Phase 56: Docs, Contracts, and Arc Alignment
+
+**Goal**: Teach one canonical exploration story across docs while preserving the standing forward arc for future milestone planning.
+**Depends on**: Phase 55
+**Requirements**: ADOPT-04
+**Plans**: 2 plans
+
+Plans:
+
+- [ ] 56-01: Align README, domain reference, example docs, and adoption guidance around the shipped investigation API choices
+- [ ] 56-02: Lock the wording with doc-contract coverage and refresh the strategic planning docs so future milestones inherit the recorded ordering
