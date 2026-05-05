@@ -2,6 +2,29 @@
 
 Entries are newest first.
 
+## v1.14 — Drop-in Production Adopter Slice (shipped 2026-05-05)
+
+**Goal:** Make Threadline materially drop-in for production adopters by closing Sigra actor-mapping, publishing reproducible performance baselines, shipping a copy-pasteable incident playbook plus replay tooling, providing a first-hour SaaS quickstart, and packaging the result as the `0.3.0` release surface.
+
+**Phases completed:** **44–48** (5 phases; 10 plans with `SUMMARY.md`; per-phase `VERIFICATION.md`; consolidated `v1.14-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Shipped **`Threadline.Integrations.Sigra`**, example-app Sigra wiring, and **`guides/integrations/sigra.md`** with locked doc-contract coverage (**SIGRA-01/02/03**, Phase **44**).
+- Shipped the independent **`bench/`** harness, tracked baseline artifacts, **`mix verify.bench`**, and **`guides/performance.md`** with published baseline numbers and cost-knob comparisons (**PERF-01/02/03**, Phase **45**).
+- Shipped **`guides/incident-playbook.md`**, the guarded replay script, **`guides/getting-started-saas.md`**, the walked STG example, and their paired contract/smoke tests (**INCIDENT-01/02**, **ADOPT-01/02**, Phases **46–47**).
+- Shipped the **`0.3.0`** release surface across **`mix.exs`**, **`CHANGELOG.md`**, **`README.md`**, ExDoc grouping, **`mix verify.release`**, and **`test/threadline/release_artifact_contract_test.exs`** (**REL-01/02/03**, Phase **48**).
+
+**Stats:** 5 phases, 10 plans, 13/13 requirements complete at close. Milestone window: **2026-04-26 → 2026-05-05**. Verified release candidate range from **`v1.13`** tag **`b3409c8`** to clean release commit **`4543690`** touched **79 files** with **8108 insertions / 350 deletions**.
+
+**Archives:** `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-MILESTONE-AUDIT.md`, `.planning/milestones/v1.14-phases/`.
+
+**Known gaps at close:** Milestone audit **passed** with 0 requirement, integration, or end-to-end flow gaps. Open-artifact audit still flagged **`SEED-001-sigra-integration-adapter`**, but that seed had already been promoted into Phase 44 and shipped; it was acknowledged as stale bookkeeping rather than a real open item.
+
+**What is next:** **`/gsd-new-milestone`** — define the next requirements set and roadmap slice. Release verification for `0.3.0` was run against isolated clean commit **`4543690`**.
+
+---
+
 ## v1.13 — Docs Contract Repair (shipped 2026-04-26)
 
 **Goal:** Repair README contract drift on the root project and the Phoenix example so the published docs match the shipped public API surface, and restore the verification artifacts the milestone audit was missing — without new capture semantics or product surface.

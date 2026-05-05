@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.14
-milestone_name: — Drop-in Production Adopter Slice
-status: verifying
-last_updated: "2026-05-03T00:00:00.000Z"
-last_activity: 2026-05-03
+milestone: none
+milestone_name: — awaiting next milestone
+status: shipped
+last_updated: "2026-05-05T20:30:00.000Z"
+last_activity: 2026-05-05
 progress:
-  total_phases: 5
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,21 +18,21 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Milestone v1.14 — Drop-in Production Adopter Slice (Phase 44 implementation verified; waiting on cleanliness/commit before formal completion).
+**Current Focus**: Milestone v1.14 shipped; next work starts with `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 47 — saas-adopter-onramp
-Plan: 0 of TBD complete in working tree
-Status: Phase 47 context gathered — ready for planning. Resume file: `.planning/phases/47-saas-adopter-onramp/47-CONTEXT.md`
-Last activity: 2026-05-03
+Phase: —
+Plan: —
+Status: v1.14 is archived and no next milestone is open yet.
+Last activity: 2026-05-05
 
 ## Performance Metrics
 
-- **Total Phases**: 5 (Phases 44–48)
-- **Phases Completed**: 0
-- **Requirements Covered**: 3/13 implemented in working tree; formal completion pending cleanliness gate
-- **Last Milestone**: v1.13 (Shipped 2026-04-26)
+- **Total Phases**: 5 shipped in v1.14 (Phases 44–48)
+- **Phases Completed**: 5
+- **Requirements Covered**: 13/13 validated at close
+- **Last Milestone**: v1.14 (Shipped 2026-05-05)
 
 ## Accumulated Context
 
@@ -45,6 +45,8 @@ Last activity: 2026-05-03
 - 2026-04-26: Phase 44 has a blocking `/gsd-spec-phase sigra-integration-adapter` prerequisite; SPEC.md must answer SEED-001 Q1–Q6 (impersonation, org scope, session→correlation, telemetry-vs-Plug, API-token mapping, anonymous fallback) before plan.
 - 2026-04-26 (v1.13): Treat README docs drift as a first-class milestone; doc-contract tests must lock README literals so future drift fails CI.
 - 2026-04-26 (v1.13): Verification artifacts are first-class milestone output — write `*-VERIFICATION.md` alongside SUMMARY.md, not after.
+- 2026-05-05: Close v1.14 as shipped after milestone audit passed 13/13 requirements, 13/13 integration checks, and 4/4 end-to-end flows.
+- 2026-05-05: Record the exact clean release candidate as commit `4543690`; keep release verification tied to a clean worktree even when the main workspace is intentionally dirty.
 - Created an independent sibling Mix project in bench/ to prevent benchmarking dependencies (benchee, benchee_html) from bleeding into the root library.
 - Wrote robust Ecto state management scripts (seed_audit_changes.exs and teardown.exs) that can load or truncate three benchmarking presets (cold_single_table, warm_loaded, concurrent_purge).
 - Truncate audit tables before seeding to prevent duplicate key errors
@@ -54,25 +56,24 @@ Last activity: 2026-05-03
 
 ### Todos
 
-- [ ] Classify and commit the existing Phase 44 working-tree changes, or split out unrelated dirt before formal phase completion
-- [ ] Mark Phase 44 complete in ROADMAP/REQUIREMENTS once the cleanliness gate is satisfied
-- [ ] Sequence Phases 45 → 46 → 47 → 48 strictly (no parallelism); RELEASE last
-- [ ] Each phase delivers `NN-VERIFICATION.md` alongside `NN-SUMMARY.md` (Phase 43 lesson, locked)
+- [ ] Open the next milestone with `/gsd-new-milestone`
+- [ ] Decide whether to merge or otherwise retain the isolated clean release candidate commit `4543690` in the mainline history
+- [ ] Push milestone tag `v1.14` and release tag `v0.3.0` when the maintainer is ready
 
 ### Blockers
 
-- Working tree is still dirty across both Phase 44 and unrelated files, so GSD cleanliness gate blocks formal completion updates.
+- No blocker to v1.14 close remains. The main workspace is still dirty, but the clean release verification already ran in the isolated worktree.
 
 ## Session Continuity
 
-- **Last Action**: Verified the Phase 44 Sigra adapter, example-app wiring, and integration guide; wrote `44-01/02/03-SUMMARY.md` plus `44-VERIFICATION.md`; tightened header-precedence behavior in the adapter.
-- **Next Step**: Cleanly classify or commit the current worktree so Phase 44 can be marked complete without bundling unrelated changes.
+- **Last Action**: Archived milestone v1.14, reconciled planning state, and recorded the clean release candidate commit `4543690`.
+- **Next Step**: Run `/gsd-new-milestone` when the next product slice is ready.
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| seed | SEED-001-sigra-integration-adapter | promoted to v1.14 (SIGRA-01–03, Phase 44) |
+| seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
 | Phase 45 P01 | 4m | 2 tasks | 6 files |
 | Phase 45-bench-harness-published-baselines P02 | 5m | 2 tasks | 4 files |
 | Phase 45 P03 | 3 | 2 tasks | 2 files |

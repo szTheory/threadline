@@ -10,24 +10,33 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
+**Last shipped:** v1.14 — Drop-in Production Adopter Slice (Phases 44–48, 2026-05-05)
 
 **Shipped capabilities:**
-- Root `README.md` and `examples/threadline_phoenix/README.md` are aligned with the shipped public API surface and locked by `test/threadline/readme_doc_contract_test.exs`.
-- `Threadline.as_of/4` reconstructs single-row history from audit snapshots; `cast: true` returns an Ecto struct with loose historical loading; deleted records and genesis-gap reads return explicit errors.
+- `Threadline.Integrations.Sigra` now gives Phoenix + Sigra adopters a soft-dependency actor/correlation adapter with example-app wiring and locked integration docs.
+- The repo now ships a reproducible `bench/` harness, published performance baselines, a production incident playbook + replay script, and a fixture-backed SaaS quickstart.
+- The release surface is aligned on `threadline 0.3.0`, including ExDoc guide surfacing, release artifact contracts, and a clean-tree `mix verify.release` pre-flight.
 
-## Current Milestone: v1.14 Drop-in Production Adopter Slice
+## Next Milestone Goals
 
-**Goal:** Make Threadline genuinely drop-in for a SaaS team running Phoenix + Sigra (or any custom auth) by closing the actor-mapping mile, proving operational behavior under realistic load with published numbers, packaging it as `threadline 0.3.0` with a clean upgrade narrative, and shipping a copy-pasteable production incident playbook.
+- No active milestone is open.
+- The next planning pass should start with `/gsd-new-milestone`.
+- The first decision for the next slice is whether to build on post-`0.3.0` adopter feedback, promote another deferred seed, or deepen operator tooling beyond the current docs-first surface.
 
-**Target features:**
-- **SIGRA** — `Threadline.Integrations.Sigra` adapter, Sigra-wired Phoenix example, integration guide + doc contract (closes SEED-001)
-- **PERF** — Reproducible benchmark harness, published baseline numbers, `guides/performance.md` with index recommendations and PgBouncer transaction-mode confirmation
-- **INCIDENT** — `guides/incident-playbook.md` with five canonical incidents (API + raw SQL), incident-replay script in the example app, doc-contract test
-- **RELEASE** — `threadline 0.3.0` on Hex (mix.exs / CHANGELOG / ExDoc extras / `v0.3.0` tag) with explicit 0.2.x → 0.3.0 upgrade notes
-- **ADOPT** — `guides/getting-started-saas.md` 30-minute SaaS quickstart; refreshed `guides/adoption-pilot-backlog.md` with one fully-filled maintainer-walked example column
+## Last milestone shipped: v1.14 — Drop-in Production Adopter Slice (Phases 44–48, 2026-05-05)
 
-## Last milestone shipped: v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
+**Goal (achieved):** Make Threadline genuinely drop-in for a SaaS team running Phoenix + Sigra by closing the actor-mapping mile, publishing realistic operational evidence, shipping the incident playbook/replay path, and packaging the result as `threadline 0.3.0`.
+
+**Shipped:**
+- **Phase 44** — SIGRA-01/02/03: `Threadline.Integrations.Sigra`, example-app Sigra wiring, and `guides/integrations/sigra.md` with doc-contract coverage.
+- **Phase 45** — PERF-01/02/03: reproducible `bench/` harness, tracked baseline artifacts, `mix verify.bench`, and `guides/performance.md`.
+- **Phase 46** — INCIDENT-01/02: `guides/incident-playbook.md`, guarded incident replay script, and smoke/doc-contract coverage.
+- **Phase 47** — ADOPT-01/02: SaaS quickstart, fixture-backed snippet extraction, and a maintainer-walked STG example with disclaimer/evidence guards.
+- **Phase 48** — REL-01/02/03: `0.3.0` packaging surface, release artifact contract, ExDoc regrouping, and `mix verify.release`.
+
+**Archives:** `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-MILESTONE-AUDIT.md`, `.planning/milestones/v1.14-phases/`.
+
+## Prior milestone shipped: v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
 
 **Goal (achieved):** Repair README contract drift on the root project and the Phoenix example so the published docs match the shipped public API surface, and restore the verification artifacts the milestone audit was missing.
 
@@ -168,13 +177,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-02 (Phase 42)** — `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to assert the example surface. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 
-### Active (v1.14)
+### Active
 
-- [ ] **SIGRA-01–03** — Threadline ↔ Sigra integration adapter (in-tree module, example wiring, integration guide + doc contract)
-- [ ] **PERF-01/02** — Benchmark harness in `bench/` and `guides/performance.md` with published baselines and recommended index sets
-- [ ] **INCIDENT-01/02** — `guides/incident-playbook.md` with five canonical incidents and an incident-replay script in the example app
-- [ ] **REL-01/02** — `threadline 0.3.0` packaging, CHANGELOG narrative, ExDoc/extras refresh, `v0.3.0` tag, maintainer publish runbook
-- [ ] **ADOPT-01/02** — `guides/getting-started-saas.md` 30-minute SaaS quickstart and one fully-walked example STG matrix column
+- No active milestone requirements. Start `/gsd-new-milestone` to define the next scoped set.
 
 ### Out of Scope
 
@@ -247,4 +252,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-04-26 — v1.14 "Drop-in Production Adopter Slice" milestone opened.*
+*Last updated: 2026-05-05 — v1.14 "Drop-in Production Adopter Slice" milestone archived as shipped.*
