@@ -30,8 +30,8 @@ Last activity: 2026-05-05
 ## Performance Metrics
 
 - **Total Phases**: 4 planned in v1.15 (Phases 49–52)
-- **Phases Completed**: 3
-- **Requirements Covered**: 6/7 complete for v1.15
+- **Phases Completed**: 4
+- **Requirements Covered**: 7/7 complete for v1.15
 - **Last Milestone**: v1.14 (Shipped 2026-05-05)
 
 ## Accumulated Context
@@ -67,7 +67,7 @@ Last activity: 2026-05-05
 
 ### Blockers
 
-- The main workspace is intentionally dirty, so Phase 52 planning should continue treating the current code changes as in-flight v1.15 work rather than clean-slate implementation.
+- The main workspace remains intentionally dirty, so milestone closeout should continue treating the remaining code changes as in-flight v1.15 work rather than a clean release tree.
 
 ## Session Continuity
 
