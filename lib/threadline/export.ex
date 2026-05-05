@@ -184,53 +184,25 @@ defmodule Threadline.Export do
   @spec stream_changes(keyword(), keyword()) :: Enumerable.t()
   def stream_changes(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     Query.validate_timeline_filters!(filters)
-    repo = Query.timeline_repo!(filters, opts)
-    page_size = Keyword.get(opts, :page_size, 1000)
 
     Stream.resource(
-      fn -> nil end,
+      fn -> :start end,
       fn
-        cursor ->
-          base =
-            case Keyword.get(filters, :correlation_id) do
-              nil ->
-                filters
-                |> Query.timeline_query()
-                |> select([ac, _at], ac)
+        :done ->
+          {:halt, :done}
 
-              _ ->
-                filters
-                |> Query.timeline_query()
-                |> select([ac, _at, _aa], ac)
-            end
+        state ->
+          cursor = if state == :start, do: nil, else: state
 
-          q =
-            case cursor do
-              nil ->
-                base
-
-              {cap, id} ->
-                where(
-                  base,
-                  [ac],
-                  fragment(
-                    "(?, ?) < (?, ?)",
-                    ac.captured_at,
-                    ac.id,
-                    ^cap,
-                    type(^id, :binary_id)
-                  )
-                )
-            end
-            |> limit(^page_size)
-
-          case repo.all(q) do
-            [] ->
+          case Query.timeline_page(filters, Keyword.put(opts, :cursor, cursor)) do
+            %Query.TimelinePage{entries: []} ->
               {:halt, :done}
 
-            rows ->
-              last = List.last(rows)
-              {rows, {last.captured_at, last.id}}
+            %Query.TimelinePage{entries: rows, next_cursor: nil} ->
+              {rows, :done}
+
+            %Query.TimelinePage{entries: rows, next_cursor: next_cursor} ->
+              {rows, next_cursor}
           end
       end,
       fn _ -> :ok end

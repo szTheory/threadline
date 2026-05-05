@@ -77,6 +77,43 @@ defmodule Threadline.QueryTest do
     %{inserted_at: inserted_at, updated_at: updated_at, deleted_at: deleted_at}
   end
 
+  defp timeline_page_fixture(table_name) do
+    tie_time = ~U[2026-07-01 12:00:00.000000Z]
+    older_time = DateTime.add(tie_time, -60, :second)
+    newest_time = DateTime.add(tie_time, 60, :second)
+    txn = insert_transaction(%{occurred_at: newest_time})
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "tp-1"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "tp-2"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "tp-3"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "tp-4"},
+      captured_at: older_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "tp-5"},
+      captured_at: newest_time
+    })
+  end
+
   defmodule FakeAsOfUser do
     use Ecto.Schema
 
@@ -467,6 +504,81 @@ defmodule Threadline.QueryTest do
 
     test "timeline_repo!/2 resolves repo from opts" do
       assert Threadline.Query.timeline_repo!([table: "users"], repo: @repo) == @repo
+    end
+  end
+
+  describe "timeline_page/2" do
+    test "rejects non-positive page_size" do
+      assert_raise ArgumentError, ~r/:page_size must be a positive integer/, fn ->
+        Threadline.timeline_page([repo: @repo], page_size: 0)
+      end
+    end
+
+    test "rejects partial cursor input" do
+      assert_raise ArgumentError,
+                   ~r/:cursor must include both :captured_at and :id or be nil/,
+                   fn ->
+                     Threadline.timeline_page([repo: @repo],
+                       cursor: %{captured_at: DateTime.utc_now()}
+                     )
+                   end
+    end
+
+    test "rejects malformed cursor ids" do
+      assert_raise ArgumentError, ~r/:cursor\.id must be a UUID binary/, fn ->
+        Threadline.timeline_page([repo: @repo],
+          cursor: %{captured_at: DateTime.utc_now(), id: "nope"}
+        )
+      end
+    end
+
+    test "concatenated pages match eager timeline order exactly" do
+      tname = "timeline_page_#{System.unique_integer([:positive])}"
+      timeline_page_fixture(tname)
+      filters = [repo: @repo, table: tname]
+
+      eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
+
+      first_page = Threadline.timeline_page(filters, page_size: 2)
+
+      second_page =
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+
+      third_page =
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+
+      paged_ids =
+        Enum.flat_map([first_page, second_page, third_page], fn page ->
+          Enum.map(page.entries, & &1.id)
+        end)
+
+      assert eager_ids == paged_ids
+      assert third_page.next_cursor == nil
+    end
+
+    test "advances safely across captured_at ties without duplicates or skips" do
+      tname = "timeline_ties_#{System.unique_integer([:positive])}"
+      timeline_page_fixture(tname)
+      filters = [repo: @repo, table: tname]
+
+      eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
+
+      first_page = Threadline.timeline_page(filters, page_size: 2)
+
+      second_page =
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+
+      third_page =
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+
+      all_ids =
+        Enum.flat_map([first_page, second_page, third_page], fn page ->
+          Enum.map(page.entries, & &1.id)
+        end)
+
+      assert length(all_ids) == length(Enum.uniq(all_ids))
+      assert eager_ids == all_ids
+      assert Enum.all?(first_page.entries, &match?(%AuditChange{}, &1))
     end
   end
 

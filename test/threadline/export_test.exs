@@ -34,6 +34,43 @@ defmodule Threadline.ExportTest do
 
   defp table_name(suffix), do: "export_test_#{suffix}_#{:erlang.unique_integer([:positive])}"
 
+  defp stream_fixture(table_name) do
+    tie_time = ~U[2026-06-01 00:00:00.000000Z]
+    newer_time = DateTime.add(tie_time, 60, :second)
+    older_time = DateTime.add(tie_time, -60, :second)
+    txn = insert_transaction(%{occurred_at: newer_time})
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "s-1"},
+      captured_at: newer_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "s-2"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "s-3"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "s-4"},
+      captured_at: tie_time
+    })
+
+    insert_change(txn, %{
+      table_name: table_name,
+      table_pk: %{"id" => "s-5"},
+      captured_at: older_time
+    })
+  end
+
   describe "to_csv_iodata/2" do
     test "happy path: CSV columns and JSON transaction cell parse" do
       tname = table_name("csv")
@@ -278,19 +315,11 @@ defmodule Threadline.ExportTest do
   describe "stream_changes/2" do
     test "pages through all rows in timeline order" do
       tname = table_name("stream")
-      txn = insert_transaction()
-
-      for i <- 1..4 do
-        insert_change(txn, %{
-          table_name: tname,
-          table_pk: %{"id" => "s-#{i}"},
-          captured_at: DateTime.add(~U[2026-06-01 00:00:00.000000Z], i, :second)
-        })
-      end
+      stream_fixture(tname)
 
       filters = [repo: @repo, table: tname]
       streamed = Export.stream_changes(filters, repo: @repo, page_size: 2) |> Enum.to_list()
-      assert length(streamed) == 4
+      assert length(streamed) == 5
 
       timeline_ids = Enum.map(Threadline.timeline(filters, repo: @repo), & &1.id)
       stream_ids = Enum.map(streamed, & &1.id)

@@ -34,6 +34,22 @@ defmodule Threadline.Query do
   alias Threadline.Semantics.AuditAction
 
   @allowed_timeline_filter_keys ~w(repo table actor_ref from to correlation_id)a
+  @default_timeline_page_size 1000
+
+  defmodule TimelinePage do
+    @moduledoc """
+    One keyset page from the timeline query layer.
+    """
+
+    @enforce_keys [:entries]
+    defstruct [:entries, :next_cursor]
+
+    @type cursor :: %{captured_at: DateTime.t(), id: Ecto.UUID.t()}
+    @type t :: %__MODULE__{
+            entries: [AuditChange.t()],
+            next_cursor: cursor() | nil
+          }
+  end
 
   @doc """
   Validates that `filters` contains only timeline filter keys.
@@ -168,6 +184,44 @@ defmodule Threadline.Query do
       aa_id: aa.id,
       aa_correlation_id: aa.correlation_id
     })
+  end
+
+  @doc """
+  Returns one keyset page of `AuditChange` records in timeline order.
+
+  Paging controls live in `opts`:
+
+  - `:page_size` — positive integer, defaults to `#{@default_timeline_page_size}`
+  - `:cursor` — `%{captured_at: %DateTime{}, id: binary}` or `nil`
+  """
+  @spec timeline_page(keyword(), keyword()) :: TimelinePage.t()
+  def timeline_page(filters \\ [], opts \\ []) when is_list(filters) and is_list(opts) do
+    validate_timeline_filters!(filters)
+    repo = timeline_repo!(filters, opts)
+
+    page_size =
+      validate_timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
+
+    cursor = validate_timeline_cursor!(Keyword.get(opts, :cursor))
+
+    q =
+      filters
+      |> timeline_query()
+      |> maybe_after_timeline_cursor(cursor)
+      |> limit(^page_size)
+
+    q =
+      case Keyword.get(filters, :correlation_id) do
+        nil -> select(q, [ac, _at], ac)
+        _ -> select(q, [ac, _at, _aa], ac)
+      end
+
+    entries = repo.all(q)
+
+    %TimelinePage{
+      entries: entries,
+      next_cursor: timeline_page_next_cursor(entries, page_size)
+    }
   end
 
   defp timeline_base_query(filters) do
@@ -379,6 +433,69 @@ defmodule Threadline.Query do
       end
 
     repo.all(q)
+  end
+
+  @doc false
+  @spec maybe_after_timeline_cursor(Ecto.Query.t(), TimelinePage.cursor() | nil) :: Ecto.Query.t()
+  def maybe_after_timeline_cursor(query, nil), do: query
+
+  def maybe_after_timeline_cursor(query, %{captured_at: %DateTime{} = captured_at, id: id}) do
+    where(
+      query,
+      [ac],
+      fragment(
+        "(?, ?) < (?, ?)",
+        ac.captured_at,
+        ac.id,
+        ^captured_at,
+        type(^id, :binary_id)
+      )
+    )
+  end
+
+  defp validate_timeline_page_size!(page_size) when is_integer(page_size) and page_size > 0,
+    do: page_size
+
+  defp validate_timeline_page_size!(page_size) do
+    raise ArgumentError,
+          ":page_size must be a positive integer, got: #{inspect(page_size)}"
+  end
+
+  defp validate_timeline_cursor!(nil), do: nil
+
+  defp validate_timeline_cursor!(%{captured_at: %DateTime{} = captured_at, id: id})
+       when is_binary(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, canonical} -> %{captured_at: captured_at, id: canonical}
+      :error -> raise ArgumentError, ":cursor.id must be a UUID binary, got: #{inspect(id)}"
+    end
+  end
+
+  defp validate_timeline_cursor!(%{} = cursor) do
+    has_captured_at? = Map.has_key?(cursor, :captured_at)
+    has_id? = Map.has_key?(cursor, :id)
+
+    cond do
+      has_captured_at? or has_id? ->
+        raise ArgumentError,
+              ":cursor must include both :captured_at and :id or be nil, got: #{inspect(cursor)}"
+
+      true ->
+        raise ArgumentError,
+              ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
+    end
+  end
+
+  defp validate_timeline_cursor!(cursor) do
+    raise ArgumentError,
+          ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
+  end
+
+  defp timeline_page_next_cursor(entries, page_size) when length(entries) < page_size, do: nil
+
+  defp timeline_page_next_cursor(entries, _page_size) do
+    last = List.last(entries)
+    %{captured_at: last.captured_at, id: last.id}
   end
 
   # --- Private filter pipeline (expects `at` binding from timeline_query) ---
