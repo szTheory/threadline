@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: — awaiting next milestone
-status: shipped
-last_updated: "2026-05-05T20:30:00.000Z"
+milestone: v1.15
+milestone_name: Host Integration Completion
+status: completed
+last_updated: "2026-05-05T20:40:00.000Z"
 last_activity: 2026-05-05
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -18,26 +18,30 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Milestone v1.14 shipped; next work starts with `/gsd-new-milestone`.
+**Current Focus**: Phase 52 shipped; next work is auditing and closing milestone v1.15.
 
 ## Current Position
 
-Phase: —
-Plan: —
-Status: v1.14 is archived and no next milestone is open yet.
+Phase: 52 — Docs and Contract Alignment
+Plan: complete
+Status: Ready to audit and close milestone v1.15
 Last activity: 2026-05-05
 
 ## Performance Metrics
 
-- **Total Phases**: 5 shipped in v1.14 (Phases 44–48)
-- **Phases Completed**: 5
-- **Requirements Covered**: 13/13 validated at close
+- **Total Phases**: 4 planned in v1.15 (Phases 49–52)
+- **Phases Completed**: 3
+- **Requirements Covered**: 6/7 complete for v1.15
 - **Last Milestone**: v1.14 (Shipped 2026-05-05)
 
 ## Accumulated Context
 
 ### Decisions
 
+- 2026-05-05: Open v1.15 as "Host Integration Completion" — formalize the native `Threadline.Plug` host-wiring hook, direct Sigra callback composition, an authenticated incident drill-down baseline, and the doc/test alignment that keeps that adopter story stable.
+- 2026-05-05: Phase 49 locked `Threadline.Plug` context overrides to additive `request_id` / `correlation_id` fills only, kept actor authority on `actor_fn`, and aligned Sigra plus quickstart docs with that contract.
+- 2026-05-05: Continue phase numbering from 48 (no `--reset-phase-numbers`); v1.15 starts at Phase 49.
+- 2026-05-05: Skip fresh milestone research — the scope is already grounded in current in-flight repo work and known post-`0.3.0` adoption gaps.
 - 2026-04-26: Open v1.14 as "Drop-in Production Adopter Slice" — bundle Sigra integration adapter, performance evidence, incident playbook, threadline 0.3.0 release packaging, and SaaS adopter onramp into one strategic milestone aimed at production adoption.
 - 2026-04-26: Promote SEED-001 (Sigra integration adapter) into v1.14 scope — its trigger ("v1.12 ships") has been met since 2026-04-25.
 - 2026-04-26: Continue phase numbering from 43 (no `--reset-phase-numbers`); v1.14 starts at Phase 44.
@@ -56,18 +60,19 @@ Last activity: 2026-05-05
 
 ### Todos
 
-- [ ] Open the next milestone with `/gsd-new-milestone`
+- [ ] Audit and close milestone v1.15 after the remaining dirty-worktree decisions are resolved
+- [ ] Decide whether the current dirty worktree should be snapshotted as the first v1.15 implementation batch before broader execution continues
 - [ ] Decide whether to merge or otherwise retain the isolated clean release candidate commit `4543690` in the mainline history
 - [ ] Push milestone tag `v1.14` and release tag `v0.3.0` when the maintainer is ready
 
 ### Blockers
 
-- No blocker to v1.14 close remains. The main workspace is still dirty, but the clean release verification already ran in the isolated worktree.
+- The main workspace is intentionally dirty, so Phase 52 planning should continue treating the current code changes as in-flight v1.15 work rather than clean-slate implementation.
 
 ## Session Continuity
 
-- **Last Action**: Archived milestone v1.14, reconciled planning state, and recorded the clean release candidate commit `4543690`.
-- **Next Step**: Run `/gsd-new-milestone` when the next product slice is ready.
+- **Last Action**: Executed Phase 52, aligned the adopter-facing docs with the direct Sigra host-wiring plus authenticated incident baseline, and locked that wording with focused contract tests.
+- **Next Step**: Run `/gsd-audit-milestone v1.15` and then `/gsd-complete-milestone` once the remaining dirty-worktree decisions are resolved.
 
 ## Deferred Items
 
