@@ -99,6 +99,10 @@ defmodule Threadline do
   ordered by `captured_at` descending, then `id` descending (same total order as
   `Threadline.Query.audit_changes_for_transaction/2`; see `Threadline.Query.timeline/2`).
 
+  Use `timeline/2` for eager, bounded slices where returning a full list is still
+  the simple path. Use `timeline_page/2` for larger investigation windows where
+  stable keyset traversal matters.
+
   ## Options
 
   - `:table` — string or atom; filters by `table_name`
@@ -114,7 +118,9 @@ defmodule Threadline do
   @doc """
   Returns one explicit keyset page of timeline results without changing `timeline/2`.
 
-  Uses the same filter vocabulary as `timeline/2`. Paging controls live in `opts`:
+  Uses the same filter vocabulary as `timeline/2`, but returns a page struct so
+  large investigation windows can be traversed incrementally while `timeline/2`
+  stays eager for existing callers. Paging controls live in `opts`:
 
   - `:page_size` — positive integer, defaults to `1000`
   - `:cursor` — `%{captured_at: %DateTime{}, id: uuid}` from a prior page's `next_cursor`

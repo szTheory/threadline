@@ -37,6 +37,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "Explicit `x-request-id`, explicit")
     assert String.contains?(doc, "raises `ArgumentError`")
     assert String.contains?(doc, "timeline = Threadline.timeline(filters)")
+    assert String.contains?(doc, "first_page = Threadline.timeline_page(filters, page_size: 100)")
+    assert String.contains?(doc, "`Threadline.timeline_page/2` is the same investigation path")
     assert String.contains?(doc, "Threadline.as_of(MyApp.Post, post_id, as_of_at, repo: MyApp.Repo)")
     assert String.contains?(doc, "requires an authenticated actor before it serves")
     assert String.contains?(doc, "incident drill-down: auth is included")

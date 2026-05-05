@@ -16,6 +16,8 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert String.contains?(doc, "audit_changes_for_transaction")
     assert String.contains?(doc, "change_diff") or String.contains?(doc, "ChangeDiff")
     assert String.contains?(doc, "support-incident-queries")
+    assert String.contains?(doc, "Threadline.timeline_page/2")
+    assert String.contains?(doc, "stable traversal")
 
     {idx_routing, _} = :binary.match(doc, "## Exploration API routing (v1.10+)")
     {idx_support, _} = :binary.match(doc, "## Support incident queries")

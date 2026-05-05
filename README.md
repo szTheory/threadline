@@ -7,7 +7,7 @@
 
 Auditing for Phoenix.
 
-Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
+Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
 
 Use it when you want the audit layer in your app, not a separate event system or a black box.
 
@@ -22,7 +22,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 
 - **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.
 - **Semantics:** actor, intent, correlation, and request context via `Threadline.record_action/2`.
-- **Exploration:** timelines and history with `Threadline.timeline/2` and `Threadline.history/3`.
+- **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.history/3`.
 - **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
 ## Quick Start
@@ -81,9 +81,14 @@ Use it when you want the audit layer in your app, not a separate event system or
     ```elixir
     Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
     Threadline.timeline([table: "posts"], repo: MyApp.Repo)
+    Threadline.timeline_page([table: "posts"], repo: MyApp.Repo, page_size: 200)
     Threadline.export_json([table: "posts"], repo: MyApp.Repo)
     Threadline.as_of(MyApp.Post, post.id, DateTime.utc_now(), repo: MyApp.Repo)
     ```
+
+Use `Threadline.timeline/2` for smaller eager slices. When an investigation window is
+large enough that you want stable incremental traversal, switch to `Threadline.timeline_page/2`
+and continue with the returned `next_cursor` instead of offset pagination.
 
 ## Notes
 

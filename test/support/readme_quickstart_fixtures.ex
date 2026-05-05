@@ -48,4 +48,8 @@ defmodule Threadline.ReadmeQuickstartFixtures do
   def trigger_coverage_call do
     Threadline.Health.trigger_coverage(repo: Threadline.Test.Repo)
   end
+
+  def timeline_page_call(repo) do
+    Threadline.timeline_page([table: "posts"], repo: repo, page_size: 200)
+  end
 end

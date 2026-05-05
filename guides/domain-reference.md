@@ -182,12 +182,12 @@ Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
 
 | Intent | Primary API | Notes / pointer |
 |--------|---------------|-----------------|
-| Single domain row over time | `Threadline.history/3` or `Threadline.Query.timeline/2` | `history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
-| Incident / time window across rows | `Threadline.Query.timeline/2` | Default listing API for bounded windows; bounds apply to `AuditChange.captured_at` (see [subsection 1](#1-row-history-pk-changes-in-a-time-window)). |
-| Correlation-scoped slice | `Threadline.Query.timeline/2`, `Threadline.Export`, `mix threadline.export` | Pass **`:correlation_id`**; timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation — see [subsection 3](#3-correlation-bundle-shared-correlation_id). |
+| Single domain row over time | `Threadline.history/3` or `Threadline.timeline/2` | `history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
+| Incident / time window across rows | `Threadline.timeline/2` or `Threadline.timeline_page/2` | Use eager `timeline/2` for smaller bounded windows. Switch to `timeline_page/2` for large investigations where stable traversal across pages matters; bounds still apply to `AuditChange.captured_at` (see [subsection 1](#1-row-history-pk-changes-in-a-time-window)). |
+| Correlation-scoped slice | `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.Export`, `mix threadline.export` | Pass **`:correlation_id`**; timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation — see [subsection 3](#3-correlation-bundle-shared-correlation_id). |
 | Everything in one DB transaction | `Threadline.Query.audit_changes_for_transaction/2`, `Threadline.audit_changes_for_transaction/2` | **`opts[:repo]`** is required. Ordering matches timeline: **`captured_at`**, then **`id`**, descending. |
 | Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | INSERT/UPDATE/DELETE semantics; `changed_from` may be `nil` — see module docs, not duplicated here. |
-| Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.Query.timeline/2` with **`:actor_ref`** | Pairs with support table row 2; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
+| Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.timeline/2` or `Threadline.timeline_page/2` with **`:actor_ref`** | Pairs with support table row 2; use the paged path when the actor window is too large for one eager list; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
 
 <span id="time-travel-as-of-v120"></span>
 
@@ -233,8 +233,8 @@ Contract marker for automated doc checks: **LOOP-04-SUPPORT-INCIDENT-QUERIES**
 | # | Question | Primary path |
 |---|----------|--------------|
 | 1 | Row history — what changed for this domain row (PK) in the last N days? | `Threadline.history/3` or `Threadline.Query.timeline/2` — SQL: [subsection 1](#1-row-history-pk-changes-in-a-time-window) |
-| 2 | Actor window — what did this actor drive across tables in a time window? | `Threadline.actor_history/2` or `Threadline.Query.timeline/2` with `:actor_ref` — SQL: [subsection 2](#2-actor-window-one-actor-across-tables) |
-| 3 | Correlation bundle — row-level changes and semantic actions sharing a correlation id | `Threadline.Query.timeline/2` / export with `:correlation_id` — SQL: [subsection 3](#3-correlation-bundle-shared-correlation_id) |
+| 2 | Actor window — what did this actor drive across tables in a time window? | `Threadline.actor_history/2` or `Threadline.timeline/2` / `Threadline.timeline_page/2` with `:actor_ref` — SQL: [subsection 2](#2-actor-window-one-actor-across-tables) |
+| 3 | Correlation bundle — row-level changes and semantic actions sharing a correlation id | `Threadline.timeline/2` / `Threadline.timeline_page/2` / export with `:correlation_id` — SQL: [subsection 3](#3-correlation-bundle-shared-correlation_id) |
 | 4 | Export parity — same slice for review and export | `Threadline.Export`, `mix threadline.export` — details: [subsection 4](#4-export-parity-timeline-and-export-filters-agree) |
 | 5 | Action ↔ capture — tie semantic actions to captured mutations | Join `audit_actions` ↔ `audit_transactions` — SQL: [subsection 5](#5-action-and-capture-link-semantic-actions-to-changes) |
 
@@ -242,10 +242,10 @@ Contract marker for automated doc checks: **LOOP-04-SUPPORT-INCIDENT-QUERIES**
 
 | Path | When to use it |
 |------|----------------|
-| **API** | `Threadline.history(MyApp.Schema, id, repo: MyApp.Repo)` returns `AuditChange` structs for one PK; use `Threadline.Query.timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). |
+| **API** | `Threadline.history(MyApp.Schema, id, repo: MyApp.Repo)` returns `AuditChange` structs for one PK; use `Threadline.timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). |
 | **SQL** | Ad-hoc psql / BI — join `audit_changes` to `audit_transactions`, constrain `table_name`, JSON containment on `table_pk`, and **bounded** `captured_at`. |
 
-When **`:from`** / **`:to`** are set on `timeline/2`, bounds apply to **`AuditChange.captured_at`** (inclusive). Prefer **`LIMIT`** in raw SQL during exploration.
+When **`:from`** / **`:to`** are set on `timeline/2` or `timeline_page/2`, bounds apply to **`AuditChange.captured_at`** (inclusive). Prefer **`LIMIT`** in raw SQL during exploration.
 
 **Replace before run:** `your_schema`, `your_table`, PK map, timestamps.
 
@@ -272,7 +272,7 @@ LIMIT 500;
 
 | Path | When to use it |
 |------|----------------|
-| **API** | `Threadline.actor_history/2` lists transactions for one `ActorRef`; combine with `timeline/2` and `:actor_ref` when you need change rows across tables in a window. |
+| **API** | `Threadline.actor_history/2` lists transactions for one `ActorRef`; combine with `Threadline.timeline/2` for smaller windows and `Threadline.timeline_page/2` for large windows when you need change rows across tables. |
 | **SQL** | Filter `audit_transactions.actor_ref` (JSON) or join through capture rows — keep a **time bound** on `at.occurred_at` or `ac.captured_at`. |
 
 **Replace before run:** `your_schema`, actor JSON literal, window bounds.
@@ -296,7 +296,7 @@ LIMIT 500;
 
 | Path | When to use it |
 |------|----------------|
-| **API** | `Threadline.Query.timeline/2`, `Threadline.Export` / `mix threadline.export` with **`:correlation_id`** in the filter list (same key as timeline). |
+| **API** | `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.Export` / `mix threadline.export` with **`:correlation_id`** in the filter list (same key as timeline). |
 | **SQL** | Mirror library semantics with an **inner join** to `audit_actions` on the transaction’s `action_id`. |
 
 **Strict semantics:** when **`:correlation_id`** is set to a non-empty string, **timeline** and **export** return only `audit_changes` whose **`audit_transactions`** row links to an **`audit_actions`** row with that **`correlation_id`** (via `action_id`). Capture rows for transactions **without** that action link **do not** appear — there is no “include orphan capture” mode for this filter. Omit `:correlation_id` entirely to leave correlation out of the filter (export may still `LEFT JOIN` actions for metadata without changing which changes match).

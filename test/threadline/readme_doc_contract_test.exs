@@ -18,6 +18,7 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "Threadline.record_action/2")
     assert String.contains?(readme, "Threadline.history/3")
     assert String.contains?(readme, "Threadline.timeline/2")
+    assert String.contains?(readme, "Threadline.timeline_page/2")
     assert String.contains?(readme, "Threadline.export_json/2")
     assert String.contains?(readme, "Threadline.as_of/4")
   end
@@ -98,6 +99,8 @@ defmodule Threadline.ReadmeDocContractTest do
     assert is_binary(Threadline.ReadmeQuickstartFixtures.jason_encode_actor_example())
 
     assert {:ok, _} = Threadline.ReadmeQuickstartFixtures.record_action_call(Repo)
+    assert %Threadline.Query.TimelinePage{} =
+             Threadline.ReadmeQuickstartFixtures.timeline_page_call(Repo)
 
     cov = Threadline.ReadmeQuickstartFixtures.trigger_coverage_call()
     assert is_list(cov)

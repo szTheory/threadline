@@ -508,6 +508,20 @@ defmodule Threadline.QueryTest do
   end
 
   describe "timeline_page/2" do
+    test "top-level paged API delegates to query layer while timeline/2 stays eager" do
+      tname = "timeline_public_#{System.unique_integer([:positive])}"
+      timeline_page_fixture(tname)
+      filters = [repo: @repo, table: tname]
+
+      public_page = Threadline.timeline_page(filters, page_size: 2)
+      query_page = Threadline.Query.timeline_page(filters, page_size: 2)
+
+      assert public_page == query_page
+      assert match?(%Threadline.Query.TimelinePage{}, public_page)
+      assert is_list(Threadline.timeline(filters))
+      assert Enum.all?(Threadline.timeline(filters), &match?(%AuditChange{}, &1))
+    end
+
     test "rejects non-positive page_size" do
       assert_raise ArgumentError, ~r/:page_size must be a positive integer/, fn ->
         Threadline.timeline_page([repo: @repo], page_size: 0)

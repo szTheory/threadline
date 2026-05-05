@@ -160,6 +160,8 @@ filters = [table: "posts", correlation_id: "demo-corr", repo: MyApp.Repo]
 
 timeline = Threadline.timeline(filters)
 
+first_page = Threadline.timeline_page(filters, page_size: 100)
+
 first_change =
   Threadline.audit_changes_for_transaction(audit_transaction_id, repo: MyApp.Repo)
   |> hd()
@@ -180,6 +182,7 @@ host app.
 That sequence gives you the three first-hour operator questions:
 
 - `Threadline.timeline/2` shows which rows moved in the request.
+- `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
 - `Threadline.change_diff/2` gives a JSON-ready diff for a single captured change.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
 
