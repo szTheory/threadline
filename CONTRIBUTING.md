@@ -116,29 +116,30 @@ Exact labels depend on GitHub’s UI; map them to the job keys above.
 
 ## Hex publish (maintainers)
 
-**Tag-triggered publish:** pushing an annotated SemVer tag matching **`vMAJOR.MINOR.PATCH`** runs [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml). It checks that **`GITHUB_REF_NAME`** (e.g. `v0.1.0`) matches **`@version`** in `mix.exs` (e.g. `0.1.0`), then runs **`mix hex.publish --yes`** with **`HEX_API_KEY`**.
+**Tag-triggered publish:** pushing an annotated SemVer tag matching **`vMAJOR.MINOR.PATCH`** runs [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml). It checks that **`GITHUB_REF_NAME`** (e.g. `v0.3.0`) matches **`@version`** in `mix.exs` (e.g. `0.3.0`), then runs **`mix hex.publish --yes`** with **`HEX_API_KEY`**.
 
 1. Add repository secret **`HEX_API_KEY`** (Hex.pm API key with publish permission for this package).
-2. Ensure **`main`** is green and the release commit has the correct **`@version`** and **`CHANGELOG.md`** section.
-3. Tag and push (no `--force` on refs):
+2. Run `mix verify.release` from a clean working tree to validate the exact tree you are about to tag.
+3. Ensure **`main`** is green and the release commit has the correct **`@version`** and **`CHANGELOG.md`** section.
+4. Tag and push (no `--force` on refs):
 
    ```bash
-   git tag -a v0.1.0 -m "Release v0.1.0"
+   git tag -a v0.3.0 -m "Release v0.3.0"
    git push origin main        # if needed
-   git push origin v0.1.0
+   git push origin v0.3.0
    ```
 
-4. Watch the **Hex publish** workflow on the Actions tab; confirm with **`mix hex.info threadline`** after the registry updates.
+5. Watch the **Hex publish** workflow on the Actions tab; confirm with **`mix hex.info threadline`** after the registry updates.
 
 **Manual runbook (optional):** you can still run **`mix hex.publish --dry-run`** and **`mix hex.publish`** locally with **`mix hex.user auth`** instead of relying on CI.
 
 ## Maintainer manual checklist (release)
 
-Use this when debugging or if Actions publish failed (no secrets in logs):
+Use this when preparing or debugging the `v0.3.0` release (no secrets in logs):
 
 1. Clean tree: `git status --porcelain` empty.
-2. `bin/verify-release-shape` passes.
-3. `DB_PORT=5433 mix ci.all` (or `mix ci.all`) passes with Postgres up.
-4. `MIX_ENV=dev mix docs` and `mix hex.build` succeed.
-5. `mix hex.publish --dry-run` (local) or rely on CI after **`HEX_API_KEY`** is set.
-6. Tag → push branch (if needed) → push tag → verify **`hex-publish`** workflow → **`mix hex.info threadline`**.
+2. Run `mix verify.release`.
+3. Run `DB_PORT=5433 mix ci.all` (or `mix ci.all`) with Postgres up for the broader contributor gate.
+4. wait for green CI on `main` before tagging.
+5. Tag `v0.3.0` so it matches `@version "0.3.0"` in `mix.exs`, then push the branch (if needed) and the tag.
+6. Verify the **Hex publish** workflow and confirm with `mix hex.info threadline` after the registry updates.

@@ -1,6 +1,8 @@
 {
-  "timestamp": "2026-05-02T15:03:03.122880Z",
+  "timestamp": "2026-05-05T16:40:39.144082Z",
+  "otp_release": "28",
   "elixir_version": "1.19.5",
   "preset": "cold_single_table",
-  "commit_sha": "daaf4a8476f9078ec996580bb7569819b93f9414"
+  "postgres_version": "14.17 (Homebrew)",
+  "commit_sha": "26977a44c2e823b3ff05a1be06a820095bdb3a44"
 }

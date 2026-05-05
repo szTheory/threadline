@@ -1,7 +1,7 @@
 defmodule Threadline.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @source_url "https://github.com/szTheory/threadline"
 
   def cli do
@@ -10,6 +10,7 @@ defmodule Threadline.MixProject do
     [
       preferred_envs: [
         "ci.all": :test,
+        "verify.release": :dev,
         "verify.test": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
@@ -65,6 +66,7 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
+      "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
       "verify.bench": &verify_bench/1,
@@ -90,6 +92,18 @@ defmodule Threadline.MixProject do
     end
   end
 
+  defp verify_release(_args) do
+    ensure_clean_tree!()
+
+    [
+      "bin/verify-release-shape",
+      "mix test test/threadline/release_artifact_contract_test.exs test/threadline/ci_topology_contract_test.exs",
+      "MIX_ENV=dev mix docs",
+      "mix hex.build"
+    ]
+    |> Enum.each(&run_release_step!/1)
+  end
+
   defp verify_example(_args) do
     # Decline interactive Hex re-auth when nested `mix deps.get` runs without cached Hex token.
     cmd =
@@ -98,6 +112,27 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
       0 -> :ok
       status -> Mix.raise("verify.example failed (#{status})")
+    end
+  end
+
+  defp ensure_clean_tree! do
+    case Mix.shell().cmd("git diff --quiet HEAD --") do
+      0 ->
+        :ok
+
+      _ ->
+        Mix.raise(
+          "verify.release requires a clean working tree so the validated artifact matches the taggable tree"
+        )
+    end
+  end
+
+  defp run_release_step!(command) do
+    cmd = "bash -lc 'set -euo pipefail && #{command}'"
+
+    case Mix.shell().cmd(cmd) do
+      0 -> :ok
+      status -> Mix.raise("verify.release failed while running #{command} (#{status})")
     end
   end
 
@@ -130,6 +165,7 @@ defmodule Threadline.MixProject do
         "guides/domain-reference.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
+        "guides/incident-playbook.md",
         "guides/getting-started-saas.md",
         "guides/adoption-pilot-backlog.md",
         "guides/audit-indexing.md",
@@ -139,6 +175,7 @@ defmodule Threadline.MixProject do
       ],
       groups_for_extras: [
         Overview: ~r/README/,
+        Integrations: ~r{^guides/integrations/},
         Reference: ~r{^guides/},
         Project: ~r/(CONTRIBUTING|CHANGELOG)/
       ],
@@ -156,7 +193,9 @@ defmodule Threadline.MixProject do
           Threadline.Job,
           Threadline.Health,
           Threadline.Continuity,
-          Threadline.Telemetry,
+          Threadline.Telemetry
+        ],
+        Integrations: [
           Threadline.Integrations.Sigra
         ],
         Schemas: [

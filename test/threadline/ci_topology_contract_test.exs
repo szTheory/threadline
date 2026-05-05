@@ -22,13 +22,24 @@ defmodule Threadline.CiTopologyContractTest do
 
   test "ci.all alias does not include verify.bench" do
     mix_exs = read_rel!(["mix.exs"])
-    
+
     assert mix_exs =~ "\"ci.all\": ["
-    
+
     [_, ci_all_block] = String.split(mix_exs, "\"ci.all\": [")
     [ci_all_list | _] = String.split(ci_all_block, "]")
-    
+
     refute String.contains?(ci_all_list, "\"verify.bench\"")
+  end
+
+  test "ci.all alias does not include verify.release" do
+    mix_exs = read_rel!(["mix.exs"])
+
+    assert mix_exs =~ "\"ci.all\": ["
+
+    [_, ci_all_block] = String.split(mix_exs, "\"ci.all\": [")
+    [ci_all_list | _] = String.split(ci_all_block, "]")
+
+    refute String.contains?(ci_all_list, "\"verify.release\"")
   end
 
   test "adoption pilot backlog carries CI topology contract marker" do

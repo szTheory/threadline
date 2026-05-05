@@ -1,0 +1,72 @@
+defmodule Threadline.ReleaseArtifactContractTest do
+  @moduledoc false
+  use ExUnit.Case, async: true
+
+  defp project_config, do: Threadline.MixProject.project()
+
+  defp docs_config, do: project_config()[:docs]
+
+  defp package_files, do: MapSet.new(project_config()[:package][:files])
+
+  defp guide_extras do
+    docs_config()[:extras]
+    |> Enum.filter(&String.starts_with?(&1, "guides/"))
+    |> MapSet.new()
+  end
+
+  defp guides_on_disk do
+    Path.wildcard("guides/**/*.md")
+    |> MapSet.new()
+  end
+
+  test "guides on disk match the ExDoc guide extras allowlist" do
+    assert guide_extras() == guides_on_disk()
+  end
+
+  test "release package includes the shipped documentation surfaces" do
+    files = package_files()
+    extras = docs_config()[:extras]
+
+    assert "guides" in files
+    assert "README.md" in files
+    assert "CHANGELOG.md" in files
+    assert "CONTRIBUTING.md" in files
+    assert "README.md" in extras
+    assert "CONTRIBUTING.md" in extras
+    assert "CHANGELOG.md" in extras
+  end
+
+  test "ExDoc extras keep integrations ahead of the general reference bucket" do
+    assert Keyword.keys(docs_config()[:groups_for_extras]) == [:Overview, :Integrations, :Reference, :Project]
+  end
+
+  test "ExDoc module groups keep Sigra in a dedicated integrations bucket" do
+    groups = docs_config()[:groups_for_modules]
+
+    assert Keyword.fetch!(groups, :Integrations) == [Threadline.Integrations.Sigra]
+
+    assert Keyword.fetch!(groups, :Integration) == [
+             Threadline.Plug,
+             Threadline.Job,
+             Threadline.Health,
+             Threadline.Continuity,
+             Threadline.Telemetry
+           ]
+  end
+
+  test "README carries only the release-scoped installer and routing literals" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(readme, "{:threadline, \"~> 0.3\"}")
+    assert String.contains?(readme, "guides/getting-started-saas.md")
+    assert String.contains?(readme, "guides/integrations/sigra.md")
+  end
+
+  test "CONTRIBUTING carries the release pre-flight and tagging literals" do
+    doc = File.read!("CONTRIBUTING.md")
+
+    assert String.contains?(doc, "mix verify.release")
+    assert String.contains?(doc, "wait for green CI on `main` before tagging")
+    assert String.contains?(doc, "v0.3.0")
+  end
+end

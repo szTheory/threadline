@@ -42,3 +42,4 @@ coverage/
 tmp/
 /bench/_build/
 /bench/deps/
+/bench/results/*.json

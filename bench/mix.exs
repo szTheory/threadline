@@ -19,7 +19,7 @@ defmodule Bench.MixProject do
 
   defp deps do
     [
-      {:threadline, path: ".."},
+      {:threadline, path: "..", env: :test},
       {:benchee, "~> 1.3"},
       {:benchee_html, "~> 1.0"},
       {:benchee_markdown, "~> 0.3"},

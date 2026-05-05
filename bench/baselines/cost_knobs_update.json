@@ -1,57 +1,63 @@
 [
   {
-    "Execution Time": 3.442,
+    "Execution Time": 0.036,
     "Plan": {
       "Actual Loops": 1,
       "Actual Rows": 0,
-      "Actual Startup Time": 0.409,
-      "Actual Total Time": 0.409,
-      "Alias": "bench_capture_target",
+      "Actual Startup Time": 0.014,
+      "Actual Total Time": 0.014,
+      "Alias": "bench_both",
       "Async Capable": false,
       "Local Dirtied Blocks": 0,
       "Local Hit Blocks": 0,
       "Local Read Blocks": 0,
       "Local Written Blocks": 0,
       "Node Type": "ModifyTable",
-      "Operation": "Insert",
+      "Operation": "Update",
       "Parallel Aware": false,
       "Plan Rows": 0,
       "Plan Width": 0,
       "Plans": [
         {
           "Actual Loops": 1,
-          "Actual Rows": 1,
-          "Actual Startup Time": 0.056,
-          "Actual Total Time": 0.057,
+          "Actual Rows": 0,
+          "Actual Startup Time": 0.013,
+          "Actual Total Time": 0.013,
+          "Alias": "bench_both",
           "Async Capable": false,
+          "Index Cond": "(id = 1)",
+          "Index Name": "bench_both_pkey",
           "Local Dirtied Blocks": 0,
           "Local Hit Blocks": 0,
           "Local Read Blocks": 0,
           "Local Written Blocks": 0,
-          "Node Type": "Result",
+          "Node Type": "Index Scan",
           "Parallel Aware": false,
           "Parent Relationship": "Outer",
           "Plan Rows": 1,
-          "Plan Width": 60,
+          "Plan Width": 42,
+          "Relation Name": "bench_both",
+          "Rows Removed by Index Recheck": 0,
+          "Scan Direction": "Forward",
           "Shared Dirtied Blocks": 0,
-          "Shared Hit Blocks": 12,
+          "Shared Hit Blocks": 5,
           "Shared Read Blocks": 0,
           "Shared Written Blocks": 0,
-          "Startup Cost": 0.0,
+          "Startup Cost": 0.15,
           "Temp Read Blocks": 0,
           "Temp Written Blocks": 0,
-          "Total Cost": 0.02
+          "Total Cost": 8.17
         }
       ],
-      "Relation Name": "bench_capture_target",
-      "Shared Dirtied Blocks": 3,
-      "Shared Hit Blocks": 26,
-      "Shared Read Blocks": 1,
-      "Shared Written Blocks": 2,
-      "Startup Cost": 0.0,
+      "Relation Name": "bench_both",
+      "Shared Dirtied Blocks": 0,
+      "Shared Hit Blocks": 5,
+      "Shared Read Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Startup Cost": 0.15,
       "Temp Read Blocks": 0,
       "Temp Written Blocks": 0,
-      "Total Cost": 0.02
+      "Total Cost": 8.17
     },
     "Planning": {
       "Local Dirtied Blocks": 0,
@@ -59,20 +65,13 @@
       "Local Read Blocks": 0,
       "Local Written Blocks": 0,
       "Shared Dirtied Blocks": 0,
-      "Shared Hit Blocks": 3,
-      "Shared Read Blocks": 0,
+      "Shared Hit Blocks": 28,
+      "Shared Read Blocks": 1,
       "Shared Written Blocks": 0,
       "Temp Read Blocks": 0,
       "Temp Written Blocks": 0
     },
-    "Planning Time": 0.055,
-    "Triggers": [
-      {
-        "Calls": 1,
-        "Relation": "bench_capture_target",
-        "Time": 2.995,
-        "Trigger Name": "threadline_audit_bench_capture_target"
-      }
-    ]
+    "Planning Time": 0.303,
+    "Triggers": []
   }
 ]

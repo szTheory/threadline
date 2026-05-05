@@ -27,6 +27,15 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/domain-reference.md")
   end
 
+  test "README links the public docs hubs for adopters and operators" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(readme, "guides/getting-started-saas.md")
+    assert String.contains?(readme, "guides/integrations/sigra.md")
+    assert String.contains?(readme, "guides/performance.md")
+    assert String.contains?(readme, "guides/incident-playbook.md")
+  end
+
   test "README links production checklist guide" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "guides/production-checklist.md")
@@ -40,7 +49,11 @@ defmodule Threadline.ReadmeDocContractTest do
   test "examples README indexes Phoenix reference app" do
     doc = File.read!("examples/README.md")
 
-    assert String.contains?(doc, "The canonical Phoenix reference integration lives at **`examples/threadline_phoenix/`**.")
+    assert String.contains?(
+             doc,
+             "The canonical Phoenix reference integration lives at **`examples/threadline_phoenix/`**."
+           )
+
     assert String.contains?(doc, "[`threadline_phoenix/README.md`](threadline_phoenix/README.md)")
   end
 
@@ -49,6 +62,7 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert String.contains?(doc, "mix threadline.install")
     assert String.contains?(doc, "mix threadline.gen.triggers")
+
     assert String.contains?(doc, "mix phx.server") or
              String.contains?(doc, "iex -S mix phx.server")
 

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Benchee Report</title>
+  <meta charset="utf-8">
+  <meta http-equiv="content-type" content="text/html; charset=utf8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+    <link rel="stylesheet" type="text/css" href="assets/stylesheets/benchee.css">
+    <link rel="stylesheet" type="text/css" href="assets/fontello/css/fontello.css">
+  
+</head>
+
+  <body>
+
+    <div class="header">
+  <h1>benchee report</h1>
+  
+
+  <span class="version-note">
+  <a href="javascript:toggleSystemDataInfo();" title="Click to toggle system info">System info</a>
+</span>
+
+</div>
+
+
+    <article id="system-info" class="benchee-systeminfo" >
+  <h3>System info</h3>
+  <ul class="benchee-systeminfo-list">
+    <li>Elixir: 1.19.5</li>
+    <li>Erlang: 28.4.1</li>
+    <li>Operating system: macOS</li>
+    <li>Available memory: 16 GB</li>
+    <li>CPU Information: Apple M2</li>
+    <li>Number of Available Cores: 8</li>
+  </ul>
+</article>
+
+
+    
+      <article>
+        <h2>
+          <a name="run_time" href="#run_time">timeline_unfiltered Run Time</a>
+          <a href="https://github.com/PragTob/benchee_html/wiki/Chart-Types#individual">
+            <i
+              class="benchee-help-icon icon-question-circle-o"
+              title="Graphs showing the individual run time distribution for timeline_unfiltered.
+  Run Times Histogram shows the distribution of occurrences of specific run times in buckets.
+  Raw Run Times shows all individual recorded run times in the order they were recorded in."
+            ></i>
+          </a>
+        </h2>
+
+        <section>
+          <table>
+  <thead>
+    <tr>
+      <th class="text-left">Name</th>
+      
+        <th>Iterations per Second</th>
+      
+      <th>Average</th>
+      <th>Deviation</th>
+      <th>Median</th>
+      <th>Mode</th>
+      <th>Minimum</th>
+      <th>Maximum</th>
+      <th>Sample size</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+      
+      <tr>
+        
+          <td class="text-left">timeline_unfiltered</td>
+        
+        
+          <td>1.26</td>
+          <td>794.48 ms</td>
+          <td>±16.66%</td>
+          <td>827.92 ms</td>
+          <td>none</td>
+          <td>648.62 ms</td>
+          <td>906.90 ms</td>
+        
+        <td>3</td>
+      </tr>
+    
+  </tbody>
+</table>
+
+        </section>
+
+        <section class="benchee-plot-container">
+          <div id="run-times-histogram" class="plot"></div>
+        </section>
+        <section class="benchee-plot-container">
+          <div id="raw-run-times" class="plot"></div>
+        </section>
+      </article>
+    
+
+    
+
+    <footer>
+      <a href="https://github.com/PragTob/benchee" target="blank">benchee version: 1.5.0 </a>
+<br/>
+<a href="https://github.com/PragTob/benchee_html" target="blank">benchee_html version: 1.0.1</a>
+
+
+    </footer>
+
+    
+  <script src="assets/javascripts/plotly-2.27.0.min.js"></script>
+  <script src="assets/javascripts/benchee.js"></script>
+
+
+
+    <script>
+      var scenario = {"name":"timeline_unfiltered","job_name":"timeline_unfiltered","input_name":"__no_input","run_time_data":{"statistics":{"maximum":906899708,"mode":null,"average":794479430.3333334,"median":827919458.0,"percentiles":{"25":648619125.0,"50":827919458.0,"75":906899708.0,"99":906899708.0},"minimum":648619125,"lower_outlier_bound":261198250.5,"upper_outlier_bound":1294320582.5,"outliers":[],"sample_size":3,"std_dev":132347616.05886804,"ips":1.258685828505891,"std_dev_ratio":0.16658406876983586,"relative_more":117.70864162712057,"absolute_difference":787729888.2491583,"relative_less":0.008495552970255293,"std_dev_ips":0.2096770066154432},"samples":[648619125,827919458,906899708]},"memory_usage_data":{"statistics":{"maximum":null,"mode":null,"average":null,"median":null,"percentiles":null,"minimum":null,"lower_outlier_bound":null,"upper_outlier_bound":null,"outliers":null,"sample_size":0,"std_dev":null,"ips":null,"std_dev_ratio":null,"relative_more":null,"absolute_difference":null,"relative_less":null,"std_dev_ips":null},"samples":[]},"tag":null};
+
+      var inputHeadline = ""
+
+      
+        drawRunTimeHistogram(scenario, inputHeadline);
+        drawRawRunTimeChart(scenario, inputHeadline);
+      
+
+      
+    </script>
+  </body>
+</html>

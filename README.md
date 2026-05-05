@@ -3,6 +3,7 @@
 [![CI](https://github.com/szTheory/threadline/actions/workflows/ci.yml/badge.svg)](https://github.com/szTheory/threadline/actions/workflows/ci.yml)
 [![Hex.pm](https://img.shields.io/hexpm/v/threadline.svg)](https://hex.pm/packages/threadline)
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
+**CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions).
 
 Auditing for Phoenix.
 
@@ -13,7 +14,8 @@ Use it when you want the audit layer in your app, not a separate event system or
 ## Start here
 
 - **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
-- **Integrating:** read [Quick Start](#quick-start) and then [guides/domain-reference.md](guides/domain-reference.md).
+- **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md).
+- **Using Sigra:** read [guides/integrations/sigra.md](guides/integrations/sigra.md).
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
 ## What you get
@@ -30,7 +32,7 @@ Use it when you want the audit layer in your app, not a separate event system or
    ```elixir
    def deps do
      [
-       {:threadline, "~> 0.2"}
+       {:threadline, "~> 0.3"}
      ]
    end
    ```
@@ -87,12 +89,17 @@ Use it when you want the audit layer in your app, not a separate event system or
 
 - Threadline works with PgBouncer transaction pooling.
 - Redaction, retention, export, and continuity live in the guides and HexDocs.
+- Next operator reads after the first install are [guides/performance.md](guides/performance.md) and [guides/incident-playbook.md](guides/incident-playbook.md).
 
 ## Documentation
 
 - [HexDocs](https://hexdocs.pm/threadline)
+- [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
+- [Sigra integration](guides/integrations/sigra.md)
 - [Domain reference](guides/domain-reference.md)
 - [Brownfield continuity](guides/brownfield-continuity.md)
+- [Performance](guides/performance.md)
+- [Incident playbook](guides/incident-playbook.md)
 - [Production checklist](guides/production-checklist.md)
 - [Adoption pilot backlog](guides/adoption-pilot-backlog.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
