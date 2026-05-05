@@ -8,14 +8,24 @@ defmodule Threadline.Plug do
       # In a Phoenix router pipeline or endpoint:
       plug Threadline.Plug
 
-      # With actor extraction (recommended):
+      # With actor extraction:
       plug Threadline.Plug, actor_fn: &MyApp.Auth.to_actor_ref/1
+
+      # With additive request-context overrides:
+      plug Threadline.Plug,
+        actor_fn: &MyApp.Auth.to_actor_ref/1,
+        context_overrides_fn: &MyApp.Auth.audit_context_overrides/1
 
   ## Options
 
   - `:actor_fn` — a function `(Plug.Conn.t() -> ActorRef.t() | nil)` that
     extracts the current actor from the conn. Called during `call/2`. If omitted,
     `audit_context.actor_ref` will be nil.
+  - `:context_overrides_fn` — a function `(Plug.Conn.t() -> map())` that returns
+    additive `:request_id` and `:correlation_id` values only. `Threadline.Plug`
+    derives those values from headers and conn state first; this callback can only
+    fill missing values and cannot replace actor identity or `remote_ip`. Unknown
+    keys and non-map returns raise `ArgumentError`.
 
   ## What is extracted
 
@@ -24,6 +34,12 @@ defmodule Threadline.Plug do
     then nil
   - `correlation_id` — from `x-correlation-id` header, or nil
   - `remote_ip` — from `conn.remote_ip`, formatted as a dotted-decimal string
+
+  When `:context_overrides_fn` is configured, its return value is merged after
+  baseline extraction. Explicit header or conn-derived `request_id` and
+  `correlation_id` values always win; override values only fill missing fields.
+  Hosts that need proxy-aware IP handling should normalize `conn.remote_ip`
+  upstream before `Threadline.Plug` runs.
 
   ## PgBouncer note
 
@@ -55,21 +71,26 @@ defmodule Threadline.Plug do
 
   alias Threadline.Semantics.AuditContext
 
+  @allowed_override_keys [:request_id, :correlation_id]
+
   @impl Plug
   def init(opts) do
     %{
-      actor_fn: Keyword.get(opts, :actor_fn)
+      actor_fn: Keyword.get(opts, :actor_fn),
+      context_overrides_fn: Keyword.get(opts, :context_overrides_fn)
     }
   end
 
   @impl Plug
-  def call(conn, %{actor_fn: actor_fn}) do
-    context = %AuditContext{
-      actor_ref: extract_actor(conn, actor_fn),
-      request_id: extract_request_id(conn),
-      correlation_id: get_req_header(conn, "x-correlation-id") |> List.first(),
-      remote_ip: format_ip(conn.remote_ip)
-    }
+  def call(conn, %{actor_fn: actor_fn, context_overrides_fn: context_overrides_fn}) do
+    context =
+      %AuditContext{
+        actor_ref: extract_actor(conn, actor_fn),
+        request_id: extract_request_id(conn),
+        correlation_id: get_req_header(conn, "x-correlation-id") |> List.first(),
+        remote_ip: format_ip(conn.remote_ip)
+      }
+      |> apply_context_overrides(conn, context_overrides_fn)
 
     assign(conn, :audit_context, context)
   end
@@ -91,4 +112,43 @@ defmodule Threadline.Plug do
   end
 
   defp format_ip(ip) when is_binary(ip), do: ip
+
+  defp apply_context_overrides(context, _conn, nil), do: context
+
+  defp apply_context_overrides(context, conn, fun) when is_function(fun, 1) do
+    overrides = fun.(conn)
+    validate_context_overrides!(overrides)
+
+    Enum.reduce(overrides, context, fn
+      {_key, nil}, acc ->
+        acc
+
+      {key, value}, acc ->
+        maybe_put_override(acc, key, value)
+    end)
+  end
+
+  defp maybe_put_override(context, key, value) do
+    if Map.get(context, key) == nil do
+      Map.put(context, key, value)
+    else
+      context
+    end
+  end
+
+  defp validate_context_overrides!(overrides) when is_map(overrides) do
+    case Map.keys(overrides) -- @allowed_override_keys do
+      [] ->
+        :ok
+
+      unknown_keys ->
+        raise ArgumentError,
+              "unknown audit context override keys: #{inspect(unknown_keys)}; expected a subset of #{inspect(@allowed_override_keys)}"
+    end
+  end
+
+  defp validate_context_overrides!(other) do
+    raise ArgumentError,
+          "context_overrides_fn must return a map, got: #{inspect(other)}"
+  end
 end

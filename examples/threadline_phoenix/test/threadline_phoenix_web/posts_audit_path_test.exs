@@ -11,6 +11,7 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
 
     conn =
       build_conn()
+      |> sigra_conn(%{user_id: "phase-44-user", session_id: "phase-44-session"})
       |> put_req_header("content-type", "application/json")
       |> put_req_header("x-request-id", "phase-23-req")
       |> put_req_header("x-correlation-id", "phase-23-corr")
@@ -19,11 +20,13 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
     assert response(conn, 201)
     assert conn.resp_body =~ slug
 
+    post = Repo.get_by!(ThreadlinePhoenix.Post, slug: slug)
+
     rows =
       Repo.all(
         from(ac in AuditChange,
           join: at in assoc(ac, :transaction),
-          where: ac.table_name == "posts",
+          where: ac.table_name == "posts" and fragment("?->>'id' = ?", ac.table_pk, ^to_string(post.id)),
           select: {ac, at}
         )
       )
@@ -33,8 +36,8 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
     assert ac.transaction_id == at.id
 
     assert %Threadline.Semantics.ActorRef{
-             type: :service_account,
-             id: "threadline-phoenix-example"
+             type: :user,
+             id: "phase-44-user"
            } =
              at.actor_ref
   end

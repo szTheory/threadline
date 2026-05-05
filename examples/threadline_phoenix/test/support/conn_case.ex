@@ -35,4 +35,36 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
     ThreadlinePhoenix.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  def sigra_conn(conn, attrs \\ %{}) do
+    user_id = Map.get(attrs, :user_id, "example-user-1")
+    session_id = Map.get(attrs, :session_id, "sigra-session-1")
+    org_id = Map.get(attrs, :active_organization_id)
+    auth_method = Map.get(attrs, :auth_method)
+    token_id = Map.get(attrs, :token_id)
+
+    scope =
+      %{
+        user: %{id: user_id},
+        active_organization_id: org_id
+      }
+      |> maybe_put(:auth_method, auth_method)
+      |> maybe_put(:token_id, token_id)
+      |> maybe_put(:id, Map.get(attrs, :scope_id))
+      |> maybe_put(:impersonating_from, Map.get(attrs, :impersonating_from))
+
+    session =
+      %Sigra.Session{
+        id: session_id,
+        user_id: user_id,
+        active_organization_id: org_id
+      }
+
+    conn
+    |> Plug.Conn.assign(:current_scope, scope)
+    |> then(&%{&1 | private: Map.put(&1.private, :sigra_session, session)})
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

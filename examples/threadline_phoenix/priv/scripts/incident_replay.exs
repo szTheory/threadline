@@ -105,8 +105,7 @@ defmodule IncidentReplay do
     |> Ecto.Changeset.change(%{title: "Batch Post", slug: "batch-#{System.unique_integer([:positive])}"})
     |> Repo.insert!()
     
-    # Actually Threadline doesn't have changes_by_actor by default, we just get history for this run
-    # For now let's just use Ecto directly to fetch the transactions
+    # Count the transactions directly for this disposable replay scenario.
     changes = Ecto.Adapters.SQL.query!(Repo, "SELECT * FROM audit_transactions WHERE actor_ref->>'id' = $1", [service_account_id])
     
     IO.puts(format_json(:success, "Scenario completed", incident: "service-account-today", changes_count: changes.num_rows))

@@ -8,6 +8,7 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
 
     conn =
       build_conn()
+      |> sigra_conn(%{user_id: "incident-user-1", session_id: "incident-session-1"})
       |> put_req_header("content-type", "application/json")
       |> put_req_header("x-request-id", "comp-req")
       |> put_req_header("x-correlation-id", "comp-corr")
@@ -21,6 +22,7 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
 
     conn2 =
       build_conn()
+      |> sigra_conn(%{user_id: "incident-user-1", session_id: "incident-session-1"})
       |> get(~p"/api/audit_transactions/#{atid}/changes")
 
     assert response(conn2, 200)
@@ -34,5 +36,30 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
     assert is_map(first["change_diff"])
     assert first["change_diff"]["schema_version"] == 1
     assert first["change_diff"]["op"] == "INSERT"
+  end
+
+  test "GET /api/audit_transactions/:id/changes rejects anonymous requests" do
+    conn =
+      build_conn()
+      |> get(~p"/api/audit_transactions/#{Ecto.UUID.generate()}/changes")
+
+    assert response(conn, 401)
+
+    assert Jason.decode!(conn.resp_body) == %{
+             "errors" => %{"detail" => "authentication required for incident drill-down"}
+           }
+  end
+
+  test "GET /api/audit_transactions/:id/changes keeps malformed ids as 400 for authenticated callers" do
+    conn =
+      build_conn()
+      |> sigra_conn(%{user_id: "incident-user-2", session_id: "incident-session-2"})
+      |> get(~p"/api/audit_transactions/not-a-uuid/changes")
+
+    assert response(conn, 400)
+
+    assert Jason.decode!(conn.resp_body) == %{
+             "errors" => %{"detail" => "invalid audit transaction id"}
+           }
   end
 end
