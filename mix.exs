@@ -10,6 +10,7 @@ defmodule Threadline.MixProject do
     [
       preferred_envs: [
         "ci.all": :test,
+        "verify.test": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
         "verify.example": :test

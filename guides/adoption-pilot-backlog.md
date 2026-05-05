@@ -44,6 +44,19 @@ Normative rules (STG-03 alignment):
 - **Issue** marks a known gap or flakiness; note owner or next step when tracked in-repo.
 - Label **CI-class** vs **host-class** evidence where a reader could confuse **`verify-pgbouncer-topology`** / `mix verify.threadline` with **your** HTTP or job paths.
 
+<!-- ADOPT-EXAMPLE-DISCLAIMER -->
+This maintainer-walked example is fictional and CI-scoped. It shows how to fill the matrix honestly with in-repo evidence only; it is not a claim about a third-party staging host, a live customer deployment, or an endorsement of any external service.
+
+### Example: ExampleCloud walkthrough (maintainer-walked)
+
+Fictional host summary: `ExampleCloud` runs a Phoenix API against PostgreSQL through `GenericPooler` in transaction mode. The maintainer can only claim CI-class proof from this repository, so the rows below stay narrow about what is actually evidenced.
+
+| Path | Kind (HTTP \| job) | Status (OK \| Issue \| N/A \| Not run) | Evidence / pointer | Notes (N/A justification if N/A) |
+|------|-------------------|----------------------------------------|---------------------|----------------------------------|
+| `POST /api/posts` | HTTP | OK | `mix test test/threadline/getting_started_saas_doc_contract_test.exs`; `test/threadline/getting_started_saas_doc_contract_test.exs`; `examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs` | CI-class proof only: request wiring, actor bridge, and first audited write are locked by in-repo tests and guide snippets. |
+| `GET /api/audit_transactions/:id/changes` | HTTP | Issue | `guides/getting-started-saas.md`; `guides/incident-playbook.md`; `examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs` | Response shape is covered in repo, but a host team still needs app-specific authorization and tenancy review before calling this production-ready. |
+| `Post title refresh worker` | job | N/A | `examples/threadline_phoenix/lib/threadline_phoenix/blog.ex` | `ExampleCloud` has not adopted a background worker yet, so the job path is intentionally out of scope for this first-hour walkthrough. |
+
 **CI-PGBOUNCER-TOPOLOGY-CONTRACT:** GitHub Actions job **`verify-pgbouncer-topology`** runs **`priv/ci/topology_bootstrap.exs`** on direct Postgres, then **`mix verify.topology`** + **`mix verify.threadline`** with **`THREADLINE_PGBOUNCER_TOPOLOGY=1`** against **PgBouncer `POOL_MODE=transaction`** (`edoburu/pgbouncer` image). Doc contract: `test/threadline/ci_topology_contract_test.exs`. Local parity: [CONTRIBUTING.md](../CONTRIBUTING.md#pgbouncer-topology-ci-parity) + `docker-compose.yml`.
 
 | Question | Answer | Matches prod? |
