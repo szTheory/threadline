@@ -1,7 +1,6 @@
 {
   "mode": "yolo",
   "parallelization": true,
-  "depth": "quick",
   "workflow": {
     "research": true,
     "plan_checker": true,
@@ -25,5 +24,6 @@
       "scope_cut"
     ]
   },
-  "model_profile": "balanced"
+  "model_profile": "balanced",
+  "granularity": "coarse"
 }

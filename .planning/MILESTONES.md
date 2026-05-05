@@ -2,6 +2,29 @@
 
 Entries are newest first.
 
+## v1.15 — Host Integration Completion (shipped 2026-05-05)
+
+**Goal:** Close the remaining Phoenix host-integration seams by shipping native request-context overrides in `Threadline.Plug`, direct Sigra callback wiring, an authenticated incident drill-down reference path, and one contract-tested public docs story across all adopter entry points.
+
+**Phases completed:** **49–52** (4 phases; 8 plans with `SUMMARY.md`; per-phase `VERIFICATION.md`; consolidated `v1.15-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Shipped native `Threadline.Plug` `:context_overrides_fn` support with additive-only `request_id` / `correlation_id` semantics, deterministic invalid-shape failures, and focused code/doc coverage (**PLUG-01/02**, Phase **49**).
+- Shipped the direct `Threadline.Integrations.Sigra` callback pair as the canonical host path, removed the example-only delegate seam, and proved the router-path correlation fallback in tests (**SIGRA-04/05**, Phase **50**).
+- Secured the example incident drill-down endpoint behind an authenticated baseline while preserving the established success and malformed-id contracts for authenticated callers (**INCIDENT-03/04**, Phase **51**).
+- Aligned the quickstart, Sigra guide, README, domain reference, incident playbook, and adoption backlog on the same host-wiring story, then locked that wording with focused doc-contract suites (**ADOPT-03**, Phase **52**).
+
+**Stats:** 4 phases, 8 plans, 7/7 requirements complete at close. Milestone window: **2026-05-05 → 2026-05-05**. Git range from **`v1.14`** tag **`da446e1`** through the v1.15 closeout tree touched **123 files** with **11502 insertions / 1231 deletions**.
+
+**Archives:** `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-MILESTONE-AUDIT.md`, `.planning/milestones/v1.15-phases/`.
+
+**Known gaps at close:** Milestone audit **passed** with 0 requirement, integration, or end-to-end flow gaps. The open-artifact audit still flagged **`SEED-001-sigra-integration-adapter`**, but that seed had already been promoted into v1.14 and was acknowledged as stale bookkeeping rather than live scope.
+
+**What is next:** **`/gsd-new-milestone`** — define the next requirement set and roadmap slice on a fresh planning surface.
+
+---
+
 ## v1.14 — Drop-in Production Adopter Slice (shipped 2026-05-05)
 
 **Goal:** Make Threadline materially drop-in for production adopters by closing Sigra actor-mapping, publishing reproducible performance baselines, shipping a copy-pasteable incident playbook plus replay tooling, providing a first-hour SaaS quickstart, and packaging the result as the `0.3.0` release surface.

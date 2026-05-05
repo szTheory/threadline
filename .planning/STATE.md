@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.15
-milestone_name: Host Integration Completion
-status: completed
-last_updated: "2026-05-05T20:40:00.000Z"
+milestone: none
+milestone_name: — awaiting next milestone
+status: shipped
+last_updated: "2026-05-05T21:30:00.000Z"
 last_activity: 2026-05-05
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,21 +18,21 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Phase 52 shipped; next work is auditing and closing milestone v1.15.
+**Current Focus**: Milestone v1.15 shipped; next work starts with `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 52 — Docs and Contract Alignment
-Plan: complete
-Status: Ready to audit and close milestone v1.15
+Phase: —
+Plan: —
+Status: v1.15 is archived and no next milestone is open yet.
 Last activity: 2026-05-05
 
 ## Performance Metrics
 
-- **Total Phases**: 4 planned in v1.15 (Phases 49–52)
+- **Total Phases**: 4 shipped in v1.15 (Phases 49-52)
 - **Phases Completed**: 4
-- **Requirements Covered**: 7/7 complete for v1.15
-- **Last Milestone**: v1.14 (Shipped 2026-05-05)
+- **Requirements Covered**: 7/7 validated at close
+- **Last Milestone**: v1.15 (Shipped 2026-05-05)
 
 ## Accumulated Context
 
@@ -40,6 +40,10 @@ Last activity: 2026-05-05
 
 - 2026-05-05: Open v1.15 as "Host Integration Completion" — formalize the native `Threadline.Plug` host-wiring hook, direct Sigra callback composition, an authenticated incident drill-down baseline, and the doc/test alignment that keeps that adopter story stable.
 - 2026-05-05: Phase 49 locked `Threadline.Plug` context overrides to additive `request_id` / `correlation_id` fills only, kept actor authority on `actor_fn`, and aligned Sigra plus quickstart docs with that contract.
+- 2026-05-05: Phase 50 made `Threadline.Integrations.Sigra` the canonical direct callback pair for `Threadline.Plug` and removed the example-only delegate seam.
+- 2026-05-05: Phase 51 kept the incident auth boundary endpoint-local, keyed off `audit_context.actor_ref`, and documented tenancy plus richer authorization as host-owned.
+- 2026-05-05: Phase 52 aligned the adopter-facing docs and added cross-doc contract coverage so the shared host-wiring story cannot drift silently.
+- 2026-05-05: Close v1.15 as shipped after the milestone audit passed 7/7 requirements, 7/7 integration checks, and 4/4 end-to-end flows.
 - 2026-05-05: Continue phase numbering from 48 (no `--reset-phase-numbers`); v1.15 starts at Phase 49.
 - 2026-05-05: Skip fresh milestone research — the scope is already grounded in current in-flight repo work and known post-`0.3.0` adoption gaps.
 - 2026-04-26: Open v1.14 as "Drop-in Production Adopter Slice" — bundle Sigra integration adapter, performance evidence, incident playbook, threadline 0.3.0 release packaging, and SaaS adopter onramp into one strategic milestone aimed at production adoption.
@@ -60,26 +64,23 @@ Last activity: 2026-05-05
 
 ### Todos
 
-- [ ] Audit and close milestone v1.15 after the remaining dirty-worktree decisions are resolved
-- [ ] Decide whether the current dirty worktree should be snapshotted as the first v1.15 implementation batch before broader execution continues
-- [ ] Decide whether to merge or otherwise retain the isolated clean release candidate commit `4543690` in the mainline history
-- [ ] Push milestone tag `v1.14` and release tag `v0.3.0` when the maintainer is ready
+- [ ] Open the next milestone with `/gsd-new-milestone`
+- [ ] Push milestone tag `v1.15` when the maintainer is ready
+- [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 
 ### Blockers
 
-- The main workspace remains intentionally dirty, so milestone closeout should continue treating the remaining code changes as in-flight v1.15 work rather than a clean release tree.
+- No blocker to v1.15 close remains once the closeout commit and tag are recorded.
 
 ## Session Continuity
 
-- **Last Action**: Executed Phase 52, aligned the adopter-facing docs with the direct Sigra host-wiring plus authenticated incident baseline, and locked that wording with focused contract tests.
-- **Next Step**: Run `/gsd-audit-milestone v1.15` and then `/gsd-complete-milestone` once the remaining dirty-worktree decisions are resolved.
+- **Last Action**: Archived milestone v1.15, reconciled the host-integration planning artifacts, and reset the planning surface to "no active milestone."
+- **Next Step**: Run `/gsd-new-milestone` when the next product slice is ready.
 
 ## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-05-05:
 
 | Category | Item | Status |
 |----------|------|--------|
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
-| Phase 45 P01 | 4m | 2 tasks | 6 files |
-| Phase 45-bench-harness-published-baselines P02 | 5m | 2 tasks | 4 files |
-| Phase 45 P03 | 3 | 2 tasks | 2 files |
-| Phase 45 P04 | 5 | 2 tasks | 2 files |

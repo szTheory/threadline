@@ -10,21 +10,32 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.14 — Drop-in Production Adopter Slice (Phases 44–48, 2026-05-05)
+**Last shipped:** v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
 
 **Shipped capabilities:**
-- `Threadline.Integrations.Sigra` now gives Phoenix + Sigra adopters a soft-dependency actor/correlation adapter with example-app wiring and locked integration docs.
-- The repo now ships a reproducible `bench/` harness, published performance baselines, a production incident playbook + replay script, and a fixture-backed SaaS quickstart.
-- The release surface is aligned on `threadline 0.3.0`, including ExDoc guide surfacing, release artifact contracts, and a clean-tree `mix verify.release` pre-flight.
+- `Threadline.Plug` now accepts a native additive `:context_overrides_fn` for request metadata while keeping actor identity and transport-derived values authoritative.
+- `Threadline.Integrations.Sigra` is now the canonical direct host-wiring path through `Threadline.Plug`, and the Phoenix example app teaches the same callback contract.
+- The example incident drill-down path now ships with an authenticated baseline, and the adopter-facing docs/contracts all align on that boundary plus the host-owned authorization story.
 
 ## Next Milestone Goals
 
 - No active milestone is open.
-- The next planning pass should start with `/gsd-new-milestone`.
-- The first decision for the next slice is whether to build on post-`0.3.0` adopter feedback, promote another deferred seed, or deepen operator tooling beyond the current docs-first surface.
+- Start the next planning pass with `/gsd-new-milestone`.
+- The next decision is whether to deepen the Sigra/operator story, promote another deferred seed, or widen scope beyond host integration into UI or additional adapters.
 
-## Last milestone shipped: v1.14 — Drop-in Production Adopter Slice (Phases 44–48, 2026-05-05)
+## Last milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
 
+**Goal (achieved):** Finish the remaining Phoenix host-integration gap so adopters get native request-context wiring, direct Sigra callback composition, and an authenticated incident drill-down baseline without inventing their own glue for the first serious host rollout.
+
+**Shipped:**
+- **Phase 49** — PLUG-01/02: native `Threadline.Plug` context overrides hook, additive-only precedence rules, deterministic invalid-shape failures, and aligned docs/tests.
+- **Phase 50** — SIGRA-04/05: direct `Threadline.Integrations.Sigra` callback wiring through `Threadline.Plug`, example-app router adoption, and drift guards for the canonical callback pair.
+- **Phase 51** — INCIDENT-03/04: authenticated incident drill-down baseline in the Phoenix example app plus incident docs that keep tenancy and richer authorization host-owned.
+- **Phase 52** — ADOPT-03: getting-started, Sigra, README, domain-reference, incident-playbook, and adoption-backlog alignment with cross-doc contract coverage.
+
+**Archives:** `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-MILESTONE-AUDIT.md`, `.planning/milestones/v1.15-phases/`.
+
+## Prior milestone shipped: v1.14 — Drop-in Production Adopter Slice (Phases 44-48, 2026-05-05)
 **Goal (achieved):** Make Threadline genuinely drop-in for a SaaS team running Phoenix + Sigra by closing the actor-mapping mile, publishing realistic operational evidence, shipping the incident playbook/replay path, and packaging the result as `threadline 0.3.0`.
 
 **Shipped:**
@@ -252,4 +263,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-05 — v1.14 "Drop-in Production Adopter Slice" milestone archived as shipped.*
+*Last updated: 2026-05-05 - v1.15 "Host Integration Completion" milestone archived as shipped.*
