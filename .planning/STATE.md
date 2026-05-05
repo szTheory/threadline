@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Investigation Table Stakes
-status: defining requirements
-last_updated: "2026-05-05T22:15:00.000Z"
+status: phase 53 complete
+last_updated: "2026-05-05T22:45:52Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State: Threadline
@@ -22,16 +22,16 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements and roadmap for v1.16.
-Last activity: 2026-05-05 — Opened milestone v1.16 and recorded the multi-milestone arc.
+Phase: 54 — Investigation Slice APIs (next)
+Plan: Not started
+Status: Phase 53 shipped; Phase 54 is the next execution target in v1.16.
+Last activity: 2026-05-05 — Completed Phase 53 and verified the timeline paging contract.
 
 ## Performance Metrics
 
-- **Total Phases**: 4 shipped in v1.15 (Phases 49-52)
-- **Phases Completed**: 4
-- **Requirements Covered**: 7/7 validated at close
+- **Total Phases**: 4 planned in v1.16
+- **Phases Completed**: 1 of 4 in progress milestone (Phase 53 shipped)
+- **Requirements Covered**: 1/5 shipped in v1.16 so far (`EXPLORE-01`)
 - **Last Milestone**: v1.15 (Shipped 2026-05-05)
 
 ## Accumulated Context
@@ -42,6 +42,7 @@ Last activity: 2026-05-05 — Opened milestone v1.16 and recorded the multi-mile
 - 2026-05-05: Record a standing milestone arc in `.planning/MILESTONE-ARC.md` so future `/gsd-new-milestone` runs start from a durable recommendation instead of a blank prompt.
 - 2026-05-05: Keep phase numbering continuous; v1.16 starts at Phase 53.
 - 2026-05-05: Skip fresh research for v1.16 — the gap is already well grounded in shipped docs, APIs, and example composition patterns inside this repo.
+- 2026-05-05: Phase 53 introduced a shared `(captured_at, id)` keyset paging contract, exposed `Threadline.timeline_page/2`, and aligned export plus investigation docs on the same traversal semantics.
 - 2026-05-05: Open v1.15 as "Host Integration Completion" — formalize the native `Threadline.Plug` host-wiring hook, direct Sigra callback composition, an authenticated incident drill-down baseline, and the doc/test alignment that keeps that adopter story stable.
 - 2026-05-05: Phase 49 locked `Threadline.Plug` context overrides to additive `request_id` / `correlation_id` fills only, kept actor authority on `actor_fn`, and aligned Sigra plus quickstart docs with that contract.
 - 2026-05-05: Phase 50 made `Threadline.Integrations.Sigra` the canonical direct callback pair for `Threadline.Plug` and removed the example-only delegate seam.
@@ -68,7 +69,7 @@ Last activity: 2026-05-05 — Opened milestone v1.16 and recorded the multi-mile
 
 ### Todos
 
-- [ ] Define and ship Phase 53 — Timeline Paging Contract
+- [x] Define and ship Phase 53 — Timeline Paging Contract
 - [ ] Define and ship Phase 54 — Investigation Slice APIs
 - [ ] Define and ship Phase 55 — Incident Bundle Surface
 - [ ] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
@@ -81,8 +82,8 @@ Last activity: 2026-05-05 — Opened milestone v1.16 and recorded the multi-mile
 
 ## Session Continuity
 
-- **Last Action**: Opened v1.16, wrote the new requirements/roadmap, and created `.planning/MILESTONE-ARC.md` to preserve the standing strategic order.
-- **Next Step**: Start `/gsd-plan-phase 53` to turn the timeline paging contract into executable plans.
+- **Last Action**: Executed and verified Phase 53, shipping the public timeline paging contract plus aligned export/docs coverage.
+- **Next Step**: Start `/gsd-plan-phase 54` to package the canonical investigation helper APIs on top of the new paging surface.
 
 ## Deferred Items
 

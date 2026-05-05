@@ -26,8 +26,14 @@
 
 Plans:
 
-- [ ] 53-01: Define and implement the public paging contract, validations, and query tests for investigation timelines
-- [ ] 53-02: Expose the new usage path cleanly at the library surface and lock the intended semantics in docs or fixtures where needed
+- [x] 53-01: Define and implement the public paging contract, validations, and query tests for investigation timelines
+- [x] 53-02: Expose the new usage path cleanly at the library surface and lock the intended semantics in docs or fixtures where needed
+
+**Details:**
+
+- Added a shared query-layer keyset paging contract anchored on descending `(captured_at, id)` order and exposed it publicly as `Threadline.timeline_page/2` without changing eager `timeline/2`.
+- Refactored `Threadline.Export.stream_changes/2` to reuse the same paging primitive so investigation reads and export streaming cannot drift semantically.
+- Updated README and investigation-facing guides to teach one canonical eager-vs-paged traversal story, then locked that wording with focused doc-contract coverage.
 
 ### Phase 54: Investigation Slice APIs
 
