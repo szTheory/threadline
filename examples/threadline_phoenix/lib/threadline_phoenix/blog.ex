@@ -30,6 +30,7 @@ defmodule ThreadlinePhoenix.Blog do
           |> Jason.encode!()
 
         Repo.transaction(fn ->
+          # doc: start: blog-create-post-transaction
           Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
 
           case Repo.insert(Post.changeset(%Post{}, attrs)) do
@@ -72,6 +73,7 @@ defmodule ThreadlinePhoenix.Blog do
                   %{post: post, audit_transaction_id: audit_transaction_id}
               end
           end
+          # doc: end: blog-create-post-transaction
         end)
     end
   end
