@@ -185,8 +185,8 @@ Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
 | Single domain row over time | `Threadline.history/3` or `Threadline.timeline/2` | `history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
 | Incident / time window across rows | `Threadline.timeline/2` or `Threadline.timeline_page/2` | Use eager `timeline/2` for smaller bounded windows. Switch to `timeline_page/2` for large investigations where stable traversal across pages matters; bounds still apply to `AuditChange.captured_at` (see [subsection 1](#1-row-history-pk-changes-in-a-time-window)). |
 | Correlation-scoped slice | `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.Export`, `mix threadline.export` | Pass **`:correlation_id`**; timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation — see [subsection 3](#3-correlation-bundle-shared-correlation_id). |
-| Everything in one DB transaction | `Threadline.Query.audit_changes_for_transaction/2`, `Threadline.audit_changes_for_transaction/2` | **`opts[:repo]`** is required. Ordering matches timeline: **`captured_at`**, then **`id`**, descending. |
-| Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | INSERT/UPDATE/DELETE semantics; `changed_from` may be `nil` — see module docs, not duplicated here. |
+| Everything in one DB transaction | `Threadline.incident_bundle/2` | Default transaction drill-down when you want linked transaction/action context plus ordered changes with packaged diffs. |
+| Field-level diff for one `%AuditChange{}` | `Threadline.change_diff/2`, `Threadline.ChangeDiff` | Advanced building block for custom projections on top of `audit_changes_for_transaction/2` or `incident_bundle/2`; INSERT/UPDATE/DELETE semantics still live in the module docs. |
 | Actor-scoped window (optional) | `Threadline.actor_history/2`, `Threadline.timeline/2` or `Threadline.timeline_page/2` with **`:actor_ref`** | Pairs with support table row 2; use the paged path when the actor window is too large for one eager list; SQL in [subsection 2](#2-actor-window-one-actor-across-tables). |
 
 <span id="time-travel-as-of-v120"></span>
@@ -212,10 +212,17 @@ Use this when you need a one-row reconstruction by primary key. For a copy-paste
 
 Contract marker for automated doc checks: **COMP-EXAMPLE-INCIDENT-JSON**
 
-The path-dependent Phoenix app under **`examples/threadline_phoenix/`** shows one **composition** pattern on top of the table above:
+The path-dependent Phoenix app under **`examples/threadline_phoenix/`** shows the
+canonical bundled incident path on top of the table above:
 
 1. **`POST /api/posts`** returns **`audit_transaction_id`** — the UUID of the **`audit_transactions`** row for that HTTP request’s database transaction (after `Threadline.record_action/2` links semantics in the same transaction as in prior phases).
-2. **`GET /api/audit_transactions/:id/changes`** loads every **`AuditChange`** for that transaction via **`Threadline.audit_changes_for_transaction/2`** (same ordering contract as the library) and attaches a **`change_diff`** map per row from **`Threadline.change_diff/2`**, suitable for JSON incident tools.
+2. **`GET /api/audit_transactions/:id/changes`** renders **`Threadline.incident_bundle/2`** for that transaction, returning linked transaction/action context plus ordered change rows with packaged **`change_diff`** payloads suitable for JSON incident tools.
+
+If you need a custom projection instead of the bundled default, the lower-level
+building blocks remain public: **`Threadline.audit_changes_for_transaction/2`**
+preserves the ordering contract, **`Threadline.transaction_context/2`** exposes
+the linked context directly, and **`Threadline.change_diff/2`** lets you shape
+per-row diffs yourself.
 
 CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**.
 The reference app requires an authenticated actor before it serves the

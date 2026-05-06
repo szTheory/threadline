@@ -7,7 +7,7 @@
 
 Auditing for Phoenix.
 
-Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
+Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.incident_bundle/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
 
 Use it when you want the audit layer in your app, not a separate event system or a black box.
 
@@ -89,6 +89,15 @@ Use it when you want the audit layer in your app, not a separate event system or
 Use `Threadline.timeline/2` for smaller eager slices. When an investigation window is
 large enough that you want stable incremental traversal, switch to `Threadline.timeline_page/2`
 and continue with the returned `next_cursor` instead of offset pagination.
+
+For the rest of the investigation hierarchy: use the higher-level investigation
+helpers when you want a packaged answer to a common support question, and use
+`Threadline.incident_bundle/2` when you need the default drill-down for one
+transaction incident. Keep the root README as the map, then use
+[guides/domain-reference.md](guides/domain-reference.md) for the canonical
+"which public API first?" table, [guides/getting-started-saas.md](guides/getting-started-saas.md)
+for the first-hour Phoenix walkthrough, and
+[guides/incident-playbook.md](guides/incident-playbook.md) for operator recipes.
 
 ## Notes
 
