@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Operator Surface Foundation
 status: planning
-last_updated: "2026-05-06T00:00:00Z"
+last_updated: "2026-05-06T12:00:00Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 7
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 57 — Optional Deps & Module Gating
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-06 — Milestone v1.17 started
+Status: Context gathered; ready for planning
+Last activity: 2026-05-06 — Phase 57 context captured (CONTEXT.md + DISCUSSION-LOG.md)
 
 ## Performance Metrics
 
@@ -38,6 +38,7 @@ Last activity: 2026-05-06 — Milestone v1.17 started
 
 ### Decisions
 
+- 2026-05-06: Phase 57 context captured. Locked four implementation decisions (research-then-recommend, four parallel subagents): (1) `phoenix ~> 1.7`, `phoenix_live_view ~> 1.0`, `phoenix_html ~> 4.0`, `phoenix_pubsub ~> 2.1` declared `optional: true` (greenfield, drops 0.20.x branch); (2) ship one gated namespace module `lib/threadline/operator_surface.ex` with `@moduledoc` only — modeled verbatim on `getsentry/sentry-elixir`'s `lib/sentry/live_view_hook.ex` file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end` shape; (3) verification via new `mix verify.compile_no_optional` alias + folded into `ci.all` + dedicated immutable-id GitHub Actions job `verify-compile-no-optional` (Sentry's CI gap is an acknowledged omission, not a model to replicate); (4) `:plug` stays a HARD dep — Phase 57 roadmap scopes optionality to Phoenix/LiveView only. Doc-contract test for the gated namespace deferred to Phase 58 alongside the first behavioural module.
 - 2026-05-06: Open v1.17 as "Operator Surface Foundation" — turn the v1.16 investigation contracts into a host-usable operator surface; the next adoption bottleneck is presentation/usability, not more raw exploration plumbing.
 - 2026-05-06: v1.17 ships the operator surface in-tree (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared as **optional deps** (gated via `Code.ensure_loaded?(Phoenix.LiveView)`), so capture-only adopters retain a Plug-only install footprint. Splitting into a separate `threadline_web` companion package is deferred to v1.19+ with a documented promotion path; LiveDashboard / Oban Web / Ash Admin all split *after* their core had hundreds of adopters, and at v0.3.0 with one maintainer the double-tagging + version-matrix burden is premature. Idiomatic anchor: `sentry-elixir` keeps Phoenix/LiveView integrations optional in-tree without a companion package.
 - 2026-05-06: v1.17 first slice ships two must-have screens — incident drill-down (renders `Threadline.incident_bundle/2`) and actor window (renders `actor_history/2`, deep-links into drill-down) — plus a should-have row history + as-of sub-view reachable from drill-down rows. Defers raw paged timeline browse to v1.18 (needs filter form, own scope). Together the must-haves answer 4 of 6 documented support questions on click 1 and match the dominant audit-console pattern (actor entry → transaction detail) seen across CloudTrail, Sentry, Okta, GitHub.
@@ -90,8 +91,9 @@ Last activity: 2026-05-06 — Milestone v1.17 started
 - [x] Run the v1.16 milestone audit and archive the roadmap and requirements
 - [ ] Push milestone tags `v1.15` and `v1.16` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
-- [ ] Write `.planning/REQUIREMENTS.md` for v1.17 (REQ-IDs across surface shape, screens, mix task, auth, telemetry, doc contracts, example app)
-- [ ] Spawn `gsd-roadmapper` to phase v1.17 starting at Phase 57
+- [x] Write `.planning/REQUIREMENTS.md` for v1.17 (REQ-IDs across surface shape, screens, mix task, auth, telemetry, doc contracts, example app)
+- [x] Spawn `gsd-roadmapper` to phase v1.17 starting at Phase 57
+- [ ] Plan Phase 57 — `/gsd-plan-phase 57`
 
 ### Blockers
 
@@ -100,8 +102,8 @@ Last activity: 2026-05-06 — Milestone v1.17 started
 
 ## Session Continuity
 
-- **Last Action**: Opened v1.17 — Operator Surface Foundation; updated PROJECT.md and STATE.md.
-- **Next Step**: Define `.planning/REQUIREMENTS.md` for v1.17, then spawn `gsd-roadmapper` to map REQ-IDs onto phases starting at Phase 57.
+- **Last Action**: Phase 57 context gathered — `57-CONTEXT.md` and `57-DISCUSSION-LOG.md` written under `.planning/phases/57-optional-deps-and-module-gating/` after research-backed discussion (4 parallel subagents) locked four implementation decisions on optional-dep posture, gating idiom, verification, and Plug stance.
+- **Next Step**: `/clear` then `/gsd-plan-phase 57` to produce the Phase 57 plan (one cohesive plan with three file edits: `mix.exs`, `lib/threadline/operator_surface.ex`, `.github/workflows/ci.yml`).
 
 ## Deferred Items
 
