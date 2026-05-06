@@ -55,6 +55,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
+| `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
