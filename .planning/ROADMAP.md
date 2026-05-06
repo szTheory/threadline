@@ -16,7 +16,7 @@
 - [x] **Phase 57: Optional Deps & Module Gating** — Declare Phoenix/LiveView as optional deps and gate the operator surface modules so capture-only adopters keep a Plug-only install footprint *(shipped 2026-05-06; plan 01 SUMMARY)*
 - [ ] **Phase 58: Mount Macro & Auth Contract** — Ship the one-line mount macro, the host-mount-default + `:authorize_fn` auth contract, the compile-time fail-closed check, and the authorize telemetry event
 - [ ] **Phase 59: Incident Drill-down Screen** — Render `Threadline.incident_bundle/2` as a URL-addressable LiveView with actor/context header, ordered diff rows, and explicit not-found state
-- [ ] **Phase 60: Actor Window Screen** — Render `Threadline.actor_history/2` as a paged LiveView with time-window picker, deep-links into incident drill-down, and explicit empty state
+- [x] **Phase 60: Actor Window Screen** — Render `Threadline.actor_history/2` as a paged LiveView with time-window picker, deep-links into incident drill-down, and explicit empty state *(shipped 2026-05-06; plan 02 SUMMARY)*
 - [ ] **Phase 61: Row History & As-of Sub-view** — Render `Threadline.history/3` plus `Threadline.as_of/4` as a sub-view reachable only from incident drill-down change rows, with a timestamp picker driving the as-of snapshot panel
 - [ ] **Phase 62: Mix Task & Example-app Wiring** — Ship `mix threadline.incident <transaction_id>` (with `--json`) and wire the operator surface end-to-end in `examples/threadline_phoenix` behind a `phx.gen.auth`-style admin pipeline
 - [ ] **Phase 63: Docs, Contracts & Changelog** — Lock the macro/route/auth literals with a doc-contract test, ship `guides/operator-surface.md`, surface it from the README and production checklist, and document the new optional deps in CHANGELOG for the next Hex release
@@ -77,7 +77,11 @@ Plans:
   1. Visiting `/audit/actors/:kind/:id` renders a paged transaction list for that actor with a time-window picker that drives the underlying `actor_history/2` call.
   2. Each transaction row in the list links to the corresponding `/audit/transactions/:id` drill-down so the operator can move from "who" to "what" without leaving the surface.
   3. Visiting an actor with no recorded activity in the chosen window renders an explicit empty state (no crash, no orphan loading spinner).
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 60-01-PLAN.md — Actor History Pagination API
+- [x] 60-02-PLAN.md — Actor Window LiveView UI *(shipped 2026-05-06)*
 **UI hint**: yes
 
 ##### Phase 61: Row History & As-of Sub-view
@@ -142,7 +146,7 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 | 57. Optional Deps & Module Gating | 1/1 | Complete | 2026-05-06 |
 | 58. Mount Macro & Auth Contract | 0/3 | Planned | - |
 | 59. Incident Drill-down Screen | 0/1 | Not started | - |
-| 60. Actor Window Screen | 0/1 | Not started | - |
+| 60. Actor Window Screen | 2/2 | Complete | 2026-05-06 |
 | 61. Row History & As-of Sub-view | 0/1 | Not started | - |
 | 62. Mix Task & Example-app Wiring | 0/1 | Not started | - |
 | 63. Docs, Contracts & Changelog | 0/1 | Not started | - |

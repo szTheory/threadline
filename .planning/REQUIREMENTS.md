@@ -18,7 +18,7 @@
 ### UI — Operator screens
 
 - [ ] **UI-01**: Incident drill-down LiveView at `/audit/transactions/:id` renders `Threadline.incident_bundle/2` — actor and request-context header, ordered changes with `Threadline.change_diff/2` per row, URL-addressable for log/ticket deep-links, and an explicit not-found state.
-- [ ] **UI-02**: Actor window LiveView at `/audit/actors/:kind/:id` renders `Threadline.actor_history/2` — time-window picker, paged transaction list, each row deep-links into UI-01, and an explicit empty state.
+- [x] **UI-02**: Actor window LiveView at `/audit/actors/:kind/:id` renders `Threadline.actor_history/2` — time-window picker, paged transaction list, each row deep-links into UI-01, and an explicit empty state.
 - [ ] **UI-03** *(should-have, slice 1 if cheap)*: Row history sub-view at `/audit/rows/:table/:pk` renders `Threadline.history/3` plus `Threadline.as_of/4` — reachable only from change rows in UI-01 (no orphan deep links), with an as-of timestamp picker that drives the `as_of/4` snapshot panel.
 
 ### CLI — Mix-task parity (no-LiveView operator path)
@@ -77,7 +77,7 @@ Mapped by `gsd-roadmapper` on 2026-05-06.
 | SURF-03 | Phase 57 | Validated |
 | SURF-04 | Phase 62 | Pending |
 | UI-01 | Phase 59 | Pending |
-| UI-02 | Phase 60 | Pending |
+| UI-02 | Phase 60 | Validated |
 | UI-03 | Phase 61 | Pending |
 | CLI-01 | Phase 62 | Pending |
 | AUTH-01 | Phase 58 | Pending |

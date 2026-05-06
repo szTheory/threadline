@@ -9,8 +9,8 @@ progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 1
-  completed_plans: 1
-  percent: 14
+  completed_plans: 2
+  percent: 15
 ---
 
 # Project State: Threadline
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 58 — Mount Macro & Auth Contract
-Plan: 02
+Phase: 61 — Row History & As-of Sub-view
+Plan: 01
 Status: executing
-Last activity: 2026-05-06T16:02:34Z -- Completed 58-01-PLAN.md
+Last activity: Completed 60-02-PLAN.md
 
 ## Performance Metrics
 
@@ -38,10 +38,17 @@ Last activity: 2026-05-06T16:02:34Z -- Completed 58-01-PLAN.md
 |-------|------|----------|-------|-------|
 | 57    | 01   | ~35 min  | 5     | 4     |
 | 58    | 01   | ~5 min   | 2     | 4     |
+| 60    | 01   | ~10 min  | 1     | 4     |
+| 60    | 02   | 20 min   | 4     | 3     |
 
 ## Accumulated Context
 
 ### Decisions
+
+- Phase 60 Plan 02: Used Phoenix.LiveView for rendering the actor window screen to allow dynamic time window updates.
+- Phase 60 Plan 02: Updated the operator surface router to include the new LiveView route /audit/actors/:actor_type/:actor_id.
+- Phase 60 Plan 01: Extracted pagination state to a distinct ActorHistoryPage struct mimicking TimelinePage for predictable operator DX.
+- Phase 60 Plan 01: Dropped the previous behavior of returning a raw list in favor of ActorHistoryPage, explicitly adopting keyset navigation parameters.
 
 - 2026-05-06: Operator surface sub-modules use same gating macro as root namespace module
 
