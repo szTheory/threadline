@@ -54,6 +54,10 @@ defmodule Threadline.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:plug, "~> 1.15"},
       {:telemetry, "~> 1.2"},
+      {:phoenix, "~> 1.7", optional: true},
+      {:phoenix_live_view, "~> 1.0", optional: true},
+      {:phoenix_html, "~> 4.0", optional: true},
+      {:phoenix_pubsub, "~> 2.1", optional: true},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
