@@ -1,5 +1,6 @@
 defmodule ThreadlinePhoenixWeb.Router do
   use ThreadlinePhoenixWeb, :router
+  import Threadline.OperatorSurface.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -37,12 +38,16 @@ defmodule ThreadlinePhoenixWeb.Router do
     end
   end
 
-  def my_authorize_fn(conn) do
+  def my_authorize_fn(%Plug.Conn{} = conn) do
     if conn.assigns[:current_user] && conn.assigns[:current_user].is_admin do
       :ok
     else
       {:error, :unauthorized}
     end
+  end
+
+  def my_authorize_fn(%Phoenix.LiveView.Socket{} = _socket) do
+    :ok
   end
 
   pipeline :api do
@@ -63,5 +68,11 @@ defmodule ThreadlinePhoenixWeb.Router do
     post "/posts", PostController, :create
 
     get "/audit_transactions/:id/changes", AuditTransactionController, :changes
+  end
+
+  scope "/audit" do
+    pipe_through [:browser, :admin_auth]
+
+    threadline_operator_surface "/", actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1, authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1, repo: ThreadlinePhoenix.Repo
   end
 end
