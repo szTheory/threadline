@@ -420,8 +420,8 @@ defmodule Threadline.Query do
   end
 
   @doc """
-  Returns `AuditTransaction` records for a given actor, ordered by
-  `occurred_at` descending.
+  Returns a keyset page of `AuditTransaction` records for a given actor, ordered by
+  `occurred_at` descending, then `id` descending.
 
   For anonymous actors, returns all anonymous transactions (no actor_id
   distinction — all anonymous transactions are equivalent by design, per ACTR-03).
@@ -429,6 +429,11 @@ defmodule Threadline.Query do
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
+  - `:limit` — integer, maximum number of records to return (default 50)
+  - `:after` — cursor to fetch older records
+  - `:before` — cursor to fetch newer records
+  - `:from` — inclusive lower bound on `occurred_at`
+  - `:to` — inclusive upper bound on `occurred_at`
 
   ## Example
 
@@ -437,11 +442,139 @@ defmodule Threadline.Query do
   def actor_history(%ActorRef{} = actor_ref, opts) do
     repo = Keyword.fetch!(opts, :repo)
     actor_map = ActorRef.to_map(actor_ref)
+    limit = Keyword.get(opts, :limit, 50)
+    after_cursor = validate_actor_history_cursor!(Keyword.get(opts, :after))
+    before_cursor = validate_actor_history_cursor!(Keyword.get(opts, :before))
 
-    AuditTransaction
-    |> where([at], fragment("? @> ?::jsonb", at.actor_ref, ^actor_map))
-    |> order_by([at], desc: at.occurred_at)
-    |> repo.all()
+    base_query =
+      AuditTransaction
+      |> where([at], fragment("? @> ?::jsonb", at.actor_ref, ^actor_map))
+      |> actor_history_filter_from(Keyword.get(opts, :from))
+      |> actor_history_filter_to(Keyword.get(opts, :to))
+
+    {query, reverse?} =
+      cond do
+        before_cursor != nil ->
+          {base_query
+           |> actor_history_before_cursor(before_cursor)
+           |> order_by([at], asc: at.occurred_at, asc: at.id), true}
+
+        after_cursor != nil ->
+          {base_query
+           |> actor_history_after_cursor(after_cursor)
+           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
+
+        true ->
+          {base_query
+           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
+      end
+
+    entries_raw =
+      query
+      |> limit(^(limit + 1))
+      |> repo.all()
+
+    {entries, has_more?} =
+      if length(entries_raw) > limit do
+        if reverse? do
+          {entries_raw |> Enum.reverse() |> Enum.drop(1), true}
+        else
+          {entries_raw |> Enum.take(limit), true}
+        end
+      else
+        if reverse? do
+          {Enum.reverse(entries_raw), false}
+        else
+          {entries_raw, false}
+        end
+      end
+
+    has_next? = if reverse?, do: true, else: has_more?
+    has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
+
+    next_cursor =
+      if has_next? and entries != [] do
+        %{occurred_at: List.last(entries).occurred_at, id: List.last(entries).id}
+      end
+
+    prev_cursor =
+      if has_prev? and entries != [] do
+        %{occurred_at: List.first(entries).occurred_at, id: List.first(entries).id}
+      end
+
+    %Threadline.Query.ActorHistoryPage{
+      entries: entries,
+      next_cursor: next_cursor,
+      prev_cursor: prev_cursor
+    }
+  end
+
+  defp actor_history_filter_from(query, nil), do: query
+  defp actor_history_filter_from(query, %DateTime{} = from) do
+    where(query, [at], at.occurred_at >= ^from)
+  end
+
+  defp actor_history_filter_to(query, nil), do: query
+  defp actor_history_filter_to(query, %DateTime{} = to) do
+    where(query, [at], at.occurred_at <= ^to)
+  end
+
+  defp actor_history_after_cursor(query, %{occurred_at: %DateTime{} = occurred_at, id: id}) do
+    where(
+      query,
+      [at],
+      fragment(
+        "(?, ?) < (?, ?)",
+        at.occurred_at,
+        at.id,
+        ^occurred_at,
+        type(^id, :binary_id)
+      )
+    )
+  end
+
+  defp actor_history_before_cursor(query, %{occurred_at: %DateTime{} = occurred_at, id: id}) do
+    where(
+      query,
+      [at],
+      fragment(
+        "(?, ?) > (?, ?)",
+        at.occurred_at,
+        at.id,
+        ^occurred_at,
+        type(^id, :binary_id)
+      )
+    )
+  end
+
+  defp validate_actor_history_cursor!(nil), do: nil
+
+  defp validate_actor_history_cursor!(%{occurred_at: %DateTime{} = occurred_at, id: id})
+       when is_binary(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, canonical} -> %{occurred_at: occurred_at, id: canonical}
+      :error -> raise ArgumentError, "cursor.id must be a UUID binary, got: #{inspect(id)}"
+    end
+  end
+
+  defp validate_actor_history_cursor!(%{} = cursor) do
+    has_occurred_at? = Map.has_key?(cursor, :occurred_at)
+    has_id? = Map.has_key?(cursor, :id)
+
+    cond do
+      has_occurred_at? or has_id? ->
+        raise ArgumentError,
+              "cursor must include both :occurred_at and :id or be nil, got: #{inspect(cursor)}"
+
+      true ->
+        raise ArgumentError,
+              "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
+    end
+  end
+
+  defp validate_actor_history_cursor!(cursor) do
+    raise ArgumentError,
+          "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
   end
 
   @doc """

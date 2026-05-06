@@ -86,12 +86,17 @@ defmodule Threadline do
     do: Threadline.Query.as_of(schema_module, id, timestamp, opts)
 
   @doc """
-  Returns `AuditTransaction` records for a given actor, ordered by
-  `occurred_at` descending.
+  Returns a keyset page of `AuditTransaction` records for a given actor, ordered by
+  `occurred_at` descending, then `id` descending.
 
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
+  - `:limit` — integer, maximum number of records to return (default 50)
+  - `:after` — cursor to fetch older records
+  - `:before` — cursor to fetch newer records
+  - `:from` — inclusive lower bound on `occurred_at`
+  - `:to` — inclusive upper bound on `occurred_at`
   """
   def actor_history(actor_ref, opts), do: Threadline.Query.actor_history(actor_ref, opts)
 
