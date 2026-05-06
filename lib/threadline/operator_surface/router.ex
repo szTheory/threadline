@@ -33,12 +33,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             description: "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
         end
 
-        import Phoenix.LiveView.Router, only: [live_session: 3]
+        import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
         live_session :threadline, on_mount: [{Threadline.OperatorSurface.Auth, unquote(opts)}] do
-          # We'll fill this block with routes in a later task, for now it can just be empty
-          # since the plan just requires it to inject live_session.
-          scope unquote(path), alias: Threadline.OperatorSurface do
+          scope unquote(path), alias: Threadline.OperatorSurface.Live do
+            live "/transactions/:id", TransactionLive, :show
           end
         end
       end
