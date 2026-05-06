@@ -99,6 +99,30 @@ transaction incident. Keep the root README as the map, then use
 for the first-hour Phoenix walkthrough, and
 [guides/incident-playbook.md](guides/incident-playbook.md) for operator recipes.
 
+## Operator Surface
+
+Threadline provides an optional, drop-in LiveView UI to investigate the audit trail natively in your app. Ensure you have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` dependencies in your `mix.exs`.
+
+**1-Minute Mount**
+
+```elixir
+defmodule MyAppWeb.Router do
+  use MyAppWeb, :router
+  import Threadline.OperatorSurface.Router
+
+  # Must pipe through your own authentication
+  scope "/admin", MyAppWeb do
+    pipe_through [:browser, :require_authenticated_admin]
+
+    threadline_operator_surface "/audit",
+      actor_fn: {MyApp.Audit, :current_actor},
+      authorize_fn: {MyApp.Audit, :authorize_operator}
+  end
+end
+```
+
+For full details on the "fail-closed" security default, setting up authorization, and the available investigation screens, read the [Operator Surface guide](guides/operator-surface.md).
+
 ## Notes
 
 - Threadline works with PgBouncer transaction pooling.

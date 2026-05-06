@@ -112,6 +112,14 @@ the reference app now requires an authenticated actor before it serves the
 drill-down endpoint. Hosts still need their own tenancy and policy checks
 before exposing transaction drill-down in production.
 
+## Operator Surface
+
+Threadline provides an optional LiveView-based operator UI that is mounted directly in the host router. This reference app demonstrates how to wire it securely.
+
+See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The operator surface (`/audit`) is protected by a dedicated `pipeline :admin_auth` that requires an authenticated user with administrative privileges before they can access the UI. 
+
+The integration uses `threadline_operator_surface "/audit"` and provides an `:authorize_fn` callback that acts as the final gatekeeper, demonstrating Threadline's "fail-closed" security posture. For full setup instructions, read the [Operator Surface guide](../../guides/operator-surface.md).
+
 ## Historical reconstruction walkthrough
 
 Copy-paste this when you want one row back as it existed at a point in time:
