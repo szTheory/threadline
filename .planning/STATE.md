@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 58 — Mount Macro & Auth Contract (next)
-Plan: —
-Status: Phase 57 verified and closed (5/5 must-haves; 2 manual-only items pending in `57-HUMAN-UAT.md`); ready to discuss/plan Phase 58
-Last activity: 2026-05-06 -- Phase 57 verified and closed
+Phase: 58 — Mount Macro & Auth Contract
+Plan: 02
+Status: executing
+Last activity: 2026-05-06T16:02:34Z -- Completed 58-01-PLAN.md
 
 ## Performance Metrics
 
@@ -37,10 +37,13 @@ Last activity: 2026-05-06 -- Phase 57 verified and closed
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 57    | 01   | ~35 min  | 5     | 4     |
+| 58    | 01   | ~5 min   | 2     | 4     |
 
 ## Accumulated Context
 
 ### Decisions
+
+- 2026-05-06: Operator surface sub-modules use same gating macro as root namespace module
 
 - 2026-05-06: Phase 57 verified and closed — gsd-verifier confirmed 5/5 must-have truths, all artifacts present, all key-links wired, both compile legs (LV-present and LV-absent) clean. User approved phase close with 2 manual-only items persisted in `57-HUMAN-UAT.md` (GH Actions CI confirmation + discretionary hexdocs preview). Code review found 0 blockers / 0 warnings / 1 info (doc hygiene suggestion). Phase boundary discipline holds — none of the deferred Phase 58-63 items leaked in.
 - 2026-05-06: Phase 57 plan 01 shipped — `mix.exs` declares `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` as `optional: true`; `Threadline.OperatorSurface` namespace module created with file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end end` wrapper (Sentry `live_view_hook.ex` idiom); `mix verify.compile_no_optional` alias added and folded into `ci.all`; dedicated stable-id `verify-compile-no-optional` GitHub Actions job added; `CONTRIBUTING.md` row added. Five atomic commits (4281556, b8e7044, 409d135, 5d0aebf, 719d7ac). SURF-02 + SURF-03 validated. Pre-existing `mix verify.format` drift in 7 files outside Phase 57 scope remains a known blocker (recorded below) — surfaced not fixed per Task 5 scope discipline.
@@ -111,7 +114,7 @@ Last activity: 2026-05-06 -- Phase 57 verified and closed
 ## Session Continuity
 
 - **Last Action**: Phase 57 verified and closed — gsd-code-reviewer found 0 blockers / 0 warnings / 1 info (doc hygiene); gsd-verifier confirmed 5/5 must-have truths via direct codebase inspection plus cold-build behavioural checks (`mix verify.compile_no_optional` exits 0 with zero warnings; gated BEAM correctly absent in no-optional-deps build); user approved close. Phase artifacts: 57-01-SUMMARY.md, 57-REVIEW.md, 57-VERIFICATION.md, 57-HUMAN-UAT.md.
-- **Next Step**: `/clear` then `/gsd-discuss-phase 58` (recommended — no CONTEXT.md exists for Phase 58 yet) or `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
+- **Next Step**: `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
 
 ## Deferred Items
 
