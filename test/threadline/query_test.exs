@@ -2,7 +2,7 @@ defmodule Threadline.QueryTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
-  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
+  alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
   alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
@@ -721,7 +721,7 @@ defmodule Threadline.QueryTest do
       end
     end
 
-    test "history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 is richer" do
+    test "history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 and incident_bundle/2 are richer" do
       actor = actor!(:user, "compat-actor")
 
       action =
@@ -759,6 +759,9 @@ defmodule Threadline.QueryTest do
       %LinkedTransaction{changes: [%LinkedChange{} = linked_change]} =
         Threadline.transaction_context(txn.id, repo: @repo)
 
+      {:ok, %IncidentBundle{changes: [incident_change]}} =
+        Threadline.incident_bundle(txn.id, repo: @repo)
+
       assert %AuditChange{} = history_change
       assert %AuditTransaction{} = actor_txn
       assert %AuditChange{} = timeline_change
@@ -768,6 +771,9 @@ defmodule Threadline.QueryTest do
       assert linked_change.audit_change.id == transaction_change.id
       assert linked_change.transaction.id == txn.id
       assert linked_change.action.id == action.id
+      assert incident_change.linked_change.audit_change.id == transaction_change.id
+      assert is_map(incident_change.change_diff)
+      refute Map.has_key?(linked_change, :change_diff)
     end
   end
 end
