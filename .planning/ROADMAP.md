@@ -63,7 +63,13 @@ Plans:
 Plans:
 
 - [x] 55-01: Ship the incident bundle API and the focused projections it needs
-- [ ] 55-02: Converge the Phoenix example incident endpoint on the new public surface and prove it with request-path coverage
+- [x] 55-02: Converge the Phoenix example incident endpoint on the new public surface and prove it with request-path coverage
+
+**Details:**
+
+- Added `Threadline.incident_bundle/2` with explicit incident bundle structs so one transaction drill-down now returns linked transaction/action context, ordered bundled changes, and packaged JSON-ready diffs together.
+- Preserved the raw helper boundary: `transaction_context/2` and `audit_changes_for_transaction/2` remain backward-compatible while the new bundle surface distinguishes missing parent transactions from empty change lists.
+- Migrated the Phoenix example incident endpoint to the bundled surface through a dedicated JSON renderer and locked the `401`/`400`/`404`/`200` request-path semantics in the focused example suite.
 
 ### Phase 56: Docs, Contracts, and Arc Alignment
 
