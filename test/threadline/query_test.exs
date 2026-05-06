@@ -3,7 +3,7 @@ defmodule Threadline.QueryTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
-  alias Threadline.Query.TimelinePage
+  alias Threadline.Query.{ActorHistoryPage, TimelinePage}
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
@@ -360,20 +360,29 @@ defmodule Threadline.QueryTest do
   # ── actor_history/2 ───────────────────────────────────────────────────────
 
   describe "actor_history/2 — QUERY-02" do
-    test "returns AuditTransaction records for the given actor" do
+    test "returns ActorHistoryPage struct with properly sorted entries" do
       actor = actor!(:user, "u-42")
       actor_map = ActorRef.to_map(actor)
-      insert_transaction(%{actor_ref: actor_map})
-      insert_transaction(%{actor_ref: actor_map})
+      
+      t1 = DateTime.add(DateTime.utc_now(), -60, :second)
+      t2 = DateTime.utc_now()
+
+      txn1 = insert_transaction(%{actor_ref: actor_map, occurred_at: t1})
+      txn2 = insert_transaction(%{actor_ref: actor_map, occurred_at: t2})
       insert_transaction(%{actor_ref: ActorRef.to_map(actor!(:user, "other"))})
 
-      results = Threadline.actor_history(actor, repo: @repo)
-      assert length(results) == 2
+      page = Threadline.actor_history(actor, repo: @repo)
+      assert %ActorHistoryPage{} = page
+      assert length(page.entries) == 2
+      assert Enum.map(page.entries, & &1.id) == [txn2.id, txn1.id]
+      assert page.next_cursor == nil
+      assert page.prev_cursor == nil
     end
 
-    test "returns empty list when no transactions exist for the actor" do
+    test "returns empty entries list when no transactions exist for the actor" do
       actor = actor!(:service_account, "svc-999")
-      assert [] = Threadline.actor_history(actor, repo: @repo)
+      page = Threadline.actor_history(actor, repo: @repo)
+      assert %ActorHistoryPage{entries: []} = page
     end
 
     test "anonymous actor returns all anonymous transactions" do
@@ -383,8 +392,66 @@ defmodule Threadline.QueryTest do
       insert_transaction(%{actor_ref: anon_map})
       insert_transaction(%{actor_ref: ActorRef.to_map(actor!(:user, "u-1"))})
 
-      results = Threadline.actor_history(anon, repo: @repo)
-      assert length(results) == 2
+      page = Threadline.actor_history(anon, repo: @repo)
+      assert length(page.entries) == 2
+    end
+
+    test "supports cursor-based pagination with limit" do
+      actor = actor!(:user, "u-page")
+      actor_map = ActorRef.to_map(actor)
+      
+      base_time = DateTime.utc_now()
+      txns = for i <- 1..5 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+      
+      # Reverse order so they are sorted by occurred_at desc
+      sorted_ids = Enum.reverse(txns) |> Enum.map(& &1.id)
+
+      # First page
+      page1 = Threadline.actor_history(actor, repo: @repo, limit: 2)
+      assert length(page1.entries) == 2
+      assert Enum.map(page1.entries, & &1.id) == Enum.take(sorted_ids, 2)
+      assert page1.next_cursor != nil
+      assert page1.prev_cursor == nil
+
+      # Second page (after cursor)
+      page2 = Threadline.actor_history(actor, repo: @repo, limit: 2, after: page1.next_cursor)
+      assert length(page2.entries) == 2
+      assert Enum.map(page2.entries, & &1.id) == Enum.slice(sorted_ids, 2, 2)
+      assert page2.next_cursor != nil
+      assert page2.prev_cursor != nil
+
+      # Fetch previous page (before cursor)
+      page1_again = Threadline.actor_history(actor, repo: @repo, limit: 2, before: page2.prev_cursor)
+      assert length(page1_again.entries) == 2
+      assert Enum.map(page1_again.entries, & &1.id) == Enum.take(sorted_ids, 2)
+      assert page1_again.next_cursor != nil
+      assert page1_again.prev_cursor == nil
+    end
+
+    test "supports from and to DateTime bounds" do
+      actor = actor!(:user, "u-bounds")
+      actor_map = ActorRef.to_map(actor)
+      
+      now = DateTime.utc_now()
+      t_past = DateTime.add(now, -3600, :second)
+      t_middle = DateTime.add(now, -1800, :second)
+      t_future = DateTime.add(now, 3600, :second)
+
+      insert_transaction(%{actor_ref: actor_map, occurred_at: t_past})
+      txn_mid = insert_transaction(%{actor_ref: actor_map, occurred_at: t_middle})
+      insert_transaction(%{actor_ref: actor_map, occurred_at: t_future})
+
+      from = DateTime.add(now, -2000, :second)
+      to = DateTime.add(now, 0, :second)
+
+      page = Threadline.actor_history(actor, repo: @repo, from: from, to: to)
+      assert length(page.entries) == 1
+      assert hd(page.entries).id == txn_mid.id
     end
   end
 
@@ -607,7 +674,7 @@ defmodule Threadline.QueryTest do
 
     test "actor_history/2 accepts explicit repo" do
       actor = actor!(:system, "sys-1")
-      assert is_list(Threadline.actor_history(actor, repo: @repo))
+      assert match?(%Threadline.Query.ActorHistoryPage{}, Threadline.actor_history(actor, repo: @repo))
     end
 
     test "timeline/1 accepts repo in filter list" do
@@ -694,12 +761,12 @@ defmodule Threadline.QueryTest do
       assert %AuditChange{} = result
     end
 
-    test "actor_history/2 returns AuditTransaction structs" do
+    test "actor_history/2 returns AuditTransaction structs inside entries" do
       actor = actor!(:admin, "a-99")
       insert_transaction(%{actor_ref: ActorRef.to_map(actor)})
 
-      [result] = Threadline.actor_history(actor, repo: @repo)
-      assert %AuditTransaction{} = result
+      page = Threadline.actor_history(actor, repo: @repo)
+      assert [%AuditTransaction{}] = page.entries
     end
 
     test "timeline/1 returns AuditChange structs" do
@@ -748,7 +815,7 @@ defmodule Threadline.QueryTest do
       })
 
       [history_change] = Threadline.history(FakeCompatibilityUser, "compat-1", repo: @repo)
-      [actor_txn] = Threadline.actor_history(actor, repo: @repo)
+      %ActorHistoryPage{entries: [actor_txn]} = Threadline.actor_history(actor, repo: @repo)
       [timeline_change] = Threadline.timeline(actor_ref: actor, repo: @repo)
 
       %TimelinePage{entries: [paged_change], next_cursor: nil} =
@@ -777,3 +844,4 @@ defmodule Threadline.QueryTest do
     end
   end
 end
+
