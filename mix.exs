@@ -204,6 +204,10 @@ defmodule Threadline.MixProject do
         Integrations: [
           Threadline.Integrations.Sigra
         ],
+        "Operator Surface": [
+          Threadline.OperatorSurface.Router,
+          Threadline.OperatorSurface.Auth
+        ],
         Schemas: [
           Threadline.Semantics.AuditAction,
           Threadline.Capture.AuditTransaction,
