@@ -74,10 +74,12 @@ defmodule Threadline.MixProject do
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
       "verify.bench": &verify_bench/1,
+      "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
       "ci.all": [
         "verify.format",
         "verify.credo",
         "compile --warnings-as-errors",
+        "verify.compile_no_optional",
         "verify.test",
         "verify.threadline",
         "verify.example",
