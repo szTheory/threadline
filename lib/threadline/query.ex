@@ -510,11 +510,13 @@ defmodule Threadline.Query do
   end
 
   defp actor_history_filter_from(query, nil), do: query
+
   defp actor_history_filter_from(query, %DateTime{} = from) do
     where(query, [at], at.occurred_at >= ^from)
   end
 
   defp actor_history_filter_to(query, nil), do: query
+
   defp actor_history_filter_to(query, %DateTime{} = to) do
     where(query, [at], at.occurred_at <= ^to)
   end

@@ -12,8 +12,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                            defmodule Threadline.OperatorSurface.RouterTest.UnsafeMount do
                              use Phoenix.Router
                              require Threadline.OperatorSurface.Router
-                             
-                             Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
+
+                             Threadline.OperatorSurface.Router.threadline_operator_surface(
+                               "/threadline"
+                             )
                            end
                          end
                        )
@@ -21,24 +23,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "Case 2: compiles successfully with pipe_through" do
-        modules = Code.compile_quoted(
-          quote do
-            defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
-              use Phoenix.Router
-              require Threadline.OperatorSurface.Router
-              
-              pipeline :browser do
-                plug :accepts, ["html"]
-              end
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
 
-              scope "/" do
-                pipe_through :browser
-                Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
+                pipeline :browser do
+                  plug(:accepts, ["html"])
+                end
+
+                scope "/" do
+                  pipe_through(:browser)
+                  Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
+                end
               end
             end
-          end
-        )
-        
+          )
+
         # Cleanup compiled modules
         for {module, _} <- modules do
           :code.delete(module)
@@ -47,19 +50,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "Case 3: compiles successfully without pipe_through but with authorize_fn" do
-        modules = Code.compile_quoted(
-          quote do
-            defmodule Threadline.OperatorSurface.RouterTest.AuthFnMount do
-              use Phoenix.Router
-              require Threadline.OperatorSurface.Router
-              
-              Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline", authorize_fn: &__MODULE__.auth/1)
-              
-              def auth(_), do: :ok
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.AuthFnMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline",
+                  authorize_fn: &__MODULE__.auth/1
+                )
+
+                def auth(_), do: :ok
+              end
             end
-          end
-        )
-        
+          )
+
         # Cleanup compiled modules
         for {module, _} <- modules do
           :code.delete(module)
@@ -68,17 +74,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "Case 4: compiles successfully without pipe_through but with adopter_acknowledges_unauthenticated" do
-        modules = Code.compile_quoted(
-          quote do
-            defmodule Threadline.OperatorSurface.RouterTest.AckMount do
-              use Phoenix.Router
-              require Threadline.OperatorSurface.Router
-              
-              Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline", adopter_acknowledges_unauthenticated: true)
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.AckMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline",
+                  adopter_acknowledges_unauthenticated: true
+                )
+              end
             end
-          end
-        )
-        
+          )
+
         # Cleanup compiled modules
         for {module, _} <- modules do
           :code.delete(module)

@@ -101,7 +101,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("set-window", %{"hours" => hours_str}, socket) do
       hours = String.to_integer(hours_str)
       from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
-      page = Threadline.actor_history(socket.assigns.actor_ref, repo: socket.assigns.repo, from: from_time)
+
+      page =
+        Threadline.actor_history(socket.assigns.actor_ref,
+          repo: socket.assigns.repo,
+          from: from_time
+        )
 
       {:noreply,
        socket

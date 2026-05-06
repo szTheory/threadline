@@ -22,9 +22,11 @@ defmodule Threadline.GettingStartedFixturesTest do
   test "raises loudly when anchors are missing" do
     path = write_fixture!("before\nafter\n")
 
-    assert_raise ArgumentError, ~r/#{Regex.escape(path)} anchor "sample": missing start\/end markers/, fn ->
-      GettingStartedFixtures.extract!(path, "sample")
-    end
+    assert_raise ArgumentError,
+                 ~r/#{Regex.escape(path)} anchor "sample": missing start\/end markers/,
+                 fn ->
+                   GettingStartedFixtures.extract!(path, "sample")
+                 end
   end
 
   test "raises loudly when anchors are duplicated" do
@@ -38,9 +40,11 @@ defmodule Threadline.GettingStartedFixturesTest do
       # doc: end: sample
       """)
 
-    assert_raise ArgumentError, ~r/#{Regex.escape(path)}:\d+ anchor "sample": duplicate start\/end markers/, fn ->
-      GettingStartedFixtures.extract!(path, "sample")
-    end
+    assert_raise ArgumentError,
+                 ~r/#{Regex.escape(path)}:\d+ anchor "sample": duplicate start\/end markers/,
+                 fn ->
+                   GettingStartedFixtures.extract!(path, "sample")
+                 end
   end
 
   test "raises loudly when anchors are unbalanced" do
@@ -50,13 +54,19 @@ defmodule Threadline.GettingStartedFixturesTest do
       one
       """)
 
-    assert_raise ArgumentError, ~r/#{Regex.escape(path)} anchor "sample": unbalanced start\/end markers/, fn ->
-      GettingStartedFixtures.extract!(path, "sample")
-    end
+    assert_raise ArgumentError,
+                 ~r/#{Regex.escape(path)} anchor "sample": unbalanced start\/end markers/,
+                 fn ->
+                   GettingStartedFixtures.extract!(path, "sample")
+                 end
   end
 
   defp write_fixture!(contents) do
-    path = Path.join(System.tmp_dir!(), "getting_started_fixture_#{System.unique_integer([:positive])}.txt")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "getting_started_fixture_#{System.unique_integer([:positive])}.txt"
+      )
 
     File.write!(path, contents)
     path

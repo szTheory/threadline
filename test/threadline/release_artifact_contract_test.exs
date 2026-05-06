@@ -37,7 +37,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
   end
 
   test "ExDoc extras keep integrations ahead of the general reference bucket" do
-    assert Keyword.keys(docs_config()[:groups_for_extras]) == [:Overview, :Integrations, :Reference, :Project]
+    assert Keyword.keys(docs_config()[:groups_for_extras]) == [
+             :Overview,
+             :Integrations,
+             :Reference,
+             :Project
+           ]
   end
 
   test "ExDoc module groups keep Sigra in a dedicated integrations bucket" do

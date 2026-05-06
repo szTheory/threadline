@@ -17,8 +17,8 @@ defmodule Threadline.GettingStartedFixtures do
 
     {status, start_count, end_count, interior} =
       Enum.reduce(Enum.with_index(lines), {:before, 0, 0, []}, fn {line, index},
-                                                                   {status, start_count,
-                                                                    end_count, interior} ->
+                                                                  {status, start_count, end_count,
+                                                                   interior} ->
         trimmed = String.trim(line)
 
         cond do

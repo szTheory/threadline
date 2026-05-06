@@ -15,7 +15,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
   test "operator surface guide declares route literals" do
     guide = File.read!("guides/operator-surface.md")
-    
+
     assert String.contains?(guide, "/audit/transactions/:id")
     assert String.contains?(guide, "/audit/actors/:kind/:id")
     assert String.contains?(guide, "/audit/rows/:table/:pk")
@@ -23,7 +23,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
   test "operator surface guide details fail-closed security and auth options" do
     guide = File.read!("guides/operator-surface.md")
-    
+
     assert String.contains?(guide, "fail-closed")
     assert String.contains?(guide, ":authorize_fn")
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")

@@ -18,7 +18,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       quote do
         _scopes = @phoenix_top_scopes || %{pipes: []}
-        _has_pipe? = 
+
+        _has_pipe? =
           _scopes
           |> List.wrap()
           |> Enum.any?(fn
@@ -30,16 +31,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           raise CompileError,
             file: unquote(caller_file),
             line: unquote(caller_line),
-            description: "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
+            description:
+              "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
         end
 
         import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
         live_session :threadline, on_mount: [{Threadline.OperatorSurface.Auth, unquote(opts)}] do
           scope unquote(path), alias: Threadline.OperatorSurface.Live do
-            live "/transactions/:id", TransactionLive, :show
-            live "/transactions/:id/history/:table/:record_id", TransactionLive, :history
-            live "/actors/:kind/:id", ActorLive, :show
+            live("/transactions/:id", TransactionLive, :show)
+            live("/transactions/:id/history/:table/:record_id", TransactionLive, :history)
+            live("/actors/:kind/:id", ActorLive, :show)
           end
         end
       end

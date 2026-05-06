@@ -54,7 +54,7 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
     assert parsed["transaction"]["id"] == txn.id
     assert parsed["transaction"]["actor_ref"]["id"] == "u1"
     assert length(parsed["changes"]) == 1
-    
+
     first_change = hd(parsed["changes"])
     assert first_change["audit_change"]["op"] == "insert"
     assert first_change["audit_change"]["table_name"] == "test_incident_table"
@@ -62,6 +62,7 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
 
   test "raises when transaction is not found" do
     missing_id = Ecto.UUID.generate()
+
     assert_raise Mix.Error, ~r/transaction not found: #{missing_id}/, fn ->
       capture_io(fn ->
         Mix.Tasks.Threadline.Incident.run([missing_id])

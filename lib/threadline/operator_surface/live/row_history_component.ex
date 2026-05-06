@@ -1,19 +1,24 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.RowHistoryComponent do
+    @moduledoc false
     use Phoenix.LiveComponent
-    
+
     def update(assigns, socket) do
       schemas = assigns[:threadline_schemas] || %{}
-      schema_module = Map.get(schemas, assigns.table) || Map.get(schemas, String.to_atom(assigns.table))
-      
+
+      schema_module =
+        Map.get(schemas, assigns.table) || Map.get(schemas, String.to_atom(assigns.table))
+
       socket = assign(socket, assigns)
 
       if schema_module do
         history = Threadline.history(schema_module, assigns.record_id, repo: assigns.repo)
-        
-        as_of_dt = assigns.as_of || (if history != [], do: hd(history).captured_at, else: DateTime.utc_now())
-        
-        snapshot = Threadline.as_of(schema_module, assigns.record_id, as_of_dt, repo: assigns.repo)
+
+        as_of_dt =
+          assigns.as_of || if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
+
+        snapshot =
+          Threadline.as_of(schema_module, assigns.record_id, as_of_dt, repo: assigns.repo)
 
         {:ok,
          socket
@@ -22,20 +27,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          |> assign(:snapshot, snapshot)
          |> assign(:as_of_dt, as_of_dt)}
       else
-        {:ok, assign(socket, :error, "Table '#{assigns.table}' is not mapped to an Ecto schema. Configure :schemas in the auth plug.")}
+        {:ok,
+         assign(
+           socket,
+           :error,
+           "Table '#{assigns.table}' is not mapped to an Ecto schema. Configure :schemas in the auth plug."
+         )}
       end
     end
 
     def handle_event("update-as-of", %{"as_of" => as_of_str}, socket) do
-      as_of_str = if String.length(as_of_str) == 16, do: as_of_str <> ":00Z", else: as_of_str <> "Z"
+      as_of_str =
+        if String.length(as_of_str) == 16, do: as_of_str <> ":00Z", else: as_of_str <> "Z"
+
       as_of =
         case DateTime.from_iso8601(as_of_str) do
           {:ok, dt, _} -> dt
           _ -> socket.assigns.as_of_dt
         end
-        
-      path = "#{socket.assigns.base_path}/history/#{socket.assigns.table}/#{socket.assigns.record_id}?as_of=#{URI.encode_www_form(DateTime.to_iso8601(as_of))}"
-      
+
+      path =
+        "#{socket.assigns.base_path}/history/#{socket.assigns.table}/#{socket.assigns.record_id}?as_of=#{URI.encode_www_form(DateTime.to_iso8601(as_of))}"
+
       {:noreply, push_patch(socket, to: path)}
     end
 
@@ -86,6 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp format_dt(%DateTime{} = dt) do
       dt |> DateTime.to_iso8601() |> String.slice(0..15)
     end
+
     defp format_dt(_), do: ""
   end
 end

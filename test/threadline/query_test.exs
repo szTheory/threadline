@@ -363,7 +363,7 @@ defmodule Threadline.QueryTest do
     test "returns ActorHistoryPage struct with properly sorted entries" do
       actor = actor!(:user, "u-42")
       actor_map = ActorRef.to_map(actor)
-      
+
       t1 = DateTime.add(DateTime.utc_now(), -60, :second)
       t2 = DateTime.utc_now()
 
@@ -399,15 +399,17 @@ defmodule Threadline.QueryTest do
     test "supports cursor-based pagination with limit" do
       actor = actor!(:user, "u-page")
       actor_map = ActorRef.to_map(actor)
-      
+
       base_time = DateTime.utc_now()
-      txns = for i <- 1..5 do
-        insert_transaction(%{
-          actor_ref: actor_map,
-          occurred_at: DateTime.add(base_time, i * 10, :second)
-        })
-      end
-      
+
+      txns =
+        for i <- 1..5 do
+          insert_transaction(%{
+            actor_ref: actor_map,
+            occurred_at: DateTime.add(base_time, i * 10, :second)
+          })
+        end
+
       # Reverse order so they are sorted by occurred_at desc
       sorted_ids = Enum.reverse(txns) |> Enum.map(& &1.id)
 
@@ -426,7 +428,9 @@ defmodule Threadline.QueryTest do
       assert page2.prev_cursor != nil
 
       # Fetch previous page (before cursor)
-      page1_again = Threadline.actor_history(actor, repo: @repo, limit: 2, before: page2.prev_cursor)
+      page1_again =
+        Threadline.actor_history(actor, repo: @repo, limit: 2, before: page2.prev_cursor)
+
       assert length(page1_again.entries) == 2
       assert Enum.map(page1_again.entries, & &1.id) == Enum.take(sorted_ids, 2)
       assert page1_again.next_cursor != nil
@@ -436,7 +440,7 @@ defmodule Threadline.QueryTest do
     test "supports from and to DateTime bounds" do
       actor = actor!(:user, "u-bounds")
       actor_map = ActorRef.to_map(actor)
-      
+
       now = DateTime.utc_now()
       t_past = DateTime.add(now, -3600, :second)
       t_middle = DateTime.add(now, -1800, :second)
@@ -674,7 +678,11 @@ defmodule Threadline.QueryTest do
 
     test "actor_history/2 accepts explicit repo" do
       actor = actor!(:system, "sys-1")
-      assert match?(%Threadline.Query.ActorHistoryPage{}, Threadline.actor_history(actor, repo: @repo))
+
+      assert match?(
+               %Threadline.Query.ActorHistoryPage{},
+               Threadline.actor_history(actor, repo: @repo)
+             )
     end
 
     test "timeline/1 accepts repo in filter list" do
@@ -844,4 +852,3 @@ defmodule Threadline.QueryTest do
     end
   end
 end
-

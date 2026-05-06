@@ -25,7 +25,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
       # Extract base path up to /transactions/:id
-      base_path = 
+      base_path =
         case Regex.run(~r/(.*\/transactions\/[^\/]+)/, uri_parsed.path) do
           [_, path] -> path
           _ -> uri_parsed.path
@@ -36,19 +36,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if socket.assigns.live_action == :history do
         table = params["table"]
         record_id = params["record_id"]
-        
-        as_of = case params["as_of"] do
-          nil -> nil
-          "" -> nil
-          str -> case DateTime.from_iso8601(str) do
-            {:ok, dt, _offset} -> dt
-            _ -> nil
-          end
-        end
 
-        {:noreply, assign(socket, show_history: true, history_table: table, history_record_id: record_id, history_as_of: as_of)}
+        as_of =
+          case params["as_of"] do
+            nil ->
+              nil
+
+            "" ->
+              nil
+
+            str ->
+              case DateTime.from_iso8601(str) do
+                {:ok, dt, _offset} -> dt
+                _ -> nil
+              end
+          end
+
+        {:noreply,
+         assign(socket,
+           show_history: true,
+           history_table: table,
+           history_record_id: record_id,
+           history_as_of: as_of
+         )}
       else
-        {:noreply, assign(socket, show_history: false, history_table: nil, history_record_id: nil, history_as_of: nil)}
+        {:noreply,
+         assign(socket,
+           show_history: false,
+           history_table: nil,
+           history_record_id: nil,
+           history_as_of: nil
+         )}
       end
     end
 

@@ -38,7 +38,12 @@ defmodule Threadline.StgDocContractTest do
     assert String.contains?(section, "| `POST /api/posts` | HTTP | OK |")
     assert String.contains?(section, "| `GET /api/audit_transactions/:id/changes` | HTTP | OK |")
     assert String.contains?(section, "test/threadline/getting_started_saas_doc_contract_test.exs")
-    assert String.contains?(section, "Host teams still own tenancy and richer authorization review.")
+
+    assert String.contains?(
+             section,
+             "Host teams still own tenancy and richer authorization review."
+           )
+
     refute String.contains?(section, "https://staging.")
     refute String.contains?(section, "http://staging.")
   end
@@ -61,7 +66,10 @@ defmodule Threadline.StgDocContractTest do
 
   defp walked_example_section do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
-    [_before, after_heading] = String.split(doc, "### Example: ExampleCloud walkthrough (maintainer-walked)", parts: 2)
+
+    [_before, after_heading] =
+      String.split(doc, "### Example: ExampleCloud walkthrough (maintainer-walked)", parts: 2)
+
     hd(String.split(after_heading, "\n## ", parts: 2))
   end
 end

@@ -8,12 +8,14 @@ defmodule Threadline.Investigation do
 
   alias Threadline.Query
   alias Threadline.Query.TimelinePage
+
   alias Threadline.Investigation.{
     IncidentBundle,
     IncidentChange,
     LinkedChange,
     LinkedTransaction
   }
+
   alias Threadline.Semantics.ActorRef
 
   @allowed_row_history_filter_keys ~w(from to repo)a

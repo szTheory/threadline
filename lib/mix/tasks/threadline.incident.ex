@@ -60,9 +60,9 @@ defmodule Mix.Tasks.Threadline.Incident do
 
   defp print_human_readable(bundle) do
     IO.puts("Transaction: #{bundle.transaction.id}")
-    
-    actor_str = 
-      if bundle.transaction.actor_ref, 
+
+    actor_str =
+      if bundle.transaction.actor_ref,
         do: inspect(Threadline.Semantics.ActorRef.to_map(bundle.transaction.actor_ref)),
         else: "nil"
 
@@ -79,7 +79,9 @@ defmodule Mix.Tasks.Threadline.Incident do
   defp resolve_repo! do
     case Application.get_env(:threadline, :ecto_repos, []) do
       [] ->
-        Mix.raise("Threadline: set :ecto_repos in config — no Ecto repository is configured to run incident task.")
+        Mix.raise(
+          "Threadline: set :ecto_repos in config — no Ecto repository is configured to run incident task."
+        )
 
       [repo | _] ->
         repo

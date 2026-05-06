@@ -75,7 +75,12 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "Active organization adds a suffix")
     assert String.contains?(doc, "Anonymous / Sigra-absent returns `nil`")
     assert String.contains?(doc, "`x-correlation-id` header always wins")
-    assert String.contains?(doc, "`x-request-id` and any existing actor identity also stay authoritative")
+
+    assert String.contains?(
+             doc,
+             "`x-request-id` and any existing actor identity also stay authoritative"
+           )
+
     assert String.contains?(doc, "`audit_context_overrides_from_conn/1` returns `%{}`")
     assert String.contains?(doc, "Plug-only adapter; no telemetry subscription in v1")
   end

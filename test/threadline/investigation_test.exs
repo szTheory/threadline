@@ -2,12 +2,14 @@ defmodule Threadline.InvestigationTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+
   alias Threadline.Investigation.{
     IncidentBundle,
     IncidentChange,
     LinkedChange,
     LinkedTransaction
   }
+
   alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
@@ -323,6 +325,7 @@ defmodule Threadline.InvestigationTest do
       assert first_change.linked_change.transaction.id == txn.id
       assert first_change.linked_change.action.id == action.id
       assert first_change.change_diff["schema_version"] == 1
+
       assert [%{"name" => "name", "after" => "Alice 2", "before" => "Alice 1"}] =
                first_change.change_diff["field_changes"]
     end

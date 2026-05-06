@@ -83,14 +83,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Invalid Actor Reference"
     end
 
-    test "Case 2: Renders distinct empty state if actor has NEVER recorded an event", %{conn: conn} do
+    test "Case 2: Renders distinct empty state if actor has NEVER recorded an event", %{
+      conn: conn
+    } do
       assert {:ok, _lv, html} = live(conn, "/audit/actors/user/no_events_ever")
       assert html =~ "This actor has never recorded any events."
     end
 
-    test "Case 3: Renders window empty state if actor has events but none in window", %{conn: conn} do
+    test "Case 3: Renders window empty state if actor has events but none in window", %{
+      conn: conn
+    } do
       repo = Threadline.Test.Repo
-      
+
       # Insert an event older than 24h (the default window)
       repo.insert!(
         Threadline.Capture.AuditTransaction.changeset(%{
@@ -106,7 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 4: Renders transactions and deep links to incident drill-down", %{conn: conn} do
       repo = Threadline.Test.Repo
-      
+
       txn =
         repo.insert!(
           Threadline.Capture.AuditTransaction.changeset(%{
@@ -126,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Test time window change
       html_7d = render_click(lv, "set-window", %{"hours" => "168"})
       assert html_7d =~ "active"
-      
+
       # Verify dummy event handlers for pagination
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})

@@ -10,7 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)
       repo = Keyword.get(opts, :repo)
       schemas = Keyword.get(opts, :schemas, %{})
-      
+
       socket =
         socket
         |> Phoenix.Component.assign(:threadline_repo, repo)
