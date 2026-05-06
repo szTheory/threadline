@@ -221,6 +221,7 @@ defmodule Threadline.MixProject do
           Mix.Tasks.Threadline.Continuity,
           Mix.Tasks.Threadline.Retention.Purge,
           Mix.Tasks.Threadline.Export,
+          Mix.Tasks.Threadline.Incident,
           Mix.Tasks.Threadline.VerifyTopology
         ]
       ]
