@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: — Operator Surface Foundation
 status: executing
-last_updated: "2026-05-06T09:30:50Z"
-last_activity: 2026-05-06 -- Phase 57 plan 01 complete
+last_updated: "2026-05-06T15:35:00Z"
+last_activity: 2026-05-06 -- Phase 57 verified and closed; 2 manual-only items deferred to HUMAN-UAT
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
   completed_plans: 1
   percent: 14
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 57 — Optional Deps & Module Gating
-Plan: 01 (complete)
-Status: Phase 57 complete (single-plan phase) — ready to plan Phase 58
-Last activity: 2026-05-06 -- Phase 57 plan 01 complete
+Phase: 58 — Mount Macro & Auth Contract (next)
+Plan: —
+Status: Phase 57 verified and closed (5/5 must-haves; 2 manual-only items pending in `57-HUMAN-UAT.md`); ready to discuss/plan Phase 58
+Last activity: 2026-05-06 -- Phase 57 verified and closed
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Last activity: 2026-05-06 -- Phase 57 plan 01 complete
 
 ### Decisions
 
+- 2026-05-06: Phase 57 verified and closed — gsd-verifier confirmed 5/5 must-have truths, all artifacts present, all key-links wired, both compile legs (LV-present and LV-absent) clean. User approved phase close with 2 manual-only items persisted in `57-HUMAN-UAT.md` (GH Actions CI confirmation + discretionary hexdocs preview). Code review found 0 blockers / 0 warnings / 1 info (doc hygiene suggestion). Phase boundary discipline holds — none of the deferred Phase 58-63 items leaked in.
 - 2026-05-06: Phase 57 plan 01 shipped — `mix.exs` declares `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` as `optional: true`; `Threadline.OperatorSurface` namespace module created with file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end end` wrapper (Sentry `live_view_hook.ex` idiom); `mix verify.compile_no_optional` alias added and folded into `ci.all`; dedicated stable-id `verify-compile-no-optional` GitHub Actions job added; `CONTRIBUTING.md` row added. Five atomic commits (4281556, b8e7044, 409d135, 5d0aebf, 719d7ac). SURF-02 + SURF-03 validated. Pre-existing `mix verify.format` drift in 7 files outside Phase 57 scope remains a known blocker (recorded below) — surfaced not fixed per Task 5 scope discipline.
 - 2026-05-06: Phase 57 context captured. Locked four implementation decisions (research-then-recommend, four parallel subagents): (1) `phoenix ~> 1.7`, `phoenix_live_view ~> 1.0`, `phoenix_html ~> 4.0`, `phoenix_pubsub ~> 2.1` declared `optional: true` (greenfield, drops 0.20.x branch); (2) ship one gated namespace module `lib/threadline/operator_surface.ex` with `@moduledoc` only — modeled verbatim on `getsentry/sentry-elixir`'s `lib/sentry/live_view_hook.ex` file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end` shape; (3) verification via new `mix verify.compile_no_optional` alias + folded into `ci.all` + dedicated immutable-id GitHub Actions job `verify-compile-no-optional` (Sentry's CI gap is an acknowledged omission, not a model to replicate); (4) `:plug` stays a HARD dep — Phase 57 roadmap scopes optionality to Phoenix/LiveView only. Doc-contract test for the gated namespace deferred to Phase 58 alongside the first behavioural module.
 - 2026-05-06: Open v1.17 as "Operator Surface Foundation" — turn the v1.16 investigation contracts into a host-usable operator surface; the next adoption bottleneck is presentation/usability, not more raw exploration plumbing.
@@ -109,8 +110,8 @@ Last activity: 2026-05-06 -- Phase 57 plan 01 complete
 
 ## Session Continuity
 
-- **Last Action**: Phase 57 plan 01 executed — five atomic commits land the optional-dep declarations, the gated `Threadline.OperatorSurface` namespace module, the `verify.compile_no_optional` alias + ci.all extension, the dedicated `verify-compile-no-optional` GitHub Actions job, and the CONTRIBUTING.md stable-job-keys row. SURF-02 + SURF-03 validated. SUMMARY.md at `.planning/phases/57-optional-deps-and-module-gating/57-01-SUMMARY.md`.
-- **Next Step**: `/clear` then `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
+- **Last Action**: Phase 57 verified and closed — gsd-code-reviewer found 0 blockers / 0 warnings / 1 info (doc hygiene); gsd-verifier confirmed 5/5 must-have truths via direct codebase inspection plus cold-build behavioural checks (`mix verify.compile_no_optional` exits 0 with zero warnings; gated BEAM correctly absent in no-optional-deps build); user approved close. Phase artifacts: 57-01-SUMMARY.md, 57-REVIEW.md, 57-VERIFICATION.md, 57-HUMAN-UAT.md.
+- **Next Step**: `/clear` then `/gsd-discuss-phase 58` (recommended — no CONTEXT.md exists for Phase 58 yet) or `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
 
 ## Deferred Items
 

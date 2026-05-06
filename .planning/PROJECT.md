@@ -18,6 +18,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 - `Threadline` now ships public investigation helpers for row history, actor windows, correlation bundles, and transaction drill-down, plus the first-class `incident_bundle/2` contract.
 - README, guides, the Phoenix example, and focused doc-contract suites now teach one canonical investigation routing hierarchy and keep the host-owned auth/policy boundary explicit.
 
+**v1.17 progress (1/7 phases complete):**
+- Phase 57 — `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Threadline.OperatorSurface` namespace module shipped with file-scope `Code.ensure_loaded?(Phoenix.LiveView)` gating; `mix verify.compile_no_optional` alias + dedicated GH Actions job lock the regression-protection contract. SURF-02 + SURF-03 validated.
+
 ## Current Milestone: v1.17 Operator Surface Foundation
 
 **Goal:** Ship a host-usable operator surface — a mountable LiveView surface inside `threadline` (with Phoenix/LiveView as optional deps) that turns the v1.16 investigation contracts into one-click answers for the documented support questions, while preserving the v1.15 host-owns-auth boundary.
@@ -289,4 +292,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-06 - opened v1.17 "Operator Surface Foundation" with mountable in-tree LiveView surface (optional deps), incident drill-down + actor window must-have screens, and host-mount-default auth with optional `:authorize_fn` plus compile-time fail-closed check.*
+*Last updated: 2026-05-06 - Phase 57 verified and closed (Optional Deps & Module Gating); v1.17 progress 1/7 phases. Next: Phase 58 (Mount Macro & Auth Contract).*
