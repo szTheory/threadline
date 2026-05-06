@@ -11,21 +11,33 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current State
 
 **Last shipped:** v1.16 — Investigation Table Stakes (Phases 53-56, 2026-05-06)
-**Current planning focus:** No active milestone is open. The standing next recommendation is v1.17 — Operator Surface Foundation from `.planning/MILESTONE-ARC.md`.
+**Current milestone:** v1.17 — Operator Surface Foundation (opened 2026-05-06, continuing phase numbering from Phase 57).
 
 **Shipped capabilities:**
 - `Threadline.timeline_page/2` now exposes a stable keyset paging contract for large investigation windows without changing eager `timeline/2`.
 - `Threadline` now ships public investigation helpers for row history, actor windows, correlation bundles, and transaction drill-down, plus the first-class `incident_bundle/2` contract.
 - README, guides, the Phoenix example, and focused doc-contract suites now teach one canonical investigation routing hierarchy and keep the host-owned auth/policy boundary explicit.
 
-## Next Milestone Recommendation: v1.17 — Operator Surface Foundation
+## Current Milestone: v1.17 Operator Surface Foundation
 
-**Goal:** Turn the newly stabilized investigation contracts into a host-usable operator surface so adopters can answer the first serious support and incident questions without staying in docs-only or controller-local composition mode.
+**Goal:** Ship a host-usable operator surface — a mountable LiveView surface inside `threadline` (with Phoenix/LiveView as optional deps) that turns the v1.16 investigation contracts into one-click answers for the documented support questions, while preserving the v1.15 host-owns-auth boundary.
 
 **Target features:**
-- Publish a lightweight operator-facing surface on top of the shipped investigation APIs rather than teaching docs-only composition.
-- Keep the surface anchored on the stable v1.16 exploration contract so future UI work does not force churn in the core library APIs.
-- Preserve the current host-owned tenancy and authorization boundary instead of inventing a generic policy framework too early.
+- Mountable in-tree LiveView surface (`Threadline.OperatorSurface.Router`) compiled only when `Phoenix.LiveView` is present; `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared as optional deps so capture-only adopters stay Plug-only at install time.
+- Incident drill-down screen rendering `Threadline.incident_bundle/2` (correlation_id-anchored).
+- Actor window screen rendering `actor_history/2` with deep-links into incident drill-down.
+- Row history + as-of sub-view rendering `Threadline.history/3` + `Threadline.as_of/4`, reachable from drill-down change rows (should-have; ship in slice 1 if cheap).
+- `mix threadline.incident <transaction_id>` Mix task — no-LiveView operator path with parity data.
+- Mount-time auth contract: host-mount default + optional `:authorize_fn`; fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit.
+- Telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`.
+- Doc-contract tests locking the mount macro signature, route literals, and the README's auth section.
+- Example app + guides updated to wire the new surface behind a `phx.gen.auth`-style admin pipeline end-to-end.
+
+**Out of v1.17 scope (deferred):**
+- Raw paged timeline browse screen (needs filter form — own scope; defer to v1.18).
+- Saved views, redaction admin, retention admin, coverage dashboard, exports UI.
+- Separate `threadline_web` companion package (deferred to v1.19+; migration path documented).
+- New tenancy or policy framework (host stays in charge; `:authorize_fn` returns `:ok | {:ok, scope}` and Threadline threads `scope` into queries).
 
 **Why now:** v1.16 closed the biggest API gap by making investigation workflows first-class. The next adoption bottleneck is presentation and operator usability, not another round of raw exploration plumbing.
 
@@ -199,8 +211,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **Operator surface foundation (candidate v1.17)** — Publish a host-usable operator-facing surface on top of the stabilized investigation APIs without taking on generic tenancy or authorization framework scope.
-- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set.
+- [ ] **v1.17 Operator Surface Foundation** — Mountable in-tree LiveView surface, two must-have screens (incident drill-down, actor window) with row history + as-of sub-view, host-mount-default auth with optional `:authorize_fn` callback, fail-closed compile-time check, telemetry, Mix-task parity. Detailed REQ-IDs live in `.planning/REQUIREMENTS.md`.
+- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set after v1.17 ships.
 
 ### Out of Scope
 
@@ -208,9 +220,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Full event sourcing / CQRS** — Threadline captures audit facts; it does not drive application state reconstruction
 - **pgAudit replacement** — statement-level DB auditing is a separate concern; Threadline is application-level
 - **Data warehouse / CDC pipeline** — WAL/logical replication adds operational surface area (PgBouncer hazards, cloud caveats, cannot be reverted) that is not worth the tradeoff for v0.x
-- **LiveView operator UI** — deferred until capture + semantics are proven; premature without a stable API surface
+- **Hard LiveView / Phoenix dependency in `threadline` core** — out of scope. The v1.17 operator surface is gated on `phoenix_live_view` as an optional dep so capture-only adopters retain a Plug-only install footprint.
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
-- **Umbrella package structure or `threadline_web` companion** — defer; decide after API sketch exists and usage patterns are known
+- **Separate `threadline_web` companion package** — deferred to v1.19+. v1.17 ships the operator surface in-tree (`Threadline.OperatorSurface.Router`); a future split has a documented migration path (rename module, deprecation overlap, then extract) once adoption pressure and the LiveView/Phoenix version-compat matrix justify it.
 - **Automated Hex publish from CI** — tag-triggered workflow exists; interactive `mix hex.publish` remains the documented maintainer path for early releases
 - **Elixir/OTP version bumps in CI** — unless required for runner or dependency breakage
 
@@ -252,8 +264,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 | `as_of/4` map-first reconstruction and cast-based reification | Point-in-time reads now support explicit deleted/genesis errors plus opt-in struct loading | ✓ Shipped (Phases 38–40, v1.12) |
 | Treat README docs drift as a first-class milestone | README literals are public API; doc-contract tests must lock them so future drift fails CI instead of silently shipping | ✓ Shipped (Phases 41–43, v1.13) |
 | Verification artifacts are first-class milestone output | Phase 43 retroactively wrote `*-VERIFICATION.md` to close an audit gap; future phases should land verification evidence alongside SUMMARY.md, not after | ✓ Shipped (Phase 43, v1.13) |
-| Investigation workflows before UI breadth | The library already captures and correlates rich audit data, but adopters still need packaged answers to the first support questions before a UI or new adapter layer will feel durable | — Active in v1.16 planning |
-| Persist a standing milestone arc in `.planning/MILESTONE-ARC.md` | Future milestone starts should begin from a recorded strategic recommendation, not from memory or a fresh prompt | — Active in v1.16 planning |
+| Investigation workflows before UI breadth | The library already captures and correlates rich audit data, but adopters still need packaged answers to the first support questions before a UI or new adapter layer will feel durable | ✓ Shipped in v1.16 |
+| Persist a standing milestone arc in `.planning/MILESTONE-ARC.md` | Future milestone starts should begin from a recorded strategic recommendation, not from memory or a fresh prompt | ✓ Shipped in v1.16 |
+| v1.17 operator surface ships in-tree with optional Phoenix/LiveView deps, not as a separate `threadline_web` package | Splitting at v0.3.0 with one maintainer is premature: doubles the release/version-matrix burden when the surface is still small. LiveDashboard / Oban Web / Ash Admin all split *after* the core had hundreds of adopters; Sentry-Elixir keeps Phoenix integrations optional in-tree without a companion. Keeps capture-only adopters Plug-only via `optional: true` deps gated by `Code.ensure_loaded?(Phoenix.LiveView)`. | — Active in v1.17 planning |
+| Operator surface defaults to host-mounted with optional `:authorize_fn` callback and fails closed at compile time | Pure host-mount (LiveDashboard / Sidekiq Web pattern) leaks the surface when adopters forget the pipeline. Pure callback walks back from v1.15's "host owns auth, Threadline owns the wiring contract." Hangfire's fail-closed default + Oban Web's resolver shape gives the most conservative posture for an audit-trail surface, which is the highest-stakes leak target in the ecosystem. | — Active in v1.17 planning |
 
 ## Evolution
 
@@ -275,4 +289,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-05 - opened v1.16 "Investigation Table Stakes" and recorded the forward milestone arc.*
+*Last updated: 2026-05-06 - opened v1.17 "Operator Surface Foundation" with mountable in-tree LiveView surface (optional deps), incident drill-down + actor window must-have screens, and host-mount-default auth with optional `:authorize_fn` plus compile-time fail-closed check.*

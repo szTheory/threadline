@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.16
-milestone_name: Investigation Table Stakes
-status: milestone shipped
+milestone: v1.17
+milestone_name: Operator Surface Foundation
+status: planning
 last_updated: "2026-05-06T00:00:00Z"
 last_activity: 2026-05-06
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,26 +18,34 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: No active milestone is open. v1.16 is shipped and archived; use `.planning/MILESTONE-ARC.md` to open the next milestone, currently recommended as v1.17 — Operator Surface Foundation.
+**Current Focus**: v1.17 — Operator Surface Foundation. Mountable in-tree LiveView surface (optional Phoenix/LiveView deps), incident drill-down + actor window must-have screens, row history + as-of sub-view, host-mount-default auth with optional `:authorize_fn` and compile-time fail-closed check, telemetry, Mix-task parity. Continuing phase numbering from Phase 57.
 
 ## Current Position
 
-Phase: none active
-Plan: none active
-Status: v1.16 closed on 2026-05-06 after the milestone audit passed and the roadmap/requirements were archived.
-Last activity: 2026-05-06 — Archived v1.16, updated the planning summaries, and advanced the milestone arc to v1.17 as the standing next recommendation.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-06 — Milestone v1.17 started
 
 ## Performance Metrics
 
-- **Total Phases**: 4 planned in v1.16
-- **Phases Completed**: 4 of 4 in shipped milestone (Phases 53-56 shipped)
-- **Requirements Covered**: 5/5 shipped in v1.16 (`EXPLORE-01`, `EXPLORE-02`, `INCIDENT-06`, `INCIDENT-07`, `ADOPT-04`)
+- **Total Phases**: 0 planned in v1.17
+- **Phases Completed**: 0 of 0 in active milestone
+- **Requirements Covered**: 0/0 in v1.17 (REQUIREMENTS.md pending)
 - **Last Milestone**: v1.16 (Shipped 2026-05-06)
 
 ## Accumulated Context
 
 ### Decisions
 
+- 2026-05-06: Open v1.17 as "Operator Surface Foundation" — turn the v1.16 investigation contracts into a host-usable operator surface; the next adoption bottleneck is presentation/usability, not more raw exploration plumbing.
+- 2026-05-06: v1.17 ships the operator surface in-tree (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared as **optional deps** (gated via `Code.ensure_loaded?(Phoenix.LiveView)`), so capture-only adopters retain a Plug-only install footprint. Splitting into a separate `threadline_web` companion package is deferred to v1.19+ with a documented promotion path; LiveDashboard / Oban Web / Ash Admin all split *after* their core had hundreds of adopters, and at v0.3.0 with one maintainer the double-tagging + version-matrix burden is premature. Idiomatic anchor: `sentry-elixir` keeps Phoenix/LiveView integrations optional in-tree without a companion package.
+- 2026-05-06: v1.17 first slice ships two must-have screens — incident drill-down (renders `Threadline.incident_bundle/2`) and actor window (renders `actor_history/2`, deep-links into drill-down) — plus a should-have row history + as-of sub-view reachable from drill-down rows. Defers raw paged timeline browse to v1.18 (needs filter form, own scope). Together the must-haves answer 4 of 6 documented support questions on click 1 and match the dominant audit-console pattern (actor entry → transaction detail) seen across CloudTrail, Sentry, Okta, GitHub.
+- 2026-05-06: v1.17 ships `mix threadline.incident <transaction_id>` Mix task as a no-LiveView operator path with parity data — adopters who SSH into a box don't need to mount the surface to answer the marquee question.
+- 2026-05-06: v1.17 auth contract is host-mount default + optional `:authorize_fn` callback (mirrors `Threadline.Plug`'s `:actor_fn` shape). Fails closed at compile time unless one of (a) the scope has at least one `pipe_through`, (b) `:authorize_fn` is supplied, or (c) `:adopter_acknowledges_unauthenticated: true` is explicit (raises in test, loud `Logger.warning` in prod). Telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`. Multi-tenancy stays host-owned; `{:ok, scope}` from `:authorize_fn` is threaded into investigation queries. Idiomatic anchor: Hangfire's fail-closed default + Oban Web's resolver behaviour, adapted. Coheres with v1.15 host-owns-auth boundary.
+- 2026-05-06: PROJECT.md "Out of Scope" updated — "LiveView operator UI" replaced with "Hard LiveView/Phoenix dependency in `threadline` core" (the v1.17 surface is opt-in via optional deps); "`threadline_web` companion package" reframed as deferred to v1.19+ with documented migration path.
+- 2026-05-06: Continue phase numbering from 56 (no `--reset-phase-numbers`); v1.17 starts at Phase 57.
+- 2026-05-06: Targeted research replaced general project ecosystem research for v1.17 — three parallel dimension-specific agents (surface shape, workflow scope, auth model) returned coherent recommendations citing real Elixir-ecosystem peers (LiveDashboard, Oban Web, Ash Admin, Kaffy, Backpex, Sentry-Elixir, Carbonite) plus cross-language prior art (CloudTrail, Sentry, Okta, GitHub, Hangfire, Sidekiq Web, Django Reversion).
 - 2026-05-05: Open v1.16 as "Investigation Table Stakes" — prioritize packaged investigation workflows over more adapters or UI breadth because the biggest adoption gap is still time-to-answer after install.
 - 2026-05-05: Record a standing milestone arc in `.planning/MILESTONE-ARC.md` so future `/gsd-new-milestone` runs start from a durable recommendation instead of a blank prompt.
 - 2026-05-05: Keep phase numbering continuous; v1.16 starts at Phase 53.
@@ -82,16 +90,18 @@ Last activity: 2026-05-06 — Archived v1.16, updated the planning summaries, an
 - [x] Run the v1.16 milestone audit and archive the roadmap and requirements
 - [ ] Push milestone tags `v1.15` and `v1.16` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
+- [ ] Write `.planning/REQUIREMENTS.md` for v1.17 (REQ-IDs across surface shape, screens, mix task, auth, telemetry, doc contracts, example app)
+- [ ] Spawn `gsd-roadmapper` to phase v1.17 starting at Phase 57
 
 ### Blockers
 
-- No blocker to opening the next milestone remains.
+- No blocker to v1.17 planning remains.
 - Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16 closeout set.
 
 ## Session Continuity
 
-- **Last Action**: Closed and archived v1.16 after the milestone audit passed.
-- **Next Step**: Run `/gsd-new-milestone` and start from `.planning/MILESTONE-ARC.md`, which now points to v1.17 as the standing next recommendation.
+- **Last Action**: Opened v1.17 — Operator Surface Foundation; updated PROJECT.md and STATE.md.
+- **Next Step**: Define `.planning/REQUIREMENTS.md` for v1.17, then spawn `gsd-roadmapper` to map REQ-IDs onto phases starting at Phase 57.
 
 ## Deferred Items
 
