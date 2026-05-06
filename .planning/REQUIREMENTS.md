@@ -68,32 +68,32 @@
 
 ## Traceability
 
-To be filled by `gsd-roadmapper` when v1.17 phases are mapped.
+Mapped by `gsd-roadmapper` on 2026-05-06.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SURF-01 | _TBD_ | _TBD_ |
-| SURF-02 | _TBD_ | _TBD_ |
-| SURF-03 | _TBD_ | _TBD_ |
-| SURF-04 | _TBD_ | _TBD_ |
-| UI-01 | _TBD_ | _TBD_ |
-| UI-02 | _TBD_ | _TBD_ |
-| UI-03 | _TBD_ | _TBD_ |
-| CLI-01 | _TBD_ | _TBD_ |
-| AUTH-01 | _TBD_ | _TBD_ |
-| AUTH-02 | _TBD_ | _TBD_ |
-| AUTH-03 | _TBD_ | _TBD_ |
-| AUTH-04 | _TBD_ | _TBD_ |
-| AUTH-05 | _TBD_ | _TBD_ |
-| TELEM-01 | _TBD_ | _TBD_ |
-| DOC-01 | _TBD_ | _TBD_ |
-| DOC-02 | _TBD_ | _TBD_ |
-| DOC-03 | _TBD_ | _TBD_ |
-| DOC-04 | _TBD_ | _TBD_ |
+| SURF-01 | Phase 58 | Pending |
+| SURF-02 | Phase 57 | Pending |
+| SURF-03 | Phase 57 | Pending |
+| SURF-04 | Phase 62 | Pending |
+| UI-01 | Phase 59 | Pending |
+| UI-02 | Phase 60 | Pending |
+| UI-03 | Phase 61 | Pending |
+| CLI-01 | Phase 62 | Pending |
+| AUTH-01 | Phase 58 | Pending |
+| AUTH-02 | Phase 58 | Pending |
+| AUTH-03 | Phase 58 | Pending |
+| AUTH-04 | Phase 58 | Pending |
+| AUTH-05 | Phase 58 | Pending |
+| TELEM-01 | Phase 58 | Pending |
+| DOC-01 | Phase 63 | Pending |
+| DOC-02 | Phase 63 | Pending |
+| DOC-03 | Phase 63 | Pending |
+| DOC-04 | Phase 63 | Pending |
 
-**Coverage target at open:**
+**Coverage at roadmap close:**
 - v1.17 requirements: 18 total (17 must-have + 1 should-have)
-- Mapped to phases: 0/18 (pending roadmapper)
+- Mapped to phases: 18/18 ✓
 - Validated: 0/18
 
 ## Notes
