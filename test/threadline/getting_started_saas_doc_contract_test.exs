@@ -38,12 +38,26 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "raises `ArgumentError`")
     assert String.contains?(doc, "timeline = Threadline.timeline(filters)")
     assert String.contains?(doc, "first_page = Threadline.timeline_page(filters, page_size: 100)")
+
+    assert String.contains?(
+             doc,
+             "{:ok, bundle} = Threadline.incident_bundle(audit_transaction_id, repo: MyApp.Repo)"
+           )
+
     assert String.contains?(doc, "`Threadline.timeline_page/2` is the same investigation path")
-    assert String.contains?(doc, "Threadline.as_of(MyApp.Post, post_id, as_of_at, repo: MyApp.Repo)")
+
+    assert String.contains?(
+             doc,
+             "Threadline.as_of(MyApp.Post, post_id, as_of_at, repo: MyApp.Repo)"
+           )
+
     assert String.contains?(doc, "requires an authenticated actor before it serves")
     assert String.contains?(doc, "incident drill-down: auth is included")
     assert String.contains?(doc, "tenancy rules still belong to the")
     assert String.contains?(doc, "host app")
+    assert String.contains?(doc, "Threadline.audit_changes_for_transaction/2")
+    assert String.contains?(doc, "Threadline.transaction_context/2")
+    assert String.contains?(doc, "Threadline.change_diff/2")
   end
 
   test "quickstart closing pointers stay in-repo and present" do

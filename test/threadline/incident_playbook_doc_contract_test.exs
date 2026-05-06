@@ -25,7 +25,9 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
       assert content =~ "<!-- LIVE-JOIN-WARNING -->"
     end
 
-    test "locks the incident drill-down auth baseline and host-owned policy boundary", %{content: content} do
+    test "locks the incident drill-down auth baseline and host-owned policy boundary", %{
+      content: content
+    } do
       assert content =~ "GET /api/audit_transactions/:id/changes"
       assert content =~ "incident drill-down requires an"
       assert content =~ "authenticated actor"
@@ -37,6 +39,7 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
       assert content =~ "Threadline.history("
       assert content =~ "Threadline.actor_history("
       assert content =~ "Threadline.audit_changes_for_transaction("
+      assert content =~ "Threadline.incident_bundle("
       assert content =~ "Threadline.as_of("
 
       refute content =~ "Threadline.Query.changes_for_record"
@@ -52,15 +55,16 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
     test "does not contain SELECT * in raw SQL blocks", %{content: content} do
       # Extract all SQL blocks
       sql_blocks = Regex.scan(~r/```sql\n(.*?)```/s, content)
-      
+
       assert length(sql_blocks) > 0, "Expected to find at least one SQL block"
 
       Enum.each(sql_blocks, fn [_, sql_content] ->
         # Assert that SELECT * is not in the block
-        refute sql_content =~ ~r/SELECT\s+\*/i, "Found 'SELECT *' in a SQL block: \n#{sql_content}"
+        refute sql_content =~ ~r/SELECT\s+\*/i,
+               "Found 'SELECT *' in a SQL block: \n#{sql_content}"
       end)
     end
-    
+
     test "has expected structure for each scenario", %{content: content} do
       scenarios = [
         "who changed this row at time T?",
@@ -77,15 +81,32 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
 
         # Get everything after the header
         [_before, after_header] = String.split(content, header, parts: 2)
-        
+
         # The section content goes until the next "## " or the end of the string
         section_content = hd(String.split(after_header, "\n## ", parts: 2))
-        
-        assert section_content =~ "### Diagnosis (API)", "Missing 'Diagnosis (API)' in scenario: #{scenario}"
-        assert section_content =~ "### Diagnosis (raw SQL)", "Missing 'Diagnosis (raw SQL)' in scenario: #{scenario}"
-        assert section_content =~ "### Expected output", "Missing 'Expected output' in scenario: #{scenario}"
+
+        assert section_content =~ "### Diagnosis (API)",
+               "Missing 'Diagnosis (API)' in scenario: #{scenario}"
+
+        assert section_content =~ "### Diagnosis (raw SQL)",
+               "Missing 'Diagnosis (raw SQL)' in scenario: #{scenario}"
+
+        assert section_content =~ "### Expected output",
+               "Missing 'Expected output' in scenario: #{scenario}"
+
         assert section_content =~ "### Recovery", "Missing 'Recovery' in scenario: #{scenario}"
       end)
+    end
+
+    test "single-transaction drilldown starts from the bundled incident path", %{content: content} do
+      [_before, after_header] =
+        String.split(content, "## Scenario: single-transaction drilldown", parts: 2)
+
+      section_content = hd(String.split(after_header, "\n## ", parts: 2))
+
+      assert section_content =~ "Threadline.incident_bundle("
+      assert section_content =~ "Threadline.audit_changes_for_transaction/2"
+      assert section_content =~ "Threadline.change_diff/2"
     end
   end
 end

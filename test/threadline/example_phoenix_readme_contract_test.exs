@@ -13,7 +13,12 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     doc = read_rel!(@readme_path)
 
     assert String.contains?(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
-    assert String.contains?(doc, "Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1")
+
+    assert String.contains?(
+             doc,
+             "Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1"
+           )
+
     assert String.contains?(doc, "wired directly into `Threadline.Plug`")
   end
 
@@ -27,6 +32,8 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   test "example README locks the incident drill-down auth boundary" do
     doc = read_rel!(@readme_path)
 
+    assert String.contains?(doc, "Threadline.incident_bundle/2")
+    assert String.contains?(doc, "COMP-EXAMPLE-INCIDENT-JSON")
     assert String.contains?(doc, "requires an authenticated actor before it serves the")
     assert String.contains?(doc, "drill-down endpoint")
     assert String.contains?(doc, "Hosts still need their own tenancy and policy checks")

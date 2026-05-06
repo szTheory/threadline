@@ -13,7 +13,9 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
 
     assert String.contains?(doc, "## Exploration API routing (v1.10+)")
     assert String.contains?(doc, "XPLO-03-API-ROUTING")
+    assert String.contains?(doc, "Threadline.incident_bundle/2")
     assert String.contains?(doc, "audit_changes_for_transaction")
+    assert String.contains?(doc, "transaction_context")
     assert String.contains?(doc, "change_diff") or String.contains?(doc, "ChangeDiff")
     assert String.contains?(doc, "support-incident-queries")
     assert String.contains?(doc, "Threadline.timeline_page/2")
@@ -31,6 +33,7 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert String.contains?(doc, "examples/threadline_phoenix")
     assert String.contains?(doc, "GET /api/audit_transactions")
     assert String.contains?(doc, "audit_transaction_id")
+    assert String.contains?(doc, "Threadline.incident_bundle/2")
     assert String.contains?(doc, "requires an authenticated actor before it serves the")
     assert String.contains?(doc, "Production hosts still own tenancy scoping and any richer")
   end
