@@ -81,6 +81,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <span class="change-op"><%= change.change_diff["op"] %></span>
                   <span class="change-table"><%= change.change_diff["table_name"] %></span>
                   <span class="change-time"><%= change.change_diff["captured_at"] %></span>
+                  <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="history-link" title="View Row History">
+                    History
+                  </.link>
                 </div>
                 <div class="change-fields">
                   <%= for field <- change.change_diff["field_changes"] do %>

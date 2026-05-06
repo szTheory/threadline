@@ -38,7 +38,8 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      assert returned_socket == socket
+      assert returned_socket.assigns.threadline_repo == nil
+      assert returned_socket.assigns.threadline_schemas == %{}
 
       assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize], %{result: :granted}, _metadata}
     end
@@ -60,7 +61,8 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      assert returned_socket == socket
+      assert returned_socket.assigns.threadline_repo == nil
+      assert returned_socket.assigns.threadline_schemas == %{}
 
       assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize], %{result: :granted}, _metadata}
     end

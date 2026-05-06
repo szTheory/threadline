@@ -134,7 +134,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           })
         )
 
-      change =
+      _change =
         repo.insert!(
           Threadline.Capture.AuditChange.changeset(%{
             transaction_id: txn.id,

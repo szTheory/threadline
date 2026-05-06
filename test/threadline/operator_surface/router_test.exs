@@ -53,7 +53,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               use Phoenix.Router
               require Threadline.OperatorSurface.Router
               
-              Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline", authorize_fn: fn _ -> :ok end)
+              Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline", authorize_fn: &__MODULE__.auth/1)
+              
+              def auth(_), do: :ok
             end
           end
         )
