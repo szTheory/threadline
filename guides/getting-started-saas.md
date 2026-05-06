@@ -162,11 +162,7 @@ timeline = Threadline.timeline(filters)
 
 first_page = Threadline.timeline_page(filters, page_size: 100)
 
-first_change =
-  Threadline.audit_changes_for_transaction(audit_transaction_id, repo: MyApp.Repo)
-  |> hd()
-
-diff = Threadline.change_diff(first_change, json_ready: true)
+{:ok, bundle} = Threadline.incident_bundle(audit_transaction_id, repo: MyApp.Repo)
 
 as_of_at = DateTime.utc_now()
 
@@ -179,11 +175,15 @@ The reference app also requires an authenticated actor before it serves
 incident drill-down: auth is included, while tenancy rules still belong to the
 host app.
 
+If you need to build a custom incident view instead of using the bundled default,
+drop to `Threadline.audit_changes_for_transaction/2`, `Threadline.transaction_context/2`,
+or `Threadline.change_diff/2` as advanced building blocks.
+
 That sequence gives you the three first-hour operator questions:
 
 - `Threadline.timeline/2` shows which rows moved in the request.
 - `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
-- `Threadline.change_diff/2` gives a JSON-ready diff for a single captured change.
+- `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
 
 ## Next reads

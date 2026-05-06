@@ -202,9 +202,10 @@ When a complex operation touches multiple tables, you may need to see every row 
 ### Diagnosis (API)
 
 ```elixir
-Threadline.audit_changes_for_transaction(transaction_id, repo: MyApp.Repo)
-|> Enum.map(fn change ->
-  %{table: change.table_name, op: change.op, diff: Threadline.change_diff(change, json_ready: true)}
+{:ok, bundle} = Threadline.incident_bundle(transaction_id, repo: MyApp.Repo)
+
+Enum.map(bundle.changes, fn change ->
+  %{table: change.audit_change.table_name, op: change.audit_change.op, diff: change.change_diff}
 end)
 ```
 
@@ -227,11 +228,17 @@ ORDER BY ac.captured_at DESC, ac.id DESC;
 
 ### Expected output
 
-All mutations that were committed together in the specified transaction, with enough shape to reconstruct each row diff and the operation order.
+The linked transaction/action context plus every mutation that committed together
+in the specified transaction, with packaged per-row diffs and the same stable
+operation order used by the library.
 
 ### Recovery
 
-If the transaction represented a logical error, address the full set of changes together rather than reverting only the most visible row.
+If the transaction represented a logical error, address the full set of changes
+together rather than reverting only the most visible row. If you need a custom
+projection, drop to `Threadline.audit_changes_for_transaction/2` or
+`Threadline.change_diff/2` as lower-level building blocks instead of replacing
+the bundled default story.
 
 <!-- LIVE-JOIN-WARNING -->
 Warning: if you extend any of these recipes by joining live application tables such as `users` or `posts`, keep the join narrow and time-bounded so your debugging query does not become its own production load spike.
