@@ -32,7 +32,10 @@
   1. `mix.exs` declares `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` with `optional: true` so an adopter who installs `threadline` without those deps gets zero UI code compiled into their release.
   2. Every module under `lib/threadline/operator_surface/` is gated behind a `Code.ensure_loaded?(Phoenix.LiveView)` (or compile-time-equivalent) guard so `mix compile --warnings-as-errors` succeeds with and without LiveView present.
   3. The capture path's runtime behavior is observably unchanged when LiveView is absent — no new modules loaded, no boot-time warnings, no telemetry events fired.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 57-01-PLAN.md — Optional deps + gated namespace module + verify.compile_no_optional alias + GH Actions job + CONTRIBUTING.md row (one atomic commit)
 **UI hint**: yes
 
 ##### Phase 58: Mount Macro & Auth Contract
