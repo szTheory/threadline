@@ -42,6 +42,8 @@ defmodule ThreadlinePhoenix.MixProject do
       {:threadline, path: "../.."},
       {:phoenix, "~> 1.8.5"},
       {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_html, "~> 4.0"},
+      {:phoenix_live_view, "~> 1.0"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
       {:telemetry_metrics, "~> 1.0"},
