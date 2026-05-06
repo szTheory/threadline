@@ -1,7 +1,6 @@
 defmodule Threadline.OperatorSurface.AuthTest do
   use ExUnit.Case, async: true
 
-  import Phoenix.LiveViewTest
   alias Threadline.OperatorSurface.Auth
 
   # Simple mock socket for tests
@@ -9,7 +8,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
     %Phoenix.LiveView.Socket{
       endpoint: MyApp.Endpoint,
       router: MyApp.Router,
-      assigns: %{}
+      assigns: %{__changed__: %{}}
     }
   end
 
@@ -72,7 +71,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
 
       assert {:halt, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       # Phoenix.LiveView.redirect adds a redirect instruction.
-      assert returned_socket.redirected == {:redirect, %{to: "/"}}
+      assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
       assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize], %{result: :denied}, _metadata}
     end
@@ -82,7 +81,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:halt, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      assert returned_socket.redirected == {:redirect, %{to: "/"}}
+      assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
       assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize], %{result: :denied}, _metadata}
     end
@@ -92,7 +91,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:halt, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      assert returned_socket.redirected == {:redirect, %{to: "/"}}
+      assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
       assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize], %{result: :error}, _metadata}
     end
