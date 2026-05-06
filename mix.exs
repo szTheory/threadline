@@ -59,7 +59,8 @@ defmodule Threadline.MixProject do
       {:phoenix_html, "~> 4.0", optional: true},
       {:phoenix_pubsub, "~> 2.1", optional: true},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:lazy_html, "~> 0.1.0", only: :test}
     ]
   end
 

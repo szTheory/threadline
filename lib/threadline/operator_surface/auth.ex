@@ -8,6 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def on_mount(opts, _params, _session, socket) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)
+      repo = Keyword.get(opts, :repo)
+      socket = Phoenix.Component.assign(socket, :threadline_repo, repo)
 
       try do
         case authorize_fn.(socket) do
@@ -22,7 +24,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:ok, scope} when is_map(scope) ->
             emit_telemetry(:granted, socket, scope)
             {:cont, Phoenix.Component.assign(socket, :threadline_scope, scope)}
-            
+
           {:ok, scope} ->
             emit_telemetry(:granted, socket, nil)
             {:cont, Phoenix.Component.assign(socket, :threadline_scope, scope)}
@@ -43,8 +45,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp emit_telemetry(result, _socket, scope) do
       scope_keys = if is_map(scope), do: Map.keys(scope) |> Enum.sort(), else: []
-      actor_ref = if is_map(scope), do: Map.get(scope, :actor_ref) || Map.get(scope, :user_id), else: nil
-      
+
+      actor_ref =
+        if is_map(scope), do: Map.get(scope, :actor_ref) || Map.get(scope, :user_id), else: nil
+
       :telemetry.execute(
         [:threadline, :operator_surface, :authorize],
         %{result: result},
