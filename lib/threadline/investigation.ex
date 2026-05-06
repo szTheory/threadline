@@ -7,6 +7,8 @@ defmodule Threadline.Investigation do
   """
 
   alias Threadline.Query
+  alias Threadline.Query.TimelinePage
+  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
   alias Threadline.Semantics.ActorRef
 
   @allowed_row_history_filter_keys ~w(from to repo)a
@@ -23,7 +25,10 @@ defmodule Threadline.Investigation do
   """
   def row_history(schema_module, id, filters \\ [], opts \\ []) do
     filters = validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history)
-    Query.row_history(schema_module, id, filters, opts)
+
+    schema_module
+    |> Query.row_history(id, filters, opts)
+    |> linked_changes(opts)
   end
 
   @doc """
@@ -35,7 +40,9 @@ defmodule Threadline.Investigation do
     filters =
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
 
-    Query.row_history_page(schema_module, id, filters, opts)
+    schema_module
+    |> Query.row_history_page(id, filters, opts)
+    |> linked_page(opts)
   end
 
   @doc """
@@ -51,7 +58,9 @@ defmodule Threadline.Investigation do
       |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window)
       |> Keyword.put(:actor_ref, actor_ref)
 
-    Query.timeline(filters, opts)
+    filters
+    |> Query.timeline(opts)
+    |> linked_changes(opts)
   end
 
   @doc """
@@ -63,7 +72,9 @@ defmodule Threadline.Investigation do
       |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window_page)
       |> Keyword.put(:actor_ref, actor_ref)
 
-    Query.timeline_page(filters, opts)
+    filters
+    |> Query.timeline_page(opts)
+    |> linked_page(opts)
   end
 
   @doc """
@@ -82,7 +93,9 @@ defmodule Threadline.Investigation do
       )
       |> Keyword.put(:correlation_id, correlation_id)
 
-    Query.timeline(filters, opts)
+    filters
+    |> Query.timeline(opts)
+    |> linked_changes(opts)
   end
 
   @doc """
@@ -98,7 +111,30 @@ defmodule Threadline.Investigation do
       )
       |> Keyword.put(:correlation_id, correlation_id)
 
-    Query.timeline_page(filters, opts)
+    filters
+    |> Query.timeline_page(opts)
+    |> linked_page(opts)
+  end
+
+  @doc """
+  Returns one transaction-oriented investigation slice with linked transaction
+  and optional action metadata.
+  """
+  def transaction_context(transaction_id, opts \\ []) do
+    changes =
+      Query.audit_changes_for_transaction(
+        transaction_id,
+        Keyword.put(opts, :preload, transaction: :action)
+      )
+
+    linked_changes = to_linked_changes(changes)
+    transaction = linked_transaction(linked_changes)
+
+    %LinkedTransaction{
+      transaction: transaction,
+      action: linked_action(transaction),
+      changes: linked_changes
+    }
   end
 
   defp validate_helper_filters!(filters, allowed_keys, helper_name) when is_list(filters) do
@@ -113,4 +149,34 @@ defmodule Threadline.Investigation do
 
     filters
   end
+
+  defp linked_page(%TimelinePage{} = page, opts) do
+    %TimelinePage{page | entries: linked_changes(page.entries, opts)}
+  end
+
+  defp linked_changes(changes, opts) when is_list(changes) do
+    repo = Query.timeline_repo!([], opts)
+
+    changes
+    |> Query.preload_investigation_context(repo)
+    |> to_linked_changes()
+  end
+
+  defp to_linked_changes(changes) do
+    Enum.map(changes, fn audit_change ->
+      transaction = audit_change.transaction
+
+      %LinkedChange{
+        audit_change: audit_change,
+        transaction: transaction,
+        action: linked_action(transaction)
+      }
+    end)
+  end
+
+  defp linked_transaction([%LinkedChange{transaction: transaction} | _]), do: transaction
+  defp linked_transaction([]), do: nil
+
+  defp linked_action(nil), do: nil
+  defp linked_action(transaction), do: Map.get(transaction, :action)
 end

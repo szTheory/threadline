@@ -2,6 +2,7 @@ defmodule Threadline.InvestigationTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
   alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
@@ -54,7 +55,8 @@ defmodule Threadline.InvestigationTest do
     ref
   end
 
-  defp page_entry_ids(%TimelinePage{entries: entries}), do: Enum.map(entries, & &1.id)
+  defp page_entry_ids(%TimelinePage{entries: entries}),
+    do: Enum.map(entries, & &1.audit_change.id)
 
   describe "row_history/4 and row_history_page/4" do
     test "constrains history to one row instead of all rows from the table" do
@@ -69,9 +71,12 @@ defmodule Threadline.InvestigationTest do
 
       results = Threadline.row_history(FakeUser, "row-1", [], repo: @repo)
 
-      assert Enum.map(results, & &1.table_pk["id"]) == ["row-1", "row-1"]
-      assert Enum.all?(results, &(&1.table_name == "users"))
-      assert Enum.map(results, & &1.captured_at) == [newer, older]
+      assert Enum.map(results, & &1.audit_change.table_pk["id"]) == ["row-1", "row-1"]
+      assert Enum.all?(results, &match?(%LinkedChange{}, &1))
+      assert Enum.all?(results, &(&1.audit_change.table_name == "users"))
+      assert Enum.map(results, & &1.audit_change.captured_at) == [newer, older]
+      assert Enum.all?(results, &match?(%AuditTransaction{}, &1.transaction))
+      assert Enum.all?(results, &is_nil(&1.action))
     end
 
     test "paged row history concatenates back to eager order and keeps next_cursor semantics" do
@@ -88,7 +93,7 @@ defmodule Threadline.InvestigationTest do
 
       eager_ids =
         Threadline.row_history(FakeUser, "row-paged", [], repo: @repo)
-        |> Enum.map(& &1.id)
+        |> Enum.map(& &1.audit_change.id)
 
       first_page =
         Threadline.row_history_page(FakeUser, "row-paged", [], repo: @repo, page_size: 2)
@@ -142,8 +147,9 @@ defmodule Threadline.InvestigationTest do
 
       results = Threadline.actor_window(actor, [], repo: @repo)
 
-      assert Enum.map(results, & &1.transaction_id) |> Enum.uniq() == [actor_txn.id]
-      assert Enum.sort(Enum.map(results, & &1.table_name)) == ["posts", "users"]
+      assert Enum.map(results, & &1.audit_change.transaction_id) |> Enum.uniq() == [actor_txn.id]
+      assert Enum.sort(Enum.map(results, & &1.audit_change.table_name)) == ["posts", "users"]
+      assert Enum.all?(results, &match?(%AuditTransaction{}, &1.transaction))
     end
 
     test "paged actor window reuses the timeline keyset contract" do
@@ -157,7 +163,8 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "posts", table_pk: %{"id" => "actor-2"}, captured_at: t2})
       insert_change(txn, %{table_name: "teams", table_pk: %{"id" => "actor-3"}, captured_at: t3})
 
-      eager_ids = Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.id)
+      eager_ids =
+        Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.audit_change.id)
 
       first_page = Threadline.actor_window_page(actor, [], repo: @repo, page_size: 2)
 
@@ -192,8 +199,10 @@ defmodule Threadline.InvestigationTest do
 
       results = Threadline.correlation_bundle("corr-match", [], repo: @repo)
 
-      assert Enum.map(results, & &1.transaction_id) == [matching_txn.id]
-      assert Enum.all?(results, &(&1.table_pk["id"] == "corr-1"))
+      assert Enum.map(results, & &1.audit_change.transaction_id) == [matching_txn.id]
+      assert Enum.all?(results, &(&1.audit_change.table_pk["id"] == "corr-1"))
+      assert Enum.all?(results, &match?(%AuditAction{}, &1.action))
+      assert Enum.all?(results, &(&1.action.correlation_id == "corr-match"))
     end
 
     test "paged correlation bundle concatenates to eager order" do
@@ -208,7 +217,8 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "teams", table_pk: %{"id" => "cb-3"}, captured_at: t3})
 
       eager_ids =
-        Threadline.correlation_bundle("corr-paged", [], repo: @repo) |> Enum.map(& &1.id)
+        Threadline.correlation_bundle("corr-paged", [], repo: @repo)
+        |> Enum.map(& &1.audit_change.id)
 
       first_page =
         Threadline.correlation_bundle_page("corr-paged", [], repo: @repo, page_size: 2)
@@ -225,6 +235,42 @@ defmodule Threadline.InvestigationTest do
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
       assert first_page.next_cursor != nil
       assert second_page.next_cursor == nil
+    end
+  end
+
+  describe "transaction_context/2" do
+    test "packages one transaction drill-down with linked change, transaction, and action context" do
+      action = insert_action(%{correlation_id: "corr-transaction", name: "incident.reviewed"})
+      txn = insert_transaction(%{action_id: action.id})
+      captured_at = ~U[2026-09-04 09:00:00.000000Z]
+
+      change =
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "tx-1"},
+          captured_at: captured_at
+        })
+
+      result = Threadline.transaction_context(txn.id, repo: @repo)
+
+      assert %LinkedTransaction{} = result
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+      assert [%LinkedChange{} = linked_change] = result.changes
+      assert linked_change.audit_change.id == change.id
+      assert linked_change.transaction.id == txn.id
+      assert linked_change.action.id == action.id
+      refute Map.has_key?(result, :change_diff)
+      refute Map.has_key?(linked_change, :change_diff)
+    end
+
+    test "returns an empty linked transaction when the transaction has no captured changes" do
+      result = Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
+
+      assert %LinkedTransaction{} = result
+      assert result.transaction == nil
+      assert result.action == nil
+      assert result.changes == []
     end
   end
 end

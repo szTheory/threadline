@@ -96,6 +96,12 @@ defmodule Threadline.Query do
     }
   end
 
+  @doc false
+  @spec preload_investigation_context([AuditChange.t()], module()) :: [AuditChange.t()]
+  def preload_investigation_context(changes, repo) when is_list(changes) and is_atom(repo) do
+    repo.preload(changes, transaction: :action)
+  end
+
   @doc """
   Validates that `filters` contains only timeline filter keys.
 

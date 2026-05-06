@@ -169,6 +169,16 @@ defmodule Threadline do
     do: Investigation.correlation_bundle_page(correlation_id, filters, opts)
 
   @doc """
+  Returns one transaction-oriented investigation slice with linked transaction
+  and optional action metadata.
+
+  This packages the existing transaction drill-down primitive into a reusable
+  helper contract without adding Phase 55 diff or incident-bundle rendering.
+  """
+  def transaction_context(transaction_id, opts \\ []),
+    do: Investigation.transaction_context(transaction_id, opts)
+
+  @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.
 
   Delegates to `Threadline.Query.audit_changes_for_transaction/2`. Pass **`repo:`**
