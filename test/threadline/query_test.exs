@@ -2,6 +2,8 @@ defmodule Threadline.QueryTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
+  alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
@@ -706,6 +708,66 @@ defmodule Threadline.QueryTest do
 
       results = Threadline.timeline(repo: @repo)
       assert Enum.all?(results, &match?(%AuditChange{}, &1))
+    end
+  end
+
+  describe "Phase 54 backward-compatible primitives" do
+    defmodule FakeCompatibilityUser do
+      use Ecto.Schema
+
+      @primary_key {:id, :string, autogenerate: false}
+      schema "users" do
+        field(:name, :string)
+      end
+    end
+
+    test "history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 is richer" do
+      actor = actor!(:user, "compat-actor")
+
+      action =
+        @repo.insert!(
+          AuditAction.changeset(%AuditAction{}, %{
+            name: "compat.reviewed",
+            actor_ref: ActorRef.to_map(actor),
+            status: :ok,
+            correlation_id: "compat-correlation"
+          })
+        )
+
+      txn =
+        insert_transaction(%{
+          actor_ref: ActorRef.to_map(actor),
+          action_id: action.id,
+          occurred_at: ~U[2026-09-05 10:00:00.000000Z]
+        })
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "compat-1"},
+        captured_at: ~U[2026-09-05 10:00:00.000000Z]
+      })
+
+      [history_change] = Threadline.history(FakeCompatibilityUser, "compat-1", repo: @repo)
+      [actor_txn] = Threadline.actor_history(actor, repo: @repo)
+      [timeline_change] = Threadline.timeline(actor_ref: actor, repo: @repo)
+
+      %TimelinePage{entries: [paged_change], next_cursor: nil} =
+        Threadline.timeline_page([actor_ref: actor, repo: @repo], page_size: 5)
+
+      [transaction_change] = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
+
+      %LinkedTransaction{changes: [%LinkedChange{} = linked_change]} =
+        Threadline.transaction_context(txn.id, repo: @repo)
+
+      assert %AuditChange{} = history_change
+      assert %AuditTransaction{} = actor_txn
+      assert %AuditChange{} = timeline_change
+      assert %AuditChange{} = paged_change
+      assert %AuditChange{} = transaction_change
+
+      assert linked_change.audit_change.id == transaction_change.id
+      assert linked_change.transaction.id == txn.id
+      assert linked_change.action.id == action.id
     end
   end
 end
