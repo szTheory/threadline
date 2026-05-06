@@ -6,8 +6,7 @@ defmodule ThreadlinePhoenixWeb.AuditTransactionController do
   alias ThreadlinePhoenix.Repo
 
   @doc """
-  Returns all captured changes for one `audit_transactions.id`, each with a
-  `Threadline.change_diff/2` map suitable for JSON APIs.
+  Returns one bundled incident drill-down for a single `audit_transactions.id`.
 
   **Reference-app contract:** requests must arrive with an authenticated actor.
   Real hosts still own their tenancy and policy rules.
@@ -27,18 +26,15 @@ defmodule ThreadlinePhoenixWeb.AuditTransactionController do
             |> json(%{errors: %{detail: "invalid audit transaction id"}})
 
           {:ok, uuid} ->
-            changes = Threadline.audit_changes_for_transaction(uuid, repo: Repo)
+            case Threadline.incident_bundle(uuid, repo: Repo) do
+              {:ok, bundle} ->
+                render(conn, :show, bundle: bundle)
 
-            json(conn, %{
-              audit_transaction_id: uuid,
-              changes:
-                Enum.map(changes, fn ac ->
-                  %{
-                    audit_change_id: to_string(ac.id),
-                    change_diff: Threadline.change_diff(ac, [])
-                  }
-                end)
-            })
+              {:error, :not_found} ->
+                conn
+                |> put_status(:not_found)
+                |> json(%{errors: %{detail: "audit transaction not found"}})
+            end
         end
     end
   end

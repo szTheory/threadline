@@ -103,9 +103,9 @@ In the shipped example, both callbacks are wired directly into `Threadline.Plug`
 request metadata only when `x-correlation-id` is absent. In production, feed
 Sigra-authenticated request state into the conn before the Threadline plug runs.
 
-## Incident JSON drill-down (`audit_transaction_id` → changes)
+## Incident JSON drill-down (`audit_transaction_id` → bundled incident)
 
-Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (the UUID of the **`audit_transactions`** row for that request’s database transaction). Call **`GET /api/audit_transactions/:id/changes`** with that UUID to list every **`AuditChange`** in stable library order (**`Threadline.audit_changes_for_transaction/2`**) and a JSON-ready **`change_diff`** per row (**`Threadline.change_diff/2`**). See **`guides/domain-reference.md`** (anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, subsection **Reference example: incident JSON**).
+Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (the UUID of the **`audit_transactions`** row for that request’s database transaction). Call **`GET /api/audit_transactions/:id/changes`** with that UUID to fetch the curated incident bundle rendered from **`Threadline.incident_bundle/2`**: linked transaction/action context plus ordered changes with packaged **`change_diff`** payloads. See **`guides/domain-reference.md`** (anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, subsection **Reference example: incident JSON**).
 
 CI: **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**. **Security:**
 the reference app now requires an authenticated actor before it serves the
