@@ -48,7 +48,12 @@ Plans:
   2. The mount macro raises a clear adopter-targeted compile error unless one of: the scope has at least one `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit; the awkward escape hatch raises in `:test`, emits one `Logger.warning` per boot in `:prod`, and warns in `:dev`.
   3. `:authorize_fn` accepts the documented `(Plug.Conn.t() | Phoenix.LiveView.Socket.t()) -> :ok | true | {:ok, scope :: map} | any()` shape with allowlist semantics — anything other than `:ok | true | {:ok, scope}` denies — and `{:ok, scope}` threads `scope` into the surface's investigation queries while non-scope returns inherit `conn.assigns` / `socket.assigns` (matching v1.15 incident-endpoint behavior).
   4. Every authorize check emits a `[:threadline, :operator_surface, :authorize]` telemetry event with `%{result: :granted | :denied | :error}` measurements and `%{path, actor_ref, scope_keys}` metadata, asserted by an integration test on both granted and denied paths.
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — Establish module skeletons, Mix configuration, and doc-contract gating test
+- [ ] 58-02-PLAN.md — Implement compile-time AST checking and Router mount macro (TDD)
+- [ ] 58-03-PLAN.md — Implement LiveView on_mount lifecycle hook and telemetry (TDD)
 **UI hint**: yes
 
 ##### Phase 59: Incident Drill-down Screen
@@ -135,7 +140,7 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 57. Optional Deps & Module Gating | 1/1 | Complete | 2026-05-06 |
-| 58. Mount Macro & Auth Contract | 0/1 | Not started | - |
+| 58. Mount Macro & Auth Contract | 0/3 | Planned | - |
 | 59. Incident Drill-down Screen | 0/1 | Not started | - |
 | 60. Actor Window Screen | 0/1 | Not started | - |
 | 61. Row History & As-of Sub-view | 0/1 | Not started | - |
