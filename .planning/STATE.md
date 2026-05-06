@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: — Operator Surface Foundation
 status: executing
-last_updated: "2026-05-06T15:35:00Z"
-last_activity: 2026-05-06 -- Phase 57 verified and closed; 2 manual-only items deferred to HUMAN-UAT
+last_updated: "2026-05-06T15:45:00Z"
+last_activity: 2026-05-06 -- Phase 61 completed; Row History and As-of Sub-view implemented
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 2
-  percent: 15
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 6
+  percent: 57
 ---
 
 # Project State: Threadline
@@ -24,13 +24,13 @@ progress:
 
 Phase: 61 — Row History & As-of Sub-view
 Plan: 01
-Status: executing
-Last activity: Completed 60-02-PLAN.md
+Status: complete
+Last activity: Completed 61-01-PLAN.md
 
 ## Performance Metrics
 
 - **Total Phases**: 7 planned in v1.17
-- **Phases Completed**: 1 of 7 in active milestone (Phase 57 — single-plan phase)
+- **Phases Completed**: 4 of 7 in active milestone (Phase 57, 58, 59, 60)
 - **Requirements Covered**: 18/18 in v1.17 (2/18 validated: SURF-02, SURF-03)
 - **Last Milestone**: v1.16 (Shipped 2026-05-06)
 
@@ -40,6 +40,7 @@ Last activity: Completed 60-02-PLAN.md
 | 58    | 01   | ~5 min   | 2     | 4     |
 | 60    | 01   | ~10 min  | 1     | 4     |
 | 60    | 02   | 20 min   | 4     | 3     |
+| 61    | 01   | ~25 min  | 3     | 7     |
 
 ## Accumulated Context
 
@@ -120,8 +121,8 @@ Last activity: Completed 60-02-PLAN.md
 
 ## Session Continuity
 
-- **Last Action**: Phase 57 verified and closed — gsd-code-reviewer found 0 blockers / 0 warnings / 1 info (doc hygiene); gsd-verifier confirmed 5/5 must-have truths via direct codebase inspection plus cold-build behavioural checks (`mix verify.compile_no_optional` exits 0 with zero warnings; gated BEAM correctly absent in no-optional-deps build); user approved close. Phase artifacts: 57-01-SUMMARY.md, 57-REVIEW.md, 57-VERIFICATION.md, 57-HUMAN-UAT.md.
-- **Next Step**: `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
+- **Last Action**: Phase 61 Plan 01 executed successfully. Row History and As-Of Sub-View feature was fully implemented and all tests passed.
+- **Next Step**: Verification of Phase 61 or proceed to next phase planning.
 
 ## Deferred Items
 

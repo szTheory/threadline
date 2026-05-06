@@ -105,7 +105,11 @@ Plans:
   1. Running `mix threadline.incident <transaction_id>` from a host project renders the same `Threadline.incident_bundle/2` data as the LiveView drill-down, in a human-readable console layout, so SSH-only operators can answer the marquee question without mounting the surface.
   2. The same Mix task supports `--json` and emits a single pipeable JSON document on stdout, ready for `jq` or downstream tooling without hand-stripping log lines.
   3. `examples/threadline_phoenix` mounts the operator surface end-to-end behind a `phx.gen.auth`-style admin pipeline with both `:actor_fn` and `:authorize_fn` populated, and a request-path test proves an authenticated admin reaches `/audit/transactions/<seeded_id>` while an anonymous request is rejected by the host pipeline.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 62-01-PLAN.md — Mix Task Implementation (`mix threadline.incident`)
+- [ ] 62-02-PLAN.md — Example App Wiring (SURF-04)
 **UI hint**: yes
 
 ##### Phase 63: Docs, Contracts & Changelog
@@ -148,7 +152,7 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 | 59. Incident Drill-down Screen | 0/1 | Not started | - |
 | 60. Actor Window Screen | 2/2 | Complete | 2026-05-06 |
 | 61. Row History & As-of Sub-view | 0/1 | Not started | - |
-| 62. Mix Task & Example-app Wiring | 0/1 | Not started | - |
+| 62. Mix Task & Example-app Wiring | 0/2 | Planned | - |
 | 63. Docs, Contracts & Changelog | 0/1 | Not started | - |
 
 See `.planning/MILESTONE-ARC.md` for the standing ranked recommendation order beyond v1.17.

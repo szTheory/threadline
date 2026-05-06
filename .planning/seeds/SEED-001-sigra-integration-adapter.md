@@ -1,8 +1,9 @@
 ---
 id: SEED-001
-status: dormant
+status: shipped
 planted: 2026-04-25
 planted_during: v1.12 — Temporal Truth & Safety (As-of Reconstruction), pre-Phase-38
+shipped_in: v1.14 — Drop-in Production Adopter Slice, Phase 44
 trigger_when: v1.12 ships OR first external adopter requests Sigra+Threadline guidance OR Threadline picks up its first Sigra-using pilot host
 scope: Medium
 ---
