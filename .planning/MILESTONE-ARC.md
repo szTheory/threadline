@@ -1,17 +1,18 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-05-06  
-**Current recommendation:** Open **v1.17 — Operator Surface Foundation** next.
+**Updated:** 2026-05-06
+**Active milestone:** v1.17 — Operator Surface Foundation (Phases 57-63, opened 2026-05-06)
+**Standing recommendation after v1.17 ships:** Open **v1.18 — Adoption and Policy Hardening** next.
 
 ## Strategic thesis
 
-With v1.16 shipped, Threadline now has stable investigation workflows in the library surface as well as the prior capture, semantics, retention, export, as-of reconstruction, Phoenix reference app, and Sigra integration pieces. The sharpest remaining adoption gap is no longer raw query capability; it is the lack of a host-usable operator surface built on that now-stable exploration contract.
+With v1.17 active, the operator surface contract is being stood up on top of v1.16's stable investigation APIs. Once it ships, the next adoption gap moves from "is there a usable surface?" to "is the surface easy to roll out, upgrade, and govern in production?" — that is what v1.18 should target.
 
 The standing recommendation is therefore:
 
-1. Build the operator-facing surface on top of the stabilized exploration contract next.
-2. Tighten onboarding, lifecycle, and policy ergonomics after that operator loop is real.
-3. Broaden integrations and governance depth only after the operator surface proves out.
+1. Finish v1.17 (mountable in-tree LiveView surface, two must-have screens + row history sub-view, Mix task, fail-closed auth contract).
+2. After v1.17 ships, tighten onboarding, lifecycle ergonomics, and policy guardrails for production teams (v1.18).
+3. Broaden integrations and governance depth only after that operator loop is real and proven (v1.19+).
 
 ## Option record
 
@@ -19,9 +20,9 @@ These are the standing milestone directions after v1.16 shipped and the recommen
 
 | Rank | Option | Recommendation | Why |
 |------|--------|----------------|-----|
-| 1 | Operator UX / UI surface | **Do next** | The core investigation contract is now stable enough to support a real operator-facing surface without API churn. |
-| 2 | Onboarding compression | **After v1.17** | Better first-hour ergonomics will matter more once there is a concrete operator surface to teach. |
-| 3 | Production confidence / lifecycle hardening | **After the operator loop** | Important, but now secondary to making the shipped investigation APIs easier to use repeatedly. |
+| 1 | Operator UX / UI surface | **In progress (v1.17)** | The core investigation contract is now stable enough to support a real operator-facing surface without API churn. |
+| 2 | Onboarding + lifecycle hardening | **Do next after v1.17** | Once a concrete operator surface ships, first-hour adoption + production rollout ergonomics become the sharpest gap. |
+| 3 | Production confidence / governance defaults | **After the operator loop hardens** | Important, but better informed once adopters are actually using the operator surface in host apps. |
 | 4 | Framework breadth / more adapters | **After core operator adoption settles** | More adapters widen reach, but the main product gap is still usability after install. |
 | 5 | Policy / compliance depth | **Later** | Better informed once real adopters exercise the operator workflows in host applications. |
 
@@ -30,9 +31,9 @@ These are the standing milestone directions after v1.16 shipped and the recommen
 | Version | Status | Theme | Why now | Unlocks | Non-goals |
 |---------|--------|-------|---------|---------|-----------|
 | v1.16 | **shipped** | Investigation Table Stakes | Closed the gap between capture and usable incident/support workflows. | Operator surface work, stronger onboarding, future investigation-specific integrations. | Full LiveView UI, new auth adapters, retention redesign. |
-| v1.17 | **next** | Operator Surface Foundation | The investigation contract is now stable enough to support a host-usable surface instead of docs-only composition. | `threadline_web` or equivalent reference surface, richer demos, adoption proof. | Reinventing tenancy/authorization; broad frontend framework work. |
-| v1.18 | candidate | Adoption and Policy Hardening | After operator workflows are stable, tighten lifecycle ergonomics and safer defaults for production teams. | Cleaner pilots, better upgrade confidence, easier ops sign-off. | New storage backend or CDC/WAL architecture. |
-| v1.19 | candidate | Integration Breadth | Expand reach only after the core investigation story is easier to adopt repeatedly. | Additional auth/framework adapters and host patterns. | Weakening the auth-agnostic core or hard-coupling Threadline to one stack. |
+| v1.17 | **active** | Operator Surface Foundation | The investigation contract is stable enough to support a host-usable surface instead of docs-only composition. Mountable in-tree LiveView surface with optional Phoenix/LiveView deps; incident drill-down + actor window must-have screens; host-mount-default auth with optional `:authorize_fn`. | Reference operator surface, richer demos, adoption proof. | Reinventing tenancy/authorization; broad frontend framework work; separate `threadline_web` package (deferred to v1.19+). |
+| v1.18 | **next** | Adoption and Policy Hardening | After operator workflows ship, tighten lifecycle ergonomics, raw-timeline + filter form, exports parity, and safer defaults for production teams. | Cleaner pilots, better upgrade confidence, easier ops sign-off. | New storage backend or CDC/WAL architecture. |
+| v1.19 | candidate | Integration Breadth | Expand reach only after the core investigation + operator story is easier to adopt repeatedly. Earliest reasonable home for the `threadline_web` companion-package extraction once the in-tree surface has live adopters. | Additional auth/framework adapters and host patterns; companion-package split. | Weakening the auth-agnostic core or hard-coupling Threadline to one stack. |
 | v1.20 | candidate | Scale and Governance Depth | Add the heavier-duty knobs once the core adoption and operator loop is proven. | More enterprise-friendly retention/policy/reporting work. | Turning Threadline into a SIEM or general analytics product. |
 
 ## Activation rules
