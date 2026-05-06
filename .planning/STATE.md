@@ -22,15 +22,15 @@ progress:
 
 ## Current Position
 
-Phase: 61 — Row History & As-of Sub-view
+Phase: 63 — Docs, Contracts, and Changelog
 Plan: 01
 Status: complete
-Last activity: Completed 61-01-PLAN.md
+Last activity: Completed 63-01-PLAN.md
 
 ## Performance Metrics
 
 - **Total Phases**: 7 planned in v1.17
-- **Phases Completed**: 4 of 7 in active milestone (Phase 57, 58, 59, 60)
+- **Phases Completed**: 5 of 7 in active milestone (Phase 57, 58, 59, 60, 61)
 - **Requirements Covered**: 18/18 in v1.17 (2/18 validated: SURF-02, SURF-03)
 - **Last Milestone**: v1.16 (Shipped 2026-05-06)
 
@@ -41,10 +41,13 @@ Last activity: Completed 61-01-PLAN.md
 | 60    | 01   | ~10 min  | 1     | 4     |
 | 60    | 02   | 20 min   | 4     | 3     |
 | 61    | 01   | ~25 min  | 3     | 7     |
+| 63    | 01   | 5 min    | 3     | 4     |
 
 ## Accumulated Context
 
 ### Decisions
+
+- Phase 63 Plan 01: Kept the core library README lean by providing a 1-minute mount example and delegating policy details to the new comprehensive guide.
 
 - Phase 60 Plan 02: Used Phoenix.LiveView for rendering the actor window screen to allow dynamic time window updates.
 - Phase 60 Plan 02: Updated the operator surface router to include the new LiveView route /audit/actors/:actor_type/:actor_id.

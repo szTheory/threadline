@@ -122,7 +122,11 @@ Plans:
   2. A new `guides/operator-surface.md` exists and covers mount, the `:actor_fn` / `:authorize_fn` options, each shipped screen, the documented support questions each screen answers, and the `mix threadline.incident` companion task.
   3. The README has a top-level "Operator Surface" section pointing to the new guide; `guides/production-checklist.md` has an operator-surface row; `examples/threadline_phoenix/README.md` documents the wired example end-to-end.
   4. `CHANGELOG.md` has an entry for the next published Hex version (likely `0.4.0`) documenting the new `optional: true` Phoenix/LiveView deps, the `Threadline.OperatorSurface.Router` mount macro, and the `mix.exs` adjustment hosts need to wire the surface.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 63-01-PLAN.md — Operator Surface Guide & Core Documentation
+- [ ] 63-02-PLAN.md — Changelog & Doc-Contract Lock
 
 #### v1.17 Sequencing Rationale
 
@@ -153,6 +157,6 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 | 60. Actor Window Screen | 2/2 | Complete | 2026-05-06 |
 | 61. Row History & As-of Sub-view | 0/1 | Not started | - |
 | 62. Mix Task & Example-app Wiring | 0/2 | Planned | - |
-| 63. Docs, Contracts & Changelog | 0/1 | Not started | - |
+| 63. Docs, Contracts & Changelog | 1/2 | Active | - |
 
 See `.planning/MILESTONE-ARC.md` for the standing ranked recommendation order beyond v1.17.
