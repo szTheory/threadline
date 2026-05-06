@@ -39,10 +39,10 @@
 
 ### DOC — Doc contracts and guides
 
-- [ ] **DOC-01**: A new doc-contract test locks the `Threadline.OperatorSurface.Router` macro signature, the default route literals (`/audit/transactions/:id`, `/audit/actors/:kind/:id`, plus `/audit/rows/:table/:pk` if UI-03 ships), and the README's auth section.
+- [x] **DOC-01**: A new doc-contract test locks the `Threadline.OperatorSurface.Router` macro signature, the default route literals (`/audit/transactions/:id`, `/audit/actors/:kind/:id`, plus `/audit/rows/:table/:pk` if UI-03 ships), and the README's auth section.
 - [x] **DOC-02**: A new guide `guides/operator-surface.md` covers mount, the `:actor_fn` / `:authorize_fn` options, the screens, the documented support questions each screen answers, and the `mix threadline.incident` companion task.
 - [x] **DOC-03**: README acquires a top-level "Operator Surface" section pointing to the new guide; `guides/production-checklist.md` gains an operator-surface row; `examples/threadline_phoenix/README.md` documents the wired example end-to-end.
-- [ ] **DOC-04**: `CHANGELOG.md` entry for the next published Hex version (likely `0.4.0`) documents the new optional Phoenix/LiveView deps, the `Threadline.OperatorSurface.Router` mount macro, and the required `mix.exs` adjustment for hosts that want the surface.
+- [x] **DOC-04**: `CHANGELOG.md` entry for the next published Hex version (likely `0.4.0`) documents the new optional Phoenix/LiveView deps, the `Threadline.OperatorSurface.Router` mount macro, and the required `mix.exs` adjustment for hosts that want the surface.
 
 ## Future Requirements (carried forward)
 
@@ -86,10 +86,10 @@ Mapped by `gsd-roadmapper` on 2026-05-06.
 | AUTH-04 | Phase 58 | Pending |
 | AUTH-05 | Phase 58 | Pending |
 | TELEM-01 | Phase 58 | Pending |
-| DOC-01 | Phase 63 | Pending |
+| DOC-01 | Phase 63 | Validated |
 | DOC-02 | Phase 63 | Validated |
 | DOC-03 | Phase 63 | Validated |
-| DOC-04 | Phase 63 | Pending |
+| DOC-04 | Phase 63 | Validated |
 
 **Coverage at roadmap close:**
 - v1.17 requirements: 18 total (17 must-have + 1 should-have)

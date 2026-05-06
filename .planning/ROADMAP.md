@@ -19,7 +19,7 @@
 - [x] **Phase 60: Actor Window Screen** — Render `Threadline.actor_history/2` as a paged LiveView with time-window picker, deep-links into incident drill-down, and explicit empty state *(shipped 2026-05-06; plan 02 SUMMARY)*
 - [ ] **Phase 61: Row History & As-of Sub-view** — Render `Threadline.history/3` plus `Threadline.as_of/4` as a sub-view reachable only from incident drill-down change rows, with a timestamp picker driving the as-of snapshot panel
 - [ ] **Phase 62: Mix Task & Example-app Wiring** — Ship `mix threadline.incident <transaction_id>` (with `--json`) and wire the operator surface end-to-end in `examples/threadline_phoenix` behind a `phx.gen.auth`-style admin pipeline
-- [ ] **Phase 63: Docs, Contracts & Changelog** — Lock the macro/route/auth literals with a doc-contract test, ship `guides/operator-surface.md`, surface it from the README and production checklist, and document the new optional deps in CHANGELOG for the next Hex release
+- [x] **Phase 63: Docs, Contracts & Changelog** — Lock the macro/route/auth literals with a doc-contract test, ship `guides/operator-surface.md`, surface it from the README and production checklist, and document the new optional deps in CHANGELOG for the next Hex release
 
 #### Phase Details
 
@@ -125,8 +125,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 63-01-PLAN.md — Operator Surface Guide & Core Documentation
-- [ ] 63-02-PLAN.md — Changelog & Doc-Contract Lock
+- [x] 63-01-PLAN.md — Operator Surface Guide & Core Documentation
+- [x] 63-02-PLAN.md — Changelog & Doc-Contract Lock
 
 #### v1.17 Sequencing Rationale
 
@@ -157,6 +157,6 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 | 60. Actor Window Screen | 2/2 | Complete | 2026-05-06 |
 | 61. Row History & As-of Sub-view | 0/1 | Not started | - |
 | 62. Mix Task & Example-app Wiring | 0/2 | Planned | - |
-| 63. Docs, Contracts & Changelog | 1/2 | Active | - |
+| 63. Docs, Contracts & Changelog | 2/2 | Complete | 2026-05-06 |
 
 See `.planning/MILESTONE-ARC.md` for the standing ranked recommendation order beyond v1.17.
