@@ -1,7 +1,7 @@
 ---
 phase: 56
 slug: docs-contracts-and-arc-alignment
-status: ready
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-05
@@ -34,10 +34,10 @@ created: 2026-05-05
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 56-01-01 | 01 | 1 | ADOPT-04 | T-56-04 | README and public guides teach one canonical routing hierarchy with `Threadline.incident_bundle/2` as the default transaction drill-down story. | doc contract | `mix test test/threadline/readme_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/incident_playbook_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs --max-failures 1` | ✅ | ⬜ pending |
-| 56-01-02 | 01 | 1 | ADOPT-04 | T-56-05 | Docs only promote shipped investigation behavior and preserve the host-owned auth/policy boundary. | behavior regression | `mix test test/threadline/investigation_test.exs --max-failures 1` | ✅ | ⬜ pending |
-| 56-02-01 | 02 | 2 | ADOPT-04 | T-56-04 / T-56-05 | Focused doc-contract suites fail if the final literals or cross-doc boundary wording drift. | doc contract | `mix verify.test` | ✅ | ⬜ pending |
-| 56-02-02 | 02 | 2 | ADOPT-04 | T-56-06 | Planning summaries point to `.planning/MILESTONE-ARC.md` and do not duplicate ranked future-arc tables. | grep/manual | `rg -n "MILESTONE-ARC|next candidate|Operator-surface foundation|Adoption and policy hardening|Integration Breadth|Scale and Governance Depth" .planning/PROJECT.md .planning/STATE.md .planning/MILESTONE-ARC.md` | ✅ | ⬜ pending |
+| 56-01-01 | 01 | 1 | ADOPT-04 | T-56-04 | README and public guides teach one canonical routing hierarchy with `Threadline.incident_bundle/2` as the default transaction drill-down story. | doc contract | `mix test test/threadline/readme_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/incident_playbook_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs --max-failures 1` | ✅ | ✅ green |
+| 56-01-02 | 01 | 1 | ADOPT-04 | T-56-05 | Docs only promote shipped investigation behavior and preserve the host-owned auth/policy boundary. | behavior regression | `mix test test/threadline/investigation_test.exs --max-failures 1` | ✅ | ✅ green |
+| 56-02-01 | 02 | 2 | ADOPT-04 | T-56-04 / T-56-05 | Focused doc-contract suites fail if the final literals or cross-doc boundary wording drift. | doc contract | `mix verify.test` | ✅ | ✅ green |
+| 56-02-02 | 02 | 2 | ADOPT-04 | T-56-06 | Planning summaries point to `.planning/MILESTONE-ARC.md` and do not duplicate ranked future-arc tables. | grep/manual | `rg -n "MILESTONE-ARC|next candidate|Operator-surface foundation|Adoption and policy hardening|Integration Breadth|Scale and Governance Depth" .planning/PROJECT.md .planning/STATE.md .planning/MILESTONE-ARC.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠ flaky*
 
@@ -60,4 +60,4 @@ created: 2026-05-05
 - [x] Feedback latency < 60s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved

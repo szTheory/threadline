@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Investigation Table Stakes
-status: phase 56 complete
-last_updated: "2026-05-05T00:00:00Z"
-last_activity: 2026-05-05
+status: milestone shipped
+last_updated: "2026-05-06T00:00:00Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,21 +18,21 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.16 — Investigation Table Stakes. Phase 56 is shipped; milestone audit and closeout are next. See `.planning/MILESTONE-ARC.md` for the standing strategic order after this milestone.
+**Current Focus**: No active milestone is open. v1.16 is shipped and archived; use `.planning/MILESTONE-ARC.md` to open the next milestone, currently recommended as v1.17 — Operator Surface Foundation.
 
 ## Current Position
 
-Phase: 56 — Docs, Contracts, and Arc Alignment (complete)
-Plan: 56-02 complete
-Status: All four implementation phases in v1.16 are now shipped; closeout is the next workflow step.
-Last activity: 2026-05-05 — Completed Phase 56, aligning the public docs, doc-contract tests, and planning summaries around the shipped investigation hierarchy and milestone-arc source of truth.
+Phase: none active
+Plan: none active
+Status: v1.16 closed on 2026-05-06 after the milestone audit passed and the roadmap/requirements were archived.
+Last activity: 2026-05-06 — Archived v1.16, updated the planning summaries, and advanced the milestone arc to v1.17 as the standing next recommendation.
 
 ## Performance Metrics
 
 - **Total Phases**: 4 planned in v1.16
-- **Phases Completed**: 3 of 4 in progress milestone (Phases 53-55 shipped)
-- **Requirements Covered**: 4/5 shipped in v1.16 (`EXPLORE-01`, `EXPLORE-02`, `INCIDENT-06`, `INCIDENT-07`)
-- **Last Milestone**: v1.15 (Shipped 2026-05-05)
+- **Phases Completed**: 4 of 4 in shipped milestone (Phases 53-56 shipped)
+- **Requirements Covered**: 5/5 shipped in v1.16 (`EXPLORE-01`, `EXPLORE-02`, `INCIDENT-06`, `INCIDENT-07`, `ADOPT-04`)
+- **Last Milestone**: v1.16 (Shipped 2026-05-06)
 
 ## Accumulated Context
 
@@ -79,22 +79,26 @@ Last activity: 2026-05-05 — Completed Phase 56, aligning the public docs, doc-
 - [x] Define and ship Phase 54 — Investigation Slice APIs
 - [x] Define and ship Phase 55 — Incident Bundle Surface
 - [x] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
-- [ ] Push milestone tag `v1.15` when the maintainer is ready
+- [x] Run the v1.16 milestone audit and archive the roadmap and requirements
+- [ ] Push milestone tags `v1.15` and `v1.16` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 
 ### Blockers
 
-- No blocker to v1.15 close remains once the closeout commit and tag are recorded.
+- No blocker to opening the next milestone remains.
+- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16 closeout set.
 
 ## Session Continuity
 
-- **Last Action**: Executed and verified Phase 56, aligning the docs, contracts, and planning summaries around the shipped investigation hierarchy.
-- **Next Step**: Run milestone audit / closeout for v1.16 and then open the next milestone from `.planning/MILESTONE-ARC.md`.
+- **Last Action**: Closed and archived v1.16 after the milestone audit passed.
+- **Next Step**: Run `/gsd-new-milestone` and start from `.planning/MILESTONE-ARC.md`, which now points to v1.17 as the standing next recommendation.
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-05-05:
+Items acknowledged and deferred at milestone close on 2026-05-06:
 
 | Category | Item | Status |
 |----------|------|--------|
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
+| tech_debt | repo-wide-format-drift | pre-existing formatter drift in untouched files still blocks `mix ci.all` |
+| nyquist | phase-53-54-validation-bookkeeping | verification evidence exists, but `53-VALIDATION.md` and `54-VALIDATION.md` were not created during milestone execution |

@@ -10,29 +10,28 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
-**Current planning focus:** v1.16 — Investigation Table Stakes (opened 2026-05-05)
+**Last shipped:** v1.16 — Investigation Table Stakes (Phases 53-56, 2026-05-06)
+**Current planning focus:** No active milestone is open. The standing next recommendation is v1.17 — Operator Surface Foundation from `.planning/MILESTONE-ARC.md`.
 
 **Shipped capabilities:**
-- `Threadline.Plug` now accepts a native additive `:context_overrides_fn` for request metadata while keeping actor identity and transport-derived values authoritative.
-- `Threadline.Integrations.Sigra` is now the canonical direct host-wiring path through `Threadline.Plug`, and the Phoenix example app teaches the same callback contract.
-- The example incident drill-down path now ships with an authenticated baseline, and the adopter-facing docs/contracts all align on that boundary plus the host-owned authorization story.
+- `Threadline.timeline_page/2` now exposes a stable keyset paging contract for large investigation windows without changing eager `timeline/2`.
+- `Threadline` now ships public investigation helpers for row history, actor windows, correlation bundles, and transaction drill-down, plus the first-class `incident_bundle/2` contract.
+- README, guides, the Phoenix example, and focused doc-contract suites now teach one canonical investigation routing hierarchy and keep the host-owned auth/policy boundary explicit.
 
-## Current Milestone: v1.16 — Investigation Table Stakes
+## Next Milestone Recommendation: v1.17 — Operator Surface Foundation
 
-**Goal:** Make Threadline answer the first serious audit investigation questions with library APIs and reference surfaces, not custom SQL, ad-hoc joins, or per-app controller glue.
+**Goal:** Turn the newly stabilized investigation contracts into a host-usable operator surface so adopters can answer the first serious support and incident questions without staying in docs-only or controller-local composition mode.
 
 **Target features:**
-- Stable, explicit paging for timeline-style investigation reads so operators can traverse larger audit windows without inventing offset semantics.
-- Higher-level investigation helpers for the most common support slices: row history, actor window, correlation bundle, and transaction drill-down with linked semantics context.
-- A first-class incident bundle surface that returns ordered changes, linked action/transaction context, and JSON-ready field diffs in one place.
-- Docs, example app usage, and contract tests aligned around canonical investigation workflows instead of bespoke composition snippets.
+- Publish a lightweight operator-facing surface on top of the shipped investigation APIs rather than teaching docs-only composition.
+- Keep the surface anchored on the stable v1.16 exploration contract so future UI work does not force churn in the core library APIs.
+- Preserve the current host-owned tenancy and authorization boundary instead of inventing a generic policy framework too early.
 
-**Why now:** Host wiring, Sigra integration, and the authenticated incident baseline are in place. The biggest remaining adoption gap is time-to-answer after install: teams still have to assemble their own investigation workflows out of low-level primitives. Closing that gap creates the exploration backbone future UI, onboarding, and broader integrations can build on safely.
+**Why now:** v1.16 closed the biggest API gap by making investigation workflows first-class. The next adoption bottleneck is presentation and operator usability, not another round of raw exploration plumbing.
 
-**Strategic arc:** `.planning/MILESTONE-ARC.md` now records the standing recommendation order for future milestones so `/gsd-new-milestone` can start from a durable gameplan instead of a blank prompt.
+**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the only ranked forward-looking milestone source. `/gsd-new-milestone` should start from that file rather than duplicating milestone names here.
 
-## Last milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
+## Prior milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
 
 **Goal (achieved):** Finish the remaining Phoenix host-integration gap so adopters get native request-context wiring, direct Sigra callback composition, and an authenticated incident drill-down baseline without inventing their own glue for the first serious host rollout.
 
@@ -196,11 +195,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-01 (Phase 41)** — Root `README.md` aligned with the shipped public API surface; locked by `test/threadline/readme_doc_contract_test.exs`. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **DOC-02 (Phase 42)** — `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to assert the example surface. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
+- [x] **Investigation table stakes (Phases 53–56)** — `Threadline.timeline_page/2`, public investigation helpers, `Threadline.incident_bundle/2`, focused request-path coverage, and one canonical investigation docs story. Validated in v1.16: Investigation Table Stakes (2026-05-06).
 
 ### Active
 
-- [ ] **Investigation table stakes (v1.16)** — Package the common audit investigation workflows into stable, paged library APIs and reference surfaces instead of leaving adopters to compose them from low-level queries and example-only controller code.
-- [ ] **Next strategic milestone selection** — Use `.planning/MILESTONE-ARC.md` for the maintained ranked order after v1.16 instead of duplicating candidate milestone names in this file.
+- [ ] **Operator surface foundation (candidate v1.17)** — Publish a host-usable operator-facing surface on top of the stabilized investigation APIs without taking on generic tenancy or authorization framework scope.
+- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set.
 
 ### Out of Scope
 

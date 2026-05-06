@@ -2,6 +2,29 @@
 
 Entries are newest first.
 
+## v1.16 — Investigation Table Stakes (shipped 2026-05-06)
+
+**Goal:** Make Threadline answer the first serious audit investigation questions with stable library APIs, a first-class incident bundle surface, and one canonical docs story instead of custom SQL, ad-hoc joins, or per-app controller glue.
+
+**Phases completed:** **53–56** (4 phases; 8 plans with `SUMMARY.md`; per-phase `VERIFICATION.md`; consolidated `v1.16-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Shipped explicit keyset paging for investigation timelines through `Threadline.timeline_page/2`, kept eager `timeline/2` intact, and aligned export streaming to the same `(captured_at, id)` traversal semantics (**EXPLORE-01**, Phase **53**).
+- Shipped public investigation helpers for row history, actor windows, correlation bundles, and transaction context so adopters no longer need low-level query composition for the first common support questions (**EXPLORE-02**, Phase **54**).
+- Shipped `Threadline.incident_bundle/2` plus the Phoenix reference endpoint migration so one transaction drill-down now returns linked context, ordered changes, JSON-ready diffs, and proven `401`/`400`/`404`/`200` request-path behavior (**INCIDENT-06/07**, Phase **55**).
+- Aligned README, guides, the Phoenix example, doc-contract suites, `PROJECT.md`, `STATE.md`, and `MILESTONE-ARC.md` on one canonical investigation routing hierarchy and forward-planning source of truth (**ADOPT-04**, Phase **56**).
+
+**Stats:** 4 phases, 8 plans, 5/5 requirements complete at close. Milestone window: **2026-05-05 → 2026-05-05**. Git range from **`v1.15`** tag **`ab71394`** through the v1.16 closeout tree touched **29 files** with **1645 insertions / 145 deletions**.
+
+**Archives:** `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/milestones/v1.16-phases/`.
+
+**Known gaps at close:** Milestone audit **passed** with 0 requirement, integration, or end-to-end flow gaps. Non-blocking debt remains: repo-wide `mix ci.all` is still blocked by pre-existing formatter drift outside the v1.16 write set, and Phases **53** and **54** still lack Nyquist `VALIDATION.md` bookkeeping.
+
+**What is next:** **`/gsd-new-milestone`** — define the next requirements set and roadmap slice from `.planning/MILESTONE-ARC.md`, currently led by **v1.17 — Operator Surface Foundation**.
+
+---
+
 ## v1.15 — Host Integration Completion (shipped 2026-05-05)
 
 **Goal:** Close the remaining Phoenix host-integration seams by shipping native request-context overrides in `Threadline.Plug`, direct Sigra callback wiring, an authenticated incident drill-down reference path, and one contract-tested public docs story across all adopter entry points.
