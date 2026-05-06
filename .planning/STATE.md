@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: — Operator Surface Foundation
-status: executing
+status: complete
 last_updated: "2026-05-06T15:45:00Z"
-last_activity: 2026-05-06 -- Phase 61 completed; Row History and As-of Sub-view implemented
+last_activity: 2026-05-06 -- v1.17 milestone audit completed successfully; milestone closed.
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 5
+  completed_phases: 7
+  total_plans: 7
   completed_plans: 7
-  percent: 60
+  percent: 100
 ---
 
 # Project State: Threadline

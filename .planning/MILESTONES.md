@@ -410,3 +410,12 @@ Entries are newest first.
 **What is next:** Cut application tag `v0.1.0`, run `mix hex.publish` when ready, then `/gsd-new-milestone` for v1.1 themes (see v2 requirement backlog in archived requirements).
 
 ---
+
+## v1.17 — Operator Surface Foundation
+
+**Status:** Completed
+**Date:** 2026-05-06
+**Phases:** 57-63
+**Requirements:** 18/18
+
+Shipped a host-usable operator surface, providing an in-tree LiveView UI that turns v1.16 investigation contracts into one-click answers while preserving the v1.15 host-owns-auth boundary.
