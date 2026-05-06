@@ -9,7 +9,7 @@
 ### EXPLORE - Paged Investigation Workflows
 
 - [x] **EXPLORE-01**: `Threadline.timeline/2` and the underlying query surface expose an explicit stable paging contract for large investigation windows, preserving the existing `(captured_at, id)` ordering without pushing adopters toward ad-hoc offset pagination.
-- [ ] **EXPLORE-02**: The library ships higher-level investigation helpers for the core operator questions already taught in the docs, so teams can answer row-history, actor-window, correlation-bundle, and transaction-drill-down questions without hand-writing joins around low-level structs.
+- [x] **EXPLORE-02**: The library ships higher-level investigation helpers for the core operator questions already taught in the docs, so teams can answer row-history, actor-window, correlation-bundle, and transaction-drill-down questions without hand-writing joins around low-level structs.
 
 ### INCIDENT - First-class Incident Bundles
 
@@ -41,7 +41,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | EXPLORE-01 | Phase 53 | Complete |
-| EXPLORE-02 | Phase 54 | Pending |
+| EXPLORE-02 | Phase 54 | Complete |
 | INCIDENT-06 | Phase 55 | Pending |
 | INCIDENT-07 | Phase 55 | Pending |
 | ADOPT-04 | Phase 56 | Pending |

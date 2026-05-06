@@ -44,8 +44,14 @@ Plans:
 
 Plans:
 
-- [ ] 54-01: Add the new investigation helper surface for row, actor, and correlation-driven reads
-- [ ] 54-02: Align the returned shapes and focused tests around linked transaction/action context instead of raw ad-hoc composition
+- [x] 54-01: Add the new investigation helper surface for row, actor, and correlation-driven reads
+- [x] 54-02: Align the returned shapes and focused tests around linked transaction/action context instead of raw ad-hoc composition
+
+**Details:**
+
+- Added public `Threadline` helper entrypoints for row-history, actor-window, and correlation-bundle reads, with paged paths reusing the shipped Phase 53 keyset contract.
+- Introduced linked investigation result wrappers plus `transaction_context/2` so transaction/action context is packaged at the library layer instead of in controller-local composition.
+- Added focused helper and compatibility coverage that proves the richer investigation surface works while older raw primitives stay backward-compatible and `change_diff`-based incident bundling remains deferred to Phase 55.
 
 ### Phase 55: Incident Bundle Surface
 

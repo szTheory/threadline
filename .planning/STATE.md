@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Investigation Table Stakes
-status: phase 53 complete
-last_updated: "2026-05-05T22:45:52Z"
+status: phase 54 complete
+last_updated: "2026-05-06T00:59:56Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 2
-  percent: 25
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State: Threadline
@@ -22,16 +22,16 @@ progress:
 
 ## Current Position
 
-Phase: 54 — Investigation Slice APIs (next)
+Phase: 55 — Incident Bundle Surface (next)
 Plan: Not started
-Status: Phase 53 shipped; Phase 54 is the next execution target in v1.16.
-Last activity: 2026-05-05 — Completed Phase 53 and verified the timeline paging contract.
+Status: Phase 54 shipped; Phase 55 is the next execution target in v1.16.
+Last activity: 2026-05-05 — Completed Phase 54 and verified the investigation helper surface.
 
 ## Performance Metrics
 
 - **Total Phases**: 4 planned in v1.16
-- **Phases Completed**: 1 of 4 in progress milestone (Phase 53 shipped)
-- **Requirements Covered**: 1/5 shipped in v1.16 so far (`EXPLORE-01`)
+- **Phases Completed**: 2 of 4 in progress milestone (Phases 53-54 shipped)
+- **Requirements Covered**: 2/5 shipped in v1.16 so far (`EXPLORE-01`, `EXPLORE-02`)
 - **Last Milestone**: v1.15 (Shipped 2026-05-05)
 
 ## Accumulated Context
@@ -43,6 +43,7 @@ Last activity: 2026-05-05 — Completed Phase 53 and verified the timeline pagin
 - 2026-05-05: Keep phase numbering continuous; v1.16 starts at Phase 53.
 - 2026-05-05: Skip fresh research for v1.16 — the gap is already well grounded in shipped docs, APIs, and example composition patterns inside this repo.
 - 2026-05-05: Phase 53 introduced a shared `(captured_at, id)` keyset paging contract, exposed `Threadline.timeline_page/2`, and aligned export plus investigation docs on the same traversal semantics.
+- 2026-05-05: Phase 54 packaged row-history, actor-window, correlation-bundle, and transaction-context questions into public `Threadline` investigation helpers while keeping `change_diff`-driven incident bundles deferred to Phase 55.
 - 2026-05-05: Open v1.15 as "Host Integration Completion" — formalize the native `Threadline.Plug` host-wiring hook, direct Sigra callback composition, an authenticated incident drill-down baseline, and the doc/test alignment that keeps that adopter story stable.
 - 2026-05-05: Phase 49 locked `Threadline.Plug` context overrides to additive `request_id` / `correlation_id` fills only, kept actor authority on `actor_fn`, and aligned Sigra plus quickstart docs with that contract.
 - 2026-05-05: Phase 50 made `Threadline.Integrations.Sigra` the canonical direct callback pair for `Threadline.Plug` and removed the example-only delegate seam.
@@ -70,7 +71,7 @@ Last activity: 2026-05-05 — Completed Phase 53 and verified the timeline pagin
 ### Todos
 
 - [x] Define and ship Phase 53 — Timeline Paging Contract
-- [ ] Define and ship Phase 54 — Investigation Slice APIs
+- [x] Define and ship Phase 54 — Investigation Slice APIs
 - [ ] Define and ship Phase 55 — Incident Bundle Surface
 - [ ] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
 - [ ] Push milestone tag `v1.15` when the maintainer is ready
@@ -82,8 +83,8 @@ Last activity: 2026-05-05 — Completed Phase 53 and verified the timeline pagin
 
 ## Session Continuity
 
-- **Last Action**: Executed and verified Phase 53, shipping the public timeline paging contract plus aligned export/docs coverage.
-- **Next Step**: Start `/gsd-plan-phase 54` to package the canonical investigation helper APIs on top of the new paging surface.
+- **Last Action**: Executed and verified Phase 54, shipping the public investigation helper surface plus linked transaction/action result shapes.
+- **Next Step**: Start `/gsd-plan-phase 55` to package the first-class incident bundle surface on top of the new helper contracts.
 
 ## Deferred Items
 
