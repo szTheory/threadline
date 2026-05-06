@@ -38,6 +38,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         live_session :threadline, on_mount: [{Threadline.OperatorSurface.Auth, unquote(opts)}] do
           scope unquote(path), alias: Threadline.OperatorSurface.Live do
             live "/transactions/:id", TransactionLive, :show
+            live "/transactions/:id/history/:table/:record_id", TransactionLive, :history
             live "/actors/:kind/:id", ActorLive, :show
           end
         end

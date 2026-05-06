@@ -9,7 +9,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def on_mount(opts, _params, _session, socket) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)
       repo = Keyword.get(opts, :repo)
-      socket = Phoenix.Component.assign(socket, :threadline_repo, repo)
+      schemas = Keyword.get(opts, :schemas, %{})
+      
+      socket =
+        socket
+        |> Phoenix.Component.assign(:threadline_repo, repo)
+        |> Phoenix.Component.assign(:threadline_schemas, schemas)
 
       try do
         case authorize_fn.(socket) do
