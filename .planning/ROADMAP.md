@@ -62,7 +62,7 @@ Plans:
 
 Plans:
 
-- [ ] 55-01: Ship the incident bundle API and the focused projections it needs
+- [x] 55-01: Ship the incident bundle API and the focused projections it needs
 - [ ] 55-02: Converge the Phoenix example incident endpoint on the new public surface and prove it with request-path coverage
 
 ### Phase 56: Docs, Contracts, and Arc Alignment
