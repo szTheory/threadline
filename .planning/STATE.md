@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.17
-milestone_name: — Operator Surface Foundation
-status: complete
-last_updated: "2026-05-06T15:45:00Z"
-last_activity: 2026-05-06 -- v1.17 milestone audit completed successfully; milestone closed.
+milestone: v1.18
+milestone_name: Adoption and Policy Hardening
+status: planning
+last_updated: "2026-05-06T23:40:50.792Z"
+last_activity: 2026-05-06
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,36 +18,32 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.17 — Operator Surface Foundation. Mountable in-tree LiveView surface (optional Phoenix/LiveView deps), incident drill-down + actor window must-have screens, row history + as-of sub-view, host-mount-default auth with optional `:authorize_fn` and compile-time fail-closed check, telemetry, Mix-task parity. Continuing phase numbering from Phase 57.
+**Current Focus**: v1.18 — Adoption and Policy Hardening. Round out the v1.17 operator surface so production teams can roll it out cleanly: raw timeline browse + filter form (full `Threadline.Query.timeline/2` parity, URL-as-state via `live_patch`), exports UI parity (download current view; sync iodata for small / chunked stream for large), coverage dashboard + drift-aware redaction admin (read-only) with parity Mix tasks, and lifecycle ergonomics (onboarding revisit, optional-Phoenix-deps upgrade-path docs, repo-wide format drift cleanup). Continuing phase numbering from Phase 64.
 
 ## Current Position
 
-Phase: 63 — Docs, Contracts, and Changelog
-Plan: 02
-Status: complete
-Last activity: Completed 63-02-PLAN.md
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-06 — Milestone v1.18 started
 
 ## Performance Metrics
 
-- **Total Phases**: 7 planned in v1.17
-- **Phases Completed**: 5 of 7 in active milestone (Phase 57, 58, 59, 60, 61)
-- **Requirements Covered**: 18/18 in v1.17 (2/18 validated: SURF-02, SURF-03)
-- **Last Milestone**: v1.16 (Shipped 2026-05-06)
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 57    | 01   | ~35 min  | 5     | 4     |
-| 58    | 01   | ~5 min   | 2     | 4     |
-| 60    | 01   | ~10 min  | 1     | 4     |
-| 60    | 02   | 20 min   | 4     | 3     |
-| 61    | 01   | ~25 min  | 3     | 7     |
-| 63    | 01   | 5 min    | 3     | 4     |
-| 63    | 02   | 3 min    | 2     | 2     |
+- **Total Phases**: TBD — defined by gsd-roadmapper for v1.18
+- **Phases Completed**: 0 of TBD in active milestone
+- **Requirements Covered**: TBD — `.planning/REQUIREMENTS.md` not yet written for v1.18
+- **Last Milestone**: v1.17 — Operator Surface Foundation (shipped 2026-05-06, 18/18 requirements, Phases 57–63)
 
 ## Accumulated Context
 
 ### Decisions
 
+- 2026-05-06: Open v1.18 as "Adoption and Policy Hardening" — once a real operator surface ships (v1.17), the next adoption gap moves from "is there a usable surface?" to "is the surface easy to roll out, upgrade, and govern in production?" v1.18 closes that loop with: raw timeline browse + filter form, exports UI parity (download current view), coverage dashboard + drift-aware redaction admin (read-only), and lifecycle ergonomics. Read-only throughout; zero new platform infrastructure; Mix-task parity for every UI viewer.
+- 2026-05-06: v1.18 raw timeline browse ships with full `Threadline.Query.timeline/2` filter parity (5 filters: from, to, table, actor_ref kind+id, correlation_id) — no narrow starter, no saved views. URL-as-state via `live_patch` so links are shareable; reuses `validate_timeline_filters!/1` so UI/API/export share one filter vocabulary. Saved views deferred — would drag a tiny new auth model (owner / visibility / sharing) into a lib that's stayed auth-agnostic since v1.15; bookmarks + URL state cover the persistence story for free, which is what GitHub audit log + Oban Web do at scale. Idiomatic anchor: Oban Web's filter pills.
+- 2026-05-06: v1.18 exports UI ships as "download current view" only — sync iodata for small windows (≈≤5,000 rows), chunked stream via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2` for large; pre-flight `Threadline.Export.count_matching/2` renders a "what you'll get" preview before click; UTC-ISO filenames + RFC 5987 `filename*=UTF-8''…` + RFC 4180 CSV (no BOM); LiveView event → redirect to a Phoenix controller endpoint with the same filter params (Backpex/Ash Admin pattern). Queued/Oban-backed exports + status page deferred to v1.20+ — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep. Idiomatic anchor: Linear "current filtered view download."
+- 2026-05-06: v1.18 ships read-only policy admin viewers — coverage dashboard (wraps `Threadline.Health.trigger_coverage/1` with poll interval + `:schema` option; parity Mix task `mix threadline.health.coverage`) and drift-aware redaction admin (config-vs-deployed reconciliation comparing `config :threadline, :trigger_capture` against per-table `pg_proc.prosrc` introspection, with a "config matches deployed" badge; never displays sample values; parity Mix task `mix threadline.policy.show`). Retention admin deferred to v1.19 because "last purge" stats require net-new `audit_retention_runs` capture machinery (writes from `Threadline.Retention.purge/1`) — that broadens rather than hardens. Naive config-only redaction view rejected — would actively mislead operators after a config edit without `gen.triggers` rerun (Logidze/Carbonite-class footgun). Read-only ceiling holds throughout — no "Purge now" buttons, no runtime policy edits.
+- 2026-05-06: Continue phase numbering from 63 (no `--reset-phase-numbers`); v1.18 starts at Phase 64.
+- 2026-05-06: v1.18 scope informed by three parallel research subagents (filter form, exports UI, policy admin) returning coherent recommendations citing real Elixir-ecosystem peers (LiveDashboard, Oban Web, Ash Admin, Kaffy, Backpex, Sentry-Elixir) plus cross-language prior art (Linear, Backpex, Sidekiq Pro CSV pain, GitHub audit log, CloudTrail, Sentry, Hangfire, Datadog log retention).
 - Phase 63 Plan 01: Kept the core library README lean by providing a 1-minute mount example and delegating policy details to the new comprehensive guide.
 
 - Phase 60 Plan 02: Used Phoenix.LiveView for rendering the actor window screen to allow dynamic time window updates.
@@ -105,28 +101,21 @@ Last activity: Completed 63-02-PLAN.md
 
 ### Todos
 
-- [x] Define and ship Phase 53 — Timeline Paging Contract
-- [x] Define and ship Phase 54 — Investigation Slice APIs
-- [x] Define and ship Phase 55 — Incident Bundle Surface
-- [x] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
-- [x] Run the v1.16 milestone audit and archive the roadmap and requirements
-- [ ] Push milestone tags `v1.15` and `v1.16` when the maintainer is ready
+- [ ] Push milestone tags `v1.15`, `v1.16`, and `v1.17` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
-- [x] Write `.planning/REQUIREMENTS.md` for v1.17 (REQ-IDs across surface shape, screens, mix task, auth, telemetry, doc contracts, example app)
-- [x] Spawn `gsd-roadmapper` to phase v1.17 starting at Phase 57
-- [x] Plan Phase 57 — `/gsd-plan-phase 57`
-- [x] Execute Phase 57 plan 01 — optional deps, gated namespace module, verify gate, CI job, CONTRIBUTING row
-- [ ] Plan Phase 58 — `/gsd-plan-phase 58` (mount macro + auth contract + telemetry event)
+- [ ] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
+- [ ] Spawn `gsd-roadmapper` to phase v1.18 starting at Phase 64
+- [ ] Repo-wide `mix format` drift cleanup — clears the open `mix ci.all` blocker tracked since v1.16 (will land in the v1.18 lifecycle-ergonomics phase)
 
 ### Blockers
 
-- No blocker to v1.17 planning remains.
-- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16 closeout set.
+- No blocker to v1.18 planning remains.
+- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16/v1.17 closeout sets — will be closed by the v1.18 lifecycle-ergonomics phase.
 
 ## Session Continuity
 
-- **Last Action**: Phase 63 Plan 02 executed successfully. Updated CHANGELOG.md and implemented doc contract test.
-- **Next Step**: Verification of Phase 63 or proceed to milestone closure.
+- **Last Action**: v1.17 closed (18/18 requirements shipped, Phases 57–63 archived). v1.18 — Adoption and Policy Hardening opened with synthesized scope from 3 parallel research agents.
+- **Next Step**: Define v1.18 REQUIREMENTS.md, then spawn gsd-roadmapper for the Phase 64+ roadmap.
 
 ## Deferred Items
 

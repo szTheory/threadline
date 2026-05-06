@@ -10,41 +10,50 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.16 — Investigation Table Stakes (Phases 53-56, 2026-05-06)
-**Current milestone:** v1.17 — Operator Surface Foundation (opened 2026-05-06, continuing phase numbering from Phase 57).
+**Last shipped:** v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
+**Current milestone:** v1.18 — Adoption and Policy Hardening (opened 2026-05-06, continuing phase numbering from Phase 64).
 
 **Shipped capabilities:**
-- `Threadline.timeline_page/2` now exposes a stable keyset paging contract for large investigation windows without changing eager `timeline/2`.
-- `Threadline` now ships public investigation helpers for row history, actor windows, correlation bundles, and transaction drill-down, plus the first-class `incident_bundle/2` contract.
-- README, guides, the Phoenix example, and focused doc-contract suites now teach one canonical investigation routing hierarchy and keep the host-owned auth/policy boundary explicit.
+- Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
+- Two must-have screens (incident drill-down rendering `Threadline.incident_bundle/2`, actor window rendering `actor_history/2`) plus the row history + as-of sub-view rendering `Threadline.history/3` + `Threadline.as_of/4`; `mix threadline.incident <transaction_id>` ships parity data for no-LiveView operators.
+- Mount-time auth contract: host-mount default + optional `:authorize_fn`, fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn` returned scopes are threaded into investigation queries.
+- Doc-contract test locks the macro signature, route literals, and auth section; CHANGELOG, `guides/operator-surface.md`, README, production checklist, and the example app are aligned end-to-end behind a `phx.gen.auth`-style admin pipeline.
 
-**v1.17 progress (1/7 phases complete):**
-- Phase 57 — `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Threadline.OperatorSurface` namespace module shipped with file-scope `Code.ensure_loaded?(Phoenix.LiveView)` gating; `mix verify.compile_no_optional` alias + dedicated GH Actions job lock the regression-protection contract. SURF-02 + SURF-03 validated.
+## Current Milestone: v1.18 Adoption and Policy Hardening
 
-## Current Milestone: v1.17 Operator Surface Foundation
-
-**Goal:** Ship a host-usable operator surface — a mountable LiveView surface inside `threadline` (with Phoenix/LiveView as optional deps) that turns the v1.16 investigation contracts into one-click answers for the documented support questions, while preserving the v1.15 host-owns-auth boundary.
+**Goal:** Tighten what v1.17 shipped so production teams can actually roll the operator surface out cleanly. Round out the surface with a raw timeline browse + filter form, export-from-current-view parity, drift-aware policy viewers, and onboarding/lifecycle ergonomics. Read-only throughout; zero new platform infrastructure.
 
 **Target features:**
-- Mountable in-tree LiveView surface (`Threadline.OperatorSurface.Router`) compiled only when `Phoenix.LiveView` is present; `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared as optional deps so capture-only adopters stay Plug-only at install time.
-- Incident drill-down screen rendering `Threadline.incident_bundle/2` (correlation_id-anchored).
-- Actor window screen rendering `actor_history/2` with deep-links into incident drill-down.
-- Row history + as-of sub-view rendering `Threadline.history/3` + `Threadline.as_of/4`, reachable from drill-down change rows (should-have; ship in slice 1 if cheap).
-- `mix threadline.incident <transaction_id>` Mix task — no-LiveView operator path with parity data.
-- Mount-time auth contract: host-mount default + optional `:authorize_fn`; fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit.
-- Telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`.
-- Doc-contract tests locking the mount macro signature, route literals, and the README's auth section.
-- Example app + guides updated to wire the new surface behind a `phx.gen.auth`-style admin pipeline end-to-end.
+- Raw paged timeline browse + filter form on the operator surface — full API parity with `Threadline.Query.timeline/2` (date range, table, actor_ref kind+id, correlation_id); URL-as-state via `live_patch` so links are shareable and browser back/forward works; reuses `validate_timeline_filters!/1` so UI/API/export all share one filter vocabulary.
+- Exports UI parity — "Download CSV / JSON" of the currently-filtered view from inside the LiveView; sync `iodata` path for small windows, chunked stream via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2` for large; pre-flight `Threadline.Export.count_matching/2` renders a "what you'll get" preview before click; UTC-ISO filenames, RFC 5987 `filename*=UTF-8''…`, RFC 4180 CSV (no BOM).
+- Coverage dashboard — wraps `Threadline.Health.trigger_coverage/1` on the surface with a poll interval and a `:schema` option (Ecto-prefix + non-`public` schema adopters); parity Mix task `mix threadline.health.coverage` for capture-only adopters.
+- Drift-aware redaction admin — config-vs-deployed reconciliation (`config :threadline, :trigger_capture` shown side-by-side with the per-table deployed redaction via `pg_proc.prosrc` introspection, with a "config matches deployed" badge); never displays sample values; parity Mix task `mix threadline.policy.show`.
+- Lifecycle ergonomics — first-hour onboarding revisit so the quickstart actually mounts the surface end-to-end; upgrade-path docs for the optional Phoenix-deps posture (version-compat matrix, what breaks, migration story); repo-wide `mix format` drift cleanup so `mix ci.all` runs honest again.
 
-**Out of v1.17 scope (deferred):**
-- Raw paged timeline browse screen (needs filter form — own scope; defer to v1.18).
-- Saved views, redaction admin, retention admin, coverage dashboard, exports UI.
-- Separate `threadline_web` companion package (deferred to v1.19+; migration path documented).
-- New tenancy or policy framework (host stays in charge; `:authorize_fn` returns `:ok | {:ok, scope}` and Threadline threads `scope` into queries).
+**Out of v1.18 scope (deferred to v1.19+):**
+- Saved views inside the operator surface — would drag a tiny auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15; URL bookmarks + `live_patch` cover the persistence story for free.
+- Queued / Oban-based exports + status page + scheduled exports — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep; sync download is the right ceiling at this stage.
+- Retention admin viewer — "last purge" stats require net-new `audit_retention_runs` capture (writes from `Threadline.Retention.purge/1`), which broadens rather than hardens; revisit in v1.19 once the capture surface is decided. Operators continue to use `mix threadline.retention.purge --dry-run`.
+- Runtime edits to any policy (redaction, retention, coverage) inside the surface — read-only ceiling stays firm; an audit lib that lets you mutate redaction from a web UI is itself a compliance vector.
+- Companion `threadline_web` extraction (still v1.19+ candidate, with documented promotion path).
+- Multi-repo coverage dashboards; new auth adapters; CDC/WAL or new storage backend.
 
-**Why now:** v1.16 closed the biggest API gap by making investigation workflows first-class. The next adoption bottleneck is presentation and operator usability, not another round of raw exploration plumbing.
+**Why now:** v1.17 shipped a real operator surface but stopped short of the rollout story. The next adoption gap is no longer "is there a usable surface?" — it's "is the surface easy to roll out, upgrade, and govern in production?" That's exactly what this milestone closes. Broader integrations and governance depth stay parked in v1.19+ until live adopters tell us where the gaps actually are.
 
 **Strategic arc:** `.planning/MILESTONE-ARC.md` remains the only ranked forward-looking milestone source. `/gsd-new-milestone` should start from that file rather than duplicating milestone names here.
+
+## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
+
+**Goal (achieved):** Ship a host-usable operator surface — a mountable LiveView surface inside `threadline` (with Phoenix/LiveView as optional deps) that turns the v1.16 investigation contracts into one-click answers for the documented support questions, while preserving the v1.15 host-owns-auth boundary.
+
+**Shipped:**
+- **Phase 57** — SURF-02 / SURF-03: `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Threadline.OperatorSurface` namespace module with file-scope `Code.ensure_loaded?(Phoenix.LiveView)` gating; `mix verify.compile_no_optional` alias + dedicated stable-id GitHub Actions job lock the regression-protection contract.
+- **Phase 58** — SURF-01 / AUTH-01–05 / TELEM-01: `threadline_operator_surface` mount macro with optional `:actor_fn` / `:authorize_fn`; fails closed at compile time without a secure pipeline or explicit acknowledgement flag; `:adopter_acknowledges_unauthenticated: true` raises in test and emits a loud `Logger.warning` in prod; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn`-returned scopes threaded into investigation queries.
+- **Phases 59-61** — UI-01 / UI-02 / UI-03: incident drill-down LiveView at `/audit/transactions/:id` rendering `Threadline.incident_bundle/2`; actor window LiveView at `/audit/actors/:kind/:id` rendering `Threadline.actor_history/2` (with `ActorHistoryPage` keyset paging); row history sub-view at `/audit/rows/:table/:pk` rendering `Threadline.history/3` + `Threadline.as_of/4`, reachable from drill-down change rows.
+- **Phase 62** — CLI-01 / SURF-04: `mix threadline.incident <transaction_id>` (with `--json`); `examples/threadline_phoenix` mounts the operator surface end-to-end behind a `phx.gen.auth`-style admin pipeline.
+- **Phase 63** — DOC-01–04: `operator_surface_doc_contract_test.exs` locks macro signature, route literals, and auth section; `guides/operator-surface.md` covers mount, auth, screens, and the CLI task; README, production checklist, and example app README cross-link the new guide; CHANGELOG entry highlights the optional dependency posture and macro.
+
+**Archives:** `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-MILESTONE-AUDIT.md`.
 
 ## Prior milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
 
@@ -211,11 +220,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-02 (Phase 42)** — `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to assert the example surface. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **Investigation table stakes (Phases 53–56)** — `Threadline.timeline_page/2`, public investigation helpers, `Threadline.incident_bundle/2`, focused request-path coverage, and one canonical investigation docs story. Validated in v1.16: Investigation Table Stakes (2026-05-06).
+- [x] **Operator Surface Foundation (Phases 57–63)** — Mountable in-tree LiveView with optional Phoenix/LiveView/HTML/PubSub deps, two must-have screens + row history sub-view, fail-closed mount-time auth contract with optional `:authorize_fn` and authorize telemetry, `mix threadline.incident` CLI parity, doc-contract test locking macro signature + route literals + auth section. Validated in v1.17 (2026-05-06).
 
 ### Active
 
-- [ ] **v1.17 Operator Surface Foundation** — Mountable in-tree LiveView surface, two must-have screens (incident drill-down, actor window) with row history + as-of sub-view, host-mount-default auth with optional `:authorize_fn` callback, fail-closed compile-time check, telemetry, Mix-task parity. Detailed REQ-IDs live in `.planning/REQUIREMENTS.md`.
-- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set after v1.17 ships.
+- [ ] **v1.18 Adoption and Policy Hardening** — Raw timeline browse + filter form (full API parity), exports UI parity (download current view), coverage dashboard + drift-aware redaction admin (read-only) with parity Mix tasks, and lifecycle ergonomics (onboarding revisit, upgrade-path docs, repo-wide format drift cleanup). Detailed REQ-IDs live in `.planning/REQUIREMENTS.md`.
+- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set after v1.18 ships.
 
 ### Out of Scope
 
@@ -269,8 +279,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 | Verification artifacts are first-class milestone output | Phase 43 retroactively wrote `*-VERIFICATION.md` to close an audit gap; future phases should land verification evidence alongside SUMMARY.md, not after | ✓ Shipped (Phase 43, v1.13) |
 | Investigation workflows before UI breadth | The library already captures and correlates rich audit data, but adopters still need packaged answers to the first support questions before a UI or new adapter layer will feel durable | ✓ Shipped in v1.16 |
 | Persist a standing milestone arc in `.planning/MILESTONE-ARC.md` | Future milestone starts should begin from a recorded strategic recommendation, not from memory or a fresh prompt | ✓ Shipped in v1.16 |
-| v1.17 operator surface ships in-tree with optional Phoenix/LiveView deps, not as a separate `threadline_web` package | Splitting at v0.3.0 with one maintainer is premature: doubles the release/version-matrix burden when the surface is still small. LiveDashboard / Oban Web / Ash Admin all split *after* the core had hundreds of adopters; Sentry-Elixir keeps Phoenix integrations optional in-tree without a companion. Keeps capture-only adopters Plug-only via `optional: true` deps gated by `Code.ensure_loaded?(Phoenix.LiveView)`. | — Active in v1.17 planning |
-| Operator surface defaults to host-mounted with optional `:authorize_fn` callback and fails closed at compile time | Pure host-mount (LiveDashboard / Sidekiq Web pattern) leaks the surface when adopters forget the pipeline. Pure callback walks back from v1.15's "host owns auth, Threadline owns the wiring contract." Hangfire's fail-closed default + Oban Web's resolver shape gives the most conservative posture for an audit-trail surface, which is the highest-stakes leak target in the ecosystem. | — Active in v1.17 planning |
+| v1.17 operator surface ships in-tree with optional Phoenix/LiveView deps, not as a separate `threadline_web` package | Splitting at v0.3.0 with one maintainer is premature: doubles the release/version-matrix burden when the surface is still small. LiveDashboard / Oban Web / Ash Admin all split *after* the core had hundreds of adopters; Sentry-Elixir keeps Phoenix integrations optional in-tree without a companion. Keeps capture-only adopters Plug-only via `optional: true` deps gated by `Code.ensure_loaded?(Phoenix.LiveView)`. | ✓ Shipped (Phases 57–63, v1.17) |
+| Operator surface defaults to host-mounted with optional `:authorize_fn` callback and fails closed at compile time | Pure host-mount (LiveDashboard / Sidekiq Web pattern) leaks the surface when adopters forget the pipeline. Pure callback walks back from v1.15's "host owns auth, Threadline owns the wiring contract." Hangfire's fail-closed default + Oban Web's resolver shape gives the most conservative posture for an audit-trail surface, which is the highest-stakes leak target in the ecosystem. | ✓ Shipped (Phases 57–63, v1.17) |
+| v1.18 ships the raw timeline browse with full `Threadline.Query.timeline/2` filter parity (no narrow starter, no saved views) | Narrow starter creates a UI/API filter divergence — operators learn two filter dialects, doc-contract tests have to track both, the CloudTrail/Kibana trajectory of "ship a subset, bolt on the rest later" is well-documented. Saved views drag a tiny new auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15; URL-as-state via `live_patch` + browser bookmarks cover the persistence story for free, which is what GitHub audit log and Oban Web do at scale. Five filters is well below the threshold where saved views become necessary. | — Active in v1.18 planning |
+| v1.18 ships exports UI as "download current view" only (sync `iodata` for small windows, chunked stream for large), not queued/Oban-backed | Adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters / file expiry / status pages are platform creep that contradicts "lib not platform." Sidekiq Pro hit memory pain on in-process CSV before adding streaming; Backpex / Linear / GitHub-style sync downloads are the right ceiling at our stage. Queued-with-link-when-ready is what large products (CloudTrail, Sentry, GitHub audit-log) ship after sync hits a wall — Threadline hasn't hit that wall, so the design would be speculative. Revisit in v1.20 once real adopters report row-cap pain on real incidents. | — Active in v1.18 planning |
+| v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | — Active in v1.18 planning |
 
 ## Evolution
 
@@ -292,4 +305,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-06 - Phase 57 verified and closed (Optional Deps & Module Gating); v1.17 progress 1/7 phases. Next: Phase 58 (Mount Macro & Auth Contract).*
+*Last updated: 2026-05-06 — v1.17 closed (18/18 requirements shipped, Phases 57–63). v1.18 — Adoption and Policy Hardening opened, continuing phase numbering from Phase 64.*
