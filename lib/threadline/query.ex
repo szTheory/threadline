@@ -103,6 +103,31 @@ defmodule Threadline.Query do
   end
 
   @doc """
+  Returns one `AuditTransaction` by id or `nil` when the row does not exist.
+
+  Raises `ArgumentError` when `transaction_id` is not a valid UUID.
+  """
+  @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
+  def audit_transaction(transaction_id, opts) do
+    repo = Keyword.fetch!(opts, :repo)
+    uuid = validate_audit_transaction_id!(transaction_id)
+
+    transaction = repo.get(AuditTransaction, uuid)
+
+    case Keyword.get(opts, :preload) do
+      preloads when preloads in [nil, []] ->
+        transaction
+
+      preloads when is_list(preloads) or is_atom(preloads) ->
+        repo.preload(transaction, preloads)
+
+      other ->
+        raise ArgumentError,
+              ":preload must be nil, [], an atom, or a list, got: #{inspect(other)}"
+    end
+  end
+
+  @doc """
   Validates that `filters` contains only timeline filter keys.
 
   Allowed keys: `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`.
@@ -451,16 +476,7 @@ defmodule Threadline.Query do
   @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
   def audit_changes_for_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
-
-    uuid =
-      case Ecto.UUID.cast(transaction_id) do
-        :error ->
-          raise ArgumentError,
-                "invalid audit transaction id: #{inspect(transaction_id)}"
-
-        {:ok, canonical} ->
-          canonical
-      end
+    uuid = validate_audit_transaction_id!(transaction_id)
 
     results =
       AuditChange
@@ -478,6 +494,17 @@ defmodule Threadline.Query do
       other ->
         raise ArgumentError,
               ":preload must be nil, [], or a list, got: #{inspect(other)}"
+    end
+  end
+
+  defp validate_audit_transaction_id!(transaction_id) do
+    case Ecto.UUID.cast(transaction_id) do
+      :error ->
+        raise ArgumentError,
+              "invalid audit transaction id: #{inspect(transaction_id)}"
+
+      {:ok, canonical} ->
+        canonical
     end
   end
 

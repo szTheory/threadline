@@ -8,7 +8,12 @@ defmodule Threadline.Investigation do
 
   alias Threadline.Query
   alias Threadline.Query.TimelinePage
-  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
+  alias Threadline.Investigation.{
+    IncidentBundle,
+    IncidentChange,
+    LinkedChange,
+    LinkedTransaction
+  }
   alias Threadline.Semantics.ActorRef
 
   @allowed_row_history_filter_keys ~w(from to repo)a
@@ -137,6 +142,33 @@ defmodule Threadline.Investigation do
     }
   end
 
+  @doc """
+  Returns one transaction-focused incident bundle with linked context and
+  packaged diffs.
+  """
+  def incident_bundle(transaction_id, opts \\ []) do
+    case Query.audit_transaction(transaction_id, Keyword.put(opts, :preload, :action)) do
+      nil ->
+        {:error, :not_found}
+
+      transaction ->
+        changes =
+          Query.audit_changes_for_transaction(
+            transaction_id,
+            Keyword.put(opts, :preload, transaction: :action)
+          )
+
+        linked_changes = to_linked_changes(changes)
+
+        {:ok,
+         %IncidentBundle{
+           transaction: transaction,
+           action: linked_action(transaction),
+           changes: Enum.map(linked_changes, &to_incident_change/1)
+         }}
+    end
+  end
+
   defp validate_helper_filters!(filters, allowed_keys, helper_name) when is_list(filters) do
     Enum.each(filters, fn {key, _value} ->
       if key not in allowed_keys do
@@ -172,6 +204,13 @@ defmodule Threadline.Investigation do
         action: linked_action(transaction)
       }
     end)
+  end
+
+  defp to_incident_change(%LinkedChange{} = linked_change) do
+    %IncidentChange{
+      linked_change: linked_change,
+      change_diff: Threadline.change_diff(linked_change.audit_change)
+    }
   end
 
   defp linked_transaction([%LinkedChange{transaction: transaction} | _]), do: transaction

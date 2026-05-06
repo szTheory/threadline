@@ -179,6 +179,17 @@ defmodule Threadline do
     do: Investigation.transaction_context(transaction_id, opts)
 
   @doc """
+  Returns one transaction-focused incident bundle with linked transaction/action
+  context and packaged JSON-ready diffs.
+
+  Returns `{:ok, bundle}` when the parent `AuditTransaction` exists, even if it
+  has no captured changes. Returns `{:error, :not_found}` when the transaction
+  row does not exist.
+  """
+  def incident_bundle(transaction_id, opts \\ []),
+    do: Investigation.incident_bundle(transaction_id, opts)
+
+  @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.
 
   Delegates to `Threadline.Query.audit_changes_for_transaction/2`. Pass **`repo:`**

@@ -2,7 +2,12 @@ defmodule Threadline.InvestigationTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
-  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
+  alias Threadline.Investigation.{
+    IncidentBundle,
+    IncidentChange,
+    LinkedChange,
+    LinkedTransaction
+  }
   alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
@@ -271,6 +276,70 @@ defmodule Threadline.InvestigationTest do
       assert result.transaction == nil
       assert result.action == nil
       assert result.changes == []
+    end
+  end
+
+  describe "incident_bundle/2" do
+    test "packages ordered linked changes with JSON-ready diffs" do
+      action = insert_action(%{correlation_id: "corr-incident", name: "incident.reviewed"})
+      txn = insert_transaction(%{action_id: action.id})
+      older = ~U[2026-09-04 09:00:00.000000Z]
+      newer = DateTime.add(older, 60, :second)
+
+      older_change =
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "incident-older"},
+          op: "update",
+          data_after: %{"name" => "Alice 1"},
+          changed_fields: ["name"],
+          changed_from: %{"name" => "Alice 0"},
+          captured_at: older
+        })
+
+      newer_change =
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "incident-newer"},
+          op: "update",
+          data_after: %{"name" => "Alice 2"},
+          changed_fields: ["name"],
+          changed_from: %{"name" => "Alice 1"},
+          captured_at: newer
+        })
+
+      assert {:ok, %IncidentBundle{} = result} = Threadline.incident_bundle(txn.id, repo: @repo)
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+
+      assert [
+               %IncidentChange{} = first_change,
+               %IncidentChange{} = second_change
+             ] = result.changes
+
+      assert first_change.linked_change.audit_change.id == newer_change.id
+      assert second_change.linked_change.audit_change.id == older_change.id
+      assert %LinkedChange{} = first_change.linked_change
+      assert first_change.linked_change.transaction.id == txn.id
+      assert first_change.linked_change.action.id == action.id
+      assert first_change.change_diff["schema_version"] == 1
+      assert [%{"name" => "name", "after" => "Alice 2", "before" => "Alice 1"}] =
+               first_change.change_diff["field_changes"]
+    end
+
+    test "returns {:ok, bundle} with empty changes for an existing transaction with no captured changes" do
+      action = insert_action(%{correlation_id: "corr-empty", name: "incident.empty"})
+      txn = insert_transaction(%{action_id: action.id})
+
+      assert {:ok, %IncidentBundle{} = result} = Threadline.incident_bundle(txn.id, repo: @repo)
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+      assert result.changes == []
+    end
+
+    test "returns {:error, :not_found} when the parent audit transaction does not exist" do
+      assert {:error, :not_found} =
+               Threadline.incident_bundle(Ecto.UUID.generate(), repo: @repo)
     end
   end
 end
