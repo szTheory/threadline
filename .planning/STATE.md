@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Investigation Table Stakes
-status: phase 55 complete
+status: phase 56 complete
 last_updated: "2026-05-05T00:00:00Z"
 last_activity: 2026-05-05
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.16 — Investigation Table Stakes. Phase 55 is shipped; Phase 56 is the next execution target for docs and contract alignment. See `.planning/MILESTONE-ARC.md` for the standing strategic order after this milestone.
+**Current Focus**: v1.16 — Investigation Table Stakes. Phase 56 is shipped; milestone audit and closeout are next. See `.planning/MILESTONE-ARC.md` for the standing strategic order after this milestone.
 
 ## Current Position
 
-Phase: 56 — Docs, Contracts, and Arc Alignment (next)
-Plan: Not started
-Status: Phase 55 shipped; Phase 56 is the next execution target in v1.16.
-Last activity: 2026-05-05 — Completed Phase 55, shipping the typed `incident_bundle/2` contract plus the Phoenix example endpoint convergence and request-path proof.
+Phase: 56 — Docs, Contracts, and Arc Alignment (complete)
+Plan: 56-02 complete
+Status: All four implementation phases in v1.16 are now shipped; closeout is the next workflow step.
+Last activity: 2026-05-05 — Completed Phase 56, aligning the public docs, doc-contract tests, and planning summaries around the shipped investigation hierarchy and milestone-arc source of truth.
 
 ## Performance Metrics
 
@@ -46,6 +46,9 @@ Last activity: 2026-05-05 — Completed Phase 55, shipping the typed `incident_b
 - 2026-05-05: Phase 54 packaged row-history, actor-window, correlation-bundle, and transaction-context questions into public `Threadline` investigation helpers while keeping `change_diff`-driven incident bundles deferred to Phase 55.
 - 2026-05-05: Phase 55 plan 55-01 added `Threadline.incident_bundle/2`, explicit incident bundle structs, and existence-aware not-found versus empty-change semantics while leaving `transaction_context/2` and `audit_changes_for_transaction/2` backward-compatible.
 - 2026-05-05: Phase 55 plan 55-02 moved the Phoenix reference incident endpoint onto `Threadline.incident_bundle/2`, added a dedicated JSON renderer, and proved the authenticated `401`/`400`/`404`/`200` request paths.
+- 2026-05-05: Phase 56 converged the README, domain reference, SaaS quickstart, incident playbook, production checklist, and Phoenix example README on one canonical investigation hierarchy with `Threadline.incident_bundle/2` as the default transaction drill-down path.
+- 2026-05-05: Phase 56 extended the focused doc-contract suite so routing literals, the bundled incident story, and the host-owned auth/policy boundary now fail fast on drift.
+- 2026-05-05: Phase 56 refreshed `.planning/PROJECT.md` and `.planning/STATE.md` to treat `.planning/MILESTONE-ARC.md` as the only ranked forward-strategy source.
 - 2026-05-05: Open v1.15 as "Host Integration Completion" — formalize the native `Threadline.Plug` host-wiring hook, direct Sigra callback composition, an authenticated incident drill-down baseline, and the doc/test alignment that keeps that adopter story stable.
 - 2026-05-05: Phase 49 locked `Threadline.Plug` context overrides to additive `request_id` / `correlation_id` fills only, kept actor authority on `actor_fn`, and aligned Sigra plus quickstart docs with that contract.
 - 2026-05-05: Phase 50 made `Threadline.Integrations.Sigra` the canonical direct callback pair for `Threadline.Plug` and removed the example-only delegate seam.
@@ -75,7 +78,7 @@ Last activity: 2026-05-05 — Completed Phase 55, shipping the typed `incident_b
 - [x] Define and ship Phase 53 — Timeline Paging Contract
 - [x] Define and ship Phase 54 — Investigation Slice APIs
 - [x] Define and ship Phase 55 — Incident Bundle Surface
-- [ ] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
+- [x] Define and ship Phase 56 — Docs, Contracts, and Arc Alignment
 - [ ] Push milestone tag `v1.15` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 
@@ -85,8 +88,8 @@ Last activity: 2026-05-05 — Completed Phase 55, shipping the typed `incident_b
 
 ## Session Continuity
 
-- **Last Action**: Executed and verified Phase 55, shipping the typed incident bundle library surface and converging the Phoenix incident endpoint on that contract.
-- **Next Step**: Start Phase 56 to align the docs and contract wording around the shipped investigation and incident-bundle surfaces.
+- **Last Action**: Executed and verified Phase 56, aligning the docs, contracts, and planning summaries around the shipped investigation hierarchy.
+- **Next Step**: Run milestone audit / closeout for v1.16 and then open the next milestone from `.planning/MILESTONE-ARC.md`.
 
 ## Deferred Items
 

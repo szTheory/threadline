@@ -200,8 +200,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ### Active
 
 - [ ] **Investigation table stakes (v1.16)** — Package the common audit investigation workflows into stable, paged library APIs and reference surfaces instead of leaving adopters to compose them from low-level queries and example-only controller code.
-- [ ] **Operator-surface foundation (next candidate)** — Once v1.16 lands, decide whether to publish a lightweight operator-facing package or reference UI on top of the stabilized exploration contracts.
-- [ ] **Adoption and policy hardening (next candidate)** — After the investigation surface settles, tighten the production adoption story around policy guardrails, lifecycle ergonomics, and safer operator defaults.
+- [ ] **Next strategic milestone selection** — Use `.planning/MILESTONE-ARC.md` for the maintained ranked order after v1.16 instead of duplicating candidate milestone names in this file.
 
 ### Out of Scope
 
