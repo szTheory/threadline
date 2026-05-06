@@ -48,6 +48,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
 - [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export (Phase 14)](domain-reference.md#export-phase-14)**.
+- [ ] **Operator Surface:** If you mount the LiveView operator UI, ensure it is protected behind an authenticated admin pipeline with a strict `:authorize_fn` policy. See the [Operator Surface guide](operator-surface.md) for fail-closed requirements.
 
 ## 6. Observability
 
