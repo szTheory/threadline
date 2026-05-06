@@ -8,6 +8,7 @@ defmodule Threadline do
 
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
+  alias Threadline.Investigation
 
   @doc """
   Records a semantic audit action.
@@ -127,6 +128,45 @@ defmodule Threadline do
   - `:repo` — required `Ecto.Repo` module
   """
   def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page(filters, opts)
+
+  @doc """
+  Returns the investigation slice for one schema row.
+
+  This is the discoverable row-history helper for operators who want one row's
+  changes without assembling table and primary-key predicates manually.
+  """
+  def row_history(schema_module, id, filters \\ [], opts \\ []),
+    do: Investigation.row_history(schema_module, id, filters, opts)
+
+  @doc """
+  Returns one keyset page of row history for a single schema row.
+  """
+  def row_history_page(schema_module, id, filters \\ [], opts \\ []),
+    do: Investigation.row_history_page(schema_module, id, filters, opts)
+
+  @doc """
+  Returns change rows across tables for one actor.
+  """
+  def actor_window(actor_ref, filters \\ [], opts \\ []),
+    do: Investigation.actor_window(actor_ref, filters, opts)
+
+  @doc """
+  Returns one keyset page of change rows across tables for one actor.
+  """
+  def actor_window_page(actor_ref, filters \\ [], opts \\ []),
+    do: Investigation.actor_window_page(actor_ref, filters, opts)
+
+  @doc """
+  Returns change rows linked to one `correlation_id` with strict correlation semantics.
+  """
+  def correlation_bundle(correlation_id, filters \\ [], opts \\ []),
+    do: Investigation.correlation_bundle(correlation_id, filters, opts)
+
+  @doc """
+  Returns one keyset page of changes linked to one `correlation_id`.
+  """
+  def correlation_bundle_page(correlation_id, filters \\ [], opts \\ []),
+    do: Investigation.correlation_bundle_page(correlation_id, filters, opts)
 
   @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.

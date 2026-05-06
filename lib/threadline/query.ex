@@ -34,6 +34,7 @@ defmodule Threadline.Query do
   alias Threadline.Semantics.AuditAction
 
   @allowed_timeline_filter_keys ~w(repo table actor_ref from to correlation_id)a
+  @allowed_row_history_filter_keys ~w(repo from to)a
   @default_timeline_page_size 1000
 
   defmodule TimelinePage do
@@ -49,6 +50,50 @@ defmodule Threadline.Query do
             entries: [AuditChange.t()],
             next_cursor: cursor() | nil
           }
+  end
+
+  @doc """
+  Returns `AuditChange` records for one schema row using timeline ordering.
+
+  The helper fixes `table_name` and primary-key containment internally so callers
+  do not need to construct low-level row predicates.
+  """
+  @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
+  def row_history(schema_module, id, filters \\ [], opts \\ [])
+      when is_list(filters) and is_list(opts) do
+    validate_row_history_filters!(filters)
+    repo = timeline_repo!(filters, opts)
+
+    schema_module
+    |> row_history_query(id, filters)
+    |> repo.all()
+  end
+
+  @doc """
+  Returns one keyset page of row history for a single schema row.
+  """
+  @spec row_history_page(module(), term(), keyword(), keyword()) :: TimelinePage.t()
+  def row_history_page(schema_module, id, filters \\ [], opts \\ [])
+      when is_list(filters) and is_list(opts) do
+    validate_row_history_filters!(filters)
+    repo = timeline_repo!(filters, opts)
+
+    page_size =
+      validate_timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
+
+    cursor = validate_timeline_cursor!(Keyword.get(opts, :cursor))
+
+    entries =
+      schema_module
+      |> row_history_query(id, filters)
+      |> maybe_after_timeline_cursor(cursor)
+      |> limit(^page_size)
+      |> repo.all()
+
+    %TimelinePage{
+      entries: entries,
+      next_cursor: timeline_page_next_cursor(entries, page_size)
+    }
   end
 
   @doc """
@@ -76,6 +121,23 @@ defmodule Threadline.Query do
     end
 
     :ok
+  end
+
+  @doc """
+  Validates row-history helper filters.
+
+  Allowed keys: `:repo`, `:from`, `:to`.
+  """
+  @spec validate_row_history_filters!(keyword()) :: :ok
+  def validate_row_history_filters!(filters) when is_list(filters) do
+    for {key, _value} <- filters do
+      if key not in @allowed_row_history_filter_keys do
+        raise ArgumentError,
+              "unknown row_history filter key #{inspect(key)}. Allowed: :repo, :from, :to."
+      end
+    end
+
+    validate_timeline_filters!(filters)
   end
 
   defp validate_correlation_id_filter!(nil) do
@@ -265,6 +327,21 @@ defmodule Threadline.Query do
     |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
     |> order_by([ac], desc: ac.captured_at)
     |> repo.all()
+  end
+
+  @doc false
+  @spec row_history_query(module(), term(), keyword()) :: Ecto.Query.t()
+  def row_history_query(schema_module, id, filters \\ []) when is_list(filters) do
+    table = schema_module.__schema__(:source)
+    [pk_field] = schema_module.__schema__(:primary_key)
+    pk_map = %{to_string(pk_field) => id}
+
+    filters
+    |> timeline_base_query()
+    |> where([ac, _at], ac.table_name == ^table)
+    |> where([ac, _at], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
+    |> timeline_order()
+    |> select([ac, _at], ac)
   end
 
   @doc """
