@@ -13,7 +13,7 @@
 
 #### Phases
 
-- [ ] **Phase 57: Optional Deps & Module Gating** — Declare Phoenix/LiveView as optional deps and gate the operator surface modules so capture-only adopters keep a Plug-only install footprint
+- [x] **Phase 57: Optional Deps & Module Gating** — Declare Phoenix/LiveView as optional deps and gate the operator surface modules so capture-only adopters keep a Plug-only install footprint *(shipped 2026-05-06; plan 01 SUMMARY)*
 - [ ] **Phase 58: Mount Macro & Auth Contract** — Ship the one-line mount macro, the host-mount-default + `:authorize_fn` auth contract, the compile-time fail-closed check, and the authorize telemetry event
 - [ ] **Phase 59: Incident Drill-down Screen** — Render `Threadline.incident_bundle/2` as a URL-addressable LiveView with actor/context header, ordered diff rows, and explicit not-found state
 - [ ] **Phase 60: Actor Window Screen** — Render `Threadline.actor_history/2` as a paged LiveView with time-window picker, deep-links into incident drill-down, and explicit empty state
@@ -35,7 +35,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 57-01-PLAN.md — Optional deps + gated namespace module + verify.compile_no_optional alias + GH Actions job + CONTRIBUTING.md row (one atomic commit)
+- [x] 57-01-PLAN.md — Optional deps + gated namespace module + verify.compile_no_optional alias + GH Actions job + CONTRIBUTING.md row *(shipped 2026-05-06; SURF-02 + SURF-03 validated; five atomic commits 4281556/b8e7044/409d135/5d0aebf/719d7ac)*
 **UI hint**: yes
 
 ##### Phase 58: Mount Macro & Auth Contract
@@ -134,7 +134,7 @@ The seven-phase shape was accepted as proposed in the planning prompt. Each plac
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 57. Optional Deps & Module Gating | 0/1 | Not started | - |
+| 57. Optional Deps & Module Gating | 1/1 | Complete | 2026-05-06 |
 | 58. Mount Macro & Auth Contract | 0/1 | Not started | - |
 | 59. Incident Drill-down Screen | 0/1 | Not started | - |
 | 60. Actor Window Screen | 0/1 | Not started | - |

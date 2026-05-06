@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: — Operator Surface Foundation
 status: executing
-last_updated: "2026-05-06T09:07:38.981Z"
-last_activity: 2026-05-06 -- Phase null planning complete
+last_updated: "2026-05-06T09:30:50Z"
+last_activity: 2026-05-06 -- Phase 57 plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 14
 ---
 
 # Project State: Threadline
@@ -23,21 +23,26 @@ progress:
 ## Current Position
 
 Phase: 57 — Optional Deps & Module Gating
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-06 -- Phase null planning complete
+Plan: 01 (complete)
+Status: Phase 57 complete (single-plan phase) — ready to plan Phase 58
+Last activity: 2026-05-06 -- Phase 57 plan 01 complete
 
 ## Performance Metrics
 
 - **Total Phases**: 7 planned in v1.17
-- **Phases Completed**: 0 of 7 in active milestone
-- **Requirements Covered**: 18/18 in v1.17 (REQUIREMENTS.md pending)
+- **Phases Completed**: 1 of 7 in active milestone (Phase 57 — single-plan phase)
+- **Requirements Covered**: 18/18 in v1.17 (2/18 validated: SURF-02, SURF-03)
 - **Last Milestone**: v1.16 (Shipped 2026-05-06)
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 57    | 01   | ~35 min  | 5     | 4     |
 
 ## Accumulated Context
 
 ### Decisions
 
+- 2026-05-06: Phase 57 plan 01 shipped — `mix.exs` declares `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` as `optional: true`; `Threadline.OperatorSurface` namespace module created with file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end end` wrapper (Sentry `live_view_hook.ex` idiom); `mix verify.compile_no_optional` alias added and folded into `ci.all`; dedicated stable-id `verify-compile-no-optional` GitHub Actions job added; `CONTRIBUTING.md` row added. Five atomic commits (4281556, b8e7044, 409d135, 5d0aebf, 719d7ac). SURF-02 + SURF-03 validated. Pre-existing `mix verify.format` drift in 7 files outside Phase 57 scope remains a known blocker (recorded below) — surfaced not fixed per Task 5 scope discipline.
 - 2026-05-06: Phase 57 context captured. Locked four implementation decisions (research-then-recommend, four parallel subagents): (1) `phoenix ~> 1.7`, `phoenix_live_view ~> 1.0`, `phoenix_html ~> 4.0`, `phoenix_pubsub ~> 2.1` declared `optional: true` (greenfield, drops 0.20.x branch); (2) ship one gated namespace module `lib/threadline/operator_surface.ex` with `@moduledoc` only — modeled verbatim on `getsentry/sentry-elixir`'s `lib/sentry/live_view_hook.ex` file-scope `if Code.ensure_loaded?(Phoenix.LiveView) do defmodule ... end` shape; (3) verification via new `mix verify.compile_no_optional` alias + folded into `ci.all` + dedicated immutable-id GitHub Actions job `verify-compile-no-optional` (Sentry's CI gap is an acknowledged omission, not a model to replicate); (4) `:plug` stays a HARD dep — Phase 57 roadmap scopes optionality to Phoenix/LiveView only. Doc-contract test for the gated namespace deferred to Phase 58 alongside the first behavioural module.
 - 2026-05-06: Open v1.17 as "Operator Surface Foundation" — turn the v1.16 investigation contracts into a host-usable operator surface; the next adoption bottleneck is presentation/usability, not more raw exploration plumbing.
 - 2026-05-06: v1.17 ships the operator surface in-tree (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared as **optional deps** (gated via `Code.ensure_loaded?(Phoenix.LiveView)`), so capture-only adopters retain a Plug-only install footprint. Splitting into a separate `threadline_web` companion package is deferred to v1.19+ with a documented promotion path; LiveDashboard / Oban Web / Ash Admin all split *after* their core had hundreds of adopters, and at v0.3.0 with one maintainer the double-tagging + version-matrix burden is premature. Idiomatic anchor: `sentry-elixir` keeps Phoenix/LiveView integrations optional in-tree without a companion package.
@@ -93,7 +98,9 @@ Last activity: 2026-05-06 -- Phase null planning complete
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 - [x] Write `.planning/REQUIREMENTS.md` for v1.17 (REQ-IDs across surface shape, screens, mix task, auth, telemetry, doc contracts, example app)
 - [x] Spawn `gsd-roadmapper` to phase v1.17 starting at Phase 57
-- [ ] Plan Phase 57 — `/gsd-plan-phase 57`
+- [x] Plan Phase 57 — `/gsd-plan-phase 57`
+- [x] Execute Phase 57 plan 01 — optional deps, gated namespace module, verify gate, CI job, CONTRIBUTING row
+- [ ] Plan Phase 58 — `/gsd-plan-phase 58` (mount macro + auth contract + telemetry event)
 
 ### Blockers
 
@@ -102,8 +109,8 @@ Last activity: 2026-05-06 -- Phase null planning complete
 
 ## Session Continuity
 
-- **Last Action**: Phase 57 context gathered — `57-CONTEXT.md` and `57-DISCUSSION-LOG.md` written under `.planning/phases/57-optional-deps-and-module-gating/` after research-backed discussion (4 parallel subagents) locked four implementation decisions on optional-dep posture, gating idiom, verification, and Plug stance.
-- **Next Step**: `/clear` then `/gsd-plan-phase 57` to produce the Phase 57 plan (one cohesive plan with three file edits: `mix.exs`, `lib/threadline/operator_surface.ex`, `.github/workflows/ci.yml`).
+- **Last Action**: Phase 57 plan 01 executed — five atomic commits land the optional-dep declarations, the gated `Threadline.OperatorSurface` namespace module, the `verify.compile_no_optional` alias + ci.all extension, the dedicated `verify-compile-no-optional` GitHub Actions job, and the CONTRIBUTING.md stable-job-keys row. SURF-02 + SURF-03 validated. SUMMARY.md at `.planning/phases/57-optional-deps-and-module-gating/57-01-SUMMARY.md`.
+- **Next Step**: `/clear` then `/gsd-plan-phase 58` to plan the mount macro + `:authorize_fn` contract + compile-time fail-closed check + `[:threadline, :operator_surface, :authorize]` telemetry event (Phase 58 also picks up the deferred doc-contract test for "OperatorSurface defined when LV present, absent when LV missing" per CONTEXT.md D-14).
 
 ## Deferred Items
 

@@ -11,8 +11,8 @@
 ### SURF — Mountable in-tree surface and dependency posture
 
 - [ ] **SURF-01**: `Threadline.OperatorSurface.Router` exposes a `threadline_operator_surface "/path", opts` macro that hosts can `import` and call inside an existing `Phoenix.Router` scope's `pipe_through` to mount the operator surface in one line.
-- [ ] **SURF-02**: `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` are declared `optional: true` in `threadline`'s `mix.exs`, so capture-only adopters install `threadline` with no Phoenix or LiveView code compiled.
-- [ ] **SURF-03**: All modules under `lib/threadline/operator_surface/` are gated via `Code.ensure_loaded?(Phoenix.LiveView)` (or the equivalent compile-time guard) so `threadline` compiles cleanly when LiveView is absent and adds zero observable overhead to the capture path.
+- [x] **SURF-02**: `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` are declared `optional: true` in `threadline`'s `mix.exs`, so capture-only adopters install `threadline` with no Phoenix or LiveView code compiled. *(Validated in Phase 57 plan 01, 2026-05-06.)*
+- [x] **SURF-03**: All modules under `lib/threadline/operator_surface/` are gated via `Code.ensure_loaded?(Phoenix.LiveView)` (or the equivalent compile-time guard) so `threadline` compiles cleanly when LiveView is absent and adds zero observable overhead to the capture path. *(Validated in Phase 57 plan 01, 2026-05-06 — `Threadline.OperatorSurface` namespace module ships with file-scope wrap; `mix verify.compile_no_optional` exits 0 with zero warnings and the BEAM file is absent in the no-optional-deps build.)*
 - [ ] **SURF-04**: `examples/threadline_phoenix` mounts the operator surface end-to-end behind a `phx.gen.auth`-style admin pipeline, demonstrating the canonical adopter wiring with both `:actor_fn` and `:authorize_fn` populated.
 
 ### UI — Operator screens
@@ -73,8 +73,8 @@ Mapped by `gsd-roadmapper` on 2026-05-06.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SURF-01 | Phase 58 | Pending |
-| SURF-02 | Phase 57 | Pending |
-| SURF-03 | Phase 57 | Pending |
+| SURF-02 | Phase 57 | Validated |
+| SURF-03 | Phase 57 | Validated |
 | SURF-04 | Phase 62 | Pending |
 | UI-01 | Phase 59 | Pending |
 | UI-02 | Phase 60 | Pending |
@@ -94,7 +94,7 @@ Mapped by `gsd-roadmapper` on 2026-05-06.
 **Coverage at roadmap close:**
 - v1.17 requirements: 18 total (17 must-have + 1 should-have)
 - Mapped to phases: 18/18 ✓
-- Validated: 0/18
+- Validated: 2/18 (SURF-02, SURF-03 in Phase 57)
 
 ## Notes
 
