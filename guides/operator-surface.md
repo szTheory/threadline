@@ -93,3 +93,74 @@ You can query the exact same incident data natively in the terminal without moun
 ```bash
 mix threadline.incident <transaction_id>
 ```
+
+## Coverage dashboard
+
+The operator surface ships a polled coverage dashboard at `/audit/coverage` that wraps `Threadline.Health.trigger_coverage/1`. Every LV in the surface also renders a small "uncovered count" pill in its header so operators notice drift from any screen.
+
+### Reading the dashboard
+
+The dashboard renders three buckets:
+
+- **covered** — tables that have a Threadline trigger installed.
+- **uncovered** — tables that DO NOT have a trigger and are NOT marked expected.
+- **expected** — tables intentionally not audited (e.g. `schema_migrations`). The `SOURCE` column shows whether the entry comes from the hardcoded baseline or from your `:expected_uncovered_tables` config.
+
+### Polling
+
+The dashboard polls every 30 seconds by default. Override globally:
+
+```elixir
+config :threadline, :coverage_poll_ms, 30_000
+```
+
+Floor is `5_000` ms — below this the two `pg_*` queries become a noisy neighbor on busy schemas.
+
+### Multi-schema adopters
+
+Pass `?schema=NAME` to view a non-`public` schema:
+
+    /audit/coverage?schema=tenant_42
+
+The schema is validated at the LV edge (regex + `pg_namespace` lookup); invalid input renders a `Schema 'X' not found.` error.
+
+The surface header always queries the `"public"` schema — multi-schema is opt-in on the dashboard only.
+
+### Marking expected-uncovered tables
+
+Adopters typically have bookkeeping tables that are not application data (Oban, application metrics, vendor add-ons). Declare them so the dashboard shows them as `expected` rather than `uncovered`:
+
+```elixir
+config :threadline, :health,
+  expected_uncovered_tables: ["oban_jobs", "oban_peers", "oban_producers"],
+  audit_anyway: []
+```
+
+Validate at boot in your `application.ex`:
+
+```elixir
+Threadline.Health.Policy.validate!(Application.get_env(:threadline, :health, []))
+```
+
+The `:audit_anyway` key removes a baseline entry. Use rarely — it overrides the safe default. Example:
+
+```elixir
+config :threadline, :health,
+  audit_anyway: ["schema_migrations"]  # very unusual — opts in to auditing migrations
+```
+
+### Mix-task parity
+
+Capture-only adopters who do not mount the surface get the same data via:
+
+    mix threadline.health.coverage
+    mix threadline.health.coverage --json
+    mix threadline.health.coverage --schema=NAME
+
+The Mix task is a viewer (always exits 0). The CI gate is the existing `mix threadline.verify_coverage` task, which now also accepts `--schema=NAME`.
+
+### Telemetry
+
+`[:threadline, :health, :checked]` fires on every successful poll with measurements `%{covered, uncovered, expected_uncovered}`. The `expected_uncovered` measurement is additive (Phase 66) — old subscribers reading only `covered`/`uncovered` keep working unchanged.
+
+`[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
