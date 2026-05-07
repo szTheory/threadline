@@ -90,7 +90,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     # ---- Iodata path: count <= 5_000 ----
 
-    test "GET /audit/exports/changes.csv with small window returns 200 + CSV iodata", %{conn: conn} do
+    test "GET /audit/exports/changes.csv with small window returns 200 + CSV iodata", %{
+      conn: conn
+    } do
       seed_changes!(10, table: "posts")
 
       from = "2020-01-01T00:00"
