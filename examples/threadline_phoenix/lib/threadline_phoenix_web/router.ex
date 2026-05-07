@@ -70,9 +70,14 @@ defmodule ThreadlinePhoenixWeb.Router do
     get "/audit_transactions/:id/changes", AuditTransactionController, :changes
   end
 
+  # doc: start: operator-surface-mount
   scope "/audit" do
     pipe_through [:browser, :admin_auth]
 
-    threadline_operator_surface "/", actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1, authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1, repo: ThreadlinePhoenix.Repo
+    threadline_operator_surface "/",
+      actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+      authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+      repo: ThreadlinePhoenix.Repo
   end
+  # doc: end: operator-surface-mount
 end

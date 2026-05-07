@@ -1,12 +1,17 @@
 # Getting started with Threadline in a Phoenix SaaS app
 
-This guide gives a first-time adopter one copy-paste path from install through the first `Threadline.as_of/4` query using the shipped `examples/threadline_phoenix/` flow.
+This is the canonical first-hour path for a Phoenix SaaS app: install
+Threadline, capture one real write, mount the shipped operator surface, and
+finish by checking the same request through `/audit` and the query APIs. The
+example app in `examples/threadline_phoenix/` is the runnable contract behind
+the snippets below.
 
 ## 1. Prerequisites
 
 - You need a Phoenix app with Ecto + PostgreSQL available before you start. If Phoenix is new to you, read <https://phoenixframework.org> first, then come back here.
 - The walkthrough assumes your app has a `posts` table you want to audit first.
 - Commands below use the same vocabulary as `examples/threadline_phoenix/`.
+- The mounted operator surface stays behind your app's own admin/auth boundary.
 
 ## 2. Add Threadline to your app
 
@@ -185,6 +190,40 @@ That sequence gives you the three first-hour operator questions:
 - `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
 - `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
+
+## 9. Mount the operator surface and open `/audit`
+
+Once capture is working, mount the shipped operator surface behind your existing
+browser and admin pipeline. Reuse the real example router shape:
+
+```elixir
+scope "/audit" do
+  pipe_through [:browser, :admin_auth]
+
+  threadline_operator_surface "/",
+    actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+    authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+    repo: ThreadlinePhoenix.Repo
+end
+```
+
+`pipe_through [:browser, :admin_auth]` is the important posture: Threadline does
+not provide host auth for you. Keep your own authenticated admin boundary in
+front of the mount, then let `authorize_fn` act as the fail-closed final check.
+
+Start the app if it is not already running:
+
+```bash
+mix phx.server
+```
+
+Then visit `http://localhost:4000/audit`. The shipped surface gives you the
+timeline, transaction drill-down, coverage dashboard, and read-only redaction
+policy view inside the host app you already operate.
+
+If you are not ready to mount the UI yet, you can stop after step 8 and stay on
+the capture-only path for now, but treat that as a temporary branch rather than
+the main first-hour adoption story.
 
 ## Next reads
 

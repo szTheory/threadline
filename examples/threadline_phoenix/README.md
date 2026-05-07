@@ -114,11 +114,35 @@ before exposing transaction drill-down in production.
 
 ## Operator Surface
 
-Threadline provides an optional LiveView-based operator UI that is mounted directly in the host router. This reference app demonstrates how to wire it securely.
+Threadline provides an optional LiveView-based operator UI that is mounted
+directly in the host router. This reference app demonstrates the runnable,
+secured `/audit` path without becoming the primary onboarding narrative.
 
-See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The operator surface (`/audit`) is protected by a dedicated `pipeline :admin_auth` that requires an authenticated user with administrative privileges before they can access the UI. 
+See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The
+operator surface lives at `/audit` because the router uses a dedicated admin
+scope and pipeline:
 
-The integration uses `threadline_operator_surface "/audit"` and provides an `:authorize_fn` callback that acts as the final gatekeeper, demonstrating Threadline's "fail-closed" security posture. For full setup instructions, read the [Operator Surface guide](../../guides/operator-surface.md).
+```elixir
+scope "/audit" do
+  pipe_through [:browser, :admin_auth]
+
+  threadline_operator_surface "/",
+    actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+    authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+    repo: ThreadlinePhoenix.Repo
+end
+```
+
+`pipeline :admin_auth` requires an authenticated administrative user before the
+UI is reachable, and `authorize_fn` acts as the final fail-closed gate. This is
+the `phx.gen.auth`-style posture to copy into a host app: your app owns browser
+auth first, then Threadline runs inside that boundary.
+
+Run `mix phx.server`, sign in as an admin user, and open
+`http://localhost:4000/audit`. For the canonical first-hour walkthrough, use
+[`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
+For the mount/auth/screens guide, use
+[`../../guides/operator-surface.md`](../../guides/operator-surface.md).
 
 ## Historical reconstruction walkthrough
 

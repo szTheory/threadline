@@ -86,22 +86,26 @@ Use it when you want the audit layer in your app, not a separate event system or
     Threadline.as_of(MyApp.Post, post.id, DateTime.utc_now(), repo: MyApp.Repo)
     ```
 
-Use `Threadline.timeline/2` for smaller eager slices. When an investigation window is
-large enough that you want stable incremental traversal, switch to `Threadline.timeline_page/2`
-and continue with the returned `next_cursor` instead of offset pagination.
+Use `Threadline.timeline/2` for smaller eager slices. When the window is too
+large to read eagerly, switch to `Threadline.timeline_page/2` and continue with
+`next_cursor` instead of offset pagination.
 
-For the rest of the investigation hierarchy: use the higher-level investigation
-helpers when you want a packaged answer to a common support question, and use
-`Threadline.incident_bundle/2` when you need the default drill-down for one
-transaction incident. Keep the root README as the map, then use
+Keep the root README as the map, then use
 [guides/domain-reference.md](guides/domain-reference.md) for the canonical
-"which public API first?" table, [guides/getting-started-saas.md](guides/getting-started-saas.md)
-for the first-hour Phoenix walkthrough, and
+"which public API first?" table,
+[guides/getting-started-saas.md](guides/getting-started-saas.md) for the
+canonical first-hour Phoenix walkthrough, and
 [guides/incident-playbook.md](guides/incident-playbook.md) for operator recipes.
 
 ## Operator Surface
 
-Threadline provides an optional, drop-in LiveView UI to investigate the audit trail natively in your app, including a polled coverage dashboard at `/audit/coverage`, a read-only redaction drift viewer at `/audit/policy/redaction`, and parity Mix tasks `mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` dependencies in your `mix.exs`.
+Threadline provides an optional, drop-in LiveView UI to investigate the audit
+trail natively in your app, including a polled coverage dashboard at
+`/audit/coverage`, a read-only redaction drift viewer at
+`/audit/policy/redaction`, and parity Mix tasks
+`mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you
+have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and
+`phoenix_pubsub` dependencies in your `mix.exs`.
 
 **1-Minute Mount**
 
@@ -111,17 +115,20 @@ defmodule MyAppWeb.Router do
   import Threadline.OperatorSurface.Router
 
   # Must pipe through your own authentication
-  scope "/admin", MyAppWeb do
+  scope "/audit", MyAppWeb do
     pipe_through [:browser, :require_authenticated_admin]
 
-    threadline_operator_surface "/audit",
+    threadline_operator_surface "/",
       actor_fn: {MyApp.Audit, :current_actor},
       authorize_fn: {MyApp.Audit, :authorize_operator}
   end
 end
 ```
 
-For full details on the "fail-closed" security default, setting up authorization, and the available investigation screens, read the [Operator Surface guide](guides/operator-surface.md).
+For the full first-hour mounted walkthrough, read
+[guides/getting-started-saas.md](guides/getting-started-saas.md). For the
+"fail-closed" security default, authorization setup, and screen inventory, read
+the [Operator Surface guide](guides/operator-surface.md).
 
 ## Notes
 
