@@ -47,8 +47,8 @@
   2. Before the operator clicks download, a pre-flight `Threadline.Export.count_matching/2` renders the match count and a truncation banner; the controller streams windows above a configurable threshold (default 5,000 rows) via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2`, and sends iodata synchronously below the threshold.
   3. Downloaded files have UTC-ISO filenames (e.g. `threadline-changes-2026-05-06T12-00Z.csv`), `Content-Disposition: attachment; filename*=UTF-8''…` per RFC 5987, RFC 4180 CSV with `Content-Type: text/csv; charset=utf-8` and no BOM, and JSON wrapped + NDJSON variants matching `mix threadline.export` flags — identical filenames + bytes for identical filters.
   4. A doc-contract test locks the download button labels, filename format, and content-type literals; a focused integration test asserts the chunked-stream path completes for a window above the iodata threshold; a parity assertion proves the Mix task and the operator-surface controller produce identical files for identical filters.
-**Plans:** 4 plans
-- [ ] 65-01-PLAN.md — Library + helper foundation: additive `:cap` opt on `Threadline.Export.count_matching/2`, pure `Threadline.OperatorSurface.Exports.Filename` helper, pure `Threadline.OperatorSurface.Exports.FilterParams` shared parser (EXPO-04)
+**Plans:** 1/4 plans executed
+- [x] 65-01-PLAN.md — Library + helper foundation: additive `:cap` opt on `Threadline.Export.count_matching/2`, pure `Threadline.OperatorSurface.Exports.Filename` helper, pure `Threadline.OperatorSurface.Exports.FilterParams` shared parser (EXPO-04)
 - [ ] 65-02-PLAN.md — HTTP surface: `Threadline.OperatorSurface.Controllers.ExportController` (3 actions, threshold dispatch, RFC 5987 dual-emit), `Threadline.OperatorSurface.ExportAuthPlug` (Conn-shaped twin of `Auth.on_mount/4` with `:export_authorize_fn` opt + synthetic `%{assigns: conn.assigns}` mirror), router macro grows sibling `scope <path>/exports` block (EXPO-03 + EXPO-04)
 - [ ] 65-03-PLAN.md — LV surface: `TimelineLive` runs `count_matching` + `timeline_page` in parallel via `Task.async`, appends three `<.link href download>` anchors to `.button-cluster`, renders count status line + two-band truncation banner; CSS extension; `timeline_live_test.exs` extended with 4 cases (EXPO-03 + EXPO-04)
 - [ ] 65-04-PLAN.md — EXPO-05 test trifecta: doc-contract test pinning all literals (button labels, route literals, content-type literals, filename helper output, file-scope gates, atom-safety refutations, `phx-change` refutation, chunked-stream pattern literals), chunked-stream integration test seeding 5,001 rows, Mix-task vs controller byte-equality parity test for all 3 formats (EXPO-05)
@@ -114,7 +114,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
-| 65. Exports UI Parity | 0/4 | Planned     | - |
+| 65. Exports UI Parity | 1/4 | In Progress|  |
 | 66. Coverage Dashboard & Mix Task Parity | 0/TBD | Not started | - |
 | 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
 | 68. Lifecycle Ergonomics | 0/TBD | Not started | - |

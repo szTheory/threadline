@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
 status: executing
-last_updated: "2026-05-07T13:12:18.333Z"
+last_updated: "2026-05-07T13:22:22.385Z"
 last_activity: 2026-05-07 -- Phase null execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State: Threadline
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
-Status: Executing Phase null
-Last activity: 2026-05-07 -- Phase null execution started
+Phase: 65 — exports-ui-parity (EXECUTING)
+Plan: 65-01 complete (1 of 4 in phase); 65-02 + 65-03 next (Wave 2 parallel), then 65-04 (Wave 3 doc-contract)
+Status: Plan 65-01 shipped — library + helper foundation on disk, EXPO-04 marked complete
+Last activity: 2026-05-07 -- Plan 65-01 SUMMARY.md written, 5 commits landed
 
 ## Performance Metrics
 
@@ -102,6 +102,7 @@ Last activity: 2026-05-07 -- Phase null execution started
 - Isolate benchmarks to verify.bench alias which shells out to the bench sibling application to avoid mixing dependencies into the main workspace.
 - Included a BENCHMARK-ENV block to ensure published numbers have reproducible context (hardware, Postgres version, etc).
 - Used exact ExUnit doc-contract patterns rather than checking actual numbers to prevent test brittleness as performance evolves.
+- 2026-05-07: Phase 65 Plan 01 (Exports UI Parity — library + helper foundation) shipped. Additive `:cap` opt on `Threadline.Export.count_matching/2` (windowed-count subquery via `from(sub in subquery(... |> limit(^cap)), select: count())`, default unbounded preserves Mix-task contract; RESEARCH P-8 corrected D-23's wrong `EXISTS LIMIT 10001` SQL); pure-stdlib `Threadline.OperatorSurface.Exports.Filename.for/2` (canonical `threadline-changes-YYYY-MM-DDTHH-MM-Z.{csv|json|ndjson}`, hyphen between hours/minutes for Windows-friendliness, no file-scope `Code.ensure_loaded?` gate per D-21); pure-stdlib `Threadline.OperatorSurface.Exports.FilterParams.parse/1` + `filters_raw_from_params/1` (URL-params → keyword list lifted byte-equivalently from `TimelineLive`, `String.to_existing_atom/1` only — bare `String.to_atom` token grep-empty across source). Two Rule-1 auto-fixed deviations: (1) `Etc/GMT-5` non-UTC fixture replaced with `%DateTime{}` struct literal because Threadline has no `tzdata` dep and the stock UTC-only TZ DB returns `:utc_only_time_zone_database` for any non-UTC zone; (2) moduledoc rephrased to drop the literal `String.to_atom/1` token that tripped the in-source atom-safety regex refute (Plan 04's doc-contract test will use the same regex shape).
 
 ### Todos
 
@@ -119,8 +120,8 @@ Last activity: 2026-05-07 -- Phase null execution started
 
 ## Session Continuity
 
-- **Last Action**: v1.18 ROADMAP.md written. 5 phases (64-68): Raw Timeline Browse & Filter Form → Exports UI Parity → Coverage Dashboard & Mix Task Parity → Drift-Aware Redaction Admin & Mix Task Parity → Lifecycle Ergonomics. 16/16 requirements mapped (BROWSE-01..04 → 64; EXPO-03..05 → 65; COV-01..03 → 66; REDN-03..05 → 67; ADOPT-05..07 → 68). REQUIREMENTS.md traceability table updated (all `TBD`/`pending` → phase numbers + `mapped`).
-- **Next Step**: Run `/gsd-plan-phase 64` to plan the Raw Timeline Browse & Filter Form phase.
+- **Last Action**: Plan 65-01 (Exports UI Parity — library + helper foundation) shipped. 3 task commits + 1 docs commit on `main`: `b461f87` feat(65-01) `:cap` opt on `Threadline.Export.count_matching/2` (windowed-count subquery, default unbounded preserves Mix-task contract); `bb2d3f1` feat(65-01) `Threadline.OperatorSurface.Exports.Filename` pure helper (UTC-minute filename, no `Code.ensure_loaded?` wrapper); `d2f5e6f` feat(65-01) `Threadline.OperatorSurface.Exports.FilterParams` shared parser (URL-params → keyword list, `String.to_existing_atom` only); `dff03db` docs(65-01) SUMMARY. 41/41 plan-scoped tests pass; 351/351 full-suite tests pass; `mix verify.compile_no_optional` exits 0; Mix-task `mix threadline.export` byte-unchanged. EXPO-04 marked complete in REQUIREMENTS.md. ROADMAP.md updated (Phase 65: 1/4 plans complete).
+- **Next Step**: Run Plans 65-02 and 65-03 in parallel (Wave 2). 65-02: `ExportController` + `ExportAuthPlug` + router macro extension (consumes `Filename.for/2` + `FilterParams.parse/1` + `count_matching(filters, cap: 10_001)`). 65-03: `TimelineLive` export buttons + count status line + truncation banner (replaces inline private parser helpers with delegation to `FilterParams.parse/1` and `FilterParams.filters_raw_from_params/1`; calls `count_matching(filters, cap: 10_001)` in parallel with `timeline_page/2` via `Task.async`). Then Plan 65-04 (Wave 3): doc-contract test trifecta locks the file-scope-gate posture, atom-safety regex, and Mix-task vs controller byte-equality parity.
 
 ## Deferred Items
 
@@ -131,3 +132,9 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
 | tech_debt | repo-wide-format-drift | pre-existing formatter drift in untouched files still blocks `mix ci.all` — scheduled for v1.18 Phase 68 (ADOPT-07) |
 | nyquist | phase-53-54-validation-bookkeeping | verification evidence exists, but `53-VALIDATION.md` and `54-VALIDATION.md` were not created during milestone execution |
+
+## Phase Performance
+
+| Phase | Plan | Duration | Tasks | Files |
+| ----- | ----- | -------- | ----- | ----- |
+| 65 | 65-01 | ~5 min | 3 | 6 (2 modified, 4 created) |
