@@ -76,7 +76,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <Threadline.OperatorSurface.Style.css />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={@threadline_coverage}
-          base_path={@base_path}
+          base_path={surface_root(@base_path)}
           error={@threadline_coverage_error}
         />
         <%= if @not_found do %>
@@ -150,5 +150,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("next-page", _, socket) do
       {:noreply, socket}
     end
+
+    # `@base_path` is the request path including `/transactions/:id` for
+    # in-LV navigation (history sub-route). The surface header needs the
+    # operator surface mount root (e.g. `/audit`) so the coverage badge
+    # links to `/audit/coverage`, not `/audit/transactions/:id/coverage`.
+    # Strip the `/transactions/...` suffix to recover the mount root.
+    # (Rule 1 auto-fix during Plan 66-04 Task 1 — surface header invocation
+    # produced wrong href without this transformation.)
+    defp surface_root(path) when is_binary(path) do
+      case Regex.run(~r/^(.*)\/transactions\//, path) do
+        [_, root] -> root
+        _ -> path
+      end
+    end
+
+    defp surface_root(_), do: nil
   end
 end
