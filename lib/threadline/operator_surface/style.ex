@@ -213,6 +213,130 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-bottom: 1px solid var(--tl-color-secondary);
         }
 
+        .threadline-ui .policy-redaction-page {
+          padding: var(--tl-spacing-md);
+        }
+
+        .threadline-ui .policy-redaction-summary {
+          margin-bottom: var(--tl-spacing-md);
+        }
+
+        .threadline-ui .policy-redaction-summary h2 {
+          margin: 0 0 var(--tl-spacing-xs);
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .threadline-ui .policy-redaction-section {
+          margin-bottom: var(--tl-spacing-md);
+          border: 1px solid var(--tl-color-secondary);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .threadline-ui .policy-redaction-section-header {
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+          background: var(--tl-color-secondary);
+          border-bottom: 1px solid var(--tl-color-secondary);
+        }
+
+        .threadline-ui .policy-redaction-section-header h3 {
+          margin: 0;
+          font-size: 15px;
+        }
+
+        .threadline-ui .policy-redaction-section--drift .policy-redaction-section-header {
+          border-left: 3px solid #F59E0B;
+        }
+
+        .threadline-ui .policy-redaction-section--introspect .policy-redaction-section-header {
+          border-left: 3px solid var(--tl-color-destructive);
+        }
+
+        .threadline-ui .policy-redaction-section--match .policy-redaction-section-header {
+          border-left: 3px solid #9CA3AF;
+        }
+
+        .threadline-ui .policy-redaction-empty {
+          margin: 0;
+          padding: var(--tl-spacing-md);
+          color: var(--tl-color-text-muted);
+        }
+
+        .threadline-ui .policy-redaction-row {
+          border-bottom: 1px solid var(--tl-color-secondary);
+        }
+
+        .threadline-ui .policy-redaction-row:last-child {
+          border-bottom: 0;
+        }
+
+        .threadline-ui .policy-redaction-row summary {
+          list-style: none;
+          cursor: pointer;
+          padding: var(--tl-spacing-md);
+        }
+
+        .threadline-ui .policy-redaction-row summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .threadline-ui .policy-redaction-row-main {
+          display: flex;
+          gap: var(--tl-spacing-sm);
+          align-items: baseline;
+          margin-bottom: var(--tl-spacing-xs);
+        }
+
+        .threadline-ui .policy-redaction-table {
+          font-family: monospace;
+          font-weight: 600;
+        }
+
+        .threadline-ui .policy-redaction-status {
+          font-size: var(--tl-font-label);
+          color: var(--tl-color-text-muted);
+        }
+
+        .threadline-ui .policy-redaction-row--match .policy-redaction-status,
+        .threadline-ui .policy-redaction-row--match .policy-redaction-hint {
+          color: var(--tl-color-text-muted);
+        }
+
+        .threadline-ui .policy-redaction-hint,
+        .threadline-ui .policy-redaction-warning {
+          margin: 0;
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .policy-redaction-warning {
+          margin-top: var(--tl-spacing-xs);
+          color: var(--tl-color-destructive);
+        }
+
+        .threadline-ui .policy-redaction-details {
+          padding: 0 var(--tl-spacing-md) var(--tl-spacing-md);
+        }
+
+        .threadline-ui .policy-redaction-detail-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .policy-redaction-detail-table th,
+        .threadline-ui .policy-redaction-detail-table td {
+          padding: var(--tl-spacing-xs) var(--tl-spacing-sm);
+          border-top: 1px solid var(--tl-color-secondary);
+          text-align: left;
+          vertical-align: top;
+        }
+
+        .threadline-ui .policy-redaction-detail-table tbody th {
+          width: 140px;
+          font-weight: 600;
+        }
+
         .threadline-ui .truncation-banner {
           padding: var(--tl-spacing-sm) var(--tl-spacing-md);
           margin: var(--tl-spacing-sm) var(--tl-spacing-md);
