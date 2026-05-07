@@ -101,7 +101,7 @@ for the first-hour Phoenix walkthrough, and
 
 ## Operator Surface
 
-Threadline provides an optional, drop-in LiveView UI to investigate the audit trail natively in your app, including a polled coverage dashboard at `/audit/coverage` and a parity Mix task `mix threadline.health.coverage`. Ensure you have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` dependencies in your `mix.exs`.
+Threadline provides an optional, drop-in LiveView UI to investigate the audit trail natively in your app, including a polled coverage dashboard at `/audit/coverage`, a read-only redaction drift viewer at `/audit/policy/redaction`, and parity Mix tasks `mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` dependencies in your `mix.exs`.
 
 **1-Minute Mount**
 
@@ -126,6 +126,7 @@ For full details on the "fail-closed" security default, setting up authorization
 ## Notes
 
 - Threadline works with PgBouncer transaction pooling.
+- Redaction drift uses three states: `Config matches deployed`, `Drift detected`, and `Could not introspect`; rerun `mix threadline.gen.triggers` if the latter two appear.
 - Redaction, retention, export, and continuity live in the guides and HexDocs.
 - Next operator reads after the first install are [guides/performance.md](guides/performance.md) and [guides/incident-playbook.md](guides/incident-playbook.md).
 

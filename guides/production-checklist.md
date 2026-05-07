@@ -35,6 +35,10 @@ See also `guides/operator-surface.md` §"Coverage dashboard".
 
 - [ ] `config :threadline, :trigger_capture, tables: %{"users" => [exclude: ..., mask: ...]}` reviewed with security; no column in both `exclude` and `mask`.
 - [ ] `mix threadline.gen.triggers --dry-run` used after config changes; migrations applied before relying on new trigger SQL.
+- [ ] Visit `/audit/policy/redaction` after deploys or config changes; confirm the affected tables land in `Config matches deployed`, not `Drift detected` or `Could not introspect`.
+- [ ] Capture-only path checked too: `mix threadline.policy.show` for human output, `mix threadline.policy.show --json` for machine checks or incident tooling.
+- [ ] If any table shows `Drift detected` or `Could not introspect`, rerun `mix threadline.gen.triggers`, apply the generated migration, and re-check before declaring the rollout aligned.
+- [ ] Confirm the redaction viewer stays safe for operator screenshots and incident notes: it should show only column names and placeholder metadata, never sample values.
 - [ ] JSON/JSONB columns: remember masking replaces the **whole** value (no field-level redaction in current releases).
 
 ## 4. Retention and purge
@@ -61,6 +65,7 @@ See also `guides/operator-surface.md` §"Coverage dashboard".
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
 - [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export (Phase 14)](domain-reference.md#export-phase-14)**.
 - [ ] **Operator Surface:** If you mount the LiveView operator UI, ensure it is protected behind an authenticated admin pipeline with a strict `:authorize_fn` policy. See the [Operator Surface guide](operator-surface.md) for fail-closed requirements.
+- [ ] **Policy drift review:** add `/audit/policy/redaction` or `mix threadline.policy.show` to the same post-deploy operational pass where you already check trigger coverage, especially after redaction config changes.
 
 ## 6. Observability
 

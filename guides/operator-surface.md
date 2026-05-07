@@ -159,6 +159,37 @@ Capture-only adopters who do not mount the surface get the same data via:
 
 The Mix task is a viewer (always exits 0). The CI gate is the existing `mix threadline.verify_coverage` task, which now also accepts `--schema=NAME`.
 
+## Policy redaction drift
+
+The operator surface also ships a read-only redaction drift viewer at `/audit/policy/redaction`. It reconciles your configured `config :threadline, :trigger_capture` policy against the deployed trigger SQL that PostgreSQL is actually running.
+
+### What it shows
+
+The page groups tables into three operator-safe states:
+
+- **Drift detected** — configured redaction does not match deployed trigger SQL. Rerun `mix threadline.gen.triggers` and apply the migration.
+- **Could not introspect** — Threadline could not safely parse the deployed trigger SQL. Treat this as unresolved drift; rerun `mix threadline.gen.triggers` and do not assume capture is aligned.
+- **Config matches deployed** — configured redaction matches deployed trigger redaction.
+
+Tables are shown alphabetically within each section. Expanding a row shows the exact configured and deployed `exclude`, `mask`, and `mask placeholder` facts for that table.
+
+### No sample values
+
+This surface never renders captured sample values. It only shows column names and placeholder metadata, so operators can confirm policy shape without exposing redacted payloads in the UI.
+
+### Mix-task parity
+
+Capture-only adopters can inspect the same facts without Phoenix:
+
+    mix threadline.policy.show
+    mix threadline.policy.show --json
+
+Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / DEPLOYED / HINT` table, then extra detail blocks only for `Drift detected` and `Could not introspect`. `--json` exposes the same top-level states as stable machine values:
+
+- `drift_detected`
+- `could_not_introspect`
+- `config_matches_deployed`
+
 ### Telemetry
 
 `[:threadline, :health, :checked]` fires on every successful poll with measurements `%{covered, uncovered, expected_uncovered}`. The `expected_uncovered` measurement is additive (Phase 66) — old subscribers reading only `covered`/`uncovered` keep working unchanged.
