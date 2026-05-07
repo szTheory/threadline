@@ -136,7 +136,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp seed_change!(opts \\ []) do
+    defp seed_change!(opts) do
       repo = Threadline.Test.Repo
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
@@ -165,7 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # Seed N rows in a single helper for cursor-pagination tests (Case 9).
-    defp seed_changes!(n, opts \\ []) when is_integer(n) and n > 0 do
+    defp seed_changes!(n, opts) when is_integer(n) and n > 0 do
       for _ <- 1..n, do: seed_change!(opts)
     end
 
