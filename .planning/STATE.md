@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
 status: executing
-last_updated: "2026-05-07T18:25:35.970Z"
+last_updated: "2026-05-07T22:55:00.000Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 16
   percent: 100
 ---
 
@@ -23,14 +23,14 @@ progress:
 ## Current Position
 
 Phase: 67
-Plan: Not started
-Status: Executing Phase null
+Plan: Execution complete
+Status: Ready for verify-work
 Last activity: 2026-05-07
 
 ## Performance Metrics
 
 - **Total Phases**: 5 (Phases 64-68) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 0 of 5 in active milestone
+- **Phases Completed**: 3 of 5 in active milestone
 - **Requirements Covered**: 16 of 16 mapped (BROWSE 4, EXPO 3, COV 3, REDN 3, ADOPT 3)
 - **Last Milestone**: v1.17 — Operator Surface Foundation (shipped 2026-05-06, 18/18 requirements, Phases 57–63)
 
@@ -38,6 +38,7 @@ Last activity: 2026-05-07
 
 ### Decisions
 
+- 2026-05-07: Phase 67 execution landed across five plans. Plan 01 extracted `Threadline.Capture.TriggerCaptureConfig`, added `Threadline.Policy.RedactionPresenter`, and locked fail-closed catalog/parsing behavior; Plan 02 shipped `mix threadline.policy.show` with stable human/JSON parity; Plan 03 shipped the gated `/audit/policy/redaction` LiveView; Plan 04 pinned the route/status/no-sample-values contract and updated operator docs; Plan 05 closed the verification gap with formatter-only remediation on the diagnosed files and a green `mix ci.all`. Phase-specific verification passed: `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/policy/redaction_presenter_catalog_test.exs test/threadline/operator_surface/policy_show_mix_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs test/threadline/operator_surface/policy_show_doc_contract_test.exs` (28 tests, 0 failures), `mix verify.compile_no_optional`, and `mix ci.all`.
 - 2026-05-07: Phase 64 plans landed. 3 plans / 2 waves: Plan 01 (TimelineLive core + router edit + style + back-links on TransactionLive/ActorLive) and Plan 02 (LV integration test, 13 cases) parallel in Wave 1; Plan 03 (BROWSE-04 doc-contract test) in Wave 2. Plan-checker PASSED on iteration 1 (after one revision pass that fixed 2 blockers + 5 warnings: cursor-keyword-sugar grep alignment, viewport-bottom-on-empty-data restructure, `:filters_raw` URL hydration, `assert_patch/1` return shape, ActorLive not_found back-link, F-3 cursor-guard grep enforcement, two missing test cases for BROWSE-02 allowlist drop and BROWSE-03 one-Apply-one-history-entry). All four BROWSE-IDs covered; all 14 D-IDs implemented behaviorally.
 - 2026-05-07: Hex 0.4.0 cut between Phase 64 plan-phase and execute-phase (operator-surface foundation release: opt-in web UI behind optional Phoenix/LiveView/HTML/PubSub deps, `:correlation_id` timeline/export filter, export JSON `action` object, CSV `include_action_metadata`, telemetry event table, composition demo). Tagged `v0.4.0`; CI workflow `hex-publish.yml` triggers `mix hex.publish --yes` on tag push. v1.18 closes with 0.5.0.
 - 2026-05-06: Phase 64 context captured. Locked 14 implementation decisions (research-then-recommend, four parallel `gsd-advisor-researcher` subagents): (1) **Route**: new TimelineLive mounts at the surface root (`/audit`) — convention follows Oban Web / LiveDashboard / Hangfire / Sentry / GitHub `/audit-log` (firehose = landing page); inline "← Timeline" back-link on TransactionLive / ActorLive header; defer real top-nav to Phase 66 when sibling routes exist. (2) **Filter form**: sticky top toolbar with right-aligned `[Clear all] [Apply]` cluster (Phase 65 will append `[Download CSV] [Download JSON]` to the same cluster); explicit Apply via `<form phx-submit>` (Enter-anywhere submits) — not auto-apply; `phx-debounce="blur"` defensively on text inputs; single "Clear all" link patches to bare path (re-defaults to last 24h). (3) **Input shapes**: `:table` is `<input list>` + `<datalist>` populated from `Threadline.Health.trigger_coverage/1` covered tables only (free-text + native autocomplete, zero JS, stale URLs round-trip with server hint); `:actor_ref` is two flat URL params `actor_kind=` + `actor_id=` (1:1 with `ActorRef` struct, no `kind:id` colon-DSL); `:correlation_id` plain text + `phx-debounce="300"` + `maxlength="256"` + inline help; validation reuses `Threadline.Query.validate_timeline_filters!/1` verbatim. (4) **Pagination**: infinite scroll via `phx-viewport-bottom` + `Phoenix.LiveView.Stream` matching v1.17 TransactionLive / ActorLive pattern; cursor in socket assigns, **never in URL** (URL = filter-state only); `page_size: 50` passed at LV call site (lib's `@default_timeline_page_size = 1000` stays for API/export callers). Tombstone safety: pasted stale URLs re-resolve from "now" through the filter window, no silent stuck-on-empty-cursor failure. Canonical URL contract locked in CONTEXT.md for Phase 65 to reuse verbatim.

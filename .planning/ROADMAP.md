@@ -4,7 +4,7 @@
 
 ### v1.18 — Adoption and Policy Hardening
 
-**Status:** Active (planning complete, execution pending)
+**Status:** Active (execution through Phase 67 complete; verification pending)
 **Phases:** 64-68 (continuing from v1.17's last phase, no `--reset-phase-numbers`)
 **Granularity:** coarse (per `.planning/config.json`)
 **Coverage:** 16/16 v1.18 requirements mapped
@@ -16,7 +16,7 @@
 - [x] **Phase 64: Raw Timeline Browse & Filter Form** — Ship the raw paged timeline browse LiveView with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, and the doc-contract that locks the shared filter-key vocabulary (completed 2026-05-07)
 - [x] **Phase 65: Exports UI Parity** — Wire "Download CSV / JSON" of the currently-filtered view into the timeline browse, with sync iodata for small windows, chunked stream for large, pre-flight match-count preview, and Mix-task filename parity (completed 2026-05-07)
 - [x] **Phase 66: Coverage Dashboard & Mix Task Parity** — Render `Threadline.Health.trigger_coverage/1` as a polled LiveView with optional `:schema` support, plus the parity `mix threadline.health.coverage` task for capture-only adopters (completed 2026-05-07)
-- [ ] **Phase 67: Drift-Aware Redaction Admin & Mix Task Parity** — Render the read-only config-vs-deployed redaction reconciliation viewer (column-only, never sample values) with `pg_proc.prosrc` introspection and the parity `mix threadline.policy.show` task
+- [x] **Phase 67: Drift-Aware Redaction Admin & Mix Task Parity** — Render the read-only config-vs-deployed redaction reconciliation viewer (column-only, never sample values) with `pg_proc.prosrc` introspection and the parity `mix threadline.policy.show` task (all 5 plans executed 2026-05-07, including the formatting gap closure; ready for verification) (completed 2026-05-07)
 - [ ] **Phase 68: Lifecycle Ergonomics** — Revisit first-hour onboarding to mount the surface end-to-end, ship optional-Phoenix-deps upgrade-path docs, and clear the repo-wide `mix format` drift so `mix ci.all` is honest again
 
 #### Phase Details
@@ -80,7 +80,12 @@
   1. A read-only redaction admin LiveView under the operator surface (e.g. `/audit/policy/redaction`) renders the configured `config :threadline, :trigger_capture` (re-validated through the existing `Threadline.Capture.RedactionPolicy.validate!/1`); each audited table shows column-level exclude / mask sets *by column name only* — sample values are never rendered in the UI or the Mix task output.
   2. For each audited table, the viewer compares the configured redaction set to the deployed redaction extracted from `pg_proc.prosrc`, parsed conservatively; on parse failure the table renders a "could not introspect — rerun `mix threadline.gen.triggers`" warning rather than silently passing; tables with matching sets show a "config matches deployed" badge, and tables with drift show a "drift detected" badge with a "rerun `mix threadline.gen.triggers`" hint.
   3. A parity `mix threadline.policy.show` task prints the same drift-aware config-vs-deployed view (table format + `--json`); a doc-contract test locks the LiveView route literal, the Mix-task output literals, the per-table badge state names, and asserts that no sample values appear in either surface.
-**Plans**: TBD
+**Plans**: 5/5 plans complete
+- [x] 67-01-PLAN.md — Shared reconciliation core: extracted validated `Threadline.Capture.TriggerCaptureConfig`, added `Threadline.Policy.RedactionPresenter`, and locked parser/catalog behavior with focused tests (REDN-03 + REDN-04)
+- [x] 67-02-PLAN.md — Capture-only parity viewer: `mix threadline.policy.show` human table + `--json` contract backed directly by the shared presenter, plus Mix integration coverage (REDN-05)
+- [x] 67-03-PLAN.md — Operator surface page: `PolicyRedactionLive`, `/policy/redaction` route wiring, additive styles, and LiveView integration coverage for drift-first ordering and safe copy (REDN-03 + REDN-04)
+- [x] 67-04-PLAN.md — Doc-contract and adoption loop: route/status/JSON/no-sample-values contract test plus operator docs, domain docs, production checklist, README, and CHANGELOG updates (REDN-05)
+- [x] 67-05-PLAN.md — Gap closure: formatter-only remediation across the diagnosed Phase 67 files plus a fresh `mix ci.all` pass to restore the repo-level release gate
 **UI hint**: yes
 
 ##### Phase 68: Lifecycle Ergonomics
@@ -121,7 +126,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 | 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
 | 65. Exports UI Parity | 4/4 | Complete    | 2026-05-07 |
 | 66. Coverage Dashboard & Mix Task Parity | 5/5 | Complete    | 2026-05-07 |
-| 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
+| 67. Drift-Aware Redaction Admin & Mix Task Parity | 5/5 | Complete   | 2026-05-07 |
 | 68. Lifecycle Ergonomics | 0/TBD | Not started | - |
 
 See `.planning/MILESTONE-ARC.md` for the standing ranked recommendation order beyond v1.18.
