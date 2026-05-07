@@ -22,7 +22,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
       "## 5. Wire `Threadline.Plug` with actor and additive request metadata",
       "## 6. Exercise the first audited write",
       "## 7. Check trigger coverage",
-      "## 8. Investigate the captured timeline"
+      "## 8. Investigate the captured timeline",
+      "## 9. Mount the operator surface and open `/audit`"
     ]
 
     Enum.each(headings, &assert(String.contains?(doc, &1)))
@@ -38,6 +39,13 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "raises `ArgumentError`")
     assert String.contains?(doc, "timeline = Threadline.timeline(filters)")
     assert String.contains?(doc, "first_page = Threadline.timeline_page(filters, page_size: 100)")
+    assert contains_normalized?(doc, mount_block())
+    assert String.contains?(doc, "visit `http://localhost:4000/audit`")
+    assert String.contains?(doc, "coverage dashboard")
+    assert String.contains?(doc, "read-only redaction")
+    assert String.contains?(doc, "capture-only path for now")
+    assert String.contains?(doc, "temporary branch rather than")
+    assert String.contains?(doc, "the main first-hour adoption story")
 
     assert String.contains?(
              doc,
@@ -96,5 +104,22 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
       "examples/threadline_phoenix/lib/threadline_phoenix/blog.ex",
       "blog-create-post-transaction"
     )
+  end
+
+  defp mount_block do
+    GettingStartedFixtures.extract!(
+      "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
+      "operator-surface-mount"
+    )
+  end
+
+  defp contains_normalized?(doc, snippet) do
+    String.contains?(normalize(doc), normalize(snippet))
+  end
+
+  defp normalize(value) do
+    value
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
   end
 end

@@ -2,6 +2,8 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Threadline.GettingStartedFixtures
+
   @repo_root File.cwd!()
   @readme_path ["examples", "threadline_phoenix", "README.md"]
 
@@ -37,5 +39,36 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "requires an authenticated actor before it serves the")
     assert String.contains?(doc, "drill-down endpoint")
     assert String.contains?(doc, "Hosts still need their own tenancy and policy checks")
+  end
+
+  test "example README locks the mounted operator-surface story to the router source" do
+    doc = read_rel!(@readme_path)
+
+    assert String.contains?(doc, "secured `/audit` path")
+    assert String.contains?(doc, "scope and pipeline")
+    assert contains_normalized?(doc, router_mount_block())
+    assert String.contains?(doc, "pipeline :admin_auth")
+    assert String.contains?(doc, "authenticated administrative user")
+    assert String.contains?(doc, "`phx.gen.auth`-style posture")
+    assert String.contains?(doc, "http://localhost:4000/audit")
+    assert String.contains?(doc, "../../guides/getting-started-saas.md")
+    assert String.contains?(doc, "without becoming the primary onboarding narrative")
+  end
+
+  defp router_mount_block do
+    GettingStartedFixtures.extract!(
+      "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
+      "operator-surface-mount"
+    )
+  end
+
+  defp contains_normalized?(doc, snippet) do
+    String.contains?(normalize(doc), normalize(snippet))
+  end
+
+  defp normalize(value) do
+    value
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
   end
 end

@@ -40,6 +40,18 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/incident-playbook.md")
   end
 
+  test "README keeps the operator surface section as a short pointer" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(readme, "## Operator Surface")
+    assert String.contains?(readme, "**1-Minute Mount**")
+    assert contains_normalized?(readme, readme_mount_block())
+    assert String.contains?(readme, "canonical first-hour Phoenix walkthrough")
+    assert String.contains?(readme, "guides/getting-started-saas.md")
+    assert String.contains?(readme, "guides/operator-surface.md")
+    refute String.contains?(readme, "http://localhost:4000/audit")
+  end
+
   test "README links production checklist guide" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "guides/production-checklist.md")
@@ -111,7 +123,29 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert Enum.all?(
              cov,
-             &match?({tag, _} when tag in [:covered, :uncovered, :expected_uncovered], &1)
+           &match?({tag, _} when tag in [:covered, :uncovered, :expected_uncovered], &1)
            )
+  end
+
+  defp readme_mount_block do
+    """
+    scope "/audit", MyAppWeb do
+      pipe_through [:browser, :require_authenticated_admin]
+
+      threadline_operator_surface "/",
+        actor_fn: {MyApp.Audit, :current_actor},
+        authorize_fn: {MyApp.Audit, :authorize_operator}
+    end
+    """
+  end
+
+  defp contains_normalized?(doc, snippet) do
+    String.contains?(normalize(doc), normalize(snippet))
+  end
+
+  defp normalize(value) do
+    value
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
   end
 end
