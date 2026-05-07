@@ -1,10 +1,11 @@
 ---
 phase: 66
 slug: coverage-dashboard-mix-task-parity
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-07
+reviewed_at: 2026-05-07
 ---
 
 # Phase 66 — UI Design Contract
