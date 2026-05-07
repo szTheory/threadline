@@ -53,7 +53,11 @@ defmodule Threadline.VerifyCoveragePolicyTest do
       # so they don't trigger the case at all.
       assert CoveragePolicy.violations(coverage, expected) == []
 
-      coverage_with_violation = [{:expected_uncovered, "schema_migrations"}, {:uncovered, "orders"}]
+      coverage_with_violation = [
+        {:expected_uncovered, "schema_migrations"},
+        {:uncovered, "orders"}
+      ]
+
       expected = ["users"]
 
       # users missing-from-coverage still flags as :missing (not present in by_table at all)

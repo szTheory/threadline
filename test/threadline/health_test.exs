@@ -49,6 +49,7 @@ defmodule Threadline.HealthTest do
   describe "trigger_coverage/1 — Phase 66 three-bucket policy (D-32, D-32a, D-32b, D-32c)" do
     setup do
       original_health = Application.get_env(:threadline, :health)
+
       on_exit(fn ->
         if is_nil(original_health) do
           Application.delete_env(:threadline, :health)
@@ -79,9 +80,7 @@ defmodule Threadline.HealthTest do
     end
 
     test ":audit_anyway removes a baseline entry from the :expected_uncovered bucket (D-32c)" do
-      Application.put_env(:threadline, :health,
-        audit_anyway: ["schema_migrations"]
-      )
+      Application.put_env(:threadline, :health, audit_anyway: ["schema_migrations"])
 
       result = Threadline.Health.trigger_coverage(repo: @repo)
 
@@ -107,7 +106,11 @@ defmodule Threadline.HealthTest do
       Threadline.Health.trigger_coverage(repo: @repo)
 
       assert_receive {:telemetry,
-                      %{covered: covered, uncovered: uncovered, expected_uncovered: expected_uncovered}}
+                      %{
+                        covered: covered,
+                        uncovered: uncovered,
+                        expected_uncovered: expected_uncovered
+                      }}
 
       assert is_integer(covered)
       assert is_integer(uncovered)

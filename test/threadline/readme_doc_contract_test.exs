@@ -108,6 +108,7 @@ defmodule Threadline.ReadmeDocContractTest do
 
     cov = Threadline.ReadmeQuickstartFixtures.trigger_coverage_call()
     assert is_list(cov)
+
     assert Enum.all?(
              cov,
              &match?({tag, _} when tag in [:covered, :uncovered, :expected_uncovered], &1)
