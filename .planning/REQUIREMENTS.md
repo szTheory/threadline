@@ -29,7 +29,7 @@ Tighten what v1.17 shipped so production teams can roll the operator surface out
 
 - [x] **EXPO-03** — "Download CSV" and "Download JSON" affordances on the raw timeline browse LiveView; LiveView event redirects (HTTP 303) to a Phoenix controller endpoint under the operator surface that re-validates the filter params using `validate_timeline_filters!/1` and authorizes via the same `:authorize_fn` contract as the LiveView mount.
 - [x] **EXPO-04** — Controller streams large windows via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2`; sends iodata synchronously for windows below a configurable threshold (default 5,000 rows); pre-flight `Threadline.Export.count_matching/2` renders match count and truncation banner *before* click. Filenames are UTC-ISO (`threadline-changes-2026-05-06T12-00Z.csv`), `Content-Disposition: attachment; filename*=UTF-8''…` per RFC 5987, RFC 4180 CSV with `Content-Type: text/csv; charset=utf-8` and no BOM, JSON wrapped + NDJSON variants matching `mix threadline.export` flags.
-- [ ] **EXPO-05** — Doc-contract test locks download button labels, filename format, content-type literals, and Mix-task flag parity (`mix threadline.export` and the operator surface produce identical files for identical filters); a focused integration test asserts the chunked-stream path completes for a window above the iodata threshold.
+- [x] **EXPO-05** — Doc-contract test locks download button labels, filename format, content-type literals, and Mix-task flag parity (`mix threadline.export` and the operator surface produce identical files for identical filters); a focused integration test asserts the chunked-stream path completes for a window above the iodata threshold.
 
 ### Coverage dashboard (COV)
 

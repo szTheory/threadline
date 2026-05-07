@@ -14,7 +14,7 @@
 #### Phases
 
 - [x] **Phase 64: Raw Timeline Browse & Filter Form** — Ship the raw paged timeline browse LiveView with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, and the doc-contract that locks the shared filter-key vocabulary (completed 2026-05-07)
-- [ ] **Phase 65: Exports UI Parity** — Wire "Download CSV / JSON" of the currently-filtered view into the timeline browse, with sync iodata for small windows, chunked stream for large, pre-flight match-count preview, and Mix-task filename parity
+- [x] **Phase 65: Exports UI Parity** — Wire "Download CSV / JSON" of the currently-filtered view into the timeline browse, with sync iodata for small windows, chunked stream for large, pre-flight match-count preview, and Mix-task filename parity (completed 2026-05-07)
 - [ ] **Phase 66: Coverage Dashboard & Mix Task Parity** — Render `Threadline.Health.trigger_coverage/1` as a polled LiveView with optional `:schema` support, plus the parity `mix threadline.health.coverage` task for capture-only adopters
 - [ ] **Phase 67: Drift-Aware Redaction Admin & Mix Task Parity** — Render the read-only config-vs-deployed redaction reconciliation viewer (column-only, never sample values) with `pg_proc.prosrc` introspection and the parity `mix threadline.policy.show` task
 - [ ] **Phase 68: Lifecycle Ergonomics** — Revisit first-hour onboarding to mount the surface end-to-end, ship optional-Phoenix-deps upgrade-path docs, and clear the repo-wide `mix format` drift so `mix ci.all` is honest again
@@ -47,11 +47,11 @@
   2. Before the operator clicks download, a pre-flight `Threadline.Export.count_matching/2` renders the match count and a truncation banner; the controller streams windows above a configurable threshold (default 5,000 rows) via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2`, and sends iodata synchronously below the threshold.
   3. Downloaded files have UTC-ISO filenames (e.g. `threadline-changes-2026-05-06T12-00Z.csv`), `Content-Disposition: attachment; filename*=UTF-8''…` per RFC 5987, RFC 4180 CSV with `Content-Type: text/csv; charset=utf-8` and no BOM, and JSON wrapped + NDJSON variants matching `mix threadline.export` flags — identical filenames + bytes for identical filters.
   4. A doc-contract test locks the download button labels, filename format, and content-type literals; a focused integration test asserts the chunked-stream path completes for a window above the iodata threshold; a parity assertion proves the Mix task and the operator-surface controller produce identical files for identical filters.
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 - [x] 65-01-PLAN.md — Library + helper foundation: additive `:cap` opt on `Threadline.Export.count_matching/2`, pure `Threadline.OperatorSurface.Exports.Filename` helper, pure `Threadline.OperatorSurface.Exports.FilterParams` shared parser (EXPO-04)
 - [x] 65-02-PLAN.md — HTTP surface: `Threadline.OperatorSurface.Controllers.ExportController` (3 actions, threshold dispatch, RFC 5987 dual-emit), `Threadline.OperatorSurface.ExportAuthPlug` (Conn-shaped twin of `Auth.on_mount/4` with `:export_authorize_fn` opt + synthetic `%{assigns: conn.assigns}` mirror), router macro grows sibling `scope <path>/exports` block (EXPO-03 + EXPO-04)
 - [x] 65-03-PLAN.md — LV surface: `TimelineLive` runs `count_matching` + `timeline_page` in parallel via `Task.async`, appends three `<.link href download>` anchors to `.button-cluster`, renders count status line + two-band truncation banner; CSS extension; `timeline_live_test.exs` extended with 4 cases (EXPO-03 + EXPO-04)
-- [ ] 65-04-PLAN.md — EXPO-05 test trifecta: doc-contract test pinning all literals (button labels, route literals, content-type literals, filename helper output, file-scope gates, atom-safety refutations, `phx-change` refutation, chunked-stream pattern literals), chunked-stream integration test seeding 5,001 rows, Mix-task vs controller byte-equality parity test for all 3 formats (EXPO-05)
+- [x] 65-04-PLAN.md — EXPO-05 test trifecta: doc-contract test pinning all literals (button labels, route literals, content-type literals, filename helper output, file-scope gates, atom-safety refutations, `phx-change` refutation, chunked-stream pattern literals), chunked-stream integration test seeding 5,001 rows, Mix-task vs controller byte-equality parity test for all 3 formats (EXPO-05)
 **UI hint**: yes
 
 ##### Phase 66: Coverage Dashboard & Mix Task Parity
@@ -114,7 +114,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
-| 65. Exports UI Parity | 3/4 | In Progress|  |
+| 65. Exports UI Parity | 4/4 | Complete   | 2026-05-07 |
 | 66. Coverage Dashboard & Mix Task Parity | 0/TBD | Not started | - |
 | 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
 | 68. Lifecycle Ergonomics | 0/TBD | Not started | - |
