@@ -77,9 +77,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
-        authorize_fn: fn _socket -> {:ok, %{tenant: "t1"}} end
+        authorize_fn: &__MODULE__.auth/1
       )
     end
+
+    def auth(_socket), do: {:ok, %{tenant: "t1"}}
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint do
@@ -125,6 +127,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Helpers
     # -------------------------------------------------------------------
 
+    # Mount /audit, transparently following the default-window canonicalization
+    # push_patch the LV emits when params == %{} (BROWSE-01 default-24h contract).
+    defp mount_audit(conn, path \\ "/audit") do
+      case live(conn, path) do
+        {:ok, _lv, _html} = ok -> ok
+        {:error, {:live_redirect, %{to: redirect_path}}} -> live(conn, redirect_path)
+      end
+    end
+
     defp seed_change!(opts \\ []) do
       repo = Threadline.Test.Repo
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
@@ -145,7 +156,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           table_schema: "public",
           table_name: Keyword.get(opts, :table, "posts"),
           table_pk: %{"id" => "1"},
-          op: "INSERT",
+          op: "insert",
           data_after: %{"title" => "x"},
           changed_fields: nil,
           captured_at: occurred_at
@@ -163,7 +174,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     test "Case 1: First mount with no params defaults to last-24h window in URL", %{conn: conn} do
-      assert {:ok, lv, html} = live(conn, "/audit")
+      assert {:error, {:live_redirect, %{to: redirect_path}}} = live(conn, "/audit")
+      # URL was replace-patched to include from/to (24h default)
+      assert redirect_path =~ ~r{^/audit\?from=.+&to=.+$}
+
+      assert {:ok, _lv, html} = live(conn, redirect_path)
       # Form is present with all six filter keys
       assert html =~ ~s|name="filter[from]"|
       assert html =~ ~s|name="filter[to]"|
@@ -171,8 +186,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|name="filter[actor_kind]"|
       assert html =~ ~s|name="filter[actor_id]"|
       assert html =~ ~s|name="filter[correlation_id]"|
-      # URL was replace-patched to include from/to (24h default)
-      assert_patch(lv, ~r{/audit\?from=.+&to=.+})
     end
 
     # -------------------------------------------------------------------
@@ -181,9 +194,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 2: Submitting the form push_patches to a canonical URL with all five filter keys",
          %{conn: conn} do
-      {:ok, lv, _html} = live(conn, "/audit")
-      # Drain the default-window auto-patch from mount
-      _ = assert_patch(lv)
+      {:ok, lv, _html} = mount_audit(conn)
 
       html =
         lv
@@ -199,10 +210,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
         |> render_submit()
 
-      assert_patch(
-        lv,
-        ~r{/audit\?from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc123}
-      )
+      patched_path = assert_patch(lv)
+
+      assert patched_path =~
+               ~r{/audit\?from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc123}
 
       _ = html
     end
@@ -238,9 +249,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     test "Case 4: actor_kind=anonymous strips actor_id on submit", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, "/audit")
-      # Drain the default-window auto-patch from mount
-      _ = assert_patch(lv)
+      {:ok, lv, _html} = mount_audit(conn)
 
       lv
       |> form("#timeline-filters",
@@ -300,7 +309,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 8: Filter form renders no phx-change attribute (D-04 explicit Apply only)", %{
       conn: conn
     } do
-      assert {:ok, _lv, html} = live(conn, "/audit")
+      assert {:ok, _lv, html} = mount_audit(conn)
       refute html =~ ~s|phx-change=|
     end
 
@@ -329,6 +338,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit?from=#{from}&to=#{to}")
       assert html =~ ~s|phx-update="stream"|
+
       # With a non-nil cursor, the conditional binding {@cursor && "next-page"} resolves to "next-page".
       assert html =~ "phx-viewport-bottom"
       assert html =~ "next-page"
@@ -364,11 +374,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       conn: conn
     } do
       # Mount with an unknown param + valid window. Should not crash.
+      # URL has params (not bare /audit), so no auto-patch from default-window logic.
       assert {:ok, lv, _html} =
                live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&foo=bar")
-
-      # Drain any default-window auto-patch from mount
-      _ = assert_patch(lv)
 
       # Submit the form (re-emits the canonical URL via push_patch).
       lv
@@ -396,9 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 13: One Apply submit produces exactly one push_patch (one history entry)", %{
       conn: conn
     } do
-      {:ok, lv, _html} = live(conn, "/audit")
-      # Drain the default-window auto-patch from mount/handle_params first.
-      _ = assert_patch(lv)
+      {:ok, lv, _html} = mount_audit(conn)
 
       # Now submit the form once.
       lv
@@ -418,11 +424,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       patched_once = assert_patch(lv)
       assert patched_once =~ "table=posts"
 
-      # No second push_patch in flight: refute_patch/2 with a 50ms timeout.
-      # If `refute_patch/2` is not available in this LV version, fall back to:
-      #   refute_receive {:phoenix, :patch, _}, 50
-      # The intent is the same: prove no second URL change is emitted.
-      refute_patch(lv, 50)
+      refute_receive {:phoenix, :patch, _}, 50
     end
   end
 
@@ -457,7 +459,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 10: Scoped mount renders successfully (scope_aware_opts exercised)", %{conn: conn} do
       # Mount via the scoped endpoint that uses authorize_fn returning {:ok, %{tenant: "t1"}}.
       # This proves the scope-aware path does not crash and :threadline_scope is populated.
-      assert {:ok, _lv, html} = live(conn, "/audit_scoped")
+      # Bare URL triggers the default-window canonicalization push_patch — follow it.
+      {:ok, _lv, html} =
+        case live(conn, "/audit_scoped") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
 
       # Scoped mount renders the timeline form (proves scope_aware_opts doesn't crash)
       assert html =~ ~s|name="filter[from]"|

@@ -232,11 +232,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tx-link">View Incident</a>
             </div>
           </div>
-          <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
-               class="empty-state">
-            No changes match these filters in the selected window.
-          </div>
         </section>
+        <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
+             class="empty-state">
+          No changes match these filters in the selected window.
+        </div>
       </div>
       """
     end
