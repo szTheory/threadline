@@ -169,6 +169,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       for _ <- 1..n, do: seed_change!(opts)
     end
 
+    # Bulk seed via Repo.insert_all/3 — much faster than 5_001+ individual seed_change!/1
+    # calls. Pattern source: RESEARCH §P-10 lines 1004-1033. Uses a unique table name so
+    # the inserted rows do NOT pollute other tests' filter windows.
+    defp bulk_seed_changes!(n, opts) when n > 0 and is_list(opts) do
+      repo = Threadline.Test.Repo
+      table = Keyword.fetch!(opts, :table)
+
+      txn =
+        repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+      changes =
+        for i <- 1..n do
+          %{
+            id: Ecto.UUID.generate(),
+            transaction_id: txn.id,
+            table_schema: "public",
+            table_name: table,
+            table_pk: %{"id" => "#{i}"},
+            op: "insert",
+            data_after: %{"i" => i},
+            captured_at: now
+          }
+        end
+
+      # Insert in batches of 1_000 to stay under PG's bind-parameter limit.
+      changes
+      |> Enum.chunk_every(1_000)
+      |> Enum.each(fn chunk -> repo.insert_all(Threadline.Capture.AuditChange, chunk) end)
+    end
+
     # -------------------------------------------------------------------
     # Case 1 — default_window
     # -------------------------------------------------------------------
@@ -468,6 +505,101 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Result set re-queried with filter A (no error rendered).
       refute html_after_back =~ ~s|class="filter-error"|
+    end
+
+    # -------------------------------------------------------------------
+    # Case 15 — three download anchors render (EXPO-03)
+    # Plan-supplied numbering 12-15; renumbered to 15-18 because Cases 12,
+    # 13, 14 are already taken by Phase 64's BROWSE tests in this file.
+    # -------------------------------------------------------------------
+
+    test "Case 15: Three download anchors render with canonical hrefs reflecting current filter state",
+         %{conn: conn} do
+      {:ok, _lv, html} =
+        live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts")
+
+      # All three labels present (D-22, Plan 04 doc-contract pinned)
+      assert html =~ "Download CSV"
+      assert html =~ "Download JSON"
+      assert html =~ "Download NDJSON"
+
+      # All three hrefs include the canonical filter querystring; HEEx
+      # escapes & to &amp; in attribute values, so match the prefix only.
+      assert html =~ ~s|href="/audit/exports/changes.csv?|
+      assert html =~ ~s|href="/audit/exports/changes.json?|
+      assert html =~ ~s|href="/audit/exports/changes.ndjson?|
+
+      # Filter params present in the canonicalized querystring
+      assert html =~ "from=2026-05-01T00%3A00"
+      assert html =~ "table=posts"
+
+      # `download` attribute present on each anchor (PR #2611 — keeps LV
+      # socket alive on click). Match label content (handles whitespace
+      # between attributes).
+      download_anchors =
+        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>Download (CSV|JSON|NDJSON)</a>}s, html)
+
+      assert length(download_anchors) == 3
+    end
+
+    # -------------------------------------------------------------------
+    # Case 16 — match-count status line renders (EXPO-04 / D-17)
+    # -------------------------------------------------------------------
+
+    test "Case 16: Match-count status line renders with the visible/total count format",
+         %{conn: conn} do
+      table = "posts_count_status_#{System.unique_integer([:positive])}"
+      for _ <- 1..7, do: seed_change!(table: table)
+
+      {:ok, _lv, html} =
+        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+
+      # The status line contains "Showing N of 7 matches in this window."
+      assert html =~ ~r/Showing \d+ of 7 matches in this window\./
+      # Wrapper class is present for the doc-contract test
+      assert html =~ "match-count-status"
+    end
+
+    # -------------------------------------------------------------------
+    # Case 17 — informational truncation banner at counts in (5_000, 10_001)
+    # (EXPO-04 / D-18 band 1)
+    # -------------------------------------------------------------------
+
+    @tag :slow
+    test "Case 17: Informational truncation banner renders when count > 5,000 and < 10,001",
+         %{conn: conn} do
+      table = "bulk_band_info_#{System.unique_integer([:positive])}"
+      bulk_seed_changes!(5_001, table: table)
+
+      {:ok, _lv, html} =
+        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+
+      assert html =~ "Large export — will stream in chunks."
+      refute html =~ "Truncated to first 10,000 rows"
+      assert html =~ "truncation-banner informational"
+    end
+
+    # -------------------------------------------------------------------
+    # Case 18 — warning truncation banner at counts >= 10_001
+    # (EXPO-04 / D-18 band 2; "10,000+" approximation in count line)
+    # -------------------------------------------------------------------
+
+    @tag :slow
+    test "Case 18: Warning truncation banner renders at counts >= 10,001 with '10,000+' approximation",
+         %{conn: conn} do
+      table = "bulk_band_warn_#{System.unique_integer([:positive])}"
+      # Seed exactly the cap value so count_matching's :cap clamps at 10_001.
+      bulk_seed_changes!(10_001, table: table)
+
+      {:ok, _lv, html} =
+        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+
+      assert html =~ "Truncated to first 10,000 rows"
+      # Status line shows the cap approximation (not the literal integer).
+      assert html =~ "10,000+"
+      assert html =~ "truncation-banner warning"
+      # Bands are mutually exclusive — band 1 must NOT render at the cap.
+      refute html =~ "Large export — will stream in chunks."
     end
   end
 
