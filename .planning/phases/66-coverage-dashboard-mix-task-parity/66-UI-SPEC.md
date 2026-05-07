@@ -123,7 +123,7 @@ Contains: brand wordmark (text "Threadline" at `--tl-font-label`, weight 400) + 
 An `<a>` anchor (not `live_patch`) linking to `"#{base_path}/coverage"`.
 Font size: `--tl-font-label` (12px).
 Border-radius: 12px (pill shape).
-Padding: `2px 8px`.
+Padding: `4px 8px`.
 No fill by default.
 
 **State: `.surface-badge--ok` (zero uncovered)**
