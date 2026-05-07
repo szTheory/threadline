@@ -39,6 +39,26 @@ defmodule Threadline.VerifyCoveragePolicyTest do
                {:uncovered, "zebra"}
              ]
     end
+
+    test "expected_uncovered tuples do not produce violations (Phase 66 D-32f)" do
+      coverage = [
+        {:covered, "users"},
+        {:expected_uncovered, "schema_migrations"},
+        {:uncovered, "orders"}
+      ]
+
+      expected = ["users"]
+
+      # users is covered → no violation; schema_migrations & orders aren't expected,
+      # so they don't trigger the case at all.
+      assert CoveragePolicy.violations(coverage, expected) == []
+
+      coverage_with_violation = [{:expected_uncovered, "schema_migrations"}, {:uncovered, "orders"}]
+      expected = ["users"]
+
+      # users missing-from-coverage still flags as :missing (not present in by_table at all)
+      assert CoveragePolicy.violations(coverage_with_violation, expected) == [{:missing, "users"}]
+    end
   end
 
   describe "summary_counts/2" do
