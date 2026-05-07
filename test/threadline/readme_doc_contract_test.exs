@@ -123,7 +123,7 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert Enum.all?(
              cov,
-           &match?({tag, _} when tag in [:covered, :uncovered, :expected_uncovered], &1)
+             &match?({tag, _} when tag in [:covered, :uncovered, :expected_uncovered], &1)
            )
   end
 

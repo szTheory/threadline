@@ -18,7 +18,11 @@ defmodule Threadline.UpgradePathDocContractTest do
   test "upgrade-path guide locks compatibility matrix headers and track detection language" do
     guide = File.read!("guides/upgrade-path.md")
 
-    assert String.contains?(guide, "| Track | Declared support | Current tested resolution | Proof / CI coverage |")
+    assert String.contains?(
+             guide,
+             "| Track | Declared support | Current tested resolution | Proof / CI coverage |"
+           )
+
     assert String.contains?(guide, "You are on the `capture-only` track")
     assert String.contains?(guide, "You are on the `surface-mounted` track")
     assert String.contains?(guide, "mix verify.compile_no_optional")
@@ -28,9 +32,21 @@ defmodule Threadline.UpgradePathDocContractTest do
   test "upgrade-path guide keeps support claims narrow and tied to repo evidence" do
     guide = File.read!("guides/upgrade-path.md")
 
-    assert String.contains?(guide, "exact dependency ranges Threadline declares and CI-covers in this release")
-    assert String.contains?(guide, "Anything outside the listed ranges is not claimed, even if it may work.")
-    assert String.contains?(guide, "Support claims in this table come from three in-repo sources only:")
+    assert String.contains?(
+             guide,
+             "exact dependency ranges Threadline declares and CI-covers in this release"
+           )
+
+    assert String.contains?(
+             guide,
+             "Anything outside the listed ranges is not claimed, even if it may work."
+           )
+
+    assert String.contains?(
+             guide,
+             "Support claims in this table come from three in-repo sources only:"
+           )
+
     assert String.contains?(guide, "declared optional dependency ranges in `mix.exs`")
     assert String.contains?(guide, "current lock resolution in `mix.lock`")
     assert String.contains?(guide, "current CI coverage in `.github/workflows/ci.yml`")
@@ -56,10 +72,22 @@ defmodule Threadline.UpgradePathDocContractTest do
   test "upgrade-path guide locks the surface-only deprecation overlap policy" do
     guide = File.read!("guides/upgrade-path.md")
 
-    assert String.contains?(guide, "Threadline treats the operator surface as a public surface-only contract.")
+    assert String.contains?(
+             guide,
+             "Threadline treats the operator surface as a public surface-only contract."
+           )
+
     assert String.contains?(guide, "deprecate in docs and changelog first")
-    assert String.contains?(guide, "remove no earlier than the next Threadline minor after at least one released overlap window")
-    assert String.contains?(guide, "Exceptions are allowed only for security issues, upstream hard incompatibility, or undocumented internals.")
+
+    assert String.contains?(
+             guide,
+             "remove no earlier than the next Threadline minor after at least one released overlap window"
+           )
+
+    assert String.contains?(
+             guide,
+             "Exceptions are allowed only for security issues, upstream hard incompatibility, or undocumented internals."
+           )
   end
 
   test "mix.exs exposes the upgrade-path guide in ExDoc extras" do
