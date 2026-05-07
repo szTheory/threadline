@@ -214,7 +214,9 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
   defp json_policy_or_nil(policy), do: json_policy(policy)
 
   defp maybe_append_placeholder(parts, [], _placeholder), do: parts
-  defp maybe_append_placeholder(parts, _mask, placeholder), do: parts ++ ["placeholder=#{placeholder}"]
+
+  defp maybe_append_placeholder(parts, _mask, placeholder),
+    do: parts ++ ["placeholder=#{placeholder}"]
 
   defp policy_cell(%{exclude: exclude, mask: mask, mask_placeholder: placeholder}) do
     []

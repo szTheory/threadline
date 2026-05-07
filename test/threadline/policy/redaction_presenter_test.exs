@@ -59,7 +59,13 @@ defmodule Threadline.Policy.RedactionPresenterTest do
                config_matches_deployed: 1
              }
 
-      assert [%{table: "accounts", status: :config_matches_deployed, diff: %{placeholder_mismatch: false}}] =
+      assert [
+               %{
+                 table: "accounts",
+                 status: :config_matches_deployed,
+                 diff: %{placeholder_mismatch: false}
+               }
+             ] =
                report.tables
     end
 
@@ -164,7 +170,8 @@ defmodule Threadline.Policy.RedactionPresenterTest do
               trigger_name: "threadline_audit_users",
               function_name: "threadline_capture_changes_users",
               function_language: "plpgsql",
-              function_source: "CREATE FUNCTION weird() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END; $$"
+              function_source:
+                "CREATE FUNCTION weird() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END; $$"
             }
           ]
         )

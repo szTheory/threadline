@@ -111,6 +111,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
 
       assert output =~
                ~r/^Policy drift: \d+ drift detected, \d+ could not introspect, \d+ config matches deployed$/m
+
       assert output =~ ~r/^TABLE\s{2,}STATUS\s{2,}CONFIG\s{2,}DEPLOYED\s{2,}HINT\s*$/m
       assert output =~ "Drift detected"
       assert output =~ "Could not introspect"
@@ -163,7 +164,11 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
       rows_by_table = Map.new(parsed["tables"], &{&1["table"], &1})
 
       assert Enum.map(parsed["tables"], & &1["table"])
-             |> Enum.filter(&(&1 in @all_tables)) == [@drift_table, @introspect_table, @match_table]
+             |> Enum.filter(&(&1 in @all_tables)) == [
+               @drift_table,
+               @introspect_table,
+               @match_table
+             ]
 
       assert rows_by_table[@drift_table]["status"] == "drift_detected"
       assert rows_by_table[@introspect_table]["status"] == "could_not_introspect"

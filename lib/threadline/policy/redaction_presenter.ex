@@ -35,8 +35,11 @@ defmodule Threadline.Policy.RedactionPresenter do
   @doc """
   Builds a redaction drift report from normalized config and deployed rows.
   """
-  def build_report(configured_tables, deployed_rows) when is_map(configured_tables) and is_list(deployed_rows) do
-    configured = Map.new(configured_tables, fn {table, entry} -> {table, normalize_policy(entry)} end)
+  def build_report(configured_tables, deployed_rows)
+      when is_map(configured_tables) and is_list(deployed_rows) do
+    configured =
+      Map.new(configured_tables, fn {table, entry} -> {table, normalize_policy(entry)} end)
+
     deployed_by_table = Enum.group_by(deployed_rows, &to_string(Map.fetch!(&1, :table)))
 
     tables =
@@ -209,7 +212,8 @@ defmodule Threadline.Policy.RedactionPresenter do
   end
 
   defp parse_excludes(source) do
-    matches = Regex.scan(~r/v_data_after := v_data_after - '([^']+)';/, source, capture: :all_but_first)
+    matches =
+      Regex.scan(~r/v_data_after := v_data_after - '([^']+)';/, source, capture: :all_but_first)
 
     case bucket_fragment_occurrences(matches) do
       {:ok, []} -> {:ok, []}
@@ -362,7 +366,8 @@ defmodule Threadline.Policy.RedactionPresenter do
     end
   end
 
-  defp normalize_policy(entry) when is_map(entry), do: entry |> Enum.into([]) |> normalize_policy()
+  defp normalize_policy(entry) when is_map(entry),
+    do: entry |> Enum.into([]) |> normalize_policy()
 
   defp normalize_policy(entry) when is_list(entry) do
     exclude = normalize_columns(Keyword.get(entry, :exclude, []))
@@ -396,6 +401,7 @@ defmodule Threadline.Policy.RedactionPresenter do
 
   defp diff(configured, deployed) do
     deployed_policy = deployed || empty_policy()
+
     placeholder_mismatch =
       (configured.mask != [] or deployed_policy.mask != []) and
         configured.mask_placeholder != deployed_policy.mask_placeholder
@@ -449,5 +455,7 @@ defmodule Threadline.Policy.RedactionPresenter do
 
   defp hint_for(:config_matches_deployed), do: @match_hint
   defp hint_for(:drift_detected), do: @drift_hint
-  defp section_rank(status), do: Enum.find_index(@group_order, &(&1 == status)) || length(@group_order)
+
+  defp section_rank(status),
+    do: Enum.find_index(@group_order, &(&1 == status)) || length(@group_order)
 end

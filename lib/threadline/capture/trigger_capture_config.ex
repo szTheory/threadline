@@ -66,7 +66,10 @@ defmodule Threadline.Capture.TriggerCaptureConfig do
       |> put_if_present(:mask, normalize_columns(Keyword.get(entry, :mask, [])))
       |> put_if_present(:mask_placeholder, Keyword.get(entry, :mask_placeholder))
       |> put_if_present(:store_changed_from, Keyword.get(entry, :store_changed_from))
-      |> put_if_present(:except_columns, normalize_columns(Keyword.get(entry, :except_columns, [])))
+      |> put_if_present(
+        :except_columns,
+        normalize_columns(Keyword.get(entry, :except_columns, []))
+      )
 
     RedactionPolicy.validate!(normalized)
     normalized

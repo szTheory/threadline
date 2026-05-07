@@ -36,9 +36,17 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
     test "Mix task source pins the same three status labels" do
       src = File.read!(@mix_task_path)
 
-      assert String.contains?(src, ~s|defp status_label(:config_matches_deployed), do: "Config matches deployed"|)
+      assert String.contains?(
+               src,
+               ~s|defp status_label(:config_matches_deployed), do: "Config matches deployed"|
+             )
+
       assert String.contains?(src, ~s|defp status_label(:drift_detected), do: "Drift detected"|)
-      assert String.contains?(src, ~s|defp status_label(:could_not_introspect), do: "Could not introspect"|)
+
+      assert String.contains?(
+               src,
+               ~s|defp status_label(:could_not_introspect), do: "Could not introspect"|
+             )
     end
   end
 
@@ -46,10 +54,18 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
     test "mix threadline.policy.show source documents default and --json usage" do
       src = File.read!(@mix_task_path)
 
-      assert String.contains?(src, ~s|@shortdoc "Show configured versus deployed redaction policy drift"|)
+      assert String.contains?(
+               src,
+               ~s|@shortdoc "Show configured versus deployed redaction policy drift"|
+             )
+
       assert String.contains?(src, "mix threadline.policy.show")
       assert String.contains?(src, "mix threadline.policy.show --json")
-      assert String.contains?(src, "Default output prints one summary line, one aligned table, and detail blocks")
+
+      assert String.contains?(
+               src,
+               "Default output prints one summary line, one aligned table, and detail blocks"
+             )
     end
 
     test "shared presenter carries the rerun hint and Mix task renders shared hints" do
@@ -102,7 +118,9 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
 
       drift_index = byte_index(live_src, ~s|{:drift_detected, "Drift detected"}|)
       introspect_index = byte_index(live_src, ~s|{:could_not_introspect, "Could not introspect"}|)
-      match_index = byte_index(live_src, ~s|{:config_matches_deployed, "Config matches deployed"}|)
+
+      match_index =
+        byte_index(live_src, ~s|{:config_matches_deployed, "Config matches deployed"}|)
 
       assert drift_index < introspect_index
       assert introspect_index < match_index
@@ -148,10 +166,18 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
     test "source locks explicit unavailable/not-used placeholders instead of sample values" do
       src = File.read!(@live_view_path)
 
-      assert String.contains?(src, ~s|defp deployed_columns_label(nil, _field), do: "not available"|)
+      assert String.contains?(
+               src,
+               ~s|defp deployed_columns_label(nil, _field), do: "not available"|
+             )
+
       assert String.contains?(src, ~s|defp placeholder_label(_placeholder, []), do: "not used"|)
       assert String.contains?(src, ~s|defp deployed_placeholder_label(nil), do: "not available"|)
-      assert String.contains?(src, ~s|defp deployed_placeholder_label(%{mask: []}), do: "not used"|)
+
+      assert String.contains?(
+               src,
+               ~s|defp deployed_placeholder_label(%{mask: []}), do: "not used"|
+             )
     end
   end
 
