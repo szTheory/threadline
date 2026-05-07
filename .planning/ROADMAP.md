@@ -63,7 +63,12 @@
   1. A coverage dashboard LiveView under the operator surface (e.g. `/audit/coverage`) renders `Threadline.Health.trigger_coverage/1` with separate covered / uncovered table lists, expected-uncovered tables (e.g. `schema_migrations`) clearly marked, and an uncovered count surfaced in the surface header so an operator notices drift from any screen.
   2. `Threadline.Health.trigger_coverage/1` accepts an optional `:schema` argument (defaulting to `"public"` for backward compatibility) so Ecto-prefix and non-`public` schema adopters get correct results; the LiveView refreshes on a configurable poll interval (default 30s) and the existing `:health_checked` telemetry signal is hookable for refresh.
   3. A parity `mix threadline.health.coverage` task prints the same covered / uncovered data (table format + `--json`) so capture-only adopters who never mount the surface have identical access; a doc-contract test locks the LiveView route literal and the Mix-task help text + output schema.
-**Plans**: TBD
+**Plans:** 5 plans
+- [ ] 66-01-PLAN.md — Library API change: `:schema` opt + 3rd bucket on `Threadline.Health.trigger_coverage/1`, parameterized SQL with `pg_namespace` join, `Threadline.Health.Policy` validator, additive telemetry shape (`emit_health_checked/3` + new `:health, :checked, :error` event), additive case clause in `Verify.CoveragePolicy.violations/2` (COV-02)
+- [ ] 66-02-PLAN.md — Mix-task surface: new `mix threadline.health.coverage` viewer (table + `--json` + `--schema=NAME`), additive `--schema=NAME` flag on `mix threadline.verify_coverage`, integration test covering all locked literals + validation paths (COV-03)
+- [ ] 66-03-PLAN.md — LV foundation: `Coverage.Snapshot` struct, `Coverage.OnMount` hook with `attach_hook(:handle_info, ...)` polling, `SurfaceHeader` Phoenix.Component, `CoverageLive` three-bucket dashboard, router edits (Coverage.OnMount AFTER Auth, `live("/coverage", ...)`), style.ex CSS extension (COV-01 + COV-02)
+- [ ] 66-04-PLAN.md — Sibling LV one-liner edits (TimelineLive / TransactionLive / ActorLive each gain one `<.surface_header />` line) + `coverage_live_test.exs` LV integration test + sibling LV test extensions (COV-01 + COV-02)
+- [ ] 66-05-PLAN.md — Doc-contract test pinning all 16 locked items (LV route + on_mount order + surface header literals + 3 badge state literals + Mix-task help + JSON schema + hardcoded baseline + atom-safety refute + SQL-injection refute + file-scope gate enforcement + RowHistoryComponent inheritance) + guides + CHANGELOG + README updates (COV-03)
 **UI hint**: yes
 
 ##### Phase 67: Drift-Aware Redaction Admin & Mix Task Parity
@@ -115,7 +120,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 |-------|----------------|--------|-----------|
 | 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
 | 65. Exports UI Parity | 4/4 | Complete    | 2026-05-07 |
-| 66. Coverage Dashboard & Mix Task Parity | 0/TBD | Not started | - |
+| 66. Coverage Dashboard & Mix Task Parity | 0/5 | Not started | - |
 | 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
 | 68. Lifecycle Ergonomics | 0/TBD | Not started | - |
 
