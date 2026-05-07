@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Adoption and Policy Hardening
 status: planning
-last_updated: "2026-05-07T00:30:00.000Z"
-last_activity: 2026-05-07
-resume_file: .planning/phases/64-raw-timeline-browse-and-filter-form/64-01-PLAN.md
-stopped_at: "Phase 64 planned (3 plans, 2 waves)"
+last_updated: "2026-05-06T00:00:00.000Z"
+last_activity: 2026-05-06
+resume_file: .planning/phases/65-exports-ui-parity/65-CONTEXT.md
+stopped_at: "Phase 65 context gathered"
 progress:
   total_phases: 5
   completed_phases: 0
@@ -24,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: 64 — Raw Timeline Browse & Filter Form (planned)
-Plan: 64-01 / 64-02 / 64-03 (Wave 1: 01+02 parallel; Wave 2: 03 depends on 01)
-Status: Ready to execute (`/gsd-execute-phase 64`)
-Last activity: 2026-05-07 — Phase 64 plan-phase complete; 3 plans / 2 waves; verification PASSED on iteration 1; BROWSE-01..04 all covered
+Phase: 65 — Exports UI Parity (context gathered)
+Plan: TBD — `/gsd-plan-phase 65` next
+Status: Ready to plan
+Last activity: 2026-05-06 — Phase 65 discuss-phase complete; D-15..D-29 captured; EXPO-03/04/05 covered; carry-forward from Phase 64 URL contract locked
 
 ## Performance Metrics
 
