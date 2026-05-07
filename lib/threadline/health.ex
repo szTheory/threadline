@@ -47,7 +47,7 @@ defmodule Threadline.Health do
 
     covered_count = Enum.count(result, &match?({:covered, _}, &1))
     uncovered_count = Enum.count(result, &match?({:uncovered, _}, &1))
-    Threadline.Telemetry.emit_health_checked(covered_count, uncovered_count)
+    Threadline.Telemetry.emit_health_checked(covered_count, uncovered_count, 0)
 
     result
   end
