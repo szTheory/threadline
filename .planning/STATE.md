@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Adoption and Policy Hardening
 status: planning
-last_updated: "2026-05-06T23:40:50.792Z"
+last_updated: "2026-05-06T23:55:00.000Z"
 last_activity: 2026-05-06
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -22,22 +22,23 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap complete, planning Phase 64 next)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-06 — Milestone v1.18 started
+Status: Roadmap complete
+Last activity: 2026-05-06 — v1.18 ROADMAP.md written (Phases 64-68, 16/16 requirements mapped)
 
 ## Performance Metrics
 
-- **Total Phases**: TBD — defined by gsd-roadmapper for v1.18
-- **Phases Completed**: 0 of TBD in active milestone
-- **Requirements Covered**: TBD — `.planning/REQUIREMENTS.md` not yet written for v1.18
+- **Total Phases**: 5 (Phases 64-68) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 0 of 5 in active milestone
+- **Requirements Covered**: 16 of 16 mapped (BROWSE 4, EXPO 3, COV 3, REDN 3, ADOPT 3)
 - **Last Milestone**: v1.17 — Operator Surface Foundation (shipped 2026-05-06, 18/18 requirements, Phases 57–63)
 
 ## Accumulated Context
 
 ### Decisions
 
+- 2026-05-06: v1.18 roadmap landed at 5 phases (64-68): BROWSE → EXPO → COV → REDN → ADOPT. BROWSE first because both EXPO-03's controller and EXPO-05's parity assertion re-validate against the same `validate_timeline_filters!/1` literal the filter form ships. COV and REDN intentionally kept as separate phases (rather than folded into one "policy admin" phase under coarse granularity) because COV-02 has a real lib-API change (`:schema` argument on `Threadline.Health.trigger_coverage/1`) and REDN-04 has the heavyweight `pg_proc.prosrc` introspection logic — different "what could go wrong" risks, mirrors v1.17 Phase 59/60/61 per-screen separation. ADOPT last because onboarding (ADOPT-05) and upgrade-path docs (ADOPT-06) must reflect the surface as it actually shipped; ADOPT-07 (format drift cleanup) is the tidy closing slice. `mix verify.compile_no_optional` stays green across every UI phase as a continuous constraint.
 - 2026-05-06: Open v1.18 as "Adoption and Policy Hardening" — once a real operator surface ships (v1.17), the next adoption gap moves from "is there a usable surface?" to "is the surface easy to roll out, upgrade, and govern in production?" v1.18 closes that loop with: raw timeline browse + filter form, exports UI parity (download current view), coverage dashboard + drift-aware redaction admin (read-only), and lifecycle ergonomics. Read-only throughout; zero new platform infrastructure; Mix-task parity for every UI viewer.
 - 2026-05-06: v1.18 raw timeline browse ships with full `Threadline.Query.timeline/2` filter parity (5 filters: from, to, table, actor_ref kind+id, correlation_id) — no narrow starter, no saved views. URL-as-state via `live_patch` so links are shareable; reuses `validate_timeline_filters!/1` so UI/API/export share one filter vocabulary. Saved views deferred — would drag a tiny new auth model (owner / visibility / sharing) into a lib that's stayed auth-agnostic since v1.15; bookmarks + URL state cover the persistence story for free, which is what GitHub audit log + Oban Web do at scale. Idiomatic anchor: Oban Web's filter pills.
 - 2026-05-06: v1.18 exports UI ships as "download current view" only — sync iodata for small windows (≈≤5,000 rows), chunked stream via `Plug.Conn.send_chunked/2` + `Threadline.Export.stream_changes/2` for large; pre-flight `Threadline.Export.count_matching/2` renders a "what you'll get" preview before click; UTC-ISO filenames + RFC 5987 `filename*=UTF-8''…` + RFC 4180 CSV (no BOM); LiveView event → redirect to a Phoenix controller endpoint with the same filter params (Backpex/Ash Admin pattern). Queued/Oban-backed exports + status page deferred to v1.20+ — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep. Idiomatic anchor: Linear "current filtered view download."
@@ -103,19 +104,20 @@ Last activity: 2026-05-06 — Milestone v1.18 started
 
 - [ ] Push milestone tags `v1.15`, `v1.16`, and `v1.17` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
-- [ ] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
-- [ ] Spawn `gsd-roadmapper` to phase v1.18 starting at Phase 64
-- [ ] Repo-wide `mix format` drift cleanup — clears the open `mix ci.all` blocker tracked since v1.16 (will land in the v1.18 lifecycle-ergonomics phase)
+- [x] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
+- [x] Spawn `gsd-roadmapper` to phase v1.18 starting at Phase 64 — completed 2026-05-06; ROADMAP.md written with 5 phases (64-68), 16/16 requirements mapped
+- [ ] Plan Phase 64 (Raw Timeline Browse & Filter Form) — first phase of v1.18; run `/gsd-plan-phase 64` next
+- [ ] Repo-wide `mix format` drift cleanup — clears the open `mix ci.all` blocker tracked since v1.16 (will land in Phase 68 via ADOPT-07)
 
 ### Blockers
 
-- No blocker to v1.18 planning remains.
-- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16/v1.17 closeout sets — will be closed by the v1.18 lifecycle-ergonomics phase.
+- No blocker to v1.18 execution remains.
+- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16/v1.17 closeout sets — will be closed by Phase 68 (ADOPT-07).
 
 ## Session Continuity
 
-- **Last Action**: v1.17 closed (18/18 requirements shipped, Phases 57–63 archived). v1.18 — Adoption and Policy Hardening opened with synthesized scope from 3 parallel research agents.
-- **Next Step**: Define v1.18 REQUIREMENTS.md, then spawn gsd-roadmapper for the Phase 64+ roadmap.
+- **Last Action**: v1.18 ROADMAP.md written. 5 phases (64-68): Raw Timeline Browse & Filter Form → Exports UI Parity → Coverage Dashboard & Mix Task Parity → Drift-Aware Redaction Admin & Mix Task Parity → Lifecycle Ergonomics. 16/16 requirements mapped (BROWSE-01..04 → 64; EXPO-03..05 → 65; COV-01..03 → 66; REDN-03..05 → 67; ADOPT-05..07 → 68). REQUIREMENTS.md traceability table updated (all `TBD`/`pending` → phase numbers + `mapped`).
+- **Next Step**: Run `/gsd-plan-phase 64` to plan the Raw Timeline Browse & Filter Form phase.
 
 ## Deferred Items
 
@@ -124,5 +126,5 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 | Category | Item | Status |
 |----------|------|--------|
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
-| tech_debt | repo-wide-format-drift | pre-existing formatter drift in untouched files still blocks `mix ci.all` |
+| tech_debt | repo-wide-format-drift | pre-existing formatter drift in untouched files still blocks `mix ci.all` — scheduled for v1.18 Phase 68 (ADOPT-07) |
 | nyquist | phase-53-54-validation-bookkeeping | verification evidence exists, but `53-VALIDATION.md` and `54-VALIDATION.md` were not created during milestone execution |

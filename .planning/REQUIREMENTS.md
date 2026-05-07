@@ -75,26 +75,26 @@ Tighten what v1.17 shipped so production teams can roll the operator surface out
 - `REDN` — Continues v1.3's redaction-policy numbering (REDN-01 / REDN-02 shipped in v1.3 covered capture-time exclude/mask; REDN-03..05 cover the drift-aware admin viewer)
 - `ADOPT` — Continues the v1.5 / v1.14 adopter-onboarding numbering (ADOPT-01..04 shipped earlier; ADOPT-05..07 cover this milestone's lifecycle ergonomics)
 
-## Traceability (filled during roadmap creation)
+## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| BROWSE-01 | TBD | pending |
-| BROWSE-02 | TBD | pending |
-| BROWSE-03 | TBD | pending |
-| BROWSE-04 | TBD | pending |
-| EXPO-03   | TBD | pending |
-| EXPO-04   | TBD | pending |
-| EXPO-05   | TBD | pending |
-| COV-01    | TBD | pending |
-| COV-02    | TBD | pending |
-| COV-03    | TBD | pending |
-| REDN-03   | TBD | pending |
-| REDN-04   | TBD | pending |
-| REDN-05   | TBD | pending |
-| ADOPT-05  | TBD | pending |
-| ADOPT-06  | TBD | pending |
-| ADOPT-07  | TBD | pending |
+| REQ-ID    | Phase | Status |
+|-----------|-------|--------|
+| BROWSE-01 | 64    | mapped |
+| BROWSE-02 | 64    | mapped |
+| BROWSE-03 | 64    | mapped |
+| BROWSE-04 | 64    | mapped |
+| EXPO-03   | 65    | mapped |
+| EXPO-04   | 65    | mapped |
+| EXPO-05   | 65    | mapped |
+| COV-01    | 66    | mapped |
+| COV-02    | 66    | mapped |
+| COV-03    | 66    | mapped |
+| REDN-03   | 67    | mapped |
+| REDN-04   | 67    | mapped |
+| REDN-05   | 67    | mapped |
+| ADOPT-05  | 68    | mapped |
+| ADOPT-06  | 68    | mapped |
+| ADOPT-07  | 68    | mapped |
 
 ---
-*REQ count: 16 across 5 categories.*
+*REQ count: 16 across 5 categories. All 16 mapped to phases 64-68.*
