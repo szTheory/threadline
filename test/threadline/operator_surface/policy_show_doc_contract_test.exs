@@ -52,13 +52,13 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
       assert String.contains?(src, "Default output prints one summary line, one aligned table, and detail blocks")
     end
 
-    test "LiveView and Mix task both carry the rerun-gen-triggers operator hint" do
-      live_src = File.read!(@live_view_path)
+    test "shared presenter carries the rerun hint and Mix task renders shared hints" do
+      presenter_src = File.read!(@presenter_path)
       mix_src = File.read!(@mix_task_path)
 
-      assert String.contains?(live_src, "Rerun `mix threadline.gen.triggers`")
-      assert String.contains?(mix_src, "Rerun `mix threadline.gen.triggers`")
-      assert String.contains?(mix_src, "do not assume capture is aligned.")
+      assert String.contains?(presenter_src, "Rerun `mix threadline.gen.triggers`")
+      assert String.contains?(presenter_src, "do not assume capture is aligned.")
+      assert String.contains?(mix_src, "row.hint")
     end
   end
 
@@ -100,15 +100,17 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
       live_src = File.read!(@live_view_path)
       presenter_src = File.read!(@presenter_path)
 
-      drift_index = String.index(live_src, ~s|{:drift_detected, "Drift detected"}|)
-      introspect_index = String.index(live_src, ~s|{:could_not_introspect, "Could not introspect"}|)
-      match_index = String.index(live_src, ~s|{:config_matches_deployed, "Config matches deployed"}|)
+      drift_index = byte_index(live_src, ~s|{:drift_detected, "Drift detected"}|)
+      introspect_index = byte_index(live_src, ~s|{:could_not_introspect, "Could not introspect"}|)
+      match_index = byte_index(live_src, ~s|{:config_matches_deployed, "Config matches deployed"}|)
 
       assert drift_index < introspect_index
       assert introspect_index < match_index
 
-      assert presenter_src =~
-               ~r/grouped:\s*%{\s*drift_detected:\s*\[\],\s*could_not_introspect:\s*\[\],\s*config_matches_deployed:\s*\[\]\s*}/s
+      assert String.contains?(
+               presenter_src,
+               "@group_order [:drift_detected, :could_not_introspect, :config_matches_deployed]"
+             )
     end
 
     test "Mix task keeps the shared table/status/config/deployed/hint parity columns" do
@@ -150,6 +152,13 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
       assert String.contains?(src, ~s|defp placeholder_label(_placeholder, []), do: "not used"|)
       assert String.contains?(src, ~s|defp deployed_placeholder_label(nil), do: "not available"|)
       assert String.contains?(src, ~s|defp deployed_placeholder_label(%{mask: []}), do: "not used"|)
+    end
+  end
+
+  defp byte_index(haystack, needle) do
+    case :binary.match(haystack, needle) do
+      {index, _length} -> index
+      :nomatch -> flunk("expected #{inspect(needle)} in source")
     end
   end
 end
