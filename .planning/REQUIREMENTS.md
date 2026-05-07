@@ -83,8 +83,8 @@ Tighten what v1.17 shipped so production teams can roll the operator surface out
 | BROWSE-02 | 64    | mapped |
 | BROWSE-03 | 64    | mapped |
 | BROWSE-04 | 64    | mapped |
-| EXPO-03   | 65    | mapped |
-| EXPO-04   | 65    | complete (Plan 65-01) |
+| EXPO-03   | 65    | complete (Plans 65-02 + 65-03) |
+| EXPO-04   | 65    | complete (Plans 65-01 + 65-02 + 65-03) |
 | EXPO-05   | 65    | mapped |
 | COV-01    | 66    | mapped |
 | COV-02    | 66    | mapped |
