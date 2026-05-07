@@ -66,9 +66,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
-        live_session :threadline, on_mount: [{Threadline.OperatorSurface.Auth, unquote(opts)}] do
+        live_session :threadline,
+          on_mount: [
+            {Threadline.OperatorSurface.Auth, unquote(opts)},
+            {Threadline.OperatorSurface.Coverage.OnMount, unquote(opts)}
+          ] do
           scope unquote(path), alias: Threadline.OperatorSurface.Live do
             live("/", TimelineLive, :index)
+            live("/coverage", CoverageLive, :index)
             live("/transactions/:id", TransactionLive, :show)
             live("/transactions/:id/history/:table/:record_id", TransactionLive, :history)
             live("/actors/:kind/:id", ActorLive, :show)
