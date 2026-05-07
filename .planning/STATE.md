@@ -3,8 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Adoption and Policy Hardening
 status: planning
-last_updated: "2026-05-06T23:55:00.000Z"
+last_updated: "2026-05-06T23:59:00.000Z"
 last_activity: 2026-05-06
+resume_file: .planning/phases/64-raw-timeline-browse-and-filter-form/64-CONTEXT.md
+stopped_at: "Phase 64 context gathered"
 progress:
   total_phases: 5
   completed_phases: 0
@@ -22,10 +24,10 @@ progress:
 
 ## Current Position
 
-Phase: Not started (roadmap complete, planning Phase 64 next)
+Phase: 64 — Raw Timeline Browse & Filter Form (context gathered)
 Plan: —
-Status: Roadmap complete
-Last activity: 2026-05-06 — v1.18 ROADMAP.md written (Phases 64-68, 16/16 requirements mapped)
+Status: Ready for `/gsd-plan-phase 64`
+Last activity: 2026-05-06 — Phase 64 CONTEXT.md captured (14 decisions across route/nav, filter UX, input shapes, pagination)
 
 ## Performance Metrics
 
@@ -38,6 +40,7 @@ Last activity: 2026-05-06 — v1.18 ROADMAP.md written (Phases 64-68, 16/16 requ
 
 ### Decisions
 
+- 2026-05-06: Phase 64 context captured. Locked 14 implementation decisions (research-then-recommend, four parallel `gsd-advisor-researcher` subagents): (1) **Route**: new TimelineLive mounts at the surface root (`/audit`) — convention follows Oban Web / LiveDashboard / Hangfire / Sentry / GitHub `/audit-log` (firehose = landing page); inline "← Timeline" back-link on TransactionLive / ActorLive header; defer real top-nav to Phase 66 when sibling routes exist. (2) **Filter form**: sticky top toolbar with right-aligned `[Clear all] [Apply]` cluster (Phase 65 will append `[Download CSV] [Download JSON]` to the same cluster); explicit Apply via `<form phx-submit>` (Enter-anywhere submits) — not auto-apply; `phx-debounce="blur"` defensively on text inputs; single "Clear all" link patches to bare path (re-defaults to last 24h). (3) **Input shapes**: `:table` is `<input list>` + `<datalist>` populated from `Threadline.Health.trigger_coverage/1` covered tables only (free-text + native autocomplete, zero JS, stale URLs round-trip with server hint); `:actor_ref` is two flat URL params `actor_kind=` + `actor_id=` (1:1 with `ActorRef` struct, no `kind:id` colon-DSL); `:correlation_id` plain text + `phx-debounce="300"` + `maxlength="256"` + inline help; validation reuses `Threadline.Query.validate_timeline_filters!/1` verbatim. (4) **Pagination**: infinite scroll via `phx-viewport-bottom` + `Phoenix.LiveView.Stream` matching v1.17 TransactionLive / ActorLive pattern; cursor in socket assigns, **never in URL** (URL = filter-state only); `page_size: 50` passed at LV call site (lib's `@default_timeline_page_size = 1000` stays for API/export callers). Tombstone safety: pasted stale URLs re-resolve from "now" through the filter window, no silent stuck-on-empty-cursor failure. Canonical URL contract locked in CONTEXT.md for Phase 65 to reuse verbatim.
 - 2026-05-06: v1.18 roadmap landed at 5 phases (64-68): BROWSE → EXPO → COV → REDN → ADOPT. BROWSE first because both EXPO-03's controller and EXPO-05's parity assertion re-validate against the same `validate_timeline_filters!/1` literal the filter form ships. COV and REDN intentionally kept as separate phases (rather than folded into one "policy admin" phase under coarse granularity) because COV-02 has a real lib-API change (`:schema` argument on `Threadline.Health.trigger_coverage/1`) and REDN-04 has the heavyweight `pg_proc.prosrc` introspection logic — different "what could go wrong" risks, mirrors v1.17 Phase 59/60/61 per-screen separation. ADOPT last because onboarding (ADOPT-05) and upgrade-path docs (ADOPT-06) must reflect the surface as it actually shipped; ADOPT-07 (format drift cleanup) is the tidy closing slice. `mix verify.compile_no_optional` stays green across every UI phase as a continuous constraint.
 - 2026-05-06: Open v1.18 as "Adoption and Policy Hardening" — once a real operator surface ships (v1.17), the next adoption gap moves from "is there a usable surface?" to "is the surface easy to roll out, upgrade, and govern in production?" v1.18 closes that loop with: raw timeline browse + filter form, exports UI parity (download current view), coverage dashboard + drift-aware redaction admin (read-only), and lifecycle ergonomics. Read-only throughout; zero new platform infrastructure; Mix-task parity for every UI viewer.
 - 2026-05-06: v1.18 raw timeline browse ships with full `Threadline.Query.timeline/2` filter parity (5 filters: from, to, table, actor_ref kind+id, correlation_id) — no narrow starter, no saved views. URL-as-state via `live_patch` so links are shareable; reuses `validate_timeline_filters!/1` so UI/API/export share one filter vocabulary. Saved views deferred — would drag a tiny new auth model (owner / visibility / sharing) into a lib that's stayed auth-agnostic since v1.15; bookmarks + URL state cover the persistence story for free, which is what GitHub audit log + Oban Web do at scale. Idiomatic anchor: Oban Web's filter pills.
