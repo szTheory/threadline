@@ -69,8 +69,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {"to", DateTime.to_iso8601(to) |> String.slice(0..15)}
           ])
 
-        {:noreply,
-         push_patch(socket, to: "#{base_path}?#{query_string}", replace: true)}
+        {:noreply, push_patch(socket, to: "#{base_path}?#{query_string}", replace: true)}
       else
         socket = assign(socket, :filters_raw, filters_raw_from_params(params))
 
@@ -401,7 +400,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> URI.encode_query()
     end
 
-    defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw), do: Map.delete(raw, "actor_id")
+    defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw),
+      do: Map.delete(raw, "actor_id")
+
     defp normalize_anonymous(raw), do: raw
   end
 end

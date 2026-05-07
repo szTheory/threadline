@@ -49,6 +49,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(_params, uri, socket) do
       uri_parsed = URI.parse(uri)
+
       base_path =
         case Regex.run(~r/(.*)\/actors\/[^\/]+\/[^\/]+/, uri_parsed.path) do
           [_, path] -> path
