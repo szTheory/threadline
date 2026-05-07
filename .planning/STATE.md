@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
 status: executing
-last_updated: "2026-05-07T22:55:00.000Z"
-last_activity: 2026-05-07
+last_updated: "2026-05-07T21:04:03.413Z"
+last_activity: 2026-05-07 -- Phase 68 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  completed_phases: 4
+  total_plans: 20
+  completed_plans: 17
+  percent: 85
 ---
 
 # Project State: Threadline
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.18 — Adoption and Policy Hardening. Round out the v1.17 operator surface so production teams can roll it out cleanly: raw timeline browse + filter form (full `Threadline.Query.timeline/2` parity, URL-as-state via `live_patch`), exports UI parity (download current view; sync iodata for small / chunked stream for large), coverage dashboard + drift-aware redaction admin (read-only) with parity Mix tasks, and lifecycle ergonomics (onboarding revisit, optional-Phoenix-deps upgrade-path docs, repo-wide format drift cleanup). Continuing phase numbering from Phase 64.
+**Current Focus**: v1.18 — Adoption and Policy Hardening. Round out the v1.17 operator surface so production teams can roll it out cleanly: raw timeline browse + filter form (full `Threadline.Query.timeline/2` parity, URL-as-state via `live_patch`), exports UI parity (download current view; sync iodata for small / chunked stream for large), coverage dashboard + drift-aware redaction admin (read-only) with parity Mix tasks, and lifecycle ergonomics (onboarding revisit, optional-Phoenix-deps upgrade-path docs, ADOPT-07 evidence capture plus stale blocker retirement). Continuing phase numbering from Phase 64.
 
 ## Current Position
 
-Phase: 67
-Plan: Execution complete
-Status: Ready for verify-work
-Last activity: 2026-05-07
+Phase: 68 (lifecycle-ergonomics) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 68
+Last activity: 2026-05-07 -- Phase 68 execution started
 
 ## Performance Metrics
 
@@ -115,12 +115,12 @@ Last activity: 2026-05-07
 - [x] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
 - [x] Spawn `gsd-roadmapper` to phase v1.18 starting at Phase 64 — completed 2026-05-06; ROADMAP.md written with 5 phases (64-68), 16/16 requirements mapped
 - [ ] Plan Phase 64 (Raw Timeline Browse & Filter Form) — first phase of v1.18; run `/gsd-plan-phase 64` next
-- [ ] Repo-wide `mix format` drift cleanup — clears the open `mix ci.all` blocker tracked since v1.16 (will land in Phase 68 via ADOPT-07)
+- [x] Repo-wide formatter/CI blocker retirement evidence captured in Phase 68 — fresh `mix verify.format` + `mix ci.all` ran green on 2026-05-07 and the stale planning-language references were retired via ADOPT-07
 
 ### Blockers
 
 - No blocker to v1.18 execution remains.
-- Repo-wide `mix ci.all` still reports pre-existing format drift in untouched files outside the v1.16/v1.17 closeout sets — will be closed by Phase 68 (ADOPT-07).
+- No active formatter/CI blocker remains. Historical repo-wide format drift was retired in Phase 68 on 2026-05-07 with fresh `mix verify.format` and `mix ci.all` evidence.
 
 ## Session Continuity
 
@@ -139,7 +139,7 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 | Category | Item | Status |
 |----------|------|--------|
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
-| tech_debt | repo-wide-format-drift | pre-existing formatter drift in untouched files still blocks `mix ci.all` — scheduled for v1.18 Phase 68 (ADOPT-07) |
+| tech_debt | repo-wide-format-drift | historical milestone-close debt; retired in Phase 68 on 2026-05-07 after fresh `mix verify.format` and `mix ci.all` evidence |
 | nyquist | phase-53-54-validation-bookkeeping | verification evidence exists, but `53-VALIDATION.md` and `54-VALIDATION.md` were not created during milestone execution |
 | Phase 65 P65-04 | ~6 min | 3 tasks | 3 (3 created) files |
 

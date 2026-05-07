@@ -17,7 +17,7 @@
 - [x] **Phase 65: Exports UI Parity** — Wire "Download CSV / JSON" of the currently-filtered view into the timeline browse, with sync iodata for small windows, chunked stream for large, pre-flight match-count preview, and Mix-task filename parity (completed 2026-05-07)
 - [x] **Phase 66: Coverage Dashboard & Mix Task Parity** — Render `Threadline.Health.trigger_coverage/1` as a polled LiveView with optional `:schema` support, plus the parity `mix threadline.health.coverage` task for capture-only adopters (completed 2026-05-07)
 - [x] **Phase 67: Drift-Aware Redaction Admin & Mix Task Parity** — Render the read-only config-vs-deployed redaction reconciliation viewer (column-only, never sample values) with `pg_proc.prosrc` introspection and the parity `mix threadline.policy.show` task (all 5 plans executed 2026-05-07, including the formatting gap closure; ready for verification) (completed 2026-05-07)
-- [ ] **Phase 68: Lifecycle Ergonomics** — Revisit first-hour onboarding to mount the surface end-to-end, ship optional-Phoenix-deps upgrade-path docs, and clear the repo-wide `mix format` drift so `mix ci.all` is honest again
+- [ ] **Phase 68: Lifecycle Ergonomics** — Revisit first-hour onboarding to mount the surface end-to-end, ship optional-Phoenix-deps upgrade-path docs, and close ADOPT-07 with fresh formatter/CI evidence plus stale blocker retirement
 
 #### Phase Details
 
@@ -90,13 +90,13 @@
 
 ##### Phase 68: Lifecycle Ergonomics
 
-**Goal**: Close the v1.18 adoption-and-policy-hardening loop by making the documented first-hour path actually mount the now-shipped operator surface, by giving adopters a real upgrade-path doc for the optional Phoenix/LiveView/HTML/PubSub deps posture, and by clearing the repo-wide `mix format` drift that has blocked an honest `mix ci.all` since v1.16.
+**Goal**: Close the v1.18 adoption-and-policy-hardening loop by making the documented first-hour path actually mount the now-shipped operator surface, by giving adopters a real upgrade-path doc for the optional Phoenix/LiveView/HTML/PubSub deps posture, and by retiring the stale repo-wide formatter blocker with fresh `mix verify.format` / `mix ci.all` evidence on the final Phase 68 tree.
 **Depends on**: Phases 64-67 (onboarding + upgrade-path docs must reflect the v1.18 surface as it actually shipped)
 **Requirements**: ADOPT-05, ADOPT-06, ADOPT-07
 **Success Criteria** (what must be TRUE):
   1. `guides/getting-started-saas.md`, the root `README.md` quickstart, and `examples/threadline_phoenix/README.md` document a first-hour path that actually mounts the operator surface end-to-end behind a `phx.gen.auth`-style admin pipeline (matching the v1.17 Phase 62 example wiring); the existing doc-contract test is extended to assert the new mount snippet appears verbatim in each surface.
   2. A new section in `guides/operator-surface.md` (or a new `guides/upgrade-path.md`) covers the version-compat matrix for the optional Phoenix/LiveView/HTML/PubSub deps, what changes between Threadline minors when those Phoenix majors shift, how adopters detect "capture-only vs surface-mounted" status at install time, and the deprecation/removal policy for surface-only changes; a doc-contract test locks the matrix table headers and the policy literals.
-  3. Every untouched file outside the v1.16 / v1.17 closeout sets is formatted; `mix verify.format` and `mix ci.all` are green on `main` with no exceptions; GitHub Actions stable job IDs unchanged; the v1.16 / v1.17 STATE.md "format drift in untouched files" blocker is closed.
+  3. Fresh `mix verify.format` and `mix ci.all` evidence is recorded on the final Phase 68 tree; GitHub Actions stable job IDs and `ci.all` ordering remain unchanged; the v1.16 / v1.17 planning artifacts no longer present the historical format drift as an active blocker.
 **Plans**: TBD
 
 #### v1.18 Sequencing Rationale
@@ -106,7 +106,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 - **Phase 64 must come first** because the filter form is the load-bearing artifact for the rest of the milestone — both the URL-as-state contract and the shared `validate_timeline_filters!/1` literal that Phase 65 re-validates against must exist before exports UI parity can be wired without inventing a parallel filter dialect.
 - **Phase 65 must come immediately after Phase 64** because EXPO-04's controller endpoint re-validates the same filter params the LiveView mount accepts, and EXPO-05's parity assertion ("identical filters produce identical files") only makes sense once both halves of the filter contract are shipped on the same literal.
 - **Phases 66 and 67 are intentionally not folded into one "policy admin" phase** even under coarse granularity, because COV-02 has a real lib-API change (the `:schema` argument on `Threadline.Health.trigger_coverage/1`) and REDN-04 has the heavyweight `pg_proc.prosrc` introspection logic; the two viewers are read-only siblings but their implementation surfaces and "what could go wrong" risks differ enough that one delivery boundary per viewer mirrors the v1.17 Phase 59/60/61 per-screen separation. They can run in either order or in parallel since neither depends on the other.
-- **Phase 68 must come last** because ADOPT-05 (onboarding revisit) and ADOPT-06 (upgrade-path docs) document the surface as it actually shipped this milestone — running them before 64-67 would document a moving target. ADOPT-07 (repo-wide format drift cleanup) is the tidy closing slice that finally restores an honest `mix ci.all` so the next milestone can open without a known-blocker carry-forward.
+- **Phase 68 must come last** because ADOPT-05 (onboarding revisit) and ADOPT-06 (upgrade-path docs) document the surface as it actually shipped this milestone — running them before 64-67 would document a moving target. ADOPT-07 is the tidy closeout slice that captures fresh formatter/CI evidence and retires the stale blocker language without reopening generic CI scope.
 - **The optional-Phoenix-deps posture stays green across every phase** — `mix verify.compile_no_optional` is part of `ci.all` and every UI phase (64, 65, 66, 67) must compile cleanly when `Phoenix.LiveView` is absent. This is a constraint on every phase, not a separate phase.
 
 ## Milestones

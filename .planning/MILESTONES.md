@@ -19,7 +19,7 @@ Entries are newest first.
 
 **Archives:** `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/milestones/v1.16-phases/`.
 
-**Known gaps at close:** Milestone audit **passed** with 0 requirement, integration, or end-to-end flow gaps. Non-blocking debt remains: repo-wide `mix ci.all` is still blocked by pre-existing formatter drift outside the v1.16 write set, and Phases **53** and **54** still lack Nyquist `VALIDATION.md` bookkeeping.
+**Known gaps at close:** Milestone audit **passed** with 0 requirement, integration, or end-to-end flow gaps. Historical note: repo-wide `mix ci.all` was blocked at the v1.16 close by pre-existing formatter drift outside the write set, and that debt was later retired in Phase 68 on 2026-05-07. Phases **53** and **54** still lack Nyquist `VALIDATION.md` bookkeeping.
 
 **What is next:** **`/gsd-new-milestone`** — define the next requirements set and roadmap slice from `.planning/MILESTONE-ARC.md`, currently led by **v1.17 — Operator Surface Foundation**.
 
