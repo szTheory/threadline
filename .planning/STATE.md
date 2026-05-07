@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
 status: executing
-last_updated: "2026-05-07T13:22:22.385Z"
-last_activity: 2026-05-07 -- Phase null execution started
+last_updated: "2026-05-07T13:38:00.000Z"
+last_activity: 2026-05-07 -- Phase 65 Plan 02 complete (controller + auth plug + router macro extension)
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State: Threadline
@@ -23,9 +23,9 @@ progress:
 ## Current Position
 
 Phase: 65 — exports-ui-parity (EXECUTING)
-Plan: 65-01 complete (1 of 4 in phase); 65-02 + 65-03 next (Wave 2 parallel), then 65-04 (Wave 3 doc-contract)
-Status: Plan 65-01 shipped — library + helper foundation on disk, EXPO-04 marked complete
-Last activity: 2026-05-07 -- Plan 65-01 SUMMARY.md written, 5 commits landed
+Plan: 65-01 + 65-02 complete (2 of 4 in phase); 65-03 next (Wave 2 — parallel-eligible with 65-02 but executed sequentially), then 65-04 (Wave 3 doc-contract)
+Status: Plan 65-02 shipped — HTTP-side export surface (controller + auth plug + router macro extension) on disk, EXPO-03 marked complete
+Last activity: 2026-05-07 -- Plan 65-02 SUMMARY.md written, 5 commits landed
 
 ## Performance Metrics
 
@@ -103,6 +103,7 @@ Last activity: 2026-05-07 -- Plan 65-01 SUMMARY.md written, 5 commits landed
 - Included a BENCHMARK-ENV block to ensure published numbers have reproducible context (hardware, Postgres version, etc).
 - Used exact ExUnit doc-contract patterns rather than checking actual numbers to prevent test brittleness as performance evolves.
 - 2026-05-07: Phase 65 Plan 01 (Exports UI Parity — library + helper foundation) shipped. Additive `:cap` opt on `Threadline.Export.count_matching/2` (windowed-count subquery via `from(sub in subquery(... |> limit(^cap)), select: count())`, default unbounded preserves Mix-task contract; RESEARCH P-8 corrected D-23's wrong `EXISTS LIMIT 10001` SQL); pure-stdlib `Threadline.OperatorSurface.Exports.Filename.for/2` (canonical `threadline-changes-YYYY-MM-DDTHH-MM-Z.{csv|json|ndjson}`, hyphen between hours/minutes for Windows-friendliness, no file-scope `Code.ensure_loaded?` gate per D-21); pure-stdlib `Threadline.OperatorSurface.Exports.FilterParams.parse/1` + `filters_raw_from_params/1` (URL-params → keyword list lifted byte-equivalently from `TimelineLive`, `String.to_existing_atom/1` only — bare `String.to_atom` token grep-empty across source). Two Rule-1 auto-fixed deviations: (1) `Etc/GMT-5` non-UTC fixture replaced with `%DateTime{}` struct literal because Threadline has no `tzdata` dep and the stock UTC-only TZ DB returns `:utc_only_time_zone_database` for any non-UTC zone; (2) moduledoc rephrased to drop the literal `String.to_atom/1` token that tripped the in-source atom-safety regex refute (Plan 04's doc-contract test will use the same regex shape).
+- [Phase ?]: Phase 65 Plan 02 (Exports UI Parity — controller + router + auth plug) shipped: ExportController with three actions and threshold dispatch (sync iodata <=5,000 / chunked stream up to 10,000); ExportAuthPlug as Conn-shaped twin of Auth.on_mount/4 (D-20 export_authorize_fn vs synthetic mirror); router macro grows sibling scope with :exports + :export_authorize_fn opts. Three additive Threadline.Export public helpers (format_changes_iodata/3, csv_header/1, stream_export_rows/2). Four Rule-1 deviations auto-fixed: (1) plug inside scope is invalid Phoenix.Router — fix via pipeline + pipe_through; (2) alias: false, as: false breaks formatter wrap — fix via scope-local alias: <module>; (3) put_resp_content_type doubles charset — fix via put_resp_header directly; (4) stream_changes returns lean structs lacking join-projected fields — fix via new stream_export_rows. 367/367 tests pass; mix verify.compile_no_optional + mix verify.format clean. EXPO-03 complete.
 
 ### Todos
 
@@ -120,8 +121,8 @@ Last activity: 2026-05-07 -- Plan 65-01 SUMMARY.md written, 5 commits landed
 
 ## Session Continuity
 
-- **Last Action**: Plan 65-01 (Exports UI Parity — library + helper foundation) shipped. 3 task commits + 1 docs commit on `main`: `b461f87` feat(65-01) `:cap` opt on `Threadline.Export.count_matching/2` (windowed-count subquery, default unbounded preserves Mix-task contract); `bb2d3f1` feat(65-01) `Threadline.OperatorSurface.Exports.Filename` pure helper (UTC-minute filename, no `Code.ensure_loaded?` wrapper); `d2f5e6f` feat(65-01) `Threadline.OperatorSurface.Exports.FilterParams` shared parser (URL-params → keyword list, `String.to_existing_atom` only); `dff03db` docs(65-01) SUMMARY. 41/41 plan-scoped tests pass; 351/351 full-suite tests pass; `mix verify.compile_no_optional` exits 0; Mix-task `mix threadline.export` byte-unchanged. EXPO-04 marked complete in REQUIREMENTS.md. ROADMAP.md updated (Phase 65: 1/4 plans complete).
-- **Next Step**: Run Plans 65-02 and 65-03 in parallel (Wave 2). 65-02: `ExportController` + `ExportAuthPlug` + router macro extension (consumes `Filename.for/2` + `FilterParams.parse/1` + `count_matching(filters, cap: 10_001)`). 65-03: `TimelineLive` export buttons + count status line + truncation banner (replaces inline private parser helpers with delegation to `FilterParams.parse/1` and `FilterParams.filters_raw_from_params/1`; calls `count_matching(filters, cap: 10_001)` in parallel with `timeline_page/2` via `Task.async`). Then Plan 65-04 (Wave 3): doc-contract test trifecta locks the file-scope-gate posture, atom-safety regex, and Mix-task vs controller byte-equality parity.
+- **Last Action**: Plan 65-02 (Exports UI Parity — controller + auth plug + router macro extension) shipped. 5 commits on `main`: `4fbf99c` feat(65-02) added 3 additive public helpers to `Threadline.Export` — `format_changes_iodata/3` + `csv_header/1` + `stream_export_rows/2` (last is required because `stream_changes/2` returns lean `%AuditChange{}` structs that lack the `tx_*` / `aa_*` join-projected fields the chunked-path formatter needs for byte-equality with `to_csv_iodata/2`); `efc99bc` feat(65-02) created `Threadline.OperatorSurface.ExportAuthPlug` (Conn-shaped twin of `Auth.on_mount/4` — same `[:threadline, :operator_surface, :authorize]` telemetry, same five-arm authorize case-tree, halt-with-403-plain-text instead of redirect; D-20 dual dispatch via `:export_authorize_fn` callback OR fallback to `:authorize_fn` with synthetic `%{assigns: conn.assigns}` mirror); `60b2184` feat(65-02) created `Threadline.OperatorSurface.Controllers.ExportController` (three actions `csv/2 / json/2 / ndjson/2`; threshold dispatch at 5,000 rows — sync iodata vs chunked `send_chunked` stream up to 10,000 rows; RFC 5987 dual-emit `Content-Disposition`; `Cache-Control: no-store`; wrapped-JSON envelope O-2a); `c1a1ef1` feat(65-02) grew `threadline_operator_surface/2` macro to emit sibling `scope <path>/exports` block guarded by `ExportAuthPlug` (new opts: `:exports` boolean default `true`, `:export_authorize_fn`); `30c67fe` style(65-02) format-wrap fix in controller. 367/367 full-suite tests pass; `mix verify.compile_no_optional` + `mix verify.format` exit 0; Mix-task `mix threadline.export` byte-unchanged. Four Rule-1 deviations auto-fixed (plug inside scope is invalid Phoenix.Router → fix via pipeline + pipe_through; `alias: false, as: false` breaks formatter wrap → fix via scope-local `alias: <module>`; `put_resp_content_type` doubles charset → fix via `put_resp_header` directly; plan-spec'd `stream_changes` returns lean structs → fix via new `stream_export_rows/2`). EXPO-03 marked complete in REQUIREMENTS.md. ROADMAP.md updated (Phase 65: 2/4 plans complete).
+- **Next Step**: Run Plan 65-03 (Wave 2 sibling). 65-03: `TimelineLive` export buttons + count status line + truncation banner — replaces inline private parser helpers with delegation to `FilterParams.parse/1` and `FilterParams.filters_raw_from_params/1`; calls `count_matching(filters, cap: 10_001)` in parallel with `timeline_page/2` via `Task.async`; appends three `<.link href download>` anchors to the filter form's button cluster targeting `/audit/exports/changes.{csv,json,ndjson}` (the routes Plan 65-02 just shipped). Then Plan 65-04 (Wave 3): doc-contract test trifecta locks the file-scope-gate posture, atom-safety regex, and Mix-task vs controller byte-equality parity (the latter relies on `Threadline.Export.stream_export_rows/2` produced in this plan).
 
 ## Deferred Items
 
@@ -138,3 +139,4 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 | Phase | Plan | Duration | Tasks | Files |
 | ----- | ----- | -------- | ----- | ----- |
 | 65 | 65-01 | ~5 min | 3 | 6 (2 modified, 4 created) |
+| 65 | 65-02 | ~13 min | 4 | 6 (3 modified, 3 created) |
