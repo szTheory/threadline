@@ -13,7 +13,7 @@
 
 #### Phases
 
-- [ ] **Phase 64: Raw Timeline Browse & Filter Form** — Ship the raw paged timeline browse LiveView with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, and the doc-contract that locks the shared filter-key vocabulary
+- [x] **Phase 64: Raw Timeline Browse & Filter Form** — Ship the raw paged timeline browse LiveView with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, and the doc-contract that locks the shared filter-key vocabulary (completed 2026-05-07)
 - [ ] **Phase 65: Exports UI Parity** — Wire "Download CSV / JSON" of the currently-filtered view into the timeline browse, with sync iodata for small windows, chunked stream for large, pre-flight match-count preview, and Mix-task filename parity
 - [ ] **Phase 66: Coverage Dashboard & Mix Task Parity** — Render `Threadline.Health.trigger_coverage/1` as a polled LiveView with optional `:schema` support, plus the parity `mix threadline.health.coverage` task for capture-only adopters
 - [ ] **Phase 67: Drift-Aware Redaction Admin & Mix Task Parity** — Render the read-only config-vs-deployed redaction reconciliation viewer (column-only, never sample values) with `pg_proc.prosrc` introspection and the parity `mix threadline.policy.show` task
@@ -31,10 +31,10 @@
   2. The filter form accepts all five `Threadline.Query.timeline/2` keys — `from`, `to`, `table`, `actor_ref` (kind + id), `correlation_id` — using the same `validate_timeline_filters!/1` allowlist that gates the API and `mix threadline.export`, so no UI-only filter dialect can drift in.
   3. The current filter set is encoded in the URL via `live_patch` so pasting the URL into a fresh session reproduces the same results, browser back/forward navigates filter history, and first mount with no params defaults to a "last 24h" window with native `<input type="datetime-local">` and a `<select>` for actor kind (no custom widgets).
   4. A doc-contract test locks the LiveView route literal, the form input ARIA labels, and the filter key list (parity with `Threadline.Query.timeline/2`) so any future divergence between UI and API filter keys fails CI.
-**Plans:** 3 plans
-- [ ] 64-01-PLAN.md — TimelineLive core: file-scope-gated LiveView (mount + handle_params + handle_event + render + scope_aware_opts/1), router edit (`live("/", TimelineLive, :index)`), CSS extension (toolbar/form/button-cluster), inline `← Timeline` back-links on TransactionLive + ActorLive headers (BROWSE-01 / BROWSE-02 / BROWSE-03)
-- [ ] 64-02-PLAN.md — LiveViewTest integration suite: mount + filter-apply + URL round-trip + datetime-tz norm + anonymous + correlation-id-too-long + scope-thread + phx-change-prohibition (BROWSE-01 / BROWSE-02 / BROWSE-03)
-- [ ] 64-03-PLAN.md — BROWSE-04 doc-contract test: pure source-reading test pinning route literal, ARIA labels, filter-key parity against `Threadline.Query.@allowed_timeline_filter_keys`, file-scope gate, native widgets, phx-change prohibition, and ← Timeline back-link presence on siblings (BROWSE-04)
+**Plans:** 3/3 plans complete
+- [x] 64-01-PLAN.md — TimelineLive core: file-scope-gated LiveView (mount + handle_params + handle_event + render + scope_aware_opts/1), router edit (`live("/", TimelineLive, :index)`), CSS extension (toolbar/form/button-cluster), inline `← Timeline` back-links on TransactionLive + ActorLive headers (BROWSE-01 / BROWSE-02 / BROWSE-03)
+- [x] 64-02-PLAN.md — LiveViewTest integration suite: mount + filter-apply + URL round-trip + datetime-tz norm + anonymous + correlation-id-too-long + scope-thread + phx-change-prohibition (BROWSE-01 / BROWSE-02 / BROWSE-03)
+- [x] 64-03-PLAN.md — BROWSE-04 doc-contract test: pure source-reading test pinning route literal, ARIA labels, filter-key parity against `Threadline.Query.@allowed_timeline_filter_keys`, file-scope gate, native widgets, phx-change prohibition, and ← Timeline back-link presence on siblings (BROWSE-04)
 **UI hint**: yes
 
 ##### Phase 65: Exports UI Parity
@@ -109,7 +109,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 64. Raw Timeline Browse & Filter Form | 0/3 | Not started | - |
+| 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
 | 65. Exports UI Parity | 0/TBD | Not started | - |
 | 66. Coverage Dashboard & Mix Task Parity | 0/TBD | Not started | - |
 | 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
