@@ -80,6 +80,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% else %>
           <div class="transaction-header">
+            <a href={@base_path} class="back-link">← Timeline</a>
             <h2>Transaction: <%= @bundle.transaction.id %></h2>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
