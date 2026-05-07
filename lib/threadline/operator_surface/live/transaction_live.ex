@@ -74,6 +74,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+          coverage={@threadline_coverage}
+          base_path={@base_path}
+          error={@threadline_coverage_error}
+        />
         <%= if @not_found do %>
           <div class="empty-state">
             <p>Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>

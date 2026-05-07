@@ -191,6 +191,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+          coverage={@threadline_coverage}
+          base_path={@base_path}
+          error={@threadline_coverage_error}
+        />
 
         <header class="timeline-toolbar">
           <form id="timeline-filters" phx-submit="apply" role="search">
