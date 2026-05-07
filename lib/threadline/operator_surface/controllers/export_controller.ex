@@ -140,7 +140,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     defp emit_prefix(conn, :json) do
       # Wrapped-JSON envelope opener (RESEARCH §"Open Question O-2" recommendation O-2a).
-      generated_at = DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
+      generated_at =
+        DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
+
       prefix = ~s|{"format_version":1,"generated_at":"#{generated_at}","changes":[|
 
       case Plug.Conn.chunk(conn, prefix) do
