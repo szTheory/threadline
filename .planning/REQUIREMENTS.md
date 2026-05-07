@@ -33,9 +33,9 @@ Tighten what v1.17 shipped so production teams can roll the operator surface out
 
 ### Coverage dashboard (COV)
 
-- [ ] **COV-01** — Coverage dashboard LiveView at a route under the operator surface (e.g. `/audit/coverage`) renders `Threadline.Health.trigger_coverage/1` with separate covered / uncovered table lists, expected-uncovered marked (e.g. `schema_migrations`), uncovered counts surfaced in the surface header.
-- [ ] **COV-02** — `Threadline.Health.trigger_coverage/1` accepts an optional `:schema` argument (defaults to `"public"` for backward compatibility) so Ecto-prefix and non-`public` schema adopters get correct results; LiveView refreshes on a configurable poll interval (default 30s); telemetry signal `:health_checked` is hookable for refresh.
-- [ ] **COV-03** — Parity Mix task `mix threadline.health.coverage` prints the same covered / uncovered data (table format + `--json` flag) for capture-only adopters who never mount the surface; doc-contract test locks the LiveView route literal and the Mix-task help text + output schema.
+- [x] **COV-01** — Coverage dashboard LiveView at a route under the operator surface (e.g. `/audit/coverage`) renders `Threadline.Health.trigger_coverage/1` with separate covered / uncovered table lists, expected-uncovered marked (e.g. `schema_migrations`), uncovered counts surfaced in the surface header.
+- [x] **COV-02** — `Threadline.Health.trigger_coverage/1` accepts an optional `:schema` argument (defaults to `"public"` for backward compatibility) so Ecto-prefix and non-`public` schema adopters get correct results; LiveView refreshes on a configurable poll interval (default 30s); telemetry signal `:health_checked` is hookable for refresh.
+- [x] **COV-03** — Parity Mix task `mix threadline.health.coverage` prints the same covered / uncovered data (table format + `--json` flag) for capture-only adopters who never mount the surface; doc-contract test locks the LiveView route literal and the Mix-task help text + output schema.
 
 ### Drift-aware redaction admin (REDN)
 
