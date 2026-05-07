@@ -47,16 +47,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    def handle_params(_params, uri, socket) do
+      uri_parsed = URI.parse(uri)
+      base_path =
+        case Regex.run(~r/(.*)\/actors\/[^\/]+\/[^\/]+/, uri_parsed.path) do
+          [_, path] -> path
+          _ -> uri_parsed.path
+        end
+
+      {:noreply, assign(socket, :base_path, base_path)}
+    end
+
     def render(assigns) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
         <%= if @not_found do %>
           <div class="empty-state">
+            <.link patch={@base_path} class="back-link">← Timeline</.link>
             <p>Invalid Actor Reference</p>
           </div>
         <% else %>
           <div class="actor-header">
+            <a href={@base_path} class="back-link">← Timeline</a>
             <h2>Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
             <div class="time-picker">
               Showing last
