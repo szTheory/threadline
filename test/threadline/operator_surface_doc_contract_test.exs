@@ -28,4 +28,13 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, ":authorize_fn")
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")
   end
+
+  test "operator surface guide links the canonical upgrade-path guide and stays scoped" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "guides/upgrade-path.md")
+    assert String.contains?(guide, "This guide stays focused on mount, auth, and screens.")
+    refute String.contains?(guide, "## Supported compatibility matrix")
+    refute String.contains?(guide, "## Surface-only deprecation and removal policy")
+  end
 end
