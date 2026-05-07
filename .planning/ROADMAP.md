@@ -114,7 +114,7 @@ The five-phase shape was accepted close to the planning prompt's suggested order
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 64. Raw Timeline Browse & Filter Form | 3/3 | Complete   | 2026-05-07 |
-| 65. Exports UI Parity | 4/4 | Complete   | 2026-05-07 |
+| 65. Exports UI Parity | 4/4 | Complete    | 2026-05-07 |
 | 66. Coverage Dashboard & Mix Task Parity | 0/TBD | Not started | - |
 | 67. Drift-Aware Redaction Admin & Mix Task Parity | 0/TBD | Not started | - |
 | 68. Lifecycle Ergonomics | 0/TBD | Not started | - |
