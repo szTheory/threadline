@@ -3,8 +3,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
     use Phoenix.LiveView
 
+    alias Threadline.Export
+    alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
-    alias Threadline.Semantics.ActorRef
 
     @page_size 50
     @filter_keys ~w(from to table actor_kind actor_id correlation_id)
@@ -46,6 +47,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:form_error, nil)
         |> assign(:unknown_table_attempted, false)
         |> assign(:base_path, nil)
+        |> assign(:match_count, 0)
+        |> assign(:filter_query, "")
 
       {:ok, socket}
     end
@@ -71,15 +74,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:noreply, push_patch(socket, to: "#{base_path}?#{query_string}", replace: true)}
       else
-        socket = assign(socket, :filters_raw, filters_raw_from_params(params))
+        socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
 
-        case build_filters(params) do
+        case FilterParams.parse(params) do
           {:error, message} ->
             socket =
               socket
               |> assign(:form_error, message)
               |> assign(:filters, [])
               |> assign(:cursor, nil)
+              |> assign(:match_count, 0)
+              |> assign(:filter_query, "")
               |> stream(:changes, [], reset: true)
 
             {:noreply, socket}
@@ -92,6 +97,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> assign(:form_error, message)
                   |> assign(:filters, [])
                   |> assign(:cursor, nil)
+                  |> assign(:match_count, 0)
+                  |> assign(:filter_query, "")
                   |> stream(:changes, [], reset: true)
 
                 {:noreply, socket}
@@ -109,13 +116,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
                 socket = assign(socket, :cursor, nil)
 
-                page = Query.timeline_page(filters, scope_aware_opts(socket))
+                count_task =
+                  Task.async(fn ->
+                    Export.count_matching(filters, cap: 10_001, repo: socket.assigns.repo)
+                  end)
+
+                page_task =
+                  Task.async(fn ->
+                    Query.timeline_page(filters, scope_aware_opts(socket))
+                  end)
+
+                # Two parallel queries; await with a generous timeout.
+                # Default Task.await is 5_000 ms; bump to 8_000 to leave headroom for
+                # slow capped-count queries on large tables (RESEARCH §P-7 line 651).
+                {:ok, %{count: count}} = Task.await(count_task, 8_000)
+                page = Task.await(page_task, 8_000)
+
+                filter_query = build_canonical_query(socket.assigns.filters_raw)
 
                 socket =
                   socket
                   |> assign(:filters, filters)
                   |> assign(:form_error, nil)
                   |> assign(:unknown_table_attempted, unknown_table_attempted)
+                  |> assign(:match_count, count)
+                  |> assign(:filter_query, filter_query)
                   |> stream(:changes, page.entries, reset: true)
                   |> assign(:cursor, page.next_cursor)
 
@@ -208,6 +233,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="button-cluster">
               <.link patch={@base_path} class="clear-link">Clear all</.link>
               <button type="submit">Apply</button>
+              <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="download-button">Download CSV</.link>
+              <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="download-button">Download JSON</.link>
+              <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>
             </div>
           </form>
         </header>
@@ -219,6 +247,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
           <div class="filter-hint">
             No rows found for this table. Audited tables: <%= Enum.join(@audited_tables, ", ") %>
+          </div>
+        <% end %>
+
+        <div class="match-count-status" role="status">
+          Showing <%= length(@streams.changes.inserts) %> of <%= format_count(@match_count) %> matches in this window.
+        </div>
+
+        <%= if @match_count > 5_000 and @match_count < 10_001 do %>
+          <div class="truncation-banner informational" role="status">
+            Large export — will stream in chunks.
+          </div>
+        <% end %>
+
+        <%= if @match_count >= 10_001 do %>
+          <div class="truncation-banner warning" role="alert">
+            Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
           </div>
         <% end %>
 
@@ -261,105 +305,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Application.get_env(:threadline, :ecto_repos) |> hd()
     end
 
-    defp filters_raw_from_params(params) do
-      raw = %{
-        "from" => params["from"] || "",
-        "to" => params["to"] || "",
-        "table" => params["table"] || "",
-        "actor_kind" => params["actor_kind"] || "",
-        "actor_id" => params["actor_id"] || "",
-        "correlation_id" => params["correlation_id"] || ""
-      }
-
-      # Mirror the actor_kind=anonymous strip-id normalization so the form
-      # echoes the canonical (post-strip) URL, not the user-typed pre-strip URL.
-      case raw["actor_kind"] do
-        "anonymous" -> Map.put(raw, "actor_id", "")
-        _ -> raw
-      end
-    end
-
-    defp normalize_params(params) do
-      for {key, value} <- params,
-          key in @filter_keys,
-          is_binary(value),
-          value != "",
-          into: [] do
-        {String.to_existing_atom(key), value}
-      end
-    end
-
-    defp parse_datetimes(filters) do
-      Enum.reduce_while(filters, {:ok, []}, fn
-        {:from, val}, {:ok, acc} ->
-          case parse_datetime_local(val) do
-            {:ok, nil} -> {:cont, {:ok, acc}}
-            {:ok, dt} -> {:cont, {:ok, [{:from, dt} | acc]}}
-            {:error, _} -> {:halt, {:error, "invalid datetime: #{val}"}}
-          end
-
-        {:to, val}, {:ok, acc} ->
-          case parse_datetime_local(val) do
-            {:ok, nil} -> {:cont, {:ok, acc}}
-            {:ok, dt} -> {:cont, {:ok, [{:to, dt} | acc]}}
-            {:error, _} -> {:halt, {:error, "invalid datetime: #{val}"}}
-          end
-
-        other, {:ok, acc} ->
-          {:cont, {:ok, [other | acc]}}
-      end)
-      |> case do
-        {:ok, filters} -> {:ok, Enum.reverse(filters)}
-        error -> error
-      end
-    end
-
-    defp collapse_actor_ref(filters) do
-      actor_kind = Keyword.get(filters, :actor_kind)
-      actor_id = Keyword.get(filters, :actor_id)
-
-      filters_without_actor_params =
-        filters
-        |> Keyword.delete(:actor_kind)
-        |> Keyword.delete(:actor_id)
-
+    # Renders the match count for the status line:
+    # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
+    # - Below the cap → exact integer with thousands separators
+    defp format_count(count) when is_integer(count) do
       cond do
-        actor_kind == "anonymous" ->
-          actor_ref = %ActorRef{type: :anonymous, id: nil}
-          {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
-
-        is_binary(actor_kind) and actor_kind != "" and is_binary(actor_id) and actor_id != "" ->
-          case safe_actor_kind(actor_kind) do
-            {:ok, kind_atom} ->
-              case ActorRef.new(kind_atom, actor_id) do
-                {:ok, actor_ref} ->
-                  {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
-
-                {:error, :unknown_actor_type} ->
-                  {:error, "unknown actor kind: " <> inspect(actor_kind)}
-
-                {:error, :missing_actor_id} ->
-                  {:error, "actor id is required for non-anonymous actors"}
-              end
-
-            {:error, :unknown_actor_type} ->
-              {:error, "unknown actor kind: " <> inspect(actor_kind)}
-          end
-
-        is_binary(actor_kind) and actor_kind != "" ->
-          # kind supplied but no id — leave without actor_ref filter
-          {:ok, filters_without_actor_params}
+        count >= 10_001 ->
+          "10,000+"
 
         true ->
-          {:ok, filters_without_actor_params}
-      end
-    end
-
-    defp build_filters(params) do
-      with normalized <- normalize_params(params),
-           {:ok, with_datetimes} <- parse_datetimes(normalized),
-           {:ok, with_actor_ref} <- collapse_actor_ref(with_datetimes) do
-        {:ok, with_actor_ref}
+          count
+          |> Integer.to_string()
+          |> String.reverse()
+          |> String.codepoints()
+          |> Enum.chunk_every(3)
+          |> Enum.map(&Enum.join/1)
+          |> Enum.join(",")
+          |> String.reverse()
       end
     end
 
@@ -369,26 +331,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         :ok
       rescue
         e in ArgumentError -> {:error, e.message}
-      end
-    end
-
-    defp parse_datetime_local(nil), do: {:ok, nil}
-    defp parse_datetime_local(""), do: {:ok, nil}
-
-    defp parse_datetime_local(str) when is_binary(str) do
-      padded = if String.length(str) == 16, do: str <> ":00Z", else: str <> "Z"
-
-      case DateTime.from_iso8601(padded) do
-        {:ok, dt, _offset} -> {:ok, dt}
-        _ -> {:error, :invalid_datetime}
-      end
-    end
-
-    defp safe_actor_kind(kind) when is_binary(kind) do
-      try do
-        {:ok, String.to_existing_atom(kind)}
-      rescue
-        ArgumentError -> {:error, :unknown_actor_type}
       end
     end
 
