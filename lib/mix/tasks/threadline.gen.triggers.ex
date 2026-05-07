@@ -55,8 +55,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   use Mix.Task
   import Mix.Generator
 
-  alias Threadline.Capture.RedactionPolicy
-  alias Threadline.Capture.TriggerSQL
+  alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig, TriggerSQL}
 
   @audit_tables ~w(audit_transactions audit_changes)
 
@@ -106,7 +105,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Keyword.get(:except_columns, "")
       |> parse_except_columns()
 
-    capture_tables = load_trigger_capture_tables()
+    capture_tables = TriggerCaptureConfig.load()
     dry_run? = Keyword.get(opts, :dry_run, false)
 
     table_specs =
@@ -140,29 +139,6 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
     end
   end
-
-  defp load_trigger_capture_tables do
-    case Application.get_env(:threadline, :trigger_capture) do
-      nil ->
-        %{}
-
-      kw when is_list(kw) ->
-        kw |> Keyword.get(:tables, %{}) |> normalize_tables_map()
-
-      _ ->
-        %{}
-    end
-  end
-
-  defp normalize_tables_map(map) when is_map(map) do
-    Map.new(map, fn
-      {k, v} when is_atom(k) -> {Atom.to_string(k), normalize_table_entry(v)}
-      {k, v} when is_binary(k) -> {k, normalize_table_entry(v)}
-    end)
-  end
-
-  defp normalize_table_entry(v) when is_list(v), do: v
-  defp normalize_table_entry(v) when is_map(v), do: Enum.into(v, [])
 
   defp build_table_capture_spec(table, cli_store_changed_from, cli_except_columns, capture_tables) do
     entry = Map.get(capture_tables, table, [])
