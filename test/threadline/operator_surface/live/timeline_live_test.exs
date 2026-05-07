@@ -601,6 +601,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Bands are mutually exclusive — band 1 must NOT render at the cap.
       refute html =~ "Large export — will stream in chunks."
     end
+
+    # -------------------------------------------------------------------
+    # surface header (Phase 66)
+    # -------------------------------------------------------------------
+
+    describe "surface header (Phase 66)" do
+      test "renders the surface badge linking to /audit/coverage with locked literals", %{
+        conn: conn
+      } do
+        {:ok, _view, html} = mount_audit(conn)
+
+        # Surface header threadline-ui-header (Plan 03 component + style.ex rule)
+        assert html =~ ~s|class="threadline-ui-header"|
+
+        # Badge link to /audit/coverage (D-31d — plain anchor, not live_patch)
+        assert html =~ ~s|href="/audit/coverage"|
+
+        # One of the two locked literals is present (D-31a — never hidden).
+        # Use a combined regex to avoid Elixir's strict-boolean `or` gotcha.
+        assert html =~ ~r/(All covered|\d+ uncovered)/
+      end
+
+      test "datalist excludes uncovered and expected_uncovered tuple variants", %{conn: conn} do
+        # Pitfall 10 regression — Phase 66's additive third tuple variant
+        # (`:expected_uncovered`) MUST NOT leak through TimelineLive's existing
+        # datalist consumer. The datalist must contain ONLY `:covered` table
+        # names. The mount/3 helper at timeline_live.ex:30-35 pattern-matches
+        # `{:covered, name} -> [name]; _ -> []`, which is the contract this
+        # test guards against future relaxation.
+        #
+        # Test environment fixtures (verified via Threadline.Health.trigger_coverage/1):
+        #   - {:covered,             "threadline_ci_coverage_canary"}  # has Threadline trigger
+        #   - {:uncovered,           "threadline_verify_cov_uncovered"} # no trigger, not baseline
+        #   - {:expected_uncovered,  "schema_migrations"}               # baseline tuple
+        #
+        # The datalist must contain `threadline_ci_coverage_canary` (covered)
+        # AND must NOT contain `threadline_verify_cov_uncovered` (uncovered)
+        # AND must NOT contain `schema_migrations` (expected_uncovered).
+
+        {:ok, _view, html} = mount_audit(conn)
+
+        # Positive: at least one covered table appears in the datalist.
+        assert html =~
+                 ~r/<datalist[^>]*id="audited-tables"[^>]*>.*?<option value="threadline_ci_coverage_canary".*?<\/datalist>/s
+
+        # Pitfall 10 negative assertions — the datalist MUST NOT include the
+        # `:uncovered` table OR the `:expected_uncovered` baseline name.
+        # These regexes scope the negative assertion to the datalist region
+        # so the literals can legitimately appear elsewhere (e.g. in surface
+        # header counts or in error copy) without false-positive failure.
+        refute html =~
+                 ~r/<datalist[^>]*id="audited-tables"[^>]*>.*?<option value="threadline_verify_cov_uncovered".*?<\/datalist>/s
+
+        refute html =~
+                 ~r/<datalist[^>]*id="audited-tables"[^>]*>.*?<option value="schema_migrations".*?<\/datalist>/s
+      end
+    end
   end
 
   # -------------------------------------------------------------------

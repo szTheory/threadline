@@ -135,5 +135,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})
     end
+
+    describe "surface header (Phase 66)" do
+      test "renders the surface badge linking to /audit/coverage with locked literals", %{
+        conn: conn
+      } do
+        {:ok, _lv, html} = live(conn, "/audit/actors/user/surface_header_test")
+
+        # Surface header threadline-ui-header (Plan 03 component + style.ex rule)
+        assert html =~ ~s|class="threadline-ui-header"|
+
+        # Badge link to /audit/coverage (D-31d — plain anchor, not live_patch)
+        assert html =~ ~s|href="/audit/coverage"|
+
+        # One of the two locked literals is present (D-31a — never hidden).
+        # Combined regex avoids Elixir's strict-boolean `or` gotcha.
+        assert html =~ ~r/(All covered|\d+ uncovered)/
+      end
+    end
   end
 end
