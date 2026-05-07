@@ -171,6 +171,7 @@ defmodule Threadline.MixProject do
         "guides/performance.md",
         "guides/domain-reference.md",
         "guides/operator-surface.md",
+        "guides/upgrade-path.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/incident-playbook.md",

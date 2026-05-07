@@ -4,6 +4,8 @@ The Threadline Operator Surface provides a suite of mountable, drop-in LiveView 
 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 
+For compatibility, support boundaries, and deprecation policy, see `guides/upgrade-path.md`. This guide stays focused on mount, auth, and screens.
+
 ## 1-Minute Mount
 
 To enable the UI, first ensure you have the optional dependencies installed in your `mix.exs`:
