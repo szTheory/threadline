@@ -175,6 +175,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           cursor: pointer;
         }
 
+        .threadline-ui .button-cluster .download-button {
+          padding: var(--tl-spacing-xs) var(--tl-spacing-md);
+          background: var(--tl-color-secondary);
+          color: var(--tl-color-text);
+          border: 1px solid var(--tl-color-secondary);
+          border-radius: 4px;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
         .threadline-ui .clear-link {
           color: var(--tl-color-text-muted);
           text-decoration: underline;
@@ -192,6 +202,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .threadline-ui .filter-hint {
           font-size: var(--tl-font-label);
           color: var(--tl-color-text-muted);
+        }
+
+        .threadline-ui .match-count-status {
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+          font-size: var(--tl-font-label);
+          color: var(--tl-color-text-muted);
+          border-bottom: 1px solid var(--tl-color-secondary);
+        }
+
+        .threadline-ui .truncation-banner {
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+          margin: var(--tl-spacing-sm) var(--tl-spacing-md);
+          border-radius: 4px;
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .truncation-banner.informational {
+          background: var(--tl-color-secondary);
+          color: var(--tl-color-text-muted);
+        }
+
+        .threadline-ui .truncation-banner.warning {
+          /* Amber band — distinct from .filter-error's destructive red.
+             The warning band is data-loss-adjacent ("you're missing rows past 10,000")
+             while the informational band is transport ("we're chunking, larger size").
+             The two MUST be visually distinguishable per D-18. */
+          background: #FEF3C7;            /* amber-50 */
+          color: #92400E;                 /* amber-800 */
+          border-left: 3px solid #F59E0B; /* amber-500 */
         }
 
         .threadline-ui .tx-link {
