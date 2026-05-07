@@ -13,6 +13,18 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] `mix threadline.verify_coverage` only fails CI when an **`expected_tables`** name is missing triggers or uncovered; `{:uncovered, _}` on other tables is informational. Audit catalog tables **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are excluded from `Health`’s per-table list by design (same link).
 - [ ] `Threadline.Health.trigger_coverage/1` is wired into health checks or release checks where you need fast failure on drift.
 
+## Coverage drift visibility
+
+Threadline's strongest production posture comes from making coverage drift impossible to miss. After mounting the operator surface and configuring triggers, verify:
+
+- [ ] **Surface header pill renders on every LV** — visit any operator-surface page and confirm the badge shows either "All covered" (green-muted) or "{N} uncovered" (amber). The badge link goes to `/audit/coverage`.
+- [ ] **Coverage dashboard responds at `/audit/coverage`** — the page renders three buckets (covered / uncovered / expected) with a 30-second polling default.
+- [ ] **Mix-task parity for capture-only paths** — `mix threadline.health.coverage` prints the same data; `mix threadline.health.coverage --json` for machine consumption.
+- [ ] **Adopter-declared expected-uncovered set** — if you use Oban, vendor add-ons, or non-Threadline bookkeeping tables, declare them in `config :threadline, :health, expected_uncovered_tables: [...]`. Run `Threadline.Health.Policy.validate!/1` at boot to fail loudly on typos.
+- [ ] **Telemetry alert on failure** — subscribe to `[:threadline, :health, :checked, :error]` so sustained polling failures (e.g. DB connection issues) page someone instead of silently freezing the dashboard at the last-good count.
+
+See also `guides/operator-surface.md` §"Coverage dashboard".
+
 ## 2. Actor bridge and semantics
 
 - [ ] Request paths set `threadline.actor_ref` inside the **same** `Ecto.Multi` / `Repo.transaction` as audited writes (transaction-local GUC; safe under PgBouncer transaction pooling — see README **PgBouncer** section).

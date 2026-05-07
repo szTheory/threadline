@@ -156,15 +156,19 @@ See also: `Threadline.Telemetry` on HexDocs for copy-paste attach examples.
 
 ## Trigger coverage (operational)
 
-`Threadline.Health.trigger_coverage/1` takes **`repo:`** (required `Ecto.Repo` module) and returns a list of tagged tuples:
+`Threadline.Health.trigger_coverage/1` takes **`repo:`** (required `Ecto.Repo` module) and an optional **`:schema`** keyword (default `"public"`, Phase 66+) and returns a list of tagged tuples:
 
-`[{:covered, String.t()} | {:uncovered, String.t()}]`
+`[{:covered, String.t()} | {:uncovered, String.t()} | {:expected_uncovered, String.t()}]`
 
-Each tuple names a **public** user table the catalog query sees. `{:covered, name}` means Threadline’s `threadline_audit_*` trigger was found on that relation; `{:uncovered, name}` means it was not.
+Each tuple names a user table the catalog query sees in the requested schema. `{:covered, name}` means Threadline’s `threadline_audit_*` trigger was found on that relation; `{:uncovered, name}` means it was not; `{:expected_uncovered, name}` means the table is intentionally not audited (Phase 66+ — `schema_migrations` baseline plus adopter-configured `:expected_uncovered_tables`). The third tuple variant is **additive** — pre-Phase-66 callsites that pattern-match only `{:covered, _}` / `{:uncovered, _}` keep working unchanged.
+
+**Schema scope.** Pass `:schema` to query a non-`public` schema (e.g. `Threadline.Health.trigger_coverage(repo: MyApp.Repo, schema: "tenant_42")`). The lib does **NOT** validate `:schema` against `pg_namespace` — programmatic callers are responsible for sanitizing or trusting their own input. Surfaces that take untrusted input (the Operator-Surface coverage LV and the Mix tasks) validate at the edge with a regex + `pg_namespace` lookup.
 
 **Audit catalog tables.** `audit_transactions`, `audit_changes`, and `audit_actions` are **excluded** from the per-table list — they are not expected to carry capture triggers (CAP-10 / `Threadline.Health` `@moduledoc`). Do not expect them in `Health` output.
 
-**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself.
+**`mix threadline.health.coverage` (Phase 66+).** Viewer-only Mix-task parity for capture-only adopters: prints a three-section `TABLE / STATUS / SOURCE` table by default, or a JSON object via `--json` (`covered`, `uncovered`, `expected_uncovered`, `schema` keys; `expected_uncovered` entries are `{"table", "source"}` objects with `source ∈ {"baseline", "config"}`). Always exits 0 — viewer, not gate. Pass `--schema=NAME` for multi-schema adopters. Cross-link: see `guides/operator-surface.md` §"Coverage dashboard" for the LV companion.
+
+**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself. `{:expected_uncovered, _}` tuples are treated as covered-equivalent for the CI gate (Phase 66+ additive case clause). Phase 66 adds an additive `--schema=NAME` flag with the same edge-validation contract as the new Mix task; default behavior is unchanged.
 
 **Telemetry link.** When you need how those aggregate counts surface in metrics, see the [`[:threadline, :health, :checked]`](#threadline-health-checked) subsection under [`## Telemetry (operator reference)`](#telemetry-operator-reference).
 
