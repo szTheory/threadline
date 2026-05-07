@@ -1,18 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.18
-milestone_name: Adoption and Policy Hardening
-status: planning
-last_updated: "2026-05-06T23:35:00.000Z"
-last_activity: 2026-05-06
-resume_file: .planning/phases/65-exports-ui-parity/65-01-PLAN.md
-stopped_at: "Phase 65 plans landed (4 plans, 2 waves) — ready to execute"
+milestone_name: — Adoption and Policy Hardening
+status: executing
+last_updated: "2026-05-07T13:12:18.333Z"
+last_activity: 2026-05-07 -- Phase null execution started
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 43
 ---
 
 # Project State: Threadline
@@ -24,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 65 — Exports UI Parity (planned)
-Plan: 4 plans in 2 waves — `/gsd-execute-phase 65` next
-Status: Ready to execute
-Last activity: 2026-05-06 — Phase 65 plans landed. 4 plans / 2 waves: Plan 01 (lib `:cap` opt + `Filename` + `FilterParams` helpers), Plan 02 (`ExportController` + `ExportAuthPlug` + router-macro grow), Plan 03 (TimelineLive download anchors + count line + truncation banner) all in Wave 1 (02 + 03 disjoint, both `depends_on: [65-01]`); Plan 04 (EXPO-05 doc-contract + chunked-integration + Mix-parity test trifecta) in Wave 2. Plan-checker PASSED on iteration 1 with one non-blocking WARNING (Plan 02 frontmatter accuracy — fixed inline). RESEARCH corrected D-23 SQL shape (windowed-count subquery, NOT `EXISTS LIMIT 10001`); chunked path mandates explicit `Stream.take(10_000)` since `stream_changes/2` doesn't enforce `:max_rows`; PR #2611 fix requires HTML `download` attr on the anchor; parity test uses `Mix.Task.reenable("threadline.export")` in setup.
+Phase: null — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase null
+Last activity: 2026-05-07 -- Phase null execution started
 
 ## Performance Metrics
 
