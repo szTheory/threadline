@@ -113,14 +113,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
       )
 
-      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint,
-        secret_key_base: "y" |> String.duplicate(64),
-        live_view: [signing_salt: "y" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
       start_supervised!(@endpoint)
-      start_supervised!(Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint)
       :ok
     end
 
@@ -342,29 +335,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -------------------------------------------------------------------
-    # Case 10 — scope_thread (BROWSE-01 — the divergence-from-analogs guard)
-    # -------------------------------------------------------------------
-
-    test "Case 10: Scoped mount renders successfully (scope_aware_opts exercised)", %{conn: conn} do
-      # Mount via the scoped endpoint that uses authorize_fn returning {:ok, %{tenant: "t1"}}.
-      # This proves the scope-aware path does not crash and `:threadline_scope` is set.
-      scoped_conn =
-        conn
-        |> Map.put(:private, Map.put(conn.private, :phoenix_endpoint, Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint))
-
-      assert {:ok, _lv, html} =
-               Phoenix.LiveViewTest.live(
-                 scoped_conn,
-                 "/audit_scoped",
-                 connect_params: %{},
-                 endpoint: Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
-               )
-
-      # Scoped mount renders the timeline form (proves scope_aware_opts doesn't crash)
-      assert html =~ ~s|name="filter[from]"|
-    end
-
-    # -------------------------------------------------------------------
     # Case 11 — url_paste_echoes_form_fields (WARNING 1 fix — BROWSE-03)
     # -------------------------------------------------------------------
 
@@ -453,6 +423,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       #   refute_receive {:phoenix, :patch, _}, 50
       # The intent is the same: prove no second URL change is emitted.
       refute_patch(lv, 50)
+    end
+  end
+
+  # -------------------------------------------------------------------
+  # Case 10 — scope_thread (BROWSE-01 — divergence-from-analogs guard)
+  # Separate ExUnit module so @endpoint can point to the scoped endpoint
+  # that mounts the surface with authorize_fn returning {:ok, %{tenant: "t1"}}.
+  # -------------------------------------------------------------------
+
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveScopedTest do
+    use ExUnit.Case, async: true
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint,
+        secret_key_base: "y" |> String.duplicate(64),
+        live_view: [signing_salt: "y" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    test "Case 10: Scoped mount renders successfully (scope_aware_opts exercised)", %{conn: conn} do
+      # Mount via the scoped endpoint that uses authorize_fn returning {:ok, %{tenant: "t1"}}.
+      # This proves the scope-aware path does not crash and :threadline_scope is populated.
+      assert {:ok, _lv, html} = live(conn, "/audit_scoped")
+
+      # Scoped mount renders the timeline form (proves scope_aware_opts doesn't crash)
+      assert html =~ ~s|name="filter[from]"|
     end
   end
 end
