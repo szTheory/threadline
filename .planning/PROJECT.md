@@ -305,4 +305,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-06 — v1.17 closed (18/18 requirements shipped, Phases 57–63). v1.18 — Adoption and Policy Hardening opened, continuing phase numbering from Phase 64.*
+*Last updated: 2026-05-07 — v1.17 closed (18/18 requirements shipped, Phases 57–63). v1.18 — Adoption and Policy Hardening in progress: Phase 64 (raw timeline browse + filter form) and Phase 65 (exports UI parity) complete; Phase 66 (coverage dashboard) next.*
