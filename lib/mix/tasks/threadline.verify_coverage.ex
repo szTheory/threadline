@@ -15,12 +15,20 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
   ## Usage
 
       mix threadline.verify_coverage
+      mix threadline.verify_coverage --schema=NAME
 
   Prints a `TABLE` / `STATUS` report to stdout, then a line containing `summary:`
   with counts. Exits with status **1** if any expected table is missing or
   uncovered; exits **0** when all expected tables are covered.
 
   Table names in output are public-schema metadata only (same scope as `Health`).
+
+  ## Schema scope (Phase 66)
+
+  By default, this task verifies the `"public"` schema. Pass `--schema=NAME`
+  to verify a non-`public` schema (e.g. `mix threadline.verify_coverage --schema=tenant_42`).
+  NAME is validated at the edge (regex + `pg_namespace` lookup); invalid input
+  exits 1 via `Mix.raise/1`.
   """
 
   use Mix.Task
@@ -28,7 +36,10 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
   alias Threadline.Verify.CoveragePolicy
 
   @impl Mix.Task
-  def run(_args) do
+  def run(argv) do
+    {opts, _, _} = OptionParser.parse(argv, strict: [schema: :string])
+    schema = Keyword.get(opts, :schema, "public")
+
     Mix.Task.run("app.config", [])
     {:ok, _} = Application.ensure_all_started(:ssl)
     {:ok, _} = Application.ensure_all_started(:postgrex)
@@ -36,9 +47,10 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
 
     repo = resolve_repo!()
     ensure_repo_started!(repo)
+    validate_schema!(repo, schema)
     expected = resolve_expected_tables!()
 
-    coverage = Threadline.Health.trigger_coverage(repo: repo)
+    coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
     violations = CoveragePolicy.violations(coverage, expected)
     counts = CoveragePolicy.summary_counts(coverage, expected)
 
@@ -67,6 +79,26 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
       {:error, {:already_started, _}} -> :ok
       {:error, reason} -> Mix.raise("Could not start #{inspect(repo)}: #{inspect(reason)}")
     end
+  end
+
+  @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
+
+  defp validate_schema!(repo, schema) do
+    unless schema =~ @schema_regex do
+      Mix.raise(
+        "threadline.verify_coverage: schema #{inspect(schema)} is not a valid PostgreSQL identifier. " <>
+          "Expected lowercase letters, digits, and underscores starting with a letter or underscore (max 63 chars)."
+      )
+    end
+
+    sql = "SELECT 1 FROM pg_namespace WHERE nspname = $1 LIMIT 1"
+    %{rows: rows} = Ecto.Adapters.SQL.query!(repo, sql, [schema])
+
+    if rows == [] do
+      Mix.raise("threadline.verify_coverage: schema #{inspect(schema)} not found.")
+    end
+
+    :ok
   end
 
   defp resolve_expected_tables! do
