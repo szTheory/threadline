@@ -339,6 +339,149 @@ defmodule Threadline.ExportTest do
     end
   end
 
+  describe "format_changes_iodata/3 + csv_header/1 (chunked-path helpers)" do
+    test ":csv batch + csv_header concat byte-equal to to_csv_iodata/2 for the same rows" do
+      tname = table_name("fmtcsv")
+      txn = insert_transaction(%{source: "web"})
+      insert_change(txn, %{table_name: tname, op: "insert", data_after: %{"x" => 1}})
+      insert_change(txn, %{table_name: tname, op: "update", data_after: %{"x" => 2}})
+
+      filters = [repo: @repo, table: tname]
+
+      {:ok, %{data: full_iodata}} = Export.to_csv_iodata(filters, [])
+      full_csv = IO.iodata_to_binary(full_iodata)
+
+      rows = filters |> Export.stream_export_rows(repo: @repo) |> Enum.to_list()
+
+      header_iodata = Export.csv_header([])
+      data_iodata = Export.format_changes_iodata(rows, :csv, [])
+      reconstructed = IO.iodata_to_binary([header_iodata, data_iodata])
+
+      assert reconstructed == full_csv
+    end
+
+    test ":csv batch with include_action_metadata: true matches the extended CSV shape" do
+      tname = table_name("fmtcsvmeta")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      filters = [repo: @repo, table: tname]
+
+      {:ok, %{data: full_iodata}} =
+        Export.to_csv_iodata(filters, include_action_metadata: true)
+
+      full_csv = IO.iodata_to_binary(full_iodata)
+
+      rows = filters |> Export.stream_export_rows(repo: @repo) |> Enum.to_list()
+
+      header_iodata = Export.csv_header(include_action_metadata: true)
+      data_iodata = Export.format_changes_iodata(rows, :csv, include_action_metadata: true)
+      reconstructed = IO.iodata_to_binary([header_iodata, data_iodata])
+
+      assert reconstructed == full_csv
+    end
+
+    test "csv_header/1 returns the same header line as to_csv_iodata/2's first row" do
+      tname = table_name("fmthdr")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      filters = [repo: @repo, table: tname]
+
+      {:ok, %{data: full_iodata}} = Export.to_csv_iodata(filters, [])
+      full_csv = IO.iodata_to_binary(full_iodata)
+      [first_line | _] = String.split(full_csv, "\r\n", parts: 2)
+
+      header_str = Export.csv_header([]) |> IO.iodata_to_binary()
+      assert header_str == first_line <> "\r\n"
+    end
+
+    test ":ndjson batch byte-equal to to_json_document/2 ndjson output" do
+      tname = table_name("fmtndj")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+      insert_change(txn, %{table_name: tname, table_pk: %{"id" => "2"}})
+
+      filters = [repo: @repo, table: tname]
+
+      {:ok, %{data: full_data}} =
+        Export.to_json_document(filters, json_format: :ndjson)
+
+      full_ndjson = IO.iodata_to_binary(full_data)
+
+      rows = filters |> Export.stream_export_rows(repo: @repo) |> Enum.to_list()
+      batched = Export.format_changes_iodata(rows, :ndjson, []) |> IO.iodata_to_binary()
+
+      assert batched == full_ndjson
+    end
+
+    test ":json_wrapped batch produces per-row JSON objects (no envelope)" do
+      tname = table_name("fmtjson")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      filters = [repo: @repo, table: tname]
+      rows = filters |> Export.stream_export_rows(repo: @repo) |> Enum.to_list()
+
+      iodata = Export.format_changes_iodata(rows, :json_wrapped, [])
+      # Each element of the resulting iodata list is one Jason.encode!-ed binary.
+      assert is_list(iodata)
+      assert length(iodata) == length(rows)
+
+      first = iodata |> List.first() |> IO.iodata_to_binary()
+      decoded = Jason.decode!(first)
+      assert decoded["table_name"] == tname
+      assert is_map(decoded["transaction"])
+    end
+
+    test "format_changes_iodata/3 raises FunctionClauseError for unknown format" do
+      assert_raise FunctionClauseError, fn ->
+        Export.format_changes_iodata([], :xml, [])
+      end
+    end
+  end
+
+  describe "stream_export_rows/2" do
+    test "yields the join-projected map shape (with tx_*/aa_* fields)" do
+      tname = table_name("strex")
+      txn = insert_transaction(%{source: "web"})
+      insert_change(txn, %{table_name: tname})
+
+      filters = [repo: @repo, table: tname]
+      [row | _] = filters |> Export.stream_export_rows(repo: @repo) |> Enum.to_list()
+
+      assert is_map(row)
+      assert Map.has_key?(row, :tx_occurred_at)
+      assert Map.has_key?(row, :tx_source)
+      assert Map.has_key?(row, :tx_actor_ref)
+      assert Map.has_key?(row, :aa_id)
+      assert Map.has_key?(row, :aa_correlation_id)
+      assert row.table_name == tname
+      assert row.tx_source == "web"
+    end
+
+    test "pages by keyset across page_size boundaries" do
+      tname = table_name("strexpage")
+      txn = insert_transaction()
+
+      for i <- 1..7 do
+        insert_change(txn, %{
+          table_name: tname,
+          table_pk: %{"id" => "r-#{i}"},
+          captured_at: DateTime.add(~U[2026-01-01 00:00:00.000000Z], i, :second)
+        })
+      end
+
+      filters = [repo: @repo, table: tname]
+      streamed = filters |> Export.stream_export_rows(repo: @repo, page_size: 3) |> Enum.to_list()
+
+      assert length(streamed) == 7
+      # Same ordering as export_changes_query (desc captured_at, desc id).
+      streamed_pks = Enum.map(streamed, & &1.table_pk["id"])
+      assert streamed_pks == ["r-7", "r-6", "r-5", "r-4", "r-3", "r-2", "r-1"]
+    end
+  end
+
   describe "stream_changes/2" do
     test "pages through all rows in timeline order" do
       tname = table_name("stream")

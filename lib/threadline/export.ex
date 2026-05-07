@@ -186,6 +186,75 @@ defmodule Threadline.Export do
   end
 
   @doc """
+  Returns the canonical CSV header row (one line ending in `\\r\\n`) for the
+  operator-surface export controller's chunked path.
+
+  Same column order as `to_csv_iodata/2`. The chunked path emits this as the
+  first chunk before streaming data rows so the byte-equality parity test
+  holds against the iodata path.
+
+  ## Options
+
+  - `:include_action_metadata` — when `true`, append `correlation_id` and
+    `action_id` columns (same shape as `to_csv_iodata/2`).
+  """
+  @spec csv_header(keyword()) :: iodata()
+  def csv_header(opts \\ []) when is_list(opts) do
+    include_meta = Keyword.get(opts, :include_action_metadata, false)
+
+    header =
+      if include_meta do
+        @csv_header ++ ~w(correlation_id action_id)
+      else
+        @csv_header
+      end
+
+    RFC4180.dump_to_iodata([header])
+  end
+
+  @doc """
+  Formats a pre-fetched list of `%AuditChange{}` structs into iodata for the
+  requested format.
+
+  Used by the operator-surface export controller to format streamed batches;
+  CSV header and JSON envelopes are NOT emitted by this function and remain
+  the caller's responsibility (the chunked path emits the header / envelope
+  as its first / last chunk).
+
+  - `:csv` — CSV data rows (each terminated by `\\r\\n` per RFC 4180); the
+    caller MUST emit `csv_header/1` as the first chunk.
+  - `:json_wrapped` — each row as `Jason.encode!/1` output (a JSON object).
+    The caller emits the surrounding `{"format_version": ..., "generated_at":
+    ..., "changes": [` prefix and `]}` suffix as separate chunks plus the
+    inter-row comma separators.
+  - `:ndjson` — each row as `Jason.encode!/1` output followed by `\\n` (no
+    envelope; pure line-delimited JSON).
+
+  ## Options
+
+  - `:include_action_metadata` (default `false`) — same shape as `to_csv_iodata/2`.
+  """
+  @spec format_changes_iodata([struct()], :csv | :json_wrapped | :ndjson, keyword()) :: iodata()
+  def format_changes_iodata(rows, format, opts \\ [])
+      when is_list(rows) and is_list(opts) and format in [:csv, :json_wrapped, :ndjson] do
+    do_format_changes_iodata(rows, format, opts)
+  end
+
+  defp do_format_changes_iodata(rows, :csv, opts) do
+    include_meta = Keyword.get(opts, :include_action_metadata, false)
+    data_rows = Enum.map(rows, &csv_row(&1, include_meta))
+    RFC4180.dump_to_iodata(data_rows)
+  end
+
+  defp do_format_changes_iodata(rows, :json_wrapped, _opts) do
+    Enum.map(rows, fn row -> Jason.encode!(change_map(row)) end)
+  end
+
+  defp do_format_changes_iodata(rows, :ndjson, _opts) do
+    Enum.map(rows, fn row -> [Jason.encode!(change_map(row)), ?\n] end)
+  end
+
+  @doc """
   Lazily enumerates `AuditChange` structs in timeline order using keyset pages.
 
   Does **not** enforce `max_rows` — combine with `Stream.take/2` if needed.
@@ -216,6 +285,64 @@ defmodule Threadline.Export do
               {rows, :done}
 
             %Query.TimelinePage{entries: rows, next_cursor: next_cursor} ->
+              {rows, next_cursor}
+          end
+      end,
+      fn _ -> :ok end
+    )
+  end
+
+  @doc """
+  Lazily enumerates the join-projected export-row maps (same shape as
+  `to_csv_iodata/2` / `to_json_document/2` consume) in timeline order using
+  keyset pages.
+
+  Each emitted item is a map with the keys `:id`, `:transaction_id`,
+  `:table_schema`, `:table_name`, `:op`, `:captured_at`, `:table_pk`,
+  `:data_after`, `:changed_fields`, `:changed_from`, `:tx_occurred_at`,
+  `:tx_actor_ref`, `:tx_source`, `:aa_id`, `:aa_correlation_id` — exactly the
+  projection from `Threadline.Query.export_changes_query/1`. This matches what
+  `format_changes_iodata/3` expects, so the operator-surface export
+  controller's chunked path produces byte-identical output to the iodata path.
+
+  Does **not** enforce `max_rows` — combine with `Stream.take/2` if needed.
+
+  ## Options
+
+  - `:repo` — optional if present in `filters`
+  - `:page_size` — defaults to `1000`
+  """
+  @spec stream_export_rows(keyword(), keyword()) :: Enumerable.t()
+  def stream_export_rows(filters, opts \\ []) when is_list(filters) and is_list(opts) do
+    Query.validate_timeline_filters!(filters)
+    repo = Query.timeline_repo!(filters, opts)
+    page_size = Keyword.get(opts, :page_size, 1_000)
+
+    Stream.resource(
+      fn -> :start end,
+      fn
+        :done ->
+          {:halt, :done}
+
+        state ->
+          cursor = if state == :start, do: nil, else: state
+
+          q =
+            filters
+            |> Query.export_changes_query()
+            |> Query.maybe_after_timeline_cursor(cursor)
+            |> limit(^page_size)
+
+          case repo.all(q) do
+            [] ->
+              {:halt, :done}
+
+            rows when length(rows) < page_size ->
+              {rows, :done}
+
+            rows ->
+              last = List.last(rows)
+              next_cursor = %{captured_at: last.captured_at, id: last.id}
               {rows, next_cursor}
           end
       end,
