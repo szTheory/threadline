@@ -81,4 +81,59 @@ defmodule Threadline.TelemetryTest do
       assert_receive {:txn_committed, %{table_count: 5}}
     end
   end
+
+  describe "Phase 66 — emit_health_checked/3 additive measurement" do
+    test "emits :health, :checked with covered, uncovered, and expected_uncovered measurements" do
+      :telemetry.attach(
+        "test-health-checked-3-arity",
+        [:threadline, :health, :checked],
+        fn _name, measurements, _meta, pid ->
+          send(pid, {:health_checked, measurements})
+        end,
+        self()
+      )
+
+      on_exit(fn -> :telemetry.detach("test-health-checked-3-arity") end)
+
+      Threadline.Telemetry.emit_health_checked(2, 1, 3)
+
+      assert_receive {:health_checked, %{covered: 2, uncovered: 1, expected_uncovered: 3}}
+    end
+
+    test "old-shape destructure %{covered: c, uncovered: u} continues to work (additive)" do
+      :telemetry.attach(
+        "test-health-checked-old-destructure",
+        [:threadline, :health, :checked],
+        fn _name, %{covered: covered, uncovered: uncovered}, _meta, pid ->
+          send(pid, {:health_checked_old_shape, covered, uncovered})
+        end,
+        self()
+      )
+
+      on_exit(fn -> :telemetry.detach("test-health-checked-old-destructure") end)
+
+      Threadline.Telemetry.emit_health_checked(7, 4, 2)
+
+      assert_receive {:health_checked_old_shape, 7, 4}
+    end
+  end
+
+  describe "Phase 66 — emit_health_checked_error/1 sibling event" do
+    test "emits :health, :checked, :error with %{error: message} metadata" do
+      :telemetry.attach(
+        "test-health-checked-error",
+        [:threadline, :health, :checked, :error],
+        fn _name, measurements, metadata, pid ->
+          send(pid, {:health_error, measurements, metadata})
+        end,
+        self()
+      )
+
+      on_exit(fn -> :telemetry.detach("test-health-checked-error") end)
+
+      Threadline.Telemetry.emit_health_checked_error("connection refused")
+
+      assert_receive {:health_error, %{}, %{error: "connection refused"}}
+    end
+  end
 end

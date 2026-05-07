@@ -31,6 +31,7 @@ defmodule Threadline.Verify.CoveragePolicy do
         :error -> [{:missing, table}]
         {:ok, :uncovered} -> [{:uncovered, table}]
         {:ok, :covered} -> []
+        {:ok, :expected_uncovered} -> []
       end
     end)
     |> Enum.sort_by(fn {kind, name} -> {violation_rank(kind), name} end)
