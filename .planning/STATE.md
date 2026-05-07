@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
 status: verifying
-last_updated: "2026-05-07T14:25:07.070Z"
+last_updated: "2026-05-07T15:03:45.122Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 5
