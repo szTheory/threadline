@@ -147,25 +147,39 @@ defmodule Threadline.Export do
   Counts changes matching `filters` without loading row payloads.
 
   Same validation and join semantics as `Threadline.Query.timeline/2`.
+
+  ## Options
+
+  - `:repo` — optional if `:repo` is present in `filters`
+  - `:cap` — when set to a positive integer, the count short-circuits at that
+    value via a windowed subquery (`SELECT count(*) FROM (... LIMIT ^cap)`),
+    so multi-million-row tables return immediately at the cap rather than
+    waiting for a full aggregate scan. The default (`nil`) preserves the
+    existing unbounded behavior. The Mix task `mix threadline.export` does
+    NOT pass `:cap` and is unaffected; `Threadline.OperatorSurface.Live.TimelineLive`
+    and the export controller pass `cap: 10_001` so the LV can render
+    "10,000+ matches" without hitting `statement_timeout`.
   """
   @spec count_matching(keyword(), keyword()) :: {:ok, %{count: non_neg_integer()}}
   def count_matching(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     Query.validate_timeline_filters!(filters)
     repo = Query.timeline_repo!(filters, opts)
+    cap = Keyword.get(opts, :cap)
+
+    base_query =
+      case Keyword.get(filters, :correlation_id) do
+        nil -> filters |> Query.timeline_query() |> select([ac, _at], ac.id)
+        _ -> filters |> Query.timeline_query() |> select([ac, _at, _aa], ac.id)
+      end
 
     count =
-      case Keyword.get(filters, :correlation_id) do
-        nil ->
-          filters
-          |> Query.timeline_query()
-          |> select([ac, at], ac.id)
-          |> repo.aggregate(:count, :id)
+      if is_integer(cap) and cap > 0 do
+        capped = base_query |> limit(^cap)
 
-        _ ->
-          filters
-          |> Query.timeline_query()
-          |> select([ac, at, _aa], ac.id)
-          |> repo.aggregate(:count, :id)
+        from(sub in subquery(capped), select: count())
+        |> repo.one()
+      else
+        repo.aggregate(base_query, :count, :id)
       end
 
     {:ok, %{count: count}}

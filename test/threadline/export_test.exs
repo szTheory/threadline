@@ -310,6 +310,33 @@ defmodule Threadline.ExportTest do
 
       assert {:ok, %{count: 2}} = Export.count_matching([repo: @repo, table: tname], [])
     end
+
+    test "with :cap clamps at the cap value when more rows match" do
+      tname = table_name("capclamp")
+      txn = insert_transaction()
+      for i <- 1..100, do: insert_change(txn, %{table_name: tname, table_pk: %{"id" => "r-#{i}"}})
+
+      assert {:ok, %{count: 50}} =
+               Export.count_matching([repo: @repo, table: tname], cap: 50)
+    end
+
+    test "with :cap returns the true count when fewer rows match" do
+      tname = table_name("capslack")
+      txn = insert_transaction()
+      for i <- 1..10, do: insert_change(txn, %{table_name: tname, table_pk: %{"id" => "r-#{i}"}})
+
+      assert {:ok, %{count: 10}} =
+               Export.count_matching([repo: @repo, table: tname], cap: 50)
+    end
+
+    test "without :cap returns the true count (default behavior unchanged)" do
+      tname = table_name("capnone")
+      txn = insert_transaction()
+      for i <- 1..100, do: insert_change(txn, %{table_name: tname, table_pk: %{"id" => "r-#{i}"}})
+
+      assert {:ok, %{count: 100}} =
+               Export.count_matching([repo: @repo, table: tname], [])
+    end
   end
 
   describe "stream_changes/2" do
