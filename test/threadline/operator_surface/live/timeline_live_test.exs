@@ -426,6 +426,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute_receive {:phoenix, :patch, _}, 50
     end
+
+    # -------------------------------------------------------------------
+    # Case 14 — history_round_trip (BROWSE-03 — back-button equivalent)
+    # -------------------------------------------------------------------
+    # Browser back-button == GET to a previously-visited URL. In a connected LV,
+    # that is `render_patch(lv, prior_url)` — same path the browser would take
+    # when popping its history stack and re-issuing the prior URL.
+    #
+    # Test: A → B → re-patch to A → assert form fields + URL state restored.
+
+    test "Case 14: Re-patching to a prior URL restores prior filter state (back-button equivalent)",
+         %{conn: conn} do
+      # Mount with filter A (table=posts).
+      {:ok, lv, html_a} = live(conn, "/audit?table=posts")
+      assert html_a =~ ~s(value="posts")
+
+      # Apply filter B (table=users) via form submit — adds a history entry.
+      lv
+      |> form("#timeline-filters",
+        filter: %{
+          from: "",
+          to: "",
+          table: "users",
+          actor_kind: "",
+          actor_id: "",
+          correlation_id: ""
+        }
+      )
+      |> render_submit()
+
+      patched_b = assert_patch(lv)
+      assert patched_b =~ "table=users"
+
+      # Simulate browser back to filter A by patching to A's URL.
+      html_after_back = render_patch(lv, "/audit?table=posts")
+
+      # Form repopulates with filter A; B's value is gone.
+      assert html_after_back =~ ~s(value="posts")
+      refute html_after_back =~ ~s(value="users")
+
+      # Result set re-queried with filter A (no error rendered).
+      refute html_after_back =~ ~s|class="filter-error"|
+    end
   end
 
   # -------------------------------------------------------------------

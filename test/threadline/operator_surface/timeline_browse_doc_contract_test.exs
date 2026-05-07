@@ -126,6 +126,24 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            """
   end
 
+  # --- BROWSE-03: replace-style default-window canonicalization (no extra history entry) ---
+
+  test "default-window canonicalization push_patches with replace: true (no extra history entry on bare /audit)" do
+    live_src = File.read!(@lv_path)
+
+    # The bare /audit → /audit?from=...&to=... patch must use replace: true so the
+    # browser back button returns to the page before /audit, not to a bare /audit step.
+    # LiveViewTest cannot observe the browser history stack directly; this source-level
+    # assertion locks the LV contract that delivers correct history behavior.
+    assert String.contains?(live_src, "replace: true"),
+           """
+           Expected #{@lv_path} default-window push_patch to include `replace: true`.
+           Without it, opening /audit creates an extra history entry, breaking BROWSE-03's
+           back-button contract (back from canonicalized /audit?from=...&to=... should
+           return to the page BEFORE /audit, not to bare /audit).
+           """
+  end
+
   # --- D-02: ← Timeline back-link present on sibling LVs ---
 
   test "TransactionLive header contains ← Timeline back-link" do
