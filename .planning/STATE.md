@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: — Adoption and Policy Hardening
-status: executing
-last_updated: "2026-05-07T21:04:03.413Z"
-last_activity: 2026-05-07 -- Phase 68 execution started
+status: milestone_complete
+last_updated: "2026-05-08T01:05:00.000Z"
+last_activity: 2026-05-08 -- v1.18 archived; next milestone planning pending
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 20
-  completed_plans: 17
-  percent: 85
+  completed_plans: 20
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -18,21 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.18 — Adoption and Policy Hardening. Round out the v1.17 operator surface so production teams can roll it out cleanly: raw timeline browse + filter form (full `Threadline.Query.timeline/2` parity, URL-as-state via `live_patch`), exports UI parity (download current view; sync iodata for small / chunked stream for large), coverage dashboard + drift-aware redaction admin (read-only) with parity Mix tasks, and lifecycle ergonomics (onboarding revisit, optional-Phoenix-deps upgrade-path docs, ADOPT-07 evidence capture plus stale blocker retirement). Continuing phase numbering from Phase 64.
+**Current Focus**: Open the next milestone from `.planning/MILESTONE-ARC.md` (current recommendation: v1.19 — Integration Breadth).
 
 ## Current Position
 
-Phase: 68 (lifecycle-ergonomics) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 68
-Last activity: 2026-05-07 -- Phase 68 execution started
+Phase: 68 (lifecycle-ergonomics) — COMPLETE
+Plan: 3 of 3
+Status: v1.18 archived and ready for tag closeout
+Last activity: 2026-05-08 -- milestone artifacts archived and live planning surface reset
 
 ## Performance Metrics
 
 - **Total Phases**: 5 (Phases 64-68) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 3 of 5 in active milestone
+- **Phases Completed**: 5 of 5 in active milestone
 - **Requirements Covered**: 16 of 16 mapped (BROWSE 4, EXPO 3, COV 3, REDN 3, ADOPT 3)
 - **Last Milestone**: v1.17 — Operator Surface Foundation (shipped 2026-05-06, 18/18 requirements, Phases 57–63)
+- **Milestone Readiness**: v1.18 is fully shipped and ready for archive/tag closeout
 
 ## Accumulated Context
 
@@ -114,7 +115,7 @@ Last activity: 2026-05-07 -- Phase 68 execution started
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 - [x] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
 - [x] Spawn `gsd-roadmapper` to phase v1.18 starting at Phase 64 — completed 2026-05-06; ROADMAP.md written with 5 phases (64-68), 16/16 requirements mapped
-- [ ] Plan Phase 64 (Raw Timeline Browse & Filter Form) — first phase of v1.18; run `/gsd-plan-phase 64` next
+- [x] Plan Phase 64 (Raw Timeline Browse & Filter Form) — completed 2026-05-07 as part of the shipped v1.18 milestone
 - [x] Repo-wide formatter/CI blocker retirement evidence captured in Phase 68 — fresh `mix verify.format` + `mix ci.all` ran green on 2026-05-07 and the stale planning-language references were retired via ADOPT-07
 
 ### Blockers

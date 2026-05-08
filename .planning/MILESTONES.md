@@ -2,6 +2,30 @@
 
 Entries are newest first.
 
+## v1.18 — Adoption and Policy Hardening (shipped 2026-05-07)
+
+**Goal:** Tighten the shipped operator surface so production teams can actually roll it out cleanly: raw timeline browse with full filter parity, current-view exports, read-only coverage/redaction policy viewers, and lifecycle/onboarding hardening.
+
+**Phases completed:** **64-68** (5 phases; 20 plans with `SUMMARY.md`; per-phase verification evidence; consolidated `v1.18-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Shipped the raw `/audit` timeline browse LiveView with full `Threadline.Query.timeline/2` filter parity, URL-as-state, shared filter vocabulary, and locked route/label/filter-key doc contracts (**BROWSE-01..04**, Phase **64**).
+- Shipped export-from-current-view parity for CSV / wrapped JSON / NDJSON with pre-flight match counts, threshold-based chunked streaming, RFC 5987 filenames, and Mix-task byte-parity coverage (**EXPO-03..05**, Phase **65**).
+- Shipped the read-only coverage dashboard plus parity `mix threadline.health.coverage`, including `:schema` support, surface-header drift visibility, and contract-locked output/schema literals (**COV-01..03**, Phase **66**).
+- Shipped the drift-aware redaction admin plus parity `mix threadline.policy.show`, reconciling configured vs deployed redaction safely and never rendering sample values (**REDN-03..05**, Phase **67**).
+- Closed the lifecycle loop with mounted `/audit` onboarding docs, a canonical upgrade-path guide for the optional Phoenix surface, and fresh `mix verify.format` / `mix ci.all` evidence on the final v1.18 tree (**ADOPT-05..07**, Phase **68**).
+
+**Stats:** 5 phases, 20 plans, 16/16 requirements complete at close. Milestone window: **2026-05-06 → 2026-05-07**. First Phase 64-68 commit landed **2026-05-06 20:31:42 -0400**; final shipped Phase 68 commit landed **2026-05-07 17:14:41 -0400**. The closeout tree touched **82 files** with **13,798 insertions / 119 deletions** across the milestone work.
+
+**Archives:** `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-MILESTONE-AUDIT.md`.
+
+**Known gaps at close:** Milestone audit **passed** with 16/16 requirements satisfied. Two bookkeeping notes remain non-blocking: the open-artifact audit still surfaces resolved `67-UAT.md` as a stale close-decision item with 0 pending scenarios, and Phases **64-66** do not have Nyquist `VALIDATION.md` files even though their verification evidence exists.
+
+**What is next:** **`/gsd-new-milestone`** — open the next requirement set from `.planning/MILESTONE-ARC.md`, currently led by **v1.19 — Integration Breadth**.
+
+---
+
 ## v1.16 — Investigation Table Stakes (shipped 2026-05-06)
 
 **Goal:** Make Threadline answer the first serious audit investigation questions with stable library APIs, a first-class incident bundle surface, and one canonical docs story instead of custom SQL, ad-hoc joins, or per-app controller glue.
