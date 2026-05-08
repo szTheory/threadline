@@ -16,6 +16,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 - **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md).
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
+- **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix.
 - **Using Sigra:** read [guides/integrations/sigra.md](guides/integrations/sigra.md).
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
@@ -132,7 +133,10 @@ For the full first-hour mounted walkthrough, read
 the [Operator Surface guide](guides/operator-surface.md). For the broader host
 and framework contract across `Threadline.Plug`, `Threadline.Job`,
 `Threadline.Integrations.*`, and operator-surface auth/export auth, read
-[guides/integration-contracts.md](guides/integration-contracts.md).
+[guides/integration-contracts.md](guides/integration-contracts.md). For the
+current support claims, stay with
+[guides/upgrade-path.md](guides/upgrade-path.md) rather than inferring broader
+compatibility from the README.
 
 ## Notes
 
@@ -146,6 +150,7 @@ and framework contract across `Threadline.Plug`, `Threadline.Job`,
 - [HexDocs](https://hexdocs.pm/threadline)
 - [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
 - [Integration contracts](guides/integration-contracts.md)
+- [Support lanes and upgrade path](guides/upgrade-path.md)
 - [Sigra integration](guides/integrations/sigra.md)
 - [Domain reference](guides/domain-reference.md)
 - [Brownfield continuity](guides/brownfield-continuity.md)
