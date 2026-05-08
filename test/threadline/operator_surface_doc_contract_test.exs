@@ -38,4 +38,16 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     refute String.contains?(guide, "## Supported compatibility matrix")
     refute String.contains?(guide, "## Surface-only deprecation and removal policy")
   end
+
+  test "operator surface guide locks callback shape and export fallback wording" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "The `:authorize_fn` callback is invoked directly as a 1-arity function.")
+    assert String.contains?(guide, "it receives the socket-shaped value")
+    assert String.contains?(guide, "they call it with a synthetic `%{assigns: conn.assigns}` mirror.")
+    assert String.contains?(guide, "`{:ok, scope}` - Allowed.")
+    refute String.contains?(guide, "{:cont, socket}")
+    refute String.contains?(guide, "{:ok, socket}")
+    refute String.contains?(guide, "{:ok, conn}")
+  end
 end
