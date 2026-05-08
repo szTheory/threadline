@@ -168,6 +168,7 @@ defmodule Threadline.MixProject do
       source_url: @source_url,
       extras: [
         "README.md",
+        "guides/integration-contracts.md",
         "guides/performance.md",
         "guides/domain-reference.md",
         "guides/operator-surface.md",

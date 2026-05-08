@@ -133,8 +133,8 @@ defmodule Threadline.ReadmeDocContractTest do
       pipe_through [:browser, :require_authenticated_admin]
 
       threadline_operator_surface "/",
-        actor_fn: {MyApp.Audit, :current_actor},
-        authorize_fn: {MyApp.Audit, :authorize_operator}
+        actor_fn: &MyApp.Audit.current_actor/1,
+        authorize_fn: &MyApp.Audit.authorize_operator/1
     end
     """
   end

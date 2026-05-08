@@ -5,6 +5,9 @@ The Threadline Operator Surface provides a suite of mountable, drop-in LiveView 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 
 For compatibility, support boundaries, and deprecation policy, see `guides/upgrade-path.md`. This guide stays focused on mount, auth, and screens.
+For the broader composition contract across `Threadline.Plug`, `Threadline.Job`,
+reference adapters, and operator-surface auth/export auth, see
+`guides/integration-contracts.md`.
 
 ## 1-Minute Mount
 
@@ -40,8 +43,8 @@ defmodule MyAppWeb.Router do
 
     # Mount the operator surface with access control options
     threadline_operator_surface "/audit",
-      actor_fn: {MyApp.Audit, :current_actor},
-      authorize_fn: {MyApp.Audit, :authorize_operator}
+      actor_fn: &MyApp.Audit.current_actor/1,
+      authorize_fn: &MyApp.Audit.authorize_operator/1
   end
 end
 ```
@@ -57,9 +60,15 @@ Unless explicitly bypassed, the macro will fail at compile time unless one of th
 
 ### `:authorize_fn`
 
-The `:authorize_fn` callback determines whether the current request is allowed to access the operator surface and can scope queries to a specific tenant. It expects a tuple of `{Module, :function_name}` that takes the `Plug.Conn.t()` and returns:
+The `:authorize_fn` callback is invoked directly as a 1-arity function. For the
+LiveView surface it receives the socket-shaped value passed into
+`Threadline.OperatorSurface.Auth.on_mount/4`; when export routes fall back to
+it, they call it with a synthetic `%{assigns: conn.assigns}` mirror. The
+callback should return:
+
+- `:ok` or `true` - Allowed.
 - `{:ok, scope}` - Allowed. The `scope` will be passed into investigation queries (e.g., restricting to a specific organization or tenant).
-- `:error` - Denied.
+- any other value - Denied.
 
 Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`).
 

@@ -33,6 +33,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     guide = File.read!("guides/operator-surface.md")
 
     assert String.contains?(guide, "guides/upgrade-path.md")
+    assert String.contains?(guide, "guides/integration-contracts.md")
     assert String.contains?(guide, "This guide stays focused on mount, auth, and screens.")
     refute String.contains?(guide, "## Supported compatibility matrix")
     refute String.contains?(guide, "## Surface-only deprecation and removal policy")

@@ -15,6 +15,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 
 - **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md).
+- **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
 - **Using Sigra:** read [guides/integrations/sigra.md](guides/integrations/sigra.md).
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
@@ -119,8 +120,8 @@ defmodule MyAppWeb.Router do
     pipe_through [:browser, :require_authenticated_admin]
 
     threadline_operator_surface "/",
-      actor_fn: {MyApp.Audit, :current_actor},
-      authorize_fn: {MyApp.Audit, :authorize_operator}
+      actor_fn: &MyApp.Audit.current_actor/1,
+      authorize_fn: &MyApp.Audit.authorize_operator/1
   end
 end
 ```
@@ -128,7 +129,10 @@ end
 For the full first-hour mounted walkthrough, read
 [guides/getting-started-saas.md](guides/getting-started-saas.md). For the
 "fail-closed" security default, authorization setup, and screen inventory, read
-the [Operator Surface guide](guides/operator-surface.md).
+the [Operator Surface guide](guides/operator-surface.md). For the broader host
+and framework contract across `Threadline.Plug`, `Threadline.Job`,
+`Threadline.Integrations.*`, and operator-surface auth/export auth, read
+[guides/integration-contracts.md](guides/integration-contracts.md).
 
 ## Notes
 
@@ -141,6 +145,7 @@ the [Operator Surface guide](guides/operator-surface.md).
 
 - [HexDocs](https://hexdocs.pm/threadline)
 - [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
+- [Integration contracts](guides/integration-contracts.md)
 - [Sigra integration](guides/integrations/sigra.md)
 - [Domain reference](guides/domain-reference.md)
 - [Brownfield continuity](guides/brownfield-continuity.md)
