@@ -13,6 +13,8 @@ defmodule Threadline.SigraDocContractTest do
 
     assert String.contains?(doc, "<!-- SIGRA-03-INTEGRATION-GUIDE -->")
     assert String.contains?(doc, "# Threadline ↔ Sigra integration")
+    assert String.contains?(doc, "current `sigra-reference` lane")
+    assert String.contains?(doc, "reference claim, not a blanket support promise")
 
     for heading <- [
           "## Install",
@@ -41,6 +43,8 @@ defmodule Threadline.SigraDocContractTest do
 
     assert String.contains?(doc, "{:sigra, \"~> 0.2\", optional: true}")
     assert String.contains?(doc, "for hosts; never for the library")
+    assert String.contains?(doc, "Sigra stays host-owned and soft-loaded")
+    assert String.contains?(doc, "proven through the current example app, docs, and focused repo verification")
 
     assert String.contains?(
              doc,
@@ -69,6 +73,7 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "`correlation_id` from `x-correlation-id` first")
     assert String.contains?(doc, "raises `ArgumentError` immediately")
     assert String.contains?(doc, "rewrite `conn.remote_ip` upstream")
+    assert String.contains?(doc, "direct callback pair, not a second adapter layer")
 
     assert String.contains?(doc, "Impersonation maps to `:admin`")
     assert String.contains?(doc, "API token maps to `:service_account`")
@@ -83,6 +88,8 @@ defmodule Threadline.SigraDocContractTest do
 
     assert String.contains?(doc, "`audit_context_overrides_from_conn/1` returns `%{}`")
     assert String.contains?(doc, "Plug-only adapter; no telemetry subscription in v1")
+    assert String.contains?(doc, "supported reference semantics for the current guide and")
+    assert String.contains?(doc, "not a statement that every Sigra-backed Phoenix host or")
   end
 
   test "sigra guide locks correlation_id formats and soft-dep contract" do
@@ -95,6 +102,8 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "`Code.ensure_loaded?(Sigra.Session)`")
     assert String.contains?(doc, "`actor_ref_from_conn/1` returns `nil`")
     assert String.contains?(doc, "`audit_context_overrides_from_conn/1` returns `%{}`")
+    assert String.contains?(doc, "That soft-dep contract is part of the `sigra-reference` lane.")
+    assert String.contains?(doc, "The host owns")
   end
 
   test "library mix.exs remains free of sigra deps" do

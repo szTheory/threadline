@@ -35,6 +35,8 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "\"which public API first?\"")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/domain-reference.md")
+    assert String.contains?(readme, "guides/upgrade-path.md")
+    assert String.contains?(readme, "canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix")
     assert String.contains?(readme, "guides/integrations/sigra.md")
     assert String.contains?(readme, "guides/performance.md")
     assert String.contains?(readme, "guides/incident-playbook.md")
@@ -49,6 +51,11 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "canonical first-hour Phoenix walkthrough")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")
+    assert String.contains?(readme, "current support claims, stay with")
+    assert contains_normalized?(
+             readme,
+             "rather than inferring broader compatibility from the README"
+           )
     refute String.contains?(readme, "http://localhost:4000/audit")
   end
 

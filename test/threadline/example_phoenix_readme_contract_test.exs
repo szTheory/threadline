@@ -14,6 +14,9 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   test "example README locks the direct Sigra callback pair" do
     doc = read_rel!(@readme_path)
 
+    assert String.contains?(doc, "This app is the current `sigra-reference` lane")
+    assert String.contains?(doc, "maintained first-party")
+    assert String.contains?(doc, "It does not claim that arbitrary Sigra versions")
     assert String.contains?(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
 
     assert String.contains?(
@@ -22,6 +25,7 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
            )
 
     assert String.contains?(doc, "wired directly into `Threadline.Plug`")
+    assert String.contains?(doc, "soft-loaded, host-owned")
   end
 
   test "example README does not teach an app-local delegate seam" do
@@ -45,6 +49,9 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     doc = read_rel!(@readme_path)
 
     assert String.contains?(doc, "secured `/audit` path")
+    assert String.contains?(doc, "treat this as a `sigra-reference` example layered on top")
+    assert String.contains?(doc, "root library's broader `phoenix-surface` lane")
+    assert String.contains?(doc, "Sigra `0.2.5`, Phoenix `1.8.5`")
     assert String.contains?(doc, "scope and pipeline")
     assert contains_normalized?(doc, router_mount_block())
     assert String.contains?(doc, "pipeline :admin_auth")
