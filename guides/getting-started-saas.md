@@ -20,7 +20,7 @@ Add Threadline to `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:threadline, "~> 0.3"}
+    {:threadline, "~> 0.5"}
   ]
 end
 ```
@@ -155,6 +155,9 @@ end
 ```
 
 The literal `{:covered, _}` shape is the fast signal that your first public table is wired.
+If you are staying capture-only for now, the equivalent operator check is
+`mix threadline.health.coverage` (or `mix threadline.health.coverage --json` in
+CI-friendly scripts).
 
 ## 8. Investigate the captured timeline
 
@@ -180,15 +183,26 @@ The reference app also requires an authenticated actor before it serves
 incident drill-down: auth is included, while tenancy rules still belong to the
 host app.
 
+If you are not mounting the surface yet, `mix threadline.incident
+<audit_transaction_id>` is the direct parity path for the same single-request
+drill-down from the terminal.
+
 If you need to build a custom incident view instead of using the bundled default,
 drop to `Threadline.audit_changes_for_transaction/2`, `Threadline.transaction_context/2`,
 or `Threadline.change_diff/2` as advanced building blocks.
 
-That sequence gives you the three first-hour operator questions:
+That sequence gives you the first-hour operator questions and their fallback
+paths:
 
 - `Threadline.timeline/2` shows which rows moved in the request.
 - `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
+- `Threadline.actor_history/2` gives you the actor-scoped window when the operator question is "what did this actor drive recently?"
 - `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
+- `mix threadline.incident <audit_transaction_id>` is the direct fallback for that incident drill-down.
+- `mix threadline.export --dry-run --table posts` is the direct export fallback when operators need the same filtered dataset outside the mounted surface.
+- `mix threadline.health.coverage` answers the same coverage question as the mounted dashboard.
+- `mix threadline.policy.show` answers the same policy-drift question as the mounted redaction page.
+- `Threadline.history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
 
 ## 9. Mount the operator surface and open `/audit`
@@ -198,18 +212,42 @@ browser and admin pipeline. Reuse the real example router shape:
 
 ```elixir
 scope "/audit" do
-  pipe_through [:browser, :admin_auth]
+  pipe_through([:browser, :admin_auth])
 
-  threadline_operator_surface "/",
+  threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
     repo: ThreadlinePhoenix.Repo
+  )
+
+  # Support-read-only variation on the same `/audit` tree:
+  #
+  # threadline_operator_surface "/",
+  #   actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+  #   authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+  #   scope_query_fn: &MyApp.Audit.scope_operator_query/3,
+  #   exports: false,
+  #   repo: ThreadlinePhoenix.Repo
 end
 ```
 
 `pipe_through [:browser, :admin_auth]` is the important posture: Threadline does
 not provide host auth for you. Keep your own authenticated admin boundary in
 front of the mount, then let `authorize_fn` act as the fail-closed final check.
+Use one shared `%{assigns: assigns}` callback so the same host-owned policy can
+serve the LiveView mount and the export fallback mirror.
+
+The canonical first-hour recipe is admin first: mount `/audit`, verify the
+surface, and keep export routes enabled for that admin lane. The support-read-only
+variation uses the same `/audit` tree and the same host auth boundary, but
+returns an opaque host-owned scope such as
+`%{access: :support_read_only, organization_id: "org_123"}` from
+`authorize_fn` and defaults to `exports: false`.
+
+`live_session` and `on_mount` only secure the LiveView pages. Export requests
+cross a separate HTTP auth boundary and deny with plain-text `403` when
+authorization fails. For the full runbook, including the support-read-only
+variation, see `guides/operator-surface.md`.
 
 Start the app if it is not already running:
 
@@ -221,9 +259,18 @@ Then visit `http://localhost:4000/audit`. The shipped surface gives you the
 timeline, transaction drill-down, coverage dashboard, and read-only redaction
 policy view inside the host app you already operate.
 
+The same policy-drift facts are available without Phoenix via
+`mix threadline.policy.show` when you want to confirm deployed redaction shape
+from a capture-only host or a production shell.
+
 If you are not ready to mount the UI yet, you can stop after step 8 and stay on
 the capture-only path for now, but treat that as a temporary branch rather than
 the main first-hour adoption story.
+
+Keep support-lane claims and exact proof pins in
+`guides/upgrade-path.md`, and keep the Sigra-specific reference path in
+`guides/integrations/sigra.md`, rather than widening this first-hour guide into
+its own compatibility matrix.
 
 ## Next reads
 

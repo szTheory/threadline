@@ -295,16 +295,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # --------------------------------------------------------------------------
 
     defp scope_aware_opts(socket) do
-      base = [repo: socket.assigns.repo, page_size: @page_size]
-
-      case socket.assigns.scope do
-        nil -> base
-        scope -> Keyword.merge(base, scope_to_query_opts(scope))
-      end
+      [
+        repo: socket.assigns.repo,
+        page_size: @page_size,
+        scope: socket.assigns.scope,
+        scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+        surface: :timeline,
+        params: %{filters: socket.assigns.filters}
+      ]
     end
-
-    # Phase 64 passthrough — extension point for v1.19+ scope-derived predicates.
-    defp scope_to_query_opts(_scope), do: []
 
     defp default_repo do
       Application.get_env(:threadline, :ecto_repos) |> hd()

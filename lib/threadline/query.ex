@@ -30,6 +30,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
+  alias Threadline.OperatorSurface.Scope, as: OperatorScope
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
 
@@ -112,7 +113,11 @@ defmodule Threadline.Query do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
 
-    transaction = repo.get(AuditTransaction, uuid)
+    transaction =
+      AuditTransaction
+      |> where([at], at.id == ^uuid)
+      |> maybe_apply_scope(transaction_scope_opts(transaction_id, opts))
+      |> repo.one()
 
     case Keyword.get(opts, :preload) do
       preloads when preloads in [nil, []] ->
@@ -244,6 +249,11 @@ defmodule Threadline.Query do
   """
   @spec export_changes_query(keyword()) :: Ecto.Query.t()
   def export_changes_query(filters) when is_list(filters) do
+    export_changes_query(filters, [])
+  end
+
+  @spec export_changes_query(keyword(), keyword()) :: Ecto.Query.t()
+  def export_changes_query(filters, opts) when is_list(filters) and is_list(opts) do
     validate_timeline_filters!(filters)
 
     base =
@@ -258,6 +268,7 @@ defmodule Threadline.Query do
           |> timeline_base_query()
           |> filter_by_correlation(filters)
       end
+      |> maybe_apply_scope(opts)
       |> timeline_order()
 
     select(base, [ac, at, aa], %{
@@ -300,6 +311,7 @@ defmodule Threadline.Query do
     q =
       filters
       |> timeline_query()
+      |> maybe_apply_scope(opts)
       |> maybe_after_timeline_cursor(cursor)
       |> limit(^page_size)
 
@@ -451,6 +463,7 @@ defmodule Threadline.Query do
       |> where([at], fragment("? @> ?::jsonb", at.actor_ref, ^actor_map))
       |> actor_history_filter_from(Keyword.get(opts, :from))
       |> actor_history_filter_to(Keyword.get(opts, :to))
+      |> maybe_apply_scope(actor_history_scope_opts(actor_ref, opts))
 
     {query, reverse?} =
       cond do
@@ -616,7 +629,10 @@ defmodule Threadline.Query do
     results =
       AuditChange
       |> where([ac], ac.transaction_id == ^uuid)
+      |> join(:inner, [ac], at in AuditTransaction, on: ac.transaction_id == at.id)
+      |> maybe_apply_scope(transaction_scope_opts(transaction_id, opts))
       |> timeline_order()
+      |> select([ac, _at], ac)
       |> repo.all()
 
     case Keyword.get(opts, :preload) do
@@ -669,7 +685,10 @@ defmodule Threadline.Query do
     validate_timeline_filters!(filters)
     repo = timeline_repo!(filters, opts)
 
-    q = timeline_query(filters)
+    q =
+      filters
+      |> timeline_query()
+      |> maybe_apply_scope(opts)
 
     q =
       case Keyword.get(filters, :correlation_id) do
@@ -678,6 +697,35 @@ defmodule Threadline.Query do
       end
 
     repo.all(q)
+  end
+
+  @doc false
+  def maybe_apply_scope(query, opts) do
+    OperatorScope.apply(query, opts)
+  end
+
+  defp actor_history_scope_opts(actor_ref, opts) do
+    [
+      scope: Keyword.get(opts, :scope),
+      scope_query_fn: Keyword.get(opts, :scope_query_fn),
+      surface: Keyword.get(opts, :surface, :actor_history),
+      params: %{
+        actor_ref: actor_ref,
+        from: Keyword.get(opts, :from),
+        to: Keyword.get(opts, :to),
+        after: Keyword.get(opts, :after),
+        before: Keyword.get(opts, :before)
+      }
+    ]
+  end
+
+  defp transaction_scope_opts(transaction_id, opts) do
+    [
+      scope: Keyword.get(opts, :scope),
+      scope_query_fn: Keyword.get(opts, :scope_query_fn),
+      surface: Keyword.get(opts, :surface, :transaction),
+      params: %{transaction_id: transaction_id}
+    ]
   end
 
   @doc false

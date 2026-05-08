@@ -57,6 +57,7 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")
     assert String.contains?(readme, "current support claims, stay with")
+    assert String.contains?(readme, "stays in-tree for now")
 
     assert contains_normalized?(
              readme,

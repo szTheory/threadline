@@ -6,7 +6,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      case Threadline.incident_bundle(id, repo: repo, preload: :action) do
+      case Threadline.incident_bundle(id,
+             repo: repo,
+             preload: :action,
+             scope: socket.assigns[:threadline_scope],
+             scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+             surface: :transaction,
+             params: %{transaction_id: id}
+           ) do
         {:error, :not_found} ->
           {:ok, assign(socket, :not_found, true)}
 

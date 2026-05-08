@@ -60,6 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   # that returns {:ok, %{tenant: "t1"}} so :threadline_scope is populated on the socket.
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter do
     use Phoenix.Router
+    import Ecto.Query
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
@@ -77,11 +78,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
-        authorize_fn: &__MODULE__.auth/1
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
       )
     end
 
-    def auth(_socket), do: {:ok, %{tenant: "t1"}}
+    def auth(_socket), do: {:ok, %{source: "support"}}
+
+    def scope_operator_query(query, %{source: source}, %{surface: :timeline}) do
+      where(query, [_ac, at], at.source == ^source)
+    end
+
+    def scope_operator_query(query, _scope, _context), do: query
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint do
@@ -146,7 +154,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Capture.AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
-            actor_ref: actor_ref
+            actor_ref: actor_ref,
+            source: Keyword.get(opts, :source, "support")
           })
         )
 
@@ -688,18 +697,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
-    test "Case 10: Scoped mount renders successfully (scope_aware_opts exercised)", %{conn: conn} do
-      # Mount via the scoped endpoint that uses authorize_fn returning {:ok, %{tenant: "t1"}}.
-      # This proves the scope-aware path does not crash and :threadline_scope is populated.
-      # Bare URL triggers the default-window canonicalization push_patch — follow it.
+    defp seed_change!(opts) do
+      repo = Threadline.Test.Repo
+      occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
+      actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
+
+      txn =
+        repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: occurred_at,
+            actor_ref: actor_ref,
+            source: Keyword.get(opts, :source, "support")
+          })
+        )
+
+      repo.insert!(
+        Threadline.Capture.AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: Keyword.get(opts, :table, "posts"),
+          table_pk: %{"id" => "1"},
+          op: "insert",
+          data_after: %{"title" => "x"},
+          changed_fields: nil,
+          captured_at: occurred_at
+        })
+      )
+    end
+
+    test "Case 10: Scoped mount only renders rows allowed by scope_query_fn", %{conn: conn} do
+      occurred_at = DateTime.utc_now() |> DateTime.add(-60, :second)
+      seed_change!(table: "support_posts", source: "support", occurred_at: occurred_at)
+      seed_change!(table: "admin_posts", source: "admin", occurred_at: occurred_at)
+
       {:ok, _lv, html} =
         case live(conn, "/audit_scoped") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      # Scoped mount renders the timeline form (proves scope_aware_opts doesn't crash)
-      assert html =~ ~s|name="filter[from]"|
+      assert html =~ "support_posts"
+      refute html =~ "admin_posts"
     end
   end
 end

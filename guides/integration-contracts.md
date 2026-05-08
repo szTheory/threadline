@@ -124,13 +124,30 @@ Anything outside that boundary is outside the supported surface story.
 ### Shared authorization vocabulary
 
 `authorize_fn` is the canonical operator-surface callback. It is invoked
-directly as a 1-arity function and should accept the LiveView socket-shaped
-value it receives.
+directly as a 1-arity function. The recommended callback shape is one shared
+host-owned function that accepts `%{assigns: assigns}` so it can authorize both
+the LiveView socket and the export fallback mirror without transport-specific
+function heads.
 
 ```elixir
 threadline_operator_surface "/audit",
   repo: MyApp.Repo,
   authorize_fn: &MyApp.Audit.authorize_operator/1
+```
+
+```elixir
+def authorize_operator(%{assigns: assigns}) do
+  case assigns[:current_user] do
+    %{role: :admin} ->
+      :ok
+
+    %{role: :support, organization_id: org_id} ->
+      {:ok, %{access: :support_read_only, organization_id: org_id}}
+
+    _ ->
+      {:error, :unauthorized}
+  end
+end
 ```
 
 `Threadline.OperatorSurface.Auth` treats these results as the public contract:
@@ -140,8 +157,12 @@ threadline_operator_surface "/audit",
 - any other result denies access
 - raised errors deny access
 
-`export_authorize_fn` is optional. When present, it is called with `conn`
-directly for export requests:
+That `scope` is opaque and host-owned. Threadline carries it as data; it does
+not define a role enum, permissions DSL, tenancy DSL, or page-level
+authorization language around it.
+
+`export_authorize_fn` is optional and should stay an advanced override. When
+present, it is called with `conn` directly for export requests:
 
 ```elixir
 threadline_operator_surface "/audit",
@@ -160,8 +181,9 @@ authorize_fn.(mirror)
 
 That fallback is part of the public contract. If you want one host-owned
 authorization function to cover both transport faces, write it against
-`%{assigns: assigns}` rather than LiveView-only helpers. If you need different
-HTTP behavior, provide `export_authorize_fn`.
+`%{assigns: assigns}` rather than LiveView-only helpers. If you need a stricter
+export posture than the mounted surface, provide `export_authorize_fn` as a
+deliberate override rather than teaching two primary authorization vocabularies.
 
 Both transport faces share the same telemetry event
 `[:threadline, :operator_surface, :authorize]`, the same granted/denied/error

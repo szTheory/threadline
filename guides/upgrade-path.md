@@ -16,9 +16,9 @@ If you only need router wiring, auth posture, or screen references, stay in `gui
 
 You are on the `capture-only` lane when your host application does not depend on Threadline's optional Phoenix surface dependencies and does not mount `threadline_operator_surface/2`. The proof point for this lane is `mix verify.compile_no_optional`.
 
-You are on the `phoenix-surface` lane when your host application adds the optional Phoenix surface dependencies and mounts `threadline_operator_surface/2` in a Phoenix router using the in-tree operator surface.
+You are on the `phoenix-surface` lane when your host application adds the optional Phoenix surface dependencies and mounts `threadline_operator_surface/2` in a Phoenix router using the in-tree operator surface. The proof for this lane comes from the root package: `mix.exs`, `mix.lock`, root CI, and the root doc-contract tests.
 
-You are on the `sigra-reference` lane when your Phoenix host already uses Sigra and composes `Threadline.Integrations.Sigra` into `Threadline.Plug` using the current example app and guide path. This is a narrower claim than generic Sigra compatibility.
+You are on the `sigra-reference` lane when your Phoenix host already uses Sigra and composes `Threadline.Integrations.Sigra` into `Threadline.Plug` using the current example app and guide path. The proof for this lane comes from `examples/threadline_phoenix/`, its lockfile and README, `guides/integrations/sigra.md`, and `mix verify.example`. This is a narrower claim than generic Sigra compatibility.
 
 Threadline uses three support words intentionally:
 
@@ -30,7 +30,7 @@ That distinction matters more than dependency rows alone:
 
 - `capture-only` is `supported` with no optional Phoenix dependencies installed and is enforced by `mix verify.compile_no_optional`.
 - `phoenix-surface` is `supported` only for the exact optional dependency ranges Threadline declares and CI-covers in this release.
-- `sigra-reference` is a `reference` lane for Phoenix hosts already using Sigra; it is proven only by the current example app, docs, and focused verification in this repo.
+- `sigra-reference` is a `reference` lane for Phoenix hosts already using Sigra; it is proven only by the current example app, example lockfile, docs, and focused verification in this repo.
 - Anything outside these named lanes is `unclaimed`, even if it may work.
 
 ## Supported compatibility matrix
@@ -45,10 +45,10 @@ Support claims in this table come from current in-repo proof only:
 | Lane | Claim type | Declared support | Current tested resolution | Proof / CI coverage |
 | --- | --- | --- | --- | --- |
 | `capture-only` | `supported` | No optional Phoenix surface dependencies required | N/A | `mix verify.compile_no_optional` and CI job `verify-compile-no-optional` |
-| `phoenix-surface` | `supported` | `phoenix ~> 1.7`, `phoenix_live_view ~> 1.0`, `phoenix_html ~> 4.0`, `phoenix_pubsub ~> 2.1` | Phoenix `1.8.7`, Phoenix LiveView `1.1.30`, Phoenix HTML `4.3.0`, Phoenix PubSub `2.2.0` | `mix verify.test`, `mix ci.all`, doc-contract coverage, and CI jobs `verify-test` / `verify-docs` |
-| `sigra-reference` | `reference` | Example host path uses `{:sigra, "~> 0.2", optional: true}` alongside the Phoenix reference app stack | Example app lock resolves Sigra `0.2.5`, Phoenix `1.8.5`, Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, Phoenix PubSub `2.2.0` | `mix verify.example`, the example-app README, `guides/integrations/sigra.md`, and focused doc-contract tests |
+| `phoenix-surface` | `supported` | `phoenix ~> 1.7`, `phoenix_live_view ~> 1.0`, `phoenix_html ~> 4.0`, `phoenix_pubsub ~> 2.1` | Phoenix `1.8.7`, Phoenix LiveView `1.1.30`, Phoenix HTML `4.3.0`, Phoenix PubSub `2.2.0` | Root `mix.exs`, root `mix.lock`, `mix verify.test`, `mix ci.all`, root doc-contract coverage, and CI jobs `verify-test` / `verify-docs` |
+| `sigra-reference` | `reference` | Example host path uses `{:sigra, "~> 0.2", optional: true}` alongside the Phoenix reference app stack | Example app lock resolves Sigra `0.2.5`, Phoenix `1.8.5`, Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, Phoenix PubSub `2.2.0` | `examples/threadline_phoenix/mix.lock`, `examples/threadline_phoenix/README.md`, `guides/integrations/sigra.md`, `mix verify.example`, and focused doc-contract tests |
 
-Threadline does not claim support for Phoenix, LiveView, HTML, PubSub, or Sigra combinations outside these named proofs. If your lockfile resolves to different versions within the declared ranges, or your host auth/layout differs from the reference path, treat that as your responsibility to verify locally unless and until the Threadline repo updates its own declared ranges, lock resolution references, docs, and CI coverage accordingly.
+Threadline does not claim support for Phoenix, LiveView, HTML, PubSub, or Sigra combinations outside these named proofs. The `{:sigra, "~> 0.2", optional: true}` declaration is a host install shape, not a blanket promise covering every Sigra `0.2.x` host. If your lockfile resolves to different versions within the declared ranges, or your host auth/layout differs from the reference path, treat that as your responsibility to verify locally unless and until the Threadline repo updates its own declared ranges, lock resolution references, docs, and CI coverage accordingly.
 
 ## Upgrade by Threadline minor
 
@@ -77,6 +77,18 @@ Typical symptoms:
 - docs/examples no longer match your older Phoenix router or LiveView APIs
 
 `capture-only` adopters should not be affected by surface-only dependency floor changes as long as `mix verify.compile_no_optional` continues to pass for the Threadline release they adopt.
+
+## Packaging Boundary Scorecard
+
+Threadline closes v1.19 with a clear package-boundary decision: stay in-tree for now. The optional Phoenix surface is already isolated behind optional dependencies, the repo still proves one coherent release story from the root package, and the current evidence does not justify the extra versioning and release overhead of a separate `threadline_web` package.
+
+Future extraction is a scorecard decision, not a taste decision. The trigger is "yes, extract" only when one or more of these pressures is sustained and materially increases maintainer or adopter cost:
+
+- **Version Matrix Pressure**: the root package must regularly prove multiple incompatible Phoenix or LiveView lines, or operator-surface dependency movement starts forcing unrelated core-package release coordination.
+- **Release Cadence Divergence**: operator-surface changes want to ship on a meaningfully different cadence than the core capture/query APIs, so keeping one package either delays surface fixes or churns the core release line unnecessarily.
+- **Adopter Glue Burden**: repeated real-world adopter feedback shows that the in-tree optional surface still leaves too much host-specific mounting or packaging glue, and a separate package would reduce that burden without weakening the core auth-agnostic contract.
+
+Until those pressures are real, Threadline keeps the operator surface optional and in-tree. If a future split happens, Threadline will preserve the public `threadline_operator_surface/2` router integration API so hosts do not have to rewrite their mount call shape as the cost of following the package boundary.
 
 ## Surface-only deprecation and removal policy
 

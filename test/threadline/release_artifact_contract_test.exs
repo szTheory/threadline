@@ -50,6 +50,11 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
     assert Keyword.fetch!(groups, :Integrations) == [Threadline.Integrations.Sigra]
 
+    assert Keyword.fetch!(groups, :"Operator Surface (Optional In-Tree)") == [
+             Threadline.OperatorSurface.Router,
+             Threadline.OperatorSurface.Auth
+           ]
+
     assert Keyword.fetch!(groups, :Integration) == [
              Threadline.Plug,
              Threadline.Job,
@@ -62,7 +67,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   test "README carries only the release-scoped installer and routing literals" do
     readme = File.read!("README.md")
 
-    assert String.contains?(readme, "{:threadline, \"~> 0.3\"}")
+    assert String.contains?(readme, "{:threadline, \"~> 0.5\"}")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/integrations/sigra.md")
   end

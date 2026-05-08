@@ -75,7 +75,7 @@ defmodule Threadline.Export do
     include_meta = Keyword.get(opts, :include_action_metadata, false)
     limit = max_rows + 1
 
-    rows = repo.all(Query.export_changes_query(filters) |> limit(^limit))
+    rows = repo.all(Query.export_changes_query(filters, opts) |> limit(^limit))
     {truncated, rows} = split_truncated(rows, max_rows)
 
     header =
@@ -113,7 +113,7 @@ defmodule Threadline.Export do
     json_format = Keyword.get(opts, :json_format, :wrapped)
     limit = max_rows + 1
 
-    rows = repo.all(Query.export_changes_query(filters) |> limit(^limit))
+    rows = repo.all(Query.export_changes_query(filters, opts) |> limit(^limit))
     {truncated, rows} = split_truncated(rows, max_rows)
     changes = Enum.map(rows, &change_map/1)
 
@@ -168,8 +168,17 @@ defmodule Threadline.Export do
 
     base_query =
       case Keyword.get(filters, :correlation_id) do
-        nil -> filters |> Query.timeline_query() |> select([ac, _at], ac.id)
-        _ -> filters |> Query.timeline_query() |> select([ac, _at, _aa], ac.id)
+        nil ->
+          filters
+          |> Query.timeline_query()
+          |> Query.maybe_apply_scope(opts)
+          |> select([ac, _at], ac.id)
+
+        _ ->
+          filters
+          |> Query.timeline_query()
+          |> Query.maybe_apply_scope(opts)
+          |> select([ac, _at, _aa], ac.id)
       end
 
     count =
@@ -329,7 +338,7 @@ defmodule Threadline.Export do
 
           q =
             filters
-            |> Query.export_changes_query()
+            |> Query.export_changes_query(opts)
             |> Query.maybe_after_timeline_cursor(cursor)
             |> limit(^page_size)
 

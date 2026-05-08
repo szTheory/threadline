@@ -1,7 +1,7 @@
 defmodule Threadline.MixProject do
   use Mix.Project
 
-  @version "0.4.0"
+  @version "0.5.0"
   @source_url "https://github.com/szTheory/threadline"
 
   def cli do
@@ -208,7 +208,7 @@ defmodule Threadline.MixProject do
         Integrations: [
           Threadline.Integrations.Sigra
         ],
-        "Operator Surface": [
+        "Operator Surface (Optional In-Tree)": [
           Threadline.OperatorSurface.Router,
           Threadline.OperatorSurface.Auth
         ],

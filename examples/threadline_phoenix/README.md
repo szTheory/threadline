@@ -8,6 +8,10 @@ composition story through this example app, the companion guides, and repo
 verification. It does not claim that arbitrary Sigra versions, arbitrary auth
 layouts, or non-Phoenix hosts are supported automatically.
 
+For the canonical first-hour walkthrough, start with
+[`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md)
+and treat this README as the runnable proof artifact behind that path.
+
 ## Prerequisites
 
 - **Elixir** ~> 1.15 (see root `mix.exs` for the exact constraint used in CI)
@@ -120,6 +124,9 @@ the reference app now requires an authenticated actor before it serves the
 drill-down endpoint. Hosts still need their own tenancy and policy checks
 before exposing transaction drill-down in production.
 
+Capture-only parity for the same request-level drill-down lives at
+`mix threadline.incident <audit_transaction_id>`.
+
 ## Operator Surface
 
 Threadline provides an optional LiveView-based operator UI that is mounted
@@ -134,16 +141,29 @@ Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, and Phoenix PubSub `2.2.0`.
 
 See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The
 operator surface lives at `/audit` because the router uses a dedicated admin
-scope and pipeline:
+scope and pipeline, and the example authorizer uses one shared `%{assigns: assigns}`
+callback instead of separate `%Plug.Conn{}` and `%Phoenix.LiveView.Socket{}`
+heads. The support-read-only variation adds the same host-owned
+`scope_query_fn: &MyApp.Audit.scope_operator_query/3` seam on that mount:
 
 ```elixir
 scope "/audit" do
-  pipe_through [:browser, :admin_auth]
+  pipe_through([:browser, :admin_auth])
 
-  threadline_operator_surface "/",
+  threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
     repo: ThreadlinePhoenix.Repo
+  )
+
+  # Support-read-only variation on the same `/audit` tree:
+  #
+  # threadline_operator_surface "/",
+  #   actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+  #   authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+  #   scope_query_fn: &MyApp.Audit.scope_operator_query/3,
+  #   exports: false,
+  #   repo: ThreadlinePhoenix.Repo
 end
 ```
 
@@ -152,11 +172,29 @@ UI is reachable, and `authorize_fn` acts as the final fail-closed gate. This is
 the `phx.gen.auth`-style posture to copy into a host app: your app owns browser
 auth first, then Threadline runs inside that boundary.
 
+Treat that mount as the canonical admin recipe. The support-read-only variation
+keeps the same `/audit` tree, keeps the same host-owned browser/auth boundary,
+returns an opaque host-owned scope such as
+`%{access: :support_read_only, organization_id: "org_123"}`, and defaults to
+`exports: false`. Pair it with a host-owned
+`scope_query_fn: &MyApp.Audit.scope_operator_query/3` callback so timeline,
+actor, transaction, and export queries all enforce the same scope. That is
+intentionally narrower effective visibility, not a Threadline-owned roles or
+organization DSL.
+
+LiveView `live_session` / `on_mount` auth does not secure export controller
+routes. Export denials stay HTTP-native `403`, so use `export_authorize_fn`
+only when you deliberately want a stricter export override than the default
+surface recipe.
+
 Run `mix phx.server`, sign in as an admin user, and open
 `http://localhost:4000/audit`. For the canonical first-hour walkthrough, use
 [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
 For the mount/auth/screens guide, use
 [`../../guides/operator-surface.md`](../../guides/operator-surface.md).
+Coverage and policy-drift parity stay available without the mounted surface via
+`mix threadline.health.coverage` and `mix threadline.policy.show`. Incident
+drill-down parity lives at `mix threadline.incident <audit_transaction_id>`.
 
 ## Historical reconstruction walkthrough
 

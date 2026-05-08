@@ -11,22 +11,24 @@ reference adapters, and operator-surface auth/export auth, see
 
 ## 1-Minute Mount
 
-To enable the UI, first ensure you have the optional dependencies installed in your `mix.exs`:
+To enable the UI, first ensure your host app has the root Threadline dependency
+and the optional Phoenix surface stack that matches your host app. Keep exact
+Phoenix proof pins in `guides/upgrade-path.md`; this guide stays on the mount,
+auth, and screen contract.
 
 ```elixir
 def deps do
   [
     # ...
-    {:threadline, "~> 0.3.0"},
-    {:phoenix, "~> 1.7"},
-    {:phoenix_live_view, "~> 1.0"},
-    {:phoenix_html, "~> 4.0"},
-    {:phoenix_pubsub, "~> 2.1"}
+    {:threadline, "~> 0.5"}
   ]
 end
 ```
 
-Then, use the `threadline_operator_surface/2` macro in your host application's router:
+Then, use the `threadline_operator_surface/2` macro in your host application's router.
+The canonical topology is one host-owned `/audit` mount behind your browser/auth
+pipeline, with one shared `authorize_fn` that works for both the LiveView
+surface and the export fallback:
 
 ```elixir
 defmodule MyAppWeb.Router do
@@ -38,15 +40,39 @@ defmodule MyAppWeb.Router do
     plug :require_authenticated_admin
   end
 
-  scope "/admin", MyAppWeb do
+  scope "/audit", MyAppWeb do
     pipe_through [:browser, :admin_auth]
 
-    # Mount the operator surface with access control options
-    threadline_operator_surface "/audit",
+    threadline_operator_surface "/",
       actor_fn: &MyApp.Audit.current_actor/1,
-      authorize_fn: &MyApp.Audit.authorize_operator/1
+      authorize_fn: &MyApp.Audit.authorize_operator/1,
+      repo: MyApp.Repo
   end
 end
+```
+
+Admin-first recipe:
+
+- Keep `/audit` behind `pipe_through [:browser, :admin_auth]`.
+- Let `authorize_fn` make the final allow/deny decision.
+- Keep export routes enabled for admins unless your host wants stricter posture.
+
+support-read-only variation:
+
+- Reuse the same `/audit` surface and the same host auth boundary.
+- Return `{:ok, %{access: :support_read_only, organization_id: "org_123"}}` or
+  another host-owned scope from `authorize_fn`.
+- Set `exports: false` by default so support operators do not inherit download
+  access accidentally.
+- Only add `export_authorize_fn` later if your host deliberately wants a
+  narrower export-specific override.
+
+```elixir
+threadline_operator_surface "/",
+  actor_fn: &MyApp.Audit.current_actor/1,
+  authorize_fn: &MyApp.Audit.authorize_operator/1,
+  exports: false,
+  repo: MyApp.Repo
 ```
 
 ## Security and Authorization (Fail-Closed Default)
@@ -60,17 +86,27 @@ Unless explicitly bypassed, the macro will fail at compile time unless one of th
 
 ### `:authorize_fn`
 
-The `:authorize_fn` callback is invoked directly as a 1-arity function. For the
-LiveView surface it receives the socket-shaped value passed into
+The `:authorize_fn` callback is invoked directly as a 1-arity function. The
+recommended shape is one shared callback that pattern-matches on
+`%{assigns: assigns}` so the same host-owned policy works for both transports.
+For the LiveView surface it receives the socket-shaped value passed into
 `Threadline.OperatorSurface.Auth.on_mount/4`; when export routes fall back to
 it, they call it with a synthetic `%{assigns: conn.assigns}` mirror. The
 callback should return:
 
 - `:ok` or `true` - Allowed.
-- `{:ok, scope}` - Allowed. The `scope` will be passed into investigation queries (e.g., restricting to a specific organization or tenant).
+- `{:ok, scope}` - Allowed. The `scope` is host-owned and opaque. Threadline
+  carries it into investigation queries where implemented today, but it does
+  not define a roles DSL, page-level authorization model, or universal scope
+  narrowing contract.
 - any other value - Denied.
 
 Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`).
+
+`live_session` and `on_mount` protect the LiveView pages only. They do not
+secure the sibling HTTP export controller routes. Export denials stay
+HTTP-native through `Threadline.OperatorSurface.ExportAuthPlug`: denial or
+error halts with plain-text `403`, not a LiveView redirect.
 
 ### `:actor_fn`
 
@@ -94,6 +130,29 @@ A time-windowed view of all transactions initiated by a specific actor identity.
 
 **Answers:** "When did this specific record change, and what did it look like at 2:00 PM yesterday?"
 Reachable directly from drill-down rows, this screen shows the full mutation lifecycle of a single record and reconstructs its exact state as-of any point in time.
+
+## First verification steps
+
+After mounting `/audit`, verify the boundary before you treat the surface as
+ready:
+
+1. Visit `/audit` as an allowed admin and confirm the timeline loads.
+2. Hit an export URL without the required host auth and confirm you get `403`
+   rather than a redirect loop.
+3. Run `mix threadline.health.coverage` and compare it with `/audit/coverage`.
+4. Run `mix threadline.policy.show` and compare it with
+   `/audit/policy/redaction`.
+
+## Mounted workflow parity
+
+| Mounted workflow | Operator question | Fallback transport | Guarantee level |
+|------|-------|----------------|
+| `/audit/transactions/:id` | What changed in this one transaction? | `mix threadline.incident <transaction_id>` | Direct parity |
+| `/audit/actors/:kind/:id` | What did this actor drive recently? | `Threadline.actor_history/2` or `Threadline.timeline_page/2` | API parity |
+| `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | API parity |
+| export actions from `/audit` | Can I download the same filtered audit data? | `mix threadline.export --dry-run --table posts` or a file export run | CLI parity |
+| `/audit/coverage` | Which tables are covered right now? | `mix threadline.health.coverage` | Direct parity |
+| `/audit/policy/redaction` | Does deployed redaction match config? | `mix threadline.policy.show` | Direct parity |
 
 ## `mix threadline.incident` Companion Task
 

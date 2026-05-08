@@ -59,15 +59,23 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         repo = conn.assigns[:threadline_repo] || default_repo()
         filters = Keyword.put(filters, :repo, repo)
 
-        {:ok, %{count: count}} = Export.count_matching(filters, cap: @max_rows + 1)
+        scope_opts = [
+          scope: conn.assigns[:threadline_scope],
+          scope_query_fn: conn.assigns[:threadline_scope_query_fn],
+          surface: :export,
+          params: %{filters: filters}
+        ]
+
+        {:ok, %{count: count}} =
+          Export.count_matching(filters, Keyword.merge([cap: @max_rows + 1], scope_opts))
 
         # Headers MUST be set BEFORE send_chunked/2 (Pitfall 2).
         conn = put_export_headers(conn, format)
 
         if count <= @sync_threshold do
-          send_iodata(conn, filters, format)
+          send_iodata(conn, filters, format, scope_opts)
         else
-          send_chunked_stream(conn, filters, format)
+          send_chunked_stream(conn, filters, format, scope_opts)
         end
       else
         {:error, message} ->
@@ -79,28 +87,36 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     # ---- Iodata path (count <= 5_000): single send_resp ----
 
-    defp send_iodata(conn, filters, :csv) do
-      {:ok, %{data: iodata}} = Export.to_csv_iodata(filters, max_rows: @max_rows)
-      send_resp(conn, 200, iodata)
-    end
-
-    defp send_iodata(conn, filters, :json) do
+    defp send_iodata(conn, filters, :csv, scope_opts) do
       {:ok, %{data: iodata}} =
-        Export.to_json_document(filters, max_rows: @max_rows, json_format: :wrapped)
+        Export.to_csv_iodata(filters, Keyword.merge([max_rows: @max_rows], scope_opts))
 
       send_resp(conn, 200, iodata)
     end
 
-    defp send_iodata(conn, filters, :ndjson) do
+    defp send_iodata(conn, filters, :json, scope_opts) do
       {:ok, %{data: iodata}} =
-        Export.to_json_document(filters, max_rows: @max_rows, json_format: :ndjson)
+        Export.to_json_document(
+          filters,
+          Keyword.merge([max_rows: @max_rows, json_format: :wrapped], scope_opts)
+        )
+
+      send_resp(conn, 200, iodata)
+    end
+
+    defp send_iodata(conn, filters, :ndjson, scope_opts) do
+      {:ok, %{data: iodata}} =
+        Export.to_json_document(
+          filters,
+          Keyword.merge([max_rows: @max_rows, json_format: :ndjson], scope_opts)
+        )
 
       send_resp(conn, 200, iodata)
     end
 
     # ---- Chunked path (count > 5_000): send_chunked + reduce_while ----
 
-    defp send_chunked_stream(conn, filters, format) do
+    defp send_chunked_stream(conn, filters, format, scope_opts) do
       conn = send_chunked(conn, 200)
 
       # Emit per-format prefix (CSV header / JSON envelope open) as the FIRST chunk.
@@ -110,7 +126,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       # to_csv_iodata/to_json_document consume internally).
       {conn, _} =
         filters
-        |> Export.stream_export_rows(page_size: @stream_page_size)
+        |> Export.stream_export_rows(Keyword.merge([page_size: @stream_page_size], scope_opts))
         |> Stream.take(@max_rows)
         |> Stream.chunk_every(@chunk_batch_size)
         |> Enum.reduce_while({conn, _first_batch? = true}, fn rows, {conn, first_batch?} ->

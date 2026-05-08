@@ -34,7 +34,7 @@ Use it when you want the audit layer in your app, not a separate event system or
    ```elixir
    def deps do
      [
-       {:threadline, "~> 0.3"}
+       {:threadline, "~> 0.5"}
      ]
    end
    ```
@@ -106,8 +106,11 @@ trail natively in your app, including a polled coverage dashboard at
 `/audit/coverage`, a read-only redaction drift viewer at
 `/audit/policy/redaction`, and parity Mix tasks
 `mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you
-have the `phoenix`, `phoenix_live_view`, `phoenix_html`, and
-`phoenix_pubsub` dependencies in your `mix.exs`.
+have the optional Phoenix surface dependencies declared in `mix.exs`. Threadline
+stays in-tree for now rather than splitting the UI into a separate package; keep
+the closeout rationale and exact current proof pins in
+[guides/upgrade-path.md](guides/upgrade-path.md) rather than copying them into
+generic install docs.
 
 **1-Minute Mount**
 

@@ -36,9 +36,11 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     def call(conn, opts) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _ -> true end)
       export_authorize_fn = Keyword.get(opts, :export_authorize_fn)
+      scope_query_fn = Keyword.get(opts, :scope_query_fn)
       repo = Keyword.get(opts, :repo)
 
       conn = assign(conn, :threadline_repo, repo)
+      conn = assign(conn, :threadline_scope_query_fn, scope_query_fn)
 
       authorizer =
         case export_authorize_fn do

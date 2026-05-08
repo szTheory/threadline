@@ -149,7 +149,13 @@ defmodule Threadline.Investigation do
   packaged diffs.
   """
   def incident_bundle(transaction_id, opts \\ []) do
-    case Query.audit_transaction(transaction_id, Keyword.put(opts, :preload, :action)) do
+    transaction_opts =
+      opts
+      |> Keyword.put(:preload, :action)
+      |> Keyword.put(:surface, :transaction_header)
+      |> Keyword.put(:params, %{transaction_id: transaction_id})
+
+    case Query.audit_transaction(transaction_id, transaction_opts) do
       nil ->
         {:error, :not_found}
 
@@ -157,7 +163,10 @@ defmodule Threadline.Investigation do
         changes =
           Query.audit_changes_for_transaction(
             transaction_id,
-            Keyword.put(opts, :preload, transaction: :action)
+            opts
+            |> Keyword.put(:preload, transaction: :action)
+            |> Keyword.put(:surface, :transaction)
+            |> Keyword.put(:params, %{transaction_id: transaction_id})
           )
 
         linked_changes = to_linked_changes(changes)

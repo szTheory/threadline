@@ -33,6 +33,34 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ScopedRouter do
+    use Phoenix.Router
+    import Ecto.Query
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html", "csv", "json"])
+      plug(:fetch_session)
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
+      )
+    end
+
+    def auth(_mirror), do: {:ok, %{source: "support"}}
+
+    def scope_operator_query(query, %{source: source}, %{surface: :export}) do
+      where(query, [_ac, at], at.source == ^source)
+    end
+
+    def scope_operator_query(query, _scope, _context), do: query
+  end
+
   defmodule Threadline.OperatorSurface.ExportControllerTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -48,6 +76,23 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.ExportControllerTest.Router)
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ScopedEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_export_scoped_key",
+      signing_salt: String.duplicate("y", 8)
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.ExportControllerTest.ScopedRouter)
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest do
@@ -275,6 +320,78 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       changes
       |> Enum.chunk_every(1_000)
       |> Enum.each(fn chunk -> @repo.insert_all(AuditChange, chunk) end)
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerScopedTest do
+    @moduledoc false
+    use ExUnit.Case, async: false
+
+    import Phoenix.ConnTest
+
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+
+    @endpoint Threadline.OperatorSurface.ExportControllerTest.ScopedEndpoint
+    @repo Threadline.Test.Repo
+
+    setup_all do
+      Application.put_env(:threadline, @endpoint,
+        secret_key_base: String.duplicate("y", 64),
+        live_view: [signing_salt: String.duplicate("y", 8)],
+        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      @repo.delete_all(AuditChange)
+      @repo.delete_all(AuditTransaction)
+      {:ok, conn: build_conn()}
+    end
+
+    test "scoped export only returns rows allowed by scope_query_fn", %{conn: conn} do
+      seed_changes!(1, table: "support_posts", source: "support")
+      seed_changes!(1, table: "admin_posts", source: "admin")
+
+      conn =
+        get(conn, "/audit_scoped/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00")
+
+      body = response(conn, 200)
+
+      assert body =~ "support_posts"
+      refute body =~ "admin_posts"
+    end
+
+    defp seed_changes!(n, opts) when n > 0 do
+      table = Keyword.fetch!(opts, :table)
+      source = Keyword.get(opts, :source, "support")
+
+      txn =
+        @repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            source: source
+          })
+        )
+
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+      for i <- 1..n do
+        @repo.insert!(
+          AuditChange.changeset(%{
+            transaction_id: txn.id,
+            table_schema: "public",
+            table_name: table,
+            table_pk: %{"id" => "#{i}"},
+            op: "insert",
+            data_after: %{"i" => i},
+            captured_at: now
+          })
+        )
+      end
     end
   end
 end

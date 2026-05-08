@@ -12,6 +12,10 @@ defmodule Threadline.OperatorSurface.AuthTest do
     }
   end
 
+  defp socket_with_user(user) do
+    Phoenix.Component.assign(mock_socket(), :current_user, user)
+  end
+
   setup do
     # Clear telemetry messages
     pid = self()
@@ -58,6 +62,34 @@ defmodule Threadline.OperatorSurface.AuthTest do
                       %{result: :granted}, metadata}
 
       assert metadata.scope_keys == [:role, :user_id]
+    end
+
+    test "shared %{assigns: assigns} callback can return an opaque support scope" do
+      opts = [
+        authorize_fn: fn %{assigns: assigns} ->
+          case assigns[:current_user] do
+            %{role: :support, organization_id: org_id} ->
+              {:ok, %{access: :support_read_only, organization_id: org_id}}
+
+            _ ->
+              {:error, :unauthorized}
+          end
+        end
+      ]
+
+      socket = socket_with_user(%{role: :support, organization_id: "org_123"})
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+
+      assert returned_socket.assigns.threadline_scope == %{
+               access: :support_read_only,
+               organization_id: "org_123"
+             }
+
+      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+                      %{result: :granted}, metadata}
+
+      assert metadata.scope_keys == [:access, :organization_id]
     end
 
     test "Case 3: returns true -> connection continues, telemetry :granted emitted" do

@@ -6,15 +6,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.LiveView
 
-    def on_mount(opts, _params, _session, socket) do
+    def on_mount(opts, _params, session, socket) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)
+      scope_query_fn = Keyword.get(opts, :scope_query_fn)
       repo = Keyword.get(opts, :repo)
       schemas = Keyword.get(opts, :schemas, %{})
 
       socket =
         socket
+        |> maybe_assign_session_user(session)
         |> Phoenix.Component.assign(:threadline_repo, repo)
         |> Phoenix.Component.assign(:threadline_schemas, schemas)
+        |> Phoenix.Component.assign(:threadline_scope_query_fn, scope_query_fn)
 
       try do
         case authorize_fn.(socket) do
@@ -60,5 +63,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         %{path: "", actor_ref: actor_ref, scope_keys: scope_keys}
       )
     end
+
+    defp maybe_assign_session_user(socket, session) do
+      case {socket.assigns[:current_user], session_user(session)} do
+        {nil, nil} -> socket
+        {nil, user} -> Phoenix.Component.assign(socket, :current_user, user)
+        _ -> socket
+      end
+    end
+
+    defp session_user(session) when is_map(session) do
+      Map.get(session, "threadline_current_user") || Map.get(session, :threadline_current_user)
+    end
+
+    defp session_user(_session), do: nil
   end
 end

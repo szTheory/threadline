@@ -94,10 +94,23 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "`authorize_fn` is the canonical operator-surface callback.")
     assert String.contains?(guide, "It is invoked")
     assert String.contains?(guide, "directly as a 1-arity function")
-    assert String.contains?(guide, "`export_authorize_fn` is optional.")
+    assert String.contains?(guide, "one shared")
+    assert String.contains?(guide, "`%{assigns: assigns}`")
+    assert String.contains?(guide, "support_read_only")
+    assert String.contains?(guide, "organization_id")
+    assert String.contains?(guide, "opaque and host-owned")
+
+    assert String.contains?(
+             guide,
+             "`export_authorize_fn` is optional and should stay an advanced override."
+           )
+
+    assert String.contains?(guide, "advanced override")
     assert String.contains?(guide, "export auth deliberately falls back to")
     assert String.contains?(guide, "mirror = %{assigns: conn.assigns}")
     assert String.contains?(guide, "That fallback is part of the public contract.")
     assert String.contains?(guide, "Both transport faces share the same telemetry event")
+    assert String.contains?(guide, "not define a role enum, permissions DSL, tenancy DSL")
+    assert String.contains?(guide, "page-level")
   end
 end

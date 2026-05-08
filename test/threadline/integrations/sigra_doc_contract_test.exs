@@ -44,6 +44,7 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "{:sigra, \"~> 0.2\", optional: true}")
     assert String.contains?(doc, "for hosts; never for the library")
     assert String.contains?(doc, "Sigra stays host-owned and soft-loaded")
+    assert String.contains?(doc, "not a blanket support promise for every Sigra")
 
     assert String.contains?(
              doc,
@@ -78,6 +79,25 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "raises `ArgumentError` immediately")
     assert String.contains?(doc, "rewrite `conn.remote_ip` upstream")
     assert String.contains?(doc, "direct callback pair, not a second adapter layer")
+    assert String.contains?(doc, "Sigra covers request capture only")
+    assert String.contains?(doc, "It does not secure `/audit`, export routes,")
+    assert String.contains?(doc, "## Surface and export auth stay host-owned")
+
+    assert String.contains?(
+             doc,
+             "request capture auth belongs in `actor_fn` plus `context_overrides_fn`"
+           )
+
+    assert String.contains?(doc, "LiveView surface auth belongs in `authorize_fn`")
+    assert String.contains?(doc, "export HTTP auth belongs in `export_authorize_fn`")
+    assert String.contains?(doc, "synthetic `%{assigns: conn.assigns}` mirror")
+    assert String.contains?(doc, "Sigra does not become the auth story")
+    assert String.contains?(doc, "one shared `%{assigns: assigns}`")
+    assert String.contains?(doc, "support-read-only lane")
+    assert String.contains?(doc, "`exports: false`")
+    assert String.contains?(doc, "opaque host data")
+    assert String.contains?(doc, "Do not treat Sigra as a page-level authorization DSL")
+    assert String.contains?(doc, "Threadline-owned roles system")
 
     assert String.contains?(doc, "Impersonation maps to `:admin`")
     assert String.contains?(doc, "API token maps to `:service_account`")

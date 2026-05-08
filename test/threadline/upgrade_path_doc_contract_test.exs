@@ -10,6 +10,7 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert String.contains?(guide, "## Supported compatibility matrix")
     assert String.contains?(guide, "## Upgrade by Threadline minor")
     assert String.contains?(guide, "## What breaks when Phoenix/LiveView floors move")
+    assert String.contains?(guide, "## Packaging Boundary Scorecard")
     assert String.contains?(guide, "## Surface-only deprecation and removal policy")
     assert String.contains?(guide, "## Release checklist for adopters")
     assert String.contains?(guide, "## Canonical references")
@@ -55,6 +56,12 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert String.contains?(guide, "current lock resolution in `mix.lock`")
     assert String.contains?(guide, "current CI coverage in `.github/workflows/ci.yml`")
     assert String.contains?(guide, "focused guide, doc-contract, and example-app verification")
+
+    assert String.contains?(
+             guide,
+             "The `{:sigra, \"~> 0.2\", optional: true}` declaration is a host install shape"
+           )
+
     refute String.contains?(guide, "Phoenix 1.7+")
   end
 
@@ -76,6 +83,9 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert String.contains?(guide, "Phoenix `1.8.5`")
     assert String.contains?(guide, "Phoenix LiveView `1.1.28`")
     assert String.contains?(guide, "mix verify.example")
+    assert String.contains?(guide, "Root `mix.exs`, root `mix.lock`")
+    assert String.contains?(guide, "`examples/threadline_phoenix/mix.lock`")
+    assert String.contains?(guide, "`examples/threadline_phoenix/README.md`")
     assert String.contains?(guide, "`verify-compile-no-optional`")
     assert String.contains?(guide, "`verify-test`")
     assert String.contains?(guide, "`verify-docs`")
@@ -100,6 +110,17 @@ defmodule Threadline.UpgradePathDocContractTest do
              guide,
              "Exceptions are allowed only for security issues, upstream hard incompatibility, or undocumented internals."
            )
+  end
+
+  test "upgrade-path guide locks the packaging scorecard and stay-in-tree decision" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    assert String.contains?(guide, "stay in-tree for now")
+    assert String.contains?(guide, "Version Matrix Pressure")
+    assert String.contains?(guide, "Release Cadence Divergence")
+    assert String.contains?(guide, "Adopter Glue Burden")
+    assert String.contains?(guide, "threadline_operator_surface/2")
+    assert String.contains?(guide, "If a future split happens")
   end
 
   test "mix.exs exposes the upgrade-path guide in ExDoc extras" do

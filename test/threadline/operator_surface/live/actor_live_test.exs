@@ -39,6 +39,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.ActorLiveTest.ScopedRouter do
+    use Phoenix.Router
+    import Ecto.Query
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.ActorLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
+      )
+    end
+
+    def auth(_socket), do: {:ok, %{source: "support"}}
+
+    def scope_operator_query(query, %{source: source}, %{surface: :actor_history}) do
+      where(query, [at], at.source == ^source)
+    end
+
+    def scope_operator_query(query, _scope, _context), do: query
+  end
+
   defmodule Threadline.OperatorSurface.ActorLiveTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -54,6 +88,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.ActorLiveTest.Router)
+  end
+
+  defmodule Threadline.OperatorSurface.ActorLiveTest.ScopedEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_actor_scoped_key",
+      signing_salt: "v8q+QWvj"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.ActorLiveTest.ScopedRouter)
   end
 
   defmodule Threadline.OperatorSurface.Live.ActorLiveTest do
@@ -152,6 +203,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # Combined regex avoids Elixir's strict-boolean `or` gotcha.
         assert html =~ ~r/(All covered|\d+ uncovered)/
       end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.ActorLiveScopedTest do
+    use ExUnit.Case, async: true
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.ActorLiveTest.ScopedEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.ActorLiveTest.ScopedEndpoint,
+        secret_key_base: "z" |> String.duplicate(64),
+        live_view: [signing_salt: "z" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.ActorLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    test "scoped actor history hides out-of-scope actor events", %{conn: conn} do
+      repo = Threadline.Test.Repo
+
+      repo.insert!(
+        Threadline.Capture.AuditTransaction.changeset(%{
+          txid: :rand.uniform(1_000_000_000),
+          occurred_at: DateTime.utc_now(),
+          actor_ref: %{"type" => "user", "id" => "scoped_actor"},
+          source: "admin"
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit_scoped/actors/user/scoped_actor")
+      assert html =~ "This actor has never recorded any events."
+      refute html =~ "View Incident"
     end
   end
 end

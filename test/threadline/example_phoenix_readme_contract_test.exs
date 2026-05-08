@@ -26,6 +26,7 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
 
     assert String.contains?(doc, "wired directly into `Threadline.Plug`")
     assert String.contains?(doc, "soft-loaded, host-owned")
+    assert String.contains?(doc, "runnable proof artifact behind that path")
   end
 
   test "example README does not teach an app-local delegate seam" do
@@ -43,6 +44,7 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "requires an authenticated actor before it serves the")
     assert String.contains?(doc, "drill-down endpoint")
     assert String.contains?(doc, "Hosts still need their own tenancy and policy checks")
+    assert String.contains?(doc, "mix threadline.incident <audit_transaction_id>")
   end
 
   test "example README locks the mounted operator-surface story to the router source" do
@@ -57,9 +59,28 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "pipeline :admin_auth")
     assert String.contains?(doc, "authenticated administrative user")
     assert String.contains?(doc, "`phx.gen.auth`-style posture")
+    assert String.contains?(doc, "shared `%{assigns: assigns}`")
+    assert String.contains?(doc, "support-read-only variation")
+    assert String.contains?(doc, "`exports: false`")
+    assert String.contains?(doc, "HTTP-native `403`")
     assert String.contains?(doc, "http://localhost:4000/audit")
     assert String.contains?(doc, "../../guides/getting-started-saas.md")
     assert String.contains?(doc, "without becoming the primary onboarding narrative")
+    assert String.contains?(doc, "mix threadline.health.coverage")
+    assert String.contains?(doc, "mix threadline.policy.show")
+    assert String.contains?(doc, "mix threadline.incident <audit_transaction_id>")
+  end
+
+  test "example router uses one shared assigns-shaped authorizer" do
+    router =
+      read_rel!(["examples", "threadline_phoenix", "lib", "threadline_phoenix_web", "router.ex"])
+
+    assert String.contains?(router, "def my_authorize_fn(%{assigns: assigns}) do")
+    assert String.contains?(router, "scope_query_fn: &MyApp.Audit.scope_operator_query/3")
+    assert String.contains?(router, "exports: false")
+    refute String.contains?(router, "def my_authorize_fn(%Plug.Conn{}")
+    refute String.contains?(router, "def my_authorize_fn(%Phoenix.LiveView.Socket{}")
+    refute String.contains?(router, "match?(%Phoenix.LiveView.Socket{}, transport)")
   end
 
   defp router_mount_block do

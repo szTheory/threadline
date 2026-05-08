@@ -58,6 +58,36 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert_received {:telemetry_event, _, %{result: :granted}, %{scope_keys: scope_keys}}
         assert scope_keys == [:role, :user_id]
       end
+
+      test "shared %{assigns: assigns} callback grants support scope through the mirror" do
+        opts = [
+          authorize_fn: fn %{assigns: assigns} ->
+            case assigns[:current_user] do
+              %{role: :support, organization_id: org_id} ->
+                {:ok, %{access: :support_read_only, organization_id: org_id}}
+
+              _ ->
+                {:error, :unauthorized}
+            end
+          end
+        ]
+
+        conn_in =
+          conn(:get, "/audit/exports/changes.csv")
+          |> Plug.Conn.assign(:current_user, %{role: :support, organization_id: "org_123"})
+
+        conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
+
+        refute conn_out.halted
+
+        assert conn_out.assigns[:threadline_scope] == %{
+                 access: :support_read_only,
+                 organization_id: "org_123"
+               }
+
+        assert_receive {:telemetry_event, _, %{result: :granted},
+                        %{scope_keys: [:access, :organization_id]}}
+      end
     end
 
     describe "call/2 with `:authorize_fn` returning a denial / raising" do
@@ -104,6 +134,36 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         _conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
 
         assert_received {^ref, :export_called_with_conn, "/audit/exports/changes.csv"}
+      end
+
+      test "case 6a2: export_authorize_fn can opt support into export access" do
+        opts = [
+          authorize_fn: fn _ -> {:error, :unauthorized} end,
+          export_authorize_fn: fn %Plug.Conn{assigns: %{current_user: user}} ->
+            if user.role == :support and user.export_access do
+              {:ok, %{access: :support_read_only, organization_id: user.organization_id}}
+            else
+              {:error, :unauthorized}
+            end
+          end
+        ]
+
+        conn_in =
+          conn(:get, "/audit/exports/changes.csv")
+          |> Plug.Conn.assign(:current_user, %{
+            role: :support,
+            export_access: true,
+            organization_id: "org_123"
+          })
+
+        conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
+
+        refute conn_out.halted
+
+        assert conn_out.assigns[:threadline_scope] == %{
+                 access: :support_read_only,
+                 organization_id: "org_123"
+               }
       end
 
       test "case 6b: when :export_authorize_fn is absent, :authorize_fn is called with the synthetic %{assigns: conn.assigns} mirror" do

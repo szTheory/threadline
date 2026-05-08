@@ -28,6 +28,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     - `:exports` (boolean, default `true`) — set to `false` to suppress the
       sibling export-controller scope (rare LV-only adopters).
+    - `:scope_query_fn` (`(Ecto.Query.t(), scope, %{surface: atom(), params: map()} -> Ecto.Query.t())`,
+      optional) — host-owned query transform used when `:authorize_fn` returns
+      `{:ok, scope}`. Threadline treats `scope` as opaque data and calls this
+      function for timeline, actor-history, transaction, and export flows.
     - `:export_authorize_fn` (`(Plug.Conn.t() -> :ok | true | {:ok, scope} | _)`,
       default delegates to `:authorize_fn` via a synthetic
       `%{assigns: conn.assigns}` mirror) — Conn-shaped authorize callback for
