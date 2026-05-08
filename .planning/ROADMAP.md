@@ -4,7 +4,7 @@
 
 ### v1.19 — Integration Breadth
 
-**Status:** Planned
+**Status:** In progress
 **Phases:** 69-72 (continuing from v1.18's last phase, no `--reset-phase-numbers`)
 **Granularity:** coarse (per `.planning/config.json`)
 **Coverage:** 10/10 v1.19 requirements mapped
@@ -13,7 +13,7 @@
 
 #### Phases
 
-- [ ] **Phase 69: Integration Contracts & Support Matrix** — Freeze the reusable adapter contract, define the named support matrix, and wire verification/CI expectations so Threadline only claims combinations the repo actually proves
+- [x] **Phase 69: Integration Contracts & Support Matrix** — Freeze the reusable adapter contract, define the named support matrix, and wire verification/CI expectations so Threadline only claims combinations the repo actually proves
 - [ ] **Phase 70: Sigra/Phoenix Reference Integration Refresh** — Refresh the current Sigra-backed reference path and example/docs/package wording to match the supported Phoenix/Sigra lines while keeping Sigra a soft dependency
 - [ ] **Phase 71: Mount Recipes & Access Tiers** — Ship canonical admin and support-read-only mount/runbook patterns for the operator surface, including router/live-session/auth-hook placement and CLI fallback parity
 - [ ] **Phase 72: Packaging Boundary Scorecard & Closeout** — Define objective `threadline_web` extraction triggers, align package/docs/module-group contracts, and close the milestone with an explicit stay-in-tree or extract-later decision
@@ -87,7 +87,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 69. Integration Contracts & Support Matrix | 0/0 | Pending | — |
+| 69. Integration Contracts & Support Matrix | 3/3 | Complete | 2026-05-07 |
 | 70. Sigra/Phoenix Reference Integration Refresh | 0/0 | Pending | — |
 | 71. Mount Recipes & Access Tiers | 0/0 | Pending | — |
 | 72. Packaging Boundary Scorecard & Closeout | 0/0 | Pending | — |

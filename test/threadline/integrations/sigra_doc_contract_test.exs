@@ -44,7 +44,11 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "{:sigra, \"~> 0.2\", optional: true}")
     assert String.contains?(doc, "for hosts; never for the library")
     assert String.contains?(doc, "Sigra stays host-owned and soft-loaded")
-    assert String.contains?(doc, "proven through the current example app, docs, and focused repo verification")
+
+    assert String.contains?(
+             doc,
+             "proven through the current example app, docs, and focused repo verification"
+           )
 
     assert String.contains?(
              doc,

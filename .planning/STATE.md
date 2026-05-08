@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: — Integration Breadth
-status: milestone_initialized
-last_updated: "2026-05-07T00:00:00.000Z"
-last_activity: 2026-05-07 -- v1.19 opened; requirements and roadmap defined
+status: milestone_in_progress
+last_updated: "2026-05-08T01:49:29Z"
+last_activity: 2026-05-07 -- Phase 69 executed, verified, and closed on the final tree
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 25
 ---
 
 # Project State: Threadline
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-Phase: Not started (Phase 69 queued — integration-contracts-and-support-matrix)
+Phase: Phase 70 queued — sigra-phoenix-reference-integration-refresh
 Plan: —
-Status: Milestone initialized
-Last activity: 2026-05-07 -- opened v1.19, updated PROJECT/REQUIREMENTS/ROADMAP, and queued Phase 69
+Status: Milestone in progress
+Last activity: 2026-05-07 -- executed and verified Phase 69, then queued Phase 70
 
 ## Performance Metrics
 
 - **Total Phases**: 4 (Phases 69-72) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 0 of 4 in active milestone
+- **Phases Completed**: 1 of 4 in active milestone
 - **Requirements Covered**: 10 of 10 mapped (INTEG 3, COMPAT 3, ADOPT 2, PKG 2)
 - **Last Milestone**: v1.18 — Adoption and Policy Hardening (shipped 2026-05-07, 16/16 requirements, Phases 64–68)
-- **Milestone Readiness**: v1.19 is initialized and ready for Phase 69 discussion/planning
+- **Milestone Readiness**: v1.19 is active and ready for Phase 70 discussion/planning
 
 ## Accumulated Context
 
@@ -42,6 +42,7 @@ Last activity: 2026-05-07 -- opened v1.19, updated PROJECT/REQUIREMENTS/ROADMAP,
 - 2026-05-07: Open v1.19 as "Integration Breadth" — broaden adoption through reusable host/framework patterns, explicit adapter contracts, and honest compatibility claims rather than deeper operator-product scope. Keep `threadline` core auth-agnostic, keep the optional Phoenix/LiveView surface in-tree, and treat `threadline_web` as an extraction-readiness decision instead of a forced package split.
 - 2026-05-07: v1.19 research synthesis recommends no new required runtime deps, retention of the current optional-dependency posture, a narrow support matrix that only names proven combinations, and explicit deferral of retention-admin capture machinery, saved views, queued exports, and mutable policy UI.
 - 2026-05-07: Continue phase numbering from 68 (no `--reset-phase-numbers`); v1.19 starts at Phase 69 with a four-phase shape: integration contracts/support matrix → Sigra/Phoenix reference refresh → mount recipes/access tiers → packaging-boundary scorecard and closeout decision.
+- 2026-05-07: Phase 69 execution landed across three plans. Plan 01 published `guides/integration-contracts.md` as the canonical breadth-contract guide, wired README/operator-surface/ExDoc discovery pointers, and corrected stale callback-shape examples. Plan 02 narrowed the public support story to `capture-only`, `phoenix-surface`, and `sigra-reference` across `guides/upgrade-path.md`, the Sigra guide, README, and the Phoenix example README. Plan 03 locked the breadth docs and proof anchors with focused contract tests tied to `verify.compile_no_optional`, `verify.example`, `verify.doc_contract`, and the stable CI job IDs. Final-tree verification passed: the focused Phase 69 contract suite (`55 tests, 0 failures`), `mix verify.compile_no_optional`, `mix verify.example` (`19 tests, 0 failures`), and `mix ci.all` after formatter cleanup on the two Phase 69 doc-contract files.
 
 - 2026-05-07: Phase 67 execution landed across five plans. Plan 01 extracted `Threadline.Capture.TriggerCaptureConfig`, added `Threadline.Policy.RedactionPresenter`, and locked fail-closed catalog/parsing behavior; Plan 02 shipped `mix threadline.policy.show` with stable human/JSON parity; Plan 03 shipped the gated `/audit/policy/redaction` LiveView; Plan 04 pinned the route/status/no-sample-values contract and updated operator docs; Plan 05 closed the verification gap with formatter-only remediation on the diagnosed files and a green `mix ci.all`. Phase-specific verification passed: `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/policy/redaction_presenter_catalog_test.exs test/threadline/operator_surface/policy_show_mix_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs test/threadline/operator_surface/policy_show_doc_contract_test.exs` (28 tests, 0 failures), `mix verify.compile_no_optional`, and `mix ci.all`.
 - 2026-05-07: Phase 64 plans landed. 3 plans / 2 waves: Plan 01 (TimelineLive core + router edit + style + back-links on TransactionLive/ActorLive) and Plan 02 (LV integration test, 13 cases) parallel in Wave 1; Plan 03 (BROWSE-04 doc-contract test) in Wave 2. Plan-checker PASSED on iteration 1 (after one revision pass that fixed 2 blockers + 5 warnings: cursor-keyword-sugar grep alignment, viewport-bottom-on-empty-data restructure, `:filters_raw` URL hydration, `assert_patch/1` return shape, ActorLive not_found back-link, F-3 cursor-guard grep enforcement, two missing test cases for BROWSE-02 allowlist drop and BROWSE-03 one-Apply-one-history-entry). All four BROWSE-IDs covered; all 14 D-IDs implemented behaviorally.
@@ -115,7 +116,7 @@ Last activity: 2026-05-07 -- opened v1.19, updated PROJECT/REQUIREMENTS/ROADMAP,
 
 ### Todos
 
-- [ ] Discuss and plan Phase 69 — Integration Contracts & Support Matrix
+- [ ] Discuss and plan Phase 70 — Sigra/Phoenix Reference Integration Refresh
 - [ ] Decide whether the current example app should remain the only canonical reference path or whether v1.19 needs a second materially different host example
 - [ ] Close v1.19 with an explicit `threadline_web` decision record: stay in-tree unless objective extraction triggers are met
 - [ ] Push milestone tags `v1.15`, `v1.16`, and `v1.17` when the maintainer is ready
@@ -132,8 +133,8 @@ Last activity: 2026-05-07 -- opened v1.19, updated PROJECT/REQUIREMENTS/ROADMAP,
 
 ## Session Continuity
 
-- **Last Action**: Plan 65-04 (Exports UI Parity — EXPO-05 test trifecta) shipped. 3 commits on `main`: `50edc15` test(65-04) `exports_doc_contract_test.exs` — 33 source-reading assertions across 11 describe blocks pinning button labels (`Download CSV/JSON/NDJSON`), route literals (`/changes.csv|json|ndjson` + `ExportController, :csv|:json|:ndjson` action atoms), content-type literals (`text/csv; charset=utf-8` + `application/json; charset=utf-8` + `application/x-ndjson; charset=utf-8`), filename helper output (live `Filename.for/2` execution producing `threadline-changes-2026-05-06T12-00Z.{csv|json|ndjson}`), file-scope optional-deps gates (controller + plug `Phoenix.Controller`; Filename + FilterParams refute `Code.ensure_loaded?`), chunked-stream pattern literals (`Stream.take(10_000)` + `Enum.reduce_while` + `cap: 10_001` + `{:ok, %{count: count}}` destructure), count-line + banner literals (`match-count-status` + `Large export — will stream in chunks.` + `Truncated to first 10,000 rows.`), atom-safety refutations (`String.to_atom\b` regex refute on FilterParams + ExportController + ExportAuthPlug — Pitfall 11), Phase 64 phx-change carry-forward (`refute String.contains?(src, "phx-change=")` — D-04 / F-12), telemetry event reuse (`[:threadline, :operator_surface, :authorize]` + `%{assigns: conn.assigns}` synthetic-mirror — D-20). `750b40c` test(65-04) `controllers/export_controller_test.exs` — Phoenix.ConnTest integration test (`async: false` — Threadline does NOT use SQL Sandbox per data_case.ex) with nested test-Endpoint mirroring `timeline_live_test.exs:1-60` shape (outermost wrapper gates on `Phoenix.Controller`; browser pipeline `:accepts ["html", "csv", "json"]`; FK-order `Repo.delete_all` cleanup); six cases — three iodata happy-paths (CSV 10 rows / JSON wrapped 5 rows / NDJSON 3 rows) + chunked CSV @tag :slow at 5,001 rows asserting `conn.state == :chunked` (D-27) + 422 invalid-filter (`?from=not-a-date` → `text/plain` + `"invalid"` body) + empty-window header-only CSV (1 line). `5fd91e9` test(65-04) `exports_mix_parity_test.exs` — D-28 byte-equality parity test exercising BOTH Mix task AND controller against the SAME seeded data with the SAME filters (after `String.slice(0..15)` datetime-local conversion); three cases (CSV / JSON wrapped / NDJSON); `Mix.Task.reenable("threadline.export")` in setup so each test case can re-invoke; `Code.require_file("controllers/export_controller_test.exs", __DIR__)` at file top so the parity test references `ExportControllerTest.Endpoint` whether the file runs alone or as part of the full suite; wrapped-JSON parity strips `generated_at` ISO timestamp via `Regex.replace` (timestamp captured at format time at `lib/threadline/export.ex:434`; intentional audit-trail provenance metadata; CSV and NDJSON remain raw byte equality). Five Rule-1/Rule-3 deviations auto-fixed: (1) download-anchor regex `[^}]+` does not match across Elixir interpolation `#{...}` inside the `<.link href={...}>` brace-block → switched to non-greedy `\{.+?\}`; (2) plan-supplied controller test missing `import Plug.Conn, only: [get_resp_header: 2]` → Phoenix.ConnTest does not re-export `get_resp_header/2`; added the explicit import; (3) parity test cannot run in isolation because it references the Endpoint defined in the sibling controller test file → added `Code.require_file/1` at file top so the file runs identically alone or with full suite; (4) wrapped-JSON parity raw byte equality unattainable due to `generated_at` timestamp captured at format time → strip `generated_at` key from both outputs via `Regex.replace`; (5) one formatter-driven test description re-wrap. 413/413 full-suite tests pass; `mix verify.format` + `mix verify.compile_no_optional` exit 0; net 42 new tests since Plan 65-03's 371-test baseline. EXPO-05 marked complete in REQUIREMENTS.md.
-- **Next Step**: Phase 65 ready for `/gsd-verify-work 65` (confirms `must_haves.truths` for all four plans hold) followed by `/gsd-complete-phase 65` (closes Phase 65; updates ROADMAP plan count + completion date). After Phase 65 closes, Phase 66 (Coverage Dashboard — first phase of Coverage subsystem; introduces `Threadline.Health.trigger_coverage/1` `:schema` opt + `mix threadline.health.coverage` parity Mix task + a coverage dashboard LV under the same `threadline_operator_surface/2` macro as a sibling LV) opens.
+- **Last Action**: Phase 69 executed and verified on `main`. Ten commits landed in sequence: `fd7c4ec`, `488c683`, `98adb52`, `cc027ff`, `f22ee54`, `7081b38`, `8105e90`, `fe30c52`, `688afd8`, and `0dac2da`, followed by a local formatter-only cleanup on `test/threadline/integrations/sigra_doc_contract_test.exs` and `test/threadline/readme_doc_contract_test.exs` so the final `mix ci.all` gate passed. New artifacts: `guides/integration-contracts.md`, `69-01-SUMMARY.md`, `69-02-SUMMARY.md`, `69-03-SUMMARY.md`, and `69-VERIFICATION.md`. The final proof surface is green: `mix test test/threadline/integration_contracts_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/integrations/sigra_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/readme_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/ci_topology_contract_test.exs test/threadline/phase06_nyquist_ci_contract_test.exs --max-failures 1` (`55 tests, 0 failures`), `mix verify.compile_no_optional`, `mix verify.example` (`19 tests, 0 failures`), and `mix ci.all`.
+- **Next Step**: Open Phase 70 planning/execution against the new Phase 69 contract: refresh the Sigra/Phoenix reference path, package/example wording, and proof anchors without broadening support claims beyond the named lanes.
 
 ## Archived Session — Plan 65-03
 
