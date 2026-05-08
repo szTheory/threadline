@@ -4,6 +4,11 @@
 
 Use `Threadline.Integrations.Sigra` when your Phoenix host already uses Sigra for request authentication and impersonation.
 
+This guide documents Threadline's current `sigra-reference` lane: a maintained
+first-party reference path for a Phoenix host that already owns Sigra. It is a
+reference claim, not a blanket support promise for arbitrary Sigra versions,
+arbitrary auth layouts, or non-Phoenix hosts.
+
 ## Install
 
 Add Sigra to your host application's `mix.exs` as an optional dependency:
@@ -13,6 +18,10 @@ Add Sigra to your host application's `mix.exs` as an optional dependency:
 ```
 
 This dependency is for hosts; never for the library.
+
+In this lane, Sigra stays host-owned and soft-loaded. The root `threadline`
+library keeps Sigra out of its dependency graph, while the reference path is
+proven through the current example app, docs, and focused repo verification.
 
 ## Plug callback wire-up
 
@@ -40,6 +49,10 @@ non-map value, `Threadline.Plug` raises `ArgumentError` immediately.
 Hosts still own transport normalization. If your deployment needs proxy-aware IP
 handling, rewrite `conn.remote_ip` upstream before `Threadline.Plug` runs.
 
+This remains a direct callback pair, not a second adapter layer: the host wires
+Sigra state into `Threadline.Plug`, and Threadline keeps the additive-only
+request metadata contract intact.
+
 ## Behaviors locked by SPEC
 
 1. Impersonation maps to `:admin`. When `current_scope.impersonating_from` is non-nil, `actor_ref_from_conn/1` returns an admin actor and keeps the impersonated user encoded in correlation metadata.
@@ -49,6 +62,10 @@ handling, rewrite `conn.remote_ip` upstream before `Threadline.Plug` runs.
 5. `x-correlation-id` header always wins. When the header is present, `audit_context_overrides_from_conn/1` returns `%{}` so `Threadline.Plug` preserves the request value instead of replacing it.
 6. `x-request-id` and any existing actor identity also stay authoritative. `context_overrides_fn` is additive request metadata only; it is not a second actor path.
 7. Plug-only adapter; no telemetry subscription in v1.
+
+These behaviors are the supported reference semantics for the current guide and
+example app. They are not a statement that every Sigra-backed Phoenix host or
+every future Sigra release is automatically covered by Threadline.
 
 ## correlation_id formats
 
@@ -65,3 +82,7 @@ When that check is false:
 
 - `actor_ref_from_conn/1` returns `nil`
 - `audit_context_overrides_from_conn/1` returns `%{}`
+
+That soft-dep contract is part of the `sigra-reference` lane. The host owns
+whether Sigra is present; Threadline only adapts that state when the dependency
+is loaded.

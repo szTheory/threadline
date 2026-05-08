@@ -2,6 +2,12 @@
 
 Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract. Mix commands in this document are meant to be run **from `examples/threadline_phoenix/`**; the dependency `{:threadline, path: "../.."}` points at the **repository root** (two levels up from this directory).
 
+This app is the current `sigra-reference` lane: the maintained first-party
+reference path for a Phoenix host that already uses Sigra. It proves a narrow
+composition story through this example app, the companion guides, and repo
+verification. It does not claim that arbitrary Sigra versions, arbitrary auth
+layouts, or non-Phoenix hosts are supported automatically.
+
 ## Prerequisites
 
 - **Elixir** ~> 1.15 (see root `mix.exs` for the exact constraint used in CI)
@@ -102,6 +108,8 @@ In the shipped example, both callbacks are wired directly into `Threadline.Plug`
 **`Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1`** fills additive
 request metadata only when `x-correlation-id` is absent. In production, feed
 Sigra-authenticated request state into the conn before the Threadline plug runs.
+That is the narrow first-party reference path: soft-loaded, host-owned, and
+proven here rather than generalized into a blanket Sigra compatibility promise.
 
 ## Incident JSON drill-down (`audit_transaction_id` → bundled incident)
 
@@ -117,6 +125,12 @@ before exposing transaction drill-down in production.
 Threadline provides an optional LiveView-based operator UI that is mounted
 directly in the host router. This reference app demonstrates the runnable,
 secured `/audit` path without becoming the primary onboarding narrative.
+
+For support language, treat this as a `sigra-reference` example layered on top
+of the root library's broader `phoenix-surface` lane. The root library declares
+optional Phoenix dependency ranges in `mix.exs`; this example app proves the
+narrower resolved path it actually ships with Sigra `0.2.5`, Phoenix `1.8.5`,
+Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, and Phoenix PubSub `2.2.0`.
 
 See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The
 operator surface lives at `/audit` because the router uses a dedicated admin
