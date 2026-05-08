@@ -11,24 +11,24 @@
 ### INTEG — Adapter contracts and host wiring
 
 - [x] **INTEG-01**: Threadline publishes one stable adapter contract for actor extraction, additive context overrides, optional dependency behavior, and operator-surface composition across `Threadline.Plug`, `Threadline.Job`, and `Threadline.Integrations.*`.
-- [ ] **INTEG-02**: At least one first-party breadth path ships as a reusable `Threadline.Integrations.*` reference integration that materially reduces host glue while keeping the host framework as a soft dependency.
-- [ ] **INTEG-03**: The operator surface has a documented and tested host-owned access pattern for router pipeline checks, LiveView mount checks, and optional scoped investigation queries, without introducing a Threadline-owned user or role model.
+- [x] **INTEG-02**: At least one first-party breadth path ships as a reusable `Threadline.Integrations.*` reference integration that materially reduces host glue while keeping the host framework as a soft dependency.
+- [x] **INTEG-03**: The operator surface has a documented and tested host-owned access pattern for router pipeline checks, LiveView mount checks, and optional scoped investigation queries, without introducing a Threadline-owned user or role model.
 
 ### COMPAT — Support matrix and verification honesty
 
 - [x] **COMPAT-01**: Threadline documents a narrow support matrix that names only proven combinations for Plug-only installs, Phoenix operator-surface installs, and the current Sigra-backed reference path.
 - [x] **COMPAT-02**: Verification and CI entrypoints exercise the claimed breadth story, including compile-without-optional-deps and the named surface/reference-path combinations, so docs do not promise ranges that the repo does not prove.
-- [ ] **COMPAT-03**: Example-app and guide dependency pins, install steps, and compatibility wording are refreshed to the currently supported Phoenix/Sigra lines with explicit caveats where support differs by host stack.
+- [x] **COMPAT-03**: Example-app and guide dependency pins, install steps, and compatibility wording are refreshed to the currently supported Phoenix/Sigra lines with explicit caveats where support differs by host stack.
 
 ### ADOPT — Mount recipes and runbooks
 
-- [ ] **ADOPT-08**: Threadline ships canonical mount recipes for secure admin and support-read-only operator-surface installs, including router placement, `live_session` / mount-auth expectations, and first verification steps.
-- [ ] **ADOPT-09**: The canonical reference path is proven end to end in docs and the example app, and every recommended surface-first workflow names the equivalent Mix-task or CLI fallback for capture-only adopters.
+- [x] **ADOPT-08**: Threadline ships canonical mount recipes for secure admin and support-read-only operator-surface installs, including router placement, `live_session` / mount-auth expectations, and first verification steps.
+- [x] **ADOPT-09**: The canonical reference path is proven end to end in docs and the example app, and every recommended surface-first workflow names the equivalent Mix-task or CLI fallback for capture-only adopters.
 
 ### PKG — Packaging-boundary decision
 
-- [ ] **PKG-01**: Threadline defines an explicit `threadline_web` extraction-readiness scorecard based on objective triggers such as version-matrix pressure, release-cadence divergence, and repeated adopter glue.
-- [ ] **PKG-02**: v1.19 closes with a documented package-boundary decision — expected default: stay in-tree for now — with README, guides, module-grouping/package contracts, and migration-path wording aligned to that decision.
+- [x] **PKG-01**: Threadline defines an explicit `threadline_web` extraction-readiness scorecard based on objective triggers such as version-matrix pressure, release-cadence divergence, and repeated adopter glue.
+- [x] **PKG-02**: v1.19 closes with a documented package-boundary decision — expected default: stay in-tree for now — with README, guides, module-grouping/package contracts, and migration-path wording aligned to that decision.
 
 ## Future Requirements
 
@@ -55,14 +55,14 @@
 |-------------|-------|--------|
 | INTEG-01 | Phase 69 | Complete |
 | COMPAT-01 | Phase 69 | Complete |
-| COMPAT-02 | Phase 69 | Complete |
-| INTEG-02 | Phase 70 | Pending |
-| COMPAT-03 | Phase 70 | Pending |
-| ADOPT-09 | Phase 70 | Pending |
-| INTEG-03 | Phase 71 | Pending |
-| ADOPT-08 | Phase 71 | Pending |
-| PKG-01 | Phase 72 | Pending |
-| PKG-02 | Phase 72 | Pending |
+| COMPAT-02 | Phase 73 | Complete |
+| INTEG-02 | Phase 70 | Complete |
+| COMPAT-03 | Phase 73 | Complete |
+| ADOPT-09 | Phase 73 | Complete |
+| INTEG-03 | Phase 73 | Complete |
+| ADOPT-08 | Phase 73 | Complete |
+| PKG-01 | Phase 74 | Complete |
+| PKG-02 | Phase 74 | Complete |
 
 **Coverage at roadmap open:**
 - v1.19 requirements: 10 total

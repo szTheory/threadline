@@ -1,5 +1,5 @@
 ---
-status: resolved
+status: complete
 mode: shift-left
 phase: 67-drift-aware-redaction-admin-mix-task-parity
 source:

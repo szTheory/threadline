@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: — Integration Breadth
-status: milestone_in_progress
-last_updated: "2026-05-08T01:49:29Z"
-last_activity: 2026-05-07 -- Phase 69 executed, verified, and closed on the final tree
+status: milestone_ready_for_release_prep
+last_updated: "2026-05-08T18:30:00Z"
+last_activity: 2026-05-08 -- Phase 74 closed the Phase 72 Nyquist and requirement-tracking gaps; v1.19 is internally consistent and ready for release prep
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 25
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 16
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-Phase: Phase 70 queued — sigra-phoenix-reference-integration-refresh
+Phase: Milestone closeout complete — v1.19 ready for release prep
 Plan: —
-Status: Milestone in progress
-Last activity: 2026-05-07 -- executed and verified Phase 69, then queued Phase 70
+Status: Release-prep cleanup in progress
+Last activity: 2026-05-08 -- Phase 74 completed; next is clean commits, clean worktrees, and release verification
 
 ## Performance Metrics
 
-- **Total Phases**: 4 (Phases 69-72) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 1 of 4 in active milestone
+- **Total Phases**: 6 (Phases 69-74) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 6 of 6 in active milestone
 - **Requirements Covered**: 10 of 10 mapped (INTEG 3, COMPAT 3, ADOPT 2, PKG 2)
 - **Last Milestone**: v1.18 — Adoption and Policy Hardening (shipped 2026-05-07, 16/16 requirements, Phases 64–68)
-- **Milestone Readiness**: v1.19 is active and ready for Phase 70 discussion/planning
+- **Milestone Readiness**: v1.19 implementation and traceability are complete; release hygiene and publication remain separate steps
 
 ## Accumulated Context
 
@@ -42,6 +42,11 @@ Last activity: 2026-05-07 -- executed and verified Phase 69, then queued Phase 7
 - 2026-05-07: Open v1.19 as "Integration Breadth" — broaden adoption through reusable host/framework patterns, explicit adapter contracts, and honest compatibility claims rather than deeper operator-product scope. Keep `threadline` core auth-agnostic, keep the optional Phoenix/LiveView surface in-tree, and treat `threadline_web` as an extraction-readiness decision instead of a forced package split.
 - 2026-05-07: v1.19 research synthesis recommends no new required runtime deps, retention of the current optional-dependency posture, a narrow support matrix that only names proven combinations, and explicit deferral of retention-admin capture machinery, saved views, queued exports, and mutable policy UI.
 - 2026-05-07: Continue phase numbering from 68 (no `--reset-phase-numbers`); v1.19 starts at Phase 69 with a four-phase shape: integration contracts/support matrix → Sigra/Phoenix reference refresh → mount recipes/access tiers → packaging-boundary scorecard and closeout decision.
+- 2026-05-08: Phase 72 execution landed across two plans. Plan 01 added the Packaging Boundary Scorecard to `guides/upgrade-path.md`, recorded the v1.19 answer as "stay in-tree for now", and guaranteed that any future split preserves the public `threadline_operator_surface/2` router integration API. Plan 02 aligned the package contract by renaming the ExDoc module group to `Operator Surface (Optional In-Tree)` and extended the focused contract tests so the scorecard, stay-in-tree wording, and optional in-tree grouping now fail fast on drift. Final proof surface is green: the focused Phase 72 contract suite, `mix verify.compile_no_optional`, and `mix ci.all`.
+- 2026-05-08: Milestone audit `v1.19-MILESTONE-AUDIT.md` found seven requirement gaps, two integration blockers, and two broken proof flows. The roadmap was reopened with Phase 73 for authorization-contract repair plus scoped-access enforcement, and Phase 74 for Nyquist/requirement-tracking closeout repair.
+- 2026-05-08: Phase 73 execution completed on the main working tree because pre-existing dirty doc/planning changes overlapped the phase files. The final tree now has one shared example `authorize_fn`, a real host-owned `scope_query_fn` seam enforced across timeline/actor/transaction/export flows, green focused scope/doc suites, a green `mix verify.compile_no_optional`, a green `mix ci.all`, and regenerated Phase 71 verification/validation artifacts.
+- 2026-05-08: Phase 74 completed the milestone-closeout bookkeeping. Phase 72 now has a final `72-VALIDATION.md`, the Phase 72 summaries carry requirement-tracking frontmatter, the roadmap/requirements/state counts match the shipped tree, and `v1.19-MILESTONE-AUDIT.md` was rerun to a pass on the repaired final tree.
+- 2026-05-08: Phase 71 execution landed across three plans. Plan 01 rewrote the operator-surface and integration-contract docs around one canonical `/audit` topology, one shared `%{assigns: assigns}` `authorize_fn`, a support-read-only `exports: false` default, and explicit LiveView-versus-export auth boundaries. Plan 02 aligned the SaaS quickstart, Sigra guide, Phoenix example router, and Phoenix example README to the same admin/support access-tier story while replacing the split example authorizer heads with one shared function. Plan 03 locked the wording and transport contract in focused doc tests plus auth tests, then cleared the example LiveView regression by keeping a single shared example authorizer with a LiveView-safe fallback inside the same function. Final proof surface is green: the focused Phase 71 contract/auth slices and `mix ci.all`.
 - 2026-05-07: Phase 69 execution landed across three plans. Plan 01 published `guides/integration-contracts.md` as the canonical breadth-contract guide, wired README/operator-surface/ExDoc discovery pointers, and corrected stale callback-shape examples. Plan 02 narrowed the public support story to `capture-only`, `phoenix-surface`, and `sigra-reference` across `guides/upgrade-path.md`, the Sigra guide, README, and the Phoenix example README. Plan 03 locked the breadth docs and proof anchors with focused contract tests tied to `verify.compile_no_optional`, `verify.example`, `verify.doc_contract`, and the stable CI job IDs. Final-tree verification passed: the focused Phase 69 contract suite (`55 tests, 0 failures`), `mix verify.compile_no_optional`, `mix verify.example` (`19 tests, 0 failures`), and `mix ci.all` after formatter cleanup on the two Phase 69 doc-contract files.
 
 - 2026-05-07: Phase 67 execution landed across five plans. Plan 01 extracted `Threadline.Capture.TriggerCaptureConfig`, added `Threadline.Policy.RedactionPresenter`, and locked fail-closed catalog/parsing behavior; Plan 02 shipped `mix threadline.policy.show` with stable human/JSON parity; Plan 03 shipped the gated `/audit/policy/redaction` LiveView; Plan 04 pinned the route/status/no-sample-values contract and updated operator docs; Plan 05 closed the verification gap with formatter-only remediation on the diagnosed files and a green `mix ci.all`. Phase-specific verification passed: `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/policy/redaction_presenter_catalog_test.exs test/threadline/operator_surface/policy_show_mix_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs test/threadline/operator_surface/policy_show_doc_contract_test.exs` (28 tests, 0 failures), `mix verify.compile_no_optional`, and `mix ci.all`.
@@ -116,9 +121,9 @@ Last activity: 2026-05-07 -- executed and verified Phase 69, then queued Phase 7
 
 ### Todos
 
-- [ ] Discuss and plan Phase 70 — Sigra/Phoenix Reference Integration Refresh
+- [x] Discuss and plan Phase 70 — Sigra/Phoenix Reference Integration Refresh
 - [ ] Decide whether the current example app should remain the only canonical reference path or whether v1.19 needs a second materially different host example
-- [ ] Close v1.19 with an explicit `threadline_web` decision record: stay in-tree unless objective extraction triggers are met
+- [x] Close v1.19 with an explicit `threadline_web` decision record: stay in-tree unless objective extraction triggers are met
 - [ ] Push milestone tags `v1.15`, `v1.16`, and `v1.17` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 - [x] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
@@ -133,8 +138,8 @@ Last activity: 2026-05-07 -- executed and verified Phase 69, then queued Phase 7
 
 ## Session Continuity
 
-- **Last Action**: Phase 69 executed and verified on `main`. Ten commits landed in sequence: `fd7c4ec`, `488c683`, `98adb52`, `cc027ff`, `f22ee54`, `7081b38`, `8105e90`, `fe30c52`, `688afd8`, and `0dac2da`, followed by a local formatter-only cleanup on `test/threadline/integrations/sigra_doc_contract_test.exs` and `test/threadline/readme_doc_contract_test.exs` so the final `mix ci.all` gate passed. New artifacts: `guides/integration-contracts.md`, `69-01-SUMMARY.md`, `69-02-SUMMARY.md`, `69-03-SUMMARY.md`, and `69-VERIFICATION.md`. The final proof surface is green: `mix test test/threadline/integration_contracts_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/integrations/sigra_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/readme_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/ci_topology_contract_test.exs test/threadline/phase06_nyquist_ci_contract_test.exs --max-failures 1` (`55 tests, 0 failures`), `mix verify.compile_no_optional`, `mix verify.example` (`19 tests, 0 failures`), and `mix ci.all`.
-- **Next Step**: Open Phase 70 planning/execution against the new Phase 69 contract: refresh the Sigra/Phoenix reference path, package/example wording, and proof anchors without broadening support claims beyond the named lanes.
+- **Last Action**: Completed Phase 74 and reran the milestone audit to a pass. Phase 72 bookkeeping is now complete and the active milestone planning artifacts are internally consistent.
+- **Next Step**: Convert the current release candidate tree into clean commits on `main`, remove stale worktrees, run final release verification, and then decide on the `0.5.0` publish/tag step.
 
 ## Archived Session — Plan 65-03
 
