@@ -11,7 +11,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current State
 
 **Last shipped:** v1.18 — Adoption and Policy Hardening (Phases 64-68, 2026-05-07)
-**Current milestone:** None open. Next recommended candidate: v1.19 — Integration Breadth.
+**Current milestone:** v1.19 — Integration Breadth (opened 2026-05-07; phases 69-72 planned)
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -23,26 +23,31 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-## Next Candidate Milestone: v1.19 Integration Breadth
+## Current Milestone: v1.19 Integration Breadth
 
-**Goal:** Broaden adoption reach now that the operator surface is easier to mount, upgrade, and govern. The standing recommendation is to keep `threadline` core auth-agnostic while expanding host/framework integration patterns and deciding whether the in-tree operator surface has enough live-adopter pressure to justify a `threadline_web` extraction.
+**Goal:** Broaden adoption reach now that the operator surface is easier to mount, upgrade, and govern. Keep `threadline` core auth-agnostic while expanding reusable host/framework integration patterns, tightening the support matrix, and deciding whether the in-tree operator surface has enough real pressure to justify a future `threadline_web` extraction.
 
 **Target themes:**
-- Integration breadth instead of deeper single-app UX: expand reusable host patterns, auth adapters, and ecosystem fit only after the v1.18 operator + lifecycle loop is proven.
-- Evaluate whether the operator surface should stay in-tree or move toward a companion `threadline_web` package once real adopters create version-matrix pressure.
-- Keep heavier governance and scale work behind real user pressure rather than speculative platform expansion.
+- Integration breadth instead of deeper single-app UX: expand reusable host patterns, adapter contracts, mount recipes, and ecosystem fit only after the v1.18 operator + lifecycle loop is proven.
+- Prove the current Sigra/Phoenix reference path against the current support matrix without turning Sigra into a hard dependency or implying broader guarantees than CI actually verifies.
+- Evaluate whether the operator surface should stay in-tree or move toward a companion `threadline_web` package only when real adopters create version-matrix or release-cadence pressure.
 
-**Deferred from v1.18 into v1.19+:**
-- Saved views inside the operator surface — would drag a tiny auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15; URL bookmarks + `live_patch` cover the persistence story for free.
-- Queued / Oban-based exports + status page + scheduled exports — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep; sync download is the right ceiling at this stage.
-- Retention admin viewer — "last purge" stats require net-new `audit_retention_runs` capture (writes from `Threadline.Retention.purge/1`), which broadens rather than hardens; revisit in v1.19 once the capture surface is decided. Operators continue to use `mix threadline.retention.purge --dry-run`.
-- Runtime edits to any policy (redaction, retention, coverage) inside the surface — read-only ceiling stays firm; an audit lib that lets you mutate redaction from a web UI is itself a compliance vector.
-- Companion `threadline_web` extraction (still v1.19+ candidate, with documented promotion path).
-- Multi-repo coverage dashboards; new auth adapters; CDC/WAL or new storage backend.
+**Target features:**
+- Stable adapter contract for actor extraction, additive context overrides, optional dependency behavior, and operator-surface composition.
+- Honest support matrix and verification story for Plug-only, Phoenix surface, and current Sigra-backed reference integrations.
+- Canonical mount/runbook patterns for secure admin and support-read-only operator-surface installs with CLI fallback parity.
+- Extraction-readiness scorecard and explicit closeout decision for whether `threadline_web` remains deferred.
 
-**Why now:** v1.18 closed the rollout-hardening loop. The next meaningful leverage is not more read-only screens inside the same surface; it is making the shipped surface easier to adopt across more host environments without weakening the core package boundaries.
+**Deferred beyond v1.19 unless new evidence appears:**
+- Saved views inside the operator surface — would drag a tiny auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15.
+- Queued / Oban-based exports + status page + scheduled exports — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep.
+- Retention admin viewer — "last purge" stats still require net-new `audit_retention_runs` capture and broaden the milestone away from integration breadth.
+- Runtime edits to any policy inside the surface — the read-only ceiling stays firm.
+- Multi-repo coverage dashboards, CDC/WAL, or new storage backends.
 
-**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the only ranked forward-looking milestone source. `/gsd-new-milestone` should start from that file rather than duplicating milestone names here.
+**Why now:** v1.18 closed the rollout-hardening loop. The next leverage is not more read-only screens inside the same surface; it is reducing host-specific glue, tightening the "what is actually supported" story, and making the future package-boundary decision from evidence instead of taste.
+
+**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the ranked forward-looking source. v1.19 is now active there; the next candidate after this milestone is v1.20 — Scale and Governance Depth.
 
 ## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
 
@@ -226,8 +231,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [x] **v1.18 Adoption and Policy Hardening** — Shipped 2026-05-07. Raw timeline browse + filter form, exports UI parity, coverage dashboard, drift-aware redaction admin, and lifecycle closeout all landed across Phases 64-68.
-- [ ] **Next milestone definition** — Use `.planning/MILESTONE-ARC.md` as the ranked source of truth when `/gsd-new-milestone` opens the next requirement set after v1.18.
+- [ ] **v1.19 Integration Breadth** — Broaden adoption reach through reusable host/framework integration patterns, a narrower and more honest support matrix, and a documented `threadline_web` extraction-readiness decision.
+- [ ] **Adapter contract and host seams** — Keep auth host-owned while standardizing actor extraction, additive context overrides, optional dependency behavior, and operator-surface composition across `Threadline.Plug`, `Threadline.Job`, and `Threadline.Integrations.*`.
+- [ ] **Support matrix and reference integrations** — Prove the current Phoenix and Sigra-backed reference paths against explicit tested combinations instead of implying generic compatibility.
+- [ ] **Mount recipes and CLI parity** — Ship canonical admin and support-read-only mount/runbook patterns that keep capture-only adopters on equal footing through Mix-task fallback paths.
 
 ### Out of Scope
 
@@ -237,7 +244,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Data warehouse / CDC pipeline** — WAL/logical replication adds operational surface area (PgBouncer hazards, cloud caveats, cannot be reverted) that is not worth the tradeoff for v0.x
 - **Hard LiveView / Phoenix dependency in `threadline` core** — out of scope. The v1.17 operator surface is gated on `phoenix_live_view` as an optional dep so capture-only adopters retain a Plug-only install footprint.
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
-- **Separate `threadline_web` companion package** — deferred to v1.19+. v1.17 ships the operator surface in-tree (`Threadline.OperatorSurface.Router`); a future split has a documented migration path (rename module, deprecation overlap, then extract) once adoption pressure and the LiveView/Phoenix version-compat matrix justify it.
+- **Forced `threadline_web` extraction before version-pressure exists** — out of scope for v1.19. The milestone should define objective extraction triggers first; a package split only makes sense once real adopters create version-matrix or release-cadence pressure.
 - **Automated Hex publish from CI** — tag-triggered workflow exists; interactive `mix hex.publish` remains the documented maintainer path for early releases
 - **Elixir/OTP version bumps in CI** — unless required for runner or dependency breakage
 
@@ -286,6 +293,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.18 ships the raw timeline browse with full `Threadline.Query.timeline/2` filter parity (no narrow starter, no saved views) | Narrow starter creates a UI/API filter divergence — operators learn two filter dialects, doc-contract tests have to track both, the CloudTrail/Kibana trajectory of "ship a subset, bolt on the rest later" is well-documented. Saved views drag a tiny new auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15; URL-as-state via `live_patch` + browser bookmarks cover the persistence story for free, which is what GitHub audit log and Oban Web do at scale. Five filters is well below the threshold where saved views become necessary. | ✓ Shipped in v1.18 |
 | v1.18 ships exports UI as "download current view" only (sync `iodata` for small windows, chunked stream for large), not queued/Oban-backed | Adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters / file expiry / status pages are platform creep that contradicts "lib not platform." Sidekiq Pro hit memory pain on in-process CSV before adding streaming; Backpex / Linear / GitHub-style sync downloads are the right ceiling at our stage. Queued-with-link-when-ready is what large products (CloudTrail, Sentry, GitHub audit-log) ship after sync hits a wall — Threadline hasn't hit that wall, so the design would be speculative. Revisit in v1.20 once real adopters report row-cap pain on real incidents. | ✓ Shipped in v1.18 |
 | v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | ✓ Shipped in v1.18 |
+| v1.19 focuses on integration breadth and extraction readiness, not deeper operator product scope | The next leverage point is reducing host-specific glue and tightening proven compatibility claims. Saved views, retention admin capture machinery, queued exports, and mutable policy UI all add product surface or infrastructure without making adoption easier across hosts. `threadline_web` should remain a measured future decision unless real adopter pressure proves otherwise. | — Active (opened 2026-05-07) |
 
 ## Evolution
 
@@ -307,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-08 — v1.18 closed (16/16 requirements shipped, Phases 64–68). Next recommended milestone: v1.19 — Integration Breadth.*
+*Last updated: 2026-05-07 — opened v1.19 Integration Breadth after v1.18 closeout. Next ranked candidate after the active milestone: v1.20 — Scale and Governance Depth.*

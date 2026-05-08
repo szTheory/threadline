@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.18
-milestone_name: — Adoption and Policy Hardening
-status: milestone_complete
-last_updated: "2026-05-08T01:05:00.000Z"
-last_activity: 2026-05-08 -- v1.18 archived; next milestone planning pending
+milestone: v1.19
+milestone_name: — Integration Breadth
+status: milestone_initialized
+last_updated: "2026-05-07T00:00:00.000Z"
+last_activity: 2026-05-07 -- v1.19 opened; requirements and roadmap defined
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,26 +18,30 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Open the next milestone from `.planning/MILESTONE-ARC.md` (current recommendation: v1.19 — Integration Breadth).
+**Current Focus**: v1.19 — Integration Breadth. Broaden host/framework adoption through adapter contracts, support-matrix honesty, canonical mount patterns, and a measured `threadline_web` extraction-readiness decision.
 
 ## Current Position
 
-Phase: 68 (lifecycle-ergonomics) — COMPLETE
-Plan: 3 of 3
-Status: v1.18 archived and ready for tag closeout
-Last activity: 2026-05-08 -- milestone artifacts archived and live planning surface reset
+Phase: Not started (Phase 69 queued — integration-contracts-and-support-matrix)
+Plan: —
+Status: Milestone initialized
+Last activity: 2026-05-07 -- opened v1.19, updated PROJECT/REQUIREMENTS/ROADMAP, and queued Phase 69
 
 ## Performance Metrics
 
-- **Total Phases**: 5 (Phases 64-68) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 5 of 5 in active milestone
-- **Requirements Covered**: 16 of 16 mapped (BROWSE 4, EXPO 3, COV 3, REDN 3, ADOPT 3)
-- **Last Milestone**: v1.17 — Operator Surface Foundation (shipped 2026-05-06, 18/18 requirements, Phases 57–63)
-- **Milestone Readiness**: v1.18 is fully shipped and ready for archive/tag closeout
+- **Total Phases**: 4 (Phases 69-72) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 0 of 4 in active milestone
+- **Requirements Covered**: 10 of 10 mapped (INTEG 3, COMPAT 3, ADOPT 2, PKG 2)
+- **Last Milestone**: v1.18 — Adoption and Policy Hardening (shipped 2026-05-07, 16/16 requirements, Phases 64–68)
+- **Milestone Readiness**: v1.19 is initialized and ready for Phase 69 discussion/planning
 
 ## Accumulated Context
 
 ### Decisions
+
+- 2026-05-07: Open v1.19 as "Integration Breadth" — broaden adoption through reusable host/framework patterns, explicit adapter contracts, and honest compatibility claims rather than deeper operator-product scope. Keep `threadline` core auth-agnostic, keep the optional Phoenix/LiveView surface in-tree, and treat `threadline_web` as an extraction-readiness decision instead of a forced package split.
+- 2026-05-07: v1.19 research synthesis recommends no new required runtime deps, retention of the current optional-dependency posture, a narrow support matrix that only names proven combinations, and explicit deferral of retention-admin capture machinery, saved views, queued exports, and mutable policy UI.
+- 2026-05-07: Continue phase numbering from 68 (no `--reset-phase-numbers`); v1.19 starts at Phase 69 with a four-phase shape: integration contracts/support matrix → Sigra/Phoenix reference refresh → mount recipes/access tiers → packaging-boundary scorecard and closeout decision.
 
 - 2026-05-07: Phase 67 execution landed across five plans. Plan 01 extracted `Threadline.Capture.TriggerCaptureConfig`, added `Threadline.Policy.RedactionPresenter`, and locked fail-closed catalog/parsing behavior; Plan 02 shipped `mix threadline.policy.show` with stable human/JSON parity; Plan 03 shipped the gated `/audit/policy/redaction` LiveView; Plan 04 pinned the route/status/no-sample-values contract and updated operator docs; Plan 05 closed the verification gap with formatter-only remediation on the diagnosed files and a green `mix ci.all`. Phase-specific verification passed: `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/policy/redaction_presenter_catalog_test.exs test/threadline/operator_surface/policy_show_mix_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs test/threadline/operator_surface/policy_show_doc_contract_test.exs` (28 tests, 0 failures), `mix verify.compile_no_optional`, and `mix ci.all`.
 - 2026-05-07: Phase 64 plans landed. 3 plans / 2 waves: Plan 01 (TimelineLive core + router edit + style + back-links on TransactionLive/ActorLive) and Plan 02 (LV integration test, 13 cases) parallel in Wave 1; Plan 03 (BROWSE-04 doc-contract test) in Wave 2. Plan-checker PASSED on iteration 1 (after one revision pass that fixed 2 blockers + 5 warnings: cursor-keyword-sugar grep alignment, viewport-bottom-on-empty-data restructure, `:filters_raw` URL hydration, `assert_patch/1` return shape, ActorLive not_found back-link, F-3 cursor-guard grep enforcement, two missing test cases for BROWSE-02 allowlist drop and BROWSE-03 one-Apply-one-history-entry). All four BROWSE-IDs covered; all 14 D-IDs implemented behaviorally.
@@ -111,6 +115,9 @@ Last activity: 2026-05-08 -- milestone artifacts archived and live planning surf
 
 ### Todos
 
+- [ ] Discuss and plan Phase 69 — Integration Contracts & Support Matrix
+- [ ] Decide whether the current example app should remain the only canonical reference path or whether v1.19 needs a second materially different host example
+- [ ] Close v1.19 with an explicit `threadline_web` decision record: stay in-tree unless objective extraction triggers are met
 - [ ] Push milestone tags `v1.15`, `v1.16`, and `v1.17` when the maintainer is ready
 - [ ] Decide whether to cut and push the separate `v0.3.0` release tag once the release surface is committed on the preferred branch
 - [x] Write `.planning/REQUIREMENTS.md` for v1.18 (REQ-IDs across raw timeline browse, exports UI, coverage dashboard, drift-aware redaction admin, lifecycle ergonomics)
