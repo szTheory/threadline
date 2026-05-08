@@ -1,6 +1,6 @@
 # Threadline domain reference
 
-This guide defines the vocabulary Threadline uses across capture triggers, Ecto schemas, and the public API. It complements the [README](../README.md) and module documentation on [HexDocs](https://hexdocs.pm/threadline).
+This guide defines the vocabulary Threadline uses across capture triggers, Ecto schemas, and the public API. If you want the architecture/persona/JTBD map first, start with [How Threadline works](how-threadline-works.md). It complements the [README](../README.md) and module documentation on [HexDocs](https://hexdocs.pm/threadline).
 
 ## Ubiquitous language
 

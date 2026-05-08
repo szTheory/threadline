@@ -68,6 +68,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     readme = File.read!("README.md")
 
     assert String.contains?(readme, "{:threadline, \"~> 0.5\"}")
+    assert String.contains?(readme, "guides/how-threadline-works.md")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/integrations/sigra.md")
   end

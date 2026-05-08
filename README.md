@@ -14,6 +14,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 ## Start here
 
 - **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
+- **Understanding the system:** read [guides/how-threadline-works.md](guides/how-threadline-works.md) for the architecture/persona/JTBD crash course.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md).
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
 - **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix.
@@ -151,6 +152,7 @@ compatibility from the README.
 ## Documentation
 
 - [HexDocs](https://hexdocs.pm/threadline)
+- [How Threadline works](guides/how-threadline-works.md)
 - [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
 - [Integration contracts](guides/integration-contracts.md)
 - [Support lanes and upgrade path](guides/upgrade-path.md)

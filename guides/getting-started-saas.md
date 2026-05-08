@@ -4,7 +4,8 @@ This is the canonical first-hour path for a Phoenix SaaS app: install
 Threadline, capture one real write, mount the shipped operator surface, and
 finish by checking the same request through `/audit` and the query APIs. The
 example app in `examples/threadline_phoenix/` is the runnable contract behind
-the snippets below.
+the snippets below. If you want the architecture/persona/JTBD map first, read
+[How Threadline works](how-threadline-works.md) before you wire anything.
 
 ## 1. Prerequisites
 

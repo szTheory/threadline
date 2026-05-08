@@ -28,6 +28,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
 
     Enum.each(headings, &assert(String.contains?(doc, &1)))
     assert String.contains?(doc, "phoenixframework.org")
+    assert String.contains?(doc, "how-threadline-works.md")
     assert String.contains?(doc, "mix threadline.gen.triggers --tables posts")
     assert String.contains?(doc, "{:threadline, \"~> 0.5\"}")
     assert String.contains?(doc, "{:covered, _}")

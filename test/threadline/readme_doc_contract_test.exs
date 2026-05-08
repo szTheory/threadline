@@ -33,6 +33,7 @@ defmodule Threadline.ReadmeDocContractTest do
     readme = File.read!("README.md")
 
     assert String.contains?(readme, "\"which public API first?\"")
+    assert String.contains?(readme, "guides/how-threadline-works.md")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/domain-reference.md")
     assert String.contains?(readme, "guides/upgrade-path.md")
