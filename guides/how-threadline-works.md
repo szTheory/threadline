@@ -101,16 +101,48 @@ That means the library and the UI answer the same questions:
 - `trigger_coverage/1` and `mix threadline.health.coverage`
 - policy drift checks and `mix threadline.policy.show`
 
-## Personas and JTBD
+## The SaaS Builder's JTBD Map
 
-| Persona | Job to be done | Primary surface |
-|---------|----------------|-----------------|
-| App integrator | Add durable audit capture to a Phoenix app without adopting a second platform. | `Threadline.Plug`, `record_action/2`, getting-started docs |
-| Support / ops | Answer "what happened?" quickly during a ticket, incident, or customer escalation. | `timeline/2`, `timeline_page/2`, `incident_bundle/2`, `/audit` |
-| Security / compliance | Prove coverage, retention, redaction, and drift are behaving honestly. | health tasks, policy viewer, release docs |
-| Maintainer / platform engineer | Keep the support matrix honest and avoid accidental auth-model drift. | `guides/upgrade-path.md`, `guides/integration-contracts.md`, planning docs |
+If you are dropping Threadline into your SaaS, you are hiring it to do four very specific jobs.
 
-The library exists to make those four personas overlap cleanly instead of forcing each one to build a different audit story.
+### Job 1: The "Silent Witness" (Compliance & Baseline)
+* **The Scenario:** A SOC2 auditor wants proof of data lineage, or a customer is screaming, "I never deleted that invoice!" You need to know that no matter what happens, the truth is recorded.
+* **The Flow:** You run `mix threadline.gen.triggers` to attach PostgreSQL triggers to your tables. You don't touch your Elixir contexts. Even if a junior dev opens an `iex` shell and runs `MyApp.Repo.delete_all()`, the triggers catch it.
+* **The JTBD:** *"Give me an airtight, DB-level audit trail without forcing me to rewrite my application code to use special `audit_insert` functions."*
+
+### Job 2: The "Who Did This?" (Attribution & Intent)
+* **The Scenario:** A database trigger only knows that the `postgres` database user modified a row. That’s useless for a SaaS. You need to know that `user_id: 42` did it via the `/billing/refund` endpoint.
+* **The Flow:** You drop `plug Threadline.Plug` into your router. You configure it to pull the current user from the session. Now, every physical database change is automatically tagged with that human actor. If you want to get fancy, you call `Threadline.record_action(:refund_issued)` in your business logic. 
+* **The JTBD:** *"Bridge the gap between physical database mutations and human application semantics so the logs actually make sense."*
+
+### Job 3: The "3 AM Support Ticket" (Investigation & Ops UI)
+* **The Scenario:** A customer writes into Zendesk: "My dashboard looks weird since yesterday." Your ops team needs to figure out what state changed without bugging an engineer to write custom SQL.
+* **The Flow:** You mount the `/audit` LiveView dashboard in your host app. Support staff log in (using your app's existing auth). They filter the timeline by the customer's `actor_id` or the specific `record_id` and get a visual diff of exactly what fields changed, when, and by whom.
+* **The JTBD:** *"Give my support and ops team a safe, read-only window into historical data state so they can unblock customers autonomously."*
+
+### Job 4: The "Data Handoff" (Egress & Reporting)
+* **The Scenario:** Legal needs a CSV of every permission change in the `Enterprise` workspace over the last 30 days.
+* **The Flow:** Your ops team uses the filter form on the LiveView timeline, hits "Export", and downloads the results. Alternatively, you run `mix threadline.export` in your deployment console.
+* **The JTBD:** *"Get the data out of the system in a standard, machine-readable format quickly and safely."*
+
+The library exists to make those personas overlap cleanly instead of forcing each one to build a different audit story.
+
+## The Delta to "Done" (Future Roadmap)
+
+While the read/write core is established, we are targeting four major scale capabilities for future milestones (v1.20+):
+
+- **"Don't OOM My Database" (Lifecycle & Pruning):** Let adopters safely prune old audit logs without locking the production DB or writing manual, autovacuum-aware batching scripts.
+- **"The Massive Egress" (Async Scale Adapters):** Let operators export massive datasets (millions of rows) in the background via Oban and stream them safely to local disk or S3.
+- **"The Daily Driver" (Operator Ergonomics):** Let ops teams save, name, and share their frequent queries so they don't have to rebuild them.
+- **"The Enterprise Firehose" (Streaming / SIEM):** Provide a clean hook to stream captured events out to an external data sink (like Datadog/Splunk) in near-real-time.
+
+## The Line of Diminishing Returns
+
+A great library knows what it *isn't*. Threadline hits the point of diminishing returns—and starts turning into bloated software—if we cross these lines:
+
+1. **Becoming a SIEM:** We are embedded infrastructure. We provide the facts. We will not build anomaly detection ML, chart builders, or pie-graph dashboards.
+2. **Owning Auth/RBAC:** Threadline relies on the host app to say "this user is an admin." We will not build user tables or role-permission matrices.
+3. **UI-Based Policy Mutation:** Security rules (like "don't log the `passwords` table" or "redact the `ssn` column") must live in code/config. We will not build a UI toggle to turn off logging, as that creates a vector for a rogue admin to disable logging, do something bad, and turn it back on.
 
 ## Public API surface
 

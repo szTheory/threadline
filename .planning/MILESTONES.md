@@ -2,6 +2,23 @@
 
 Entries are newest first.
 
+## v1.20 — Scale and Governance Depth (active)
+
+**Goal:** Turn the core audit substrate into an opinionated production workflow with retention oversight, repeatable investigations, and clear governance controls.
+
+**Phases completed:** (Not yet started, phases 75-79 mapped)
+
+**Key accomplishments:**
+- (TBD)
+
+**Stats:** Milestone opened 2026-05-21.
+
+**Archives:** `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/milestones/v1.20-ROADMAP.md`.
+
+**What is next:** Execute Phase 75 (Governance Infrastructure & State).
+
+---
+
 ## v1.19 — Integration Breadth (shipped 2026-05-08)
 
 **Goal:** Broaden host/framework adoption through adapter contracts, support-matrix honesty, canonical mount patterns, and a measured `threadline_web` extraction-readiness decision.

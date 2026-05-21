@@ -1,141 +1,90 @@
-# Architecture Research: v1.19 Integration Breadth
+# Architecture Patterns
 
 **Project:** Threadline
-**Milestone:** v1.19
-**Researched:** 2026-05-07
-**Scope:** Integrate broader host/framework patterns into the existing library without forcing a `threadline_web` split
-**Confidence:** HIGH
-
-## Executive Summary
-
-v1.19 should stay **additive to the current package shape**. The stable core remains:
-
-- capture and query APIs in `Threadline.*`
-- host entrypoints in `Threadline.Plug`, `Threadline.Job`, and `Threadline.Integrations.*`
-- optional Phoenix/LiveView operator code under `Threadline.OperatorSurface.*`
-
-The milestone should therefore widen adoption through **new adapters and extension contracts**, not by moving core logic or introducing a second package immediately. The in-tree operator surface is already isolated behind optional deps and `Code.ensure_loaded?/1`; that is the right seam to keep while proving whether a future `threadline_web` extraction is justified.
+**Researched:** 2026-05-08 (v1.20 - Scale and Governance Depth)
+**Overall Confidence:** HIGH
 
 ## Recommended Architecture
 
-### Existing extension points to preserve
+v1.20 expands Threadline's footprint by introducing persistent state for governance and background operations, shifting from a purely "capture and read" model to a "manage and schedule" model.
 
-| Extension point | Current role | v1.19 implication |
-|---|---|---|
-| `Threadline.Plug` | HTTP request audit-context extraction | Keep as the primary host HTTP seam. New auth/framework integrations should terminate here via `:actor_fn` and `:context_overrides_fn`, not by teaching core modules about host frameworks. |
-| `Threadline.Job` | Background-job actor/context extraction | Mirror any new host adapter story with job-safe equivalents where needed; do not let HTTP-only assumptions leak into job capture. |
-| `Threadline.Integrations.*` | Soft-dependency host adapters | Expand this namespace for reusable auth/framework adapters. This is the correct place for breadth work. |
-| `Threadline.OperatorSurface.Router` | Optional Phoenix mount macro and auth boundary | Keep operator mounting host-owned. Add adapters around it, not alternate auth ownership inside the surface. |
-| Mix tasks (`mix threadline.*`) | Non-web parity for capture-only adopters | Any new operator-facing integration pattern should preserve CLI or docs parity so non-Phoenix adopters do not lose capability. |
+### Component Boundaries
 
-### New components to add
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| `Threadline.Retention.Pruner` | Executes batched deletions to enforce retention policy. | `Ecto.Repo` (DB), `Threadline.Retention.Run` (Schema) |
+| `Threadline.Export.Orchestrator` | Manages the queueing, execution, and state transitions of async exports. | `Task.Supervisor`, `Ecto.Repo` (`threadline_export_jobs`) |
+| `Threadline.Storage` (Behaviour) | Abstraction for storing and retrieving large CSV payloads. | Local File System (default), S3 (optional) |
+| `Threadline.Governance` | Domain context for Saved Views and access policies. | `Ecto.Repo` (`threadline_saved_views`) |
+| `Threadline.OperatorSurface` | UI components for managing all of the above. | All domain contexts, Phoenix LiveView |
 
-| Component | Why it should exist |
-|---|---|
-| `Threadline.Integrations.<Adapter>` modules | Reusable host adapters belong beside `Threadline.Integrations.Sigra`, with runtime soft-dependency guards and zero core knowledge of the host framework. |
-| Shared adapter-behavior docs/contracts | v1.19 needs one documented adapter contract: actor extraction, additive context overrides, error/nil semantics, and optional dep behavior. |
-| Extraction-readiness checks for the operator surface | The milestone should formalize when `threadline_web` becomes worth the cost instead of splitting preemptively. |
+### Data Flow: Queued Exports
 
-### Modified components
+1. **Request:** Operator initiates an export via the UI.
+2. **Queue:** `Export.Orchestrator` creates an `ExportJob` record (state: `pending`, actor: operator).
+3. **Execution:** UI kicks off an async task (or Oban picks it up). Task updates state to `running`.
+4. **Stream:** `Ecto.Repo.stream/2` runs the query, pipes through `NimbleCSV`, and writes to `Threadline.Storage`.
+5. **Completion:** Task updates `ExportJob` state to `completed` with a storage reference URI.
+6. **Delivery:** Operator clicks "Download" in UI, LiveView streams the file from `Storage` to the client.
 
-| Component | Required change |
-|---|---|
-| `mix.exs` | Keep optional web deps and docs/module-group boundaries clean as more adapters land. If multiple adapters exist, `groups_for_modules` should keep `Integration` (core seams) separate from `Integrations` (host adapters). |
-| `README.md` and guides | Add a host-integration matrix and clear routing between Plug-only, job-only, adapter-backed, and optional operator-surface paths. |
-| Example app(s) | Extend the existing example coverage to prove the adapter pattern end to end. Prefer extending the canonical example over multiplying examples unless a second host stack is materially different. |
-| Contract tests | Add or extend doc-contract and packaging contract tests so new adapters and guides cannot drift from the public story. |
+### Data Flow: Retention Pruning
 
-## Packaging Boundaries
+1. **Trigger:** A cron job, API call, or `GenServer` ticker initiates the pruning process.
+2. **Setup:** A new `RetentionRun` record is created (status: `running`).
+3. **Chunking:** A recursive function executes `DELETE FROM threadline_audits WHERE inserted_at < ? LIMIT 5000`.
+4. **Loop:** It sleeps briefly to allow `autovacuum`, then repeats until 0 rows are deleted.
+5. **Finalize:** Updates `RetentionRun` with `rows_deleted`, `duration_ms`, and status `completed`.
 
-### Keep in `threadline`
+## Patterns to Follow
 
-- `Threadline.Plug`, `Threadline.Job`, `Threadline.Integrations.*`
-- operator-surface query composition, auth mount contracts, and LiveView modules
-- docs, examples, and tests that prove optional dependency behavior
+### Pattern 1: Pluggable Backend Behaviours
+**What:** Define explicit Behaviours for features that often require cloud infrastructure (Storage, Queues).
+**When:** For Export Storage and Export Queuing.
+**Example:**
+```elixir
+defmodule Threadline.Storage do
+  @callback put(key :: String.t(), stream :: Enumerable.t()) :: {:ok, uri :: String.t()} | {:error, term()}
+  @callback get(uri :: String.t()) :: {:ok, Enumerable.t()} | {:error, term()}
+end
+```
+Provide a `Threadline.Storage.Local` default that uses `File.stream!`.
 
-Reason: these pieces are still part of one adoption story. They share one version line, one release cadence, and one compatibility promise.
+### Pattern 2: Batched Ecto Deletions
+**What:** Deleting records using explicit `limit` and subqueries to avoid long-running locks.
+**When:** Implementing the Retention Pruner.
+**Example:**
+```elixir
+# In Ecto, a batched delete looks like this to utilize index scans effectively:
+query = from a in Audit, where: a.inserted_at < ^threshold, select: a.id, limit: 5000
+from(a in Audit, where: a.id in subquery(query)) |> Repo.delete_all()
+```
 
-### Do not move yet
+### Pattern 3: Actor-Owned Governance State
+**What:** Saved Views and Exports belong to the person who created them. Since Threadline does not define the `User` schema, it uses the extracted `actor` metadata.
+**When:** Persisting `SavedView` and `ExportJob` records.
+**Instead of:** `belongs_to :user, MyApp.Accounts.User`
+**Do:** `field :actor_id, :string` (derived from the host's `actor_fn`).
 
-- `Threadline.OperatorSurface.*` into `threadline_web`
-- auth-specific persistence or saved-view models
-- framework-specific domain logic inside capture, semantics, retention, export, or query layers
+## Anti-Patterns to Avoid
 
-Reason: the current optional-dependency boundary is already doing the job. A split now would create version-matrix work before there is evidence that package independence is needed.
+### Anti-Pattern 1: Naive `Repo.delete_all`
+**What:** `Repo.delete_all(from a in Audit, where: a.inserted_at < ^30_days_ago)`
+**Why bad:** If the table has 50 million rows and 10 million are older than 30 days, this single transaction will lock the table, generate massive WAL bloat, and likely time out, taking down the database.
+**Instead:** Batch deletes in chunks of 1,000 to 5,000 rows, yielding between chunks.
 
-### Extraction-readiness heuristics for future `threadline_web`
+### Anti-Pattern 2: LiveView Blocking Streams
+**What:** Running a 2-minute CSV export stream inside a LiveView event handler.
+**Why bad:** Blocks the LiveView process, ignores heartbeat, causes disconnects. If the user navigates away, the export silently dies.
+**Instead:** Hand off to a `Task.Supervisor` (or Oban), update an Ecto table, and have LiveView poll or subscribe to pubsub for completion.
 
-Promote extraction only when most of these are true:
+### Anti-Pattern 3: Hardcoding `/tmp/` Storage
+**What:** Storing exports in `/tmp/` on the local disk in a distributed application.
+**Why bad:** If Node A processes the export, and the user's browser requests the download from Node B, it results in a 404.
+**Instead:** Offer the `Threadline.Storage` behaviour so adopters can use S3/GCS. For single-node apps, local storage is fine, but it must be an explicit choice.
 
-| Heuristic | Why it matters |
-|---|---|
-| 2+ active adapters or host patterns need operator-surface-specific docs/tests | Signals the web surface now has its own compatibility burden. |
-| The operator surface begins releasing faster than core capture/query APIs | Indicates separate version cadence pressure. |
-| Optional Phoenix deps cause repeated CI, docs, or Hex packaging churn | Shows the current in-tree boundary is becoming expensive. |
-| Surface-only bugs/features dominate milestone scope for 2 consecutive milestones | Suggests the web layer has become a product surface of its own. |
-| Adopters want the operator surface without the rest of the library release cycle, or vice versa | Strong evidence for package decoupling. |
+## Scalability Considerations
 
-Do **not** extract based only on code size or aesthetics.
-
-## Adapter Boundary Rules
-
-### Hard rules
-
-- Core audit semantics stay auth-agnostic.
-- Adapters may derive `ActorRef` and additive context overrides; they may not redefine capture semantics.
-- Optional integrations must use soft-dependency guards and degrade to neutral defaults.
-- Operator-surface authorization remains host-supplied via mount pipeline and/or `:authorize_fn`; v1.19 should add reusable patterns around that contract, not replace it.
-
-### Recommended adapter contract
-
-Each adapter should answer four questions consistently:
-
-| Concern | Contract |
-|---|---|
-| Actor extraction | Return `ActorRef.t() | nil`; never raise on absent host state. |
-| Context overrides | Return additive request/job metadata only. Existing explicit request metadata must still win. |
-| Optional dependency | Runtime-gated; compile succeeds without the host framework installed. |
-| Example wiring | One canonical host example proving Plug path, operator auth path if relevant, and negative-path behavior. |
-
-## Docs and Test Contract Implications
-
-v1.19 needs stronger architectural contracts than new runtime machinery.
-
-| Area | Contract implication |
-|---|---|
-| Guides | Each adapter/pattern needs one canonical guide, cross-linked from README and operator-surface docs. |
-| Example coverage | Example tests should prove the public integration shape, not just internal helpers. |
-| Doc contracts | Lock route literals, mount/auth wording, adapter function names, and guide links. |
-| Release/package contracts | Keep tests like `release_artifact_contract_test.exs` aligned with any new guides, module groups, and package allowlists. |
-| Optional-deps safety | Keep compile-without-optional-deps verification as a release gate for any new breadth work. |
-
-## Sensible Build Order
-
-Order the milestone by dependency risk, not by surface appeal.
-
-1. **Adapter contract and extension-point hardening**
-   - Freeze the reusable adapter rules first.
-   - This reduces churn before adding concrete adapters or docs.
-
-2. **First new adapter(s) and host wiring examples**
-   - Add breadth through `Threadline.Integrations.*`.
-   - Prove the pattern in the example app and negative-path tests.
-
-3. **Operator-surface integration patterns**
-   - Document and test how adapters compose with `threadline_operator_surface`, `:authorize_fn`, and scoped investigation queries.
-   - This should build on the adapter contract, not invent a separate one.
-
-4. **Packaging and extraction-readiness instrumentation**
-   - Extend docs/module groups, release/package contracts, and write down the extraction heuristics.
-   - Only after the actual integration surface exists can readiness be judged honestly.
-
-5. **Milestone close with extraction decision record**
-   - Decide: stay in-tree for now, or open a later `threadline_web` extraction milestone.
-   - The expected outcome for v1.19 is likely “stay in-tree, but with explicit promotion criteria.”
-
-## Roadmap Implications
-
-- Treat v1.19 as **modified seams plus small additive modules**, not as a subsystem rewrite.
-- New work should cluster around `Threadline.Integrations.*`, docs/examples, and contract tests.
-- The highest-risk mistake is letting framework/auth concerns bleed into core capture/query APIs.
-- The second highest-risk mistake is extracting `threadline_web` before versioning and maintenance pressure justify it.
+| Concern | Small Adopter (1 Node, 1M rows) | Enterprise Adopter (Multi-node, 100M+ rows) |
+|---------|--------------------------------|--------------------------------------------|
+| **Exports** | Uses `Task` and `Local` storage. | Configures `Oban` adapter and `S3` storage adapter. |
+| **Retention** | Standard Ecto batched deletes keep DB healthy. | Disables built-in pruner, relies on native Postgres Partitioning managed via external tools. |

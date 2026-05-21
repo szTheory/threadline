@@ -12,7 +12,7 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
       "## The short version",
       "## The flow",
       "## Architecture layers",
-      "## Personas and JTBD",
+      "## The SaaS Builder's JTBD Map",
       "## Public API surface",
       "## Evolution so far",
       "## Natural next work",
@@ -39,10 +39,10 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
 
     Enum.each(
       [
-        "App integrator",
-        "Support / ops",
-        "Security / compliance",
-        "Maintainer / platform engineer",
+        "Silent Witness",
+        "Who Did This?",
+        "3 AM Support Ticket",
+        "Data Handoff",
         "retention admin",
         "saved views",
         "queued or scheduled exports",

@@ -1,64 +1,55 @@
-# Research Summary: Threadline v1.19 Integration Breadth
+# Research Summary: Threadline v1.20 - Scale and Governance Depth
 
-**Summarized:** 2026-05-07
-**Scope:** Broaden host/framework adoption for Threadline without weakening the auth-agnostic core or forcing a premature `threadline_web` split.
+**Domain:** Audit Logging / Operator UI Governance
+**Researched:** 2026-05-08
+**Overall confidence:** HIGH
 
-## Recommended milestone posture
+## Executive Summary
 
-- **No new required runtime deps** in `threadline`
-- **Keep Phoenix/LiveView optional and in-tree** for now
-- **Broaden adoption through adapter contracts, mount recipes, and example parity**
-- **Treat `threadline_web` as an extraction-readiness decision**, not as the milestone premise
-- **Keep retention admin, saved views, queued exports, and mutable policy UI out of v1.19**
+Threadline's v1.20 milestone shifts the focus from purely "capturing and reading" data to managing its lifecycle and improving operator ergonomics. The core thesis is that as an audit log grows to tens of millions of rows, synchronous HTTP exports and manual database pruning become unviable. To be considered an enterprise-grade library, Threadline must provide mechanisms for retention pruning, asynchronous exports, and saved views.
 
-## Stack additions
+The primary architectural challenge is building these heavy-duty features without violating Threadline's "zero host intrusion" promise. Imposing Oban for background jobs or `pg_partman` for database partitioning would alienate smaller adopters. Therefore, the research strongly advocates for using Elixir's built-in OTP primitives (`Task.Supervisor`, `GenServer`) and `Ecto` for default implementations, while providing explicit `Behaviours` (`Threadline.Storage`, `Threadline.ExportQueue`) that allow scale-ups to swap in Oban and S3.
 
-- No new hard deps in core
-- Keep current optional web deps posture:
-  - `phoenix ~> 1.7`
-  - `phoenix_live_view ~> 1.0`
-  - `phoenix_html ~> 4.0`
-  - `phoenix_pubsub ~> 2.1`
-- Keep `verify.compile_no_optional` as a release gate
-- Treat Sigra as a **host adapter target**, not a library dependency
-- Refresh stale example/docs pins to the current supported Sigra line and state any Phoenix-version caveats explicitly
+## Key Findings
 
-## Feature table stakes
+**Stack:** Zero new required runtime dependencies; leverage `Task.Supervisor` and Ecto for state, offer Oban/S3 adapters.
+**Architecture:** Pluggable backends for Storage and Queues; host-owned actor IDs for scoping Saved Views.
+**Critical pitfall:** Naive `DELETE FROM` statements without chunking will lock production databases; Threadline must provide a batched, autovacuum-aware pruner.
 
-- Canonical mount recipes for the main host shapes:
-  - Plug-only / CLI-only
-  - Phoenix admin pipeline
-  - support read-only operator surface
-- One stable adapter contract for:
-  - actor extraction
-  - additive context overrides
-  - optional dependency behavior
-- Example-backed guidance for operator-surface auth in both router pipeline and LiveView mount paths
-- A narrow, honest support matrix naming only proven combinations
-- An extraction-readiness scorecard for a future `threadline_web` package
+## Implications for Roadmap
 
-## Differentiators worth shipping
+Based on research, suggested phase structure for v1.20:
 
-- Thin first-party `Threadline.Integrations.*` adapters where they materially reduce host glue
-- Resolver-style separation between identity extraction, access checks, and optional scope narrowing
-- Copy-paste secure mount packs with CLI fallback parity
-- A documented “stay in-tree unless these triggers are true” extraction decision
+1. **State & Behaviours Infrastructure**
+   - Rationale: Before the UI can do anything, the underlying schemas (`threadline_export_jobs`, `threadline_retention_runs`, `threadline_saved_views`) and Behaviours (`Storage`, `ExportQueue`) must exist.
+   - Addresses: Database migrations and foundational contracts.
 
-## Watch out for
+2. **Retention Pruning Engine & UI**
+   - Rationale: The highest risk to the host DB. Build the batched pruner, log runs to the DB, and expose a "Retention History" LiveView page.
+   - Avoids: DB locks via naive deletions.
 
-- **Auth leakage into core**: no user model, role model, or ownership state in `threadline`
-- **Premature `threadline_web` split**: do not extract for aesthetics alone
-- **Version-matrix overclaiming**: only promise combinations that CI or compile gates prove
-- **UI scope creep**: do not let “integration breadth” turn into saved views, retention admin, or workflow UI
-- **Misleading docs/examples**: example apps must be precise about assumptions and proven paths
+3. **Saved Views Ergonomics**
+   - Rationale: A fast, high-value win for operators. Requires mapping the host's `actor` to a view owner and building the UI form in the existing timeline.
+   - Addresses: Repeated investigations UX.
 
-## Recommended milestone shape
+4. **Async Exports Orchestrator & UI**
+   - Rationale: The most complex feature. Requires the queue runner, the CSV stream writer (to local disk), and the UI to show pending/running/completed status with a download link.
+   - Avoids: LiveView timeouts during massive exports.
 
-1. Adapter contract and support matrix
-2. Concrete host adapter/reference-path refresh
-3. Mount recipes and access-tier runbooks
-4. Packaging-boundary scorecard and closeout decision
+5. **Scale Adapters (Oban / S3)**
+   - Rationale: Once the built-in system is proven, provide the `Oban` and `ExAws.S3` adapters so enterprise adopters can deploy the feature in multi-node environments safely.
+   - Avoids: Broken downloads across load-balanced nodes.
 
-## Expected outcome
+## Confidence Assessment
 
-v1.19 should end with Threadline easier to adopt across real host setups, clearer about what it supports, and still packaged as a single library with optional web deps. If extraction pressure is still mostly theoretical, the right closeout is **stay in-tree and revisit later with explicit triggers recorded**.
+| Area | Confidence | Notes |
+|------|------------|-------|
+| Stack | HIGH | The Elixir ecosystem is mature regarding Oban vs Task tradeoffs. Pluggable behaviours are standard. |
+| Features | HIGH | Table stakes for scale are well understood in the enterprise SaaS space. |
+| Architecture | HIGH | Chunked deletions and DB-backed queues are standard Ecto patterns. |
+| Pitfalls | HIGH | Multi-node file storage and Postgres autovacuum exhaustion are classic, well-documented traps. |
+
+## Gaps to Address
+
+- **Storage Cleanup:** If exports are written to Local Disk or S3, when are they deleted? We may need a feature in Phase 4 to "expire" export artifacts after 7 days to avoid disk bloat.
+- **Export Formats:** Is CSV sufficient, or will adopters demand JSONL? (Sticking to CSV for MVP).
