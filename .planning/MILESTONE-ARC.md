@@ -1,18 +1,12 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-05-07
-**Active milestone:** v1.19 — Integration Breadth (opened 2026-05-07, continuing phase numbering at Phase 69)
+**Updated:** 2026-05-08
+**Active milestone:** None (v1.19 closed 2026-05-08)
 **Next ranked candidate:** v1.20 — Scale and Governance Depth
 
 ## Strategic thesis
 
-With v1.18 shipped, the question has shifted from "is the surface easy to roll out?" to "how broadly can teams integrate and adopt it without pulling more framework burden into `threadline` core?" v1.18 closed the rollout loop with full filter parity on a raw timeline browse, exports-from-current-view parity, drift-aware policy viewers (coverage + redaction), and lifecycle ergonomics.
-
-v1.19 is now the active answer to that question:
-
-1. Broaden reach through reusable host patterns, adapter contracts, and honest compatibility guidance.
-2. Keep `threadline` core auth-agnostic and keep the optional Phoenix/LiveView surface in-tree unless real version-pressure justifies a split.
-3. Revisit heavier governance and scale knobs only after the v1.19 integration story is proven in real host setups.
+With v1.19 shipped, the focus shifts to heavier-duty scale and governance capabilities. v1.19 broadened host/framework adoption through adapter contracts, support-matrix honesty, canonical mount patterns, and a measured `threadline_web` extraction-readiness decision.
 
 ## Option record
 
@@ -33,7 +27,7 @@ These are the standing milestone directions and the recommended order to revisit
 | v1.16 | **shipped** | Investigation Table Stakes | Closed the gap between capture and usable incident/support workflows. | Operator surface work, stronger onboarding, future investigation-specific integrations. | Full LiveView UI, new auth adapters, retention redesign. |
 | v1.17 | **shipped** | Operator Surface Foundation | The investigation contract was stable enough to support a host-usable surface instead of docs-only composition. Mountable in-tree LiveView surface with optional Phoenix/LiveView deps; incident drill-down + actor window must-have screens; host-mount-default auth with optional `:authorize_fn`; `mix threadline.incident` parity. | Raw timeline browse + filter form, exports UI parity, drift-aware policy viewers, lifecycle ergonomics — i.e. v1.18. | Reinventing tenancy/authorization; broad frontend framework work; separate `threadline_web` package (deferred to v1.19+). |
 | v1.18 | **shipped** | Adoption and Policy Hardening | After operator workflows shipped, tighten lifecycle ergonomics, raw-timeline + filter form, exports parity, and safer read-only policy defaults for production teams. Read-only throughout; zero new platform infrastructure; Mix-task parity for every viewer. | Cleaner pilots, better upgrade confidence, easier ops sign-off; clean ground for v1.19 integration breadth and the `threadline_web` extraction conversation. | Saved views; queued/Oban-based exports; retention admin (needs new capture surface — deferred to v1.19+); runtime policy edits in any viewer; new storage backend or CDC/WAL architecture. |
-| v1.19 | **active** | Integration Breadth | Expand reach only after the core investigation + operator story is easier to adopt repeatedly. Use the in-tree optional web surface as the stable base, broaden host patterns, and define objective extraction triggers instead of forcing a package split. | Additional auth/framework adapters and host patterns; a cleaner future `threadline_web` decision if real evidence appears. | Weakening the auth-agnostic core, adding hard runtime deps, or pulling governance/UI-state expansion into the milestone. |
+| v1.19 | **shipped** | Integration Breadth | Expand reach only after the core investigation + operator story is easier to adopt repeatedly. Use the in-tree optional web surface as the stable base, broaden host patterns, and define objective extraction triggers instead of forcing a package split. | Additional auth/framework adapters and host patterns; a cleaner future `threadline_web` decision if real evidence appears. | Weakening the auth-agnostic core, adding hard runtime deps, or pulling governance/UI-state expansion into the milestone. |
 | v1.20 | **next** | Scale and Governance Depth | Add the heavier-duty knobs once the core adoption and operator loop is proven. Likely home for retention-admin capture machinery or queued exports if real adopters report the need. | More enterprise-friendly retention/policy/reporting work. | Turning Threadline into a SIEM or general analytics product. |
 
 ## Activation rules

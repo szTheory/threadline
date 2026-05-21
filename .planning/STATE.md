@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.19
 milestone_name: — Integration Breadth
-status: milestone_ready_for_release_prep
+status: milestone_complete
 last_updated: "2026-05-08T18:30:00Z"
-last_activity: 2026-05-08 -- Phase 74 closed the Phase 72 Nyquist and requirement-tracking gaps; v1.19 is internally consistent and ready for release prep
+last_activity: 2026-05-08 -- v1.19 archived; next milestone planning pending
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,14 +18,14 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.19 — Integration Breadth. Broaden host/framework adoption through adapter contracts, support-matrix honesty, canonical mount patterns, and a measured `threadline_web` extraction-readiness decision.
+**Current Focus**: Open the next milestone from `.planning/MILESTONE-ARC.md` (current recommendation: v1.20 — Scale and Governance Depth).
 
 ## Current Position
 
-Phase: Milestone closeout complete — v1.19 ready for release prep
-Plan: —
-Status: Release-prep cleanup in progress
-Last activity: 2026-05-08 -- Phase 74 completed; next is clean commits, clean worktrees, and release verification
+Phase: 74 (nyquist-closeout-and-requirement-tracking-repair) — COMPLETE
+Plan: -
+Status: Awaiting next milestone
+Last activity: 2026-05-08 -- v1.19 archived via /gsd-complete-milestone
 
 ## Performance Metrics
 

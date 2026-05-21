@@ -2,6 +2,30 @@
 
 Entries are newest first.
 
+## v1.19 — Integration Breadth (shipped 2026-05-08)
+
+**Goal:** Broaden host/framework adoption through adapter contracts, support-matrix honesty, canonical mount patterns, and a measured `threadline_web` extraction-readiness decision.
+
+**Phases completed:** **69-74** (6 phases; 16 plans with `SUMMARY.md`; per-phase verification evidence; consolidated `v1.19-MILESTONE-AUDIT.md`).
+
+**Key accomplishments:**
+
+- Published `guides/integration-contracts.md` as the canonical breadth-contract guide, locked discovery pointers, and explicitly narrowed the public support matrix to `capture-only`, `phoenix-surface`, and `sigra-reference` (Phase **69**).
+- Rewrote the operator-surface and integration docs around one canonical `/audit` topology with a shared `%{assigns: assigns}` `authorize_fn` and explicit LiveView-versus-export auth boundaries (Phase **71**).
+- Added the Packaging Boundary Scorecard to `guides/upgrade-path.md`, recording the v1.19 answer as "stay in-tree for now", and locked this wording with drift-aware contract tests (Phase **72**).
+- Repaired the authorization contract to enforce scoped-access across timeline, actor, transaction, and export flows, securing the final tree (Phase **73**).
+- Closed all Phase 72 Nyquist validation gaps, updated requirement tracking frontmatter, and verified that the shipped tree is internally consistent (Phase **74**).
+
+**Stats:** 6 phases, 16 plans, 10/10 requirements complete at close. Milestone window: **2026-05-07 → 2026-05-08**. First Phase 69 commit landed **`fd7c4ec`**; final milestone commit landed **`8fb3de5`**. The closeout tree touched **103 files** with **9,262 insertions / 188 deletions** across the milestone work.
+
+**Archives:** `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-MILESTONE-AUDIT.md`.
+
+**Known gaps at close:** Milestone audit **passed** with 10/10 requirements satisfied.
+
+**What is next:** **`/gsd-new-milestone`** — open the next requirement set from `.planning/MILESTONE-ARC.md`, currently led by **v1.20 — Scale and Governance Depth**.
+
+---
+
 ## v1.18 — Adoption and Policy Hardening (shipped 2026-05-07)
 
 **Goal:** Tighten the shipped operator surface so production teams can actually roll it out cleanly: raw timeline browse with full filter parity, current-view exports, read-only coverage/redaction policy viewers, and lifecycle/onboarding hardening.
