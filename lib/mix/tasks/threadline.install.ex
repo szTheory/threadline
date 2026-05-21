@@ -44,7 +44,17 @@ defmodule Mix.Tasks.Threadline.Install do
         true
       end
 
-    if capture_written or semantics_written do
+    governance_written =
+      if existing_governance_migration?(path) do
+        Mix.shell().info("Threadline governance schema migration already exists — skipping.")
+        false
+      else
+        file = Path.join(path, "#{timestamp()}_threadline_governance_schema.exs")
+        create_file(file, Threadline.Governance.Migration.migration_content())
+        true
+      end
+
+    if capture_written or semantics_written or governance_written do
       Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
     end
   end
@@ -85,6 +95,14 @@ defmodule Mix.Tasks.Threadline.Install do
     path
     |> File.ls!()
     |> Enum.any?(&String.ends_with?(&1, "_threadline_semantics_schema.exs"))
+  rescue
+    _ -> false
+  end
+
+  defp existing_governance_migration?(path) do
+    path
+    |> File.ls!()
+    |> Enum.any?(&String.ends_with?(&1, "_threadline_governance_schema.exs"))
   rescue
     _ -> false
   end
