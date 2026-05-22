@@ -83,7 +83,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
     end
 
-    def auth(_socket), do: {:ok, %{source: "support"}}
+    def auth(_socket), do: {:ok, %{source: "support", user_id: "op1"}}
 
     def scope_operator_query(query, %{source: source}, %{surface: :timeline}) do
       where(query, [_ac, at], at.source == ^source)
@@ -739,6 +739,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "support_posts"
       refute html =~ "admin_posts"
+    end
+
+    test "Case 11: Operator can save, apply, and delete a view", %{conn: conn} do
+      {:ok, lv, _html} =
+        case live(conn, "/audit_scoped?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      # Submit the save form
+      lv
+      |> form("#save-view-form", %{name: "My Support View"})
+      |> render_submit()
+
+      # View appears in the list
+      assert render(lv) =~ "My Support View"
+
+      # Apply view
+      # Since we don't have a specific ID, let's pull it from the DB
+      view = Threadline.Test.Repo.one(Threadline.Governance.SavedView)
+      assert view.name == "My Support View"
+      assert view.filters["table"] == "support_posts"
+
+      # Click apply
+      lv |> element("button[phx-click=\"apply-view\"]") |> render_click()
+
+      # Ensure it's active
+      assert render(lv) =~ "support_posts"
+
+      # Click delete
+      lv |> element("button[phx-click=\"delete-view\"]") |> render_click()
+
+      # Ensure it's deleted
+      refute render(lv) =~ "My Support View"
+      assert Threadline.Test.Repo.all(Threadline.Governance.SavedView) == []
     end
   end
 end

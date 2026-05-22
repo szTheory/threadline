@@ -2,6 +2,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TimelineLive do
     @moduledoc false
     use Phoenix.LiveView
+    import Ecto.Query
 
     alias Threadline.Export
     alias Threadline.OperatorSurface.Exports.FilterParams
@@ -22,6 +23,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Bracket form — scope is set ONLY when :authorize_fn returns {:ok, scope}.
       # For :ok / true returns, the assign is absent. (auth.ex:21-27)
       scope = socket.assigns[:threadline_scope]
+      actor_ref = socket.assigns[:threadline_actor_ref]
 
       # Datalist refreshed at mount; long-lived sessions may not see newly-audited tables
       # until the next page load. Phase 66 will introduce a polled coverage source we can
@@ -34,6 +36,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
         |> Enum.sort()
 
+      saved_views =
+        if actor_ref do
+          repo.all(
+            from(v in Threadline.Governance.SavedView,
+              where: v.actor_ref == ^actor_ref,
+              order_by: [desc: v.inserted_at]
+            )
+          )
+        else
+          []
+        end
+
       socket =
         socket
         |> stream_configure(:changes, dom_id: fn change -> "change-#{change.id}" end)
@@ -41,6 +55,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:repo, repo)
         |> assign(:scope, scope)
         |> assign(:audited_tables, audited_tables)
+        |> assign(:saved_views, saved_views)
         |> assign(:cursor, nil)
         |> assign(:filters, [])
         |> assign(:filters_raw, %{})
@@ -154,6 +169,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # handle_event/3
     # --------------------------------------------------------------------------
 
+    def handle_event("save-view", %{"name" => name}, socket) do
+      if socket.assigns[:threadline_actor_ref] && name != "" do
+        attrs = %{
+          name: name,
+          actor_ref: Threadline.Semantics.ActorRef.to_map(socket.assigns.threadline_actor_ref),
+          filters: socket.assigns.filters_raw
+        }
+
+        changeset = Threadline.Governance.SavedView.changeset(attrs)
+        
+        case socket.assigns.repo.insert(changeset) do
+          {:ok, view} ->
+            saved_views = [view | socket.assigns.saved_views]
+            {:noreply, assign(socket, :saved_views, saved_views)}
+          {:error, _} ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
+      end
+    end
+
+    def handle_event("apply-view", %{"id" => id}, socket) do
+      case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
+        nil -> {:noreply, socket}
+        view ->
+          query = build_canonical_query(view.filters)
+          {:noreply, push_patch(socket, to: "#{socket.assigns.base_path}?#{query}")}
+      end
+    end
+
+    def handle_event("delete-view", %{"id" => id}, socket) do
+      case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
+        nil -> {:noreply, socket}
+        view ->
+          socket.assigns.repo.delete!(view)
+          saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
+          {:noreply, assign(socket, :saved_views, saved_views)}
+      end
+    end
+
     def handle_event("apply", %{"filter" => raw}, socket) do
       query = build_canonical_query(raw)
       {:noreply, push_patch(socket, to: "#{socket.assigns.base_path}?#{query}")}
@@ -243,6 +299,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>
             </div>
           </form>
+          <%= if assigns[:threadline_actor_ref] do %>
+            <div class="saved-views-toolbar">
+              <form id="save-view-form" phx-submit="save-view" class="save-view-form">
+                <input type="text" name="name" placeholder="Name this view..." aria-label="View name" required />
+                <button type="submit">Save View</button>
+              </form>
+              <div class="saved-views-list" :if={@saved_views != []}>
+                <strong>Saved Views:</strong>
+                <ul class="saved-views-ul">
+                  <li :for={view <- @saved_views} class="saved-view-item">
+                    <button phx-click="apply-view" phx-value-id={view.id} type="button" class="apply-view-btn"><%= view.name %></button>
+                    <button phx-click="delete-view" phx-value-id={view.id} type="button" class="delete-view-btn" aria-label={"Delete " <> view.name}>&times;</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          <% end %>
         </header>
 
         <%= if @form_error do %>

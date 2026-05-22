@@ -42,7 +42,7 @@
 | RET-02      | Phase 76 | Complete |
 | RET-03      | Phase 76 | Complete |
 | VIEW-01     | Phase 77 | Complete |
-| VIEW-02     | Phase 77 | Pending |
+| VIEW-02     | Phase 77 | Complete |
 | EXP-01      | Phase 78 | Pending |
 | EXP-02      | Phase 78 | Pending |
 | EXP-03      | Phase 78 | Pending |

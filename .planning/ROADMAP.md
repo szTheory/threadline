@@ -4,7 +4,7 @@
 
 - [ ] **Phase 75: Governance Infrastructure & State** - Introduce core DB schemas and backend Behaviours for storage and queuing.
 - [x] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView. (completed 2026-05-22)
-- [ ] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
+- [x] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
 - [ ] **Phase 78: Async Exports & UI** - Shift massive CSV exports to background tasks with a status page and file cleanup.
 - [ ] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
 
@@ -42,7 +42,7 @@
   3. Operators only see saved views owned by their specific host actor identity.
 **Plans**: 2 plans
 - [x] 77-01-PLAN.md — Core Session Plug & Auth updates
-- [ ] 77-02-PLAN.md — Saved Views UI
+- [x] 77-02-PLAN.md — Saved Views UI
 **UI hint**: yes
 
 ### Phase 78: Async Exports & UI
