@@ -38,9 +38,9 @@
 |-------------|-------|--------|
 | INFRA-01    | Phase 75 | Pending |
 | INFRA-02    | Phase 75 | Pending |
-| RET-01      | Phase 76 | Pending |
-| RET-02      | Phase 76 | Pending |
-| RET-03      | Phase 76 | Pending |
+| RET-01      | Phase 76 | Complete |
+| RET-02      | Phase 76 | Complete |
+| RET-03      | Phase 76 | Complete |
 | VIEW-01     | Phase 77 | Pending |
 | VIEW-02     | Phase 77 | Pending |
 | EXP-01      | Phase 78 | Pending |

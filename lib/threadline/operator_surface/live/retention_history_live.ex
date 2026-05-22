@@ -31,17 +31,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("prune_now", _params, socket) do
       GenServer.cast(Threadline.Retention.Pruner, :prune)
-      
+
       # Schedule a quick refresh to see the new run pop up
       Process.send_after(self(), :refresh, 500)
-      
+
       {:noreply, socket}
     end
 
     def handle_info(:refresh, socket) do
       schedule_refresh(socket)
-      
+
       runs = fetch_runs(socket)
+
       socket =
         Enum.reduce(runs, socket, fn run, acc_socket ->
           stream_insert(acc_socket, :runs, run)
@@ -100,13 +101,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp fetch_runs(socket) do
       repo = resolve_repo(socket)
+
       from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
       |> repo.all()
     end
-    
+
     defp has_runs?(socket) do
       repo = resolve_repo(socket)
-      repo.exists?(from r in RetentionRun)
+      repo.exists?(from(r in RetentionRun))
     end
 
     defp schedule_refresh(socket) do
@@ -123,6 +125,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp format_date(nil), do: "-"
+
     defp format_date(%DateTime{} = dt) do
       DateTime.to_string(dt) |> String.replace("Z", " UTC")
     end

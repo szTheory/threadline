@@ -21,7 +21,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       plug(:accepts, ["html"])
       plug(:fetch_session)
       plug(:fetch_live_flash)
-      plug(:put_root_layout, html: {Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts, :root})
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts, :root}
+      )
     end
 
     scope "/" do
@@ -57,7 +60,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint,
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint,
         secret_key_base: "r" |> String.duplicate(64),
         live_view: [signing_salt: "r" |> String.duplicate(8)],
         render_errors: [view: Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts]
@@ -75,10 +80,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
 
       start_supervised!(@endpoint)
-      
+
       # Start the pruner since we interact with it, but configure it so it doesn't poll often
-      start_supervised!({Threadline.Retention.Pruner, repo: Threadline.Test.Repo, interval_ms: :timer.hours(24)})
-      
+      start_supervised!(
+        {Threadline.Retention.Pruner, repo: Threadline.Test.Repo, interval_ms: :timer.hours(24)}
+      )
+
       :ok
     end
 
@@ -86,7 +93,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Threadline.Test.Repo.delete_all(RetentionRun)
 
       original_retention = Application.get_env(:threadline, :retention)
-      Application.put_env(:threadline, :retention, Keyword.put(original_retention || [], :enabled, true))
+
+      Application.put_env(
+        :threadline,
+        :retention,
+        Keyword.put(original_retention || [], :enabled, true)
+      )
 
       on_exit(fn ->
         if original_retention do
@@ -109,6 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "displays existing retention runs in a table", %{conn: conn} do
         # Insert a run
         now = DateTime.utc_now() |> DateTime.truncate(:second)
+
         %RetentionRun{}
         |> RetentionRun.changeset(%{
           status: "completed",
@@ -124,7 +137,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "No Retention History"
         assert html =~ "completed"
         assert html =~ "100"
-        assert html =~ "1500" # Or formatted, depending on implementation
+        # Or formatted, depending on implementation
+        assert html =~ "1500"
       end
 
       test "Run Pruning Batch CTA triggers GenServer.cast asynchronously", %{conn: conn} do
@@ -132,7 +146,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # Click the button
         assert html =~ "Run Pruning Batch"
-        
+
         # ensure no active runs initially
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0
 
@@ -145,19 +159,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # We can wait a little bit or try to see if a run starts in the DB.
         # But `handle_event` might also show a flash or just return.
         # Let's check that the table updates with a running run or at least a run is created.
-        
+
         # We'll assert that a DB record was created by the Pruner after some time
         # wait a bit for gen server to process
         :timer.sleep(100)
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
       end
-      
+
       test "page auto-refreshes periodically", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
-        
+
         # Send refresh message directly to trigger it
         send(view.pid, :refresh)
-        
+
         # Should not crash and render successfully
         assert render(view) =~ "Run Pruning Batch"
       end

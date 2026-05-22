@@ -3,7 +3,7 @@
 ## Phases
 
 - [ ] **Phase 75: Governance Infrastructure & State** - Introduce core DB schemas and backend Behaviours for storage and queuing.
-- [ ] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView.
+- [x] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView. (completed 2026-05-22)
 - [ ] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
 - [ ] **Phase 78: Async Exports & UI** - Shift massive CSV exports to background tasks with a status page and file cleanup.
 - [ ] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
@@ -27,7 +27,9 @@
   1. System administrator can run a retention pruner that deletes rows in chunked batches, avoiding long-running table locks.
   2. The system accurately tracks start/stop times and deleted row counts for each run.
   3. Operator can view a history of past and active retention runs inside the LiveView UI.
-**Plans**: TBD
+**Plans**: 2 plans
+- [x] 76-01-PLAN.md — Core Batched Pruning and Run Tracking
+- [x] 76-02-PLAN.md — Retention History LiveView
 **UI hint**: yes
 
 ### Phase 77: Saved Views Ergonomics
@@ -67,7 +69,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 75. Governance Infrastructure & State | 1/1 | Planned | - |
-| 76. Batched Retention & UI | 0/0 | Not started | - |
+| 76. Batched Retention & UI | 2/2 | Complete   | 2026-05-22 |
 | 77. Saved Views Ergonomics | 0/0 | Not started | - |
 | 78. Async Exports & UI | 0/0 | Not started | - |
 | 79. Scale Adapters | 0/0 | Not started | - |

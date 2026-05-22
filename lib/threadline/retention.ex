@@ -77,7 +77,7 @@ defmodule Threadline.Retention do
 
   defp run_with_tracking(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms) do
     started_at = DateTime.utc_now(:microsecond)
-    
+
     run_record =
       repo.insert!(
         RetentionRun.changeset(%RetentionRun{}, %{
@@ -85,12 +85,12 @@ defmodule Threadline.Retention do
           started_at: started_at
         })
       )
-      
+
     result = purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms)
-    
+
     completed_at = DateTime.utc_now(:microsecond)
     duration_ms = DateTime.diff(completed_at, started_at, :millisecond)
-    
+
     repo.update!(
       RetentionRun.changeset(run_record, %{
         status: "completed",
@@ -99,7 +99,7 @@ defmodule Threadline.Retention do
         completed_at: completed_at
       })
     )
-    
+
     result
   end
 
@@ -164,7 +164,7 @@ defmodule Threadline.Retention do
           total_changes: tc,
           total_transactions: tt
         )
-        
+
         cond do
           n1 == 0 and n2 == 0 ->
             {:halt, {tc, tt, idx}}
