@@ -37,6 +37,52 @@ defmodule Threadline.OperatorSurface.AuthTest do
     :ok
   end
 
+  describe "on_mount/4 session extraction" do
+    test "extracts valid threadline_actor_ref from session and assigns it" do
+      session = %{"threadline_actor_ref" => "{\"id\":\"user-1\",\"type\":\"user\"}"}
+      opts = [authorize_fn: fn _socket -> :ok end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, session, socket)
+      
+      assert %Threadline.Semantics.ActorRef{type: :user, id: "user-1"} = 
+               returned_socket.assigns.threadline_actor_ref
+    end
+
+    test "ignores invalid threadline_actor_ref in session" do
+      session = %{"threadline_actor_ref" => "invalid json"}
+      opts = [authorize_fn: fn _socket -> :ok end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, session, socket)
+      assert returned_socket.assigns[:threadline_actor_ref] == nil
+    end
+    
+    test "falls back to scope if session actor is absent" do
+      actor = %Threadline.Semantics.ActorRef{type: :job, id: "job-1"}
+      scope = %{actor_ref: actor}
+      opts = [authorize_fn: fn _socket -> {:ok, scope} end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      
+      assert returned_socket.assigns.threadline_actor_ref == actor
+    end
+
+    test "falls back to user_id in scope if session actor is absent" do
+      scope = %{user_id: 123}
+      opts = [authorize_fn: fn _socket -> {:ok, scope} end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      
+      # Since we only get a user_id, we might just store it. Wait, the goal says:
+      # "ensure socket.assigns.threadline_actor_ref is correctly populated with the ActorRef struct regardless of the source."
+      # But legacy user_id might not be an ActorRef. We can create an ActorRef for user_id!
+      assert %Threadline.Semantics.ActorRef{type: :user, id: "123"} = returned_socket.assigns.threadline_actor_ref
+    end
+  end
+
   describe "on_mount/4" do
     test "Case 1: returns :ok -> connection continues, telemetry :granted emitted" do
       opts = [authorize_fn: fn _socket -> :ok end]
