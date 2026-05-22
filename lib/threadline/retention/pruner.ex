@@ -54,6 +54,13 @@ defmodule Threadline.Retention.Pruner do
   end
 
   @impl true
+  def handle_cast(:prune, state) do
+    # Trigger an immediate purge run
+    send(self(), :run_purge)
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info(:run_purge, state) do
     %{repo: repo, interval_ms: interval_ms, sleep_ms: sleep_ms} = state
 
