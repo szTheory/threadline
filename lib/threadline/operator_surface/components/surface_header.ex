@@ -30,6 +30,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% else %>
           <a class="surface-badge surface-badge--ok" href={"#{@base_path}/coverage"}>All covered</a>
         <% end %>
+        <a class="surface-badge surface-badge--ok" href={"#{@base_path}/policy/retention"}>Retention</a>
         <%= if @error do %>
           <span class="stale-indicator">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
         <% end %>
