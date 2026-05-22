@@ -41,7 +41,7 @@
   2. Operator can see a list of their previously saved views and click one to apply it to the timeline.
   3. Operators only see saved views owned by their specific host actor identity.
 **Plans**: 2 plans
-- [ ] 77-01-PLAN.md — Core Session Plug & Auth updates
+- [x] 77-01-PLAN.md — Core Session Plug & Auth updates
 - [ ] 77-02-PLAN.md — Saved Views UI
 **UI hint**: yes
 
@@ -72,6 +72,6 @@
 |-------|----------------|--------|-----------|
 | 75. Governance Infrastructure & State | 1/1 | Planned | - |
 | 76. Batched Retention & UI | 2/2 | Complete   | 2026-05-22 |
-| 77. Saved Views Ergonomics | 0/2 | Planned | - |
+| 77. Saved Views Ergonomics | 1/2 | In Progress|  |
 | 78. Async Exports & UI | 0/0 | Not started | - |
 | 79. Scale Adapters | 0/0 | Not started | - |
