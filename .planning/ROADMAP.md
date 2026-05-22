@@ -40,7 +40,9 @@
   1. Operator can save their current timeline filter combination with a custom name.
   2. Operator can see a list of their previously saved views and click one to apply it to the timeline.
   3. Operators only see saved views owned by their specific host actor identity.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 77-01-PLAN.md — Core Session Plug & Auth updates
+- [ ] 77-02-PLAN.md — Saved Views UI
 **UI hint**: yes
 
 ### Phase 78: Async Exports & UI
@@ -70,6 +72,6 @@
 |-------|----------------|--------|-----------|
 | 75. Governance Infrastructure & State | 1/1 | Planned | - |
 | 76. Batched Retention & UI | 2/2 | Complete   | 2026-05-22 |
-| 77. Saved Views Ergonomics | 0/0 | Not started | - |
+| 77. Saved Views Ergonomics | 0/2 | Planned | - |
 | 78. Async Exports & UI | 0/0 | Not started | - |
 | 79. Scale Adapters | 0/0 | Not started | - |
