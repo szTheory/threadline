@@ -1,4 +1,4 @@
-defmodule Threadline.Retention.PurgeTest do
+defmodule Threadline.RetentionTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}

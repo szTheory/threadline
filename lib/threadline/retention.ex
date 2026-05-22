@@ -16,6 +16,7 @@ defmodule Threadline.Retention do
   import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Governance.RetentionRun
   alias Threadline.Retention.Policy
 
   @typedoc "Accumulator returned by `purge/1` on success (counts are cumulative)."
@@ -48,6 +49,7 @@ defmodule Threadline.Retention do
     batch_size = Keyword.get(opts, :batch_size, 500)
     max_batches = Keyword.get(opts, :max_batches, 10_000)
     dry_run? = Keyword.get(opts, :dry_run, false)
+    sleep_ms = Keyword.get(opts, :sleep_ms, 50)
 
     retention_kw = Application.get_env(:threadline, :retention) || []
     policy = Policy.resolve!(retention_kw)
@@ -61,15 +63,44 @@ defmodule Threadline.Retention do
       if dry_run? do
         dry_run_result(repo, cutoff, policy)
       else
-        purge_loop(
+        run_with_tracking(
           repo,
           cutoff,
           batch_size,
           max_batches,
-          policy.delete_empty_transactions
+          policy.delete_empty_transactions,
+          sleep_ms
         )
       end
     end
+  end
+
+  defp run_with_tracking(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms) do
+    started_at = DateTime.utc_now(:microsecond)
+    
+    run_record =
+      repo.insert!(
+        RetentionRun.changeset(%RetentionRun{}, %{
+          status: "running",
+          started_at: started_at
+        })
+      )
+      
+    result = purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms)
+    
+    completed_at = DateTime.utc_now(:microsecond)
+    duration_ms = DateTime.diff(completed_at, started_at, :millisecond)
+    
+    repo.update!(
+      RetentionRun.changeset(run_record, %{
+        status: "completed",
+        deleted_count: result.deleted_changes + result.deleted_transactions,
+        duration_ms: duration_ms,
+        completed_at: completed_at
+      })
+    )
+    
+    result
   end
 
   defp resolve_cutoff(nil, policy_cutoff), do: policy_cutoff
@@ -111,7 +142,7 @@ defmodule Threadline.Retention do
     }
   end
 
-  defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?) do
+  defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms) do
     {total_changes, total_txns, batches} =
       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
         n1 = delete_change_batch(repo, cutoff, batch_size)
@@ -133,11 +164,17 @@ defmodule Threadline.Retention do
           total_changes: tc,
           total_transactions: tt
         )
+        
+        cond do
+          n1 == 0 and n2 == 0 ->
+            {:halt, {tc, tt, idx}}
 
-        if n1 == 0 and n2 == 0 do
-          {:halt, {tc, tt, idx}}
-        else
-          {:cont, {tc, tt, idx}}
+          sleep_ms > 0 ->
+            Process.sleep(sleep_ms)
+            {:cont, {tc, tt, idx}}
+
+          true ->
+            {:cont, {tc, tt, idx}}
         end
       end)
 
