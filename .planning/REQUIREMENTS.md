@@ -36,16 +36,16 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01    | Phase 75 | Pending |
-| INFRA-02    | Phase 75 | Pending |
-| RET-01      | Phase 76 | Complete |
-| RET-02      | Phase 76 | Complete |
-| RET-03      | Phase 76 | Complete |
-| VIEW-01     | Phase 77 | Complete |
-| VIEW-02     | Phase 77 | Complete |
-| EXP-01      | Phase 78 | Pending |
-| EXP-02      | Phase 78 | Pending |
-| EXP-03      | Phase 78 | Pending |
-| EXP-04      | Phase 78 | Pending |
-| ADAPT-01    | Phase 79 | Pending |
-| ADAPT-02    | Phase 79 | Pending |
+| INFRA-01    | Phase 80 | Pending |
+| INFRA-02    | Phase 80 | Pending |
+| RET-01      | Phase 81 | Pending |
+| RET-02      | Phase 81 | Pending |
+| RET-03      | Phase 81 | Pending |
+| VIEW-01     | Phase 82 | Pending |
+| VIEW-02     | Phase 82 | Pending |
+| EXP-01      | Phase 83 | Pending |
+| EXP-02      | Phase 83 | Pending |
+| EXP-03      | Phase 84 | Pending |
+| EXP-04      | Phase 83 | Pending |
+| ADAPT-01    | Phase 84 | Pending |
+| ADAPT-02    | Phase 84 | Pending |

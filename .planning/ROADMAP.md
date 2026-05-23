@@ -3,10 +3,15 @@
 ## Phases
 
 - [ ] **Phase 75: Governance Infrastructure & State** - Introduce core DB schemas and backend Behaviours for storage and queuing.
-- [x] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView. (completed 2026-05-22)
-- [x] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
+- [ ] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView.
+- [ ] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
 - [ ] **Phase 78: Async Exports & UI** - Shift massive CSV exports to background tasks with a status page and file cleanup.
-- [x] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
+- [ ] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
+- [ ] **Phase 80: Governance Verification & Milestone Surface Repair** - Reconcile milestone evidence and planning state with the audit before closeout resumes.
+- [ ] **Phase 81: Retention Runtime Closure** - Finish retention supervision and verification so pruning works end to end by default.
+- [ ] **Phase 82: Saved Views Session Handoff Repair** - Repair actor/session handoff so saved views are reliably actor-owned in normal mounts.
+- [ ] **Phase 83: Built-In Async Export Lifecycle Repair** - Make the default background export runtime and cleanup path operational and verified.
+- [ ] **Phase 84: Export Delivery & Scale Adapter Integration Repair** - Complete download, Oban, and S3 integration for real export delivery across adapters.
 
 ## Phase Details
 
@@ -72,12 +77,77 @@
 - [ ] 79-02-PLAN.md — Oban Queue Adapter
 - [ ] 79-03-PLAN.md — S3 Storage Adapter
 
+### Phase 80: Governance Verification & Milestone Surface Repair
+**Goal**: Milestone evidence and planning artifacts truthfully reflect implementation status before closeout resumes.
+**Depends on**: Phase 75, Phase 79
+**Requirements**: INFRA-01, INFRA-02
+**Gap Closure**: Closes audit evidence and planning-surface drift from `v1.20-MILESTONE-AUDIT.md`.
+**Success Criteria** (what must be TRUE):
+  1. Phase 75 has verification and validation artifacts that prove the infrastructure requirements are actually closed.
+  2. Phase 79 evidence drift is repaired, including the missing `79-02` summary trail and roadmap bookkeeping.
+  3. `ROADMAP.md`, `REQUIREMENTS.md`, and `STATE.md` agree on v1.20 status and no file claims the milestone is already complete.
+**Plans**: TBD
+
+### Phase 81: Retention Runtime Closure
+**Goal**: Retention pruning and retention history work through a supervised runtime path and are formally verified.
+**Depends on**: Phase 76
+**Requirements**: RET-01, RET-02, RET-03
+**Gap Closure**: Closes retention runtime and verification gaps from `v1.20-MILESTONE-AUDIT.md`.
+**Success Criteria** (what must be TRUE):
+  1. `Threadline.Retention.Pruner` runs from a built-in supervised path instead of depending on an unsupervised manual process.
+  2. Retention history and manual trigger flows use that supervised runtime path successfully.
+  3. Phase 76 verification and validation artifacts exist in the expected milestone closeout format.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 82: Saved Views Session Handoff Repair
+**Goal**: Saved views behave as actor-owned features in the default operator surface mount path.
+**Depends on**: Phase 77
+**Requirements**: VIEW-01, VIEW-02
+**Gap Closure**: Closes saved-view handoff and verification gaps from `v1.20-MILESTONE-AUDIT.md`.
+**Success Criteria** (what must be TRUE):
+  1. `SessionPlug` is installed in the normal operator surface path so actor identity reaches LiveView mounts reliably.
+  2. Saved-view create/apply/delete flows work for standard `actor_fn`-driven host mounts without special setup.
+  3. Phase 77 verification and validation artifacts prove the actor-owned behavior end to end.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 83: Built-In Async Export Lifecycle Repair
+**Goal**: The default export runtime can enqueue, execute, track, and clean up exports without extra adapters.
+**Depends on**: Phase 78
+**Requirements**: EXP-01, EXP-02, EXP-04
+**Gap Closure**: Closes built-in async export lifecycle gaps from `v1.20-MILESTONE-AUDIT.md`.
+**Success Criteria** (what must be TRUE):
+  1. The built-in `Task.Supervisor` export execution path is started by default and enqueue failures are surfaced.
+  2. Export jobs record lifecycle fields needed for status and cleanup, including `started_at` and `expires_at`.
+  3. Cleanup workers are supervised and old export artifacts are removed end to end.
+  4. Phase 78 verification and validation artifacts cover the repaired built-in runtime path.
+**Plans**: TBD
+
+### Phase 84: Export Delivery & Scale Adapter Integration Repair
+**Goal**: Completed exports can be delivered correctly across local and adapter-backed storage/queue backends.
+**Depends on**: Phase 79, Phase 83
+**Requirements**: EXP-03, ADAPT-01, ADAPT-02
+**Gap Closure**: Closes S3 download, export status, and adapter integration gaps from `v1.20-MILESTONE-AUDIT.md`.
+**Success Criteria** (what must be TRUE):
+  1. Export downloads work for both local-path storage and adapter-backed storage using the correct storage API.
+  2. The operator surface export status and download flow works end to end with reliable actor handoff.
+  3. Oban and S3 adapters have startup and integration proof, not just isolated module implementations.
+  4. Phase 79 evidence is complete and the remaining export delivery gaps are closed.
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 75. Governance Infrastructure & State | 1/1 | Planned | - |
-| 76. Batched Retention & UI | 2/2 | Complete   | 2026-05-22 |
-| 77. Saved Views Ergonomics | 1/2 | In Progress|  |
-| 78. Async Exports & UI | 3/3 | Complete    | 2026-05-23 |
-| 79. Scale Adapters | 0/0 | Not started | - |
+| 75. Governance Infrastructure & State | 1/1 | Gap closure required | - |
+| 76. Batched Retention & UI | 2/2 | Gap closure required | - |
+| 77. Saved Views Ergonomics | 2/2 | Gap closure required | - |
+| 78. Async Exports & UI | 3/3 | Gap closure required | - |
+| 79. Scale Adapters | 2/3 | Gap closure required | - |
+| 80. Governance Verification & Milestone Surface Repair | 0/0 | Planned | - |
+| 81. Retention Runtime Closure | 0/0 | Planned | - |
+| 82. Saved Views Session Handoff Repair | 0/0 | Planned | - |
+| 83. Built-In Async Export Lifecycle Repair | 0/0 | Planned | - |
+| 84. Export Delivery & Scale Adapter Integration Repair | 0/0 | Planned | - |

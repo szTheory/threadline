@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: — Scale and Governance Depth
-status: completed
-last_updated: "2026-05-23T12:00:00.000Z"
-last_activity: Completed 78-03-PLAN.md
+status: in_progress
+last_updated: "2026-05-23T13:05:00.000Z"
+last_activity: Planned gap closure phases 80-84 from milestone audit
 progress:
-  total_phases: 5
-  completed_phases: 3
+  total_phases: 10
+  completed_phases: 0
   total_plans: 8
   completed_plans: 8
-  percent: 100
+  percent: 44
 ---
 
 # Project State: Threadline
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-Phase: 78
-Plan: 03 (Export Status UI & Trigger Integration)
-Status: Completed
-Last activity: Completed 78-03-PLAN.md
+Phase: 80
+Plan: TBD
+Status: In Progress
+Last activity: Planned gap closure phases 80-84 from `v1.20-MILESTONE-AUDIT.md`
 
 ## Performance Metrics
 
-- **Total Phases**: 5 (Phases 75-79) — defined in `.planning/milestones/v1.20-ROADMAP.md`
-- **Phases Completed**: 1 of 5 in active milestone
+- **Total Phases**: 10 (Phases 75-84) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 0 of 10 audit-closed in active milestone
 - **Requirements Covered**: 13 of 13 mapped (INFRA 2, RET 3, VIEW 2, EXP 4, ADAPT 2)
 - **Last Milestone**: v1.19 — Integration Breadth (shipped 2026-05-08)
-- **Milestone Readiness**: v1.20 roadmap and requirements are formalized and ready for planning
+- **Milestone Readiness**: v1.20 remains open; audit on 2026-05-23 reopened closure work across evidence, retention, saved views, and exports
 
 ## Accumulated Context
 
@@ -43,23 +43,25 @@ Last activity: Completed 78-03-PLAN.md
 - 2026-05-08: Rely on built-in `Task.Supervisor` and Ecto state for async exports and batched deletes out-of-the-box. Provide clean `Threadline.Storage` and `Threadline.ExportQueue` behaviours. Offer Oban and S3 adapters for adopters managing multi-node scaling.
 - 2026-05-08: Saved views and export ownership will be driven strictly by the host's `actor_fn` metadata to maintain Threadline's auth-agnostic boundary.
 - 2026-05-08: Phase numbering continues sequentially from 74, starting v1.20 at Phase 75.
-- 2026-05-22: Completed Phase 75: Governance Infrastructure & State. Created migrations, Ecto schemas, and behaviours (`Threadline.Storage`, `Threadline.ExportQueue`).
+- 2026-05-22: Completed Phase 75 implementation work. Audit on 2026-05-23 found missing verification/validation closure, so follow-up closure phases are required before milestone closeout.
+- 2026-05-23: Milestone audit for v1.20 found requirements, integration, and closeout gaps; roadmap extended with Phases 80-84 to repair runtime wiring and planning evidence.
 
 ### Todos
 
-- [ ] Run `/gsd-plan-phase 76` to begin execution of Retention Pruning Ergonomics.
-- [x] Run `/gsd-plan-phase 75` to begin execution of Governance Infrastructure & State.
-- [x] Define precise Ecto migrations for `threadline_export_jobs`, `threadline_retention_runs`, and `threadline_saved_views` in Phase 75.
-- [x] Draft explicit doc-contracts for the new Storage and ExportQueue behaviours.
+- [ ] Run `/gsd-plan-phase 80` to begin governance and milestone-surface repair.
+- [ ] Run `/gsd-plan-phase 81` to close retention runtime and verification gaps.
+- [ ] Run `/gsd-plan-phase 82` to repair saved-view session handoff.
+- [ ] Run `/gsd-plan-phase 83` to repair the built-in async export lifecycle.
+- [ ] Run `/gsd-plan-phase 84` to complete export delivery and adapter integration.
 
 ### Blockers
 
-- None. Milestone is ready for execution.
+- Milestone v1.20 cannot be closed until Phases 80-84 repair the audit gaps identified on 2026-05-23.
 
 ## Session Continuity
 
-- **Last Action**: Completed Phase 75 Governance Infrastructure & State. Ecto schemas and migrations generated, behaviours implemented.
-- **Next Step**: Start `/gsd-plan-phase 76` to begin implementing Retention Pruning Ergonomics.
+- **Last Action**: Converted the milestone audit into gap-closure Phases 80-84 and reset traceability to pending follow-up work.
+- **Next Step**: Start `/gsd-plan-phase 80` to repair planning evidence and milestone surface drift before closing technical gaps.
 
 ## Deferred Items
 
