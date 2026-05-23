@@ -1,10 +1,11 @@
 ---
 phase: 80
 slug: governance-verification-and-milestone-surface-repair
-status: draft
+status: passed
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-23
+updated: 2026-05-23T13:39:11Z
 ---
 
 # Phase 80 — Validation Strategy
@@ -41,9 +42,10 @@ created: 2026-05-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 80-01-01 | 01 | 1 | INFRA-01, INFRA-02 | T-80-01 | Phase 75 evidence is rewritten from current-tree proof instead of stale summaries, and it states the shipped governance schema/install/storage/export-queue reality. | artifact + targeted unit | `rg -n 'threadline_export_jobs|threadline_retention_runs|threadline_saved_views|threadline_exports|@callback enqueue|@callback download_url' .planning/phases/75-governance-infrastructure-and-state/75-VERIFICATION.md .planning/phases/75-governance-infrastructure-and-state/75-VALIDATION.md lib/mix/tasks/threadline.install.ex lib/threadline/governance/migration.ex lib/threadline/storage.ex lib/threadline/storage/local.ex lib/threadline/export_queue.ex && mix test test/threadline/export_queue/task_adapter_test.exs test/threadline/export_queue/oban_test.exs test/threadline/storage/local_test.exs test/threadline/storage/s3_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
-| 80-02-01 | 02 | 2 | INFRA-02 | T-80-02 | Phase 79 evidence distinguishes adapter-module implementation from unsatisfied end-to-end runtime flows and restores the missing summary/validation bookkeeping trail. | artifact + targeted unit | `test -f .planning/phases/79-scale-adapters/79-02-SUMMARY.md && rg -n '^phase: 79|^status:|ADAPT-01|ADAPT-02|implemented|integrated|satisfied' .planning/phases/79-scale-adapters/79-02-SUMMARY.md .planning/phases/79-scale-adapters/79-VALIDATION.md .planning/phases/79-scale-adapters/79-VERIFICATION.md && mix test test/threadline/export_queue/task_adapter_test.exs test/threadline/export_queue/oban_test.exs test/threadline/storage/s3_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
-| 80-03-01 | 03 | 3 | INFRA-01, INFRA-02 | T-80-03 | `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, `PROJECT.md`, and `v1.20-MILESTONE-AUDIT.md` all describe the same repaired milestone truth and leave runtime closure with Phases 81-84. | planning artifact + full gate | `rg -n 'Phase 80|INFRA-01\\s+\\| Phase 80 \\| (Pending|Complete)|milestone: v1.20|status: in_progress|Phase 81|Phase 82|Phase 83|Phase 84' .planning/ROADMAP.md .planning/REQUIREMENTS.md .planning/STATE.md .planning/PROJECT.md .planning/v1.20-MILESTONE-AUDIT.md && mix verify.compile_no_optional && mix ci.all` | ✅ | ⬜ pending |
+| 80-01-01 | 01 | 1 | INFRA-01, INFRA-02 | T-80-01 | Phase 75 evidence is rewritten from current-tree proof instead of stale summaries, and it states the shipped governance schema/install/storage/export-queue reality. | artifact + targeted unit | `rg -n 'threadline_export_jobs|threadline_retention_runs|threadline_saved_views|threadline_exports|@callback enqueue|@callback download_url' .planning/phases/75-governance-infrastructure-and-state/75-VERIFICATION.md .planning/phases/75-governance-infrastructure-and-state/75-VALIDATION.md lib/mix/tasks/threadline.install.ex lib/threadline/governance/migration.ex lib/threadline/storage.ex lib/threadline/storage/local.ex lib/threadline/export_queue.ex && mix test test/threadline/export_queue/task_adapter_test.exs test/threadline/storage/local_test.exs --max-failures 1` | ✅ | ✅ green |
+| 80-01-02 | 01 | 1 | INFRA-02 | T-80-02 | Phase 79 evidence distinguishes adapter-module implementation from unsatisfied end-to-end runtime flows and restores the missing summary/validation bookkeeping trail. | artifact + targeted unit | `test -f .planning/phases/79-scale-adapters/79-02-SUMMARY.md && rg -n '^phase: 79|^status:|ADAPT-01|ADAPT-02|implemented|integrated|satisfied|Phase 84|operator download|startup|runtime proof' .planning/phases/79-scale-adapters/79-02-SUMMARY.md .planning/phases/79-scale-adapters/79-VALIDATION.md .planning/phases/79-scale-adapters/79-VERIFICATION.md && mix test test/threadline/export_queue/oban_test.exs test/threadline/storage/s3_test.exs --max-failures 1` | ✅ | ✅ green |
+| 80-02-01 | 02 | 2 | INFRA-01, INFRA-02 | T-80-03 | `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, and `v1.20-MILESTONE-AUDIT.md` describe the same repaired milestone truth and leave runtime closure with Phases 81-84. | planning artifact + compile gate | `rg -n 'Phase 80: Governance Verification & Milestone Surface Repair|\\*\\*Plans:\\*\\* 2 plans|80-01-PLAN.md|80-02-PLAN.md|INFRA-01\\s*\\|\\s*Phase 80\\s*\\|\\s*Complete|INFRA-02\\s*\\|\\s*Phase 80\\s*\\|\\s*Complete|milestone: v1.20|status: in_progress|Phase 81|Phase 82|Phase 83|Phase 84|nyquist_compliant: true|80-01-01|80-01-02|80-02-01|80-02-02' .planning/ROADMAP.md .planning/REQUIREMENTS.md .planning/STATE.md .planning/v1.20-MILESTONE-AUDIT.md .planning/phases/80-governance-verification-and-milestone-surface-repair/80-VALIDATION.md && mix verify.compile_no_optional` | ✅ | ✅ green |
+| 80-02-02 | 02 | 2 | INFRA-01, INFRA-02 | T-80-03 | `PROJECT.md` mirrors the repaired authority layer narratively and no longer reports v1.19 as the current milestone. | planning artifact + full gate | `rg -n 'Current milestone:\\*\\* v1\\.20|Scale and Governance Depth|Phases 75-84|Phase 80|Phases 81-84|current-tree truth-repair|Integration Breadth' .planning/PROJECT.md && ! rg -n 'Current milestone:\\*\\* v1\\.19' .planning/PROJECT.md && mix ci.all` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,11 +53,11 @@ created: 2026-05-23
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/phases/75-governance-infrastructure-and-state/75-VERIFICATION.md` — missing today; must be created from current-tree proof.
-- [ ] `.planning/phases/75-governance-infrastructure-and-state/75-VALIDATION.md` — missing today; must be created in Nyquist shape.
-- [ ] `.planning/phases/79-scale-adapters/79-02-SUMMARY.md` — missing today; must be restored without overstating requirement closure.
-- [ ] `.planning/phases/79-scale-adapters/79-VALIDATION.md` — must be normalized to the newer Nyquist frontmatter and verification-map shape if Phase 80 keeps it as an active truth surface.
-- [ ] `.planning/phases/80-governance-verification-and-milestone-surface-repair/80-VALIDATION.md` — created for this phase; update status and per-task rows during execution.
+- [x] `.planning/phases/75-governance-infrastructure-and-state/75-VERIFICATION.md` — created from current-tree proof.
+- [x] `.planning/phases/75-governance-infrastructure-and-state/75-VALIDATION.md` — created in Nyquist shape.
+- [x] `.planning/phases/79-scale-adapters/79-02-SUMMARY.md` — restored without overstating requirement closure.
+- [x] `.planning/phases/79-scale-adapters/79-VALIDATION.md` — normalized to the newer Nyquist frontmatter and verification-map shape.
+- [x] `.planning/phases/80-governance-verification-and-milestone-surface-repair/80-VALIDATION.md` — updated to the final task map and execution status.
 
 ---
 
@@ -75,4 +77,4 @@ created: 2026-05-23
 - [x] Final reconciliation is tied to `mix verify.compile_no_optional` and `mix ci.all`.
 - [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** planning baseline created on 2026-05-23; update to `status: passed` and mark task rows green only after execution evidence is recorded.
+**Approval:** finalized on 2026-05-23 after the Phase 75 and Phase 79 truth repairs, authority-layer reconciliation, `mix verify.compile_no_optional`, and `mix ci.all` evidence were recorded.

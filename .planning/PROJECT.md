@@ -10,8 +10,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.18 — Adoption and Policy Hardening (Phases 64-68, 2026-05-07)
-**Current milestone:** v1.19 — Integration Breadth (opened 2026-05-07; phases 69-72 planned)
+**Last shipped:** v1.19 — Integration Breadth (closed 2026-05-08)
+**Current milestone:** v1.20 — Scale and Governance Depth (opened 2026-05-08; phases 75-84 active)
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -23,31 +23,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-## Current Milestone: v1.19 Integration Breadth
+## Current Milestone: v1.20 Scale and Governance Depth
 
-**Goal:** Broaden adoption reach now that the operator surface is easier to mount, upgrade, and govern. Keep `threadline` core auth-agnostic while expanding reusable host/framework integration patterns, tightening the support matrix, and deciding whether the in-tree operator surface has enough real pressure to justify a future `threadline_web` extraction.
+**Goal:** Move Threadline from "capturing and reading" into governed lifecycle management: safe retention pruning, actor-owned saved views, background exports, and enterprise adapter seams, all while preserving the zero-intrusion default posture.
 
-**Target themes:**
-- Integration breadth instead of deeper single-app UX: expand reusable host patterns, adapter contracts, mount recipes, and ecosystem fit only after the v1.18 operator + lifecycle loop is proven.
-- Prove the current Sigra/Phoenix reference path against the current support matrix without turning Sigra into a hard dependency or implying broader guarantees than CI actually verifies.
-- Evaluate whether the operator surface should stay in-tree or move toward a companion `threadline_web` package only when real adopters create version-matrix or release-cadence pressure.
+**Current state:** Phase 80 completed the current-tree truth-repair for INFRA evidence and repaired the milestone authority layer. That work closed the verification gap around governance migrations, schemas, and storage/export-queue behaviour contracts, but it did not pull later runtime work forward.
 
-**Target features:**
-- Stable adapter contract for actor extraction, additive context overrides, optional dependency behavior, and operator-surface composition.
-- Honest support matrix and verification story for Plug-only, Phoenix surface, and current Sigra-backed reference integrations.
-- Canonical mount/runbook patterns for secure admin and support-read-only operator-surface installs with CLI fallback parity.
-- Extraction-readiness scorecard and explicit closeout decision for whether `threadline_web` remains deferred.
+**What remains open:** Phases 81-84 still own the real runtime closures for retention supervision, saved-view session handoff, built-in export lifecycle, and adapter-backed export delivery. The milestone remains open until those phases land and are verified on the repaired tree.
 
-**Deferred beyond v1.19 unless new evidence appears:**
-- Saved views inside the operator surface — would drag a tiny auth model (owner / visibility / sharing) into a lib that has stayed auth-agnostic since v1.15.
-- Queued / Oban-based exports + status page + scheduled exports — adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters are platform creep.
-- Retention admin viewer — "last purge" stats still require net-new `audit_retention_runs` capture and broaden the milestone away from integration breadth.
-- Runtime edits to any policy inside the surface — the read-only ceiling stays firm.
-- Multi-repo coverage dashboards, CDC/WAL, or new storage backends.
-
-**Why now:** v1.18 closed the rollout-hardening loop. The next leverage is not more read-only screens inside the same surface; it is reducing host-specific glue, tightening the "what is actually supported" story, and making the future package-boundary decision from evidence instead of taste.
-
-**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the ranked forward-looking source. v1.19 is now active there; the next candidate after this milestone is v1.20 — Scale and Governance Depth.
+**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the ranked forward-looking source. v1.20 is the active milestone, and Phase 80's current-tree truth-repair reset the project surface so the remaining runtime phases can close against trustworthy bookkeeping.
 
 ## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
 
@@ -231,10 +215,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **v1.19 Integration Breadth** — Broaden adoption reach through reusable host/framework integration patterns, a narrower and more honest support matrix, and a documented `threadline_web` extraction-readiness decision.
-- [ ] **Adapter contract and host seams** — Keep auth host-owned while standardizing actor extraction, additive context overrides, optional dependency behavior, and operator-surface composition across `Threadline.Plug`, `Threadline.Job`, and `Threadline.Integrations.*`.
-- [ ] **Support matrix and reference integrations** — Prove the current Phoenix and Sigra-backed reference paths against explicit tested combinations instead of implying generic compatibility.
-- [ ] **Mount recipes and CLI parity** — Ship canonical admin and support-read-only mount/runbook patterns that keep capture-only adopters on equal footing through Mix-task fallback paths.
+- [ ] **v1.20 Scale and Governance Depth** — Close the lifecycle-management milestone on the repaired authority layer instead of the old v1.19 surface.
+- [ ] **Phase 80 current-tree truth-repair** — INFRA evidence is closed and the milestone surface is trustworthy again.
+- [ ] **Phases 81-84 runtime closure** — Finish retention supervision, saved-view actor handoff, built-in export lifecycle, and adapter-backed delivery with end-to-end verification.
 
 ### Out of Scope
 
@@ -315,4 +298,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-08 — closed v1.19 Integration Breadth. Next ranked candidate after the active milestone: v1.20 — Scale and Governance Depth.*
+*Last updated: 2026-05-23 — Phase 80 completed current-tree truth-repair for v1.20. The active milestone remains v1.20 — Scale and Governance Depth while Phases 81-84 close the remaining runtime gaps.*

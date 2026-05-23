@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: — Scale and Governance Depth
-status: in_progress
-last_updated: "2026-05-23T14:26:00Z"
-last_activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and Phase 76 evidence
+status: planning
+last_updated: "2026-05-23T21:14:08.791Z"
+last_activity: 2026-05-23
 progress:
   total_phases: 10
-  completed_phases: 7
-  total_plans: 15
-  completed_plans: 15
-  percent: 70
+  completed_phases: 9
+  total_plans: 19
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State: Threadline
@@ -22,10 +22,10 @@ progress:
 
 ## Current Position
 
-Phase: 81 complete
-Plan: 2 of 2 complete
-Status: Milestone remains open
-Last activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and Phase 76 verification/validation
+Phase: 84
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-23
 
 ## Performance Metrics
 
@@ -50,7 +50,7 @@ Last activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and P
 
 ### Todos
 
-- [ ] Run `/gsd-plan-phase 82` to repair saved-view session handoff.
+- [ ] Run `/gsd-execute-phase 82` to execute the saved-view session handoff repair plans.
 - [ ] Run `/gsd-plan-phase 83` to repair the built-in async export lifecycle.
 - [ ] Run `/gsd-plan-phase 84` to complete export delivery and adapter integration.
 
@@ -60,8 +60,8 @@ Last activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and P
 
 ## Session Continuity
 
-- **Last Action**: Completed Phase 81 runtime closure, including built-in retention supervision and repaired Phase 76 verification/validation on the current tree.
-- **Next Step**: Start `/gsd-plan-phase 82` to repair saved-view actor/session handoff before attempting any milestone closeout flow.
+- **Last Action**: Planned Phase 82 with a two-plan split: default mount-path actor handoff/runtime repair plus Phase 77 verification/validation closeout.
+- **Next Step**: Run `/gsd-execute-phase 82` to implement the saved-view actor/session handoff repair before planning or executing later export-runtime phases.
 
 ## Deferred Items
 

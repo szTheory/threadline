@@ -9,8 +9,8 @@
 - [x] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
 - [x] **Phase 80: Governance Verification & Milestone Surface Repair** - Reconcile milestone evidence and planning state with the audit before closeout resumes.
 - [x] **Phase 81: Retention Runtime Closure** - Finish retention supervision and verification so pruning works end to end by default.
-- [ ] **Phase 82: Saved Views Session Handoff Repair** - Repair actor/session handoff so saved views are reliably actor-owned in normal mounts.
-- [ ] **Phase 83: Built-In Async Export Lifecycle Repair** - Make the default background export runtime and cleanup path operational and verified.
+- [x] **Phase 82: Saved Views Session Handoff Repair** - Repair actor/session handoff so saved views are reliably actor-owned in normal mounts. (completed 2026-05-23)
+- [x] **Phase 83: Built-In Async Export Lifecycle Repair** - Make the default background export runtime and cleanup path operational and verified. (completed 2026-05-23)
 - [ ] **Phase 84: Export Delivery & Scale Adapter Integration Repair** - Complete download, Oban, and S3 integration for real export delivery across adapters.
 
 ## Phase Details
@@ -114,7 +114,9 @@
   1. `SessionPlug` is installed in the normal operator surface path so actor identity reaches LiveView mounts reliably.
   2. Saved-view create/apply/delete flows work for standard `actor_fn`-driven host mounts without special setup.
   3. Phase 77 verification and validation artifacts prove the actor-owned behavior end to end.
-**Plans**: TBD
+**Plans**: 2 plans
+- [x] 82-01-PLAN.md — Default mount-path actor handoff and saved-view ownership repair
+- [x] 82-02-PLAN.md — Phase 77 verification and Nyquist validation closeout
 **UI hint**: yes
 
 ### Phase 83: Built-In Async Export Lifecycle Repair
@@ -153,6 +155,6 @@
 | 79. Scale Adapters | 3/3 | Evidence repaired; runtime closure owned by Phase 84 | 2026-05-23 |
 | 80. Governance Verification & Milestone Surface Repair | 2/2 | Complete | 2026-05-23 |
 | 81. Retention Runtime Closure | 2/2 | Complete | 2026-05-23 |
-| 82. Saved Views Session Handoff Repair | 0/0 | Planned | - |
-| 83. Built-In Async Export Lifecycle Repair | 0/0 | Planned | - |
+| 82. Saved Views Session Handoff Repair | 2/2 | Complete    | 2026-05-23 |
+| 83. Built-In Async Export Lifecycle Repair | 2/2 | Complete    | 2026-05-23 |
 | 84. Export Delivery & Scale Adapter Integration Repair | 0/0 | Planned | - |

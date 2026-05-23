@@ -41,11 +41,11 @@
 | RET-01      | Phase 81 | Complete |
 | RET-02      | Phase 81 | Complete |
 | RET-03      | Phase 81 | Complete |
-| VIEW-01     | Phase 82 | Pending |
-| VIEW-02     | Phase 82 | Pending |
-| EXP-01      | Phase 83 | Pending |
-| EXP-02      | Phase 83 | Pending |
+| VIEW-01     | Phase 82 | Complete |
+| VIEW-02     | Phase 82 | Complete |
+| EXP-01      | Phase 83 | Complete |
+| EXP-02      | Phase 83 | Complete |
 | EXP-03      | Phase 84 | Pending |
-| EXP-04      | Phase 83 | Pending |
+| EXP-04      | Phase 83 | Complete |
 | ADAPT-01    | Phase 84 | Pending |
 | ADAPT-02    | Phase 84 | Pending |
