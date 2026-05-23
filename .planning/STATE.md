@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: — Scale and Governance Depth
 status: in_progress
-last_updated: "2026-05-23T13:05:00.000Z"
-last_activity: Planned gap closure phases 80-84 from milestone audit
+last_updated: "2026-05-23T14:26:00Z"
+last_activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and Phase 76 evidence
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 8
-  completed_plans: 8
-  percent: 44
+  completed_phases: 7
+  total_plans: 15
+  completed_plans: 15
+  percent: 70
 ---
 
 # Project State: Threadline
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Executing milestone v1.20 — Scale and Governance Depth. Shifting from purely "capturing and reading" data to managing its lifecycle (retention pruning, background exports) and improving operator ergonomics (saved views), using built-in OTP primitives with pluggable scale-out options.
+**Current Focus**: Milestone v1.20 — Scale and Governance Depth remains in progress after Phase 81 repaired the retention runtime and closed Phase 76 evidence. RET requirements are now closed; Phases 82-84 still own saved-view handoff, built-in export lifecycle, and adapter-backed delivery closure.
 
 ## Current Position
 
-Phase: 80
-Plan: TBD
-Status: In Progress
-Last activity: Planned gap closure phases 80-84 from `v1.20-MILESTONE-AUDIT.md`
+Phase: 81 complete
+Plan: 2 of 2 complete
+Status: Milestone remains open
+Last activity: 2026-05-23 -- Phase 81 closed retention runtime supervision and Phase 76 verification/validation
 
 ## Performance Metrics
 
 - **Total Phases**: 10 (Phases 75-84) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 0 of 10 audit-closed in active milestone
+- **Phases Completed**: 7 of 10 phases have complete plan execution; repaired final-tree closure is now in place for 75, 76 via Phase 81, 79, 80, and 81
 - **Requirements Covered**: 13 of 13 mapped (INFRA 2, RET 3, VIEW 2, EXP 4, ADAPT 2)
 - **Last Milestone**: v1.19 — Integration Breadth (shipped 2026-05-08)
-- **Milestone Readiness**: v1.20 remains open; audit on 2026-05-23 reopened closure work across evidence, retention, saved views, and exports
+- **Milestone Readiness**: v1.20 remains open; retention closure is now complete, but Phases 82-84 still block milestone closeout
 
 ## Accumulated Context
 
@@ -45,23 +45,23 @@ Last activity: Planned gap closure phases 80-84 from `v1.20-MILESTONE-AUDIT.md`
 - 2026-05-08: Phase numbering continues sequentially from 74, starting v1.20 at Phase 75.
 - 2026-05-22: Completed Phase 75 implementation work. Audit on 2026-05-23 found missing verification/validation closure, so follow-up closure phases are required before milestone closeout.
 - 2026-05-23: Milestone audit for v1.20 found requirements, integration, and closeout gaps; roadmap extended with Phases 80-84 to repair runtime wiring and planning evidence.
+- 2026-05-23: Phase 80 re-verified Phase 75 on the current tree, repaired Phase 79 evidence drift, and reconciled the authoritative milestone surfaces without claiming later runtime closure early.
+- 2026-05-23: Phase 81 added built-in retention supervision, routed the retention UI through the named runtime API, and closed Phase 76 with current-tree verification and Nyquist validation artifacts.
 
 ### Todos
 
-- [ ] Run `/gsd-plan-phase 80` to begin governance and milestone-surface repair.
-- [ ] Run `/gsd-plan-phase 81` to close retention runtime and verification gaps.
 - [ ] Run `/gsd-plan-phase 82` to repair saved-view session handoff.
 - [ ] Run `/gsd-plan-phase 83` to repair the built-in async export lifecycle.
 - [ ] Run `/gsd-plan-phase 84` to complete export delivery and adapter integration.
 
 ### Blockers
 
-- Milestone v1.20 cannot be closed until Phases 80-84 repair the audit gaps identified on 2026-05-23.
+- Milestone v1.20 cannot be closed until Phases 82-84 repair the remaining audit gaps identified on 2026-05-23.
 
 ## Session Continuity
 
-- **Last Action**: Converted the milestone audit into gap-closure Phases 80-84 and reset traceability to pending follow-up work.
-- **Next Step**: Start `/gsd-plan-phase 80` to repair planning evidence and milestone surface drift before closing technical gaps.
+- **Last Action**: Completed Phase 81 runtime closure, including built-in retention supervision and repaired Phase 76 verification/validation on the current tree.
+- **Next Step**: Start `/gsd-plan-phase 82` to repair saved-view actor/session handoff before attempting any milestone closeout flow.
 
 ## Deferred Items
 

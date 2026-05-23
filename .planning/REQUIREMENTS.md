@@ -36,11 +36,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01    | Phase 80 | Pending |
-| INFRA-02    | Phase 80 | Pending |
-| RET-01      | Phase 81 | Pending |
-| RET-02      | Phase 81 | Pending |
-| RET-03      | Phase 81 | Pending |
+| INFRA-01    | Phase 80 | Complete |
+| INFRA-02    | Phase 80 | Complete |
+| RET-01      | Phase 81 | Complete |
+| RET-02      | Phase 81 | Complete |
+| RET-03      | Phase 81 | Complete |
 | VIEW-01     | Phase 82 | Pending |
 | VIEW-02     | Phase 82 | Pending |
 | EXP-01      | Phase 83 | Pending |

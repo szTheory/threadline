@@ -2,13 +2,13 @@
 
 ## Phases
 
-- [ ] **Phase 75: Governance Infrastructure & State** - Introduce core DB schemas and backend Behaviours for storage and queuing.
-- [ ] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView.
+- [x] **Phase 75: Governance Infrastructure & State** - Introduce core DB schemas and backend Behaviours for storage and queuing.
+- [x] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView.
 - [ ] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
 - [ ] **Phase 78: Async Exports & UI** - Shift massive CSV exports to background tasks with a status page and file cleanup.
-- [ ] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
-- [ ] **Phase 80: Governance Verification & Milestone Surface Repair** - Reconcile milestone evidence and planning state with the audit before closeout resumes.
-- [ ] **Phase 81: Retention Runtime Closure** - Finish retention supervision and verification so pruning works end to end by default.
+- [x] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
+- [x] **Phase 80: Governance Verification & Milestone Surface Repair** - Reconcile milestone evidence and planning state with the audit before closeout resumes.
+- [x] **Phase 81: Retention Runtime Closure** - Finish retention supervision and verification so pruning works end to end by default.
 - [ ] **Phase 82: Saved Views Session Handoff Repair** - Repair actor/session handoff so saved views are reliably actor-owned in normal mounts.
 - [ ] **Phase 83: Built-In Async Export Lifecycle Repair** - Make the default background export runtime and cleanup path operational and verified.
 - [ ] **Phase 84: Export Delivery & Scale Adapter Integration Repair** - Complete download, Oban, and S3 integration for real export delivery across adapters.
@@ -22,7 +22,8 @@
 **Success Criteria** (what must be TRUE):
   1. Adopters can run DB migrations to create `threadline_export_jobs`, `threadline_retention_runs`, and `threadline_saved_views` schemas.
   2. Developers can reference explicit `Threadline.Storage` and `Threadline.ExportQueue` behaviours for custom backend implementations.
-**Plans**: TBD
+**Plans**: 1 plan
+- [x] 75-01-PLAN.md — Governance migrations, schemas, and backend behaviours
 
 ### Phase 76: Batched Retention & UI
 **Goal**: Operators can safely prune old records and monitor deletions.
@@ -73,9 +74,9 @@
   1. Adopter can configure Threadline to use Oban for managing the background export queue in multi-node environments.
   2. Adopter can configure Threadline to stream completed export CSVs to S3 instead of local disk for distributed accessibility.
 **Plans**: 3 plans
-- [ ] 79-01-PLAN.md — Core Configuration & Behaviours
-- [ ] 79-02-PLAN.md — Oban Queue Adapter
-- [ ] 79-03-PLAN.md — S3 Storage Adapter
+- [x] 79-01-PLAN.md — Core Configuration & Behaviours
+- [x] 79-02-PLAN.md — Oban Queue Adapter
+- [x] 79-03-PLAN.md — S3 Storage Adapter
 
 ### Phase 80: Governance Verification & Milestone Surface Repair
 **Goal**: Milestone evidence and planning artifacts truthfully reflect implementation status before closeout resumes.
@@ -87,8 +88,8 @@
   2. Phase 79 evidence drift is repaired, including the missing `79-02` summary trail and roadmap bookkeeping.
   3. `ROADMAP.md`, `REQUIREMENTS.md`, and `STATE.md` agree on v1.20 status and no file claims the milestone is already complete.
 **Plans**: 2 plans
-- [ ] 80-01-PLAN.md — Phase 75 closeout evidence and Phase 79 adapter-evidence repair
-- [ ] 80-02-PLAN.md — Authoritative milestone-surface reconciliation and PROJECT narrative repair
+- [x] 80-01-PLAN.md — Phase 75 closeout evidence and Phase 79 adapter-evidence repair
+- [x] 80-02-PLAN.md — Authoritative milestone-surface reconciliation and PROJECT narrative repair
 
 ### Phase 81: Retention Runtime Closure
 **Goal**: Retention pruning and retention history work through a supervised runtime path and are formally verified.
@@ -99,7 +100,9 @@
   1. `Threadline.Retention.Pruner` runs from a built-in supervised path instead of depending on an unsupervised manual process.
   2. Retention history and manual trigger flows use that supervised runtime path successfully.
   3. Phase 76 verification and validation artifacts exist in the expected milestone closeout format.
-**Plans**: TBD
+**Plans**: 2 plans
+- [x] 81-01-PLAN.md — Built-in retention supervision and runtime-path repair
+- [x] 81-02-PLAN.md — Phase 76 verification and Nyquist validation closeout
 **UI hint**: yes
 
 ### Phase 82: Saved Views Session Handoff Repair
@@ -143,13 +146,13 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 75. Governance Infrastructure & State | 1/1 | Gap closure required | - |
-| 76. Batched Retention & UI | 2/2 | Gap closure required | - |
+| 75. Governance Infrastructure & State | 1/1 | Complete | 2026-05-23 |
+| 76. Batched Retention & UI | 2/2 | Complete via Phase 81 closure | 2026-05-23 |
 | 77. Saved Views Ergonomics | 2/2 | Gap closure required | - |
 | 78. Async Exports & UI | 3/3 | Gap closure required | - |
-| 79. Scale Adapters | 2/3 | Gap closure required | - |
-| 80. Governance Verification & Milestone Surface Repair | 0/2 | Planned | - |
-| 81. Retention Runtime Closure | 0/0 | Planned | - |
+| 79. Scale Adapters | 3/3 | Evidence repaired; runtime closure owned by Phase 84 | 2026-05-23 |
+| 80. Governance Verification & Milestone Surface Repair | 2/2 | Complete | 2026-05-23 |
+| 81. Retention Runtime Closure | 2/2 | Complete | 2026-05-23 |
 | 82. Saved Views Session Handoff Repair | 0/0 | Planned | - |
 | 83. Built-In Async Export Lifecycle Repair | 0/0 | Planned | - |
 | 84. Export Delivery & Scale Adapter Integration Repair | 0/0 | Planned | - |
