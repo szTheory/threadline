@@ -54,30 +54,28 @@ defmodule Threadline.Export.CleanupTest do
   end
 
   describe "handle_info :run_cleanup" do
-    test "deletes expired jobs and their files", %{storage_dir: storage_dir} do
+    test "deletes expired jobs and their files" do
       now = DateTime.utc_now()
       
       # File for expired job
-      expired_file_path = "expired_job.csv"
-      abs_expired_file = Path.join(storage_dir, expired_file_path)
-      File.write!(abs_expired_file, "some data")
+      expired_file_id = "expired_job.csv"
+      Threadline.Storage.Local.put("some data", file_id: expired_file_id)
       
       expired_job = Repo.insert!(%ExportJob{
         status: "completed",
         query_params: %{},
-        file_path: expired_file_path,
+        file_path: expired_file_id,
         expires_at: DateTime.add(now, -1, :hour)
       })
 
       # File for valid job
-      valid_file_path = "valid_job.csv"
-      abs_valid_file = Path.join(storage_dir, valid_file_path)
-      File.write!(abs_valid_file, "some data")
+      valid_file_id = "valid_job.csv"
+      Threadline.Storage.Local.put("some data", file_id: valid_file_id)
       
       valid_job = Repo.insert!(%ExportJob{
         status: "completed",
         query_params: %{},
-        file_path: valid_file_path,
+        file_path: valid_file_id,
         expires_at: DateTime.add(now, 1, :hour) # Expires in future
       })
 
@@ -88,11 +86,11 @@ defmodule Threadline.Export.CleanupTest do
 
       # Expired job should be deleted from DB and disk
       refute Repo.get(ExportJob, expired_job.id)
-      refute File.exists?(abs_expired_file)
+      assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
 
       # Valid job should remain
       assert Repo.get(ExportJob, valid_job.id)
-      assert File.exists?(abs_valid_file)
+      assert {:ok, _} = Threadline.Storage.Local.path(valid_file_id)
     end
   end
 end
