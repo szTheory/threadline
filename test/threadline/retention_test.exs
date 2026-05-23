@@ -2,6 +2,7 @@ defmodule Threadline.RetentionTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Governance.RetentionRun
   alias Threadline.Retention
 
   setup do
@@ -16,6 +17,8 @@ defmodule Threadline.RetentionTest do
       keep_days: 1,
       delete_empty_transactions: true
     )
+
+    Repo.delete_all(RetentionRun)
 
     :ok
   end
@@ -79,6 +82,42 @@ defmodule Threadline.RetentionTest do
     again = Retention.purge(repo: Repo, batch_size: 2, max_batches: 10)
     assert again.deleted_changes == 0
     assert again.deleted_transactions == 0
+  end
+
+  test "purge/1 records a completed retention run" do
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    {:ok, tx} =
+      Repo.insert(
+        AuditTransaction.changeset(%AuditTransaction{}, %{
+          txid: System.unique_integer([:positive]),
+          occurred_at: cutoff
+        })
+      )
+
+    Repo.insert!(
+      AuditChange.changeset(%AuditChange{}, %{
+        transaction_id: tx.id,
+        table_schema: "public",
+        table_name: "purge_fixture",
+        table_pk: %{"id" => Ecto.UUID.generate()},
+        op: "insert",
+        captured_at: past,
+        data_after: %{"tracked" => true}
+      })
+    )
+
+    assert %{deleted_changes: 1, deleted_transactions: 1} =
+             Retention.purge(repo: Repo, batch_size: 10, max_batches: 5)
+
+    [run] = Repo.all(RetentionRun)
+    assert run.status == "completed"
+    assert run.deleted_count == 2
+    assert is_integer(run.duration_ms)
+    assert run.duration_ms >= 0
+    assert %DateTime{} = run.started_at
+    assert %DateTime{} = run.completed_at
   end
 
   test "purge/1 skips orphan cleanup when delete_empty_transactions is false" do
