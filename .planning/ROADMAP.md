@@ -86,7 +86,9 @@
   1. Phase 75 has verification and validation artifacts that prove the infrastructure requirements are actually closed.
   2. Phase 79 evidence drift is repaired, including the missing `79-02` summary trail and roadmap bookkeeping.
   3. `ROADMAP.md`, `REQUIREMENTS.md`, and `STATE.md` agree on v1.20 status and no file claims the milestone is already complete.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 80-01-PLAN.md — Phase 75 closeout evidence and Phase 79 adapter-evidence repair
+- [ ] 80-02-PLAN.md — Authoritative milestone-surface reconciliation and PROJECT narrative repair
 
 ### Phase 81: Retention Runtime Closure
 **Goal**: Retention pruning and retention history work through a supervised runtime path and are formally verified.
@@ -146,7 +148,7 @@
 | 77. Saved Views Ergonomics | 2/2 | Gap closure required | - |
 | 78. Async Exports & UI | 3/3 | Gap closure required | - |
 | 79. Scale Adapters | 2/3 | Gap closure required | - |
-| 80. Governance Verification & Milestone Surface Repair | 0/0 | Planned | - |
+| 80. Governance Verification & Milestone Surface Repair | 0/2 | Planned | - |
 | 81. Retention Runtime Closure | 0/0 | Planned | - |
 | 82. Saved Views Session Handoff Repair | 0/0 | Planned | - |
 | 83. Built-In Async Export Lifecycle Repair | 0/0 | Planned | - |
