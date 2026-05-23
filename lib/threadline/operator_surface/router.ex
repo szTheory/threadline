@@ -78,6 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           scope unquote(path), alias: Threadline.OperatorSurface.Live do
             live("/", TimelineLive, :index)
             live("/coverage", CoverageLive, :index)
+            live("/exports", ExportStatusLive, :index)
             live("/policy/redaction", PolicyRedactionLive, :index)
             live("/policy/retention", RetentionHistoryLive, :index)
             live("/transactions/:id", TransactionLive, :show)
