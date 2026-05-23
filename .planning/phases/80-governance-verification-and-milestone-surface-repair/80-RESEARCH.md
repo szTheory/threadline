@@ -312,12 +312,11 @@ end
 | A2 | Raw one-off verification commands are materially worse than named Mix aliases for future milestone maintenance. [ASSUMED] | Standard Stack / Don’t Hand-Roll | Low. The project already prefers aliases, but a planner could still cite raw commands if absolutely needed. |
 | A3 | Binary “done / not done” language would create avoidable ambiguity for Phase 79 closeout. [ASSUMED] | Don’t Hand-Roll / State of the Art | Medium. If the team rejects the taxonomy, Phase 80 could struggle to describe partial adapter closure honestly. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `PROJECT.md` be repaired in the same execution slice as the authoritative milestone files or in a follow-up slice within Phase 80?**
 What we know: The context makes `PROJECT.md` narrative-only and explicitly scopes its stale current-state repair into Phase 80. [CITED: .planning/phases/80-governance-verification-and-milestone-surface-repair/80-CONTEXT.md]
-What's unclear: Whether the planner wants that narrative repair bundled with the final authority-surface task or as a small final cleanup slice. [VERIFIED: codebase grep]
-Recommendation: Keep it in Phase 80, but sequence it after `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, and the audit are reconciled. [CITED: .planning/phases/80-governance-verification-and-milestone-surface-repair/80-CONTEXT.md]
+Resolution: Keep it in Phase 80, but sequence it after `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, and the audit are reconciled. The planner should model this as a final narrative-repair task after the authority layer is consistent. [CITED: .planning/phases/80-governance-verification-and-milestone-surface-repair/80-CONTEXT.md] [VERIFIED: codebase grep]
 
 ## Environment Availability
 
