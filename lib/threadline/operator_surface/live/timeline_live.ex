@@ -219,6 +219,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, push_patch(socket, to: socket.assigns.base_path)}
     end
 
+    def handle_event("request_background_export", _params, socket) do
+      repo = scope_aware_opts(socket)[:repo] || default_repo()
+      job = %Threadline.Governance.ExportJob{
+        status: "pending",
+        query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
+        actor_ref: socket.assigns[:threadline_actor_ref]
+      }
+
+      job = repo.insert!(job)
+      adapter = Application.get_env(:threadline, :export_queue_adapter, Threadline.ExportQueue.TaskAdapter)
+      adapter.enqueue(job.id)
+
+      {:noreply,
+       socket
+       |> put_flash(:info, "Background export requested. View progress on the Export Status page.")
+       |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
+    end
+
     def handle_event("next-page", _, socket) do
       if socket.assigns.cursor do
         page =
@@ -294,6 +312,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="button-cluster">
               <.link patch={@base_path} class="clear-link">Clear all</.link>
               <button type="submit">Apply</button>
+              <button phx-click="request_background_export" type="button" class="download-button primary">Request Background Export</button>
               <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="download-button">Download CSV</.link>
               <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="download-button">Download JSON</.link>
               <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>

@@ -775,5 +775,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute render(lv) =~ "My Support View"
       assert Threadline.Test.Repo.all(Threadline.Governance.SavedView) == []
     end
+
+    test "Case 12: Request Background Export enqueues job and redirects", %{conn: conn} do
+      {:ok, lv, _html} =
+        case live(conn, "/audit_scoped?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      # Initial state
+      initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+
+      # Click the export button
+      lv |> element("button", "Request Background Export") |> render_click()
+
+      # Assert redirected to /audit_scoped/exports
+      assert_redirect(lv, "/audit_scoped/exports")
+
+      # Job is inserted
+      jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+      assert length(jobs) == length(initial_jobs) + 1
+      job = hd(jobs -- initial_jobs)
+      assert job.status == "pending"
+      assert job.query_params["table"] == "support_posts"
+      assert job.actor_ref.type == :user
+      assert job.actor_ref.id == "op1" # the user_id mapped to actor_ref
+    end
   end
 end
