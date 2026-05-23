@@ -102,9 +102,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
-    import Plug.Conn, only: [get_resp_header: 2]
+    import Plug.Conn, only: [get_resp_header: 2, assign: 3]
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
+    alias Threadline.Governance.ExportJob
 
     @endpoint Threadline.OperatorSurface.ExportControllerTest.Endpoint
     @repo Threadline.Test.Repo
@@ -320,6 +321,116 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       changes
       |> Enum.chunk_every(1_000)
       |> Enum.each(fn chunk -> @repo.insert_all(AuditChange, chunk) end)
+    end
+
+    # ---- Download path ----
+
+    describe "GET /audit/exports/download/:job_id" do
+      setup do
+        @repo.delete_all(ExportJob)
+        
+        # Ensure priv/threadline_exports directory exists for Local storage
+        priv_dir = :code.priv_dir(:threadline) || "priv"
+        export_dir = Path.join([to_string(priv_dir), "threadline_exports"])
+        File.mkdir_p!(export_dir)
+
+        {:ok, export_dir: export_dir}
+      end
+
+      test "returns 200 and serves the file if valid and authorized", %{conn: conn, export_dir: export_dir} do
+        job_id = Ecto.UUID.generate()
+        file_name = "#{job_id}.csv"
+        file_path = Path.join(export_dir, file_name)
+        File.write!(file_path, "col1,col2\n1,2")
+
+        job =
+          @repo.insert!(%ExportJob{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: file_name,
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 200
+        assert response(conn, 200) == "col1,col2\n1,2"
+        [disposition] = get_resp_header(conn, "content-disposition")
+        assert disposition =~ ~s|filename="#{file_name}"|
+      end
+
+      test "returns 404 if actor_ref does not match (IDOR protection)", %{conn: conn, export_dir: export_dir} do
+        job_id = Ecto.UUID.generate()
+        file_name = "#{job_id}.csv"
+        file_path = Path.join(export_dir, file_name)
+        File.write!(file_path, "col1,col2\n1,2")
+
+        job =
+          @repo.insert!(%ExportJob{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: file_name,
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "456"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 404
+        assert response(conn, 404) =~ "Export not found"
+      end
+
+      test "returns 422 if job is not completed", %{conn: conn} do
+        job =
+          @repo.insert!(%ExportJob{
+            status: "processing",
+            query_params: %{"format" => "csv"},
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 422
+        assert response(conn, 422) =~ "Export not ready or failed"
+      end
+
+      test "returns 404 if file does not exist locally", %{conn: conn} do
+        job =
+          @repo.insert!(%ExportJob{
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "non_existent.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 404
+        assert response(conn, 404) =~ "File not found or not locally accessible"
+      end
+
+      test "returns 400 if job_id is invalid", %{conn: conn} do
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/not-a-uuid")
+
+        assert conn.status == 400
+        assert response(conn, 400) =~ "Invalid job ID"
+      end
     end
   end
 

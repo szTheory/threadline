@@ -118,6 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             get("/changes.csv", ExportController, :csv)
             get("/changes.json", ExportController, :json)
             get("/changes.ndjson", ExportController, :ndjson)
+            get("/download/:job_id", ExportController, :download)
           end
         end
       end

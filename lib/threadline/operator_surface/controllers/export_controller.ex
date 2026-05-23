@@ -53,6 +53,58 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     def json(conn, params), do: dispatch(conn, params, :json)
     def ndjson(conn, params), do: dispatch(conn, params, :ndjson)
 
+    def download(conn, %{"job_id" => job_id}) do
+      repo = conn.assigns[:threadline_repo] || default_repo()
+      
+      # We need actor_ref for IDOR check. ExportAuthPlug should have assigned it
+      # if available, or we use nil. Wait, the exact key might be different, let's use `conn.assigns[:threadline_actor_ref]`
+      actor_ref = conn.assigns[:threadline_actor_ref]
+
+      case Ecto.UUID.cast(job_id) do
+        {:ok, uuid} ->
+          job = repo.get(Threadline.Governance.ExportJob, uuid)
+
+          if job && job.actor_ref == actor_ref do
+            if job.status == "completed" && job.file_path do
+              storage_adapter = Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+
+              case storage_adapter.path(job.file_path) do
+                {:ok, absolute_path} ->
+                  filename = Path.basename(job.file_path)
+                  disposition = ~s|attachment; filename="#{filename}"; filename*=UTF-8''#{filename}|
+
+                  # Content-Type could be inferred from file extension, defaulting to application/octet-stream
+                  content_type = MIME.from_path(absolute_path)
+
+                  conn
+                  |> put_resp_header("content-type", content_type)
+                  |> put_resp_header("content-disposition", disposition)
+                  |> put_resp_header("cache-control", "no-store")
+                  |> Plug.Conn.send_file(200, absolute_path)
+
+                {:error, _reason} ->
+                  conn
+                  |> put_resp_header("content-type", "text/plain; charset=utf-8")
+                  |> send_resp(404, "File not found or not locally accessible")
+              end
+            else
+              conn
+              |> put_resp_header("content-type", "text/plain; charset=utf-8")
+              |> send_resp(422, "Export not ready or failed")
+            end
+          else
+            conn
+            |> put_resp_header("content-type", "text/plain; charset=utf-8")
+            |> send_resp(404, "Export not found")
+          end
+
+        :error ->
+          conn
+          |> put_resp_header("content-type", "text/plain; charset=utf-8")
+          |> send_resp(400, "Invalid job ID")
+      end
+    end
+
     defp dispatch(conn, params, format) do
       with {:ok, filters} <- FilterParams.parse(params),
            :ok <- safe_validate(filters) do
