@@ -7,5 +7,7 @@ else
   config :threadline, :retention,
     enabled: false,
     keep_days: 90,
-    delete_empty_transactions: true
+    delete_empty_transactions: true,
+    interval_ms: :timer.minutes(60),
+    sleep_ms: 50
 end

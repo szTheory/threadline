@@ -40,6 +40,8 @@ config :threadline, :trigger_capture,
 config :threadline, :retention,
   enabled: false,
   keep_days: 30,
-  delete_empty_transactions: true
+  delete_empty_transactions: true,
+  interval_ms: :timer.hours(24),
+  sleep_ms: 0
 
 config :logger, level: :warning
