@@ -67,7 +67,10 @@
 **Success Criteria** (what must be TRUE):
   1. Adopter can configure Threadline to use Oban for managing the background export queue in multi-node environments.
   2. Adopter can configure Threadline to stream completed export CSVs to S3 instead of local disk for distributed accessibility.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 79-01-PLAN.md — Core Configuration & Behaviours
+- [ ] 79-02-PLAN.md — Oban Queue Adapter
+- [ ] 79-03-PLAN.md — S3 Storage Adapter
 
 ## Progress
 
