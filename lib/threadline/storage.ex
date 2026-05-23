@@ -5,6 +5,9 @@ defmodule Threadline.Storage do
   Threadline provides a `Threadline.Storage.Local` implementation out-of-the-box
   for single-node deployments. Adopters needing multi-node support should implement
   an S3-compatible backend conforming to this behaviour.
+
+  The `init/1` callback is used for dependency safeguards, ensuring adapters fail
+  early if their required underlying library is missing from the environment.
   """
 
   @type file_id :: String.t()
@@ -12,7 +15,14 @@ defmodule Threadline.Storage do
   @type options :: keyword()
 
   @doc """
+  Initializes the adapter. Called during application startup to verify
+  configuration and presence of underlying dependencies.
+  """
+  @callback init(keyword()) :: :ok | {:error, term()}
+
+  @doc """
   Puts a file into storage.
+
 
   Returns `{:ok, file_id}` where `file_id` is a backend-specific identifier
   (such as an S3 key or a local filesystem path) that can be used with `get/1`

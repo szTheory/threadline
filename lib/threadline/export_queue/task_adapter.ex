@@ -10,6 +10,9 @@ defmodule Threadline.ExportQueue.TaskAdapter do
 
   @behaviour Threadline.ExportQueue
 
+  @impl true
+  def init(_opts), do: :ok
+
   @doc """
   Enqueues the export job by spawning a supervised task.
   """

@@ -12,6 +12,9 @@ defmodule Threadline.Storage.Local do
   @behaviour Threadline.Storage
 
   @impl true
+  def init(_opts), do: :ok
+
+  @impl true
   def put(content, opts \\ []) do
     file_id = Keyword.get_lazy(opts, :file_id, fn -> Ecto.UUID.generate() <> ".csv" end)
     path = local_path(file_id)

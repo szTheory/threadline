@@ -6,7 +6,7 @@
 - [x] **Phase 76: Batched Retention & UI** - Implement autovacuum-aware DB pruning and a Retention History LiveView. (completed 2026-05-22)
 - [x] **Phase 77: Saved Views Ergonomics** - Allow operators to save and manage timeline queries using host actor ownership.
 - [ ] **Phase 78: Async Exports & UI** - Shift massive CSV exports to background tasks with a status page and file cleanup.
-- [ ] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
+- [x] **Phase 79: Scale Adapters** - Provide opt-in S3 and Oban integrations for multi-node deployments.
 
 ## Phase Details
 
