@@ -26,6 +26,12 @@ defmodule Threadline.Storage do
   @callback get(file_id()) :: {:ok, binary()} | {:error, term()}
 
   @doc """
+  Returns a direct local path to the stored file, if supported by the backend.
+  """
+  @callback path(file_id()) :: {:ok, String.t()} | {:error, term()}
+  @optional_callbacks path: 1
+
+  @doc """
   Generates a presigned or localized URL for downloading the file.
 
   Options may include `:expires_in` (in seconds).

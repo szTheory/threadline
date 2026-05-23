@@ -16,15 +16,35 @@ defmodule Threadline.Storage.Local do
     file_id = Keyword.get_lazy(opts, :file_id, fn -> Ecto.UUID.generate() <> ".csv" end)
     path = local_path(file_id)
 
-    with :ok <- File.mkdir_p(Path.dirname(path)),
-         :ok <- File.write(path, content) do
-      {:ok, file_id}
+    with :ok <- File.mkdir_p(Path.dirname(path)) do
+      if is_binary(content) and File.regular?(content) do
+        case File.cp(content, path) do
+          :ok -> {:ok, file_id}
+          {:error, reason} -> {:error, reason}
+        end
+      else
+        case File.write(path, content) do
+          :ok -> {:ok, file_id}
+          {:error, reason} -> {:error, reason}
+        end
+      end
     end
   end
 
   @impl true
   def get(file_id) do
     File.read(local_path(file_id))
+  end
+
+  @impl true
+  def path(file_id) do
+    path = local_path(file_id)
+
+    if File.exists?(path) do
+      {:ok, Path.expand(path)}
+    else
+      {:error, :not_found}
+    end
   end
 
   @impl true
