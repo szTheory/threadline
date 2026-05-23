@@ -28,6 +28,25 @@ defmodule Threadline.Retention.Pruner do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @doc """
+  Triggers an immediate prune on the supervised runtime path.
+  """
+  def trigger do
+    if started?() do
+      GenServer.cast(__MODULE__, :prune)
+      :ok
+    else
+      {:error, :not_started}
+    end
+  end
+
+  @doc """
+  Returns whether the named pruner runtime is currently available.
+  """
+  def started? do
+    Process.whereis(__MODULE__) != nil
+  end
+
   @impl true
   def init(opts) do
     repo = Keyword.fetch!(opts, :repo)

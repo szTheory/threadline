@@ -56,8 +56,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveViewTest
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.Retention.Pruner
 
     @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
+
+    defp start_application_supervisor! do
+      start_supervised!(
+        {Threadline.Application,
+         name: :"threadline-retention-live-test-#{System.unique_integer()}"}
+      )
+    end
+
+    defp stop_existing_pruner! do
+      if pid = Process.whereis(Pruner) do
+        ref = Process.monitor(pid)
+        GenServer.stop(pid, :normal, 1_000)
+        assert_receive {:DOWN, ^ref, :process, ^pid, _reason}, 1_000
+      end
+    end
+
+    defp eventually(assertion, attempts \\ 20)
+
+    defp eventually(assertion, 1), do: assertion.()
+
+    defp eventually(assertion, attempts) do
+      case assertion.() do
+        true ->
+          true
+
+        false ->
+          Process.sleep(25)
+          eventually(assertion, attempts - 1)
+      end
+    end
 
     setup_all do
       Application.put_env(
@@ -81,15 +112,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       start_supervised!(@endpoint)
 
-      # Start the pruner since we interact with it, but configure it so it doesn't poll often
-      start_supervised!(
-        {Threadline.Retention.Pruner, repo: Threadline.Test.Repo, interval_ms: :timer.hours(24)}
-      )
-
       :ok
     end
 
     setup do
+      stop_existing_pruner!()
       Threadline.Test.Repo.delete_all(RetentionRun)
 
       original_retention = Application.get_env(:threadline, :retention)
@@ -97,7 +124,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Application.put_env(
         :threadline,
         :retention,
-        Keyword.put(original_retention || [], :enabled, true)
+        (original_retention || [])
+        |> Keyword.put(:enabled, true)
+        |> Keyword.put(:interval_ms, :timer.hours(24))
+        |> Keyword.put(:sleep_ms, 0)
       )
 
       on_exit(fn ->
@@ -107,6 +137,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Application.delete_env(:threadline, :retention)
         end
       end)
+
+      start_application_supervisor!()
 
       {:ok, conn: build_conn()}
     end
@@ -141,7 +173,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "1500"
       end
 
-      test "Run Pruning Batch CTA triggers GenServer.cast asynchronously", %{conn: conn} do
+      test "Run Pruning Batch CTA triggers the supervised runtime path", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/policy/retention")
 
         # Click the button
@@ -149,21 +181,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # ensure no active runs initially
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0
+        assert Pruner.started?()
 
         # simulate click
         view
         |> element("button", "Run Pruning Batch")
         |> render_click()
 
-        # The GenServer cast happens asynchronously.
-        # We can wait a little bit or try to see if a run starts in the DB.
-        # But `handle_event` might also show a flash or just return.
-        # Let's check that the table updates with a running run or at least a run is created.
-
-        # We'll assert that a DB record was created by the Pruner after some time
-        # wait a bit for gen server to process
-        :timer.sleep(100)
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
+        assert eventually(fn ->
+                 Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
+               end)
       end
 
       test "page auto-refreshes periodically", %{conn: conn} do

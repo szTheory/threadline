@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.Retention.Pruner
 
     @default_limit 100
 
@@ -30,12 +31,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("prune_now", _params, socket) do
-      GenServer.cast(Threadline.Retention.Pruner, :prune)
+      case Pruner.trigger() do
+        :ok ->
+          # Schedule a quick refresh to see the new run pop up
+          Process.send_after(self(), :refresh, 500)
+          {:noreply, socket}
 
-      # Schedule a quick refresh to see the new run pop up
-      Process.send_after(self(), :refresh, 500)
-
-      {:noreply, socket}
+        {:error, :not_started} ->
+          {:noreply, put_flash(socket, :error, "Retention runtime is not started.")}
+      end
     end
 
     def handle_info(:refresh, socket) do
