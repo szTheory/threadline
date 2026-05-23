@@ -36,7 +36,7 @@ defmodule Threadline.Export.OrchestratorTest do
     assert {:ok, _content} = Local.get(updated_job.file_path)
   end
   
-  test "on failure, marks job as failed with error_message", %{job: job} do
+  test "on failure, marks job as failed with error_message", %{job: _job} do
     # Force a failure by passing an invalid job_id or invalid query
     # We can pass query_params that raises (e.g., unknown key which triggers ArgumentError in validate_timeline_filters!)
     bad_job = Repo.insert!(%ExportJob{
@@ -49,6 +49,6 @@ defmodule Threadline.Export.OrchestratorTest do
     updated_job = Repo.get!(ExportJob, bad_job.id)
     assert updated_job.status == "failed"
     assert is_binary(updated_job.error_message)
-    assert updated_job.error_message =~ "unknown filter key"
+    assert updated_job.error_message =~ "unknown timeline filter key"
   end
 end
