@@ -54,7 +54,10 @@
   2. Operator can navigate to an Export Status page and see the real-time progress of their background requests.
   3. Operator can download the completed CSV once finished.
   4. System automatically cleans up local storage export artifacts older than a configurable threshold.
-**Plans**: TBD
+**Plans**: 3 plans
+- [x] 78-01-PLAN.md — Core Async Export Engine & Defect Fix
+- [x] 78-02-PLAN.md — Export Artifact Cleanup & Download Route
+- [x] 78-03-PLAN.md — Export Status UI & Trigger Integration
 **UI hint**: yes
 
 ### Phase 79: Scale Adapters
@@ -73,5 +76,5 @@
 | 75. Governance Infrastructure & State | 1/1 | Planned | - |
 | 76. Batched Retention & UI | 2/2 | Complete   | 2026-05-22 |
 | 77. Saved Views Ergonomics | 1/2 | In Progress|  |
-| 78. Async Exports & UI | 0/0 | Not started | - |
+| 78. Async Exports & UI | 3/3 | Complete    | 2026-05-23 |
 | 79. Scale Adapters | 0/0 | Not started | - |
