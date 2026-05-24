@@ -64,6 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
             coverage={@threadline_coverage || %{uncovered_count: 0}}
             base_path={@base_path}
+            coverage_enabled={@threadline_coverage_enabled}
           />
         <% end %>
 

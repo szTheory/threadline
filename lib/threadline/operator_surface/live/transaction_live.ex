@@ -85,6 +85,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage={@threadline_coverage}
           base_path={surface_root(@base_path)}
           error={@threadline_coverage_error}
+          coverage_enabled={@threadline_coverage_enabled}
         />
         <%= if @not_found do %>
           <div class="empty-state">

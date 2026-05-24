@@ -82,6 +82,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage={@threadline_coverage}
           base_path={@base_path}
           error={@threadline_coverage_error}
+          coverage_enabled={@threadline_coverage_enabled}
         />
         <%= if @not_found do %>
           <div class="empty-state">
@@ -121,7 +122,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="transaction-row">
                   <div class="transaction-header">
                     <span class="tx-time"><%= tx.occurred_at %></span>
-                    <a href={"/audit/transactions/#{tx.id}"} class="tx-link">View Incident <%= tx.id %></a>
+                    <a href={"#{@base_path}/transactions/#{tx.id}"} class="tx-link">View Incident <%= tx.id %></a>
                   </div>
                 </div>
               </div>

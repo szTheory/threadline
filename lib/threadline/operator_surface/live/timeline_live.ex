@@ -296,9 +296,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          coverage={@threadline_coverage}
+          coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
           base_path={@base_path}
-          error={@threadline_coverage_error}
+          error={assigns[:threadline_coverage_error]}
+          coverage_enabled={@threadline_coverage_enabled}
         />
 
         <header class="timeline-toolbar">
@@ -342,10 +343,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="button-cluster">
               <.link patch={@base_path} class="clear-link">Clear all</.link>
               <button type="submit">Apply</button>
-              <button phx-click="request_background_export" type="button" class="download-button primary">Request Background Export</button>
-              <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="download-button">Download CSV</.link>
-              <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="download-button">Download JSON</.link>
-              <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>
+              <%= if @threadline_exports_enabled do %>
+                <button phx-click="request_background_export" type="button" class="download-button primary">Request Background Export</button>
+                <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="download-button">Download CSV</.link>
+                <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="download-button">Download JSON</.link>
+                <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>
+              <% end %>
             </div>
           </form>
           <%= if assigns[:threadline_actor_ref] do %>

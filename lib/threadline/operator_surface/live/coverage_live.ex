@@ -93,6 +93,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage={@threadline_coverage}
           base_path={@base_path}
           error={@threadline_coverage_error}
+          coverage_enabled={@threadline_coverage_enabled}
         />
 
         <main class="coverage-page">

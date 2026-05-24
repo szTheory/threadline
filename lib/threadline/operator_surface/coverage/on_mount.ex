@@ -74,6 +74,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:cont, socket}
       else
+        socket =
+          socket
+          |> Phoenix.Component.assign(:threadline_coverage, nil)
+          |> Phoenix.Component.assign(:threadline_coverage_error, nil)
+
         {:cont, socket}
       end
     end

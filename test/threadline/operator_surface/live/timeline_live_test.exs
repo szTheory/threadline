@@ -133,6 +133,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def scope_operator_query(query, _scope, _context), do: query
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SupportScopedRouter do
+    use Phoenix.Router
+    import Ecto.Query
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_support",
+        authorize_fn: &__MODULE__.auth/1,
+        export_authorize_fn: &__MODULE__.export_auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
+      )
+    end
+
+    def auth(_socket), do: {:ok, %{access: :support_read_only, organization_id: "org_123"}}
+    def export_auth(_mirror), do: {:error, :unauthorized}
+
+    def scope_operator_query(query, %{organization_id: org_id}, %{surface: :timeline}) do
+      where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
+    end
+
+    def scope_operator_query(query, _scope, _context), do: query
+  end
+
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -148,6 +184,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter)
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_support_scoped_key",
+      signing_salt: "v8q+QWvj"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.TimelineLiveTest.SupportScopedRouter)
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint do
@@ -202,6 +255,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       start_supervised!(@endpoint)
+
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint,
+        secret_key_base: "z" |> String.duplicate(64),
+        live_view: [signing_salt: "z" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
+      )
+
+      start_supervised!(Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint)
       :ok
     end
 
@@ -703,20 +766,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     describe "surface header (Phase 66)" do
-      test "renders the surface badge linking to /audit/coverage with locked literals", %{
+      test "does not render the surface badge linking to /audit/coverage when coverage is disabled", %{
         conn: conn
       } do
         {:ok, _view, html} = mount_audit(conn)
 
-        # Surface header threadline-ui-header (Plan 03 component + style.ex rule)
         assert html =~ ~s|class="threadline-ui-header"|
-
-        # Badge link to /audit/coverage (D-31d — plain anchor, not live_patch)
-        assert html =~ ~s|href="/audit/coverage"|
-
-        # One of the two locked literals is present (D-31a — never hidden).
-        # Use a combined regex to avoid Elixir's strict-boolean `or` gotcha.
-        assert html =~ ~r/(All covered|\d+ uncovered)/
+        refute html =~ ~s|href="/audit/coverage"|
       end
 
       test "datalist excludes uncovered and expected_uncovered tuple variants", %{conn: conn} do
@@ -997,6 +1053,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert job.query_params["table"] == "support_posts"
       assert render(lv) =~ "Request Background Export"
       assert render(lv) =~ "support_posts"
+    end
+  end
+end
+
+if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveExportVisibilityTest do
+    use ExUnit.Case, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, @endpoint,
+        secret_key_base: "z" |> String.duplicate(64),
+        live_view: [signing_salt: "z" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    test "support-scoped mounts hide export affordances when export auth denies access" do
+      conn = Phoenix.ConnTest.build_conn()
+
+      {:ok, _lv, html} =
+        case live(conn, "/audit_support?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      refute html =~ "Request Background Export"
+      refute html =~ "Download CSV"
+      refute html =~ "Download JSON"
+      refute html =~ "Download NDJSON"
     end
   end
 end

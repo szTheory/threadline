@@ -61,10 +61,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     defp start_application_supervisor! do
-      start_supervised!(
-        {Threadline.Application,
-         name: :"threadline-retention-live-test-#{System.unique_integer()}"}
-      )
+      start_supervised!({Threadline.Retention.Pruner, repo: Threadline.Test.Repo})
     end
 
     defp stop_existing_pruner! do
