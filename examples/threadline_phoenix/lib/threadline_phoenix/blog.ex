@@ -18,7 +18,7 @@ defmodule ThreadlinePhoenix.Blog do
   row is then linked via `audit_transactions.action_id` so strict
   `:correlation_id` filters on `Threadline.timeline/2` match.
   """
-  def create_post(%AuditContext{} = audit_context, attrs) when is_map(attrs) do
+  def create_post(%AuditContext{} = audit_context, attrs, opts \\ []) when is_map(attrs) do
     case audit_context.actor_ref do
       nil ->
         {:error, :missing_actor}
@@ -38,14 +38,14 @@ defmodule ThreadlinePhoenix.Blog do
               Repo.rollback(changeset)
 
             {:ok, post} ->
-              opts = [
+              action_opts = [
                 repo: Repo,
                 actor: actor_ref,
                 correlation_id: audit_context.correlation_id,
                 request_id: audit_context.request_id
               ]
 
-              case Threadline.record_action(:post_created_via_api, opts) do
+              case Threadline.record_action(:post_created_via_api, action_opts) do
                 {:error, cs} ->
                   Repo.rollback(cs)
 
@@ -55,7 +55,7 @@ defmodule ThreadlinePhoenix.Blog do
                       from(at in AuditTransaction,
                         where: at.txid == fragment("txid_current()")
                       ),
-                      set: [action_id: action_id]
+                      set: [action_id: action_id, meta: audit_transaction_meta(opts)]
                     )
 
                   if count != 1 do
@@ -73,8 +73,19 @@ defmodule ThreadlinePhoenix.Blog do
                   %{post: post, audit_transaction_id: audit_transaction_id}
               end
           end
+
           # doc: end: blog-create-post-transaction
         end)
+    end
+  end
+
+  defp audit_transaction_meta(opts) do
+    case Keyword.get(opts, :organization_id) do
+      org_id when is_binary(org_id) and org_id != "" ->
+        %{"organization_id" => org_id}
+
+      _ ->
+        nil
     end
   end
 

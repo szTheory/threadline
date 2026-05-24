@@ -6,6 +6,7 @@ defmodule ThreadlinePhoenixWeb.PostController do
 
   def create(conn, params) do
     audit_context = conn.assigns[:audit_context]
+    organization_id = active_organization_id(conn.assigns[:current_scope])
 
     attrs =
       case params["post"] do
@@ -20,7 +21,7 @@ defmodule ThreadlinePhoenixWeb.PostController do
         |> json(%{errors: %{detail: "audit context unavailable"}})
 
       true ->
-        case Blog.create_post(audit_context, attrs) do
+        case Blog.create_post(audit_context, attrs, organization_id: organization_id) do
           {:error, :missing_actor} ->
             conn
             |> put_status(:internal_server_error)
@@ -38,4 +39,11 @@ defmodule ThreadlinePhoenixWeb.PostController do
         end
     end
   end
+
+  defp active_organization_id(%{active_organization_id: org_id})
+       when is_binary(org_id) and org_id != "" do
+    org_id
+  end
+
+  defp active_organization_id(_scope), do: nil
 end

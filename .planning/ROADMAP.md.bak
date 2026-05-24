@@ -46,8 +46,8 @@ The milestone strategy is:
 **Depends on**: Phase 86  
 **Plans**: 2 plans
 
-- [ ] 87-01-PLAN.md — Canonical `/audit` mount recipe and minimal surface controls
-- [ ] 87-02-PLAN.md — Example Phoenix support-lane proof and doc alignment
+- [ ] 87-01: Canonical `/audit` mount recipe and minimal surface controls
+- [ ] 87-02: Example Phoenix support-lane proof and doc alignment
 
 ### Phase 88: Denial / Fallback UX Closure
 

@@ -10,7 +10,7 @@ Entries are newest first.
 
 **Key objectives:**
 
-- Close or explicitly disable any support-visible unscoped read paths, especially row history / as-of.
+- Close or explicitly disable any support-visible unscoped read paths (Row history / as-of must be safely scoped via `scope_query_fn`, not disabled).
 - Prove one canonical `/audit` mount recipe with admin + support personas on the same host-owned route tree.
 - Keep exports as a separate privileged capability with support denied by default unless the host explicitly opts in.
 - Lock docs, example behavior, and tests around the exact support lane Threadline proves on the current tree.

@@ -92,14 +92,14 @@ The example writes the actor into the same database transaction as the insert, t
               Repo.rollback(changeset)
 
             {:ok, post} ->
-              opts = [
+              action_opts = [
                 repo: Repo,
                 actor: actor_ref,
                 correlation_id: audit_context.correlation_id,
                 request_id: audit_context.request_id
               ]
 
-              case Threadline.record_action(:post_created_via_api, opts) do
+              case Threadline.record_action(:post_created_via_api, action_opts) do
                 {:error, cs} ->
                   Repo.rollback(cs)
 
@@ -109,7 +109,7 @@ The example writes the actor into the same database transaction as the insert, t
                       from(at in AuditTransaction,
                         where: at.txid == fragment("txid_current()")
                       ),
-                      set: [action_id: action_id]
+                      set: [action_id: action_id, meta: audit_transaction_meta(opts)]
                     )
 
                   if count != 1 do
@@ -209,46 +209,42 @@ paths:
 ## 9. Mount the operator surface and open `/audit`
 
 Once capture is working, mount the shipped operator surface behind your existing
-browser and admin pipeline. Reuse the real example router shape:
+browser and operator pipeline. Reuse the real example router shape:
 
 ```elixir
 scope "/audit" do
-  pipe_through([:browser, :admin_auth])
+  pipe_through([:browser, :operator_auth])
 
   threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+    export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+    scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
     repo: ThreadlinePhoenix.Repo
   )
-
-  # Support-read-only variation on the same `/audit` tree:
-  #
-  # threadline_operator_surface "/",
-  #   actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
-  #   authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
-  #   scope_query_fn: &MyApp.Audit.scope_operator_query/3,
-  #   exports: false,
-  #   repo: ThreadlinePhoenix.Repo
 end
 ```
 
-`pipe_through [:browser, :admin_auth]` is the important posture: Threadline does
-not provide host auth for you. Keep your own authenticated admin boundary in
-front of the mount, then let `authorize_fn` act as the fail-closed final check.
-Use one shared `%{assigns: assigns}` callback so the same host-owned policy can
-serve the LiveView mount and the export fallback mirror.
+`pipe_through [:browser, :operator_auth]` is the important posture: Threadline
+does not provide host auth for you. Keep your own authenticated operator
+boundary in front of the mount, then let `authorize_fn` act as the fail-closed
+final check. Use one shared `%{assigns: assigns}` callback so the same
+host-owned policy can serve the LiveView mount and the export fallback mirror.
 
 When `actor_fn` is present on this standard mount path, Threadline
 auto-installs `Threadline.OperatorSurface.SessionPlug` and carries the returned
 `ActorRef` into LiveView automatically. No extra manual `SessionPlug` is
 required for the normal `/audit` recipe.
 
-The canonical first-hour recipe is admin first: mount `/audit`, verify the
-surface, and keep export routes enabled for that admin lane. The support-read-only
-variation uses the same `/audit` tree and the same host auth boundary, but
-returns an opaque host-owned scope such as
+The canonical first-hour recipe is still admin first, but the runnable example
+also proves the stronger shared-operator shape: admins get the full surface,
+support operators return an opaque host-owned scope such as
 `%{access: :support_read_only, organization_id: "org_123"}` from
-`authorize_fn` and defaults to `exports: false`.
+`authorize_fn`, and `scope_query_fn` narrows timeline, actor, and transaction
+queries to that scope. `export_authorize_fn` keeps direct export requests and
+LiveView export affordances admin-only on the same `/audit` tree. This single
+mount natively supports both admin and support roles securely, providing a
+seamless UX without needing multiple router scopes.
 
 `live_session` and `on_mount` only secure the LiveView pages. Export requests
 cross a separate HTTP auth boundary and deny with plain-text `403` when

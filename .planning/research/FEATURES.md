@@ -1,55 +1,77 @@
 # Feature Landscape
 
-**Domain:** Audit Logging / Operator UI Governance
-**Researched:** 2026-05-08 (v1.20 - Scale and Governance Depth)
-**Overall Confidence:** HIGH
+**Domain:** Scoped support/operator adoption lane
+**Researched:** 2026-05-24
 
 ## Table Stakes
 
-Features users expect in an enterprise-grade investigation and governance UI. Missing = product feels like a toy for production environments.
+Features adopters expect if Threadline claims a first-party support lane.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Retention UI** | Need to prove to compliance that data is actually deleted. | Medium | Requires `threadline_retention_runs` table to track start/stop/deleted-count. |
-| **Queued Exports** | Exporting 10M rows to CSV takes minutes; HTTP timeouts will kill synchronous requests. | High | Requires job tracking (`threadline_export_jobs`), async execution, and download URI management. |
-| **Saved Views** | Operators run the same query (e.g., "All failed logins for Tenant A") repeatedly. Re-typing filters is poor UX. | Low | Simple Ecto schema storing JSON filter state, scoped by `actor_id`. |
-| **Drift-Aware Exports** | A user queues an export with a specific schema. 10 minutes later it runs, but the schema changed. | Medium | Use the same schema-freezing mechanics introduced in v1.18 to ensure exports respect point-in-time constraints. |
+| Canonical shared `/audit` recipe | Most Phoenix SaaS teams want one operator mount, not separate products for admin and support. | Low | Must keep one host-owned browser/auth boundary and one shared authorizer shape. |
+| Separate support-tree recipe | Some teams will prefer stricter path isolation for support. | Low | Should reuse the same callbacks and keep `exports: false` by default. |
+| Predictable denial semantics | Support adopters need to know when they get redirect, `403`, empty state, or not-found. | Medium | Must be explicit across LiveView and HTTP. |
+| Scoped visibility proof for major screens | A support-lane claim is not credible without tests on timeline, actor, transaction, and export flows. | Medium | Much of this already exists; the claim needs tightening and completion. |
+| Example-app support fixtures | Docs alone are not enough for adoption trust. | Medium | The example app should prove two organizations and a support operator story. |
 
 ## Differentiators
 
-Features that set Threadline apart from generic UI generators or simple Ecto plugins.
+Features that make Threadline easy to adopt without taking over host auth.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Pluggable Storage** | "Works on 1 node, scales to 100." Adopters can use Local disk out of the box, or S3 via adapter. | Medium | Define `Threadline.Storage` behaviour. |
-| **Host-Owned Actor Scoping** | Saved Views belong to the operator who made them, but without forcing a User schema dependency. | Low | Deriving owner from the `actor_fn` keeps the auth boundary clean. |
-| **Autovacuum-Aware Pruning** | Built-in retention doesn't lock the DB; it batches and sleeps. | Medium | Differentiates from naïve `delete_all` scripts that most devs write and abandon. |
+| Shared `%{assigns: assigns}` authorizer contract | One host callback can authorize both LiveView and export fallback paths. | Low | Already present; needs stronger teaching and proof. |
+| Opaque host-owned `scope` | Threadline stays auth-agnostic while still enabling tenant-safe narrowing. | Low | This is the right product boundary to defend. |
+| Query-layer scoping seam | Support visibility is enforced where data is loaded, not only where buttons render. | Medium | Best fit for Ecto and least-surprise for experienced Phoenix teams. |
+| Support-lane surface controls | `exports: false`-style controls let the repo stay honest without inventing policy DSLs. | Medium | Use only for workflows that are not yet safely scope-aware. |
 
 ## Anti-Features
 
-Features to explicitly NOT build in v1.20.
+Features to explicitly NOT build in this milestone.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Enforced Oban Dependency** | Forces adopters to run Oban workers, create Oban tables, and learn Oban just to use Threadline. | Use `Task.Supervisor` + Ecto state for a built-in queue, offer Oban adapter for those who want it. |
-| **Native Postgres Partitioning** | Requires composite primary keys and massive DB surgery for existing installations. | Use batched Ecto deletes for standard retention. Leave Partitioning to the host's DB team if they truly need it. |
-| **Threadline-Owned User Roles** | We do not know what an "Admin" is. We only know what the host tells us via `actor_fn`. | Rely entirely on the host's authorization wrapper. Provide UI building blocks, let the host define access levels. |
+| Threadline-owned RBAC or role enums | Different hosts mean different roles, scopes, impersonation semantics, and exception rules. | Keep `authorize_fn` and `scope_query_fn` host-owned and opaque. |
+| Tenancy/org DSL in Threadline config | Forces a fake universal model over app-specific data and joins. | Let the host write the Ecto query transform it already understands. |
+| Per-page authorization matrix in Threadline | Turns the library into a policy engine and duplicates host policy. | Use small surface toggles only where a workflow is not support-safe yet. |
+| Broad new UI families | The milestone is about lane proof, not expanding the operator product footprint. | Polish the existing operator surface and example path instead. |
 
 ## Feature Dependencies
 
 ```text
-Host Actor Extraction → Saved Views Ownership (Saved views need an owner)
-Async Execution (Task/Oban) → Queued Exports (Cannot block LiveView)
-Pluggable Storage → Queued Exports (Need a place to put the CSV)
-Batched Deletes → Retention UI (Need a safe way to prune before tracking it)
+Host browser auth pipeline -> mounted support lane
+authorize_fn -> opaque scope
+opaque scope -> scope_query_fn
+scope_query_fn -> scoped timeline / actor / transaction / export proof
+surface controls -> honest support-lane claim for any unsupported workflow
+docs + example app + tests -> adoption trust
 ```
 
 ## MVP Recommendation
 
-Prioritize in this order (can be mapped to Phases):
-1. **Infrastructure:** Introduce new Schema (`ExportJob`, `RetentionRun`, `SavedView`) and core Behaviours (`Storage`, `Queue`).
-2. **Retention Engine:** Implement batched pruner and log to `RetentionRun`.
-3. **Operator UI:** Add Retention view, Saved Views form to existing timeline, and Export Status page.
-4. **Export Engine:** Implement the async exporter writing to `Threadline.Storage`.
+Prioritize:
+1. Canonical mount recipes with exact callback shapes.
+2. Denial/fallback behavior matrix for allowed, denied, and out-of-scope states.
+3. Example-app proof for support scope on the currently support-safe surfaces.
 
-Defer: Complex scheduling (cron UI) for exports. Let the host trigger exports via API if they want scheduled reports.
+Defer:
+- Any role or tenant modeling beyond opaque scope.
+- Any broad page-policy configuration system.
+- Any claim that row-history/as-of is part of the support lane unless it is actually scoped in this milestone.
+
+## Sources
+
+- Local repo:
+  - `guides/operator-surface.md`
+  - `guides/integration-contracts.md`
+  - `guides/upgrade-path.md`
+  - `examples/threadline_phoenix/README.md`
+  - `examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex`
+  - `examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs`
+  - `test/threadline/operator_surface/auth_test.exs`
+  - `test/threadline/operator_surface/export_auth_plug_test.exs`
+  - `test/threadline/operator_surface/live/timeline_live_test.exs`
+- Official docs:
+  - Phoenix LiveView security model: https://hexdocs.pm/phoenix_live_view/security-model.html
+  - Phoenix routing: https://hexdocs.pm/phoenix/routing.html

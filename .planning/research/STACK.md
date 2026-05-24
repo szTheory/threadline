@@ -1,46 +1,85 @@
 # Technology Stack
 
-**Project:** Threadline
-**Researched:** 2026-05-08 (v1.20 - Scale and Governance Depth)
-**Overall Confidence:** HIGH
+**Project:** Threadline v1.21 scoped support/operator lane
+**Researched:** 2026-05-24
 
-## Recommended Stack Strategy
+## Recommended Stack
 
-For v1.20, Threadline continues its **"Zero Host Intrusion"** philosophy. While heavy-duty features like Queued Exports and Retention typically imply heavy-duty dependencies (like Oban for jobs, `pg_partman` for partitioning, and AWS SDK for S3), introducing them as hard requirements would violate Threadline's adoption contract.
+The correct stack choice for Option 2 is mostly **no stack change**. This milestone should productize the existing Phoenix adoption lane, not widen Threadline's infrastructure surface.
 
-Instead, v1.20 will use built-in OTP and Ecto primitives as the default tier, with defined adapter contracts (Behaviours) for host-provided infrastructure.
+### Core Framework
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Elixir | `~> 1.15` | Language/runtime | Matches the current library baseline and keeps the milestone focused on integration proof, not runtime migration. |
+| Phoenix | `~> 1.7` | Router, controller, browser pipeline | The support lane is fundamentally a router/pipeline composition problem. |
+| Phoenix LiveView | `~> 1.0` | Mounted operator surface | `live_session` plus `on_mount` is the idiomatic place for per-surface authorization checks. |
+| Plug | `~> 1.15` | Request-path auth and export controller boundary | Plug pipelines remain the host-owned authentication and HTTP denial boundary. |
 
-### Core Architecture Choices
+### Database
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Ecto / Ecto SQL | `~> 3.10` | Query composition and scope narrowing | `scope_query_fn` should keep shaping `Ecto.Query` values, not Threadline-owned policy objects. |
+| PostgreSQL | current project baseline | Audit storage/query source | No storage-model change is needed for this milestone. |
 
-| Feature | Built-in (Default) | Host Adapter (Scale) | Rationale |
-|---------|-------------------|----------------------|-----------|
-| **Export Queue** | `Task.Supervisor` + Ecto state | `Oban` integration | Ecto tracks the job state (`pending`, `completed`), standard Task runs it. Good for single-node or low-volume. Adopters with Oban can override the executor. |
-| **Export Storage** | Local File System (`File.stream!`) | `Threadline.Storage.S3` (via ExAws) | Multi-node deployments need centralized storage. We provide a clean `Threadline.Storage` behaviour. |
-| **Retention Pruning** | Ecto Batched Deletes + `GenServer` | Native Postgres Partitioning | Partitioning is superior for scale, but requires invasive migrations, DB ownership, and composite primary keys. Ecto batched deletes are safer for brownfield adoption. |
-| **Governance State** | Ecto (`threadline_saved_views`, etc.) | - | The library manages its own schema for Saved Views and Retention History, keeping governance inside the existing Repo. |
+### Infrastructure
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Existing optional Phoenix surface deps | current `mix.exs` posture | In-tree optional operator surface | Keeps capture-only adopters unaffected and avoids new hard runtime dependencies. |
+| Existing export/storage adapters | current project baseline | Export lane posture | Support-lane work should consume the existing export surface, not redesign it. |
 
-## Dependencies Posture
+### Supporting Libraries
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `Phoenix.LiveView.Router.live_session/3` | LiveView `1.1.30` proven in current lock | Group support/admin LiveViews under one mount boundary | Use for the mounted surface; do not rely on it for sibling HTTP export routes. |
+| `Phoenix.LiveView.on_mount/1` | LiveView `1.1.30` | Per-mount authorization hook | Use for allow/deny plus opaque scope assignment. |
+| `Plug.Conn.halt/1` | Plug `1.19.2` docs current | Export request denial | Use for explicit HTTP `403` termination on denied export requests. |
+| `Ecto.Query.dynamic/2` | Ecto `3.14.0` docs current | Host query transforms when scoping becomes more complex | Use only if adopters need composable scope conditions beyond a simple `where`. |
 
-**No new required dependencies for `threadline`.**
+## Recommended Technical Posture
 
-### Optional Integrations
-If the host provides these, Threadline can utilize them via adapters:
-*   `oban` - For distributed, resilient export queues.
-*   `ex_aws_s3` - For multi-node safe CSV export storage.
+1. **Keep authentication host-owned in Plug pipelines.**
+2. **Keep page-entry authorization in `on_mount`.**
+3. **Keep row visibility in `scope_query_fn` over `Ecto.Query`.**
+4. **Keep export HTTP auth separate from LiveView mount auth.**
+5. **Keep new public API surface additive and tiny.**
+
+This is the least-surprise Phoenix shape and matches official guidance that LiveViews begin as regular HTTP requests but still need their own mount-time checks, while regular HTTP routes continue to depend on plugs.
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
 |----------|-------------|-------------|---------|
-| **Large Deletions** | Ecto Batched Deletes (Chunked) | Postgres Partitioning (`pg_partman`) | Partitioning is the industry standard for time-series, but it breaks existing foreign keys, requires composite primary keys (UUID + timestamp), and often requires superuser DB privileges to set up automation. Too invasive for a drop-in library. |
-| **Job Queue** | Ecto Table + OTP `Task` | Enforced `oban` dependency | Oban is fantastic, but forces adopters to create Oban tables, manage queues, and run Oban workers. For adopters who use ExQ or just want a simple UI, this is a bridge too far. |
-| **Export Format** | CSV | Parquet | Parquet is better for analytics, but CSV is natively supported via `nimble_csv` (already in our stack) and is universally readable by non-engineers. |
+| Support authorization model | Host-owned `authorize_fn` + opaque scope | Threadline roles / permissions DSL | Violates the current product thesis and creates a false cross-host abstraction. |
+| Row visibility enforcement | `scope_query_fn` transforms over `Ecto.Query` | UI-only hiding or page-specific if/else logic | UI-only checks leak data and duplicate policy across screens. |
+| Surface variation | Small boolean/route controls like `exports: false` | Full page-policy matrix in Threadline config | A matrix becomes an authorization framework by another name. |
+| Adoption proof | First-party docs + example app + tests | More generic adapters or broader framework work | Does not address the current highest-value adoption gap. |
 
-## Implementation Idioms
+## Installation
 
-*   **Batched Deletes:** Ecto `delete_all` with a `limit` inside a recursive function to allow Postgres `autovacuum` to keep up with dead tuples.
-*   **Streams:** Use `Ecto.Repo.stream/2` into `NimbleCSV` into `File.stream!/1` to process millions of rows in constant memory.
+```bash
+# Core
+mix deps.get
+
+# Optional Phoenix surface proof remains the existing install shape
+mix compile
+mix test
+```
+
+No new required dependencies are recommended for this milestone.
 
 ## Sources
-*   Elixir/Ecto community consensus on large table management (avoiding lock contention).
-*   Oban architecture patterns vs standard `Task.Supervisor`.
+
+- Local repo:
+  - `mix.exs`
+  - `guides/operator-surface.md`
+  - `guides/integration-contracts.md`
+  - `examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex`
+  - `lib/threadline/operator_surface/auth.ex`
+  - `lib/threadline/operator_surface/export_auth_plug.ex`
+  - `lib/threadline/operator_surface/scope.ex`
+- Official docs:
+  - Phoenix LiveView security model: https://hexdocs.pm/phoenix_live_view/security-model.html
+  - Phoenix LiveView router: https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.Router.html
+  - Phoenix routing: https://hexdocs.pm/phoenix/routing.html
+  - Plug.Conn: https://hexdocs.pm/plug/Plug.Conn.html
+  - Ecto.Query: https://hexdocs.pm/ecto/Ecto.Query.html

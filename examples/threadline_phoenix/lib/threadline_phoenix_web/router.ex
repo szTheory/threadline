@@ -1,5 +1,6 @@
 defmodule ThreadlinePhoenixWeb.Router do
   use ThreadlinePhoenixWeb, :router
+  import Ecto.Query, only: [where: 3]
   import Threadline.OperatorSurface.Router
   alias Threadline.Semantics.ActorRef
 
@@ -15,6 +16,10 @@ defmodule ThreadlinePhoenixWeb.Router do
     plug(:require_authenticated_admin)
   end
 
+  pipeline :operator_auth do
+    plug(:require_authenticated_operator)
+  end
+
   def require_authenticated_admin(conn, _opts) do
     if conn.assigns[:current_user] && conn.assigns[:current_user].is_admin do
       Plug.Conn.put_session(conn, :threadline_current_user, conn.assigns[:current_user])
@@ -26,9 +31,29 @@ defmodule ThreadlinePhoenixWeb.Router do
     end
   end
 
+  def require_authenticated_operator(conn, _opts) do
+    case conn.assigns[:current_user] do
+      %{is_admin: true} = user ->
+        Plug.Conn.put_session(conn, :threadline_current_user, user)
+
+      %{role: :support, organization_id: org_id} = user when is_binary(org_id) and org_id != "" ->
+        Plug.Conn.put_session(conn, :threadline_current_user, user)
+
+      _ ->
+        conn
+        |> Plug.Conn.put_status(403)
+        |> Phoenix.Controller.text("Forbidden")
+        |> Plug.Conn.halt()
+    end
+  end
+
   def my_actor_fn(conn) do
     if user = conn.assigns[:current_user] do
-      %ActorRef{type: :user, id: to_string(user.id)}
+      if user.is_admin do
+        %ActorRef{type: :user, id: to_string(user.id)}
+      else
+        nil
+      end
     else
       nil
     end
@@ -39,13 +64,37 @@ defmodule ThreadlinePhoenixWeb.Router do
       %{is_admin: true} ->
         :ok
 
-      %{role: :support, organization_id: org_id} ->
+      %{role: :support, organization_id: org_id} when is_binary(org_id) and org_id != "" ->
         {:ok, %{access: :support_read_only, organization_id: org_id}}
 
       _ ->
         {:error, :unauthorized}
     end
   end
+
+  def my_export_authorize_fn(%{assigns: assigns}) do
+    case assigns[:current_user] do
+      %{is_admin: true} -> :ok
+      _ -> {:error, :unauthorized}
+    end
+  end
+
+  def scope_operator_query(query, %{organization_id: org_id}, %{surface: :actor_history})
+      when is_binary(org_id) and org_id != "" do
+    where(query, [at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
+  end
+
+  def scope_operator_query(query, %{organization_id: org_id}, %{surface: :transaction_header})
+      when is_binary(org_id) and org_id != "" do
+    where(query, [at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
+  end
+
+  def scope_operator_query(query, %{organization_id: org_id}, %{surface: surface})
+      when surface in [:timeline, :transaction, :export] and is_binary(org_id) and org_id != "" do
+    where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
+  end
+
+  def scope_operator_query(query, _scope, _context), do: query
 
   pipeline :api do
     # doc: start: router-pipeline-actor-fn
@@ -69,22 +118,15 @@ defmodule ThreadlinePhoenixWeb.Router do
 
   # doc: start: operator-surface-mount
   scope "/audit" do
-    pipe_through([:browser, :admin_auth])
+    pipe_through([:browser, :operator_auth])
 
     threadline_operator_surface("/",
       actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
       authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+      export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+      scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
       repo: ThreadlinePhoenix.Repo
     )
-
-    # Support-read-only variation on the same `/audit` tree:
-    #
-    # threadline_operator_surface "/",
-    #   actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
-    #   authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
-    #   scope_query_fn: &MyApp.Audit.scope_operator_query/3,
-    #   exports: false,
-    #   repo: ThreadlinePhoenix.Repo
   end
 
   # doc: end: operator-surface-mount

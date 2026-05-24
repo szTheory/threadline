@@ -111,6 +111,11 @@ secure the sibling HTTP export controller routes. Export denials stay
 HTTP-native through `Threadline.OperatorSurface.ExportAuthPlug`: denial or
 error halts with plain-text `403`, not a LiveView redirect.
 
+If you use one shared `%{assigns: assigns}` export callback, Threadline also
+uses that result to hide export affordances in the timeline LiveView for denied
+operator scopes. HTTP export auth remains authoritative even if you choose a
+Conn-specific callback shape and keep the buttons visible.
+
 The export-status surface keeps one actor-owned `Download Export` action.
 Threadline resolves the actual delivery only after authorization: local storage
 stays app-served through the controller route, while adapter-backed storage can

@@ -140,36 +140,32 @@ narrower resolved path it actually ships with Sigra `0.2.5`, Phoenix `1.8.5`,
 Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, and Phoenix PubSub `2.2.0`.
 
 See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The
-operator surface lives at `/audit` because the router uses a dedicated admin
+operator surface lives at `/audit` because the router uses one shared operator
 scope and pipeline, and the example authorizer uses one shared `%{assigns: assigns}`
 callback instead of separate `%Plug.Conn{}` and `%Phoenix.LiveView.Socket{}`
-heads. The support-read-only variation adds the same host-owned
-`scope_query_fn: &MyApp.Audit.scope_operator_query/3` seam on that mount:
+heads. The same mount proves both lanes: admins get the full surface, while
+support operators get a scoped read-only view enforced by the host-owned
+`scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3` seam:
 
 ```elixir
 scope "/audit" do
-  pipe_through([:browser, :admin_auth])
+  pipe_through([:browser, :operator_auth])
 
   threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+    export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+    scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
     repo: ThreadlinePhoenix.Repo
   )
-
-  # Support-read-only variation on the same `/audit` tree:
-  #
-  # threadline_operator_surface "/",
-  #   actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
-  #   authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
-  #   scope_query_fn: &MyApp.Audit.scope_operator_query/3,
-  #   exports: false,
-  #   repo: ThreadlinePhoenix.Repo
 end
 ```
 
-`pipeline :admin_auth` requires an authenticated administrative user before the
-UI is reachable, and `authorize_fn` acts as the final fail-closed gate. This is
-the `phx.gen.auth`-style posture to copy into a host app: your app owns browser
+`pipeline :operator_auth` requires an authenticated operator user before the
+UI is reachable, and `authorize_fn` acts as the final fail-closed gate. Admins
+return `:ok`; support users return an opaque scope such as
+`%{access: :support_read_only, organization_id: "org_123"}`. This is the
+`phx.gen.auth`-style posture to copy into a host app: your app owns browser
 auth first, then Threadline runs inside that boundary.
 
 Because this mount provides `actor_fn`, the standard
@@ -178,22 +174,19 @@ Because this mount provides `actor_fn`, the standard
 into LiveView automatically. No extra manual session plug is required for the
 default `/audit` recipe.
 
-Treat that mount as the canonical admin recipe. The support-read-only variation
-keeps the same `/audit` tree, keeps the same host-owned browser/auth boundary,
-returns an opaque host-owned scope such as
-`%{access: :support_read_only, organization_id: "org_123"}`, and defaults to
-`exports: false`. Pair it with a host-owned
-`scope_query_fn: &MyApp.Audit.scope_operator_query/3` callback so timeline,
-actor, transaction, and export queries all enforce the same scope. That is
-intentionally narrower effective visibility, not a Threadline-owned roles or
-organization DSL.
+Treat that single mount as the canonical shared operator recipe. It natively
+supports both Admin and Support personas securely. By combining `authorize_fn`,
+`export_authorize_fn`, and `scope_query_fn` on one tree, Threadline degrades
+the UI gracefully for support operators. They remain on the same `/audit` path,
+but see fewer records, cannot trigger exports, and still receive standard `403`
+errors if they attempt direct HTTP access to restricted functionality. This
+provides a seamless UX without the complexity of managing multiple router scopes.
 
 LiveView `live_session` / `on_mount` auth does not secure export controller
-routes. Export denials stay HTTP-native `403`, so use `export_authorize_fn`
-only when you deliberately want a stricter export override than the default
-surface recipe. Manual `SessionPlug` composition is still available as an
-advanced escape hatch, but it is no longer the primary story for the standard
-mount.
+routes. Export denials stay HTTP-native `403`, so `export_authorize_fn` is the
+primary and intended way to degrade export capability for support roles. Manual
+`SessionPlug` composition is still available as an advanced escape hatch, but
+it is no longer the primary story for the standard mount.
 
 On the repaired export lane, the operator surface still exposes one actor-owned
 download action keyed by export job ID. Local storage stays app-served through
@@ -201,7 +194,7 @@ that controller route, adapter-backed storage resolves a backend-native URL only
 after authorization, and the host app still owns Oban supervision even though
 Threadline now validates configured adapters for static truth at startup.
 
-Run `mix phx.server`, sign in as an admin user, and open
+Run `mix phx.server`, sign in as an admin or support user, and open
 `http://localhost:4000/audit`. For the canonical first-hour walkthrough, use
 [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
 For the mount/auth/screens guide, use
