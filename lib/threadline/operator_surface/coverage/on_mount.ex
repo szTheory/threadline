@@ -50,28 +50,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @floor_interval 5_000
 
     def on_mount(_opts, _params, _session, socket) do
-      interval = poll_interval!(socket)
+      if Map.get(socket.assigns, :threadline_coverage_enabled, false) do
+        interval = poll_interval!(socket)
 
-      socket =
-        socket
-        |> Phoenix.Component.assign(:threadline_coverage_poll_ms, interval)
-        |> assign_initial_coverage()
-
-      socket =
-        if connected?(socket) do
-          ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
-
-          # Doc-contract grep depends on the literal
-          # `attach_hook(:threadline_coverage_refresh, :handle_info` substring
-          # appearing on a single line — keep the args on one row.
+        socket =
           socket
-          |> Phoenix.Component.assign(:threadline_timer_ref, ref)
-          |> attach_hook(:threadline_coverage_refresh, :handle_info, &handle_refresh/2)
-        else
-          socket
-        end
+          |> Phoenix.Component.assign(:threadline_coverage_poll_ms, interval)
+          |> assign_initial_coverage()
 
-      {:cont, socket}
+        socket =
+          if connected?(socket) do
+            ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
+
+            # Doc-contract grep depends on the literal
+            # `attach_hook(:threadline_coverage_refresh, :handle_info` substring
+            # appearing on a single line — keep the args on one row.
+            socket
+            |> Phoenix.Component.assign(:threadline_timer_ref, ref)
+            |> attach_hook(:threadline_coverage_refresh, :handle_info, &handle_refresh/2)
+          else
+            socket
+          end
+
+        {:cont, socket}
+      else
+        {:cont, socket}
+      end
     end
 
     defp handle_refresh(:threadline_refresh_coverage, socket) do
