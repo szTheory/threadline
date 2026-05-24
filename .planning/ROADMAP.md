@@ -141,7 +141,7 @@
   2. The operator surface export status and download flow works end to end with reliable actor handoff.
   3. Oban and S3 adapters have startup and integration proof, not just isolated module implementations.
   4. Phase 79 evidence is complete and the remaining export delivery gaps are closed.
-**Plans**: TBD
+**Plans**: 3 planned (`84-01` through `84-03`)
 **UI hint**: yes
 
 ## Progress
@@ -157,4 +157,4 @@
 | 81. Retention Runtime Closure | 2/2 | Complete | 2026-05-23 |
 | 82. Saved Views Session Handoff Repair | 2/2 | Complete    | 2026-05-23 |
 | 83. Built-In Async Export Lifecycle Repair | 2/2 | Complete    | 2026-05-23 |
-| 84. Export Delivery & Scale Adapter Integration Repair | 0/0 | Planned | - |
+| 84. Export Delivery & Scale Adapter Integration Repair | 0/3 | Ready to execute | - |
