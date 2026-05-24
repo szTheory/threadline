@@ -12,13 +12,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket = assign(socket, assigns)
 
       if schema_module do
-        history = Threadline.history(schema_module, assigns.record_id, repo: assigns.repo)
+        opts = [
+          repo: assigns.repo,
+          scope: assigns[:scope],
+          scope_query_fn: assigns[:scope_query_fn]
+        ]
+
+        history = Threadline.history(schema_module, assigns.record_id, opts)
 
         as_of_dt =
           assigns.as_of || if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
 
         snapshot =
-          Threadline.as_of(schema_module, assigns.record_id, as_of_dt, repo: assigns.repo)
+          Threadline.as_of(schema_module, assigns.record_id, as_of_dt, opts)
 
         {:ok,
          socket

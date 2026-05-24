@@ -67,6 +67,7 @@ defmodule Threadline.Query do
 
     schema_module
     |> row_history_query(id, filters)
+    |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> repo.all()
   end
 
@@ -87,6 +88,7 @@ defmodule Threadline.Query do
     entries =
       schema_module
       |> row_history_query(id, filters)
+      |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
       |> maybe_after_timeline_cursor(cursor)
       |> limit(^page_size)
       |> repo.all()
@@ -368,6 +370,7 @@ defmodule Threadline.Query do
     AuditChange
     |> where([ac], ac.table_name == ^table)
     |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
+    |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> order_by([ac], desc: ac.captured_at)
     |> repo.all()
   end
@@ -406,6 +409,7 @@ defmodule Threadline.Query do
       |> where([ac], ac.table_name == ^table)
       |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
       |> where([ac], ac.captured_at <= ^timestamp)
+      |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
       |> order_by([ac], desc: ac.captured_at)
       |> order_by([ac], desc: ac.id)
       |> limit(1)
@@ -716,6 +720,15 @@ defmodule Threadline.Query do
         after: Keyword.get(opts, :after),
         before: Keyword.get(opts, :before)
       }
+    ]
+  end
+
+  defp row_history_scope_opts(schema_module, id, opts) do
+    [
+      scope: Keyword.get(opts, :scope),
+      scope_query_fn: Keyword.get(opts, :scope_query_fn),
+      surface: Keyword.get(opts, :surface, :row_history),
+      params: %{schema_module: schema_module, id: id}
     ]
   end
 

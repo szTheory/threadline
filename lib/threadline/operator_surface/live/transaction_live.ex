@@ -136,18 +136,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <% end %>
         <% end %>
         <%= if @show_history do %>
-          <.live_component 
-            module={Threadline.OperatorSurface.Live.RowHistoryComponent} 
-            id="row-history" 
+          <.live_component
+            module={Threadline.OperatorSurface.Live.RowHistoryComponent}
+            id="row-history"
             table={@history_table}
             record_id={@history_record_id}
             as_of={@history_as_of}
             base_path={@base_path}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
+            scope={@threadline_scope}
+            scope_query_fn={@threadline_scope_query_fn}
           />
-        <% end %>
-      </div>
+        <% end %>      </div>
       """
     end
 
