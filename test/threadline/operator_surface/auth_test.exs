@@ -227,4 +227,58 @@ defmodule Threadline.OperatorSurface.AuthTest do
                       %{result: :granted}, _metadata}
     end
   end
+
+  describe "assign_coverage_enabled" do
+    test "defaults to false when no coverage_authorize_fn is provided" do
+      opts = [authorize_fn: fn _ -> :ok end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      assert returned_socket.assigns.threadline_coverage_enabled == false
+    end
+
+    test "assigns true when coverage_authorize_fn returns :ok" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        coverage_authorize_fn: fn _ -> :ok end
+      ]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      assert returned_socket.assigns.threadline_coverage_enabled == true
+    end
+
+    test "assigns true when coverage_authorize_fn returns true" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        coverage_authorize_fn: fn _ -> true end
+      ]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      assert returned_socket.assigns.threadline_coverage_enabled == true
+    end
+
+    test "assigns false when coverage_authorize_fn returns false" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        coverage_authorize_fn: fn _ -> false end
+      ]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      assert returned_socket.assigns.threadline_coverage_enabled == false
+    end
+
+    test "assigns false when coverage_authorize_fn raises" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        coverage_authorize_fn: fn _ -> raise "Boom!" end
+      ]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      assert returned_socket.assigns.threadline_coverage_enabled == false
+    end
+  end
 end

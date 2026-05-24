@@ -24,20 +24,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         case authorize_fn.(socket) do
           :ok ->
             emit_telemetry(:granted, socket, nil)
-            {:cont, socket}
+            {:cont, socket |> assign_exports_enabled(opts) |> assign_coverage_enabled(opts)}
 
           true ->
             emit_telemetry(:granted, socket, nil)
-            {:cont, socket}
+            {:cont, socket |> assign_exports_enabled(opts) |> assign_coverage_enabled(opts)}
 
           {:ok, scope} when is_map(scope) ->
-            socket = assign_fallback_actor(socket, scope)
+            socket =
+              socket
+              |> assign_fallback_actor(scope)
+              |> Phoenix.Component.assign(:threadline_scope, scope)
+              |> assign_exports_enabled(opts)
+              |> assign_coverage_enabled(opts)
+
             emit_telemetry(:granted, socket, scope)
-            {:cont, Phoenix.Component.assign(socket, :threadline_scope, scope)}
+            {:cont, socket}
 
           {:ok, scope} ->
+            socket =
+              socket
+              |> Phoenix.Component.assign(:threadline_scope, scope)
+              |> assign_exports_enabled(opts)
+              |> assign_coverage_enabled(opts)
+
             emit_telemetry(:granted, socket, nil)
-            {:cont, Phoenix.Component.assign(socket, :threadline_scope, scope)}
+            {:cont, socket}
 
           _ ->
             halt_unauthorized(socket, :denied)
@@ -141,5 +153,59 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp session_user(_session), do: nil
+
+    defp assign_exports_enabled(socket, opts) do
+      exports_enabled = Keyword.get(opts, :exports, true)
+      export_authorize_fn = Keyword.get(opts, :export_authorize_fn)
+
+      Phoenix.Component.assign(
+        socket,
+        :threadline_exports_enabled,
+        exports_enabled_for_socket?(exports_enabled, export_authorize_fn, socket)
+      )
+    end
+
+    defp exports_enabled_for_socket?(false, _export_authorize_fn, _socket), do: false
+    defp exports_enabled_for_socket?(true, nil, _socket), do: true
+
+    defp exports_enabled_for_socket?(true, export_authorize_fn, socket)
+         when is_function(export_authorize_fn, 1) do
+      mirror = %{assigns: socket.assigns}
+
+      case export_authorize_fn.(mirror) do
+        :ok -> true
+        true -> true
+        {:ok, _scope} -> true
+        _ -> false
+      end
+    rescue
+      _ -> true
+    end
+
+    defp assign_coverage_enabled(socket, opts) do
+      coverage_authorize_fn = Keyword.get(opts, :coverage_authorize_fn, fn _ -> false end)
+
+      Phoenix.Component.assign(
+        socket,
+        :threadline_coverage_enabled,
+        coverage_enabled_for_socket?(coverage_authorize_fn, socket)
+      )
+    end
+
+    defp coverage_enabled_for_socket?(nil, _socket), do: false
+
+    defp coverage_enabled_for_socket?(coverage_authorize_fn, socket)
+         when is_function(coverage_authorize_fn, 1) do
+      mirror = %{assigns: socket.assigns}
+
+      case coverage_authorize_fn.(mirror) do
+        :ok -> true
+        true -> true
+        {:ok, _scope} -> true
+        _ -> false
+      end
+    rescue
+      _ -> false
+    end
   end
 end
