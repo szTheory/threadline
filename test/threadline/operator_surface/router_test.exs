@@ -94,6 +94,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           :code.purge(module)
         end
       end
+
+      test "Case 5: compiles successfully with actor_fn on the standard mount path" do
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.ActorMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                pipeline :browser do
+                  plug(:accepts, ["html"])
+                  plug(:fetch_session)
+                end
+
+                scope "/" do
+                  pipe_through(:browser)
+
+                  Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline",
+                    actor_fn: &__MODULE__.actor/1,
+                    authorize_fn: &__MODULE__.auth/1
+                  )
+                end
+
+                def actor(_conn),
+                  do: %Threadline.Semantics.ActorRef{type: :user, id: "operator-1"}
+
+                def auth(_socket), do: :ok
+              end
+            end
+          )
+
+        for {module, _} <- modules do
+          :code.delete(module)
+          :code.purge(module)
+        end
+      end
     end
   end
 end

@@ -1,8 +1,9 @@
 ---
 id: SEED-002
-status: dormant
+status: shipped
 planted: 2026-05-08
 planted_during: v1.19 — Integration Breadth, post-Phase-74 closeout
+shipped_in: v1.20 — Scale and Governance Depth, Phases 75-84
 trigger_when: v1.20 opens or the first adopter asks for retention admin, saved views, queued exports, or governance policy controls
 scope: Large
 ---
@@ -60,3 +61,6 @@ Related files and decisions already in the repo:
 - Keep `threadline_web` extraction evidence-based; do not split for aesthetics.
 - The next milestone should start from the current mental model and then
   decompose into prereq-first chunks instead of rediscovering the product shape.
+- This seed was consumed by milestone `v1.20`, which shipped the retention,
+  saved views, async export, and adapter-governance slice it was planted to
+  surface.

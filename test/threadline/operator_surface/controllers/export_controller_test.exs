@@ -110,6 +110,33 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     @endpoint Threadline.OperatorSurface.ExportControllerTest.Endpoint
     @repo Threadline.Test.Repo
 
+    defmodule RemoteStorageStub do
+      @behaviour Threadline.Storage
+
+      @impl true
+      def init(_opts), do: :ok
+
+      @impl true
+      def put(_content, _opts), do: {:error, :unsupported}
+
+      @impl true
+      def get(_file_id), do: {:error, :unsupported}
+
+      @impl true
+      def path(_file_id), do: {:error, :not_local}
+
+      @impl true
+      def download_url(file_id, opts \\ []) do
+        case Keyword.get(opts, :test_download_result, :ok) do
+          :ok -> {:ok, "https://downloads.example.test/#{file_id}"}
+          :error -> {:error, :presign_failed}
+        end
+      end
+
+      @impl true
+      def delete(_file_id), do: :ok
+    end
+
     setup_all do
       Application.put_env(:threadline, @endpoint,
         secret_key_base: String.duplicate("x", 64),
@@ -328,7 +355,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     describe "GET /audit/exports/download/:job_id" do
       setup do
         @repo.delete_all(ExportJob)
-        
+        previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
+        previous_remote_opts = Application.get_env(:threadline, RemoteStorageStub)
+
+        Application.put_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+        Application.delete_env(:threadline, RemoteStorageStub)
+
+        on_exit(fn ->
+          if previous_storage_adapter do
+            Application.put_env(:threadline, :storage_adapter, previous_storage_adapter)
+          else
+            Application.delete_env(:threadline, :storage_adapter)
+          end
+
+          if previous_remote_opts do
+            Application.put_env(:threadline, RemoteStorageStub, previous_remote_opts)
+          else
+            Application.delete_env(:threadline, RemoteStorageStub)
+          end
+        end)
+
         # Ensure priv/threadline_exports directory exists for Local storage
         priv_dir = :code.priv_dir(:threadline) || "priv"
         export_dir = Path.join([to_string(priv_dir), "threadline_exports"])
@@ -337,7 +383,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         {:ok, export_dir: export_dir}
       end
 
-      test "returns 200 and serves the file if valid and authorized", %{conn: conn, export_dir: export_dir} do
+      test "returns 200 and serves the file if valid and authorized", %{
+        conn: conn,
+        export_dir: export_dir
+      } do
         job_id = Ecto.UUID.generate()
         file_name = "#{job_id}.csv"
         file_path = Path.join(export_dir, file_name)
@@ -363,7 +412,32 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert disposition =~ ~s|filename="#{file_name}"|
       end
 
-      test "returns 404 if actor_ref does not match (IDOR protection)", %{conn: conn, export_dir: export_dir} do
+      test "returns a backend-native redirect for configured remote storage", %{conn: conn} do
+        Application.put_env(:threadline, :storage_adapter, RemoteStorageStub)
+
+        job =
+          @repo.insert!(%ExportJob{
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "remote-export.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"},
+            expires_at:
+              DateTime.utc_now() |> DateTime.add(600, :second) |> DateTime.truncate(:microsecond)
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 302
+        assert get_resp_header(conn, "location") == ["https://downloads.example.test/remote-export.csv"]
+      end
+
+      test "returns 404 if actor_ref does not match (IDOR protection)", %{
+        conn: conn,
+        export_dir: export_dir
+      } do
         job_id = Ecto.UUID.generate()
         file_name = "#{job_id}.csv"
         file_path = Path.join(export_dir, file_name)
@@ -419,7 +493,30 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> get("/audit/exports/download/#{job.id}")
 
         assert conn.status == 404
-        assert response(conn, 404) =~ "File not found or not locally accessible"
+        assert response(conn, 404) =~ "Export download is not available"
+      end
+
+      test "returns 404 when remote download URL generation fails", %{conn: conn} do
+        Application.put_env(:threadline, :storage_adapter, RemoteStorageStub)
+        Application.put_env(:threadline, RemoteStorageStub, test_download_result: :error)
+
+        job =
+          @repo.insert!(%ExportJob{
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "remote-export.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"},
+            expires_at:
+              DateTime.utc_now() |> DateTime.add(600, :second) |> DateTime.truncate(:microsecond)
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 404
+        assert response(conn, 404) =~ "Export download is not available"
       end
 
       test "returns 400 if job_id is invalid", %{conn: conn} do
@@ -430,6 +527,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
         assert conn.status == 400
         assert response(conn, 400) =~ "Invalid job ID"
+      end
+
+      test "returns 410 when a completed export has expired", %{conn: conn} do
+        job =
+          @repo.insert!(%ExportJob{
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "expired.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"},
+            expires_at:
+              DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:microsecond)
+          })
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job.id}")
+
+        assert conn.status == 410
+        assert response(conn, 410) =~ "no longer available"
       end
     end
   end

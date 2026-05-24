@@ -1,6 +1,7 @@
 defmodule ThreadlinePhoenixWeb.Router do
   use ThreadlinePhoenixWeb, :router
   import Threadline.OperatorSurface.Router
+  alias Threadline.Semantics.ActorRef
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -27,12 +28,7 @@ defmodule ThreadlinePhoenixWeb.Router do
 
   def my_actor_fn(conn) do
     if user = conn.assigns[:current_user] do
-      %{
-        id: to_string(user.id),
-        name: user.name || "Admin",
-        role: "admin",
-        avatar_url: nil
-      }
+      %ActorRef{type: :user, id: to_string(user.id)}
     else
       nil
     end

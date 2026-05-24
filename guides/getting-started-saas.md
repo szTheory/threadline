@@ -238,6 +238,11 @@ front of the mount, then let `authorize_fn` act as the fail-closed final check.
 Use one shared `%{assigns: assigns}` callback so the same host-owned policy can
 serve the LiveView mount and the export fallback mirror.
 
+When `actor_fn` is present on this standard mount path, Threadline
+auto-installs `Threadline.OperatorSurface.SessionPlug` and carries the returned
+`ActorRef` into LiveView automatically. No extra manual `SessionPlug` is
+required for the normal `/audit` recipe.
+
 The canonical first-hour recipe is admin first: mount `/audit`, verify the
 surface, and keep export routes enabled for that admin lane. The support-read-only
 variation uses the same `/audit` tree and the same host auth boundary, but
@@ -248,7 +253,9 @@ returns an opaque host-owned scope such as
 `live_session` and `on_mount` only secure the LiveView pages. Export requests
 cross a separate HTTP auth boundary and deny with plain-text `403` when
 authorization fails. For the full runbook, including the support-read-only
-variation, see `guides/operator-surface.md`.
+variation, see `guides/operator-surface.md`. If you ever need a non-standard
+transport shape, manual `SessionPlug` composition is still available as an
+advanced escape hatch rather than the primary setup path.
 
 Start the app if it is not already running:
 

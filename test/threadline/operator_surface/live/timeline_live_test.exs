@@ -39,6 +39,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorRouter do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    alias Threadline.Semantics.ActorRef
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+      plug(:put_test_actor)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_actor",
+        actor_fn: &__MODULE__.actor_fn/1,
+        authorize_fn: &__MODULE__.auth/1
+      )
+    end
+
+    def put_test_actor(conn, _opts) do
+      Plug.Conn.assign(conn, :current_user, %{id: "actor-1", role: :admin})
+    end
+
+    def actor_fn(conn) do
+      case conn.assigns[:current_user] do
+        %{id: id} -> %ActorRef{type: :user, id: to_string(id)}
+        _ -> nil
+      end
+    end
+
+    def auth(_socket), do: :ok
+  end
+
   defmodule Threadline.OperatorSurface.TimelineLiveTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -109,8 +150,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter)
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_actor_key",
+      signing_salt: "v8q+QWvj"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.TimelineLiveTest.ActorRouter)
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.FailingQueueAdapter do
+    @behaviour Threadline.ExportQueue
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def enqueue(_job_id, _opts \\ []), do: {:error, :supervisor_not_started}
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SuccessfulQueueAdapter do
+    @behaviour Threadline.ExportQueue
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def enqueue(_job_id, _opts \\ []), do: :ok
+  end
+
   defmodule Threadline.OperatorSurface.Live.TimelineLiveTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -128,6 +206,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
+      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -611,6 +691,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Large export — will stream in chunks."
     end
 
+    test "standard mount without actor_fn does not expose actor-owned saved views", %{conn: conn} do
+      {:ok, _lv, html} = mount_audit(conn, "/audit?table=posts")
+
+      refute html =~ "save-view-form"
+      refute html =~ "Saved Views:"
+    end
+
     # -------------------------------------------------------------------
     # surface header (Phase 66)
     # -------------------------------------------------------------------
@@ -669,6 +756,59 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveActorBackedTest do
+    use ExUnit.Case, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint,
+        secret_key_base: "z" |> String.duplicate(64),
+        live_view: [signing_salt: "z" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
+      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    defp mount_actor_audit(conn, path) do
+      case live(conn, path) do
+        {:ok, _lv, _html} = ok -> ok
+        {:error, {:live_redirect, %{to: redirect_path}}} -> live(conn, redirect_path)
+      end
+    end
+
+    test "default actor_fn mount path exposes actor-owned saved views", %{conn: conn} do
+      {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor?table=posts")
+
+      assert render(lv) =~ "Save View"
+
+      lv
+      |> form("#save-view-form", %{name: "Actor View"})
+      |> render_submit()
+
+      assert render(lv) =~ "Actor View"
+
+      view =
+        Threadline.Test.Repo.get_by!(Threadline.Governance.SavedView,
+          name: "Actor View"
+        )
+
+      assert view.name == "Actor View"
+      assert view.filters["table"] == "posts"
+      assert view.actor_ref == %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"}
+    end
+  end
+
   # -------------------------------------------------------------------
   # Case 10 — scope_thread (BROWSE-01 — divergence-from-analogs guard)
   # Separate ExUnit module so @endpoint can point to the scoped endpoint
@@ -676,7 +816,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   # -------------------------------------------------------------------
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveScopedTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -694,6 +834,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
+      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -732,7 +874,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       seed_change!(table: "admin_posts", source: "admin", occurred_at: occurred_at)
 
       {:ok, _lv, html} =
-        case live(conn, "/audit_scoped") do
+        case live(conn, "/audit_scoped?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
@@ -758,7 +900,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Apply view
       # Since we don't have a specific ID, let's pull it from the DB
-      view = Threadline.Test.Repo.one(Threadline.Governance.SavedView)
+      view =
+        Threadline.Test.Repo.get_by!(Threadline.Governance.SavedView,
+          name: "My Support View"
+        )
+
       assert view.name == "My Support View"
       assert view.filters["table"] == "support_posts"
 
@@ -773,10 +919,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Ensure it's deleted
       refute render(lv) =~ "My Support View"
-      assert Threadline.Test.Repo.all(Threadline.Governance.SavedView) == []
+      refute Threadline.Test.Repo.get_by(Threadline.Governance.SavedView, name: "My Support View")
     end
 
     test "Case 12: Request Background Export enqueues job and redirects", %{conn: conn} do
+      original_adapter = Application.get_env(:threadline, :export_queue_adapter)
+
+      Application.put_env(
+        :threadline,
+        :export_queue_adapter,
+        Threadline.OperatorSurface.TimelineLiveTest.SuccessfulQueueAdapter
+      )
+
+      on_exit(fn ->
+        if original_adapter do
+          Application.put_env(:threadline, :export_queue_adapter, original_adapter)
+        else
+          Application.delete_env(:threadline, :export_queue_adapter)
+        end
+      end)
+
       {:ok, lv, _html} =
         case live(conn, "/audit_scoped?table=support_posts") do
           {:ok, _, _} = ok -> ok
@@ -799,7 +961,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert job.status == "pending"
       assert job.query_params["table"] == "support_posts"
       assert job.actor_ref.type == :user
-      assert job.actor_ref.id == "op1" # the user_id mapped to actor_ref
+      # the user_id mapped to actor_ref
+      assert job.actor_ref.id == "op1"
+    end
+
+    test "background export failure preserves the row and surfaces the error", %{conn: conn} do
+      original_adapter = Application.get_env(:threadline, :export_queue_adapter)
+
+      Application.put_env(
+        :threadline,
+        :export_queue_adapter,
+        Threadline.OperatorSurface.TimelineLiveTest.FailingQueueAdapter
+      )
+
+      on_exit(fn ->
+        if original_adapter do
+          Application.put_env(:threadline, :export_queue_adapter, original_adapter)
+        else
+          Application.delete_env(:threadline, :export_queue_adapter)
+        end
+      end)
+
+      {:ok, lv, _html} =
+        case live(conn, "/audit_scoped?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      _html = lv |> element("button", "Request Background Export") |> render_click()
+
+      [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+      assert job.status == "failed"
+      assert job.error_message =~ "built-in export runtime is unavailable"
+      assert %DateTime{} = job.expires_at
+      assert job.query_params["table"] == "support_posts"
+      assert render(lv) =~ "Request Background Export"
+      assert render(lv) =~ "support_posts"
     end
   end
 end

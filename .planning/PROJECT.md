@@ -10,8 +10,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.19 — Integration Breadth (closed 2026-05-08)
-**Current milestone:** v1.20 — Scale and Governance Depth (opened 2026-05-08; phases 75-84 active)
+**Last shipped:** v1.20 — Scale and Governance Depth (closed 2026-05-24)
+**Current milestone:** none open
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -23,15 +23,21 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-## Current Milestone: v1.20 Scale and Governance Depth
+## Latest Milestone Shipped: v1.20 Scale and Governance Depth
 
-**Goal:** Move Threadline from "capturing and reading" into governed lifecycle management: safe retention pruning, actor-owned saved views, background exports, and enterprise adapter seams, all while preserving the zero-intrusion default posture.
+**Goal (achieved):** Move Threadline from "capturing and reading" into governed lifecycle management: safe retention pruning, actor-owned saved views, background exports, and enterprise adapter seams, all while preserving the zero-intrusion default posture.
 
-**Current state:** Phase 80 completed the current-tree truth-repair for INFRA evidence and repaired the milestone authority layer. That work closed the verification gap around governance migrations, schemas, and storage/export-queue behaviour contracts, but it did not pull later runtime work forward.
+**Shipped:**
+- Governance migrations plus `Threadline.Storage` and `Threadline.ExportQueue` behaviour seams for retention/export state and backend abstraction.
+- Batched retention pruning with run tracking and a Retention History LiveView surface.
+- Actor-owned saved views on the default operator mount path with session-first ownership semantics.
+- Built-in background export runtime supervision, truthful lifecycle transitions, expiry cleanup, and actor-scoped status visibility.
+- Backend-aware export delivery plus configured-path Oban/S3 integration proof and repaired public guidance.
+- Repaired current-tree verification and Nyquist closeout artifacts for Phases 75-79 and 84 so the milestone evidence matches the shipped tree.
 
-**What remains open:** Phases 81-84 still own the real runtime closures for retention supervision, saved-view session handoff, built-in export lifecycle, and adapter-backed export delivery. The milestone remains open until those phases land and are verified on the repaired tree.
-
-**Strategic arc:** `.planning/MILESTONE-ARC.md` remains the ranked forward-looking source. v1.20 is the active milestone, and Phase 80's current-tree truth-repair reset the project surface so the remaining runtime phases can close against trustworthy bookkeeping.
+**Next milestone goals:**
+- Use `.planning/MILESTONE-ARC.md` to define the next milestone, with Policy / compliance depth as the current top-ranked candidate.
+- Start from fresh milestone-scoped requirements rather than extending v1.20.
 
 ## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
 
@@ -298,4 +304,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-23 — Phase 80 completed current-tree truth-repair for v1.20. The active milestone remains v1.20 — Scale and Governance Depth while Phases 81-84 close the remaining runtime gaps.*
+*Last updated: 2026-05-24 — v1.20 shipped and the planning surface now points at the next milestone definition cycle.*

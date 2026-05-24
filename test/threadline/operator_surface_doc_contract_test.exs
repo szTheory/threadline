@@ -83,6 +83,15 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     refute String.contains?(guide, "{:ok, conn}")
   end
 
+  test "operator surface guide locks the default actor handoff story" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "auto-installs `Threadline.OperatorSurface.SessionPlug`")
+    assert String.contains?(guide, "No extra manual `SessionPlug` is required")
+    assert String.contains?(guide, "Session actor data stays authoritative")
+    assert String.contains?(guide, "advanced escape hatch")
+  end
+
   test "operator surface guide locks mounted parity table and rejects overclaiming" do
     guide = File.read!("guides/operator-surface.md")
 

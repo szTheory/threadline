@@ -121,6 +121,11 @@ of these conditions at compile time:
 
 Anything outside that boundary is outside the supported surface story.
 
+When that mount also receives `actor_fn`, the standard route path
+auto-installs `Threadline.OperatorSurface.SessionPlug` before the LiveView
+routes. That keeps actor-owned saved views and similar UI features on the same
+`ActorRef` contract as request-path capture without extra adopter wiring.
+
 ### Shared authorization vocabulary
 
 `authorize_fn` is the canonical operator-surface callback. It is invoked
@@ -161,6 +166,11 @@ That `scope` is opaque and host-owned. Threadline carries it as data; it does
 not define a role enum, permissions DSL, tenancy DSL, or page-level
 authorization language around it.
 
+If both session actor data and a scope fallback actor are present, session actor
+wins. Scope fallback stays compatibility-only, and mismatches emit observable
+telemetry rather than silently replacing the session-owned actor identity. In
+other words: session actor wins, scope fallback does not silently override it.
+
 `export_authorize_fn` is optional and should stay an advanced override. When
 present, it is called with `conn` directly for export requests:
 
@@ -188,6 +198,12 @@ deliberate override rather than teaching two primary authorization vocabularies.
 Both transport faces share the same telemetry event
 `[:threadline, :operator_surface, :authorize]`, the same granted/denied/error
 result vocabulary, and the same `:threadline_scope` assign semantics.
+
+For background exports, keep one actor-owned Threadline download route keyed by
+the export job ID. Local storage resolves to `send_file` behind that boundary;
+adapter-backed storage resolves `download_url/2` only after authorization. This
+preserves one operator action while letting the host keep ownership of Oban
+supervision and external storage infrastructure.
 
 ## Canonical references
 

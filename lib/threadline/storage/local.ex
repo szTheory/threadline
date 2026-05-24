@@ -51,8 +51,8 @@ defmodule Threadline.Storage.Local do
   end
 
   @impl true
-  def download_url(file_id, _opts \\ []) do
-    {:ok, "/threadline/exports/download/#{file_id}"}
+  def download_url(_file_id, _opts \\ []) do
+    {:error, :not_supported}
   end
 
   @impl true

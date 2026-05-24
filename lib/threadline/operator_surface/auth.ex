@@ -83,27 +83,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp maybe_assign_session_actor(socket, _session), do: socket
 
     defp assign_fallback_actor(socket, scope) when is_map(scope) do
-      if Map.has_key?(socket.assigns, :threadline_actor_ref) do
-        socket
-      else
-        actor_ref = Map.get(scope, :actor_ref) || legacy_user_id_to_actor(Map.get(scope, :user_id))
-
-        if actor_ref do
-          Phoenix.Component.assign(socket, :threadline_actor_ref, actor_ref)
-        else
+      case scope_actor_ref(scope) do
+        nil ->
           socket
-        end
+
+        scope_actor_ref ->
+          case Map.get(socket.assigns, :threadline_actor_ref) do
+            %Threadline.Semantics.ActorRef{} = session_actor_ref ->
+              if session_actor_ref != scope_actor_ref do
+                emit_actor_mismatch(session_actor_ref, scope_actor_ref)
+              end
+
+              socket
+
+            _ ->
+              Phoenix.Component.assign(socket, :threadline_actor_ref, scope_actor_ref)
+          end
       end
     end
 
     defp assign_fallback_actor(socket, _scope), do: socket
 
+    defp scope_actor_ref(scope) when is_map(scope) do
+      Map.get(scope, :actor_ref) || legacy_user_id_to_actor(Map.get(scope, :user_id))
+    end
+
     defp legacy_user_id_to_actor(nil), do: nil
+
     defp legacy_user_id_to_actor(id) when is_binary(id) or is_integer(id) do
       case Threadline.Semantics.ActorRef.new(:user, to_string(id)) do
         {:ok, ref} -> ref
         _ -> nil
       end
+    end
+
+    defp emit_actor_mismatch(session_actor_ref, scope_actor_ref) do
+      :telemetry.execute(
+        [:threadline, :operator_surface, :actor_ref_mismatch],
+        %{count: 1},
+        %{
+          session_actor_ref: Threadline.Semantics.ActorRef.to_map(session_actor_ref),
+          scope_actor_ref: Threadline.Semantics.ActorRef.to_map(scope_actor_ref)
+        }
+      )
     end
 
     defp maybe_assign_session_user(socket, session) do

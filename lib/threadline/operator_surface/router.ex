@@ -44,6 +44,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defmacro threadline_operator_surface(path, opts \\ []) do
       has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)
+      has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
       has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated, false)
       exports_enabled? = Keyword.get(opts, :exports, true)
       caller_file = __CALLER__.file
@@ -70,12 +71,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
+        if unquote(has_actor_fn?) do
+          pipeline :threadline_actor_session do
+            plug(Threadline.OperatorSurface.SessionPlug, unquote(opts))
+          end
+        end
+
         live_session :threadline,
           on_mount: [
             {Threadline.OperatorSurface.Auth, unquote(opts)},
             {Threadline.OperatorSurface.Coverage.OnMount, unquote(opts)}
           ] do
           scope unquote(path), alias: Threadline.OperatorSurface.Live do
+            if unquote(has_actor_fn?) do
+              pipe_through(:threadline_actor_session)
+            end
+
             live("/", TimelineLive, :index)
             live("/coverage", CoverageLive, :index)
             live("/exports", ExportStatusLive, :index)

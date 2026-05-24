@@ -1,3 +1,13 @@
+---
+id: SEED-003
+status: retired
+planted: 2026-05-08
+retired_on: 2026-05-24
+retired_during: v1.20 closeout preparation
+retired_reason: Kept as strategic direction in milestone arc and product narrative, but not maintained as an open implementation seed.
+scope: Large
+---
+
 # Ecosystem Integrations (High-Value Wins)
 
 **Domain:** Interoperability with sztheory ecosystem libraries
@@ -38,3 +48,11 @@ Threadline is the central nervous system for operator observability. Its massive
 - **Rindle:** Media uploads, access logs, and hard deletions. 
 - **Rendro:** PDF/document generation outcomes.
 *Value:* Threadline tracks when Rindle media is accessed or deleted. Threadline's redaction mechanisms can coordinate with Rindle's media lifecycles to ensure PII in generated documents is provably purged.
+
+## Note
+
+This seed remains a useful future-product direction, but it is not currently an
+active milestone candidate with enough scoping detail to stay open in the
+closeout audit. The strategic intent belongs in `.planning/MILESTONE-ARC.md`
+and future milestone definition work rather than as a dormant implementation
+seed.

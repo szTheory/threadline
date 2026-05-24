@@ -112,5 +112,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "Both transport faces share the same telemetry event")
     assert String.contains?(guide, "not define a role enum, permissions DSL, tenancy DSL")
     assert String.contains?(guide, "page-level")
+    assert String.contains?(guide, "auto-installs `Threadline.OperatorSurface.SessionPlug`")
+    assert String.contains?(guide, "session actor wins")
   end
 end

@@ -55,9 +55,6 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     def download(conn, %{"job_id" => job_id}) do
       repo = conn.assigns[:threadline_repo] || default_repo()
-      
-      # We need actor_ref for IDOR check. ExportAuthPlug should have assigned it
-      # if available, or we use nil. Wait, the exact key might be different, let's use `conn.assigns[:threadline_actor_ref]`
       actor_ref = conn.assigns[:threadline_actor_ref]
 
       case Ecto.UUID.cast(job_id) do
@@ -65,33 +62,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           job = repo.get(Threadline.Governance.ExportJob, uuid)
 
           if job && job.actor_ref == actor_ref do
-            if job.status == "completed" && job.file_path do
-              storage_adapter = Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
-
-              case storage_adapter.path(job.file_path) do
-                {:ok, absolute_path} ->
-                  filename = Path.basename(job.file_path)
-                  disposition = ~s|attachment; filename="#{filename}"; filename*=UTF-8''#{filename}|
-
-                  # Content-Type could be inferred from file extension, defaulting to application/octet-stream
-                  content_type = MIME.from_path(absolute_path)
-
-                  conn
-                  |> put_resp_header("content-type", content_type)
-                  |> put_resp_header("content-disposition", disposition)
-                  |> put_resp_header("cache-control", "no-store")
-                  |> Plug.Conn.send_file(200, absolute_path)
-
-                {:error, _reason} ->
-                  conn
-                  |> put_resp_header("content-type", "text/plain; charset=utf-8")
-                  |> send_resp(404, "File not found or not locally accessible")
-              end
-            else
-              conn
-              |> put_resp_header("content-type", "text/plain; charset=utf-8")
-              |> send_resp(422, "Export not ready or failed")
-            end
+            deliver_export(conn, job)
           else
             conn
             |> put_resp_header("content-type", "text/plain; charset=utf-8")
@@ -103,6 +74,96 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> put_resp_header("content-type", "text/plain; charset=utf-8")
           |> send_resp(400, "Invalid job ID")
       end
+    end
+
+    defp deliver_export(conn, %{status: "completed", file_path: file_path} = job)
+         when is_binary(file_path) do
+      with :ok <- ensure_not_expired(job),
+           {:ok, delivery} <- resolve_delivery(file_path, job) do
+        send_delivery(conn, delivery, file_path)
+      else
+        {:error, :expired} ->
+          unavailable_export(conn, 410, "Export download is no longer available")
+
+        {:error, _reason} ->
+          unavailable_export(conn, 404, "Export download is not available")
+      end
+    end
+
+    defp deliver_export(conn, _job) do
+      conn
+      |> put_resp_header("content-type", "text/plain; charset=utf-8")
+      |> send_resp(422, "Export not ready or failed")
+    end
+
+    defp resolve_delivery(file_path, job) do
+      storage_adapter = Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+
+      case storage_adapter.path(file_path) do
+        {:ok, absolute_path} ->
+          {:ok, {:local, absolute_path}}
+
+        {:error, :not_local} ->
+          case storage_adapter.download_url(file_path, download_url_opts(storage_adapter, job)) do
+            {:ok, url} -> {:ok, {:remote, url}}
+            {:error, reason} -> {:error, reason}
+          end
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+
+    defp send_delivery(conn, {:local, absolute_path}, file_path) do
+      filename = Path.basename(file_path)
+      disposition = ~s|attachment; filename="#{filename}"; filename*=UTF-8''#{filename}|
+      content_type = MIME.from_path(absolute_path)
+
+      conn
+      |> put_resp_header("content-type", content_type)
+      |> put_resp_header("content-disposition", disposition)
+      |> put_resp_header("cache-control", "no-store")
+      |> Plug.Conn.send_file(200, absolute_path)
+    end
+
+    defp send_delivery(conn, {:remote, url}, _file_path) do
+      conn
+      |> put_resp_header("cache-control", "no-store")
+      |> redirect(external: url)
+    end
+
+    defp download_url_opts(storage_adapter, job) do
+      Application.get_env(:threadline, storage_adapter, [])
+      |> Keyword.merge(expiry_download_opts(job))
+    end
+
+    defp expiry_download_opts(job) do
+      case seconds_until_expiry(job.expires_at) do
+        seconds when is_integer(seconds) and seconds > 0 -> [expires_in: seconds]
+        _ -> []
+      end
+    end
+
+    defp ensure_not_expired(%{expires_at: %DateTime{} = expires_at}) do
+      if DateTime.compare(expires_at, DateTime.utc_now()) == :gt do
+        :ok
+      else
+        {:error, :expired}
+      end
+    end
+
+    defp ensure_not_expired(_job), do: :ok
+
+    defp seconds_until_expiry(%DateTime{} = expires_at) do
+      DateTime.diff(expires_at, DateTime.utc_now(), :second)
+    end
+
+    defp seconds_until_expiry(_expires_at), do: nil
+
+    defp unavailable_export(conn, status, message) do
+      conn
+      |> put_resp_header("content-type", "text/plain; charset=utf-8")
+      |> send_resp(status, message)
     end
 
     defp dispatch(conn, params, format) do

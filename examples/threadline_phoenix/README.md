@@ -172,6 +172,12 @@ UI is reachable, and `authorize_fn` acts as the final fail-closed gate. This is
 the `phx.gen.auth`-style posture to copy into a host app: your app owns browser
 auth first, then Threadline runs inside that boundary.
 
+Because this mount provides `actor_fn`, the standard
+`threadline_operator_surface/2` path auto-installs
+`Threadline.OperatorSurface.SessionPlug` and carries the returned `ActorRef`
+into LiveView automatically. No extra manual session plug is required for the
+default `/audit` recipe.
+
 Treat that mount as the canonical admin recipe. The support-read-only variation
 keeps the same `/audit` tree, keeps the same host-owned browser/auth boundary,
 returns an opaque host-owned scope such as
@@ -185,7 +191,15 @@ organization DSL.
 LiveView `live_session` / `on_mount` auth does not secure export controller
 routes. Export denials stay HTTP-native `403`, so use `export_authorize_fn`
 only when you deliberately want a stricter export override than the default
-surface recipe.
+surface recipe. Manual `SessionPlug` composition is still available as an
+advanced escape hatch, but it is no longer the primary story for the standard
+mount.
+
+On the repaired export lane, the operator surface still exposes one actor-owned
+download action keyed by export job ID. Local storage stays app-served through
+that controller route, adapter-backed storage resolves a backend-native URL only
+after authorization, and the host app still owns Oban supervision even though
+Threadline now validates configured adapters for static truth at startup.
 
 Run `mix phx.server`, sign in as an admin user, and open
 `http://localhost:4000/audit`. For the canonical first-hour walkthrough, use

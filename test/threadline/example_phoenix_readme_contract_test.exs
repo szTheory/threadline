@@ -83,6 +83,15 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     refute String.contains?(router, "match?(%Phoenix.LiveView.Socket{}, transport)")
   end
 
+  test "example router actor callback returns a real ActorRef" do
+    router =
+      read_rel!(["examples", "threadline_phoenix", "lib", "threadline_phoenix_web", "router.ex"])
+
+    assert String.contains?(router, "alias Threadline.Semantics.ActorRef")
+    assert String.contains?(router, "%ActorRef{type: :user, id: to_string(user.id)}")
+    refute String.contains?(router, "avatar_url")
+  end
+
   defp router_mount_block do
     GettingStartedFixtures.extract!(
       "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",

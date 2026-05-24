@@ -178,11 +178,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         changeset = Threadline.Governance.SavedView.changeset(attrs)
-        
+
         case socket.assigns.repo.insert(changeset) do
           {:ok, view} ->
             saved_views = [view | socket.assigns.saved_views]
             {:noreply, assign(socket, :saved_views, saved_views)}
+
           {:error, _} ->
             {:noreply, socket}
         end
@@ -193,7 +194,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("apply-view", %{"id" => id}, socket) do
       case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
-        nil -> {:noreply, socket}
+        nil ->
+          {:noreply, socket}
+
         view ->
           query = build_canonical_query(view.filters)
           {:noreply, push_patch(socket, to: "#{socket.assigns.base_path}?#{query}")}
@@ -202,7 +205,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("delete-view", %{"id" => id}, socket) do
       case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
-        nil -> {:noreply, socket}
+        nil ->
+          {:noreply, socket}
+
         view ->
           socket.assigns.repo.delete!(view)
           saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
@@ -221,6 +226,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("request_background_export", _params, socket) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
+
       job = %Threadline.Governance.ExportJob{
         status: "pending",
         query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
@@ -228,13 +234,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       }
 
       job = repo.insert!(job)
-      adapter = Application.get_env(:threadline, :export_queue_adapter, Threadline.ExportQueue.TaskAdapter)
-      adapter.enqueue(job.id)
 
-      {:noreply,
-       socket
-       |> put_flash(:info, "Background export requested. View progress on the Export Status page.")
-       |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
+      adapter =
+        Application.get_env(
+          :threadline,
+          :export_queue_adapter,
+          Threadline.ExportQueue.TaskAdapter
+        )
+
+      case adapter.enqueue(job.id) do
+        :ok ->
+          {:noreply,
+           socket
+           |> put_flash(
+             :info,
+             "Background export requested. View progress on the Export Status page."
+           )
+           |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
+
+        {:error, reason} ->
+          error_message = background_export_error_message(reason)
+
+          job
+          |> Threadline.Governance.ExportJob.changeset(%{
+            status: "failed",
+            error_message: error_message,
+            expires_at: terminal_export_expiry()
+          })
+          |> repo.update!()
+
+          {:noreply, put_flash(socket, :error, error_message)}
+      end
     end
 
     def handle_event("next-page", _, socket) do
@@ -436,6 +466,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.filter(fn {k, v} -> k in @filter_keys and is_binary(v) and v != "" end)
       |> Enum.sort_by(fn {k, _v} -> Enum.find_index(@filter_keys, &(&1 == k)) end)
       |> URI.encode_query()
+    end
+
+    defp background_export_error_message(:supervisor_not_started) do
+      "Background export could not start because the built-in export runtime is unavailable."
+    end
+
+    defp background_export_error_message(reason) do
+      "Background export could not start: #{inspect(reason)}."
+    end
+
+    defp terminal_export_expiry do
+      retention_ttl_hours =
+        Application.get_env(:threadline, :exports, [])
+        |> Keyword.get(:retention_ttl_hours, 24 * 7)
+
+      DateTime.utc_now()
+      |> DateTime.truncate(:microsecond)
+      |> DateTime.add(retention_ttl_hours * 60 * 60, :second)
     end
 
     defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw),

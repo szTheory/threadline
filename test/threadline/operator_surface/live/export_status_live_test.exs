@@ -89,7 +89,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:ok, actor_ref} = ActorRef.new(:user, "123")
       session_actor = Jason.encode!(ActorRef.to_map(actor_ref))
-      
+
       conn = build_conn() |> Plug.Test.init_test_session(threadline_actor_ref: session_actor)
 
       {:ok, conn: conn, actor_ref: actor_ref}
@@ -142,20 +142,93 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "shows download link when completed", %{conn: conn, actor_ref: actor_ref} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-        job = %ExportJob{}
+        job =
+          %ExportJob{}
+          |> ExportJob.changeset(%{
+            status: "completed",
+            query_params: %{"table" => "users"},
+            actor_ref: actor_ref,
+            started_at: now,
+            completed_at: now,
+            file_path: "users-export.csv",
+            expires_at: DateTime.add(now, 600, :second)
+          })
+          |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "completed"
+        assert html =~ "Download Export"
+        assert html =~ "Expires At"
+        assert html =~ "/audit/exports/download/#{job.id}"
+      end
+
+      test "shows preparing download placeholder for non-ready exports", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
         |> ExportJob.changeset(%{
-          status: "completed",
+          status: "running",
           query_params: %{"table" => "users"},
           actor_ref: actor_ref,
-          started_at: now,
-          completed_at: now
+          started_at: now
         })
         |> Threadline.Test.Repo.insert!()
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "completed"
-        assert html =~ "/audit/exports/download/#{job.id}"
+        assert html =~ "Preparing download"
+        refute html =~ "Download Export"
+      end
+
+      test "hides the download action for expired completed exports", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
+        |> ExportJob.changeset(%{
+          status: "completed",
+          query_params: %{"table" => "users"},
+          actor_ref: actor_ref,
+          started_at: now,
+          completed_at: now,
+          file_path: "expired-export.csv",
+          expires_at: DateTime.add(now, -60, :second)
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        refute html =~ "Download Export"
+        assert html =~ "available to download right now"
+      end
+
+      test "shows the persisted failure reason for failed jobs", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
+        |> ExportJob.changeset(%{
+          status: "failed",
+          query_params: %{"table" => "users"},
+          actor_ref: actor_ref,
+          started_at: now,
+          error_message:
+            "Background export could not start because the built-in export runtime is unavailable."
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "failed"
+        assert html =~ "built-in export runtime is unavailable"
       end
     end
   end

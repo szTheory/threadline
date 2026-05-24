@@ -9,6 +9,7 @@ defmodule Threadline.Storage.LocalTest do
     if File.exists?(@test_priv) do
       File.rm_rf!(@test_priv)
     end
+
     :ok
   end
 

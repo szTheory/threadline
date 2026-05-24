@@ -73,15 +73,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <th>Filters</th>
                   <th>Started At</th>
                   <th>Completed At</th>
+                  <th>Expires At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="export-jobs" phx-update="stream">
                 <tr :for={{dom_id, job} <- @streams.jobs} id={dom_id} class={"job-row--" <> job.status}>
                   <td>
-                    <span class={"status-badge status-" <> job.status}><%= job.status %></span>
+                    <span class={"status-badge status-" <> job.status} role={status_role(job)}>
+                      <%= job.status %>
+                    </span>
                     <%= if job.error_message do %>
-                      <div class="error-message" title={job.error_message}>Error</div>
+                      <div class="error-message" role="alert"><%= job.error_message %></div>
                     <% end %>
                   </td>
                   <td class="filters-cell">
@@ -89,9 +92,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </td>
                   <td><%= format_date(job.started_at) %></td>
                   <td><%= format_date(job.completed_at) %></td>
+                  <td><%= format_date(job.expires_at) %></td>
                   <td>
-                    <%= if job.status == "completed" do %>
-                      <.link href={"#{@base_path}/exports/download/#{job.id}"} class="download-link" download>Download</.link>
+                    <%= cond do %>
+                      <% downloadable?(job) -> %>
+                        <.link href={"#{@base_path}/exports/download/#{job.id}"} class="download-link">
+                          Download Export
+                        </.link>
+                      <% job.status in ["pending", "running"] -> %>
+                        <span class="download-placeholder" role="status">Preparing download</span>
+                      <% completed_but_unavailable?(job) -> %>
+                        <span class="download-unavailable">
+                          This export isn't available to download right now.
+                        </span>
+                      <% true -> %>
+                        <span>-</span>
                     <% end %>
                   </td>
                 </tr>
@@ -108,7 +123,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       actor_ref = socket.assigns[:threadline_actor_ref]
 
       if actor_ref do
-        from(j in ExportJob, where: j.actor_ref == ^actor_ref, order_by: [desc: j.inserted_at], limit: @default_limit)
+        from(j in ExportJob,
+          where: j.actor_ref == ^actor_ref,
+          order_by: [desc: j.inserted_at],
+          limit: @default_limit
+        )
         |> repo.all()
       else
         []
@@ -145,9 +164,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       DateTime.to_string(dt) |> String.replace("Z", " UTC")
     end
 
+    defp status_role(%{status: "failed"}), do: "alert"
+    defp status_role(_job), do: "status"
+
+    defp downloadable?(job) do
+      job.status == "completed" and is_binary(job.file_path) and not expired?(job.expires_at)
+    end
+
+    defp completed_but_unavailable?(job) do
+      job.status == "completed" and not downloadable?(job)
+    end
+
+    defp expired?(%DateTime{} = expires_at) do
+      DateTime.compare(expires_at, DateTime.utc_now()) != :gt
+    end
+
+    defp expired?(_expires_at), do: false
+
     defp encode_query(params) when is_map(params) do
       URI.encode_query(params)
     end
+
     defp encode_query(_), do: ""
   end
 end

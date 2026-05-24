@@ -54,6 +54,9 @@ end
 Admin-first recipe:
 
 - Keep `/audit` behind `pipe_through [:browser, :admin_auth]`.
+- Return a real `Threadline.Semantics.ActorRef` from `actor_fn`; the standard
+  mount path auto-installs `Threadline.OperatorSurface.SessionPlug` and carries
+  that actor into LiveView for saved views and other actor-owned affordances.
 - Let `authorize_fn` make the final allow/deny decision.
 - Keep export routes enabled for admins unless your host wants stricter posture.
 
@@ -108,9 +111,30 @@ secure the sibling HTTP export controller routes. Export denials stay
 HTTP-native through `Threadline.OperatorSurface.ExportAuthPlug`: denial or
 error halts with plain-text `403`, not a LiveView redirect.
 
+The export-status surface keeps one actor-owned `Download Export` action.
+Threadline resolves the actual delivery only after authorization: local storage
+stays app-served through the controller route, while adapter-backed storage can
+redirect to a backend-issued URL without exposing that URL in the LiveView HTML.
+
 ### `:actor_fn`
 
-The `:actor_fn` acts just like the native `Threadline.Plug` configuration, determining the identity performing actions in the operator surface.
+The `:actor_fn` acts just like the native `Threadline.Plug` configuration,
+determining the identity performing actions in the operator surface.
+
+On the standard `threadline_operator_surface/2` mount path, providing
+`actor_fn` auto-installs `Threadline.OperatorSurface.SessionPlug` ahead of the
+LiveView routes. No extra manual `SessionPlug` is required for the normal
+mount. Return a real `Threadline.Semantics.ActorRef` or `nil`.
+
+Session actor data stays authoritative once LiveView mounts. If your
+`authorize_fn` also returns a compatibility-only scope fallback such as
+`%{user_id: ...}` or `%{actor_ref: ...}`, the session actor wins and Threadline
+emits a low-noise mismatch telemetry event instead of silently inverting
+ownership.
+
+Manual `Threadline.OperatorSurface.SessionPlug` composition remains available as
+an advanced escape hatch when you intentionally need a non-standard router or
+transport shape outside the canonical mount path.
 
 ## Available Screens (v1.17)
 

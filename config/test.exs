@@ -18,6 +18,9 @@ repo_opts =
 config :threadline, Threadline.Test.Repo, repo_opts
 
 config :threadline, ecto_repos: [Threadline.Test.Repo]
+config :threadline, :storage_adapter, Threadline.Storage.Local
+config :threadline, :export_queue_adapter, Threadline.ExportQueue.TaskAdapter
+config :threadline, Threadline.ExportQueue.Oban, oban_name: Oban, queue: :threadline_exports
 
 if System.get_env("THREADLINE_VERIFY_COVERAGE_FAILURE_TEST") == "1" do
   config :threadline, :verify_coverage, expected_tables: ["threadline_verify_cov_uncovered"]
@@ -43,5 +46,10 @@ config :threadline, :retention,
   delete_empty_transactions: true,
   interval_ms: :timer.hours(24),
   sleep_ms: 0
+
+config :threadline, :exports,
+  cleanup_interval_ms: :timer.hours(24),
+  stale_running_cutoff_hours: 24,
+  retention_ttl_hours: 24 * 7
 
 config :logger, level: :warning

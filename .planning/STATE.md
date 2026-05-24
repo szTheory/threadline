@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: — Scale and Governance Depth
-status: executing
-last_updated: "2026-05-24T10:55:52.737Z"
-last_activity: 2026-05-24 -- Phase 84 execution started
+status: shipped
+last_updated: "2026-05-24T13:00:00Z"
+last_activity: 2026-05-24 -- Milestone v1.20 archived and marked shipped
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 22
-  completed_plans: 19
-  percent: 86
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Milestone v1.20 — Scale and Governance Depth remains in progress. Phases 82 and 83 are now complete, and Phase 84 is planned to close the remaining adapter-backed export delivery and integration gaps.
+**Current Focus**: v1.20 — Scale and Governance Depth is shipped. The planning surface is reset for the next milestone definition cycle.
 
 ## Current Position
 
-Phase: 84 (export-delivery-and-scale-adapter-integration-repair) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 84
-Last activity: 2026-05-24 -- Phase 84 execution started
+Phase: none — milestone closed
+Plan: none
+Status: Awaiting next milestone definition
+Last activity: 2026-05-24 -- Archived v1.20 and cleared open-artifact audit
 
 ## Performance Metrics
 
 - **Total Phases**: 10 (Phases 75-84) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 9 of 10 phases have complete plan execution; repaired final-tree closure is now in place for 75 through 83, with only Phase 84 left to execute
+- **Phases Completed**: 10 of 10 phases and 22 of 22 plans are complete for v1.20
 - **Requirements Covered**: 13 of 13 mapped (INFRA 2, RET 3, VIEW 2, EXP 4, ADAPT 2)
 - **Last Milestone**: v1.19 — Integration Breadth (shipped 2026-05-08)
-- **Milestone Readiness**: v1.20 remains open, but only Phase 84 still blocks milestone closeout
+- **Milestone Readiness**: v1.20 shipped on 2026-05-24
 
 ## Accumulated Context
 
@@ -47,19 +47,23 @@ Last activity: 2026-05-24 -- Phase 84 execution started
 - 2026-05-23: Milestone audit for v1.20 found requirements, integration, and closeout gaps; roadmap extended with Phases 80-84 to repair runtime wiring and planning evidence.
 - 2026-05-23: Phase 80 re-verified Phase 75 on the current tree, repaired Phase 79 evidence drift, and reconciled the authoritative milestone surfaces without claiming later runtime closure early.
 - 2026-05-23: Phase 81 added built-in retention supervision, routed the retention UI through the named runtime API, and closed Phase 76 with current-tree verification and Nyquist validation artifacts.
+- 2026-05-23: Phase 82 repaired default operator-surface session handoff so saved views are actor-owned on the normal `actor_fn` mount path, then backfilled Phase 77 verification and validation.
+- 2026-05-23: Phase 83 repaired the built-in export runtime, lifecycle truth, and cleanup path, then backfilled Phase 78 verification and validation on the repaired tree.
+- 2026-05-24: Phase 84 closed actor-owned export delivery, configured-path Oban/S3 integration proof, and the final Phase 79/84 evidence chain, clearing the remaining milestone blockers.
+- 2026-05-24: `SEED-002` was marked shipped with v1.20 and `SEED-003` was retired as a dormant implementation seed after its future-strategy value was captured elsewhere.
 
 ### Todos
 
-- [ ] Run `/gsd-execute-phase 84` to implement export delivery and scale-adapter integration closure.
+- [ ] Run `/gsd-new-milestone` to define the next milestone requirements and roadmap.
 
 ### Blockers
 
-- Milestone v1.20 cannot be closed until Phase 84 repairs the remaining export delivery and adapter integration gaps identified on 2026-05-23.
+- None. v1.20 is closed.
 
 ## Session Continuity
 
-- **Last Action**: Planned Phase 84 with a three-plan split: actor-owned delivery/UI repair, adapter startup/integration closure, and evidence closeout.
-- **Next Step**: Run `/gsd-execute-phase 84` to implement the remaining export delivery and adapter integration work.
+- **Last Action**: Archived v1.20 after clearing the milestone close audit and synchronizing the authoritative planning surfaces.
+- **Next Step**: Start the next milestone with `/gsd-new-milestone`.
 
 ## Deferred Items
 

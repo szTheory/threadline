@@ -2,7 +2,7 @@ defmodule Threadline.OperatorSurface.SessionPlug do
   @moduledoc """
   A Plug that executes a configured `actor_fn` on the connection and stores the
   serialized `ActorRef` in the session under the `"threadline_actor_ref"` key.
-  
+
   This allows LiveView mounts (which don't have access to connection headers or
   assigns) to read the authenticated actor directly from the session.
   """
@@ -16,7 +16,7 @@ defmodule Threadline.OperatorSurface.SessionPlug do
   @impl Plug
   def init(opts) do
     actor_fn = Keyword.get(opts, :actor_fn)
-    
+
     unless is_function(actor_fn, 1) do
       raise ArgumentError, "SessionPlug requires an :actor_fn that takes 1 argument (the conn)"
     end

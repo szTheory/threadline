@@ -30,8 +30,20 @@ defmodule Threadline.OperatorSurface.AuthTest do
       nil
     )
 
+    mismatch_handler_id = "auth_mismatch_test_#{System.unique_integer()}"
+
+    :telemetry.attach(
+      mismatch_handler_id,
+      [:threadline, :operator_surface, :actor_ref_mismatch],
+      fn name, measurements, metadata, _config ->
+        send(pid, {:mismatch_telemetry_event, name, measurements, metadata})
+      end,
+      nil
+    )
+
     on_exit(fn ->
       :telemetry.detach(handler_id)
+      :telemetry.detach(mismatch_handler_id)
     end)
 
     :ok
@@ -44,8 +56,8 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, session, socket)
-      
-      assert %Threadline.Semantics.ActorRef{type: :user, id: "user-1"} = 
+
+      assert %Threadline.Semantics.ActorRef{type: :user, id: "user-1"} =
                returned_socket.assigns.threadline_actor_ref
     end
 
@@ -57,7 +69,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, session, socket)
       assert returned_socket.assigns[:threadline_actor_ref] == nil
     end
-    
+
     test "falls back to scope if session actor is absent" do
       actor = %Threadline.Semantics.ActorRef{type: :job, id: "job-1"}
       scope = %{actor_ref: actor}
@@ -65,7 +77,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      
+
       assert returned_socket.assigns.threadline_actor_ref == actor
     end
 
@@ -75,11 +87,32 @@ defmodule Threadline.OperatorSurface.AuthTest do
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
-      
+
       # Since we only get a user_id, we might just store it. Wait, the goal says:
       # "ensure socket.assigns.threadline_actor_ref is correctly populated with the ActorRef struct regardless of the source."
       # But legacy user_id might not be an ActorRef. We can create an ActorRef for user_id!
-      assert %Threadline.Semantics.ActorRef{type: :user, id: "123"} = returned_socket.assigns.threadline_actor_ref
+      assert %Threadline.Semantics.ActorRef{type: :user, id: "123"} =
+               returned_socket.assigns.threadline_actor_ref
+    end
+
+    test "keeps the session actor and emits telemetry when scope fallback disagrees" do
+      session = %{"threadline_actor_ref" => "{\"id\":\"user-1\",\"type\":\"user\"}"}
+      scope = %{user_id: 456}
+      opts = [authorize_fn: fn _socket -> {:ok, scope} end]
+      socket = mock_socket()
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, session, socket)
+
+      assert %Threadline.Semantics.ActorRef{type: :user, id: "user-1"} =
+               returned_socket.assigns.threadline_actor_ref
+
+      assert_receive {:mismatch_telemetry_event,
+                      [:threadline, :operator_surface, :actor_ref_mismatch],
+                      %{count: 1},
+                      metadata}
+
+      assert metadata.session_actor_ref == %{"type" => "user", "id" => "user-1"}
+      assert metadata.scope_actor_ref == %{"type" => "user", "id" => "456"}
     end
   end
 
