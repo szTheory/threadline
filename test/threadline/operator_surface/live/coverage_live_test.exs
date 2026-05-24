@@ -18,6 +18,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.CoverageLiveTest.Auth do
+    def authorize(_), do: Application.get_env(:threadline, :test_allow_coverage, true)
+  end
+
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Router do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -35,7 +39,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit", coverage_authorize_fn: &Threadline.OperatorSurface.CoverageLiveTest.Auth.authorize/1)
     end
   end
 
@@ -95,6 +99,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/coverage" do
+      test "redirects to base_path if coverage is disabled", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_coverage, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_coverage, true) end)
+        assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/audit/coverage")
+      end
+
       test "renders three-bucket coverage table with locked badge state literals", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 

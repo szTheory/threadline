@@ -19,17 +19,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # :coverage_for_schema (the snapshot specific to the requested ?schema=)
     # and :form_error (set when ?schema=NAME is invalid).
     def mount(_params, _session, socket) do
-      initial =
-        socket.assigns[:threadline_coverage] || Snapshot.empty(DateTime.utc_now())
+      if socket.assigns[:threadline_coverage_enabled] do
+        initial =
+          socket.assigns[:threadline_coverage] || Snapshot.empty(DateTime.utc_now())
 
-      socket =
-        socket
-        |> assign(:base_path, nil)
-        |> assign(:schema_param, "public")
-        |> assign(:coverage_for_schema, initial)
-        |> assign(:form_error, nil)
+        socket =
+          socket
+          |> assign(:base_path, nil)
+          |> assign(:schema_param, "public")
+          |> assign(:coverage_for_schema, initial)
+          |> assign(:form_error, nil)
 
-      {:ok, socket}
+        {:ok, socket}
+      else
+        base = socket.assigns[:base_path] || "/"
+        {:ok, redirect(socket, to: base)}
+      end
     end
 
     def handle_params(params, uri, socket) do
