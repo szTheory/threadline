@@ -18,17 +18,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:coverage, :map, required: true)
     attr(:base_path, :string, required: true)
     attr(:error, :string, default: nil)
+    attr(:coverage_enabled, :boolean, default: false)
 
     def surface_header(assigns) do
       ~H"""
       <header class="threadline-ui-header">
         <span class="brand">Threadline</span>
-        <%= if @coverage && @coverage.uncovered_count > 0 do %>
-          <a class="surface-badge surface-badge--warn" href={"#{@base_path}/coverage"}>
-            <%= @coverage.uncovered_count %> uncovered
-          </a>
-        <% else %>
-          <a class="surface-badge surface-badge--ok" href={"#{@base_path}/coverage"}>All covered</a>
+        <%= if @coverage_enabled do %>
+          <%= if @coverage && @coverage.uncovered_count > 0 do %>
+            <a class="surface-badge surface-badge--warn" href={"#{@base_path}/coverage"}>
+              <%= @coverage.uncovered_count %> uncovered
+            </a>
+          <% else %>
+            <a class="surface-badge surface-badge--ok" href={"#{@base_path}/coverage"}>All covered</a>
+          <% end %>
         <% end %>
         <a class="surface-badge surface-badge--ok" href={"#{@base_path}/policy/retention"}>Retention</a>
         <%= if @error do %>
