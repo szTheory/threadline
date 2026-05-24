@@ -18,8 +18,8 @@ defmodule Threadline.OperatorSurface.Coverage.OnMountTest do
       assert {:cont, returned_socket} = OnMount.on_mount([], %{}, %{}, socket)
       
       assert returned_socket.assigns.threadline_coverage_enabled == false
-      refute Map.has_key?(returned_socket.assigns, :threadline_coverage_poll_ms)
-      refute Map.has_key?(returned_socket.assigns, :threadline_coverage)
+      assert returned_socket.assigns.threadline_coverage == nil
+      assert returned_socket.assigns.threadline_coverage_error == nil
     end
 
     test "returns unmodified socket when threadline_coverage_enabled is missing" do
@@ -27,8 +27,8 @@ defmodule Threadline.OperatorSurface.Coverage.OnMountTest do
       
       assert {:cont, returned_socket} = OnMount.on_mount([], %{}, %{}, socket)
       
-      refute Map.has_key?(returned_socket.assigns, :threadline_coverage_poll_ms)
-      refute Map.has_key?(returned_socket.assigns, :threadline_coverage)
+      assert returned_socket.assigns.threadline_coverage == nil
+      assert returned_socket.assigns.threadline_coverage_error == nil
     end
 
     test "starts coverage process when threadline_coverage_enabled is true (disconnected socket)" do

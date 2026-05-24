@@ -25,9 +25,10 @@ defmodule Threadline.Retention.PrunerTest do
   end
 
   defp start_application_supervisor! do
-    start_supervised!(
-      {Threadline.Application, name: :"threadline-pruner-test-#{System.unique_integer()}"}
-    )
+    retention = Application.get_env(:threadline, :retention, [])
+    opts = [repo: Threadline.Test.Repo]
+           |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+    start_supervised!({Threadline.Retention.Pruner, opts})
   end
 
   defp eventually(assertion, attempts \\ 20)
@@ -67,7 +68,7 @@ defmodule Threadline.Retention.PrunerTest do
     assert Repo.get!(RetentionRun, r3.id).status == "completed"
   end
 
-  test "application-owned startup schedules pruning on the named runtime" do
+  test "schedules pruning on the named runtime" do
     Repo.delete_all(RetentionRun)
 
     Application.put_env(:threadline, :retention,

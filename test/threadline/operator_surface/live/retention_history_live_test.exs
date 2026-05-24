@@ -61,7 +61,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     defp start_application_supervisor! do
-      start_supervised!({Threadline.Retention.Pruner, repo: Threadline.Test.Repo})
+      retention = Application.get_env(:threadline, :retention, [])
+      opts = [repo: Threadline.Test.Repo]
+             |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+      start_supervised!({Threadline.Retention.Pruner, opts})
     end
 
     defp stop_existing_pruner! do
