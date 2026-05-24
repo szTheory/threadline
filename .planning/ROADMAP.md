@@ -1,3 +1,85 @@
-# Roadmap
+# Milestone v1.21: Scoped Support / Operator Proof
 
-- [x] **v1.20: Scale and Governance Depth** — shipped 2026-05-24; phases 75-84, 22 plans complete. Archive: `.planning/milestones/v1.20-ROADMAP.md`
+**Status:** Active
+**Phases:** 85-89
+**Total Plans:** 10-12 expected
+
+## Overview
+
+v1.21 is a narrow adopter-proof milestone. It turns the existing host-owned
+`authorize_fn` + `scope_query_fn` seam into a truthful, first-party support
+lane on the shipped `/audit` surface without widening Threadline into an auth,
+tenancy, or compliance platform.
+
+The milestone strategy is:
+
+- keep one canonical `/audit` mount
+- keep auth and tenant semantics host-owned
+- keep exports as a separate privileged capability
+- close or explicitly disable any support-visible unscoped read path
+- lock docs, example behavior, and tests around the exact proven claim
+
+## Phases
+
+### Phase 85: Support-Lane Surface Audit & Claim Narrowing
+
+**Goal**: The milestone claim, non-goals, and supported surface list are explicit before implementation starts.  
+**Depends on**: Nothing  
+**Plans**: 2 plans
+
+- [ ] 85-01: Support-lane surface audit and requirement lock
+- [ ] 85-02: Packaging / scope guard and support-matrix wording lock
+
+### Phase 86: Scoped Read-Path Closure
+
+**Goal**: Every support-visible read path is either scope-enforced or explicitly unavailable with proof.  
+**Depends on**: Phase 85  
+**Plans**: 3 plans
+
+- [ ] 86-01: Scoped read-path audit and query-path closure
+- [ ] 86-02: Row history / as-of support posture implementation
+- [ ] 86-03: Current-tree scoped integration proof
+
+### Phase 87: Canonical Mount Recipe & Example-App Proof
+
+**Goal**: Adopters get one copy-pasteable `/audit` recipe and a runnable example that proves admin + support personas honestly.  
+**Depends on**: Phase 86  
+**Plans**: 2 plans
+
+- [ ] 87-01: Canonical `/audit` mount recipe and minimal surface controls
+- [ ] 87-02: Example Phoenix support-lane proof and doc alignment
+
+### Phase 88: Denial / Fallback UX Closure
+
+**Goal**: Support-scoped operators see least-surprise UX around unavailable actions and routes, especially export posture.  
+**Depends on**: Phase 86, Phase 87  
+**Plans**: 2 plans
+
+- [ ] 88-01: Export denial / affordance parity across LiveView and HTTP
+- [ ] 88-02: Unsupported-surface messaging and fallback transport closure
+
+### Phase 89: Contract Lock & Final Verification
+
+**Goal**: The named support lane is contract-tested, docs-locked, and verified on the current tree.  
+**Depends on**: Phase 87, Phase 88  
+**Plans**: 2-3 plans
+
+- [ ] 89-01: Public docs, support matrix, and example contract lock
+- [ ] 89-02: End-to-end verification and Nyquist closeout
+- [ ] 89-03: Optional roadmap / milestone-surface reconciliation if closeout reveals drift
+
+## Milestone Summary
+
+**Target outcomes:**
+
+- Support-safe operator access is a real first-party Threadline lane, not just a callback pattern plus prose.
+- The exact claim boundary is honest on the current tree, especially around row history / as-of and export posture.
+- Adopters get one canonical `/audit` recipe with host-owned auth and scope semantics.
+- The example app, guides, and tests all prove the same support-lane story.
+
+**Explicit non-goals:**
+
+- No Threadline-owned RBAC, role DSL, or tenancy DSL.
+- No separate first-class support UI family.
+- No broad policy/compliance expansion in this milestone.
+- No new package split or `threadline_web` extraction work.

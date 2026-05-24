@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.20
-milestone_name: — Scale and Governance Depth
-status: shipped
-last_updated: "2026-05-24T13:00:00Z"
-last_activity: 2026-05-24 -- Milestone v1.20 archived and marked shipped
+milestone: v1.21
+milestone_name: — Scoped Support / Operator Proof
+status: planning
+last_updated: "2026-05-24T20:30:00Z"
+last_activity: 2026-05-24 -- Opened v1.21 as a narrow support-lane proof milestone with proof-first, host-owned scope semantics
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 22
-  completed_plans: 22
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 11
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.20 — Scale and Governance Depth is shipped. The planning surface is reset for the next milestone definition cycle.
+**Current Focus**: v1.21 — Scoped Support / Operator Proof. One canonical `/audit` mount, host-owned auth and scope semantics, and a truthful support-safe claim on the current tree.
 
 ## Current Position
 
-Phase: none — milestone closed
-Plan: none
-Status: Awaiting next milestone definition
-Last activity: 2026-05-24 -- Archived v1.20 and cleared open-artifact audit
+Phase: Not started (defining requirements and roadmap)
+Plan: —
+Status: Planning v1.21 support-lane proof work
+Last activity: 2026-05-24 -- Requirements and roadmap opened for the scoped support/operator lane
 
 ## Performance Metrics
 
-- **Total Phases**: 10 (Phases 75-84) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 10 of 10 phases and 22 of 22 plans are complete for v1.20
-- **Requirements Covered**: 13 of 13 mapped (INFRA 2, RET 3, VIEW 2, EXP 4, ADAPT 2)
-- **Last Milestone**: v1.19 — Integration Breadth (shipped 2026-05-08)
-- **Milestone Readiness**: v1.20 shipped on 2026-05-24
+- **Total Phases**: 5 (Phases 85-89) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 0 of 5 and 0 of 11 plans complete for v1.21
+- **Requirements Covered**: 0 of 12 mapped for v1.21 (SCOPE 3, AUTH 2, ADOPT 3, UX 2, DOC 2)
+- **Last Milestone**: v1.20 — Scale and Governance Depth (shipped 2026-05-24)
+- **Milestone Readiness**: v1.21 opened on 2026-05-24
 
 ## Accumulated Context
 
@@ -51,19 +51,28 @@ Last activity: 2026-05-24 -- Archived v1.20 and cleared open-artifact audit
 - 2026-05-23: Phase 83 repaired the built-in export runtime, lifecycle truth, and cleanup path, then backfilled Phase 78 verification and validation on the repaired tree.
 - 2026-05-24: Phase 84 closed actor-owned export delivery, configured-path Oban/S3 integration proof, and the final Phase 79/84 evidence chain, clearing the remaining milestone blockers.
 - 2026-05-24: `SEED-002` was marked shipped with v1.20 and `SEED-003` was retired as a dormant implementation seed after its future-strategy value was captured elsewhere.
+- 2026-05-24: Post-close repo inspection put Threadline around 85% done for its intended scope: the strongest remaining practical gap is a proven support-safe operator lane, not another broad capability family.
+- 2026-05-24: The example app now proves host-owned scoped operator access on `/audit` with support-visible query narrowing and admin-only exports, which should anchor the next milestone framing.
+- 2026-05-24: `guides/how-threadline-works.md` still frames retention, saved views, and async export as future work even though v1.20 shipped them; lower confidence in milestone-choice docs until that narrative is reconciled.
+- 2026-05-24: Targeted verification exposed a runtime-isolation rough edge: repeated supervised app startup still collides on the globally named `Threadline.Export.TaskSupervisor` in retention-history LiveView tests.
+- 2026-05-24: v1.21 was opened after a research-first milestone pass. Recommendation set: keep one canonical `/audit` mount, keep auth and tenant semantics host-owned, keep export as a separate privileged capability, and avoid Threadline-owned RBAC or tenancy DSLs.
+- 2026-05-24: Current-tree audit found the main truth gap for the support lane: row history / as-of bypasses the support scope seam today, so the milestone must either scope that path honestly or make it unavailable for support-scoped sessions.
+- 2026-05-24: The GSD workflow defaults are already shifted left toward cohesive research and one-shot recommendations, with interactive questions reserved for high-impact decisions such as semver, security model, breaking public API, and scope cuts.
 
 ### Todos
 
-- [ ] Run `/gsd-new-milestone` to define the next milestone requirements and roadmap.
+- [ ] Execute Phase 85 and lock the exact v1.21 support-lane claim before implementation widens.
 
 ### Blockers
 
-- None. v1.20 is closed.
+- None blocking milestone start.
+- Documentation drift: `guides/how-threadline-works.md` still understates shipped governance/export scope.
+- Runtime hardening follow-up: retention-history LiveView tests still reveal `Threadline.Export.TaskSupervisor` naming collision under repeated `Threadline.Application` startup.
 
 ## Session Continuity
 
-- **Last Action**: Archived v1.20 after clearing the milestone close audit and synchronizing the authoritative planning surfaces.
-- **Next Step**: Start the next milestone with `/gsd-new-milestone`.
+- **Last Action**: Opened v1.21 and wrote fresh requirements plus phases 85-89 around the scoped support/operator lane.
+- **Next Step**: Start Phase 85. First force the support-lane claim to be explicit, especially the row history / as-of decision, before any broader UX or docs work lands.
 
 ## Deferred Items
 

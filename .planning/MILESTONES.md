@@ -2,20 +2,46 @@
 
 Entries are newest first.
 
-## v1.20 — Scale and Governance Depth (active)
+## v1.21 — Scoped Support / Operator Proof (active)
+
+**Goal:** Turn the existing host-owned `scope_query_fn` seam into a truthful, first-party support-safe lane on the shipped `/audit` surface without widening Threadline into an auth, tenancy, or compliance platform.
+
+**Phases completed:** Not started yet. Planned phases are **85-89**.
+
+**Key objectives:**
+
+- Close or explicitly disable any support-visible unscoped read paths, especially row history / as-of.
+- Prove one canonical `/audit` mount recipe with admin + support personas on the same host-owned route tree.
+- Keep exports as a separate privileged capability with support denied by default unless the host explicitly opts in.
+- Lock docs, example behavior, and tests around the exact support lane Threadline proves on the current tree.
+
+**Stats:** Milestone opened 2026-05-24.
+
+**Archives:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` until closeout.
+
+**What is next:** Execute Phase 85 (Support-Lane Surface Audit & Claim Narrowing).
+
+---
+
+## v1.20 — Scale and Governance Depth (shipped 2026-05-24)
 
 **Goal:** Turn the core audit substrate into an opinionated production workflow with retention oversight, repeatable investigations, and clear governance controls.
 
-**Phases completed:** (Not yet started, phases 75-79 mapped)
+**Phases completed:** **75-84** (10 phases; 22 plans complete).
 
 **Key accomplishments:**
-- (TBD)
 
-**Stats:** Milestone opened 2026-05-21.
+- Added governance schemas plus `Threadline.Storage` and `Threadline.ExportQueue` behaviour seams.
+- Shipped batched retention pruning with run tracking and a Retention History operator surface.
+- Repaired saved-view ownership on the default `actor_fn` mount path.
+- Closed built-in export runtime truth, cleanup, and adapter-backed delivery on the current tree.
+- Reconciled the authoritative milestone surfaces and closeout evidence after the v1.20 audit exposed real runtime and verification gaps.
 
-**Archives:** `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/milestones/v1.20-ROADMAP.md`.
+**Stats:** 10 phases, 22 plans, 13/13 requirements complete at close. Milestone window: **2026-05-21 → 2026-05-24**.
 
-**What is next:** Execute Phase 75 (Governance Infrastructure & State).
+**Archives:** `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/milestones/v1.20-ROADMAP.md`, `.planning/v1.20-MILESTONE-AUDIT.md`.
+
+**What is next:** **`/gsd-new-milestone`** — open the next requirement set from `.planning/MILESTONE-ARC.md`, now activated as **v1.21 — Scoped Support / Operator Proof**.
 
 ---
 

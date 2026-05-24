@@ -11,7 +11,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current State
 
 **Last shipped:** v1.20 — Scale and Governance Depth (closed 2026-05-24)
-**Current milestone:** none open
+**Current milestone:** v1.21 — Scoped Support / Operator Proof (opened 2026-05-24)
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -36,8 +36,14 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Repaired current-tree verification and Nyquist closeout artifacts for Phases 75-79 and 84 so the milestone evidence matches the shipped tree.
 
 **Next milestone goals:**
-- Use `.planning/MILESTONE-ARC.md` to define the next milestone, with Policy / compliance depth as the current top-ranked candidate.
-- Start from fresh milestone-scoped requirements rather than extending v1.20.
+- Prove the host-owned support lane on the shipped `/audit` surface end to end, with one truthful current-tree claim instead of callback-pattern ambiguity.
+- Productize the mount contract, not the auth model: one canonical `/audit` recipe, support exports denied by default, and no Threadline-owned RBAC/tenancy DSL.
+- Treat row history / as-of conservatively for support-scoped sessions: either scope it with proof or make it explicitly unavailable.
+
+**Post-close judgment (2026-05-24):**
+- Threadline is near the point of diminishing returns for broad new surface area; the next high-leverage wedge is proving support-safe scoped operator access end-to-end for real Phoenix SaaS adopters.
+- If a later milestone pursues policy/compliance depth, it should stay narrow: durable policy/evidence records and audit-of-audit proof, not a Threadline-owned auth DSL or SIEM/platform expansion.
+- Repo truth now includes a runnable host-owned support scope pattern on `/audit`, but `guides/how-threadline-works.md` still carries stale “future” wording for already-shipped governance/export capabilities and should not be treated as the sole source of milestone priority.
 
 ## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
 
@@ -221,9 +227,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **v1.20 Scale and Governance Depth** — Close the lifecycle-management milestone on the repaired authority layer instead of the old v1.19 surface.
-- [ ] **Phase 80 current-tree truth-repair** — INFRA evidence is closed and the milestone surface is trustworthy again.
-- [ ] **Phases 81-84 runtime closure** — Finish retention supervision, saved-view actor handoff, built-in export lifecycle, and adapter-backed delivery with end-to-end verification.
+- [ ] **SCOPE-01 / SCOPE-02 / SCOPE-03** — Turn the support-safe lane into a truthful current-tree claim: every support-visible read path must be scope-enforced or explicitly unavailable, with row history / as-of handled conservatively.
+- [ ] **AUTH-01 / AUTH-02** — Keep one shared `%{assigns: assigns}` auth contract across LiveView and export, with support read-only by default and export posture explicitly separate.
+- [ ] **ADOPT-01 / ADOPT-02 / ADOPT-03** — Ship one canonical `/audit` mount recipe and runnable example-app proof without adding a Threadline-owned role or tenancy model.
+- [ ] **UX-01 / UX-02 / DOC-01 / DOC-02** — Align operator UX, docs, example behavior, and contract tests around the exact support lane Threadline proves in v1.21.
 
 ### Out of Scope
 
@@ -283,6 +290,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.18 ships exports UI as "download current view" only (sync `iodata` for small windows, chunked stream for large), not queued/Oban-backed | Adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters / file expiry / status pages are platform creep that contradicts "lib not platform." Sidekiq Pro hit memory pain on in-process CSV before adding streaming; Backpex / Linear / GitHub-style sync downloads are the right ceiling at our stage. Queued-with-link-when-ready is what large products (CloudTrail, Sentry, GitHub audit-log) ship after sync hits a wall — Threadline hasn't hit that wall, so the design would be speculative. Revisit in v1.20 once real adopters report row-cap pain on real incidents. | ✓ Shipped in v1.18 |
 | v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | ✓ Shipped in v1.18 |
 | v1.19 focuses on integration breadth and extraction readiness, not deeper operator product scope | The next leverage point is reducing host-specific glue and tightening proven compatibility claims. Saved views, retention admin capture machinery, queued exports, and mutable policy UI all add product surface or infrastructure without making adoption easier across hosts. `threadline_web` should remain a measured future decision unless real adopter pressure proves otherwise. | — Active (opened 2026-05-07) |
+| v1.21 will productize the mount contract, not the auth model | The strongest remaining adoption gap is a truthful scoped support lane on `/audit`. The library should prove one host-owned path end to end, keep exports as a separate privileged capability, and avoid inventing RBAC or tenancy DSLs. | — Active (opened 2026-05-24) |
 
 ## Evolution
 
@@ -304,4 +312,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-24 — v1.20 shipped and the planning surface now points at the next milestone definition cycle.*
+*Last updated: 2026-05-24 — opened v1.21 Scoped Support / Operator Proof after a research-first milestone definition pass.*
