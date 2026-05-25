@@ -16,8 +16,9 @@ The milestone strategy is:
 - keep one canonical `/audit` mount
 - keep auth and tenant semantics host-owned
 - keep exports as a separate privileged capability
-- close support-visible unscoped read paths and prove the support-scoped row history / as-of claim on the current tree
-- lock docs, example behavior, and tests around the exact proven claim
+- prove one exact support-lane claim on the current tree: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams
+- keep coverage and policy surfaces explicit as admin/global or unsupported for support-scoped sessions
+- lock docs, example behavior, and tests around that exact proven claim
 
 ## Phases
 
@@ -62,11 +63,10 @@ The milestone strategy is:
 
 **Goal**: The named support lane is contract-tested, docs-locked, and verified on the current tree.  
 **Depends on**: Phase 87, Phase 88  
-**Plans**: 2-3 plans
+**Plans**: 2 plans
 
 - [x] 89-01: Public docs, support matrix, and example contract lock
 - [x] 89-02: End-to-end verification and Nyquist closeout
-- [ ] 89-03: Optional roadmap / milestone-surface reconciliation if closeout reveals drift
 
 ### Phase 90: Phase 85 Verification Backfill
 
@@ -114,21 +114,21 @@ The milestone strategy is:
 
 ### Phase 94: Authority-Surface Reconciliation & Milestone Re-Audit
 
-**Goal**: Reconcile roadmap/state truth with the verified contract, close the Phase 89 follow-up, and re-run the milestone closeout chain honestly.  
+**Goal**: Reconcile the active milestone authority surfaces around the exact proven support-lane clause, then re-run closeout readiness on the repaired tree.  
 **Depends on**: Phase 93  
 **Requirements**: DOC-01, DOC-02  
-**Gap Closure**: Closes Phase 89 authority drift plus milestone closeout flow gaps from the v1.21 audit  
+**Gap Closure**: Closes the last authority-surface drift and milestone closeout flow gaps from the v1.21 audit  
 **Plans**: 2 plans
 
-- [ ] 94-01: Reconcile authoritative milestone surfaces with the verified support-lane contract
+- [ ] 94-01: Reconcile active milestone authority surfaces with the verified support-lane contract
 - [ ] 94-02: Re-run milestone verification and audit for v1.21 closeout readiness
 
 ## Milestone Summary
 
 **Target outcomes:**
 
-- Support-safe operator access is a real first-party Threadline lane, not just a callback pattern plus prose.
-- The exact claim boundary is honest on the current tree, especially around row history / as-of and export posture.
+- Support-lane operator access is a real first-party Threadline lane, not just a callback pattern plus prose.
+- The active milestone contract repeats the exact proven set: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
 - Adopters get one canonical `/audit` recipe with host-owned auth and scope semantics.
 - The example app, guides, and tests all prove the same support-lane story.
 
