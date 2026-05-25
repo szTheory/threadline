@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: — Scoped Support / Operator Proof
 status: ready_for_closeout
-last_updated: "2026-05-25T16:18:47Z"
+last_updated: "2026-05-25T16:25:55.005Z"
 last_activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict completed
 progress:
   total_phases: 10
@@ -63,6 +63,8 @@ Last activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict
 - 2026-05-25: Phase 92 backfilled the missing Phase 87 verification chain, created `87-VERIFICATION.md` and `87-VALIDATION.md`, and closed `ADOPT-01` plus `ADOPT-02` against the current-tree canonical `/audit` and example-host proof.
 - 2026-05-25: Phase 93 backfilled the missing Phase 88 verification chain, created `88-VERIFICATION.md` and `88-VALIDATION.md`, and closed `AUTH-01`, `UX-01`, and `UX-02` against the current-tree denial/fallback proof.
 - 2026-05-25: Phase 94 reran `mix verify.doc_contract`, `mix verify.example`, and the targeted root support-lane suite; wrote `94-VERIFICATION.md` / `94-VALIDATION.md`; refreshed the v1.21 milestone audit; and closed `DOC-01` plus `DOC-02` only after the rerun evidence stayed green.
+- [Phase 94]: Treated the Phase 94 rerun bundle as the only authority for closing DOC-01 and DOC-02; 94-01 summary frontmatter was explicitly non-authoritative. — Requirement closure stayed tied to current-tree rerun evidence and the refreshed audit, not inherited summary metadata.
+- [Phase 94]: Passed the refreshed milestone audit while keeping plan-level 90/91 validation frontmatter drift documented as non-blocking tech debt because the canonical 85/86 phase artifacts are finalized. — The stale draft frontmatter no longer changes milestone truth because the canonical phase artifacts and final rerun bundle are green.
 
 ### Todos
 
