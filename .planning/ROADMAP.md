@@ -1,8 +1,8 @@
 # Milestone v1.21: Scoped Support / Operator Proof
 
-**Status:** Active
+**Status:** Ready for Closeout
 **Phases:** 85-94
-**Total Plans:** 22 tracked
+**Total Plans:** 21 tracked
 
 ## Overview
 
@@ -37,9 +37,9 @@ The milestone strategy is:
 **Depends on**: Phase 85  
 **Plans**: 3 plans
 
-- [ ] 86-01-PLAN.md — Coverage dashboard authorization and routing
-- [ ] 86-02-PLAN.md — Coverage UI badge explicit gating
-- [ ] 86-03-PLAN.md — Row history and As-Of scoping implementation
+- [x] 86-01: Coverage dashboard authorization and routing
+- [x] 86-02: Coverage UI badge explicit gating
+- [x] 86-03: Row history and As-Of scoping implementation
 
 ### Phase 87: Canonical Mount Recipe & Example-App Proof
 
@@ -47,8 +47,8 @@ The milestone strategy is:
 **Depends on**: Phase 86  
 **Plans**: 2 plans
 
-- [ ] 87-01-PLAN.md — Canonical `/audit` mount recipe and minimal surface controls
-- [ ] 87-02-PLAN.md — Example Phoenix support-lane proof and doc alignment
+- [x] 87-01: Canonical `/audit` mount recipe and minimal surface controls
+- [x] 87-02: Example Phoenix support-lane proof and doc alignment
 
 ### Phase 88: Denial / Fallback UX Closure
 
@@ -120,8 +120,8 @@ The milestone strategy is:
 **Gap Closure**: Closes the last authority-surface drift and milestone closeout flow gaps from the v1.21 audit  
 **Plans**: 2 plans
 
-- [ ] 94-01: Reconcile active milestone authority surfaces with the verified support-lane contract
-- [ ] 94-02: Re-run milestone verification and audit for v1.21 closeout readiness
+- [x] 94-01: Reconcile active milestone authority surfaces with the verified support-lane contract
+- [x] 94-02: Re-run milestone verification and audit for v1.21 closeout readiness
 
 ## Milestone Summary
 
@@ -131,12 +131,11 @@ The milestone strategy is:
 - The active milestone contract repeats the exact proven set: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
 - Adopters get one canonical `/audit` recipe with host-owned auth and scope semantics.
 - The example app, guides, and tests all prove the same support-lane story.
+- The refreshed Phase 94 audit is green, so v1.21 is ready for milestone closeout on the current tree.
 
 **Explicit non-goals:**
 
 - No Threadline-owned RBAC, role DSL, or tenancy DSL.
 - No separate first-class support UI family.
 - No broad policy/compliance expansion in this milestone.
-- No new package split or `threadline_web` extraction work.
-in this milestone.
 - No new package split or `threadline_web` extraction work.

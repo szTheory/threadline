@@ -29,8 +29,8 @@
 
 ### Documentation & Verification (DOC)
 
-- [ ] **DOC-01**: Public guides, example docs, and support-matrix guidance explicitly distinguish what Threadline proves, what remains host-owned, and what is out of scope for v1.21.
-- [ ] **DOC-02**: Contract and integration tests lock the named support lane end to end on the current tree.
+- [x] **DOC-01**: Public guides, example docs, and support-matrix guidance explicitly distinguish what Threadline proves, what remains host-owned, and what is out of scope for v1.21.
+- [x] **DOC-02**: Contract and integration tests lock the named support lane end to end on the current tree.
 
 ## v2 Requirements
 
@@ -63,8 +63,8 @@
 | ADOPT-03 | Phase 90 | Complete |
 | UX-01 | Phase 93 | Complete |
 | UX-02 | Phase 93 | Complete |
-| DOC-01 | Phase 94 | Pending |
-| DOC-02 | Phase 94 | Pending |
+| DOC-01 | Phase 94 | Complete |
+| DOC-02 | Phase 94 | Complete |
 
 **Coverage:**
 - v1 requirements: 12 total
@@ -73,4 +73,4 @@
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-25 after Phase 93 current-tree verification backfill*
+*Last updated: 2026-05-25 after Phase 94 closeout rerun and refreshed milestone audit*

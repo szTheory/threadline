@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: — Scoped Support / Operator Proof
-status: executing
-last_updated: "2026-05-25T16:11:50.559Z"
-last_activity: 2026-05-25 -- Phase 94 execution started
+status: ready_for_closeout
+last_updated: "2026-05-25T16:18:47Z"
+last_activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict completed
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 21
-  completed_plans: 19
-  percent: 90
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-Phase: 94 (authority-surface-reconciliation-and-closeout) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 94
-Last activity: 2026-05-25 -- Phase 94 execution started
+Phase: 94 (authority-surface-reconciliation-and-closeout) — COMPLETE
+Plan: 2 of 2
+Status: v1.21 proof chain is phase-complete and ready for milestone closeout
+Last activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict completed
 
 ## Performance Metrics
 
 - **Total Phases**: 10 (Phases 85-94) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 9 of 10 phases complete and 19 of 21 tracked plans complete for v1.21
-- **Requirements Covered**: 10 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`)
+- **Phases Completed**: 10 of 10 phases complete and 21 of 21 tracked plans complete for v1.21
+- **Requirements Covered**: 12 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`, `DOC-01`, `DOC-02`)
 - **Last Milestone**: v1.20 — Scale and Governance Depth (shipped 2026-05-24)
-- **Milestone Readiness**: 9 of 10 phases are complete; Phase 94 is the authority-reconciliation and closeout-readiness pass.
+- **Milestone Readiness**: GREEN. The named proof rerun, Phase 94 artifacts, and refreshed `v1.21-MILESTONE-AUDIT.md` now agree that v1.21 is ready for milestone closeout.
 
 ## Accumulated Context
 
@@ -62,21 +62,20 @@ Last activity: 2026-05-25 -- Phase 94 execution started
 - 2026-05-25: Phase 91 backfilled the missing Phase 86 verification chain, added explicit query/helper/mounted proof for support-scoped row history / as-of, repaired `TransactionLive` repo threading for the mounted history path, and closed `SCOPE-01` plus `SCOPE-02` on the current tree.
 - 2026-05-25: Phase 92 backfilled the missing Phase 87 verification chain, created `87-VERIFICATION.md` and `87-VALIDATION.md`, and closed `ADOPT-01` plus `ADOPT-02` against the current-tree canonical `/audit` and example-host proof.
 - 2026-05-25: Phase 93 backfilled the missing Phase 88 verification chain, created `88-VERIFICATION.md` and `88-VALIDATION.md`, and closed `AUTH-01`, `UX-01`, and `UX-02` against the current-tree denial/fallback proof.
+- 2026-05-25: Phase 94 reran `mix verify.doc_contract`, `mix verify.example`, and the targeted root support-lane suite; wrote `94-VERIFICATION.md` / `94-VALIDATION.md`; refreshed the v1.21 milestone audit; and closed `DOC-01` plus `DOC-02` only after the rerun evidence stayed green.
 
 ### Todos
 
-- [ ] Execute Phase 94 to reconcile authority surfaces, close `DOC-01` / `DOC-02`, and re-audit milestone closeout readiness.
+- [ ] Run milestone closeout for v1.21 using the refreshed green audit and Phase 94 summary bundle.
 
 ### Blockers
 
-- None blocking milestone start.
-- Documentation drift: `guides/how-threadline-works.md` still understates shipped governance/export scope.
-- Runtime hardening follow-up: retention-history LiveView tests still reveal `Threadline.Export.TaskSupervisor` naming collision under repeated `Threadline.Application` startup.
+- None. Phase 94 closed the remaining milestone blockers for v1.21.
 
 ## Session Continuity
 
-- **Last Action**: Closed Phase 93 by creating the missing Phase 88 verification artifacts and marking `AUTH-01`, `UX-01`, and `UX-02` complete on the current tree.
-- **Next Step**: Execute Phase 94. Reconcile authority surfaces, close `DOC-01` / `DOC-02`, and re-audit milestone closeout readiness.
+- **Last Action**: Closed Phase 94 by rerunning the named proof surfaces, refreshing the v1.21 milestone audit, and closing `DOC-01` / `DOC-02` on green evidence.
+- **Next Step**: Complete milestone closeout for v1.21.
 
 ## Deferred Items
 
