@@ -127,14 +127,19 @@ If you are dropping Threadline into your SaaS, you are hiring it to do four very
 
 The library exists to make those personas overlap cleanly instead of forcing each one to build a different audit story.
 
-## The Delta to "Done" (Future Roadmap)
+## What already landed around the core
 
-While the read/write core is established, we are targeting four major scale capabilities for future milestones (v1.20+):
+The core capture + semantics + investigation loop is no longer standing alone.
+Threadline already ships the governance and operator-lifecycle layer that used
+to sit on the near-term roadmap:
 
-- **"Don't OOM My Database" (Lifecycle & Pruning):** Let adopters safely prune old audit logs without locking the production DB or writing manual, autovacuum-aware batching scripts.
-- **"The Massive Egress" (Async Scale Adapters):** Let operators export massive datasets (millions of rows) in the background via Oban and stream them safely to local disk or S3.
-- **"The Daily Driver" (Operator Ergonomics):** Let ops teams save, name, and share their frequent queries so they don't have to rebuild them.
-- **"The Enterprise Firehose" (Streaming / SIEM):** Provide a clean hook to stream captured events out to an external data sink (like Datadog/Splunk) in near-real-time.
+- **Lifecycle & Pruning:** retention admin with visible purge history and safe batched cleanup.
+- **Async Export Delivery:** queued or scheduled exports with status visibility, expiry cleanup, and backend-aware delivery seams.
+- **Operator Ergonomics:** saved views for repeated investigations without inventing a Threadline-owned auth model.
+
+Those capabilities matter because they keep the investigation surface usable
+once an adopter moves beyond a single incident and starts operating Threadline
+as recurring support infrastructure.
 
 ## The Line of Diminishing Returns
 
@@ -186,10 +191,9 @@ That evolution matters because the library did not start as a product-console pr
 
 The next chunks that feel naturally adjacent are:
 
-- retention admin with visible last-purge history and operator feedback
-- saved views or bookmarks for repeated investigations
-- queued or scheduled exports with a status surface
 - broader first-party host adapters beyond the current Sigra reference path
+- deeper proof around how different hosts expose the support lane without widening Threadline into its own auth product
+- extraction pressure checks for whether a separate UI package is ever worth the maintenance cost
 - a `threadline_web` split only if objective extraction triggers show up
 
 Those are the kinds of problems that usually belong in the next milestone once adopters start using the current surface for real.
