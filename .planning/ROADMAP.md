@@ -1,8 +1,8 @@
 # Milestone v1.21: Scoped Support / Operator Proof
 
 **Status:** Active
-**Phases:** 85-89
-**Total Plans:** 10-12 expected
+**Phases:** 85-94
+**Total Plans:** 15-17 expected
 
 ## Overview
 
@@ -55,8 +55,8 @@ The milestone strategy is:
 **Depends on**: Phase 86, Phase 87  
 **Plans**: 2 plans
 
-- [ ] 88-01: Export denial / affordance parity across LiveView and HTTP
-- [ ] 88-02: Unsupported-surface messaging and fallback transport closure
+- [x] 88-01: Export denial / affordance parity across LiveView and HTTP
+- [x] 88-02: Unsupported-surface messaging and fallback transport closure
 
 ### Phase 89: Contract Lock & Final Verification
 
@@ -64,9 +64,64 @@ The milestone strategy is:
 **Depends on**: Phase 87, Phase 88  
 **Plans**: 2-3 plans
 
-- [ ] 89-01: Public docs, support matrix, and example contract lock
-- [ ] 89-02: End-to-end verification and Nyquist closeout
+- [x] 89-01: Public docs, support matrix, and example contract lock
+- [x] 89-02: End-to-end verification and Nyquist closeout
 - [ ] 89-03: Optional roadmap / milestone-surface reconciliation if closeout reveals drift
+
+### Phase 90: Phase 85 Verification Backfill
+
+**Goal**: Close the unverified Phase 85 claim boundary with explicit current-tree proof and requirement closure.  
+**Depends on**: Phase 89  
+**Requirements**: SCOPE-03, AUTH-02, ADOPT-03  
+**Gap Closure**: Closes Phase 85 verification-chain gaps from the v1.21 audit  
+**Plans**: 1-2 plans
+
+- [ ] 90-01: Re-verify Phase 85 support-lane claim, callback contract, and minimal-controls boundary
+- [ ] 90-02: Add Phase 85 verification artifact and requirement closure evidence
+
+### Phase 91: Phase 86 Verification Backfill
+
+**Goal**: Close the unverified Phase 86 scoped read-path work with explicit proof for support-scoped visibility and row-history / as-of behavior.  
+**Depends on**: Phase 90  
+**Requirements**: SCOPE-01, SCOPE-02  
+**Gap Closure**: Closes Phase 86 verification-chain gaps from the v1.21 audit  
+**Plans**: 1-2 plans
+
+- [ ] 91-01: Re-verify scoped read-path enforcement on the current tree
+- [ ] 91-02: Add Phase 86 verification artifact and evidence for row-history / as-of truth
+
+### Phase 92: Phase 87 Verification Backfill
+
+**Goal**: Close the unverified canonical mount and example-app proof with explicit adopter-facing verification artifacts.  
+**Depends on**: Phase 91  
+**Requirements**: ADOPT-01, ADOPT-02  
+**Gap Closure**: Closes Phase 87 verification-chain gaps from the v1.21 audit  
+**Plans**: 1-2 plans
+
+- [ ] 92-01: Re-verify the canonical `/audit` mount recipe and example-app proof
+- [ ] 92-02: Add Phase 87 verification artifact and requirement closure evidence
+
+### Phase 93: Phase 88 Verification Backfill
+
+**Goal**: Close the unverified denial / fallback UX work with explicit proof across LiveView, HTTP, docs, and tests.  
+**Depends on**: Phase 92  
+**Requirements**: AUTH-01, UX-01, UX-02  
+**Gap Closure**: Closes Phase 88 verification-chain gaps from the v1.21 audit  
+**Plans**: 1-2 plans
+
+- [ ] 93-01: Re-verify export denial, fallback UX, and support-lane guidance on the current tree
+- [ ] 93-02: Add Phase 88 verification artifact and requirement closure evidence
+
+### Phase 94: Authority-Surface Reconciliation & Milestone Re-Audit
+
+**Goal**: Reconcile roadmap/state truth with the verified contract, close the Phase 89 follow-up, and re-run the milestone closeout chain honestly.  
+**Depends on**: Phase 93  
+**Requirements**: DOC-01, DOC-02  
+**Gap Closure**: Closes Phase 89 authority drift plus milestone closeout flow gaps from the v1.21 audit  
+**Plans**: 2 plans
+
+- [ ] 94-01: Reconcile authoritative milestone surfaces with the verified support-lane contract
+- [ ] 94-02: Re-run milestone verification and audit for v1.21 closeout readiness
 
 ## Milestone Summary
 

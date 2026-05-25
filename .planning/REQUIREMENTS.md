@@ -53,18 +53,18 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCOPE-01 | Phase 86 | Pending |
-| SCOPE-02 | Phase 86 | Pending |
-| SCOPE-03 | Phase 85 | Pending |
-| AUTH-01 | Phase 88 | Pending |
-| AUTH-02 | Phase 85 | Pending |
-| ADOPT-01 | Phase 87 | Pending |
-| ADOPT-02 | Phase 87 | Pending |
-| ADOPT-03 | Phase 85 | Pending |
-| UX-01 | Phase 88 | Pending |
-| UX-02 | Phase 88 | Pending |
-| DOC-01 | Phase 89 | Pending |
-| DOC-02 | Phase 89 | Pending |
+| SCOPE-01 | Phase 91 | Pending |
+| SCOPE-02 | Phase 91 | Pending |
+| SCOPE-03 | Phase 90 | Pending |
+| AUTH-01 | Phase 93 | Pending |
+| AUTH-02 | Phase 90 | Pending |
+| ADOPT-01 | Phase 92 | Pending |
+| ADOPT-02 | Phase 92 | Pending |
+| ADOPT-03 | Phase 90 | Pending |
+| UX-01 | Phase 93 | Pending |
+| UX-02 | Phase 93 | Pending |
+| DOC-01 | Phase 94 | Pending |
+| DOC-02 | Phase 94 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
@@ -73,4 +73,4 @@
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-24 after milestone v1.21 definition*
+*Last updated: 2026-05-25 after milestone v1.21 gap-closure planning*
