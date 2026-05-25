@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: — Scoped Support / Operator Proof
-status: ready
-last_updated: "2026-05-25T15:40:00Z"
-last_activity: 2026-05-25 -- Phase 93 verification backfill complete
+status: executing
+last_updated: "2026-05-25T16:11:50.559Z"
+last_activity: 2026-05-25 -- Phase 94 execution started
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 19
+  total_plans: 21
   completed_plans: 19
   percent: 90
 ---
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.21 — Scoped Support / Operator Proof. One canonical `/audit` mount, host-owned auth and scope semantics, and a truthful support-safe claim on the current tree.
+**Current Focus**: v1.21 — Scoped Support / Operator Proof. One canonical `/audit` mount, host-owned auth and scope semantics, and one exact proven support-lane claim on the current tree: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
 
 ## Current Position
 
-Phase: 93 (phase-88-verification-backfill) — COMPLETE
-Plan: 2 of 2
-Status: Ready to execute next phase
-Last activity: 2026-05-25 -- Phase 93 verification backfill complete
+Phase: 94 (authority-surface-reconciliation-and-closeout) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 94
+Last activity: 2026-05-25 -- Phase 94 execution started
 
 ## Performance Metrics
 
 - **Total Phases**: 10 (Phases 85-94) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 9 of 10 phases complete and 19 of 19 tracked plans complete for v1.21
+- **Phases Completed**: 9 of 10 phases complete and 19 of 21 tracked plans complete for v1.21
 - **Requirements Covered**: 10 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`)
 - **Last Milestone**: v1.20 — Scale and Governance Depth (shipped 2026-05-24)
-- **Milestone Readiness**: v1.21 opened on 2026-05-24
+- **Milestone Readiness**: 9 of 10 phases are complete; Phase 94 is the authority-reconciliation and closeout-readiness pass.
 
 ## Accumulated Context
 
@@ -65,7 +65,7 @@ Last activity: 2026-05-25 -- Phase 93 verification backfill complete
 
 ### Todos
 
-- [ ] Execute Phase 94 to reconcile authority surfaces and re-audit milestone closeout readiness.
+- [ ] Execute Phase 94 to reconcile authority surfaces, close `DOC-01` / `DOC-02`, and re-audit milestone closeout readiness.
 
 ### Blockers
 
@@ -76,7 +76,7 @@ Last activity: 2026-05-25 -- Phase 93 verification backfill complete
 ## Session Continuity
 
 - **Last Action**: Closed Phase 93 by creating the missing Phase 88 verification artifacts and marking `AUTH-01`, `UX-01`, and `UX-02` complete on the current tree.
-- **Next Step**: Execute Phase 94. Reconcile authority surfaces and re-audit milestone closeout readiness.
+- **Next Step**: Execute Phase 94. Reconcile authority surfaces, close `DOC-01` / `DOC-02`, and re-audit milestone closeout readiness.
 
 ## Deferred Items
 

@@ -15,13 +15,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
-- Two must-have screens (incident drill-down rendering `Threadline.incident_bundle/2`, actor window rendering `actor_history/2`) plus the row history + as-of sub-view rendering `Threadline.history/3` + `Threadline.as_of/4`; `mix threadline.incident <transaction_id>` ships parity data for no-LiveView operators.
+- Shared `/audit` support-lane proof now covers the exact mounted set the repo verifies today: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams; `mix threadline.incident <transaction_id>` ships transaction parity for no-LiveView operators.
 - Mount-time auth contract: host-mount default + optional `:authorize_fn`, fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn` returned scopes are threaded into investigation queries.
 - Doc-contract test locks the macro signature, route literals, and auth section; CHANGELOG, `guides/operator-surface.md`, README, production checklist, and the example app are aligned end-to-end behind a `phx.gen.auth`-style admin pipeline.
 - Raw timeline browse at `/audit` now ships with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, shared filter validation, and locked filter-vocabulary doc contracts.
 - Operators can download the current timeline view as CSV / wrapped JSON / NDJSON with pre-flight match counts, RFC 5987 filenames, sync-or-chunked delivery based on row count, and byte-parity coverage against `mix threadline.export`.
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
+
+**Current closeout focus:** Phase 94 is a bounded authority-surface repair. The remaining v1.21 work is to reconcile the active milestone files and rerun the milestone audit so `DOC-01` and `DOC-02` close against the same current-tree story the repo now proves.
 
 ## Latest Milestone Shipped: v1.20 Scale and Governance Depth
 
@@ -227,10 +229,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **SCOPE-01 / SCOPE-02 / SCOPE-03** — Turn the support-safe lane into a truthful current-tree claim: every support-visible read path must be scope-enforced or explicitly unavailable, with row history / as-of handled conservatively.
+- [x] **SCOPE-01 / SCOPE-02 / SCOPE-03** — The current tree now proves the truthful support-lane claim: timeline, actor, transaction, support-scoped row history / as-of, and explicit denial or fallback where support-scoped sessions are not allowed.
 - [x] **AUTH-01 / AUTH-02** — Keep one shared `%{assigns: assigns}` auth contract across LiveView and export, with support read-only by default and export posture explicitly separate.
 - [x] **ADOPT-01 / ADOPT-02 / ADOPT-03** — Ship one canonical `/audit` mount recipe and runnable example-app proof without adding a Threadline-owned role or tenancy model.
-- [ ] **UX-01 / UX-02 / DOC-01 / DOC-02** — Align operator UX, docs, example behavior, and contract tests around the exact support lane Threadline proves in v1.21. `UX-01` and `UX-02` closed in Phase 93; `DOC-01` and `DOC-02` remain queued for Phase 94 authority reconciliation.
+- [x] **UX-01 / UX-02** — Operator UX, denial posture, and fallback transport are now closed on the current tree through the Phase 93 verification backfill.
+- [ ] **DOC-01 / DOC-02** — Phase 94 remains open only to reconcile the authority surfaces and milestone closeout artifacts around the exact support lane Threadline proves in v1.21.
 
 ### Out of Scope
 
@@ -290,7 +293,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.18 ships exports UI as "download current view" only (sync `iodata` for small windows, chunked stream for large), not queued/Oban-backed | Adding Oban as a hard dep walks back the v1.17 optional-deps win, and storage adapters / file expiry / status pages are platform creep that contradicts "lib not platform." Sidekiq Pro hit memory pain on in-process CSV before adding streaming; Backpex / Linear / GitHub-style sync downloads are the right ceiling at our stage. Queued-with-link-when-ready is what large products (CloudTrail, Sentry, GitHub audit-log) ship after sync hits a wall — Threadline hasn't hit that wall, so the design would be speculative. Revisit in v1.20 once real adopters report row-cap pain on real incidents. | ✓ Shipped in v1.18 |
 | v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | ✓ Shipped in v1.18 |
 | v1.19 focuses on integration breadth and extraction readiness, not deeper operator product scope | The next leverage point is reducing host-specific glue and tightening proven compatibility claims. Saved views, retention admin capture machinery, queued exports, and mutable policy UI all add product surface or infrastructure without making adoption easier across hosts. `threadline_web` should remain a measured future decision unless real adopter pressure proves otherwise. | — Active (opened 2026-05-07) |
-| v1.21 will productize the mount contract, not the auth model | The strongest remaining adoption gap is a truthful scoped support lane on `/audit`. The library should prove one host-owned path end to end, keep exports as a separate privileged capability, and avoid inventing RBAC or tenancy DSLs. | — Active (opened 2026-05-24) |
+| v1.21 will productize the mount contract, not the auth model | The strongest remaining adoption gap was a truthful scoped support lane on `/audit`. The current tree now proves one host-owned path end to end, and Phase 94 is closing the authority and audit surfaces around that proof without inventing RBAC or tenancy DSLs. | — Active closeout (opened 2026-05-24) |
 
 ## Evolution
 
