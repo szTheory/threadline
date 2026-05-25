@@ -2,7 +2,7 @@
 
 **Status:** Active
 **Phases:** 85-94
-**Total Plans:** 15-17 expected
+**Total Plans:** 22 tracked
 
 ## Overview
 
@@ -16,7 +16,7 @@ The milestone strategy is:
 - keep one canonical `/audit` mount
 - keep auth and tenant semantics host-owned
 - keep exports as a separate privileged capability
-- close or explicitly disable any support-visible unscoped read path (Row history / as-of will be safely scoped via `scope_query_fn`, not disabled)
+- close support-visible unscoped read paths and prove the support-scoped row history / as-of claim on the current tree
 - lock docs, example behavior, and tests around the exact proven claim
 
 ## Phases
@@ -76,8 +76,8 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 85 verification-chain gaps from the v1.21 audit  
 **Plans**: 1-2 plans
 
-- [ ] 90-01: Re-verify Phase 85 support-lane claim, callback contract, and minimal-controls boundary
-- [ ] 90-02: Add Phase 85 verification artifact and requirement closure evidence
+- [x] 90-01: Re-verify Phase 85 support-lane claim, callback contract, and minimal-controls boundary
+- [x] 90-02: Add Phase 85 verification artifact and requirement closure evidence
 
 ### Phase 91: Phase 86 Verification Backfill
 
@@ -87,8 +87,8 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 86 verification-chain gaps from the v1.21 audit  
 **Plans**: 1-2 plans
 
-- [ ] 91-01: Re-verify scoped read-path enforcement on the current tree
-- [ ] 91-02: Add Phase 86 verification artifact and evidence for row-history / as-of truth
+- [x] 91-01: Re-verify scoped read-path enforcement on the current tree
+- [x] 91-02: Add Phase 86 verification artifact and evidence for row-history / as-of truth
 
 ### Phase 92: Phase 87 Verification Backfill
 
@@ -98,8 +98,8 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 87 verification-chain gaps from the v1.21 audit  
 **Plans**: 1-2 plans
 
-- [ ] 92-01: Re-verify the canonical `/audit` mount recipe and example-app proof
-- [ ] 92-02: Add Phase 87 verification artifact and requirement closure evidence
+- [x] 92-01: Re-verify the canonical `/audit` mount recipe and example-app proof
+- [x] 92-02: Add Phase 87 verification artifact and requirement closure evidence
 
 ### Phase 93: Phase 88 Verification Backfill
 
@@ -109,8 +109,8 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 88 verification-chain gaps from the v1.21 audit  
 **Plans**: 1-2 plans
 
-- [ ] 93-01: Re-verify export denial, fallback UX, and support-lane guidance on the current tree
-- [ ] 93-02: Add Phase 88 verification artifact and requirement closure evidence
+- [x] 93-01: Re-verify export denial, fallback UX, and support-lane guidance on the current tree
+- [x] 93-02: Add Phase 88 verification artifact and requirement closure evidence
 
 ### Phase 94: Authority-Surface Reconciliation & Milestone Re-Audit
 

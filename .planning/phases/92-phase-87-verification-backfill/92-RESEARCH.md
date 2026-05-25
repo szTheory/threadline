@@ -293,12 +293,12 @@ Source: `examples/threadline_phoenix/test/threadline_phoenix_web/operator_surfac
 |---|-------|---------|---------------|
 | — | None. All material claims in this research were verified in-session or cited from repo artifacts / official docs. | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 92 update authority surfaces beyond `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md`?**
    - What we know: The current public docs and example proof passed as-is, and requirement status is still pending. [VERIFIED: targeted test runs, REQUIREMENTS.md]
-   - What's unclear: Whether execution will find any truth drift that requires `.planning/PROJECT.md` reconciliation under D-08. [VERIFIED: CONTEXT.md]
-   - Recommendation: Default to no broader authority edits; only widen the scope if the current-tree re-verification uncovers a real contradiction. [VERIFIED: CONTEXT.md]
+   - Resolution: Default to no broader authority edits. Execution should update `.planning/PROJECT.md` only if the current-tree re-verification uncovers a real contradiction between the verified claim boundary and the milestone thesis under D-08; otherwise the authority-surface follow-up is limited to Phase 87 artifacts plus any requirement/status bookkeeping that changes with the verdict. [VERIFIED: CONTEXT.md, current passing proof runs]
+   - Status: RESOLVED.
 
 ## Environment Availability
 

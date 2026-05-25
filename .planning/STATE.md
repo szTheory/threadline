@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.21
 milestone_name: — Scoped Support / Operator Proof
-status: executing
-last_updated: "2026-05-25T06:32:06.341Z"
-last_activity: 2026-05-25 -- Phase 89 execution started
+status: ready
+last_updated: "2026-05-25T15:40:00Z"
+last_activity: 2026-05-25 -- Phase 93 verification backfill complete
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 9
-  percent: 80
+  total_phases: 10
+  completed_phases: 9
+  total_plans: 19
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State: Threadline
@@ -22,16 +22,16 @@ progress:
 
 ## Current Position
 
-Phase: 89 (contract-lock-final-verification) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 89
-Last activity: 2026-05-25 -- Phase 89 execution started
+Phase: 93 (phase-88-verification-backfill) — COMPLETE
+Plan: 2 of 2
+Status: Ready to execute next phase
+Last activity: 2026-05-25 -- Phase 93 verification backfill complete
 
 ## Performance Metrics
 
-- **Total Phases**: 5 (Phases 85-89) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 0 of 5 and 0 of 11 plans complete for v1.21
-- **Requirements Covered**: 0 of 12 mapped for v1.21 (SCOPE 3, AUTH 2, ADOPT 3, UX 2, DOC 2)
+- **Total Phases**: 10 (Phases 85-94) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 9 of 10 phases complete and 19 of 19 tracked plans complete for v1.21
+- **Requirements Covered**: 10 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`)
 - **Last Milestone**: v1.20 — Scale and Governance Depth (shipped 2026-05-24)
 - **Milestone Readiness**: v1.21 opened on 2026-05-24
 
@@ -58,10 +58,14 @@ Last activity: 2026-05-25 -- Phase 89 execution started
 - 2026-05-24: v1.21 was opened after a research-first milestone pass. Recommendation set: keep one canonical `/audit` mount, keep auth and tenant semantics host-owned, keep export as a separate privileged capability, and avoid Threadline-owned RBAC or tenancy DSLs.
 - 2026-05-24: Current-tree audit found the main truth gap for the support lane: row history / as-of bypasses the support scope seam today, so the milestone must either scope that path honestly or make it unavailable for support-scoped sessions.
 - 2026-05-24: The GSD workflow defaults are already shifted left toward cohesive research and one-shot recommendations, with interactive questions reserved for high-impact decisions such as semver, security model, breaking public API, and scope cuts.
+- 2026-05-25: Phase 90 backfilled the missing Phase 85 verification chain, creating `85-VERIFICATION.md` and `85-VALIDATION.md` and closing `SCOPE-03`, `AUTH-02`, and `ADOPT-03` against the current-tree support-lane claim.
+- 2026-05-25: Phase 91 backfilled the missing Phase 86 verification chain, added explicit query/helper/mounted proof for support-scoped row history / as-of, repaired `TransactionLive` repo threading for the mounted history path, and closed `SCOPE-01` plus `SCOPE-02` on the current tree.
+- 2026-05-25: Phase 92 backfilled the missing Phase 87 verification chain, created `87-VERIFICATION.md` and `87-VALIDATION.md`, and closed `ADOPT-01` plus `ADOPT-02` against the current-tree canonical `/audit` and example-host proof.
+- 2026-05-25: Phase 93 backfilled the missing Phase 88 verification chain, created `88-VERIFICATION.md` and `88-VALIDATION.md`, and closed `AUTH-01`, `UX-01`, and `UX-02` against the current-tree denial/fallback proof.
 
 ### Todos
 
-- [ ] Execute Phase 85 and lock the exact v1.21 support-lane claim before implementation widens.
+- [ ] Execute Phase 94 to reconcile authority surfaces and re-audit milestone closeout readiness.
 
 ### Blockers
 
@@ -71,8 +75,8 @@ Last activity: 2026-05-25 -- Phase 89 execution started
 
 ## Session Continuity
 
-- **Last Action**: Opened v1.21 and wrote fresh requirements plus phases 85-89 around the scoped support/operator lane.
-- **Next Step**: Start Phase 85. First force the support-lane claim to be explicit, especially the row history / as-of decision, before any broader UX or docs work lands.
+- **Last Action**: Closed Phase 93 by creating the missing Phase 88 verification artifacts and marking `AUTH-01`, `UX-01`, and `UX-02` complete on the current tree.
+- **Next Step**: Execute Phase 94. Reconcile authority surfaces and re-audit milestone closeout readiness.
 
 ## Deferred Items
 

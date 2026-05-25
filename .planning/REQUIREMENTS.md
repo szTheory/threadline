@@ -7,25 +7,25 @@
 
 ### Scoped Read Paths (SCOPE)
 
-- [ ] **SCOPE-01**: Support-scoped operators can only see records allowed by the host-owned scope across the supported `/audit` read paths.
-- [ ] **SCOPE-02**: Row history / as-of behavior for support-scoped sessions is honest and enforced end to end: either scope-aware with proof, or explicitly unavailable with proof and user-facing messaging.
-- [ ] **SCOPE-03**: The support-lane claim names exactly which operator surfaces are proven safe today and excludes the rest.
+- [x] **SCOPE-01**: Support-scoped operators can only see records allowed by the host-owned scope across the supported `/audit` read paths.
+- [x] **SCOPE-02**: Row history / as-of behavior for support-scoped sessions is honest and enforced end to end: either scope-aware with proof, or explicitly unavailable with proof and user-facing messaging.
+- [x] **SCOPE-03**: The support-lane claim names exactly which operator surfaces are proven safe today and excludes the rest.
 
 ### Authorization & Export Posture (AUTH)
 
-- [ ] **AUTH-01**: Support-scoped operators are read-only by default and cannot use export endpoints unless the host explicitly opts in through `export_authorize_fn`.
-- [ ] **AUTH-02**: One shared `%{assigns: assigns}` authorization callback remains the canonical contract across LiveView and HTTP export faces, with stable telemetry on granted / denied / error outcomes.
+- [x] **AUTH-01**: Support-scoped operators are read-only by default and cannot use export endpoints unless the host explicitly opts in through `export_authorize_fn`.
+- [x] **AUTH-02**: One shared `%{assigns: assigns}` authorization callback remains the canonical contract across LiveView and HTTP export faces, with stable telemetry on granted / denied / error outcomes.
 
 ### Adopter Recipes & Minimal Controls (ADOPT)
 
-- [ ] **ADOPT-01**: Threadline ships one canonical `/audit` mount recipe showing admin and support personas on the same host-owned route tree.
-- [ ] **ADOPT-02**: The example Phoenix app proves the canonical support lane with host-owned `scope_query_fn` narrowing and admin-only export posture.
-- [ ] **ADOPT-03**: Any new surface controls added in this milestone stay minimal and additive; Threadline does not introduce a role DSL, tenancy DSL, or policy engine.
+- [x] **ADOPT-01**: Threadline ships one canonical `/audit` mount recipe showing admin and support personas on the same host-owned route tree.
+- [x] **ADOPT-02**: The example Phoenix app proves the canonical support lane with host-owned `scope_query_fn` narrowing and admin-only export posture.
+- [x] **ADOPT-03**: Any new surface controls added in this milestone stay minimal and additive; Threadline does not introduce a role DSL, tenancy DSL, or policy engine.
 
 ### Operator UX & Proof (UX)
 
-- [ ] **UX-01**: Support-scoped operators get least-surprise UX: export affordances hidden when unavailable, export URLs still deny server-side, and unsupported support-lane views show explicit fallback messaging.
-- [ ] **UX-02**: Support-lane docs and example behavior stay aligned on fallback transports and “what to do instead” when a support-scoped operator hits an unavailable surface.
+- [x] **UX-01**: Support-scoped operators get least-surprise UX: export affordances hidden when unavailable, export URLs still deny server-side, and unsupported support-lane views show explicit fallback messaging.
+- [x] **UX-02**: Support-lane docs and example behavior stay aligned on fallback transports and “what to do instead” when a support-scoped operator hits an unavailable surface.
 
 ### Documentation & Verification (DOC)
 
@@ -53,16 +53,16 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCOPE-01 | Phase 91 | Pending |
-| SCOPE-02 | Phase 91 | Pending |
-| SCOPE-03 | Phase 90 | Pending |
-| AUTH-01 | Phase 93 | Pending |
-| AUTH-02 | Phase 90 | Pending |
-| ADOPT-01 | Phase 92 | Pending |
-| ADOPT-02 | Phase 92 | Pending |
-| ADOPT-03 | Phase 90 | Pending |
-| UX-01 | Phase 93 | Pending |
-| UX-02 | Phase 93 | Pending |
+| SCOPE-01 | Phase 91 | Complete |
+| SCOPE-02 | Phase 91 | Complete |
+| SCOPE-03 | Phase 90 | Complete |
+| AUTH-01 | Phase 93 | Complete |
+| AUTH-02 | Phase 90 | Complete |
+| ADOPT-01 | Phase 92 | Complete |
+| ADOPT-02 | Phase 92 | Complete |
+| ADOPT-03 | Phase 90 | Complete |
+| UX-01 | Phase 93 | Complete |
+| UX-02 | Phase 93 | Complete |
 | DOC-01 | Phase 94 | Pending |
 | DOC-02 | Phase 94 | Pending |
 
@@ -73,4 +73,4 @@
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-25 after milestone v1.21 gap-closure planning*
+*Last updated: 2026-05-25 after Phase 93 current-tree verification backfill*

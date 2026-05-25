@@ -228,9 +228,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 ### Active
 
 - [ ] **SCOPE-01 / SCOPE-02 / SCOPE-03** — Turn the support-safe lane into a truthful current-tree claim: every support-visible read path must be scope-enforced or explicitly unavailable, with row history / as-of handled conservatively.
-- [ ] **AUTH-01 / AUTH-02** — Keep one shared `%{assigns: assigns}` auth contract across LiveView and export, with support read-only by default and export posture explicitly separate.
-- [ ] **ADOPT-01 / ADOPT-02 / ADOPT-03** — Ship one canonical `/audit` mount recipe and runnable example-app proof without adding a Threadline-owned role or tenancy model.
-- [ ] **UX-01 / UX-02 / DOC-01 / DOC-02** — Align operator UX, docs, example behavior, and contract tests around the exact support lane Threadline proves in v1.21.
+- [x] **AUTH-01 / AUTH-02** — Keep one shared `%{assigns: assigns}` auth contract across LiveView and export, with support read-only by default and export posture explicitly separate.
+- [x] **ADOPT-01 / ADOPT-02 / ADOPT-03** — Ship one canonical `/audit` mount recipe and runnable example-app proof without adding a Threadline-owned role or tenancy model.
+- [ ] **UX-01 / UX-02 / DOC-01 / DOC-02** — Align operator UX, docs, example behavior, and contract tests around the exact support lane Threadline proves in v1.21. `UX-01` and `UX-02` closed in Phase 93; `DOC-01` and `DOC-02` remain queued for Phase 94 authority reconciliation.
 
 ### Out of Scope
 
