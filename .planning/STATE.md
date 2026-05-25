@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.21
-milestone_name: — Scoped Support / Operator Proof
-status: ready_for_closeout
-last_updated: "2026-05-25T16:25:55.005Z"
-last_activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict completed
+milestone: none
+milestone_name: Planning next milestone
+status: Awaiting next milestone
+last_updated: "2026-05-25T16:43:19.087Z"
+last_activity: 2026-05-25 — Milestone v1.21 completed and archived
 progress:
   total_phases: 10
   completed_phases: 10
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: v1.21 — Scoped Support / Operator Proof. One canonical `/audit` mount, host-owned auth and scope semantics, and one exact proven support-lane claim on the current tree: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
+**Current Focus**: Planning the next milestone from the shipped v1.21 baseline. Use `.planning/MILESTONE-ARC.md` as the ranking source of truth.
 
 ## Current Position
 
-Phase: 94 (authority-surface-reconciliation-and-closeout) — COMPLETE
-Plan: 2 of 2
-Status: v1.21 proof chain is phase-complete and ready for milestone closeout
-Last activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict completed
+Phase: Milestone v1.21 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-25 — Milestone v1.21 completed and archived
 
 ## Performance Metrics
 
 - **Total Phases**: 10 (Phases 85-94) — defined in `.planning/ROADMAP.md`
 - **Phases Completed**: 10 of 10 phases complete and 21 of 21 tracked plans complete for v1.21
 - **Requirements Covered**: 12 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`, `DOC-01`, `DOC-02`)
-- **Last Milestone**: v1.20 — Scale and Governance Depth (shipped 2026-05-24)
-- **Milestone Readiness**: GREEN. The named proof rerun, Phase 94 artifacts, and refreshed `v1.21-MILESTONE-AUDIT.md` now agree that v1.21 is ready for milestone closeout.
+- **Last Milestone**: v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)
+- **Milestone Readiness**: CLOSED. `v1.21` is archived and no active milestone is open.
 
 ## Accumulated Context
 
@@ -68,16 +68,16 @@ Last activity: 2026-05-25 -- Phase 94 rerun, audit refresh, and closeout verdict
 
 ### Todos
 
-- [ ] Run milestone closeout for v1.21 using the refreshed green audit and Phase 94 summary bundle.
+- [ ] Start `/gsd-new-milestone` and define the v1.22 requirements slice from `.planning/MILESTONE-ARC.md`.
 
 ### Blockers
 
-- None. Phase 94 closed the remaining milestone blockers for v1.21.
+- None.
 
 ## Session Continuity
 
-- **Last Action**: Closed Phase 94 by rerunning the named proof surfaces, refreshing the v1.21 milestone audit, and closing `DOC-01` / `DOC-02` on green evidence.
-- **Next Step**: Complete milestone closeout for v1.21.
+- **Last Action**: Archived v1.21, moved its roadmap/requirements/audit into `.planning/milestones/`, and collapsed the active planning surface for the next milestone.
+- **Next Step**: Open the next milestone requirements and roadmap with `/gsd-new-milestone`.
 
 ## Deferred Items
 
@@ -87,3 +87,7 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 |----------|------|--------|
 | seed | SEED-001-sigra-integration-adapter | acknowledged stale at close; promoted into Phase 44 and shipped in v1.14 |
 | nyquist | phase-53-54-validation-bookkeeping | verification evidence exists, but `53-VALIDATION.md` and `54-VALIDATION.md` were not created during milestone execution |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

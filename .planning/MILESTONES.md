@@ -2,24 +2,28 @@
 
 Entries are newest first.
 
-## v1.21 — Scoped Support / Operator Proof (active)
+## v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)
 
 **Goal:** Turn the existing host-owned `scope_query_fn` seam into a truthful, first-party support-safe lane on the shipped `/audit` surface without widening Threadline into an auth, tenancy, or compliance platform.
 
-**Phases completed:** Not started yet. Planned phases are **85-89**.
+**Phases completed:** **85-94** (10 phases; 21 plans; 32 tasks).
 
-**Key objectives:**
+**Key accomplishments:**
 
-- Close or explicitly disable any support-visible unscoped read paths (Row history / as-of must be safely scoped via `scope_query_fn`, not disabled).
-- Prove one canonical `/audit` mount recipe with admin + support personas on the same host-owned route tree.
-- Keep exports as a separate privileged capability with support denied by default unless the host explicitly opts in.
-- Lock docs, example behavior, and tests around the exact support lane Threadline proves on the current tree.
+- Narrowed the support-lane claim to one truthful current-tree contract and locked the export-denied-by-default posture behind host-owned seams.
+- Closed the remaining scoped read-path gap by enforcing support scope through row history and as-of flows on the shipped `/audit` surface.
+- Standardized one canonical `/audit` mount recipe and runnable example-host proof for admin and support personas on the same route tree.
+- Aligned denial and fallback UX across LiveView, HTTP, docs, and contract tests so unsupported support-lane surfaces fail clearly and consistently.
+- Backfilled the missing verification chain for Phases 85-88 and re-ran the final proof bundle to close all 12 v1.21 requirements on the current tree.
+- Reconciled `ROADMAP.md`, `PROJECT.md`, `STATE.md`, `REQUIREMENTS.md`, and the milestone audit around the same shipped support-lane contract.
 
-**Stats:** Milestone opened 2026-05-24.
+**Stats:** 10 phases, 21 plans, 32 tasks, 12/12 requirements complete at close. Milestone window: **2026-05-24 → 2026-05-25**. Git range: **`a392d24`** → **`32d187b`**. The milestone work touched **126 files** with **13,428 insertions / 398 deletions**.
 
-**Archives:** `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md` until closeout.
+**Archives:** `.planning/milestones/v1.21-REQUIREMENTS.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-MILESTONE-AUDIT.md`.
 
-**What is next:** Execute Phase 85 (Support-Lane Surface Audit & Claim Narrowing).
+**Known gaps at close:** Milestone audit **passed** with 12/12 requirements satisfied. Two plan-level validation files in Phases **90** and **91** still carry stale draft frontmatter, but the canonical Phase 85/86 verification artifacts and the final Phase 94 rerun bundle are green, so this remains documented non-blocking tech debt.
+
+**What is next:** **`/gsd-new-milestone`** — open the next requirement set from `.planning/MILESTONE-ARC.md`, currently led by **v1.22 — Policy / Evidence Plane**.
 
 ---
 

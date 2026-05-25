@@ -10,8 +10,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.20 — Scale and Governance Depth (closed 2026-05-24)
-**Current milestone:** v1.21 — Scoped Support / Operator Proof (opened 2026-05-24, ready for closeout as of 2026-05-25)
+**Last shipped:** v1.21 — Scoped Support / Operator Proof (closed 2026-05-25)
+**Current milestone:** None open. Next candidate is v1.22 — Policy / Evidence Plane.
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -23,9 +23,28 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-**Current closeout focus:** The Phase 94 rerun bundle is green. `DOC-01` and `DOC-02` are now closed on rerun-backed evidence, and v1.21 is ready for milestone closeout on the current tree.
+**Current planning focus:** Start the next milestone from `.planning/MILESTONE-ARC.md` and keep the scope narrow: durable policy/evidence records and audit-of-audit proof, not a Threadline-owned compliance platform.
 
-## Latest Milestone Shipped: v1.20 Scale and Governance Depth
+## Latest Milestone Shipped: v1.21 Scoped Support / Operator Proof
+
+**Goal (achieved):** Turn the existing host-owned `scope_query_fn` seam into a truthful, first-party support-safe lane on the shipped `/audit` surface without widening Threadline into an auth, tenancy, or compliance platform.
+
+**Shipped:**
+- Narrowed the support-lane claim to the exact current-tree proof set: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
+- Coverage and policy surfaces now stay explicit as admin/global or unsupported for support-scoped sessions, with denial and fallback UX aligned across LiveView, HTTP, docs, and tests.
+- One canonical `/audit` mount recipe and the example Phoenix app now prove admin + support personas honestly on the same host-owned route tree.
+- Phases 90-94 backfilled the missing verification chain, refreshed the authority surfaces, and closed all 12 v1.21 requirements on rerun-backed current-tree evidence.
+
+**Next milestone goals:**
+- Add durable policy/evidence records and audit-of-audit proof without expanding into a Threadline-owned auth or compliance platform.
+- Preserve the host-owned boundary: policy evidence should strengthen trust and procurement posture, not introduce RBAC or tenancy DSLs.
+- Reuse the shipped support-safe `/audit` contract as the baseline instead of opening new UI families.
+
+**Post-close judgment (2026-05-25):**
+- The highest-value adoption risk remaining after v1.21 is evidence quality and governance proof, not support-lane ambiguity.
+- The closeout rerun bundle is now the authoritative source for the support-safe operator claim; future milestone framing should build on that fixed contract instead of re-litigating it.
+
+## Prior milestone shipped: v1.20 Scale and Governance Depth
 
 **Goal (achieved):** Move Threadline from "capturing and reading" into governed lifecycle management: safe retention pruning, actor-owned saved views, background exports, and enterprise adapter seams, all while preserving the zero-intrusion default posture.
 
@@ -36,16 +55,6 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Built-in background export runtime supervision, truthful lifecycle transitions, expiry cleanup, and actor-scoped status visibility.
 - Backend-aware export delivery plus configured-path Oban/S3 integration proof and repaired public guidance.
 - Repaired current-tree verification and Nyquist closeout artifacts for Phases 75-79 and 84 so the milestone evidence matches the shipped tree.
-
-**Next milestone goals:**
-- Prove the host-owned support lane on the shipped `/audit` surface end to end, with one truthful current-tree claim instead of callback-pattern ambiguity.
-- Productize the mount contract, not the auth model: one canonical `/audit` recipe, support exports denied by default, and no Threadline-owned RBAC/tenancy DSL.
-- Treat row history / as-of conservatively for support-scoped sessions: either scope it with proof or make it explicitly unavailable.
-
-**Post-close judgment (2026-05-24):**
-- Threadline is near the point of diminishing returns for broad new surface area; the next high-leverage wedge is proving support-safe scoped operator access end-to-end for real Phoenix SaaS adopters.
-- If a later milestone pursues policy/compliance depth, it should stay narrow: durable policy/evidence records and audit-of-audit proof, not a Threadline-owned auth DSL or SIEM/platform expansion.
-- Repo truth now includes a runnable host-owned support scope pattern on `/audit`, but `guides/how-threadline-works.md` still carries stale “future” wording for already-shipped governance/export capabilities and should not be treated as the sole source of milestone priority.
 
 ## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
 

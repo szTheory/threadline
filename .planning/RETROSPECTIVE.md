@@ -259,6 +259,46 @@
 
 - **Sandbox `unboxed_run`** as an escape hatch when nested savepoints hide trigger-visible transaction-local GUC in job tests — document in plan summary when used.
 
+---
+
+## Milestone: v1.21 — Scoped Support / Operator Proof
+
+**Shipped:** 2026-05-25  
+**Phases:** 10 | **Plans:** 21
+
+### What was built
+
+- A truthful first-party support-safe `/audit` lane with one exact current-tree claim: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
+- Explicit gating for coverage/global policy surfaces so support-scoped operators do not learn admin-only state through UI badges, routing, or background telemetry loops.
+- One canonical `/audit` mount recipe and runnable example-host proof for admin and support personas on the same route tree.
+- Backfilled verification, validation, and authority-surface evidence for Phases 85-94 so all 12 v1.21 requirements close on rerun-backed current-tree proof.
+
+### What worked
+
+- The narrow milestone thesis held: productizing the mount contract without inventing a Threadline-owned auth model kept the work scoped and verifiable.
+- Re-running the final proof bundle in Phase 94 before closeout prevented stale summary frontmatter from becoming release truth.
+
+### What was inefficient
+
+- Milestone closeout needed manual cleanup after `gsd-sdk query milestone.complete`; the generated `MILESTONES.md` entry and `STATE.md` updates did not match the repo’s established closeout format.
+- Verification backfill phases were necessary because earlier milestone execution left canonical proof artifacts incomplete even when the feature work was effectively shipped.
+
+### Patterns established
+
+- Treat rerun-backed `VERIFICATION.md` and `VALIDATION.md` artifacts as the only authority for requirement closure when summary frontmatter and active planning docs drift.
+- Keep host-owned seams explicit: `scope_query_fn` proves the safe read lane, while `export_authorize_fn` remains a separate privileged capability.
+
+### Key lessons
+
+1. A narrow current-tree claim is more durable than a broad roadmap promise when the real risk is authority-surface drift.
+2. Milestone audits should force proof-chain completeness earlier, before follow-up verification-backfill phases become necessary.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: two concentrated waves, first for support-lane closure and then for proof-chain/authority reconciliation.
+- Notable: the milestone touched 126 files in about one day, but much of the second wave was evidence repair rather than net-new feature surface.
+
 ### Key lessons
 
 1. Mark REF/traceability rows **Complete** in the same change set as the last plan’s **`VERIFICATION.md`** refresh.
