@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Policy / Evidence Plane
-status: ready_to_plan
-last_updated: 2026-05-26T05:00:55.493Z
-last_activity: 2026-05-26 -- Phase 97 execution started
+status: executing
+last_updated: "2026-05-26T12:59:20.484Z"
+last_activity: 2026-05-26 -- Phase 98 execution started
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 85
-  percent: 40
-stopped_at: Phase 97 complete (2/2) — ready to discuss Phase 98
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State: Threadline
@@ -23,10 +22,10 @@ stopped_at: Phase 97 complete (2/2) — ready to discuss Phase 98
 
 ## Current Position
 
-Phase: 98
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-26
+Phase: 98 (mounted-evidence-views-on-audit) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 98
+Last activity: 2026-05-26 -- Phase 98 execution started
 
 ## Performance Metrics
 
