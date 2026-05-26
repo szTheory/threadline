@@ -7,9 +7,9 @@
 
 ### Evidence Records (EVID)
 
-- [ ] **EVID-01**: Threadline persists append-only evidence records for its owned governance subjects instead of relying only on live runtime inspection or prose.
-- [ ] **EVID-02**: Each evidence record captures a stable subject, timestamp, actor/provenance metadata, summary status, and machine-readable detail payload suitable for later audit review.
-- [ ] **EVID-03**: Evidence capture is limited to Threadline-owned facts and posture; it does not encode host business roles, tenancy semantics, or compliance workflow state.
+- [x] **EVID-01**: Threadline persists append-only evidence records for its owned governance subjects instead of relying only on live runtime inspection or prose.
+- [x] **EVID-02**: Each evidence record captures a stable subject, timestamp, actor/provenance metadata, summary status, and machine-readable detail payload suitable for later audit review.
+- [x] **EVID-03**: Evidence capture is limited to Threadline-owned facts and posture; it does not encode host business roles, tenancy semantics, or compliance workflow state.
 
 ### Library and CLI Proof (PROOF)
 
@@ -51,9 +51,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVID-01 | Phase 100 | Pending |
-| EVID-02 | Phase 100 | Pending |
-| EVID-03 | Phase 100 | Pending |
+| EVID-01 | Phase 100 | Complete |
+| EVID-02 | Phase 100 | Complete |
+| EVID-03 | Phase 100 | Complete |
 | PROOF-01 | Phase 101 | Pending |
 | PROOF-02 | Phase 97 | Complete |
 | PROOF-03 | Phase 97 | Complete |

@@ -93,8 +93,8 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 95 verification-chain gaps from the v1.22 audit
 **Plans**: 2 plans
 
-- [ ] 100-01: Re-verify the append-only evidence contract, subject inventory, and scope boundary on the current tree
-- [ ] 100-02: Add the Phase 95 verification artifact and requirement-closure evidence
+- [x] 100-01: Re-verify the append-only evidence contract, subject inventory, and scope boundary on the current tree
+- [x] 100-02: Add the Phase 95 verification artifact and requirement-closure evidence
 
 ### Phase 101: Phase 96 Verification Backfill
 
