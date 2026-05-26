@@ -27,7 +27,7 @@ defmodule Threadline.Evidence.ProofTest do
     |> Repo.insert!()
   end
 
-  test "builds wrapped proof json with the stable top-level contract" do
+  test "builds wrapped proof json with the stable top-level contract for proven facts" do
     insert_evidence(
       subject: "retention_run",
       subject_ref: %{"run_id" => "ret-run-1"},
@@ -49,6 +49,7 @@ defmodule Threadline.Evidence.ProofTest do
     assert Map.has_key?(document, "claim_assessment")
     assert Map.has_key?(document, "records")
     assert document["claim_assessment"]["status"] == "proven"
+    assert document["claim_assessment"]["kind"] == "direct_fact"
   end
 
   test "default overview covers all six supported subject families" do
@@ -73,5 +74,74 @@ defmodule Threadline.Evidence.ProofTest do
              "support_scope_posture",
              "trigger_coverage"
            ]
+  end
+
+  test "classifies posture subjects as inferred_posture when evidence is a posture snapshot" do
+    insert_evidence(
+      subject: "support_scope_posture",
+      subject_ref: %{"scope" => "support"},
+      summary_status: "configured",
+      detail: %{
+        "support_lane" => "read_only",
+        "host_authorization" => "host_owned"
+      }
+    )
+
+    document =
+      Proof.proof_document(
+        [subject: "support_scope_posture"],
+        repo: @repo,
+        generated_at: ~U[2026-05-27 00:00:00.000000Z]
+      )
+
+    assert document["claim_assessment"]["status"] == "inferred_posture"
+    assert document["claim_assessment"]["kind"] == "posture_snapshot"
+  end
+
+  test "keeps explicit unsupported claims as valid proof payloads" do
+    insert_evidence(
+      subject: "support_scope_posture",
+      subject_ref: %{"scope" => "support"},
+      summary_status: "unsupported",
+      detail: %{
+        "claim_assessment" => %{
+          "status" => "unsupported",
+          "reason" => "host_owned_authorization"
+        }
+      }
+    )
+
+    document =
+      Proof.proof_document(
+        [subject: "support_scope_posture"],
+        repo: @repo,
+        generated_at: ~U[2026-05-27 00:00:00.000000Z]
+      )
+
+    assert document["claim_assessment"]["status"] == "unsupported"
+    assert document["claim_assessment"]["reason"] == "host_owned_authorization"
+  end
+
+  test "classifies directly supported negative facts as proven" do
+    insert_evidence(
+      subject: "trigger_coverage",
+      subject_ref: %{"table" => "users"},
+      summary_status: "uncovered",
+      detail: %{
+        "coverage_status" => "uncovered",
+        "table" => "users"
+      }
+    )
+
+    document =
+      Proof.proof_document(
+        [subject: "trigger_coverage"],
+        repo: @repo,
+        generated_at: ~U[2026-05-27 00:00:00.000000Z]
+      )
+
+    assert document["claim_assessment"]["status"] == "proven"
+    assert document["claim_assessment"]["kind"] == "direct_fact"
+    assert document["records"] |> hd() |> Map.fetch!("summary_status") == "uncovered"
   end
 end
