@@ -112,10 +112,15 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
       subject: "support_scope_posture",
       subject_ref: %{"scope" => "support"},
       summary_status: "unsupported",
-      detail: %{"reason" => "host authorization remains host-owned"}
+      detail: %{
+        "claim_assessment" => %{
+          "status" => "unsupported",
+          "reason" => "host_owned_authorization"
+        }
+      }
     )
 
-    output =
+    json_output =
       capture_io(fn ->
         assert :ok =
                  Mix.Tasks.Threadline.Evidence.Show.run([
@@ -125,9 +130,28 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
                  ])
       end)
 
-    document = Jason.decode!(output)
+    human_output =
+      capture_io(fn ->
+        assert :ok =
+                 Mix.Tasks.Threadline.Evidence.Show.run([
+                   "--subject",
+                   "support_scope_posture"
+                 ])
+      end)
+
+    document = Jason.decode!(json_output)
 
     assert document["claim_assessment"]["status"] == "unsupported"
+    assert document["claim_assessment"]["reason"] == "host_owned_authorization"
     assert document["records"] != []
+    assert human_output =~ "Claim assessment: unsupported"
+  end
+
+  test "threadline.evidence.show docs keep viewer semantics separate from any future gate task" do
+    assert {:docs_v1, _, :elixir, _, %{"en" => moduledoc}, _, _} =
+             Code.fetch_docs(Mix.Tasks.Threadline.Evidence.Show)
+
+    assert moduledoc =~ "This task is a viewer, not a gate."
+    assert moduledoc =~ "future gate task"
   end
 end
