@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: Planning next milestone
-status: Awaiting next milestone
-last_updated: "2026-05-25T16:43:19.087Z"
-last_activity: 2026-05-25 — Milestone v1.21 completed and archived
+milestone: v1.22
+milestone_name: Policy / Evidence Plane
+status: ready_to_plan
+last_updated: 2026-05-26T05:00:55.493Z
+last_activity: 2026-05-26 -- Phase 97 execution started
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 85
+  percent: 40
+stopped_at: Phase 97 complete (2/2) — ready to discuss Phase 98
 ---
 
 # Project State: Threadline
@@ -18,22 +19,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Planning the next milestone from the shipped v1.21 baseline. Use `.planning/MILESTONE-ARC.md` as the ranking source of truth.
+**Current Focus**: Verify Phase 96 on the current tree, resolve the unrelated CI topology alias drift if a fully green `mix verify.test` run is required, then continue v1.22 from the public evidence contract.
 
 ## Current Position
 
-Phase: Milestone v1.21 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-25 — Milestone v1.21 completed and archived
+Phase: 98
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-05-26
 
 ## Performance Metrics
 
-- **Total Phases**: 10 (Phases 85-94) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 10 of 10 phases complete and 21 of 21 tracked plans complete for v1.21
-- **Requirements Covered**: 12 of 12 mapped for v1.21 (`SCOPE-01`, `SCOPE-02`, `SCOPE-03`, `AUTH-01`, `AUTH-02`, `ADOPT-01`, `ADOPT-02`, `ADOPT-03`, `UX-01`, `UX-02`, `DOC-01`, `DOC-02`)
+- **Total Phases**: 5 (Phases 95-99) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 0 of 5 phases complete and 4 of 10 tracked plans complete for v1.22
+- **Requirements Covered**: 3 of 12 mapped for v1.22 (`EVID-01`, `EVID-02`, `EVID-03`, `PROOF-01`, `PROOF-02`, `PROOF-03`, `SURF-01`, `SURF-02`, `SURF-03`, `DOC-01`, `DOC-02`, `DOC-03`)
 - **Last Milestone**: v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)
-- **Milestone Readiness**: CLOSED. `v1.21` is archived and no active milestone is open.
+- **Milestone Readiness**: OPEN. v1.22 is active; Phase 96 execution is complete and awaiting verification.
 
 ## Accumulated Context
 
@@ -68,7 +69,7 @@ Last activity: 2026-05-25 — Milestone v1.21 completed and archived
 
 ### Todos
 
-- [ ] Start `/gsd-new-milestone` and define the v1.22 requirements slice from `.planning/MILESTONE-ARC.md`.
+- [ ] Keep evidence limited to Threadline-owned governance facts; reject RBAC, tenancy, legal-hold, and generic compliance-platform expansion.
 
 ### Blockers
 
@@ -76,8 +77,8 @@ Last activity: 2026-05-25 — Milestone v1.21 completed and archived
 
 ## Session Continuity
 
-- **Last Action**: Archived v1.21, moved its roadmap/requirements/audit into `.planning/milestones/`, and collapsed the active planning surface for the next milestone.
-- **Next Step**: Open the next milestone requirements and roadmap with `/gsd-new-milestone`.
+- **Last Action**: Executed Phase 96, added the public evidence create/read API, and wrote the phase summaries.
+- **Next Step**: Verify Phase 96 on the current tree, then continue with `/gsd-plan-phase 97`.
 
 ## Deferred Items
 
@@ -90,4 +91,4 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Verify Phase 96 on the current tree, then continue with /gsd-plan-phase 97

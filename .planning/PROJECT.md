@@ -11,7 +11,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ## Current State
 
 **Last shipped:** v1.21 — Scoped Support / Operator Proof (closed 2026-05-25)
-**Current milestone:** None open. Next candidate is v1.22 — Policy / Evidence Plane.
+**Current milestone:** v1.22 — Policy / Evidence Plane (opened 2026-05-25).
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -23,7 +23,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-**Current planning focus:** Start the next milestone from `.planning/MILESTONE-ARC.md` and keep the scope narrow: durable policy/evidence records and audit-of-audit proof, not a Threadline-owned compliance platform.
+**Current planning focus:** Ship durable policy/evidence records and audit-of-audit proof without widening Threadline into a Threadline-owned compliance platform, auth model, or tenancy model.
 
 ## Latest Milestone Shipped: v1.21 Scoped Support / Operator Proof
 
@@ -238,11 +238,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [x] **SCOPE-01 / SCOPE-02 / SCOPE-03** — The current tree now proves the truthful support-lane claim: timeline, actor, transaction, support-scoped row history / as-of, and explicit denial or fallback where support-scoped sessions are not allowed.
-- [x] **AUTH-01 / AUTH-02** — Keep one shared `%{assigns: assigns}` auth contract across LiveView and export, with support read-only by default and export posture explicitly separate.
-- [x] **ADOPT-01 / ADOPT-02 / ADOPT-03** — Ship one canonical `/audit` mount recipe and runnable example-app proof without adding a Threadline-owned role or tenancy model.
-- [x] **UX-01 / UX-02** — Operator UX, denial posture, and fallback transport are now closed on the current tree through the Phase 93 verification backfill.
-- [x] **DOC-01 / DOC-02** — Phase 94 reran the named proof surfaces, refreshed the milestone audit, and closed the final documentation requirements only after the current-tree evidence stayed green.
+- [ ] **EVID-01 / EVID-02 / EVID-03** — Persist append-only evidence records for Threadline-owned governance facts with stable provenance and machine-readable detail, while keeping host business-policy meaning out of scope.
+- [ ] **PROOF-01 / PROOF-02 / PROOF-03** — Expose evidence through Phoenix-optional public APIs and Mix-task parity, with outputs that distinguish proven facts from unsupported claims.
+- [ ] **SURF-01 / SURF-02 / SURF-03** — Reuse the existing `/audit` surface for read-only evidence views without adding a new UI family or Threadline-owned permission model.
+- [ ] **DOC-01 / DOC-02 / DOC-03** — Lock the evidence-plane claim in docs and tests, including explicit negative claims around legal hold, immutable guarantees, generic compliance packs, and RBAC/tenancy DSLs.
 
 ### Out of Scope
 
@@ -303,6 +302,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | ✓ Shipped in v1.18 |
 | v1.19 focuses on integration breadth and extraction readiness, not deeper operator product scope | The next leverage point is reducing host-specific glue and tightening proven compatibility claims. Saved views, retention admin capture machinery, queued exports, and mutable policy UI all add product surface or infrastructure without making adoption easier across hosts. `threadline_web` should remain a measured future decision unless real adopter pressure proves otherwise. | — Active (opened 2026-05-07) |
 | v1.21 will productize the mount contract, not the auth model | The strongest remaining adoption gap was a truthful scoped support lane on `/audit`. The current tree now proves one host-owned path end to end, and Phase 94 closed the authority and audit surfaces around that proof without inventing RBAC or tenancy DSLs. | ✓ Ready for closeout (2026-05-25) |
+| v1.22 will ship a narrow evidence plane, not a compliance platform | The next leverage point is durable proof for policy/governance posture. Append-only evidence records, API/CLI parity, and read-only `/audit` evidence views strengthen enterprise credibility without crossing the host-owned auth/tenancy boundary. | — Active (opened 2026-05-25) |
 
 ## Evolution
 
@@ -324,4 +324,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-25 — Phase 94 rerun and refreshed v1.21 audit marked the milestone ready for closeout.*
+*Last updated: 2026-05-25 — Opened v1.22 Policy / Evidence Plane from the milestone arc and reset the active planning surface.*

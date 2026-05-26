@@ -1,8 +1,8 @@
 # Milestone Arc: Threadline
 
 **Updated:** 2026-05-25
-**Active milestone:** None
-**Next ranked candidate:** v1.22 — Policy / Evidence Plane
+**Active milestone:** v1.22 — Policy / Evidence Plane
+**Next ranked candidate:** TBD after v1.22 closeout
 
 ## Strategic thesis
 
@@ -19,7 +19,7 @@ These are the standing milestone directions and the recommended order to revisit
 | 3 | Framework breadth / more adapters | **Shipped (v1.19)** | Once adoption is hardened, the next leverage point is reusable host patterns, auth/framework adapters, and a disciplined package-boundary decision. |
 | 4 | Production confidence / governance defaults | **Shipped (v1.20)** | v1.20 delivered governance schemas, retention runtime closure, actor-owned saved views, built-in async exports, and truthful Oban/S3 adapter seams on the repaired final tree. |
 | 5 | Scoped support/operator adoption lane | **Shipped (v1.21)** | v1.21 turned the host-owned `scope_query_fn` seam into a truthful first-party support lane on the shipped `/audit` surface, including scoped row history / as-of proof and export denial posture. |
-| 6 | Policy / compliance depth | **Next candidate** | After the support-safe adopter lane is proven, strengthen durable evidence records and audit-of-audit posture without broadening into a Threadline-owned platform expansion. |
+| 6 | Policy / compliance depth | **Active (v1.22)** | After the support-safe adopter lane is proven, strengthen durable evidence records and audit-of-audit posture without broadening into a Threadline-owned platform expansion. |
 
 ## Arc order
 
@@ -31,7 +31,7 @@ These are the standing milestone directions and the recommended order to revisit
 | v1.19 | **shipped** | Integration Breadth | Expand reach only after the core investigation + operator story is easier to adopt repeatedly. Use the in-tree optional web surface as the stable base, broaden host patterns, and define objective extraction triggers instead of forcing a package split. | Additional auth/framework adapters and host patterns; a cleaner future `threadline_web` decision if real evidence appears. | Weakening the auth-agnostic core, adding hard runtime deps, or pulling governance/UI-state expansion into the milestone. |
 | v1.20 | **shipped** | Scale and Governance Depth | Added governance schemas, batched retention with operator history, actor-owned saved views, built-in background exports, and truthful adapter-backed export delivery without taking over optional Oban/S3 runtime ownership. | Better enterprise readiness, stronger lifecycle controls, and a cleaner base for policy/compliance depth. | Turning Threadline into a SIEM or general analytics product. |
 | v1.21 | **shipped** | Scoped Support / Operator Proof | The highest-leverage remaining adopter gap was a proven tenant-safe support lane on the shipped `/audit` surface. v1.21 stayed narrow: productized the mount contract, not the auth model, and closed on proof-first rerun evidence. | Stronger SaaS support adoption, clearer tenant-safe operator guidance, a truthful support-safe claim on the current tree, and a firmer base for later compliance-proof work. | Threadline-owned RBAC or tenancy DSLs, broad policy engines, SIEM positioning, separate support route families, or unrelated new UI families. |
-| v1.22 | **candidate** | Policy / Evidence Plane | After the support-safe lane is proven, strengthen durable policy snapshots and audit-of-audit evidence so Threadline stands up better to enterprise scrutiny without broadening into a compliance platform. | More credible export/retention/policy proof, better procurement posture, cleaner later sink-hook work if needed. | Legal-hold platform work, immutable storage guarantees, generic compliance packs, or vendor-specific reporting suites. |
+| v1.22 | **active** | Policy / Evidence Plane | After the support-safe lane is proven, strengthen durable policy snapshots and audit-of-audit evidence so Threadline stands up better to enterprise scrutiny without broadening into a compliance platform. | More credible export/retention/policy proof, better procurement posture, cleaner later sink-hook work if needed. | Legal-hold platform work, immutable storage guarantees, generic compliance packs, vendor-specific reporting suites, or Threadline-owned RBAC/tenancy semantics. |
 
 ## Activation rules
 

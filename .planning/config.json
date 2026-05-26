@@ -1,6 +1,9 @@
 {
   "mode": "yolo",
   "parallelization": true,
+  "features": {
+    "thinking_partner": false
+  },
   "workflow": {
     "research": true,
     "plan_checker": true,
