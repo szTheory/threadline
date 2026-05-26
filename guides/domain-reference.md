@@ -72,6 +72,44 @@ Read-only exports for operator playbooks (“export then purge”, cross-checks,
 - **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
 - **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
 
+## Evidence proof contract (Phase 97)
+
+`mix threadline.evidence.show` is the canonical no-Phoenix viewer for
+Threadline-owned evidence records. It is a viewer, not a compliance gate, and
+successful reads remain valid viewer results even when the claim outcome is
+`unsupported`.
+
+`--json` emits one wrapped proof document with stable top-level keys:
+
+- `format_version`
+- `generated_at`
+- `proof_type`
+- `subject`
+- `mode`
+- `filters`
+- `summary`
+- `claim_assessment`
+- `records`
+
+`claim_assessment` uses one exact verdict vocabulary for successful proof
+payloads:
+
+- `proven` — Threadline-owned facts or deterministic derivations over owned
+  evidence directly support the claim. This can include negative facts such as
+  uncovered trigger coverage or denied export delivery when the evidence row
+  itself proves that outcome.
+- `inferred_posture` — Threadline is naming posture or configuration synthesis
+  from owned evidence without overclaiming host-owned authorization, tenancy,
+  or other ambient guarantees.
+- `unsupported` — Threadline does not claim authority for that guarantee. This
+  remains valid output in both JSON and human-readable views; it is not a
+  runtime failure.
+
+Operational errors stay outside that verdict vocabulary. `invalid_request` and
+`runtime_failure` are error outcomes, not proof verdicts. Downstream readers
+should treat the wrapped document as a stable additive contract and rely on
+`claim_assessment` rather than inventing host-policy meaning from `records`.
+
 ## Audit indexing (integrator-owned)
 
 Physical PostgreSQL indexes on **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are **integrator-owned**: Threadline ships a safe baseline via migrations, but workload-specific btree/GIN choices stay with the team operating the database. For baseline inventory, join shapes (timeline vs export vs correlation), retention delete patterns, and **optional** additive DDL framed as non-mandatory, read the **[Audit table indexing cookbook](audit-indexing.md)**—do not duplicate full DDL matrices here; link to the cookbook when operators need tuning guidance.
