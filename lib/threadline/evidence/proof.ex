@@ -7,6 +7,9 @@ defmodule Threadline.Evidence.Proof do
 
   @format_version 1
   @proof_type "threadline_evidence"
+  @semantic_statuses ~w(proven inferred_posture unsupported)
+  @error_statuses ~w(invalid_request runtime_failure)
+  @posture_subjects ~w(redaction_policy retention_policy support_scope_posture)
 
   @doc """
   Builds the wrapped proof document for overview, latest, or history reads.
@@ -105,27 +108,86 @@ defmodule Threadline.Evidence.Proof do
   defp claim_assessment([]) do
     %{
       "status" => "unsupported",
-      "reason" => "no_records"
+      "kind" => "unsupported_claim",
+      "reason" => "no_records",
+      "error_statuses" => @error_statuses
     }
   end
 
   defp claim_assessment(records) do
-    statuses =
-      records
-      |> Enum.map(& &1.summary_status)
-      |> Enum.uniq()
-
-    status =
-      cond do
-        "unsupported" in statuses -> "unsupported"
-        "inferred_posture" in statuses -> "inferred_posture"
-        true -> "proven"
-      end
+    verdicts = Enum.map(records, &record_verdict/1)
+    statuses = Enum.uniq(Enum.map(records, & &1.summary_status))
+    winning_verdict = choose_verdict(verdicts)
 
     %{
-      "status" => status,
-      "record_statuses" => statuses
+      "status" => winning_verdict["status"],
+      "kind" => winning_verdict["kind"],
+      "reason" => winning_verdict["reason"],
+      "record_statuses" => statuses,
+      "error_statuses" => @error_statuses
     }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp record_verdict(record) do
+    case explicit_claim_assessment(record.detail) do
+      %{"status" => status} = verdict when status in @semantic_statuses ->
+        verdict
+
+      _other ->
+        subject_verdict(record.subject)
+    end
+  end
+
+  defp explicit_claim_assessment(detail) when is_map(detail) do
+    case get_in(detail, ["claim_assessment", "status"]) do
+      "unsupported" ->
+        %{
+          "status" => "unsupported",
+          "kind" => "unsupported_claim",
+          "reason" => get_in(detail, ["claim_assessment", "reason"])
+        }
+
+      "inferred_posture" ->
+        %{
+          "status" => "inferred_posture",
+          "kind" => "posture_snapshot",
+          "reason" => get_in(detail, ["claim_assessment", "reason"])
+        }
+
+      "proven" ->
+        %{
+          "status" => "proven",
+          "kind" => "direct_fact",
+          "reason" => get_in(detail, ["claim_assessment", "reason"])
+        }
+
+      _other ->
+        nil
+    end
+  end
+
+  defp explicit_claim_assessment(_detail), do: nil
+
+  defp subject_verdict(subject) when subject in @posture_subjects do
+    %{
+      "status" => "inferred_posture",
+      "kind" => "posture_snapshot"
+    }
+  end
+
+  defp subject_verdict(_subject) do
+    %{
+      "status" => "proven",
+      "kind" => "direct_fact"
+    }
+  end
+
+  defp choose_verdict(verdicts) do
+    Enum.find(verdicts, &(&1["status"] == "unsupported")) ||
+      Enum.find(verdicts, &(&1["status"] == "inferred_posture")) ||
+      hd(verdicts)
   end
 
   defp json_filters(subject_ref, filters) do
