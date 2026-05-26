@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Policy / Evidence Plane
-status: executing
-last_updated: "2026-05-26T12:59:20.484Z"
-last_activity: 2026-05-26 -- Phase 98 execution started
+status: planning
+last_updated: "2026-05-26T14:26:39Z"
+last_activity: 2026-05-26 -- v1.22 milestone audit translated into gap-closure phases 100-103
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 6
-  percent: 60
+  total_phases: 9
+  completed_phases: 2
+  total_plans: 18
+  completed_plans: 10
+  percent: 56
 ---
 
 # Project State: Threadline
@@ -18,22 +18,22 @@ progress:
 ## Project Reference
 
 **Core Value**: Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current Focus**: Verify Phase 96 on the current tree, resolve the unrelated CI topology alias drift if a fully green `mix verify.test` run is required, then continue v1.22 from the public evidence contract.
+**Current Focus**: Close the v1.22 audit blockers by backfilling Phase 95, 96, and 98 verification evidence, then reconcile the milestone authority surfaces before re-auditing.
 
 ## Current Position
 
-Phase: 98 (mounted-evidence-views-on-audit) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 98
-Last activity: 2026-05-26 -- Phase 98 execution started
+Phase: 100 (phase-95-verification-backfill) — PLANNING
+Plan: 0 of 2
+Status: Gap-closure phases created from the v1.22 audit; Phase 100 is next to plan
+Last activity: 2026-05-26 -- Gap-closure phases 100-103 added after the v1.22 audit
 
 ## Performance Metrics
 
-- **Total Phases**: 5 (Phases 95-99) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 0 of 5 phases complete and 4 of 10 tracked plans complete for v1.22
-- **Requirements Covered**: 3 of 12 mapped for v1.22 (`EVID-01`, `EVID-02`, `EVID-03`, `PROOF-01`, `PROOF-02`, `PROOF-03`, `SURF-01`, `SURF-02`, `SURF-03`, `DOC-01`, `DOC-02`, `DOC-03`)
+- **Total Phases**: 9 (Phases 95-103) — defined in `.planning/ROADMAP.md`
+- **Phases Completed**: 2 of 9 phases complete and 10 of 18 tracked plans complete for v1.22
+- **Requirements Covered**: 5 of 12 satisfied for v1.22 (`PROOF-02`, `PROOF-03`, `DOC-01`, `DOC-02`, `DOC-03`); `EVID-01`, `EVID-02`, `EVID-03`, `PROOF-01`, `SURF-01`, `SURF-02`, and `SURF-03` are pending closure phases
 - **Last Milestone**: v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)
-- **Milestone Readiness**: OPEN. v1.22 is active; Phase 96 execution is complete and awaiting verification.
+- **Milestone Readiness**: OPEN. v1.22 now depends on Phases 100-103 to repair missing verification artifacts and stale authority surfaces before closeout.
 
 ## Accumulated Context
 
@@ -65,6 +65,8 @@ Last activity: 2026-05-26 -- Phase 98 execution started
 - 2026-05-25: Phase 94 reran `mix verify.doc_contract`, `mix verify.example`, and the targeted root support-lane suite; wrote `94-VERIFICATION.md` / `94-VALIDATION.md`; refreshed the v1.21 milestone audit; and closed `DOC-01` plus `DOC-02` only after the rerun evidence stayed green.
 - [Phase 94]: Treated the Phase 94 rerun bundle as the only authority for closing DOC-01 and DOC-02; 94-01 summary frontmatter was explicitly non-authoritative. — Requirement closure stayed tied to current-tree rerun evidence and the refreshed audit, not inherited summary metadata.
 - [Phase 94]: Passed the refreshed milestone audit while keeping plan-level 90/91 validation frontmatter drift documented as non-blocking tech debt because the canonical 85/86 phase artifacts are finalized. — The stale draft frontmatter no longer changes milestone truth because the canonical phase artifacts and final rerun bundle are green.
+- 2026-05-26: The v1.22 milestone audit found no integration or flow failures, but it did block closeout on missing `95-VERIFICATION.md`, `96-VERIFICATION.md`, and `98-VERIFICATION.md` plus stale milestone authority surfaces.
+- 2026-05-26: ROADMAP.md and REQUIREMENTS.md were extended with Phases 100-103 so the remaining work stays explicit: verification backfills for Phases 95, 96, and 98, then authority-surface reconciliation and re-audit.
 
 ### Todos
 
@@ -76,8 +78,8 @@ Last activity: 2026-05-26 -- Phase 98 execution started
 
 ## Session Continuity
 
-- **Last Action**: Executed Phase 96, added the public evidence create/read API, and wrote the phase summaries.
-- **Next Step**: Verify Phase 96 on the current tree, then continue with `/gsd-plan-phase 97`.
+- **Last Action**: Converted the v1.22 audit findings into explicit gap-closure phases and remapped partial requirements to those follow-up phases.
+- **Next Step**: Run `/gsd-plan-phase 100`, then backfill `95-VERIFICATION.md` on the current tree.
 
 ## Deferred Items
 
@@ -90,4 +92,4 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 
 ## Operator Next Steps
 
-- Verify Phase 96 on the current tree, then continue with /gsd-plan-phase 97
+- Run /gsd-plan-phase 100 to start the Phase 95 verification backfill, then work forward through Phases 101-103

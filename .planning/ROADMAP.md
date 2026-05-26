@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.21 Scoped Support / Operator Proof** — Phases 85-94, 21 plans, shipped 2026-05-25. Archive: `.planning/milestones/v1.21-ROADMAP.md`
-- 🚧 **v1.22 Policy / Evidence Plane** — Phases 95-99, opened 2026-05-25
+- 🚧 **v1.22 Policy / Evidence Plane** — Phases 95-103, opened 2026-05-25
 
 ## Current Planning State
 
@@ -13,9 +13,9 @@
 
 ## Milestone v1.22: Policy / Evidence Plane
 
-**Status:** Planned
-**Phases:** 95-99
-**Total Plans:** 10 tracked
+**Status:** Gap closure planned
+**Phases:** 95-103
+**Total Plans:** 18 tracked
 
 ## Overview
 
@@ -82,8 +82,51 @@ The milestone strategy is:
 **Requirements**: DOC-01, DOC-02, DOC-03
 **Plans**: 2 plans
 
-- [ ] 99-01: Public docs, support-matrix wording, and negative-claim lock
-- [ ] 99-02: Current-tree verification, contract tests, and milestone closeout evidence
+- [x] 99-01: Public docs, support-matrix wording, and negative-claim lock
+- [x] 99-02: Current-tree verification, contract tests, and milestone closeout evidence
+
+### Phase 100: Phase 95 Verification Backfill
+
+**Goal**: Close the unverified Phase 95 evidence-model boundary with explicit current-tree proof and requirement closure.
+**Depends on**: Phase 99
+**Requirements**: EVID-01, EVID-02, EVID-03
+**Gap Closure**: Closes Phase 95 verification-chain gaps from the v1.22 audit
+**Plans**: 2 plans
+
+- [ ] 100-01: Re-verify the append-only evidence contract, subject inventory, and scope boundary on the current tree
+- [ ] 100-02: Add the Phase 95 verification artifact and requirement-closure evidence
+
+### Phase 101: Phase 96 Verification Backfill
+
+**Goal**: Close the unverified Phase 96 persistence and public API work with explicit proof for write/read behavior and Phoenix-optional usage.
+**Depends on**: Phase 100
+**Requirements**: PROOF-01
+**Gap Closure**: Closes Phase 96 verification-chain gaps from the v1.22 audit
+**Plans**: 2 plans
+
+- [ ] 101-01: Re-verify evidence persistence, provenance capture, and public create/read flows on the current tree
+- [ ] 101-02: Add the Phase 96 verification artifact and PROOF-01 closure evidence
+
+### Phase 102: Phase 98 Verification Backfill
+
+**Goal**: Close the unverified mounted evidence surface with explicit proof for `/audit` parity and host-owned authorization behavior.
+**Depends on**: Phase 101
+**Requirements**: SURF-01, SURF-02, SURF-03
+**Gap Closure**: Closes Phase 98 verification-chain gaps from the v1.22 audit
+**Plans**: 2 plans
+
+- [ ] 102-01: Re-verify mounted `/audit/evidence` navigation, parity, and fallback behavior on the current tree
+- [ ] 102-02: Add the Phase 98 verification artifact and SURF requirement-closure evidence
+
+### Phase 103: Authority-Surface Reconciliation And Milestone Re-Audit
+
+**Goal**: Reconcile the active milestone authority surfaces with the repaired evidence-plane status, then re-run closeout readiness on the current tree.
+**Depends on**: Phase 102
+**Gap Closure**: Closes the stale milestone-surface drift and final closeout-flow gaps from the v1.22 audit
+**Plans**: 2 plans
+
+- [ ] 103-01: Reconcile ROADMAP.md, REQUIREMENTS.md, and STATE.md with the repaired v1.22 closure state
+- [ ] 103-02: Re-run milestone verification and audit for v1.22 closeout readiness
 
 ## Milestone Summary
 
@@ -97,6 +140,8 @@ The milestone strategy is:
   credibly without inventing a compliance workflow product.
 - Public docs state exactly what is proven and exactly what remains out of
   scope.
+- The milestone authority surfaces and audit artifacts agree on the exact
+  repaired status before closeout.
 
 **Explicit non-goals:**
 

@@ -7,9 +7,9 @@
 
 ### Evidence Records (EVID)
 
-- [x] **EVID-01**: Threadline persists append-only evidence records for its owned governance subjects instead of relying only on live runtime inspection or prose.
-- [x] **EVID-02**: Each evidence record captures a stable subject, timestamp, actor/provenance metadata, summary status, and machine-readable detail payload suitable for later audit review.
-- [x] **EVID-03**: Evidence capture is limited to Threadline-owned facts and posture; it does not encode host business roles, tenancy semantics, or compliance workflow state.
+- [ ] **EVID-01**: Threadline persists append-only evidence records for its owned governance subjects instead of relying only on live runtime inspection or prose.
+- [ ] **EVID-02**: Each evidence record captures a stable subject, timestamp, actor/provenance metadata, summary status, and machine-readable detail payload suitable for later audit review.
+- [ ] **EVID-03**: Evidence capture is limited to Threadline-owned facts and posture; it does not encode host business roles, tenancy semantics, or compliance workflow state.
 
 ### Library and CLI Proof (PROOF)
 
@@ -25,9 +25,9 @@
 
 ### Documentation and Boundaries (DOC)
 
-- [ ] **DOC-01**: Public docs, support matrix guidance, and examples state exactly what evidence Threadline can prove and what remains host-owned.
-- [ ] **DOC-02**: Public docs explicitly reject stronger claims that this milestone does not deliver, including legal hold, immutable-storage guarantees, generic compliance packs, and vendor-specific reporting suites.
-- [ ] **DOC-03**: Contract and integration tests lock the evidence-plane claim end to end on the current tree.
+- [x] **DOC-01**: Public docs, support matrix guidance, and examples state exactly what evidence Threadline can prove and what remains host-owned.
+- [x] **DOC-02**: Public docs explicitly reject stronger claims that this milestone does not deliver, including legal hold, immutable-storage guarantees, generic compliance packs, and vendor-specific reporting suites.
+- [x] **DOC-03**: Contract and integration tests lock the evidence-plane claim end to end on the current tree.
 
 ## v2 Requirements
 
@@ -51,18 +51,18 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVID-01 | Phase 95 | Complete |
-| EVID-02 | Phase 95 | Complete |
-| EVID-03 | Phase 95 | Complete |
-| PROOF-01 | Phase 96 | Pending |
+| EVID-01 | Phase 100 | Pending |
+| EVID-02 | Phase 100 | Pending |
+| EVID-03 | Phase 100 | Pending |
+| PROOF-01 | Phase 101 | Pending |
 | PROOF-02 | Phase 97 | Complete |
 | PROOF-03 | Phase 97 | Complete |
-| SURF-01 | Phase 98 | Pending |
-| SURF-02 | Phase 98 | Pending |
-| SURF-03 | Phase 98 | Pending |
-| DOC-01 | Phase 99 | Pending |
-| DOC-02 | Phase 99 | Pending |
-| DOC-03 | Phase 99 | Pending |
+| SURF-01 | Phase 102 | Pending |
+| SURF-02 | Phase 102 | Pending |
+| SURF-03 | Phase 102 | Pending |
+| DOC-01 | Phase 99 | Complete |
+| DOC-02 | Phase 99 | Complete |
+| DOC-03 | Phase 99 | Complete |
 
 **Coverage:**
 - v1 requirements: 12 total
@@ -71,4 +71,4 @@
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-25 after v1.22 milestone initialization*
+*Last updated: 2026-05-26 after the v1.22 milestone audit added gap-closure phases*
