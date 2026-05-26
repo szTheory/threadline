@@ -1,10 +1,11 @@
 ---
 phase: 98
 slug: mounted-evidence-views-on-audit
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-26
+reviewed_at: 2026-05-26
 ---
 
 # Phase 98 — UI Design Contract
@@ -90,6 +91,17 @@ Additional copy rules:
 
 ---
 
+## Visual Hierarchy
+
+| Surface | Focal Point | Supporting Hierarchy |
+|---------|-------------|----------------------|
+| `/audit/evidence` landing page | The latest-per-subject overview answering `What can Threadline prove right now?` is the first focal block on load. | Scan order is title/question, overview verdict rows, grouped subject sections, then bounded history drill-down affordances. |
+| Overview verdict row | The verdict label (`proven`, `inferred_posture`, `unsupported`) and subject reference are the primary scan anchors. | Recorded time, provenance hints, and related links stay visually quieter than the verdict and subject identity. |
+| Subject drill-down state | The selected subject/history state and `View history` affordance become the focal point once narrowed. | History rows remain subordinate to the current proof claim and must not imply that append-only history is the default entry surface. |
+| Unsupported/denied state | The unsupported title/body and CLI fallback command are the primary focal elements. | `Back to Timeline` remains a visible secondary recovery action and must not compete with the fallback proof guidance. |
+
+---
+
 ## Registry Safety
 
 | Registry | Blocks Used | Safety Gate |
@@ -100,11 +112,11 @@ Additional copy rules:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-05-26
