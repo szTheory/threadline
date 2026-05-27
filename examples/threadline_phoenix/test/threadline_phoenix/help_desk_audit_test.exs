@@ -6,21 +6,9 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias ThreadlinePhoenix.Demo.Tables
   alias ThreadlinePhoenix.HelpDesk
   alias ThreadlinePhoenix.Repo
-
-  @truncate_sql """
-  TRUNCATE TABLE
-    ticket_replies,
-    tickets,
-    agents,
-    org_memberships,
-    organizations,
-    audit_changes,
-    audit_transactions,
-    audit_actions
-  RESTART IDENTITY CASCADE
-  """
 
   test "ticket_replied_and_closed captures multi-table write with masked internal note" do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
@@ -72,7 +60,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
       assert encoded =~ "[REDACTED]"
       refute encoded =~ note_secret
 
-      Repo.query!(@truncate_sql, [])
+      Repo.query!(Tables.truncate_sql(), [])
     end)
   end
 
@@ -108,7 +96,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
       assert delete_change.changed_fields == nil
       assert delete_change.data_after == nil
 
-      Repo.query!(@truncate_sql, [])
+      Repo.query!(Tables.truncate_sql(), [])
     end)
   end
 end
