@@ -271,7 +271,7 @@ Contract marker for automated doc checks: **COMP-EXAMPLE-INCIDENT-JSON**
 The path-dependent Phoenix app under **`examples/threadline_phoenix/`** shows the
 canonical bundled incident path on top of the table above:
 
-1. **`POST /api/posts`** returns **`audit_transaction_id`** — the UUID of the **`audit_transactions`** row for that HTTP request’s database transaction (after `Threadline.record_action/2` links semantics in the same transaction as in prior phases).
+1. **`POST /api/posts`** returns **`audit_transaction_id`** — the UUID of the **`audit_transactions`** row for that HTTP request’s database transaction (after **`Threadline.Audit.transaction/3`** with **`:action`** records semantics and links **`audit_transactions.action_id`** in the same transaction).
 2. **`GET /api/audit_transactions/:id/changes`** renders **`Threadline.incident_bundle/2`** for that transaction, returning linked transaction/action context plus ordered change rows with packaged **`change_diff`** payloads suitable for JSON incident tools.
 
 If you need a custom projection instead of the bundled default, the lower-level
