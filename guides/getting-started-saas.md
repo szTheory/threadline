@@ -213,7 +213,7 @@ browser and operator pipeline. Reuse the real example router shape:
 
 ```elixir
 scope "/audit" do
-  pipe_through([:browser, :operator_auth])
+  pipe_through([:browser, :operator_browser, :operator_auth])
 
   threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
@@ -225,10 +225,10 @@ scope "/audit" do
 end
 ```
 
-`pipe_through [:browser, :operator_auth]` is the important posture: Threadline
-does not provide host auth for you. Keep your own authenticated operator
-boundary in front of the mount, then let `authorize_fn` act as the fail-closed
-final check. Use one shared `%{assigns: assigns}` callback so the same
+`pipe_through [:browser, :operator_browser, :operator_auth]` is the important
+posture: your app owns browser auth and maps the signed-in user to the operator
+assigns Threadline expects, then `authorize_fn` acts as the fail-closed final
+check. Threadline does not provide host auth for you. Use one shared `%{assigns: assigns}` callback so the same
 host-owned policy can serve the LiveView mount and the export fallback mirror.
 
 When `actor_fn` is present on this standard mount path, Threadline
