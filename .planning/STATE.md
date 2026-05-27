@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T15:48:37.953Z"
+last_updated: "2026-05-27T16:03:14.234Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
@@ -28,7 +28,7 @@ Phase: 106
 Plan: Not started
 Status: Executing Phase null
 Last activity: 2026-05-27
-Resume file: .planning/phases/105-help-desk-domain-expansion-in-reference-app/105-CONTEXT.md
+Resume file: .planning/phases/106-sigra-auth-lane-in-reference-app/106-CONTEXT.md
 
 ## Performance Metrics
 
