@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T13:23:27.293Z"
-last_activity: 2026-05-27 -- Phase 104 planning complete
+last_updated: "2026-05-27T13:28:02.422Z"
+last_activity: 2026-05-27 -- Phase null execution started
 progress:
   total_phases: 7
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.23 — Realistic-Demo Walkthrough. Roadmap locked (Phases 104–110). First plan not yet drafted.
+**Current focus:** Phase null
 
 ## Current Position
 
-Phase: 104 (context gathered)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 104 planning complete
+Phase: null — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase null
+Last activity: 2026-05-27 -- Phase null execution started
 Resume file: `.planning/phases/104-reference-walkthrough-charter-override-decision/104-CONTEXT.md`
 
 ## Performance Metrics
