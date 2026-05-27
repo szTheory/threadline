@@ -1,7 +1,8 @@
 # Thread: Milestone next-step assessment → v1.24 kickoff
 
 **Opened:** 2026-05-27  
-**Status:** active  
+**Closed:** 2026-05-27  
+**Status:** closed — v1.24 shipped; superseded by `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`  
 **Source:** Milestone-next-step assessment (plan approved; no sustained real-adopter signal)
 
 ## Summary

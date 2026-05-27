@@ -32,7 +32,14 @@
       "security_model",
       "breaking_public_api",
       "scope_cut"
-    ]
+    ],
+    "milestone_assessment": {
+      "verify_lib_before_scope": true,
+      "adopter_lens_default": true,
+      "stop_milestone_includes_release_truth": true,
+      "jtbd_refresh_at_milestone_close": true,
+      "run_at_new_milestone": true
+    }
   },
   "model_profile": "adaptive",
   "granularity": "coarse",
