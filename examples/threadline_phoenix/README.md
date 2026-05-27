@@ -208,6 +208,7 @@ scope "/audit" do
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
     export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+    evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
     scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
     repo: ThreadlinePhoenix.Repo
   )
