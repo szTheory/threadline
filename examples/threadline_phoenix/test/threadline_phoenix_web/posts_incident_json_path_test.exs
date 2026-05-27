@@ -5,10 +5,11 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
 
   test "POST /api/posts returns audit_transaction_id; GET changes returns the bundled incident contract" do
     slug = "incident-json-#{System.unique_integer([:positive])}"
+    user = ThreadlinePhoenix.AccountsFixtures.user_fixture()
 
     conn =
       build_conn()
-      |> sigra_conn(%{user_id: "incident-user-1", session_id: "incident-session-1"})
+      |> sigra_conn(%{user: user})
       |> put_req_header("content-type", "application/json")
       |> put_req_header("x-request-id", "comp-req")
       |> put_req_header("x-correlation-id", "comp-corr")
@@ -22,14 +23,14 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
 
     conn2 =
       build_conn()
-      |> sigra_conn(%{user_id: "incident-user-1", session_id: "incident-session-1"})
+      |> sigra_conn(%{user: user})
       |> get(~p"/api/audit_transactions/#{atid}/changes")
 
     assert response(conn2, 200)
     drill = Jason.decode!(conn2.resp_body)
     assert drill["audit_transaction_id"] == atid
     assert is_map(drill["transaction"])
-    assert drill["transaction"]["actor_ref"] == %{"type" => "user", "id" => "incident-user-1"}
+    assert drill["transaction"]["actor_ref"] == %{"type" => "user", "id" => to_string(user.id)}
     assert is_binary(drill["transaction"]["occurred_at"])
     assert is_map(drill["action"])
     assert drill["action"]["name"] == "post_created_via_api"
@@ -61,9 +62,11 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
   end
 
   test "GET /api/audit_transactions/:id/changes keeps malformed ids as 400 for authenticated callers" do
+    user = ThreadlinePhoenix.AccountsFixtures.user_fixture()
+
     conn =
       build_conn()
-      |> sigra_conn(%{user_id: "incident-user-2", session_id: "incident-session-2"})
+      |> sigra_conn(%{user: user})
       |> get(~p"/api/audit_transactions/not-a-uuid/changes")
 
     assert response(conn, 400)
@@ -74,9 +77,11 @@ defmodule ThreadlinePhoenixWeb.PostsIncidentJsonPathTest do
   end
 
   test "GET /api/audit_transactions/:id/changes returns 404 for authenticated callers when the transaction is missing" do
+    user = ThreadlinePhoenix.AccountsFixtures.user_fixture()
+
     conn =
       build_conn()
-      |> sigra_conn(%{user_id: "incident-user-3", session_id: "incident-session-3"})
+      |> sigra_conn(%{user: user})
       |> get(~p"/api/audit_transactions/#{Ecto.UUID.generate()}/changes")
 
     assert response(conn, 404)

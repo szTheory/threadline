@@ -8,10 +8,11 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
 
   test "POST /api/posts captures audit change with actor on transaction" do
     slug = "http-audit-#{System.unique_integer([:positive])}"
+    user = ThreadlinePhoenix.AccountsFixtures.user_fixture()
 
     conn =
       build_conn()
-      |> sigra_conn(%{user_id: "phase-44-user", session_id: "phase-44-session"})
+      |> sigra_conn(%{user: user})
       |> put_req_header("content-type", "application/json")
       |> put_req_header("x-request-id", "phase-23-req")
       |> put_req_header("x-correlation-id", "phase-23-corr")
@@ -26,7 +27,9 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
       Repo.all(
         from(ac in AuditChange,
           join: at in assoc(ac, :transaction),
-          where: ac.table_name == "posts" and fragment("?->>'id' = ?", ac.table_pk, ^to_string(post.id)),
+          where:
+            ac.table_name == "posts" and
+              fragment("?->>'id' = ?", ac.table_pk, ^to_string(post.id)),
           select: {ac, at}
         )
       )
@@ -37,8 +40,10 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
 
     assert %Threadline.Semantics.ActorRef{
              type: :user,
-             id: "phase-44-user"
+             id: id
            } =
              at.actor_ref
+
+    assert id == to_string(user.id)
   end
 end

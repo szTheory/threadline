@@ -16,7 +16,8 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
 
   ## Authentication helpers
 
-  - `sigra_conn/2` — stages API `current_scope` / `sigra_session` without browser login.
+  - `sigra_conn/2` — stages auth through the `:user_token` session key (compatible
+    with `fetch_current_scope/2` on the `:api` pipeline).
   - `login_via_sigra/3` — default `:http` POSTs `/users/log_in` through the real plug chain;
     pass `mode: :session` for a faster session-token path when HTTP login is flaky.
   """
@@ -47,36 +48,26 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
   end
 
   def sigra_conn(conn, attrs \\ %{}) do
-    user_id = Map.get(attrs, :user_id, "example-user-1")
-    session_id = Map.get(attrs, :session_id, "sigra-session-1")
-    org_id = Map.get(attrs, :active_organization_id)
-    auth_method = Map.get(attrs, :auth_method)
-    token_id = Map.get(attrs, :token_id)
+    alias ThreadlinePhoenix.Accounts
+    alias ThreadlinePhoenix.Accounts.UserSession
+    alias ThreadlinePhoenix.Repo
 
-    scope =
-      %{
-        user: %{id: user_id},
-        active_organization_id: org_id
-      }
-      |> maybe_put(:auth_method, auth_method)
-      |> maybe_put(:token_id, token_id)
-      |> maybe_put(:id, Map.get(attrs, :scope_id))
-      |> maybe_put(:impersonating_from, Map.get(attrs, :impersonating_from))
+    user = Map.get(attrs, :user) || ThreadlinePhoenix.AccountsFixtures.user_fixture()
+    token = Accounts.generate_user_session_token(user)
 
-    session =
-      %Sigra.Session{
-        id: session_id,
-        user_id: user_id,
-        active_organization_id: org_id
-      }
+    if org_id = Map.get(attrs, :active_organization_id) do
+      {_authed_user, session} = Accounts.get_user_and_session_by_token(token)
+
+      session.id
+      |> then(&Repo.get!(UserSession, &1))
+      |> Ecto.Changeset.change(%{active_organization_id: org_id})
+      |> Repo.update!()
+    end
 
     conn
-    |> Plug.Conn.assign(:current_scope, scope)
-    |> then(&%{&1 | private: Map.put(&1.private, :sigra_session, session)})
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
   end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   @doc """
   Logs `user` in through Sigra.
