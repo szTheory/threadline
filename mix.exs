@@ -1,7 +1,7 @@
 defmodule Threadline.MixProject do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.6.0"
   @source_url "https://github.com/szTheory/threadline"
 
   def cli do
@@ -78,7 +78,7 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs"
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
@@ -202,11 +202,20 @@ defmodule Threadline.MixProject do
       groups_for_modules: [
         "Core API": [
           Threadline,
+          Threadline.Audit,
+          Threadline.ChangeDiff,
           Threadline.Export,
+          Threadline.Investigation,
+          Threadline.Query,
           Threadline.Retention,
           Threadline.Retention.Policy,
           Threadline.Semantics.ActorRef,
           Threadline.Semantics.AuditContext
+        ],
+        Evidence: [
+          Threadline.Evidence,
+          Threadline.Evidence.Proof,
+          Threadline.Evidence.Subject
         ],
         Integration: [
           Threadline.Plug,
@@ -235,7 +244,10 @@ defmodule Threadline.MixProject do
           Mix.Tasks.Threadline.Retention.Purge,
           Mix.Tasks.Threadline.Export,
           Mix.Tasks.Threadline.Incident,
-          Mix.Tasks.Threadline.VerifyTopology
+          Mix.Tasks.Threadline.VerifyTopology,
+          Mix.Tasks.Threadline.Evidence.Show,
+          Mix.Tasks.Threadline.Health.Coverage,
+          Mix.Tasks.Threadline.Policy.Show
         ]
       ]
     ]
