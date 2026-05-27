@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T18:13:13.774Z"
+last_updated: "2026-05-27T18:17:00Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 15
-  percent: 63
+  completed_plans: 16
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 108 — Walkthrough Script + Finding-Capture Protocol
+**Current focus:** Phase 109 — Maintainer Walkthrough Dry-Run
 
 ## Current Position
 
-Phase: 108-walkthrough-script-finding-capture-protocol — IN PROGRESS
-Plan: 4 of 5 complete (next: 108-05)
-Status: WALKTHROUGH §4 operator incidents complete; next is §5 evidence exercises
+Phase: 109-maintainer-walkthrough-dry-run — NOT STARTED
+Plan: 0 of ? complete
+Status: Phase 108 complete; WALKTHROUGH runbook + findings protocol ready for observe-only dry-run
 Last activity: 2026-05-27
 Resume file: None
 
@@ -42,13 +42,12 @@ Resume file: None
 ### Decisions
 
 - Full decision log lives in `.planning/PROJECT.md` Key Decisions table.
-- v1.23 framing override (synthetic-first-adopter pressure under no-real-adopter conditions) to be recorded as a Phase 104 Key Decision so the next milestone-arc reread does not re-litigate it.
 - Phase 108-01: Redaction policy evidence uses `walk-demo-redaction-policy` subject_ref; seeded in RetentionTail with masked-field detail for WALK-04 exercise 2.
+- Phase 108-05: Canonical evidence CLI in WALKTHROUGH is `mix threadline.evidence.show`; Appendix A replaces DEMO-MANIFEST mid-run for RUN-01 self-containment.
 
 ### Todos
 
-- Phase 104 will land the override Key Decision row in `PROJECT.md` and the v1.23 row in `MILESTONE-ARC.md`.
-- `/gsd:plan-phase 104` next.
+- Execute Phase 109 dry-run on clean clone using only WALKTHROUGH.md; capture findings observationally.
 
 ### Blockers
 
@@ -56,27 +55,16 @@ Resume file: None
 
 ## Session Continuity
 
-- **Last Action**: Completed 108-04-PLAN.md — WALKTHROUGH §4 four operator incidents + ROADMAP traceability (commits `cedf21e`, `4d5cac8`).
-- **Next Step**: Execute 108-05-PLAN.md (WALKTHROUGH §5 evidence exercises + appendices + doc contract test).
+- **Last Action**: Completed 108-05-PLAN.md — WALKTHROUGH §5 + appendices + doc contract test (commits `72e6bb3`, `8009a4a`, `07d3b31`).
+- **Next Step**: Plan and execute Phase 109 maintainer walkthrough dry-run.
 
 ## Operator Next Steps
 
-- Run `/gsd:plan-phase 104` to draft the charter / override-decision plan, then proceed sequentially through Phases 105–110 per the documented dependency chain.
-- Phases 105 → 106 → 107 → 108 → 109 → 110 must execute in order; Phase 104 is independent and may technically come earlier but the recommended order is 104 first.
-- Sub-phase 106b is an escape valve only — open it only if real signup/login surfaces a contract gap in `Threadline.Integrations.Sigra`.
+- Run `/gsd:plan-phase 109` to decompose the observe-only dry-run, then execute WALKTHROUGH.md end-to-end on a clean clone.
+- Phase 109 scope guard: findings only — no in-flight fixes.
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
-| Phase 106 P01 | 18 | 4 tasks | 49 files |
-| Phase 106-sigra-auth-lane-in-reference-app P02 | 1min | 3 tasks | 7 files |
-| Phase 106-sigra-auth-lane-in-reference-app P03 | 4 | 4 tasks | 7 files |
-| Phase 107-realistic-seed-data-demo-mix-tasks P01 | 15 min | 3 tasks | 5 files |
-| Phase 107-realistic-seed-data-demo-mix-tasks P02 | 25 min | 3 tasks | 7 files |
-| Phase 107-realistic-seed-data-demo-mix-tasks P04 | 35 min | 3 tasks | 11 files |
-| Phase 108-walkthrough-script-finding-capture-protocol P01 | 2min | 2 tasks | 4 files |
-| Phase 108-walkthrough-script-finding-capture-protocol P02 | 4min | 2 tasks | 2 files |
-| Phase 108-walkthrough-script-finding-capture-protocol P03 | 12min | 2 tasks | 2 files |
-| Phase 108-walkthrough-script-finding-capture-protocol P04 | 15min | 2 tasks | 2 files |
-| Phase 108-walkthrough-script-finding-capture-protocol P04 | 15 min | 2 tasks | 2 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P05 | 12min | 3 tasks | 3 files |
