@@ -303,7 +303,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- [ ] **REL-01** through **REL-04** — 0.6.0 release packaging (Phase 114)
+- [x] **REL-01** through **REL-04 (Phase 114)** — 0.6.0 semver, CHANGELOG, ExDoc Evidence group, verify.release, install-snippet SSOT `~> 0.6`. Validated in v1.25 (2026-05-27).
 - [ ] **NARR-01** through **NARR-03** — Narrative doc sync to `Audit.transaction/3` (Phase 115)
 - [ ] **EXAMPLE-01** through **EXAMPLE-04** — Example README first-hour fixes (Phase 116)
 - [ ] **DOC-01** through **DOC-03** — Evidence-plane doc authority + semver prose (Phase 117)
@@ -399,4 +399,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — milestone v1.25 Adopter-Ready Release & First-Hour Truth started.*
+*Last updated: 2026-05-27 — Phase 114 complete (0.6.0 release packaging); Phase 115 next.*
