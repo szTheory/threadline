@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
-status: Ready for Phase 117
-last_updated: "2026-05-27T22:33:18.413Z"
-last_activity: 2026-05-27
+status: executing
+last_updated: "2026-05-27T22:36:27.238Z"
+last_activity: 2026-05-27 -- Phase null execution started
 progress:
   total_phases: 5
   completed_phases: 3
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 116 — example-first-hour-fixes
+**Current focus:** Phase null
 
 ## Current Position
 
-Phase: 117
-Plan: Not started
-Status: Ready for Phase 117
-Last activity: 2026-05-27
+Phase: null — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase null
+Last activity: 2026-05-27 -- Phase null execution started
 
 ## Performance Metrics
 
