@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T18:09:06.855Z"
+last_updated: "2026-05-27T18:13:13.774Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 14
-  percent: 57
+  completed_plans: 15
+  percent: 63
 ---
 
 # Project State: Threadline
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 108-walkthrough-script-finding-capture-protocol — IN PROGRESS
-Plan: 3 of 5 complete (next: 108-04)
-Status: WALKTHROUGH §0–§3 complete; next is §4 operator incidents
+Plan: 4 of 5 complete (next: 108-05)
+Status: WALKTHROUGH §4 operator incidents complete; next is §5 evidence exercises
 Last activity: 2026-05-27
 Resume file: None
 
@@ -56,8 +56,8 @@ Resume file: None
 
 ## Session Continuity
 
-- **Last Action**: Completed 108-03-PLAN.md — WALKTHROUGH.md §0–§3 install/onboarding/daily-use (commits `5822fe5`, `81ad55c`).
-- **Next Step**: Execute 108-04-PLAN.md (WALKTHROUGH §4 operator incidents + ROADMAP traceability).
+- **Last Action**: Completed 108-04-PLAN.md — WALKTHROUGH §4 four operator incidents + ROADMAP traceability (commits `cedf21e`, `4d5cac8`).
+- **Next Step**: Execute 108-05-PLAN.md (WALKTHROUGH §5 evidence exercises + appendices + doc contract test).
 
 ## Operator Next Steps
 
@@ -78,3 +78,5 @@ Resume file: None
 | Phase 108-walkthrough-script-finding-capture-protocol P01 | 2min | 2 tasks | 4 files |
 | Phase 108-walkthrough-script-finding-capture-protocol P02 | 4min | 2 tasks | 2 files |
 | Phase 108-walkthrough-script-finding-capture-protocol P03 | 12min | 2 tasks | 2 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P04 | 15min | 2 tasks | 2 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P04 | 15 min | 2 tasks | 2 files |
