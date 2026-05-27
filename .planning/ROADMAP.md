@@ -100,7 +100,7 @@
   3. New help-desk audit tests authenticate via real Sigra session (not `conn |> assign(:current_user, …)`); audit rows reflect the logged-in user's `actor_ref`.
   4. All pre-existing example-app tests still pass against the real Sigra session shape — no faked-conn regressions.
 
-**Plans:** TBD
+**Plans:** 1/3 plans executed
 
 **UI hint:** yes
 
@@ -199,7 +199,7 @@
 |-------|----------------|--------|-----------|
 | 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
 | 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 106. Sigra Auth Lane in Reference App | 0/? | Not started | — |
+| 106. Sigra Auth Lane in Reference App | 1/3 | In Progress|  |
 | 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |
 | 108. Walkthrough Script + Finding-Capture Protocol | 0/? | Not started | — |
 | 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
