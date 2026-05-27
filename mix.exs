@@ -10,6 +10,7 @@ defmodule Threadline.MixProject do
     [
       preferred_envs: [
         "ci.all": :test,
+        "verify.doc_contract": :test,
         "verify.release": :dev,
         "verify.test": :test,
         "verify.topology": :test,
@@ -76,7 +77,9 @@ defmodule Threadline.MixProject do
       "verify.credo": ["credo --strict"],
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
-      "verify.doc_contract": ["test test/threadline/readme_doc_contract_test.exs"],
+      "verify.doc_contract": [
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs"
+      ],
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,

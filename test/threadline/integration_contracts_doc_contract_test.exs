@@ -35,6 +35,10 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(guide, "Threadline does not introduce a separate adapter behaviour")
     assert String.contains?(guide, "These are the existing supported seams.")
+    assert String.contains?(guide, "evidence about its own governance and support-scope posture")
+    assert String.contains?(guide, "Threadline-owned RBAC system")
+    assert String.contains?(guide, "tenancy DSL")
+    assert String.contains?(guide, "legal-hold flow")
   end
 
   test "integration-contracts guide locks request and job contract literals" do
@@ -85,6 +89,8 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     guide = File.read!("guides/integration-contracts.md")
 
     assert String.contains?(guide, "authorize_fn: &MyApp.Audit.authorize_operator/1")
+    assert String.contains?(guide, "scope_query_fn: &MyApp.Audit.scope_operator_query/3")
+    assert String.contains?(guide, "evidence_authorize_fn")
 
     assert String.contains?(
              guide,
@@ -96,6 +102,8 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "directly as a 1-arity function")
     assert String.contains?(guide, "one shared")
     assert String.contains?(guide, "`%{assigns: assigns}`")
+    assert String.contains?(guide, "pair it with `scope_query_fn`")
+    assert String.contains?(guide, "query seam for timeline, actor, transaction, export")
     assert String.contains?(guide, "support_read_only")
     assert String.contains?(guide, "organization_id")
     assert String.contains?(guide, "opaque and host-owned")

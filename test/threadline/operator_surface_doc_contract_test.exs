@@ -34,7 +34,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "pipe_through [:browser, :admin_auth]")
     assert String.contains?(guide, "support-read-only variation")
-    assert String.contains?(guide, "exports: false")
+    assert String.contains?(guide, "export_authorize_fn")
     assert String.contains?(guide, "organization_id")
     refute String.contains?(guide, "support_roles =")
     refute String.contains?(guide, "permissions_dsl")
@@ -78,6 +78,10 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
            )
 
     assert String.contains?(guide, "plain-text `403`")
+    assert String.contains?(guide, "evidence_authorize_fn")
+    assert String.contains?(guide, "coverage_authorize_fn")
+    assert String.contains?(guide, "policy_authorize_fn")
+    assert String.contains?(guide, "Unsupported View")
     refute String.contains?(guide, "{:cont, socket}")
     refute String.contains?(guide, "{:ok, socket}")
     refute String.contains?(guide, "{:ok, conn}")
@@ -97,12 +101,26 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "## Mounted workflow parity")
     assert String.contains?(guide, "mix threadline.incident <transaction_id>")
-    assert String.contains?(guide, "mix threadline.export --dry-run --table posts")
+    assert String.contains?(guide, "mix threadline.export --dry-run")
+    assert String.contains?(guide, "exact `--table` / `--from` / `--to` flags")
     assert String.contains?(guide, "mix threadline.health.coverage")
     assert String.contains?(guide, "mix threadline.policy.show")
     assert String.contains?(guide, "Threadline.actor_history/2")
     assert String.contains?(guide, "Threadline.history/3")
     assert String.contains?(guide, "Threadline.as_of/4")
+    assert String.contains?(guide, "mix threadline.evidence.show")
+    assert String.contains?(guide, "/audit/evidence")
+
+    assert String.contains?(
+             guide,
+             "support-scoped row history / as-of is proven on the current tree"
+           )
+
+    assert String.contains?(
+             guide,
+             "named support-lane claim now includes support-scoped row-history / as-of proof"
+           )
+
     refute String.contains?(guide, "every page is blocked for support")
     refute String.contains?(guide, "universal scope narrowing")
   end

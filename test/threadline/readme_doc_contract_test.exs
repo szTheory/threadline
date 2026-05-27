@@ -48,6 +48,29 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/incident-playbook.md")
   end
 
+  test "README keeps the evidence-plane claim strip compact and outward-linking" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(readme, "## Evidence plane")
+    assert String.contains?(readme, "guides/how-threadline-works.md")
+    assert String.contains?(readme, "guides/upgrade-path.md")
+    assert String.contains?(readme, "guides/domain-reference.md")
+    assert String.contains?(readme, "host-owned")
+    assert String.contains?(readme, "legal hold")
+    assert String.contains?(readme, "immutable-storage")
+    refute String.contains?(readme, "| Lane | Claim type |")
+    refute String.contains?(readme, "mix threadline.evidence.show")
+  end
+
+  test "named doc-contract coverage reads the public domain reference guide directly" do
+    guide = File.read!("guides/domain-reference.md")
+
+    assert String.contains?(guide, "claim_assessment")
+    assert String.contains?(guide, "proven")
+    assert String.contains?(guide, "inferred_posture")
+    assert String.contains?(guide, "unsupported")
+  end
+
   test "README keeps the operator surface section as a short pointer" do
     readme = File.read!("README.md")
 

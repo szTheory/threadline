@@ -1,5 +1,6 @@
 defmodule Threadline.InvestigationTest do
   use Threadline.DataCase
+  import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -62,6 +63,15 @@ defmodule Threadline.InvestigationTest do
     ref
   end
 
+  defp support_scope_query(query, %{source: source}, %{surface: :row_history}) do
+    source_txn_ids =
+      from(at in AuditTransaction, where: at.source == ^source, select: at.id)
+
+    from(ac in query, where: ac.transaction_id in subquery(source_txn_ids))
+  end
+
+  defp support_scope_query(query, _scope, _context), do: query
+
   defp page_entry_ids(%TimelinePage{entries: entries}),
     do: Enum.map(entries, & &1.audit_change.id)
 
@@ -118,6 +128,78 @@ defmodule Threadline.InvestigationTest do
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
       assert first_page.next_cursor != nil
       assert second_page.next_cursor == nil
+    end
+
+    test "row_history/4 applies support scope" do
+      support_time = ~U[2026-10-02 10:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      support_change =
+        insert_change(support_txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "row-scoped"},
+          data_after: %{"id" => "row-scoped", "name" => "Scoped Alpha"},
+          changed_fields: ["id", "name"],
+          captured_at: support_time
+        })
+
+      insert_change(admin_txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-scoped"},
+        data_after: %{"id" => "row-scoped", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      })
+
+      results =
+        Threadline.row_history(FakeUser, "row-scoped", [],
+          repo: @repo,
+          scope: %{source: "support"},
+          scope_query_fn: &support_scope_query/3
+        )
+
+      assert Enum.map(results, & &1.audit_change.id) == [support_change.id]
+      assert Enum.all?(results, &(&1.transaction.source == "support"))
+    end
+
+    test "row_history_page/4 applies support scope" do
+      support_time = ~U[2026-10-02 11:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      support_change =
+        insert_change(support_txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "row-scoped-page"},
+          data_after: %{"id" => "row-scoped-page", "name" => "Scoped Alpha"},
+          changed_fields: ["id", "name"],
+          captured_at: support_time
+        })
+
+      insert_change(admin_txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-scoped-page"},
+        data_after: %{"id" => "row-scoped-page", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      })
+
+      page =
+        Threadline.row_history_page(FakeUser, "row-scoped-page", [],
+          repo: @repo,
+          page_size: 5,
+          scope: %{source: "support"},
+          scope_query_fn: &support_scope_query/3
+        )
+
+      assert Enum.map(page.entries, & &1.audit_change.id) == [support_change.id]
+      assert page.next_cursor == nil
+      assert Enum.all?(page.entries, &(&1.transaction.source == "support"))
     end
   end
 

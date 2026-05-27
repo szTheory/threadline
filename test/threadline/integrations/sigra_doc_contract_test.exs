@@ -94,7 +94,7 @@ defmodule Threadline.SigraDocContractTest do
     assert String.contains?(doc, "Sigra does not become the auth story")
     assert String.contains?(doc, "one shared `%{assigns: assigns}`")
     assert String.contains?(doc, "support-read-only lane")
-    assert String.contains?(doc, "`exports: false`")
+    assert String.contains?(doc, "`export_authorize_fn`")
     assert String.contains?(doc, "opaque host data")
     assert String.contains?(doc, "Do not treat Sigra as a page-level authorization DSL")
     assert String.contains?(doc, "Threadline-owned roles system")

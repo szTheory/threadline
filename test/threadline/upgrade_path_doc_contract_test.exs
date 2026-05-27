@@ -29,6 +29,12 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert String.contains?(guide, "You are on the `sigra-reference` lane")
     assert String.contains?(guide, "mix verify.compile_no_optional")
     assert String.contains?(guide, "threadline_operator_surface/2")
+    assert String.contains?(guide, "/audit/evidence")
+    assert String.contains?(guide, "`supported`")
+    assert String.contains?(guide, "`reference`")
+    assert String.contains?(guide, "`unclaimed`")
+    assert String.contains?(guide, "support-scoped row")
+    assert String.contains?(guide, "transaction, support-scoped row history / as-of, and")
   end
 
   test "upgrade-path guide keeps support claims narrow and tied to repo evidence" do

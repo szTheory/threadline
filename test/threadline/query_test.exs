@@ -1,5 +1,6 @@
 defmodule Threadline.QueryTest do
   use Threadline.DataCase
+  import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
@@ -34,6 +35,15 @@ defmodule Threadline.QueryTest do
     {:ok, ref} = ActorRef.new(type, id)
     ref
   end
+
+  defp support_scope_query(query, %{source: source}, %{surface: :row_history}) do
+    source_txn_ids =
+      from(at in AuditTransaction, where: at.source == ^source, select: at.id)
+
+    from(ac in query, where: ac.transaction_id in subquery(source_txn_ids))
+  end
+
+  defp support_scope_query(query, _scope, _context), do: query
 
   defp as_of_row_fixture do
     inserted_at = DateTime.add(DateTime.utc_now(), -90, :second)
@@ -152,6 +162,41 @@ defmodule Threadline.QueryTest do
 
       assert {:error, :before_audit_horizon} =
                Threadline.as_of(fake_as_of_schema(), "u-asof", before_horizon, repo: @repo)
+    end
+
+    test "as_of/4 applies support scope" do
+      support_time = ~U[2026-10-01 09:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      insert_change(support_txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-scoped-asof"},
+        op: "insert",
+        data_after: %{"id" => "u-scoped-asof", "name" => "Scoped Alpha"},
+        changed_fields: ["id", "name"],
+        captured_at: support_time
+      )
+
+      insert_change(admin_txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-scoped-asof"},
+        op: "update",
+        data_after: %{"id" => "u-scoped-asof", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      )
+
+      assert {:ok, row} =
+               Threadline.as_of(fake_as_of_schema(), "u-scoped-asof", admin_time,
+                 repo: @repo,
+                 scope: %{source: "support"},
+                 scope_query_fn: &support_scope_query/3
+               )
+
+      assert row == %{"id" => "u-scoped-asof", "name" => "Scoped Alpha"}
     end
   end
 
@@ -277,6 +322,41 @@ defmodule Threadline.QueryTest do
 
       [row] = Threadline.history(FakeUserBval, "u-bval", repo: @repo)
       assert row.changed_from == %{"status" => "pending"}
+    end
+
+    test "history/3 applies support scope" do
+      support_time = ~U[2026-10-01 08:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      support_change =
+        insert_change(support_txn,
+          table_name: "users",
+          table_pk: %{"id" => "u-scoped-history"},
+          data_after: %{"id" => "u-scoped-history", "name" => "Scoped Alpha"},
+          changed_fields: ["id", "name"],
+          captured_at: support_time
+        )
+
+      insert_change(admin_txn,
+        table_name: "users",
+        table_pk: %{"id" => "u-scoped-history"},
+        data_after: %{"id" => "u-scoped-history", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      )
+
+      results =
+        Threadline.history(fake_as_of_schema(), "u-scoped-history",
+          repo: @repo,
+          scope: %{source: "support"},
+          scope_query_fn: &support_scope_query/3
+        )
+
+      assert Enum.map(results, & &1.id) == [support_change.id]
+      assert Enum.all?(results, &(&1.transaction_id == support_txn.id))
     end
   end
 

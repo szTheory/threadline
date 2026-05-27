@@ -32,7 +32,13 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
         "Threadline.timeline_page/2",
         "Threadline.incident_bundle/2",
         "Threadline.as_of/4",
-        "Threadline.export_json/2"
+        "Threadline.export_json/2",
+        "Threadline-owned RBAC platform",
+        "legal hold",
+        "immutable-storage",
+        "generic compliance",
+        "vendor-specific",
+        "tenancy DSL"
       ],
       &assert(String.contains?(doc, &1))
     )
