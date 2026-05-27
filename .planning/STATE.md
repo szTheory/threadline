@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T17:02:15.657Z"
-last_activity: 2026-05-27 -- Phase 107 planning complete
+last_updated: "2026-05-27T17:10:31.605Z"
+last_activity: 2026-05-27 -- Completed 107-01-PLAN.md (demo manifest contract)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
   percent: 43
 ---
 
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 107 — realistic-seed-data-demo-mix-tasks
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
+Phase: 107 (realistic-seed-data-demo-mix-tasks) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 107 planning complete
-Resume file: .planning/phases/107-realistic-seed-data-demo-mix-tasks/107-CONTEXT.md
+Last activity: 2026-05-27
+Resume file: None
 
 ## Performance Metrics
 
@@ -71,3 +71,4 @@ Resume file: .planning/phases/107-realistic-seed-data-demo-mix-tasks/107-CONTEXT
 | Phase 106 P01 | 18 | 4 tasks | 49 files |
 | Phase 106-sigra-auth-lane-in-reference-app P02 | 1min | 3 tasks | 7 files |
 | Phase 106-sigra-auth-lane-in-reference-app P03 | 4 | 4 tasks | 7 files |
+| Phase 107-realistic-seed-data-demo-mix-tasks P01 | 15 min | 3 tasks | 5 files |
