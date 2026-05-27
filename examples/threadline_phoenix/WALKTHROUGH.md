@@ -47,7 +47,7 @@ Even obvious one-line fixes become numbered finding files. Phase 110 triages the
 | §2 Onboarding | WALK-01 register + login + first reply | Task 2 |
 | §3 Daily use | WALK-02 agent/admin/support flows | Task 2 |
 | §4 Operator incidents | WALK-03 four playbooks | This section |
-| §5 Evidence exercises | WALK-04 three exercises | Plan 05 |
+| §5 Evidence exercises | WALK-04 three exercises | This section |
 
 ---
 
@@ -430,7 +430,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 - Transaction actor is **`closer@acme.example.com`** (not deleter or support)
 - Semantic action **`ticket_replied_and_closed`** linked on the close transaction
 - Hero ticket **#4521** shows **closed** status in help-desk context
-- Internal note field on the close reply shows **`[REDACTED]`** in capture — never plaintext `WALKTHROUGH-INTERNAL-SECRET-4521`
+- Internal note field on the close reply shows **`[REDACTED]`** in capture — never plaintext internal-note secret text from seed data
 
 **Operator surface:**
 
@@ -553,3 +553,183 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 | ☐ WALK-03-02 agent2 24h actor window | ☐ | |
 | ☐ WALK-03-03 org Y evidence + empty timeline | ☐ | |
 | ☐ WALK-03-04 #4518 delete by deleter | ☐ | |
+
+---
+
+## §5 Evidence plane exercises
+
+Three evidence exercises prove the Threadline evidence plane using seeded rows from **`mix demo.seed`** and live viewer parity on `/audit/evidence`, `/audit/policy/redaction`, and `/audit/coverage`.
+
+**Prerequisites:** WALK-01-03 complete — **`mix demo.seed`** must have run successfully. Org Y retention purge executes **during** `demo.seed` (RetentionTail tail); there is no separate live purge step in this walk. If state drifted, recover with **`mix demo.reset`**.
+
+> **CLI footnote:** REQUIREMENTS and PROJECT prose may reference **`mix verify.evidence`**. The canonical viewer in this repo is **`mix threadline.evidence.show`** — use that command throughout this section.
+
+> **Production sidebar (non-proof):** Hosts may run **`mix threadline.retention.purge --dry-run`** in production planning — that is optional prose only; org Y purge proof here comes from the seeded retention run, not a live purge during Phase 109.
+
+Log in as **`admin@example.com`** / **`password123456`** (Appendix A) for all three exercises unless your mount restricts evidence routes.
+
+Document these fields — not full JSON blobs: **`subject`**, **`subject_ref`** keys, **`summary_status`**, **`claim_assessment.status`**.
+
+#### Step WALK-04-01 — Retention purge evidence (`retention_run`)
+
+**Operator question:** Does org **`offboarded-co`** have a completed retention-run evidence record and an empty operator timeline?
+
+**Prerequisites:** Demo seed loaded (retention tail ran during seed).
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit/evidence`**
+2. Filter or locate subject **`retention_run`** with subject ref **`run_id: walk-retention-offboarded-co`**
+3. Confirm evidence detail shows org Y offboard narrative
+4. Open **`http://localhost:4000/audit`** and scope to org **`offboarded-co`** — confirm timeline is **empty** (negative check)
+5. CLI parity from **`examples/threadline_phoenix/`**:
+
+   ```bash
+   mix threadline.evidence.show --subject retention_run \
+     --subject-ref-json '{"run_id":"walk-retention-offboarded-co"}'
+   ```
+
+**Expected outcome:**
+
+- **`subject`:** `retention_run`
+- **`subject_ref`:** `run_id` = **`walk-retention-offboarded-co`**; org slug **`offboarded-co`**
+- **`summary_status`:** **`completed`**
+- **`claim_assessment.status`:** **`proven`** (retention purge narrative matches empty org Y audit footprint)
+- Org Y scoped **`/audit`** timeline remains **empty** — no contradiction with evidence detail
+
+**Evidence:**
+
+| Field | Expected |
+|-------|----------|
+| subject | `retention_run` |
+| subject_ref | `run_id` → `walk-retention-offboarded-co` |
+| summary_status | `completed` |
+| claim_assessment.status | `proven` |
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit/evidence` | Admin | subject `retention_run`, ref `walk-retention-offboarded-co` | evidence detail |
+| `/audit` | Cross-org admin | org `offboarded-co` | should return no rows |
+
+**Verify:** Optional — `demo_contract_test.exs` `"offboarded-co audit footprint purged with manifest retention evidence"`.
+
+**If different:** File a finding citing **`WALK-04-01`**; do not fix during Phase 109.
+
+---
+
+#### Step WALK-04-02 — Redaction policy snapshot (`redaction_policy`)
+
+**Operator question:** Does the seeded redaction-policy evidence row show **`inferred_posture`**, and does ticket **#4521** capture corroborate masking?
+
+**Prerequisites:** Demo seed loaded; WALK-03-01 familiarity with #4521 close story.
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit/policy/redaction`**
+2. Locate policy snapshot keyed **`walk-demo-redaction-policy`**
+3. Note **`claim_assessment.status`** on the policy evidence row
+4. CLI parity:
+
+   ```bash
+   mix threadline.evidence.show --subject redaction_policy \
+     --subject-ref-json '{"policy":"walk-demo-redaction-policy"}'
+   ```
+
+   Optional live viewer parity:
+
+   ```bash
+   mix threadline.policy.show
+   ```
+
+5. Corroborate capture: repeat WALK-03-01 row history on **`/audit/rows/ticket_replies/:pk`** for the #4521 close reply — internal note shows **`[REDACTED]`**, never plaintext secret text
+
+**Expected outcome:**
+
+- **`subject`:** `redaction_policy`
+- **`subject_ref`:** `policy` = **`walk-demo-redaction-policy`**
+- **`summary_status`:** **`active`**
+- **`claim_assessment.status`:** **`inferred_posture`** (posture inferred from trigger capture config, not a live legal-hold proof)
+- Ticket **#4521** close reply capture shows **`[REDACTED]`** on masked fields — corroborates the policy narrative
+
+**Evidence:**
+
+| Field | Expected |
+|-------|----------|
+| subject | `redaction_policy` |
+| subject_ref | `policy` → `walk-demo-redaction-policy` |
+| summary_status | `active` |
+| claim_assessment.status | `inferred_posture` |
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit/policy/redaction` | Admin global | policy `walk-demo-redaction-policy` | policy drift detail |
+| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | #4521 close reply pk | `[REDACTED]` on internal note |
+
+**Verify:** Optional — `demo_contract_test.exs` `"post-demo.seed redaction_policy row matches manifest subject_ref"`.
+
+**If different:** File a finding citing **`WALK-04-02`**; do not fix during Phase 109.
+
+---
+
+#### Step WALK-04-03 — Trigger coverage snapshot (`trigger_coverage`)
+
+**Operator question:** Does the seeded trigger-coverage snapshot show audited tables are covered?
+
+**Prerequisites:** Demo seed loaded.
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit/coverage`**
+2. Locate snapshot **`walk-demo-trigger-coverage`**
+3. Confirm covered vs uncovered bucket counts match seeded help-desk tables
+4. Optional CLI parity from **`examples/threadline_phoenix/`**:
+
+   ```bash
+   mix threadline.health.coverage
+   ```
+
+   Evidence row CLI:
+
+   ```bash
+   mix threadline.evidence.show --subject trigger_coverage \
+     --subject-ref-json '{"snapshot":"walk-demo-trigger-coverage"}'
+   ```
+
+**Expected outcome:**
+
+- **`subject`:** `trigger_coverage`
+- **`subject_ref`:** `snapshot` = **`walk-demo-trigger-coverage`**
+- **`summary_status`:** **`snapshot`**
+- **`claim_assessment.status`:** **`proven`** (trigger inventory matches on-disk capture state post-seed)
+- Help-desk audited tables appear in **covered** buckets; no unexpected **uncovered** surprises on shipped tables
+
+**Evidence:**
+
+| Field | Expected |
+|-------|----------|
+| subject | `trigger_coverage` |
+| subject_ref | `snapshot` → `walk-demo-trigger-coverage` |
+| summary_status | `snapshot` |
+| claim_assessment.status | `proven` |
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit/coverage` | Admin global | snapshot `walk-demo-trigger-coverage` | per-table trigger buckets |
+
+**Verify:** Optional — `mix verify.threadline` coverage check after fresh migrate.
+
+**If different:** File a finding citing **`WALK-04-03`**; do not fix during Phase 109.
+
+### §5 Checkpoint
+
+| Expected met? | Findings filed? | Blockers |
+|---------------|-----------------|----------|
+| ☐ WALK-04-01 retention_run completed + empty org Y timeline | ☐ | |
+| ☐ WALK-04-02 redaction_policy inferred_posture + #4521 `[REDACTED]` | ☐ | |
+| ☐ WALK-04-03 trigger_coverage snapshot proven | ☐ | |
