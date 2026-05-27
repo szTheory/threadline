@@ -48,21 +48,28 @@ The common loop is:
 
 1. A request enters the host app.
 2. `Threadline.Plug` attaches request-scoped audit context and the host decides the actor.
-3. Your app writes data in a normal database transaction.
-4. PostgreSQL triggers capture the physical row changes.
-5. `Threadline.record_action/2` records the semantic intent when you want the "who did what and why" layer.
+3. Domain writes run inside `Threadline.Audit.transaction/3` — the **recommended audited write path** — so capture and optional semantics share one database transaction.
+4. PostgreSQL triggers capture the physical row changes from that transaction.
+5. When you pass `:action`, the helper records semantic intent via `Threadline.record_action/2` and links `audit_transactions.action_id` for correlation filters.
 6. Operators inspect the result through the query APIs, Mix tasks, or the mounted `/audit` surface.
+
+Request headers can populate audit context at the edge, but queryable correlation requires an audit_actions row linked in the same transaction — use Audit.transaction/3 with :action when filters must match intent. Omit `:action` or pass `capture_only: true` for capture-only writes.
 
 That makes Threadline useful in both of these shapes:
 
 ```elixir
 plug Threadline.Plug, actor_fn: &MyApp.Audit.current_actor/1
 
-{:ok, _action} =
-  Threadline.record_action(:post_published,
-    repo: MyApp.Repo,
-    actor: actor_ref,
-    correlation_id: "req_123"
+{:ok, %{post: post}} =
+  Threadline.Audit.transaction(
+    MyApp.Repo,
+    [audit_context: audit_context, action: :post_created],
+    fn ->
+      case MyApp.Repo.insert(Post.changeset(%Post{}, attrs)) do
+        {:ok, post} -> %{post: post}
+        {:error, changeset} -> MyApp.Repo.rollback(changeset)
+      end
+    end
   )
 ```
 
@@ -127,7 +134,7 @@ If you are dropping Threadline into your SaaS, you are hiring it to do four very
 
 ### Job 2: The "Who Did This?" (Attribution & Intent)
 * **The Scenario:** A database trigger only knows that the `postgres` database user modified a row. That’s useless for a SaaS. You need to know that `user_id: 42` did it via the `/billing/refund` endpoint.
-* **The Flow:** You drop `plug Threadline.Plug` into your router. You configure it to pull the current user from the session. Now, every physical database change is automatically tagged with that human actor. If you want to get fancy, you call `Threadline.record_action(:refund_issued)` in your business logic. 
+* **The Flow:** You drop `plug Threadline.Plug` into your router and configure it to pull the current user from the session. Wrap business writes in `Threadline.Audit.transaction/3` with `:action` when intent and correlation matter — the helper records semantic intent and links `audit_transactions.action_id` in the same database transaction as the row changes.
 * **The JTBD:** *"Bridge the gap between physical database mutations and human application semantics so the logs actually make sense."*
 
 ### Job 3: The "3 AM Support Ticket" (Investigation & Ops UI)
