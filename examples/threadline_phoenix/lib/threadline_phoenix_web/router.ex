@@ -113,6 +113,9 @@ defmodule ThreadlinePhoenixWeb.Router do
   def scope_operator_query(query, _scope, _context), do: query
 
   pipeline :api do
+    plug(:fetch_session)
+    plug(:fetch_current_scope)
+
     # doc: start: router-pipeline-actor-fn
     plug(:accepts, ["json"])
 
@@ -186,7 +189,6 @@ defmodule ThreadlinePhoenixWeb.Router do
 
     get "/mfa", MFAChallengeController, :new
     post "/mfa", MFAChallengeController, :create
-
   end
 
   scope "/users", ThreadlinePhoenixWeb do
@@ -206,12 +208,10 @@ defmodule ThreadlinePhoenixWeb.Router do
     get "/confirm/:token", ConfirmationController, :confirm
     post "/confirm/resend", ConfirmationController, :resend
 
-
     get "/reset-password", ResetPasswordController, :new
     post "/reset-password", ResetPasswordController, :create
     get "/reset-password/:token", ResetPasswordController, :edit
     put "/reset-password/:token", ResetPasswordController, :update
-
   end
 
   scope "/users", ThreadlinePhoenixWeb do
@@ -219,14 +219,12 @@ defmodule ThreadlinePhoenixWeb.Router do
 
     delete "/log_out", SessionController, :delete
 
-      get "/sudo", Auth.SudoController, :new
-      post "/sudo", Auth.SudoController, :create
-
+    get "/sudo", Auth.SudoController, :new
+    post "/sudo", Auth.SudoController, :create
   end
 
   scope "/users", ThreadlinePhoenixWeb do
     pipe_through [:browser, :require_authenticated, :require_sudo]
-
   end
 
   # Dormant Sigra settings/MFA routes (compile-time verified route targets only).
