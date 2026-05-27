@@ -105,7 +105,7 @@ The milestone strategy is:
 **Plans**: 2 plans
 
 - [x] 101-01: Re-verify evidence persistence, provenance capture, and public create/read flows on the current tree
-- [ ] 101-02: Add the Phase 96 verification artifact and PROOF-01 closure evidence
+- [x] 101-02: Add the Phase 96 verification artifact and PROOF-01 closure evidence
 
 ### Phase 102: Phase 98 Verification Backfill
 
