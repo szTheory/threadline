@@ -72,7 +72,12 @@
 2. README → getting-started → how-threadline-works discovery order is consistent (no conflicting `record_action/2`-first guidance).
 3. Doc-contract tests lock at least one narrative literal for the blessed write path.
 
-**Plans:** 0 plans
+**Plans:** 2 plans
+
+| Wave | Plans | What it builds |
+|------|-------|----------------|
+| 1 | 01 | Retarget how-threadline-works + NARR-03 contract locks |
+| 2 | 02 | README/getting-started discovery sync + cross-doc contracts + verify alias |
 
 ---
 
