@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: executing
-last_updated: "2026-05-27T21:52:48.759Z"
+last_updated: "2026-05-27T22:07:45.129Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 5
