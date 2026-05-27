@@ -94,6 +94,6 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
     assert String.contains?(doc, "mix verify.release")
     assert String.contains?(doc, "wait for green CI on `main` before tagging")
-    assert String.contains?(doc, "v0.3.0")
+    assert String.contains?(doc, "v0.6.0")
   end
 end

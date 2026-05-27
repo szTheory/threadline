@@ -117,7 +117,7 @@ Exact labels depend on GitHub’s UI; map them to the job keys above.
 
 ## Hex publish (maintainers)
 
-**Tag-triggered publish:** pushing an annotated SemVer tag matching **`vMAJOR.MINOR.PATCH`** runs [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml). It checks that **`GITHUB_REF_NAME`** (e.g. `v0.3.0`) matches **`@version`** in `mix.exs` (e.g. `0.3.0`), then runs **`mix hex.publish --yes`** with **`HEX_API_KEY`**.
+**Tag-triggered publish:** pushing an annotated SemVer tag matching **`vMAJOR.MINOR.PATCH`** runs [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml). It checks that **`GITHUB_REF_NAME`** (e.g. `v0.6.0`) matches **`@version`** in `mix.exs` (e.g. `0.6.0`), then runs **`mix hex.publish --yes`** with **`HEX_API_KEY`**.
 
 1. Add repository secret **`HEX_API_KEY`** (Hex.pm API key with publish permission for this package).
 2. Run `mix verify.release` from a clean working tree to validate the exact tree you are about to tag.
@@ -125,9 +125,9 @@ Exact labels depend on GitHub’s UI; map them to the job keys above.
 4. Tag and push (no `--force` on refs):
 
    ```bash
-   git tag -a v0.3.0 -m "Release v0.3.0"
+   git tag -a v0.6.0 -m "Release v0.6.0"
    git push origin main        # if needed
-   git push origin v0.3.0
+   git push origin v0.6.0
    ```
 
 5. Watch the **Hex publish** workflow on the Actions tab; confirm with **`mix hex.info threadline`** after the registry updates.
@@ -136,11 +136,11 @@ Exact labels depend on GitHub’s UI; map them to the job keys above.
 
 ## Maintainer manual checklist (release)
 
-Use this when preparing or debugging the `v0.3.0` release (no secrets in logs):
+Use this when preparing or debugging the `v0.6.0` release (no secrets in logs):
 
 1. Clean tree: `git status --porcelain` empty.
 2. Run `mix verify.release`.
 3. Run `DB_PORT=5433 mix ci.all` (or `mix ci.all`) with Postgres up for the broader contributor gate.
 4. wait for green CI on `main` before tagging.
-5. Tag `v0.3.0` so it matches `@version "0.3.0"` in `mix.exs`, then push the branch (if needed) and the tag.
+5. Tag `v0.6.0` so it matches `@version "0.6.0"` in `mix.exs`, then push the branch (if needed) and the tag.
 6. Verify the **Hex publish** workflow and confirm with `mix hex.info threadline` after the registry updates.
