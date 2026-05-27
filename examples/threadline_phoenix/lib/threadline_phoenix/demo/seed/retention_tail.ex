@@ -109,6 +109,19 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
         repo: Repo
       )
 
+    {:ok, _} =
+      Evidence.record_redaction_policy(
+        Manifest.evidence_subject_ref(:redaction_policy),
+        %{
+          summary_status: "active",
+          detail: %{
+            "masked_fields" => ["ticket_replies.internal_note_body"],
+            "source" => "trigger_capture"
+          }
+        },
+        repo: Repo
+      )
+
     coverage = Health.trigger_coverage(repo: Repo)
 
     {:ok, _} =

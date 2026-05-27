@@ -185,6 +185,27 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end
   end
 
+  describe "WALK-04 redaction policy evidence" do
+    test "post-demo.seed redaction_policy row matches manifest subject_ref" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        subject_ref = Manifest.evidence_subject_ref(:redaction_policy)
+
+        records =
+          Threadline.Evidence.list_subject_ref_history(
+            "redaction_policy",
+            subject_ref,
+            repo: Repo
+          )
+
+        assert length(records) >= 1
+
+        record = hd(records)
+        assert record.subject == "redaction_policy"
+        assert record.subject_ref == %{"policy" => "walk-demo-redaction-policy"}
+      end)
+    end
+  end
+
   defp semantic_fingerprint do
     acme = Repo.get_by!(Organization, slug: "acme")
 
