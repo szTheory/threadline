@@ -9,12 +9,14 @@ Auditing for Phoenix.
 
 Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.Audit.transaction/3`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.incident_bundle/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
 
+New Phoenix integrations should use `Threadline.Audit.transaction/3`; see [Getting started](guides/getting-started-saas.md) §6.
+
 Use it when you want the audit layer in your app, not a separate event system or a black box.
 
 ## Start here
 
 - **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
-- **Understanding the system:** read [guides/how-threadline-works.md](guides/how-threadline-works.md) for the architecture/persona/JTBD crash course.
+- **Understanding the system:** read [guides/how-threadline-works.md](guides/how-threadline-works.md) for the architecture/persona/JTBD crash course — both paths converge on `Threadline.Audit.transaction/3` for audited writes.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md) — use `Threadline.Audit.transaction/3` as the recommended audited write path (§6).
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
 - **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix.
@@ -41,7 +43,7 @@ read [guides/domain-reference.md](guides/domain-reference.md).
 ## What you get
 
 - **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.
-- **Semantics:** actor, intent, correlation, and request context via `Threadline.record_action/2`.
+- **Semantics:** `Threadline.Audit.transaction/3` as the recommended audited write path (actor, intent, correlation, and request context); `Threadline.record_action/2` is the semantic primitive the helper wraps.
 - **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.history/3`.
 - **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
