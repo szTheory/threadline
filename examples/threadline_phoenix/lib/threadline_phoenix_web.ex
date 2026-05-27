@@ -42,7 +42,36 @@ defmodule ThreadlinePhoenixWeb do
 
       import Plug.Conn
 
+      use Gettext, backend: ThreadlinePhoenixWeb.Gettext
+
       unquote(verified_routes())
+    end
+  end
+
+  def html do
+    quote do
+      use Phoenix.Component
+
+      import Phoenix.Component, only: [form: 1, link: 1, sigil_H: 2]
+      import Phoenix.HTML
+      import ThreadlinePhoenixWeb.CoreComponents
+      import ThreadlinePhoenixWeb.Layouts
+
+      alias Phoenix.LiveView.JS
+
+      use Gettext, backend: ThreadlinePhoenixWeb.Gettext
+
+      unquote(verified_routes())
+    end
+  end
+
+  def layout do
+    quote do
+      use Phoenix.Component
+
+      import ThreadlinePhoenixWeb.CoreComponents
+
+      use Gettext, backend: ThreadlinePhoenixWeb.Gettext
     end
   end
 
