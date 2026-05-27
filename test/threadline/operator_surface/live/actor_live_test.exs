@@ -186,10 +186,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})
     end
+
     describe "surface header (Phase 66)" do
-      test "does not render the surface badge linking to /audit/coverage when coverage is disabled", %{
-        conn: conn
-      } do
+      test "does not render the surface badge linking to /audit/coverage when coverage is disabled",
+           %{
+             conn: conn
+           } do
         {:ok, _lv, html} = live(conn, "/audit/actors/user/surface_header_test")
 
         # Surface header threadline-ui-header (Plan 03 component + style.ex rule)

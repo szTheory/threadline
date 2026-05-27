@@ -133,7 +133,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
 
         {:ok, _view, html} =
-          live(conn, "/audit/exports?table=posts&from=2026-05-01T00:00:00Z&to=2026-05-06T23:59:00Z")
+          live(
+            conn,
+            "/audit/exports?table=posts&from=2026-05-01T00:00:00Z&to=2026-05-06T23:59:00Z"
+          )
 
         assert html =~ "Action Denied"
         assert html =~ "mix threadline.export --dry-run"

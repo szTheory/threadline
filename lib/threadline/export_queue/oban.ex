@@ -67,7 +67,8 @@ defmodule Threadline.ExportQueue.Oban do
     {:error, "Oban adapter expects :worker_mod to be a module"}
   end
 
-  defp normalize_enqueue_error(reason) when is_binary(reason), do: "Oban enqueue failed: #{reason}"
+  defp normalize_enqueue_error(reason) when is_binary(reason),
+    do: "Oban enqueue failed: #{reason}"
 
   defp normalize_enqueue_error(reason) when is_atom(reason) do
     "Oban enqueue failed: #{reason}"

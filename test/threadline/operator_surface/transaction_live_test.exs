@@ -86,7 +86,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def scope_operator_query(query, %{source: source}, %{surface: :row_history}) do
       source_txn_ids =
-        from(at in Threadline.Capture.AuditTransaction, where: at.source == ^source, select: at.id)
+        from(at in Threadline.Capture.AuditTransaction,
+          where: at.source == ^source,
+          select: at.id
+        )
 
       from(ac in query, where: ac.transaction_id in subquery(source_txn_ids))
     end
@@ -240,9 +243,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "surface header (Phase 66)" do
-      test "does not render the surface badge linking to /audit/coverage when coverage is disabled", %{
-        conn: conn
-      } do
+      test "does not render the surface badge linking to /audit/coverage when coverage is disabled",
+           %{
+             conn: conn
+           } do
         repo = Threadline.Test.Repo
 
         txn =
@@ -273,9 +277,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(
-        AuditTransaction.changeset(Map.merge(defaults, attrs))
-      )
+      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
     end
 
     defp insert_change(transaction, attrs) do
@@ -291,9 +293,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(
-        AuditChange.changeset(Map.merge(defaults, attrs))
-      )
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
     end
 
     setup_all do

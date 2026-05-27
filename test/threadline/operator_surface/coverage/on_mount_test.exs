@@ -14,9 +14,9 @@ defmodule Threadline.OperatorSurface.Coverage.OnMountTest do
   describe "on_mount/4" do
     test "returns unmodified socket when threadline_coverage_enabled is false" do
       socket = mock_socket(%{threadline_coverage_enabled: false})
-      
+
       assert {:cont, returned_socket} = OnMount.on_mount([], %{}, %{}, socket)
-      
+
       assert returned_socket.assigns.threadline_coverage_enabled == false
       assert returned_socket.assigns.threadline_coverage == nil
       assert returned_socket.assigns.threadline_coverage_error == nil
@@ -24,9 +24,9 @@ defmodule Threadline.OperatorSurface.Coverage.OnMountTest do
 
     test "returns unmodified socket when threadline_coverage_enabled is missing" do
       socket = mock_socket()
-      
+
       assert {:cont, returned_socket} = OnMount.on_mount([], %{}, %{}, socket)
-      
+
       assert returned_socket.assigns.threadline_coverage == nil
       assert returned_socket.assigns.threadline_coverage_error == nil
     end
@@ -34,9 +34,9 @@ defmodule Threadline.OperatorSurface.Coverage.OnMountTest do
     test "starts coverage process when threadline_coverage_enabled is true (disconnected socket)" do
       # For disconnected socket, it assigns poll_ms and initial coverage, but no timer
       socket = mock_socket(%{threadline_coverage_enabled: true})
-      
+
       assert {:cont, returned_socket} = OnMount.on_mount([], %{}, %{}, socket)
-      
+
       assert returned_socket.assigns.threadline_coverage_poll_ms >= 5000
       assert Map.has_key?(returned_socket.assigns, :threadline_coverage)
       refute Map.has_key?(returned_socket.assigns, :threadline_timer_ref)

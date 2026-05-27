@@ -97,7 +97,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     defp resolve_delivery(file_path, job) do
-      storage_adapter = Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+      storage_adapter =
+        Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
 
       case storage_adapter.path(file_path) do
         {:ok, absolute_path} ->

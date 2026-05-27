@@ -60,7 +60,8 @@ defmodule Threadline.Evidence.ProofTest do
     insert_evidence(subject: "export_delivery", subject_ref: %{"export_id" => "exp-1"})
     insert_evidence(subject: "support_scope_posture", subject_ref: %{"scope" => "support"})
 
-    document = Proof.proof_document([], repo: @repo, generated_at: ~U[2026-05-27 00:00:00.000000Z])
+    document =
+      Proof.proof_document([], repo: @repo, generated_at: ~U[2026-05-27 00:00:00.000000Z])
 
     assert document["subject"] == "overview"
 

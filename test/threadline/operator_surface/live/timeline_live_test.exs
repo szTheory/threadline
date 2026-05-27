@@ -766,9 +766,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     describe "surface header (Phase 66)" do
-      test "does not render the surface badge linking to /audit/coverage when coverage is disabled", %{
-        conn: conn
-      } do
+      test "does not render the surface badge linking to /audit/coverage when coverage is disabled",
+           %{
+             conn: conn
+           } do
         {:ok, _view, html} = mount_audit(conn)
 
         assert html =~ ~s|class="threadline-ui-header"|

@@ -468,7 +468,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> get("/audit/exports/download/#{job.id}")
 
         assert conn.status == 302
-        assert get_resp_header(conn, "location") == ["https://downloads.example.test/remote-export.csv"]
+
+        assert get_resp_header(conn, "location") == [
+                 "https://downloads.example.test/remote-export.csv"
+               ]
       end
 
       test "returns 404 if actor_ref does not match (IDOR protection)", %{

@@ -26,8 +26,11 @@ defmodule Threadline.Retention.PrunerTest do
 
   defp start_application_supervisor! do
     retention = Application.get_env(:threadline, :retention, [])
-    opts = [repo: Threadline.Test.Repo]
-           |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+
+    opts =
+      [repo: Threadline.Test.Repo]
+      |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+
     start_supervised!({Threadline.Retention.Pruner, opts})
   end
 

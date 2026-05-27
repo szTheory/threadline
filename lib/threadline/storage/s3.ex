@@ -69,11 +69,13 @@ defmodule Threadline.Storage.S3 do
 
       presigned_opts =
         opts
-        |> Keyword.get(:presigned_url_opts, [virtual_host: true])
+        |> Keyword.get(:presigned_url_opts, virtual_host: true)
         |> Keyword.put(:expires_in, expires_in)
 
       case ex_aws_s3_mod.presigned_url(config_mod, :get, bucket, file_id, presigned_opts) do
-        {:ok, url} -> {:ok, url}
+        {:ok, url} ->
+          {:ok, url}
+
         {:error, reason} ->
           {:error, normalize_storage_error("S3 download URL generation failed", reason)}
       end

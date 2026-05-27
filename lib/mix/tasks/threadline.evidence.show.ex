@@ -93,17 +93,19 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
     subject_ref = parse_subject_ref(opts)
     validate_request_shape!(subject, subject_ref)
 
-    [
-      subject: subject,
-      subject_ref: subject_ref,
-      mode: parse_mode(opts)
-    ] ++ parse_filters(opts)
+    ([
+       subject: subject,
+       subject_ref: subject_ref,
+       mode: parse_mode(opts)
+     ] ++ parse_filters(opts))
     |> Proof.proof_document(repo: repo)
   end
 
   defp validate_request_shape!(nil, nil), do: :ok
   defp validate_request_shape!(subject, nil) when is_binary(subject), do: :ok
-  defp validate_request_shape!(subject, subject_ref) when is_binary(subject) and is_map(subject_ref), do: :ok
+
+  defp validate_request_shape!(subject, subject_ref)
+       when is_binary(subject) and is_map(subject_ref), do: :ok
 
   defp validate_request_shape!(nil, subject_ref) when is_map(subject_ref) do
     Mix.raise("threadline.evidence.show: --subject-ref-json requires --subject")
@@ -123,9 +125,18 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
 
       payload ->
         case Jason.decode(payload) do
-          {:ok, value} when is_map(value) -> value
-          {:ok, other} -> Mix.raise("threadline.evidence.show: --subject-ref-json must decode to a JSON object, got: #{inspect(other)}")
-          {:error, error} -> Mix.raise("threadline.evidence.show: invalid JSON for --subject-ref-json: #{Exception.message(error)}")
+          {:ok, value} when is_map(value) ->
+            value
+
+          {:ok, other} ->
+            Mix.raise(
+              "threadline.evidence.show: --subject-ref-json must decode to a JSON object, got: #{inspect(other)}"
+            )
+
+          {:error, error} ->
+            Mix.raise(
+              "threadline.evidence.show: invalid JSON for --subject-ref-json: #{Exception.message(error)}"
+            )
         end
     end
   end
@@ -164,15 +175,21 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
 
   defp parse_datetime!(flag, value) do
     case DateTime.from_iso8601(value) do
-      {:ok, datetime, _offset} -> DateTime.truncate(datetime, :microsecond)
-      {:error, _reason} -> Mix.raise("threadline.evidence.show: invalid ISO-8601 for --#{flag}: #{inspect(value)}")
+      {:ok, datetime, _offset} ->
+        DateTime.truncate(datetime, :microsecond)
+
+      {:error, _reason} ->
+        Mix.raise("threadline.evidence.show: invalid ISO-8601 for --#{flag}: #{inspect(value)}")
     end
   end
 
   defp validate_subject!(subject) do
     case Subject.validate(subject) do
-      :ok -> subject
-      {:error, {:unsupported_subject, value}} -> Mix.raise("threadline.evidence.show: unsupported subject #{inspect(value)}")
+      :ok ->
+        subject
+
+      {:error, {:unsupported_subject, value}} ->
+        Mix.raise("threadline.evidence.show: unsupported subject #{inspect(value)}")
     end
   end
 

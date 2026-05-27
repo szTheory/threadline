@@ -92,6 +92,7 @@ defmodule Threadline.ApplicationTest do
 
   test "surfaces actionable startup errors for adapter init failures" do
     Application.put_env(:threadline, :storage_adapter, StorageInitStub)
+
     Application.put_env(:threadline, StorageInitStub,
       notify_pid: self(),
       result: {:error, "S3 adapter requires a non-empty :bucket configuration"}

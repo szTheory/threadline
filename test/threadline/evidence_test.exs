@@ -188,9 +188,7 @@ defmodule Threadline.EvidenceTest do
                )
 
       assert nil ==
-               Evidence.get_latest_subject_ref("retention_run", %{run_id: "missing"},
-                 repo: @repo
-               )
+               Evidence.get_latest_subject_ref("retention_run", %{run_id: "missing"}, repo: @repo)
 
       assert [%EvidenceRecord{id: ^newest_id}, %EvidenceRecord{id: ^older_id}] =
                Evidence.list_subject_ref_history(

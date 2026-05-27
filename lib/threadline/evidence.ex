@@ -194,7 +194,9 @@ defmodule Threadline.Evidence do
   defp normalize_optional_map(nil), do: %{}
   defp normalize_optional_map(value), do: normalize_map_values(value)
 
-  defp normalize_attrs(attrs) when is_list(attrs), do: attrs |> Enum.into(%{}) |> normalize_attrs()
+  defp normalize_attrs(attrs) when is_list(attrs),
+    do: attrs |> Enum.into(%{}) |> normalize_attrs()
+
   defp normalize_attrs(attrs) when is_map(attrs), do: Map.new(attrs)
 
   defp normalize_subject_ref(subject_ref) when is_map(subject_ref) do
@@ -219,7 +221,9 @@ defmodule Threadline.Evidence do
     end)
   end
 
-  defp normalize_map_values(value) when is_list(value), do: Enum.map(value, &normalize_map_values/1)
+  defp normalize_map_values(value) when is_list(value),
+    do: Enum.map(value, &normalize_map_values/1)
+
   defp normalize_map_values(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_map_values(value), do: value
 
