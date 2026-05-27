@@ -62,6 +62,7 @@ defmodule Threadline.ReadmeDocContractTest do
   end
 
   test "README keeps the evidence-plane claim strip compact and outward-linking" do
+    # Hub refute (guides/evidence-plane.md) is centralized in SemverAdopterDocContractTest.
     readme = File.read!("README.md")
 
     assert String.contains?(readme, "## Evidence plane")
