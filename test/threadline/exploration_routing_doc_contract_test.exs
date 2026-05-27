@@ -38,6 +38,16 @@ defmodule Threadline.ExplorationRoutingDocContractTest do
     assert String.contains?(doc, "Production hosts still own tenancy scoping and any richer")
   end
 
+  test "domain-reference incident JSON locks Audit.transaction/3 blessed write path" do
+    doc = read_rel!(["guides", "domain-reference.md"])
+
+    {idx_marker, _} = :binary.match(doc, "COMP-EXAMPLE-INCIDENT-JSON")
+    {idx_next, _} = :binary.match(doc, "## Support incident queries")
+    scope = {idx_marker, idx_next - idx_marker}
+
+    assert :binary.match(doc, "Threadline.Audit.transaction/3", scope: scope) != :nomatch
+  end
+
   test "domain-reference retains Time Travel hub and ASOF-06 anchor" do
     doc = read_rel!(["guides", "domain-reference.md"])
 
