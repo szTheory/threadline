@@ -39,13 +39,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 **Target features:**
 - **REL** — Cut **threadline 0.6.0** (changelog, ExDoc includes `Threadline.Audit`, `mix verify.release` green) ✓ Phase 114
 - **NARR** — Sync `guides/how-threadline-works.md` to `Audit.transaction/3` as blessed write path ✓ Phase 115
-- **EXAMPLE** — Fix example README first-hour friction (API auth staging, setup vs `demo.seed`, generator/migration confusion)
+- **EXAMPLE** — Fix example README first-hour friction (API auth staging, setup vs `demo.seed`, generator/migration confusion) ✓ Phase 116
 - **DOC** — Evidence-plane doc authority (thin hub or fix PROJECT references); semver-not-milestone in adopter prose
 - **PILOT-PREP (optional)** — Refresh adoption-pilot test counts; external evaluator one-pager
 
 **Assessment source:** `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`.
 
-**Current planning focus:** Phase 116 (example first-hour fixes) — narrative doc sync complete.
+**Current planning focus:** Phase 117 (evidence-plane doc authority) — example first-hour fixes complete.
 
 > **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
 
@@ -302,10 +302,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **TRUTH-01 / TRUTH-02 / TRUTH-03 / TRUTH-04 / TRUTH-05 (Phase 113)** — `evidence_authorize_fn`, adoption-pilot 0.5.x, evidence CLI naming, WR-110-001 prose, verify gates green. Validated in v1.24 (2026-05-27).
 - [x] **REL-01** through **REL-04 (Phase 114)** — 0.6.0 semver, CHANGELOG, ExDoc Evidence group, verify.release, install-snippet SSOT `~> 0.6`. Validated in v1.25 (2026-05-27).
 - [x] **NARR-01** through **NARR-03 (Phase 115)** — `guides/how-threadline-works.md`, README, and getting-started aligned on `Audit.transaction/3` as blessed write path; doc-contract tests lock narrative literals and cross-doc discovery order. Validated in v1.25 (2026-05-27).
+- [x] **EXAMPLE-01** through **EXAMPLE-04 (Phase 116)** — Example `:api` session plugs before `Threadline.Plug`; README Choose your path / Base install / Track A–B runbook; Mix task reference and ownership tables; doc-contract locks for auth staging and first-hour literals. Validated in v1.25 (2026-05-27).
 
 ### Active
 
-- [ ] **EXAMPLE-01** through **EXAMPLE-04** — Example README first-hour fixes (Phase 116)
 - [ ] **DOC-01** through **DOC-03** — Evidence-plane doc authority + semver prose (Phase 117)
 - [ ] **PILOT-01** / **PILOT-02** — Optional pilot-prep (Phase 118)
 
@@ -399,4 +399,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — Phase 115 complete (narrative doc sync); Phase 116 next.*
+*Last updated: 2026-05-27 — Phase 116 complete (example first-hour fixes); Phase 117 next.*

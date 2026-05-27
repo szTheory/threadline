@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
-status: verifying
-last_updated: "2026-05-27T22:31:04.606Z"
+status: Ready for Phase 117
+last_updated: "2026-05-27T22:33:18.413Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 5
@@ -24,8 +24,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 116 (example-first-hour-fixes) — COMPLETE
-Plan: 2 of 2
+Phase: 117
+Plan: Not started
 Status: Ready for Phase 117
 Last activity: 2026-05-27
 
