@@ -176,7 +176,15 @@
   4. Every observed gap, papercut, surprise, and confusion is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with (a/b/c/d) classification assigned at capture time and the originating walkthrough step cited — zero findings deferred to be "classified later."
   5. No commits modifying `lib/`, `guides/`, `examples/threadline_phoenix/` (other than finding-adjacent artifacts), or test code during the walkthrough run — verifiable via `git log` for the phase window.
 
-**Plans:** TBD
+**Plans:** 5 plans (5 waves)
+
+| Wave | Plans | What it builds |
+|------|-------|----------------|
+| 1 | 109-01 | Execution log, isolated clone, §0 Postgres bootstrap |
+| 2 | 109-02 | RUN-01 — WALKTHROUGH §1–§3 (install, onboarding, daily use) |
+| 3 | 109-03 | RUN-02 — §4 four WALK-03 operator incidents + WR-001/002 |
+| 4 | 109-04 | RUN-03 — §5 evidence exercises + FINDINGS-02 reconciliation |
+| 5 | 109-05 | Import findings, scope-guard verification, SUMMARY handoff |
 
 ---
 
