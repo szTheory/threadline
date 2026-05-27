@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T13:41:03.594Z"
+last_updated: "2026-05-27T15:29:06.695Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
@@ -28,7 +28,7 @@ Phase: 105
 Plan: Not started
 Status: Executing Phase null
 Last activity: 2026-05-27
-Resume file: `.planning/phases/104-reference-walkthrough-charter-override-decision/104-CONTEXT.md`
+Resume file: .planning/phases/105-help-desk-domain-expansion-in-reference-app/105-UI-SPEC.md
 
 ## Performance Metrics
 
