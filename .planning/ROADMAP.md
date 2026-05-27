@@ -31,7 +31,7 @@
 - [x] **Phase 106: Sigra Auth Lane in Reference App** — Wire real Sigra signup/login/session and replace faked-conn admin assigns; surface `organization_id` + role on `current_user`. (completed 2026-05-27)
 - [x] **Phase 107: Realistic Seed Data + Demo Mix Tasks** — Ship `mix demo.seed` / `mix demo.reset` producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario.
 - [x] **Phase 108: Walkthrough Script + Finding-Capture Protocol** — Write `examples/threadline_phoenix/WALKTHROUGH.md` and the finding template + (a/b/c/d) classification rule **before** walking.
-- [ ] **Phase 109: Maintainer Walkthrough Dry-Run** — Execute WALKTHROUGH.md end-to-end on a clean clone, capture findings observationally, fix nothing in-flight.
+- [x] **Phase 109: Maintainer Walkthrough Dry-Run** — Execute WALKTHROUGH.md end-to-end on a clean clone, capture findings observationally, fix nothing in-flight. (completed 2026-05-27)
 - [ ] **Phase 110: Triage + Narrow Fixes** — Apply fix-vs-defer rule: ship (a)(b)(c) fixes; route (d) design gaps to v1.24 seeds with rationale.
 
 ## Phase Details
@@ -176,7 +176,7 @@
   4. Every observed gap, papercut, surprise, and confusion is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with (a/b/c/d) classification assigned at capture time and the originating walkthrough step cited — zero findings deferred to be "classified later."
   5. No commits modifying `lib/`, `guides/`, `examples/threadline_phoenix/` (other than finding-adjacent artifacts), or test code during the walkthrough run — verifiable via `git log` for the phase window.
 
-**Plans:** 5 plans (5 waves)
+**Plans:** 6/5 plans complete
 
 | Wave | Plans | What it builds |
 |------|-------|----------------|
@@ -217,7 +217,7 @@
 | 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
 | 108. Walkthrough Script + Finding-Capture Protocol | 5/5 | Complete    | 2026-05-27 |
-| 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
+| 109. Maintainer Walkthrough Dry-Run | 6/5 | Complete   | 2026-05-27 |
 | 110. Triage + Narrow Fixes | 0/? | Not started | — |
 
 Per-phase plan counts will be refined by `/gsd:plan-phase` as each phase is decomposed; the conservative estimate is 1–3 plans per phase.

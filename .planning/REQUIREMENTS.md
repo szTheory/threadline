@@ -52,10 +52,10 @@
 
 ### Maintainer Walkthrough Dry-Run (Phase 109)
 
-- [ ] **RUN-01**: Clean-clone install completes following only WALKTHROUGH.md (no out-of-band shell commands, no IEx fixes); `mix phx.server` boots and `http://localhost:4000` shows a working help-desk landing.
-- [ ] **RUN-02**: All three Phase-108 operator scenarios resolved using only shipped operator-surface flows — no raw SQL, no IEx hacks, no `Repo.all/2` from a console — and the resolution procedure matches what WALKTHROUGH.md documents.
-- [ ] **RUN-03**: All three Phase-108 evidence exercises produce the documented `Threadline.Evidence` records via the shipped Mix tasks and `/audit/evidence` LiveView.
-- [ ] **FINDINGS-02**: Every gap, papercut, surprise, and confusion observed during the run is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with classification (a/b/c/d) assigned at capture time, with the originating walkthrough step cited; no findings deferred to be "classified later."
+- [x] **RUN-01**: Clean-clone install completes following only WALKTHROUGH.md (no out-of-band shell commands, no IEx fixes); `mix phx.server` boots and `http://localhost:4000` shows a working help-desk landing.
+- [x] **RUN-02**: All three Phase-108 operator scenarios resolved using only shipped operator-surface flows — no raw SQL, no IEx hacks, no `Repo.all/2` from a console — and the resolution procedure matches what WALKTHROUGH.md documents.
+- [x] **RUN-03**: All three Phase-108 evidence exercises produce the documented `Threadline.Evidence` records via the shipped Mix tasks and `/audit/evidence` LiveView.
+- [x] **FINDINGS-02**: Every gap, papercut, surprise, and confusion observed during the run is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with classification (a/b/c/d) assigned at capture time, with the originating walkthrough step cited; no findings deferred to be "classified later."
 
 ### Triage + Narrow Fixes (Phase 110)
 
@@ -125,10 +125,10 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | WALK-03 | Phase 108 | Complete |
 | WALK-04 | Phase 108 | Complete |
 | FINDINGS-01 | Phase 108 | Complete |
-| RUN-01 | Phase 109 | Pending |
-| RUN-02 | Phase 109 | Pending |
-| RUN-03 | Phase 109 | Pending |
-| FINDINGS-02 | Phase 109 | Pending |
+| RUN-01 | Phase 109 | Complete |
+| RUN-02 | Phase 109 | Complete |
+| RUN-03 | Phase 109 | Complete |
+| FINDINGS-02 | Phase 109 | Complete |
 | FIX-01 | Phase 110 | Pending |
 | FIX-02 | Phase 110 | Pending |
 | FIX-03 | Phase 110 | Pending |
