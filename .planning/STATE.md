@@ -7,10 +7,10 @@ last_updated: "2026-05-27T17:22:40.321Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
-  percent: 43
+  completed_plans: 11
+  percent: 48
 ---
 
 # Project State: Threadline
@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 107 — realistic-seed-data-demo-mix-tasks
+**Current focus:** Phase 108 — walkthrough script + finding-capture protocol
 
 ## Current Position
 
-Phase: 107 (realistic-seed-data-demo-mix-tasks) — EXECUTING
+Phase: 107 (realistic-seed-data-demo-mix-tasks) — COMPLETE
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for Phase 108
 Last activity: 2026-05-27
 Resume file: None
 
@@ -56,7 +56,7 @@ Resume file: None
 ## Session Continuity
 
 - **Last Action**: Phase 104 context gathered via `/gsd:discuss-phase 104`. CONTEXT.md captures 5 implementation decisions: re-engagement trigger language, Key Decisions row structure, v1.23 non-goals home, MILESTONE-ARC.md targeted-fix scope, and the D-02 carve-out boundary note. Committed in 176a274.
-- **Next Step**: Run `/gsd:plan-phase 104` to draft the charter / override-decision plan from the locked context.
+- **Next Step**: Run `/gsd:plan-phase 108` to author WALKTHROUGH.md and findings protocol from DEMO-MANIFEST literals.
 
 ## Operator Next Steps
 
@@ -73,3 +73,4 @@ Resume file: None
 | Phase 106-sigra-auth-lane-in-reference-app P03 | 4 | 4 tasks | 7 files |
 | Phase 107-realistic-seed-data-demo-mix-tasks P01 | 15 min | 3 tasks | 5 files |
 | Phase 107-realistic-seed-data-demo-mix-tasks P02 | 25 min | 3 tasks | 7 files |
+| Phase 107-realistic-seed-data-demo-mix-tasks P04 | 35 min | 3 tasks | 11 files |

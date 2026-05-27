@@ -29,7 +29,7 @@
 - [x] **Phase 104: Reference-Walkthrough Charter & Override Decision** — Record the deliberate override of v1.22's "real-adopter-first" closeout guidance and lock v1.23 non-goals. (completed 2026-05-27)
 - [x] **Phase 105: Help-Desk Domain Expansion in Reference App** — Add help-desk schemas, contexts, migrations, and triggers to `examples/threadline_phoenix/`; `lib/` stays read-only. (completed 2026-05-27)
 - [x] **Phase 106: Sigra Auth Lane in Reference App** — Wire real Sigra signup/login/session and replace faked-conn admin assigns; surface `organization_id` + role on `current_user`. (completed 2026-05-27)
-- [ ] **Phase 107: Realistic Seed Data + Demo Mix Tasks** — Ship `mix demo.seed` / `mix demo.reset` producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario.
+- [x] **Phase 107: Realistic Seed Data + Demo Mix Tasks** — Ship `mix demo.seed` / `mix demo.reset` producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario.
 - [ ] **Phase 108: Walkthrough Script + Finding-Capture Protocol** — Write `examples/threadline_phoenix/WALKTHROUGH.md` and the finding template + (a/b/c/d) classification rule **before** walking.
 - [ ] **Phase 109: Maintainer Walkthrough Dry-Run** — Execute WALKTHROUGH.md end-to-end on a clean clone, capture findings observationally, fix nothing in-flight.
 - [ ] **Phase 110: Triage + Narrow Fixes** — Apply fix-vs-defer rule: ship (a)(b)(c) fixes; route (d) design gaps to v1.24 seeds with rationale.
@@ -200,7 +200,7 @@
 | 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
 | 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 107. Realistic Seed Data + Demo Mix Tasks | 2/4 | In Progress | 2026-05-27 |
+| 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
 | 108. Walkthrough Script + Finding-Capture Protocol | 0/? | Not started | — |
 | 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
 | 110. Triage + Narrow Fixes | 0/? | Not started | — |
