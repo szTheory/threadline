@@ -52,7 +52,9 @@
   3. v1.23 non-goals are locked in PROJECT.md (no new evidence subjects, no Threadline-owned RBAC/tenancy DSL, no `lib/` auth or domain code, no rebrand to "demo product", no Sigra extension absent contract gap) — verifiable by reading the Out-of-Scope / Active sections.
   4. A maintainer reopening the planning surface can identify in <2 minutes that v1.23 is the synthetic-first-adopter milestone, why the v1.22 rule was set aside, and what would re-engage it.
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+- [ ] 104-01-PLAN.md — Insert v1.23 override Key Decisions row + non-goals subsection + footnote refresh in PROJECT.md; sweep MILESTONE-ARC.md header, strategic-thesis sentence, option-record row 6, and append new v1.23 arc-order row.
 
 ---
 
@@ -188,7 +190,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 104. Reference-Walkthrough Charter & Override Decision | 0/? | Not started | — |
+| 104. Reference-Walkthrough Charter & Override Decision | 0/1 | Not started | — |
 | 105. Help-Desk Domain Expansion in Reference App | 0/? | Not started | — |
 | 106. Sigra Auth Lane in Reference App | 0/? | Not started | — |
 | 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |

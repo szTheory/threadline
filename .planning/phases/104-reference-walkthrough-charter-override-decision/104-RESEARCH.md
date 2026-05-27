@@ -422,17 +422,17 @@ All claims in this research were verified by direct file read. No user confirmat
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **PROJECT.md footnote update (Landmine 7)**
    - What we know: The footnote on line 372–373 says "Phase 104 will record…" which will be stale after the commit.
    - What's unclear: Whether D-04's strict 7-edit scope means this should be left alone, or whether it's obviously in-scope doc hygiene.
-   - Recommendation: Include it in the PROJECT.md edit task as a minor addition; note it as planner discretion if strict D-03-only scope is preferred.
+   - RESOLVED: Resolved by `104-01-PLAN.md` Edit 1C in Task 1 (flips "Phase 104 will record…" → past tense). Recommendation: Include it in the PROJECT.md edit task as a minor addition; note it as planner discretion if strict D-03-only scope is preferred.
 
 2. **`104-SUMMARY.md` template**
    - What we know: D-05 requires one line recorded in `104-SUMMARY.md` during execution.
    - What's unclear: Whether `104-SUMMARY.md` follows the same SUMMARY.md template as prior phases (with header + body sections) or is minimal.
-   - Recommendation: Follow the standard GSD SUMMARY.md structure; the D-05 rule is the key content item but the file should have the standard format.
+   - RESOLVED: Resolved by `104-01-PLAN.md` `<output>` block — standard GSD SUMMARY.md template with D-05 precedent rule as the key content item. Recommendation: Follow the standard GSD SUMMARY.md structure; the D-05 rule is the key content item but the file should have the standard format.
 
 ---
 
