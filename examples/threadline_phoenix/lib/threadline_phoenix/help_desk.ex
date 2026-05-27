@@ -7,8 +7,63 @@ defmodule ThreadlinePhoenix.HelpDesk do
 
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.{AuditAction, AuditContext}
-  alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket, TicketReply}
+  alias ThreadlinePhoenix.HelpDesk.{Agent, OrgMembership, Organization, Ticket, TicketReply}
   alias ThreadlinePhoenix.Repo
+
+  @doc """
+  Creates a default help-desk workspace for a Sigra user id (UUID string).
+
+  Idempotent when `(organization_id, user_id)` membership already exists — returns
+  the existing organization.
+  """
+  @spec provision_default_workspace_for_user(String.t(), keyword()) ::
+          {:ok, Organization.t()} | {:error, term()}
+  def provision_default_workspace_for_user(user_id, opts \\ []) when is_binary(user_id) do
+    role = Keyword.get(opts, :role, "agent")
+
+    case existing_membership_org(user_id) do
+      %Organization{} = org ->
+        {:ok, org}
+
+      nil ->
+        slug = Keyword.get(opts, :slug) || unique_org_slug()
+        name = Keyword.get(opts, :name) || "Workspace #{slug}"
+
+        Ecto.Multi.new()
+        |> Ecto.Multi.insert(
+          :organization,
+          Organization.changeset(%Organization{}, %{slug: slug, name: name})
+        )
+        |> Ecto.Multi.insert(:membership, fn %{organization: org} ->
+          %OrgMembership{organization_id: org.id, user_id: user_id}
+          |> OrgMembership.changeset(%{role: role})
+        end)
+        |> Ecto.Multi.insert(:agent, fn %{organization: org} ->
+          %Agent{organization_id: org.id, user_id: user_id}
+          |> Agent.changeset(%{display_name: "Agent"})
+        end)
+        |> Repo.transaction()
+        |> case do
+          {:ok, %{organization: org}} -> {:ok, org}
+          {:error, _step, reason, _} -> {:error, reason}
+        end
+    end
+  end
+
+  defp existing_membership_org(user_id) do
+    from(m in OrgMembership,
+      join: o in Organization,
+      on: o.id == m.organization_id,
+      where: m.user_id == ^user_id,
+      select: o,
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  defp unique_org_slug do
+    "org-" <> Base.encode16(:crypto.strong_rand_bytes(4), case: :lower)
+  end
 
   @doc """
   Inserts a ticket reply and closes the ticket in one transaction with actor GUC,
