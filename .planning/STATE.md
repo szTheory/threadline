@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 110 (triage-narrow-fixes) — EXECUTING
+Phase: 110 (triage-narrow-fixes) — COMPLETE
 Plan: 3 of 3
 Status: Phase complete — ready for verification
 Last activity: 2026-05-27

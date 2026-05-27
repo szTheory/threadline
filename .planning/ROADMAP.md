@@ -224,7 +224,7 @@
 | 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
 | 108. Walkthrough Script + Finding-Capture Protocol | 5/5 | Complete    | 2026-05-27 |
 | 109. Maintainer Walkthrough Dry-Run | 6/5 | Complete   | 2026-05-27 |
-| 110. Triage + Narrow Fixes | 0/3 | Planned | — |
+| 110. Triage + Narrow Fixes | 3/3 | Complete | 2026-05-27 |
 
 Per-phase plan counts will be refined by `/gsd:plan-phase` as each phase is decomposed; the conservative estimate is 1–3 plans per phase.
 
