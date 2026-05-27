@@ -1,9 +1,10 @@
 ---
 phase: 104-reference-walkthrough-charter-override-decision
 verified: 2026-05-27T00:00:00Z
-status: human_needed
+status: passed
 score: 6/6 must-haves verified
 overrides_applied: 0
+automated_uat: test/threadline/v1_23_charter_doc_contract_test.exs
 requirements_verified:
   - id: CHARTER-01
     status: satisfied
@@ -35,7 +36,7 @@ human_verification:
 **Phase Goal:** Record the deliberate v1.22 → v1.23 framing override in `.planning/PROJECT.md` and `.planning/MILESTONE-ARC.md` so a maintainer re-reading the planning surface in six months can identify (within ~2 minutes) that v1.23 is the synthetic-first-adopter milestone, why the v1.22 real-adopter-first rule was set aside, and what would re-engage it. Lock v1.23-scoped non-goals to prevent re-litigation at the next milestone-arc reread.
 
 **Verified:** 2026-05-27
-**Status:** human_needed
+**Status:** passed (machine UAT via `mix verify.doc_contract`)
 **Re-verification:** No — initial verification
 
 ## Goal Achievement

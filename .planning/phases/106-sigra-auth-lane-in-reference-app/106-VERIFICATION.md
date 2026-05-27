@@ -57,12 +57,9 @@ All four requirement IDs in plan frontmatter match `REQUIREMENTS.md` Phase 106 m
 
 ## Human Verification
 
-**Recommended (non-blocking):** One manual browser pass before Phase 108 walkthrough:
+**Superseded by CI (2026-05-27):** Phase 106 UAT scenarios are covered by `examples/threadline_phoenix/test/threadline_phoenix_web/sigra_auth_flow_test.exs`, which runs under `mix verify.example` in the `verify-test` GitHub Actions job. No manual browser pass is required before Phase 107.
 
-1. `cd examples/threadline_phoenix && mix ecto.setup && mix phx.server`
-2. Register → reload home (session persists) → open `/audit` as admin allowlist email → log out
-
-Automated tests already exercise HTTP login, `/audit` authorization, and capture `actor_ref`; manual pass confirms operator UX and logout cookie clearing.
+Automated coverage: cold-start users table, register + session reload, admin `/audit` access, agent 403, logout + audit denial. Optional maintainer smoke (`mix phx.server`) remains a walkthrough convenience only.
 
 ## Non-Blocking Findings (from 106-REVIEW.md)
 

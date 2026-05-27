@@ -30,7 +30,7 @@ created: 2026-05-27
 
 - **After every task commit:** Run task `<automated>` verify
 - **After every plan wave:** Run `cd examples/threadline_phoenix && mix test`
-- **Before `/gsd-verify-work`:** Full suite + `mix verify.example` green
+- **Before phase close:** Full suite + `mix verify.example` green (includes `sigra_auth_flow_test.exs` UAT proxy; `/gsd-verify-work` not required)
 - **Max feedback latency:** 30 seconds
 
 ---
