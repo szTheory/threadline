@@ -8,7 +8,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   @moduletag :demo_contract
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
-  alias Threadline.Semantics.AuditAction
+  alias Threadline.Semantics.{ActorRef, AuditAction}
   alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
   alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
   alias ThreadlinePhoenix.Repo
@@ -98,6 +98,30 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         encoded = Jason.encode!(reply_change.data_after)
         assert encoded =~ "[REDACTED]"
         refute encoded =~ "WALKTHROUGH-INTERNAL-SECRET-4521"
+      end)
+    end
+  end
+
+  describe "SEED-03 leaving agent window" do
+    test "agent2 audit transactions fall within demo_last_tuesday through demo_epoch" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        agent2_id = "33123cc4-da21-5674-b030-e168cee90521"
+        {:ok, agent2_ref} = ActorRef.new(:user, agent2_id)
+        from_ts = ~U[2026-05-20 14:30:00Z]
+        to_ts = ~U[2026-05-27 12:00:00Z]
+
+        count =
+          Repo.aggregate(
+            from(at in AuditTransaction,
+              where:
+                fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
+              where: at.occurred_at >= ^from_ts,
+              where: at.occurred_at <= ^to_ts
+            ),
+            :count
+          )
+
+        assert count >= 1
       end)
     end
   end

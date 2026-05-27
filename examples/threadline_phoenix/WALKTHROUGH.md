@@ -455,7 +455,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 **Do:**
 
 1. Open **`http://localhost:4000/audit/actors/user/33123cc4-da21-5674-b030-e168cee90521`** (Appendix A — `agent2@acme.example.com` user id)
-2. Set time window **last 24 hours** ending at **`demo_epoch`** (`2026-05-27T12:00:00Z`) — i.e. **`from`** = `2026-05-26T12:00:00Z`, **`to`** = `2026-05-27T12:00:00Z`
+2. Set time window from **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — consistent with WALK-03-01 step 3
 3. Alternatively: cross-org **`/audit`** timeline with actor filter for **`agent2@acme.example.com`** and the same window
 4. Scan the actor history list for Acme help-desk tables (`tickets`, `ticket_replies`)
 
@@ -469,10 +469,10 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 
 | Route | Scope | Filters | Drill-down |
 |-------|-------|---------|------------|
-| `/audit/actors/user/:id` | Cross-org admin | user id `33123cc4-da21-5674-b030-e168cee90521`, 24h window ending `demo_epoch` | → `/audit/transactions/:id` |
+| `/audit/actors/user/:id` | Cross-org admin | user id `33123cc4-da21-5674-b030-e168cee90521`, `demo_last_tuesday` through `demo_epoch` | → `/audit/transactions/:id` |
 | `/audit` | Cross-org admin | actor ref for `agent2@acme.example.com`, same time window | → transaction drill-down |
 
-**Verify:** Human — actor history non-empty for the 24h window; actor email matches **`agent2@acme.example.com`**.
+**Verify:** Human — actor history non-empty for the aligned window; actor email matches **`agent2@acme.example.com`**. Optional — `demo_contract_test.exs` `"SEED-03 leaving agent window"`.
 
 **If different:** File a finding citing `WALK-03-02`.
 
@@ -490,7 +490,12 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 2. Locate evidence subject **`retention_run`** with subject ref **`walk-retention-offboarded-co`**
 3. Confirm summary status / narrative references org Y offboard
 4. Open **`http://localhost:4000/audit`** and filter timeline to org **`offboarded-co`** activity (org slug / meta as available on mounted filters)
-5. Optional CLI parity: `mix threadline.evidence.show retention_run --subject-ref walk-retention-offboarded-co` from `examples/threadline_phoenix/`
+5. Optional CLI parity from `examples/threadline_phoenix/`:
+
+   ```bash
+   mix threadline.evidence.show --subject retention_run \
+     --subject-ref-json '{"run_id":"walk-retention-offboarded-co"}'
+   ```
 
 **Expected outcome:**
 
@@ -550,7 +555,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 | Expected met? | Findings filed? | Blockers |
 |---------------|-----------------|----------|
 | ☐ WALK-03-01 #4521 closer + `[REDACTED]` note | ☐ | |
-| ☐ WALK-03-02 agent2 24h actor window | ☐ | |
+| ☐ WALK-03-02 agent2 leaving-agent window | ☐ | |
 | ☐ WALK-03-03 org Y evidence + empty timeline | ☐ | |
 | ☐ WALK-03-04 #4518 delete by deleter | ☐ | |
 

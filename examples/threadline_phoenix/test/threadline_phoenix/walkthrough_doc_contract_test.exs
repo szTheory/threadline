@@ -13,7 +13,9 @@ defmodule ThreadlinePhoenix.WalkthroughDocContractTest do
           "walk-retention-offboarded-co",
           "2026-05-20T14:30:00Z",
           "mix demo.reset",
-          "WALK-03-04"
+          "WALK-03-04",
+          "--subject retention_run",
+          "subject-ref-json"
         ] do
       assert String.contains?(doc, literal),
              "expected WALKTHROUGH.md to include #{inspect(literal)}"
