@@ -2,6 +2,8 @@
 
 This guide is the canonical support-matrix and lifecycle reference for Threadline's named adoption lanes. `guides/integration-contracts.md` defines the reusable seams, and `guides/operator-surface.md` covers mount, auth, and screens. This guide answers a different set of questions: which lane you are on, what compatibility is actually supported, and how surface-only changes move between Threadline minors.
 
+Threadline **0.6.0** packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
+
 ## Who this guide is for
 
 Use this guide if you are:
@@ -20,7 +22,7 @@ You are on the `phoenix-surface` lane when your host application adds the option
 
 You are on the `sigra-reference` lane when your Phoenix host already uses Sigra and composes `Threadline.Integrations.Sigra` into `Threadline.Plug` using the current example app and guide path. The proof for this lane comes from `examples/threadline_phoenix/`, its lockfile and README, `guides/integrations/sigra.md`, and `mix verify.example`. This is a narrower claim than generic Sigra compatibility.
 
-For v1.21's support-lane wording, read those lane claims together with
+For 0.5.0 support-lane wording, read those lane claims together with
 `guides/operator-surface.md`: current mounted proof covers the shared `/audit`
 timeline, actor, transaction, support-scoped row history / as-of, and
 export-auth seams on the current tree.
@@ -72,6 +74,7 @@ When you upgrade by Threadline minor:
 
 Current guidance by minor:
 
+- **0.5.x → 0.6.x**: Evidence plane (`Threadline.Evidence`, `mix threadline.evidence.show`, `/audit/evidence`), recommended audited write path (`Threadline.Audit.transaction/3`); see `CHANGELOG.md` `[0.6.0]` for deprecated manual GUC + `record_action/2` recipe.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 
@@ -89,7 +92,7 @@ Typical symptoms:
 
 ## Packaging Boundary Scorecard
 
-Threadline closes v1.19 with a clear package-boundary decision: stay in-tree for now. The optional Phoenix surface is already isolated behind optional dependencies, the repo still proves one coherent release story from the root package, and the current evidence does not justify the extra versioning and release overhead of a separate `threadline_web` package.
+Threadline's 0.5.0 integration-breadth era closed with a clear package-boundary decision: stay in-tree for now. The optional Phoenix surface is already isolated behind optional dependencies, the repo still proves one coherent release story from the root package, and the current evidence does not justify the extra versioning and release overhead of a separate `threadline_web` package.
 
 Future extraction is a scorecard decision, not a taste decision. The trigger is "yes, extract" only when one or more of these pressures is sustained and materially increases maintainer or adopter cost:
 

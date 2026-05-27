@@ -84,7 +84,7 @@ immediately so the wiring contract fails loudly.
 
 ## 6. Exercise the first audited write
 
-### Recommended path (v1.24+)
+### Recommended path (0.6.0+)
 
 For new integrations, `Threadline.Audit.transaction/3` is the **recommended write path** —
 it replaces the manual `set_config` → domain writes → `record_action/2` → `action_id`
