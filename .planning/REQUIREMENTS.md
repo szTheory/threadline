@@ -62,7 +62,7 @@
 - [x] **FIX-01**: Every (a) breakage finding is fixed in Phase 110 with a commit referencing the finding ID; `lib/` is touchable only for (a) findings citing concrete walkthrough evidence (e.g. a wrong answer, a crash, a security regression).
 - [x] **FIX-02**: Every (b) DX papercut finding is fixed in Phase 110 if the fix is ≤ 1 narrow plan in scope; over-budget papercuts are explicitly deferred with a `.planning/v1.24-seeds/SEED-NNN.md` and the finding marked `deferred_to:`.
 - [x] **FIX-03**: Every (c) doc gap finding is fixed in `guides/` or example-app README, with `mix verify.doc_contract` updated to lock the literals if doc contracts are touched.
-- [ ] **DEFER-01**: Every (d) design gap finding lands as `.planning/v1.24-seeds/SEED-NNN.md` with a one-paragraph rationale, the originating finding ID, and a "when this seed should surface" trigger; finding file marked `deferred_to:` and Phase-110 SUMMARY.md lists deferred seeds.
+- [x] **DEFER-01**: Every (d) design gap finding lands as `.planning/v1.24-seeds/SEED-NNN.md` with a one-paragraph rationale, the originating finding ID, and a "when this seed should surface" trigger; finding file marked `deferred_to:` and Phase-110 SUMMARY.md lists deferred seeds.
 
 ---
 
@@ -132,7 +132,7 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | FIX-01 | Phase 110 | Complete |
 | FIX-02 | Phase 110 | Complete |
 | FIX-03 | Phase 110 | Complete |
-| DEFER-01 | Phase 110 | Pending |
+| DEFER-01 | Phase 110 | Complete |
 
 **Coverage:**
 
