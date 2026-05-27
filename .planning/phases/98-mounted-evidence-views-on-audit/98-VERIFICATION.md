@@ -53,3 +53,36 @@ mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-fail
 ```
 
 Result: PASS (`5 tests, 0 failures`)
+
+## 2. Mounted parity through Threadline.Evidence.Proof and locked copy literals
+
+**Requirement:** `SURF-02`  
+**Result:** PASS
+
+- `lib/threadline/operator_surface/live/evidence_live.ex:8` carries `alias Threadline.Evidence.Proof` and `evidence_live.ex:253` calls `Proof.present_record(record)` inside `defp build_row/1` — the same presenter `lib/threadline/evidence/proof.ex` exposes for the Mix-task `render_human/1` and `to_json_iodata/2` paths, confirming surface-to-API parity via the shared presenter.
+- The canonical verdict-vocabulary source is `lib/threadline/evidence/proof.ex:10`: `@semantic_statuses ~w(proven inferred_posture unsupported)`. The dynamic render site at `evidence_live.ex:116-118` consumes this vocabulary via `{row.verdict_status}` — both are cited because the render site is NOT the literal-defining site (per RESEARCH.md §2.2 dual-grep nuance; Risk 6 warns against citing only the render site, which returns zero matches for static grep).
+- The five locked Phase 98 copy literals from `98-UI-SPEC.md` (Copywriting Contract) are each verified by a structural grep against source AND a behavioral assertion in the LiveView test suite: `What can Threadline prove right now?` at `evidence_live.ex:67` asserted by `evidence_live_test.exs:115` (refute, denied-state) and `:150` (assert, overview); `View history` at `evidence_live.ex:142` asserted at `evidence_live_test.exs:152`; `No evidence records yet` at `evidence_live.ex:89` asserted at `evidence_live_test.exs:213`; `Evidence view unavailable.` at `unsupported.ex:25` rendered via `evidence_live.ex:154` and asserted at `evidence_live_test.exs:113`; verdict triple (`proven`, `inferred_posture`, `unsupported`) asserted at `evidence_live_test.exs:153-155`.
+
+### Evidence
+
+```bash
+rg -n 'alias Threadline\.Evidence\.Proof|Proof\.present_record' lib/threadline/operator_surface/live/evidence_live.ex
+```
+
+Result: PASS (exactly two matches: line 8 alias, line 253 Proof.present_record call site)
+
+### Evidence
+
+```bash
+rg -n '@semantic_statuses' lib/threadline/evidence/proof.ex
+```
+
+Result: PASS (exactly one match at line 10 — `@semantic_statuses ~w(proven inferred_posture unsupported)`; canonical verdict-vocabulary source per RESEARCH.md §2.2)
+
+### Evidence
+
+```bash
+mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1
+```
+
+Result: PASS (`5 tests, 0 failures`)
