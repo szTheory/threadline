@@ -56,6 +56,7 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(mix_exs, "test/threadline/operator_surface_doc_contract_test.exs")
     assert String.contains?(mix_exs, "test/threadline/upgrade_path_doc_contract_test.exs")
     assert String.contains?(mix_exs, "test/threadline/getting_started_saas_doc_contract_test.exs")
+    assert String.contains?(mix_exs, "test/threadline/audit_doc_contract_test.exs")
 
     assert String.contains?(
              mix_exs,
@@ -63,6 +64,7 @@ defmodule Threadline.CiTopologyContractTest do
            )
 
     assert String.contains?(mix_exs, "test/threadline/example_phoenix_readme_contract_test.exs")
+    assert String.contains?(mix_exs, "test/threadline/v1_23_charter_doc_contract_test.exs")
   end
 
   test "ci.all keeps capture-only and phoenix-surface proof steps in order" do
