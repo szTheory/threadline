@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
-status: completed
-last_updated: "2026-05-27T18:22:13.322Z"
-last_activity: 2026-05-27
+status: executing
+last_updated: "2026-05-27T18:23:18.270Z"
+last_activity: 2026-05-27 -- Phase null execution started
 progress:
   total_phases: 7
   completed_phases: 5
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 109 — Maintainer Walkthrough Dry-Run
+**Current focus:** Phase null
 
 ## Current Position
 
-Phase: 109
-Plan: Not started
-Status: Phase 108 complete; WALKTHROUGH runbook + findings protocol ready for observe-only dry-run
-Last activity: 2026-05-27
+Phase: null — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase null
+Last activity: 2026-05-27 -- Phase null execution started
 Resume file: None
 
 ## Performance Metrics
