@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T17:45:54.448Z"
-last_activity: 2026-05-27 -- Phase 108 planning complete
+last_updated: "2026-05-27T17:49:48.525Z"
+last_activity: 2026-05-27 -- Completed 108-01-PLAN.md
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 11
-  percent: 57
+  completed_plans: 12
+  percent: 75
 ---
 
 # Project State: Threadline
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 108 — walkthrough script + finding-capture protocol
+**Current focus:** Phase 108 — Walkthrough Script + Finding-Capture Protocol
 
 ## Current Position
 
-Phase: 108
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 108 planning complete
-Resume file: .planning/phases/108-walkthrough-script-finding-capture-protocol/108-CONTEXT.md
+Phase: 108-walkthrough-script-finding-capture-protocol — IN PROGRESS
+Plan: 1 of 5 complete (next: 108-02)
+Status: D-108-04e closed — redaction_policy evidence seeded; ready for findings template plan
+Last activity: 2026-05-27 -- Completed 108-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Resume file: .planning/phases/108-walkthrough-script-finding-capture-protocol/10
 
 - Full decision log lives in `.planning/PROJECT.md` Key Decisions table.
 - v1.23 framing override (synthetic-first-adopter pressure under no-real-adopter conditions) to be recorded as a Phase 104 Key Decision so the next milestone-arc reread does not re-litigate it.
+- Phase 108-01: Redaction policy evidence uses `walk-demo-redaction-policy` subject_ref; seeded in RetentionTail with masked-field detail for WALK-04 exercise 2.
 
 ### Todos
 
@@ -55,8 +56,8 @@ Resume file: .planning/phases/108-walkthrough-script-finding-capture-protocol/10
 
 ## Session Continuity
 
-- **Last Action**: Phase 104 context gathered via `/gsd:discuss-phase 104`. CONTEXT.md captures 5 implementation decisions: re-engagement trigger language, Key Decisions row structure, v1.23 non-goals home, MILESTONE-ARC.md targeted-fix scope, and the D-02 carve-out boundary note. Committed in 176a274.
-- **Next Step**: Run `/gsd:plan-phase 108` to author WALKTHROUGH.md and findings protocol from DEMO-MANIFEST literals.
+- **Last Action**: Completed 108-01-PLAN.md — seeded `redaction_policy` evidence row and manifest/DEMO-MANIFEST literals (commits `b01accb`, `1e15b25`).
+- **Next Step**: Execute 108-02-PLAN.md (findings TEMPLATE + README).
 
 ## Operator Next Steps
 
@@ -74,3 +75,4 @@ Resume file: .planning/phases/108-walkthrough-script-finding-capture-protocol/10
 | Phase 107-realistic-seed-data-demo-mix-tasks P01 | 15 min | 3 tasks | 5 files |
 | Phase 107-realistic-seed-data-demo-mix-tasks P02 | 25 min | 3 tasks | 7 files |
 | Phase 107-realistic-seed-data-demo-mix-tasks P04 | 35 min | 3 tasks | 11 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P01 | 2min | 2 tasks | 4 files |
