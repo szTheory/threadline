@@ -115,7 +115,7 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 98 verification-chain gaps from the v1.22 audit
 **Plans**: 2 plans
 
-- [ ] 102-01: Re-verify mounted `/audit/evidence` navigation, parity, and fallback behavior on the current tree
+- [x] 102-01: Re-verify mounted `/audit/evidence` navigation, parity, and fallback behavior on the current tree
 - [ ] 102-02: Add the Phase 98 verification artifact and SURF requirement-closure evidence
 
 ### Phase 103: Authority-Surface Reconciliation And Milestone Re-Audit
