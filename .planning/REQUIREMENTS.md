@@ -19,9 +19,9 @@
 
 ### Operator Surface Readouts (SURF)
 
-- [ ] **SURF-01**: Read-only evidence views live on the existing `/audit` surface rather than a new operator UI family.
-- [ ] **SURF-02**: Mounted evidence views show the same evidence facts and boundary language as the library API and Mix-task paths.
-- [ ] **SURF-03**: Host-owned authorization remains the gate for mounted evidence views; Threadline does not introduce RBAC or tenant DSL semantics.
+- [x] **SURF-01**: Read-only evidence views live on the existing `/audit` surface rather than a new operator UI family.
+- [x] **SURF-02**: Mounted evidence views show the same evidence facts and boundary language as the library API and Mix-task paths.
+- [x] **SURF-03**: Host-owned authorization remains the gate for mounted evidence views; Threadline does not introduce RBAC or tenant DSL semantics.
 
 ### Documentation and Boundaries (DOC)
 
@@ -57,9 +57,9 @@
 | PROOF-01 | Phase 101 | Complete |
 | PROOF-02 | Phase 97 | Complete |
 | PROOF-03 | Phase 97 | Complete |
-| SURF-01 | Phase 102 | Pending |
-| SURF-02 | Phase 102 | Pending |
-| SURF-03 | Phase 102 | Pending |
+| SURF-01 | Phase 102 | Complete |
+| SURF-02 | Phase 102 | Complete |
+| SURF-03 | Phase 102 | Complete |
 | DOC-01 | Phase 99 | Complete |
 | DOC-02 | Phase 99 | Complete |
 | DOC-03 | Phase 99 | Complete |
@@ -72,4 +72,4 @@
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-26 after the v1.22 milestone audit added gap-closure phases*
+*Last updated: 2026-05-27 after Phase 103 reconciled the SURF closure chain*

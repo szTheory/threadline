@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.22
 milestone_name: Policy / Evidence Plane
-status: executing
-last_updated: "2026-05-27T10:16:07.856Z"
-last_activity: 2026-05-27 -- Phase 103 planning complete
+status: completed
+last_updated: "2026-05-27T10:20:47.000Z"
+last_activity: 2026-05-27 -- Phase 103 reconciled the four v1.22 authority surfaces and reran the milestone audit to closeout-ready against the reconciled tree
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 18
-  completed_plans: 16
-  percent: 89
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-Phase: 102 — phase-98-verification-backfill (COMPLETE)
-Plan: 2 of 2 complete; verifier PASS 9/9
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 103 planning complete
+Phase: 103 — authority-surface-reconciliation-and-milestone-re-audit (COMPLETE)
+Plan: 2 of 2 complete; verifier PASS (closeout_readiness: green)
+Status: Phase 103 complete; v1.22 closeout-ready
+Last activity: 2026-05-27 -- Phase 103 reconciled the four authority surfaces and reran v1.22 milestone audit to closeout-ready verdict
 
 ## Performance Metrics
 
 - **Total Phases**: 9 (Phases 95-103) — defined in `.planning/ROADMAP.md`
-- **Phases Completed**: 4 of 9 phases complete and 12 of 18 tracked plans complete for v1.22
-- **Requirements Covered**: 8 of 12 satisfied for v1.22 (`EVID-01`, `EVID-02`, `EVID-03`, `PROOF-02`, `PROOF-03`, `DOC-01`, `DOC-02`, and `DOC-03`); `PROOF-01`, `SURF-01`, `SURF-02`, and `SURF-03` remain pending closure phases
+- **Phases Completed**: 9 of 9 phases complete and 18 of 18 tracked plans complete for v1.22
+- **Requirements Covered**: 12 of 12 satisfied for v1.22 (`EVID-01`, `EVID-02`, `EVID-03`, `PROOF-01`, `PROOF-02`, `PROOF-03`, `SURF-01`, `SURF-02`, `SURF-03`, `DOC-01`, `DOC-02`, and `DOC-03`)
 - **Last Milestone**: v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)
-- **Milestone Readiness**: OPEN. v1.22 now depends on Phases 101-103 to repair the remaining verification artifacts and stale authority surfaces before closeout.
+- **Milestone Readiness**: CLOSEOUT-READY. v1.22 cleared its final audit on 2026-05-27 against the reconciled tree.
 
 ## Accumulated Context
 
@@ -67,6 +67,10 @@ Last activity: 2026-05-27 -- Phase 103 planning complete
 - [Phase 94]: Passed the refreshed milestone audit while keeping plan-level 90/91 validation frontmatter drift documented as non-blocking tech debt because the canonical 85/86 phase artifacts are finalized. — The stale draft frontmatter no longer changes milestone truth because the canonical phase artifacts and final rerun bundle are green.
 - 2026-05-26: The v1.22 milestone audit found no integration or flow failures, but it did block closeout on missing `95-VERIFICATION.md`, `96-VERIFICATION.md`, and `98-VERIFICATION.md` plus stale milestone authority surfaces.
 - 2026-05-26: ROADMAP.md and REQUIREMENTS.md were extended with Phases 100-103 so the remaining work stays explicit: verification backfills for Phases 95, 96, and 98, then authority-surface reconciliation and re-audit.
+- 2026-05-26: Phase 100 backfilled the missing Phase 95 verification chain, created `95-VERIFICATION.md` and finalized `95-VALIDATION.md`, and closed `EVID-01`, `EVID-02`, and `EVID-03` against the current-tree evidence-model contract.
+- 2026-05-27: Phase 101 backfilled the missing Phase 96 verification chain, created `96-VERIFICATION.md` and finalized `96-VALIDATION.md`, and closed `PROOF-01` against the current-tree public evidence write/read API.
+- 2026-05-27: Phase 102 backfilled the missing Phase 98 verification chain, created `98-VERIFICATION.md` and finalized `98-VALIDATION.md`, and closed `SURF-01`, `SURF-02`, and `SURF-03` against the current-tree mounted `/audit/evidence` lane and fail-closed authorization gate.
+- 2026-05-27: Phase 103 reconciled the four v1.22 authority surfaces (ROADMAP, REQUIREMENTS, STATE, PROJECT current-state narrative) with the Phase 100/101/102 closure chain, reran the named v1.22 closeout bundle, and rewrote `v1.22-MILESTONE-AUDIT.md` to a closeout-ready verdict against the reconciled tree.
 
 ### Todos
 
@@ -78,8 +82,8 @@ Last activity: 2026-05-27 -- Phase 103 planning complete
 
 ## Session Continuity
 
-- **Last Action**: Closed the missing Phase 95 verification and validation chain by creating `95-VERIFICATION.md` and finalizing `95-VALIDATION.md` on the current tree.
-- **Next Step**: Run `/gsd-plan-phase 101`, then backfill `96-VERIFICATION.md` on the current tree.
+- **Last Action**: Closed Phase 103 by reconciling the four v1.22 authority surfaces (ROADMAP/REQUIREMENTS/STATE/PROJECT) and rerunning the v1.22 milestone audit to closeout-ready against the reconciled tree.
+- **Next Step**: Run `/gsd-complete-milestone v1.22`.
 
 ## Deferred Items
 
@@ -92,4 +96,4 @@ Items acknowledged and deferred at milestone close on 2026-05-06:
 
 ## Operator Next Steps
 
-- Run /gsd-plan-phase 101 to start the Phase 96 verification backfill, then work forward through Phases 102-103
+- Run /gsd-complete-milestone v1.22 to archive the v1.22 milestone

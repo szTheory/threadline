@@ -125,8 +125,8 @@ The milestone strategy is:
 **Gap Closure**: Closes the stale milestone-surface drift and final closeout-flow gaps from the v1.22 audit
 **Plans**: 2 plans
 
-- [ ] 103-01: Reconcile ROADMAP.md, REQUIREMENTS.md, and STATE.md with the repaired v1.22 closure state
-- [ ] 103-02: Re-run milestone verification and audit for v1.22 closeout readiness
+- [x] 103-01: Reconcile ROADMAP.md, REQUIREMENTS.md, and STATE.md with the repaired v1.22 closure state
+- [x] 103-02: Re-run milestone verification and audit for v1.22 closeout readiness
 
 ## Milestone Summary
 

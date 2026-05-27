@@ -23,7 +23,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
 
-**Current planning focus:** Ship durable policy/evidence records and audit-of-audit proof without widening Threadline into a Threadline-owned compliance platform, auth model, or tenancy model.
+**Current planning focus:** v1.22 evidence-plane work (durable policy/evidence records and audit-of-audit proof) is closeout-ready on the current tree; the next gate is `/gsd-complete-milestone v1.22`. The active boundary remains: no widening into a Threadline-owned compliance platform, auth model, or tenancy model.
 
 ## Latest Milestone Shipped: v1.21 Scoped Support / Operator Proof
 
@@ -324,4 +324,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-25 — Opened v1.22 Policy / Evidence Plane from the milestone arc and reset the active planning surface.*
+*Last updated: 2026-05-27 — Phase 103 reconciled the v1.22 current-state narrative with the closeout-ready milestone audit.*
