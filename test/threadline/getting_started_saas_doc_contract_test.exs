@@ -62,6 +62,10 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "`guides/upgrade-path.md`")
     assert String.contains?(doc, "`guides/integrations/sigra.md`")
 
+    assert String.contains?(doc, "Authenticate before")
+    assert String.contains?(doc, "_threadline_phoenix_key")
+    assert String.contains?(doc, "does not ship API bearer")
+
     assert String.contains?(
              doc,
              "{:ok, bundle} = Threadline.incident_bundle(audit_transaction_id, repo: MyApp.Repo)"

@@ -64,6 +64,8 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "current scoped")
     assert String.contains?(doc, "timeline, actor, transaction, and export denial")
     assert String.contains?(doc, "`export_authorize_fn`")
+    assert String.contains?(doc, "`evidence_authorize_fn`")
+    assert String.contains?(doc, "evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1")
     assert String.contains?(doc, "shared scoped `/audit` proof now includes")
     assert String.contains?(doc, "history / as-of")
     assert String.contains?(doc, "HTTP-native `403`")
@@ -92,6 +94,11 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
              "export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1"
            )
 
+    assert String.contains?(
+             router,
+             "evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1"
+           )
+
     refute String.contains?(router, "def my_authorize_fn(%Plug.Conn{}")
     refute String.contains?(router, "def my_authorize_fn(%Phoenix.LiveView.Socket{}")
     refute String.contains?(router, "match?(%Phoenix.LiveView.Socket{}, transport)")
@@ -104,6 +111,33 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(router, "alias Threadline.Semantics.ActorRef")
     assert String.contains?(router, "%ActorRef{type: :user, id: to_string(user.id)}")
     refute String.contains?(router, "avatar_url")
+  end
+
+  test "example README documents API auth staging for POST /api/posts" do
+    doc = read_rel!(@readme_path)
+
+    assert String.contains?(doc, "Authenticate before")
+    assert String.contains?(doc, "fetch_current_scope")
+    assert String.contains?(doc, "missing actor")
+    assert String.contains?(doc, "DEMO_USERS.md")
+    assert String.contains?(doc, "_threadline_phoenix_key")
+    assert String.contains?(doc, "does not ship API bearer")
+
+    auth_section =
+      doc
+      |> String.split("### Authenticate before", parts: 2)
+      |> case do
+        [_, rest] ->
+          rest
+          |> String.split("```", parts: 3)
+          |> Enum.at(1, "")
+
+        _ ->
+          ""
+      end
+
+    refute String.contains?(auth_section, "password123456")
+    refute String.contains?(auth_section, "@example.com")
   end
 
   defp router_mount_block do
