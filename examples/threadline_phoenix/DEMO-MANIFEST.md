@@ -50,6 +50,7 @@ See [DEMO_USERS.md](./DEMO_USERS.md) for passwords and walkthrough step mapping.
 |-----|-------|----------|
 | Acme #4521 close | `walk-acme-4521-close` | Semantic correlation on close transaction |
 | Org Y retention evidence | `walk-retention-offboarded-co` | `Threadline.Evidence` run id / subject ref |
+| Redaction policy snapshot | `walk-demo-redaction-policy` | WALK-04 exercise 2; `claim_assessment.status` expected `inferred_posture` |
 
 Evidence `subject_ref` for org Y purge names `offboarded-co` and org UUID `93cba30e-e2d5-5d95-9c50-7023f4c3eda5`
 (see Phase 108 WALK-04 and `mix threadline.evidence.show`).
