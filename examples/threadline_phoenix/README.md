@@ -22,6 +22,14 @@ Treat this README as the runnable proof artifact behind both paths.
 
 Optional: from the **repository root**, `docker compose up -d postgres` publishes Postgres on **`DB_PORT=5433`** by default (see root `docker-compose.yml` and `CONTRIBUTING.md`). When using that compose service, set **`DB_HOST`** / **`DB_PORT`** so this app’s `config/*.exs` resolves the same host and port (defaults remain `localhost` / `5432` if unset).
 
+## Choose your path
+
+| Goal | Start here | Requires `mix demo.seed`? |
+|------|------------|---------------------------|
+| First audited write (`POST /api/posts`) on migrated DB | **Track A** | **No** |
+| Maintainer walk, seeded operators, `/audit` exercises | **Track B** + [WALKTHROUGH.md](./WALKTHROUGH.md) | **Yes** |
+| Threadline in your own Phoenix app | [getting-started-saas.md](../../guides/getting-started-saas.md) | N/A |
+
 ## Regenerating the skeleton (generator contract)
 
 This tree was created with **`mix phx.new`** using an API-lean, asset-free flag set. To reproduce or refresh after a Phoenix upgrade, align the command with upstream **`Mix.Tasks.Phx.New`** for your installed Phoenix version, then diff port Threadline-specific files (`mix.exs` path dep, migrations, README).
@@ -41,7 +49,9 @@ mix phx.new threadline_phoenix \
   --no-install
 ```
 
-## Installation (Threadline capture + first audited table)
+## Base install (all paths)
+
+> **Committed checkout:** **skip generators on a normal clean clone.** Migrations for Threadline capture, triggers, and Sigra auth are **already committed** — do **not** run `mix threadline.install`, `mix threadline.gen.triggers`, or `mix sigra.install` on a normal clone. Generators belong in [Regenerating the skeleton](#regenerating-the-skeleton-generator-contract) only.
 
 1. Install Hex deps and compile:
 
@@ -50,7 +60,7 @@ mix phx.new threadline_phoenix \
    mix compile
    ```
 
-2. Ensure PostgreSQL is **already running and reachable** at the host/port in `config/dev.exs` (overridable with `DB_HOST` / `DB_PORT`). A quick check against compose is:
+2. Ensure PostgreSQL is **already running and reachable** at the host/port in `config/dev.exs` (overridable with `DB_HOST` / `DB_PORT`):
 
    ```bash
    pg_isready -h "${DB_HOST:-localhost}" -p "${DB_PORT:-5432}"
@@ -62,35 +72,19 @@ mix phx.new threadline_phoenix \
    mix ecto.create
    ```
 
-4. Generate and apply Threadline base schema migrations, then add triggers for the reference `posts` table, then migrate:
+4. Apply committed migrations (Threadline audit schema, help-desk tables, Sigra auth, triggers):
 
    ```bash
-   mix threadline.install
-   mix threadline.gen.triggers --tables posts
    mix ecto.migrate
    ```
 
-`mix threadline.gen.triggers` calls **`Mix.Task.run("app.config", [])`** first, so use the same **`MIX_ENV`** locally and in CI when regenerating trigger SQL; otherwise config-driven SQL may not match what you expect.
-
-5. Install Sigra auth (controller mode, no Sigra org tables — help-desk owns tenancy):
-
-   ```bash
-   mix sigra.install Accounts User users --no-live --no-organizations --no-passkeys --no-admin --yes
-   ```
-
-   If the generator was already run on this checkout, skip the command above.
-
-6. Apply all migrations and optional seeds:
+5. Optional convenience bootstrap — create, migrate, and run neutral **`priv/repo/seeds.exs`** (two posts; not walkthrough fiction):
 
    ```bash
    mix ecto.setup
    ```
 
-7. (Optional) Load neutral synthetic seed rows:
-
-   ```bash
-   mix run priv/repo/seeds.exs
-   ```
+   Running `mix run priv/repo/seeds.exs` separately is redundant if `ecto.setup` already ran.
 
 ## Demo walkthrough data
 
