@@ -279,11 +279,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **Investigation table stakes (Phases 53–56)** — `Threadline.timeline_page/2`, public investigation helpers, `Threadline.incident_bundle/2`, focused request-path coverage, and one canonical investigation docs story. Validated in v1.16: Investigation Table Stakes (2026-05-06).
 - [x] **Operator Surface Foundation (Phases 57–63)** — Mountable in-tree LiveView with optional Phoenix/LiveView/HTML/PubSub deps, two must-have screens + row history sub-view, fail-closed mount-time auth contract with optional `:authorize_fn` and authorize telemetry, `mix threadline.incident` CLI parity, doc-contract test locking macro signature + route literals + auth section. Validated in v1.17 (2026-05-06).
 - [x] **Policy / Evidence Plane (Phases 95–103)** — `Threadline.Evidence` append-only records with stable provenance and machine-readable detail; Phoenix-optional library APIs and Mix-task parity (`mix verify.evidence`, `mix threadline.evidence.show`); `/audit/evidence` LiveView with host-owned auth gate; three-tier proof vocabulary (`Threadline.Evidence.Proof`); doc contracts lock the narrow claim and explicit non-goals (no legal hold, no immutable storage, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL). Validated in v1.22: EVID-01/02/03, PROOF-01/02/03, SURF-01/02/03, DOC-01/02/03 (2026-05-27).
+- [x] **DEMO (Phase 105)** — Help-desk domain in `examples/threadline_phoenix/`: five `binary_id` tables, `HelpDesk.ticket_replied_and_closed/6`, masked `internal_note_body` capture, triggers + `verify_coverage` green, DataCase audit proofs. Validated in Phase 105 (2026-05-27).
 
 ### Active
 
 - [ ] **CHARTER (Phase 104)** — Record the deliberate override of v1.22's "real-adopter-first" closeout guidance; lock v1.23 non-goals (no new evidence subjects, no Threadline-owned RBAC, no library auth/domain code, no rebrand of "example" to "demo product")
-- [ ] **DEMO (Phase 105)** — Add help-desk schemas, contexts, migrations, triggers, and redaction config to `examples/threadline_phoenix/`; `lib/` read-only
 - [ ] **AUTH (Phase 106)** — Wire real Sigra signup/login/session in the reference app and replace the faked-conn admin assigns; surface `organization_id` + role on `current_user`
 - [ ] **SEED (Phase 107)** — `mix demo.seed` and `mix demo.reset` tasks producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario
 - [ ] **WALK (Phase 108)** — `examples/threadline_phoenix/WALKTHROUGH.md` script with install/onboarding/daily-use sections, three concrete operator scenarios, three evidence exercises, and a finding classification protocol
@@ -376,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — v1.23 Realistic-Demo Walkthrough opened. Current Milestone section added, Active requirements seeded with Phase 104–110 placeholders; Phase 104 recorded the v1.22-override Key Decision and updated MILESTONE-ARC.md.*
+*Last updated: 2026-05-27 — Phase 105 complete: help-desk domain, capture wiring, and DataCase audit proofs shipped in `examples/threadline_phoenix/`.*
