@@ -114,6 +114,19 @@ strict `:correlation_id` filters will not match those rows.
 See [Integration contracts](integration-contracts.md) § Audited write path for forbidden
 callback operations and escape hatches.
 
+### Authenticate before the audited API call
+
+Your host must establish identity on the conn before **`Threadline.Plug`** runs.
+On this reference app, sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`**
+from DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`** on the
+curl below. In your own app, use your login route and session cookie equivalent.
+This example does not ship API bearer tokens — host-owned auth only (see
+[integrations/sigra.md](integrations/sigra.md)).
+
+**Without session** on the reference lane, expect **`500`** with **`missing actor`**
+(capture ran; semantics rejected a missing actor). Production apps should fail
+earlier with **`401`**/**`403`**.
+
 Start your Phoenix app, then send the first audited request:
 
 ```bash
@@ -121,6 +134,7 @@ curl -sS -X POST "http://localhost:4000/api/posts" \
   -H "content-type: application/json" \
   -H "x-request-id: $(uuidgen)" \
   -H "x-correlation-id: demo-corr" \
+  -b '_threadline_phoenix_key=PASTE_FROM_BROWSER' \
   -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
 ```
 
