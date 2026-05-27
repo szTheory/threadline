@@ -19,7 +19,8 @@ defmodule Threadline.Audit do
   - `:capture_only` — same as omitting `:action` (capture-only path)
   - `:allow_missing_actor` — when true and `:action` is absent, permits nil
     `actor_ref` (non-recommended for multi-tenant SaaS)
-  - `:transaction_meta` — map stored on `audit_transactions.meta` when linking
+  - `:transaction_meta` — map stored on `audit_transactions.meta` on both
+    correlation-ready (`:action` present) and capture-only paths
   - `:correlation_id`, `:request_id`, `:job_id` — forwarded to `record_action/2`
     when `:action` is an atom
 
@@ -185,7 +186,10 @@ defmodule Threadline.Audit do
   defp finalize_success(repo, resolved, result) do
     case resolved.action_name do
       nil ->
-        attach_audit_transaction_id(repo, result)
+        with :ok <- apply_capture_meta(repo, resolved.transaction_meta),
+             result_with_id <- attach_audit_transaction_id(repo, result) do
+          result_with_id
+        end
 
       action_name ->
         with {:ok, %AuditAction{id: action_id}} <- record_action(repo, resolved, action_name),
@@ -212,6 +216,18 @@ defmodule Threadline.Audit do
       {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
       other -> other
     end
+  end
+
+  defp apply_capture_meta(_repo, nil), do: :ok
+
+  defp apply_capture_meta(repo, transaction_meta) when is_map(transaction_meta) do
+    {count, _} =
+      repo.update_all(
+        from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
+        set: [meta: transaction_meta]
+      )
+
+    if count == 1, do: :ok, else: {:error, :missing_audit_transaction_for_link}
   end
 
   defp link_action(repo, action_id, transaction_meta) do

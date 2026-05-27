@@ -173,5 +173,27 @@ defmodule Threadline.AuditTransactionTest do
 
       assert Repo.get!(AuditTransaction, id).meta == %{"organization_id" => "org-1"}
     end
+
+    test "transaction_meta stored on capture-only audit_transaction" do
+      {:ok, actor} = ActorRef.new(:user, "audit-helper-capture-meta")
+
+      assert {:ok, %{result: :done, audit_transaction_id: id}} =
+               Threadline.Audit.transaction(
+                 Repo,
+                 [
+                   actor_ref: actor,
+                   capture_only: true,
+                   transaction_meta: %{"organization_id" => "org-capture-only"}
+                 ],
+                 fn ->
+                   insert_row!("capture-meta")
+                   :done
+                 end
+               )
+
+      at = Repo.get!(AuditTransaction, id)
+      assert at.meta == %{"organization_id" => "org-capture-only"}
+      assert is_nil(at.action_id)
+    end
   end
 end
