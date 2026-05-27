@@ -11,7 +11,8 @@ The memorable formula is:
 `DB truth` + `app intent` + `operator tooling`
 
 - `DB truth` = trigger-captured `AuditTransaction` + `AuditChange`
-- `app intent` = `Threadline.record_action/2`
+- `app intent` = semantic `AuditAction` records — normally via `Threadline.Audit.transaction/3`
+  with `:action` (implemented by `Threadline.record_action/2` inside the helper)
 - `operator tooling` = timelines, actor windows, incident bundles, exports, and the optional `/audit` surface
 
 Threadline is:
