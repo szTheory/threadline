@@ -197,7 +197,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete   | 2026-05-27 |
+| 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
 | 105. Help-Desk Domain Expansion in Reference App | 0/? | Not started | — |
 | 106. Sigra Auth Lane in Reference App | 0/? | Not started | — |
 | 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |

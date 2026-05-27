@@ -13,9 +13,9 @@
 
 ### Charter (Phase 104) — Override decision and non-goals
 
-- [ ] **CHARTER-01**: PROJECT.md Key Decisions table gains a row for "v1.23 deliberately overrides v1.22's 'real-adopter-first' closeout guidance" with rationale, override trigger ("no real adopter exists, alternative is shipping nothing"), and re-engagement trigger ("first real adopter signal — issue, pilot host, or procurement conversation — pauses synthetic walkthroughs and resumes the v1.22 rule").
-- [ ] **CHARTER-02**: `MILESTONE-ARC.md` gains a v1.23 row in the arc-order table with theme "Realistic-Demo Walkthrough," why-now framing, what-this-unlocks, and explicit non-goals; strategic thesis paragraph updated to note the override.
-- [ ] **CHARTER-03**: v1.23 non-goals locked in PROJECT.md: no new evidence subjects beyond the six shipped in v1.22; no Threadline-owned RBAC / tenancy DSLs; no `lib/` auth code; no domain-model code in `lib/`; no rebrand from "example app" to "demo product"; no extension of the Sigra integration unless real signup/login surfaces a contract gap (handled via sub-phase 106b).
+- [x] **CHARTER-01**: PROJECT.md Key Decisions table gains a row for "v1.23 deliberately overrides v1.22's 'real-adopter-first' closeout guidance" with rationale, override trigger ("no real adopter exists, alternative is shipping nothing"), and re-engagement trigger ("first real adopter signal — issue, pilot host, or procurement conversation — pauses synthetic walkthroughs and resumes the v1.22 rule").
+- [x] **CHARTER-02**: `MILESTONE-ARC.md` gains a v1.23 row in the arc-order table with theme "Realistic-Demo Walkthrough," why-now framing, what-this-unlocks, and explicit non-goals; strategic thesis paragraph updated to note the override.
+- [x] **CHARTER-03**: v1.23 non-goals locked in PROJECT.md: no new evidence subjects beyond the six shipped in v1.22; no Threadline-owned RBAC / tenancy DSLs; no `lib/` auth code; no domain-model code in `lib/`; no rebrand from "example app" to "demo product"; no extension of the Sigra integration unless real signup/login surfaces a contract gap (handled via sub-phase 106b).
 
 ### Help-Desk Domain Expansion (Phase 105) — Reference-app domain
 
@@ -104,9 +104,9 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHARTER-01 | Phase 104 | Pending |
-| CHARTER-02 | Phase 104 | Pending |
-| CHARTER-03 | Phase 104 | Pending |
+| CHARTER-01 | Phase 104 | Complete |
+| CHARTER-02 | Phase 104 | Complete |
+| CHARTER-03 | Phase 104 | Complete |
 | DEMO-01 | Phase 105 | Pending |
 | DEMO-02 | Phase 105 | Pending |
 | DEMO-03 | Phase 105 | Pending |
@@ -135,6 +135,7 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | DEFER-01 | Phase 110 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 29 total
 - Mapped to phases: 29
 - Unmapped: 0 ✓
