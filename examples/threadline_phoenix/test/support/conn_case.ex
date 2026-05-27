@@ -13,6 +13,12 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
   PostgreSQL, you can even run database tests asynchronously
   by setting `use ThreadlinePhoenixWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
+
+  ## Authentication helpers
+
+  - `sigra_conn/2` — stages API `current_scope` / `sigra_session` without browser login.
+  - `login_via_sigra/3` — default `:http` POSTs `/users/log_in` through the real plug chain;
+    pass `mode: :session` for a faster session-token path when HTTP login is flaky.
   """
 
   use ExUnit.CaseTemplate
@@ -68,4 +74,27 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  @doc """
+  Logs `user` in through Sigra.
+
+  Default `mode: :http` exercises the full browser pipeline (session + `fetch_current_scope`).
+  Use `mode: :session` for faster tests when HTTP login is flaky.
+  """
+  def login_via_sigra(conn, user, opts \\ []) do
+    password = Keyword.get(opts, :password, "password123456")
+    mode = Keyword.get(opts, :mode, :http)
+
+    case mode do
+      :http ->
+        conn
+        |> Phoenix.ConnTest.init_test_session(%{})
+        |> post(~p"/users/log_in", %{
+          "user" => %{"email" => user.email, "password" => password}
+        })
+
+      :session ->
+        ThreadlinePhoenixWeb.ConnCaseHelpers.log_in_user(conn, user)
+    end
+  end
 end

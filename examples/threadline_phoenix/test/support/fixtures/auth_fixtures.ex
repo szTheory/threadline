@@ -12,7 +12,7 @@ defmodule ThreadlinePhoenix.AccountsFixtures do
   alias ThreadlinePhoenix.Accounts
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
-  def valid_user_password, do: "hello world!!"
+  def valid_user_password, do: "password123456"
 
   def valid_user_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
@@ -28,6 +28,8 @@ defmodule ThreadlinePhoenix.AccountsFixtures do
       |> ThreadlinePhoenix.Accounts.register_user()
 
     user
+    |> ThreadlinePhoenix.Accounts.User.confirm_changeset()
+    |> ThreadlinePhoenix.Repo.update!()
   end
 
   def extract_user_token(fun) do
