@@ -1,9 +1,9 @@
 ---
 phase: 99
 slug: contract-lock-docs-and-final-verification
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-26
 ---
 
@@ -38,9 +38,9 @@ created: 2026-05-26
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 99-01-01 | 01 | 1 | DOC-01 | T-99-01 / T-99-02 | Public docs and example wording state the evidence-plane claim narrowly, keep host-owned seams explicit, and preserve separately gated `/audit/evidence` language | doc contract | `mix verify.doc_contract` | ✅ / ❌ W0 | ⬜ pending |
-| 99-01-02 | 01 | 1 | DOC-02 | T-99-03 | Canonical non-goals explicitly reject legal hold, immutable-storage guarantees beyond the host contract, compliance packs, vendor reporting suites, and Threadline-owned RBAC/tenancy semantics | doc contract | `mix verify.doc_contract` | ✅ / ❌ W0 | ⬜ pending |
-| 99-02-01 | 02 | 2 | DOC-03 | T-99-01 / T-99-02 / T-99-03 | Current-tree verification proves docs, API, CLI, mounted evidence, and example-host surfaces all tell the same bounded story | doc contract + integration | `mix verify.doc_contract && mix verify.example && MIX_ENV=test mix test test/threadline/evidence_test.exs test/threadline/evidence/proof_test.exs test/mix/tasks/threadline.evidence_show_test.exs test/threadline/operator_surface/live/evidence_live_test.exs test/threadline/operator_surface/auth_test.exs --max-failures 1` | ✅ | ⬜ pending |
+| 99-01-01 | 01 | 1 | DOC-01 | T-99-01 / T-99-02 | Public docs and example wording state the evidence-plane claim narrowly, keep host-owned seams explicit, and preserve separately gated `/audit/evidence` language | doc contract | `mix verify.doc_contract` | ✅ | ✅ green |
+| 99-01-02 | 01 | 1 | DOC-02 | T-99-03 | Canonical non-goals explicitly reject legal hold, immutable-storage guarantees beyond the host contract, compliance packs, vendor reporting suites, and Threadline-owned RBAC/tenancy semantics | doc contract | `mix verify.doc_contract` | ✅ | ✅ green |
+| 99-02-01 | 02 | 2 | DOC-03 | T-99-01 / T-99-02 / T-99-03 | Current-tree verification proves docs, API, CLI, mounted evidence, and example-host surfaces all tell the same bounded story | doc contract + integration | `mix verify.doc_contract && mix verify.example && MIX_ENV=test mix test test/threadline/evidence_test.exs test/threadline/evidence/proof_test.exs test/mix/tasks/threadline.evidence_show_test.exs test/threadline/operator_surface/live/evidence_live_test.exs test/threadline/operator_surface/auth_test.exs --max-failures 1` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,10 +48,19 @@ created: 2026-05-26
 
 ## Wave 0 Requirements
 
-- [ ] Extend `test/threadline/readme_doc_contract_test.exs` to lock the README evidence-plane claim strip
-- [ ] Extend `test/threadline/upgrade_path_doc_contract_test.exs` to lock separately gated `/audit/evidence` wording under `phoenix-surface`
-- [ ] Decide and implement the `guides/domain-reference.md` lock path: dedicated doc-contract coverage or explicit proof-test assertions
-- [ ] Create `99-VERIFICATION.md` structure that records the exact rerun bundle plus any unrelated-known-failure note
+- [x] Extend `test/threadline/readme_doc_contract_test.exs` to lock the README evidence-plane claim strip
+- [x] Extend `test/threadline/upgrade_path_doc_contract_test.exs` to lock separately gated `/audit/evidence` wording under `phoenix-surface`
+- [x] Decide and implement the `guides/domain-reference.md` lock path: dedicated doc-contract coverage or explicit proof-test assertions
+- [x] Create `99-VERIFICATION.md` structure that records the exact rerun bundle plus any unrelated-known-failure note
+
+## Executed Command Outcomes
+
+| Command | Outcome | Notes |
+|---------|---------|-------|
+| `mix verify.doc_contract` | ✅ PASS | 46 tests, 0 failures |
+| `MIX_ENV=test mix test test/threadline/evidence_test.exs test/threadline/evidence/proof_test.exs test/mix/tasks/threadline.evidence_show_test.exs test/threadline/operator_surface/live/evidence_live_test.exs test/threadline/operator_surface/auth_test.exs --max-failures 1` | ✅ PASS | 55 tests, 0 failures |
+| `mix verify.example` | ✅ PASS | 21 tests, 0 failures |
+| `mix ci.all` | ❌ FAIL | stops in `mix verify.format` on the dirty working tree before broader compile/test stages |
 
 ---
 
@@ -66,11 +75,11 @@ created: 2026-05-26
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved for Phase 99 closeout evidence; follow-up remains on the broader `mix ci.all` format gate.

@@ -367,17 +367,15 @@ assert html =~ "mix threadline.evidence.show"
 | A2 | Rewriting the same non-goals across multiple files is likely to create drift because each guide optimizes for local clarity. | Common Pitfalls | Low; the canonical-owner recommendation still stands even if the exact failure mode differs. |
 | A3 | Summary files are easier to skim than verification artifacts and therefore more likely to be mistaken as authority. | Common Pitfalls | Low; milestone audit evidence already proves the repo guards against this. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Is all Phase 98 code already on the current tree, or does Phase 99 need a dependency preflight before planning?**
    - What we know: the repo already contains mounted evidence tests, `evidence_authorize_fn` behavior, and evidence-route wording surfaces. [VERIFIED: test/threadline/operator_surface/live/evidence_live_test.exs] [VERIFIED: .planning/phases/98-mounted-evidence-views-on-audit/98-VALIDATION.md]
-   - What's unclear: `STATE.md` still says Phase 98 is executing even though the current tree contains many Phase 98 artifacts. [VERIFIED: .planning/STATE.md]
-   - Recommendation: Plan a short preflight that confirms Phase 98’s intended write set is present before locking Phase 99 docs against it. [ASSUMED]
+   - Resolution: treat the current working tree plus on-disk Phase 98 summaries as execution truth and require a short preflight before Phase 99 verification work begins. `99-02-PLAN.md` now records that preflight explicitly and requires any mismatch with `STATE.md` to be named in `99-VERIFICATION.md`. [VERIFIED: .planning/STATE.md] [VERIFIED: .planning/phases/99-contract-lock-docs-and-final-verification/99-02-PLAN.md]
 
 2. **Should Phase 99 add a new `domain-reference` doc-contract test, or is proof-test coverage sufficient?**
    - What we know: `guides/domain-reference.md` owns the evidence proof vocabulary, but there is no existing dedicated `domain_reference_doc_contract_test.exs` file in the current test tree. [VERIFIED: guides/domain-reference.md] [VERIFIED: rg --files test]
-   - What's unclear: whether extending `test/threadline/evidence/proof_test.exs` and existing doc-contract tests provides enough textual lock for DOC-01/DOC-02. [VERIFIED: test/threadline/evidence/proof_test.exs]
-   - Recommendation: Planner should decide between a focused new doc-contract file or explicit assertions added to existing tests, but should not leave `domain-reference` unguarded if wording changes there become canonical. [ASSUMED]
+   - Resolution: `guides/domain-reference.md` must be locked as a public text surface, not only as a runtime-semantics source. Phase 99 therefore needs direct guide-text assertions, either in a focused new doc-contract file or in an existing named doc-contract test that reads the guide explicitly, and that coverage must run through `mix verify.doc_contract`. [VERIFIED: guides/domain-reference.md] [VERIFIED: .planning/phases/99-contract-lock-docs-and-final-verification/99-02-PLAN.md]
 
 ## Environment Availability
 
