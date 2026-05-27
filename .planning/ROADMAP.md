@@ -26,7 +26,7 @@
 ## Phases
 
 - [x] **Phase 111: Audited Write-Path Helper** — Ship `Threadline.Audit.transaction/2` (or equivalent) with PostgreSQL integration tests and doc contracts. (completed 2026-05-27)
-- [ ] **Phase 112: Reference App Adopts Helper** — Refactor example write paths and getting-started guide to use the helper; keep correlation/audit tests green.
+- [x] **Phase 112: Reference App Adopts Helper** — Refactor example write paths and getting-started guide to use the helper; keep correlation/audit tests green. (completed 2026-05-27)
 - [ ] **Phase 113: Adopter Truth & Doc Sync** — Wire `evidence_authorize_fn` in example mount; sync adoption-pilot to 0.5.x; align evidence CLI naming; fix WALK-03-02 prose (WR-110-001).
 
 ## Phase Details
@@ -67,7 +67,7 @@
 2. `mix verify.example` and existing audit/correlation tests pass without weakened assertions.
 3. Getting-started guide snippets match example app implementation.
 
-**Plans:** 0 plans drafted
+**Plans:** 4/4 plans complete
 
 ---
 

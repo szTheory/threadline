@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Audited Write Path & Adopter Truth
-status: planning
-last_updated: "2026-05-27T21:00:00.000Z"
-last_activity: 2026-05-27 — Phase 112 context gathered
+status: executing
+last_updated: "2026-05-27T21:05:50.909Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 33
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 112 — reference-app-adopts-helper
+**Current focus:** Phase null
 
 ## Current Position
 
-Phase: 112 — reference-app-adopts-helper
+Phase: 113
 Plan: Not started
-Status: Ready to plan Phase 112
-Last activity: 2026-05-27 — Phase 112 context gathered (112-CONTEXT.md)
+Status: Executing Phase null
+Last activity: 2026-05-27
 Resume: `.planning/phases/112-reference-app-adopts-helper/112-CONTEXT.md`
 
 ## Performance Metrics

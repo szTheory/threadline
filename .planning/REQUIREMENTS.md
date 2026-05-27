@@ -20,9 +20,9 @@
 
 ### Adopt Helper (Phase 112) — Reference app + guide
 
-- [ ] **ADOPT-HELPER-01**: `examples/threadline_phoenix/` refactors at least `Blog.create_post/2` and `HelpDesk.ticket_replied_and_closed/6` (or equivalent primary write paths) to use the library helper instead of hand-rolled `set_config` + `record_action` + `action_id` update blocks.
-- [ ] **ADOPT-HELPER-02**: Existing example tests (`posts_audit_path_test`, `posts_correlation_path_test`, `help_desk_audit_http_test`) remain green without weakening assertions.
-- [ ] **ADOPT-HELPER-03**: `guides/getting-started-saas.md` step 4–6 use the helper in the canonical snippet; README quickstart cross-links the helper.
+- [x] **ADOPT-HELPER-01**: `examples/threadline_phoenix/` refactors at least `Blog.create_post/2` and `HelpDesk.ticket_replied_and_closed/6` (or equivalent primary write paths) to use the library helper instead of hand-rolled `set_config` + `record_action` + `action_id` update blocks.
+- [x] **ADOPT-HELPER-02**: Existing example tests (`posts_audit_path_test`, `posts_correlation_path_test`, `help_desk_audit_http_test`) remain green without weakening assertions.
+- [x] **ADOPT-HELPER-03**: `guides/getting-started-saas.md` step 4–6 use the helper in the canonical snippet; README quickstart cross-links the helper.
 
 ### Adopter Truth (Phase 113) — Reference + doc honesty
 
@@ -66,9 +66,9 @@ Deferred until sustained adopter or procurement pressure.
 | AUDIT-TXN-02 | 111 | Complete |
 | AUDIT-TXN-03 | 111 | Complete |
 | AUDIT-TXN-04 | 111 | Complete |
-| ADOPT-HELPER-01 | 112 | Pending |
-| ADOPT-HELPER-02 | 112 | Pending |
-| ADOPT-HELPER-03 | 112 | Pending |
+| ADOPT-HELPER-01 | 112 | Complete |
+| ADOPT-HELPER-02 | 112 | Complete |
+| ADOPT-HELPER-03 | 112 | Complete |
 | TRUTH-01 | 113 | Pending |
 | TRUTH-02 | 113 | Pending |
 | TRUTH-03 | 113 | Pending |
