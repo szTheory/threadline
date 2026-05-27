@@ -733,3 +733,97 @@ Document these fields — not full JSON blobs: **`subject`**, **`subject_ref`** 
 | ☐ WALK-04-01 retention_run completed + empty org Y timeline | ☐ | |
 | ☐ WALK-04-02 redaction_policy inferred_posture + #4521 `[REDACTED]` | ☐ | |
 | ☐ WALK-04-03 trigger_coverage snapshot proven | ☐ | |
+
+---
+
+## Appendix A — Demo reference
+
+Walk-critical literals copied from **`DEMO-MANIFEST.md`** and **`DEMO_USERS.md`**. Edit the manifest first, then sync this appendix. **Do not open `DEMO-MANIFEST.md` mid-run** — use this section instead.
+
+### Temporal anchors
+
+| Key | UTC instant | Notes |
+|-----|-------------|-------|
+| `demo_epoch` | `2026-05-27T12:00:00Z` | Frozen “today” for seed backfill and filters |
+| `demo_last_tuesday` | `2026-05-20T14:30:00Z` | Operator filters when prose says “last Tuesday” |
+
+### Organizations
+
+| Slug | UUID | Walkthrough role |
+|------|------|------------------|
+| `acme` | `d99bff6a-063e-5f45-baaf-4f7a9d60ff72` | Primary org — ticket #4521 close, #4518 delete |
+| `globex` | `64a4ee60-79d6-566d-8db3-62782aa6a4c2` | Third org — filler and WALK-02 samples |
+| `offboarded-co` | `93cba30e-e2d5-5d95-9c50-7023f4c3eda5` | Org Y — retention purge end state (WALK-04) |
+
+### Hero tickets (Acme)
+
+| Number | Story | Primary actor |
+|--------|-------|---------------|
+| **4521** | Reply + close with masked internal note | `closer@acme.example.com` |
+| **4518** | Hard-deleted reply | `deleter@acme.example.com` |
+
+### Users and passwords
+
+Shared demo password: **`password123456`** (override with `DEMO_SEED_PASSWORD` when seeding).
+
+| Email | Password | Org slug | Role | Walkthrough step |
+|-------|----------|----------|------|------------------|
+| `agent2@acme.example.com` | `password123456` | `acme` | agent | WALK-03-02 — leaving-agent window |
+| `closer@acme.example.com` | `password123456` | `acme` | agent | WALK-03-01 — #4521 close |
+| `deleter@acme.example.com` | `password123456` | `acme` | agent | WALK-03-04 — #4518 delete |
+| `support@acme.example.com` | `password123456` | `acme` | support | Daily-use triage |
+| `support@globex.example.com` | `password123456` | `globex` | support | WALK-02 non-Acme samples |
+| `support@offboarded-co.example.com` | `password123456` | `offboarded-co` | support | Org Y pre-offboard |
+| `admin@example.com` | `password123456` | _(cross-org)_ | operator admin | Cross-org `/audit`, evidence exercises |
+
+### Fixed user IDs (Sigra)
+
+| Persona | Email | Fixed `user_id` (UUID) |
+|---------|-------|------------------------|
+| Acme closer | `closer@acme.example.com` | `cb1b4a0f-17e6-5afe-a072-5c5a6895ee5b` |
+| Acme deleter | `deleter@acme.example.com` | `70dd93dc-140a-5d72-950e-85ab11025f40` |
+| Acme agent2 (leaving) | `agent2@acme.example.com` | `33123cc4-da21-5674-b030-e168cee90521` |
+| Cross-org admin | `admin@example.com` | `5bbaa26c-b413-5c51-8c9e-88806fd8641d` |
+| Acme support | `support@acme.example.com` | `58a977be-58b4-5763-896b-ed62ecd4b3a7` |
+| Globex support | `support@globex.example.com` | `2a147e6c-edae-5719-a90a-536faa27ad4e` |
+| Offboarded support | `support@offboarded-co.example.com` | `03524474-dab0-59f6-91a0-90a06dc0e549` |
+
+### Correlation IDs
+
+| Key | Value | Used for |
+|-----|-------|----------|
+| Acme #4521 close | `walk-acme-4521-close` | Semantic correlation on close transaction |
+
+### Evidence subject refs
+
+| Subject | Subject ref key | Value | Expected `claim_assessment.status` |
+|---------|-----------------|-------|-----------------------------------|
+| `retention_run` | `run_id` | `walk-retention-offboarded-co` | `proven` |
+| `retention_policy` | `policy` | `walk-demo-retention-policy` | _(policy row — not WALK-04 focus)_ |
+| `redaction_policy` | `policy` | `walk-demo-redaction-policy` | `inferred_posture` |
+| `trigger_coverage` | `snapshot` | `walk-demo-trigger-coverage` | `proven` |
+
+---
+
+## Appendix B — Command cheat sheet
+
+Run from **`examples/threadline_phoenix/`** unless noted.
+
+| Command | Purpose |
+|---------|---------|
+| `mix setup` | `deps.get` → `compile` → `ecto.setup` (no demo fiction) |
+| `mix demo.seed` | Load deterministic walkthrough help-desk fiction |
+| `mix demo.reset` | Truncate demo tables and re-run `demo.seed` |
+| `mix phx.server` | Start Phoenix on `http://localhost:4000` |
+| `mix threadline.evidence.show` | Evidence plane viewer (canonical; see §5 footnote) |
+| `mix threadline.policy.show` | Redaction policy CLI parity |
+| `mix threadline.health.coverage` | Trigger coverage CLI parity |
+
+---
+
+## Further reading (not required for this run)
+
+Optional context after the Phase 109 dry-run — **not** needed mid-walk:
+
+- [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md) — integrator first-hour wiring in your own app
+- [`README.md`](./README.md) — runnable install contract, operator mount recipe, and test entrypoints
