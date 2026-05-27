@@ -19,6 +19,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - `examples/threadline_phoenix/WALKTHROUGH.md` maintainer runbook (§0–§5 + appendices) and findings capture protocol
 - Phase 109 observe-only dry-run; Phase 110 triage fixed findings 0001–0003 with validation re-walk (RUN-01/02/03 pass)
 
+**v1.23 non-goals:**
+
+- No new `Threadline.Evidence` subjects beyond the six shipped in v1.22 — walkthrough exercises shipped subjects only; new-subject pressure routes to v1.24 seeds, not in-milestone scope creep.
+- No Threadline-owned RBAC / tenancy DSLs and no `lib/` auth or domain-model code — the host-owned auth/tenancy boundary that has held since v1.15 is not relitigated; all auth and help-desk domain work lives in `examples/threadline_phoenix/`.
+- No rebrand of `examples/threadline_phoenix/` from "reference app" to "demo product" — seed data + clickable UI enables the walkthrough; it does not reposition the artifact. Sigra integration is not extended unless real signup/login surfaces a contract gap (handled via sub-phase 106b escape valve).
+
 **Current State:** v1.23 shipped 2026-05-27. Awaiting next milestone scoping via `/gsd-new-milestone`. Phase directories and verification artifacts remain under `.planning/phases/104-*` through `110-*` for reference.
 
 **Shipped capabilities:**
