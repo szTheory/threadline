@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Audited Write Path & Adopter Truth
 status: Defining requirements
-last_updated: "2026-05-27"
-last_activity: 2026-05-27 — Milestone v1.24 opened (milestone-next-step assessment)
+last_updated: "2026-05-27T20:16:57.484Z"
+last_activity: 2026-05-27 — Milestone v1.24 started via milestone-next-step assessment + `/gsd-new-milestone` kickoff
 progress:
   total_phases: 3
   completed_phases: 0
