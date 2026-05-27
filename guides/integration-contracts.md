@@ -75,6 +75,42 @@ The job-path contract is:
 - Any broader worker-framework integration belongs in an adapter module if the
   pattern repeats; it is not standardized in core today.
 
+## Audited write path via `Threadline.Audit`
+
+`Threadline.Audit.transaction/3` is the recommended helper for domain writes that need
+capture and optional semantic action linkage in one database transaction.
+
+`Threadline.Plug` and `Threadline.Job` remain edge context producers — call the helper
+from Phoenix context modules (or workers) after resolving `%Threadline.Semantics.AuditContext{}`
+and `%Threadline.Semantics.ActorRef{}`.
+
+```elixir
+Threadline.Audit.transaction(
+  Repo,
+  [
+    audit_context: audit_context,
+    action: :post_created_via_api,
+    transaction_meta: %{"organization_id" => org_id}
+  ],
+  fn ->
+    Repo.insert!(Post.changeset(%Post{}, attrs))
+  end
+)
+```
+
+Contract bullets:
+
+- **`:action` present → correlation-ready** — the helper calls `Threadline.record_action/2`
+  and links `audit_transactions.action_id` so strict `:correlation_id` filters on
+  `Threadline.timeline/2` match.
+- **`:action` absent → capture-only** — row capture and `actor_ref` on
+  `audit_transactions` still work; strict `:correlation_id` timeline/export filters
+  **will not match** (document this at code review).
+- **`actor_ref` required** unless `allow_missing_actor: true` on capture-only paths
+  (non-recommended for multi-tenant SaaS).
+- **Callback must not** call `set_config` for `threadline.actor_ref`, `Threadline.record_action/2`,
+  or nested `Repo.transaction/1` — the helper owns GUC, action recording, and linkage.
+
 ## Reference integrations via `Threadline.Integrations.*`
 
 `Threadline.Integrations.*` modules are reference adapters. They translate host

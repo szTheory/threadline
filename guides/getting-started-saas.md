@@ -82,7 +82,38 @@ immediately so the wiring contract fails loudly.
 
 ## 6. Exercise the first audited write
 
-The example writes the actor into the same database transaction as the insert, then records semantic intent before returning an `audit_transaction_id`:
+### Recommended path (v1.24+)
+
+For new integrations, `Threadline.Audit.transaction/3` is the **recommended write path** —
+it replaces the manual `set_config` → domain writes → `record_action/2` → `action_id`
+linkage recipe in one call:
+
+```elixir
+Threadline.Audit.transaction(
+  Repo,
+  [
+    audit_context: audit_context,
+    action: :post_created_via_api,
+    transaction_meta: %{"organization_id" => org_id}
+  ],
+  fn ->
+    case Repo.insert(Post.changeset(%Post{}, attrs)) do
+      {:error, changeset} -> Repo.rollback(changeset)
+      {:ok, post} -> %{post: post}
+    end
+  end
+)
+```
+
+When `:action` is present, the return map includes `:audit_transaction_id` (merged into
+your callback map on success). Omit `:action` for capture-only writes — strict
+`:correlation_id` filters will not match those rows.
+
+### Legacy manual recipe (reference app)
+
+The example app still uses the manual transaction body below until Phase 112 migrates
+to the helper. The example writes the actor into the same database transaction as the
+insert, then records semantic intent before returning an `audit_transaction_id`:
 
 ```elixir
           Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])

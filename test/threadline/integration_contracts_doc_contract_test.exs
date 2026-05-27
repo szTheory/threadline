@@ -123,4 +123,13 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "auto-installs `Threadline.OperatorSurface.SessionPlug`")
     assert String.contains?(guide, "session actor wins")
   end
+
+  test "integration-contracts guide locks audited write path section" do
+    guide = File.read!("guides/integration-contracts.md")
+
+    assert String.contains?(guide, "## Audited write path via `Threadline.Audit`")
+    assert String.contains?(guide, "Threadline.Audit.transaction/3")
+    assert String.contains?(guide, "capture-only")
+    assert String.contains?(guide, "correlation-ready")
+  end
 end
