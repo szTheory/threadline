@@ -34,7 +34,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - No Threadline-owned RBAC / tenancy DSLs and no `lib/` auth or domain-model code — the host-owned auth/tenancy boundary that has held since v1.15 is not relitigated; all auth and help-desk domain work lives in `examples/threadline_phoenix/`.
 - No rebrand of `examples/threadline_phoenix/` from "reference app" to "demo product" — seed data + clickable UI enables the walkthrough; it does not reposition the artifact. Sigra integration is not extended unless real signup/login surfaces a contract gap (handled via sub-phase 106b escape valve).
 
-**Current State:** v1.22 — Policy / Evidence Plane (closed 2026-05-27). v1.23 opened 2026-05-27.
+**Current State:** v1.23 — Realistic-Demo Walkthrough (in progress). Phase 106 complete (2026-05-27): Sigra auth lane wired in reference app with real signup/login/session, OperatorUser scope bridge, and HTTP audit capture proof. Phases 104–105 complete; Phase 107 next.
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
