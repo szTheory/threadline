@@ -11,7 +11,7 @@ defmodule ThreadlinePhoenixWeb.HelpDeskDevController do
   def ticket_reply(conn, params) do
     with %{"organization_id" => org_id, "ticket_id" => ticket_id} <- params,
          %Organization{} = org <- Repo.get(Organization, org_id),
-         %Ticket{} = ticket <- Repo.get(Ticket, ticket_id),
+         %Ticket{} = ticket <- Repo.get_by(Ticket, id: ticket_id, organization_id: org.id),
          user_id when is_binary(user_id) <- current_user_id(conn),
          %Agent{} <- Repo.get_by(Agent, organization_id: org.id, user_id: user_id),
          %AuditContext{} = audit_context <- audit_context_from_conn(conn),
