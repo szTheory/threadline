@@ -158,6 +158,14 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "DEMO-MANIFEST.md")
     assert String.contains?(doc, "DEMO_USERS.md")
     assert String.contains?(doc, "does **not** run `demo.seed` automatically")
+    assert String.contains?(doc, "`mix ecto.reset` is schema/trigger recovery only")
+    assert String.contains?(doc, "`mix demo.reset` for the daily walkthrough loop")
+    assert String.contains?(doc, "Mix task ownership")
+    assert String.contains?(doc, "neutral")
+    assert String.contains?(doc, "walkthrough fiction")
+    assert String.contains?(doc, "skip generators on a normal clean clone")
+    assert String.contains?(doc, "## Choose your path")
+    assert String.contains?(doc, "## Base install (all paths)")
   end
 
   test "example README carries audited HTTP and correlation literals" do
