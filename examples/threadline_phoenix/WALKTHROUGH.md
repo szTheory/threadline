@@ -36,16 +36,16 @@ Even obvious one-line fixes become numbered finding files. Phase 110 triages the
 
 ### Walk literals during the run
 
-**Appendix A** (added in Plan 05) holds all walk-critical literals — credentials, ticket numbers, time anchors, correlation IDs. **Do not open `DEMO-MANIFEST.md` mid-run**; use Appendix A instead.
+**Appendix A** holds all walk-critical literals — credentials, ticket numbers, time anchors, correlation IDs. **Do not open `DEMO-MANIFEST.md` mid-run**; use Appendix A instead.
 
 ### Sections in this runbook
 
 | Section | Requirement | Status in this plan |
 |---------|-------------|---------------------|
 | §0 Before you start | Prerequisites + discipline | This section |
-| §1 Clean clone install | WALK-01 bootstrap | Task 2 |
-| §2 Onboarding | WALK-01 register + login + first reply | Task 2 |
-| §3 Daily use | WALK-02 agent/admin/support flows | Task 2 |
+| §1 Clean clone install | WALK-01 bootstrap | §1 Prerequisites |
+| §2 Onboarding | WALK-01 register + login + first reply | §2 Onboarding |
+| §3 Daily use | WALK-02 agent/admin/support flows | §3 Daily operator flows |
 | §4 Operator incidents | WALK-03 four playbooks | This section |
 | §5 Evidence exercises | WALK-04 three exercises | This section |
 
@@ -140,7 +140,7 @@ mix demo.seed
 - Command exits 0
 - ~3 organizations, ~5 agents per org, ~50 tickets per org with two-week backdated activity
 - Hero tickets **#4521** (closed) and **#4518** (delete story) exist in org Acme
-- Seeded evidence rows for retention and trigger coverage (see §5 in Plan 05)
+- Seeded evidence rows for retention and trigger coverage (see §5 Evidence plane exercises)
 
 **Verify:** Optional contract tests — `MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs` (heroes, redaction, reset idempotency).
 

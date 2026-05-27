@@ -4,8 +4,8 @@ slug: wr-002-cli-syntax
 classification: c
 walkthrough_step: WALK-03-03
 captured: 2026-05-27T00:00:00Z
-status: open
-fixed_in:
+status: fixed
+fixed_in: 8dfcb87b8405ca232c0d114bf02844aa71b54d30
 deferred_to:
 ---
 
