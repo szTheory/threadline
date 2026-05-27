@@ -86,4 +86,22 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
     assert String.contains?(doc, "getting-started-saas.md")
     assert String.contains?(doc, "§6")
   end
+
+  test "mental model guide locks Evolution semver chronology (DOC-02/DOC-03)" do
+    doc = File.read!(@guide_path)
+
+    assert String.contains?(doc, "## Evolution so far")
+    assert String.contains?(doc, "`0.5.0`")
+    assert String.contains?(doc, "`0.6.0`")
+    assert String.contains?(doc, "0.6.0` packaged the Evidence plane")
+    assert String.contains?(doc, "Threadline.Audit.transaction/3")
+
+    {idx_evolution, _} = :binary.match(doc, "## Evolution so far")
+    {idx_next, _} = :binary.match(doc, "## Natural next work")
+    scope = {idx_evolution, idx_next - idx_evolution}
+
+    {idx_05, _} = :binary.match(doc, "`0.5.0`", scope: scope)
+    {idx_06, _} = :binary.match(doc, "`0.6.0`", scope: scope)
+    assert idx_05 < idx_06
+  end
 end
