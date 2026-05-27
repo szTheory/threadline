@@ -19,16 +19,16 @@ created: 2026-05-26
 |----------|-------|
 | **Framework** | ExUnit + Phoenix LiveView tests |
 | **Config file** | `mix.exs`, `config/test.exs`, `test/test_helper.exs` |
-| **Quick run command** | `MIX_ENV=test mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` |
-| **Full suite command** | `mix verify.test` |
-| **Estimated runtime** | ~45 seconds |
+| **Quick run command** | `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` |
+| **Full suite command** | `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` |
+| **Estimated runtime** | ~10-30 seconds warm |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `MIX_ENV=test mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1`
-- **After every plan wave:** Run `mix verify.test`
+- **After every task commit:** Run `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1`
+- **After every plan wave:** Run `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1`
 - **Before `$gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 45 seconds
 
@@ -38,9 +38,9 @@ created: 2026-05-26
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 98-01-01 | 01 | 1 | SURF-01 | T-98-01 / T-98-02 | `/audit/evidence` renders only read-only overview/history state and preserves URL-driven navigation | liveview | `MIX_ENV=test mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
-| 98-02-01 | 02 | 2 | SURF-02 | T-98-03 | mounted labels and fallback copy preserve `proven`, `inferred_posture`, and `unsupported` semantics without query drift | liveview | `MIX_ENV=test mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
-| 98-02-02 | 02 | 2 | SURF-03 | T-98-04 | host-owned evidence callback fails closed to explicit unsupported state when denied | unit + liveview | `MIX_ENV=test mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ✅ / ❌ W0 | ⬜ pending |
+| 98-01-01 | 01 | 1 | SURF-01 | T-98-01 / T-98-02 | `/audit/evidence` renders only read-only overview/history state and preserves URL-driven navigation | liveview | `mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
+| 98-02-01 | 02 | 2 | SURF-02 | T-98-03 | mounted labels and fallback copy preserve `proven`, `inferred_posture`, and `unsupported` semantics without query drift | liveview | `mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ❌ W0 | ⬜ pending |
+| 98-02-02 | 02 | 2 | SURF-03 | T-98-04 | host-owned evidence callback fails closed to explicit unsupported state when denied | unit + liveview | `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1` | ✅ / ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
