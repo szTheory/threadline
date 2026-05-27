@@ -46,7 +46,7 @@ Even obvious one-line fixes become numbered finding files. Phase 110 triages the
 | §1 Clean clone install | WALK-01 bootstrap | Task 2 |
 | §2 Onboarding | WALK-01 register + login + first reply | Task 2 |
 | §3 Daily use | WALK-02 agent/admin/support flows | Task 2 |
-| §4 Operator incidents | WALK-03 four playbooks | Plan 04 |
+| §4 Operator incidents | WALK-03 four playbooks | This section |
 | §5 Evidence exercises | WALK-04 three exercises | Plan 05 |
 
 ---
@@ -401,3 +401,155 @@ Daily operator flows use seeded personas and the mounted `/audit` surface. When 
 | ☐ WALK-02-01 agent reply+close captured | ☐ | |
 | ☐ WALK-02-02 admin cross-org timeline | ☐ | |
 | ☐ WALK-02-03 support triage scoped | ☐ | |
+
+---
+
+## §4 Operator incidents
+
+Four atomic incident playbooks — one manifest hero each. When prose says **"last Tuesday"**, use **`demo_last_tuesday`** = **`2026-05-20T14:30:00Z`** (Appendix A) — not wall-clock-relative filters.
+
+Answers use only the shipped **`/audit`** operator surface and documented **`mix threadline.*`** CLI — no raw SQL, no IEx, no `Repo.all/2`.
+
+#### Step WALK-03-01 — Who closed #4521 and what did the internal note say?
+
+**Operator question:** Who closed ticket **#4521** in Acme last Tuesday, and was the internal note captured without leaking plaintext?
+
+**Prerequisites:** WALK-01-03 demo seed loaded; server running. Log in as **`support@acme.example.com`** or **`admin@example.com`** / **`password123456`** (Appendix A).
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit`**
+2. Apply filter **`correlation_id: walk-acme-4521-close`**
+3. Narrow time window to include **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`)
+4. Open the matching transaction drill-down **`/audit/transactions/:id`**
+5. Inspect row changes on **`tickets`** (status → closed) and **`ticket_replies`** (close reply insert)
+6. Open row history for the close reply on **`/audit/rows/ticket_replies/:pk`** and confirm sensitive fields
+
+**Expected outcome:**
+
+- Transaction actor is **`closer@acme.example.com`** (not deleter or support)
+- Semantic action **`ticket_replied_and_closed`** linked on the close transaction
+- Hero ticket **#4521** shows **closed** status in help-desk context
+- Internal note field on the close reply shows **`[REDACTED]`** in capture — never plaintext `WALKTHROUGH-INTERNAL-SECRET-4521`
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit` | Support org-scoped or admin cross-org | `correlation_id: walk-acme-4521-close`, `from`/`to` anchored to `2026-05-20T14:30:00Z` | → `/audit/transactions/:id` |
+| `/audit/transactions/:id` | Org-scoped or admin | transaction id from timeline | row changes on `tickets`, `ticket_replies` |
+| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | table pk from transaction | prior values / redaction on `body` or masked columns |
+
+**Verify:** Optional — `demo_contract_test.exs` describes `"ticket_replied_and_closed action on #4521 close transaction"` and `"close reply insert is redacted on #4521"`.
+
+**If different:** File a finding citing `WALK-03-01`; do not fix during Phase 109.
+
+---
+
+#### Step WALK-03-02 — Leaving agent activity window
+
+**Operator question:** Agent **`agent2@acme.example.com`** is leaving — what did they touch in the last 24 hours before offboard?
+
+**Prerequisites:** Demo seed loaded. Log in as **`admin@example.com`** / **`password123456`**.
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit/actors/user/33123cc4-da21-5674-b030-e168cee90521`** (Appendix A — `agent2@acme.example.com` user id)
+2. Set time window **last 24 hours** ending at **`demo_epoch`** (`2026-05-27T12:00:00Z`) — i.e. **`from`** = `2026-05-26T12:00:00Z`, **`to`** = `2026-05-27T12:00:00Z`
+3. Alternatively: cross-org **`/audit`** timeline with actor filter for **`agent2@acme.example.com`** and the same window
+4. Scan the actor history list for Acme help-desk tables (`tickets`, `ticket_replies`)
+
+**Expected outcome:**
+
+- Actor history lists seeded leaving-agent window activity (multiple ticket/reply mutations attributed to **`agent2@acme.example.com`**)
+- Rows span Acme org only for this persona — not cross-org admin noise
+- Each entry drill-downs to a transaction with **`agent2@acme.example.com`** as actor
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit/actors/user/:id` | Cross-org admin | user id `33123cc4-da21-5674-b030-e168cee90521`, 24h window ending `demo_epoch` | → `/audit/transactions/:id` |
+| `/audit` | Cross-org admin | actor ref for `agent2@acme.example.com`, same time window | → transaction drill-down |
+
+**Verify:** Human — actor history non-empty for the 24h window; actor email matches **`agent2@acme.example.com`**.
+
+**If different:** File a finding citing `WALK-03-02`.
+
+---
+
+#### Step WALK-03-03 — Org Y retention purge proof
+
+**Operator question:** Prove org **`offboarded-co`** was retention-purged after offboard — audit footprint gone but evidence row exists.
+
+**Prerequisites:** Demo seed loaded (retention tail runs during `mix demo.seed`). Log in as **`admin@example.com`**.
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit/evidence`**
+2. Locate evidence subject **`retention_run`** with subject ref **`walk-retention-offboarded-co`**
+3. Confirm summary status / narrative references org Y offboard
+4. Open **`http://localhost:4000/audit`** and filter timeline to org **`offboarded-co`** activity (org slug / meta as available on mounted filters)
+5. Optional CLI parity: `mix threadline.evidence.show retention_run --subject-ref walk-retention-offboarded-co` from `examples/threadline_phoenix/`
+
+**Expected outcome:**
+
+- Evidence record **`walk-retention-offboarded-co`** present with **`proven`**-grade retention purge narrative for **`offboarded-co`**
+- Org Y scoped timeline on **`/audit`** is **empty** (negative check — no audit rows remain for offboarded org)
+- No contradiction between evidence detail and empty operator timeline
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit/evidence` | Admin | subject `retention_run`, ref `walk-retention-offboarded-co` | evidence detail |
+| `/audit` | Cross-org admin | org-scoped to `offboarded-co` / org UUID `93cba30e-e2d5-5d95-9c50-7023f4c3eda5` | should return no rows |
+
+**Verify:** Optional — `demo_contract_test.exs` describes `"offboarded-co audit footprint purged with manifest retention evidence"`.
+
+**If different:** File a finding citing `WALK-03-03`.
+
+---
+
+#### Step WALK-03-04 — Who deleted the reply on #4518?
+
+**Operator question:** Who deleted the reply on ticket **#4518** in Acme last Tuesday, and what did the note contain before delete?
+
+**Prerequisites:** Demo seed loaded. Log in as **`support@acme.example.com`** or **`admin@example.com`**.
+
+**Do:**
+
+1. Open **`http://localhost:4000/audit`**
+2. Filter timeline to **`table: ticket_replies`** and time window including **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`)
+3. Locate **DELETE** operation on a reply row tied to hero ticket **#4518** (distinct from #4521 close story)
+4. Open delete transaction **`/audit/transactions/:id`** — confirm actor **`deleter@acme.example.com`**
+5. Open **prior row history** for the deleted reply pk on **`/audit/rows/ticket_replies/:pk`** — inspect state before delete
+6. Confirm sensitive reply fields show masking where policy applies
+
+**Expected outcome:**
+
+- Delete transaction actor is **`deleter@acme.example.com`** — not **`closer@acme.example.com`**
+- Hero ticket **#4518** delete story is separate from **#4521** close (different ticket, actor, and transaction)
+- Prior row history shows the reply existed before delete with expected body content
+- Sensitive fields in capture/history show **`[REDACTED]`** or policy masking — not leaked secrets
+
+**Operator surface:**
+
+| Route | Scope | Filters | Drill-down |
+|-------|-------|---------|------------|
+| `/audit` | Support org-scoped or admin | `table: ticket_replies`, `from`/`to` including `2026-05-20T14:30:00Z`, op DELETE | → `/audit/transactions/:id` |
+| `/audit/transactions/:id` | Org-scoped or admin | delete transaction id | actor = deleter |
+| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | reply pk from delete change | prior row history / as-of before delete |
+
+**Verify:** Optional — `demo_contract_test.exs` describes `"hard delete on ticket_replies for #4518 by deleter not closer"`.
+
+**If different:** File a finding citing `WALK-03-04`.
+
+### §4 Checkpoint
+
+| Expected met? | Findings filed? | Blockers |
+|---------------|-----------------|----------|
+| ☐ WALK-03-01 #4521 closer + `[REDACTED]` note | ☐ | |
+| ☐ WALK-03-02 agent2 24h actor window | ☐ | |
+| ☐ WALK-03-03 org Y evidence + empty timeline | ☐ | |
+| ☐ WALK-03-04 #4518 delete by deleter | ☐ | |
