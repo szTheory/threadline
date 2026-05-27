@@ -1,12 +1,12 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-05-25
-**Active milestone:** v1.22 — Policy / Evidence Plane
-**Next ranked candidate:** TBD after v1.22 closeout
+**Updated:** 2026-05-27
+**Active milestone:** v1.23 — Realistic-Demo Walkthrough
+**Next ranked candidate:** TBD after v1.23 closeout
 
 ## Strategic thesis
 
-With v1.21 shipped, the support-safe `/audit` lane is now a fixed baseline instead of an adoption question. The next high-leverage move is stronger policy/evidence truth for enterprise scrutiny without widening Threadline into a Threadline-owned auth, tenancy, or compliance platform.
+With v1.21 shipped, the support-safe `/audit` lane is now a fixed baseline instead of an adoption question. The next high-leverage move is stronger policy/evidence truth for enterprise scrutiny without widening Threadline into a Threadline-owned auth, tenancy, or compliance platform. v1.23 deliberately overrides v1.22's 'real-adopter-first' closeout rule because no real adopter has surfaced yet and the alternative is shipping nothing; the override re-engages on the first sustained real-adopter signal (see PROJECT.md Key Decisions).
 
 ## Option record
 
@@ -19,7 +19,7 @@ These are the standing milestone directions and the recommended order to revisit
 | 3 | Framework breadth / more adapters | **Shipped (v1.19)** | Once adoption is hardened, the next leverage point is reusable host patterns, auth/framework adapters, and a disciplined package-boundary decision. |
 | 4 | Production confidence / governance defaults | **Shipped (v1.20)** | v1.20 delivered governance schemas, retention runtime closure, actor-owned saved views, built-in async exports, and truthful Oban/S3 adapter seams on the repaired final tree. |
 | 5 | Scoped support/operator adoption lane | **Shipped (v1.21)** | v1.21 turned the host-owned `scope_query_fn` seam into a truthful first-party support lane on the shipped `/audit` surface, including scoped row history / as-of proof and export denial posture. |
-| 6 | Policy / compliance depth | **Active (v1.22)** | After the support-safe adopter lane is proven, strengthen durable evidence records and audit-of-audit posture without broadening into a Threadline-owned platform expansion. |
+| 6 | Policy / compliance depth | **Shipped (v1.22)** | Shipped durable evidence records and audit-of-audit posture after the support-safe adopter lane proved out — without broadening into a Threadline-owned platform expansion. |
 
 ## Arc order
 
