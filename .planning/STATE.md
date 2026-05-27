@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: Awaiting next milestone
-last_updated: "2026-05-27T11:00:00.000Z"
-last_activity: 2026-05-27 — Milestone v1.22 Policy / Evidence Plane archived; awaiting /gsd-new-milestone
+milestone: v1.23
+milestone_name: Realistic-Demo Walkthrough
+status: planning
+last_updated: "2026-05-27T12:14:01.058Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone (v1.23 candidate). Use `/gsd-new-milestone` to define scope.
+**Current focus:** v1.23 — Realistic-Demo Walkthrough. Defining requirements and roadmap (Phases 104–110).
 
 ## Current Position
 
-Phase: — (no active milestone)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-27 — Milestone v1.22 Policy / Evidence Plane archived
+Status: Defining requirements
+Last activity: 2026-05-27 — Milestone v1.23 started
 
 ## Performance Metrics
 
@@ -52,9 +52,9 @@ Last activity: 2026-05-27 — Milestone v1.22 Policy / Evidence Plane archived
 
 ## Session Continuity
 
-- **Last Action**: Archived v1.22 Policy / Evidence Plane milestone (Phases 95-103). PROJECT.md, MILESTONES.md, RETROSPECTIVE.md, ROADMAP.md all evolved; v1.22 phases moved to `.planning/milestones/v1.22-phases/`; REQUIREMENTS.md staged for removal.
-- **Next Step**: Run `/gsd-new-milestone` to define v1.23 scope.
+- **Last Action**: Opened v1.23 Realistic-Demo Walkthrough. PROJECT.md updated with Current Milestone section and Active requirements seeded for Phases 104–110. STATE.md switched to v1.23 via `gsd-sdk query state.milestone-switch`.
+- **Next Step**: Define `REQUIREMENTS.md`, then spawn `gsd-roadmapper` to lay out Phases 104–110.
 
 ## Operator Next Steps
 
-- Start the next milestone with `/gsd-new-milestone`.
+- After roadmap approval and commit, run `/gsd:discuss-phase 104` (or `/gsd:plan-phase 104`) to start the charter / override-decision phase.

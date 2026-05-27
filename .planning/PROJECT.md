@@ -8,10 +8,27 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current State
+## Current Milestone: v1.23 Realistic-Demo Walkthrough
 
-**Last shipped:** v1.22 — Policy / Evidence Plane (closed 2026-05-27)
-**Current milestone:** No active milestone — next candidate is v1.23 (define with `/gsd-new-milestone`).
+**Goal:** Make the maintainer the synthetic first adopter — upgrade `examples/threadline_phoenix/` into a realistic help-desk SaaS with Sigra-backed auth and believable seed data, then walk install → onboarding → daily use → incident response → evidence review end-to-end, surface gaps, and route them via an explicit fix-vs-defer rule.
+
+**Target features:**
+
+- Help-desk domain expansion in the reference app (orgs + agents + tickets + replies + internal-notes) wired through capture, semantics, and the operator surface
+- Real Sigra signup/login lane replacing the faked-conn admin pipeline in the example app's auth path
+- `mix demo.seed` / `mix demo.reset` tasks producing ~3 orgs × 5 agents × 50 tickets of deterministic two-week-old activity that drives every walkthrough scenario
+- `examples/threadline_phoenix/WALKTHROUGH.md` script covering install/onboarding/daily-use and three concrete operator-incident scenarios + three evidence-plane exercises against shipped subjects
+- Maintainer dry-run executing the walkthrough on a clean clone, capturing findings observationally before any fixes are applied
+- Triage of findings into breakage / DX papercut / doc gap / design gap and in-milestone fixes for the first three categories; design gaps deferred to v1.24 seeds with rationale
+
+**Key context:**
+
+- v1.22's closeout language said "real-adopter feedback first, not speculative widening." v1.23 deliberately overrides that rule because no real adopter exists and the alternative is shipping nothing. The override is recorded as a Phase 104 Key Decision so the next milestone-arc reread doesn't re-litigate it.
+- The example app stays a *reference app* (not rebranded a "demo product"). Adding seed data + clickable UI enables the walkthrough; it does not reposition the artifact.
+- `lib/` is read-only across v1.23 except in the final triage phase, and then only for S-tier breakage with a finding ID citing concrete walkthrough evidence. Auth/tenancy/RBAC remain host-owned.
+- The evidence-plane vocabulary is not extended. The walkthrough exercises shipped subjects (retention purge, redaction snapshot, trigger coverage); new subjects, if pressured, become v1.24 seeds, not in-milestone scope creep.
+
+**Current State:** v1.22 — Policy / Evidence Plane (closed 2026-05-27). v1.23 opened 2026-05-27.
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -259,7 +276,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-- (no active requirements — v1.22 closed 2026-05-27; define v1.23 scope with `/gsd-new-milestone`)
+- [ ] **CHARTER (Phase 104)** — Record the deliberate override of v1.22's "real-adopter-first" closeout guidance; lock v1.23 non-goals (no new evidence subjects, no Threadline-owned RBAC, no library auth/domain code, no rebrand of "example" to "demo product")
+- [ ] **DEMO (Phase 105)** — Add help-desk schemas, contexts, migrations, triggers, and redaction config to `examples/threadline_phoenix/`; `lib/` read-only
+- [ ] **AUTH (Phase 106)** — Wire real Sigra signup/login/session in the reference app and replace the faked-conn admin assigns; surface `organization_id` + role on `current_user`
+- [ ] **SEED (Phase 107)** — `mix demo.seed` and `mix demo.reset` tasks producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario
+- [ ] **WALK (Phase 108)** — `examples/threadline_phoenix/WALKTHROUGH.md` script with install/onboarding/daily-use sections, three concrete operator scenarios, three evidence exercises, and a finding classification protocol
+- [ ] **RUN (Phase 109)** — Maintainer dry-run on a clean clone; clean-clone install completes; all three operator and three evidence exercises resolved using only shipped surfaces; findings captured observationally
+- [ ] **FIX (Phase 110)** — Apply the fix-vs-defer rule: ship breakage / DX papercut / doc gap fixes in-milestone; route design gaps to v1.24 seeds with rationale
 
 ### Out of Scope
 
@@ -346,4 +369,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — v1.22 Policy / Evidence Plane closed; current state, requirements, key decisions, and milestone history evolved for milestone close.*
+*Last updated: 2026-05-27 — v1.23 Realistic-Demo Walkthrough opened. Current Milestone section added, Active requirements seeded with Phase 104–110 placeholders; Phase 104 will record the v1.22-override Key Decision and update MILESTONE-ARC.md.*
