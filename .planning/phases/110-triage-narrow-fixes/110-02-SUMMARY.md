@@ -71,7 +71,7 @@ Each task was committed atomically:
 2. **Task 2: Fix WALK-03-02 window and WALK-03-03 CLI + contract tests** - `8dfcb87` (fix)
 3. **Task 3: IN-001 §0 maintainer voice + close findings 0002/0003** - `58d10d7` (docs)
 
-**Plan metadata:** `7ff605a` (docs: complete plan)
+**Plan metadata:** `7cc6d33` (docs: complete plan)
 
 ## Files Created/Modified
 
