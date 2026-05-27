@@ -22,14 +22,24 @@ defmodule ThreadlinePhoenix.AccountsFixtures do
   end
 
   def user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      attrs
-      |> valid_user_attributes()
-      |> ThreadlinePhoenix.Accounts.register_user()
+    attrs = valid_user_attributes(attrs)
 
-    user
-    |> ThreadlinePhoenix.Accounts.User.confirm_changeset()
-    |> ThreadlinePhoenix.Repo.update!()
+    case ThreadlinePhoenix.Accounts.get_user_by_email(attrs.email) do
+      %{confirmed_at: confirmed_at} = user when not is_nil(confirmed_at) ->
+        user
+
+      %{confirmed_at: nil} = user ->
+        user
+        |> ThreadlinePhoenix.Accounts.User.confirm_changeset()
+        |> ThreadlinePhoenix.Repo.update!()
+
+      nil ->
+        {:ok, user} = ThreadlinePhoenix.Accounts.register_user(attrs)
+
+        user
+        |> ThreadlinePhoenix.Accounts.User.confirm_changeset()
+        |> ThreadlinePhoenix.Repo.update!()
+    end
   end
 
   def extract_user_token(fun) do
@@ -471,8 +481,8 @@ defmodule ThreadlinePhoenix.AccountsFixtures do
       module
     else
       raise ArgumentError,
-        "AuthFixtures.#{Macro.underscore(to_string(suffix))} requires #{inspect(module)}. " <>
-          "Generate organizations/passkeys or keep route-backed coverage for that feature."
+            "AuthFixtures.#{Macro.underscore(to_string(suffix))} requires #{inspect(module)}. " <>
+              "Generate organizations/passkeys or keep route-backed coverage for that feature."
     end
   end
 

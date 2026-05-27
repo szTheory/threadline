@@ -136,6 +136,17 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, ":before_audit_horizon")
   end
 
+  test "example README documents demo seed and reset tasks" do
+    doc = File.read!("examples/threadline_phoenix/README.md")
+
+    assert String.contains?(doc, "## Demo walkthrough data")
+    assert String.contains?(doc, "mix demo.seed")
+    assert String.contains?(doc, "mix demo.reset")
+    assert String.contains?(doc, "DEMO-MANIFEST.md")
+    assert String.contains?(doc, "DEMO_USERS.md")
+    assert String.contains?(doc, "does **not** run `demo.seed` automatically")
+  end
+
   test "example README carries audited HTTP and correlation literals" do
     doc = File.read!("examples/threadline_phoenix/README.md")
 

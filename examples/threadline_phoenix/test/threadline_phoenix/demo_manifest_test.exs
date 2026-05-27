@@ -5,20 +5,7 @@ defmodule ThreadlinePhoenix.DemoManifestTest do
 
   @acme_org_id "d99bff6a-063e-5f45-baaf-4f7a9d60ff72"
 
-  setup do
-    previous_epoch = Application.get_env(:threadline_phoenix, :demo_epoch)
-    previous_password = Application.get_env(:threadline_phoenix, :demo_seed_password)
-
-    Application.put_env(:threadline_phoenix, :demo_epoch, ~U[2026-05-27 12:00:00Z])
-    Application.put_env(:threadline_phoenix, :demo_seed_password, "password123456")
-
-    on_exit(fn ->
-      Application.put_env(:threadline_phoenix, :demo_epoch, previous_epoch)
-      Application.put_env(:threadline_phoenix, :demo_seed_password, previous_password)
-    end)
-
-    :ok
-  end
+  setup :verify_manifest_config
 
   test "epoch/0 matches application config" do
     configured = Application.get_env(:threadline_phoenix, :demo_epoch)
@@ -40,6 +27,12 @@ defmodule ThreadlinePhoenix.DemoManifestTest do
 
   test "demo_seed_password/0 reads config default" do
     assert Manifest.demo_seed_password() == "password123456"
+  end
+
+  defp verify_manifest_config(_context) do
+    assert Application.get_env(:threadline_phoenix, :demo_epoch) == ~U[2026-05-27 12:00:00Z]
+    assert Application.get_env(:threadline_phoenix, :demo_seed_password) == "password123456"
+    :ok
   end
 
   test "last_tuesday/0 is seven days before epoch at 14:30 UTC" do

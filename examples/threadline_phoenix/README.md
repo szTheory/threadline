@@ -90,6 +90,26 @@ mix phx.new threadline_phoenix \
    mix run priv/repo/seeds.exs
    ```
 
+## Demo walkthrough data
+
+After `mix ecto.setup`, load synthetic help-desk fiction:
+
+```bash
+mix demo.seed
+```
+
+Recover a clean walkthrough state (truncate demo tables + re-seed):
+
+```bash
+mix demo.reset
+```
+
+Credentials: see [DEMO_USERS.md](DEMO_USERS.md). Literals: [DEMO-MANIFEST.md](DEMO-MANIFEST.md).
+
+`ecto.setup` does **not** run `demo.seed` automatically.
+
+`mix ecto.reset` is schema/trigger recovery only — use `mix demo.reset` for the daily walkthrough loop.
+
 ## Sigra walkthrough URLs
 
 After `mix phx.server` (see below), use these browser paths:
@@ -182,7 +202,7 @@ seam:
 
 ```elixir
 scope "/audit" do
-  pipe_through([:browser, :operator_auth])
+  pipe_through([:browser, :operator_browser, :operator_auth])
 
   threadline_operator_surface("/",
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
@@ -194,8 +214,9 @@ scope "/audit" do
 end
 ```
 
-`pipeline :operator_auth` requires an authenticated operator user before the
-UI is reachable, and `authorize_fn` acts as the final fail-closed gate. Admins
+`pipeline :operator_browser` maps Sigra `current_scope` to help-desk-aware
+`current_user` (org UUID + role) before `pipeline :operator_auth` requires an
+authenticated operator user. `authorize_fn` acts as the final fail-closed gate. Admins
 return `:ok`; support users return an opaque scope such as
 `%{access: :support_read_only, organization_id: "org_123"}`. This is the
 `phx.gen.auth`-style posture to copy into a host app: your app owns browser

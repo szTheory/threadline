@@ -69,3 +69,10 @@ config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
   admin_user_ids: []
 
 config :threadline_phoenix, dev_routes: true
+
+config :threadline_phoenix,
+  demo_epoch: ~U[2026-05-27 12:00:00Z],
+  demo_seed_password: "password123456"
+
+config :threadline,
+  retention: [enabled: false, keep_days: 30, delete_empty_transactions: true]
