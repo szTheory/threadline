@@ -163,6 +163,39 @@ Sigra-authenticated request state into the conn before the Threadline plug runs.
 That is the narrow first-party reference path: soft-loaded, host-owned, and
 proven here rather than generalized into a blanket Sigra compatibility promise.
 
+### Authenticate before the audited API call
+
+**`Threadline.Integrations.Sigra.actor_ref_from_conn/1`** reads Sigra state from
+**`current_scope`**. The `:api` pipeline runs **`plug(:fetch_session)`** and
+**`plug(:fetch_current_scope)`** before **`Threadline.Plug`** so a browser login
+can populate that assign on **`POST /api/posts`**. This example does not ship API bearer tokens — your host owns authentication (see
+**[../../guides/integrations/sigra.md](../../guides/integrations/sigra.md)**).
+
+1. Run **`mix phx.server`** (after **`mix ecto.migrate`**).
+2. Optional: **`mix demo.seed`** for walkthrough fiction — demo logins live in
+   **[DEMO_USERS.md](DEMO_USERS.md)**.
+3. Sign in at **`/users/log_in`** in your browser.
+4. Copy the **`_threadline_phoenix_key`** session cookie from DevTools.
+5. Send the audited request with **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`**.
+
+**Expected with session:** **`201`** and **`audit_transaction_id`** in the JSON body.
+
+**Without session:** **`500`** with **`missing actor`** is intentional on this
+reference lane (capture ran, semantics rejected a missing actor). Production
+hosts should fail earlier with their own **`401`**/**`403`** plugs.
+
+**CI without a browser:** **`mix test test/threadline_phoenix_web/posts_audit_path_test.exs`**
+— tests stage scope via **`sigra_conn/2`** in tests only.
+
+```bash
+curl -sS -X POST "http://localhost:4000/api/posts" \
+  -H "content-type: application/json" \
+  -H "x-request-id: $(uuidgen)" \
+  -H "x-correlation-id: demo-corr" \
+  -b '_threadline_phoenix_key=PASTE_FROM_BROWSER' \
+  -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
+```
+
 ## Incident JSON drill-down (`audit_transaction_id` → bundled incident)
 
 Successful **`POST /api/posts`** responses include **`audit_transaction_id`** (the UUID of the **`audit_transactions`** row for that request’s database transaction). Call **`GET /api/audit_transactions/:id/changes`** with that UUID to fetch the curated incident bundle rendered from **`Threadline.incident_bundle/2`**: linked transaction/action context plus ordered changes with packaged **`change_diff`** payloads. See **`guides/domain-reference.md`** (anchor **`COMP-EXAMPLE-INCIDENT-JSON`**, subsection **Reference example: incident JSON**) for the canonical "which API first?" routing story and the lower-level building blocks behind this bundled default.
@@ -250,6 +283,11 @@ with `coverage_authorize_fn` / `policy_authorize_fn` and let the mounted
 unsupported state route operators to `mix threadline.health.coverage` or `mix
 threadline.policy.show` instead of silently bouncing them around.
 
+Mounted `/audit/evidence` is separately gated via `evidence_authorize_fn`. Admins
+reach the evidence LiveView; support users who can open the scoped `/audit`
+timeline are **denied** on `/audit/evidence` (Unsupported View) and should use
+the CLI fallback `mix threadline.evidence.show`.
+
 On the repaired export lane, the operator surface still exposes one actor-owned
 download action keyed by export job ID. Local storage stays app-served through
 that controller route, adapter-backed storage resolves a backend-native URL only
@@ -329,16 +367,6 @@ This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`*
 **Integrator responsibility:** your team owns the **host-class** staging topology matrix, evidence, and promotion criteria for *your* URLs and regions. Threadline’s CI and this example app prove **reference patterns** (capture, HTTP and job semantics, tests); they do **not** certify third-party staging hosts or production endpoints. Use your fork/PR workflow per **`CONTRIBUTING.md`** when you need project-specific evidence.
 
 For **`POST /api/posts`**, the example links **`audit_transactions.action_id`** via **`Threadline.Audit.transaction/3`**, so **`:correlation_id`** filters match the rows operators expect.
-
-Example request (include **`x-request-id`** for traceability; no credential-shaped demo values):
-
-```bash
-curl -sS -X POST "http://localhost:4000/api/posts" \
-  -H "content-type: application/json" \
-  -H "x-request-id: $(uuidgen)" \
-  -H "x-correlation-id: demo-corr" \
-  -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
-```
 
 ## Tests
 
