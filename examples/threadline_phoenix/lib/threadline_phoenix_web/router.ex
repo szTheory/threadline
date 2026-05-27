@@ -236,6 +236,12 @@ defmodule ThreadlinePhoenixWeb.Router do
   end
 
   if Application.compile_env(:threadline_phoenix, :dev_routes) do
+    scope "/dev", ThreadlinePhoenixWeb do
+      pipe_through [:browser, :operator_browser]
+
+      post "/help_desk/ticket_reply", HelpDeskDevController, :ticket_reply
+    end
+
     scope "/dev" do
       pipe_through :browser
 

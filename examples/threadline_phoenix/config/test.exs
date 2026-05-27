@@ -67,3 +67,5 @@ config :swoosh, :api_client, false
 config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
   admin_emails: ["admin@example.com"],
   admin_user_ids: []
+
+config :threadline_phoenix, dev_routes: true
