@@ -52,7 +52,7 @@
 2. ExDoc publishes `Threadline.Audit` and related new public modules in sensible module groups.
 3. `mix verify.release` passes; adoption-pilot backlog and README doc contracts lock **0.6.0** / `~> 0.6`.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 ---
 
