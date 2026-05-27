@@ -1,65 +1,101 @@
 ---
 phase: 96
 slug: evidence-persistence-and-public-api
-status: planned
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-25
-updated: 2026-05-25T19:50:00Z
+updated: 2026-05-27T07:37:28Z
 ---
 
-# Phase 96 - Validation Strategy
+# Phase 96 — Validation Strategy
 
-> Planning-time validation contract for the evidence persistence and public API phase.
+> Per-phase validation contract for execution feedback sampling.
+> Phase 96 is now closed against the current-tree rerun bundle recorded in
+> `96-VERIFICATION.md`, not against summary prose alone.
+
+---
 
 ## Test Infrastructure
 
 | Property | Value |
 |----------|-------|
-| **Framework** | ExUnit + Mix alias verification + planning-artifact review |
-| **Config file** | `mix.exs`, `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, `.planning/phases/96-evidence-persistence-and-public-api/96-CONTEXT.md` |
+| **Framework** | ExUnit + ripgrep structural and artifact greps |
+| **Config file** | `lib/threadline/evidence.ex`, `lib/threadline/evidence/subject.ex`, `lib/threadline/governance/evidence_record.ex`, `test/threadline/evidence_test.exs`, `test/threadline/governance/evidence_record_test.exs` |
 | **Quick run command** | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` |
 | **Full suite command** | Same as quick run — the focused bundle IS the authority per D-05 |
-| **Artifact checks** | grep the Phase 96 plans and validation artifact for `PROOF-01`, `latest_`, `list_`, and the subject-focused `record_*` helper family |
-| **Estimated runtime** | repo-wide verify band, with focused evidence tests available as the local repro loop |
+| **Artifact checks** | grep the Phase 96 verification artifact for `PROOF-01`, `Result: PASS`, the subject-focused `record_*` helper family, and the negative-assertion structural grep result |
+| **Estimated runtime** | ~10–30 seconds warm |
+
+---
 
 ## Sampling Rate
 
 - After any write-path contract change in `Threadline.Evidence`: rerun the focused evidence tests first, then `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1`.
 - After any read-shape change affecting history or latest helpers: rerun the focused evidence tests first, then `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1`.
 - Before closing Phase 96: require `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` green on the same tree as the Phase 96 summaries.
-- Before starting Phase 97 or 98 execution: re-read the plan artifacts to confirm list-vs-singular read semantics remain locked.
+- Keep milestone authority-surface reconciliation separate; this validation artifact closes Phase 96 only.
+
+---
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|--------|
-| 96-V-01 | 96-01 | 1 | `PROOF-01` | `T-96-01`, `T-96-02`, `T-96-03` | Subject-focused public write helpers require explicit `repo:`, capture only mechanical defaults, and do not expose a broad generic writer. | focused integration + structural grep | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` | planned |
-| 96-V-02 | 96-01 | 1 | `PROOF-01` | `T-96-02` | The full required `record_*` helper family exists for the closed evidence subject set. | artifact + focused tests | `rg -n 'record_(redaction|trigger|retention|export|support)' .planning/phases/96-evidence-persistence-and-public-api/96-01-PLAN.md test/threadline/evidence_test.exs` | planned |
-| 96-V-03 | 96-02 | 2 | `PROOF-01` | `T-96-04`, `T-96-05`, `T-96-06` | History helpers stay list-shaped, overview latest-per-subject-ref helpers stay list-shaped, and singular latest helpers stay singular. | focused integration | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` | planned |
-| 96-V-04 | 96-02 | 2 | `PROOF-01` | `T-96-04`, `T-96-06` | Latest helpers are projections over append-only history rather than a mutable current-state model. | focused tests + artifact review | `rg -n 'latest_|list_latest|one record or `nil`|append-only' .planning/phases/96-evidence-persistence-and-public-api/96-02-PLAN.md .planning/phases/96-evidence-persistence-and-public-api/96-RESEARCH.md` | planned |
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 101-01-01 | 01 | 1 | PROOF-01 | T-101-01, T-101-02, T-101-03 | The current tree still exposes exactly six subject-focused write helpers with no generic public writer, mechanical-only defaults, and explicit semantic fields. | focused integration + structural grep | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1 && rg -n '^\s*def record_' lib/threadline/evidence.ex` | ✅ | ✅ green |
+| 101-01-02 | 01 | 1 | PROOF-01 | T-101-04 | Read helpers preserve list-vs-singular shape discipline and reject unknown filter keys loudly. | focused integration | `mix test test/threadline/evidence_test.exs --max-failures 1` | ✅ | ✅ green |
+| 101-01-03 | 01 | 1 | PROOF-01 | T-101-05 | `Threadline.Evidence` does not depend on Plug, Phoenix, the process dictionary, ETS, or Logger metadata. | structural grep (negative assertion) | `rg -n '^\s*(import\|alias\|require\|use)\s+(Plug\|Phoenix)\.\|Process\.(put\|get)\(\|Logger\.metadata\(\|:ets\.' lib/threadline/evidence.ex` (expected empty) | ✅ | ✅ green |
+| 101-02-01 | 02 | 2 | PROOF-01 | T-101-06 | `96-VALIDATION.md` records the executed rerun bundle, the structural-grep proof, and the closed-set proof — all referenced from `96-VERIFICATION.md`. | artifact review | `rg -n '^phase: 96\|^nyquist_compliant: true\|^wave_0_complete: true\|PROOF-01\|## Commands Actually Used\|evidence_test\.exs\|evidence_record_test\.exs' .planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` | ✅ | ✅ green |
 
-## Requirement-to-Command Map
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
-| Requirement | Evidence Band | Command | Why This Command Counts |
-|-------------|---------------|---------|-------------------------|
-| `PROOF-01` write path | Focused integration + structural grep | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` | The focused bundle is the authoritative Phase 96 proof band; it avoids carry-forward alias-drift outside Phase 96 ownership. |
-| `PROOF-01` write path | Closed-set structural grep | `rg -n '^\s*def record_' lib/threadline/evidence.ex` | Asserts exactly the six closed public `record_*` helpers exist and no generic writer has been added. |
-| `PROOF-01` read path | Focused integration | `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` | Confirms the read helpers preserve stable list-vs-singular return shapes. |
-| `PROOF-01` read path | Artifact review | `rg -n 'list_|latest_|record_' .planning/phases/96-evidence-persistence-and-public-api/96-01-PLAN.md .planning/phases/96-evidence-persistence-and-public-api/96-02-PLAN.md .planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` | Locks the planned helper family and list-vs-singular semantics before execution starts. |
+---
 
-## Nyquist Notes
+## Commands Actually Used
 
-- Phase 96 is Nyquist-compliant because every execution task is mapped to the focused rerun bundle or an explicit artifact check.
-- The focused `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1` command is the authoritative Phase 96 proof surface. `mix verify.test` carries alias-drift outside Phase 96 ownership (Phase 99 owns that surface; commit `b636c17` is the most recent fix).
-- Overview/latest-per-subject-ref list semantics and singular latest semantics must remain separate all the way through Phase 97 and Phase 98 consumers.
+1. `mix test test/threadline/evidence_test.exs test/threadline/governance/evidence_record_test.exs --max-failures 1`
+   Result: PASS (`12 tests, 0 failures`)
+2. `rg -n '^\s*(import|alias|require|use)\s+(Plug|Phoenix)\.|Process\.(put|get)\(|Logger\.metadata\(|:ets\.' lib/threadline/evidence.ex`
+   Result: PASS (no matches — negative assertion)
+3. `rg -n '^\s*def record_' lib/threadline/evidence.ex`
+   Result: PASS (exactly six matches — `record_redaction_policy`, `record_trigger_coverage`, `record_retention_run`, `record_retention_policy`, `record_export_delivery`, `record_support_scope_posture`)
+
+---
+
+## Wave 0 Requirements
+
+- [x] `test/threadline/evidence_test.exs` and `test/threadline/governance/evidence_record_test.exs` prove the Phase 96 create and read contract against the current tree.
+- [x] `lib/threadline/evidence/subject.ex` enforces the closed supported-subject inventory one-to-one with the six public `record_*` helpers.
+- [x] `Threadline.Evidence` does not depend on Plug, Phoenix, the process dictionary, ETS, or Logger metadata — proven by the tightened structural grep returning no matches.
+- [x] `96-VERIFICATION.md` now exists and records the authoritative current-tree rerun bundle with four numbered bands and a PROOF-01 requirement-closure row.
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Distinguish Phase 96 closure from milestone-authority closure | PROOF-01 | The phase boundary is a planning-truth judgment, not just a test result. | Confirm `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, and `.planning/STATE.md` remain unreconciled here and are still reserved for Phase 103 follow-up. |
+| Review append-only semantics as an architectural claim | PROOF-01 | The targeted test proves insert behavior, but human review still confirms the chosen model is append-only by design. | Read `96-VERIFICATION.md`, `lib/threadline/governance/evidence_record.ex`, and the checked-in migration; confirm the posture is represented by new inserts rather than updates. |
+
+---
+
+## Phase Boundary Guard
+
+- `96-VALIDATION.md` closes `PROOF-01` only.
+- `.planning/REQUIREMENTS.md` was not reconciled here.
+- `.planning/ROADMAP.md` was not reconciled here.
+- `.planning/STATE.md` was not reconciled here.
+- Phase 97, Phase 98, and milestone closeout work remain outside this validation artifact.
+
+---
 
 ## Validation Sign-Off
 
-- [x] Each planned task maps to a named verification surface or explicit artifact check.
-- [x] The read contract distinguishes list-shaped overview helpers from singular latest helpers.
-- [x] The write contract requires the full subject-focused helper family rather than one exemplar helper.
-- [x] The repo's named verification entrypoint is the primary proof band.
-- [x] `nyquist_compliant: true` is justified by a complete planning-time verification map, not by executed runtime proof.
+- [x] All executed tasks have explicit automated verification coverage.
+- [x] Sampling continuity stayed below the three-task Nyquist gap.
+- [x] The validation artifact records the exact rerun bundle used to close `PROOF-01`.
+- [x] `nyquist_compliant: true` set in frontmatter.
+- [x] Phase-boundary limits are stated explicitly so this artifact does not overclaim authority-surface reconciliation.
 
-**Approval:** planned on 2026-05-25 for Phase 96 execution.
+**Approval:** finalized on 2026-05-27 after Phase 101-01 produced `96-VERIFICATION.md` and the focused-bundle rerun passed.
