@@ -23,6 +23,7 @@ defmodule ThreadlinePhoenix.Demo.Seed do
       |> Seed.Anchors.run()
       |> Seed.Filler.run()
       |> Seed.Temporal.run()
+      |> Seed.RetentionTail.run()
 
     _ctx = ctx
     Mix.shell().info("demo.seed complete")

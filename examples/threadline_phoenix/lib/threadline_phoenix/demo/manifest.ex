@@ -67,6 +67,8 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
 
   @correlation_acme_close "walk-acme-4521-close"
   @evidence_run_offboarded "walk-retention-offboarded-co"
+  @evidence_retention_policy_ref %{"policy" => "walk-demo-retention-policy"}
+  @evidence_trigger_coverage_ref %{"snapshot" => "walk-demo-trigger-coverage"}
 
   @org_slugs [:acme, :globex, :offboarded_co]
 
@@ -138,6 +140,11 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
 
   @doc "Fixed evidence run id for org Y retention walkthrough proof."
   def evidence_run_id(:offboarded_retention), do: @evidence_run_offboarded
+
+  @doc "Fixed evidence `subject_ref` for retention policy and trigger coverage snapshots."
+  def evidence_subject_ref(:retention_policy), do: @evidence_retention_policy_ref
+
+  def evidence_subject_ref(:trigger_coverage), do: @evidence_trigger_coverage_ref
 
   @doc "Demo password for seeded Sigra users (overridable via app env or `DEMO_SEED_PASSWORD`)."
   def demo_seed_password do

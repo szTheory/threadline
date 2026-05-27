@@ -89,8 +89,7 @@ config :threadline, :verify_coverage,
 
 # Sigra email delivery (dev) — adapter is set on the raw Swoosh.Mailer
 # module, not the Sigra.Mailer behaviour wrapper.
-config :threadline_phoenix, ThreadlinePhoenix.Mailer,
-  adapter: Swoosh.Adapters.Local
+config :threadline_phoenix, ThreadlinePhoenix.Mailer, adapter: Swoosh.Adapters.Local
 
 config :swoosh, :api_client, false
 
@@ -101,3 +100,9 @@ config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
 config :threadline_phoenix,
   demo_epoch: ~U[2026-05-27 12:00:00Z],
   demo_seed_password: "password123456"
+
+# Demo seed tail enables retention at runtime (`Demo.Seed.RetentionTail`) before
+# `Threadline.Retention.purge/1`. Keep `:enabled` false here so the background
+# pruner does not start before `ThreadlinePhoenix.Repo`.
+config :threadline,
+  retention: [enabled: false, keep_days: 30, delete_empty_transactions: true]
