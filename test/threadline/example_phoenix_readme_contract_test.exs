@@ -26,7 +26,7 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
 
     assert String.contains?(doc, "wired directly into `Threadline.Plug`")
     assert String.contains?(doc, "soft-loaded, host-owned")
-    assert String.contains?(doc, "runnable proof artifact behind that path")
+    assert String.contains?(doc, "runnable proof artifact behind both paths")
   end
 
   test "example README does not teach an app-local delegate seam" do
