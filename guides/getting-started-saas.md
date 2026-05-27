@@ -200,7 +200,7 @@ paths:
 - `Threadline.actor_history/2` gives you the actor-scoped window when the operator question is "what did this actor drive recently?"
 - `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
 - `mix threadline.incident <audit_transaction_id>` is the direct fallback for that incident drill-down.
-- `mix threadline.export --dry-run --table posts` is the direct export fallback when operators need the same filtered dataset outside the mounted surface.
+- `mix threadline.export --dry-run` is the direct export fallback. When the denied route can safely derive the current `table` / `from` / `to` state, it appends those exact flags instead of showing a fake example.
 - `mix threadline.health.coverage` answers the same coverage question as the mounted dashboard.
 - `mix threadline.policy.show` answers the same policy-drift question as the mounted redaction page.
 - `Threadline.history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
@@ -240,18 +240,21 @@ The canonical first-hour recipe is still admin first, but the runnable example
 also proves the stronger shared-operator shape: admins get the full surface,
 support operators return an opaque host-owned scope such as
 `%{access: :support_read_only, organization_id: "org_123"}` from
-`authorize_fn`, and `scope_query_fn` narrows timeline, actor, and transaction
-queries to that scope. `export_authorize_fn` keeps direct export requests and
-LiveView export affordances admin-only on the same `/audit` tree. This single
-mount natively supports both admin and support roles securely, providing a
-seamless UX without needing multiple router scopes.
+`authorize_fn`, and `scope_query_fn` narrows timeline, actor, transaction,
+row-history, and as-of queries to that scope. `export_authorize_fn` keeps
+direct export requests and LiveView export affordances admin-only on the same
+`/audit` tree. This single mount natively supports both admin and support roles
+securely without needing multiple router scopes.
 
 `live_session` and `on_mount` only secure the LiveView pages. Export requests
 cross a separate HTTP auth boundary and deny with plain-text `403` when
-authorization fails. For the full runbook, including the support-read-only
-variation, see `guides/operator-surface.md`. If you ever need a non-standard
-transport shape, manual `SessionPlug` composition is still available as an
-advanced escape hatch rather than the primary setup path.
+authorization fails. Coverage and policy views are separate admin/global
+surfaces; gate them with `coverage_authorize_fn` and `policy_authorize_fn`, and
+let the built-in unsupported state point operators to `mix
+threadline.health.coverage` or `mix threadline.policy.show` when needed. For
+the full runbook, see `guides/operator-surface.md`. If you ever need a
+non-standard transport shape, manual `SessionPlug` composition is still
+available as an advanced escape hatch rather than the primary setup path.
 
 Start the app if it is not already running:
 
@@ -260,8 +263,12 @@ mix phx.server
 ```
 
 Then visit `http://localhost:4000/audit`. The shipped surface gives you the
-timeline, transaction drill-down, coverage dashboard, and read-only redaction
-policy view inside the host app you already operate.
+timeline, transaction drill-down, row history / point-in-time reconstruction,
+coverage dashboard, and read-only redaction policy view inside the host app you
+already operate. Treat row history and point-in-time reconstruction as mounted
+support-lane tools on the canonical scoped `/audit` recipe; the direct APIs
+(`Threadline.history/3` and `Threadline.as_of/4`) remain the same underlying
+fallback transport.
 
 The same policy-drift facts are available without Phoenix via
 `mix threadline.policy.show` when you want to confirm deployed redaction shape

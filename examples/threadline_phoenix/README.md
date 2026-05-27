@@ -138,14 +138,19 @@ of the root library's broader `phoenix-surface` lane. The root library declares
 optional Phoenix dependency ranges in `mix.exs`; this example app proves the
 narrower resolved path it actually ships with Sigra `0.2.5`, Phoenix `1.8.5`,
 Phoenix LiveView `1.1.28`, Phoenix HTML `4.3.0`, and Phoenix PubSub `2.2.0`.
+Evidence access stays narrower still: `/audit/evidence` is a separately
+authorized capability on this reference lane, not a blanket claim that every
+mounted `/audit` path inherits evidence access automatically.
 
 See `lib/threadline_phoenix_web/router.ex` for the end-to-end integration. The
 operator surface lives at `/audit` because the router uses one shared operator
 scope and pipeline, and the example authorizer uses one shared `%{assigns: assigns}`
 callback instead of separate `%Plug.Conn{}` and `%Phoenix.LiveView.Socket{}`
-heads. The same mount proves both lanes: admins get the full surface, while
-support operators get a scoped read-only view enforced by the host-owned
-`scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3` seam:
+heads. The same mount proves both lanes, but not with identical breadth:
+admins get the full surface, while support operators get the current scoped
+read-only proof for timeline, actor, transaction, and export denial through the
+host-owned `scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3`
+seam:
 
 ```elixir
 scope "/audit" do
@@ -181,12 +186,19 @@ the UI gracefully for support operators. They remain on the same `/audit` path,
 but see fewer records, cannot trigger exports, and still receive standard `403`
 errors if they attempt direct HTTP access to restricted functionality. This
 provides a seamless UX without the complexity of managing multiple router scopes.
+On the current tree, the shared scoped `/audit` proof now includes
+support-scoped row history / as-of on the same reference lane.
 
 LiveView `live_session` / `on_mount` auth does not secure export controller
 routes. Export denials stay HTTP-native `403`, so `export_authorize_fn` is the
 primary and intended way to degrade export capability for support roles. Manual
 `SessionPlug` composition is still available as an advanced escape hatch, but
 it is no longer the primary story for the standard mount.
+
+Coverage and policy surfaces stay admin/global. In this support lane, deny them
+with `coverage_authorize_fn` / `policy_authorize_fn` and let the mounted
+unsupported state route operators to `mix threadline.health.coverage` or `mix
+threadline.policy.show` instead of silently bouncing them around.
 
 On the repaired export lane, the operator surface still exposes one actor-owned
 download action keyed by export job ID. Local storage stays app-served through

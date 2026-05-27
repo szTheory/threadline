@@ -27,6 +27,20 @@ Threadline is not:
 - an auth framework
 - a write-capable admin backend
 
+The evidence plane stays just as narrow. Threadline may persist evidence about
+its own governance surfaces such as redaction posture, trigger coverage,
+retention runs, export delivery, and support-scope posture.
+
+Canonical public non-goals for the evidence plane:
+
+- legal hold workflows
+- immutable-storage guarantees beyond the host runtime/storage contract
+- generic compliance packs
+- vendor-specific reporting suites
+- a Threadline-owned RBAC platform
+- a Threadline-owned tenancy DSL
+- approval workflows
+
 ## The flow
 
 The common loop is:

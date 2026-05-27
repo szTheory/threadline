@@ -21,6 +21,23 @@ Use it when you want the audit layer in your app, not a separate event system or
 - **Using Sigra:** read [guides/integrations/sigra.md](guides/integrations/sigra.md).
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
+## Evidence plane
+
+Threadline can persist evidence about its own governance surfaces such as
+trigger coverage, redaction posture, retention runs, export delivery, and the
+support-lane posture around mounted capabilities. That evidence plane stays
+host-owned on authorization and product scope: Threadline does not become a
+legal hold system, an immutable-storage guarantee beyond the host
+runtime/storage contract, a generic compliance pack, a vendor-specific
+reporting suite, or a Threadline-owned RBAC or tenancy DSL.
+
+Keep the README as the map. For the canonical non-goals list, read
+[guides/how-threadline-works.md](guides/how-threadline-works.md). For the
+named lane contract, including separately authorized `/audit/evidence`, read
+[guides/upgrade-path.md](guides/upgrade-path.md). For the public verdict
+vocabulary (`claim_assessment`, `proven`, `inferred_posture`, `unsupported`),
+read [guides/domain-reference.md](guides/domain-reference.md).
+
 ## What you get
 
 - **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.

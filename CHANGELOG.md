@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Evidence-plane contract locks across the public docs, including the canonical
+  non-goals list, shared verdict vocabulary, and the narrower `/audit/evidence`
+  support language.
+
+### Changed
+
+- Public guidance now treats `/audit/evidence` as a separately authorized
+  capability under the root library's `phoenix-surface` lane instead of a
+  blanket `/audit` inheritance claim.
+
 ## [0.5.0] - 2026-05-08
 
 Threadline 0.5.0 is the integration-breadth release: the package now ships a narrower and more honest support matrix, a first-party Sigra/Phoenix reference path, canonical admin and support-read-only operator-surface mount recipes, an explicit `threadline_web` extraction-readiness scorecard with a documented stay-in-tree decision, and a repaired shared authorization/scope contract that keeps auth and scoping host-owned across timeline, actor, transaction, and export flows.

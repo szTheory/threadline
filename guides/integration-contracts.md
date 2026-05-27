@@ -104,11 +104,29 @@ or `Threadline.Job`; it should not redefine those contracts.
 The operator surface is one breadth contract with two transport faces:
 
 - LiveView mount/auth via `authorize_fn`
+- scoped investigation queries via optional `scope_query_fn`
+- mounted evidence access via optional `evidence_authorize_fn`
 - HTTP export auth via optional `export_authorize_fn`
 
 The host still owns authentication and authorization semantics. Threadline
 standardizes where those hooks plug in; it does not define who the user is,
 which roles exist, or how tenancy is modeled.
+
+That same boundary applies to the evidence plane. Threadline may persist
+evidence about its own governance and support-scope posture, but it does not
+introduce a Threadline-owned RBAC system, tenancy DSL, approval workflow,
+legal-hold flow, or vendor-reporting suite.
+
+When a host returns `{:ok, scope}` from `authorize_fn`, keep that scope
+host-owned and pair it with `scope_query_fn` if you want mounted reads to narrow
+by tenant, organization, or another local concept. `scope_query_fn` is the
+query seam for timeline, actor, transaction, export, or any future surface your
+host explicitly proves. Threadline carries the scope through; it does not
+invent a policy DSL around it.
+
+Apply that same host-owned rule to `evidence_authorize_fn`: it gates the mounted
+evidence capability, but it does not define a Threadline role model, tenant
+policy, or blanket permission vocabulary.
 
 ### Secure-by-default mount boundary
 
@@ -137,7 +155,8 @@ function heads.
 ```elixir
 threadline_operator_surface "/audit",
   repo: MyApp.Repo,
-  authorize_fn: &MyApp.Audit.authorize_operator/1
+  authorize_fn: &MyApp.Audit.authorize_operator/1,
+  scope_query_fn: &MyApp.Audit.scope_operator_query/3
 ```
 
 ```elixir

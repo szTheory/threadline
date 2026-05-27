@@ -75,8 +75,9 @@ The canonical operator-surface callback shape is one shared `%{assigns: assigns}
 function. Keep it host-owned, let it return `:ok` or `{:ok, scope}`, and treat
 that scope as opaque host data. For a support-read-only lane, reuse the same
 `/audit` tree, return a host-owned scope such as
-`%{access: :support_read_only, organization_id: "org_123"}`, and default to
-`exports: false`. Do not treat Sigra as a page-level authorization DSL or a
+`%{access: :support_read_only, organization_id: "org_123"}`, and use
+`export_authorize_fn` when the host wants export access narrower than the main
+surface. Do not treat Sigra as a page-level authorization DSL or a
 Threadline-owned roles system.
 
 ## Behaviors locked by SPEC

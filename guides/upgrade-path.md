@@ -20,6 +20,15 @@ You are on the `phoenix-surface` lane when your host application adds the option
 
 You are on the `sigra-reference` lane when your Phoenix host already uses Sigra and composes `Threadline.Integrations.Sigra` into `Threadline.Plug` using the current example app and guide path. The proof for this lane comes from `examples/threadline_phoenix/`, its lockfile and README, `guides/integrations/sigra.md`, and `mix verify.example`. This is a narrower claim than generic Sigra compatibility.
 
+For v1.21's support-lane wording, read those lane claims together with
+`guides/operator-surface.md`: current mounted proof covers the shared `/audit`
+timeline, actor, transaction, support-scoped row history / as-of, and
+export-auth seams on the current tree.
+
+Mounted `/audit/evidence` is narrower than that broad `/audit` proof. Treat it
+as a separately authorized capability under the `phoenix-surface` lane rather
+than a surface that appears automatically everywhere `/audit` is mounted.
+
 Threadline uses three support words intentionally:
 
 - `supported` means the lane is documented and backed by current repo proof.

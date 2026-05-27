@@ -65,16 +65,18 @@ support-read-only variation:
 - Reuse the same `/audit` surface and the same host auth boundary.
 - Return `{:ok, %{access: :support_read_only, organization_id: "org_123"}}` or
   another host-owned scope from `authorize_fn`.
-- Set `exports: false` by default so support operators do not inherit download
-  access accidentally.
-- Only add `export_authorize_fn` later if your host deliberately wants a
-  narrower export-specific override.
+- Use `export_authorize_fn` to keep export affordances and direct HTTP export
+  requests behind explicit host authorization on the same tree.
+- Keep coverage and policy surfaces behind their own explicit
+  `coverage_authorize_fn` / `policy_authorize_fn` callbacks; when denied,
+  Threadline renders an unsupported state and points operators to the matching
+  Mix-task fallback.
 
 ```elixir
 threadline_operator_surface "/",
   actor_fn: &MyApp.Audit.current_actor/1,
   authorize_fn: &MyApp.Audit.authorize_operator/1,
-  exports: false,
+  export_authorize_fn: &MyApp.Audit.authorize_operator_export/1,
   repo: MyApp.Repo
 ```
 
@@ -115,6 +117,18 @@ If you use one shared `%{assigns: assigns}` export callback, Threadline also
 uses that result to hide export affordances in the timeline LiveView for denied
 operator scopes. HTTP export auth remains authoritative even if you choose a
 Conn-specific callback shape and keep the buttons visible.
+
+Coverage and policy views are separate admin/global surfaces. Gate them with
+`coverage_authorize_fn` and `policy_authorize_fn`; denied sessions get an
+explicit `Unsupported View` state plus the CLI fallback (`mix
+threadline.health.coverage`, `mix threadline.policy.show`, or the retention Mix
+path) instead of a silent redirect.
+
+Mounted `/audit/evidence` is also separately gated. Use
+`evidence_authorize_fn` for that capability; denied sessions should get the
+same explicit `Unsupported View` posture plus the CLI fallback to
+`mix threadline.evidence.show`. Do not describe `/audit/evidence` as
+automatically available everywhere the broader `/audit` surface is mounted.
 
 The export-status surface keeps one actor-owned `Download Export` action.
 Threadline resolves the actual delivery only after authorization: local storage
@@ -158,7 +172,7 @@ A time-windowed view of all transactions initiated by a specific actor identity.
 ### Row History / As-of Sub-view (`/audit/rows/:table/:pk`)
 
 **Answers:** "When did this specific record change, and what did it look like at 2:00 PM yesterday?"
-Reachable directly from drill-down rows, this screen shows the full mutation lifecycle of a single record and reconstructs its exact state as-of any point in time.
+Reachable directly from drill-down rows, this screen shows the full mutation lifecycle of a single record and reconstructs its exact state as-of any point in time. On the current repo tree, the named support-lane claim now includes support-scoped row-history / as-of proof on the shipped `/audit` route when the host provides `scope_query_fn`.
 
 ## First verification steps
 
@@ -178,8 +192,8 @@ ready:
 |------|-------|----------------|
 | `/audit/transactions/:id` | What changed in this one transaction? | `mix threadline.incident <transaction_id>` | Direct parity |
 | `/audit/actors/:kind/:id` | What did this actor drive recently? | `Threadline.actor_history/2` or `Threadline.timeline_page/2` | API parity |
-| `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | API parity |
-| export actions from `/audit` | Can I download the same filtered audit data? | `mix threadline.export --dry-run --table posts` or a file export run | CLI parity |
+| `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | Mounted route exists; support-scoped row history / as-of is proven on the current tree |
+| export actions from `/audit` | Can I download the same filtered audit data? | `mix threadline.export --dry-run` plus exact `--table` / `--from` / `--to` flags when the denied route can derive them safely, or a file export run | CLI parity |
 | `/audit/coverage` | Which tables are covered right now? | `mix threadline.health.coverage` | Direct parity |
 | `/audit/policy/redaction` | Does deployed redaction match config? | `mix threadline.policy.show` | Direct parity |
 
