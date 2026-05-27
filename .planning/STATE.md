@@ -4,11 +4,11 @@ milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: planning
 last_updated: "2026-05-27T12:14:01.058Z"
-last_activity: 2026-05-27
+last_activity: 2026-05-27 — v1.23 roadmap defined (Phases 104-110)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 7
   completed_plans: 0
   percent: 0
 ---
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.23 — Realistic-Demo Walkthrough. Defining requirements and roadmap (Phases 104–110).
+**Current focus:** v1.23 — Realistic-Demo Walkthrough. Roadmap locked (Phases 104–110). First plan not yet drafted.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 104 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-27 — Milestone v1.23 started
+Status: Planning (roadmap defined, awaiting first plan)
+Last activity: 2026-05-27 — v1.23 roadmap defined (Phases 104-110)
 
 ## Performance Metrics
 
@@ -41,10 +41,12 @@ Last activity: 2026-05-27 — Milestone v1.23 started
 ### Decisions
 
 - Full decision log lives in `.planning/PROJECT.md` Key Decisions table.
+- v1.23 framing override (synthetic-first-adopter pressure under no-real-adopter conditions) to be recorded as a Phase 104 Key Decision so the next milestone-arc reread does not re-litigate it.
 
 ### Todos
 
-- (none — pending next milestone scope)
+- Phase 104 will land the override Key Decision row in `PROJECT.md` and the v1.23 row in `MILESTONE-ARC.md`.
+- `/gsd:plan-phase 104` next.
 
 ### Blockers
 
@@ -52,9 +54,11 @@ Last activity: 2026-05-27 — Milestone v1.23 started
 
 ## Session Continuity
 
-- **Last Action**: Opened v1.23 Realistic-Demo Walkthrough. PROJECT.md updated with Current Milestone section and Active requirements seeded for Phases 104–110. STATE.md switched to v1.23 via `gsd-sdk query state.milestone-switch`.
-- **Next Step**: Define `REQUIREMENTS.md`, then spawn `gsd-roadmapper` to lay out Phases 104–110.
+- **Last Action**: v1.23 roadmap defined and written. ROADMAP.md, STATE.md, and REQUIREMENTS.md traceability aligned around Phases 104-110. All 29 v1 requirements mapped (100% coverage).
+- **Next Step**: Begin `/gsd:plan-phase 104` (or `/gsd:discuss-phase 104`) to draft the charter / override-decision plan.
 
 ## Operator Next Steps
 
-- After roadmap approval and commit, run `/gsd:discuss-phase 104` (or `/gsd:plan-phase 104`) to start the charter / override-decision phase.
+- Run `/gsd:plan-phase 104` to draft the charter / override-decision plan, then proceed sequentially through Phases 105–110 per the documented dependency chain.
+- Phases 105 → 106 → 107 → 108 → 109 → 110 must execute in order; Phase 104 is independent and may technically come earlier but the recommended order is 104 first.
+- Sub-phase 106b is an escape valve only — open it only if real signup/login surfaces a contract gap in `Threadline.Integrations.Sigra`.
