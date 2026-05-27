@@ -659,9 +659,9 @@ The authoritative Phase 96 rerun bundle is:
 | A4 | The closed-set grep pattern should be `^\s*def record_` (anchored, excluding `defp`), not the looser `def record_` from D-12. | Pitfall 3 | LOW — D-12 says "exactly six functions" and the current `defp record_subject/4` exists, so the anchored pattern is the correct interpretation of D-12 in code. If the planner uses unanchored `def record_` against the current tree, it would also return six matches (since the private one is `defp`, not `def`), but anchored is safer. |
 | A5 | `mix verify.test` alias-drift was actually fixed by commit `b636c17` — but Phase 101 does not re-run it to confirm. | CLAUDE.md / "Disclaim in band authority statement" | LOW — even if it is still broken, the disclaim posture works (Phase 99 is the owner). MEDIUM if the planner is tempted to test it; per D-05 they should not. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `96-VALIDATION.md` retain its draft `phase: 96` (number-only) or switch to `phase: 96-evidence-persistence-and-public-api` (number-slug)?** Phase 95-VALIDATION uses `phase: 95` (line 2). Phase 95-VERIFICATION uses `phase: 95-evidence-model-lock-and-scope-guard` (line 2). The two artifacts use different conventions. **Recommendation:** keep `96-VALIDATION.md` at `phase: 96` (no change to that line) to minimize diff; `96-VERIFICATION.md` should use `phase: 96-evidence-persistence-and-public-api`. Planner can override if they want symmetry.
+1. **Should `96-VALIDATION.md` retain its draft `phase: 96` (number-only) or switch to `phase: 96-evidence-persistence-and-public-api` (number-slug)?** Phase 95-VALIDATION uses `phase: 95` (line 2). Phase 95-VERIFICATION uses `phase: 95-evidence-model-lock-and-scope-guard` (line 2). The two artifacts use different conventions. **RESOLVED:** keep `96-VALIDATION.md` at `phase: 96` (no change to that line) to minimize diff; `96-VERIFICATION.md` should use `phase: 96-evidence-persistence-and-public-api`. (101-02 Task 1 action encodes this resolution; planner may override if they want symmetry.)
 
 ## Environment Availability
 
