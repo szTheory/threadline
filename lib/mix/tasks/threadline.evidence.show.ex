@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
 
   @impl Mix.Task
   def run(argv) do
-    {opts, _, _} =
+    {opts, args, invalid} =
       OptionParser.parse(argv,
         strict: [
           json: :boolean,
@@ -48,6 +48,8 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
           limit: :integer
         ]
       )
+
+    validate_argv!(args, invalid)
 
     Mix.Task.run("app.config", [])
     {:ok, _} = Application.ensure_all_started(:ssl)
@@ -68,13 +70,43 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
     :ok
   end
 
+  defp validate_argv!([], []), do: :ok
+
+  defp validate_argv!([], invalid) do
+    flags =
+      invalid
+      |> Enum.map(fn
+        {key, nil} -> invalid_option_name(key)
+        {key, value} -> "#{invalid_option_name(key)}=#{value}"
+      end)
+      |> Enum.join(", ")
+
+    Mix.raise("threadline.evidence.show: unknown option(s): #{flags}")
+  end
+
+  defp validate_argv!(args, _invalid) do
+    Mix.raise("threadline.evidence.show: unexpected argument(s): #{Enum.join(args, ", ")}")
+  end
+
   defp proof_document(opts, repo) do
+    subject = parse_subject(opts)
+    subject_ref = parse_subject_ref(opts)
+    validate_request_shape!(subject, subject_ref)
+
     [
-      subject: parse_subject(opts),
-      subject_ref: parse_subject_ref(opts),
+      subject: subject,
+      subject_ref: subject_ref,
       mode: parse_mode(opts)
     ] ++ parse_filters(opts)
     |> Proof.proof_document(repo: repo)
+  end
+
+  defp validate_request_shape!(nil, nil), do: :ok
+  defp validate_request_shape!(subject, nil) when is_binary(subject), do: :ok
+  defp validate_request_shape!(subject, subject_ref) when is_binary(subject) and is_map(subject_ref), do: :ok
+
+  defp validate_request_shape!(nil, subject_ref) when is_map(subject_ref) do
+    Mix.raise("threadline.evidence.show: --subject-ref-json requires --subject")
   end
 
   defp parse_subject(opts) do
@@ -143,6 +175,10 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
       {:error, {:unsupported_subject, value}} -> Mix.raise("threadline.evidence.show: unsupported subject #{inspect(value)}")
     end
   end
+
+  defp invalid_option_name(key) when is_atom(key), do: "--#{key}"
+  defp invalid_option_name(key), do: to_string(key)
+
   defp resolve_repo! do
     case Application.get_env(:threadline, :ecto_repos, []) do
       [] ->

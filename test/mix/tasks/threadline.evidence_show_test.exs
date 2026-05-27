@@ -107,6 +107,21 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     assert length(document["records"]) == 1
   end
 
+  test "threadline.evidence.show fails fast on unknown flags" do
+    assert_raise Mix.Error, ~r/unknown option\(s\): --histroy/, fn ->
+      Mix.Tasks.Threadline.Evidence.Show.run(["--histroy"])
+    end
+  end
+
+  test "threadline.evidence.show requires --subject when --subject-ref-json is present" do
+    assert_raise Mix.Error, ~r/--subject-ref-json requires --subject/, fn ->
+      Mix.Tasks.Threadline.Evidence.Show.run([
+        "--subject-ref-json",
+        ~s({"run_id":"ret-run-1"})
+      ])
+    end
+  end
+
   test "threadline.evidence.show returns successful output for unsupported proof states" do
     insert_evidence(
       subject: "support_scope_posture",
@@ -144,6 +159,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     assert document["claim_assessment"]["status"] == "unsupported"
     assert document["claim_assessment"]["reason"] == "host_owned_authorization"
     assert document["records"] != []
+    assert human_output =~ "Evidence proof support_scope_posture"
     assert human_output =~ "Claim assessment: unsupported"
   end
 

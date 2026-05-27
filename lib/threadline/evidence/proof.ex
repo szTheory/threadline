@@ -58,16 +58,37 @@ defmodule Threadline.Evidence.Proof do
   Prints a proof document in human-readable form.
   """
   def render_human(document) when is_map(document) do
-    Mix.shell().info("Evidence proof overview")
+    Mix.shell().info("Evidence proof #{document["subject"]}")
     Mix.shell().info("Mode: #{document["mode"]}")
     Mix.shell().info("Claim assessment: #{document["claim_assessment"]["status"]}")
     Mix.shell().info("Records: #{document["summary"]["record_count"]}")
 
     Enum.each(document["records"], fn record ->
+      presented = present_record(record)
+
       Mix.shell().info(
-        "* #{record["subject"]} #{inspect(record["subject_ref"])} #{record["summary_status"]} #{record["recorded_at"]}"
+        "* #{presented.subject} #{inspect(presented.subject_ref)} #{presented.verdict_status} #{presented.recorded_at}"
       )
     end)
+  end
+
+  def present_record(record) when is_map(record) do
+    verdict = record_claim_assessment(record)
+
+    %{
+      subject: Map.get(record, "subject") || Map.get(record, :subject),
+      subject_ref: Map.get(record, "subject_ref") || Map.get(record, :subject_ref),
+      summary_status: Map.get(record, "summary_status") || Map.get(record, :summary_status),
+      recorded_at:
+        rendered_recorded_at(Map.get(record, "recorded_at") || Map.get(record, :recorded_at)),
+      verdict_status: verdict["status"],
+      verdict_kind: verdict["kind"],
+      verdict_reason: verdict["reason"]
+    }
+  end
+
+  def record_claim_assessment(record) when is_map(record) do
+    record_verdict(record)
   end
 
   defp request_subject(request), do: Keyword.get(request, :subject)
@@ -80,7 +101,8 @@ defmodule Threadline.Evidence.Proof do
   defp subject_label(nil), do: "overview"
   defp subject_label(subject), do: subject
 
-  defp fetch_records(nil, nil, :latest, filters, repo), do: Evidence.list_overview(filters, repo: repo)
+  defp fetch_records(nil, nil, :latest, filters, repo),
+    do: Evidence.list_overview(filters, repo: repo)
 
   defp fetch_records(subject, nil, :latest, filters, repo) do
     Evidence.list_latest_subject_refs(subject, filters, repo: repo)
@@ -93,7 +115,8 @@ defmodule Threadline.Evidence.Proof do
     end
   end
 
-  defp fetch_records(subject, subject_ref, :history, filters, repo) when not is_nil(subject_ref) do
+  defp fetch_records(subject, subject_ref, :history, filters, repo)
+       when not is_nil(subject_ref) do
     Evidence.list_subject_ref_history(subject, subject_ref, filters, repo: repo)
   end
 
@@ -115,7 +138,7 @@ defmodule Threadline.Evidence.Proof do
   end
 
   defp claim_assessment(records) do
-    verdicts = Enum.map(records, &record_verdict/1)
+    verdicts = Enum.map(records, &record_claim_assessment/1)
     statuses = Enum.uniq(Enum.map(records, & &1.summary_status))
     winning_verdict = choose_verdict(verdicts)
 
@@ -131,12 +154,15 @@ defmodule Threadline.Evidence.Proof do
   end
 
   defp record_verdict(record) do
-    case explicit_claim_assessment(record.detail) do
+    detail = Map.get(record, :detail) || Map.get(record, "detail")
+    subject = Map.get(record, :subject) || Map.get(record, "subject")
+
+    case explicit_claim_assessment(detail) do
       %{"status" => status} = verdict when status in @semantic_statuses ->
         verdict
 
       _other ->
-        subject_verdict(record.subject)
+        subject_verdict(subject)
     end
   end
 
@@ -197,7 +223,9 @@ defmodule Threadline.Evidence.Proof do
   end
 
   defp maybe_put_subject_ref(filters, nil), do: filters
-  defp maybe_put_subject_ref(filters, subject_ref), do: Map.put(filters, "subject_ref", subject_ref)
+
+  defp maybe_put_subject_ref(filters, subject_ref),
+    do: Map.put(filters, "subject_ref", subject_ref)
 
   defp filter_value(%DateTime{} = value), do: iso8601(value)
   defp filter_value(value), do: value
@@ -219,6 +247,10 @@ defmodule Threadline.Evidence.Proof do
 
   defp actor_ref_to_map(nil), do: nil
   defp actor_ref_to_map(actor_ref), do: Threadline.Semantics.ActorRef.to_map(actor_ref)
+
+  defp rendered_recorded_at(%DateTime{} = datetime), do: iso8601(datetime)
+  defp rendered_recorded_at(value) when is_binary(value), do: value
+  defp rendered_recorded_at(_value), do: nil
 
   defp iso8601(nil), do: nil
   defp iso8601(%DateTime{} = datetime), do: DateTime.to_iso8601(datetime)
