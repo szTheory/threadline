@@ -1,3 +1,0 @@
-# Phase 85-01 Summary
-
-**Task 1**: Generated `85-CONTEXT.md` explicitly translating the approved recommendation into locked requirements. The surface audit declares that Timeline, Actor, Transaction, and Row History are the supported surfaces, and `RowHistoryComponent` will be scoped by extending `Threadline.history/3` and `Threadline.as_of/4` with `scope_query_fn` rather than disabled. The claim in `.planning/ROADMAP.md` and `.planning/MILESTONES.md` has been clarified.

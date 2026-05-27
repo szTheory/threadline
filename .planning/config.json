@@ -27,6 +27,14 @@
       "scope_cut"
     ]
   },
-  "model_profile": "balanced",
-  "granularity": "coarse"
+  "model_profile": "adaptive",
+  "granularity": "coarse",
+  "runtime": "cursor",
+  "model_profile_overrides": {
+    "cursor": {
+      "opus": "inherit",
+      "sonnet": "composer-2.5-fast",
+      "haiku": "composer-2.5-fast"
+    }
+  }
 }
