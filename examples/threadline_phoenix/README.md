@@ -70,11 +70,39 @@ mix phx.new threadline_phoenix \
 
 `mix threadline.gen.triggers` calls **`Mix.Task.run("app.config", [])`** first, so use the same **`MIX_ENV`** locally and in CI when regenerating trigger SQL; otherwise config-driven SQL may not match what you expect.
 
-5. (Optional) Load neutral synthetic seed rows:
+5. Install Sigra auth (controller mode, no Sigra org tables — help-desk owns tenancy):
+
+   ```bash
+   mix sigra.install Accounts User users --no-live --no-organizations --no-passkeys --no-admin --yes
+   ```
+
+   If the generator was already run on this checkout, skip the command above.
+
+6. Apply all migrations and optional seeds:
+
+   ```bash
+   mix ecto.setup
+   ```
+
+7. (Optional) Load neutral synthetic seed rows:
 
    ```bash
    mix run priv/repo/seeds.exs
    ```
+
+## Sigra walkthrough URLs
+
+After `mix phx.server` (see below), use these browser paths:
+
+| Action | URL |
+|--------|-----|
+| Home (links when logged out) | `http://localhost:4000/` |
+| Register | `http://localhost:4000/users/register` |
+| Log in | `http://localhost:4000/users/log_in` |
+| Log out | `POST` `http://localhost:4000/users/log_out` (while authenticated) |
+| Dev email mailbox (confirmation) | `http://localhost:4000/dev/mailbox` |
+
+Registration auto-provisions a help-desk organization membership for the new Sigra user id.
 
 ## `mix setup` (does not start Postgres)
 
