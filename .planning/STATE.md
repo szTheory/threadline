@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T19:27:28.475Z"
-last_activity: 2026-05-27 -- Phase 110 planning complete
+last_updated: "2026-05-27T19:34:16.212Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 6
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 109 partial complete — Phase 110 triage next
+**Current focus:** Phase 110 — triage-narrow-fixes
 
 ## Current Position
 
-Phase: 110
-Plan: Not started
+Phase: 110 (triage-narrow-fixes) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 110 planning complete
-Resume file: .planning/phases/110-triage-narrow-fixes/110-CONTEXT.md
+Last activity: 2026-05-27
+Resume file: None
 
 ## Performance Metrics
 
@@ -68,3 +68,4 @@ Resume file: .planning/phases/110-triage-narrow-fixes/110-CONTEXT.md
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 108-walkthrough-script-finding-capture-protocol P05 | 12min | 3 tasks | 3 files |
+| Phase 110-triage-narrow-fixes P01 | 15 min | 3 tasks | 3 files |
