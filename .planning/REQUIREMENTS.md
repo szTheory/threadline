@@ -29,7 +29,7 @@
 - [x] **AUTH-01**: Sigra added as a dependency in `examples/threadline_phoenix/mix.exs` with config in the example app's config files; install/migration steps integrate with `mix ecto.setup` cleanly.
 - [x] **AUTH-02**: Signup, login, and logout routes wired in the example app's router using Sigra-provided generators or hand-rolled equivalent; templates rendered; session persists across requests.
 - [x] **AUTH-03**: Authenticated session shape exposes `is_admin: boolean()`, `role: :support | :agent`, and `organization_id` on `current_user` / `current_scope` — matching what `my_authorize_fn` and `scope_operator_query` in `router.ex` already expect — so the existing `/audit` mount continues to work without router changes beyond auth-pipeline wiring.
-- [ ] **AUTH-04**: All pre-existing example-app tests still pass (`posts_audit_path_test`, `posts_correlation_path_test`, `posts_incident_json_path_test`, `operator_surface_test`, `post_touch_worker_test`); new help-desk audit tests run against real Sigra session, not faked `conn |> assign(:current_user, …)`.
+- [x] **AUTH-04**: All pre-existing example-app tests still pass (`posts_audit_path_test`, `posts_correlation_path_test`, `posts_incident_json_path_test`, `operator_surface_test`, `post_touch_worker_test`); new help-desk audit tests run against real Sigra session, not faked `conn |> assign(:current_user, …)`.
 
 ### Realistic Seed Data + Demo Mix Tasks (Phase 107)
 
@@ -114,7 +114,7 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | AUTH-01 | Phase 106 | Complete |
 | AUTH-02 | Phase 106 | Complete |
 | AUTH-03 | Phase 106 | Complete |
-| AUTH-04 | Phase 106 | Pending |
+| AUTH-04 | Phase 106 | Complete |
 | SEED-01 | Phase 107 | Pending |
 | SEED-02 | Phase 107 | Pending |
 | SEED-03 | Phase 107 | Pending |
