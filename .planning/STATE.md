@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: Finding 0001 imported; RUN-02/03 not attempted
-last_updated: "2026-05-27T19:16:10.913Z"
+last_updated: "2026-05-27T19:20:43.439Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
@@ -28,7 +28,7 @@ Phase: 110
 Plan: Not started
 Status: Finding 0001 imported; RUN-02/03 not attempted
 Last activity: 2026-05-27
-Resume file: .planning/phases/109-maintainer-walkthrough-dry-run/109-SUMMARY.md
+Resume file: .planning/phases/110-triage-narrow-fixes/110-CONTEXT.md
 
 ## Performance Metrics
 
