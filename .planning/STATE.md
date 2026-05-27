@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: executing
-last_updated: "2026-05-27T22:50:03.705Z"
+last_updated: "2026-05-27T23:05:00.000Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 5
@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 117 — evidence-plane-doc-authority
+**Current focus:** Phase 118 — pilot-prep-optional
 
 ## Current Position
 
 Phase: 118
 Plan: Not started
-Status: Executing Phase 117
+Status: Phase 118 context gathered — ready for planning
 Last activity: 2026-05-27
 
 ## Performance Metrics
@@ -60,6 +60,7 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 - v1.23: Observe-only dry-run → triage; isolated clone verification ladder (L0→L2).
 - [Phase 116]: Demo walkthrough data heading preserved; body compressed to Track B pointer
 - [Phase 116]: Greenfield generator order in blockquote; committed clone skips generators in Base install callout
+- [Phase 118]: PILOT-01 hybrid — lock `mix verify.*` entrypoints, refute hardcoded test counts; PILOT-02 thin guide `guides/evaluating-threadline.md` + README map link
 
 ### Blockers
 
@@ -67,10 +68,11 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Completed 116-02-PLAN.md (README runbook restructure + doc contracts).
-- **Next Step**: Phase 117 — evidence-plane doc authority
+- **Last Action**: Phase 118 discuss-phase — context captured (9452df6).
+- **Next Step**: `/gsd-plan-phase 118`
+- **Resume file**: `.planning/phases/118-pilot-prep-optional/118-CONTEXT.md`
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 116` — Example first-hour fixes
+- `/gsd-plan-phase 118` — Pilot prep (optional)
 - Assessment thread: `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`
