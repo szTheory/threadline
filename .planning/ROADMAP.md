@@ -28,7 +28,7 @@
 
 ## Phases
 
-- [ ] **Phase 114: Release 0.6.0 Packaging** — Cut threadline 0.6.0 with changelog, ExDoc, verify.release, and adoption-pilot version SSOT.
+- [x] **Phase 114: Release 0.6.0 Packaging** — Cut threadline 0.6.0 with changelog, ExDoc, verify.release, and adoption-pilot version SSOT. (completed 2026-05-27)
 - [ ] **Phase 115: Narrative Doc Sync** — Align how-threadline-works and cross-links to `Audit.transaction/3` as blessed write path.
 - [ ] **Phase 116: Example First-Hour Fixes** — Repair example README auth staging, setup vs demo.seed, and generator/migration clarity.
 - [ ] **Phase 117: Evidence Plane Doc Authority** — Single evidence-plane entry point; semver vocabulary in adopter prose.
@@ -52,7 +52,7 @@
 2. ExDoc publishes `Threadline.Audit` and related new public modules in sensible module groups.
 3. `mix verify.release` passes; adoption-pilot backlog and README doc contracts lock **0.6.0** / `~> 0.6`.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 ---
 
