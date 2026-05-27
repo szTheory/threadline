@@ -491,6 +491,7 @@
 | v1.8 | 3 | Correlation-aware timeline/export + support playbooks + example correlation path + doc contracts |
 | v1.9 | 3 | Ops-at-volume docs: telemetry + health narrative, audit indexing cookbook + doc contract, retention-at-scale + discovery hub |
 | v1.10 | 6 | Exploration primitives (`ChangeDiff`, txn-scoped listing, routing docs) + milestone-audit hygiene phases |
+| v1.24 | 3 | Audited write-path helper + reference adoption + 0.5.x adopter/doc truth |
 
 ### Cumulative quality
 
@@ -507,6 +508,7 @@
 | v1.8 | + correlation filter integration tests + support playbook doc contract + example correlation ConnCase | Same **timeline/export** vocabulary for support; **`:correlation_id`** strict join path |
 | v1.9 | + audit indexing doc contract | Doc-only milestone; default CI path unchanged; operator narrative locked to shipped **`Threadline.Telemetry`** names |
 | v1.10 | + composed query→`change_diff` test path | Exploration API surface + audit-unblock phases; **`FLOW-TEST-01`** locks JSON/API integrator path in CI |
+| v1.24 | + `audit_transaction_test.exs`, `audit_doc_contract_test.exs`, `evidence_cli_doc_contract_test.exs`, `adoption_pilot_doc_contract_test.exs` | Helper integration tests + doc contracts lock write path and 0.5.x evaluator truth |
 
 ### Top lessons (verified across milestones)
 
@@ -520,6 +522,7 @@
 8. v1.8 — Keep **`PROJECT.md` Active`** aligned with the last shipped REQ the same day as phase verification.
 9. v1.9 — When **`milestone.complete` CLI** fails, still run **`git rm .planning/REQUIREMENTS.md`** at close so **`/gsd-new-milestone`** starts from a clean requirements slot.
 10. v1.10 — Run **`/gsd-audit-milestone`** before close when the milestone ships **library + doc + CI** evidence together; archive the audit file beside requirements.
+11. v1.24 — Split **library helper**, **reference adoption**, and **doc truth** into separate phases; closeout doc-contract gates catch evaluator-facing drift that code-only refactors miss.
 
 ---
 
@@ -548,3 +551,46 @@
 ### Cost observations
 
 - Not instrumented in-repo for this milestone.
+
+---
+
+## Milestone: v1.24 — Audited Write Path & Adopter Truth
+
+**Shipped:** 2026-05-27  
+**Phases:** 3 (111–113) | **Plans:** 11
+
+### What was built
+
+- `Threadline.Audit.transaction/3` — single-call audited write path with actor GUC, optional semantic action, and `action_id` linkage.
+- Reference app and getting-started guide migrated all primary write paths to the helper; audit/correlation tests unchanged.
+- Adopter truth repairs: `evidence_authorize_fn` on sigra-reference mount, adoption-pilot **0.5.0** SSOT, canonical evidence CLI doc contracts, WALK-03-02 prose aligned to seed anchors.
+
+### What worked
+
+- Three-phase vertical slice (library → example adoption → doc truth) matched the assessment boundary without scope creep into compliance or another walkthrough.
+- Doc-contract tests as the closeout gate (`verify.doc_contract`, `verify.example`) caught CLI naming and version-table drift before ship.
+- Phase 112 `transaction_meta` fix on capture-only paths unblocked help-desk org scoping without weakening audit assertions.
+
+### What was inefficient
+
+- `milestone.complete` CLI extracted placeholder "complete" one-liners for MILESTONES.md — manual rewrite required at closeout.
+- No v1.24 milestone audit file; closeout proceeded on roadmap analyze + requirements traceability alone.
+
+### Patterns established
+
+- `Threadline.Audit.transaction/3` is the recommended write path in guides; manual GUC + `record_action` recipe is legacy escape hatch only.
+- Evidence CLI canonical name locked via dedicated doc-contract test refuting never-shipped `mix verify.evidence`.
+
+### Key lessons
+
+1. Integration ergonomics (helper API) was the highest-leverage remaining gap once capture+semantics+operator stack shipped — assessment thread was right to prioritize it over DEFER trio without adopter signal.
+2. Adopter truth is a separate phase from library adoption — mount options (`evidence_authorize_fn`) and version literals drift independently of write-path refactors.
+
+### Cost observations
+
+- Timeline: single day (2026-05-27).
+- Not instrumented in-repo for model mix.
+
+---
+
+## Cross-Milestone Trends

@@ -1,5 +1,40 @@
 # Project milestones: Threadline
 
+## v1.24 Audited Write Path & Adopter Truth (Shipped: 2026-05-27)
+
+**Delivered:** First-class `Threadline.Audit.transaction/3` helper wrapping actor GUC + domain writes + optional `record_action/2` + `action_id` linkage; reference app and getting-started guide adopt it on all primary write paths; 0.5.x adopter/doc truth repaired (`evidence_authorize_fn`, adoption-pilot version table, canonical evidence CLI, WR-110-001 prose).
+
+**Phases completed:** 3 phases (111-113), 11 plans. Requirements: 12/12 satisfied (AUDIT-TXN-01–04, ADOPT-HELPER-01–03, TRUTH-01–05).
+
+**Known deferred items at close:** 1 (see STATE.md Deferred Items — Phase 109 verification gap from v1.23 acknowledged as by-design)
+
+**Key accomplishments:**
+
+- Shipped `Threadline.Audit.transaction/3` with transaction-local GUC, optional semantic action recording, `action_id` linkage via `txid_current()`, and map-merge return envelope — doc-contract marker for guide extraction.
+- PostgreSQL integration tests prove capture, strict `:correlation_id` timeline linkage, missing-actor policy, rollback propagation, and `transaction_meta` on linkage paths.
+- Documented helper as the recommended write path in `guides/getting-started-saas.md` and `guides/integration-contracts.md`; `audit_doc_contract_test.exs` locks literals.
+- Reference app migrated `Blog.create_post/2`, `HelpDesk.ticket_replied_and_closed/6`, capture-only deletes, and Oban `touch_post_for_job/2` to the helper — audit/correlation tests green without weakened assertions.
+- Capture-only `transaction_meta` persistence on helper paths with fail-closed `update_all` semantics for help-desk org scoping.
+- Wired `evidence_authorize_fn` on sigra-reference operator mount (admin-only); admin vs support `/audit/evidence` integration tests; docs state support denial and CLI fallback.
+- Adoption-pilot backlog aligned to **threadline 0.5.0** / `~> 0.5` with doc-contract SSOT from `Threadline.MixProject`.
+- WALK-03-02 prose aligned to frozen `demo_last_tuesday` / `demo_epoch` anchors (WR-110-001); strengthened demo contract tests for leaving-agent ticket volume.
+- Evidence CLI naming locked repo-wide: canonical `mix threadline.evidence.show`; `evidence_cli_doc_contract_test.exs` refutes never-shipped `mix verify.evidence` alias.
+- Closeout gates green: `mix verify.doc_contract` and `mix verify.example`.
+
+**Stats:**
+
+- Timeline: same day (2026-05-27; feat(111-01) → feat(112-04)).
+- ~45 files changed, +4101 / −305 LOC in milestone commit range.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.24-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.24-REQUIREMENTS.md`
+
+**What is next:** `/gsd-new-milestone` — define v1.25+ themes (re-engage v1.22 DEFER trio only on sustained adopter/procurement pressure).
+
+---
+
 ## v1.23 Realistic-Demo Walkthrough (Shipped: 2026-05-27)
 
 **Phases completed:** 7 phases, 24 plans, 59 tasks
@@ -47,7 +82,10 @@
 
 - Append-only evidence schema and `Threadline.Evidence` public context — six bounded subjects with stable provenance metadata and machine-readable detail payloads.
 - Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and unsupported claims — shared verdict language across library, Mix task, and LiveView surfaces.
-- Phoenix-optional library API plus Mix-task parity with a stable JSON contract for CI, procurement, and audit handoff (`mix verify.evidence` family, `mix threadline.evidence.show`).
+- Phoenix-optional library API plus Mix-task parity with a stable JSON contract for CI, procurement, and audit handoff (**canonical:** `mix threadline.evidence.show`).
+
+> **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
+
 - Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Public docs lock the narrow evidence-plane contract: README claim strip, explicit non-goals, and separately-authorized `/audit/evidence` wording in the support matrix.
 - Phase 99 named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam bundle + `mix verify.example`) locks the public contract on the current tree; reran green at closeout (46+55+21 = 122 tests, 0 failures).

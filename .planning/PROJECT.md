@@ -8,25 +8,18 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.24 Audited Write Path & Adopter Truth
+## Latest Milestone Shipped: v1.24 Audited Write Path & Adopter Truth
 
-**Goal:** Make the trustworthy capture+semantics write path easy by default (library-level audited transaction helper), and make the sigra-reference example plus public docs honest for 0.5.x evaluators — without widening into compliance platform scope.
+**Goal (achieved):** Package the manual audited-transaction recipe into a first-class library helper, adopt it in the reference app and getting-started guide, and repair reference/doc truth for 0.5.x evaluators — without compliance-platform expansion.
 
-**Target features:**
-- `Threadline.Audit.transaction/2` (or equivalent) wrapping actor GUC + domain writes + `record_action/2` + `audit_transactions.action_id` linkage
-- Example app and `guides/getting-started-saas.md` adopt the helper; integration tests prove correlation-ready timelines
-- Reference honesty: `evidence_authorize_fn` on example `/audit` mount; adoption-pilot backlog at 0.5.x; evidence CLI naming aligned (`mix threadline.evidence.show`); WALK-03-02 prose fix (WR-110-001)
+**Shipped:**
+- `Threadline.Audit.transaction/3` — actor GUC + domain callback + optional `record_action/2` + `action_id` linkage in one call; PostgreSQL integration tests and doc contracts
+- Example app primary write paths (`Blog`, `HelpDesk`, Oban touch) and `guides/getting-started-saas.md` adopt the helper; correlation/audit tests unchanged
+- Adopter truth: `evidence_authorize_fn` on sigra-reference mount; adoption-pilot at **0.5.0** / `~> 0.5`; canonical `mix threadline.evidence.show` locked in doc contracts; WALK-03-02 prose fix (WR-110-001)
 
-**v1.24 non-goals:**
+**Next milestone goals:** `/gsd-new-milestone` — no v1.25 scope defined yet. Re-engage v1.22 DEFER trio (compliance packs, legal hold, immutable archive) only on sustained adopter/procurement pressure.
 
-- No new `Threadline.Evidence` subjects beyond the six shipped in v1.22
-- No compliance report packs, legal hold, or immutable-archive guarantees (v1.22 DEFER trio) without sustained adopter pressure
-- No Threadline-owned RBAC / tenancy DSLs; no second full synthetic walkthrough
-- No help-desk product expansion or "demo product" rebrand
-
-**Current State:** Phase 112 complete (2026-05-27) — reference app and getting-started guide adopt `Threadline.Audit.transaction/3` on all four primary write paths. Next: Phase 113 adopter-truth & doc sync. No sustained real-adopter signal — proceed with integration ergonomics, not pilot-first pivot.
-
-**Shipped capabilities:**
+## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
 - Shared `/audit` support-lane proof covers the mounted set the repo verifies today: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams; `mix threadline.incident <transaction_id>` ships transaction parity for no-LiveView operators.
 - Mount-time auth contract: host-mount default + optional `:authorize_fn`, fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn` returned scopes are threaded into investigation queries.
@@ -35,13 +28,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Read-only policy viewers ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
 - **(v1.22)** Append-only evidence records via `Threadline.Evidence` — six bounded subjects with stable provenance metadata and machine-readable detail payloads; no host business-policy meaning encoded.
 - **(v1.22)** Three-tier proof vocabulary in `Threadline.Evidence.Proof` distinguishing proven facts, inferred posture, and unsupported claims — shared across library, Mix-task, and LiveView surfaces.
-- **(v1.22)** Phoenix-optional library API plus Mix-task parity (`mix verify.evidence`, `mix threadline.evidence.show`) with stable JSON contract for CI / procurement / audit handoff.
+- **(v1.22)** Phoenix-optional library API plus Mix-task parity — **canonical:** `mix threadline.evidence.show` with stable JSON contract for CI / procurement / audit handoff.
 - **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/evidence-plane.md`, README, production checklist, and the example app are aligned end-to-end.
 
 **Current planning focus:** v1.24 Audited Write Path & Adopter Truth — Phases 111–113. Assessment thread: `.planning/threads/2026-05-27-milestone-next-step-v1.24.md`. Seed: `.planning/v1.24-seeds/SEED-001-audited-write-transaction.md`.
 
-## Latest Milestone Shipped: v1.23 Realistic-Demo Walkthrough
+> **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
+
+## Prior milestone shipped: v1.23 Realistic-Demo Walkthrough
 
 **Goal (achieved):** Synthetic first-adopter walkthrough — realistic help-desk reference app, Sigra auth, demo seeds, maintainer runbook, observe-only dry-run, and triage of filed findings.
 
@@ -61,7 +56,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 **Shipped:**
 - Append-only evidence schema and `Threadline.Evidence` public context — six bounded subjects with stable provenance metadata, machine-readable detail payloads, and explicit non-goal language for host business policy.
 - Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and unsupported claims — same verdict language across library, Mix-task, and mounted LiveView surfaces.
-- Phoenix-optional library API plus Mix-task parity (`mix verify.evidence` family, `mix threadline.evidence.show`) with a stable JSON contract for CI, procurement, and audit handoff.
+- Phoenix-optional library API plus Mix-task parity — **canonical:** `mix threadline.evidence.show` with a stable JSON contract for CI, procurement, and audit handoff.
 - Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Public docs and contract tests lock the narrow evidence-plane claim and the explicit non-goals (no legal hold, no immutable-storage guarantee, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL).
 - Phase 99 named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam bundle + `mix verify.example`) locks the contract on the current tree; reran green at closeout (122 tests, 0 failures).
@@ -281,7 +276,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **Investigation table stakes (Phases 53–56)** — `Threadline.timeline_page/2`, public investigation helpers, `Threadline.incident_bundle/2`, focused request-path coverage, and one canonical investigation docs story. Validated in v1.16: Investigation Table Stakes (2026-05-06).
 - [x] **Operator Surface Foundation (Phases 57–63)** — Mountable in-tree LiveView with optional Phoenix/LiveView/HTML/PubSub deps, two must-have screens + row history sub-view, fail-closed mount-time auth contract with optional `:authorize_fn` and authorize telemetry, `mix threadline.incident` CLI parity, doc-contract test locking macro signature + route literals + auth section. Validated in v1.17 (2026-05-06).
-- [x] **Policy / Evidence Plane (Phases 95–103)** — `Threadline.Evidence` append-only records with stable provenance and machine-readable detail; Phoenix-optional library APIs and Mix-task parity (`mix verify.evidence`, `mix threadline.evidence.show`); `/audit/evidence` LiveView with host-owned auth gate; three-tier proof vocabulary (`Threadline.Evidence.Proof`); doc contracts lock the narrow claim and explicit non-goals (no legal hold, no immutable storage, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL). Validated in v1.22: EVID-01/02/03, PROOF-01/02/03, SURF-01/02/03, DOC-01/02/03 (2026-05-27).
+- [x] **Policy / Evidence Plane (Phases 95–103)** — `Threadline.Evidence` append-only records with stable provenance and machine-readable detail; Phoenix-optional library APIs and Mix-task parity (**canonical:** `mix threadline.evidence.show`); `/audit/evidence` LiveView with host-owned auth gate; three-tier proof vocabulary (`Threadline.Evidence.Proof`); doc contracts lock the narrow claim and explicit non-goals (no legal hold, no immutable storage, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL). Validated in v1.22: EVID-01/02/03, PROOF-01/02/03, SURF-01/02/03, DOC-01/02/03 (2026-05-27).
 - [x] **DEMO (Phase 105)** — Help-desk domain in `examples/threadline_phoenix/`: five `binary_id` tables, `HelpDesk.ticket_replied_and_closed/6`, masked `internal_note_body` capture, triggers + `verify_coverage` green, DataCase audit proofs. Validated in Phase 105 (2026-05-27).
 - [x] **CHARTER (Phase 104)** — v1.23 override Key Decision and non-goals locked in PROJECT.md and MILESTONE-ARC.md. Validated in v1.23 (2026-05-27).
 - [x] **AUTH (Phase 106)** — Sigra signup/login/session in reference app; help-desk-aware `current_user`; `/audit` via `:operator_browser`. Validated in v1.23 (2026-05-27).
@@ -289,12 +284,13 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **WALK (Phase 108)** — `WALKTHROUGH.md` runbook and findings protocol. Validated in v1.23 (2026-05-27).
 - [x] **RUN (Phase 109)** — Observe-only dry-run; findings captured for Phase 110. Validated in v1.23 (2026-05-27).
 - [x] **FIX (Phase 110)** — Findings 0001–0003 fixed; zero v1.24 deferrals; validation re-walk pass. Validated in v1.23 (2026-05-27).
+- [x] **AUDIT-TXN-01 / AUDIT-TXN-02 / AUDIT-TXN-03 / AUDIT-TXN-04 (Phase 111)** — `Threadline.Audit.transaction/3` with PostgreSQL integration tests and doc contracts. Validated in v1.24 (2026-05-27).
+- [x] **ADOPT-HELPER-01 / ADOPT-HELPER-02 / ADOPT-HELPER-03 (Phase 112)** — Reference app + getting-started adopt helper; correlation-ready integration proof. Validated in v1.24 (2026-05-27).
+- [x] **TRUTH-01 / TRUTH-02 / TRUTH-03 / TRUTH-04 / TRUTH-05 (Phase 113)** — `evidence_authorize_fn`, adoption-pilot 0.5.x, evidence CLI naming, WR-110-001 prose, verify gates green. Validated in v1.24 (2026-05-27).
 
 ### Active
 
-- [x] **AUDIT-TXN (Phase 111)** — Validated in Phase 111: `Threadline.Audit.transaction/3` with tests and doc contract
-- [x] **ADOPT-HELPER (Phase 112)** — Validated in Phase 112: example app + getting-started adopt helper; correlation-ready integration proof
-- [ ] **ADOPTER-TRUTH (Phase 113)** — Reference/doc honesty: `evidence_authorize_fn`, adoption-pilot 0.5.x, evidence CLI naming, WR-110-001
+_(None — start fresh with `/gsd-new-milestone`.)_
 
 ### Out of Scope
 
@@ -361,7 +357,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 | Verification backfill phases (Phases 100/101/102) are the right pattern for closing audit gaps without widening milestone scope | When a milestone audit surfaces gaps in already-shipped phases, inserting narrow verification-only phases (`.planning/`-only, no doc/code/test edits, named rerun bundle as proof) closes the loop without re-litigating the underlying work. Phase 103 then reconciles the authority surfaces and reruns the audit on the reconciled tree. Reusable closeout play. | ✓ Validated (Phases 100-103, v1.22, 2026-05-27) |
 | D-02 archive/closeout-gate separation and D-16 `.planning/`-only boundary held cleanly through Phase 103 | The archive step (`/gsd-complete-milestone`) owns MILESTONE-ARC, PROJECT "Last shipped", MILESTONES, RETROSPECTIVE, and `.planning/milestones/v*` archives. The closeout-gate phase is the proof step, not the archive step. Keeping these separated avoids the "audit closed itself" anti-pattern. | ✓ Validated (Phase 103, v1.22, 2026-05-27) |
 | v1.23 deliberately overrides v1.22's "real-adopter feedback first" closeout rule and ships a synthetic-first-adopter walkthrough instead | No real adopter exists at v1.22 close, and the alternative is shipping nothing — a maintainer walking the reference app on a clean clone is the strongest available signal until external pressure arrives. Override scoped to v1.23 only and does not extend evidence subjects, Threadline-owned RBAC/tenancy DSLs, or `lib/` auth code. **Re-engages the v1.22 rule on first sustained real-adopter signal** (live-integration issue, maintainer-confirmed pilot host, or named procurement/security-review/evaluation conversation); drive-by interest routes to `.planning/v1.24-seeds/` rather than re-engaging the rule. | ✓ Shipped (v1.23, 2026-05-27) |
-| v1.24 prioritizes audited write-path ergonomics over compliance expansion | Milestone-next-step assessment (~83% done for stated scope): capture+semantics+operator stack is strong; #1 remaining foot-gun is manual transaction recipe for actor GUC + `record_action` + `action_id`. No sustained adopter signal — proceed with helper + reference/doc truth, not DEFER-01/02/03 or another walkthrough. | — Active (opened 2026-05-27) |
+| v1.24 prioritizes audited write-path ergonomics over compliance expansion | Milestone-next-step assessment (~83% done for stated scope): capture+semantics+operator stack is strong; #1 remaining foot-gun is manual transaction recipe for actor GUC + `record_action` + `action_id`. No sustained adopter signal — proceed with helper + reference/doc truth, not DEFER-01/02/03 or another walkthrough. | ✓ Shipped (Phases 111-113, v1.24, 2026-05-27) |
+| `Threadline.Audit.transaction/3` is the recommended audited write path | Single helper replaces copy-pasted GUC + `record_action` + `action_id` recipe; reference app and guides prove correlation-ready timelines without weakened tests. | ✓ Shipped (Phases 111-112, v1.24, 2026-05-27) |
+| Adopter truth for 0.5.x evaluators lives in example mount + doc contracts | `evidence_authorize_fn`, adoption-pilot version SSOT, canonical evidence CLI, and walkthrough prose aligned to seed fiction — no new Evidence subjects. | ✓ Shipped (Phase 113, v1.24, 2026-05-27) |
 
 ## Evolution
 
@@ -383,4 +381,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — v1.24 milestone opened: Audited Write Path & Adopter Truth (Phases 111–113).*
+*Last updated: 2026-05-27 after v1.24 milestone — Audited Write Path & Adopter Truth shipped (Phases 111–113).*
