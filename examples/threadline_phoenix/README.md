@@ -86,21 +86,38 @@ mix phx.new threadline_phoenix \
 
    Running `mix run priv/repo/seeds.exs` separately is redundant if `ecto.setup` already ran.
 
-## Demo walkthrough data
+**Seed terminology:** **`priv/repo/seeds.exs`** runs **neutral** seeds (two posts). **`mix demo.seed`** loads **walkthrough fiction** — never use “seed” alone when you mean demo fiction.
 
-After `mix ecto.setup`, load synthetic help-desk fiction:
+## Track A — First audited write
+
+After [Base install](#base-install-all-paths):
+
+1. Start the server: **`mix phx.server`**
+2. Sign in at **`/users/log_in`** in your browser (register first if needed).
+3. Follow **[Authenticate before the audited API call](#authenticate-before-the-audited-api-call)** under **Audited HTTP path** — copy the **`_threadline_phoenix_key`** cookie and send the documented curl.
+4. Optional: **`GET /api/audit_transactions/:id/changes`** with the returned **`audit_transaction_id`**.
+
+This track **does not require `mix demo.seed`**.
+
+## Track B — Walkthrough fiction
+
+After [Base install](#base-install-all-paths), follow **[WALKTHROUGH.md](./WALKTHROUGH.md)** for the maintainer dry-run:
 
 ```bash
 mix demo.seed
 ```
 
-Recover a clean walkthrough state (truncate demo tables + re-seed):
+Recover a clean walkthrough state:
 
 ```bash
 mix demo.reset
 ```
 
-Credentials: see [DEMO_USERS.md](DEMO_USERS.md). Literals: [DEMO-MANIFEST.md](DEMO-MANIFEST.md).
+Credentials: [DEMO_USERS.md](DEMO_USERS.md).
+
+## Demo walkthrough data
+
+**Track B** and **[WALKTHROUGH.md](./WALKTHROUGH.md)** own walkthrough fiction. See **[Mix task reference](#mix-task-reference)** for how **`ecto.setup`**, **`demo.seed`**, and **`demo.reset`** differ. Literals: [DEMO-MANIFEST.md](DEMO-MANIFEST.md).
 
 `ecto.setup` does **not** run `demo.seed` automatically.
 
