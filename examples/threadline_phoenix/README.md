@@ -8,9 +8,11 @@ composition story through this example app, the companion guides, and repo
 verification. It does not claim that arbitrary Sigra versions, arbitrary auth
 layouts, or non-Phoenix hosts are supported automatically.
 
-For the canonical first-hour walkthrough, start with
-[`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md)
-and treat this README as the runnable proof artifact behind that path.
+For the **reference-app maintainer walk** (Phase 109 dry-run), start with
+[`./WALKTHROUGH.md`](./WALKTHROUGH.md). Integrators wiring Threadline into their
+own app should still use
+[`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
+Treat this README as the runnable proof artifact behind both paths.
 
 ## Prerequisites
 
@@ -256,7 +258,8 @@ after authorization, and the host app still owns Oban supervision even though
 Threadline now validates configured adapters for static truth at startup.
 
 Run `mix phx.server`, sign in as an admin or support user, and open
-`http://localhost:4000/audit`. For the canonical first-hour walkthrough, use
+`http://localhost:4000/audit`. For the **reference-app maintainer walk**, use
+[`./WALKTHROUGH.md`](./WALKTHROUGH.md). For integrator first-hour wiring, use
 [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
 For the mount/auth/screens guide, use
 [`../../guides/operator-surface.md`](../../guides/operator-surface.md).
