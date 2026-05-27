@@ -28,6 +28,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - `lib/` is read-only across v1.23 except in the final triage phase, and then only for S-tier breakage with a finding ID citing concrete walkthrough evidence. Auth/tenancy/RBAC remain host-owned.
 - The evidence-plane vocabulary is not extended. The walkthrough exercises shipped subjects (retention purge, redaction snapshot, trigger coverage); new subjects, if pressured, become v1.24 seeds, not in-milestone scope creep.
 
+**v1.23 non-goals:**
+
+- No new `Threadline.Evidence` subjects beyond the six shipped in v1.22 — walkthrough exercises shipped subjects only; new-subject pressure routes to v1.24 seeds, not in-milestone scope creep.
+- No Threadline-owned RBAC / tenancy DSLs and no `lib/` auth or domain-model code — the host-owned auth/tenancy boundary that has held since v1.15 is not relitigated; all auth and help-desk domain work lives in `examples/threadline_phoenix/`.
+- No rebrand of `examples/threadline_phoenix/` from "reference app" to "demo product" — seed data + clickable UI enables the walkthrough; it does not reposition the artifact. Sigra integration is not extended unless real signup/login surfaces a contract gap (handled via sub-phase 106b escape valve).
+
 **Current State:** v1.22 — Policy / Evidence Plane (closed 2026-05-27). v1.23 opened 2026-05-27.
 
 **Shipped capabilities:**
@@ -348,6 +354,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 | Mounted `/audit/evidence` reuses the existing `/audit` surface and host-owned auth gate; no new operator UI family or Threadline-owned RBAC | Pure read-only views with overview-first drill-down and URL-driven navigation match the support-lane shape established in v1.21, so adopters get one consistent operator vocabulary. A new UI family would have reopened auth scope. | ✓ Shipped (Phase 98, v1.22, 2026-05-27) |
 | Verification backfill phases (Phases 100/101/102) are the right pattern for closing audit gaps without widening milestone scope | When a milestone audit surfaces gaps in already-shipped phases, inserting narrow verification-only phases (`.planning/`-only, no doc/code/test edits, named rerun bundle as proof) closes the loop without re-litigating the underlying work. Phase 103 then reconciles the authority surfaces and reruns the audit on the reconciled tree. Reusable closeout play. | ✓ Validated (Phases 100-103, v1.22, 2026-05-27) |
 | D-02 archive/closeout-gate separation and D-16 `.planning/`-only boundary held cleanly through Phase 103 | The archive step (`/gsd-complete-milestone`) owns MILESTONE-ARC, PROJECT "Last shipped", MILESTONES, RETROSPECTIVE, and `.planning/milestones/v*` archives. The closeout-gate phase is the proof step, not the archive step. Keeping these separated avoids the "audit closed itself" anti-pattern. | ✓ Validated (Phase 103, v1.22, 2026-05-27) |
+| v1.23 deliberately overrides v1.22's "real-adopter feedback first" closeout rule and ships a synthetic-first-adopter walkthrough instead | No real adopter exists at v1.22 close, and the alternative is shipping nothing — a maintainer walking the reference app on a clean clone is the strongest available signal until external pressure arrives. Override scoped to v1.23 only and does not extend evidence subjects, Threadline-owned RBAC/tenancy DSLs, or `lib/` auth code. **Re-engages the v1.22 rule on first sustained real-adopter signal** (live-integration issue, maintainer-confirmed pilot host, or named procurement/security-review/evaluation conversation); drive-by interest routes to `.planning/v1.24-seeds/` rather than re-engaging the rule. | — Active (recorded Phase 104, v1.23, 2026-05-27) |
 
 ## Evolution
 
@@ -369,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — v1.23 Realistic-Demo Walkthrough opened. Current Milestone section added, Active requirements seeded with Phase 104–110 placeholders; Phase 104 will record the v1.22-override Key Decision and update MILESTONE-ARC.md.*
+*Last updated: 2026-05-27 — v1.23 Realistic-Demo Walkthrough opened. Current Milestone section added, Active requirements seeded with Phase 104–110 placeholders; Phase 104 recorded the v1.22-override Key Decision and updated MILESTONE-ARC.md.*
