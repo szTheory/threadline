@@ -13,7 +13,7 @@
 
 ### Library and CLI Proof (PROOF)
 
-- [ ] **PROOF-01**: Public library APIs can create and read evidence records without requiring Phoenix or the mounted operator surface.
+- [x] **PROOF-01**: Public library APIs can create and read evidence records without requiring Phoenix or the mounted operator surface.
 - [x] **PROOF-02**: Mix-task parity exists for the milestone's evidence subjects, including stable machine-readable output for CI, procurement, or audit handoff.
 - [x] **PROOF-03**: Evidence outputs clearly distinguish proven facts, inferred posture, and unsupported claims.
 
@@ -54,7 +54,7 @@
 | EVID-01 | Phase 100 | Complete |
 | EVID-02 | Phase 100 | Complete |
 | EVID-03 | Phase 100 | Complete |
-| PROOF-01 | Phase 101 | Pending |
+| PROOF-01 | Phase 101 | Complete |
 | PROOF-02 | Phase 97 | Complete |
 | PROOF-03 | Phase 97 | Complete |
 | SURF-01 | Phase 102 | Pending |
@@ -65,6 +65,7 @@
 | DOC-03 | Phase 99 | Complete |
 
 **Coverage:**
+
 - v1 requirements: 12 total
 - Mapped to phases: 12
 - Unmapped: 0
