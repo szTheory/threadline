@@ -148,11 +148,9 @@ iex -S mix phx.server
 
 The example wires **`Threadline.Plug`** with both **`actor_fn`** and
 **`context_overrides_fn`** on the `:api` pipeline and exposes **`POST /api/posts`**,
-which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** inside a
-single **`Repo.transaction`** with a transaction-local **`threadline.actor_ref`**
-GUC before insert, then **`Threadline.record_action/2`** with correlation
-metadata and a link from **`audit_transactions.action_id`** to that action so
-strict filters work (see **Correlation** below).
+which creates a row through **`ThreadlinePhoenix.Blog.create_post/2`** via
+**`Threadline.Audit.transaction/3`** with correlation metadata and automatic
+**`audit_transactions.action_id`** linkage so strict filters work (see **Correlation** below).
 **`test/threadline_phoenix_web/posts_audit_path_test.exs`** proves capture sees
 **`AuditChange`** rows for **`posts`** with **`AuditTransaction.actor_ref`**
 populated.
@@ -320,7 +318,7 @@ Threadline.export_json(filters, json_format: :ndjson)
 
 Trigger-backed **`audit_changes`** rows record **what** changed on each audited table. When row diffs are not enough for operators (intent, correlation across async work, or queue provenance), call **`Threadline.record_action/2`** in the **same** `Ecto.Repo.transaction/1` as the audited writes so semantics stay consistent with capture.
 
-This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`** → **`ThreadlinePhoenix.Blog.touch_post_for_job/2`**: the worker passes a serialized **`actor_ref`** map (and optional correlation metadata) on the job args, merges **`job_id`** from the **`Oban.Job`**, then runs GUC + post update + **`record_action(:post_title_refreshed_from_queue, …)`** once. See **`Threadline.Job`** in the library (`../../lib/threadline/job.ex`) for **`actor_ref_from_args/1`** and **`context_opts/1`**.
+This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`** → **`ThreadlinePhoenix.Blog.touch_post_for_job/2`**, which uses **`Threadline.Audit.transaction/3`** with **`actor_ref:`** and **`action: {:post_title_refreshed_from_queue, Job.context_opts(args)}`**. See **`Threadline.Job`** in the library (`../../lib/threadline/job.ex`) for **`actor_ref_from_args/1`** and **`context_opts/1`**.
 
 ## Documentation & production adoption
 
@@ -329,7 +327,7 @@ This repo’s concrete pattern is **`ThreadlinePhoenix.Workers.PostTouchWorker`*
 
 **Integrator responsibility:** your team owns the **host-class** staging topology matrix, evidence, and promotion criteria for *your* URLs and regions. Threadline’s CI and this example app prove **reference patterns** (capture, HTTP and job semantics, tests); they do **not** certify third-party staging hosts or production endpoints. Use your fork/PR workflow per **`CONTRIBUTING.md`** when you need project-specific evidence.
 
-For **`POST /api/posts`**, the example sets **`audit_transactions.action_id`** in the same transaction as **`record_action`**, so **`:correlation_id`** filters match the rows operators expect.
+For **`POST /api/posts`**, the example links **`audit_transactions.action_id`** via **`Threadline.Audit.transaction/3`**, so **`:correlation_id`** filters match the rows operators expect.
 
 Example request (include **`x-request-id`** for traceability; no credential-shaped demo values):
 

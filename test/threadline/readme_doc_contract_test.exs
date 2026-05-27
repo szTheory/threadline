@@ -15,6 +15,7 @@ defmodule Threadline.ReadmeDocContractTest do
   test "README declares the public API surface" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "Threadline.Plug")
+    assert String.contains?(readme, "Threadline.Audit.transaction")
     assert String.contains?(readme, "Threadline.record_action/2")
     assert String.contains?(readme, "Threadline.history/3")
     assert String.contains?(readme, "Threadline.timeline/2")
@@ -151,6 +152,7 @@ defmodule Threadline.ReadmeDocContractTest do
     doc = File.read!("examples/threadline_phoenix/README.md")
 
     assert String.contains?(doc, "Threadline.Plug")
+    assert String.contains?(doc, "Threadline.Audit.transaction")
     assert String.contains?(doc, "Threadline.record_action/2")
     assert String.contains?(doc, "Threadline.timeline/2")
     assert String.contains?(doc, "Threadline.export_json/2")

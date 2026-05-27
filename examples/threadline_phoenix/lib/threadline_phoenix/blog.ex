@@ -64,30 +64,23 @@ defmodule ThreadlinePhoenix.Blog do
         if is_nil(post_id) or is_nil(title) do
           {:error, :missing_post_attrs}
         else
-          json =
-            actor_ref
-            |> Threadline.Semantics.ActorRef.to_map()
-            |> Jason.encode!()
+          action_opts = Job.context_opts(args)
 
-          Repo.transaction(fn ->
-            Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+          Threadline.Audit.transaction(
+            Repo,
+            Keyword.merge(action_opts, [
+              actor_ref: actor_ref,
+              action: {:post_title_refreshed_from_queue, action_opts}
+            ]),
+            fn ->
+              post = Repo.get!(Post, post_id)
 
-            post = Repo.get!(Post, post_id)
-
-            case Repo.update(Post.changeset(post, %{title: title})) do
-              {:error, changeset} ->
-                Repo.rollback(changeset)
-
-              {:ok, updated} ->
-                opts =
-                  [repo: Repo, actor: actor_ref] ++ Job.context_opts(args)
-
-                case Threadline.record_action(:post_title_refreshed_from_queue, opts) do
-                  {:ok, _} -> updated
-                  {:error, cs} -> Repo.rollback(cs)
-                end
+              case Repo.update(Post.changeset(post, %{title: title})) do
+                {:error, cs} -> Repo.rollback(cs)
+                {:ok, updated} -> %{post: updated}
+              end
             end
-          end)
+          )
         end
     end
   end

@@ -56,6 +56,7 @@ defmodule ThreadlinePhoenix.Workers.PostTouchWorkerTest do
         )
 
       refute is_nil(action)
+      assert at.action_id == action.id
 
       Repo.query!(
         "TRUNCATE TABLE audit_changes, audit_transactions, audit_actions, posts RESTART IDENTITY CASCADE",
