@@ -25,4 +25,5 @@
 
 ## Prior milestone phases (archived)
 
-v1.23 phases 104–110 and v1.24 phases 111–113 remain under `.planning/phases/` for reference. Archive targets: `.planning/milestones/v1.23-phases/`, `.planning/milestones/v1.24-phases/` (optional via `/gsd-cleanup`).
+v1.23 phases 104–110: `.planning/milestones/v1.23-phases/`
+v1.24 phases 111–113: `.planning/milestones/v1.24-phases/`
