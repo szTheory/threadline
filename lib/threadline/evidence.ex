@@ -128,15 +128,18 @@ defmodule Threadline.Evidence do
   def list_overview(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     filters = validate_filters!(filters, @allowed_latest_filter_keys, :overview)
     repo = evidence_repo!(filters, opts)
+    limit = Keyword.get(filters, :limit)
+    subject_filters = Keyword.delete(filters, :limit)
 
     Subject.supported_subjects()
     |> Enum.flat_map(fn subject ->
-      list_latest_subject_refs(subject, filters, repo: repo)
+      list_latest_subject_refs(subject, subject_filters, repo: repo)
     end)
     |> Enum.sort_by(
       fn record -> {DateTime.to_unix(record.recorded_at, :microsecond), record.id} end,
       :desc
     )
+    |> maybe_take(limit)
   end
 
   @doc """
@@ -219,6 +222,9 @@ defmodule Threadline.Evidence do
   defp normalize_map_values(value) when is_list(value), do: Enum.map(value, &normalize_map_values/1)
   defp normalize_map_values(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_map_values(value), do: value
+
+  defp maybe_take(records, nil), do: records
+  defp maybe_take(records, limit), do: Enum.take(records, limit)
 
   defp normalize_map_key(key) when is_atom(key), do: Atom.to_string(key)
   defp normalize_map_key(key) when is_binary(key), do: key

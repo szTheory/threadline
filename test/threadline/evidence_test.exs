@@ -221,5 +221,33 @@ defmodule Threadline.EvidenceTest do
                "trigger_coverage"
              ]
     end
+
+    test "applies overview limit across the combined subject inventory" do
+      now = ~U[2026-05-26 12:00:00.000000Z]
+
+      insert_evidence(
+        subject: "retention_run",
+        subject_ref: %{"run_id" => "ret-run-1"},
+        recorded_at: DateTime.add(now, -10, :second)
+      )
+
+      newest =
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "exp-1"},
+          recorded_at: now
+        )
+
+      insert_evidence(
+        subject: "support_scope_posture",
+        subject_ref: %{"scope" => "support"},
+        recorded_at: DateTime.add(now, -5, :second)
+      )
+
+      assert [%EvidenceRecord{id: id, subject: "export_delivery"}] =
+               Evidence.list_overview([limit: 1], repo: @repo)
+
+      assert id == newest.id
+    end
   end
 end
