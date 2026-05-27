@@ -1,5 +1,10 @@
 import Config
 
+System.put_env(
+  "CLOAK_KEY",
+  Base.encode64(:crypto.hash(:sha256, "threadline_phoenix_test_cloak_v1"))
+)
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -52,3 +57,9 @@ config :threadline, :verify_coverage,
     "tickets",
     "ticket_replies"
   ]
+
+# Sigra authentication
+# Speed up password hashing in tests
+config :argon2_elixir, t_cost: 1, m_cost: 8
+
+config :swoosh, :api_client, false

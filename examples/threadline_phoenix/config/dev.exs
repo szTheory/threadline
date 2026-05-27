@@ -1,5 +1,11 @@
 import Config
 
+# Sigra Cloak vault — dev-only key (generate a unique CLOAK_KEY for production)
+System.put_env(
+  "CLOAK_KEY",
+  Base.encode64(:crypto.hash(:sha256, "threadline_phoenix_dev_cloak_v1"))
+)
+
 # Configure your database
 config :threadline_phoenix, ThreadlinePhoenix.Repo,
   username: "postgres",
@@ -80,3 +86,10 @@ config :threadline, :verify_coverage,
     "tickets",
     "ticket_replies"
   ]
+
+# Sigra email delivery (dev) — adapter is set on the raw Swoosh.Mailer
+# module, not the Sigra.Mailer behaviour wrapper.
+config :threadline_phoenix, ThreadlinePhoenix.Mailer,
+  adapter: Swoosh.Adapters.Local
+
+config :swoosh, :api_client, false

@@ -52,7 +52,10 @@ defmodule ThreadlinePhoenix.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.19"},
-      {:sigra, "~> 0.2", optional: true}
+      {:gettext, "~> 0.26"},
+      {:swoosh, "~> 1.16"},
+      {:heroicons, "~> 0.5"},
+      {:sigra, "~> 0.2"}
     ]
   end
 

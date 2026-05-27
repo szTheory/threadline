@@ -8,6 +8,7 @@ defmodule ThreadlinePhoenix.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {ThreadlinePhoenix.Vault, []},
       ThreadlinePhoenixWeb.Telemetry,
       ThreadlinePhoenix.Repo,
       {Oban, Application.fetch_env!(:threadline_phoenix, Oban)},
