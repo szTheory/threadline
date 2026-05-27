@@ -1,17 +1,31 @@
 defmodule ThreadlinePhoenix.Demo.Seed do
-  @moduledoc false
+  @moduledoc """
+  Plants deterministic demo fiction for walkthroughs (`mix demo.seed`).
 
-  require Logger
+  Hybrid synthesis: Sigra personas, anchor incidents, PRNG filler, temporal backfill.
+  """
+
+  alias ThreadlinePhoenix.Demo.{Reset, Seed}
 
   @doc """
-  Plants demo fiction (Plan 107-03). Stub until seed runner ships.
+  Runs the full demo seed pipeline (D-107-04).
   """
   @spec run() :: :ok
   def run do
-    Logger.warning(
-      "ThreadlinePhoenix.Demo.Seed.run/0 is not implemented yet — replace in Plan 107-03"
-    )
+    Reset.assert_dev_or_allowed!()
+    :rand.seed(:exsss, {1, 2, 3})
 
+    ctx = %{timestamps: %{}}
+
+    ctx =
+      ctx
+      |> Seed.Personas.run()
+      |> Seed.Anchors.run()
+      |> Seed.Filler.run()
+      |> Seed.Temporal.run()
+
+    _ctx = ctx
+    Mix.shell().info("demo.seed complete")
     :ok
   end
 end

@@ -9,15 +9,18 @@ defmodule ThreadlinePhoenix.DemoResetTest do
 
   @app_dir Path.expand("../..", __DIR__)
 
-  test "run/0 truncates demo tables leaving zero organizations" do
+  test "run/0 truncates demo tables then reseeds manifest organizations" do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
-      _org = organization_fixture()
+      _org = organization_fixture(%{slug: "ephemeral-fixture-org"})
 
       assert Repo.aggregate(Organization, :count, :id) >= 1
 
       assert :ok = Reset.run()
 
-      assert Repo.aggregate(Organization, :count, :id) == 0
+      assert Repo.get_by!(Organization, slug: "acme")
+      assert Repo.get_by!(Organization, slug: "globex")
+      assert Repo.get_by!(Organization, slug: "offboarded-co")
+      refute Repo.get_by(Organization, slug: "ephemeral-fixture-org")
     end)
   end
 
