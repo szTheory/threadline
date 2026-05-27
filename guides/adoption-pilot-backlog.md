@@ -4,12 +4,14 @@ Use this with [`production-checklist.md`](production-checklist.md) when you firs
 
 **Evidence pass (maintainer, 2026-04-23):** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, **`.github/workflows/ci.yml`**, and **`DB_PORT=5433 MIX_ENV=test mix ci.all`** (136 tests + `verify.threadline` + doc contract). **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below. **STG-01** still tracks **host-owned** staging depth (HTTP + real Oban job paths in *your* app) when that bar exceeds the library CI harness — [`.planning/milestones/v1.5-REQUIREMENTS.md`](../.planning/milestones/v1.5-REQUIREMENTS.md#stg-01).
 
+Distribution preflight below reflects the **0.6.0** tree (`mix.exs` `@version` is SSOT); lane and upgrade narrative live in [`guides/upgrade-path.md`](upgrade-path.md).
+
 ## Distribution preflight (maintainer / CI)
 
 | Item | Status | Evidence / notes |
 |------|--------|------------------|
-| `threadline` **0.2.0** on [Hex](https://hex.pm/packages/threadline) | Done | Tag **`v0.2.0`** matches `@version` in `mix.exs`; Hex publish workflow green. |
-| App depends on `{:threadline, "~> 0.2"}` | OK | README quickstart and doc contract lock the constraint: `test/threadline/readme_doc_contract_test.exs`; `mix.exs` `@version "0.2.0"`. |
+| `threadline` **0.6.0** on [Hex](https://hex.pm/packages/threadline) | Pending | Tag matches `@version` in root `mix.exs`; doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
+| App depends on `{:threadline, "~> 0.6"}` | OK | README + adoption-pilot doc contract lock constraint |
 | `mix deps.get` resolves without overrides | OK | **GitHub Actions** runs `mix deps.get` per job (e.g. `.github/workflows/ci.yml` → `verify-test` / `verify-format`); root **`mix.lock`** pins resolution — no `override: true` on library deps. |
 
 ## Connection topology (host / maintainer)

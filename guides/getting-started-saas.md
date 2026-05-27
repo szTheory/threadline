@@ -21,7 +21,7 @@ Add Threadline to `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:threadline, "~> 0.5"}
+    {:threadline, "~> 0.6"}
   ]
 end
 ```
@@ -202,6 +202,7 @@ scope "/audit" do
     actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
     authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
     export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+    evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
     scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
     repo: ThreadlinePhoenix.Repo
   )
@@ -234,8 +235,13 @@ cross a separate HTTP auth boundary and deny with plain-text `403` when
 authorization fails. Coverage and policy views are separate admin/global
 surfaces; gate them with `coverage_authorize_fn` and `policy_authorize_fn`, and
 let the built-in unsupported state point operators to `mix
-threadline.health.coverage` or `mix threadline.policy.show` when needed. For
-the full runbook, see `guides/operator-surface.md`. If you ever need a
+threadline.health.coverage` or `mix threadline.policy.show` when needed.
+
+Mounted `/audit/evidence` is separately gated via `evidence_authorize_fn`.
+Support scopes that reach the scoped timeline do **not** automatically get the
+evidence UI — denied sessions see Unsupported View and should use
+`mix threadline.evidence.show`. For the full runbook, see
+`guides/operator-surface.md`. If you ever need a
 non-standard transport shape, manual `SessionPlug` composition is still
 available as an advanced escape hatch rather than the primary setup path.
 

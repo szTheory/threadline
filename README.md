@@ -52,7 +52,7 @@ read [guides/domain-reference.md](guides/domain-reference.md).
    ```elixir
    def deps do
      [
-       {:threadline, "~> 0.5"}
+       {:threadline, "~> 0.6"}
      ]
    end
    ```
