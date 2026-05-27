@@ -28,7 +28,7 @@
 
 - [x] **Phase 104: Reference-Walkthrough Charter & Override Decision** — Record the deliberate override of v1.22's "real-adopter-first" closeout guidance and lock v1.23 non-goals. (completed 2026-05-27)
 - [x] **Phase 105: Help-Desk Domain Expansion in Reference App** — Add help-desk schemas, contexts, migrations, and triggers to `examples/threadline_phoenix/`; `lib/` stays read-only. (completed 2026-05-27)
-- [ ] **Phase 106: Sigra Auth Lane in Reference App** — Wire real Sigra signup/login/session and replace faked-conn admin assigns; surface `organization_id` + role on `current_user`.
+- [x] **Phase 106: Sigra Auth Lane in Reference App** — Wire real Sigra signup/login/session and replace faked-conn admin assigns; surface `organization_id` + role on `current_user`. (completed 2026-05-27)
 - [ ] **Phase 107: Realistic Seed Data + Demo Mix Tasks** — Ship `mix demo.seed` / `mix demo.reset` producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario.
 - [ ] **Phase 108: Walkthrough Script + Finding-Capture Protocol** — Write `examples/threadline_phoenix/WALKTHROUGH.md` and the finding template + (a/b/c/d) classification rule **before** walking.
 - [ ] **Phase 109: Maintainer Walkthrough Dry-Run** — Execute WALKTHROUGH.md end-to-end on a clean clone, capture findings observationally, fix nothing in-flight.
@@ -100,7 +100,7 @@
   3. New help-desk audit tests authenticate via real Sigra session (not `conn |> assign(:current_user, …)`); audit rows reflect the logged-in user's `actor_ref`.
   4. All pre-existing example-app tests still pass against the real Sigra session shape — no faked-conn regressions.
 
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 **UI hint:** yes
 
@@ -199,7 +199,7 @@
 |-------|----------------|--------|-----------|
 | 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
 | 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 106. Sigra Auth Lane in Reference App | 1/3 | In Progress|  |
+| 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |
 | 108. Walkthrough Script + Finding-Capture Protocol | 0/? | Not started | — |
 | 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
