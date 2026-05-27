@@ -1,10 +1,7 @@
 defmodule ThreadlinePhoenix.Blog do
   @moduledoc false
 
-  import Ecto.Query
-
-  alias Threadline.Capture.AuditTransaction
-  alias Threadline.Semantics.{AuditAction, AuditContext}
+  alias Threadline.Semantics.AuditContext
   alias ThreadlinePhoenix.{Post, Repo}
 
   alias Threadline.Job
@@ -19,64 +16,23 @@ defmodule ThreadlinePhoenix.Blog do
   `:correlation_id` filters on `Threadline.timeline/2` match.
   """
   def create_post(%AuditContext{} = audit_context, attrs, opts \\ []) when is_map(attrs) do
-    case audit_context.actor_ref do
-      nil ->
-        {:error, :missing_actor}
+    # doc: start: blog-create-post-transaction
+    Threadline.Audit.transaction(
+      Repo,
+      [
+        audit_context: audit_context,
+        action: :post_created_via_api,
+        transaction_meta: audit_transaction_meta(opts)
+      ],
+      fn ->
+        case Repo.insert(Post.changeset(%Post{}, attrs)) do
+          {:error, changeset} -> Repo.rollback(changeset)
+          {:ok, post} -> %{post: post}
+        end
+      end
+    )
 
-      actor_ref ->
-        json =
-          actor_ref
-          |> Threadline.Semantics.ActorRef.to_map()
-          |> Jason.encode!()
-
-        Repo.transaction(fn ->
-          # doc: start: blog-create-post-transaction
-          Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-
-          case Repo.insert(Post.changeset(%Post{}, attrs)) do
-            {:error, changeset} ->
-              Repo.rollback(changeset)
-
-            {:ok, post} ->
-              action_opts = [
-                repo: Repo,
-                actor: actor_ref,
-                correlation_id: audit_context.correlation_id,
-                request_id: audit_context.request_id
-              ]
-
-              case Threadline.record_action(:post_created_via_api, action_opts) do
-                {:error, cs} ->
-                  Repo.rollback(cs)
-
-                {:ok, %AuditAction{id: action_id}} ->
-                  {count, _} =
-                    Repo.update_all(
-                      from(at in AuditTransaction,
-                        where: at.txid == fragment("txid_current()")
-                      ),
-                      set: [action_id: action_id, meta: audit_transaction_meta(opts)]
-                    )
-
-                  if count != 1 do
-                    Repo.rollback(:missing_audit_transaction_for_link)
-                  end
-
-                  audit_transaction_id =
-                    Repo.one!(
-                      from(at in AuditTransaction,
-                        where: at.txid == fragment("txid_current()"),
-                        select: at.id
-                      )
-                    )
-
-                  %{post: post, audit_transaction_id: audit_transaction_id}
-              end
-          end
-
-          # doc: end: blog-create-post-transaction
-        end)
-    end
+    # doc: end: blog-create-post-transaction
   end
 
   defp audit_transaction_meta(opts) do

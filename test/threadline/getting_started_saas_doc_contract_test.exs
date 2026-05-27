@@ -35,6 +35,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "mix threadline.health.coverage")
     assert String.contains?(doc, router_block())
     assert String.contains?(doc, blog_block())
+    refute String.contains?(doc, "Legacy manual recipe")
+    assert String.contains?(blog_block(), "Threadline.Audit.transaction")
     assert String.contains?(doc, "`actor_fn` remains the only actor-authority path")
     assert String.contains?(doc, "additive `request_id` and `correlation_id` metadata only")
     assert String.contains?(doc, "Explicit `x-request-id`, explicit")

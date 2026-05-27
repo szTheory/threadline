@@ -89,76 +89,28 @@ it replaces the manual `set_config` → domain writes → `record_action/2` → 
 linkage recipe in one call:
 
 ```elixir
-Threadline.Audit.transaction(
-  Repo,
-  [
-    audit_context: audit_context,
-    action: :post_created_via_api,
-    transaction_meta: %{"organization_id" => org_id}
-  ],
-  fn ->
-    case Repo.insert(Post.changeset(%Post{}, attrs)) do
-      {:error, changeset} -> Repo.rollback(changeset)
-      {:ok, post} -> %{post: post}
-    end
-  end
-)
+    Threadline.Audit.transaction(
+      Repo,
+      [
+        audit_context: audit_context,
+        action: :post_created_via_api,
+        transaction_meta: audit_transaction_meta(opts)
+      ],
+      fn ->
+        case Repo.insert(Post.changeset(%Post{}, attrs)) do
+          {:error, changeset} -> Repo.rollback(changeset)
+          {:ok, post} -> %{post: post}
+        end
+      end
+    )
 ```
 
-When `:action` is present, the return map includes `:audit_transaction_id` (merged into
-your callback map on success). Omit `:action` for capture-only writes — strict
-`:correlation_id` filters will not match those rows.
+When `:action` is present, the success map includes `:audit_transaction_id` merged into
+your callback return. Omit `:action` or pass `capture_only: true` for capture-only writes;
+strict `:correlation_id` filters will not match those rows.
 
-### Legacy manual recipe (reference app)
-
-The example app still uses the manual transaction body below until Phase 112 migrates
-to the helper. The example writes the actor into the same database transaction as the
-insert, then records semantic intent before returning an `audit_transaction_id`:
-
-```elixir
-          Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-
-          case Repo.insert(Post.changeset(%Post{}, attrs)) do
-            {:error, changeset} ->
-              Repo.rollback(changeset)
-
-            {:ok, post} ->
-              action_opts = [
-                repo: Repo,
-                actor: actor_ref,
-                correlation_id: audit_context.correlation_id,
-                request_id: audit_context.request_id
-              ]
-
-              case Threadline.record_action(:post_created_via_api, action_opts) do
-                {:error, cs} ->
-                  Repo.rollback(cs)
-
-                {:ok, %AuditAction{id: action_id}} ->
-                  {count, _} =
-                    Repo.update_all(
-                      from(at in AuditTransaction,
-                        where: at.txid == fragment("txid_current()")
-                      ),
-                      set: [action_id: action_id, meta: audit_transaction_meta(opts)]
-                    )
-
-                  if count != 1 do
-                    Repo.rollback(:missing_audit_transaction_for_link)
-                  end
-
-                  audit_transaction_id =
-                    Repo.one!(
-                      from(at in AuditTransaction,
-                        where: at.txid == fragment("txid_current()"),
-                        select: at.id
-                      )
-                    )
-
-                  %{post: post, audit_transaction_id: audit_transaction_id}
-              end
-          end
-```
+See [Integration contracts](integration-contracts.md) § Audited write path for forbidden
+callback operations and escape hatches.
 
 Start your Phoenix app, then send the first audited request:
 
