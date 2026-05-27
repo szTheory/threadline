@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: executing
-last_updated: "2026-05-27T22:10:48.117Z"
-last_activity: 2026-05-27 -- Phase 115 planning complete
+last_updated: "2026-05-27T22:13:03Z"
+last_activity: 2026-05-27 -- Completed Phase 115 plan 02
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
-  percent: 20
+  completed_plans: 5
+  percent: 40
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 116 — example-first-hour-fixes
 
 ## Current Position
 
-Phase: 115
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 115 planning complete
+Phase: 115 (narrative-doc-sync) — COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 115 complete; ready for Phase 116
+Last activity: 2026-05-27 -- Completed Phase 115 plan 02
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 | verification | Phase 109: 109-VERIFICATION.md | gaps_found — by-design (observe-only dry-run; triage in Phase 110) |
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until sustained adopter/procurement pressure |
 | v1.24 seed | Containerized compose walk | Discussed 109/110; not filed unless demand |
+| Phase 115-narrative-doc-sync P02 | 1 min | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -63,11 +64,10 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Phase 114 context gathered (`114-CONTEXT.md`).
-- **Next Step**: `/gsd-plan-phase 114`
+- **Last Action**: Completed 115-02-PLAN.md (README/getting-started narrative sync).
+- **Next Step**: `/gsd-plan-phase 116` or execute Phase 116 when planned
 
 ## Operator Next Steps
 
-- Review REQUIREMENTS.md and ROADMAP.md when drafted
-- `/gsd-plan-phase 114` — Release 0.6.0 packaging
+- `/gsd-plan-phase 116` — Example first-hour fixes
 - Assessment thread: `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`

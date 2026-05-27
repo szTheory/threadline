@@ -29,7 +29,7 @@
 ## Phases
 
 - [x] **Phase 114: Release 0.6.0 Packaging** — Cut threadline 0.6.0 with changelog, ExDoc, verify.release, and adoption-pilot version SSOT. (completed 2026-05-27)
-- [ ] **Phase 115: Narrative Doc Sync** — Align how-threadline-works and cross-links to `Audit.transaction/3` as blessed write path.
+- [x] **Phase 115: Narrative Doc Sync** — Align how-threadline-works and cross-links to `Audit.transaction/3` as blessed write path. (completed 2026-05-27)
 - [ ] **Phase 116: Example First-Hour Fixes** — Repair example README auth staging, setup vs demo.seed, and generator/migration clarity.
 - [ ] **Phase 117: Evidence Plane Doc Authority** — Single evidence-plane entry point; semver vocabulary in adopter prose.
 - [ ] **Phase 118: Pilot Prep (Optional)** — Refresh adoption-pilot counts; external evaluator one-pager.
@@ -72,7 +72,7 @@
 2. README → getting-started → how-threadline-works discovery order is consistent (no conflicting `record_action/2`-first guidance).
 3. Doc-contract tests lock at least one narrative literal for the blessed write path.
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 | Wave | Plans | What it builds |
 |------|-------|----------------|
