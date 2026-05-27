@@ -10,6 +10,7 @@ Entity UUIDs, ticket numbers, and time anchors: [DEMO-MANIFEST.md](./DEMO-MANIFE
 
 | Email | Password | Org slug | Role | Walkthrough step |
 |-------|----------|----------|------|----------------|
+| `agent2@acme.example.com` | `password123456` | `acme` | agent | WALK-03-02 — leaving-agent window |
 | `closer@acme.example.com` | `password123456` | `acme` | agent | WALK-03 — who closed ticket **#4521** |
 | `deleter@acme.example.com` | `password123456` | `acme` | agent | WALK-03 / SEED-05 — who deleted reply on **#4518** |
 | `support@acme.example.com` | `password123456` | `acme` | support | Daily-use triage samples |
