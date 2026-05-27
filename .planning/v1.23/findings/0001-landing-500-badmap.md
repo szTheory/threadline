@@ -4,8 +4,8 @@ slug: landing-500-badmap
 classification: a
 walkthrough_step: WALK-01-04
 captured: 2026-05-27T19:15:10Z
-status: open
-fixed_in:
+status: fixed
+fixed_in: 7b9e46b5b90c5da7f64c88ae539e8390f8734826
 deferred_to:
 ---
 
