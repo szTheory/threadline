@@ -93,19 +93,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
                  []
                )
 
-      {:ok, actor_ref} = ActorRef.new(:user, "agent-user-2")
-      json = actor_ref |> ActorRef.to_map() |> Jason.encode!()
-
-      Repo.transaction(fn ->
-        Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
-        Repo.delete!(reply)
-
-        {1, _} =
-          Repo.update_all(
-            from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-            set: [meta: %{"organization_id" => to_string(org.id)}]
-          )
-      end)
+      assert {:ok, :deleted} = HelpDesk.delete_reply(ctx, org, reply)
 
       delete_change =
         Repo.one!(

@@ -218,6 +218,53 @@ defmodule ThreadlinePhoenix.HelpDesk do
     end
   end
 
+  @doc """
+  Hard-deletes a ticket reply with actor GUC and org scope on the audit transaction.
+
+  Does not record a semantic `:ticket_reply_deleted` action (D-107-05d).
+  """
+  @spec delete_reply(AuditContext.t(), Organization.t(), TicketReply.t()) ::
+          {:ok, :deleted} | {:error, term()}
+  def delete_reply(
+        %AuditContext{} = audit_context,
+        %Organization{} = organization,
+        %TicketReply{} = reply
+      ) do
+    case audit_context.actor_ref do
+      nil ->
+        {:error, :missing_actor}
+
+      actor_ref ->
+        json =
+          actor_ref
+          |> Threadline.Semantics.ActorRef.to_map()
+          |> Jason.encode!()
+
+        Repo.transaction(fn ->
+          Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+          Repo.delete!(reply)
+
+          meta = audit_transaction_meta(organization)
+
+          {count, _} =
+            Repo.update_all(
+              from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
+              set: [meta: meta]
+            )
+
+          if count != 1 do
+            Repo.rollback(:missing_audit_transaction_for_delete)
+          end
+
+          :deleted
+        end)
+        |> case do
+          {:ok, :deleted} -> {:ok, :deleted}
+          {:error, reason} -> {:error, reason}
+        end
+    end
+  end
+
   defp audit_transaction_meta(%Organization{id: org_id}) do
     %{"organization_id" => to_string(org_id)}
   end
