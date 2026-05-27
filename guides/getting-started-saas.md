@@ -7,6 +7,8 @@ example app in `examples/threadline_phoenix/` is the runnable contract behind
 the snippets below. If you want the architecture/persona/JTBD map first, read
 [How Threadline works](how-threadline-works.md) before you wire anything.
 
+This guide and [How Threadline works](how-threadline-works.md) both treat `Threadline.Audit.transaction/3` as the recommended audited write path; §6 below is the canonical runnable snippet.
+
 ## 1. Prerequisites
 
 - You need a Phoenix app with Ecto + PostgreSQL available before you start. If Phoenix is new to you, read <https://phoenixframework.org> first, then come back here.
