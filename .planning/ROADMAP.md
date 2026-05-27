@@ -77,7 +77,7 @@
   4. `ticket_replies.internal_note_body` is masked or excluded in `config :threadline, :trigger_capture` so the walkthrough's redaction-posture scenario has a real on-disk surface to exercise.
   5. All pre-existing example-app tests still pass (`posts_audit_path_test`, `posts_correlation_path_test`, `posts_incident_json_path_test`, `operator_surface_test`, `post_touch_worker_test`).
 
-**Plans:** TBD
+**Plans:** 3 plans (105-01 schemas/migrations, 105-02 context+capture+triggers, 105-03 DataCase proof tests)
 
 **UI hint:** yes
 
@@ -198,7 +198,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
-| 105. Help-Desk Domain Expansion in Reference App | 0/? | Not started | — |
+| 105. Help-Desk Domain Expansion in Reference App | 0/3 | Planned | 2026-05-27 |
 | 106. Sigra Auth Lane in Reference App | 0/? | Not started | — |
 | 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |
 | 108. Walkthrough Script + Finding-Capture Protocol | 0/? | Not started | — |
