@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.24
 milestone_name: Audited Write Path & Adopter Truth
-status: executing
-last_updated: "2026-05-27T20:19:56.363Z"
-last_activity: 2026-05-27 -- Phase 111 planning complete
+status: ready
+last_updated: "2026-05-27T20:29:40.913Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 33
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Milestone v1.24 — Audited Write Path & Adopter Truth
+**Current focus:** Phase 112 — reference-app-adopts-helper
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 111 planning complete
+Phase: 112 — reference-app-adopts-helper
+Plan: Not started
+Status: Ready to plan/execute Phase 112
+Last activity: 2026-05-27 — Phase 111 complete (3/3 plans)
 
 ## Performance Metrics
 
@@ -54,7 +54,7 @@ Last activity: 2026-05-27 -- Phase 111 planning complete
 
 ### Todos
 
-- `/gsd-discuss-phase 111` or `/gsd-plan-phase 111` to begin execution
+- `/gsd-plan-phase 112` or `/gsd-execute-phase 112` for reference app adoption
 
 ### Blockers
 

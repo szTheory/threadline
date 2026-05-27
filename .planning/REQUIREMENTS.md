@@ -13,10 +13,10 @@
 
 ### Audited Write Path (Phase 111) — Library helper
 
-- [ ] **AUDIT-TXN-01**: Ship `Threadline.Audit.transaction/2` (or equivalent public name) that runs inside a single `Ecto.Repo` transaction: sets `threadline.actor_ref` via `set_config`, executes the host callback, optionally records a semantic action via `Threadline.record_action/2`, and links `audit_transactions.action_id` when an action is recorded — returning `{:ok, result}` / `{:error, reason}` with `audit_transaction_id` available to callers when applicable.
-- [ ] **AUDIT-TXN-02**: Helper accepts explicit `actor_ref`, action name/intent opts, and correlation metadata compatible with existing `AuditContext` / `record_action/2` shapes; does not require `%AuditContext{}` from Plug (host may still use Plug separately).
-- [ ] **AUDIT-TXN-03**: Integration tests on PostgreSQL prove: (a) row capture under helper, (b) `action_id` linkage enables strict `:correlation_id` timeline filter, (c) missing actor_ref fails predictably or documents opt-in behavior.
-- [ ] **AUDIT-TXN-04**: `guides/getting-started-saas.md` and `guides/integration-contracts.md` document the helper as the recommended write path; doc-contract test locks at least one canonical snippet literal.
+- [x] **AUDIT-TXN-01**: Ship `Threadline.Audit.transaction/2` (or equivalent public name) that runs inside a single `Ecto.Repo` transaction: sets `threadline.actor_ref` via `set_config`, executes the host callback, optionally records a semantic action via `Threadline.record_action/2`, and links `audit_transactions.action_id` when an action is recorded — returning `{:ok, result}` / `{:error, reason}` with `audit_transaction_id` available to callers when applicable.
+- [x] **AUDIT-TXN-02**: Helper accepts explicit `actor_ref`, action name/intent opts, and correlation metadata compatible with existing `AuditContext` / `record_action/2` shapes; does not require `%AuditContext{}` from Plug (host may still use Plug separately).
+- [x] **AUDIT-TXN-03**: Integration tests on PostgreSQL prove: (a) row capture under helper, (b) `action_id` linkage enables strict `:correlation_id` timeline filter, (c) missing actor_ref fails predictably or documents opt-in behavior.
+- [x] **AUDIT-TXN-04**: `guides/getting-started-saas.md` and `guides/integration-contracts.md` document the helper as the recommended write path; doc-contract test locks at least one canonical snippet literal.
 
 ### Adopt Helper (Phase 112) — Reference app + guide
 
@@ -62,10 +62,10 @@ Deferred until sustained adopter or procurement pressure.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-TXN-01 | 111 | Pending |
-| AUDIT-TXN-02 | 111 | Pending |
-| AUDIT-TXN-03 | 111 | Pending |
-| AUDIT-TXN-04 | 111 | Pending |
+| AUDIT-TXN-01 | 111 | Complete |
+| AUDIT-TXN-02 | 111 | Complete |
+| AUDIT-TXN-03 | 111 | Complete |
+| AUDIT-TXN-04 | 111 | Complete |
 | ADOPT-HELPER-01 | 112 | Pending |
 | ADOPT-HELPER-02 | 112 | Pending |
 | ADOPT-HELPER-03 | 112 | Pending |

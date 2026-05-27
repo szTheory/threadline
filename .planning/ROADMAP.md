@@ -25,7 +25,7 @@
 
 ## Phases
 
-- [ ] **Phase 111: Audited Write-Path Helper** — Ship `Threadline.Audit.transaction/2` (or equivalent) with PostgreSQL integration tests and doc contracts.
+- [x] **Phase 111: Audited Write-Path Helper** — Ship `Threadline.Audit.transaction/2` (or equivalent) with PostgreSQL integration tests and doc contracts. (completed 2026-05-27)
 - [ ] **Phase 112: Reference App Adopts Helper** — Refactor example write paths and getting-started guide to use the helper; keep correlation/audit tests green.
 - [ ] **Phase 113: Adopter Truth & Doc Sync** — Wire `evidence_authorize_fn` in example mount; sync adoption-pilot to 0.5.x; align evidence CLI naming; fix WALK-03-02 prose (WR-110-001).
 
@@ -47,7 +47,7 @@
 2. Strict `:correlation_id` timeline filters work when the helper records and links an action in the same transaction.
 3. Doc-contract tests lock the public helper signature and at least one getting-started/integration-contract snippet.
 
-**Plans:** 0 plans drafted
+**Plans:** 3/3 plans complete
 
 ---
 
