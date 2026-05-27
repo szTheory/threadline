@@ -5,236 +5,93 @@
 - ✅ **v1.21 Scoped Support / Operator Proof** — Phases 85-94, 21 plans, shipped 2026-05-25. Archive: `.planning/milestones/v1.21-ROADMAP.md`
 - ✅ **v1.22 Policy / Evidence Plane** — Phases 95-103, 18 plans, shipped 2026-05-27. Archive: `.planning/milestones/v1.22-ROADMAP.md`
 - ✅ **v1.23 Realistic-Demo Walkthrough** — Phases 104-110, 24 plans, shipped 2026-05-27. Archive: `.planning/milestones/v1.23-ROADMAP.md`
+- 🚧 **v1.24 Audited Write Path & Adopter Truth** — Phases 111-113 (in progress)
 
 ## Current Planning State
 
-**Milestone:** v1.23 — Realistic-Demo Walkthrough — **SHIPPED 2026-05-27**
-**Status:** Awaiting next milestone (`/gsd-new-milestone`)
-**Last shipped:** v1.23 — help-desk reference app, Sigra auth, demo seeds, maintainer WALKTHROUGH, dry-run + triage complete
+**Milestone:** v1.24 — Audited Write Path & Adopter Truth
+**Status:** Defining requirements (roadmap drafted 2026-05-27)
+**Last shipped:** v1.23 — realistic-demo walkthrough (2026-05-27)
 
-**Framing override (recorded at Phase 104):** v1.22's closeout language said "real-adopter feedback first, not speculative widening." v1.23 deliberately overrides that rule because no real adopter exists and the alternative is shipping nothing. The override is captured as a Phase 104 Key Decision so the next milestone-arc reread does not re-litigate it. First real-adopter signal (issue, pilot host, procurement conversation) re-engages the v1.22 rule and pauses synthetic walkthroughs.
+**Assessment:** Milestone-next-step adopter lens (~83% done for stated scope). Confirmed scope without sustained external adopter signal. Thread: `.planning/threads/2026-05-27-milestone-next-step-v1.24.md`.
 
-**Boundary contract summary (strict per-phase scope guards):**
+**Boundary contract:**
 
-- **Phase 104** — `.planning/` only. Charter and override-decision artifacts. No code, no docs, no example-app edits.
-- **Phases 105, 106, 107, 108** — `examples/threadline_phoenix/` only. `lib/` is **read-only**. Sub-phase **106b** is the documented escape valve if real signup/login surfaces a contract gap in `Threadline.Integrations.Sigra` — but **not** added to the roadmap proactively; opened only if/when needed.
-- **Phase 109** — `.planning/v1.23/findings/` only. No code, doc, README, or example-app edits during the walkthrough run. Findings are captured observationally; nothing is fixed in-flight.
-- **Phase 110** — `examples/` and `guides/` freely. `lib/` is touchable **only** for (a) S-tier breakage findings citing concrete walkthrough evidence (wrong answer, crash, security regression). `.planning/v1.24-seeds/` for (d) design-gap deferrals.
+- **Phase 111** — `lib/threadline/` helper + tests + guide/doc contracts for helper API
+- **Phase 112** — `examples/threadline_phoenix/` + `guides/getting-started-saas.md` adopt helper
+- **Phase 113** — `examples/` + `guides/` doc truth (`evidence_authorize_fn`, 0.5.x pilot table, evidence CLI naming, WR-110-001); no new Evidence subjects
 
-**Non-goals (locked in PROJECT.md by Phase 104):** No new `Threadline.Evidence` subjects beyond the six shipped in v1.22; no Threadline-owned RBAC / tenancy DSLs; no `lib/` auth or domain code; no rebrand of "example app" to "demo product"; no extension of the Sigra integration unless real signup/login surfaces a contract gap (handled via sub-phase 106b).
+**Non-goals:** No compliance packs / legal hold / immutable archive; no Threadline-owned RBAC; no second walkthrough; no help-desk product expansion.
 
 ## Phases
 
-- [x] **Phase 104: Reference-Walkthrough Charter & Override Decision** — Record the deliberate override of v1.22's "real-adopter-first" closeout guidance and lock v1.23 non-goals. (completed 2026-05-27)
-- [x] **Phase 105: Help-Desk Domain Expansion in Reference App** — Add help-desk schemas, contexts, migrations, and triggers to `examples/threadline_phoenix/`; `lib/` stays read-only. (completed 2026-05-27)
-- [x] **Phase 106: Sigra Auth Lane in Reference App** — Wire real Sigra signup/login/session and replace faked-conn admin assigns; surface `organization_id` + role on `current_user`. (completed 2026-05-27)
-- [x] **Phase 107: Realistic Seed Data + Demo Mix Tasks** — Ship `mix demo.seed` / `mix demo.reset` producing deterministic ~3-org × 5-agent × 50-ticket two-week activity that drives every walkthrough scenario.
-- [x] **Phase 108: Walkthrough Script + Finding-Capture Protocol** — Write `examples/threadline_phoenix/WALKTHROUGH.md` and the finding template + (a/b/c/d) classification rule **before** walking.
-- [x] **Phase 109: Maintainer Walkthrough Dry-Run** — Execute WALKTHROUGH.md end-to-end on a clean clone, capture findings observationally, fix nothing in-flight. (completed 2026-05-27)
-- [x] **Phase 110: Triage + Narrow Fixes** — Apply fix-vs-defer rule: ship (a)(b)(c) fixes; route (d) design gaps to v1.24 seeds with rationale. (completed 2026-05-27)
+- [ ] **Phase 111: Audited Write-Path Helper** — Ship `Threadline.Audit.transaction/2` (or equivalent) with PostgreSQL integration tests and doc contracts.
+- [ ] **Phase 112: Reference App Adopts Helper** — Refactor example write paths and getting-started guide to use the helper; keep correlation/audit tests green.
+- [ ] **Phase 113: Adopter Truth & Doc Sync** — Wire `evidence_authorize_fn` in example mount; sync adoption-pilot to 0.5.x; align evidence CLI naming; fix WALK-03-02 prose (WR-110-001).
 
 ## Phase Details
 
-### Phase 104: Reference-Walkthrough Charter & Override Decision
+### Phase 111: Audited Write-Path Helper
 
-**Goal:** Record the deliberate override of v1.22's "real-adopter-first" closeout guidance and lock the milestone's non-goals so the next milestone-arc reread does not re-litigate the decision.
+**Goal:** Make the trustworthy capture+semantics write path a single documented library call instead of a copy-pasted transaction recipe.
 
-**Depends on:** Nothing (independent — technically may come before any other phase; recommended order is 104 first so the charter exists when execution begins).
+**Depends on:** Nothing (first phase of v1.24).
 
-**Requirements:** CHARTER-01, CHARTER-02, CHARTER-03
+**Requirements:** AUDIT-TXN-01, AUDIT-TXN-02, AUDIT-TXN-03, AUDIT-TXN-04
 
-**Scope guard:** `.planning/` only. No code, no docs, no example-app edits, no test changes.
-
-**Success Criteria** (what must be TRUE):
-
-  1. `PROJECT.md` Key Decisions table contains a new row for the v1.22-override decision with rationale, override trigger ("no real adopter exists, alternative is shipping nothing"), and re-engagement trigger ("first real-adopter signal pauses synthetic walkthroughs and resumes the v1.22 rule") — readable by anyone re-opening the planning surface six months from now.
-  2. `.planning/MILESTONE-ARC.md` has a v1.23 row in the arc-order table with theme, why-now framing, what-this-unlocks, and explicit non-goals; the strategic-thesis paragraph notes the override.
-  3. v1.23 non-goals are locked in PROJECT.md (no new evidence subjects, no Threadline-owned RBAC/tenancy DSL, no `lib/` auth or domain code, no rebrand to "demo product", no Sigra extension absent contract gap) — verifiable by reading the Out-of-Scope / Active sections.
-  4. A maintainer reopening the planning surface can identify in <2 minutes that v1.23 is the synthetic-first-adopter milestone, why the v1.22 rule was set aside, and what would re-engage it.
-
-**Plans:** 1/1 plans complete
-
-- [x] 104-01-PLAN.md — Insert v1.23 override Key Decisions row + non-goals subsection + footnote refresh in PROJECT.md; sweep MILESTONE-ARC.md header, strategic-thesis sentence, option-record row 6, and append new v1.23 arc-order row.
-
----
-
-### Phase 105: Help-Desk Domain Expansion in Reference App
-
-**Goal:** Add help-desk schemas, contexts, migrations, and triggers to `examples/threadline_phoenix/` so the reference app has a believable, multi-table, audited domain for the walkthrough to exercise — without touching `lib/`.
-
-**Depends on:** Phase 104 (charter and boundary contract must exist before code begins).
-
-**Requirements:** DEMO-01, DEMO-02, DEMO-03, DEMO-04
-
-**Scope guard:** `examples/threadline_phoenix/` only. `lib/` is read-only.
+**Scope guard:** `lib/threadline/` + `test/threadline/` + `guides/` (helper documentation only). Example app deferred to Phase 112.
 
 **Success Criteria** (what must be TRUE):
 
-  1. A fresh `mix ecto.setup` in `examples/threadline_phoenix/` creates `organizations`, `org_memberships`, `agents`, `tickets`, and `ticket_replies` with correct associations and the `internal_note_body` column present on replies.
-  2. `mix verify.threadline` (coverage check) passes for the new help-desk tables on a fresh `mix ecto.setup` — every audited table has its trigger installed.
-  3. A multi-table write (e.g. `:ticket_replied_and_closed` hitting `tickets` + `ticket_replies` in one DB transaction) produces one `AuditTransaction` linking both row changes, verifiable via a new ConnCase/integration test patterned after `Blog.create_post/2`.
-  4. `ticket_replies.internal_note_body` is masked or excluded in `config :threadline, :trigger_capture` so the walkthrough's redaction-posture scenario has a real on-disk surface to exercise.
-  5. All pre-existing example-app tests still pass (`posts_audit_path_test`, `posts_correlation_path_test`, `posts_incident_json_path_test`, `operator_surface_test`, `post_touch_worker_test`).
+1. A Phoenix SaaS developer can wrap audited writes in one helper call and receive `audit_transaction_id` when applicable.
+2. Strict `:correlation_id` timeline filters work when the helper records and links an action in the same transaction.
+3. Doc-contract tests lock the public helper signature and at least one getting-started/integration-contract snippet.
 
-**Plans:** 3/3 plans complete
-
-**UI hint:** yes
+**Plans:** 0 plans drafted
 
 ---
 
-### Phase 106: Sigra Auth Lane in Reference App
+### Phase 112: Reference App Adopts Helper
 
-**Goal:** Wire real Sigra signup/login/session in `examples/threadline_phoenix/` and replace the faked-conn admin assigns; expose `organization_id` and role on `current_user` so the existing `/audit` mount and authorize-fn continue to work end-to-end against real auth.
+**Goal:** Prove the helper on the sigra-reference example app and align the first-hour guide with the same pattern.
 
-**Depends on:** Phase 105 (org-scoping needs the organizations table to be present).
+**Depends on:** Phase 111.
 
-**Scope guard:** `examples/threadline_phoenix/` only. `lib/` is read-only. Sub-phase **106b** is the documented escape valve if real signup/login surfaces a contract gap in `Threadline.Integrations.Sigra` — but is NOT added to the roadmap proactively; opened only if/when needed.
+**Requirements:** ADOPT-HELPER-01, ADOPT-HELPER-02, ADOPT-HELPER-03
 
-**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04
+**Scope guard:** `examples/threadline_phoenix/` + `guides/getting-started-saas.md` + README cross-links. `lib/` read-only except bugfixes blocking example adoption.
 
 **Success Criteria** (what must be TRUE):
 
-  1. `mix ecto.setup` followed by `mix phx.server` produces a working signup → login → logout flow at the example-app routes; a session persists across page reloads.
-  2. After login, `current_user` / `current_scope` exposes `is_admin: boolean()`, `role: :support | :agent`, and `organization_id` — matching what the existing `my_authorize_fn` / `scope_operator_query` expect, so the existing `/audit` mount works without router changes beyond auth-pipeline wiring.
-  3. New help-desk audit tests authenticate via real Sigra session (not `conn |> assign(:current_user, …)`); audit rows reflect the logged-in user's `actor_ref`.
-  4. All pre-existing example-app tests still pass against the real Sigra session shape — no faked-conn regressions.
+1. Primary example write paths use the helper; hand-rolled `set_config` blocks are removed or reduced to documented escape hatches.
+2. `mix verify.example` and existing audit/correlation tests pass without weakened assertions.
+3. Getting-started guide snippets match example app implementation.
 
-**Plans:** 3/3 plans complete
-
-**UI hint:** yes
+**Plans:** 0 plans drafted
 
 ---
 
-### Phase 107: Realistic Seed Data + Demo Mix Tasks
+### Phase 113: Adopter Truth & Doc Sync
 
-**Goal:** Ship `mix demo.seed` and `mix demo.reset` Mix tasks that produce deterministic, ~3-organization × 5-agent × 50-ticket two-week activity so every Phase 108 walkthrough scenario has a real on-disk answer before the walkthrough runs.
+**Goal:** Repair reference and doc drift so 0.5.x evaluators see an honest sigra-reference lane including evidence UI and aligned CLI/version literals.
 
-**Depends on:** Phase 106 (seeds need real users with real org memberships, not synthetic actor refs).
+**Depends on:** Phase 112 (recommended; may run partial doc fixes in parallel if helper unchanged).
 
-**Requirements:** SEED-01, SEED-02, SEED-03, SEED-04, SEED-05
+**Requirements:** TRUTH-01, TRUTH-02, TRUTH-03, TRUTH-04, TRUTH-05
 
-**Scope guard:** `examples/threadline_phoenix/` only. `lib/` is read-only. Demo tasks live under `examples/threadline_phoenix/lib/mix/tasks/` — deliberately separate from `priv/repo/seeds.exs` so adopters don't conflate demo seed with their own scaffolding.
+**Scope guard:** `examples/threadline_phoenix/`, `guides/`, doc-contract tests. No new Evidence subjects; no `lib/` unless TRUTH-03 alias requires a thin Mix task wrapper.
 
 **Success Criteria** (what must be TRUE):
 
-  1. `mix demo.seed` from a freshly migrated DB produces ~3 organizations, ~5 agents per org, and ~50 tickets per org with two-week-old activity (backdated `created_at`/`updated_at`, realistic activity gaps, audit history showing the run-up); run is deterministic (fixed `:rand.seed`) and idempotent.
-  2. `mix demo.reset` returns the DB to a clean post-migrate state and re-runs `demo.seed`; documented as the canonical recovery command for the walkthrough.
-  3. Every specific entity referenced by Phase 108's walkthrough script — ticket #4521 in org Acme, the agent who closed it last Tuesday, the internal-note text, the offboarded org Y — exists in the seeded data and is findable via the operator surface.
-  4. A "deleted by someone" planted record (e.g. agent X deleted a ticket reply in org Acme last Tuesday) exists in the seed dataset so Phase 108's "who deleted X?" scenario has a real answer in the audit log.
-  5. Running `mix demo.seed` twice in a row produces the same byte-identical seeded state (idempotency check).
+1. Admin users on the example app can open `/audit/evidence` when `evidence_authorize_fn` grants access; docs state support denial explicitly.
+2. Adoption-pilot backlog cites **0.5.0** / `~> 0.5` consistently with README and `mix.exs`.
+3. Evidence CLI naming is single-canonical with doc-contract coverage; WR-110-001 prose fixed.
+4. `mix verify.doc_contract` and `mix verify.example` green.
 
-**Plans:** 4/4 plans complete
-
----
-
-### Phase 108: Walkthrough Script + Finding-Capture Protocol
-
-**Goal:** Write `examples/threadline_phoenix/WALKTHROUGH.md` (install → onboarding → daily-use → four WALK-03 operator incidents → three evidence exercises) and the `.planning/v1.23/findings/` template plus (a/b/c/d) classification rule **before** any walking happens — so the finding-capture protocol is in place before observations begin.
-
-**Depends on:** Phase 107 (scripting after seeds catches seed gaps cheaply; cannot script against fictional data).
-
-**Requirements:** WALK-01, WALK-02, WALK-03, WALK-04, FINDINGS-01
-
-**Scope guard:** `examples/threadline_phoenix/` and `.planning/v1.23/findings/` only. `lib/` is read-only. No fix work — only script and protocol authoring.
-
-**Success Criteria** (what must be TRUE):
-
-  1. `examples/threadline_phoenix/WALKTHROUGH.md` exists with install/onboarding (clone, deps, db setup, demo seed, signup/login, first ticket-reply), daily-use (agent reply+close, admin recent-activity view, support triage), four WALK-03 operator incidents (closed-ticket attribution #4521, leaving-agent audit window, org Y retention-purge evidence, deleted-reply attribution #4518), and three evidence exercises (retention purge, redaction snapshot, trigger coverage) — each section lists expected outputs, expected screens, and expected `Threadline.Evidence` records.
-  2. The four WALK-03 operator incidents in WALKTHROUGH.md are answerable using only the shipped `/audit` operator surface — no raw SQL, no IEx — and each incident's answer procedure is documented.
-  3. `.planning/v1.23/findings/TEMPLATE.md` and `.planning/v1.23/findings/README.md` define the finding file format (one numbered file per finding, with originating walkthrough step cited) and the (a/b/c/d) classification rule with fix-vs-defer routing: (a) breakage always fixed, (b) DX papercut fixed if ≤1 plan, (c) doc gap always fixed, (d) design gap deferred to v1.24 seeds.
-  4. A maintainer reading WALKTHROUGH.md cold can complete the full install-to-evidence walk without referring to any other doc, and a maintainer reading the findings README can classify a new gap in <30 seconds.
-
-**Plans:** 5/5 plans complete
-
-| Wave | Plans | Focus |
-|------|-------|-------|
-| 1 | 01, 02 | Redaction evidence seed gap; findings TEMPLATE + README |
-| 2 | 03 | WALKTHROUGH §0–§3 install/onboarding/daily-use |
-| 3 | 04 | WALKTHROUGH §4 four operator incidents; ROADMAP traceability |
-| 4 | 05 | WALKTHROUGH §5 evidence + appendices; doc contract test |
-
-**UI hint:** yes (documentation references operator surface — no UI-SPEC required)
+**Plans:** 0 plans drafted
 
 ---
 
-### Phase 109: Maintainer Walkthrough Dry-Run
+## Prior milestone phases (archived)
 
-**Goal:** Execute `examples/threadline_phoenix/WALKTHROUGH.md` end-to-end on a clean clone, capture every gap/papercut/surprise as a numbered finding file with (a/b/c/d) classification, and fix nothing in-flight — the separation is load-bearing because walking with in-flight fixes corrupts the findings.
-
-**Depends on:** Phase 108 (cannot walk without the script and finding protocol).
-
-**Requirements:** RUN-01, RUN-02, RUN-03, FINDINGS-02
-
-**Scope guard:** `.planning/v1.23/findings/` only. No code edits, no doc edits, no README edits, no example-app edits during the run — even if a typo is obvious. Anything observed becomes a finding file, classified at capture time, and routed in Phase 110.
-
-**Success Criteria** (what must be TRUE):
-
-  1. Clean-clone install completes following only WALKTHROUGH.md (no out-of-band shell commands, no IEx fixes); `mix phx.server` boots and the help-desk landing renders at `http://localhost:4000`.
-  2. Maintainer answers each of the four WALK-03 operator incidents in WALKTHROUGH.md using only the shipped `/audit` operator surface, with no IEx, no `Repo.all/2`, and no raw SQL — and the resolution procedure matches what WALKTHROUGH.md documents.
-  3. All three evidence exercises produce the documented `Threadline.Evidence` records via `mix verify.evidence` / `mix threadline.evidence.show` and the `/audit/evidence` LiveView; verdicts match expectations.
-  4. Every observed gap, papercut, surprise, and confusion is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with (a/b/c/d) classification assigned at capture time and the originating walkthrough step cited — zero findings deferred to be "classified later."
-  5. No commits modifying `lib/`, `guides/`, `examples/threadline_phoenix/` (other than finding-adjacent artifacts), or test code during the walkthrough run — verifiable via `git log` for the phase window.
-
-**Plans:** 6/5 plans complete
-
-| Wave | Plans | What it builds |
-|------|-------|----------------|
-| 1 | 109-01 | Execution log, isolated clone, §0 Postgres bootstrap |
-| 2 | 109-02 | RUN-01 — WALKTHROUGH §1–§3 (install, onboarding, daily use) |
-| 3 | 109-03 | RUN-02 — §4 four WALK-03 operator incidents + WR-001/002 |
-| 4 | 109-04 | RUN-03 — §5 evidence exercises + FINDINGS-02 reconciliation |
-| 5 | 109-05 | Import findings, scope-guard verification, SUMMARY handoff |
-
----
-
-### Phase 110: Triage + Narrow Fixes
-
-**Goal:** Apply the fix-vs-defer rule from FINDINGS-01: ship (a) breakage / (b) DX papercut / (c) doc gap fixes in this milestone; route (d) design gaps to `.planning/v1.24-seeds/` with rationale; do not widen scope.
-
-**Depends on:** Phase 109 (separation between walking and fixing is load-bearing).
-
-**Requirements:** FIX-01, FIX-02, FIX-03, DEFER-01
-
-**Scope guard:** `examples/` and `guides/` freely; `lib/` only for (a) S-tier breakage findings citing concrete walkthrough evidence (wrong answer, crash, security regression); `.planning/v1.24-seeds/` for (d) deferrals. Every `lib/` commit must reference a finding ID with concrete walkthrough evidence.
-
-**Success Criteria** (what must be TRUE):
-
-  1. Every (a) breakage finding has a commit referencing the finding ID; `lib/` commits all cite concrete walkthrough evidence — verifiable by reading the commit messages against the finding files.
-  2. Every (b) DX papercut finding is either fixed (≤1 narrow plan in scope) or explicitly deferred via `.planning/v1.24-seeds/SEED-NNN.md` with the finding marked `deferred_to:`; no silent drops.
-  3. Every (c) doc gap finding is fixed in `guides/` or example-app README; `mix verify.doc_contract` updated and green if doc-contract literals were touched.
-  4. Every (d) design gap finding lands as `.planning/v1.24-seeds/SEED-NNN.md` with a one-paragraph rationale, the originating finding ID, and a "when this seed should surface" trigger; the corresponding finding file is marked `deferred_to: SEED-NNN`.
-  5. Phase 110 SUMMARY.md lists every deferred seed by ID so the v1.24 milestone-arc reread has a complete handoff list.
-
-**Plans:** 4/3 plans complete
-
-| Wave | Plan | Objective |
-|------|------|-----------|
-| 1 | 110-01 | Fix finding 0001 landing 500 (L0+L1) |
-| 2 | 110-02 | File 0002/0003; WR doc fixes + contract tests + IN-001 |
-| 3 | 110-03 | Validation re-walk + 110-SUMMARY closeout |
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
-| 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
-| 108. Walkthrough Script + Finding-Capture Protocol | 5/5 | Complete    | 2026-05-27 |
-| 109. Maintainer Walkthrough Dry-Run | 6/5 | Complete   | 2026-05-27 |
-| 110. Triage + Narrow Fixes | 4/3 | Complete    | 2026-05-27 |
-
-Per-phase plan counts will be refined by `/gsd:plan-phase` as each phase is decomposed; the conservative estimate is 1–3 plans per phase.
-
-## Coverage
-
-- **v1 requirements:** 29 total
-- **Mapped to phases:** 29
-- **Unmapped:** 0 ✓
-
-See `.planning/milestones/v1.23-REQUIREMENTS.md` Traceability table for the full requirement → phase mapping.
-
----
-
-*Roadmap defined: 2026-05-27 — v1.23 Realistic-Demo Walkthrough, Phases 104–110, plan-locked from approved plan at `/Users/jon/.claude/plans/no-actual-adopter-feedback-logical-flamingo.md`.*
+v1.23 phases 104–110 remain under `.planning/phases/` for reference. Archive target on v1.24 closeout: `.planning/milestones/v1.23-phases/`.

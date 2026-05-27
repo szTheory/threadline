@@ -1,12 +1,12 @@
 # Milestone Arc: Threadline
 
 **Updated:** 2026-05-27
-**Active milestone:** v1.23 — Realistic-Demo Walkthrough
-**Next ranked candidate:** TBD after v1.23 closeout
+**Active milestone:** v1.24 — Audited Write Path & Adopter Truth
+**Next ranked candidate:** First external adopter / pilot (when sustained signal exists)
 
 ## Strategic thesis
 
-With v1.21 shipped, the support-safe `/audit` lane is now a fixed baseline instead of an adoption question. The next high-leverage move is stronger policy/evidence truth for enterprise scrutiny without widening Threadline into a Threadline-owned auth, tenancy, or compliance platform. v1.23 deliberately overrides v1.22's 'real-adopter-first' closeout rule because no real adopter has surfaced yet and the alternative is shipping nothing; the override re-engages on the first sustained real-adopter signal (see PROJECT.md Key Decisions).
+With v1.23 shipped, the synthetic walkthrough validated the sigra-reference path with zero design-gap deferrals. v1.24 closes the largest remaining adoption wedge: packaging the manual audited-transaction recipe into a library helper and repairing reference/doc truth for 0.5.x evaluators — without compliance-platform expansion. The v1.22 real-adopter-first rule re-engages on first sustained external signal (see PROJECT.md Key Decisions).
 
 ## Option record
 
@@ -32,7 +32,8 @@ These are the standing milestone directions and the recommended order to revisit
 | v1.20 | **shipped** | Scale and Governance Depth | Added governance schemas, batched retention with operator history, actor-owned saved views, built-in background exports, and truthful adapter-backed export delivery without taking over optional Oban/S3 runtime ownership. | Better enterprise readiness, stronger lifecycle controls, and a cleaner base for policy/compliance depth. | Turning Threadline into a SIEM or general analytics product. |
 | v1.21 | **shipped** | Scoped Support / Operator Proof | The highest-leverage remaining adopter gap was a proven tenant-safe support lane on the shipped `/audit` surface. v1.21 stayed narrow: productized the mount contract, not the auth model, and closed on proof-first rerun evidence. | Stronger SaaS support adoption, clearer tenant-safe operator guidance, a truthful support-safe claim on the current tree, and a firmer base for later compliance-proof work. | Threadline-owned RBAC or tenancy DSLs, broad policy engines, SIEM positioning, separate support route families, or unrelated new UI families. |
 | v1.22 | **shipped** | Policy / Evidence Plane | After the support-safe lane is proven, strengthen durable policy snapshots and audit-of-audit evidence so Threadline stands up better to enterprise scrutiny without broadening into a compliance platform. | More credible export/retention/policy proof, better procurement posture, cleaner later sink-hook work if needed. | Legal-hold platform work, immutable storage guarantees, generic compliance packs, vendor-specific reporting suites, or Threadline-owned RBAC/tenancy semantics. |
-| v1.23 | **active** | Realistic-Demo Walkthrough | Synthetic-first-adopter override of v1.22's real-adopter-first rule — no real adopter exists and the alternative is shipping nothing. | Walkthrough-surfaced design gaps as v1.24 seeds; first concrete fix-vs-defer rule in practice; durable boundary against scope creep tested under synthetic pressure. | No new Evidence subjects, no Threadline-owned RBAC/tenancy DSLs, no `lib/` auth or domain code, no "demo product" rebrand, no Sigra integration extension absent contract gap. Re-engages v1.22 rule on first sustained real-adopter signal. |
+| v1.23 | **shipped** | Realistic-Demo Walkthrough | Synthetic-first-adopter override of v1.22's real-adopter-first rule — no real adopter exists and the alternative is shipping nothing. | Walkthrough-surfaced design gaps as v1.24 seeds; first concrete fix-vs-defer rule in practice; durable boundary against scope creep tested under synthetic pressure. | No new Evidence subjects, no Threadline-owned RBAC/tenancy DSLs, no `lib/` auth or domain code, no "demo product" rebrand, no Sigra integration extension absent contract gap. Re-engages v1.22 rule on first sustained real-adopter signal. |
+| v1.24 | **active** | Audited Write Path & Adopter Truth | Capture+semantics+operator stack is strong (~83% for stated scope); #1 foot-gun is manual transaction recipe for actor GUC + `record_action` + `action_id`. No sustained adopter signal — helper + doc truth beat waiting or DEFER compliance work. | Easier first-hour adoption; honest sigra-reference including `/audit/evidence`; evaluators see 0.5.x-aligned pilot docs. | No new Evidence subjects; no compliance packs / legal hold / immutable archive; no second walkthrough; no Threadline-owned RBAC; no help-desk product expansion. |
 
 ## Activation rules
 

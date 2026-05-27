@@ -5,6 +5,13 @@
     "thinking_partner": false
   },
   "workflow": {
+    "text_mode": true,
+    "milestone_next_step": {
+      "adopter_lens": true,
+      "parallel_repo_research": true,
+      "retain_threads_and_retrospective": true,
+      "prompts_dir": "prompts/"
+    },
     "research": true,
     "plan_checker": true,
     "verifier": true,

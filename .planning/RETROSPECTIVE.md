@@ -520,3 +520,31 @@
 8. v1.8 — Keep **`PROJECT.md` Active`** aligned with the last shipped REQ the same day as phase verification.
 9. v1.9 — When **`milestone.complete` CLI** fails, still run **`git rm .planning/REQUIREMENTS.md`** at close so **`/gsd-new-milestone`** starts from a clean requirements slot.
 10. v1.10 — Run **`/gsd-audit-milestone`** before close when the milestone ships **library + doc + CI** evidence together; archive the audit file beside requirements.
+
+---
+
+## Milestone: v1.23 — Realistic-Demo Walkthrough
+
+**Shipped:** 2026-05-27  
+**Phases:** 7 (104–110) | **Plans:** 24
+
+### What was built
+
+- Help-desk domain, Sigra auth lane, `mix demo.seed` / `demo.reset`, maintainer `WALKTHROUGH.md`, observe-only dry-run, triage of findings 0001–0003.
+
+### Graduated learnings (for future milestones)
+
+1. **Synthetic override when no adopter exists** — Record override + re-engagement trigger in Key Decisions so the next arc reread does not re-litigate v1.22 closeout language.
+2. **Observe-only → triage split** — Phase 109 captures; Phase 110 fixes. Prevents in-flight scope creep during the walk.
+3. **Isolated clone verification ladder** — L0→L2 re-walk after fixes; do not claim RUN pass on a tree that predates triage commits.
+4. **Inventory-phase scope guard** — Phase 110 example/guides fixes with **zero** `lib/threadline/**` commits unless (a) breakage with walkthrough evidence.
+5. **108-REVIEW before 109** — Catch walk/doc mismatches before the dry-run hard-gates.
+
+### Surprises
+
+- Walkthrough filed **zero** (d) design gaps — v1.24-seeds handoff empty at closeout.
+- Landing-page `BadMapError` (finding 0001) was the only hard gate; RUN-02/03 were not attempted until fixed.
+
+### Cost observations
+
+- Not instrumented in-repo for this milestone.
