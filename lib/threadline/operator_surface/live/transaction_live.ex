@@ -20,6 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, bundle} ->
           {:ok,
            socket
+           |> assign(:threadline_repo, repo)
            |> assign(:not_found, false)
            |> assign(:bundle, bundle)
            |> stream_configure(:changes,
@@ -86,6 +87,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={surface_root(@base_path)}
           error={@threadline_coverage_error}
           coverage_enabled={@threadline_coverage_enabled}
+          policy_enabled={@threadline_policy_enabled}
+          evidence_enabled={@threadline_evidence_enabled}
         />
         <%= if @not_found do %>
           <div class="empty-state">

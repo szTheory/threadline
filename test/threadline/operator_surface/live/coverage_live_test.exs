@@ -39,7 +39,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit", coverage_authorize_fn: &Threadline.OperatorSurface.CoverageLiveTest.Auth.authorize/1)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        coverage_authorize_fn: &Threadline.OperatorSurface.CoverageLiveTest.Auth.authorize/1
+      )
     end
   end
 
@@ -99,10 +102,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/coverage" do
-      test "redirects to base_path if coverage is disabled", %{conn: conn} do
+      test "renders unsupported state if coverage is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_coverage, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_coverage, true) end)
-        assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/audit/coverage")
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+        assert html =~ "Unsupported View"
+        assert html =~ "Coverage inspection is not available"
+        assert html =~ "mix threadline.health.coverage"
       end
 
       test "renders three-bucket coverage table with locked badge state literals", %{conn: conn} do
@@ -141,6 +147,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # The badge link points to /audit/coverage
         assert html =~ ~s|href="/audit/coverage"|
+      end
+
+      test "hides the retention badge when policy access is disabled", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+        refute html =~ ~s|href="/audit/policy/retention"|
       end
     end
 

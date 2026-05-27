@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     alias Threadline.Policy.RedactionPresenter
+    alias Threadline.OperatorSurface.Unsupported
 
     @section_defs [
       {:drift_detected, "Drift detected"},
@@ -13,12 +14,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     ]
 
     def mount(_params, _session, socket) do
-      report = RedactionPresenter.build(repo: resolve_repo(socket))
+      if socket.assigns[:threadline_policy_enabled] do
+        report = RedactionPresenter.build(repo: resolve_repo(socket))
 
-      {:ok,
-       socket
-       |> assign(:report, report)
-       |> assign(:sections, build_sections(report))}
+        {:ok,
+         socket
+         |> assign(:base_path, nil)
+         |> assign(:report, report)
+         |> assign(:sections, build_sections(report))}
+      else
+        {:ok,
+         socket
+         |> assign(:base_path, nil)
+         |> assign(:report, nil)
+         |> assign(:sections, [])}
+      end
+    end
+
+    def handle_params(_params, uri, socket) do
+      uri_parsed = URI.parse(uri)
+      base_path = (uri_parsed.path || "") |> String.replace_suffix("/policy/redaction", "")
+      {:noreply, assign(socket, :base_path, base_path)}
     end
 
     def render(assigns) do
@@ -27,73 +43,80 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <Threadline.OperatorSurface.Style.css />
 
         <main class="policy-redaction-page">
-          <header class="policy-redaction-summary">
-            <h2>Policy redaction drift</h2>
-            <p class="filter-hint">
-              <strong>Drift detected:</strong> <%= @report.summary.drift_detected %>
-              <span aria-hidden="true">|</span>
-              <strong>Could not introspect:</strong> <%= @report.summary.could_not_introspect %>
-              <span aria-hidden="true">|</span>
-              <strong>Config matches deployed:</strong> <%= @report.summary.config_matches_deployed %>
-            </p>
-          </header>
+          <%= if @threadline_policy_enabled do %>
+            <header class="policy-redaction-summary">
+              <h2>Policy redaction drift</h2>
+              <p class="filter-hint">
+                <strong>Drift detected:</strong> <%= @report.summary.drift_detected %>
+                <span aria-hidden="true">|</span>
+                <strong>Could not introspect:</strong> <%= @report.summary.could_not_introspect %>
+                <span aria-hidden="true">|</span>
+                <strong>Config matches deployed:</strong> <%= @report.summary.config_matches_deployed %>
+              </p>
+            </header>
 
-          <%= for section <- @sections do %>
-            <section class={["policy-redaction-section", section_modifier(section.status)]}>
-              <div class="policy-redaction-section-header">
-                <h3><%= section.title %> (<%= length(section.rows) %>)</h3>
-              </div>
-
-              <%= if section.rows == [] do %>
-                <p class="policy-redaction-empty">No tables in this section.</p>
-              <% else %>
-                <div class="policy-redaction-rows">
-                  <%= for row <- section.rows do %>
-                    <details class={["policy-redaction-row", row_modifier(row.status)]}>
-                      <summary>
-                        <div class="policy-redaction-row-main">
-                          <span class="policy-redaction-table"><%= row.table %></span>
-                          <span class="policy-redaction-status"><%= status_label(row.status) %></span>
-                        </div>
-                        <p class="policy-redaction-hint"><%= row.hint %></p>
-                        <%= if row.warning do %>
-                          <p class="policy-redaction-warning"><%= row.warning %></p>
-                        <% end %>
-                      </summary>
-
-                      <div class="policy-redaction-details">
-                        <table class="policy-redaction-detail-table">
-                          <thead>
-                            <tr>
-                              <th></th>
-                              <th>Configured</th>
-                              <th>Deployed</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <th>exclude</th>
-                              <td><%= columns_label(row.configured.exclude) %></td>
-                              <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
-                            </tr>
-                            <tr>
-                              <th>mask</th>
-                              <td><%= columns_label(row.configured.mask) %></td>
-                              <td><%= deployed_columns_label(row.deployed, :mask) %></td>
-                            </tr>
-                            <tr>
-                              <th>mask placeholder</th>
-                              <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
-                              <td><%= deployed_placeholder_label(row.deployed) %></td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </details>
-                  <% end %>
+            <%= for section <- @sections do %>
+              <section class={["policy-redaction-section", section_modifier(section.status)]}>
+                <div class="policy-redaction-section-header">
+                  <h3><%= section.title %> (<%= length(section.rows) %>)</h3>
                 </div>
-              <% end %>
-            </section>
+
+                <%= if section.rows == [] do %>
+                  <p class="policy-redaction-empty">No tables in this section.</p>
+                <% else %>
+                  <div class="policy-redaction-rows">
+                    <%= for row <- section.rows do %>
+                      <details class={["policy-redaction-row", row_modifier(row.status)]}>
+                        <summary>
+                          <div class="policy-redaction-row-main">
+                            <span class="policy-redaction-table"><%= row.table %></span>
+                            <span class="policy-redaction-status"><%= status_label(row.status) %></span>
+                          </div>
+                          <p class="policy-redaction-hint"><%= row.hint %></p>
+                          <%= if row.warning do %>
+                            <p class="policy-redaction-warning"><%= row.warning %></p>
+                          <% end %>
+                        </summary>
+
+                        <div class="policy-redaction-details">
+                          <table class="policy-redaction-detail-table">
+                            <thead>
+                              <tr>
+                                <th></th>
+                                <th>Configured</th>
+                                <th>Deployed</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th>exclude</th>
+                                <td><%= columns_label(row.configured.exclude) %></td>
+                                <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
+                              </tr>
+                              <tr>
+                                <th>mask</th>
+                                <td><%= columns_label(row.configured.mask) %></td>
+                                <td><%= deployed_columns_label(row.deployed, :mask) %></td>
+                              </tr>
+                              <tr>
+                                <th>mask placeholder</th>
+                                <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
+                                <td><%= deployed_placeholder_label(row.deployed) %></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    <% end %>
+                  </div>
+                <% end %>
+              </section>
+            <% end %>
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:policy_redaction_unavailable)}
+              base_path={@base_path}
+            />
           <% end %>
         </main>
       </div>

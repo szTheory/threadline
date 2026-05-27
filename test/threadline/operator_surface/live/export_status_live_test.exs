@@ -29,8 +29,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        export_authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.authorize/1
+      )
     end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Auth do
+    def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_exports, true)
   end
 
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
@@ -70,13 +77,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       original_interval = Application.get_env(:threadline, :export_status_poll_ms)
+      original_allow_exports = Application.get_env(:threadline, :test_allow_exports)
       Application.put_env(:threadline, :export_status_poll_ms, 5_000)
+      Application.put_env(:threadline, :test_allow_exports, true)
 
       on_exit(fn ->
         if original_interval do
           Application.put_env(:threadline, :export_status_poll_ms, original_interval)
         else
           Application.delete_env(:threadline, :export_status_poll_ms)
+        end
+
+        if is_nil(original_allow_exports) do
+          Application.delete_env(:threadline, :test_allow_exports)
+        else
+          Application.put_env(:threadline, :test_allow_exports, original_allow_exports)
         end
       end)
 
@@ -96,6 +111,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "export status live view" do
+      test "renders a generic denied fallback when the current state is not safely exportable", %{
+        conn: conn
+      } do
+        Application.put_env(:threadline, :test_allow_exports, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
+
+        {:ok, _view, html} = live(conn, "/audit/exports?table=posts&actor_kind=user&actor_id=42")
+        assert html =~ "Action Denied"
+        assert html =~ "explicit host authorization for exports"
+        assert html =~ "mix threadline.export --dry-run"
+        refute html =~ "--actor_id"
+        refute html =~ "--table 'posts'"
+        refute html =~ "--table posts"
+        refute html =~ "No Export Jobs"
+      end
+
+      test "renders an exact denied fallback when table and range filters are safely representable",
+           %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_exports, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
+
+        {:ok, _view, html} =
+          live(conn, "/audit/exports?table=posts&from=2026-05-01T00:00:00Z&to=2026-05-06T23:59:00Z")
+
+        assert html =~ "Action Denied"
+        assert html =~ "mix threadline.export --dry-run"
+        assert html =~ "--table &#39;posts&#39;"
+        assert html =~ "--from &#39;2026-05-01T00:00:00Z&#39;"
+        assert html =~ "--to &#39;2026-05-06T23:59:00Z&#39;"
+        refute html =~ "No Export Jobs"
+      end
+
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
         assert html =~ "No Export Jobs"

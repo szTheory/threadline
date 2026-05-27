@@ -29,8 +29,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        policy_authorize_fn: &Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth.authorize/1
+      )
     end
+  end
+
+  defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth do
+    def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_policy, true)
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint do
@@ -62,8 +69,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp start_application_supervisor! do
       retention = Application.get_env(:threadline, :retention, [])
-      opts = [repo: Threadline.Test.Repo]
-             |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+
+      opts =
+        [repo: Threadline.Test.Repo]
+        |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
+
       start_supervised!({Threadline.Retention.Pruner, opts})
     end
 
@@ -111,6 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
 
       start_supervised!(@endpoint)
+      Application.put_env(:threadline, :test_allow_policy, true)
 
       :ok
     end
@@ -144,6 +155,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "retention history live view" do
+      test "renders unsupported state when policy access is disabled", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_policy, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        assert html =~ "Unsupported View"
+        assert html =~ "Retention history is not available"
+        assert html =~ "mix threadline.retention.purge --dry-run"
+        refute html =~ "Run Pruning Batch"
+      end
+
       test "shows empty state when no runs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
         assert html =~ "No Retention History"

@@ -6,12 +6,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Retention.Pruner
 
     @default_limit 100
 
     def mount(_params, _session, socket) do
-      if connected?(socket) do
+      if connected?(socket) and socket.assigns[:threadline_policy_enabled] do
         schedule_refresh(socket)
       end
 
@@ -31,29 +32,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("prune_now", _params, socket) do
-      case Pruner.trigger() do
-        :ok ->
-          # Schedule a quick refresh to see the new run pop up
-          Process.send_after(self(), :refresh, 500)
-          {:noreply, socket}
+      if not socket.assigns[:threadline_policy_enabled] do
+        {:noreply, socket}
+      else
+        case Pruner.trigger() do
+          :ok ->
+            # Schedule a quick refresh to see the new run pop up
+            Process.send_after(self(), :refresh, 500)
+            {:noreply, socket}
 
-        {:error, :not_started} ->
-          {:noreply, put_flash(socket, :error, "Retention runtime is not started.")}
+          {:error, :not_started} ->
+            {:noreply, put_flash(socket, :error, "Retention runtime is not started.")}
+        end
       end
     end
 
     def handle_info(:refresh, socket) do
-      schedule_refresh(socket)
+      if not socket.assigns[:threadline_policy_enabled] do
+        {:noreply, socket}
+      else
+        schedule_refresh(socket)
 
-      runs = fetch_runs(socket)
+        runs = fetch_runs(socket)
 
-      socket =
-        Enum.reduce(runs, socket, fn run, acc_socket ->
-          stream_insert(acc_socket, :runs, run)
-        end)
-        |> assign(:has_runs, length(runs) > 0)
+        socket =
+          Enum.reduce(runs, socket, fn run, acc_socket ->
+            stream_insert(acc_socket, :runs, run)
+          end)
+          |> assign(:has_runs, length(runs) > 0)
 
-      {:noreply, socket}
+        {:noreply, socket}
+      end
     end
 
     def render(assigns) do
@@ -65,39 +74,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage={@threadline_coverage || %{uncovered_count: 0}}
             base_path={@base_path}
             coverage_enabled={@threadline_coverage_enabled}
+            policy_enabled={@threadline_policy_enabled}
+            evidence_enabled={@threadline_evidence_enabled}
           />
         <% end %>
 
         <main class="retention-history-page">
-          <header class="page-header">
-            <h2>Retention History</h2>
-            <button class="primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
-          </header>
+          <%= if @threadline_policy_enabled do %>
+            <header class="page-header">
+              <h2>Retention History</h2>
+              <button class="primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
+            </header>
 
-          <%= if not @has_runs do %>
-            <div class="empty-state">
-              <h3>No Retention History</h3>
-              <p>There is no retention history. Configure your retention policy and trigger a prune to see runs here.</p>
-            </div>
+            <%= if not @has_runs do %>
+              <div class="empty-state">
+                <h3>No Retention History</h3>
+                <p>There is no retention history. Configure your retention policy and trigger a prune to see runs here.</p>
+              </div>
+            <% else %>
+              <table class="retention-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Deleted Rows</th>
+                    <th>Duration</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="retention-runs" phx-update="stream">
+                  <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"run-row--" <> run.status}>
+                    <td><%= run.status %></td>
+                    <td><%= run.deleted_count || "-" %></td>
+                    <td><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
+                    <td><%= format_date(run.started_at) %></td>
+                  </tr>
+                </tbody>
+              </table>
+            <% end %>
           <% else %>
-            <table class="retention-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Deleted Rows</th>
-                  <th>Duration</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="retention-runs" phx-update="stream">
-                <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"run-row--" <> run.status}>
-                  <td><%= run.status %></td>
-                  <td><%= run.deleted_count || "-" %></td>
-                  <td><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
-                  <td><%= format_date(run.started_at) %></td>
-                </tr>
-              </tbody>
-            </table>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:retention_unavailable)}
+              base_path={@base_path}
+            />
           <% end %>
         </main>
       </div>
@@ -105,15 +123,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp fetch_runs(socket) do
-      repo = resolve_repo(socket)
+      if not socket.assigns[:threadline_policy_enabled] do
+        []
+      else
+        repo = resolve_repo(socket)
 
-      from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
-      |> repo.all()
+        from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
+        |> repo.all()
+      end
     end
 
     defp has_runs?(socket) do
-      repo = resolve_repo(socket)
-      repo.exists?(from(r in RetentionRun))
+      if not socket.assigns[:threadline_policy_enabled] do
+        false
+      else
+        repo = resolve_repo(socket)
+        repo.exists?(from(r in RetentionRun))
+      end
     end
 
     defp schedule_refresh(socket) do

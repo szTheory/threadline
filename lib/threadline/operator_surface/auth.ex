@@ -24,11 +24,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         case authorize_fn.(socket) do
           :ok ->
             emit_telemetry(:granted, socket, nil)
-            {:cont, socket |> assign_exports_enabled(opts) |> assign_coverage_enabled(opts)}
+
+            {:cont,
+             socket
+             |> assign_exports_enabled(opts)
+             |> assign_coverage_enabled(opts)
+             |> assign_policy_enabled(opts)
+             |> assign_evidence_enabled(opts)}
 
           true ->
             emit_telemetry(:granted, socket, nil)
-            {:cont, socket |> assign_exports_enabled(opts) |> assign_coverage_enabled(opts)}
+
+            {:cont,
+             socket
+             |> assign_exports_enabled(opts)
+             |> assign_coverage_enabled(opts)
+             |> assign_policy_enabled(opts)
+             |> assign_evidence_enabled(opts)}
 
           {:ok, scope} when is_map(scope) ->
             socket =
@@ -37,6 +49,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               |> Phoenix.Component.assign(:threadline_scope, scope)
               |> assign_exports_enabled(opts)
               |> assign_coverage_enabled(opts)
+              |> assign_policy_enabled(opts)
+              |> assign_evidence_enabled(opts)
 
             emit_telemetry(:granted, socket, scope)
             {:cont, socket}
@@ -47,6 +61,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               |> Phoenix.Component.assign(:threadline_scope, scope)
               |> assign_exports_enabled(opts)
               |> assign_coverage_enabled(opts)
+              |> assign_policy_enabled(opts)
+              |> assign_evidence_enabled(opts)
 
             emit_telemetry(:granted, socket, nil)
             {:cont, socket}
@@ -199,6 +215,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       mirror = %{assigns: socket.assigns}
 
       case coverage_authorize_fn.(mirror) do
+        :ok -> true
+        true -> true
+        {:ok, _scope} -> true
+        _ -> false
+      end
+    rescue
+      _ -> false
+    end
+
+    defp assign_policy_enabled(socket, opts) do
+      policy_authorize_fn = Keyword.get(opts, :policy_authorize_fn, fn _ -> false end)
+
+      Phoenix.Component.assign(
+        socket,
+        :threadline_policy_enabled,
+        policy_enabled_for_socket?(policy_authorize_fn, socket)
+      )
+    end
+
+    defp policy_enabled_for_socket?(nil, _socket), do: false
+
+    defp policy_enabled_for_socket?(policy_authorize_fn, socket)
+         when is_function(policy_authorize_fn, 1) do
+      mirror = %{assigns: socket.assigns}
+
+      case policy_authorize_fn.(mirror) do
+        :ok -> true
+        true -> true
+        {:ok, _scope} -> true
+        _ -> false
+      end
+    rescue
+      _ -> false
+    end
+
+    defp assign_evidence_enabled(socket, opts) do
+      evidence_authorize_fn = Keyword.get(opts, :evidence_authorize_fn, fn _ -> false end)
+
+      Phoenix.Component.assign(
+        socket,
+        :threadline_evidence_enabled,
+        evidence_enabled_for_socket?(evidence_authorize_fn, socket)
+      )
+    end
+
+    defp evidence_enabled_for_socket?(nil, _socket), do: false
+
+    defp evidence_enabled_for_socket?(evidence_authorize_fn, socket)
+         when is_function(evidence_authorize_fn, 1) do
+      mirror = %{assigns: socket.assigns}
+
+      case evidence_authorize_fn.(mirror) do
         :ok -> true
         true -> true
         {:ok, _scope} -> true

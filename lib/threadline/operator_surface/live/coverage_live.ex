@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     alias Threadline.OperatorSurface.Coverage.Snapshot
+    alias Threadline.OperatorSurface.Unsupported
 
     @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
     @baseline ~w(schema_migrations)
@@ -19,22 +20,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # :coverage_for_schema (the snapshot specific to the requested ?schema=)
     # and :form_error (set when ?schema=NAME is invalid).
     def mount(_params, _session, socket) do
-      if socket.assigns[:threadline_coverage_enabled] do
-        initial =
-          socket.assigns[:threadline_coverage] || Snapshot.empty(DateTime.utc_now())
+      initial = socket.assigns[:threadline_coverage] || Snapshot.empty(DateTime.utc_now())
 
-        socket =
-          socket
-          |> assign(:base_path, nil)
-          |> assign(:schema_param, "public")
-          |> assign(:coverage_for_schema, initial)
-          |> assign(:form_error, nil)
+      socket =
+        socket
+        |> assign(:base_path, nil)
+        |> assign(:schema_param, "public")
+        |> assign(:coverage_for_schema, initial)
+        |> assign(:form_error, nil)
 
-        {:ok, socket}
-      else
-        base = socket.assigns[:base_path] || "/"
-        {:ok, redirect(socket, to: base)}
-      end
+      {:ok, socket}
     end
 
     def handle_params(params, uri, socket) do
@@ -44,45 +39,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       schema_param = Map.get(params, "schema", "public")
 
-      case validate_schema(socket, schema_param) do
-        {:ok, schema} ->
-          socket =
-            socket
-            |> assign(:schema_param, schema)
-            |> assign(:form_error, nil)
-            |> fetch_coverage_for_schema(schema)
+      if socket.assigns[:threadline_coverage_enabled] do
+        case validate_schema(socket, schema_param) do
+          {:ok, schema} ->
+            socket =
+              socket
+              |> assign(:schema_param, schema)
+              |> assign(:form_error, nil)
+              |> fetch_coverage_for_schema(schema)
 
-          {:noreply, socket}
+            {:noreply, socket}
 
-        {:error, message} ->
-          socket =
-            socket
-            |> assign(:schema_param, schema_param)
-            |> assign(:form_error, message)
+          {:error, message} ->
+            socket =
+              socket
+              |> assign(:schema_param, schema_param)
+              |> assign(:form_error, message)
 
-          {:noreply, socket}
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
       end
     end
 
     def handle_event("refresh", _params, socket) do
-      # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
-      # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
-      if ref = socket.assigns[:threadline_timer_ref] do
-        Process.cancel_timer(ref)
+      if not socket.assigns[:threadline_coverage_enabled] do
+        {:noreply, socket}
+      else
+        # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
+        # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
+        if ref = socket.assigns[:threadline_timer_ref] do
+          Process.cancel_timer(ref)
+        end
+
+        schema = socket.assigns[:schema_param] || "public"
+        socket = fetch_coverage_for_schema(socket, schema)
+
+        # Reschedule using the same interval Coverage.OnMount uses.
+        interval =
+          socket.assigns[:threadline_coverage_poll_ms] ||
+            Application.get_env(:threadline, :coverage_poll_ms, 30_000)
+
+        new_ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
+        socket = assign(socket, :threadline_timer_ref, new_ref)
+
+        {:noreply, socket}
       end
-
-      schema = socket.assigns[:schema_param] || "public"
-      socket = fetch_coverage_for_schema(socket, schema)
-
-      # Reschedule using the same interval Coverage.OnMount uses.
-      interval =
-        socket.assigns[:threadline_coverage_poll_ms] ||
-          Application.get_env(:threadline, :coverage_poll_ms, 30_000)
-
-      new_ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
-      socket = assign(socket, :threadline_timer_ref, new_ref)
-
-      {:noreply, socket}
     end
 
     def render(assigns) do
@@ -94,65 +97,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           error={@threadline_coverage_error}
           coverage_enabled={@threadline_coverage_enabled}
+          policy_enabled={@threadline_policy_enabled}
+          evidence_enabled={@threadline_evidence_enabled}
         />
 
         <main class="coverage-page">
-          <h2>Coverage — schema: <%= @schema_param %></h2>
+          <%= if @threadline_coverage_enabled do %>
+            <h2>Coverage — schema: <%= @schema_param %></h2>
 
-          <p class="filter-hint">
-            <%= if @coverage_for_schema.last_checked_at do %>
-              Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
-            <% end %>
-            <a href="#" phx-click="refresh">Refresh</a>
-          </p>
+            <p class="filter-hint">
+              <%= if @coverage_for_schema.last_checked_at do %>
+                Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
+              <% end %>
+              <a href="#" phx-click="refresh">Refresh</a>
+            </p>
 
-          <%= if @form_error do %>
-            <div class="filter-error" role="alert"><%= @form_error %></div>
-          <% else %>
-            <%= if @threadline_coverage_error do %>
-              <div class="truncation-banner warning" role="status">
-                Coverage check failed at <%= now_label() %> — showing last successful result from <%= last_label(@coverage_for_schema.last_checked_at) %>.
-              </div>
-            <% end %>
-
-            <%= if all_empty?(@coverage_for_schema) do %>
-              <div class="empty-state">
-                No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
-              </div>
+            <%= if @form_error do %>
+              <div class="filter-error" role="alert"><%= @form_error %></div>
             <% else %>
-              <table class="coverage-table">
-                <thead>
-                  <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
-                </thead>
-                <tbody>
-                  <%= for table <- @coverage_for_schema.tables[:covered] do %>
-                    <tr class="coverage-row--covered">
-                      <td><%= table %></td>
-                      <td>covered</td>
-                      <td></td>
-                    </tr>
-                  <% end %>
-                  <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
-                    <tr class="coverage-row--uncovered">
-                      <td><%= table %></td>
-                      <td>uncovered</td>
-                      <td></td>
-                    </tr>
-                  <% end %>
-                  <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
-                    <tr class="coverage-row--expected" title={tooltip_for(table)}>
-                      <td><%= table %></td>
-                      <td>expected</td>
-                      <td><%= source_for(table) %></td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
+              <%= if @threadline_coverage_error do %>
+                <div class="truncation-banner warning" role="status">
+                  Coverage check failed at <%= now_label() %> — showing last successful result from <%= last_label(@coverage_for_schema.last_checked_at) %>.
+                </div>
+              <% end %>
 
-              <p class="filter-hint">
-                Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered
-              </p>
+              <%= if all_empty?(@coverage_for_schema) do %>
+                <div class="empty-state">
+                  No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
+                </div>
+              <% else %>
+                <table class="coverage-table">
+                  <thead>
+                    <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
+                  </thead>
+                  <tbody>
+                    <%= for table <- @coverage_for_schema.tables[:covered] do %>
+                      <tr class="coverage-row--covered">
+                        <td><%= table %></td>
+                        <td>covered</td>
+                        <td></td>
+                      </tr>
+                    <% end %>
+                    <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
+                      <tr class="coverage-row--uncovered">
+                        <td><%= table %></td>
+                        <td>uncovered</td>
+                        <td></td>
+                      </tr>
+                    <% end %>
+                    <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
+                      <tr class="coverage-row--expected" title={tooltip_for(table)}>
+                        <td><%= table %></td>
+                        <td>expected</td>
+                        <td><%= source_for(table) %></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+
+                <p class="filter-hint">
+                  Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered
+                </p>
+              <% end %>
             <% end %>
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:coverage_unavailable)}
+              base_path={@base_path}
+            />
           <% end %>
         </main>
       </div>

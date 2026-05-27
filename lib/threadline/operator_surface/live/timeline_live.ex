@@ -300,6 +300,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           error={assigns[:threadline_coverage_error]}
           coverage_enabled={@threadline_coverage_enabled}
+          policy_enabled={@threadline_policy_enabled}
+          evidence_enabled={@threadline_evidence_enabled}
         />
 
         <header class="timeline-toolbar">

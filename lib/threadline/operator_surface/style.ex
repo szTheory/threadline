@@ -455,6 +455,99 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-secondary);
           color: var(--tl-color-text-muted);
         }
+
+        .threadline-ui .evidence-page {
+          padding: var(--tl-spacing-md);
+        }
+
+        .threadline-ui .evidence-page h2 {
+          margin: 0 0 var(--tl-spacing-xs);
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .threadline-ui .evidence-toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--tl-spacing-sm);
+          margin: var(--tl-spacing-md) 0;
+          align-items: center;
+        }
+
+        .threadline-ui .evidence-toolbar a,
+        .threadline-ui .evidence-action {
+          color: var(--tl-color-accent);
+          text-decoration: none;
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .evidence-section {
+          margin-bottom: var(--tl-spacing-md);
+          border: 1px solid var(--tl-color-secondary);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .threadline-ui .evidence-section header {
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+          background: var(--tl-color-secondary);
+          border-bottom: 1px solid var(--tl-color-secondary);
+        }
+
+        .threadline-ui .evidence-section h3 {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .threadline-ui .evidence-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .threadline-ui .evidence-table th {
+          text-align: left;
+          font-size: var(--tl-font-label);
+          font-weight: 600;
+          color: var(--tl-color-text-muted);
+          border-bottom: 1px solid var(--tl-color-secondary);
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+        }
+
+        .threadline-ui .evidence-table td {
+          padding: var(--tl-spacing-sm) var(--tl-spacing-md);
+          border-bottom: 1px solid var(--tl-color-secondary);
+          vertical-align: top;
+        }
+
+        .threadline-ui .evidence-table tr:last-child td {
+          border-bottom: none;
+        }
+
+        .threadline-ui .evidence-ref,
+        .threadline-ui .evidence-meta code {
+          font-family: ui-monospace, monospace;
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .evidence-meta {
+          color: var(--tl-color-text-muted);
+          font-size: var(--tl-font-label);
+        }
+
+        .threadline-ui .evidence-verdict {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 999px;
+          background: var(--tl-color-secondary);
+          font-size: var(--tl-font-label);
+          font-family: ui-monospace, monospace;
+        }
+
+        .threadline-ui .evidence-verdict--unsupported {
+          background: #FEF3C7;
+          color: #92400E;
+        }
       </style>
       """
     end

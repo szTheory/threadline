@@ -29,8 +29,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        policy_authorize_fn: &Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth.authorize/1
+      )
     end
+  end
+
+  defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth do
+    def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_policy, true)
   end
 
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint do
@@ -78,6 +85,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         live_view: [signing_salt: "p" |> String.duplicate(8)],
         render_errors: [view: Threadline.OperatorSurface.PolicyRedactionLiveTest.Layouts]
       )
+
+      Application.put_env(:threadline, :test_allow_policy, true)
 
       Enum.each(@tables, fn table ->
         Repo.query!("DROP TRIGGER IF EXISTS threadline_audit_#{table} ON #{table}")
@@ -152,6 +161,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "renders unsupported state when policy access is disabled", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_policy, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
+
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction")
+        assert html =~ "Unsupported View"
+        assert html =~ "Policy redaction drift is not available"
+        assert html =~ "mix threadline.policy.show"
+        refute html =~ "<h2>Policy redaction drift</h2>"
+      end
+
       test "renders presenter-driven sections in locked order with safe detail copy", %{
         conn: conn
       } do

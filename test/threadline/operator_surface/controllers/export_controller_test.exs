@@ -61,6 +61,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     def scope_operator_query(query, _scope, _context), do: query
   end
 
+  defmodule Threadline.OperatorSurface.ExportControllerTest.DeniedRouter do
+    use Phoenix.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html", "csv", "json"])
+      plug(:fetch_session)
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_denied",
+        export_authorize_fn: &__MODULE__.export_auth/1
+      )
+    end
+
+    def export_auth(_mirror), do: {:error, :unauthorized}
+  end
+
   defmodule Threadline.OperatorSurface.ExportControllerTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -93,6 +113,23 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.ExportControllerTest.ScopedRouter)
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerTest.DeniedEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_export_denied_key",
+      signing_salt: String.duplicate("d", 8)
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.ExportControllerTest.DeniedRouter)
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest do
@@ -620,6 +657,41 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           })
         )
       end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerDeniedTest do
+    @moduledoc false
+    use ExUnit.Case, async: false
+
+    import Phoenix.ConnTest
+
+    @endpoint Threadline.OperatorSurface.ExportControllerTest.DeniedEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, @endpoint,
+        secret_key_base: String.duplicate("d", 64),
+        live_view: [signing_salt: String.duplicate("d", 8)],
+        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    test "direct export denial returns a plain-text 403 forbidden response", %{conn: conn} do
+      conn =
+        get(
+          conn,
+          "/audit_denied/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00&table=posts"
+        )
+
+      assert conn.status == 403
+      assert response(conn, 403) == "forbidden"
+    end
+
+    setup do
+      {:ok, conn: build_conn()}
     end
   end
 end

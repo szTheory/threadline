@@ -107,8 +107,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
                returned_socket.assigns.threadline_actor_ref
 
       assert_receive {:mismatch_telemetry_event,
-                      [:threadline, :operator_surface, :actor_ref_mismatch],
-                      %{count: 1},
+                      [:threadline, :operator_surface, :actor_ref_mismatch], %{count: 1},
                       metadata}
 
       assert metadata.session_actor_ref == %{"type" => "user", "id" => "user-1"}
@@ -242,6 +241,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
         authorize_fn: fn _ -> :ok end,
         coverage_authorize_fn: fn _ -> :ok end
       ]
+
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
@@ -253,6 +253,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
         authorize_fn: fn _ -> :ok end,
         coverage_authorize_fn: fn _ -> true end
       ]
+
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
@@ -264,6 +265,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
         authorize_fn: fn _ -> :ok end,
         coverage_authorize_fn: fn _ -> false end
       ]
+
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
@@ -275,10 +277,119 @@ defmodule Threadline.OperatorSurface.AuthTest do
         authorize_fn: fn _ -> :ok end,
         coverage_authorize_fn: fn _ -> raise "Boom!" end
       ]
+
       socket = mock_socket()
 
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       assert returned_socket.assigns.threadline_coverage_enabled == false
+    end
+  end
+
+  describe "assign_policy_enabled" do
+    test "defaults to false when no policy_authorize_fn is provided" do
+      opts = [authorize_fn: fn _ -> :ok end]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_policy_enabled == false
+    end
+
+    test "assigns true when policy_authorize_fn returns :ok" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        policy_authorize_fn: fn _ -> :ok end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_policy_enabled == true
+    end
+
+    test "assigns true when policy_authorize_fn returns {:ok, scope}" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        policy_authorize_fn: fn _ -> {:ok, %{tier: :admin}} end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_policy_enabled == true
+    end
+
+    test "assigns false when policy_authorize_fn returns false" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        policy_authorize_fn: fn _ -> false end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_policy_enabled == false
+    end
+
+    test "assigns false when policy_authorize_fn raises" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        policy_authorize_fn: fn _ -> raise "Boom!" end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_policy_enabled == false
+    end
+  end
+
+  describe "assign_evidence_enabled" do
+    test "defaults to false when no evidence_authorize_fn is provided" do
+      opts = [authorize_fn: fn _ -> :ok end]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == false
+    end
+
+    test "assigns true when evidence_authorize_fn returns :ok" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        evidence_authorize_fn: fn _ -> :ok end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == true
+    end
+
+    test "assigns true when evidence_authorize_fn returns true" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        evidence_authorize_fn: fn _ -> true end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == true
+    end
+
+    test "assigns true when evidence_authorize_fn returns {:ok, scope}" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        evidence_authorize_fn: fn _ -> {:ok, %{tier: :support}} end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == true
+    end
+
+    test "assigns false when evidence_authorize_fn returns false" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        evidence_authorize_fn: fn _ -> false end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == false
+    end
+
+    test "assigns false when evidence_authorize_fn raises" do
+      opts = [
+        authorize_fn: fn _ -> :ok end,
+        evidence_authorize_fn: fn _ -> raise "Boom!" end
+      ]
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, mock_socket())
+      assert returned_socket.assigns.threadline_evidence_enabled == false
     end
   end
 end
