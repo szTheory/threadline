@@ -1,6 +1,9 @@
 defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
   use ThreadlinePhoenixWeb.ConnCase, async: false
 
+  import ThreadlinePhoenix.AccountsFixtures
+  import ThreadlinePhoenix.HelpDeskFixtures
+
   alias Threadline.Semantics.{ActorRef, AuditContext}
   alias ThreadlinePhoenix.Blog
   alias ThreadlinePhoenix.Repo
@@ -11,29 +14,28 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
   end
 
   test "authenticated admin request reaches the surface", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
     conn =
       conn
-      |> Plug.Test.init_test_session(%{})
-      |> assign(:current_user, %{id: 1, name: "Admin", is_admin: true})
+      |> login_via_sigra(user)
       |> get("/audit/transactions/00000000-0000-0000-0000-000000000000")
 
     assert html_response(conn, 200) =~ "Transaction Not Found"
   end
 
   test "support user only sees transactions scoped to their organization", %{conn: conn} do
-    {:ok, visible_tx} = create_post_for_org("support-org-1", "support-visible")
-    {:ok, hidden_tx} = create_post_for_org("support-org-2", "support-hidden")
+    user = user_fixture(email: "support@example.com")
+    org1 = organization_fixture()
+    org2 = organization_fixture()
+    membership_fixture(org1, user_id: to_string(user.id), role: "support")
 
-    conn =
-      conn
-      |> Plug.Test.init_test_session(%{})
-      |> assign(:current_user, %{
-        id: 2,
-        name: "Support",
-        role: :support,
-        organization_id: "support-org-1",
-        is_admin: false
-      })
+    {:ok, visible_tx} = create_post_for_org(to_string(org1.id), "support-visible")
+    {:ok, hidden_tx} = create_post_for_org(to_string(org2.id), "support-hidden")
+
+    conn = login_via_sigra(conn, user)
 
     visible_conn = get(conn, "/audit/transactions/#{visible_tx}")
     visible_html = html_response(visible_conn, 200)
@@ -45,21 +47,29 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
   end
 
   test "support user cannot export from the shared operator surface", %{conn: conn} do
+    user = user_fixture(email: "support@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "support")
+
     conn =
       conn
-      |> Plug.Test.init_test_session(%{})
-      |> assign(:current_user, %{
-        id: 2,
-        name: "Support",
-        role: :support,
-        organization_id: "support-org-1",
-        is_admin: false
-      })
+      |> login_via_sigra(user)
+      |> get("/audit/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00")
 
-    export_conn =
-      get(conn, "/audit/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00")
+    assert response(conn, 403) == "forbidden"
+  end
 
-    assert response(export_conn, 403) == "forbidden"
+  test "agent membership without admin email receives 403 on audit", %{conn: conn} do
+    user = user_fixture(email: "agent-only@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    conn =
+      conn
+      |> login_via_sigra(user)
+      |> get("/audit")
+
+    assert response(conn, 403) == "Forbidden"
   end
 
   defp create_post_for_org(org_id, slug) do

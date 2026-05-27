@@ -22,6 +22,9 @@ defmodule ThreadlinePhoenixWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  use ThreadlinePhoenixWeb, :verified_routes
+
+  import Phoenix.ConnTest
 
   using do
     quote do
