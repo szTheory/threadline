@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
-status: executing
+status: planning
 last_updated: "2026-05-27T21:42:48.025Z"
-last_activity: 2026-05-27 -- Phase null execution started
+last_activity: 2026-05-27 -- Phase 114 context gathered
 progress:
   total_phases: 5
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 114 — Release 0.6.0 Packaging
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
-Status: Executing Phase null
-Last activity: 2026-05-27 -- Phase null execution started
+Phase: 114 — Release 0.6.0 Packaging (context gathered)
+Plan: 0 of 0
+Status: Ready for planning
+Last activity: 2026-05-27 -- Phase 114 context gathered
 
 ## Performance Metrics
 
@@ -63,11 +63,11 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Milestone v1.25 kickoff confirmed; PROJECT.md and STATE.md updated.
-- **Next Step**: Define requirements → roadmap → `/gsd-discuss-phase 114`
+- **Last Action**: Phase 114 context gathered (`114-CONTEXT.md`).
+- **Next Step**: `/gsd-plan-phase 114`
 
 ## Operator Next Steps
 
 - Review REQUIREMENTS.md and ROADMAP.md when drafted
-- `/gsd-discuss-phase 114` — Release 0.6.0 packaging
+- `/gsd-plan-phase 114` — Release 0.6.0 packaging
 - Assessment thread: `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`
