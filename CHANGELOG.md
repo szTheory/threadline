@@ -2,17 +2,47 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-27
+
+Threadline 0.6.0 is the adopter-ready release: it packages the in-repo stack since 0.5.0 — the Evidence plane (`Threadline.Evidence`, proof vocabulary, `/audit/evidence`), the blessed audited write path (`Threadline.Audit.transaction/3`), and operator/demo surfaces from the realistic walkthrough — so Hex evaluators and pilot hosts see the same truth the library already ships in-tree.
+
 ### Added
 
-- Evidence-plane contract locks across the public docs, including the canonical
-  non-goals list, shared verdict vocabulary, and the narrower `/audit/evidence`
-  support language.
+- **Evidence plane** — `Threadline.Evidence`, `Threadline.Evidence.Proof`, `Threadline.Evidence.Subject`, evidence persistence schema, and `mix threadline.evidence.show` for machine-readable proof export.
+- **Audited write path** — `Threadline.Audit.transaction/3` as the blessed helper wrapping capture + semantics in one transaction.
+- **Operator and evidence surfaces** — `/audit/evidence` LiveView, host-owned `evidence_authorize_fn` (not inherited from `/audit` auth), and viewer parity with coverage/policy Mix tasks.
+- **Reference composition (sigra-reference)** — example app and maintainer walkthrough demonstrate end-to-end audited writes and evidence mounts; see `examples/threadline_phoenix/README.md` and walkthrough docs.
 
 ### Changed
 
-- Public guidance now treats `/audit/evidence` as a separately authorized
-  capability under the root library's `phoenix-surface` lane instead of a
-  blanket `/audit` inheritance claim.
+- **Public documentation and evidence-plane contract** — Evidence-plane contract locks across public docs: canonical non-goals list, shared verdict vocabulary, and narrower `/audit/evidence` support language. Public guidance treats `/audit/evidence` as a separately authorized capability under the `phoenix-surface` lane instead of a blanket `/audit` inheritance claim.
+- **Release metadata** — install snippets target `{:threadline, "~> 0.6"}`; Hex metadata and adoption-pilot distribution preflight align with `0.6.0`.
+
+### Deprecated
+
+- Manual `SET LOCAL` GUC recipes and hand-rolled `record_action/2`-only write paths remain supported as legacy escape hatches; new code should prefer `Threadline.Audit.transaction/3`.
+
+### Breaking
+
+- **None** for existing `capture-only` and `phoenix-surface` adopters who do not opt into Evidence or the audited write helper.
+
+### Upgrade from 0.5.x
+
+- Bump dependency to `{:threadline, "~> 0.6"}` in host `mix.exs`.
+- Run `mix deps.get` and `mix deps.compile`.
+- If using Evidence: apply evidence schema migrations from library docs / example migrations before calling `Threadline.Evidence` APIs.
+- Wire `evidence_authorize_fn` on `threadline_operator_surface/2` when mounting `/audit/evidence` — it does **not** inherit timeline/export `authorize_fn`.
+- Adopt `Threadline.Audit.transaction/3` for new write paths; keep legacy GUC/`record_action/2` only where migration cost is high.
+- Use `mix threadline.evidence.show` (not deprecated `mix verify.evidence` naming) for CLI proof export.
+- Re-run host verification: `mix threadline.verify_coverage`, `mix verify.doc_contract` (host), and operator-surface smoke tests if mounted.
+- See `guides/upgrade-path.md` for lane matrix (`capture-only`, `phoenix-surface`, `sigra-reference`) and surface deprecation policy.
+- ExDoc sidebar adds **Evidence** group and Core API entries for Audit, Query, Investigation, ChangeDiff.
+- Maintainer pre-flight before tag: `mix verify.release` on a clean tree (see `CONTRIBUTING.md`).
+- Apply evidence migrations before enabling `/audit/evidence` in production — schema must exist before first proof query.
+- Deny `/audit/evidence` with the same host-owned auth UX as timeline/export; do not rely on blanket `/audit` session checks.
+- Correlation filter semantics on timeline/export are unchanged from 0.5.x — no migration needed for existing query params.
+- Re-run `mix threadline.gen.triggers` after evidence schema changes if audited tables gain new columns.
+- Confirm `evidence_authorize_fn` returns explicit deny reasons for operator logs — inherited `/audit` auth is not sufficient.
 
 ## [0.5.0] - 2026-05-08
 
