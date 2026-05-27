@@ -27,9 +27,9 @@
 ### Example first-hour (Phase 116) — Reference app README
 
 - [x] **EXAMPLE-01**: `examples/threadline_phoenix/README.md` documents API auth staging for `POST /api/posts` curl examples (session/token or documented skip path).
-- [ ] **EXAMPLE-02**: Clean-clone setup path distinguishes base install from `mix demo.seed` / `mix demo.reset` recovery — no implied seed on plain `ecto.setup`.
-- [ ] **EXAMPLE-03**: Generator/migration confusion resolved (what `mix threadline.*` vs `mix ecto.*` vs demo tasks do; no contradictory first-hour steps).
-- [ ] **EXAMPLE-04**: `mix verify.example` green after README/runbook changes; example doc-contract tests updated if literals change.
+- [x] **EXAMPLE-02**: Clean-clone setup path distinguishes base install from `mix demo.seed` / `mix demo.reset` recovery — no implied seed on plain `ecto.setup`.
+- [x] **EXAMPLE-03**: Generator/migration confusion resolved (what `mix threadline.*` vs `mix ecto.*` vs demo tasks do; no contradictory first-hour steps).
+- [x] **EXAMPLE-04**: `mix verify.example` green after README/runbook changes; example doc-contract tests updated if literals change.
 
 ### Doc authority (Phase 117) — Evidence plane + semver prose
 
@@ -84,9 +84,9 @@ Deferred until after v1.25 or on sustained adopter signal.
 | NARR-02 | 115 | Complete |
 | NARR-03 | 115 | Complete |
 | EXAMPLE-01 | 116 | Complete |
-| EXAMPLE-02 | 116 | Pending |
-| EXAMPLE-03 | 116 | Pending |
-| EXAMPLE-04 | 116 | Pending |
+| EXAMPLE-02 | 116 | Complete |
+| EXAMPLE-03 | 116 | Complete |
+| EXAMPLE-04 | 116 | Complete |
 | DOC-01 | 117 | Pending |
 | DOC-02 | 117 | Pending |
 | DOC-03 | 117 | Pending |

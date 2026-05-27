@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
-status: executing
-last_updated: "2026-05-27T23:00:00.000Z"
-last_activity: 2026-05-27 -- Completed 116-01-PLAN.md
+status: verifying
+last_updated: "2026-05-27T22:30:58.161Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 60
 ---
 
 # Project State: Threadline
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 Phase: 116 (example-first-hour-fixes) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-27
 
 ## Performance Metrics
@@ -46,6 +46,7 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until sustained adopter/procurement pressure |
 | v1.24 seed | Containerized compose walk | Discussed 109/110; not filed unless demand |
 | Phase 115-narrative-doc-sync P02 | 1 min | 4 tasks | 4 files |
+| Phase 116 P02 | 20 | 5 tasks | 2 files |
 
 ## Accumulated Context
 
