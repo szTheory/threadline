@@ -26,7 +26,7 @@
 
 ### Example first-hour (Phase 116) — Reference app README
 
-- [ ] **EXAMPLE-01**: `examples/threadline_phoenix/README.md` documents API auth staging for `POST /api/posts` curl examples (session/token or documented skip path).
+- [x] **EXAMPLE-01**: `examples/threadline_phoenix/README.md` documents API auth staging for `POST /api/posts` curl examples (session/token or documented skip path).
 - [ ] **EXAMPLE-02**: Clean-clone setup path distinguishes base install from `mix demo.seed` / `mix demo.reset` recovery — no implied seed on plain `ecto.setup`.
 - [ ] **EXAMPLE-03**: Generator/migration confusion resolved (what `mix threadline.*` vs `mix ecto.*` vs demo tasks do; no contradictory first-hour steps).
 - [ ] **EXAMPLE-04**: `mix verify.example` green after README/runbook changes; example doc-contract tests updated if literals change.
@@ -83,7 +83,7 @@ Deferred until after v1.25 or on sustained adopter signal.
 | NARR-01 | 115 | Complete |
 | NARR-02 | 115 | Complete |
 | NARR-03 | 115 | Complete |
-| EXAMPLE-01 | 116 | Pending |
+| EXAMPLE-01 | 116 | Complete |
 | EXAMPLE-02 | 116 | Pending |
 | EXAMPLE-03 | 116 | Pending |
 | EXAMPLE-04 | 116 | Pending |

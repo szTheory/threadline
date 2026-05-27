@@ -97,7 +97,12 @@
 2. Clean-clone path vs `mix demo.seed` / `mix demo.reset` is unambiguous in the README.
 3. Threadline vs Ecto vs demo task responsibilities are clear; `mix verify.example` green.
 
-**Plans:** 0 plans
+**Plans:** 1/2 plans complete
+
+| Wave | Plans | What it builds |
+|------|-------|----------------|
+| 1 | 01 | API auth staging: router session plugs, sigra_conn fix, cookie curl docs, contract locks |
+| 2 | 02 | README install restructure: Track A/B, mix task ownership, demo.seed clarity |
 
 ---
 

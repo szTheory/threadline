@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: executing
-last_updated: "2026-05-27T22:19:47.856Z"
-last_activity: 2026-05-27 -- Phase null execution started
+last_updated: "2026-05-27T23:00:00.000Z"
+last_activity: 2026-05-27 -- Completed 116-01-PLAN.md
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 40
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 116 — example-first-hour-fixes
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
-Status: Executing Phase null
-Last activity: 2026-05-27 -- Phase null execution started
+Phase: 116 (example-first-hour-fixes) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-05-27
 
 ## Performance Metrics
 
@@ -64,8 +64,8 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Completed 115-02-PLAN.md (README/getting-started narrative sync).
-- **Next Step**: `/gsd-plan-phase 116` or execute Phase 116 when planned
+- **Last Action**: Completed 116-01-PLAN.md (API auth staging + doc contracts).
+- **Next Step**: Execute 116-02-PLAN.md (README install restructure)
 
 ## Operator Next Steps
 
