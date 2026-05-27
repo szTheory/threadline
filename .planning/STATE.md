@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T19:11:56.611Z"
-last_activity: 2026-05-27 -- Phase 109 planning complete
+last_updated: "2026-05-27T19:20:00Z"
+last_activity: 2026-05-27 -- Phase 109 dry-run partial complete (§1 gate)
 progress:
   total_phases: 7
   completed_phases: 5
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 109 partial complete — Phase 110 triage next
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 109 planning complete
-Resume file: .planning/phases/109-maintainer-walkthrough-dry-run/109-CONTEXT.md
+Phase: 109 — PARTIAL COMPLETE (§1 gate at WALK-01-04)
+Plan: 5 of 5
+Status: Finding 0001 imported; RUN-02/03 not attempted
+Last activity: 2026-05-27 -- Phase 109 dry-run partial complete (§1 gate)
+Resume file: .planning/phases/109-maintainer-walkthrough-dry-run/109-SUMMARY.md
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Resume file: .planning/phases/109-maintainer-walkthrough-dry-run/109-CONTEXT.md
 
 ### Todos
 
-- Execute Phase 109 dry-run on clean clone using only WALKTHROUGH.md; capture findings observationally.
+- Phase 110: triage finding 0001 (landing 500) and deferred WR-001/WR-002 confirmations.
 
 ### Blockers
 
@@ -56,7 +56,7 @@ Resume file: .planning/phases/109-maintainer-walkthrough-dry-run/109-CONTEXT.md
 ## Session Continuity
 
 - **Last Action**: Completed 108-05-PLAN.md — WALKTHROUGH §5 + appendices + doc contract test (commits `72e6bb3`, `8009a4a`, `07d3b31`).
-- **Next Step**: Plan and execute Phase 109 maintainer walkthrough dry-run.
+- **Next Step**: Phase 110 triage — fix 0001 landing crash before re-walk.
 
 ## Operator Next Steps
 
