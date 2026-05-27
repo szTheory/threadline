@@ -133,3 +133,20 @@ The authoritative Phase 98 rerun bundle is:
 6. `rg -n 'evidence_authorize_fn' lib/threadline/operator_surface/auth.ex` (Band 3 positive control)
 
 `mix verify.test` is intentionally not the authority for Phase 98. The Phase 98-02 summary (`98-02-SUMMARY.md:70-74`) records a pre-existing alias-drift failure in `Threadline.CiTopologyContractTest` that is outside Phase 98 ownership; Phase 99 owns the named-alias topology, and commit `b636c17` ("fix(99-02): update ci.all topology contract to expanded doc_contract alias") is the most recent fix on that surface. Phase 102 disclaims rather than reopens that scope.
+
+## Requirement closure
+
+| Requirement | Status | Why it closes on the current tree |
+| --- | --- | --- |
+| `SURF-01` | ✓ SATISFIED | Threadline mounts the read-only evidence surface as a sibling route inside the existing `/audit` operator family, with no new UI family, no mutation handlers, and URL-driven navigation via `handle_params/3`. |
+| `SURF-02` | ✓ SATISFIED | The mounted view presents the same evidence facts and verdict vocabulary (`proven`, `inferred_posture`, `unsupported`) as the library API and Mix-task paths via the shared `Threadline.Evidence.Proof` presenter, with the locked Phase 98 copy literals (per `98-UI-SPEC.md` Copywriting Contract) rendered at the cited source lines and asserted by the existing LiveView test suite. |
+| `SURF-03` | ✓ SATISFIED | Host-owned authorization remains the gate via `evidence_authorize_fn`, defaulting fail-closed to `fn _ -> false end`, with no Threadline-owned RBAC, tenant DSL, or persona semantics introduced in `lib/threadline/operator_surface/`. |
+
+## Not closed here
+
+- `.planning/REQUIREMENTS.md` remains intentionally unreconciled in this phase.
+- `.planning/ROADMAP.md` remains intentionally unreconciled in this phase.
+- `.planning/STATE.md` remains intentionally unreconciled in this phase.
+- The visual hierarchy, spacing tokens (4/8/16/24/32/48px), typography sizing, color palette, and scanability portions of `98-UI-SPEC.md` remain Manual-Only per `98-VALIDATION.md` and are not grep-anchored here.
+
+Phase 102 closes the missing Phase 98 verification and validation chain only; milestone authority-surface reconciliation remains Phase 103 work.
