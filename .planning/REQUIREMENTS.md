@@ -19,10 +19,10 @@
 
 ### Help-Desk Domain Expansion (Phase 105) — Reference-app domain
 
-- [ ] **DEMO-01**: Add Ecto schemas and migrations for `organizations`, `org_memberships`, `agents`, `tickets`, and `ticket_replies` (with an `internal_note_body` column) in `examples/threadline_phoenix/lib/threadline_phoenix/help_desk/` (or equivalent context layout); associations modeled correctly (org ↔ memberships ↔ agents; org ↔ tickets ↔ replies).
-- [ ] **DEMO-02**: Context modules write through Threadline correctly: transaction-local actor GUC set before writes, `Threadline.record_action/2` called inside the same DB transaction for multi-table actions (e.g. `:ticket_replied_and_closed` hits `tickets` + `ticket_replies` in one tx), patterned after `Blog.create_post/2`.
-- [ ] **DEMO-03**: `mix threadline.gen.triggers` generates triggers for every audited help-desk table; `mix threadline.verify_coverage` (or `mix verify.threadline` coverage check) passes green; example-app CI integration test asserts row-level audit on at least one multi-table write.
-- [ ] **DEMO-04**: `config :threadline, :trigger_capture` in `examples/threadline_phoenix/config/runtime.exs` (or appropriate env file) masks/excludes `ticket_replies.internal_note_body` so redaction posture has a real surface to exercise in Phase 108's walkthrough.
+- [x] **DEMO-01**: Add Ecto schemas and migrations for `organizations`, `org_memberships`, `agents`, `tickets`, and `ticket_replies` (with an `internal_note_body` column) in `examples/threadline_phoenix/lib/threadline_phoenix/help_desk/` (or equivalent context layout); associations modeled correctly (org ↔ memberships ↔ agents; org ↔ tickets ↔ replies).
+- [x] **DEMO-02**: Context modules write through Threadline correctly: transaction-local actor GUC set before writes, `Threadline.record_action/2` called inside the same DB transaction for multi-table actions (e.g. `:ticket_replied_and_closed` hits `tickets` + `ticket_replies` in one tx), patterned after `Blog.create_post/2`.
+- [x] **DEMO-03**: `mix threadline.gen.triggers` generates triggers for every audited help-desk table; `mix threadline.verify_coverage` (or `mix verify.threadline` coverage check) passes green; example-app CI integration test asserts row-level audit on at least one multi-table write.
+- [x] **DEMO-04**: `config :threadline, :trigger_capture` in `examples/threadline_phoenix/config/runtime.exs` (or appropriate env file) masks/excludes `ticket_replies.internal_note_body` so redaction posture has a real surface to exercise in Phase 108's walkthrough.
 
 ### Sigra Auth Lane (Phase 106) — Real auth integration in the reference app
 
@@ -107,10 +107,10 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | CHARTER-01 | Phase 104 | Complete |
 | CHARTER-02 | Phase 104 | Complete |
 | CHARTER-03 | Phase 104 | Complete |
-| DEMO-01 | Phase 105 | Pending |
-| DEMO-02 | Phase 105 | Pending |
-| DEMO-03 | Phase 105 | Pending |
-| DEMO-04 | Phase 105 | Pending |
+| DEMO-01 | Phase 105 | Complete |
+| DEMO-02 | Phase 105 | Complete |
+| DEMO-03 | Phase 105 | Complete |
+| DEMO-04 | Phase 105 | Complete |
 | AUTH-01 | Phase 106 | Pending |
 | AUTH-02 | Phase 106 | Pending |
 | AUTH-03 | Phase 106 | Pending |
