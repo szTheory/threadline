@@ -63,3 +63,7 @@ config :threadline, :verify_coverage,
 config :argon2_elixir, t_cost: 1, m_cost: 8
 
 config :swoosh, :api_client, false
+
+config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
+  admin_emails: ["admin@example.com"],
+  admin_user_ids: []

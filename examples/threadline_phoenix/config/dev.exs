@@ -93,3 +93,7 @@ config :threadline_phoenix, ThreadlinePhoenix.Mailer,
   adapter: Swoosh.Adapters.Local
 
 config :swoosh, :api_client, false
+
+config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
+  admin_emails: ["admin@example.com"],
+  admin_user_ids: []
