@@ -24,7 +24,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - No Threadline-owned RBAC / tenancy DSLs; no second full synthetic walkthrough
 - No help-desk product expansion or "demo product" rebrand
 
-**Current State:** Phase 111 complete (2026-05-27) — `Threadline.Audit.transaction/3` shipped with integration tests and guide/doc contracts. Next: Phase 112 reference app adoption. No sustained real-adopter signal — proceed with integration ergonomics, not pilot-first pivot.
+**Current State:** Phase 112 complete (2026-05-27) — reference app and getting-started guide adopt `Threadline.Audit.transaction/3` on all four primary write paths. Next: Phase 113 adopter-truth & doc sync. No sustained real-adopter signal — proceed with integration ergonomics, not pilot-first pivot.
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -293,7 +293,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 ### Active
 
 - [x] **AUDIT-TXN (Phase 111)** — Validated in Phase 111: `Threadline.Audit.transaction/3` with tests and doc contract
-- [ ] **ADOPT-HELPER (Phase 112)** — Example app + getting-started adopt helper; correlation-ready integration proof
+- [x] **ADOPT-HELPER (Phase 112)** — Validated in Phase 112: example app + getting-started adopt helper; correlation-ready integration proof
 - [ ] **ADOPTER-TRUTH (Phase 113)** — Reference/doc honesty: `evidence_authorize_fn`, adoption-pilot 0.5.x, evidence CLI naming, WR-110-001
 
 ### Out of Scope
