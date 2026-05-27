@@ -17,13 +17,15 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
 
     def dns_namespace, do: @dns
 
-    def v5(namespace_bin, name) when is_binary(namespace_bin) and byte_size(namespace_bin) == 16 do
+    def v5(namespace_bin, name)
+        when is_binary(namespace_bin) and byte_size(namespace_bin) == 16 do
       namespace_bin
       |> v5_binary(name)
       |> format()
     end
 
-    def v5_binary(namespace_bin, name) when is_binary(namespace_bin) and byte_size(namespace_bin) == 16 do
+    def v5_binary(namespace_bin, name)
+        when is_binary(namespace_bin) and byte_size(namespace_bin) == 16 do
       <<
         time_low::32,
         time_mid::16,
@@ -86,16 +88,19 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   @demo_namespace_bin UUID.v5_binary(UUID.dns_namespace(), "threadline.demo")
 
   @org_ids for slug <- @org_slugs,
-                into: %{},
-                do:
-                  {slug,
-                   UUID.format(
-                     UUID.v5_binary(@demo_namespace_bin, "org/#{Map.fetch!(@org_slug_strings, slug)}")
-                   )}
+               into: %{},
+               do:
+                 {slug,
+                  UUID.format(
+                    UUID.v5_binary(
+                      @demo_namespace_bin,
+                      "org/#{Map.fetch!(@org_slug_strings, slug)}"
+                    )
+                  )}
 
   @user_ids for {key, email} <- @user_emails,
-                 into: %{},
-                 do: {key, UUID.format(UUID.v5_binary(@demo_namespace_bin, "user/#{email}"))}
+                into: %{},
+                do: {key, UUID.format(UUID.v5_binary(@demo_namespace_bin, "user/#{email}"))}
 
   @ticket_numbers %{
     hero_close: @hero_close_number,
