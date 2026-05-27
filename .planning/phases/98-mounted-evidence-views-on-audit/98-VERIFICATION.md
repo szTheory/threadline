@@ -86,3 +86,50 @@ mix test test/threadline/operator_surface/live/evidence_live_test.exs --max-fail
 ```
 
 Result: PASS (`5 tests, 0 failures`)
+
+## 3. Host-owned evidence_authorize_fn gate with no Threadline RBAC
+
+**Requirement:** `SURF-03`  
+**Result:** PASS
+
+- `lib/threadline/operator_surface/auth.ex:253-254` defines `defp assign_evidence_enabled(socket, opts) do` with `evidence_authorize_fn = Keyword.get(opts, :evidence_authorize_fn, fn _ -> false end)` — the fail-closed default that denies access when the host omits the option entirely.
+- `evidence_authorize_fn` is a host-supplied function value of shape `(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)` dispatched at `auth.ex:269` (`evidence_authorize_fn.(mirror)`) where `mirror = %{assigns: socket.assigns}` at `auth.ex:267` — a host-supplied callback only, NOT a Threadline-owned module dispatch, behaviour implementation, or protocol consumer.
+- Zero matches for `Threadline.RBAC|Threadline.Permissions|Threadline.Policy.RBAC` under `lib/threadline/operator_surface/` (negative assertion confirming no Threadline-owned RBAC modules), paired with the positive-control grep above so a path typo would fail loudly (per D-07).
+- 6 unit tests in `describe "assign_evidence_enabled"` at `test/threadline/operator_surface/auth_test.exs:337-394` (SURF-03 capability-boolean fan-out at unit scope), plus the denied-state HTML assertion at `test/threadline/operator_surface/live/evidence_live_test.exs:106-116` (Test 1 at line 106 owns the SURF-03 denied-state HTML rendering — `assert html =~ "Evidence view unavailable."` at line 113).
+
+### Evidence
+
+```bash
+rg -n 'Threadline\.RBAC|Threadline\.Permissions|Threadline\.Policy\.RBAC' lib/threadline/operator_surface/
+```
+
+Result: PASS (exit code 1 — zero matches; negative assertion that no Threadline-owned RBAC modules are referenced under the operator surface)
+
+### Evidence
+
+```bash
+rg -n 'evidence_authorize_fn' lib/threadline/operator_surface/auth.ex
+```
+
+Result: PASS (5 matches at lines 254, 259, 265, 266, 269; line 254 is the canonical `Keyword.get(opts, :evidence_authorize_fn, fn _ -> false end)` fail-closed default; positive-control paired with the negative grep above per D-07)
+
+### Evidence
+
+```bash
+mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1
+```
+
+Result: PASS (`34 tests, 0 failures`)
+
+### Authority statement
+
+The authoritative Phase 98 rerun bundle is:
+
+1. `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/live/evidence_live_test.exs --max-failures 1`
+2. `rg -n 'live("/evidence"' lib/threadline/operator_surface/router.ex` (Band 1)
+3. `rg -n '^\s*def handle_event' lib/threadline/operator_surface/live/evidence_live.ex` (Band 1)
+4. `rg -n 'alias Threadline\.Evidence\.Proof|Proof\.present_record' lib/threadline/operator_surface/live/evidence_live.ex` (Band 2)
+5. `rg -n 'Threadline\.RBAC|Threadline\.Permissions|Threadline\.Policy\.RBAC' lib/threadline/operator_surface/` (Band 3 negative)
+6. `rg -n 'evidence_authorize_fn' lib/threadline/operator_surface/auth.ex` (Band 3 positive control)
+
+`mix verify.test` is intentionally not the authority for Phase 98. The Phase 98-02 summary (`98-02-SUMMARY.md:70-74`) records a pre-existing alias-drift failure in `Threadline.CiTopologyContractTest` that is outside Phase 98 ownership; Phase 99 owns the named-alias topology, and commit `b636c17` ("fix(99-02): update ci.all topology contract to expanded doc_contract alias") is the most recent fix on that surface. Phase 102 disclaims rather than reopens that scope.
