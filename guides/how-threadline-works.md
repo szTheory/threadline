@@ -177,8 +177,12 @@ If you only remember one thing, remember this grouping:
 
 ### Write-side
 
+- `Threadline.Audit.transaction/3` — **recommended audited write path** (capture + optional semantics in one transaction)
 - `Threadline.Plug` for request capture context
-- `Threadline.record_action/2` for semantic audit events
+- `Threadline.Job` for serialized job-path context
+- `Threadline.record_action/2` — semantic primitive; prefer `Audit.transaction/3` for new code
+
+Manual `set_config` + `record_action/2` linkage recipes are deprecated — see [Integration contracts](integration-contracts.md) § Audited write path via `Threadline.Audit`.
 
 ### Read-side
 
@@ -206,6 +210,7 @@ The read-side APIs are the stable core. The operator surface and Mix tasks are c
 - `0.3.x` brought the first serious host-integration seams and example-app path.
 - `0.4.x` added the optional operator surface and its first investigation screens.
 - `0.5.0` tightened the breadth story: honest support lanes, shared host-owned auth seams, and a clearer optional-in-tree position for the UI.
+- `0.6.0` packaged the Evidence plane and `Threadline.Audit.transaction/3` as the recommended audited write path.
 
 That evolution matters because the library did not start as a product-console project. It became one as the investigation path matured.
 
@@ -222,9 +227,12 @@ Those are the kinds of problems that usually belong in the next milestone once a
 
 ## Where to go next
 
-- [README](../README.md) for the top-level map
-- [Getting started with Phoenix SaaS](getting-started-saas.md) for the install-first path
-- [Integration contracts](integration-contracts.md) for the host seams
-- [Operator surface](operator-surface.md) for mount, auth, and screens
-- [Domain reference](domain-reference.md) for vocabulary and API routing
-- [Support lanes and upgrade path](upgrade-path.md) for the support matrix
+Adoption discovery order:
+
+1. [README](../README.md) — top-level map and version quick start
+2. This guide — mental model, formula, and flow
+3. [Getting started with Phoenix SaaS](getting-started-saas.md) §6 — canonical runnable `Audit.transaction/3` snippet
+4. [Domain reference](domain-reference.md) — vocabulary and API routing
+5. [Integration contracts](integration-contracts.md) — host seams and audited write path contracts
+6. [Operator surface](operator-surface.md) — mount, auth, and screens
+7. [Support lanes and upgrade path](upgrade-path.md) — support matrix
