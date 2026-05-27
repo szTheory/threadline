@@ -30,7 +30,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **(v1.22)** Three-tier proof vocabulary in `Threadline.Evidence.Proof` distinguishing proven facts, inferred posture, and unsupported claims — shared across library, Mix-task, and LiveView surfaces.
 - **(v1.22)** Phoenix-optional library API plus Mix-task parity — **canonical:** `mix threadline.evidence.show` with stable JSON contract for CI / procurement / audit handoff.
 - **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
-- Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/evidence-plane.md`, README, production checklist, and the example app are aligned end-to-end.
+- Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/how-threadline-works.md`, `guides/upgrade-path.md`, `guides/domain-reference.md`, README, production checklist, and the example app are aligned end-to-end.
 
 ## Current Milestone: v1.25 Adopter-Ready Release & First-Hour Truth
 
