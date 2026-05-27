@@ -40,6 +40,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       separate callback for the HTTP-side surface if they need one (rare —
       the synthetic mirror is sufficient for most cases since adopter
       functions typically only access `assigns.current_user` or similar).
+    - `:coverage_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
+      optional) — explicitly gates the coverage dashboard and related badge.
+      Defaults to fail closed.
+    - `:policy_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
+      optional) — explicitly gates policy/retention surfaces. Defaults to fail
+      closed.
+    - `:evidence_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
+      optional) — explicitly gates the mounted evidence surface. Defaults to
+      fail closed.
     """
 
     defmacro threadline_operator_surface(path, opts \\ []) do
@@ -88,6 +97,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             end
 
             live("/", TimelineLive, :index)
+            live("/evidence", EvidenceLive, :index)
             live("/coverage", CoverageLive, :index)
             live("/exports", ExportStatusLive, :index)
             live("/policy/redaction", PolicyRedactionLive, :index)

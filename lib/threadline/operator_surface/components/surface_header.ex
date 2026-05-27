@@ -19,6 +19,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:base_path, :string, required: true)
     attr(:error, :string, default: nil)
     attr(:coverage_enabled, :boolean, default: false)
+    attr(:policy_enabled, :boolean, default: false)
+    attr(:evidence_enabled, :boolean, default: false)
 
     def surface_header(assigns) do
       ~H"""
@@ -33,7 +35,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <a class="surface-badge surface-badge--ok" href={"#{@base_path}/coverage"}>All covered</a>
           <% end %>
         <% end %>
-        <a class="surface-badge surface-badge--ok" href={"#{@base_path}/policy/retention"}>Retention</a>
+        <a :if={@evidence_enabled} class="surface-badge surface-badge--ok" href={"#{@base_path}/evidence"}>Evidence</a>
+        <a :if={@policy_enabled} class="surface-badge surface-badge--ok" href={"#{@base_path}/policy/retention"}>Retention</a>
         <%= if @error do %>
           <span class="stale-indicator">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
         <% end %>
