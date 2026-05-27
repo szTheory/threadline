@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T17:49:48.525Z"
-last_activity: 2026-05-27 -- Completed 108-01-PLAN.md
+last_updated: "2026-05-27T17:58:15.540Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 108-walkthrough-script-finding-capture-protocol — IN PROGRESS
-Plan: 1 of 5 complete (next: 108-02)
-Status: D-108-04e closed — redaction_policy evidence seeded; ready for findings template plan
-Last activity: 2026-05-27 -- Completed 108-01-PLAN.md
+Plan: 2 of 5 complete (next: 108-03)
+Status: FINDINGS-01 closed — findings TEMPLATE + README ready; next is WALKTHROUGH §0–§3
+Last activity: 2026-05-27 -- Completed 108-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -56,8 +56,8 @@ Resume file: None
 
 ## Session Continuity
 
-- **Last Action**: Completed 108-01-PLAN.md — seeded `redaction_policy` evidence row and manifest/DEMO-MANIFEST literals (commits `b01accb`, `1e15b25`).
-- **Next Step**: Execute 108-02-PLAN.md (findings TEMPLATE + README).
+- **Last Action**: Completed 108-02-PLAN.md — findings TEMPLATE.md + README.md with a/b/c/d classification protocol (commits `90eedea`, `dc2f9c4`).
+- **Next Step**: Execute 108-03-PLAN.md (WALKTHROUGH §0–§3 install/onboarding/daily-use).
 
 ## Operator Next Steps
 
@@ -76,3 +76,4 @@ Resume file: None
 | Phase 107-realistic-seed-data-demo-mix-tasks P02 | 25 min | 3 tasks | 7 files |
 | Phase 107-realistic-seed-data-demo-mix-tasks P04 | 35 min | 3 tasks | 11 files |
 | Phase 108-walkthrough-script-finding-capture-protocol P01 | 2min | 2 tasks | 4 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P02 | 4min | 2 tasks | 2 files |

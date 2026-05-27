@@ -48,7 +48,7 @@
   2. "Admin: agent X is leaving — what did they touch in their last 24h?" (actor history with cross-org admin scope)
   3. "Admin/compliance: prove org Y's data was retention-purged when they offboarded." (evidence-plane drill-down)
 - [x] **WALK-04**: Evidence section — three exercises against shipped subjects only (retention purge run, redaction policy snapshot, trigger coverage snapshot), executed via `mix verify.evidence` / `mix threadline.evidence.show` and the `/audit/evidence` LiveView; expected `Threadline.Evidence` records documented.
-- [ ] **FINDINGS-01**: `.planning/v1.23/findings/TEMPLATE.md` and `.planning/v1.23/findings/README.md` define the finding file format and the (a/b/c/d) classification rule (breakage / DX papercut / doc gap / design gap) — including the fix-vs-defer routing: (a) always fixed in Phase 110, (b) fixed if ≤1 plan in scope, (c) always fixed, (d) deferred to v1.24 seeds with rationale.
+- [x] **FINDINGS-01**: `.planning/v1.23/findings/TEMPLATE.md` and `.planning/v1.23/findings/README.md` define the finding file format and the (a/b/c/d) classification rule (breakage / DX papercut / doc gap / design gap) — including the fix-vs-defer routing: (a) always fixed in Phase 110, (b) fixed if ≤1 plan in scope, (c) always fixed, (d) deferred to v1.24 seeds with rationale.
 
 ### Maintainer Walkthrough Dry-Run (Phase 109)
 
@@ -124,7 +124,7 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | WALK-02 | Phase 108 | Pending |
 | WALK-03 | Phase 108 | Pending |
 | WALK-04 | Phase 108 | Complete |
-| FINDINGS-01 | Phase 108 | Pending |
+| FINDINGS-01 | Phase 108 | Complete |
 | RUN-01 | Phase 109 | Pending |
 | RUN-02 | Phase 109 | Pending |
 | RUN-03 | Phase 109 | Pending |

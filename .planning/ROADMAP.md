@@ -145,7 +145,7 @@
   3. `.planning/v1.23/findings/TEMPLATE.md` and `.planning/v1.23/findings/README.md` define the finding file format (one numbered file per finding, with originating walkthrough step cited) and the (a/b/c/d) classification rule with fix-vs-defer routing: (a) breakage always fixed, (b) DX papercut fixed if ≤1 plan, (c) doc gap always fixed, (d) design gap deferred to v1.24 seeds.
   4. A maintainer reading WALKTHROUGH.md cold can complete the full install-to-evidence walk without referring to any other doc, and a maintainer reading the findings README can classify a new gap in <30 seconds.
 
-**Plans:** 1/5 plans complete
+**Plans:** 2/5 plans complete
 
 | Wave | Plans | Focus |
 |------|-------|-------|
@@ -208,7 +208,7 @@
 | 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
-| 108. Walkthrough Script + Finding-Capture Protocol | 1/5 | In Progress | 2026-05-27 |
+| 108. Walkthrough Script + Finding-Capture Protocol | 2/5 | In Progress | 2026-05-27 |
 | 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
 | 110. Triage + Narrow Fixes | 0/? | Not started | — |
 
