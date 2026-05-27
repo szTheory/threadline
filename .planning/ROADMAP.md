@@ -206,7 +206,13 @@
   4. Every (d) design gap finding lands as `.planning/v1.24-seeds/SEED-NNN.md` with a one-paragraph rationale, the originating finding ID, and a "when this seed should surface" trigger; the corresponding finding file is marked `deferred_to: SEED-NNN`.
   5. Phase 110 SUMMARY.md lists every deferred seed by ID so the v1.24 milestone-arc reread has a complete handoff list.
 
-**Plans:** TBD
+**Plans:** 3 plans (3 waves)
+
+| Wave | Plan | Objective |
+|------|------|-----------|
+| 1 | 110-01 | Fix finding 0001 landing 500 (L0+L1) |
+| 2 | 110-02 | File 0002/0003; WR doc fixes + contract tests + IN-001 |
+| 3 | 110-03 | Validation re-walk + 110-SUMMARY closeout |
 
 ## Progress
 
@@ -218,7 +224,7 @@
 | 107. Realistic Seed Data + Demo Mix Tasks | 4/4 | Complete    | 2026-05-27 |
 | 108. Walkthrough Script + Finding-Capture Protocol | 5/5 | Complete    | 2026-05-27 |
 | 109. Maintainer Walkthrough Dry-Run | 6/5 | Complete   | 2026-05-27 |
-| 110. Triage + Narrow Fixes | 0/? | Not started | — |
+| 110. Triage + Narrow Fixes | 0/3 | Planned | — |
 
 Per-phase plan counts will be refined by `/gsd:plan-phase` as each phase is decomposed; the conservative estimate is 1–3 plans per phase.
 
