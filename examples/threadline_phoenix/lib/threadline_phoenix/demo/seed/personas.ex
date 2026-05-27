@@ -1,8 +1,6 @@
 defmodule ThreadlinePhoenix.Demo.Seed.Personas do
   @moduledoc false
 
-  import Ecto.Query
-
   alias ThreadlinePhoenix.Accounts.User
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Manifest.UUID

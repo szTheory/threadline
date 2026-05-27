@@ -124,7 +124,7 @@
   4. A "deleted by someone" planted record (e.g. agent X deleted a ticket reply in org Acme last Tuesday) exists in the seed dataset so Phase 108's "who deleted X?" scenario has a real answer in the audit log.
   5. Running `mix demo.seed` twice in a row produces the same byte-identical seeded state (idempotency check).
 
-**Plans:** 4 plans (107-01 manifest → 107-02 reset/delete → 107-03 seed → 107-04 retention + contract tests)
+**Plans:** 4/4 plans complete
 
 ---
 
