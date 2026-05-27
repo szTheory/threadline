@@ -62,3 +62,21 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :threadline, :trigger_capture,
+  tables: %{
+    "ticket_replies" => [
+      mask: ["internal_note_body"],
+      store_changed_from: true
+    ]
+  }
+
+config :threadline, :verify_coverage,
+  expected_tables: [
+    "posts",
+    "organizations",
+    "org_memberships",
+    "agents",
+    "tickets",
+    "ticket_replies"
+  ]

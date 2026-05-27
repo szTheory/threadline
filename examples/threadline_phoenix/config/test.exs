@@ -34,3 +34,21 @@ config :phoenix,
 # Disable Oban plugins/queues in test so the Postgres notifier/peer does not
 # contend with Ecto SQL Sandbox ownership on the Repo connection.
 config :threadline_phoenix, Oban, testing: :manual, plugins: false, queues: false
+
+config :threadline, :trigger_capture,
+  tables: %{
+    "ticket_replies" => [
+      mask: ["internal_note_body"],
+      store_changed_from: true
+    ]
+  }
+
+config :threadline, :verify_coverage,
+  expected_tables: [
+    "posts",
+    "organizations",
+    "org_memberships",
+    "agents",
+    "tickets",
+    "ticket_replies"
+  ]
