@@ -1,5 +1,39 @@
 # Project milestones: Threadline
 
+## v1.22 Policy / Evidence Plane (Shipped: 2026-05-27)
+
+**Delivered:** Durable append-only evidence records for Threadline-owned governance facts, exposed consistently through Phoenix-optional library APIs, Mix tasks, and a host-gated `/audit/evidence` LiveView — with explicit non-goals around RBAC, tenancy, legal hold, immutable storage, and generic compliance workflow.
+
+**Phases completed:** 9 phases (95-103), 18 plans, 33 tasks. Requirements: 12/12 satisfied (EVID-01/02/03, PROOF-01/02/03, SURF-01/02/03, DOC-01/02/03).
+
+**Key accomplishments:**
+
+- Append-only evidence schema and `Threadline.Evidence` public context — six bounded subjects with stable provenance metadata and machine-readable detail payloads.
+- Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and unsupported claims — shared verdict language across library, Mix task, and LiveView surfaces.
+- Phoenix-optional library API plus Mix-task parity with a stable JSON contract for CI, procurement, and audit handoff (`mix verify.evidence` family, `mix threadline.evidence.show`).
+- Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
+- Public docs lock the narrow evidence-plane contract: README claim strip, explicit non-goals, and separately-authorized `/audit/evidence` wording in the support matrix.
+- Phase 99 named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam bundle + `mix verify.example`) locks the public contract on the current tree; reran green at closeout (46+55+21 = 122 tests, 0 failures).
+- Verification backfill chain (Phases 100/101/102) closed Phase 95/96/98 verification gaps with current-tree proof and finalized Nyquist validation artifacts.
+- Authority surface reconciliation and milestone re-audit (Phase 103) flipped the v1.22 audit to `status: passed` with 12/12 requirements satisfied, `closeout_readiness: green`, and the D-02 archive boundary intact.
+
+**Stats:**
+
+- Timeline: 2 days (opened 2026-05-25, shipped 2026-05-27).
+- 18 plans, all with SUMMARY.md on disk; milestone audit **passed** (2026-05-27 against the reconciled tree).
+- Boundary preserved: zero changes to lib/, test/, mix.exs, mix.lock, guides/, examples/, priv/ during Phase 103 closeout.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.22-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.22-REQUIREMENTS.md`
+- Milestone audit: `.planning/milestones/v1.22-MILESTONE-AUDIT.md`
+- Phase execution tree: `.planning/milestones/v1.22-phases/`
+
+**What is next:** `/gsd-new-milestone` — define v1.23+ themes (consider DEFER-01/02/03 backlog: compliance report packs, legal-hold workflows, immutable archive guarantees).
+
+---
+
 Entries are newest first.
 
 ## v1.21 — Scoped Support / Operator Proof (shipped 2026-05-25)

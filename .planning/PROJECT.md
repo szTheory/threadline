@@ -10,39 +10,59 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-**Last shipped:** v1.21 — Scoped Support / Operator Proof (closed 2026-05-25)
-**Current milestone:** v1.22 — Policy / Evidence Plane (opened 2026-05-25).
+**Last shipped:** v1.22 — Policy / Evidence Plane (closed 2026-05-27)
+**Current milestone:** No active milestone — next candidate is v1.23 (define with `/gsd-new-milestone`).
 
 **Shipped capabilities:**
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
-- Shared `/audit` support-lane proof now covers the exact mounted set the repo verifies today: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams; `mix threadline.incident <transaction_id>` ships transaction parity for no-LiveView operators.
+- Shared `/audit` support-lane proof covers the mounted set the repo verifies today: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams; `mix threadline.incident <transaction_id>` ships transaction parity for no-LiveView operators.
 - Mount-time auth contract: host-mount default + optional `:authorize_fn`, fail-closed at compile time unless the scope has `pipe_through`, `:authorize_fn` is supplied, or `:adopter_acknowledges_unauthenticated: true` is explicit; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn` returned scopes are threaded into investigation queries.
-- Doc-contract test locks the macro signature, route literals, and auth section; CHANGELOG, `guides/operator-surface.md`, README, production checklist, and the example app are aligned end-to-end behind a `phx.gen.auth`-style admin pipeline.
-- Raw timeline browse at `/audit` now ships with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, shared filter validation, and locked filter-vocabulary doc contracts.
+- Raw timeline browse at `/audit` ships with full `Threadline.Query.timeline/2` filter parity, URL-as-state via `live_patch`, shared filter validation, and locked filter-vocabulary doc contracts.
 - Operators can download the current timeline view as CSV / wrapped JSON / NDJSON with pre-flight match counts, RFC 5987 filenames, sync-or-chunked delivery based on row count, and byte-parity coverage against `mix threadline.export`.
-- Read-only policy viewers now ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
-- Lifecycle docs now cover the mounted `/audit` onboarding path and the optional Phoenix surface upgrade path; fresh `mix verify.format` and `mix ci.all` evidence retired the stale formatter blocker language on 2026-05-07.
+- Read-only policy viewers ship for trigger coverage and redaction drift: `/audit/coverage`, `/audit/policy/redaction`, `mix threadline.health.coverage`, and `mix threadline.policy.show`.
+- **(v1.22)** Append-only evidence records via `Threadline.Evidence` — six bounded subjects with stable provenance metadata and machine-readable detail payloads; no host business-policy meaning encoded.
+- **(v1.22)** Three-tier proof vocabulary in `Threadline.Evidence.Proof` distinguishing proven facts, inferred posture, and unsupported claims — shared across library, Mix-task, and LiveView surfaces.
+- **(v1.22)** Phoenix-optional library API plus Mix-task parity (`mix verify.evidence`, `mix threadline.evidence.show`) with stable JSON contract for CI / procurement / audit handoff.
+- **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
+- Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/evidence-plane.md`, README, production checklist, and the example app are aligned end-to-end.
 
-**Current planning focus:** v1.22 evidence-plane work (durable policy/evidence records and audit-of-audit proof) is closeout-ready on the current tree; the next gate is `/gsd-complete-milestone v1.22`. The active boundary remains: no widening into a Threadline-owned compliance platform, auth model, or tenancy model.
+**Current planning focus:** v1.22 shipped 2026-05-27 — the evidence-plane lane is durable on the current tree (122 tests, 0 failures across the closeout rerun bundle). The active boundary remains: no widening into a Threadline-owned compliance platform, auth model, or tenancy model. Next gate is `/gsd-new-milestone` to scope v1.23. The deferred backlog (DEFER-01 compliance packs, DEFER-02 legal hold / approval flows, DEFER-03 immutable archive guarantees) remains available as deliberate v2 signals.
 
-## Latest Milestone Shipped: v1.21 Scoped Support / Operator Proof
+## Latest Milestone Shipped: v1.22 Policy / Evidence Plane
+
+**Goal (achieved):** Persist durable, append-only evidence records for Threadline-owned governance facts; expose them consistently through Phoenix-optional library APIs, Mix tasks, and a host-gated `/audit/evidence` LiveView; lock the narrow contract in docs and tests — without widening into a compliance platform, auth model, or tenancy model.
+
+**Shipped:**
+- Append-only evidence schema and `Threadline.Evidence` public context — six bounded subjects with stable provenance metadata, machine-readable detail payloads, and explicit non-goal language for host business policy.
+- Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and unsupported claims — same verdict language across library, Mix-task, and mounted LiveView surfaces.
+- Phoenix-optional library API plus Mix-task parity (`mix verify.evidence` family, `mix threadline.evidence.show`) with a stable JSON contract for CI, procurement, and audit handoff.
+- Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
+- Public docs and contract tests lock the narrow evidence-plane claim and the explicit non-goals (no legal hold, no immutable-storage guarantee, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL).
+- Phase 99 named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam bundle + `mix verify.example`) locks the contract on the current tree; reran green at closeout (122 tests, 0 failures).
+- Verification backfill chain (Phases 100/101/102) closed Phase 95/96/98 verification gaps with current-tree proof and finalized Nyquist validation artifacts.
+- Authority surface reconciliation and milestone re-audit (Phase 103) flipped the v1.22 audit to `status: passed` with 12/12 requirements satisfied, `closeout_readiness: green`.
+
+**Next milestone goals:**
+- Apply real-adopter pressure on the evidence-plane contract before adding scope. v1.23 framing should start from feedback on the shipped narrow surface, not from speculative compliance-pack design.
+- Re-evaluate DEFER-01 (compliance report packs), DEFER-02 (legal hold / approval flows), and DEFER-03 (immutable archive guarantees) only when concrete adopter pressure exists; do not preemptively expand the proof vocabulary.
+- Preserve the host-owned auth/tenancy boundary that has held through v1.15 → v1.22.
+
+**Post-close judgment (2026-05-27):**
+- Shipping the narrow evidence-plane contract first (rather than a generic compliance pack) was the right move — the rerun bundle is now the authoritative source for the procurement / audit-of-audit claim, and future milestones can build on it instead of re-litigating it.
+- The verification backfill pattern (Phases 100/101/102) is now repeatable shape for closing audit gaps without widening scope; capture this as a reusable closeout play.
+- D-02 (archive vs. closeout-gate separation) and D-16 (`.planning/`-only boundary on closeout-gate phases) held cleanly through Phase 103 — bake into the standard closeout playbook.
+
+## Prior milestone shipped: v1.21 Scoped Support / Operator Proof (Phases 85-94, 2026-05-25)
 
 **Goal (achieved):** Turn the existing host-owned `scope_query_fn` seam into a truthful, first-party support-safe lane on the shipped `/audit` surface without widening Threadline into an auth, tenancy, or compliance platform.
 
 **Shipped:**
 - Narrowed the support-lane claim to the exact current-tree proof set: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
 - Coverage and policy surfaces now stay explicit as admin/global or unsupported for support-scoped sessions, with denial and fallback UX aligned across LiveView, HTTP, docs, and tests.
-- One canonical `/audit` mount recipe and the example Phoenix app now prove admin + support personas honestly on the same host-owned route tree.
+- One canonical `/audit` mount recipe and the example Phoenix app prove admin + support personas honestly on the same host-owned route tree.
 - Phases 90-94 backfilled the missing verification chain, refreshed the authority surfaces, and closed all 12 v1.21 requirements on rerun-backed current-tree evidence.
 
-**Next milestone goals:**
-- Add durable policy/evidence records and audit-of-audit proof without expanding into a Threadline-owned auth or compliance platform.
-- Preserve the host-owned boundary: policy evidence should strengthen trust and procurement posture, not introduce RBAC or tenancy DSLs.
-- Reuse the shipped support-safe `/audit` contract as the baseline instead of opening new UI families.
-
-**Post-close judgment (2026-05-25):**
-- The highest-value adoption risk remaining after v1.21 is evidence quality and governance proof, not support-lane ambiguity.
-- The closeout rerun bundle is now the authoritative source for the support-safe operator claim; future milestone framing should build on that fixed contract instead of re-litigating it.
+**Archives:** `.planning/milestones/v1.21-REQUIREMENTS.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-MILESTONE-AUDIT.md`.
 
 ## Prior milestone shipped: v1.20 Scale and Governance Depth
 
@@ -235,13 +255,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DOC-03 (Phases 41–42, audit closed in Phase 43)** — Doc-contract tests cover the README and example README literals; `41-VERIFICATION.md`, `42-VERIFICATION.md`, and `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap. Validated in v1.13: Docs Contract Repair (2026-04-26).
 - [x] **Investigation table stakes (Phases 53–56)** — `Threadline.timeline_page/2`, public investigation helpers, `Threadline.incident_bundle/2`, focused request-path coverage, and one canonical investigation docs story. Validated in v1.16: Investigation Table Stakes (2026-05-06).
 - [x] **Operator Surface Foundation (Phases 57–63)** — Mountable in-tree LiveView with optional Phoenix/LiveView/HTML/PubSub deps, two must-have screens + row history sub-view, fail-closed mount-time auth contract with optional `:authorize_fn` and authorize telemetry, `mix threadline.incident` CLI parity, doc-contract test locking macro signature + route literals + auth section. Validated in v1.17 (2026-05-06).
+- [x] **Policy / Evidence Plane (Phases 95–103)** — `Threadline.Evidence` append-only records with stable provenance and machine-readable detail; Phoenix-optional library APIs and Mix-task parity (`mix verify.evidence`, `mix threadline.evidence.show`); `/audit/evidence` LiveView with host-owned auth gate; three-tier proof vocabulary (`Threadline.Evidence.Proof`); doc contracts lock the narrow claim and explicit non-goals (no legal hold, no immutable storage, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL). Validated in v1.22: EVID-01/02/03, PROOF-01/02/03, SURF-01/02/03, DOC-01/02/03 (2026-05-27).
 
 ### Active
 
-- [ ] **EVID-01 / EVID-02 / EVID-03** — Persist append-only evidence records for Threadline-owned governance facts with stable provenance and machine-readable detail, while keeping host business-policy meaning out of scope.
-- [ ] **PROOF-01 / PROOF-02 / PROOF-03** — Expose evidence through Phoenix-optional public APIs and Mix-task parity, with outputs that distinguish proven facts from unsupported claims.
-- [ ] **SURF-01 / SURF-02 / SURF-03** — Reuse the existing `/audit` surface for read-only evidence views without adding a new UI family or Threadline-owned permission model.
-- [ ] **DOC-01 / DOC-02 / DOC-03** — Lock the evidence-plane claim in docs and tests, including explicit negative claims around legal hold, immutable guarantees, generic compliance packs, and RBAC/tenancy DSLs.
+- (no active requirements — v1.22 closed 2026-05-27; define v1.23 scope with `/gsd-new-milestone`)
 
 ### Out of Scope
 
@@ -302,7 +320,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.18 ships read-only policy admin viewers (coverage dashboard + drift-aware redaction admin); retention admin deferred to v1.19 | Coverage has zero drift risk and the highest operational value (covers the most expensive Threadline failure mode — uncaptured tables) over already-shipped `Threadline.Health.trigger_coverage/1`. Drift-aware redaction admin reconciles `config :threadline, :trigger_capture` against `pg_proc.prosrc`-derived deployed redaction so a config edit without `gen.triggers` rerun cannot silently mislead operators (the Logidze/Carbonite-class footgun). Retention admin's "last purge" requires net-new `audit_retention_runs` capture machinery (`purge/1` writes), which broadens the milestone rather than hardens it; revisit when the capture surface is decided. Read-only ceiling preserves the v1.15 host-owns-auth boundary and avoids the "Purge now" / runtime-policy-edit compliance vector. | ✓ Shipped in v1.18 |
 | v1.19 focuses on integration breadth and extraction readiness, not deeper operator product scope | The next leverage point is reducing host-specific glue and tightening proven compatibility claims. Saved views, retention admin capture machinery, queued exports, and mutable policy UI all add product surface or infrastructure without making adoption easier across hosts. `threadline_web` should remain a measured future decision unless real adopter pressure proves otherwise. | — Active (opened 2026-05-07) |
 | v1.21 will productize the mount contract, not the auth model | The strongest remaining adoption gap was a truthful scoped support lane on `/audit`. The current tree now proves one host-owned path end to end, and Phase 94 closed the authority and audit surfaces around that proof without inventing RBAC or tenancy DSLs. | ✓ Ready for closeout (2026-05-25) |
-| v1.22 will ship a narrow evidence plane, not a compliance platform | The next leverage point is durable proof for policy/governance posture. Append-only evidence records, API/CLI parity, and read-only `/audit` evidence views strengthen enterprise credibility without crossing the host-owned auth/tenancy boundary. | — Active (opened 2026-05-25) |
+| v1.22 will ship a narrow evidence plane, not a compliance platform | The next leverage point is durable proof for policy/governance posture. Append-only evidence records, API/CLI parity, and read-only `/audit` evidence views strengthen enterprise credibility without crossing the host-owned auth/tenancy boundary. | ✓ Shipped (Phases 95-103, v1.22, 2026-05-27) |
+| Three-tier proof vocabulary (`proven`, `inferred`, `unsupported`) lives in `Threadline.Evidence.Proof` and is shared across library, Mix, and LiveView surfaces | Procurement and audit-of-audit asks require honest claim language, not just data. Splitting the verdict into proven facts vs. inferred posture vs. explicit unsupported claims kept the contract narrow while still being useful — and prevented the "everything is a proven compliance fact" drift other audit libraries fall into. | ✓ Shipped (Phase 97, v1.22, 2026-05-27) |
+| Mounted `/audit/evidence` reuses the existing `/audit` surface and host-owned auth gate; no new operator UI family or Threadline-owned RBAC | Pure read-only views with overview-first drill-down and URL-driven navigation match the support-lane shape established in v1.21, so adopters get one consistent operator vocabulary. A new UI family would have reopened auth scope. | ✓ Shipped (Phase 98, v1.22, 2026-05-27) |
+| Verification backfill phases (Phases 100/101/102) are the right pattern for closing audit gaps without widening milestone scope | When a milestone audit surfaces gaps in already-shipped phases, inserting narrow verification-only phases (`.planning/`-only, no doc/code/test edits, named rerun bundle as proof) closes the loop without re-litigating the underlying work. Phase 103 then reconciles the authority surfaces and reruns the audit on the reconciled tree. Reusable closeout play. | ✓ Validated (Phases 100-103, v1.22, 2026-05-27) |
+| D-02 archive/closeout-gate separation and D-16 `.planning/`-only boundary held cleanly through Phase 103 | The archive step (`/gsd-complete-milestone`) owns MILESTONE-ARC, PROJECT "Last shipped", MILESTONES, RETROSPECTIVE, and `.planning/milestones/v*` archives. The closeout-gate phase is the proof step, not the archive step. Keeping these separated avoids the "audit closed itself" anti-pattern. | ✓ Validated (Phase 103, v1.22, 2026-05-27) |
 
 ## Evolution
 
@@ -324,4 +346,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — Phase 103 reconciled the v1.22 current-state narrative with the closeout-ready milestone audit.*
+*Last updated: 2026-05-27 — v1.22 Policy / Evidence Plane closed; current state, requirements, key decisions, and milestone history evolved for milestone close.*

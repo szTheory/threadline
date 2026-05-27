@@ -261,6 +261,55 @@
 
 ---
 
+## Milestone: v1.22 — Policy / Evidence Plane
+
+**Shipped:** 2026-05-27  
+**Phases:** 9 | **Plans:** 18
+
+### What was built
+
+- `Threadline.Evidence` append-only records for six bounded subjects with stable provenance metadata and machine-readable detail payloads — no host business-policy meaning encoded.
+- Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and explicit unsupported claims — shared verdict language across library, Mix-task, and LiveView surfaces.
+- Phoenix-optional library API plus Mix-task parity (`mix verify.evidence` family, `mix threadline.evidence.show`) with a stable JSON contract for CI, procurement, and audit handoff.
+- Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — reusing the existing `/audit` family, no new operator UI.
+- Public docs and contract tests locked the narrow claim plus explicit non-goals (no legal hold, no immutable-storage guarantee, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL).
+- Verification backfill chain (Phases 100/101/102) closed Phase 95/96/98 verification gaps with current-tree proof; Phase 103 reconciled the four authority surfaces and reran the milestone audit on the reconciled tree (`status: passed`, 12/12 requirements).
+
+### What worked
+
+- The narrow milestone thesis (a real evidence plane, not a compliance platform) stayed intact end-to-end. The shipped surface answers procurement-grade "what is provable here" questions without crossing the host-owned auth/tenancy boundary that v1.15-v1.21 invested in.
+- The three-tier proof vocabulary forced honest claim language at design time — preventing the "everything is a proven compliance fact" drift that other audit libraries fall into when they bolt on evidence late.
+- Phase 99's named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam + `mix verify.example`) became the authority for the closeout verdict instead of static prose, which made the Phase 103 milestone re-audit a mechanical rerun rather than an interpretation exercise.
+- Inserting Phase 103 explicitly as a closeout-gate phase (not the archive step) meant the milestone audit could be repaired in place without widening into doc/code/test surfaces — the `.planning/`-only D-16 boundary held cleanly.
+
+### What was inefficient
+
+- The original Phase 95/96/98 work shipped without explicit `VERIFICATION.md` artifacts on disk, so the v1.22 milestone audit surfaced gaps that required three backfill phases (100/101/102) to close. The feature work was done correctly; the proof-chain bookkeeping was the gap. Same shape as v1.21's Phase 90-94 backfill chain — this is a repeating cost we now have a pattern for.
+- `gsd-sdk query state.begin-phase` corrupted `STATE.md` with `null` values at Phase 103 start (positional args weren't parsed); orchestrator restored from HEAD before dispatch. CLAUDE.md already warns about this command's sensitivity — but the warning came too late to prevent the corruption.
+- `gsd-sdk query milestone.complete` auto-extracted "deviation log" entries from SUMMARY.md files into the MILESTONES.md "Key accomplishments" block (e.g. `1. [Rule 3 - Blocking issue] STATE.md yaml status flipped from executing to completed`). Required a manual rewrite to focus the entry on actual themes rather than mid-execution bookkeeping.
+
+### Patterns established
+
+- **Closeout-gate phase shape:** A `.planning/`-only phase whose two plans are (1) reconcile the four authority surfaces and any stale validation bookkeeping, and (2) rerun the named proof bundle and rewrite the milestone audit. Pre-locks D-02 (archive belongs to `/gsd-complete-milestone`) and D-16 (no doc/code/test edits). Re-usable for any future milestone whose audit surfaces gaps after feature work is done.
+- **Verification backfill phase shape:** A narrow phase per gapped earlier phase, scoped to writing `VERIFICATION.md` from current-tree evidence and finalizing `VALIDATION.md` to `nyquist_compliant: true`. No new feature work, no scope widening.
+- **Named rerun bundle as closeout authority:** The Phase 99 bundle (3 commands, ~122 tests) is the milestone audit's primary evidence — not prose, not summary frontmatter. Future milestones should designate a named bundle early so closeout becomes a rerun rather than a re-litigation.
+- **Three-tier proof verdict:** `proven` / `inferred` / `unsupported` keeps the claim language honest. Worth carrying forward as a default vocabulary anywhere Threadline emits truth statements.
+
+### Key lessons
+
+1. **Bake proof-chain completeness into phase verification, not into milestone close.** v1.21 and v1.22 both needed verification backfill phases to repair earlier-phase audit gaps. The gsd-verifier step should produce `VERIFICATION.md` files atomically as part of phase close, not as a separate later artifact. Carry this into v1.23 phase plans.
+2. **Closeout-gate phases need explicit D-02 / D-16 framing in their CONTEXT.md.** Without it, the executor is tempted to widen scope to "fix the new gap inline." Phase 103's research locked these as explicit decisions and the boundary held; replicate that framing in future closeout-gate phases.
+3. **Trust the named bundle, not the audit prose.** The v1.22 audit went from `gaps_found` to `passed` only because the rerun bundle stayed green on the reconciled tree. Future milestone audits should anchor on rerun authority rather than authored verdicts.
+4. **CLAUDE.md tooling-sensitivity warnings should move upstream into the SDK itself.** The `state.begin-phase` corruption is a known sensitivity; document-level warnings are not enough — the tool itself should validate args.
+
+### Cost observations
+
+- Model mix: not instrumented in-repo for this milestone.
+- Sessions: two concentrated waves over two days — first for evidence-plane feature work (Phases 95-99), then for verification backfill + closeout (Phases 100-103).
+- Notable: Phases 100/101/102/103 collectively touched only `.planning/` (zero changes under `lib/`, `test/`, `mix.exs`, `mix.lock`, `guides/`, `examples/`, `priv/`); the closeout boundary held cleanly across four phases.
+
+---
+
 ## Milestone: v1.21 — Scoped Support / Operator Proof
 
 **Shipped:** 2026-05-25  
