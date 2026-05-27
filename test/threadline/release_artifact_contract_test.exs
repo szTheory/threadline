@@ -64,6 +64,22 @@ defmodule Threadline.ReleaseArtifactContractTest do
            ]
   end
 
+  test "ExDoc module groups include Evidence plane and Core API audit modules" do
+    groups = docs_config()[:groups_for_modules]
+
+    assert Keyword.fetch!(groups, :Evidence) == [
+             Threadline.Evidence,
+             Threadline.Evidence.Proof,
+             Threadline.Evidence.Subject
+           ]
+
+    core_api = Keyword.fetch!(groups, :"Core API")
+    assert Threadline.Audit in core_api
+
+    mix_tasks = Keyword.fetch!(groups, :"Mix Tasks")
+    assert Mix.Tasks.Threadline.Evidence.Show in mix_tasks
+  end
+
   test "README carries only the release-scoped installer and routing literals" do
     readme = File.read!("README.md")
 
