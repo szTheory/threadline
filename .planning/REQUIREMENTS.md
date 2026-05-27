@@ -36,7 +36,7 @@
 - [ ] **SEED-01**: `mix demo.seed` task added under `examples/threadline_phoenix/lib/mix/tasks/`, deliberately separate from `priv/repo/seeds.exs` so adopters don't conflate the demo seed with their own seed scaffolding.
 - [ ] **SEED-02**: Seeds deterministic via fixed `:rand.seed`; idempotent (re-running produces the same state); volume target ~3 organizations × 5 agents × 50 tickets, with ticket activity spanning roughly 14 days (created/updated timestamps backdated, audit history showing realistic activity gaps).
 - [ ] **SEED-03**: Seed dataset drives every Phase 108 walkthrough scenario — i.e. the specific tickets, agents, and timing referenced in the walkthrough doc are findable in the seeded data; the answers exist before the walkthrough runs.
-- [ ] **SEED-04**: `mix demo.reset` task returns the database to a clean post-migrate state (drops + re-runs migrations + re-runs `demo.seed`); documented as the canonical way to recover.
+- [x] **SEED-04**: `mix demo.reset` task returns the database to a clean post-migrate state (drops + re-runs migrations + re-runs `demo.seed`); documented as the canonical way to recover.
 - [ ] **SEED-05**: A "deleted by someone" record is planted in the seed dataset (e.g. an agent deleted a ticket reply in org Acme last Tuesday) so the Phase 108 support-incident scenario ("who deleted X?") has a real on-disk answer.
 
 ### Walkthrough Script + Finding Protocol (Phase 108)
@@ -118,7 +118,7 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | SEED-01 | Phase 107 | Pending |
 | SEED-02 | Phase 107 | Pending |
 | SEED-03 | Phase 107 | Pending |
-| SEED-04 | Phase 107 | Pending |
+| SEED-04 | Phase 107 | Complete |
 | SEED-05 | Phase 107 | Pending |
 | WALK-01 | Phase 108 | Pending |
 | WALK-02 | Phase 108 | Pending |
