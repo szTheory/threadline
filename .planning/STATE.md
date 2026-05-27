@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Realistic-Demo Walkthrough
 status: executing
-last_updated: "2026-05-27T17:58:15.540Z"
+last_updated: "2026-05-27T18:09:06.855Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 13
-  percent: 81
+  completed_plans: 14
+  percent: 57
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 108-walkthrough-script-finding-capture-protocol — IN PROGRESS
-Plan: 2 of 5 complete (next: 108-03)
-Status: FINDINGS-01 closed — findings TEMPLATE + README ready; next is WALKTHROUGH §0–§3
-Last activity: 2026-05-27 -- Completed 108-02-PLAN.md
+Plan: 3 of 5 complete (next: 108-04)
+Status: WALKTHROUGH §0–§3 complete; next is §4 operator incidents
+Last activity: 2026-05-27
 Resume file: None
 
 ## Performance Metrics
@@ -56,8 +56,8 @@ Resume file: None
 
 ## Session Continuity
 
-- **Last Action**: Completed 108-02-PLAN.md — findings TEMPLATE.md + README.md with a/b/c/d classification protocol (commits `90eedea`, `dc2f9c4`).
-- **Next Step**: Execute 108-03-PLAN.md (WALKTHROUGH §0–§3 install/onboarding/daily-use).
+- **Last Action**: Completed 108-03-PLAN.md — WALKTHROUGH.md §0–§3 install/onboarding/daily-use (commits `5822fe5`, `81ad55c`).
+- **Next Step**: Execute 108-04-PLAN.md (WALKTHROUGH §4 operator incidents + ROADMAP traceability).
 
 ## Operator Next Steps
 
@@ -77,3 +77,4 @@ Resume file: None
 | Phase 107-realistic-seed-data-demo-mix-tasks P04 | 35 min | 3 tasks | 11 files |
 | Phase 108-walkthrough-script-finding-capture-protocol P01 | 2min | 2 tasks | 4 files |
 | Phase 108-walkthrough-script-finding-capture-protocol P02 | 4min | 2 tasks | 2 files |
+| Phase 108-walkthrough-script-finding-capture-protocol P03 | 12min | 2 tasks | 2 files |

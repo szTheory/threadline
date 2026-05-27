@@ -41,8 +41,8 @@
 
 ### Walkthrough Script + Finding Protocol (Phase 108)
 
-- [ ] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` install/onboarding section: clone, dep install, db setup, demo seed, Sigra signup/login, first ticket-reply created through the UI; expected outputs and verification steps documented.
-- [ ] **WALK-02**: Daily-use section: agent replies to and closes a ticket; admin views recent activity for their org via the operator surface; support agent triages an inbound ticket — each flow with expected screens and audit-table outcomes.
+- [x] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` install/onboarding section: clone, dep install, db setup, demo seed, Sigra signup/login, first ticket-reply created through the UI; expected outputs and verification steps documented.
+- [x] **WALK-02**: Daily-use section: agent replies to and closes a ticket; admin views recent activity for their org via the operator surface; support agent triages an inbound ticket — each flow with expected screens and audit-table outcomes.
 - [ ] **WALK-03**: Incident section — three concrete user-uttered scenarios with documented answer procedures using only the shipped operator surface:
   1. "Support: who closed ticket #4521 in org Acme last Tuesday, and what did they say in internal-notes before doing it?" (scoped timeline + correlation + actor window + row history)
   2. "Admin: agent X is leaving — what did they touch in their last 24h?" (actor history with cross-org admin scope)
@@ -120,8 +120,8 @@ Filled by `gsd-roadmapper` during Phase 0 of execution.
 | SEED-03 | Phase 107 | Complete |
 | SEED-04 | Phase 107 | Complete |
 | SEED-05 | Phase 107 | Complete |
-| WALK-01 | Phase 108 | Pending |
-| WALK-02 | Phase 108 | Pending |
+| WALK-01 | Phase 108 | Complete |
+| WALK-02 | Phase 108 | Complete |
 | WALK-03 | Phase 108 | Pending |
 | WALK-04 | Phase 108 | Complete |
 | FINDINGS-01 | Phase 108 | Complete |
