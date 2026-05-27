@@ -20,7 +20,7 @@
 
 ### Narrative docs (Phase 115) — Blessed write path
 
-- [ ] **NARR-01**: `guides/how-threadline-works.md` centers `Threadline.Audit.transaction/3` as the recommended audited write path (not hand-rolled `record_action/2` recipes).
+- [x] **NARR-01**: `guides/how-threadline-works.md` centers `Threadline.Audit.transaction/3` as the recommended audited write path (not hand-rolled `record_action/2` recipes).
 - [x] **NARR-02**: README, getting-started, and how-threadline-works cross-links agree on write-path guidance and discovery order.
 - [x] **NARR-03**: Doc-contract tests lock at least one canonical `Audit.transaction/3` narrative literal in how-threadline-works (or equivalent SSOT guide).
 
@@ -80,7 +80,7 @@ Deferred until after v1.25 or on sustained adopter signal.
 | REL-02 | 114 | Complete |
 | REL-03 | 114 | Complete |
 | REL-04 | 114 | Complete |
-| NARR-01 | 115 | Pending |
+| NARR-01 | 115 | Complete |
 | NARR-02 | 115 | Complete |
 | NARR-03 | 115 | Complete |
 | EXAMPLE-01 | 116 | Pending |
