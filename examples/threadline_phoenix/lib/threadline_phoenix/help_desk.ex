@@ -66,6 +66,60 @@ defmodule ThreadlinePhoenix.HelpDesk do
   end
 
   @doc """
+  Returns the membership role for a user in an organization, or `nil` if none exists.
+  """
+  @spec get_membership_role(String.t(), String.t()) :: :agent | :support | nil
+  def get_membership_role(user_id, organization_id)
+      when is_binary(user_id) and is_binary(organization_id) do
+    case Repo.get_by(OrgMembership, user_id: user_id, organization_id: organization_id) do
+      %{role: "agent"} -> :agent
+      %{role: "support"} -> :support
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Returns the user's default help-desk organization.
+
+  When the user has exactly one membership, that organization is returned.
+  Otherwise the earliest membership by `inserted_at` is used.
+  """
+  @spec get_default_organization_for_user(String.t()) :: Organization.t() | nil
+  def get_default_organization_for_user(user_id) when is_binary(user_id) do
+    memberships =
+      from(m in OrgMembership,
+        join: o in Organization,
+        on: o.id == m.organization_id,
+        where: m.user_id == ^user_id,
+        order_by: [asc: m.inserted_at],
+        select: {m, o}
+      )
+      |> Repo.all()
+
+    case memberships do
+      [] ->
+        nil
+
+      [{_membership, org}] ->
+        org
+
+      [{_first, first_org} | _rest] ->
+        first_org
+    end
+  end
+
+  @doc """
+  Returns `to_string(organization.id)` for the user's default organization, or `nil`.
+  """
+  @spec get_organization_id_for_user(String.t()) :: String.t() | nil
+  def get_organization_id_for_user(user_id) when is_binary(user_id) do
+    case get_default_organization_for_user(user_id) do
+      %Organization{id: id} -> to_string(id)
+      nil -> nil
+    end
+  end
+
+  @doc """
   Inserts a ticket reply and closes the ticket in one transaction with actor GUC,
   capture, and `:ticket_replied_and_closed` semantics linked to the audit row.
   """
