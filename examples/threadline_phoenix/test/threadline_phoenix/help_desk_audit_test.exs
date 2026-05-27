@@ -96,6 +96,19 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
       assert delete_change.changed_fields == nil
       assert delete_change.data_after == nil
 
+      delete_at =
+        Repo.one!(
+          from(at in AuditTransaction,
+            join: ac in assoc(at, :changes),
+            where: ac.table_name == "ticket_replies" and ac.op == "delete",
+            where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(reply.id)),
+            order_by: [desc: at.occurred_at],
+            limit: 1
+          )
+        )
+
+      assert delete_at.meta["organization_id"] == to_string(org.id)
+
       Repo.query!(Tables.truncate_sql(), [])
     end)
   end
