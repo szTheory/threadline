@@ -303,10 +303,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **REL-01** through **REL-04 (Phase 114)** — 0.6.0 semver, CHANGELOG, ExDoc Evidence group, verify.release, install-snippet SSOT `~> 0.6`. Validated in v1.25 (2026-05-27).
 - [x] **NARR-01** through **NARR-03 (Phase 115)** — `guides/how-threadline-works.md`, README, and getting-started aligned on `Audit.transaction/3` as blessed write path; doc-contract tests lock narrative literals and cross-doc discovery order. Validated in v1.25 (2026-05-27).
 - [x] **EXAMPLE-01** through **EXAMPLE-04 (Phase 116)** — Example `:api` session plugs before `Threadline.Plug`; README Choose your path / Base install / Track A–B runbook; Mix task reference and ownership tables; doc-contract locks for auth staging and first-hour literals. Validated in v1.25 (2026-05-27).
+- [x] **DOC-01** through **DOC-03 (Phase 117)** — Split-guide evidence map (no phantom hub); Hex semver in adopter guides; `0.5.x → 0.6.x` upgrade bullet; incident JSON blessed path; `mix verify.doc_contract` green with exploration_routing + semver_adopter contracts. Validated in v1.25 (2026-05-27).
 
 ### Active
 
-- [ ] **DOC-01** through **DOC-03** — Evidence-plane doc authority + semver prose (Phase 117)
 - [ ] **PILOT-01** / **PILOT-02** — Optional pilot-prep (Phase 118)
 
 ### Out of Scope
@@ -399,4 +399,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — Phase 116 complete (example first-hour fixes); Phase 117 next.*
+*Last updated: 2026-05-27 — Phase 117 complete (evidence-plane doc authority); Phase 118 optional pilot-prep next.*

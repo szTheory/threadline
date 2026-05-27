@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: executing
-last_updated: "2026-05-27T22:46:54.704Z"
-last_activity: 2026-05-27 -- Phase 117 planning complete
+last_updated: "2026-05-27T22:50:03.705Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 7
-  percent: 60
+  completed_plans: 9
+  percent: 80
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 117 — evidence-plane-doc-authority
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 117 planning complete
+Phase: 118
+Plan: Not started
+Status: Executing Phase 117
+Last activity: 2026-05-27
 
 ## Performance Metrics
 

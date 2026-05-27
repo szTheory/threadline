@@ -33,9 +33,9 @@
 
 ### Doc authority (Phase 117) — Evidence plane + semver prose
 
-- [ ] **DOC-01**: Evidence-plane documentation has a single authoritative entry point — either a thin `guides/evidence-plane.md` hub cross-linking existing guides **or** PROJECT/README references fixed to point at the actual split guides (no dead `guides/evidence-plane.md` references).
-- [ ] **DOC-02**: Adopter-facing prose uses Hex semver and package version vocabulary; internal milestone labels (v1.xx) relegated to maintainer/planning context only in adopter paths.
-- [ ] **DOC-03**: `mix verify.doc_contract` green after evidence-plane and semver prose changes.
+- [x] **DOC-01**: Evidence-plane documentation has a single authoritative entry point — either a thin `guides/evidence-plane.md` hub cross-linking existing guides **or** PROJECT/README references fixed to point at the actual split guides (no dead `guides/evidence-plane.md` references).
+- [x] **DOC-02**: Adopter-facing prose uses Hex semver and package version vocabulary; internal milestone labels (v1.xx) relegated to maintainer/planning context only in adopter paths.
+- [x] **DOC-03**: `mix verify.doc_contract` green after evidence-plane and semver prose changes.
 
 ### Pilot prep (Phase 118) — Optional narrow slice
 
@@ -87,9 +87,9 @@ Deferred until after v1.25 or on sustained adopter signal.
 | EXAMPLE-02 | 116 | Complete |
 | EXAMPLE-03 | 116 | Complete |
 | EXAMPLE-04 | 116 | Complete |
-| DOC-01 | 117 | Pending |
-| DOC-02 | 117 | Pending |
-| DOC-03 | 117 | Pending |
+| DOC-01 | 117 | Complete |
+| DOC-02 | 117 | Complete |
+| DOC-03 | 117 | Complete |
 | PILOT-01 | 118 | Pending |
 | PILOT-02 | 118 | Pending |
 

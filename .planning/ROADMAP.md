@@ -31,7 +31,7 @@
 - [x] **Phase 114: Release 0.6.0 Packaging** — Cut threadline 0.6.0 with changelog, ExDoc, verify.release, and adoption-pilot version SSOT. (completed 2026-05-27)
 - [x] **Phase 115: Narrative Doc Sync** — Align how-threadline-works and cross-links to `Audit.transaction/3` as blessed write path. (completed 2026-05-27)
 - [x] **Phase 116: Example First-Hour Fixes** — Repair example README auth staging, setup vs demo.seed, and generator/migration clarity. (completed 2026-05-27)
-- [ ] **Phase 117: Evidence Plane Doc Authority** — Single evidence-plane entry point; semver vocabulary in adopter prose.
+- [x] **Phase 117: Evidence Plane Doc Authority** — Single evidence-plane entry point; semver vocabulary in adopter prose. (completed 2026-05-27)
 - [ ] **Phase 118: Pilot Prep (Optional)** — Refresh adoption-pilot counts; external evaluator one-pager.
 
 ## Phase Details
@@ -122,7 +122,7 @@
 2. Adopter paths (README, getting-started, adoption-pilot) use Hex semver vocabulary consistently.
 3. `mix verify.doc_contract` green.
 
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 
 ---
 
