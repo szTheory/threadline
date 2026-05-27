@@ -97,3 +97,7 @@ config :swoosh, :api_client, false
 config :threadline_phoenix, ThreadlinePhoenixWeb.OperatorUser,
   admin_emails: ["admin@example.com"],
   admin_user_ids: []
+
+config :threadline_phoenix,
+  demo_epoch: ~U[2026-05-27 12:00:00Z],
+  demo_seed_password: "password123456"
