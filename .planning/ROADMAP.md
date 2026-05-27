@@ -124,7 +124,7 @@
   4. A "deleted by someone" planted record (e.g. agent X deleted a ticket reply in org Acme last Tuesday) exists in the seed dataset so Phase 108's "who deleted X?" scenario has a real answer in the audit log.
   5. Running `mix demo.seed` twice in a row produces the same byte-identical seeded state (idempotency check).
 
-**Plans:** TBD
+**Plans:** 4 plans (107-01 manifest → 107-02 reset/delete → 107-03 seed → 107-04 retention + contract tests)
 
 ---
 
@@ -200,7 +200,7 @@
 | 104. Reference-Walkthrough Charter & Override Decision | 1/1 | Complete    | 2026-05-27 |
 | 105. Help-Desk Domain Expansion in Reference App | 3/3 | Complete    | 2026-05-27 |
 | 106. Sigra Auth Lane in Reference App | 3/3 | Complete    | 2026-05-27 |
-| 107. Realistic Seed Data + Demo Mix Tasks | 0/? | Not started | — |
+| 107. Realistic Seed Data + Demo Mix Tasks | 0/4 | Ready to execute | 2026-05-27 |
 | 108. Walkthrough Script + Finding-Capture Protocol | 0/? | Not started | — |
 | 109. Maintainer Walkthrough Dry-Run | 0/? | Not started | — |
 | 110. Triage + Narrow Fixes | 0/? | Not started | — |
