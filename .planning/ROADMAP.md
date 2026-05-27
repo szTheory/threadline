@@ -130,7 +130,7 @@
 
 ### Phase 108: Walkthrough Script + Finding-Capture Protocol
 
-**Goal:** Write `examples/threadline_phoenix/WALKTHROUGH.md` (install → onboarding → daily-use → three operator incidents → three evidence exercises) and the `.planning/v1.23/findings/` template plus (a/b/c/d) classification rule **before** any walking happens — so the finding-capture protocol is in place before observations begin.
+**Goal:** Write `examples/threadline_phoenix/WALKTHROUGH.md` (install → onboarding → daily-use → four WALK-03 operator incidents → three evidence exercises) and the `.planning/v1.23/findings/` template plus (a/b/c/d) classification rule **before** any walking happens — so the finding-capture protocol is in place before observations begin.
 
 **Depends on:** Phase 107 (scripting after seeds catches seed gaps cheaply; cannot script against fictional data).
 
@@ -140,12 +140,12 @@
 
 **Success Criteria** (what must be TRUE):
 
-  1. `examples/threadline_phoenix/WALKTHROUGH.md` exists with install/onboarding (clone, deps, db setup, demo seed, signup/login, first ticket-reply), daily-use (agent reply+close, admin recent-activity view, support triage), three operator scenarios (closed-ticket attribution, leaving-agent audit window, retention-purge evidence), and three evidence exercises (retention purge, redaction snapshot, trigger coverage) — each section lists expected outputs, expected screens, and expected `Threadline.Evidence` records.
-  2. The three operator scenarios in WALKTHROUGH.md are answerable using only the shipped `/audit` operator surface — no raw SQL, no IEx — and each scenario's answer procedure is documented.
+  1. `examples/threadline_phoenix/WALKTHROUGH.md` exists with install/onboarding (clone, deps, db setup, demo seed, signup/login, first ticket-reply), daily-use (agent reply+close, admin recent-activity view, support triage), four WALK-03 operator incidents (closed-ticket attribution #4521, leaving-agent audit window, org Y retention-purge evidence, deleted-reply attribution #4518), and three evidence exercises (retention purge, redaction snapshot, trigger coverage) — each section lists expected outputs, expected screens, and expected `Threadline.Evidence` records.
+  2. The four WALK-03 operator incidents in WALKTHROUGH.md are answerable using only the shipped `/audit` operator surface — no raw SQL, no IEx — and each incident's answer procedure is documented.
   3. `.planning/v1.23/findings/TEMPLATE.md` and `.planning/v1.23/findings/README.md` define the finding file format (one numbered file per finding, with originating walkthrough step cited) and the (a/b/c/d) classification rule with fix-vs-defer routing: (a) breakage always fixed, (b) DX papercut fixed if ≤1 plan, (c) doc gap always fixed, (d) design gap deferred to v1.24 seeds.
   4. A maintainer reading WALKTHROUGH.md cold can complete the full install-to-evidence walk without referring to any other doc, and a maintainer reading the findings README can classify a new gap in <30 seconds.
 
-**Plans:** 3/5 plans complete
+**Plans:** 4/5 plans complete
 
 | Wave | Plans | Focus |
 |------|-------|-------|
@@ -171,7 +171,7 @@
 **Success Criteria** (what must be TRUE):
 
   1. Clean-clone install completes following only WALKTHROUGH.md (no out-of-band shell commands, no IEx fixes); `mix phx.server` boots and the help-desk landing renders at `http://localhost:4000`.
-  2. Maintainer answers each of the three operator scenarios in WALKTHROUGH.md using only the shipped `/audit` operator surface, with no IEx, no `Repo.all/2`, and no raw SQL — and the resolution procedure matches what WALKTHROUGH.md documents.
+  2. Maintainer answers each of the four WALK-03 operator incidents in WALKTHROUGH.md using only the shipped `/audit` operator surface, with no IEx, no `Repo.all/2`, and no raw SQL — and the resolution procedure matches what WALKTHROUGH.md documents.
   3. All three evidence exercises produce the documented `Threadline.Evidence` records via `mix verify.evidence` / `mix threadline.evidence.show` and the `/audit/evidence` LiveView; verdicts match expectations.
   4. Every observed gap, papercut, surprise, and confusion is captured as a numbered file under `.planning/v1.23/findings/NNNN-slug.md` with (a/b/c/d) classification assigned at capture time and the originating walkthrough step cited — zero findings deferred to be "classified later."
   5. No commits modifying `lib/`, `guides/`, `examples/threadline_phoenix/` (other than finding-adjacent artifacts), or test code during the walkthrough run — verifiable via `git log` for the phase window.
