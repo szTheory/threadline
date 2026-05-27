@@ -11,6 +11,8 @@ config :threadline_phoenix,
   ecto_repos: [ThreadlinePhoenix.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :threadline, ecto_repos: [ThreadlinePhoenix.Repo]
+
 # Configure the endpoint
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
   url: [host: "localhost"],
