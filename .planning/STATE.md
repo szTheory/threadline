@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
 status: verifying
-last_updated: "2026-05-27T22:30:58.161Z"
+last_updated: "2026-05-27T22:31:04.606Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 5
@@ -24,9 +24,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 116 (example-first-hour-fixes) — EXECUTING
+Phase: 116 (example-first-hour-fixes) — COMPLETE
 Plan: 2 of 2
-Status: Phase complete — ready for verification
+Status: Ready for Phase 117
 Last activity: 2026-05-27
 
 ## Performance Metrics
@@ -58,6 +58,8 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 - **v1.24 (2026-05-27):** Shipped audited write-path helper + adopter/doc truth; no compliance expansion without sustained adopter signal.
 - Phase 108-05: Canonical evidence CLI is `mix threadline.evidence.show`.
 - v1.23: Observe-only dry-run → triage; isolated clone verification ladder (L0→L2).
+- [Phase 116]: Demo walkthrough data heading preserved; body compressed to Track B pointer
+- [Phase 116]: Greenfield generator order in blockquote; committed clone skips generators in Base install callout
 
 ### Blockers
 
@@ -65,8 +67,8 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Completed 116-01-PLAN.md (API auth staging + doc contracts).
-- **Next Step**: Execute 116-02-PLAN.md (README install restructure)
+- **Last Action**: Completed 116-02-PLAN.md (README runbook restructure + doc contracts).
+- **Next Step**: Phase 117 — evidence-plane doc authority
 
 ## Operator Next Steps
 

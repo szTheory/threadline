@@ -71,7 +71,7 @@ Each task was committed atomically:
 4. **Task 4: Extend root doc-contract tests** - `e68a2c3` (test)
 5. **Task 5: Phase closeout verification** - (verify-only; no code commit)
 
-**Plan metadata:** pending (docs commit after STATE/ROADMAP update)
+**Plan metadata:** `f35967c` (docs: complete plan)
 
 ## Files Created/Modified
 
