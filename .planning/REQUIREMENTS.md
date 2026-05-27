@@ -13,10 +13,10 @@
 
 ### Release (Phase 114) — threadline 0.6.0
 
-- [ ] **REL-01**: Bump `threadline` to **0.6.0** with a dated CHANGELOG entry covering the v1.22–v1.24 in-repo stack (`Threadline.Evidence`, `Threadline.Audit.transaction/3`, operator/evidence surfaces, audited write-path helper).
-- [ ] **REL-02**: ExDoc module groups include `Threadline.Audit` and related public API docs introduced since 0.5.0.
-- [ ] **REL-03**: `mix verify.release` and release packaging checks pass on the current tree.
-- [ ] **REL-04**: `guides/adoption-pilot-backlog.md`, root README, and doc-contract SSOT reflect **threadline 0.6.0** / `~> 0.6`.
+- [x] **REL-01**: Bump `threadline` to **0.6.0** with a dated CHANGELOG entry covering the v1.22–v1.24 in-repo stack (`Threadline.Evidence`, `Threadline.Audit.transaction/3`, operator/evidence surfaces, audited write-path helper).
+- [x] **REL-02**: ExDoc module groups include `Threadline.Audit` and related public API docs introduced since 0.5.0.
+- [x] **REL-03**: `mix verify.release` and release packaging checks pass on the current tree.
+- [x] **REL-04**: `guides/adoption-pilot-backlog.md`, root README, and doc-contract SSOT reflect **threadline 0.6.0** / `~> 0.6`.
 
 ### Narrative docs (Phase 115) — Blessed write path
 
@@ -76,10 +76,10 @@ Deferred until after v1.25 or on sustained adopter signal.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REL-01 | 114 | Pending |
-| REL-02 | 114 | Pending |
-| REL-03 | 114 | Pending |
-| REL-04 | 114 | Pending |
+| REL-01 | 114 | Complete |
+| REL-02 | 114 | Complete |
+| REL-03 | 114 | Complete |
+| REL-04 | 114 | Complete |
 | NARR-01 | 115 | Pending |
 | NARR-02 | 115 | Pending |
 | NARR-03 | 115 | Pending |
@@ -94,6 +94,7 @@ Deferred until after v1.25 or on sustained adopter signal.
 | PILOT-02 | 118 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 16 total
 - Mapped to phases: 16
 - Unmapped: 0 ✓
