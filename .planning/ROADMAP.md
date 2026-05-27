@@ -104,7 +104,7 @@ The milestone strategy is:
 **Gap Closure**: Closes Phase 96 verification-chain gaps from the v1.22 audit
 **Plans**: 2 plans
 
-- [ ] 101-01: Re-verify evidence persistence, provenance capture, and public create/read flows on the current tree
+- [x] 101-01: Re-verify evidence persistence, provenance capture, and public create/read flows on the current tree
 - [ ] 101-02: Add the Phase 96 verification artifact and PROOF-01 closure evidence
 
 ### Phase 102: Phase 98 Verification Backfill
@@ -134,12 +134,16 @@ The milestone strategy is:
 
 - Threadline can persist durable evidence about its own governance and operator
   posture instead of relying only on runtime inspection and docs.
+
 - The same evidence facts are available through public APIs, Mix tasks, and
   read-only mounted operator views.
+
 - The project can answer procurement and audit-of-audit questions more
   credibly without inventing a compliance workflow product.
+
 - Public docs state exactly what is proven and exactly what remains out of
   scope.
+
 - The milestone authority surfaces and audit artifacts agree on the exact
   repaired status before closeout.
 
