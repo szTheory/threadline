@@ -1,5 +1,42 @@
 # Project milestones: Threadline
 
+## v1.23 Realistic-Demo Walkthrough (Shipped: 2026-05-27)
+
+**Phases completed:** 7 phases, 24 plans, 59 tasks
+
+**Known deferred items at close:** 1 (see STATE.md Deferred Items — Phase 109 verification gap acknowledged as by-design)
+
+**Key accomplishments:**
+
+- Locked the deliberate v1.22 -> v1.23 framing override (synthetic-first-adopter walkthrough) and v1.23 non-goals across PROJECT.md and MILESTONE-ARC.md in three atomic commits, with the re-engagement trigger bolded in the new Key Decisions row and a v1.23 arc-order row added under a refreshed header.
+- Shipped five-table help-desk domain with binary_id keys, per-org ticket numbers, and internal_note_body column — migratable and compiling in the example app.
+- Help-desk writes now capture with masked internal notes, one semantic action per transaction, and full trigger coverage across six audited tables.
+- DataCase tests prove multi-table capture, org-scoped meta, masked internal notes, and hard-delete audit rows — example suite and verify.example stay green.
+- Sigra controller-mode auth with users migrations, Phoenix HTML bootstrap, registration that auto-provisions help-desk org membership, and a home page linking register/login and /audit.
+- Sigra `current_scope` maps to help-desk-aware `current_user` via `OperatorUser`, with `/audit` wired through `:operator_browser` before unchanged authorize callbacks.
+- ConnCase `login_via_sigra/2` replaces faked browser assigns, operator surface tests use real Sigra HTTP login with UUID org scoping, and a dev-only help-desk route proves `actor_ref` capture from the browser pipeline.
+- Frozen demo manifest with UUID v5 org/user ids, hero tickets 4521/4518, temporal anchors, and dev/test credential docs before any seed writes.
+- Reusable hard-delete API, shared demo truncate SQL, and `mix demo.reset` with production guard — walkthrough recovery without `ecto.drop`.
+- `mix demo.seed` plants deterministic three-org help-desk fiction with hero audit incidents, PRNG filler volume, and manifest-driven timeline backfill — `mix demo.reset` now reseeds end-to-end.
+- Org Y offboard purge is seeded with evidence snapshots; `demo_contract_test.exs` and the example README lock SEED-02..05 for Phase 108.
+- Post-`mix demo.seed` now persists a real `redaction_policy` evidence row with manifest subject_ref `walk-demo-redaction-policy`, closing D-108-04e for WALKTHROUGH §5.
+- YAML-frontmatter finding template and a/b/c/d classification README with Phase 110 fix-vs-defer routing for Phase 109 observe-only capture
+- Maintainer runbook with §0 discipline block, clean-clone install through daily-use operator flows, and WALK-01/02 step IDs ready for Phase 109 dry-run
+- Four WALK-03 incident playbooks (#4521 close, leaving-agent window, org Y retention, #4518 delete) with operator-surface-only resolution paths and ROADMAP traceability aligned to four incidents
+- WALKTHROUGH §5 evidence exercises, self-contained appendices, README maintainer routing, and doc contract test completing the Phase 108 runbook
+- Isolated walk clone at 368c315 with execution log, WR pre-registration, and §0 checkpoint ready for RUN-01
+- §1 bootstrap passes through demo.seed but hard-gates at WALK-01-04 — landing page HTTP 500 blocks RUN-01
+- NOT ATTEMPTED — §1 hard gate blocked RUN-02 operator incidents (§4)
+- NOT ATTEMPTED — §1 hard gate blocked RUN-03 evidence exercises (§5)
+- Imported clone findings to main repo; scope-guard path filter empty; VERIFICATION and phase SUMMARY written
+- Observe-only dry-run on clean clone at 368c315 — §1 hard-gates at landing 500; one (a) finding imported; scope guard verified
+- Nil-safe `@current_scope` on ThreadlinePhoenix landing page closes finding 0001; logged-out GET / returns 200
+- Findings 0002 and 0003 filed from 108-REVIEW, WALK-03-02/03 prose aligned with seed fiction, contract tests extended, IN-001 §0 voice cleaned
+- L2 re-walk on fresh clone at d2ef6c8 — RUN-01/02/03 pass, WR-001/002 confirmed, phase 110 closeout complete
+- Validation re-walk on isolated clone at post-Wave-2 SHA — RUN-01/02/03 pass; findings 0001–0003 fixed; zero `lib/` commits
+
+---
+
 ## v1.22 Policy / Evidence Plane (Shipped: 2026-05-27)
 
 **Delivered:** Durable append-only evidence records for Threadline-owned governance facts, exposed consistently through Phoenix-optional library APIs, Mix tasks, and a host-gated `/audit/evidence` LiveView — with explicit non-goals around RBAC, tenancy, legal hold, immutable storage, and generic compliance workflow.
