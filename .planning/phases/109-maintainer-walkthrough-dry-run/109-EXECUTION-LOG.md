@@ -45,7 +45,23 @@ Method: fresh `git clone` at pinned `WALK_BASELINE_SHA` (detached HEAD). Not the
 
 ## Walk status checklist
 
-- [ ] RUN-01 (§1–§3)
-- [ ] RUN-02 (§4 operator incidents)
-- [ ] RUN-03 (§5 evidence exercises)
-- [ ] Findings count: a=__ b=__ c=__ d=__
+- [ ] RUN-01 (§1–§3) — **§1 FAIL** `blocked_by: WALK-01-04` (HTTP 500 on `/`)
+- [ ] RUN-02 (§4 operator incidents) — **NOT ATTEMPTED** (§1 gate)
+- [ ] RUN-03 (§5 evidence exercises) — **NOT ATTEMPTED** (§1 gate)
+- [ ] Findings count: a=1 b=0 c=0 d=0
+
+## §1 Clean clone install
+
+| Step | Result | Notes |
+|------|--------|-------|
+| WALK-01-01 | PASS | `mix deps.get` + `mix compile` exit 0 |
+| WALK-01-02 | PASS | `mix ecto.create` + `mix ecto.migrate` exit 0 |
+| WALK-01-03 | PASS | `mix demo.seed` exit 0 |
+| WALK-01-04 | **FAIL** | `GET /` → HTTP 500 BadMapError (`page_html.ex:10`, `@current_scope` nil) |
+
+**Gate:** §2–§5 NOT ATTEMPTED — `blocked_by: WALK-01-04`  
+**Finding:** `0001-landing-500-badmap.md` (classification **a**)
+
+## §2–§3
+
+NOT ATTEMPTED — §1 hard gate failed at WALK-01-04.
