@@ -25,6 +25,18 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "Threadline.as_of/4")
   end
 
+  test "NARR discovery docs agree on Audit.transaction/3 literal" do
+    readme = File.read!("README.md")
+    how = File.read!("guides/how-threadline-works.md")
+    getting_started = File.read!("guides/getting-started-saas.md")
+
+    for doc <- [readme, how, getting_started] do
+      assert String.contains?(doc, "Threadline.Audit.transaction/3")
+    end
+
+    assert String.contains?(readme, "New Phoenix integrations should use")
+  end
+
   test "README links domain reference guide" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "guides/domain-reference.md")
