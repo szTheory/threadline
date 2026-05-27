@@ -133,4 +133,21 @@ defmodule Threadline.UpgradePathDocContractTest do
     mix_exs = File.read!("mix.exs")
     assert String.contains?(mix_exs, "\"guides/upgrade-path.md\"")
   end
+
+  test "upgrade-path guide locks 0.5.x to 0.6.x minor upgrade bullet" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    {idx_minor, _} = :binary.match(guide, "## Upgrade by Threadline minor")
+    {idx_phoenix, _} = :binary.match(guide, "## What breaks when Phoenix")
+    scope = {idx_minor, idx_phoenix - idx_minor}
+
+    assert :binary.match(guide, "0.5.x → 0.6.x", scope: scope) != :nomatch or
+             :binary.match(guide, "0.5.x -> 0.6.x", scope: scope) != :nomatch
+
+    assert :binary.match(guide, "Threadline.Audit.transaction/3", scope: scope) != :nomatch or
+             :binary.match(guide, "Threadline.Evidence", scope: scope) != :nomatch
+
+    assert :binary.match(guide, "CHANGELOG.md", scope: scope) != :nomatch
+    assert :binary.match(guide, "[0.6.0]", scope: scope) != :nomatch
+  end
 end
