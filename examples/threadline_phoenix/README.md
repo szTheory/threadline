@@ -49,6 +49,17 @@ mix phx.new threadline_phoenix \
   --no-install
 ```
 
+On a **generator-fresh** skeleton (not this committed checkout), add Threadline capture, triggers, and Sigra auth before migrate:
+
+```bash
+mix threadline.install
+mix threadline.gen.triggers --tables posts
+mix sigra.install Accounts User users --no-live --no-organizations --no-passkeys --no-admin --yes
+mix ecto.migrate
+```
+
+`mix threadline.gen.triggers` calls **`Mix.Task.run("app.config", [])`** first, so use the same **`MIX_ENV`** locally and in CI when regenerating trigger SQL; otherwise config-driven SQL may not match what you expect.
+
 ## Base install (all paths)
 
 > **Committed checkout:** **skip generators on a normal clean clone.** Migrations for Threadline capture, triggers, and Sigra auth are **already committed** — do **not** run `mix threadline.install`, `mix threadline.gen.triggers`, or `mix sigra.install` on a normal clone. Generators belong in [Regenerating the skeleton](#regenerating-the-skeleton-generator-contract) only.
@@ -122,6 +133,35 @@ Credentials: [DEMO_USERS.md](DEMO_USERS.md).
 `ecto.setup` does **not** run `demo.seed` automatically.
 
 `mix ecto.reset` is schema/trigger recovery only — use `mix demo.reset` for the daily walkthrough loop.
+
+## Mix task reference
+
+| Task | Runs | Demo fiction? |
+|------|------|---------------|
+| `mix setup` | deps + compile + `ecto.setup` | No |
+| `mix ecto.setup` | create + migrate + neutral `priv/repo/seeds.exs` | No |
+| `mix ecto.reset` | drop + `ecto.setup` | No |
+| `mix demo.seed` | walkthrough fiction | **Yes** |
+| `mix demo.reset` | truncate demo tables + re-seed fiction | **Yes** |
+
+> **Greenfield integrators:** wiring Threadline into your own Phoenix app follows a different generator order. Start with **[getting-started-saas.md](../../guides/getting-started-saas.md)** — `threadline.install` → `threadline.gen.triggers --tables …` → `ecto.migrate` → Sigra when adopting the sigra-reference lane.
+
+## Mix task ownership
+
+**Ecto** owns the database object and applying SQL migrations. **Threadline** owns audit schema and trigger **generators**. **Sigra** owns auth **generators**. **This example** owns neutral **`priv/repo/seeds.exs`** and **`demo.*`** walkthrough fiction.
+
+| Task | Owns | When to run | Don't confuse with |
+|------|------|-------------|-------------------|
+| `mix ecto.create` | Database object | First machine / missing DB | `threadline.install` (files, not DB) |
+| `mix threadline.install` | Migration files: capture function, audit tables | Greenfield / new base migrations | `ecto.migrate`; `ecto.create` |
+| `mix threadline.gen.triggers --tables …` | Per-table trigger migrations; reads `app.config` | After install; same `MIX_ENV` as CI | `threadline.install`; auditing `audit_*` tables |
+| `mix ecto.migrate` | Applies all pending SQL | After any new migration file | Generator tasks (emit only) |
+| `mix sigra.install …` | Sigra auth migrations + modules | Generator-fresh app without committed Sigra migrations | `threadline.*`; **skip on this checkout** |
+| `mix ecto.setup` | create + migrate + `priv/repo/seeds.exs` | Convenience bootstrap | `demo.seed`; does **not** install triggers by itself |
+| `mix demo.seed` | Walkthrough fiction | After migrate; WALKTHROUGH / `/audit` | `ecto.setup`; not auto-run |
+| `mix demo.reset` | Truncate demo tables + re-seed fiction | Walkthrough recovery | `ecto.reset` |
+| `mix ecto.reset` | drop + `ecto.setup` | Schema/trigger recovery | `demo.reset` |
+| `mix setup` | deps + compile + `ecto.setup` | Quick bootstrap after Postgres up | Starting Postgres; `demo.seed` |
 
 ## Sigra walkthrough URLs
 
