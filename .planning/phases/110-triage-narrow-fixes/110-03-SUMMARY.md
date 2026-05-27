@@ -66,7 +66,7 @@ Each task was committed atomically:
 2. **Task 2: L2 re-walk WALK-01-04 through §5** - `1cd9617` (docs)
 3. **Task 3: 110-SUMMARY.md closeout** - `dc0afa1` (docs)
 
-**Plan metadata:** pending (docs: complete plan)
+**Plan metadata:** `a2bc2a3` (docs: complete plan)
 
 ## Files Created/Modified
 
