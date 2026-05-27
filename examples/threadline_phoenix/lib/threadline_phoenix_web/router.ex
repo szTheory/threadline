@@ -21,6 +21,10 @@ defmodule ThreadlinePhoenixWeb.Router do
     plug(:require_authenticated_admin)
   end
 
+  pipeline :operator_browser do
+    plug(ThreadlinePhoenixWeb.Plugs.AssignOperatorUser)
+  end
+
   pipeline :operator_auth do
     plug(:require_authenticated_operator)
   end
@@ -129,7 +133,7 @@ defmodule ThreadlinePhoenixWeb.Router do
 
   # doc: start: operator-surface-mount
   scope "/audit" do
-    pipe_through([:browser, :operator_auth])
+    pipe_through([:browser, :operator_browser, :operator_auth])
 
     threadline_operator_surface("/",
       actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,

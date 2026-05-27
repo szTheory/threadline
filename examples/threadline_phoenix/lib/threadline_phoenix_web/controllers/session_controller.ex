@@ -2,6 +2,7 @@ defmodule ThreadlinePhoenixWeb.SessionController do
   use ThreadlinePhoenixWeb, :controller
 
   alias ThreadlinePhoenix.Accounts, as: Auth
+  alias ThreadlinePhoenix.HelpDesk
   alias ThreadlinePhoenixWeb.UserAuth
 
   @impersonation_denial_message "You can't change account security settings while impersonating."
@@ -59,6 +60,8 @@ defmodule ThreadlinePhoenixWeb.SessionController do
     %{"email" => email, "password" => password} = user_params
 
     if user = Auth.get_user_by_email_and_password(email, password) do
+      _ = HelpDesk.provision_default_workspace_for_user(to_string(user.id))
+
       conn
       |> put_flash(:info, info)
       |> UserAuth.log_in_user(user, user_params)
