@@ -68,4 +68,22 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
       &assert(String.contains?(doc, &1))
     )
   end
+
+  test "mental model guide locks recommended audited write path (NARR-03)" do
+    doc = File.read!(@guide_path)
+
+    assert String.contains?(doc, "Threadline.Audit.transaction/3")
+    assert String.contains?(doc, "recommended audited write path")
+
+    {idx_write, _} = :binary.match(doc, "### Write-side")
+    write_len = byte_size(doc) - idx_write
+    scope = {idx_write, write_len}
+
+    {idx_tx, _} = :binary.match(doc, "Threadline.Audit.transaction/3", scope: scope)
+    {idx_ra, _} = :binary.match(doc, "Threadline.record_action/2", scope: scope)
+    assert idx_tx < idx_ra
+
+    assert String.contains?(doc, "getting-started-saas.md")
+    assert String.contains?(doc, "§6")
+  end
 end
