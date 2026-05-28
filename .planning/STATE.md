@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Adopter-Ready Release & First-Hour Truth
-status: executing
-last_updated: "2026-05-28T00:54:07.794Z"
-last_activity: 2026-05-28
+status: Awaiting next milestone
+last_updated: "2026-05-28T01:18:03.354Z"
+last_activity: 2026-05-28 — Milestone v1.25 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -17,24 +17,24 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-27)
+See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 118
-Plan: Not started
-Status: Executing Phase null
-Last activity: 2026-05-28
+Phase: Milestone v1.25 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-28 — Milestone v1.25 completed and archived
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.24 — Audited Write Path & Adopter Truth (2026-05-27)
-- **Phases delivered (v1.24)**: 3 phases (111-113), 11 plans
-- **Requirements**: 12/12 satisfied at v1.24 closeout
-- **Scope completion (assessment)**: ~88–92% for stated narrow audit-platform scope
+- **Last Milestone Shipped**: v1.25 — Adopter-Ready Release & First-Hour Truth (2026-05-28)
+- **Phases delivered (v1.25)**: 5 phases (114-118), 11 plans, 33 tasks
+- **Requirements**: 16/16 satisfied at v1.25 closeout
+- **Scope completion (assessment)**: v1.25 closed the post-v1.24 synthetic adopter wedge (0.6.0 + first-hour truth)
 
 ## Deferred Items
 
@@ -45,9 +45,6 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 | verification | Phase 109: 109-VERIFICATION.md | gaps_found — by-design (observe-only dry-run; triage in Phase 110) |
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until sustained adopter/procurement pressure |
 | v1.24 seed | Containerized compose walk | Discussed 109/110; not filed unless demand |
-| Phase 115-narrative-doc-sync P02 | 1 min | 4 tasks | 4 files |
-| Phase 116 P02 | 20 | 5 tasks | 2 files |
-
 ## Accumulated Context
 
 ### Decisions
@@ -68,11 +65,11 @@ Items acknowledged and deferred at milestone close on 2026-05-27:
 
 ## Session Continuity
 
-- **Last Action**: Phase 118 discuss-phase — context captured (9452df6).
-- **Next Step**: `/gsd-plan-phase 118`
-- **Resume file**: `.planning/phases/118-pilot-prep-optional/118-CONTEXT.md`
+- **Last Action**: Milestone v1.25 archived and tagged.
+- **Next Step**: `/gsd-new-milestone`
+- **Resume file**: _(none — milestone complete)_
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 118` — Pilot prep (optional)
-- Assessment thread: `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`
+- `/gsd-new-milestone` — define v1.26+ (phx.gen.auth breadth is the largest queued reach gap)
+- Milestone audit: `.planning/milestones/v1.25-MILESTONE-AUDIT.md`

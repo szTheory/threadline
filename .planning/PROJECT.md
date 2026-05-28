@@ -8,16 +8,18 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Latest Milestone Shipped: v1.24 Audited Write Path & Adopter Truth
+## Latest Milestone Shipped: v1.25 Adopter-Ready Release & First-Hour Truth
 
-**Goal (achieved):** Package the manual audited-transaction recipe into a first-class library helper, adopt it in the reference app and getting-started guide, and repair reference/doc truth for 0.5.x evaluators — without compliance-platform expansion.
+**Goal (achieved):** Make the shipped v1.22–v1.24 stack truthfully adoptable from Hex and remove first-hour doc/example friction — without compliance expansion or a second synthetic walkthrough.
 
 **Shipped:**
-- `Threadline.Audit.transaction/3` — actor GUC + domain callback + optional `record_action/2` + `action_id` linkage in one call; PostgreSQL integration tests and doc contracts
-- Example app primary write paths (`Blog`, `HelpDesk`, Oban touch) and `guides/getting-started-saas.md` adopt the helper; correlation/audit tests unchanged
-- Adopter truth: `evidence_authorize_fn` on sigra-reference mount; adoption-pilot at **0.5.0** / `~> 0.5`; canonical `mix threadline.evidence.show` locked in doc contracts; WALK-03-02 prose fix (WR-110-001)
+- **threadline 0.6.0** — CHANGELOG, ExDoc Evidence group, `mix verify.release`, install-snippet SSOT `~> 0.6` across adopter surfaces
+- Narrative docs center `Threadline.Audit.transaction/3` in `guides/how-threadline-works.md` with README/getting-started discovery alignment and doc-contract locks
+- Example first-hour runbook — `:api` session plugs, Choose your path / Track A–B, Mix task ownership tables; `mix verify.example` green
+- Evidence-plane doc authority — split-guide map (no phantom hub), semver-not-milestone adopter prose, `0.5.x → 0.6.x` upgrade bullet
+- Evaluator one-pager at `guides/evaluating-threadline.md`; adoption-pilot verify ladder without stale test counts
 
-**Next milestone goals:** _(superseded by v1.25 — see Current Milestone below)_
+**Next milestone goals:** `/gsd-new-milestone` — phx.gen.auth breadth is the largest queued reach gap (v1.26 candidate); v1.22 DEFER trio only on sustained adopter signal.
 
 ## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -32,22 +34,25 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/how-threadline-works.md`, `guides/upgrade-path.md`, `guides/domain-reference.md`, README, production checklist, and the example app are aligned end-to-end.
 
-## Current Milestone: v1.25 Adopter-Ready Release & First-Hour Truth
+## Current Milestone
 
-**Goal:** Make the shipped v1.22–v1.24 stack truthfully adoptable from Hex and remove first-hour doc/example friction — without compliance expansion or a second synthetic walkthrough.
+**Status:** v1.25 shipped (2026-05-28) — planning next milestone via `/gsd-new-milestone`.
 
-**Target features:**
-- **REL** — Cut **threadline 0.6.0** (changelog, ExDoc includes `Threadline.Audit`, `mix verify.release` green) ✓ Phase 114
-- **NARR** — Sync `guides/how-threadline-works.md` to `Audit.transaction/3` as blessed write path ✓ Phase 115
-- **EXAMPLE** — Fix example README first-hour friction (API auth staging, setup vs `demo.seed`, generator/migration confusion) ✓ Phase 116
-- **DOC** — Evidence-plane doc authority (thin hub or fix PROJECT references); semver-not-milestone in adopter prose
-- **PILOT-PREP (optional)** — Refresh adoption-pilot test counts; external evaluator one-pager
-
-**Assessment source:** `.planning/threads/2026-05-27-milestone-next-step-v1.25-assessment.md`.
-
-**Current planning focus:** Phase 117 (evidence-plane doc authority) — example first-hour fixes complete.
+**Queued themes (not roadmapped):**
+- **AUTH-BREADTH** — phx.gen.auth cookbook + proof path (v1.26 candidate from v1.25 assessment)
+- **v1.22 DEFER trio** — compliance packs, legal hold, immutable archive — only on sustained adopter/procurement pressure
+- **EXTERNAL-PILOT** — unblockers when real-adopter signal exists
 
 > **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
+
+## Prior milestone shipped: v1.24 Audited Write Path & Adopter Truth
+
+**Goal (achieved):** Package the manual audited-transaction recipe into a first-class library helper, adopt it in the reference app and getting-started guide, and repair reference/doc truth for 0.5.x evaluators — without compliance-platform expansion.
+
+**Shipped:**
+- `Threadline.Audit.transaction/3` — actor GUC + domain callback + optional `record_action/2` + `action_id` linkage in one call; PostgreSQL integration tests and doc contracts
+- Example app primary write paths (`Blog`, `HelpDesk`, Oban touch) and `guides/getting-started-saas.md` adopt the helper; correlation/audit tests unchanged
+- Adopter truth: `evidence_authorize_fn` on sigra-reference mount; adoption-pilot at **0.5.0** / `~> 0.5`; canonical `mix threadline.evidence.show` locked in doc contracts; WALK-03-02 prose fix (WR-110-001)
 
 ## Prior milestone shipped: v1.23 Realistic-Demo Walkthrough
 
@@ -304,10 +309,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **NARR-01** through **NARR-03 (Phase 115)** — `guides/how-threadline-works.md`, README, and getting-started aligned on `Audit.transaction/3` as blessed write path; doc-contract tests lock narrative literals and cross-doc discovery order. Validated in v1.25 (2026-05-27).
 - [x] **EXAMPLE-01** through **EXAMPLE-04 (Phase 116)** — Example `:api` session plugs before `Threadline.Plug`; README Choose your path / Base install / Track A–B runbook; Mix task reference and ownership tables; doc-contract locks for auth staging and first-hour literals. Validated in v1.25 (2026-05-27).
 - [x] **DOC-01** through **DOC-03 (Phase 117)** — Split-guide evidence map (no phantom hub); Hex semver in adopter guides; `0.5.x → 0.6.x` upgrade bullet; incident JSON blessed path; `mix verify.doc_contract` green with exploration_routing + semver_adopter contracts. Validated in v1.25 (2026-05-27).
+- [x] **PILOT-01** / **PILOT-02 (Phase 118)** — Adoption-pilot verify ladder without stale test counts; `guides/evaluating-threadline.md` evaluator one-pager with host-owned boundaries and no STG attestation claims. Validated in v1.25 (2026-05-28).
 
 ### Active
 
-- [ ] **PILOT-01** / **PILOT-02** — Optional pilot-prep (Phase 118)
+_(None — define next milestone via `/gsd-new-milestone`.)_
 
 ### Out of Scope
 
@@ -377,7 +383,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 | v1.24 prioritizes audited write-path ergonomics over compliance expansion | Milestone-next-step assessment (~83% done for stated scope): capture+semantics+operator stack is strong; #1 remaining foot-gun is manual transaction recipe for actor GUC + `record_action` + `action_id`. No sustained adopter signal — proceed with helper + reference/doc truth, not DEFER-01/02/03 or another walkthrough. | ✓ Shipped (Phases 111-113, v1.24, 2026-05-27) |
 | `Threadline.Audit.transaction/3` is the recommended audited write path | Single helper replaces copy-pasted GUC + `record_action` + `action_id` recipe; reference app and guides prove correlation-ready timelines without weakened tests. | ✓ Shipped (Phases 111-112, v1.24, 2026-05-27) |
 | Adopter truth for 0.5.x evaluators lives in example mount + doc contracts | `evidence_authorize_fn`, adoption-pilot version SSOT, canonical evidence CLI, and walkthrough prose aligned to seed fiction — no new Evidence subjects. | ✓ Shipped (Phase 113, v1.24, 2026-05-27) |
-| Post-v1.24 assessment prioritizes release truth + first-hour friction over compliance expansion | Repo-grounded done band ~88–92% for stated narrow scope; Hex 0.5.0 lags v1.22–v1.24 stack; largest remaining synthetic wedge is 0.6.0 + narrative doc sync + example README fixes — not DEFER trio without adopter signal. phx.gen.auth breadth queued as v1.26. | — Recommended (2026-05-27 assessment) |
+| Post-v1.24 assessment prioritizes release truth + first-hour friction over compliance expansion | Repo-grounded done band ~88–92% for stated narrow scope; Hex 0.5.0 lags v1.22–v1.24 stack; largest remaining synthetic wedge is 0.6.0 + narrative doc sync + example README fixes — not DEFER trio without adopter signal. phx.gen.auth breadth queued as v1.26. | ✓ Shipped (v1.25, 2026-05-28) |
+| v1.25 ships 0.6.0 + first-hour truth without compliance expansion | Release packaging, narrative/example alignment, evidence-plane doc authority, and optional evaluator one-pager close the synthetic adopter wedge; Nyquist gaps on 115/117/118 are non-blocking tech debt. | ✓ Shipped (Phases 114-118, v1.25, 2026-05-28) |
 
 ## Evolution
 
@@ -399,4 +406,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — Phase 117 complete (evidence-plane doc authority); Phase 118 optional pilot-prep next.*
+*Last updated: 2026-05-28 after v1.25 milestone — Adopter-Ready Release & First-Hour Truth shipped.*

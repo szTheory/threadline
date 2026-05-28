@@ -1,5 +1,42 @@
 # Project milestones: Threadline
 
+## v1.25 Adopter-Ready Release & First-Hour Truth (Shipped: 2026-05-28)
+
+**Delivered:** Truthful Hex **threadline 0.6.0** packaging; narrative and example surfaces aligned on `Audit.transaction/3` as the blessed write path; evidence-plane doc authority with semver adopter prose; evaluator one-pager and refreshed adoption-pilot verify ladder — without compliance expansion or maintainer STG attestation claims.
+
+**Phases completed:** 5 phases (114-118), 11 plans, 33 tasks. Requirements: 16/16 satisfied (REL-01–04, NARR-01–03, EXAMPLE-01–04, DOC-01–03, PILOT-01–02).
+
+**Key accomplishments:**
+
+- 0.6.0 semver, adopter-ready CHANGELOG narrative, and ExDoc module IA with Evidence plane group
+- REL-04 install-snippet SSOT: all four adopter copy-paste surfaces and doc-contract tests lock `~> 0.6`
+- REL-03 publish-ready boundary: CONTRIBUTING v0.6.0 literals, verify.release and ci.all green
+- Retargeted `guides/how-threadline-works.md` to center `Threadline.Audit.transaction/3` as the recommended audited write path and locked blessed-path literals plus write-side ordering in doc-contract tests.
+- Aligned README and getting-started discovery cross-links with the retargeted how-threadline-works guide, added a three-doc NARR-02 contract lock, and closed verify.doc_contract gate drift for audit_doc_contract_test.exs.
+- Browser Sigra session reaches POST /api/posts via fetch_session/fetch_current_scope on :api, with cookie curl documented and locked in dual-contract tests.
+- Example README restructured with Choose your path, shared Base install, Track A/B forks, and Mix task ownership tables — doc contracts lock skip-generators and neutral vs walkthrough fiction literals.
+- Maintainer and adopter prose now use split evidence guides and Hex semver — phantom hub removed, 0.5→0.6 upgrade documented, incident JSON step 1 cites Audit.transaction/3
+- Minimal-plus DOC-03 contracts lock Evolution semver chronology, 0.5→0.6 upgrade bullet, adopter semver refutes, and incident JSON blessed path — with exploration_routing wired into mix verify.doc_contract (71 tests green)
+- Adoption-pilot backlog now cites the canonical eight-step `mix ci.all` ladder and doc contracts refute hardcoded test counts.
+- Evaluator one-pager links 0.6.0 packaging, host-owned boundaries, verify ladder, and STG template pointers; README and ExDoc expose it without maintainer STG attestation phrasing.
+
+**Stats:**
+
+- Timeline: ~1 day (2026-05-27 → 2026-05-28; feat(114-01) → Phase 118 closeout).
+- 68 commits, 78 files changed, +6176 / −230 LOC in milestone commit range.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.25-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.25-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.25-MILESTONE-AUDIT.md`
+
+**Tech debt (non-blocking):** Nyquist partial on phases 115/117/118; optional manual Track A evaluator smoke. See audit archive.
+
+**What is next:** `/gsd-new-milestone` — define v1.26+ (phx.gen.auth breadth is the largest queued reach gap).
+
+---
+
 ## v1.24 Audited Write Path & Adopter Truth (Shipped: 2026-05-27)
 
 **Delivered:** First-class `Threadline.Audit.transaction/3` helper wrapping actor GUC + domain writes + optional `record_action/2` + `action_id` linkage; reference app and getting-started guide adopt it on all primary write paths; 0.5.x adopter/doc truth repaired (`evidence_authorize_fn`, adoption-pilot version table, canonical evidence CLI, WR-110-001 prose).

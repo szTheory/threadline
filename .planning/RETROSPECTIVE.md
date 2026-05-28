@@ -593,4 +593,45 @@
 
 ---
 
+## Milestone: v1.25 — Adopter-Ready Release & First-Hour Truth
+
+**Shipped:** 2026-05-28  
+**Phases:** 5 (114–118) | **Plans:** 11 | **Tasks:** 33
+
+### What was built
+
+- **threadline 0.6.0** Hex packaging with CHANGELOG, ExDoc Evidence group, `mix verify.release`, and `~> 0.6` install-snippet SSOT.
+- Narrative alignment on `Audit.transaction/3` across how-threadline-works, README, and getting-started with doc-contract discovery locks.
+- Example first-hour runbook: `:api` session plugs, Track A/B paths, Mix task ownership tables, cookie curl for `POST /api/posts`.
+- Evidence-plane doc authority: split-guide map, semver adopter prose, incident JSON blessed path; `mix verify.doc_contract` green.
+- Evaluator one-pager and adoption-pilot verify ladder refresh without maintainer STG attestation claims.
+
+### What worked
+
+- Five-phase vertical slice (release → narrative → example → doc authority → pilot prep) matched the post-v1.24 assessment without compliance creep.
+- Doc-contract tests as the universal closeout gate caught version literals, phantom hub references, and stale verify counts.
+- Milestone audit (`passed`, 16/16 requirements) before closeout gave confidence to ship despite partial Nyquist on 115/117/118.
+
+### What was inefficient
+
+- `summary-extract` one-liner CLI returned frontmatter instead of prose — MILESTONES accomplishments were assembled from SUMMARY provides blocks.
+- Phase directories remain in `.planning/phases/` (not moved to `milestones/v1.25-phases/`); use `/gsd-cleanup` later if context cost matters.
+
+### Patterns established
+
+- **0.6.0** is the adopter semver SSOT; internal milestone labels stay in maintainer/planning paths only.
+- `guides/evaluating-threadline.md` is the canonical external evaluator entry (what 0.6.0 proves, host-owned boundaries, verify ladder).
+
+### Key lessons
+
+1. Release truth and first-hour friction were the right closeout target once the helper shipped in v1.24 — evaluators were blocked on Hex/doc drift, not missing library features.
+2. Optional Phase 118 still paid off: adoption-pilot without hardcoded test counts prevents the next milestone from inheriting stale verify prose.
+
+### Cost observations
+
+- Timeline: ~1 day (2026-05-27 → 2026-05-28); 68 commits in milestone range.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends
