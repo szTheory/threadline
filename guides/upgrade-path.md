@@ -120,11 +120,12 @@ Exceptions are allowed only for security issues, upstream hard incompatibility, 
 
 ## Release checklist for adopters
 
-- Decide whether you are `capture-only`, `phoenix-surface`, or following the `sigra-reference` lane.
+- Decide whether you are capture-only, phoenix-surface, sigra-reference, or phx-gen-auth-reference.
 - Compare your host dependencies against the declared optional dependency ranges in `mix.exs`.
 - If you are `capture-only`, run `mix verify.compile_no_optional`.
 - If you are `phoenix-surface`, run `mix ci.all` and verify your mounted routes and auth pipeline still match `guides/operator-surface.md`.
 - If you are using the `sigra-reference` lane, run `mix verify.example` and compare your host wiring against `guides/integrations/sigra.md` plus `examples/threadline_phoenix/README.md`.
+- If you are on phx-gen-auth-reference, read guides/integrations/phx-gen-auth.md and compare your host actor_fn and authorize_fn wiring before deploy.
 - Review `CHANGELOG.md` for any surface-only deprecation notice before deploying.
 
 ## Canonical references
@@ -132,6 +133,7 @@ Exceptions are allowed only for security issues, upstream hard incompatibility, 
 - `guides/operator-surface.md`
 - `guides/integration-contracts.md`
 - `guides/integrations/sigra.md`
+- `guides/integrations/phx-gen-auth.md`
 - `examples/threadline_phoenix/README.md`
 - `mix.exs`
 - `mix.lock`
