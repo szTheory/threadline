@@ -471,7 +471,7 @@ defmodule ThreadlinePhoenix.AccountsFixtures do
       "type" => "public-key",
       "response" => response
     }
-    |> JSON.encode!()
+    |> Jason.encode!()
   end
 
   defp ensure_generated_module!(suffix) do
