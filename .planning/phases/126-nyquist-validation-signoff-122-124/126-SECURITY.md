@@ -66,7 +66,7 @@ No accepted risks.
 **Evidence summary**
 
 - **T-126-01 / T-126-06:** Rerun evidence files (`126-01/02/03-RERUN-EVIDENCE.md`) record exit 0 for named test bundles and `mix verify.doc_contract`.
-- **T-126-02 / T-126-05 / T-126-12 (manual):** VALIDATION artifacts use attested manual tiers or doc-contract proxy; no fake automation labels.
+- **T-126-02 / T-126-05 (manual):** VALIDATION artifacts use attested manual tiers or doc-contract proxy; no fake automation labels.
 - **T-126-03 / T-126-04:** VERIFICATION files not modified in Phase 126 commits; 122/123 `nyquist_compliant: true` preserved through 126-03.
 - **T-126-07:** `126-VALIDATION.md` documents single session-close `mix ci.all`; 01/02 reruns exclude full CI.
 - **T-126-08 / T-126-09:** Milestone audit deferred; examples directory outside 126 scope per plan threat model surface notes.
