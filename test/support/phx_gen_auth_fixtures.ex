@@ -32,4 +32,6 @@ defmodule Threadline.PhxGenAuthFixtures do
   def logged_out_scope, do: nil
   def admin_user, do: %{role: "admin"}
   def non_admin_user, do: %{role: "member"}
+  def admin_scope_user, do: %{is_admin: true, id: "admin-1"}
+  def member_scope_user, do: %{is_admin: false, id: "member-1"}
 end

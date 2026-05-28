@@ -88,23 +88,38 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
   end
 
   describe "guide authorize_fn admin gate" do
-    test "allows admin current_user through ExportAuthPlug mirror" do
+    test "allows admin via current_scope.user with is_admin true" do
       conn =
-        PhxGenAuthFixtures.build_phx_scope_conn(current_user: PhxGenAuthFixtures.admin_user())
+        PhxGenAuthFixtures.build_phx_scope_conn(
+          scope: %{user: PhxGenAuthFixtures.admin_scope_user()}
+        )
 
-      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &guide_authorize/1))
+      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
       refute conn_out.halted
     end
 
-    test "denies non-admin current_user with 403" do
+    test "denies non-admin via current_scope.user with 403" do
       conn =
-        PhxGenAuthFixtures.build_phx_scope_conn(current_user: PhxGenAuthFixtures.non_admin_user())
+        PhxGenAuthFixtures.build_phx_scope_conn(
+          scope: %{user: PhxGenAuthFixtures.member_scope_user()}
+        )
 
-      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &guide_authorize/1))
+      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
 
       assert conn_out.halted
       assert conn_out.status == 403
       assert conn_out.resp_body == "forbidden"
+    end
+
+    test "allows admin via current_user fallback when scope user absent" do
+      conn =
+        PhxGenAuthFixtures.build_phx_scope_conn(
+          scope: nil,
+          current_user: %{is_admin: true, id: "legacy-admin"}
+        )
+
+      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+      refute conn_out.halted
     end
   end
 
