@@ -14,7 +14,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Target features:**
 - **Hex 0.6.0 distribution truth** — ~~publish via tag `v0.6.0`~~ ✓ Phase 122 (2026-05-28); adoption-pilot and evaluator surfaces honest about hex.pm version
-- **First-hour `ecto_repos` config** — document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link
+- **First-hour `ecto_repos` config** — ~~document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link~~ ✓ Phase 123 (2026-05-28)
 - **First-hour doc finish** — §6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path
 
 **Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.26.md` (~90–93% done for stated scope; distribution + first-hour footguns remain).
@@ -432,4 +432,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — Phase 122 Release & Distribution Truth complete; next Phase 123 First-Hour Config.*
+*Last updated: 2026-05-28 — Phase 123 First-Hour Config complete; next Phase 124 Adopter Doc Finish.*

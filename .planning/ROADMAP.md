@@ -89,5 +89,5 @@
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 122 Release & Distribution Truth | v1.27 | 3/3 | Complete    | 2026-05-28 |
-| 123 First-Hour Config | v1.27 | 2/2 | Complete | 2026-05-28 |
+| 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 124 Adopter Doc Finish | v1.27 | 0/0 | Pending | — |
