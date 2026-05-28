@@ -32,7 +32,7 @@
 - [x] **Phase 115: Narrative Doc Sync** — Align how-threadline-works and cross-links to `Audit.transaction/3` as blessed write path. (completed 2026-05-27)
 - [x] **Phase 116: Example First-Hour Fixes** — Repair example README auth staging, setup vs demo.seed, and generator/migration clarity. (completed 2026-05-27)
 - [x] **Phase 117: Evidence Plane Doc Authority** — Single evidence-plane entry point; semver vocabulary in adopter prose. (completed 2026-05-27)
-- [ ] **Phase 118: Pilot Prep (Optional)** — Refresh adoption-pilot counts; external evaluator one-pager.
+- [x] **Phase 118: Pilot Prep (Optional)** — Refresh adoption-pilot counts; external evaluator one-pager. (completed 2026-05-28)
 
 ## Phase Details
 
@@ -141,7 +141,7 @@
 1. Adoption-pilot backlog test/verify counts match current tree entrypoints.
 2. Evaluator one-pager states what 0.6.0 proves, host-owned boundaries, and canonical `mix verify.*` commands — without false STG claims.
 
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 
 ---
 

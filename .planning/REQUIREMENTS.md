@@ -39,8 +39,8 @@
 
 ### Pilot prep (Phase 118) — Optional narrow slice
 
-- [ ] **PILOT-01**: `guides/adoption-pilot-backlog.md` test counts and verification pointers refreshed to match current tree (`mix verify.*` totals, not stale phase counts).
-- [ ] **PILOT-02**: External evaluator one-pager (README band or short guide section) states what 0.6.0 proves, what is host-owned, and canonical verify entrypoints — without STG attestation claims.
+- [x] **PILOT-01**: `guides/adoption-pilot-backlog.md` test counts and verification pointers refreshed to match current tree (`mix verify.*` totals, not stale phase counts).
+- [x] **PILOT-02**: External evaluator one-pager (README band or short guide section) states what 0.6.0 proves, what is host-owned, and canonical verify entrypoints — without STG attestation claims.
 
 ---
 
@@ -90,8 +90,8 @@ Deferred until after v1.25 or on sustained adopter signal.
 | DOC-01 | 117 | Complete |
 | DOC-02 | 117 | Complete |
 | DOC-03 | 117 | Complete |
-| PILOT-01 | 118 | Pending |
-| PILOT-02 | 118 | Pending |
+| PILOT-01 | 118 | Complete |
+| PILOT-02 | 118 | Complete |
 
 **Coverage:**
 
