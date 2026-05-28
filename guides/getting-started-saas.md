@@ -56,21 +56,19 @@ Threadline reads your app config when it generates trigger SQL, so use the same 
 
 ## 5. Wire `Threadline.Plug` with actor and additive request metadata
 
-The Phoenix example keeps request capture small and explicit by wiring both
-Sigra callbacks directly into `Threadline.Plug`:
+Your host app establishes identity on the conn first, then wires `Threadline.Plug`
+with host-owned callbacks. Threadline does not own auth — it reads the actor and
+request metadata your pipeline already attached.
 
 ```elixir
-    plug(:accepts, ["json"])
-
-    plug(Threadline.Plug,
-      actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1,
-      context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
-    )
+plug Threadline.Plug,
+  actor_fn: &MyApp.Audit.actor_ref_from_conn/1,
+  context_overrides_fn: &MyApp.Audit.audit_context_overrides_from_conn/1
 ```
 
-If you do not use Sigra, keep the same shape: populate the conn with authenticated
-request context first, then hand `Threadline.Plug` an `actor_fn` and any
-request-derived context overrides you need.
+[`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) uses
+`MyApp.AuditActor` for the same two callbacks — rename the module freely in
+your app.
 
 `actor_fn` remains the only actor-authority path. `context_overrides_fn` is
 for additive `request_id` and `correlation_id` metadata only, and those values
@@ -81,6 +79,30 @@ Keep `Threadline.Plug` in the router pipeline after auth setup and after any
 host-owned proxy/IP normalization. If `context_overrides_fn` returns unknown
 keys or any non-map value, `Threadline.Plug` raises `ArgumentError`
 immediately so the wiring contract fails loudly.
+
+Choose an auth lane when you need a full cookbook:
+
+- **phx-gen-auth-reference** → [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md)
+- **sigra-reference** (optional) → [`guides/integrations/sigra.md`](integrations/sigra.md)
+- lane matrix → [`guides/upgrade-path.md`](upgrade-path.md)
+
+Threadline does not require Sigra; do not use `Threadline.Integrations.Sigra`
+unless you adopt the optional sigra-reference lane.
+
+### Sigra reference wiring (optional)
+
+<!-- getting-started-sigra-reference-fence -->
+
+**sigra-reference example app only** — not required for capture.
+
+```elixir
+    plug(:accepts, ["json"])
+
+    plug(Threadline.Plug,
+      actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1,
+      context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
+    )
+```
 
 ## 6. Exercise the first audited write
 
