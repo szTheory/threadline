@@ -13,9 +13,9 @@
 
 ### Distribution truth (Phase 122)
 
-- [ ] **DIST-01**: Maintainer publishes **`threadline` 0.6.0** to hex.pm via tag **`v0.6.0`** and CI `hex-publish.yml`; post-publish verification recorded (adoption-pilot or milestone closeout note).
-- [ ] **DIST-02**: `guides/adoption-pilot-backlog.md` **Published** row and distribution preflight reflect **0.6.0** on hex.pm (not stale 0.5.0-only narrative).
-- [ ] **DIST-03**: `CHANGELOG.md` 0.6.0 entry mentions **four-lane** adopter matrix including **`phx-gen-auth-reference`** (v1.26 carry-forward for evaluator honesty).
+- [x] **DIST-01**: Maintainer publishes **`threadline` 0.6.0** to hex.pm via tag **`v0.6.0`** and CI `hex-publish.yml`; post-publish verification recorded (adoption-pilot or milestone closeout note).
+- [x] **DIST-02**: `guides/adoption-pilot-backlog.md` **Published** row and distribution preflight reflect **0.6.0** on hex.pm (not stale 0.5.0-only narrative).
+- [x] **DIST-03**: `CHANGELOG.md` 0.6.0 entry mentions **four-lane** adopter matrix including **`phx-gen-auth-reference`** (v1.26 carry-forward for evaluator honesty).
 
 ### First-hour config (Phase 123)
 

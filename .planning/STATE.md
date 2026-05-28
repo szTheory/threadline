@@ -33,7 +33,7 @@ Last activity: 2026-05-28 -- Phase null execution started
 
 - **Last Milestone Shipped**: v1.26 — Auth Lane Breadth (2026-05-28)
 - **Scope completion (assessment)**: **~90–93%** for stated narrow audit-platform scope
-- **Hex distribution**: in-repo **0.6.0**; hex.pm latest **0.5.0** until tag `v0.6.0` publish — **v1.27 Phase 122**
+- **Hex distribution**: in-repo and hex.pm latest **0.6.0** (tag , verified 2026-05-28)
 
 ## Deferred Items
 
