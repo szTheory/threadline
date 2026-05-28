@@ -22,6 +22,23 @@ defmodule Threadline.Integrations.PhxGenAuthReference.AuditActor do
   def audit_context_overrides_from_conn(_conn), do: %{}
 end
 
+defmodule Threadline.Integrations.PhxGenAuthReference.Audit do
+  @moduledoc false
+
+  def authorize_operator(%{assigns: assigns}) do
+    user =
+      case assigns[:current_scope] do
+        %{user: user} when not is_nil(user) -> user
+        _ -> assigns[:current_user]
+      end
+
+    case user do
+      %{is_admin: true} -> :ok
+      _ -> {:error, :unauthorized}
+    end
+  end
+end
+
 defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
   @moduledoc """
   Root CI proof for the `phx-gen-auth-reference` lane.
@@ -33,7 +50,7 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
 
   use ExUnit.Case, async: true
 
-  alias Threadline.Integrations.PhxGenAuthReference.AuditActor
+  alias Threadline.Integrations.PhxGenAuthReference.{Audit, AuditActor}
   alias Threadline.OperatorSurface.ExportAuthPlug
   alias Threadline.PhxGenAuthFixtures
   alias Threadline.Semantics.{ActorRef, AuditContext}
@@ -111,7 +128,4 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
              } = conn.assigns.audit_context
     end
   end
-
-  defp guide_authorize(%{assigns: %{current_user: %{role: "admin"}}}), do: :ok
-  defp guide_authorize(_), do: {:error, :unauthorized}
 end
