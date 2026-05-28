@@ -1,5 +1,46 @@
 # Project milestones: Threadline
 
+## v1.27 Distribution & First-Hour Finish (Shipped: 2026-05-28)
+
+**Delivered:** Hex **threadline 0.6.0** published; first-hour `ecto_repos` config documented and contract-locked; adopter docs finished (auth-neutral §6, `:schemas` reification, evidence host-write boundary, four-lane vocabulary); gap-closure phases reconciled authority surfaces, signed Nyquist validation on 122–124, and wired runnable `:schemas` demonstration in the example app.
+
+**Phases completed:** 6 phases (122-127), 15 plans, 44 tasks. Requirements: 11/11 satisfied (DIST-01–03, CFG-01–03, DOC-01–05).
+
+**Key accomplishments:**
+
+- CHANGELOG four-lane upgrade bullet, release distribution doc contract, and conditional anti-stale test scaffolding — all green while Hex row remains Pending
+- Published threadline 0.6.0 to hex.pm via Release workflow bootstrap — gate-ci-green, publish-hex, and Hex API verify all succeeded
+- Distribution sync PR merged — adoption-pilot Hex row OK, evaluating guide updated, 122-VERIFICATION.md written, doc contracts green
+- Getting-started §2 now documents `config :threadline, ecto_repos: [MyApp.Repo]` before install schema, with doc-contract ordering lock
+- Production checklist prerequisite band cross-links `config :threadline, ecto_repos` to getting-started with dedicated doc-contract lock
+- IEx-first audited write in getting-started §6 with demo-corr handoff, Sigra HTTP collapsed into details, and dedicated DOC-01/DOC-02 doc contract tests
+- `:schemas` mount map, row-history reification SSOT, failure UX, and §9 link with DOC-03 doc contract lock
+- Evidence host-write SSOT across adopter guides with DOC-04/DOC-05 contract locks and integration-contracts four-lane vocabulary linked to upgrade-path
+- Charter doc-contract PROJECT assertion now locks `Latest Milestone Shipped: v1.27` matching shipped PROJECT.md.
+- Planning authority surfaces now reflect v1.27 shipped delivery; doc-contract and full CI green.
+- `122-VALIDATION.md` finalized with `nyquist_compliant: true` after green D-14 doc-contract bundle; manual DIST rows attested via `122-VERIFICATION.md` without faking automation.
+- `123-VALIDATION.md` finalized with `nyquist_compliant: true` after green D-15 doc-contract bundle; CFG-01 ExDoc row closed via Configure Threadline doc-contract proxy.
+- `124-VALIDATION.md` and `126-VALIDATION.md` finalized with `nyquist_compliant: true` after green D-16 doc-contract bundle and single session-close `mix ci.all` (740 + 53 tests, 0 failures).
+- Example app operator mount now maps help-desk tables for row-history reification; docs match router SSOT.
+- Integration test proves ticket_replies row history renders via :schemas; D-14 contract and phase verification close v1.27 gap.
+
+**Stats:**
+
+- Timeline: ~1 day (2026-05-28; Phase 122 → Phase 127 closeout).
+- Audit: `passed` — 11/11 requirements, 6/6 phases verified, 26/27 integration checks, 4/4 E2E flows.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.27-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.27-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.27-MILESTONE-AUDIT.md`
+
+**Tech debt (non-blocking):** 125-VALIDATION.md Nyquist draft; WALKTHROUGH `/audit/rows/` shorthand vs transaction-scoped history route; SUMMARY frontmatter lacks requirements-completed values. See audit archive.
+
+**What is next:** `/gsd-new-milestone` — v1.28 External Pilot on sustained real-adopter signal only.
+
+---
+
 ## v1.26 Auth Lane Breadth (Shipped: 2026-05-28)
 
 **Delivered:** phx.gen.auth integration cookbook, `phx-gen-auth-reference` upgrade-path lane with root CI proof, and adopter-doc neutrality so first-hour docs do not read as Sigra-required — without a second reference app or Threadline-owned auth.

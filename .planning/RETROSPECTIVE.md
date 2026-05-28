@@ -702,4 +702,44 @@
 
 ---
 
+## Milestone: v1.27 — Distribution & First-Hour Finish
+
+**Shipped:** 2026-05-28  
+**Phases:** 6 (122–127) | **Plans:** 15 | **Tasks:** 44
+
+### What was built
+
+- **threadline 0.6.0** published to hex.pm; adoption-pilot and evaluator surfaces honest about distribution truth.
+- First-hour `ecto_repos` config in getting-started §2 and production-checklist with doc-contract locks.
+- Adopter doc finish: IEx-first §6, ADOPT-AUTH literals, `:schemas` reification docs, evidence host-write boundary, four-lane integration-contracts vocabulary.
+- Gap-closure phases: authority-surface reconciliation (charter test, STATE, MILESTONE-ARC), Nyquist sign-off on 122–124, runnable `:schemas` demonstration in example app (D-14).
+
+### What worked
+
+- Assessment thread correctly identified the three adopter-facing blockers (Hex drift, `ecto_repos`, doc finish) as a single milestone wedge.
+- Gap-closure insert pattern (Phases 125–127 after audit) closed planning metadata drift without reopening satisfied requirements.
+- Doc-contract tests as the closeout gate — `mix verify.doc_contract` and session-close `mix ci.all` (740 + 53 tests) as authoritative proof.
+
+### What was inefficient
+
+- Milestone grew from 3 delivery phases to 6 after audit — predictable for Threadline closeout but worth budgeting in future milestone scoping.
+- `summary-extract` CLI still returns frontmatter; accomplishments assembled from SUMMARY provides blocks at closeout.
+
+### Patterns established
+
+- **Distribution truth check** at milestone assessment: in-repo semver vs hex.pm must match before claiming adopter-ready.
+- **Guide + example demo** for operator-surface features (`:schemas`) when docs-only proof is insufficient — D-14 deferred from 124 to 127 rather than faking runnable evidence.
+
+### Key lessons
+
+1. First-hour friction (missing `ecto_repos`, stale Hex version) blocks evaluators harder than missing advanced features — finish distribution + config before pilot outreach.
+2. Nyquist validation sign-off as a dedicated gap-closure phase (126) is cheaper than re-litigating delivery phases — reuse for future audits.
+
+### Cost observations
+
+- Timeline: ~1 day (2026-05-28); 6 phases, 15 plans, 44 tasks.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends

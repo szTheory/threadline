@@ -22,16 +22,20 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Prior milestone context: v1.27 planning snapshot
 
+<details>
+<summary>v1.27 planning snapshot (archived)</summary>
+
 **Goal:** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
 
 **Target features:**
-- **Hex 0.6.0 distribution truth** — ~~publish via tag `v0.6.0`~~ ✓ Phase 122 (2026-05-28); adoption-pilot and evaluator surfaces honest about hex.pm version
-- **First-hour `ecto_repos` config** — ~~document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link~~ ✓ Phase 123 (2026-05-28)
-- **First-hour doc finish** — ~~§6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path~~ ✓ Phase 124 (2026-05-28)
+- **Hex 0.6.0 distribution truth** — ✓ Phase 122 (2026-05-28)
+- **First-hour `ecto_repos` config** — ✓ Phase 123 (2026-05-28)
+- **First-hour doc finish** — ✓ Phase 124 (2026-05-28)
+- **Gap closure** — ✓ Phases 125–127 (authority surfaces, Nyquist sign-off, `:schemas` example demo)
 
-**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.26.md` (~90–93% done for stated scope; distribution + first-hour footguns remain).
+</details>
 
-## Latest Milestone Shipped: v1.26 Auth Lane Breadth
+## Prior milestone shipped: v1.26 Auth Lane Breadth
 
 **Goal (achieved):** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
 
@@ -342,10 +346,12 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **AUTH-PROOF-01** through **AUTH-PROOF-03 (Phase 120)** — Root `phx_gen_auth_integration_test.exs` proving Plug actor, 1-arity admin `authorize_fn`, smoke without Sigra. Validated in v1.26 (2026-05-28).
 - [x] **ADOPT-AUTH-01** through **ADOPT-AUTH-03 (Phase 121)** — Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract gates. Validated in v1.26 (2026-05-28).
 - [x] **DIST-01** through **DIST-03 (Phase 122)** — hex.pm **0.6.0** published via `release.yml`; adoption-pilot Hex row OK; CHANGELOG four-lane upgrade bullet; conditional anti-stale doc contracts. Validated in Phase 122 (2026-05-28).
+- [x] **CFG-01** through **CFG-03 (Phase 123)** — `ecto_repos` in getting-started §2 before install; doc-contract ordering lock; production-checklist prerequisite band cross-link. Validated in Phase 123 (2026-05-28).
+- [x] **DOC-01** through **DOC-05 (Phase 124)** — IEx-first §6 auth-neutral staging; ADOPT-AUTH strict literals; `:schemas` mount for row history; evidence host-write boundary; integration-contracts four-lane vocabulary aligned with upgrade-path. Validated in Phase 124 (2026-05-28).
 
 ### Active
 
-_(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 123–124.)_
+_(None — run `/gsd-new-milestone` to define v1.28 requirements.)_
 
 ### Out of Scope
 
@@ -371,9 +377,11 @@ _(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 123–124.)_
 
 **Engineering baseline:** The project follows the same OSS quality bar as sibling libraries (Scrypath, Sigra): `mix verify.*` / `mix ci.*` entrypoints, doc contract tests once public docs exist, stable GitHub Actions job IDs, release automation aligned to Hex publishing workflow.
 
-**Evidence plane posture (2026-05-28):** `Threadline.Evidence` read/write API, Mix-task, and `/audit/evidence` LiveView are shipped; records are **host-written** — lib/ does not auto-populate from retention, health, or export paths. Adopter docs should set this expectation explicitly (v1.27 wedge).
+**Evidence plane posture (2026-05-28):** `Threadline.Evidence` read/write API, Mix-task, and `/audit/evidence` LiveView are shipped; records are **host-written** — lib/ does not auto-populate from retention, health, or export paths. Adopter docs set this expectation explicitly (v1.27 DOC-04).
 
-**First-hour config gap (2026-05-28):** Mix tasks and operator-surface fallbacks require `config :threadline, ecto_repos: [MyApp.Repo]` — present in example app, absent from `guides/getting-started-saas.md` (v1.27 wedge).
+**First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
+
+**Hex distribution (2026-05-28):** **threadline 0.6.0** published on hex.pm; adoption-pilot and evaluator surfaces honest about version (v1.27 DIST-01–03).
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -422,7 +430,7 @@ _(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 123–124.)_
 | Post-v1.24 assessment prioritizes release truth + first-hour friction over compliance expansion | Repo-grounded done band ~88–92% for stated narrow scope; Hex 0.5.0 lags v1.22–v1.24 stack; largest remaining synthetic wedge is 0.6.0 + narrative doc sync + example README fixes — not DEFER trio without adopter signal. phx.gen.auth breadth queued as v1.26. | ✓ Shipped (v1.25, 2026-05-28) |
 | v1.25 ships 0.6.0 + first-hour truth without compliance expansion | Release packaging, narrative/example alignment, evidence-plane doc authority, and optional evaluator one-pager close the synthetic adopter wedge; Nyquist gaps on 115/117/118 are non-blocking tech debt. | ✓ Shipped (Phases 114-118, v1.25, 2026-05-28) |
 | v1.26 auth lane breadth closes phx.gen.auth reach without second reference app | Guide + root CI proof pattern beats runnable second example; four-lane matrix complete; Sigra remains optional peer reference. | ✓ Shipped (Phases 119-121, v1.26, 2026-05-28) |
-| v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | — Active (opened 2026-05-28) |
+| v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | ✓ Shipped (Phases 122-127, v1.27, 2026-05-28) |
 
 ## Evolution
 
@@ -444,4 +452,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — Phase 127 complete; v1.27 milestone gap closure finished (`:schemas` example demonstration, D-14).*
+*Last updated: 2026-05-28 after v1.27 milestone*
