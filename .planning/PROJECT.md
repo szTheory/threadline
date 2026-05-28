@@ -16,6 +16,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Hex 0.6.0 distribution truth** — Phase 122 (2026-05-28)
 - **First-hour `ecto_repos` config** — Phase 123 (2026-05-28)
 - **First-hour doc finish** — Phase 124: IEx-first §6, ADOPT-AUTH contract, `:schemas` reification docs, evidence host-write boundary, four-lane integration-contracts vocabulary
+- **Example app `:schemas` demonstration** — Phase 127 (2026-05-28): runnable help-desk schema map on operator mount; integration + doc-contract proof for row-history sub-route (D-14)
 
 **Next milestone (queued):** **v1.28 External Pilot** — only on sustained real-adopter signal.
 
@@ -443,4 +444,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — Phase 126 Nyquist validation sign-off complete for Phases 122–124; v1.27 delivery phases now `nyquist_compliant: true`.*
+*Last updated: 2026-05-28 — Phase 127 complete; v1.27 milestone gap closure finished (`:schemas` example demonstration, D-14).*

@@ -146,4 +146,4 @@
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 126 Nyquist Validation Sign-off (122–124) | v1.27 | 3/3 | Complete    | 2026-05-28 |
-| 127 Example App `:schemas` Demonstration | v1.27 | 2/2 | Complete   | 2026-05-28 |
+| 127 Example App `:schemas` Demonstration | v1.27 | 2/2 | Complete    | 2026-05-28 |
