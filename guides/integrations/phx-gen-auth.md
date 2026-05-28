@@ -58,8 +58,8 @@ Capture uses `actor_fn`; operator UI uses host-owned `authorize_fn`:
 ```elixir
 threadline_operator_surface "/audit",
   authorize_fn: fn
-    %{assigns: %{current_user: %{role: "admin"}}}, _ -> :ok
-    _, _ -> {:error, :unauthorized}
+    %{assigns: %{current_user: %{role: "admin"}}} -> :ok
+    _ -> {:error, :unauthorized}
   end
 ```
 
@@ -69,7 +69,7 @@ Use `is_admin` instead of `role` if that matches your schema. See `guides/operat
 
 1. Scope-shaped `user.id` → `:user` actor via `actor_fn`.
 2. Logged-out scope → `nil` actor.
-3. Admin `authorize_fn` allows admins and denies others.
+3. 1-arity `authorize_fn` allows admins and denies others.
 4. `x-request-id` header wins over conn-derived request id.
 5. `x-correlation-id` header wins; overrides are additive only.
 6. Unknown override keys raise `ArgumentError`.
@@ -86,4 +86,4 @@ Default `context_overrides_fn` returns `%{}`; headers win. Optionally propagate 
 
 ## Lane and proof
 
-Maintained composition path: this guide. Root integration tests forthcoming in Phase 120 — not a second example app.
+Maintained composition path: this guide. Root CI proof: `test/threadline/integrations/phx_gen_auth_integration_test.exs` (`mix verify.test`). This is not a second example application. Reference semantics items 4–6 are covered by `test/threadline/plug_test.exs`.

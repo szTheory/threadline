@@ -71,11 +71,30 @@ defmodule Threadline.UpgradePathDocContractTest do
     refute String.contains?(guide, "Phoenix 1.7+")
   end
 
-  test "upgrade-path guide locks the three named lanes and their proof anchors" do
+  test "upgrade-path guide locks phx-gen-auth-reference lane detection and matrix row" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    assert String.contains?(guide, "You are on the `phx-gen-auth-reference` lane")
+    assert String.contains?(guide, "| `phx-gen-auth-reference` | `reference` |")
+    assert String.contains?(guide, "test/threadline/integrations/phx_gen_auth_integration_test.exs")
+    assert String.contains?(guide, "guides/integrations/phx-gen-auth.md")
+    refute String.contains?(guide, "forthcoming")
+  end
+
+  test "phx-gen-auth guide cites integration test proof" do
+    guide = File.read!("guides/integrations/phx-gen-auth.md")
+
+    assert String.contains?(guide, "test/threadline/integrations/phx_gen_auth_integration_test.exs")
+    refute String.contains?(guide, "forthcoming")
+    refute String.contains?(guide, "_, _ ->")
+  end
+
+  test "upgrade-path guide locks the four named lanes and their proof anchors" do
     guide = File.read!("guides/upgrade-path.md")
 
     assert String.contains?(guide, "| `capture-only` | `supported` |")
     assert String.contains?(guide, "| `phoenix-surface` | `supported` |")
+    assert String.contains?(guide, "| `phx-gen-auth-reference` | `reference` |")
     assert String.contains?(guide, "| `sigra-reference` | `reference` |")
     assert String.contains?(guide, "`phoenix ~> 1.7`")
     assert String.contains?(guide, "`phoenix_live_view ~> 1.0`")
