@@ -15,7 +15,10 @@ defmodule Threadline.V123CharterDocContractTest do
   test "PROJECT.md locks v1.27 milestone framing" do
     doc = read_rel!([".planning", "PROJECT.md"])
 
-    assert String.contains?(doc, "## Latest Milestone Shipped: v1.27 Distribution & First-Hour Finish")
+    assert String.contains?(
+             doc,
+             "## Latest Milestone Shipped: v1.27 Distribution & First-Hour Finish"
+           )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")
     assert String.contains?(doc, "phx-gen-auth-reference")
@@ -27,13 +30,16 @@ defmodule Threadline.V123CharterDocContractTest do
 
     assert String.contains?(
              doc,
-             "**Active milestone:** **v1.27 Distribution & First-Hour Finish**"
+             "**Active milestone:** **v1.28 External Pilot**"
            )
 
     assert String.contains?(doc, "phx.gen.auth reach wedge")
     assert String.contains?(doc, "see PROJECT.md Key Decisions")
 
-    assert String.contains?(doc, "| v1.27 | **active** | Distribution & First-Hour Finish |")
+    assert String.contains?(doc, "| v1.27 | **shipped** | Distribution & First-Hour Finish |")
+
+    assert String.contains?(doc, "0.6.0")
+    refute String.contains?(doc, "still lists **0.5.0**")
 
     assert String.contains?(doc, "first sustained external signal")
   end
