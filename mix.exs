@@ -78,7 +78,7 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs"
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
@@ -188,6 +188,7 @@ defmodule Threadline.MixProject do
         "guides/incident-playbook.md",
         "guides/getting-started-saas.md",
         "guides/adoption-pilot-backlog.md",
+        "guides/evaluating-threadline.md",
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",
         "CONTRIBUTING.md",

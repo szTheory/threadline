@@ -15,7 +15,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 
 ## Start here
 
-- **Evaluating:** open the [HexDocs](https://hexdocs.pm/threadline) for the full API.
+- **Evaluating:** read [guides/evaluating-threadline.md](guides/evaluating-threadline.md) for in-repo proof, host boundaries, and the `mix verify.*` ladder; [HexDocs](https://hexdocs.pm/threadline) remains the API reference.
 - **Understanding the system:** read [guides/how-threadline-works.md](guides/how-threadline-works.md) for the architecture/persona/JTBD crash course — both paths converge on `Threadline.Audit.transaction/3` for audited writes.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md) — use `Threadline.Audit.transaction/3` as the recommended audited write path (§6).
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
@@ -150,6 +150,7 @@ compatibility from the README.
 - [HexDocs](https://hexdocs.pm/threadline)
 - [How Threadline works](guides/how-threadline-works.md)
 - [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
+- [Evaluating Threadline](guides/evaluating-threadline.md)
 - [Integration contracts](guides/integration-contracts.md)
 - [Support lanes and upgrade path](guides/upgrade-path.md)
 - [Sigra integration](guides/integrations/sigra.md)

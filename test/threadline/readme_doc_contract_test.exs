@@ -61,6 +61,21 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/incident-playbook.md")
   end
 
+  test "README maps evaluators to evaluating-threadline guide (PILOT-02)" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(readme, "guides/evaluating-threadline.md")
+
+    start_section =
+      readme
+      |> String.split("## Start here", parts: 2)
+      |> Enum.at(1, "")
+      |> String.split("## Evidence plane", parts: 2)
+      |> hd()
+
+    assert String.contains?(start_section, "evaluating-threadline.md")
+  end
+
   test "README keeps the evidence-plane claim strip compact and outward-linking" do
     # Hub refute (guides/evidence-plane.md) is centralized in SemverAdopterDocContractTest.
     readme = File.read!("README.md")
