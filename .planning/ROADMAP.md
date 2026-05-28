@@ -88,6 +88,6 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 122 Release & Distribution Truth | v1.27 | 0/0 | Pending | — |
+| 122 Release & Distribution Truth | v1.27 | 1/3 | In Progress|  |
 | 123 First-Hour Config | v1.27 | 0/0 | Pending | — |
 | 124 Adopter Doc Finish | v1.27 | 0/0 | Pending | — |
