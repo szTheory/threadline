@@ -44,7 +44,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Root integration tests proving actor and admin-gate patterns (no example-app auth swap)
 - Getting-started and evaluator docs that do not read as Sigra-required
 
-**Status:** Requirements defined (2026-05-27) — `/gsd-discuss-phase 119` or `/gsd-plan-phase 119`
+**Status:** Phase 121 complete (2026-05-28) — adopter doc neutrality shipped (ADOPT-AUTH-01/02/03). Phases 119–120 shipped phx-gen-auth guide and root integration proof; remaining v1.26 work is milestone closeout / `/gsd-complete-milestone`.
 
 **Queued themes (not in v1.26):**
 - **EXTERNAL-PILOT** — deferred until **sustained real-adopter signal** (pilot host, integration issue, procurement review); use [`guides/adoption-pilot-backlog.md`](guides/adoption-pilot-backlog.md) STG matrices for host-class gaps — not a synthetic milestone
@@ -416,4 +416,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-27 — Milestone v1.26 Auth Lane Breadth started (requirements + roadmap).*
+*Last updated: 2026-05-28 — Phase 121 adopter doc neutrality complete (ADOPT-AUTH-01/02/03).*

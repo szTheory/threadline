@@ -31,7 +31,7 @@
 
 - [x] **Phase 119: phx.gen.auth Integration Guide & Lane** — Cookbook + upgrade-path `phx-gen-auth-reference` lane. (pending) (completed 2026-05-28)
 - [x] **Phase 120: Root Auth Integration Proof** — CI-backed tests for Plug actor + operator authorize_fn without Sigra. (pending) (completed 2026-05-28)
-- [ ] **Phase 121: Adopter Doc Neutrality** — Getting-started §5 neutrality; README/evaluator cross-links; doc contracts. (pending)
+- [x] **Phase 121: Adopter Doc Neutrality** — Getting-started §5 neutrality; README/evaluator cross-links; doc contracts. (pending) (completed 2026-05-28)
 
 ## Phase Details
 
@@ -89,4 +89,4 @@
 | ----- | --------- | -------------- | ------ | --------- |
 | 119 phx.gen.auth Guide & Lane | v1.26 | 2/2 | Complete    | 2026-05-28 |
 | 120 Root Auth Proof | v1.26 | 2/2 | Complete    | 2026-05-28 |
-| 121 Adopter Doc Neutrality | v1.26 | 0/? | Pending | — |
+| 121 Adopter Doc Neutrality | v1.26 | 2/2 | Complete    | 2026-05-28 |

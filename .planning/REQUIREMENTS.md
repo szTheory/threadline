@@ -30,7 +30,7 @@
 
 ### Adopter doc neutrality (Phase 121)
 
-- [ ] **ADOPT-AUTH-01**: `guides/getting-started-saas.md` §5 presents auth-agnostic Plug wiring first; Sigra callbacks labeled as optional reference lane with link to `guides/integrations/sigra.md`.
+- [x] **ADOPT-AUTH-01**: `guides/getting-started-saas.md` §5 presents auth-agnostic Plug wiring first; Sigra callbacks labeled as optional reference lane with link to `guides/integrations/sigra.md`.
 - [x] **ADOPT-AUTH-02**: README and `guides/evaluating-threadline.md` link the phx.gen.auth guide and upgrade-path lane; discovery order does not imply Sigra is required.
 - [x] **ADOPT-AUTH-03**: Doc-contract tests lock phx.gen.auth guide markers, lane name literals, and getting-started neutrality strings.
 
@@ -73,6 +73,6 @@ Deferred until after v1.26 or on demand.
 | AUTH-PROOF-01 | 120 | Complete |
 | AUTH-PROOF-02 | 120 | Complete |
 | AUTH-PROOF-03 | 120 | Complete |
-| ADOPT-AUTH-01 | 121 | Pending |
+| ADOPT-AUTH-01 | 121 | Complete |
 | ADOPT-AUTH-02 | 121 | Complete |
 | ADOPT-AUTH-03 | 121 | Complete |
