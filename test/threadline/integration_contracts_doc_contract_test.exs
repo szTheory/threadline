@@ -74,7 +74,11 @@ defmodule Threadline.IntegrationContractsDocContractTest do
   test "integration-contracts guide locks the support-lane proof anchors" do
     guide = File.read!("guides/integration-contracts.md")
 
-    assert String.contains?(guide, "Capture-only adopters on the **`capture-only`** lane can stop here.")
+    assert String.contains?(
+             guide,
+             "Capture-only adopters on the **`capture-only`** lane can stop here."
+           )
+
     assert String.contains?(guide, "`mix verify.compile_no_optional` proves that")
     assert String.contains?(guide, "surface without optional Phoenix UI dependencies.")
     assert String.contains?(guide, "Threadline.Integrations.Sigra` is the current model:")
