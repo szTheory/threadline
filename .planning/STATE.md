@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
-status: completed
-last_updated: "2026-05-28T17:21:08.324Z"
-last_activity: 2026-05-28 -- Completed 123-01-PLAN.md
+status: executing
+last_updated: "2026-05-28T17:23:00.000Z"
+last_activity: 2026-05-28 -- Completed 123-02-PLAN.md
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 33
+  completed_plans: 5
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 123 — first-hour-config
+**Current focus:** Phase 124 — adopter-doc-finish
 
 ## Current Position
 
-Phase: 123 (first-hour-config) — EXECUTING
-Plan: 2 of 2
-Status: Plan 01 complete; ready for 123-02
-Last activity: 2026-05-28 -- Completed 123-01-PLAN.md
+Phase: 124 (adopter-doc-finish) — READY
+Plan: 0 of 0 (not yet planned)
+Status: Phase 123 complete
+Last activity: 2026-05-28 -- Completed 123-02-PLAN.md
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Last activity: 2026-05-28 -- Completed 123-01-PLAN.md
 
 - **v1.27 (2026-05-28):** Distribution + first-hour finish over external pilot; no compliance expansion; no evidence auto-population without signal.
 - **Assessment (2026-05-28):** ecto_repos guidance lives in getting-started §2 before install; doc-contract locks placement (123-01).
+- **Assessment (2026-05-28):** production-checklist prerequisite band cross-links ecto_repos before capture gates; dedicated doc contract (123-02).
 - **Assessment (2026-05-28):** Evidence plane is host-write only — set adopter expectations in docs (Phase 124).
 - **v1.26 (2026-05-28):** Auth lane breadth via guide + root proof, not second reference app.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
@@ -60,11 +61,11 @@ Last activity: 2026-05-28 -- Completed 123-01-PLAN.md
 
 ## Session Continuity
 
-- **Last Action**: Completed 123-01-PLAN.md — getting-started ecto_repos + doc contract
-- **Next Step**: Execute 123-02-PLAN.md (production-checklist cross-link)
-- **Resume file**: `.planning/phases/123-first-hour-config/123-02-PLAN.md`
+- **Last Action**: Completed 123-02-PLAN.md — production-checklist ecto_repos cross-link + doc contract
+- **Next Step**: Plan or execute Phase 124 (adopter doc finish)
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- **Execute 123-02-PLAN** — production-checklist cross-link for CFG-03
+- **Plan Phase 124** — adopter doc finish (DOC-01 through DOC-05)
 - Do **not** open v1.28 external pilot until sustained adopter signal
