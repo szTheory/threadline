@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.26
 milestone_name: Auth Lane Breadth
 status: Defining requirements
-last_updated: "2026-05-27T12:00:00.000Z"
-last_activity: 2026-05-27 — Milestone v1.26 started (diminishing-returns assessment)
+last_updated: "2026-05-28T01:33:27.987Z"
+last_activity: 2026-05-27 — Milestone v1.26 started
 progress:
   total_phases: 3
   completed_phases: 0
