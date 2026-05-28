@@ -224,7 +224,7 @@ defmodule Threadline.ReadmeDocContractTest do
 
   test "README Quick Start locks threadline ecto_repos literal and ordering" do
     readme = File.read!("README.md")
-    slice = section_slice(readme, "## Quick Start", "## Operator Surface")
+    slice = section_slice(readme, @quick_start_start, @quick_start_end)
     literal = "config :threadline, ecto_repos: [MyApp.Repo]"
 
     assert String.contains?(slice, literal)
@@ -234,6 +234,17 @@ defmodule Threadline.ReadmeDocContractTest do
     {install_idx, _} = :binary.match(slice, "mix threadline.install")
 
     assert literal_idx < install_idx
+  end
+
+  test "README Quick Start locks posts-only trigger step and SSOT cross-links" do
+    readme = File.read!("README.md")
+    slice = section_slice(readme, @quick_start_start, @quick_start_end)
+
+    assert String.contains?(slice, "mix threadline.gen.triggers --tables posts")
+    assert String.contains?(slice, "getting-started-saas.md")
+    assert String.contains?(slice, "production-checklist.md")
+
+    refute String.contains?(slice, "users,posts,comments")
   end
 
   defp readme_mount_block do
