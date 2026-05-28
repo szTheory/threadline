@@ -34,7 +34,9 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     refute String.contains?(doc, "{:threadline, \"~> 0.5\"}")
     assert String.contains?(doc, "{:covered, _}")
     assert String.contains?(doc, "mix threadline.health.coverage")
-    assert String.contains?(doc, router_block())
+    assert String.contains?(doc, "guides/integrations/phx-gen-auth.md")
+    assert String.contains?(doc, "actor_fn: &MyApp.Audit.actor_ref_from_conn/1")
+    refute String.contains?(doc, "The Phoenix example keeps")
     assert String.contains?(doc, blog_block())
     refute String.contains?(doc, "Legacy manual recipe")
     assert String.contains?(blog_block(), "Threadline.Audit.transaction")
@@ -96,6 +98,30 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "Threadline.change_diff/2")
   end
 
+  test "getting-started optional sigra-reference fence is scoped" do
+    doc = read_rel!(@guide_path)
+
+    assert String.contains?(doc, "getting-started-sigra-reference-fence")
+
+    marker = "getting-started-sigra-reference-fence"
+    [_before, after_marker] = String.split(doc, marker, parts: 2)
+    subsection = after_marker
+
+    assert String.contains?(subsection, router_block())
+    refute String.contains?(subsection, "MyApp.Audit.actor_ref_from_conn")
+
+    {generic_idx, _} =
+      :binary.match(doc, "actor_fn: &MyApp.Audit.actor_ref_from_conn/1")
+
+    {marker_idx, _} = :binary.match(doc, marker)
+
+    {sigra_idx, _} =
+      :binary.match(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
+
+    assert generic_idx < marker_idx
+    assert marker_idx < sigra_idx
+  end
+
   test "quickstart closing pointers stay in-repo and present" do
     doc = read_rel!(@guide_path)
 
@@ -103,6 +129,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
       "guides/production-checklist.md",
       "guides/incident-playbook.md",
       "guides/performance.md",
+      "guides/integrations/phx-gen-auth.md",
       "guides/integrations/sigra.md",
       "guides/brownfield-continuity.md",
       "guides/adoption-pilot-backlog.md"
