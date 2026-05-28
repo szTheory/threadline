@@ -59,23 +59,35 @@ read [guides/domain-reference.md](guides/domain-reference.md).
    end
    ```
 
-2. Install and migrate:
+2. Configure Threadline:
+
+   Threadline Mix tasks resolve the repo from `config :threadline, ecto_repos` (not host `:ecto_repos` alone). Add this to `config/config.exs`:
+
+   ```elixir
+   config :threadline, ecto_repos: [MyApp.Repo]
+   ```
+
+   See [Getting started §2 — Configure Threadline](guides/getting-started-saas.md#configure-threadline) for dual-repo rationale.
+
+3. Install and migrate:
 
    ```bash
    mix threadline.install
    mix ecto.migrate
    ```
 
-3. Register triggers for the tables you want to audit:
+4. Register triggers for your first audited table:
 
    ```bash
-   mix threadline.gen.triggers --tables users,posts,comments
+   mix threadline.gen.triggers --tables posts
    mix ecto.migrate
    ```
 
-4. Wrap audited writes with `Threadline.Audit.transaction/3` — see [Getting started with Threadline in a Phoenix SaaS app](guides/getting-started-saas.md) §6 for the canonical helper snippet (actor GUC + domain writes + optional action linkage in one transaction).
+   See [getting-started §4](guides/getting-started-saas.md) for the first-table walkthrough and [production-checklist §1](guides/production-checklist.md) for the full `expected_tables` inventory.
 
-5. Query the audit trail:
+5. Wrap audited writes with `Threadline.Audit.transaction/3` — see [Getting started with Threadline in a Phoenix SaaS app](guides/getting-started-saas.md) §6 for the canonical helper snippet (actor GUC + domain writes + optional action linkage in one transaction).
+
+6. Query the audit trail:
 
     ```elixir
     Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
