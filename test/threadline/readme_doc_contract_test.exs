@@ -222,6 +222,20 @@ defmodule Threadline.ReadmeDocContractTest do
            )
   end
 
+  test "README Quick Start locks threadline ecto_repos literal and ordering" do
+    readme = File.read!("README.md")
+    slice = section_slice(readme, "## Quick Start", "## Operator Surface")
+    literal = "config :threadline, ecto_repos: [MyApp.Repo]"
+
+    assert String.contains?(slice, literal)
+    assert String.contains?(slice, "getting-started-saas.md#configure-threadline")
+
+    {literal_idx, _} = :binary.match(slice, literal)
+    {install_idx, _} = :binary.match(slice, "mix threadline.install")
+
+    assert literal_idx < install_idx
+  end
+
   defp readme_mount_block do
     """
     scope "/audit", MyAppWeb do
