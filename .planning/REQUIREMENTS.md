@@ -63,9 +63,9 @@ Deferred until after v1.27 or on signal.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIST-01 | 122 | Pending |
-| DIST-02 | 122 | Pending |
-| DIST-03 | 122 | Pending |
+| DIST-01 | 122 | Complete |
+| DIST-02 | 122 | Complete |
+| DIST-03 | 122 | Complete |
 | CFG-01 | 123 | Pending |
 | CFG-02 | 123 | Pending |
 | CFG-03 | 123 | Pending |
