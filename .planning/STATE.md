@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
 status: Gap closure — v1.27 delivery shipped; phases 126–127 remain
-last_updated: "2026-05-28T18:25:46.091Z"
+last_updated: "2026-05-28T18:30:08.918Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 6
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 125 — authority-surface reconciliation
+**Current focus:** Phase 126 — Nyquist validation sign-off (122–124)
 
 ## Current Position
 
@@ -61,11 +61,11 @@ Last activity: 2026-05-28
 
 ## Session Continuity
 
-- **Last Action**: Phase 125 planned (2026-05-28)
-- **Next Step**: `/gsd-execute-phase 125` (126–127 before `/gsd-complete-milestone v1.27`)
-- **Resume file**: `.planning/phases/125-authority-surface-reconciliation/125-01-SUMMARY.md`
+- **Last Action**: Phase 126 context gathered (2026-05-28)
+- **Next Step**: `/gsd-plan-phase 126` then `/gsd-execute-phase 126` (127 before `/gsd-complete-milestone v1.27`)
+- **Resume file**: `.planning/phases/126-nyquist-validation-signoff-122-124/126-CONTEXT.md`
 
 ## Operator Next Steps
 
-- **Execute Phase 125** — authority-surface reconciliation; green `mix verify.doc_contract`
+- **Plan Phase 126** — three-wave Nyquist sign-off for phases 122–124
 - Do **not** open v1.28 external pilot until sustained adopter signal
