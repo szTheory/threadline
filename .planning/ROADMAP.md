@@ -30,7 +30,7 @@
 
 - [x] **Phase 122: Release & Distribution Truth** — Publish 0.6.0 to hex.pm; honest adoption-pilot and CHANGELOG surfaces (2026-05-28)
 - [x] **Phase 123: First-Hour Config** — Document `ecto_repos` for mix tasks and operator fallbacks (2026-05-28)
-- [ ] **Phase 124: Adopter Doc Finish** — Close v1.26 audit carry-forward and operator expectation gaps (pending)
+- [x] **Phase 124: Adopter Doc Finish** — Close v1.26 audit carry-forward and operator expectation gaps (pending) (completed 2026-05-28)
 
 ## Phase Details
 
@@ -90,4 +90,4 @@
 | ----- | --------- | -------------- | ------ | --------- |
 | 122 Release & Distribution Truth | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
-| 124 Adopter Doc Finish | v1.27 | 0/0 | Pending | — |
+| 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |

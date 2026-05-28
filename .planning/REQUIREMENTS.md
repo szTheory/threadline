@@ -25,11 +25,11 @@
 
 ### Adopter doc finish (Phase 124)
 
-- [ ] **DOC-01**: Getting-started **§6** cookie/session staging is auth-neutral or explicitly lane-branched (`phx-gen-auth-reference` vs `sigra-reference`); Sigra-only curl prose is not the only path.
-- [ ] **DOC-02**: `getting_started_saas_doc_contract_test.exs` asserts strict ADOPT-AUTH literals (e.g. "does not require Sigra", `phx-gen-auth-reference`) — closes v1.26 audit soft-gap.
-- [ ] **DOC-03**: `guides/operator-surface.md` documents mount **`:schemas`** required for row-history reification at `/audit/rows/:table/:pk`.
-- [ ] **DOC-04**: `guides/how-threadline-works.md` or `guides/domain-reference.md` states evidence plane is **host-written** (lib does not auto-populate from retention/health/export).
-- [ ] **DOC-05**: `guides/integration-contracts.md` four-lane vocabulary matches `guides/upgrade-path.md` (`capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference`); doc-contract locks lane names.
+- [x] **DOC-01**: Getting-started **§6** cookie/session staging is auth-neutral or explicitly lane-branched (`phx-gen-auth-reference` vs `sigra-reference`); Sigra-only curl prose is not the only path.
+- [x] **DOC-02**: `getting_started_saas_doc_contract_test.exs` asserts strict ADOPT-AUTH literals (e.g. "does not require Sigra", `phx-gen-auth-reference`) — closes v1.26 audit soft-gap.
+- [x] **DOC-03**: `guides/operator-surface.md` documents mount **`:schemas`** required for row-history reification at `/audit/rows/:table/:pk`.
+- [x] **DOC-04**: `guides/how-threadline-works.md` or `guides/domain-reference.md` states evidence plane is **host-written** (lib does not auto-populate from retention/health/export).
+- [x] **DOC-05**: `guides/integration-contracts.md` four-lane vocabulary matches `guides/upgrade-path.md` (`capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference`); doc-contract locks lane names.
 
 ---
 
@@ -69,11 +69,11 @@ Deferred until after v1.27 or on signal.
 | CFG-01 | 123 | Complete |
 | CFG-02 | 123 | Complete |
 | CFG-03 | 123 | Complete |
-| DOC-01 | 124 | Pending |
-| DOC-02 | 124 | Pending |
-| DOC-03 | 124 | Pending |
-| DOC-04 | 124 | Pending |
-| DOC-05 | 124 | Pending |
+| DOC-01 | 124 | Complete |
+| DOC-02 | 124 | Complete |
+| DOC-03 | 124 | Complete |
+| DOC-04 | 124 | Complete |
+| DOC-05 | 124 | Complete |
 
 **Coverage:**
 

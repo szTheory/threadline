@@ -8,14 +8,25 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.27 Distribution & First-Hour Finish
+## Latest Milestone Shipped: v1.27 Distribution & First-Hour Finish
+
+**Goal (achieved):** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
+
+**Shipped:**
+- **Hex 0.6.0 distribution truth** — Phase 122 (2026-05-28)
+- **First-hour `ecto_repos` config** — Phase 123 (2026-05-28)
+- **First-hour doc finish** — Phase 124: IEx-first §6, ADOPT-AUTH contract, `:schemas` reification docs, evidence host-write boundary, four-lane integration-contracts vocabulary
+
+**Next milestone (queued):** **v1.28 External Pilot** — only on sustained real-adopter signal.
+
+## Prior milestone context: v1.27 planning snapshot
 
 **Goal:** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
 
 **Target features:**
 - **Hex 0.6.0 distribution truth** — ~~publish via tag `v0.6.0`~~ ✓ Phase 122 (2026-05-28); adoption-pilot and evaluator surfaces honest about hex.pm version
 - **First-hour `ecto_repos` config** — ~~document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link~~ ✓ Phase 123 (2026-05-28)
-- **First-hour doc finish** — §6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path
+- **First-hour doc finish** — ~~§6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path~~ ✓ Phase 124 (2026-05-28)
 
 **Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.26.md` (~90–93% done for stated scope; distribution + first-hour footguns remain).
 
@@ -432,4 +443,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — Phase 123 First-Hour Config complete; next Phase 124 Adopter Doc Finish.*
+*Last updated: 2026-05-28 — v1.27 milestone complete (Phases 122–124); distribution + first-hour finish shipped.*
