@@ -34,7 +34,7 @@
 - [x] **Phase 124: Adopter Doc Finish** — Close v1.26 audit carry-forward and operator expectation gaps (completed 2026-05-28)
 - [x] **Phase 125: Authority-Surface Reconciliation** — Fix charter doc contract; reconcile STATE, MILESTONE-ARC, ROADMAP; green `mix verify.doc_contract` (completed 2026-05-28)
 - [x] **Phase 126: Nyquist Validation Sign-off (122–124)** — Sign off `nyquist_compliant` on phases 122–124 VALIDATION.md (completed 2026-05-28)
-- [ ] **Phase 127: Example App `:schemas` Demonstration** — Wire runnable `:schemas` contract in `examples/threadline_phoenix` (D-14)
+- [x] **Phase 127: Example App `:schemas` Demonstration** — Wire runnable `:schemas` contract in `examples/threadline_phoenix` (D-14) (completed 2026-05-28)
 
 ## Phase Details
 
@@ -146,4 +146,4 @@
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 126 Nyquist Validation Sign-off (122–124) | v1.27 | 3/3 | Complete    | 2026-05-28 |
-| 127 Example App `:schemas` Demonstration | v1.27 | 0/0 | Not started | — |
+| 127 Example App `:schemas` Demonstration | v1.27 | 2/2 | Complete   | 2026-05-28 |
