@@ -28,9 +28,13 @@ Threadline is not:
 - an auth framework
 - a write-capable admin backend
 
-The evidence plane stays just as narrow. Threadline may persist evidence about
-its own governance surfaces such as redaction posture, trigger coverage,
-retention runs, export delivery, and support-scope posture.
+The evidence plane stays just as narrow. Host apps write **host-written**
+attestations deliberately via `Threadline.Evidence` `record_*` for closed
+governance subjects such as redaction posture, trigger coverage, retention
+runs, export delivery, and support-scope posture. See
+[Evidence write boundary (host-written)](domain-reference.md#evidence-write-boundary-host-written)
+for read surfaces, the six `record_*` entrypoints, and what Threadline does
+not auto-populate.
 
 Canonical public non-goals for the evidence plane:
 

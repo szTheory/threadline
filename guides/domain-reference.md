@@ -72,6 +72,25 @@ Read-only exports for operator playbooks (“export then purge”, cross-checks,
 - **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
 - **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
 
+## Evidence write boundary (host-written)
+
+<!-- EVIDENCE-HOST-WRITE-BOUNDARY -->
+
+Evidence rows in **`threadline_evidence_records`** are **host-written attestations**, not background jobs Threadline runs for you. Host apps create them explicitly via `Threadline.Evidence` `record_*` entrypoints for six closed subjects:
+
+- `record_redaction_policy/3`
+- `record_trigger_coverage/3`
+- `record_retention_run/3`
+- `record_retention_policy/3`
+- `record_export_delivery/3`
+- `record_support_scope_posture/3`
+
+Read surfaces — `Threadline.Proof`, `mix threadline.evidence.show`, and mounted `/audit/evidence` — **interpret rows already written**. They are viewers, not writers.
+
+Threadline does not auto-populate evidence from retention, health, or export paths. Running `Threadline.Retention`, `Threadline.Health`, or export APIs may write ops metadata (for example rows in **`threadline_retention_runs`** for operator retention history), but that metadata does not auto-create `threadline_evidence_records` rows. **`threadline_retention_runs`** (ops metadata) ≠ **`threadline_evidence_records`** (host attestations).
+
+An empty evidence view means the host has not yet recorded an attestation for that subject — not that a missing background job failed.
+
 ## Evidence proof contract (Phase 97)
 
 `mix threadline.evidence.show` is the canonical no-Phoenix viewer for

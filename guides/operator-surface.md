@@ -133,6 +133,9 @@ Mounted `/audit/evidence` is also separately gated. Use
 same explicit `Unsupported View` posture plus the CLI fallback to
 `mix threadline.evidence.show`. Do not describe `/audit/evidence` as
 automatically available everywhere the broader `/audit` surface is mounted.
+`/audit/evidence` is a **viewer only** — host apps write evidence rows via
+`Threadline.Evidence` `record_*`; the mounted surface interprets rows already
+persisted.
 
 The export-status surface keeps one actor-owned `Download Export` action.
 Threadline resolves the actual delivery only after authorization: local storage

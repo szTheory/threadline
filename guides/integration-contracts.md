@@ -148,10 +148,12 @@ The host still owns authentication and authorization semantics. Threadline
 standardizes where those hooks plug in; it does not define who the user is,
 which roles exist, or how tenancy is modeled.
 
-That same boundary applies to the evidence plane. Threadline may persist
-evidence about its own governance and support-scope posture, but it does not
-introduce a Threadline-owned RBAC system, tenancy DSL, approval workflow,
-legal-hold flow, or vendor-reporting suite.
+That same boundary applies to the evidence plane. Evidence writes are
+host-owned via `Threadline.Evidence` `record_*`; Threadline does not
+auto-populate attestations from retention, health, or export paths. The
+evidence plane captures governance and support-scope posture the host chooses
+to record, but it does not introduce a Threadline-owned RBAC system, tenancy
+DSL, approval workflow, legal-hold flow, or vendor-reporting suite.
 
 When a host returns `{:ok, scope}` from `authorize_fn`, keep that scope
 host-owned and pair it with `scope_query_fn` if you want mounted reads to narrow
