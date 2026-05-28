@@ -10,7 +10,7 @@ Distribution preflight below reflects the **0.6.0** tree (`mix.exs` `@version` i
 
 | Item | Status | Evidence / notes |
 |------|--------|------------------|
-| `threadline` **0.6.0** on [Hex](https://hex.pm/packages/threadline) | Pending | Tag matches `@version` in root `mix.exs`; doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
+| `threadline` **0.6.0** on [Hex](https://hex.pm/packages/threadline) | OK | Verified 2026-05-28: [hex.pm](https://hex.pm/packages/threadline) latest is **0.6.0** (tag **`v0.6.0`**). Publish workflow: https://github.com/szTheory/threadline/actions/runs/26583473336. Confirm locally: `mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs`|
 | App depends on `{:threadline, "~> 0.6"}` | OK | README + adoption-pilot doc contract lock constraint |
 | `mix deps.get` resolves without overrides | OK | **GitHub Actions** runs `mix deps.get` per job (e.g. `.github/workflows/ci.yml` → `verify-test` / `verify-format`); root **`mix.lock`** pins resolution — no `override: true` on library deps. |
 
