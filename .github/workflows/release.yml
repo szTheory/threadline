@@ -1,0 +1,433 @@
+# Canonical release lane: Release Please (ongoing) or workflow_dispatch bootstrap/recovery.
+# Fan-out: gate-ci-green -> publish-hex -> distribution-sync (opens doc PR).
+#
+# Requires secrets: HEX_API_KEY, optional RELEASE_PLEASE_TOKEN (fine-grained PAT).
+# Legacy tag-only path: .github/workflows/hex-publish.yml (fallback).
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to publish from (e.g. v0.6.0). Created on main HEAD if missing."
+        required: true
+        type: string
+      release_version:
+        description: "Expected @version in mix.exs (e.g. 0.6.0)."
+        required: true
+        type: string
+      dry_run:
+        description: "Run mix hex.publish --dry-run instead of publishing."
+        required: false
+        type: boolean
+        default: false
+      skip_distribution_sync:
+        description: "Skip opening the post-publish distribution doc PR."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: release-${{ github.ref }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release Please
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created || 'false' }}
+      tag_name: ${{ steps.release.outputs.tag_name || '' }}
+      version: ${{ steps.release.outputs.version || '' }}
+      sha: ${{ steps.release.outputs.sha || '' }}
+      prs_created: ${{ steps.release.outputs.prs_created || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect already-tagged release PR
+        id: release-preflight
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+
+          pr_number=""
+          if [[ "${COMMIT_MESSAGE:-}" =~ Merge\ pull\ request\ #([0-9]+) ]]; then
+            pr_number="${BASH_REMATCH[1]}"
+          fi
+
+          if [ -z "$pr_number" ]; then
+            echo "should_run=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          labels=$(gh pr view "$pr_number" --json labels --jq '.labels[].name' 2>/dev/null || true)
+          if grep -qx 'autorelease: tagged' <<<"$labels"; then
+            echo "Release PR #$pr_number already tagged; skipping release-please."
+            echo "should_run=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          expected_tag="v$(jq -r '.["."]' .release-please-manifest.json)"
+          if gh release view "$expected_tag" >/dev/null 2>&1; then
+            echo "GitHub release $expected_tag already exists; skipping rerun."
+            echo "should_run=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_run=true" >>"$GITHUB_OUTPUT"
+
+      - name: Run Release Please
+        id: release
+        if: steps.release-preflight.outputs.should_run == 'true'
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  bootstrap-release-pr-ci:
+    name: Bootstrap CI on Release PR
+    runs-on: ubuntu-24.04
+    needs: release-please
+    if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Dispatch CI on release PR branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run ci.yml --ref release-please--branches--main -R "${{ github.repository }}"
+
+  resolve-release-ref:
+    name: Resolve release ref
+    runs-on: ubuntu-24.04
+    needs:
+      - release-please
+    if: always() && (needs.release-please.result == 'success' || needs.release-please.result == 'skipped')
+    outputs:
+      checkout_ref: ${{ steps.resolve.outputs.checkout_ref }}
+      release_sha: ${{ steps.resolve.outputs.release_sha }}
+      release_version: ${{ steps.resolve.outputs.release_version }}
+      release_tag: ${{ steps.resolve.outputs.release_tag }}
+      publish_source: ${{ steps.resolve.outputs.publish_source }}
+      dry_run: ${{ steps.resolve.outputs.dry_run }}
+      skip_distribution_sync: ${{ steps.resolve.outputs.skip_distribution_sync }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve ref (Release Please)
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RP_CREATED: ${{ needs.release-please.outputs.release_created || 'false' }}
+          RP_TAG: ${{ needs.release-please.outputs.tag_name || '' }}
+          RP_VERSION: ${{ needs.release-please.outputs.version || '' }}
+          RP_SHA: ${{ needs.release-please.outputs.sha || '' }}
+          DISPATCH_TAG: ${{ github.event.inputs.tag || '' }}
+          DISPATCH_VERSION: ${{ github.event.inputs.release_version || '' }}
+          DISPATCH_DRY: ${{ github.event.inputs.dry_run || 'false' }}
+          DISPATCH_SKIP_SYNC: ${{ github.event.inputs.skip_distribution_sync || 'false' }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "push" && "$RP_CREATED" == "true" ]]; then
+            echo "checkout_ref=${RP_TAG}" >>"$GITHUB_OUTPUT"
+            echo "release_sha=${RP_SHA}" >>"$GITHUB_OUTPUT"
+            echo "release_version=${RP_VERSION}" >>"$GITHUB_OUTPUT"
+            echo "release_tag=${RP_TAG}" >>"$GITHUB_OUTPUT"
+            echo "publish_source=release-please" >>"$GITHUB_OUTPUT"
+            echo "dry_run=false" >>"$GITHUB_OUTPUT"
+            echo "skip_distribution_sync=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "No publishable release event; skipping downstream jobs."
+            echo "checkout_ref=" >>"$GITHUB_OUTPUT"
+            echo "release_sha=" >>"$GITHUB_OUTPUT"
+            echo "release_version=" >>"$GITHUB_OUTPUT"
+            echo "release_tag=" >>"$GITHUB_OUTPUT"
+            echo "publish_source=none" >>"$GITHUB_OUTPUT"
+            echo "dry_run=false" >>"$GITHUB_OUTPUT"
+            echo "skip_distribution_sync=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tag="$DISPATCH_TAG"
+          version="$DISPATCH_VERSION"
+
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "tag must match vMAJOR.MINOR.PATCH" >&2
+            exit 1
+          fi
+
+          tag_version="${tag#v}"
+          if [[ "$tag_version" != "$version" ]]; then
+            echo "tag $tag implies $tag_version but release_version is $version" >&2
+            exit 1
+          fi
+
+          git fetch origin main --tags
+
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            sha="$(git rev-list -n 1 "$tag")"
+            echo "checkout_ref=$tag" >>"$GITHUB_OUTPUT"
+          else
+            sha="$(git rev-parse origin/main)"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$tag" -m "Release $tag" "$sha"
+            git push origin "$tag"
+            echo "checkout_ref=$tag" >>"$GITHUB_OUTPUT"
+          fi
+
+          echo "release_sha=$sha" >>"$GITHUB_OUTPUT"
+          echo "release_version=$version" >>"$GITHUB_OUTPUT"
+          echo "release_tag=$tag" >>"$GITHUB_OUTPUT"
+          echo "publish_source=workflow_dispatch" >>"$GITHUB_OUTPUT"
+          echo "dry_run=$DISPATCH_DRY" >>"$GITHUB_OUTPUT"
+          echo "skip_distribution_sync=$DISPATCH_SKIP_SYNC" >>"$GITHUB_OUTPUT"
+
+  gate-ci-green:
+    name: Verify CI is green on release SHA
+    runs-on: ubuntu-24.04
+    needs: resolve-release-ref
+    if: needs.resolve-release-ref.outputs.publish_source != 'none'
+    steps:
+      - name: Wait for ci.yml success on release SHA
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = '${{ needs.resolve-release-ref.outputs.release_sha }}';
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const maxAttempts = 60;
+            const waitMs = 30000;
+            let lastRunUrl = '';
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'ci.yml',
+                head_sha: sha,
+                per_page: 20
+              });
+
+              const runs = data.workflow_runs
+                .filter((run) => run.head_sha === sha)
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+              if (runs.length === 0) {
+                core.info(`No ci.yml run yet for ${sha} (${attempt}/${maxAttempts}).`);
+                await sleep(waitMs);
+                continue;
+              }
+
+              lastRunUrl = runs[0].html_url;
+
+              if (runs.some((run) => run.status !== 'completed')) {
+                const inProgress = runs.find((run) => run.status !== 'completed');
+                core.info(`ci.yml ${inProgress.status} for ${sha}: ${inProgress.html_url}`);
+                await sleep(waitMs);
+                continue;
+              }
+
+              const successRun = runs.find((run) => run.conclusion === 'success');
+              if (successRun) {
+                core.info(`ci.yml succeeded on release SHA ${sha}: ${successRun.html_url}`);
+                return;
+              }
+
+              core.info(`No successful ci.yml yet for ${sha} (${attempt}/${maxAttempts}).`);
+              await sleep(waitMs);
+            }
+
+            core.setFailed(
+              `Timed out waiting for green ci.yml on SHA ${sha}. Last run: ${lastRunUrl || 'none'}`
+            );
+
+  publish-hex:
+    name: Publish to Hex.pm
+    runs-on: ubuntu-24.04
+    needs: [resolve-release-ref, gate-ci-green]
+    if: needs.resolve-release-ref.outputs.publish_source != 'none'
+    permissions:
+      contents: read
+    outputs:
+      published: ${{ steps.publish_state.outputs.published }}
+      skipped: ${{ steps.idempotency.outputs.skip || 'false' }}
+    env:
+      RELEASE_VERSION: ${{ needs.resolve-release-ref.outputs.release_version }}
+      RELEASE_TAG: ${{ needs.resolve-release-ref.outputs.release_tag }}
+      DRY_RUN: ${{ needs.resolve-release-ref.outputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-release-ref.outputs.checkout_ref }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Confirm tag matches mix.exs @version
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          VER="${TAG#v}"
+          MIX_VER=$(grep -E '^\s*@version\s+"' mix.exs | head -1 | sed -n 's/.*@version "\([^"]*\)".*/\1/p')
+          if [[ "$MIX_VER" != "$VER" ]]; then
+            echo "Tag $TAG implies $VER but mix.exs has @version \"$MIX_VER\"" >&2
+            exit 1
+          fi
+
+      - name: Run mix verify.release preflight
+        if: env.DRY_RUN != 'true'
+        run: mix verify.release
+
+      - name: Skip if version already on Hex
+        id: idempotency
+        if: env.DRY_RUN != 'true'
+        run: |
+          if mix hex.info threadline "${RELEASE_VERSION}" 2>/dev/null | grep -q "Released:"; then
+            echo "Version ${RELEASE_VERSION} already on Hex — skipping publish."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dry run Hex publish
+        if: env.DRY_RUN == 'true' || steps.idempotency.outputs.skip != 'true'
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${HEX_API_KEY:-}" ]]; then
+            echo "::error::Set repository secret HEX_API_KEY to enable publish."
+            exit 1
+          fi
+          if [[ "$DRY_RUN" == "true" ]]; then
+            mix hex.publish --dry-run --yes
+          else
+            mix hex.publish --yes
+          fi
+
+      - name: Record publish state
+        id: publish_state
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.idempotency.outputs.skip || '' }}" == "true" ]]; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify version on Hex.pm
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 36); do
+            if curl -fsS "https://hex.pm/api/packages/threadline/releases/${RELEASE_VERSION}" | grep -q '"version"'; then
+              echo "Hex.pm lists threadline ${RELEASE_VERSION}"
+              exit 0
+            fi
+            echo "waiting for Hex index... (${i}/36)"
+            sleep 10
+          done
+          echo "Timed out waiting for hex.pm release ${RELEASE_VERSION}"
+          exit 1
+
+  distribution-sync:
+    name: Post-publish distribution sync
+    runs-on: ubuntu-24.04
+    needs: [resolve-release-ref, publish-hex]
+    if: |
+      needs.resolve-release-ref.outputs.publish_source != 'none' &&
+      needs.resolve-release-ref.outputs.skip_distribution_sync != 'true' &&
+      needs.resolve-release-ref.outputs.dry_run != 'true' &&
+      (needs.publish-hex.outputs.published == 'true' || needs.publish-hex.outputs.skipped == 'true')
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Wait for Hex registry before doc sync
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-release-ref.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 36); do
+            if curl -fsS "https://hex.pm/api/packages/threadline/releases/${RELEASE_VERSION}" | grep -q '"version"'; then
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+
+      - name: Apply distribution doc sync
+        env:
+          RELEASE_VERSION: ${{ needs.resolve-release-ref.outputs.release_version }}
+          RELEASE_TAG: ${{ needs.resolve-release-ref.outputs.release_tag }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERIFIED_DATE: ${{ github.event.repository.updated_at && '' }}${{ github.run_id && '' }}
+        run: |
+          set -euo pipefail
+          VERIFIED_DATE="$(date -u +%Y-%m-%d)"
+          ./bin/post-publish-distribution-sync \
+            "${RELEASE_VERSION}" \
+            "${RELEASE_TAG}" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            "${VERIFIED_DATE}"
+
+      - name: Create distribution sync PR
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.resolve-release-ref.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/sync-${RELEASE_VERSION}-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add \
+            guides/adoption-pilot-backlog.md \
+            guides/evaluating-threadline.md \
+            .planning/phases/122-release-distribution-truth/122-VERIFICATION.md \
+            .planning/REQUIREMENTS.md \
+            .planning/STATE.md \
+            .planning/ROADMAP.md \
+            CONTRIBUTING.md
+          git commit -m "chore(release): sync distribution docs for ${RELEASE_VERSION}"
+          git push -u origin "$BRANCH"
+          gh pr create \
+            --title "chore(release): sync distribution docs for ${RELEASE_VERSION}" \
+            --body "Automated post-publish distribution sync from Release workflow run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+          - Flips adoption-pilot Hex row to OK after registry confirms ${RELEASE_VERSION}
+          - Removes evaluating guide hex lag caveat
+          - Writes 122-VERIFICATION.md attestation
+          - Ticks DIST-01–03 in planning artifacts
+
+          Merge after \`mix verify.doc_contract\` passes on this PR."

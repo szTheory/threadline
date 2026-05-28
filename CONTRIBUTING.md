@@ -62,7 +62,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 
-Hex **publish** (after a SemVer tag `v*` is pushed) runs from **`.github/workflows/hex-publish.yml`** using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
+Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below. Legacy tag-only fallback: [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml).
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
 
@@ -117,30 +117,57 @@ Exact labels depend on GitHub’s UI; map them to the job keys above.
 
 ## Hex publish (maintainers)
 
-**Tag-triggered publish:** pushing an annotated SemVer tag matching **`vMAJOR.MINOR.PATCH`** runs [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml). It checks that **`GITHUB_REF_NAME`** (e.g. `v0.6.0`) matches **`@version`** in `mix.exs` (e.g. `0.6.0`), then runs **`mix hex.publish --yes`** with **`HEX_API_KEY`**.
+**Canonical path:** [`.github/workflows/release.yml`](.github/workflows/release.yml) — Release Please on `main` (0.6.1+) or **`workflow_dispatch`** bootstrap/recovery (e.g. first **`v0.6.0`** cut).
 
-1. Add repository secret **`HEX_API_KEY`** (Hex.pm API key with publish permission for this package).
-2. Run `mix verify.release` from a clean working tree to validate the exact tree you are about to tag.
-3. Ensure **`main`** is green and the release commit has the correct **`@version`** and **`CHANGELOG.md`** section.
-4. Tag and push (no `--force` on refs):
+The release workflow:
 
-   ```bash
-   git tag -a v0.6.0 -m "Release v0.6.0"
-   git push origin main        # if needed
-   git push origin v0.6.0
-   ```
+1. Resolves the release ref (Release Please tag or dispatch inputs).
+2. Waits for green **`ci.yml`** on the release SHA (`gate-ci-green`).
+3. Runs **`mix verify.release`**, then **`mix hex.publish --yes`** (idempotent if version already on Hex).
+4. Polls Hex.pm until the version is indexed.
+5. Opens a **distribution sync PR** (`bin/post-publish-distribution-sync`) that flips the adoption-pilot Hex row to OK, trims evaluating-guide lag prose, and writes `.planning/phases/122-release-distribution-truth/122-VERIFICATION.md`.
 
-5. Watch the **Hex publish** workflow on the Actions tab; confirm with **`mix hex.info threadline`** after the registry updates.
+**Secrets:** **`HEX_API_KEY`** (required). **`RELEASE_PLEASE_TOKEN`** (optional fine-grained PAT — recommended for Release Please PRs and distribution sync PRs).
 
-**Manual runbook (optional):** you can still run **`mix hex.publish --dry-run`** and **`mix hex.publish`** locally with **`mix hex.user auth`** instead of relying on CI.
+### Bootstrap `v0.6.0` (one-shot)
+
+After Wave 1 distribution doc work is on **`main`** and CI is green:
+
+1. Actions → **Release** → **Run workflow**
+2. Inputs: `tag` = `v0.6.0`, `release_version` = `0.6.0`
+3. Merge the automated **distribution sync** PR when `mix verify.doc_contract` passes on that PR
+
+The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not exist yet.
+
+### Ongoing releases (0.6.1+)
+
+1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`).
+2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
+
+### Recovery / dry-run
+
+**`workflow_dispatch`** inputs:
+
+| Input | Purpose |
+|-------|---------|
+| `tag` | Existing or to-be-created `vX.Y.Z` |
+| `release_version` | Must match `@version` in `mix.exs` at that ref |
+| `dry_run` | `mix hex.publish --dry-run --yes` only |
+| `skip_distribution_sync` | Publish without opening the doc sync PR |
+
+**Legacy fallback:** pushing tag **`v*.*.*`** still triggers [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml) (no CI gate, no doc sync).
+
+**Local manual runbook (optional):** `mix hex.publish --dry-run` / `mix hex.publish` with `mix hex.user auth` instead of CI.
+
+Post-publish distribution proof for adopters: adoption-pilot Distribution preflight OK row in `guides/adoption-pilot-backlog.md` plus `.planning/phases/122-release-distribution-truth/122-VERIFICATION.md`.
 
 ## Maintainer manual checklist (release)
 
-Use this when preparing or debugging the `v0.6.0` release (no secrets in logs):
+Use when preparing or debugging a release (no secrets in logs):
 
-1. Clean tree: `git status --porcelain` empty.
+1. Clean tree: `git status --porcelain` empty (local preflight only).
 2. Run `mix verify.release`.
-3. Run `DB_PORT=5433 mix ci.all` (or `mix ci.all`) with Postgres up for the broader contributor gate.
-4. wait for green CI on `main` before tagging.
-5. Tag `v0.6.0` so it matches `@version "0.6.0"` in `mix.exs`, then push the branch (if needed) and the tag.
-6. Verify the **Hex publish** workflow and confirm with `mix hex.info threadline` after the registry updates.
+3. Run `DB_PORT=5433 mix ci.all` (or `mix ci.all`) with Postgres up.
+4. Ensure **`main`** CI is green on the commit to release.
+5. **Release workflow:** dispatch **`release.yml`** or merge Release Please PR — do not rely on manual `mix hex.info` copy-paste; the workflow polls Hex.pm and opens the distribution sync PR.
+6. Merge the distribution sync PR after doc contracts pass.

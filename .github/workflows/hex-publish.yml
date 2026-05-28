@@ -1,4 +1,5 @@
-# Publishes to Hex.pm when a SemVer release tag is pushed (e.g. v0.1.0).
+# Legacy fallback: tag-triggered publish when Release workflow is unavailable.
+# Canonical path: .github/workflows/release.yml (Release Please or workflow_dispatch).
 # Requires repository secret HEX_API_KEY (Hex.pm API key with publish permission).
 
 name: Hex publish
