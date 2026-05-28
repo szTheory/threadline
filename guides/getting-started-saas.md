@@ -150,7 +150,48 @@ strict `:correlation_id` filters will not match those rows.
 See [Integration contracts](integration-contracts.md) § Audited write path for forbidden
 callback operations and escape hatches.
 
-### Authenticate before the audited API call
+### Run your first audited write in IEx
+
+Start IEx in your app and run one audited insert before you wire HTTP auth:
+
+```elixir
+iex -S mix
+
+alias Threadline.Semantics.{ActorRef, AuditContext}
+
+{:ok, actor_ref} = ActorRef.new(:user, "you@example.com")
+
+audit_context = %AuditContext{
+  actor_ref: actor_ref,
+  correlation_id: "demo-corr",
+  request_id: "first-audit-exercise"
+}
+
+{:ok, %{post: post, audit_transaction_id: audit_transaction_id}} =
+  Threadline.Audit.transaction(
+    MyApp.Repo,
+    [
+      audit_context: audit_context,
+      action: :post_created_via_api
+    ],
+    fn ->
+      attrs = %{title: "Hello", slug: "hello-demo-slug"}
+
+      case MyApp.Repo.insert(MyApp.Post.changeset(%MyApp.Post{}, attrs)) do
+        {:error, changeset} -> MyApp.Repo.rollback(changeset)
+        {:ok, post} -> %{post: post}
+      end
+    end
+  )
+```
+
+Keep `audit_transaction_id` for step 8. The `correlation_id: "demo-corr"` value
+matches the §8 timeline filter.
+
+This builds the same `%AuditContext{}` that **`Threadline.Plug`** attaches on
+HTTP requests — it does not replace the §5 Plug wiring.
+
+### HTTP requests and host auth
 
 Identity must be on the conn before **`Threadline.Plug`** runs on audited
 pipelines. Prefer **`401`**/**`403`** at your host auth boundary when the
@@ -158,14 +199,19 @@ caller is unauthenticated. **`500`** with **`missing actor`** means capture
 ran but semantics rejected a missing actor — fix plug order or actor wiring,
 not Threadline capture itself.
 
+Threadline does not require Sigra for HTTP — choose the lane that matches your
+host auth stack:
+
 | Lane | Guide |
 |------|-------|
-| phx.gen.auth | [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) |
-| Sigra | [`guides/integrations/sigra.md`](integrations/sigra.md) |
+| phx-gen-auth-reference | [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) |
+| sigra-reference | [`guides/integrations/sigra.md`](integrations/sigra.md) |
 | Choose lane | [`guides/upgrade-path.md`](upgrade-path.md) |
 
 <details>
 <summary>Runnable curl — sigra-reference example app only</summary>
+
+<!-- getting-started-sigra-http-staging-fence -->
 
 Start the reference Phoenix app, then send the first audited request:
 
@@ -178,15 +224,13 @@ curl -sS -X POST "http://localhost:4000/api/posts" \
   -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
 ```
 
-</details>
-
 Cookie staging for the reference app lives in
 [`examples/threadline_phoenix/README.md`](../examples/threadline_phoenix/README.md)
 — sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`** from
 DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`**. This
 example does not ship API bearer tokens — host-owned auth only.
 
-Keep the returned `audit_transaction_id`; you will use it in step 8.
+</details>
 
 ## 7. Check trigger coverage
 
