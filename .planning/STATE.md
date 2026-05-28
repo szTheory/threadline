@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
-status: Defining requirements
-last_updated: "2026-05-28T20:00:00.000Z"
-last_activity: 2026-05-28 — Milestone v1.27 started
+status: Phase 122 context gathered
+last_updated: "2026-05-28T22:00:00.000Z"
+last_activity: 2026-05-28 — Phase 122 discuss-phase complete
 progress:
   total_phases: 3
   completed_phases: 0
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 122 — Release & Distribution Truth (context ready)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-28 — Milestone v1.27 started
+Status: Ready for plan-phase
+Last activity: 2026-05-28 — Phase 122 context gathered
 
 ## Performance Metrics
 
@@ -61,11 +61,11 @@ Last activity: 2026-05-28 — Milestone v1.27 started
 ## Session Continuity
 
 - **Last Action**: `/gsd-new-milestone` v1.27 Distribution & First-Hour Finish
-- **Next Step**: `/gsd-discuss-phase 122` or `/gsd-plan-phase 122`
-- **Resume file**: None
+- **Next Step**: `/gsd-plan-phase 122`
+- **Resume file**: `.planning/phases/122-release-distribution-truth/122-CONTEXT.md`
 
 ## Operator Next Steps
 
-- **`/gsd-discuss-phase 122`** — release & distribution truth
-- Maintainer: push **`v0.6.0`** tag when Phase 122 plan is ready (or in parallel)
+- **`/gsd-plan-phase 122`** — plan three-wave release (docs → tag → post-publish sync)
+- Maintainer: push **`v0.6.0`** tag in Phase 122 Wave 2 (after green `main`, per CONTEXT D-12)
 - Do **not** open v1.28 external pilot until sustained adopter signal
