@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
-status: executing
-last_updated: "2026-05-28T18:23:36.460Z"
-last_activity: 2026-05-28 -- Phase 125 planning complete
+status: gap_closure
+last_updated: "2026-05-28T20:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 125 authority-surface reconciliation
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
   completed_plans: 8
   percent: 50
@@ -20,18 +20,18 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Phase 125 — authority-surface reconciliation
 
 ## Current Position
 
-Phase: 124
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-28 -- Phase 125 planning complete
+Phase: 125
+Plan: Ready to execute
+Status: Gap closure — v1.27 delivery shipped; phases 126–127 remain
+Last activity: 2026-05-28 -- Phase 125 authority-surface reconciliation
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.26 — Auth Lane Breadth (2026-05-28)
+- **Last Milestone Shipped**: v1.27 — Distribution & First-Hour Finish (2026-05-28)
 - **Scope completion (assessment)**: **~90–93%** for stated narrow audit-platform scope
 - **Hex distribution**: in-repo and hex.pm latest **0.6.0** (tag , verified 2026-05-28)
 
@@ -61,11 +61,11 @@ Last activity: 2026-05-28 -- Phase 125 planning complete
 
 ## Session Continuity
 
-- **Last Action**: Phase 124 discuss-phase — research-backed context for DOC-01 through DOC-05
-- **Next Step**: `/gsd-plan-phase 124`
-- **Resume file**: `.planning/phases/124-adopter-doc-finish/124-CONTEXT.md`
+- **Last Action**: Phase 125 planned (2026-05-28)
+- **Next Step**: `/gsd-execute-phase 125` (126–127 before `/gsd-complete-milestone v1.27`)
+- **Resume file**: `.planning/phases/125-authority-surface-reconciliation/125-01-SUMMARY.md`
 
 ## Operator Next Steps
 
-- **Plan Phase 124** — execute locked decisions in 124-CONTEXT.md (DOC-01 through DOC-05)
+- **Execute Phase 125** — authority-surface reconciliation; green `mix verify.doc_contract`
 - Do **not** open v1.28 external pilot until sustained adopter signal
