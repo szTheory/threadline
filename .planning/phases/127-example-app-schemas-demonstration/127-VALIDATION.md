@@ -1,8 +1,8 @@
 ---
 phase: 127
 slug: example-app-schemas-demonstration
-status: draft
-nyquist_compliant: false
+status: finalized
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
 updated: 2026-05-28
@@ -38,11 +38,11 @@ updated: 2026-05-28
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 127-01-01 | 01 | 1 | ROADMAP SC #1 | T-127-01 | Mount includes `:schemas` for help-desk tables only | integration | `rg 'schemas:' examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex` | ✅ | ⬜ pending |
-| 127-01-02 | 01 | 1 | ROADMAP SC #2 | T-127-02 | §9 + README mount blocks match router markers | doc contract | `mix verify.doc_contract` | ✅ | ⬜ pending |
-| 127-02-01 | 02 | 2 | ROADMAP SC #3 | T-127-03 | History sub-route reifies row without schema error | integration | `cd examples/threadline_phoenix && mix test test/threadline_phoenix_web/operator_surface_test.exs` | ✅ | ⬜ pending |
-| 127-02-02 | 02 | 2 | ROADMAP SC #3 | T-127-04 | D-14 mount map locked in doc contract | doc contract | `mix test test/threadline/example_phoenix_schemas_mount_contract_test.exs` | ⬜ W0 | ⬜ pending |
-| 127-02-03 | 02 | 2 | Gap closure | — | Phase verification artifact records evidence | artifact | Manual checklist in `127-VERIFICATION.md` | ⬜ W0 | ⬜ pending |
+| 127-01-01 | 01 | 1 | ROADMAP SC #1 | T-127-01 | Mount includes `:schemas` for help-desk tables only | integration | `rg 'schemas:' examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex` | ✅ | ✅ green |
+| 127-01-02 | 01 | 1 | ROADMAP SC #2 | T-127-02 | §9 + README mount blocks match router markers | doc contract | `mix verify.doc_contract` | ✅ | ✅ green |
+| 127-02-01 | 02 | 2 | ROADMAP SC #3 | T-127-03 | History sub-route reifies row without schema error | integration | `cd examples/threadline_phoenix && mix test test/threadline_phoenix_web/operator_surface_test.exs` | ✅ | ✅ green |
+| 127-02-02 | 02 | 2 | ROADMAP SC #3 | T-127-04 | D-14 mount map locked in doc contract | doc contract | `mix test test/threadline/example_phoenix_schemas_mount_contract_test.exs` | ✅ | ✅ green |
+| 127-02-03 | 02 | 2 | Gap closure | — | Phase verification artifact records evidence | artifact | `127-VERIFICATION.md` status passed | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -68,9 +68,9 @@ updated: 2026-05-28
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or documented manual row
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] `127-VERIFICATION.md` created with passed status
-- [ ] `nyquist_compliant: true` set in frontmatter after green bundle
+- [x] All tasks have automated verify or documented manual row
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] `127-VERIFICATION.md` created with passed status
+- [x] `nyquist_compliant: true` set in frontmatter after green bundle
 
-**Approval:** pending
+**Approval:** 2026-05-28 — Phase 127 execution bundle green
