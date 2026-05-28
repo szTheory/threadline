@@ -17,7 +17,7 @@
 **Last shipped:** v1.27 — Distribution & First-Hour Finish (2026-05-28)
 **Next step:** `/gsd-execute-phase 127`
 
-**Assessment:** v1.27 requirements satisfied (11/11); closeout hygiene remains — doc-contract charter drift, stale `STATE.md` / `MILESTONE-ARC.md`, Nyquist sign-off, optional example-app `:schemas` demo.
+**Assessment:** v1.27 requirements satisfied (11/11); Phases 125–126 gap closure complete. **Milestone blocker:** Phase 127 — example-app `:schemas` wiring (D-14); audit 2026-05-28.
 
 **Gap closure contract (from v1.27 audit):**
 
