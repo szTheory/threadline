@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: Not started (requirements defined; Phase 119 next)
+Phase: 119 — phx.gen.auth Integration Guide & Lane (context gathered)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-27 — Milestone v1.26 started
+Status: Ready for `/gsd-plan-phase 119`
+Last activity: 2026-05-27 — Phase 119 discuss-phase complete
 
 ## Performance Metrics
 
@@ -60,11 +60,11 @@ Last activity: 2026-05-27 — Milestone v1.26 started
 ## Session Continuity
 
 - **Last Action**: Opened v1.26 from diminishing-returns assessment; archived v1.25 phases to `.planning/milestones/v1.25-phases/`.
-- **Next Step**: `/gsd-discuss-phase 119` or `/gsd-plan-phase 119`
-- **Resume file**: _(none)_
+- **Next Step**: `/gsd-plan-phase 119`
+- **Resume file**: `.planning/phases/119-phx-gen-auth-integration-guide-lane/119-CONTEXT.md`
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 119` — phx.gen.auth integration guide + upgrade-path lane
+- `/gsd-plan-phase 119` — implement guide + upgrade-path lane prose per `119-CONTEXT.md`
 - Maintainer: push **`v0.6.0`** tag when ready for hex.pm publish
 - Do **not** open external-pilot milestone until sustained adopter signal
