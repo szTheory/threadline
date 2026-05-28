@@ -13,9 +13,9 @@
 
 ### Integration guide (Phase 119) — phx.gen.auth cookbook
 
-- [ ] **AUTH-GUIDE-01**: `guides/integrations/phx-gen-auth.md` documents `Threadline.Plug` wiring with `actor_fn` and `context_overrides_fn` derived from Phoenix 1.8+ `current_scope` / session user assigns (not Sigra-specific).
-- [ ] **AUTH-GUIDE-02**: Same guide documents `threadline_operator_surface/2` `:authorize_fn` pattern for admin-only `/audit` using host role fields (e.g. `user.role == "admin"`).
-- [ ] **AUTH-GUIDE-03**: Guide states explicit non-goals: Threadline does not run `mix phx.gen.auth`, does not own user tables, and does not secure routes without host pipelines.
+- [x] **AUTH-GUIDE-01**: `guides/integrations/phx-gen-auth.md` documents `Threadline.Plug` wiring with `actor_fn` and `context_overrides_fn` derived from Phoenix 1.8+ `current_scope` / session user assigns (not Sigra-specific).
+- [x] **AUTH-GUIDE-02**: Same guide documents `threadline_operator_surface/2` `:authorize_fn` pattern for admin-only `/audit` using host role fields (e.g. `user.role == "admin"`).
+- [x] **AUTH-GUIDE-03**: Guide states explicit non-goals: Threadline does not run `mix phx.gen.auth`, does not own user tables, and does not secure routes without host pipelines.
 
 ### Upgrade path (Phase 119) — Named lane
 
@@ -65,9 +65,9 @@ Deferred until after v1.26 or on demand.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-GUIDE-01 | 119 | Pending |
-| AUTH-GUIDE-02 | 119 | Pending |
-| AUTH-GUIDE-03 | 119 | Pending |
+| AUTH-GUIDE-01 | 119 | Complete |
+| AUTH-GUIDE-02 | 119 | Complete |
+| AUTH-GUIDE-03 | 119 | Complete |
 | AUTH-LANE-01 | 119 | Pending |
 | AUTH-LANE-02 | 119 | Pending |
 | AUTH-PROOF-01 | 120 | Pending |

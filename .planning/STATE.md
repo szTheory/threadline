@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.26
 milestone_name: Auth Lane Breadth
-status: Defining requirements
-last_updated: "2026-05-28T01:33:27.987Z"
-last_activity: 2026-05-27 — Milestone v1.26 started
+status: Ready for 119-02-PLAN.md
+last_updated: "2026-05-28T01:39:18.103Z"
+last_activity: 2026-05-28 -- Completed 119-01-PLAN.md
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.26 Auth Lane Breadth — phx.gen.auth cookbook + root CI proof
+**Current focus:** Phase 119 — phx.gen.auth Integration Guide & Lane
 
 ## Current Position
 
-Phase: 119 — phx.gen.auth Integration Guide & Lane (context gathered)
-Plan: —
-Status: Ready for `/gsd-plan-phase 119`
-Last activity: 2026-05-27 — Phase 119 discuss-phase complete
+Phase: 119 — phx.gen.auth Integration Guide & Lane (IN PROGRESS)
+Plan: 1 of 2 complete
+Status: Ready for 119-02-PLAN.md
+Last activity: 2026-05-28 -- Completed 119-01-PLAN.md
 
 ## Performance Metrics
 
@@ -48,9 +48,10 @@ Last activity: 2026-05-27 — Phase 119 discuss-phase complete
 
 ### Decisions
 
+- **119-01 (2026-05-28):** phx guide uses host-owned `MyApp.AuditActor`, not `Threadline.Integrations.Sigra`; reference semantics list Phase 120 proof targets without citing test files.
+- **119-01 (2026-05-28):** Optional correlation stays header-first; no `phx-session:` format table (Sigra-only pattern).
 - **v1.26 (2026-05-27):** Auth lane breadth over compliance expansion; guide + root proof, not second reference app or Sigra replacement.
 - **Diminishing-returns assessment (2026-05-27):** Library engine largely complete; finish phx.gen.auth reach wedge, then shift to adopter-driven maintenance.
-- **v1.25 (2026-05-28):** Release truth + first-hour doc/example alignment shipped.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
 
 ### Blockers
@@ -59,12 +60,12 @@ Last activity: 2026-05-27 — Phase 119 discuss-phase complete
 
 ## Session Continuity
 
-- **Last Action**: Opened v1.26 from diminishing-returns assessment; archived v1.25 phases to `.planning/milestones/v1.25-phases/`.
-- **Next Step**: `/gsd-plan-phase 119`
-- **Resume file**: `.planning/phases/119-phx-gen-auth-integration-guide-lane/119-CONTEXT.md`
+- **Last Action**: Completed 119-01 — shipped `guides/integrations/phx-gen-auth.md` cookbook (89 lines).
+- **Next Step**: Execute 119-02 — upgrade-path lane prose (AUTH-LANE-01/02)
+- **Resume file**: `.planning/phases/119-phx-gen-auth-integration-guide-lane/119-02-PLAN.md`
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 119` — implement guide + upgrade-path lane prose per `119-CONTEXT.md`
+- Execute **119-02-PLAN.md** — add `phx-gen-auth-reference` lane vocabulary to `guides/upgrade-path.md`
 - Maintainer: push **`v0.6.0`** tag when ready for hex.pm publish
 - Do **not** open external-pilot milestone until sustained adopter signal
