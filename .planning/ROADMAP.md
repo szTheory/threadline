@@ -87,6 +87,6 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 119 phx.gen.auth Guide & Lane | v1.26 | 2/2 | Complete   | 2026-05-28 |
+| 119 phx.gen.auth Guide & Lane | v1.26 | 2/2 | Complete    | 2026-05-28 |
 | 120 Root Auth Proof | v1.26 | 0/? | Pending | — |
 | 121 Adopter Doc Neutrality | v1.26 | 0/? | Pending | — |
