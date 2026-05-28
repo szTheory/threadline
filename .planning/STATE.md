@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
-status: executing
-last_updated: "2026-05-28T21:16:38.357Z"
-last_activity: 2026-05-28 -- Completed 128-01-PLAN.md
+status: verifying
+last_updated: "2026-05-28T21:18:18.829Z"
+last_activity: 2026-05-28 -- Completed 128-02-PLAN.md
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 128 (readme-phx-gen-auth-mount-parity) — EXECUTING
-Plan: 2 of 2 (128-01 complete)
-Status: Ready to execute 128-02
-Last activity: 2026-05-28 -- Completed 128-01-PLAN.md
+Phase: 128 (readme-phx-gen-auth-mount-parity) — COMPLETE
+Plan: 2 of 2 (128-02 complete)
+Status: Phase complete — ready for verification
+Last activity: 2026-05-28 -- Completed 128-02-PLAN.md
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Last activity: 2026-05-28 -- Completed 128-01-PLAN.md
 
 ### Decisions
 
+- **128-02 (2026-05-28):** phx-gen-auth mount uses `&MyApp.Audit.authorize_operator/1` with scope-first lookup and `is_admin: true` gate; integration test mirrors guide module.
 - **128-01 (2026-05-28):** README Quick Start uses posts-only triggers with SSOT cross-links; ecto_repos step before install without claiming install validates Threadline repo wiring.
 - **v1.29 (2026-05-28):** Optional thin hygiene pass — README/`ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125; no pilot pretense or product expansion.
 - **Path-to-done (2026-05-28):** ~92% done for stated scope; no adopter signal — hold after v1.29.
@@ -62,11 +63,11 @@ Last activity: 2026-05-28 -- Completed 128-01-PLAN.md
 
 ## Session Continuity
 
-- **Last Action**: Completed 128-01-PLAN.md — README Quick Start ecto_repos + posts triggers (2026-05-28)
-- **Next Step**: Execute 128-02-PLAN.md (phx-gen-auth mount parity)
-- **Resume file**: `.planning/phases/128-readme-phx-gen-auth-mount-parity/128-02-PLAN.md`
+- **Last Action**: Completed 128-02-PLAN.md — phx-gen-auth scope-first mount + doc-contract locks (2026-05-28)
+- **Next Step**: Phase 129 WALKTHROUGH Truth or `/gsd-verify-work 128`
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- Execute **128-02-PLAN.md** — phx-gen-auth scope-shaped mount snippet + doc-contract locks
+- Phase 128 complete — proceed to **Phase 129** (WALKTHROUGH cwd + row-history URL truth)
 - Do **not** open v1.28 external pilot until sustained adopter signal

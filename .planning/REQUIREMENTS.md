@@ -19,8 +19,8 @@
 
 ### phx-gen-auth mount parity (Phase 128)
 
-- [ ] **AUTH-MOUNT-01**: `guides/integrations/phx-gen-auth.md` mount snippet uses scope-first `authorize_fn` shape consistent with getting-started §9 and `phx_gen_auth_integration_test.exs` (not legacy `current_user.role` string-only pattern as the primary example).
-- [ ] **AUTH-MOUNT-02**: Doc-contract test locks phx-gen-auth mount literals and scope-first posture (extend or add integration guide contract test).
+- [x] **AUTH-MOUNT-01**: `guides/integrations/phx-gen-auth.md` mount snippet uses scope-first `authorize_fn` shape consistent with getting-started §9 and `phx_gen_auth_integration_test.exs` (not legacy `current_user.role` string-only pattern as the primary example).
+- [x] **AUTH-MOUNT-02**: Doc-contract test locks phx-gen-auth mount literals and scope-first posture (extend or add integration guide contract test).
 
 ### WALKTHROUGH truth (Phase 129)
 
@@ -70,8 +70,8 @@ Deferred until after v1.29 or on signal.
 | README-01 | 128 | Complete |
 | README-02 | 128 | Complete |
 | TRIG-01 | 128 | Complete |
-| AUTH-MOUNT-01 | 128 | Pending |
-| AUTH-MOUNT-02 | 128 | Pending |
+| AUTH-MOUNT-01 | 128 | Complete |
+| AUTH-MOUNT-02 | 128 | Complete |
 | WALK-01 | 129 | Pending |
 | WALK-02 | 129 | Pending |
 | WALK-03 | 129 | Pending |
