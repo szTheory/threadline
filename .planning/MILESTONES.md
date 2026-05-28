@@ -33,7 +33,19 @@
 
 **Tech debt (non-blocking):** Nyquist partial on phases 115/117/118; optional manual Track A evaluator smoke. See audit archive.
 
-**What is next:** `/gsd-new-milestone` — define v1.26+ (phx.gen.auth breadth is the largest queued reach gap).
+**What is next:** v1.26 Auth Lane Breadth opened 2026-05-27 — see `.planning/ROADMAP.md`.
+
+---
+
+## v1.26 Auth Lane Breadth (Started: 2026-05-27)
+
+**Goal:** phx.gen.auth cookbook + root CI proof + upgrade-path `phx-gen-auth-reference` lane; getting-started auth neutrality — without replacing Sigra example or Threadline-owned auth.
+
+**Phases:** 119–121 (requirements defined; execution not started).
+
+**Assessment:** `.planning/threads/2026-05-27-diminishing-returns-assessment.md`
+
+**Deferred:** External pilot until sustained real-adopter signal; Hex publish via tag `v0.6.0`.
 
 ---
 

@@ -1,7 +1,7 @@
 # Thread: Milestone next-step assessment → v1.25 recommendation
 
 **Opened:** 2026-05-27  
-**Status:** active  
+**Status:** closed (v1.25 shipped 2026-05-28; v1.26 opened 2026-05-27 per diminishing-returns assessment)  
 **Source:** Post-v1.24 milestone next-step assessment (repo-grounded; plan approved)
 
 **Supersedes:** `.planning/threads/2026-05-27-milestone-next-step-v1.24.md` (closed)

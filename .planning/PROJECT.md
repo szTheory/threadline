@@ -34,14 +34,22 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/how-threadline-works.md`, `guides/upgrade-path.md`, `guides/domain-reference.md`, README, production checklist, and the example app are aligned end-to-end.
 
-## Current Milestone
+## Current Milestone: v1.26 Auth Lane Breadth
 
-**Status:** v1.25 shipped (2026-05-28) — planning next milestone via `/gsd-new-milestone`.
+**Goal:** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
 
-**Queued themes (not roadmapped):**
-- **AUTH-BREADTH** — phx.gen.auth cookbook + proof path (v1.26 candidate from v1.25 assessment)
+**Target features:**
+- `guides/integrations/phx-gen-auth.md` with Plug + `authorize_fn` patterns from `current_scope` / session user
+- **`phx-gen-auth-reference`** lane in `guides/upgrade-path.md` (reference claim; guide + root tests)
+- Root integration tests proving actor and admin-gate patterns (no example-app auth swap)
+- Getting-started and evaluator docs that do not read as Sigra-required
+
+**Status:** Requirements defined (2026-05-27) — `/gsd-discuss-phase 119` or `/gsd-plan-phase 119`
+
+**Queued themes (not in v1.26):**
+- **EXTERNAL-PILOT** — deferred until **sustained real-adopter signal** (pilot host, integration issue, procurement review); use [`guides/adoption-pilot-backlog.md`](guides/adoption-pilot-backlog.md) STG matrices for host-class gaps — not a synthetic milestone
+- **Hex 0.6.0 publish** — in-repo SSOT is 0.6.0; hex.pm latest still 0.5.0 (2026-05-27); push tag `v0.6.0` for CI publish
 - **v1.22 DEFER trio** — compliance packs, legal hold, immutable archive — only on sustained adopter/procurement pressure
-- **EXTERNAL-PILOT** — unblockers when real-adopter signal exists
 
 > **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
 
@@ -313,7 +321,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_(None — define next milestone via `/gsd-new-milestone`.)_
+- [ ] **AUTH-GUIDE-01** through **AUTH-LANE-02** (Phase 119) — phx.gen.auth integration guide and upgrade-path lane
+- [ ] **AUTH-PROOF-01** through **AUTH-PROOF-03** (Phase 120) — root CI proof for Plug + authorize_fn patterns
+- [ ] **ADOPT-AUTH-01** through **ADOPT-AUTH-03** (Phase 121) — getting-started neutrality and doc contracts
 
 ### Out of Scope
 
@@ -406,4 +416,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 after v1.25 milestone — Adopter-Ready Release & First-Hour Truth shipped.*
+*Last updated: 2026-05-27 — Milestone v1.26 Auth Lane Breadth started (requirements + roadmap).*
