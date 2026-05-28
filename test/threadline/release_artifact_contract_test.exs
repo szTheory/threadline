@@ -89,11 +89,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert String.contains?(readme, "guides/integrations/sigra.md")
   end
 
-  test "CONTRIBUTING carries the release pre-flight and tagging literals" do
+  test "CONTRIBUTING carries the release pre-flight and release workflow literals" do
     doc = File.read!("CONTRIBUTING.md")
 
     assert String.contains?(doc, "mix verify.release")
-    assert String.contains?(doc, "wait for green CI on `main` before tagging")
+    assert String.contains?(doc, ".github/workflows/release.yml")
+    assert String.contains?(doc, "workflow_dispatch")
     assert String.contains?(doc, "v0.6.0")
   end
 end
