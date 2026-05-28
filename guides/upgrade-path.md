@@ -9,6 +9,7 @@ Threadline **0.6.0** packages Evidence, `Audit.transaction/3`, and aligned opera
 Use this guide if you are:
 
 - deciding whether you are running `capture-only`, `phoenix-surface`, or `sigra-reference`
+- deciding whether you are running phx.gen.auth-style session auth and should follow phx-gen-auth-reference
 - upgrading Threadline across minors and need to know what the operator-surface contract includes
 - checking whether a host path is `supported`, `reference`, or `unclaimed`
 
@@ -21,6 +22,8 @@ You are on the `capture-only` lane when your host application does not depend on
 You are on the `phoenix-surface` lane when your host application adds the optional Phoenix surface dependencies and mounts `threadline_operator_surface/2` in a Phoenix router using the in-tree operator surface. The proof for this lane comes from the root package: `mix.exs`, `mix.lock`, root CI, and the root doc-contract tests.
 
 You are on the `sigra-reference` lane when your Phoenix host already uses Sigra and composes `Threadline.Integrations.Sigra` into `Threadline.Plug` using the current example app and guide path. The proof for this lane comes from `examples/threadline_phoenix/`, its lockfile and README, `guides/integrations/sigra.md`, and `mix verify.example`. This is a narrower claim than generic Sigra compatibility.
+
+You are on the `phx-gen-auth-reference` lane when your Phoenix host uses `mix phx.gen.auth` (or equivalent generated session auth) and wires `Threadline.Plug` with a host-owned actor module derived from `conn.assigns[:current_scope]` per `guides/integrations/phx-gen-auth.md`. Proof for this lane is the maintained guide plus forthcoming root integration tests in this repo — not a second example application. This lane is not Sigra-compatible and is narrower than generic `phoenix-surface`.
 
 For 0.5.0 support-lane wording, read those lane claims together with
 `guides/operator-surface.md`: current mounted proof covers the shared `/audit`
@@ -42,6 +45,7 @@ That distinction matters more than dependency rows alone:
 - `capture-only` is `supported` with no optional Phoenix dependencies installed and is enforced by `mix verify.compile_no_optional`.
 - `phoenix-surface` is `supported` only for the exact optional dependency ranges Threadline declares and CI-covers in this release.
 - `sigra-reference` is a `reference` lane for Phoenix hosts already using Sigra; it is proven only by the current example app, example lockfile, docs, and focused verification in this repo.
+- phx-gen-auth-reference is a reference lane for Phoenix hosts on generated session auth; it is proven by guides/integrations/phx-gen-auth.md and focused root verification, not by examples/threadline_phoenix/ or Sigra.
 - Anything outside these named lanes is `unclaimed`, even if it may work.
 
 ## Supported compatibility matrix
