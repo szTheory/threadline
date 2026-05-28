@@ -81,6 +81,17 @@ Deferred until after v1.27 or on signal.
 - Mapped to phases: 11
 - Unmapped: 0 ✓
 
+### Post-shipment gap closure (v1.27 audit)
+
+| Audit gap | Closure phase | Notes |
+|-----------|---------------|-------|
+| Charter doc contract ↔ `PROJECT.md` heading (`mix verify.doc_contract` failure) | Phase 125 | Does not reopen DIST/CFG/DOC requirements. |
+| `STATE.md` stale (executing, v1.26 last shipped) | Phase 125 | Planning metadata only. |
+| `MILESTONE-ARC.md` stale (active v1.27, Hex 0.5.0 thesis) | Phase 125 | Planning metadata only. |
+| `ROADMAP.md` v1.27 in-progress vs shipped evidence | Phase 125 | Planning metadata only. |
+| Nyquist `nyquist_compliant: false` on phases 122–124 | Phase 126 | VALIDATION.md sign-off; does not reopen v1 reqs. |
+| Example app `:schemas` wiring deferred (D-14); flow gap | Phase 127 | Runnable demonstration; DOC-03 docs remain satisfied. |
+
 ---
 *Requirements defined: 2026-05-28*
-*Last updated: 2026-05-28 after roadmap creation*
+*Last updated: 2026-05-28 after v1.27 gap-closure phases 125–127 added*
