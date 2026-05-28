@@ -53,8 +53,12 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert String.contains?(
              readme,
-             "canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix"
+             "canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix"
            )
+
+    assert String.contains?(readme, "guides/integrations/phx-gen-auth.md")
+    assert String.contains?(readme, "Phoenix auth (reference lanes, pick one)")
+    refute String.contains?(readme, "Using Sigra:")
 
     assert String.contains?(readme, "guides/integrations/sigra.md")
     assert String.contains?(readme, "guides/performance.md")

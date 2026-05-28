@@ -41,4 +41,15 @@ defmodule Threadline.EvaluatingThreadlineDocContractTest do
     guide = File.read!(@guide)
     refute Regex.match?(~r/maintainer.*STG.*(attest|certif)/i, guide)
   end
+
+  test "evaluating guide links phx-gen-auth reference lane and neutrality (ADOPT-AUTH-02)" do
+    guide = File.read!(@guide)
+
+    assert String.contains?(guide, "guides/integrations/phx-gen-auth.md")
+    assert String.contains?(guide, "`phx-gen-auth-reference`")
+    assert String.contains?(guide, "sigra-reference")
+    assert String.contains?(guide, "mix verify.example")
+    assert String.contains?(guide, "root integration tests")
+    assert String.contains?(guide, "prove auth and tenancy in staging")
+  end
 end

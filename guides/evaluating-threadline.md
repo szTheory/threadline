@@ -8,7 +8,9 @@ It is **not** a compliance procurement sign-off or legal attestation of your env
 
 ## What Threadline 0.6.0 packages
 
-Threadline 0.6.0 packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
+Threadline **0.6.0** is the in-repo and doc SSOT (`mix.exs` `@version`). As of 2026-05-27, [hex.pm](https://hex.pm/packages/threadline) may still list **0.5.0** as latest until maintainers push tag **`v0.6.0`** (see [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight).
+
+0.6.0 packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
 Read [`CHANGELOG.md`](../CHANGELOG.md) `[0.6.0]` for the Evidence plane (`Threadline.Evidence`, proof vocabulary, `/audit/evidence`), the blessed audited write path (`Threadline.Audit.transaction/3`), and operator/demo surfaces from the reference walkthrough.
 
@@ -50,7 +52,7 @@ Use [`guides/production-checklist.md`](production-checklist.md) for the checklis
 1. **`mix deps.get`** — resolve dependencies from the tree you are evaluating.
 2. **Full contributor gate** — `DB_PORT=5433 MIX_ENV=test mix ci.all` when Postgres is available (see [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Compose port `5433` and env setup). The chain runs: `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract`.
 3. **Targeted checks** — `mix verify.doc_contract` and/or `mix verify.example` when you only need doc or reference-app proof.
-4. **Optional Track A** — walk `examples/threadline_phoenix` per its README and walkthrough docs.
+4. **Optional Track A (sigra-reference)** — walk `examples/threadline_phoenix` per its README and walkthrough docs.
 
 Cite **entrypoint names only** when recording evidence — do not substitute test counts for proof.
 
@@ -72,4 +74,4 @@ When you are ready to run a staging pilot, copy the scaffolds in [`guides/adopti
 
 Fill templates in **your** repo or fork; open a modest PR if you want a short in-repo index merged here. Maintainers review **modesty**, **redaction**, and **link hygiene** only.
 
-For lane and upgrade narrative, read [`guides/upgrade-path.md`](upgrade-path.md).
+For lane and upgrade narrative, read [`guides/upgrade-path.md`](upgrade-path.md). For the `phx-gen-auth-reference` lane, read [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md). **You** prove auth and tenancy in staging; maintainers prove the phx.gen.auth reference path via root integration tests and the Sigra reference path via `mix verify.example` — neither auth integration is required to adopt Threadline capture and semantics.
