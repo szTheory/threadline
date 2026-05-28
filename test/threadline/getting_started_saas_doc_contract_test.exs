@@ -64,9 +64,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "`guides/upgrade-path.md`")
     assert String.contains?(doc, "`guides/integrations/sigra.md`")
 
-    assert String.contains?(doc, "Authenticate before")
-    assert String.contains?(doc, "_threadline_phoenix_key")
-    assert String.contains?(doc, "does not ship API bearer")
+    assert String.contains?(doc, "### HTTP requests and host auth")
 
     assert String.contains?(
              doc,
@@ -96,6 +94,80 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "Threadline.audit_changes_for_transaction/2")
     assert String.contains?(doc, "Threadline.transaction_context/2")
     assert String.contains?(doc, "Threadline.change_diff/2")
+  end
+
+  test "getting-started §6 locks IEx-first audited write and demo-corr handoff (DOC-01)" do
+    doc = read_rel!(@guide_path)
+
+    assert String.contains?(doc, "### Run your first audited write in IEx")
+    assert String.contains?(doc, "### HTTP requests and host auth")
+    refute String.contains?(doc, "### Authenticate before the audited API call")
+
+    section_6 = section_slice(doc, "## 6. Exercise the first audited write", "## 7. Check trigger coverage")
+
+    assert String.contains?(section_6, "demo-corr")
+    assert String.contains?(section_6, "audit_transaction_id")
+
+    open_section_6 =
+      section_6
+      |> String.split("<details>", parts: 2)
+      |> List.first()
+
+    refute String.contains?(open_section_6, "_threadline_phoenix_key")
+
+    assert String.contains?(section_6, "getting-started-sigra-http-staging-fence")
+
+    {fence_idx, _} = :binary.match(section_6, "getting-started-sigra-http-staging-fence")
+    {key_idx, _} = :binary.match(section_6, "_threadline_phoenix_key")
+
+    assert fence_idx < key_idx
+  end
+
+  test "getting-started §5 locks auth-neutral ADOPT-AUTH literals (DOC-02)" do
+    doc = read_rel!(@guide_path)
+
+    section_5 =
+      section_slice(
+        doc,
+        "## 5. Wire `Threadline.Plug` with actor and additive request metadata",
+        "## 6. Exercise the first audited write"
+      )
+
+    literals = [
+      "Threadline does not own auth",
+      "Choose an auth lane when you need a full cookbook:",
+      "phx-gen-auth-reference",
+      "sigra-reference",
+      "Threadline does not require Sigra; do not use `Threadline.Integrations.Sigra`",
+      "unless you adopt the optional sigra-reference lane."
+    ]
+
+    Enum.each(literals, fn literal ->
+      assert String.contains?(section_5, literal)
+    end)
+
+    {section_5_idx, _} =
+      :binary.match(doc, "## 5. Wire `Threadline.Plug` with actor and additive request metadata")
+
+    {section_6_idx, _} = :binary.match(doc, "## 6. Exercise the first audited write")
+
+    {neutrality_idx, _} = :binary.match(doc, "Threadline does not require Sigra")
+
+    assert section_5_idx < neutrality_idx
+    assert neutrality_idx < section_6_idx
+
+    {phx_idx, _} = :binary.match(doc, "phx-gen-auth-reference")
+    {sigra_idx, _} = :binary.match(doc, "sigra-reference")
+
+    assert phx_idx < sigra_idx
+
+    {fence_idx, _} = :binary.match(doc, "getting-started-sigra-reference-fence")
+
+    {sigra_actor_idx, _} =
+      :binary.match(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
+
+    assert neutrality_idx < fence_idx
+    assert fence_idx < sigra_actor_idx
   end
 
   test "getting-started documents threadline ecto_repos before resolve_repo consumers" do
@@ -195,5 +267,19 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     value
     |> String.trim()
     |> String.replace(~r/\s+/, " ")
+  end
+
+  defp section_slice(doc, start_heading, end_heading) do
+    doc
+    |> String.split(start_heading, parts: 2)
+    |> case do
+      [_, rest] ->
+        rest
+        |> String.split(end_heading, parts: 2)
+        |> List.first()
+
+      _ ->
+        flunk("section starting with #{start_heading} not found")
+    end
   end
 end
