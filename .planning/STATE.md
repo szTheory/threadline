@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
-status: gap_closure
-last_updated: "2026-05-28T20:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 125 authority-surface reconciliation
+status: Gap closure — v1.27 delivery shipped; phases 126–127 remain
+last_updated: "2026-05-28T18:25:46.091Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 10
-  completed_plans: 8
-  percent: 50
+  completed_plans: 10
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 125
-Plan: Ready to execute
+Phase: 126
+Plan: Not started
 Status: Gap closure — v1.27 delivery shipped; phases 126–127 remain
-Last activity: 2026-05-28 -- Phase 125 authority-surface reconciliation
+Last activity: 2026-05-28
 
 ## Performance Metrics
 

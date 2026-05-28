@@ -144,6 +144,6 @@
 | 122 Release & Distribution Truth | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
-| 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete   | 2026-05-28 |
+| 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 126 Nyquist Validation Sign-off (122–124) | v1.27 | 0/0 | Not started | — |
 | 127 Example App `:schemas` Demonstration | v1.27 | 0/0 | Not started | — |
