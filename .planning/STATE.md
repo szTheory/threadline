@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
-status: executing
-last_updated: "2026-05-28T18:57:21.133Z"
+status: completed
+last_updated: "2026-05-28T18:59:05.417Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 83
 ---
 
 # Project State: Threadline
@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 126 — nyquist-validation-signoff-122-124
+**Current focus:** Phase 127 — example-app-schemas-demonstration
 
 ## Current Position
 
-Phase: 126 (nyquist-validation-signoff-122-124) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 126 (nyquist-validation-signoff-122-124) — COMPLETE
+Plan: 3 of 3 (all plans summarized)
+Status: Phase complete — Nyquist sign-off 122–124 done; `mix ci.all` green (D-17)
 Last activity: 2026-05-28
 
 ## Performance Metrics
@@ -45,6 +45,7 @@ Last activity: 2026-05-28
 | Pow / bearer auth lane | On explicit demand only | Not v1.27 |
 | Phase 126-nyquist-validation-signoff-122-124 P01 | 1min | 3 tasks | 3 files |
 | Phase 126-nyquist-validation-signoff-122-124 P02 | 2min | 3 tasks | 4 files |
+| Phase 126-nyquist-validation-signoff-122-124 P03 | 8 min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,8 @@ Last activity: 2026-05-28
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
 - [Phase 126]: 122-VALIDATION.md nyquist_compliant after D-14 rerun; 122-VERIFICATION.md superseding for manual DIST — Phase 126-01 hybrid refresh per D-01/D-04; no frontmatter-only flip
 - [Phase 126]: 123-VALIDATION.md nyquist_compliant after D-15 rerun; CFG-01 ExDoc closed via doc-contract proxy (proven tier, D-11) — Phase 126-02; 123-VERIFICATION.md superseding authority unchanged
+- [Phase 126]: 124-VALIDATION.md nyquist_compliant after D-16 rerun; manual DOC-01/DOC-04 attested via 124-VERIFICATION (D-12) — Phase 126-03
+- [Phase 126]: Single session-close `mix ci.all` recorded in 126-VALIDATION.md; milestone closeout blocked until Phase 127 (D-21)
 
 ### Blockers
 
@@ -65,11 +68,11 @@ Last activity: 2026-05-28
 
 ## Session Continuity
 
-- **Last Action**: Completed 126-02-PLAN.md (2026-05-28)
-- **Next Step**: Execute 126-03 (Phase 124 Nyquist sign-off); then `mix ci.all` per D-17
+- **Last Action**: Completed 126-03-PLAN.md (2026-05-28)
+- **Next Step**: Execute Phase 127 (`:schemas` example demonstration); do not run `/gsd-complete-milestone v1.27` until Phase 127 (D-21)
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **Execute 126-03** — finalize `124-VALIDATION.md`
+- **Execute Phase 127** — example app `:schemas` wiring (D-14 deferred from 124)
 - Do **not** open v1.28 external pilot until sustained adopter signal

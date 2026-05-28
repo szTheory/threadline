@@ -15,7 +15,7 @@
 **Milestone:** v1.27 — Distribution & First-Hour Finish
 **Status:** Phases 122–124 shipped; gap closure 125–127 in progress
 **Last shipped:** v1.27 — Distribution & First-Hour Finish (2026-05-28)
-**Next step:** `/gsd-execute-phase 126`
+**Next step:** `/gsd-execute-phase 127`
 
 **Assessment:** v1.27 requirements satisfied (11/11); closeout hygiene remains — doc-contract charter drift, stale `STATE.md` / `MILESTONE-ARC.md`, Nyquist sign-off, optional example-app `:schemas` demo.
 
@@ -33,7 +33,7 @@
 - [x] **Phase 123: First-Hour Config** — Document `ecto_repos` for mix tasks and operator fallbacks (2026-05-28)
 - [x] **Phase 124: Adopter Doc Finish** — Close v1.26 audit carry-forward and operator expectation gaps (completed 2026-05-28)
 - [x] **Phase 125: Authority-Surface Reconciliation** — Fix charter doc contract; reconcile STATE, MILESTONE-ARC, ROADMAP; green `mix verify.doc_contract` (completed 2026-05-28)
-- [ ] **Phase 126: Nyquist Validation Sign-off (122–124)** — Sign off `nyquist_compliant` on phases 122–124 VALIDATION.md
+- [x] **Phase 126: Nyquist Validation Sign-off (122–124)** — Sign off `nyquist_compliant` on phases 122–124 VALIDATION.md (completed 2026-05-28)
 - [ ] **Phase 127: Example App `:schemas` Demonstration** — Wire runnable `:schemas` contract in `examples/threadline_phoenix` (D-14)
 
 ## Phase Details
@@ -117,7 +117,7 @@
 
 1. [x] `122-VALIDATION.md` signed `nyquist_compliant: true` via Phase 126-01 (2026-05-28).
 2. [x] `123-VALIDATION.md` signed `nyquist_compliant: true` via Phase 126-02 (2026-05-28).
-3. `124-VALIDATION.md` signed `nyquist_compliant: true` via `/gsd-validate-phase 124`.
+3. [x] `124-VALIDATION.md` signed `nyquist_compliant: true` via Phase 126-03 (2026-05-28); session-close `mix ci.all` in `126-VALIDATION.md`.
 
 ---
 
@@ -145,5 +145,5 @@
 | 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete    | 2026-05-28 |
-| 126 Nyquist Validation Sign-off (122–124) | v1.27 | 2/3 | In Progress | — |
+| 126 Nyquist Validation Sign-off (122–124) | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 127 Example App `:schemas` Demonstration | v1.27 | 0/0 | Not started | — |
