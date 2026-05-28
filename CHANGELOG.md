@@ -35,7 +35,7 @@ Threadline 0.6.0 is the adopter-ready release: it packages the in-repo stack sin
 - Adopt `Threadline.Audit.transaction/3` for new write paths; keep legacy GUC/`record_action/2` only where migration cost is high.
 - Use `mix threadline.evidence.show` (not deprecated `mix verify.evidence` naming) for CLI proof export.
 - Re-run host verification: `mix threadline.verify_coverage`, `mix verify.doc_contract` (host), and operator-surface smoke tests if mounted.
-- See `guides/upgrade-path.md` for lane matrix (`capture-only`, `phoenix-surface`, `sigra-reference`) and surface deprecation policy.
+- See `guides/upgrade-path.md` for lane matrix (`capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference`) and surface deprecation policy.
 - ExDoc sidebar adds **Evidence** group and Core API entries for Audit, Query, Investigation, ChangeDiff.
 - Maintainer pre-flight before tag: `mix verify.release` on a clean tree (see `CONTRIBUTING.md`).
 - Apply evidence migrations before enabling `/audit/evidence` in production — schema must exist before first proof query.
