@@ -104,4 +104,30 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
     {idx_06, _} = :binary.match(doc, "`0.6.0`", scope: scope)
     assert idx_05 < idx_06
   end
+
+  test "mental model guide locks host-written evidence framing (DOC-04)" do
+    doc = File.read!(@guide_path)
+
+    refute String.contains?(doc, "Threadline may persist evidence")
+    assert String.contains?(doc, "domain-reference.md")
+
+    assert String.contains?(doc, "host-written") or
+             String.contains?(doc, "host apps write")
+  end
+
+  test "domain-reference locks evidence host-write boundary before proof contract (DOC-04)" do
+    domain_ref = File.read!("guides/domain-reference.md")
+
+    assert String.contains?(domain_ref, "EVIDENCE-HOST-WRITE-BOUNDARY")
+    assert String.contains?(domain_ref, "## Evidence write boundary (host-written)")
+
+    {idx_marker, _} = :binary.match(domain_ref, "EVIDENCE-HOST-WRITE-BOUNDARY")
+    {idx_proof, _} = :binary.match(domain_ref, "## Evidence proof contract")
+    slice_len = idx_proof - idx_marker
+    slice = :binary.part(domain_ref, idx_marker, slice_len)
+
+    assert String.contains?(slice, "does not auto-populate")
+    assert String.contains?(slice, "record_redaction_policy")
+    assert String.contains?(slice, "threadline_retention_runs")
+  end
 end
