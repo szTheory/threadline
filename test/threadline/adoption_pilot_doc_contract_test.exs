@@ -19,4 +19,31 @@ defmodule Threadline.AdoptionPilotDocContractTest do
     guide = File.read!(@guide)
     assert String.contains?(guide, "guides/upgrade-path.md")
   end
+
+  test "adoption-pilot refutes stale hardcoded test counts (PILOT-01)" do
+    guide = File.read!(@guide)
+
+    refute String.contains?(guide, "136 tests")
+    refute Regex.match?(~r/\(\d+ tests/, guide)
+  end
+
+  test "adoption-pilot evidence pass cites canonical verify entrypoints (PILOT-01)" do
+    guide = File.read!(@guide)
+
+    assert String.contains?(guide, "mix ci.all")
+    assert String.contains?(guide, "mix verify.doc_contract")
+
+    for step <- [
+          "verify.format",
+          "verify.credo",
+          "verify.compile_no_optional",
+          "verify.test",
+          "verify.threadline",
+          "verify.example"
+        ] do
+      assert String.contains?(guide, step)
+    end
+
+    assert String.contains?(guide, "CONTRIBUTING.md")
+  end
 end
