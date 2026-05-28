@@ -46,10 +46,13 @@ defmodule MyAppWeb.Router do
     threadline_operator_surface "/",
       actor_fn: &MyApp.Audit.current_actor/1,
       authorize_fn: &MyApp.Audit.authorize_operator/1,
+      schemas: %{"posts" => MyApp.Post, "users" => MyApp.Accounts.User},
       repo: MyApp.Repo
   end
 end
 ```
+
+Keys in `schemas:` are PostgreSQL `table_name` values from capture; the map is required for row-history and as-of reification in transaction drill-down.
 
 Admin-first recipe:
 
@@ -77,6 +80,7 @@ threadline_operator_surface "/",
   actor_fn: &MyApp.Audit.current_actor/1,
   authorize_fn: &MyApp.Audit.authorize_operator/1,
   export_authorize_fn: &MyApp.Audit.authorize_operator_export/1,
+  schemas: %{"posts" => MyApp.Post, "users" => MyApp.Accounts.User},
   repo: MyApp.Repo
 ```
 
@@ -173,6 +177,26 @@ A time-windowed view of all transactions initiated by a specific actor identity.
 
 **Answers:** "When did this specific record change, and what did it look like at 2:00 PM yesterday?"
 Reachable directly from drill-down rows, this screen shows the full mutation lifecycle of a single record and reconstructs its exact state as-of any point in time. On the current repo tree, the named support-lane claim now includes support-scoped row-history / as-of proof on the shipped `/audit` route when the host provides `scope_query_fn`.
+
+#### Row history reification (:schemas)
+
+The `:schemas` option on `threadline_operator_surface/2` maps captured table strings to Ecto schema modules so the surface can call `Threadline.history/3` and `Threadline.as_of/4` for row-history and as-of views. String keys (PostgreSQL `table_name` values from capture) are preferred; atom keys are also accepted.
+
+Pair `:schemas` with `scope_query_fn` when support-scoped row history must respect host tenancy. Pass `%{surface: :row_history}` from `scope_query_fn` so narrowed queries apply to history and as-of reconstruction, not just the timeline.
+
+Off-mount API and IEx callers pass the schema module directly to `Threadline.history/3` and `Threadline.as_of/4`; the mount map is the UI equivalent of that registration step.
+
+The guide shorthand `/audit/rows/:table/:pk` describes the operator question. The shipped drill-down path is a slide-over on the transaction page:
+
+    live("/transactions/:id/history/:table/:record_id", TransactionLive, :history)
+
+Support-scoped row history requires **two host prerequisites**: (1) `scope_query_fn` that narrows queries (including `%{surface: :row_history}`), and (2) `:schemas` with an entry for each reifiable table.
+
+When a table is not mapped, the row-history slide-over shows:
+
+    Table 'X' is not mapped to an Ecto schema. Configure :schemas in the auth plug.
+
+Auth and authorization are unaffected; add the missing map entry on `threadline_operator_surface/2` and redeploy. The error copy says "auth plug" for historical grep parity with the UI; the option lives on the mount macro, not a separate plug.
 
 ## First verification steps
 
