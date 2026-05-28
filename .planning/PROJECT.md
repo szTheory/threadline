@@ -443,4 +443,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — v1.27 milestone complete (Phases 122–124); distribution + first-hour finish shipped.*
+*Last updated: 2026-05-28 — Phase 126 Nyquist validation sign-off complete for Phases 122–124; v1.27 delivery phases now `nyquist_compliant: true`.*
