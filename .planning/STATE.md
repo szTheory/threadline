@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
 status: completed
-last_updated: "2026-05-28T17:23:41.971Z"
+last_updated: "2026-05-28T17:40:29.337Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 3
@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 124 — adopter-doc-finish
+**Current focus:** Phase 124 — adopter-doc-finish (context gathered)
 
 ## Current Position
 
 Phase: 124
 Plan: Not started
-Status: Phase 123 complete
+Status: Phase 124 context gathered — ready for planning
 Last activity: 2026-05-28
 
 ## Performance Metrics
@@ -61,11 +61,11 @@ Last activity: 2026-05-28
 
 ## Session Continuity
 
-- **Last Action**: Completed 123-02-PLAN.md — production-checklist ecto_repos cross-link + doc contract
-- **Next Step**: Plan or execute Phase 124 (adopter doc finish)
-- **Resume file**: None
+- **Last Action**: Phase 124 discuss-phase — research-backed context for DOC-01 through DOC-05
+- **Next Step**: `/gsd-plan-phase 124`
+- **Resume file**: `.planning/phases/124-adopter-doc-finish/124-CONTEXT.md`
 
 ## Operator Next Steps
 
-- **Plan Phase 124** — adopter doc finish (DOC-01 through DOC-05)
+- **Plan Phase 124** — execute locked decisions in 124-CONTEXT.md (DOC-01 through DOC-05)
 - Do **not** open v1.28 external pilot until sustained adopter signal
