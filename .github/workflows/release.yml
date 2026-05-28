@@ -311,9 +311,12 @@ jobs:
             exit 1
           fi
 
-      - name: Run mix verify.release preflight
+      - name: Run release tarball preflight
         if: env.DRY_RUN != 'true'
-        run: mix verify.release
+        run: |
+          set -euo pipefail
+          bin/verify-release-shape
+          mix hex.build
 
       - name: Skip if version already on Hex
         id: idempotency
