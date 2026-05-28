@@ -19,8 +19,8 @@ Use it when you want the audit layer in your app, not a separate event system or
 - **Understanding the system:** read [guides/how-threadline-works.md](guides/how-threadline-works.md) for the architecture/persona/JTBD crash course — both paths converge on `Threadline.Audit.transaction/3` for audited writes.
 - **Adopting in Phoenix SaaS:** read [guides/getting-started-saas.md](guides/getting-started-saas.md) — use `Threadline.Audit.transaction/3` as the recommended audited write path (§6).
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
-- **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, and `sigra-reference` matrix.
-- **Using Sigra:** read [guides/integrations/sigra.md](guides/integrations/sigra.md).
+- **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix.
+- **Phoenix auth (reference lanes, pick one):** [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md) — neither required; see [upgrade-path](guides/upgrade-path.md) for claim types.
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
 ## Evidence plane
@@ -153,7 +153,8 @@ compatibility from the README.
 - [Evaluating Threadline](guides/evaluating-threadline.md)
 - [Integration contracts](guides/integration-contracts.md)
 - [Support lanes and upgrade path](guides/upgrade-path.md)
-- [Sigra integration](guides/integrations/sigra.md)
+- [phx.gen.auth integration](guides/integrations/phx-gen-auth.md)
+- [Sigra integration (reference lane)](guides/integrations/sigra.md)
 - [Domain reference](guides/domain-reference.md)
 - [Brownfield continuity](guides/brownfield-continuity.md)
 - [Performance](guides/performance.md)
