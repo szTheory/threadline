@@ -175,6 +175,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     doc = read_rel!(@guide_path)
     literal = "config :threadline, ecto_repos: [MyApp.Repo]"
 
+    assert String.contains?(doc, "### Configure Threadline")
+    # ExDoc proxy: getting-started-saas.md#configure-threadline from locked heading (CFG-01 / D-11)
     assert String.contains?(doc, literal)
 
     {literal_idx, _} = :binary.match(doc, literal)
