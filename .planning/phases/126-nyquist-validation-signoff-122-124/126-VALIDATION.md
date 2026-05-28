@@ -5,7 +5,7 @@ status: finalized
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
-updated: 2026-05-28T19:20:00Z
+updated: 2026-05-28T20:00:00Z
 ---
 
 # Phase 126 — Validation Strategy
@@ -102,3 +102,15 @@ Existing doc-contract infrastructure covers all target-phase requirements. No ne
 - [x] `nyquist_compliant: true` on this artifact after all three targets signed
 
 **Approval:** finalized on 2026-05-28 after 122–124 Nyquist sign-off and session-close ci.all.
+
+---
+
+## Validation Audit 2026-05-28
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Audit notes:** `/gsd-validate-phase 126` re-ran D-14/D-15/D-16 doc-contract bundles on current tree — 42 targeted + 97 doc-contract tests, 0 failures; CHANGELOG grep exit 0. All ten per-task rows remain ✅ green; two manual-only rows unchanged (122 hex publish, 124 prose spot-reads). Target phases 122/123/124 retain `nyquist_compliant: true`. No new tests required.
