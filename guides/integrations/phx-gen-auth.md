@@ -27,8 +27,12 @@ defmodule MyApp.AuditActor do
   alias Threadline.Semantics.ActorRef
   def actor_ref_from_conn(conn) do
     case conn.assigns[:current_scope] do
-      %{user: %{id: id}} -> ActorRef.new(:user, to_string(id))
-      _ -> nil
+      %{user: %{id: id}} ->
+        {:ok, ref} = ActorRef.new(:user, to_string(id))
+        ref
+
+      _ ->
+        nil
     end
   end
   def audit_context_overrides_from_conn(_conn), do: %{}
@@ -53,23 +57,39 @@ end
 
 ## Surface and export auth stay host-owned
 
-Capture uses `actor_fn`; operator UI uses host-owned `authorize_fn`:
+Capture uses `actor_fn`; operator UI uses host-owned `authorize_fn`. Resolve the user scope-first via `assigns[:current_scope].user`, with `current_user` fallback for Phoenix 1.7 hosts:
+
+```elixir
+defmodule MyApp.Audit do
+  @moduledoc false
+
+  def authorize_operator(%{assigns: assigns}) do
+    user =
+      case assigns[:current_scope] do
+        %{user: user} when not is_nil(user) -> user
+        _ -> assigns[:current_user]
+      end
+
+    case user do
+      %{is_admin: true} -> :ok
+      _ -> {:error, :unauthorized}
+    end
+  end
+end
+```
 
 ```elixir
 threadline_operator_surface "/audit",
-  authorize_fn: fn
-    %{assigns: %{current_user: %{role: "admin"}}} -> :ok
-    _ -> {:error, :unauthorized}
-  end
+  authorize_fn: &MyApp.Audit.authorize_operator/1
 ```
 
-Use `is_admin` instead of `role` if that matches your schema. See `guides/operator-surface.md` for `export_authorize_fn`, evidence, coverage, and policy callbacks. LiveView `on_mount` does not secure export HTTP routes; export uses `export_authorize_fn` or falls back to `authorize_fn` with `%{assigns: conn.assigns}`.
+For advanced `{:ok, scope}` returns (support read-only, org scoping), see `guides/integration-contracts.md` and getting-started §9. See `guides/operator-surface.md` for `export_authorize_fn`, evidence, coverage, and policy callbacks. LiveView `on_mount` does not secure export HTTP routes; export uses `export_authorize_fn` or falls back to `authorize_fn` with `%{assigns: conn.assigns}`.
 
 ## Reference semantics
 
 1. Scope-shaped `user.id` → `:user` actor via `actor_fn`.
 2. Logged-out scope → `nil` actor.
-3. 1-arity `authorize_fn` allows admins and denies others.
+3. 1-arity `authorize_fn` resolves scope-first (`assigns[:current_scope].user`, then `current_user` fallback) and gates on `is_admin: true`.
 4. `x-request-id` header wins over conn-derived request id.
 5. `x-correlation-id` header wins; overrides are additive only.
 6. Unknown override keys raise `ArgumentError`.
