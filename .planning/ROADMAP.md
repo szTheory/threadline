@@ -115,7 +115,7 @@
 
 **Success Criteria:**
 
-1. `122-VALIDATION.md` signed `nyquist_compliant: true` via `/gsd-validate-phase 122`.
+1. [x] `122-VALIDATION.md` signed `nyquist_compliant: true` via Phase 126-01 (2026-05-28).
 2. `123-VALIDATION.md` signed `nyquist_compliant: true` via `/gsd-validate-phase 123`.
 3. `124-VALIDATION.md` signed `nyquist_compliant: true` via `/gsd-validate-phase 124`.
 
@@ -145,5 +145,5 @@
 | 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete    | 2026-05-28 |
-| 126 Nyquist Validation Sign-off (122–124) | v1.27 | 0/0 | Not started | — |
+| 126 Nyquist Validation Sign-off (122–124) | v1.27 | 1/3 | In Progress | — |
 | 127 Example App `:schemas` Demonstration | v1.27 | 0/0 | Not started | — |

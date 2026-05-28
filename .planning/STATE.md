@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
 status: executing
-last_updated: "2026-05-28T18:34:28.072Z"
-last_activity: 2026-05-28 -- Phase 126 planning complete
+last_updated: "2026-05-28T18:55:52.678Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 67
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 126 — Nyquist validation sign-off (122–124)
+**Current focus:** Phase 126 — nyquist-validation-signoff-122-124
 
 ## Current Position
 
-Phase: 126
-Plan: Not started
+Phase: 126 (nyquist-validation-signoff-122-124) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-05-28 -- Phase 126 planning complete
+Last activity: 2026-05-28
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Last activity: 2026-05-28 -- Phase 126 planning complete
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until procurement pressure |
 | host-class | STG-01 host staging depth | Integrator-owned; v1.28 when signal |
 | Pow / bearer auth lane | On explicit demand only | Not v1.27 |
+| Phase 126-nyquist-validation-signoff-122-124 P01 | 1min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -54,6 +55,7 @@ Last activity: 2026-05-28 -- Phase 126 planning complete
 - **Assessment (2026-05-28):** Evidence plane is host-write only — set adopter expectations in docs (Phase 124).
 - **v1.26 (2026-05-28):** Auth lane breadth via guide + root proof, not second reference app.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
+- [Phase 126]: 122-VALIDATION.md nyquist_compliant after D-14 rerun; 122-VERIFICATION.md superseding for manual DIST — Phase 126-01 hybrid refresh per D-01/D-04; no frontmatter-only flip
 
 ### Blockers
 
@@ -61,11 +63,11 @@ Last activity: 2026-05-28 -- Phase 126 planning complete
 
 ## Session Continuity
 
-- **Last Action**: Phase 126 context gathered (2026-05-28)
-- **Next Step**: `/gsd-plan-phase 126` then `/gsd-execute-phase 126` (127 before `/gsd-complete-milestone v1.27`)
-- **Resume file**: `.planning/phases/126-nyquist-validation-signoff-122-124/126-CONTEXT.md`
+- **Last Action**: Completed 126-01-PLAN.md (2026-05-28)
+- **Next Step**: Execute 126-02 (Phase 123 Nyquist sign-off); then 126-03; `mix ci.all` after 126-03
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- **Plan Phase 126** — three-wave Nyquist sign-off for phases 122–124
+- **Execute 126-02** — finalize `123-VALIDATION.md`
 - Do **not** open v1.28 external pilot until sustained adopter signal
