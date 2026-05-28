@@ -13,9 +13,9 @@
 
 ### README + first-hour config parity (Phase 128)
 
-- [ ] **README-01**: `README.md` Quick Start documents `config :threadline, ecto_repos: [MyApp.Repo]` before mix tasks that call `resolve_repo!/0`, with a cross-link to getting-started §2.
-- [ ] **README-02**: Doc-contract test locks README `ecto_repos` literal and placement (e.g. extend `readme_doc_contract_test.exs`).
-- [ ] **TRIG-01**: README Quick Start trigger registration step cross-links getting-started or production-checklist for table-selection SSOT (no divergent trigger-table guidance).
+- [x] **README-01**: `README.md` Quick Start documents `config :threadline, ecto_repos: [MyApp.Repo]` before mix tasks that call `resolve_repo!/0`, with a cross-link to getting-started §2.
+- [x] **README-02**: Doc-contract test locks README `ecto_repos` literal and placement (e.g. extend `readme_doc_contract_test.exs`).
+- [x] **TRIG-01**: README Quick Start trigger registration step cross-links getting-started or production-checklist for table-selection SSOT (no divergent trigger-table guidance).
 
 ### phx-gen-auth mount parity (Phase 128)
 
@@ -67,9 +67,9 @@ Deferred until after v1.29 or on signal.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| README-01 | 128 | Pending |
-| README-02 | 128 | Pending |
-| TRIG-01 | 128 | Pending |
+| README-01 | 128 | Complete |
+| README-02 | 128 | Complete |
+| TRIG-01 | 128 | Complete |
 | AUTH-MOUNT-01 | 128 | Pending |
 | AUTH-MOUNT-02 | 128 | Pending |
 | WALK-01 | 129 | Pending |
@@ -79,6 +79,7 @@ Deferred until after v1.29 or on signal.
 | PLAN-01 | 130 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 10 total
 - Mapped to phases: 10
 - Unmapped: 0 ✓

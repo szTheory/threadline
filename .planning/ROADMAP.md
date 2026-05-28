@@ -84,6 +84,6 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
-| 128 README + phx-gen-auth Mount Parity | v1.29 | 0/? | Pending | — |
+| 128 README + phx-gen-auth Mount Parity | v1.29 | 1/2 | In Progress | — |
 | 129 WALKTHROUGH Truth | v1.29 | 0/? | Pending | — |
 | 130 Verify & Planning Hygiene | v1.29 | 0/? | Pending | — |
