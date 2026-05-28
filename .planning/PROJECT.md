@@ -8,6 +8,17 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.27 Distribution & First-Hour Finish
+
+**Goal:** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
+
+**Target features:**
+- **Hex 0.6.0 distribution truth** — publish via tag `v0.6.0`; adoption-pilot and evaluator surfaces honest about hex.pm version
+- **First-hour `ecto_repos` config** — document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link
+- **First-hour doc finish** — §6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path
+
+**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.26.md` (~90–93% done for stated scope; distribution + first-hour footguns remain).
+
 ## Latest Milestone Shipped: v1.26 Auth Lane Breadth
 
 **Goal (achieved):** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
@@ -18,7 +29,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Root `phx_gen_auth_integration_test.exs` — actor from `current_scope`, 1-arity admin gate, Plug smoke without Sigra (AUTH-PROOF-01–03)
 - Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract locks (ADOPT-AUTH-01–03)
 
-**Next milestone goals:** `/gsd-new-milestone` — adopter-driven maintenance, external pilot only on sustained signal, maintainer Hex `v0.6.0` publish; v1.22 DEFER trio only on procurement pressure.
+**Next milestone (queued):** **v1.28 External Pilot** — only on sustained real-adopter signal; v1.22 DEFER trio only on procurement pressure.
 
 ## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -314,12 +325,14 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **EXAMPLE-01** through **EXAMPLE-04 (Phase 116)** — Example `:api` session plugs before `Threadline.Plug`; README Choose your path / Base install / Track A–B runbook; Mix task reference and ownership tables; doc-contract locks for auth staging and first-hour literals. Validated in v1.25 (2026-05-27).
 - [x] **DOC-01** through **DOC-03 (Phase 117)** — Split-guide evidence map (no phantom hub); Hex semver in adopter guides; `0.5.x → 0.6.x` upgrade bullet; incident JSON blessed path; `mix verify.doc_contract` green with exploration_routing + semver_adopter contracts. Validated in v1.25 (2026-05-27).
 - [x] **PILOT-01** / **PILOT-02 (Phase 118)** — Adoption-pilot verify ladder without stale test counts; `guides/evaluating-threadline.md` evaluator one-pager with host-owned boundaries and no STG attestation claims. Validated in v1.25 (2026-05-28).
+- [x] **AUTH-GUIDE-01** through **AUTH-GUIDE-03 (Phase 119)** — `guides/integrations/phx-gen-auth.md` cookbook with host-owned `MyApp.AuditActor`, Plug order, admin mount, explicit non-goals. Validated in v1.26 (2026-05-28).
+- [x] **AUTH-LANE-01** / **AUTH-LANE-02 (Phase 119–120)** — `phx-gen-auth-reference` upgrade-path lane with four-lane matrix row and honest proof anchors. Validated in v1.26 (2026-05-28).
+- [x] **AUTH-PROOF-01** through **AUTH-PROOF-03 (Phase 120)** — Root `phx_gen_auth_integration_test.exs` proving Plug actor, 1-arity admin `authorize_fn`, smoke without Sigra. Validated in v1.26 (2026-05-28).
+- [x] **ADOPT-AUTH-01** through **ADOPT-AUTH-03 (Phase 121)** — Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract gates. Validated in v1.26 (2026-05-28).
 
 ### Active
 
-- [ ] **AUTH-GUIDE-01** through **AUTH-LANE-02** (Phase 119) — phx.gen.auth integration guide and upgrade-path lane
-- [ ] **AUTH-PROOF-01** through **AUTH-PROOF-03** (Phase 120) — root CI proof for Plug + authorize_fn patterns
-- [ ] **ADOPT-AUTH-01** through **ADOPT-AUTH-03** (Phase 121) — getting-started neutrality and doc contracts
+_(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 122–124.)_
 
 ### Out of Scope
 
@@ -344,6 +357,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Ruby PaperTrail: association tracking complexity bloated the core — keep association tracking out of v0.1
 
 **Engineering baseline:** The project follows the same OSS quality bar as sibling libraries (Scrypath, Sigra): `mix verify.*` / `mix ci.*` entrypoints, doc contract tests once public docs exist, stable GitHub Actions job IDs, release automation aligned to Hex publishing workflow.
+
+**Evidence plane posture (2026-05-28):** `Threadline.Evidence` read/write API, Mix-task, and `/audit/evidence` LiveView are shipped; records are **host-written** — lib/ does not auto-populate from retention, health, or export paths. Adopter docs should set this expectation explicitly (v1.27 wedge).
+
+**First-hour config gap (2026-05-28):** Mix tasks and operator-surface fallbacks require `config :threadline, ecto_repos: [MyApp.Repo]` — present in example app, absent from `guides/getting-started-saas.md` (v1.27 wedge).
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -391,6 +408,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 | Adopter truth for 0.5.x evaluators lives in example mount + doc contracts | `evidence_authorize_fn`, adoption-pilot version SSOT, canonical evidence CLI, and walkthrough prose aligned to seed fiction — no new Evidence subjects. | ✓ Shipped (Phase 113, v1.24, 2026-05-27) |
 | Post-v1.24 assessment prioritizes release truth + first-hour friction over compliance expansion | Repo-grounded done band ~88–92% for stated narrow scope; Hex 0.5.0 lags v1.22–v1.24 stack; largest remaining synthetic wedge is 0.6.0 + narrative doc sync + example README fixes — not DEFER trio without adopter signal. phx.gen.auth breadth queued as v1.26. | ✓ Shipped (v1.25, 2026-05-28) |
 | v1.25 ships 0.6.0 + first-hour truth without compliance expansion | Release packaging, narrative/example alignment, evidence-plane doc authority, and optional evaluator one-pager close the synthetic adopter wedge; Nyquist gaps on 115/117/118 are non-blocking tech debt. | ✓ Shipped (Phases 114-118, v1.25, 2026-05-28) |
+| v1.26 auth lane breadth closes phx.gen.auth reach without second reference app | Guide + root CI proof pattern beats runnable second example; four-lane matrix complete; Sigra remains optional peer reference. | ✓ Shipped (Phases 119-121, v1.26, 2026-05-28) |
+| v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | — Active (opened 2026-05-28) |
 
 ## Evolution
 
@@ -412,4 +431,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — Phase 121 adopter doc neutrality complete (ADOPT-AUTH-01/02/03).*
+*Last updated: 2026-05-28 — milestone v1.27 Distribution & First-Hour Finish started (Phases 122–124).*

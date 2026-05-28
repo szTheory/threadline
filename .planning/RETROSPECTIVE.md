@@ -674,4 +674,32 @@
 
 ---
 
+## Assessment: 2026-05-28 (post-v1.26 milestone next-step)
+
+**Thread:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.26.md`
+
+### Judgment
+
+- **Done-%:** ~90–93% for stated narrow audit-platform scope (band: near-done / diminishing returns soon).
+- **Single pick:** v1.27 Distribution & First-Hour Finish — Hex 0.6.0, `ecto_repos` getting-started doc, first-hour doc finish.
+- **Not next:** external pilot (no signal), compliance DEFER trio, second reference app, evidence auto-population.
+
+### Key findings (repo-grounded)
+
+1. Hex.pm **0.5.0** vs in-repo **0.6.0** — adopter-facing distribution blocker.
+2. `config :threadline, ecto_repos` required by mix tasks; missing from getting-started.
+3. Evidence plane is host-write only — set expectations, do not auto-wire from ops without signal.
+4. v1.26 audit carry-forward: §6 sigra cookie prose, ADOPT-AUTH contract literals (non-blocking).
+
+### Graduation candidates (reusable closeout / GSD patterns)
+
+- Three-phase vertical slice: guide → root proof → doc neutrality (v1.26 validated)
+- Doc-contract tests as milestone closeout gate
+- `mix verify.*` as claim authority over prose
+- Assessment thread at each `/gsd-new-milestone`
+- Distribution truth check (in-repo semver vs hex.pm) in milestone assessment
+- Guide + root proof > second reference app for reference lanes
+
+---
+
 ## Cross-Milestone Trends

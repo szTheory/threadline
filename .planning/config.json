@@ -10,7 +10,8 @@
       "adopter_lens": true,
       "parallel_repo_research": true,
       "retain_threads_and_retrospective": true,
-      "prompts_dir": "prompts/"
+      "prompts_dir": "prompts/",
+      "path_to_done_thread": true
     },
     "research": true,
     "plan_checker": true,
@@ -38,7 +39,11 @@
       "adopter_lens_default": true,
       "stop_milestone_includes_release_truth": true,
       "jtbd_refresh_at_milestone_close": true,
-      "run_at_new_milestone": true
+      "run_at_new_milestone": true,
+      "prefer_repo_inspection_over_docs": true,
+      "no_auto_new_milestone": true,
+      "flag_conformance_manifest_drift": true,
+      "assessment_thread_pattern": ".planning/threads/YYYY-MM-DD-milestone-next-step-*.md"
     }
   },
   "model_profile": "adaptive",
