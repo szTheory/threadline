@@ -34,6 +34,20 @@ Then fetch deps:
 mix deps.get
 ```
 
+### Configure Threadline
+
+Threadline Mix tasks and operator-surface fallbacks resolve the Ecto repo from **`config :threadline, :ecto_repos`**, not from your host app's `:ecto_repos` alone. Add this to `config/config.exs` (use the repo that holds your audit tables):
+
+```elixir
+config :threadline, ecto_repos: [MyApp.Repo]
+```
+
+`mix threadline.install` (next section) still uses your host app's `config :my_app, ecto_repos` for migration paths — the two config keys serve different surfaces.
+
+If you host audit data on a dedicated database, put that repo **first** in the list. Threadline uses only the **first** entry (`List.first/1`), unlike Ecto Mix tasks which may run against every repo in the list. For mount and APIs you can still pass `repo: MyApp.Repo` explicitly (see `guides/operator-surface.md`).
+
+For the full mix-task inventory and multi-database notes, see [`guides/production-checklist.md`](production-checklist.md#host-repo-wiring-prerequisite).
+
 ## 3. Install the audit schema
 
 Generate Threadline's base migrations, then run them:
