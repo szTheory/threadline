@@ -191,6 +191,7 @@ defmodule Threadline.MixProject do
         "guides/evaluating-threadline.md",
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",
+        "guides/integrations/phx-gen-auth.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
