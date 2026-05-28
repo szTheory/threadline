@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.26
 milestone_name: Auth Lane Breadth
 status: executing
-last_updated: "2026-05-28T01:59:17.978Z"
-last_activity: 2026-05-28 -- Phase 120 planning complete
+last_updated: "2026-05-28T02:03:44.733Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 33
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 119 — phx.gen.auth Integration Guide & Lane
+**Current focus:** Phase null
 
 ## Current Position
 
-Phase: 120
+Phase: 121
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-28 -- Phase 120 planning complete
+Status: Executing Phase null
+Last activity: 2026-05-28
 
 ## Performance Metrics
 

@@ -24,9 +24,9 @@
 
 ### CI proof (Phase 120) — Minimal, root-level
 
-- [ ] **AUTH-PROOF-01**: Root `test/threadline/integrations/phx_gen_auth_integration_test.exs` (or equivalent) proves `actor_ref` extraction from a conn with `phx.gen.auth`-shaped assigns (`current_scope` / `current_user`) without requiring the example app to drop Sigra.
-- [ ] **AUTH-PROOF-02**: Test proves `authorize_fn` allow/deny posture for a minimal admin vs non-admin scope map used in the guide snippets.
-- [ ] **AUTH-PROOF-03**: `mix verify.test` and `mix verify.doc_contract` green after proof lands.
+- [x] **AUTH-PROOF-01**: Root `test/threadline/integrations/phx_gen_auth_integration_test.exs` (or equivalent) proves `actor_ref` extraction from a conn with `phx.gen.auth`-shaped assigns (`current_scope` / `current_user`) without requiring the example app to drop Sigra.
+- [x] **AUTH-PROOF-02**: Test proves `authorize_fn` allow/deny posture for a minimal admin vs non-admin scope map used in the guide snippets.
+- [x] **AUTH-PROOF-03**: `mix verify.test` and `mix verify.doc_contract` green after proof lands.
 
 ### Adopter doc neutrality (Phase 121)
 
@@ -70,9 +70,9 @@ Deferred until after v1.26 or on demand.
 | AUTH-GUIDE-03 | 119 | Complete |
 | AUTH-LANE-01 | 119 | Complete |
 | AUTH-LANE-02 | 119 | Complete |
-| AUTH-PROOF-01 | 120 | Pending |
-| AUTH-PROOF-02 | 120 | Pending |
-| AUTH-PROOF-03 | 120 | Pending |
+| AUTH-PROOF-01 | 120 | Complete |
+| AUTH-PROOF-02 | 120 | Complete |
+| AUTH-PROOF-03 | 120 | Complete |
 | ADOPT-AUTH-01 | 121 | Pending |
 | ADOPT-AUTH-02 | 121 | Pending |
 | ADOPT-AUTH-03 | 121 | Pending |
