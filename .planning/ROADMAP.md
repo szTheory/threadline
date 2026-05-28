@@ -32,7 +32,7 @@
 - [x] **Phase 122: Release & Distribution Truth** — Publish 0.6.0 to hex.pm; honest adoption-pilot and CHANGELOG surfaces (2026-05-28)
 - [x] **Phase 123: First-Hour Config** — Document `ecto_repos` for mix tasks and operator fallbacks (2026-05-28)
 - [x] **Phase 124: Adopter Doc Finish** — Close v1.26 audit carry-forward and operator expectation gaps (completed 2026-05-28)
-- [ ] **Phase 125: Authority-Surface Reconciliation** — Fix charter doc contract; reconcile STATE, MILESTONE-ARC, ROADMAP; green `mix verify.doc_contract`
+- [x] **Phase 125: Authority-Surface Reconciliation** — Fix charter doc contract; reconcile STATE, MILESTONE-ARC, ROADMAP; green `mix verify.doc_contract` (completed 2026-05-28)
 - [ ] **Phase 126: Nyquist Validation Sign-off (122–124)** — Sign off `nyquist_compliant` on phases 122–124 VALIDATION.md
 - [ ] **Phase 127: Example App `:schemas` Demonstration** — Wire runnable `:schemas` contract in `examples/threadline_phoenix` (D-14)
 
@@ -144,6 +144,6 @@
 | 122 Release & Distribution Truth | v1.27 | 3/3 | Complete    | 2026-05-28 |
 | 123 First-Hour Config | v1.27 | 2/2 | Complete    | 2026-05-28 |
 | 124 Adopter Doc Finish | v1.27 | 3/3 | Complete    | 2026-05-28 |
-| 125 Authority-Surface Reconciliation | v1.27 | 0/0 | Not started | — |
+| 125 Authority-Surface Reconciliation | v1.27 | 2/2 | Complete   | 2026-05-28 |
 | 126 Nyquist Validation Sign-off (122–124) | v1.27 | 0/0 | Not started | — |
 | 127 Example App `:schemas` Demonstration | v1.27 | 0/0 | Not started | — |
