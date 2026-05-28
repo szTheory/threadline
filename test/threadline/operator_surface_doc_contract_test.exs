@@ -38,6 +38,16 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, "organization_id")
     refute String.contains?(guide, "support_roles =")
     refute String.contains?(guide, "permissions_dsl")
+    assert length(:binary.matches(guide, "schemas: %")) >= 2
+  end
+
+  test "operator surface guide documents :schemas for row history reification (DOC-03)" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "schemas:")
+    assert String.contains?(guide, "#### Row history reification (:schemas)")
+    assert String.contains?(guide, "Configure :schemas in the auth plug")
+    assert String.contains?(guide, "table_name")
   end
 
   test "operator surface guide links the canonical upgrade-path guide and stays scoped" do

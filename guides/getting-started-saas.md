@@ -317,6 +317,11 @@ scope "/audit" do
 end
 ```
 
+Map captured table names to Ecto modules with the `:schemas` option on
+`threadline_operator_surface/2` — see
+[Row history reification](guides/operator-surface.md#row-history-reification-schemas)
+in the operator-surface guide.
+
 `pipe_through [:browser, :operator_browser, :operator_auth]` is the important
 posture: your app owns browser auth and maps the signed-in user to the operator
 assigns Threadline expects, then `authorize_fn` acts as the fail-closed final
