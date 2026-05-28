@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.26
 milestone_name: Auth Lane Breadth
-status: Ready for 119-02-PLAN.md
-last_updated: "2026-05-28T01:39:18.103Z"
-last_activity: 2026-05-28 -- Completed 119-01-PLAN.md
+status: Phase 119 complete — ready for Phase 120
+last_updated: "2026-05-28T01:40:00Z"
+last_activity: 2026-05-28 -- Completed 119-02-PLAN.md
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 0
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 119 — phx.gen.auth Integration Guide & Lane (IN PROGRESS)
-Plan: 1 of 2 complete
-Status: Ready for 119-02-PLAN.md
-Last activity: 2026-05-28 -- Completed 119-01-PLAN.md
+Phase: 119 — phx.gen.auth Integration Guide & Lane (COMPLETE)
+Plan: 2 of 2 complete
+Status: Ready for Phase 120
+Last activity: 2026-05-28 -- Completed 119-02-PLAN.md
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Last activity: 2026-05-28 -- Completed 119-01-PLAN.md
 
 ### Decisions
 
+- **119-02 (2026-05-28):** phx-gen-auth-reference lane vocabulary added to upgrade-path prose only; matrix row deferred to Phase 120; explicit not Sigra-compatible boundary.
 - **119-01 (2026-05-28):** phx guide uses host-owned `MyApp.AuditActor`, not `Threadline.Integrations.Sigra`; reference semantics list Phase 120 proof targets without citing test files.
 - **119-01 (2026-05-28):** Optional correlation stays header-first; no `phx-session:` format table (Sigra-only pattern).
 - **v1.26 (2026-05-27):** Auth lane breadth over compliance expansion; guide + root proof, not second reference app or Sigra replacement.
@@ -60,12 +61,12 @@ Last activity: 2026-05-28 -- Completed 119-01-PLAN.md
 
 ## Session Continuity
 
-- **Last Action**: Completed 119-01 — shipped `guides/integrations/phx-gen-auth.md` cookbook (89 lines).
-- **Next Step**: Execute 119-02 — upgrade-path lane prose (AUTH-LANE-01/02)
-- **Resume file**: `.planning/phases/119-phx-gen-auth-integration-guide-lane/119-02-PLAN.md`
+- **Last Action**: Completed 119-02 — phx-gen-auth-reference lane prose in `guides/upgrade-path.md`.
+- **Next Step**: Phase 120 — matrix row, root integration tests, four-lane doc-contract locks
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- Execute **119-02-PLAN.md** — add `phx-gen-auth-reference` lane vocabulary to `guides/upgrade-path.md`
+- Plan **Phase 120** — upgrade-path matrix row + root integration tests + doc-contract locks
 - Maintainer: push **`v0.6.0`** tag when ready for hex.pm publish
 - Do **not** open external-pilot milestone until sustained adopter signal

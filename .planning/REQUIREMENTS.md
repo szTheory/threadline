@@ -19,8 +19,8 @@
 
 ### Upgrade path (Phase 119) — Named lane
 
-- [ ] **AUTH-LANE-01**: `guides/upgrade-path.md` adds **`phx-gen-auth-reference`** as a `reference` lane (narrower than generic Phoenix; proven by guide + root tests, not a second example app).
-- [ ] **AUTH-LANE-02**: Support matrix and lane vocabulary remain honest: `sigra-reference` unchanged; `phx-gen-auth-reference` does not claim Sigra compatibility.
+- [x] **AUTH-LANE-01**: `guides/upgrade-path.md` adds **`phx-gen-auth-reference`** as a `reference` lane (narrower than generic Phoenix; proven by guide + root tests, not a second example app).
+- [x] **AUTH-LANE-02**: Support matrix and lane vocabulary remain honest: `sigra-reference` unchanged; `phx-gen-auth-reference` does not claim Sigra compatibility.
 
 ### CI proof (Phase 120) — Minimal, root-level
 
@@ -68,8 +68,8 @@ Deferred until after v1.26 or on demand.
 | AUTH-GUIDE-01 | 119 | Complete |
 | AUTH-GUIDE-02 | 119 | Complete |
 | AUTH-GUIDE-03 | 119 | Complete |
-| AUTH-LANE-01 | 119 | Pending |
-| AUTH-LANE-02 | 119 | Pending |
+| AUTH-LANE-01 | 119 | Complete |
+| AUTH-LANE-02 | 119 | Complete |
 | AUTH-PROOF-01 | 120 | Pending |
 | AUTH-PROOF-02 | 120 | Pending |
 | AUTH-PROOF-03 | 120 | Pending |
