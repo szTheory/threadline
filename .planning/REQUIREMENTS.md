@@ -76,6 +76,7 @@ Deferred until after v1.27 or on signal.
 | DOC-05 | 124 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 11 total
 - Mapped to phases: 11
 - Unmapped: 0 ✓

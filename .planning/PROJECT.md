@@ -13,7 +13,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 **Goal:** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
 
 **Target features:**
-- **Hex 0.6.0 distribution truth** — publish via tag `v0.6.0`; adoption-pilot and evaluator surfaces honest about hex.pm version
+- **Hex 0.6.0 distribution truth** — ~~publish via tag `v0.6.0`~~ ✓ Phase 122 (2026-05-28); adoption-pilot and evaluator surfaces honest about hex.pm version
 - **First-hour `ecto_repos` config** — document `config :threadline, ecto_repos: [MyApp.Repo]` in getting-started; doc-contract + production-checklist cross-link
 - **First-hour doc finish** — §6 auth-neutral staging; strict ADOPT-AUTH contract literals; `:schemas` mount for row history; evidence host-write expectations; integration-contracts four-lane vocabulary aligned with upgrade-path
 
@@ -329,10 +329,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **AUTH-LANE-01** / **AUTH-LANE-02 (Phase 119–120)** — `phx-gen-auth-reference` upgrade-path lane with four-lane matrix row and honest proof anchors. Validated in v1.26 (2026-05-28).
 - [x] **AUTH-PROOF-01** through **AUTH-PROOF-03 (Phase 120)** — Root `phx_gen_auth_integration_test.exs` proving Plug actor, 1-arity admin `authorize_fn`, smoke without Sigra. Validated in v1.26 (2026-05-28).
 - [x] **ADOPT-AUTH-01** through **ADOPT-AUTH-03 (Phase 121)** — Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract gates. Validated in v1.26 (2026-05-28).
+- [x] **DIST-01** through **DIST-03 (Phase 122)** — hex.pm **0.6.0** published via `release.yml`; adoption-pilot Hex row OK; CHANGELOG four-lane upgrade bullet; conditional anti-stale doc contracts. Validated in Phase 122 (2026-05-28).
 
 ### Active
 
-_(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 122–124.)_
+_(v1.27 requirements in `.planning/REQUIREMENTS.md` — Phases 123–124.)_
 
 ### Out of Scope
 
@@ -431,4 +432,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — milestone v1.27 Distribution & First-Hour Finish started (Phases 122–124).*
+*Last updated: 2026-05-28 — Phase 122 Release & Distribution Truth complete; next Phase 123 First-Hour Config.*
