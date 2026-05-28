@@ -1,15 +1,17 @@
 ---
 phase: 126
 slug: nyquist-validation-signoff-122-124
-status: draft
-nyquist_compliant: false
+status: finalized
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
+updated: 2026-05-28T19:20:00Z
 ---
 
 # Phase 126 — Validation Strategy
 
 > Meta-phase validation: each plan finalizes a target phase's Nyquist artifact (122, 123, 124).
+> Phase 126 session close: single `mix ci.all` per D-17.
 
 ---
 
@@ -37,16 +39,16 @@ created: 2026-05-28
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 126-01-01 | 01 | 1 | ROADMAP SC #1 (122) | artifact | Gap audit 122-VALIDATION ↔ 122-VERIFICATION | ✅ | ⬜ pending |
-| 126-01-02 | 01 | 1 | ROADMAP SC #1 (122) | integration | 122 sign-off bundle (D-14) + `mix verify.doc_contract` | ✅ | ⬜ pending |
-| 126-01-03 | 01 | 1 | ROADMAP SC #1 (122) | artifact | Finalize `122-VALIDATION.md` | ✅ | ⬜ pending |
-| 126-02-01 | 02 | 2 | ROADMAP SC #2 (123) | artifact | Gap audit 123-VALIDATION ↔ 123-VERIFICATION | ✅ | ⬜ pending |
-| 126-02-02 | 02 | 2 | ROADMAP SC #2 (123) | integration | 123 sign-off bundle (D-15) + `mix verify.doc_contract` | ✅ | ⬜ pending |
-| 126-02-03 | 02 | 2 | ROADMAP SC #2 (123) | artifact | Finalize `123-VALIDATION.md` | ✅ | ⬜ pending |
-| 126-03-01 | 03 | 3 | ROADMAP SC #3 (124) | artifact | Gap audit 124-VALIDATION ↔ 124-VERIFICATION | ✅ | ⬜ pending |
-| 126-03-02 | 03 | 3 | ROADMAP SC #3 (124) | integration | 124 sign-off bundle (D-16) + `mix verify.doc_contract` | ✅ | ⬜ pending |
-| 126-03-03 | 03 | 3 | ROADMAP SC #3 (124) | artifact | Finalize `124-VALIDATION.md` | ✅ | ⬜ pending |
-| 126-03-04 | 03 | 3 | Phase 126 close | integration | `mix ci.all` (D-17, once) | ✅ | ⬜ pending |
+| 126-01-01 | 01 | 1 | ROADMAP SC #1 (122) | artifact | Gap audit 122-VALIDATION ↔ 122-VERIFICATION | ✅ | ✅ green |
+| 126-01-02 | 01 | 1 | ROADMAP SC #1 (122) | integration | 122 sign-off bundle (D-14) + `mix verify.doc_contract` | ✅ | ✅ green |
+| 126-01-03 | 01 | 1 | ROADMAP SC #1 (122) | artifact | Finalize `122-VALIDATION.md` | ✅ | ✅ green |
+| 126-02-01 | 02 | 2 | ROADMAP SC #2 (123) | artifact | Gap audit 123-VALIDATION ↔ 123-VERIFICATION | ✅ | ✅ green |
+| 126-02-02 | 02 | 2 | ROADMAP SC #2 (123) | integration | 123 sign-off bundle (D-15) + `mix verify.doc_contract` | ✅ | ✅ green |
+| 126-02-03 | 02 | 2 | ROADMAP SC #2 (123) | artifact | Finalize `123-VALIDATION.md` | ✅ | ✅ green |
+| 126-03-01 | 03 | 3 | ROADMAP SC #3 (124) | artifact | Gap audit 124-VALIDATION ↔ 124-VERIFICATION | ✅ | ✅ green |
+| 126-03-02 | 03 | 3 | ROADMAP SC #3 (124) | integration | 124 sign-off bundle (D-16) + `mix verify.doc_contract` | ✅ | ✅ green |
+| 126-03-03 | 03 | 3 | ROADMAP SC #3 (124) | artifact | Finalize `124-VALIDATION.md` | ✅ | ✅ green |
+| 126-03-04 | 03 | 3 | Phase 126 close | integration | `mix ci.all` (D-17, once) | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,6 +57,30 @@ created: 2026-05-28
 ## Wave 0 Requirements
 
 Existing doc-contract infrastructure covers all target-phase requirements. No new test files expected.
+
+---
+
+## Commands Actually Used
+
+**126-03 targeted bundle** (2026-05-28T19:15:00Z) — see `126-03-RERUN-EVIDENCE.md`:
+
+1. Four per-file `mix test` doc-contract files — PASS (29 tests, 0 failures)
+2. `mix verify.doc_contract` — PASS (97 tests, 0 failures), exit 0
+
+**Phase 126 session close** (2026-05-28T19:20:00Z):
+
+3. `mix ci.all`  
+   Result: PASS — `mix format --check-formatted`, `mix credo --strict`, `mix verify.test` (740 tests, 0 failures, 1 excluded), `mix verify.threadline`, `mix verify.example` (53 tests, 0 failures); exit 0
+
+*Single `mix ci.all` for entire Phase 126 per D-17; not rerun in 126-01/02.*
+
+---
+
+## Nyquist Notes
+
+- `122-VALIDATION.md`, `123-VALIDATION.md`, and `124-VALIDATION.md` all finalized with `nyquist_compliant: true` on the same tree as session-close `mix ci.all`.
+- `124-VERIFICATION.md`, `123-VERIFICATION.md`, and `122-VERIFICATION.md` remain superseding authority for manual attestation rows (D-02/D-03/D-12).
+- Milestone closeout (`/gsd-complete-milestone v1.27`) blocked until Phase 127 per D-21.
 
 ---
 
@@ -69,10 +95,10 @@ Existing doc-contract infrastructure covers all target-phase requirements. No ne
 
 ## Validation Sign-Off
 
-- [ ] `122-VALIDATION.md` has `nyquist_compliant: true`
-- [ ] `123-VALIDATION.md` has `nyquist_compliant: true`
-- [ ] `124-VALIDATION.md` has `nyquist_compliant: true`
-- [ ] `mix ci.all` green once after 126-03
-- [ ] `nyquist_compliant: true` on this artifact after all three targets signed
+- [x] `122-VALIDATION.md` has `nyquist_compliant: true`
+- [x] `123-VALIDATION.md` has `nyquist_compliant: true`
+- [x] `124-VALIDATION.md` has `nyquist_compliant: true`
+- [x] `mix ci.all` green once after 126-03
+- [x] `nyquist_compliant: true` on this artifact after all three targets signed
 
-**Approval:** pending
+**Approval:** finalized on 2026-05-28 after 122–124 Nyquist sign-off and session-close ci.all.

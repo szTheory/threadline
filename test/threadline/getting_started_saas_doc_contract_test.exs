@@ -176,6 +176,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     literal = "config :threadline, ecto_repos: [MyApp.Repo]"
 
     assert String.contains?(doc, "### Configure Threadline")
+
     # ExDoc proxy: getting-started-saas.md#configure-threadline from locked heading (CFG-01 / D-11)
     assert String.contains?(doc, literal)
 
