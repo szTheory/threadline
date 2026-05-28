@@ -11,7 +11,10 @@
       "parallel_repo_research": true,
       "retain_threads_and_retrospective": true,
       "prompts_dir": "prompts/",
-      "path_to_done_thread": true
+      "path_to_done_thread": true,
+      "roadmap_to_done": true,
+      "default_no_signal_path": "hold_or_thin_polish",
+      "done_band_threshold": 90
     },
     "research": true,
     "plan_checker": true,
@@ -43,7 +46,9 @@
       "prefer_repo_inspection_over_docs": true,
       "no_auto_new_milestone": true,
       "flag_conformance_manifest_drift": true,
-      "assessment_thread_pattern": ".planning/threads/YYYY-MM-DD-milestone-next-step-*.md"
+      "assessment_thread_pattern": ".planning/threads/YYYY-MM-DD-milestone-next-step-*.md",
+      "record_path_to_done_in_arc": true,
+      "assessment_supersedes_prior_thread": true
     }
   },
   "model_profile": "adaptive",

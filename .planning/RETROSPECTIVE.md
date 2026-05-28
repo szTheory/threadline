@@ -742,4 +742,31 @@
 
 ---
 
+## Assessment: 2026-05-28 (post-v1.27 path-to-done)
+
+**Thread:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
+
+### Judgment
+
+- **Done-%:** ~92% for stated narrow audit-platform scope (band: 90–95% near-done / diminishing returns soon).
+- **Single pick:** **Hold** (default) or optional **v1.29 First-Hour Parity & Verify Hygiene** — not v1.28 (no adopter signal).
+- **Path to done:** optional v1.29 → hold → v1.28 on signal → ~95%+ then stop major milestones.
+
+### Key findings (repo-grounded)
+
+1. Hex **0.6.0** aligned with in-repo semver — v1.27 closed distribution blocker.
+2. Getting-started spine complete; README Quick Start still omits `ecto_repos` — v1.29 candidate.
+3. phx-gen-auth mount snippet omits canonical `scope` shape — v1.29 candidate.
+4. WALKTHROUGH command cwd and row-history URL shorthand — v1.29 candidate; v1.27 audit low-severity gap.
+5. Core lib surfaces shipped; `mix ci.all` + `mix verify.example` are credible evaluator ladder.
+
+### Graduation candidates (added post-v1.27)
+
+- Gap-closure phases (125–127 pattern) for audit hygiene without scope creep
+- `mix ci.all` + `mix verify.example` as evaluator ladder SSOT
+- Path-to-done roadmap recorded in MILESTONE-ARC at each assessment
+- Hold as valid default when done band ≥90% and no adopter signal
+
+---
+
 ## Cross-Milestone Trends

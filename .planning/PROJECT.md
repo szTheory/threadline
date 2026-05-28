@@ -8,6 +8,17 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.29 First-Hour Parity
+
+**Goal:** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
+
+**Target features:**
+- **README + phx-gen-auth mount parity** — `ecto_repos` in README Quick Start; canonical scope-shaped mount snippet in phx-gen-auth guide; trigger-table SSOT cross-links
+- **WALKTHROUGH truth** — `verify.threadline` cwd honesty; row-history URL shorthand aligned with shipped transaction-scoped route
+- **Verify/planning hygiene** — Nyquist finalize on Phase 125; SUMMARY frontmatter convention for requirements-completed values
+
+**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
+
 ## Latest Milestone Shipped: v1.27 Distribution & First-Hour Finish
 
 **Goal (achieved):** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
@@ -18,7 +29,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **First-hour doc finish** — Phase 124: IEx-first §6, ADOPT-AUTH contract, `:schemas` reification docs, evidence host-write boundary, four-lane integration-contracts vocabulary
 - **Example app `:schemas` demonstration** — Phase 127 (2026-05-28): runnable help-desk schema map on operator mount; integration + doc-contract proof for row-history sub-route (D-14)
 
-**Next milestone (queued):** **v1.28 External Pilot** — only on sustained real-adopter signal.
+**Next milestone (queued):** **Hold** after v1.29 — **v1.28 External Pilot** only on sustained real-adopter signal.
 
 ## Prior milestone context: v1.27 planning snapshot
 
@@ -45,7 +56,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - Root `phx_gen_auth_integration_test.exs` — actor from `current_scope`, 1-arity admin gate, Plug smoke without Sigra (AUTH-PROOF-01–03)
 - Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract locks (ADOPT-AUTH-01–03)
 
-**Next milestone (queued):** **v1.28 External Pilot** — only on sustained real-adopter signal; v1.22 DEFER trio only on procurement pressure.
+**Next milestone (queued):** **Hold** (default) or optional **v1.29 First-Hour Parity** — **v1.28 External Pilot** only on sustained real-adopter signal; v1.22 DEFER trio only on procurement pressure.
 
 ## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -351,7 +362,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ### Active
 
-_(None — run `/gsd-new-milestone` to define v1.28 requirements.)_
+_(v1.29 First-Hour Parity — see `.planning/REQUIREMENTS.md`.)_
 
 ### Out of Scope
 
@@ -382,6 +393,8 @@ _(None — run `/gsd-new-milestone` to define v1.28 requirements.)_
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
 **Hex distribution (2026-05-28):** **threadline 0.6.0** published on hex.pm; adoption-pilot and evaluator surfaces honest about version (v1.27 DIST-01–03).
+
+**Path-to-done posture (2026-05-28):** **~92% done** for stated narrow audit-platform scope (band: 90–95% near-done / diminishing returns soon). Core JTBD, operator surface, evidence plane, auth lanes, and Hex story are credible. Remaining delta is doc parity + pilot validation, not missing engine. **No adopter signal today** — default **hold**; optional thin **v1.29** (README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125); **v1.28** only on sustained signal. Assessment: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`; roadmap: `.planning/MILESTONE-ARC.md` § Path to done.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -431,6 +444,8 @@ _(None — run `/gsd-new-milestone` to define v1.28 requirements.)_
 | v1.25 ships 0.6.0 + first-hour truth without compliance expansion | Release packaging, narrative/example alignment, evidence-plane doc authority, and optional evaluator one-pager close the synthetic adopter wedge; Nyquist gaps on 115/117/118 are non-blocking tech debt. | ✓ Shipped (Phases 114-118, v1.25, 2026-05-28) |
 | v1.26 auth lane breadth closes phx.gen.auth reach without second reference app | Guide + root CI proof pattern beats runnable second example; four-lane matrix complete; Sigra remains optional peer reference. | ✓ Shipped (Phases 119-121, v1.26, 2026-05-28) |
 | v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | ✓ Shipped (Phases 122-127, v1.27, 2026-05-28) |
+| Post-v1.27 path-to-done: hold default at ~92%; optional v1.29 hygiene; v1.28 signal-gated | Repo inspection confirms core lib shipped, Hex 0.6.0 aligned, getting-started spine complete; remaining footguns are README Quick Start `ecto_repos`, phx-gen-auth mount snippet, WALKTHROUGH cwd/URL — polish not engine. No adopter signal — do not open synthetic product milestones beyond optional thin v1.29. | ✓ Opened v1.29 (2026-05-28) |
+| v1.29 is the last optional synthetic hygiene pass before hold | First-hour doc parity + Nyquist 125 + WALKTHROUGH truth close adopter-facing footguns without pilot pretense or product expansion. | — Active (2026-05-28) |
 
 ## Evolution
 
@@ -452,4 +467,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 after v1.27 milestone*
+*Last updated: 2026-05-28 — milestone v1.29 First-Hour Parity started*
