@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.27
 milestone_name: Distribution & First-Hour Finish
 status: executing
-last_updated: "2026-05-28T18:55:52.678Z"
+last_updated: "2026-05-28T18:57:21.133Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 13
-  completed_plans: 11
-  percent: 67
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State: Threadline
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 ## Current Position
 
 Phase: 126 (nyquist-validation-signoff-122-124) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-05-28
 
@@ -44,6 +44,7 @@ Last activity: 2026-05-28
 | host-class | STG-01 host staging depth | Integrator-owned; v1.28 when signal |
 | Pow / bearer auth lane | On explicit demand only | Not v1.27 |
 | Phase 126-nyquist-validation-signoff-122-124 P01 | 1min | 3 tasks | 3 files |
+| Phase 126-nyquist-validation-signoff-122-124 P02 | 2min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,7 @@ Last activity: 2026-05-28
 - **v1.26 (2026-05-28):** Auth lane breadth via guide + root proof, not second reference app.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
 - [Phase 126]: 122-VALIDATION.md nyquist_compliant after D-14 rerun; 122-VERIFICATION.md superseding for manual DIST — Phase 126-01 hybrid refresh per D-01/D-04; no frontmatter-only flip
+- [Phase 126]: 123-VALIDATION.md nyquist_compliant after D-15 rerun; CFG-01 ExDoc closed via doc-contract proxy (proven tier, D-11) — Phase 126-02; 123-VERIFICATION.md superseding authority unchanged
 
 ### Blockers
 
@@ -63,11 +65,11 @@ Last activity: 2026-05-28
 
 ## Session Continuity
 
-- **Last Action**: Completed 126-01-PLAN.md (2026-05-28)
-- **Next Step**: Execute 126-02 (Phase 123 Nyquist sign-off); then 126-03; `mix ci.all` after 126-03
+- **Last Action**: Completed 126-02-PLAN.md (2026-05-28)
+- **Next Step**: Execute 126-03 (Phase 124 Nyquist sign-off); then `mix ci.all` per D-17
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **Execute 126-02** — finalize `123-VALIDATION.md`
+- **Execute 126-03** — finalize `124-VALIDATION.md`
 - Do **not** open v1.28 external pilot until sustained adopter signal
