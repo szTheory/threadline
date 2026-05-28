@@ -98,6 +98,25 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "Threadline.change_diff/2")
   end
 
+  test "getting-started documents threadline ecto_repos before resolve_repo consumers" do
+    doc = read_rel!(@guide_path)
+    literal = "config :threadline, ecto_repos: [MyApp.Repo]"
+
+    assert String.contains?(doc, literal)
+
+    {literal_idx, _} = :binary.match(doc, literal)
+    {section_7_idx, _} = :binary.match(doc, "## 7. Check trigger coverage")
+    {section_3_idx, _} = :binary.match(doc, "## 3. Install the audit schema")
+    {sigra_fence_idx, _} = :binary.match(doc, "getting-started-sigra-reference-fence")
+
+    assert literal_idx < section_7_idx
+    assert literal_idx < sigra_fence_idx
+    assert literal_idx < section_3_idx
+
+    assert String.contains?(doc, "Mix tasks")
+    assert String.contains?(doc, "ecto_repos")
+  end
+
   test "getting-started optional sigra-reference fence is scoped" do
     doc = read_rel!(@guide_path)
 
