@@ -13,9 +13,9 @@
 ## Current Planning State
 
 **Milestone:** v1.27 — Distribution & First-Hour Finish
-**Status:** Phases 122–124 complete; gap closure phases 125–127 added (2026-05-28 audit)
-**Last shipped:** v1.26 — Auth Lane Breadth (2026-05-28) — v1.27 ship pending Phase 125
-**Next step:** `/gsd-plan-phase 125`
+**Status:** Phases 122–124 shipped; gap closure 125–127 in progress
+**Last shipped:** v1.27 — Distribution & First-Hour Finish (2026-05-28)
+**Next step:** `/gsd-execute-phase 126`
 
 **Assessment:** v1.27 requirements satisfied (11/11); closeout hygiene remains — doc-contract charter drift, stale `STATE.md` / `MILESTONE-ARC.md`, Nyquist sign-off, optional example-app `:schemas` demo.
 
