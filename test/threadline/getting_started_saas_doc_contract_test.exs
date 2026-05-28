@@ -103,7 +103,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "### HTTP requests and host auth")
     refute String.contains?(doc, "### Authenticate before the audited API call")
 
-    section_6 = section_slice(doc, "## 6. Exercise the first audited write", "## 7. Check trigger coverage")
+    section_6 =
+      section_slice(doc, "## 6. Exercise the first audited write", "## 7. Check trigger coverage")
 
     assert String.contains?(section_6, "demo-corr")
     assert String.contains?(section_6, "audit_transaction_id")
