@@ -138,18 +138,22 @@ callback operations and escape hatches.
 
 ### Authenticate before the audited API call
 
-Your host must establish identity on the conn before **`Threadline.Plug`** runs.
-On this reference app, sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`**
-from DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`** on the
-curl below. In your own app, use your login route and session cookie equivalent.
-This example does not ship API bearer tokens — host-owned auth only (see
-[integrations/sigra.md](integrations/sigra.md)).
+Identity must be on the conn before **`Threadline.Plug`** runs on audited
+pipelines. Prefer **`401`**/**`403`** at your host auth boundary when the
+caller is unauthenticated. **`500`** with **`missing actor`** means capture
+ran but semantics rejected a missing actor — fix plug order or actor wiring,
+not Threadline capture itself.
 
-**Without session** on the reference lane, expect **`500`** with **`missing actor`**
-(capture ran; semantics rejected a missing actor). Production apps should fail
-earlier with **`401`**/**`403`**.
+| Lane | Guide |
+|------|-------|
+| phx.gen.auth | [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) |
+| Sigra | [`guides/integrations/sigra.md`](integrations/sigra.md) |
+| Choose lane | [`guides/upgrade-path.md`](upgrade-path.md) |
 
-Start your Phoenix app, then send the first audited request:
+<details>
+<summary>Runnable curl — sigra-reference example app only</summary>
+
+Start the reference Phoenix app, then send the first audited request:
 
 ```bash
 curl -sS -X POST "http://localhost:4000/api/posts" \
@@ -159,6 +163,14 @@ curl -sS -X POST "http://localhost:4000/api/posts" \
   -b '_threadline_phoenix_key=PASTE_FROM_BROWSER' \
   -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
 ```
+
+</details>
+
+Cookie staging for the reference app lives in
+[`examples/threadline_phoenix/README.md`](../examples/threadline_phoenix/README.md)
+— sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`** from
+DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`**. This
+example does not ship API bearer tokens — host-owned auth only.
 
 Keep the returned `audit_transaction_id`; you will use it in step 8.
 
@@ -315,6 +327,7 @@ its own compatibility matrix.
 - [guides/production-checklist.md](production-checklist.md)
 - [guides/incident-playbook.md](incident-playbook.md)
 - [guides/performance.md](performance.md)
+- [guides/integrations/phx-gen-auth.md](integrations/phx-gen-auth.md)
 - [guides/integrations/sigra.md](integrations/sigra.md)
 - [guides/brownfield-continuity.md](brownfield-continuity.md)
 - [guides/adoption-pilot-backlog.md](adoption-pilot-backlog.md)

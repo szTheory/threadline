@@ -8,8 +8,7 @@ Threadline **0.6.0** packages Evidence, `Audit.transaction/3`, and aligned opera
 
 Use this guide if you are:
 
-- deciding whether you are running `capture-only`, `phoenix-surface`, or `sigra-reference`
-- deciding whether you are running phx.gen.auth-style session auth and should follow phx-gen-auth-reference
+- deciding whether you are running `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, or `sigra-reference`
 - upgrading Threadline across minors and need to know what the operator-surface contract includes
 - checking whether a host path is `supported`, `reference`, or `unclaimed`
 
