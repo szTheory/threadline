@@ -2,6 +2,29 @@ defmodule Threadline.EvaluatingThreadlineDocContractTest do
   use ExUnit.Case, async: true
 
   @guide "guides/evaluating-threadline.md"
+  @backlog "guides/adoption-pilot-backlog.md"
+
+  defp adoption_pilot_hex_ok? do
+    backlog = File.read!(@backlog)
+
+    backlog
+    |> String.split("\n")
+    |> Enum.find(fn line ->
+      String.contains?(line, "threadline") and String.contains?(line, "Hex")
+    end)
+    |> case do
+      nil -> false
+      row -> String.contains?(row, "| OK |")
+    end
+  end
+
+  test "when adoption-pilot Hex row is OK, refutes hex still 0.5.0 caveat" do
+    guide = File.read!(@guide)
+
+    if adoption_pilot_hex_ok?() do
+      refute String.contains?(guide, "may still list **0.5.0** as latest")
+    end
+  end
 
   test "evaluating guide exists with 0.6.0 packaging anchor (PILOT-02)" do
     guide = File.read!(@guide)

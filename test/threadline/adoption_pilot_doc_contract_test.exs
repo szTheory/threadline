@@ -27,6 +27,27 @@ defmodule Threadline.AdoptionPilotDocContractTest do
     refute Regex.match?(~r/\(\d+ tests/, guide)
   end
 
+  defp hex_distribution_row_ok?(guide) do
+    guide
+    |> String.split("\n")
+    |> Enum.find(fn line ->
+      String.contains?(line, "threadline") and String.contains?(line, "Hex")
+    end)
+    |> case do
+      nil -> false
+      row -> String.contains?(row, "| OK |")
+    end
+  end
+
+  test "when Hex distribution row is OK, refutes stale 0.5.0 lag narrative" do
+    guide = File.read!(@guide)
+
+    if hex_distribution_row_ok?(guide) do
+      refute String.contains?(guide, "latest is **0.5.0**")
+      refute String.contains?(guide, "Unblock: push tag")
+    end
+  end
+
   test "adoption-pilot evidence pass cites canonical verify entrypoints (PILOT-01)" do
     guide = File.read!(@guide)
 
