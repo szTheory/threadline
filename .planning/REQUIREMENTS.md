@@ -19,8 +19,8 @@
 
 ### First-hour config (Phase 123)
 
-- [ ] **CFG-01**: `guides/getting-started-saas.md` documents `config :threadline, ecto_repos: [MyApp.Repo]` in the Base install path (before mix tasks that call `resolve_repo!/0`).
-- [ ] **CFG-02**: Doc-contract test locks `ecto_repos` literal and placement in getting-started (e.g. `getting_started_saas_doc_contract_test.exs`).
+- [x] **CFG-01**: `guides/getting-started-saas.md` documents `config :threadline, ecto_repos: [MyApp.Repo]` in the Base install path (before mix tasks that call `resolve_repo!/0`).
+- [x] **CFG-02**: Doc-contract test locks `ecto_repos` literal and placement in getting-started (e.g. `getting_started_saas_doc_contract_test.exs`).
 - [ ] **CFG-03**: `guides/production-checklist.md` cross-links the `ecto_repos` requirement for mix tasks and operator-surface fallbacks.
 
 ### Adopter doc finish (Phase 124)
@@ -66,8 +66,8 @@ Deferred until after v1.27 or on signal.
 | DIST-01 | 122 | Complete |
 | DIST-02 | 122 | Complete |
 | DIST-03 | 122 | Complete |
-| CFG-01 | 123 | Pending |
-| CFG-02 | 123 | Pending |
+| CFG-01 | 123 | Complete |
+| CFG-02 | 123 | Complete |
 | CFG-03 | 123 | Pending |
 | DOC-01 | 124 | Pending |
 | DOC-02 | 124 | Pending |
