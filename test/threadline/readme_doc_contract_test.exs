@@ -4,6 +4,9 @@ defmodule Threadline.ReadmeDocContractTest do
 
   alias Threadline.Test.Repo
 
+  @quick_start_start "## Quick Start"
+  @quick_start_end "## Operator Surface"
+
   test "readme quickstart fixtures module is loadable" do
     assert Code.ensure_loaded?(Threadline.ReadmeQuickstartFixtures)
   end
@@ -239,5 +242,19 @@ defmodule Threadline.ReadmeDocContractTest do
     value
     |> String.trim()
     |> String.replace(~r/\s+/, " ")
+  end
+
+  defp section_slice(doc, start_heading, end_heading) do
+    doc
+    |> String.split(start_heading, parts: 2)
+    |> case do
+      [_, rest] ->
+        rest
+        |> String.split(end_heading, parts: 2)
+        |> List.first()
+
+      _ ->
+        flunk("section starting with #{start_heading} not found")
+    end
   end
 end
