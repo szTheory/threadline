@@ -8,18 +8,17 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Latest Milestone Shipped: v1.25 Adopter-Ready Release & First-Hour Truth
+## Latest Milestone Shipped: v1.26 Auth Lane Breadth
 
-**Goal (achieved):** Make the shipped v1.22–v1.24 stack truthfully adoptable from Hex and remove first-hour doc/example friction — without compliance expansion or a second synthetic walkthrough.
+**Goal (achieved):** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
 
 **Shipped:**
-- **threadline 0.6.0** — CHANGELOG, ExDoc Evidence group, `mix verify.release`, install-snippet SSOT `~> 0.6` across adopter surfaces
-- Narrative docs center `Threadline.Audit.transaction/3` in `guides/how-threadline-works.md` with README/getting-started discovery alignment and doc-contract locks
-- Example first-hour runbook — `:api` session plugs, Choose your path / Track A–B, Mix task ownership tables; `mix verify.example` green
-- Evidence-plane doc authority — split-guide map (no phantom hub), semver-not-milestone adopter prose, `0.5.x → 0.6.x` upgrade bullet
-- Evaluator one-pager at `guides/evaluating-threadline.md`; adoption-pilot verify ladder without stale test counts
+- `guides/integrations/phx-gen-auth.md` — host-owned `MyApp.AuditActor`, Plug order, admin `authorize_fn`, explicit non-goals (AUTH-GUIDE-01–03)
+- **`phx-gen-auth-reference`** lane in `guides/upgrade-path.md` with four-lane matrix row and honest proof anchors (guide + root tests)
+- Root `phx_gen_auth_integration_test.exs` — actor from `current_scope`, 1-arity admin gate, Plug smoke without Sigra (AUTH-PROOF-01–03)
+- Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract locks (ADOPT-AUTH-01–03)
 
-**Next milestone goals:** `/gsd-new-milestone` — phx.gen.auth breadth is the largest queued reach gap (v1.26 candidate); v1.22 DEFER trio only on sustained adopter signal.
+**Next milestone goals:** `/gsd-new-milestone` — adopter-driven maintenance, external pilot only on sustained signal, maintainer Hex `v0.6.0` publish; v1.22 DEFER trio only on procurement pressure.
 
 ## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -33,25 +32,22 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **(v1.22)** Phoenix-optional library API plus Mix-task parity — **canonical:** `mix threadline.evidence.show` with stable JSON contract for CI / procurement / audit handoff.
 - **(v1.22)** Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
 - Doc-contract test locks the macro signature, route literals, auth section, and v1.22 evidence-plane claim (`mix verify.doc_contract`); CHANGELOG, `guides/operator-surface.md`, `guides/how-threadline-works.md`, `guides/upgrade-path.md`, `guides/domain-reference.md`, README, production checklist, and the example app are aligned end-to-end.
-
-## Current Milestone: v1.26 Auth Lane Breadth
-
-**Goal:** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
-
-**Target features:**
-- `guides/integrations/phx-gen-auth.md` with Plug + `authorize_fn` patterns from `current_scope` / session user
-- **`phx-gen-auth-reference`** lane in `guides/upgrade-path.md` (reference claim; guide + root tests)
-- Root integration tests proving actor and admin-gate patterns (no example-app auth swap)
-- Getting-started and evaluator docs that do not read as Sigra-required
-
-**Status:** Phase 121 complete (2026-05-28) — adopter doc neutrality shipped (ADOPT-AUTH-01/02/03). Phases 119–120 shipped phx-gen-auth guide and root integration proof; remaining v1.26 work is milestone closeout / `/gsd-complete-milestone`.
-
-**Queued themes (not in v1.26):**
-- **EXTERNAL-PILOT** — deferred until **sustained real-adopter signal** (pilot host, integration issue, procurement review); use [`guides/adoption-pilot-backlog.md`](guides/adoption-pilot-backlog.md) STG matrices for host-class gaps — not a synthetic milestone
-- **Hex 0.6.0 publish** — in-repo SSOT is 0.6.0; hex.pm latest still 0.5.0 (2026-05-27); push tag `v0.6.0` for CI publish
-- **v1.22 DEFER trio** — compliance packs, legal hold, immutable archive — only on sustained adopter/procurement pressure
+- **(v1.26)** `guides/integrations/phx-gen-auth.md` and **`phx-gen-auth-reference`** upgrade-path lane — four-lane adopter self-identification (`capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference`); root integration tests prove Plug + `authorize_fn` without Sigra; first-hour docs treat Sigra as optional peer reference.
 
 > **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
+
+## Prior milestone shipped: v1.25 Adopter-Ready Release & First-Hour Truth
+
+**Goal (achieved):** Make the shipped v1.22–v1.24 stack truthfully adoptable from Hex and remove first-hour doc/example friction — without compliance expansion or a second synthetic walkthrough.
+
+**Shipped:**
+- **threadline 0.6.0** — CHANGELOG, ExDoc Evidence group, `mix verify.release`, install-snippet SSOT `~> 0.6` across adopter surfaces
+- Narrative docs center `Threadline.Audit.transaction/3` in `guides/how-threadline-works.md` with README/getting-started discovery alignment and doc-contract locks
+- Example first-hour runbook — `:api` session plugs, Choose your path / Track A–B, Mix task ownership tables; `mix verify.example` green
+- Evidence-plane doc authority — split-guide map (no phantom hub), semver-not-milestone adopter prose, `0.5.x → 0.6.x` upgrade bullet
+- Evaluator one-pager at `guides/evaluating-threadline.md`; adoption-pilot verify ladder without stale test counts
+
+**Archives:** `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`, `.planning/milestones/v1.25-MILESTONE-AUDIT.md`
 
 ## Prior milestone shipped: v1.24 Audited Write Path & Adopter Truth
 

@@ -634,4 +634,44 @@
 
 ---
 
+## Milestone: v1.26 — Auth Lane Breadth
+
+**Shipped:** 2026-05-28  
+**Phases:** 3 (119–121) | **Plans:** 6 | **Tasks:** 11
+
+### What was built
+
+- `guides/integrations/phx-gen-auth.md` cookbook with host-owned `MyApp.AuditActor`, Plug order, admin `authorize_fn`, and explicit non-goals.
+- **`phx-gen-auth-reference`** lane in upgrade-path with four-lane matrix row and doc-contract proof anchors.
+- Root `phx_gen_auth_integration_test.exs` proving actor extraction, admin gate, and Plug smoke without Sigra.
+- Getting-started auth neutrality, README four-lane discovery, evaluator cross-links, and ADOPT-AUTH doc-contract gates.
+
+### What worked
+
+- Three-phase vertical slice (guide → root proof → doc neutrality) closed the diminishing-returns assessment wedge without a second reference app.
+- Milestone audit (`passed`, 11/11 requirements) before closeout; prior AUTH-GUIDE-01 blocker resolved by aligning guide unwrap with test contract.
+- Host-owned adapter pattern (`MyApp.AuditActor`) kept Threadline free of phx.gen.auth coupling in `lib/`.
+
+### What was inefficient
+
+- `summary-extract` CLI still returns frontmatter — accomplishments assembled from SUMMARY provides blocks at closeout.
+- Phase directories remain in `.planning/phases/`; optional `/gsd-cleanup` to archive under `milestones/v1.26-phases/`.
+
+### Patterns established
+
+- **Four-lane** adopter self-identification: `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference` — Sigra is optional peer, not default.
+- Root integration tests as proof for reference lanes that do not warrant a second example app.
+
+### Key lessons
+
+1. Guide + root proof beats a second reference app for majority Phoenix auth — assessment thread was right to cap scope at cookbook + CI.
+2. Doc neutrality is a separate phase from guide/proof — discovery order (README, getting-started, evaluator) drifts independently of integration snippets.
+
+### Cost observations
+
+- Timeline: ~1 day (2026-05-27 → 2026-05-28); 26 commits, +3133 / −98 LOC in milestone range.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends

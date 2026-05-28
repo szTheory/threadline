@@ -1,5 +1,35 @@
 # Project milestones: Threadline
 
+## v1.26 Auth Lane Breadth (Shipped: 2026-05-28)
+
+**Delivered:** phx.gen.auth integration cookbook, `phx-gen-auth-reference` upgrade-path lane with root CI proof, and adopter-doc neutrality so first-hour docs do not read as Sigra-required — without a second reference app or Threadline-owned auth.
+
+**Phases completed:** 3 phases (119-121), 6 plans, 11 tasks. Requirements: 11/11 satisfied (AUTH-GUIDE-01–03, AUTH-LANE-01–02, AUTH-PROOF-01–03, ADOPT-AUTH-01–03).
+
+**Key accomplishments:**
+
+- phx.gen.auth integration cookbook with host-owned MyApp.AuditActor Plug wiring, admin operator mount, and AUTH-GUIDE-03 non-goals
+- `phx-gen-auth-reference` lane in upgrade-path with four-lane matrix row and honest proof anchors (guide + root tests)
+- Root integration tests prove phx.gen.auth-shaped scope assigns, 1-arity admin authorize_fn, and Threadline.Plug smoke — without Sigra
+- Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; ADOPT-AUTH doc-contract gates
+
+**Stats:**
+
+- Timeline: ~1 day (2026-05-27 → 2026-05-28; feat(119-01) → Phase 121 closeout).
+- 26 commits, 41 files changed, +3133 / −98 LOC in milestone commit range.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.26-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.26-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.26-MILESTONE-AUDIT.md`
+
+**Tech debt (non-blocking):** ADOPT-AUTH-01 soft literal gaps in getting_started contract; §6 cookie staging prose still sigra-example-specific below collapsed curl; Hex publish via tag `v0.6.0`. See audit archive.
+
+**What is next:** `/gsd-new-milestone` — adopter-driven maintenance; external pilot on sustained signal only.
+
+---
+
 ## v1.25 Adopter-Ready Release & First-Hour Truth (Shipped: 2026-05-28)
 
 **Delivered:** Truthful Hex **threadline 0.6.0** packaging; narrative and example surfaces aligned on `Audit.transaction/3` as the blessed write path; evidence-plane doc authority with semver adopter prose; evaluator one-pager and refreshed adoption-pilot verify ladder — without compliance expansion or maintainer STG attestation claims.
@@ -33,19 +63,7 @@
 
 **Tech debt (non-blocking):** Nyquist partial on phases 115/117/118; optional manual Track A evaluator smoke. See audit archive.
 
-**What is next:** v1.26 Auth Lane Breadth opened 2026-05-27 — see `.planning/ROADMAP.md`.
-
----
-
-## v1.26 Auth Lane Breadth (Started: 2026-05-27)
-
-**Goal:** phx.gen.auth cookbook + root CI proof + upgrade-path `phx-gen-auth-reference` lane; getting-started auth neutrality — without replacing Sigra example or Threadline-owned auth.
-
-**Phases:** 119–121 (requirements defined; execution not started).
-
-**Assessment:** `.planning/threads/2026-05-27-diminishing-returns-assessment.md`
-
-**Deferred:** External pilot until sustained real-adopter signal; Hex publish via tag `v0.6.0`.
+**What is next:** v1.26 Auth Lane Breadth (shipped 2026-05-28) — see `.planning/ROADMAP.md` for deferred carry-forward.
 
 ---
 

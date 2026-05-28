@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.26
 milestone_name: Auth Lane Breadth
-status: executing
-last_updated: "2026-05-28T11:30:02.729Z"
-last_activity: 2026-05-28
+status: Awaiting next milestone
+last_updated: "2026-05-28T13:30:18.385Z"
+last_activity: 2026-05-28 — Milestone v1.26 completed and archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -17,22 +17,22 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-27)
+See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 121 — adopter-doc-neutrality
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 121
-Plan: Not started
-Status: Executing Phase 121
-Last activity: 2026-05-28
+Phase: Milestone v1.26 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-28 — Milestone v1.26 completed and archived
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.25 — Adopter-Ready Release & First-Hour Truth (2026-05-28)
-- **Scope completion (assessment)**: ~88–92% for stated narrow scope; phx.gen.auth lane is largest remaining reach gap
+- **Last Milestone Shipped**: v1.26 — Auth Lane Breadth (2026-05-28)
+- **Scope completion (assessment)**: phx.gen.auth reach wedge closed; shift to adopter-driven maintenance unless new signal
 - **Hex distribution**: in-repo **0.6.0**; hex.pm latest **0.5.0** (publish via tag `v0.6.0`)
 
 ## Deferred Items
@@ -61,12 +61,12 @@ Last activity: 2026-05-28
 
 ## Session Continuity
 
-- **Last Action**: Completed 119-02 — phx-gen-auth-reference lane prose in `guides/upgrade-path.md`.
-- **Next Step**: Phase 120 — matrix row, root integration tests, four-lane doc-contract locks
+- **Last Action**: Milestone v1.26 archived and tagged.
+- **Next Step**: `/gsd-new-milestone` when ready to plan v1.27+
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Plan **Phase 120** — upgrade-path matrix row + root integration tests + doc-contract locks
+- Run **`/gsd-new-milestone`** to define next scope from adopter signal
 - Maintainer: push **`v0.6.0`** tag when ready for hex.pm publish
 - Do **not** open external-pilot milestone until sustained adopter signal
