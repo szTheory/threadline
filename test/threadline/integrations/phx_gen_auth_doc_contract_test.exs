@@ -49,9 +49,23 @@ defmodule Threadline.PhxGenAuthDocContractTest do
     assert String.contains?(doc, "plug Threadline.Plug,")
     assert String.contains?(doc, "actor_fn: &MyApp.AuditActor.actor_ref_from_conn/1")
 
-    assert String.contains?(
-             doc,
-             "%{assigns: %{current_user: %{role: \"admin\"}}} -> :ok"
+    surface_start = "## Surface and export auth stay host-owned"
+    surface_end = "## Reference semantics"
+    {surface_idx, _} = :binary.match(doc, surface_start)
+    {semantics_idx, _} = :binary.match(doc, surface_end)
+    surface = binary_part(doc, surface_idx, semantics_idx - surface_idx)
+
+    assert String.contains?(surface, "authorize_fn:")
+    assert String.contains?(surface, "&MyApp.Audit.authorize_operator/1")
+    assert String.contains?(surface, "defmodule MyApp.Audit")
+    assert String.contains?(surface, "%{assigns: assigns}")
+    assert String.contains?(surface, "assigns[:current_scope]")
+    assert String.contains?(surface, "is_admin: true")
+    assert String.contains?(surface, "{:error, :unauthorized}")
+
+    refute String.contains?(
+             surface,
+             "%{assigns: %{current_user: %{role: \"admin\"}}}"
            )
 
     refute String.contains?(doc, "_, _ ->")
