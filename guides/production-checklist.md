@@ -4,6 +4,11 @@ Use this after the [README quickstart](../README.md#quick-start) and before trea
 
 For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md)** as the in-repo matrix and rubric: fixed-field topology (`STG-HOST-TOPOLOGY-TEMPLATE`) plus audited HTTP/job paths with honest status columns under **`STG-AUDITED-PATH-RUBRIC`**. Copy rows into issues when something fails; keep evidence pointers **redacted** and link out to integrator-controlled detail.
 
+## Host repo wiring (prerequisite)
+
+- [ ] `config :threadline, ecto_repos: [MyApp.Repo]` is set in `config/config.exs` ([getting-started §2 — Configure Threadline](getting-started-saas.md#configure-threadline)). Required for all `mix threadline.*` tasks that call `resolve_repo!/0` and for operator-surface Mix fallbacks when LiveView is denied or not mounted.
+- [ ] **Multi-database hosts:** list only the repo that holds audit tables **first** in `:ecto_repos`; do not mirror your full host `:ecto_repos` list unless the first entry is the audit database. Pass `repo:` on mount and on programmatic APIs when using a non-default repo.
+
 ## 1. Capture and triggers
 
 - [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment.
@@ -60,6 +65,8 @@ See also `guides/operator-surface.md` §"Coverage dashboard".
 - Cutoff clock, orphan **`audit_transactions`**, and empty-parent semantics stay in **[`domain-reference.md` — Retention (Phase 13)](domain-reference.md#retention-phase-13)** — do not fork a second spec in this checklist.
 
 ## 5. Export and investigation
+
+Confirm [Host repo wiring (prerequisite)](#host-repo-wiring-prerequisite) before running export or evidence Mix tasks in CI.
 
 - [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
