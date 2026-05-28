@@ -35,7 +35,12 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(guide, "Threadline does not introduce a separate adapter behaviour")
     assert String.contains?(guide, "These are the existing supported seams.")
-    assert String.contains?(guide, "evidence about its own governance and support-scope posture")
+
+    assert String.contains?(
+             guide,
+             "governance and support-scope posture the host chooses"
+           )
+
     assert String.contains?(guide, "Threadline-owned RBAC system")
     assert String.contains?(guide, "tenancy DSL")
     assert String.contains?(guide, "legal-hold flow")
@@ -69,7 +74,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
   test "integration-contracts guide locks the support-lane proof anchors" do
     guide = File.read!("guides/integration-contracts.md")
 
-    assert String.contains?(guide, "Capture-only adopters can stop here.")
+    assert String.contains?(guide, "Capture-only adopters on the **`capture-only`** lane can stop here.")
     assert String.contains?(guide, "`mix verify.compile_no_optional` proves that")
     assert String.contains?(guide, "surface without optional Phoenix UI dependencies.")
     assert String.contains?(guide, "Threadline.Integrations.Sigra` is the current model:")
@@ -131,5 +136,23 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "Threadline.Audit.transaction/3")
     assert String.contains?(guide, "capture-only")
     assert String.contains?(guide, "correlation-ready")
+  end
+
+  test "integration-contracts guide locks four-lane vocabulary and upgrade-path cross-link" do
+    guide = File.read!("guides/integration-contracts.md")
+
+    assert String.contains?(guide, "## Adoption lanes and integration seams")
+    assert String.contains?(guide, "guides/upgrade-path.md")
+
+    {idx_capture, _} = :binary.match(guide, "capture-only")
+    {idx_phoenix, _} = :binary.match(guide, "phoenix-surface")
+    {idx_phx_gen, _} = :binary.match(guide, "phx-gen-auth-reference")
+    {idx_sigra, _} = :binary.match(guide, "sigra-reference")
+
+    assert idx_capture < idx_phoenix
+    assert idx_phoenix < idx_phx_gen
+    assert idx_phx_gen < idx_sigra
+
+    refute String.contains?(guide, "| Lane | Claim type |")
   end
 end

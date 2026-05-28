@@ -15,6 +15,26 @@ The contract is intentionally code-shaped:
 Threadline does not introduce a separate adapter behaviour or umbrella protocol
 here. These are the existing supported seams.
 
+## Adoption lanes and integration seams
+
+Threadline adoption maps to four lane IDs in canonical order. Each lane names
+which seams from this guide you need:
+
+1. **`capture-only`** — `Threadline.Plug` and core APIs only; stop after the
+   request-path section below.
+2. **`phoenix-surface`** — optional Phoenix deps plus
+   `threadline_operator_surface/2`; the operator-surface mount is required.
+3. **`phx-gen-auth-reference`** — generated session auth (`mix phx.gen.auth`)
+   wired into `Threadline.Plug`; proof path in
+   `guides/integrations/phx-gen-auth.md`.
+4. **`sigra-reference`** — `Threadline.Integrations.Sigra` composed into
+   `Threadline.Plug`; proof path in the example app and
+   `guides/integrations/sigra.md`.
+
+For claim types, proof commands, version lifecycle, and the full matrix, see
+[`guides/upgrade-path.md`](upgrade-path.md) — do not duplicate that table
+here.
+
 ## Request path via `Threadline.Plug`
 
 `Threadline.Plug` attaches `%Threadline.Semantics.AuditContext{}` to
@@ -42,9 +62,9 @@ The request-path contract is:
 This seam does not provide a second actor channel. Additive metadata cannot
 replace actor identity or `remote_ip`.
 
-Capture-only adopters can stop here. `Threadline.Plug` plus the core APIs are
-the strongest supported lane, and `mix verify.compile_no_optional` proves that
-surface without optional Phoenix UI dependencies.
+Capture-only adopters on the **`capture-only`** lane can stop here.
+`Threadline.Plug` plus the core APIs are the strongest supported lane, and
+`mix verify.compile_no_optional` proves that surface without optional Phoenix UI dependencies.
 
 ## Job path via `Threadline.Job`
 
@@ -111,10 +131,11 @@ Contract bullets:
 - **Callback must not** call `set_config` for `threadline.actor_ref`, `Threadline.record_action/2`,
   or nested `Repo.transaction/1` — the helper owns GUC, action recording, and linkage.
 
-## Reference integrations via `Threadline.Integrations.*`
+## Reference integrations via `Threadline.Integrations.*` (`sigra-reference` lane)
 
-`Threadline.Integrations.*` modules are reference adapters. They translate host
-or framework state into the existing Threadline-native seams above.
+`Threadline.Integrations.*` modules are reference adapters for the
+**`sigra-reference`** lane. They translate host or framework state into the
+existing Threadline-native seams above.
 
 `Threadline.Integrations.Sigra` is the current model:
 
@@ -137,7 +158,9 @@ or `Threadline.Job`; it should not redefine those contracts.
 
 ## Operator-surface composition via `authorize_fn` and `export_authorize_fn`
 
-The operator surface is one breadth contract with two transport faces:
+The operator surface is required for the **`phoenix-surface`** lane and for
+reference lanes that mount `threadline_operator_surface/2`. It is one breadth
+contract with two transport faces:
 
 - LiveView mount/auth via `authorize_fn`
 - scoped investigation queries via optional `scope_query_fn`
