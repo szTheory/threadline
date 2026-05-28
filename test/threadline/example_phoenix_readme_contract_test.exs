@@ -65,7 +65,12 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "timeline, actor, transaction, and export denial")
     assert String.contains?(doc, "`export_authorize_fn`")
     assert String.contains?(doc, "`evidence_authorize_fn`")
-    assert String.contains?(doc, "evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1")
+
+    assert String.contains?(
+             doc,
+             "evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1"
+           )
+
     assert String.contains?(doc, "shared scoped `/audit` proof now includes")
     assert String.contains?(doc, "history / as-of")
     assert String.contains?(doc, "HTTP-native `403`")

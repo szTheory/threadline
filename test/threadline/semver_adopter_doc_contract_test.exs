@@ -15,6 +15,7 @@ defmodule Threadline.SemverAdopterDocContractTest do
     for path <- @adopter_paths do
       doc = File.read!(path)
       refute Regex.match?(@milestone_pattern, doc), "expected no v1.2x in #{path}"
+
       refute String.contains?(doc, "guides/evidence-plane.md"),
              "expected no phantom evidence-plane hub in #{path}"
     end

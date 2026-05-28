@@ -76,7 +76,12 @@ defmodule Threadline.UpgradePathDocContractTest do
 
     assert String.contains?(guide, "You are on the `phx-gen-auth-reference` lane")
     assert String.contains?(guide, "| `phx-gen-auth-reference` | `reference` |")
-    assert String.contains?(guide, "test/threadline/integrations/phx_gen_auth_integration_test.exs")
+
+    assert String.contains?(
+             guide,
+             "test/threadline/integrations/phx_gen_auth_integration_test.exs"
+           )
+
     assert String.contains?(guide, "guides/integrations/phx-gen-auth.md")
     refute String.contains?(guide, "forthcoming")
   end
@@ -84,7 +89,11 @@ defmodule Threadline.UpgradePathDocContractTest do
   test "phx-gen-auth guide cites integration test proof" do
     guide = File.read!("guides/integrations/phx-gen-auth.md")
 
-    assert String.contains?(guide, "test/threadline/integrations/phx_gen_auth_integration_test.exs")
+    assert String.contains?(
+             guide,
+             "test/threadline/integrations/phx_gen_auth_integration_test.exs"
+           )
+
     refute String.contains?(guide, "forthcoming")
     refute String.contains?(guide, "_, _ ->")
   end
