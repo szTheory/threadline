@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
 status: verifying
-last_updated: "2026-05-28T21:20:05.925Z"
+last_updated: "2026-05-28T21:27:01.484Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 3
