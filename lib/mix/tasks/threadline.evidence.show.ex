@@ -105,7 +105,8 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
   defp validate_request_shape!(subject, nil) when is_binary(subject), do: :ok
 
   defp validate_request_shape!(subject, subject_ref)
-       when is_binary(subject) and is_map(subject_ref), do: :ok
+       when is_binary(subject) and is_map(subject_ref),
+       do: :ok
 
   defp validate_request_shape!(nil, subject_ref) when is_map(subject_ref) do
     Mix.raise("threadline.evidence.show: --subject-ref-json requires --subject")
