@@ -1,5 +1,39 @@
 # Project milestones: Threadline
 
+## v1.29 First-Hour Parity (Shipped: 2026-05-29)
+
+**Delivered:** README Quick Start `ecto_repos` parity; scope-first phx-gen-auth mount with integration proof; WALKTHROUGH verify cwd and row-history URL truth; Nyquist 125 finalized; SUMMARY frontmatter SSOT; planning-metadata audit closeout via Phase 130.1.
+
+**Phases completed:** 4 phases (128-130.1), 8 plans, 24 tasks. Requirements: 10/10 satisfied (README-01–02, TRIG-01, AUTH-MOUNT-01–02, WALK-01–03, NYQ-01, PLAN-01).
+
+**Key accomplishments:**
+
+- README Quick Start renumbered to six steps with explicit `ecto_repos` config before install, posts-only triggers, and section_slice doc-contract locks
+- Scope-first `authorize_fn` callback ref with `MyApp.Audit.authorize_operator/1`, `is_admin` gate, integration proof, and surface-section doc-contract locks
+- WALKTHROUGH.md no longer sends maintainers to root verify or pasteable /audit/rows/ URLs.
+- Doc-contract tests prevent WALKTHROUGH verify and row-history regressions.
+- Phase 125 Nyquist proof chain archived under v1.27 milestones, charter test locks v1.29, and 125-VALIDATION finalized after fresh Tier 1 green on current tree.
+- PLAN-01 SSOT for three-source SUMMARY frontmatter, v1.27 archive with GAP backfill, and NYQ-01 closed after single green `mix ci.all` on current tree.
+- Phase 130.1 reconciled ROADMAP/REQUIREMENTS authority, documented Nyquist waivers for doc-only phases 128–129, and closed audit planning-metadata drift.
+
+**Stats:**
+
+- Timeline: ~2 days (2026-05-28 → 2026-05-29; Phase 128 → Phase 130.1 closeout).
+- Git range: 50 commits; 66 files changed, +6547 / −108 LOC.
+- Audit: `tech_debt` — 10/10 requirements, 4/4 phases verified, no blockers.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.29-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.29-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.29-MILESTONE-AUDIT.md`
+
+**Tech debt (non-blocking):** Nyquist VALIDATION.md waived for doc-only phases 128–129; see audit archive.
+
+**What is next:** `/gsd-new-milestone` — default **Hold**; v1.28 External Pilot only on sustained real-adopter signal.
+
+---
+
 ## v1.27 Distribution & First-Hour Finish (Shipped: 2026-05-28)
 
 **Delivered:** Hex **threadline 0.6.0** published; first-hour `ecto_repos` config documented and contract-locked; adopter docs finished (auth-neutral §6, `:schemas` reification, evidence host-write boundary, four-lane vocabulary); gap-closure phases reconciled authority surfaces, signed Nyquist validation on 122–124, and wired runnable `:schemas` demonstration in the example app.

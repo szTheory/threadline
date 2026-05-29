@@ -8,25 +8,26 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.29 First-Hour Parity — **Complete** (2026-05-29)
+## Latest Milestone Shipped: v1.29 First-Hour Parity (2026-05-29)
 
 **Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
 
 **Shipped:**
 - **README + phx-gen-auth mount parity** — ✓ Phase 128 (2026-05-28)
-- **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-28): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
+- **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-29): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
 - **Verify/planning hygiene** — ✓ Phase 130 (2026-05-29): Nyquist 125 archived + finalized; SUMMARY frontmatter SSOT; NYQ-01 + PLAN-01 closed
 - **Planning metadata hygiene** — ✓ Phase 130.1 (2026-05-29): ROADMAP/REQUIREMENTS authority aligned; Nyquist waivers for 128–129; audit tech debt closed
 
-**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
-
-## Latest Milestone Shipped: v1.29 First-Hour Parity (2026-05-29)
-
-**Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt.
-
-**Shipped:** Phases 128–130 + 130.1 planning-metadata closeout. See ROADMAP and `.planning/v1.29-MILESTONE-AUDIT.md`.
+**Archives:** `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`, `.planning/milestones/v1.29-MILESTONE-AUDIT.md`
 
 **Next milestone (queued):** **Hold** — v1.28 External Pilot only on sustained real-adopter signal.
+
+<details>
+<summary>v1.29 planning snapshot (archived)</summary>
+
+**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
+
+</details>
 
 ## Prior shipped milestone: v1.27 Distribution & First-Hour Finish
 
@@ -368,10 +369,14 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **DIST-01** through **DIST-03 (Phase 122)** — hex.pm **0.6.0** published via `release.yml`; adoption-pilot Hex row OK; CHANGELOG four-lane upgrade bullet; conditional anti-stale doc contracts. Validated in Phase 122 (2026-05-28).
 - [x] **CFG-01** through **CFG-03 (Phase 123)** — `ecto_repos` in getting-started §2 before install; doc-contract ordering lock; production-checklist prerequisite band cross-link. Validated in Phase 123 (2026-05-28).
 - [x] **DOC-01** through **DOC-05 (Phase 124)** — IEx-first §6 auth-neutral staging; ADOPT-AUTH strict literals; `:schemas` mount for row history; evidence host-write boundary; integration-contracts four-lane vocabulary aligned with upgrade-path. Validated in Phase 124 (2026-05-28).
+- [x] **README-01** / **README-02** / **TRIG-01 (Phase 128)** — README Quick Start `ecto_repos` before install; doc-contract locks; trigger SSOT cross-links. Validated in v1.29 (2026-05-28).
+- [x] **AUTH-MOUNT-01** / **AUTH-MOUNT-02 (Phase 128)** — phx-gen-auth scope-first `authorize_fn` mount; integration proof and doc-contract locks. Validated in v1.29 (2026-05-28).
+- [x] **WALK-01** / **WALK-02** / **WALK-03 (Phase 129)** — WALKTHROUGH verify cwd and row-history URL truth with doc-contract locks. Validated in v1.29 (2026-05-29).
+- [x] **NYQ-01** / **PLAN-01 (Phase 130)** — `125-VALIDATION.md` Nyquist finalized; SUMMARY `requirements-completed` SSOT and v1.27 GAP backfill. Validated in v1.29 (2026-05-29).
 
 ### Active
 
-_(v1.29 First-Hour Parity — see `.planning/REQUIREMENTS.md`.)_
+_(No active milestone — run `/gsd-new-milestone`. Default recommendation: **Hold** until sustained adopter signal.)_
 
 ### Out of Scope
 
@@ -403,7 +408,7 @@ _(v1.29 First-Hour Parity — see `.planning/REQUIREMENTS.md`.)_
 
 **Hex distribution (2026-05-28):** **threadline 0.6.0** published on hex.pm; adoption-pilot and evaluator surfaces honest about version (v1.27 DIST-01–03).
 
-**Path-to-done posture (2026-05-28):** **~92% done** for stated narrow audit-platform scope (band: 90–95% near-done / diminishing returns soon). Core JTBD, operator surface, evidence plane, auth lanes, and Hex story are credible. Remaining delta is doc parity + pilot validation, not missing engine. **No adopter signal today** — default **hold**; optional thin **v1.29** (README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125); **v1.28** only on sustained signal. Assessment: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`; roadmap: `.planning/MILESTONE-ARC.md` § Path to done.
+**Path-to-done posture (2026-05-29):** **~92–95% done** for stated narrow audit-platform scope. v1.29 closed remaining first-hour doc footguns and verify/planning hygiene. **Default hold** — no adopter signal today; v1.28 only on sustained signal. Assessment: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`; roadmap: `.planning/MILESTONE-ARC.md` § Path to done.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -453,8 +458,8 @@ _(v1.29 First-Hour Parity — see `.planning/REQUIREMENTS.md`.)_
 | v1.25 ships 0.6.0 + first-hour truth without compliance expansion | Release packaging, narrative/example alignment, evidence-plane doc authority, and optional evaluator one-pager close the synthetic adopter wedge; Nyquist gaps on 115/117/118 are non-blocking tech debt. | ✓ Shipped (Phases 114-118, v1.25, 2026-05-28) |
 | v1.26 auth lane breadth closes phx.gen.auth reach without second reference app | Guide + root CI proof pattern beats runnable second example; four-lane matrix complete; Sigra remains optional peer reference. | ✓ Shipped (Phases 119-121, v1.26, 2026-05-28) |
 | v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | ✓ Shipped (Phases 122-127, v1.27, 2026-05-28) |
-| Post-v1.27 path-to-done: hold default at ~92%; optional v1.29 hygiene; v1.28 signal-gated | Repo inspection confirms core lib shipped, Hex 0.6.0 aligned, getting-started spine complete; remaining footguns are README Quick Start `ecto_repos`, phx-gen-auth mount snippet, WALKTHROUGH cwd/URL — polish not engine. No adopter signal — do not open synthetic product milestones beyond optional thin v1.29. | ✓ Opened v1.29 (2026-05-28) |
-| v1.29 is the last optional synthetic hygiene pass before hold | First-hour doc parity + Nyquist 125 + WALKTHROUGH truth close adopter-facing footguns without pilot pretense or product expansion. | — Active (2026-05-28) |
+| Post-v1.27 path-to-done: hold default at ~92%; optional v1.29 hygiene; v1.28 signal-gated | Repo inspection confirms core lib shipped, Hex 0.6.0 aligned, getting-started spine complete; remaining footguns are README Quick Start `ecto_repos`, phx-gen-auth mount snippet, WALKTHROUGH cwd/URL — polish not engine. No adopter signal — do not open synthetic product milestones beyond optional thin v1.29. | ✓ Shipped (v1.29, 2026-05-29) |
+| v1.29 is the last optional synthetic hygiene pass before hold | First-hour doc parity + Nyquist 125 + WALKTHROUGH truth close adopter-facing footguns without pilot pretense or product expansion. | ✓ Shipped (Phases 128–130.1, v1.29, 2026-05-29) |
 
 ## Evolution
 
@@ -476,4 +481,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-28 — milestone v1.29 First-Hour Parity started*
+*Last updated: 2026-05-29 after v1.29 milestone*

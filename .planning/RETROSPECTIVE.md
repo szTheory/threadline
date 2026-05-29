@@ -769,4 +769,45 @@
 
 ---
 
+## Milestone: v1.29 — First-Hour Parity
+
+**Shipped:** 2026-05-29  
+**Phases:** 4 (128–130.1) | **Plans:** 8 | **Tasks:** 24
+
+### What was built
+
+- README Quick Start renumbered with `ecto_repos` before install, posts-only triggers, and doc-contract locks.
+- phx-gen-auth scope-first `authorize_fn` mount with integration proof and surface-section doc-contract locks.
+- WALKTHROUGH verify cwd and row-history URL truth with two-tier doc-contract tests.
+- Nyquist 125 finalized under v1.27 milestone archive; SUMMARY `requirements-completed` SSOT; v1.27 GAP backfill.
+- Phase 130.1 closed planning-metadata audit drift (ROADMAP/REQUIREMENTS authority, Nyquist waivers for doc-only phases).
+
+### What worked
+
+- Thin hygiene milestone scoped correctly — doc parity and verify debt without pilot pretense or product expansion.
+- Decimal phase 130.1 pattern closed audit remainder without reopening delivery phases.
+- Doc-contract tests as closeout gate — session-close `mix ci.all` (744 + 61 tests) as authoritative proof.
+
+### What was inefficient
+
+- Milestone grew from 3 planned phases to 4 after audit (130.1) — predictable Threadline closeout pattern.
+- Charter doc-contract literals require update at every milestone closeout (D-130.1-08).
+
+### Patterns established
+
+- **Nyquist waiver documentation** for doc-only phases when VERIFICATION passes but VALIDATION.md is intentionally absent.
+- **Three-source SUMMARY frontmatter** (`requirements-completed` hyphenated SSOT) for audit traceability.
+
+### Key lessons
+
+1. README Quick Start is a distinct surface from getting-started §2 — both need `ecto_repos` parity for evaluators who never open the guide.
+2. WALKTHROUGH truth (cwd + URL presentation) is maintainer-facing but blocks credible dry-runs — treat as first-hour scope.
+
+### Cost observations
+
+- Timeline: ~2 days (2026-05-28 → 2026-05-29); 50 commits; 66 files changed.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends
