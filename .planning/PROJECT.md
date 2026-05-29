@@ -8,14 +8,14 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.29 First-Hour Parity
+## Current Milestone: v1.29 First-Hour Parity — **Complete** (2026-05-29)
 
-**Goal:** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
+**Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
 
-**Target features:**
-- **README + phx-gen-auth mount parity** — ✓ Phases 128 (2026-05-28)
+**Shipped:**
+- **README + phx-gen-auth mount parity** — ✓ Phase 128 (2026-05-28)
 - **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-28): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
-- **Verify/planning hygiene** — Nyquist finalize on Phase 125; SUMMARY frontmatter convention for requirements-completed values
+- **Verify/planning hygiene** — ✓ Phase 130 (2026-05-29): Nyquist 125 archived + finalized; SUMMARY frontmatter SSOT; NYQ-01 + PLAN-01 closed
 
 **Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
 

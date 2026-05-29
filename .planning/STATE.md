@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
-status: executing
-last_updated: "2026-05-29T01:35:00Z"
-last_activity: 2026-05-29 -- Completed 130-02-PLAN.md
+status: completed
+last_updated: "2026-05-29T00:49:19.383Z"
+last_activity: 2026-05-29
 progress:
   total_phases: 3
   completed_phases: 3
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 130 — Verify & Planning Hygiene (complete)
-Plan: 2 of 2 complete (130-01, 130-02)
+Phase: 130
+Plan: Not started
 Status: v1.29 phases done; ready for milestone audit / ship
-Last activity: 2026-05-29 -- Completed 130-02 SUMMARY convention + session-close ci.all
+Last activity: 2026-05-29
 
 ## Performance Metrics
 
