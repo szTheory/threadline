@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
 status: executing
-last_updated: "2026-05-28T21:28:39.201Z"
-last_activity: 2026-05-28 -- Phase 129 planning complete
+last_updated: "2026-05-29T00:25:52.680Z"
+last_activity: 2026-05-29
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 2
-  percent: 33
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 128 — readme-phx-gen-auth-mount-parity
+**Current focus:** Phase 129 — walkthrough-truth
 
 ## Current Position
 
-Phase: 129
+Phase: 130
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-28 -- Phase 129 planning complete
+Status: Executing Phase 129
+Last activity: 2026-05-29
 
 ## Performance Metrics
 

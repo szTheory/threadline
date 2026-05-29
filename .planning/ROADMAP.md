@@ -25,7 +25,7 @@
 ## Phases
 
 - [x] **Phase 128: README + phx-gen-auth Mount Parity** — Close README Quick Start and phx-gen-auth mount footguns
-- [ ] **Phase 129: WALKTHROUGH Truth** — Fix verify cwd and row-history URL honesty in maintainer runbook
+- [x] **Phase 129: WALKTHROUGH Truth** — Fix verify cwd and row-history URL honesty in maintainer runbook (completed 2026-05-29)
 - [ ] **Phase 130: Verify & Planning Hygiene** — Nyquist finalize on Phase 125; SUMMARY frontmatter convention
 
 ## Phase Details
@@ -85,5 +85,5 @@
 | Phase | Milestone | Plans Complete | Status | Completed |
 | ----- | --------- | -------------- | ------ | --------- |
 | 128 README + phx-gen-auth Mount Parity | v1.29 | 2/2 | Complete    | 2026-05-28 |
-| 129 WALKTHROUGH Truth | v1.29 | 0/? | Pending | — |
+| 129 WALKTHROUGH Truth | v1.29 | 2/2 | Complete    | 2026-05-29 |
 | 130 Verify & Planning Hygiene | v1.29 | 0/? | Pending | — |

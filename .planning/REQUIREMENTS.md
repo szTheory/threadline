@@ -24,9 +24,9 @@
 
 ### WALKTHROUGH truth (Phase 129)
 
-- [ ] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` runs `mix verify.threadline` from repo root (or documents cwd explicitly if a wrapper is introduced) — alias lives on root `mix.exs`, not example app.
-- [ ] **WALK-02**: WALKTHROUGH row-history URLs match shipped transaction-scoped route (`/audit/transactions/:id/history/:table/:record_id`) or clearly label shorthand vs canonical path with navigation steps from transaction drill-down.
-- [ ] **WALK-03**: Doc-contract test locks WALKTHROUGH verify cwd and row-history URL truth (extend `walkthrough_doc_contract_test.exs` or dedicated contract).
+- [x] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` runs `mix verify.threadline` from repo root (or documents cwd explicitly if a wrapper is introduced) — alias lives on root `mix.exs`, not example app.
+- [x] **WALK-02**: WALKTHROUGH row-history URLs match shipped transaction-scoped route (`/audit/transactions/:id/history/:table/:record_id`) or clearly label shorthand vs canonical path with navigation steps from transaction drill-down.
+- [x] **WALK-03**: Doc-contract test locks WALKTHROUGH verify cwd and row-history URL truth (extend `walkthrough_doc_contract_test.exs` or dedicated contract).
 
 ### Verify/planning hygiene (Phase 130)
 
@@ -72,9 +72,9 @@ Deferred until after v1.29 or on signal.
 | TRIG-01 | 128 | Complete |
 | AUTH-MOUNT-01 | 128 | Complete |
 | AUTH-MOUNT-02 | 128 | Complete |
-| WALK-01 | 129 | Pending |
-| WALK-02 | 129 | Pending |
-| WALK-03 | 129 | Pending |
+| WALK-01 | 129 | Complete |
+| WALK-02 | 129 | Complete |
+| WALK-03 | 129 | Complete |
 | NYQ-01 | 130 | Pending |
 | PLAN-01 | 130 | Pending |
 
