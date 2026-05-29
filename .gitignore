@@ -42,4 +42,6 @@ vendor/
 tmp/
 /bench/_build/
 /bench/deps/
+/priv/ci/hex_evaluator/_build/
+/priv/ci/hex_evaluator/deps/
 /bench/results/*.json

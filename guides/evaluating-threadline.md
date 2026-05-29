@@ -35,6 +35,7 @@ In-repo evidence includes:
 - **`mix verify.*` ladder** and **`mix verify.doc_contract`** — doc-contract tests lock public prose to code.
 - **PgBouncer transaction-mode class** via **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through a transaction pooler).
 - **Reference app CI-class HTTP paths** via `mix verify.example` (`examples/threadline_phoenix`).
+- **Hex-published install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` depends on `{:threadline, "~> 0.6"}` from hex.pm — not a path dep).
 
 ## What integrators must prove (host-class)
 
@@ -51,7 +52,7 @@ Use [`guides/production-checklist.md`](production-checklist.md) for the checklis
 
 1. **`mix deps.get`** — resolve dependencies from the tree you are evaluating.
 2. **Full contributor gate** — `DB_PORT=5433 MIX_ENV=test mix ci.all` when Postgres is available (see [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Compose port `5433` and env setup). The chain runs: `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract`.
-3. **Targeted checks** — `mix verify.doc_contract` and/or `mix verify.example` when you only need doc or reference-app proof.
+3. **Targeted checks** — `mix verify.doc_contract`, `mix verify.example`, and/or `mix verify.hex_evaluator` when you only need doc, reference-app, or Hex-install proof.
 4. **Optional Track A (sigra-reference)** — walk `examples/threadline_phoenix` per its README and walkthrough docs.
 
 Cite **entrypoint names only** when recording evidence — do not substitute test counts for proof.

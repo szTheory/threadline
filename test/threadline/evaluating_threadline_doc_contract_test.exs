@@ -41,6 +41,7 @@ defmodule Threadline.EvaluatingThreadlineDocContractTest do
     assert String.contains?(guide, "mix ci.all")
     assert String.contains?(guide, "mix verify.doc_contract")
     assert String.contains?(guide, "mix verify.example")
+    assert String.contains?(guide, "mix verify.hex_evaluator")
   end
 
   test "evaluating guide states host-owned boundaries and STG template pointers (PILOT-02)" do

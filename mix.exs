@@ -15,7 +15,8 @@ defmodule Threadline.MixProject do
         "verify.test": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
-        "verify.example": :test
+        "verify.example": :test,
+        "verify.hex_evaluator": :test
       ]
     ]
   end
@@ -83,6 +84,7 @@ defmodule Threadline.MixProject do
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
+      "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
       "ci.all": [
@@ -128,6 +130,16 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
       0 -> :ok
       status -> Mix.raise("verify.example failed (#{status})")
+    end
+  end
+
+  defp verify_hex_evaluator(_args) do
+    cmd =
+      "bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test'"
+
+    case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
+      0 -> :ok
+      status -> Mix.raise("verify.hex_evaluator failed (#{status})")
     end
   end
 
