@@ -86,4 +86,4 @@
 | ----- | --------- | -------------- | ------ | --------- |
 | 128 README + phx-gen-auth Mount Parity | v1.29 | 2/2 | Complete    | 2026-05-28 |
 | 129 WALKTHROUGH Truth | v1.29 | 2/2 | Complete    | 2026-05-29 |
-| 130 Verify & Planning Hygiene | v1.29 | 0/? | Pending | — |
+| 130 Verify & Planning Hygiene | v1.29 | 1/2 | In Progress|  |

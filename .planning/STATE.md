@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
 status: executing
-last_updated: "2026-05-29T00:41:55.667Z"
-last_activity: 2026-05-29 -- Phase 130 planning complete
+last_updated: "2026-05-29T00:52:00Z"
+last_activity: 2026-05-29 -- Completed 130-01-PLAN.md
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 130 — verify-planning-hygiene
+**Current focus:** Phase 130 — Verify & Planning Hygiene
 
 ## Current Position
 
-Phase: 130
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-29 -- Phase 130 planning complete
+Phase: 130 — Verify & Planning Hygiene (in progress)
+Plan: 1 of 2 complete (130-01 done; 130-02 next)
+Status: Executing Phase 130
+Last activity: 2026-05-29 -- Completed 130-01 Nyquist 125 archive + Tier 1 finalize
 
 ## Performance Metrics
 
@@ -63,11 +63,12 @@ Last activity: 2026-05-29 -- Phase 130 planning complete
 
 ## Session Continuity
 
-- **Last Action**: Phase 130 context gathered — Nyquist 125 archive + GAP ID convention (2026-05-29)
-- **Next Step**: `/gsd-plan-phase 130`
-- **Resume file**: `.planning/phases/130-verify-planning-hygiene/130-CONTEXT.md`
+- **130-01 (2026-05-29):** Phase 125 archived under `milestones/v1.27-phases/`; `125-VALIDATION.md` finalized after Tier 1 green; charter test v1.29.
+- **Last Action**: Completed 130-01-PLAN.md (2026-05-29)
+- **Next Step**: Execute **130-02** (SUMMARY convention, GAP backfill, session-close `mix ci.all`)
+- **Resume file**: `.planning/phases/130-verify-planning-hygiene/130-02-PLAN.md`
 
 ## Operator Next Steps
 
-- Phase 129 complete — proceed to **Phase 130** (Nyquist 125 finalize + SUMMARY convention)
+- **130-01 complete** — proceed to **130-02** (PLAN-01 convention + `mix ci.all` closeout)
 - Do **not** open v1.28 external pilot until sustained adopter signal
