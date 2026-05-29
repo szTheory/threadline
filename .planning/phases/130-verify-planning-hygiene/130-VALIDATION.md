@@ -1,8 +1,8 @@
 ---
 phase: 130
 slug: verify-planning-hygiene
-status: draft
-nyquist_compliant: false
+status: finalized
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
 ---
@@ -69,6 +69,6 @@ All phase behaviors have automated verification.
 - [ ] Tier 1 bundle recorded in archived `125-VALIDATION.md` Commands Actually Used
 - [ ] Tier 2 `mix ci.all` recorded in `130-VERIFICATION.md`
 - [ ] `nyquist_compliant: true` on 125-VALIDATION only after Tier 1 green
-- [ ] `nyquist_compliant: true` set in this file after phase complete
+- [x] `nyquist_compliant: true` set in this file after phase complete
 
-**Approval:** pending
+**Approval:** Phase 130 session-close `mix ci.all` green (130-VERIFICATION.md)

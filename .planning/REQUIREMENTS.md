@@ -30,8 +30,8 @@
 
 ### Verify/planning hygiene (Phase 130)
 
-- [ ] **NYQ-01**: `.planning/milestones/v1.27-phases/125-authority-surface-reconciliation/125-VALIDATION.md` signed `nyquist_compliant: true` with green verification bundle recorded.
-- [ ] **PLAN-01**: `.planning/conventions/summary-frontmatter.md` documents `requirements-completed` convention; v1.27 gap-closure SUMMARYs (125–127) backfilled with GAP IDs.
+- [x] **NYQ-01**: `.planning/milestones/v1.27-phases/125-authority-surface-reconciliation/125-VALIDATION.md` signed `nyquist_compliant: true` with green verification bundle recorded.
+- [x] **PLAN-01**: `.planning/conventions/summary-frontmatter.md` documents `requirements-completed` convention; v1.27 gap-closure SUMMARYs (125–127) backfilled with GAP IDs.
 
 ---
 
@@ -75,8 +75,8 @@ Deferred until after v1.29 or on signal.
 | WALK-01 | 129 | Complete |
 | WALK-02 | 129 | Complete |
 | WALK-03 | 129 | Complete |
-| NYQ-01 | 130 | Pending |
-| PLAN-01 | 130 | Pending |
+| NYQ-01 | 130 | Complete |
+| PLAN-01 | 130 | Complete |
 
 **Coverage:**
 
@@ -86,4 +86,4 @@ Deferred until after v1.29 or on signal.
 
 ---
 *Requirements defined: 2026-05-28*
-*Last updated: 2026-05-28 after milestone v1.29 initialization*
+*Last updated: 2026-05-28 after Phase 130 closeout (NYQ-01, PLAN-01 complete)*
