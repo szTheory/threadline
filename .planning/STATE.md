@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
-status: completed
-last_updated: "2026-05-29T00:49:19.383Z"
-last_activity: 2026-05-29
+status: executing
+last_updated: "2026-05-29T01:00:01.445Z"
+last_activity: 2026-05-29 -- Phase 130.1 execution started
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 6
   completed_plans: 6
-  percent: 100
+  percent: 75
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.29 milestone closeout — all phases 128–130 complete
+**Current focus:** Phase 130.1 — Address tech debt: planning metadata hygiene
 
 ## Current Position
 
-Phase: 130
-Plan: Not started
-Status: v1.29 phases done; ready for milestone audit / ship
-Last activity: 2026-05-29
+Phase: 130.1 (Address tech debt: planning metadata hygiene) — EXECUTING
+Plan: 1 of ?
+Status: Executing Phase 130.1
+Last activity: 2026-05-29 -- Phase 130.1 execution started
 
 ## Performance Metrics
 
@@ -47,6 +47,10 @@ Last activity: 2026-05-29
 | Pow / bearer auth lane | On explicit demand only | Not planned |
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 130.1 inserted after Phase 130: Address tech debt: planning metadata hygiene (URGENT)
 
 ### Decisions
 
