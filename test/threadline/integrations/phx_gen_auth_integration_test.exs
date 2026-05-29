@@ -94,7 +94,9 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
           scope: %{user: PhxGenAuthFixtures.admin_scope_user()}
         )
 
-      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+      conn_out =
+        ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+
       refute conn_out.halted
     end
 
@@ -104,7 +106,8 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
           scope: %{user: PhxGenAuthFixtures.member_scope_user()}
         )
 
-      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+      conn_out =
+        ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
 
       assert conn_out.halted
       assert conn_out.status == 403
@@ -118,7 +121,9 @@ defmodule Threadline.Integrations.PhxGenAuthIntegrationTest do
           current_user: %{is_admin: true, id: "legacy-admin"}
         )
 
-      conn_out = ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+      conn_out =
+        ExportAuthPlug.call(conn, ExportAuthPlug.init(authorize_fn: &Audit.authorize_operator/1))
+
       refute conn_out.halted
     end
   end
