@@ -4,13 +4,13 @@ milestone: v1.29
 milestone_name: First-Hour Parity
 status: ready_to_ship
 last_updated: "2026-05-29T12:00:00.000Z"
-last_activity: 2026-05-29 -- Phase 130.1 execution complete
+last_activity: 2026-05-29 -- Phase 130.1 complete; ready for milestone closeout
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 Phase: 130.1 (address-tech-debt-planning-metadata-hygiene) — COMPLETE
 Plan: 2 of 2
-Status: Verification passed — ready for milestone closeout
+Status: Verification passed — ready for `/gsd-complete-milestone v1.29`
 Last activity: 2026-05-29 -- Phase 130.1 execution complete
 
 ## Performance Metrics

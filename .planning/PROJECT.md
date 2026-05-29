@@ -16,10 +16,19 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **README + phx-gen-auth mount parity** — ✓ Phase 128 (2026-05-28)
 - **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-28): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
 - **Verify/planning hygiene** — ✓ Phase 130 (2026-05-29): Nyquist 125 archived + finalized; SUMMARY frontmatter SSOT; NYQ-01 + PLAN-01 closed
+- **Planning metadata hygiene** — ✓ Phase 130.1 (2026-05-29): ROADMAP/REQUIREMENTS authority aligned; Nyquist waivers for 128–129; audit tech debt closed
 
 **Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
 
-## Latest Milestone Shipped: v1.27 Distribution & First-Hour Finish
+## Latest Milestone Shipped: v1.29 First-Hour Parity (2026-05-29)
+
+**Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt.
+
+**Shipped:** Phases 128–130 + 130.1 planning-metadata closeout. See ROADMAP and `.planning/v1.29-MILESTONE-AUDIT.md`.
+
+**Next milestone (queued):** **Hold** — v1.28 External Pilot only on sustained real-adopter signal.
+
+## Prior shipped milestone: v1.27 Distribution & First-Hour Finish
 
 **Goal (achieved):** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
 

@@ -16,7 +16,7 @@
 **Milestone:** v1.29 — First-Hour Parity — **Complete** (2026-05-29)
 **Status:** Hold — v1.28 External Pilot signal-gated; no adopter signal
 **Last shipped:** v1.29 — First-Hour Parity (2026-05-29)
-**Next step:** `/gsd-complete-milestone v1.29` after Phase 130.1 green
+**Next step:** `/gsd-complete-milestone v1.29`
 
 **Assessment:** v1.29 Phases 128–130 complete; Phase 130.1 closes audit planning-metadata remainder. Post-v1.27 path-to-done ~92%; remaining delta is doc parity + verify hygiene, not missing engine. No adopter signal — v1.28 deferred.
 
@@ -87,6 +87,7 @@
 | 128 README + phx-gen-auth Mount Parity | v1.29 | 2/2 | Complete    | 2026-05-28 |
 | 129 WALKTHROUGH Truth | v1.29 | 2/2 | Complete    | 2026-05-29 |
 | 130 Verify & Planning Hygiene | v1.29 | 2/2 | Complete    | 2026-05-29 |
+| 130.1 Planning Metadata Hygiene | v1.29 | 2/2 | Complete    | 2026-05-29 |
 
 ### Phase 130.1: Address tech debt: planning metadata hygiene (INSERTED)
 
@@ -94,7 +95,7 @@
 
 **Requirements:** (audit-driven; no new REQ-IDs)
 **Depends on:** Phase 130
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 **Success Criteria:**
 
