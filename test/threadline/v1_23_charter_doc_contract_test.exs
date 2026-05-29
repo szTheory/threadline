@@ -30,10 +30,10 @@ defmodule Threadline.V123CharterDocContractTest do
 
     assert String.contains?(
              doc,
-             "**Active milestone:** **v1.28 External Pilot**"
+             "**Active milestone:** **v1.29 First-Hour Parity**"
            )
 
-    assert String.contains?(doc, "phx.gen.auth reach wedge")
+    assert String.contains?(doc, "distribution + first-hour finish wedge is closed")
     assert String.contains?(doc, "see PROJECT.md Key Decisions")
 
     assert String.contains?(doc, "| v1.27 | **shipped** | Distribution & First-Hour Finish |")
