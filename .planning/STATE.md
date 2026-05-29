@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.29
-milestone_name: First-Hour Parity
-status: Awaiting next milestone
-last_updated: "2026-05-29T12:00:00.000Z"
-last_activity: 2026-05-29 — Milestone v1.29 completed and archived
+milestone: Hold
+milestone_name: None
+status: Completed
+last_updated: "2026-05-29T18:00:00.000Z"
+last_activity: 2026-05-29 — v1.30 Adoption Evidence Automation completed
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -20,18 +20,18 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Hold — pre-pilot hardening (Hex CI + WALKTHROUGH automation); v1.28 signal-gated
+**Current focus:** Hold — pre-pilot hardening (Hex CI + WALKTHROUGH automation) shipped in v1.30; v1.28 signal-gated
 
 ## Current Position
 
-Phase: Milestone v1.29 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-29 — Milestone v1.29 completed and archived
+Phase: None
+Plan: None
+Status: Hold
+Last activity: 2026-05-29 — Milestone v1.30 completed and archived
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.29 — First-Hour Parity (2026-05-29)
+- **Last Milestone Shipped**: v1.30 — Adoption Evidence Automation (2026-05-29)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.6.0** (tag `v0.6.0`, verified 2026-05-28)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`

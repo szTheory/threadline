@@ -8,7 +8,20 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Latest Milestone Shipped: v1.29 First-Hour Parity (2026-05-29)
+## Latest Milestone Shipped: v1.30 Adoption Evidence Automation (2026-05-29)
+
+**Goal (achieved):** Close shift-left automation gaps on the existing help-desk demo journey (WALKTHROUGH §5, Track A golden path, minimal browser E2E) without new fiction or host STG pretense.
+
+**Shipped:**
+- **ConnCase §5 + walkthrough tighten** — ✓ Phase 131 (2026-05-29)
+- **Playwright gap suite + CI job** — ✓ Phase 132 (2026-05-29)
+- **Evaluator playbook + doc contracts** — ✓ Phase 133 (2026-05-29)
+
+**Archives:** `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
+
+**Next milestone (queued):** **Hold** — v1.28 External Pilot only on sustained real-adopter signal.
+
+## Prior shipped milestone: v1.29 First-Hour Parity (2026-05-29)
 
 **Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
 
@@ -19,8 +32,6 @@ Every row mutation that matters is captured durably and linked to who did it and
 - **Planning metadata hygiene** — ✓ Phase 130.1 (2026-05-29): ROADMAP/REQUIREMENTS authority aligned; Nyquist waivers for 128–129; audit tech debt closed
 
 **Archives:** `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`, `.planning/milestones/v1.29-MILESTONE-AUDIT.md`
-
-**Next milestone (queued):** **Hold** — v1.28 External Pilot only on sustained real-adopter signal.
 
 <details>
 <summary>v1.29 planning snapshot (archived)</summary>
@@ -481,4 +492,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-29 after v1.29 milestone*
+*Last updated: 2026-05-29 after v1.30 milestone*

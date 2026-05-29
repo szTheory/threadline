@@ -810,4 +810,32 @@
 
 ---
 
+## Milestone: v1.30 — Adoption Evidence Automation
+
+**Shipped:** 2026-05-29  
+**Phases:** 3 | **Plans:** -
+
+### What was built
+- Automated WALKTHROUGH §1–§4 ConnCase happy paths in `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs`.
+- Configured Hex package evaluator pipeline in `priv/ci/hex_evaluator` to prove `mix verify.hex_evaluator` installs from hex.pm without path override.
+- Documented pre-pilot hardening posture and defined v1.28 signal gates.
+
+### What worked
+- Shifting manual WALKTHROUGH validation into automated `ConnCase` tests ensures the demo path won't silently regress during hold.
+- Running Hex installation tests in an isolated Mix project (`priv/ci/hex_evaluator`) is the only honest way to test evaluator adoption from hex.pm.
+
+### What was inefficient
+- Testing Hex-published installs is inherently disconnected from local dev; requires local `deps.get` mocking or live publishes.
+
+### Patterns established
+- **Pre-pilot hardening:** Close shift-left gaps using automation rather than rushing an external pilot without signal.
+
+### Key lessons
+1. Maintainer-driven walkthroughs rot quickly without automated guards; `ConnCase` on seeded fiction provides 80% of the value of E2E for 10% of the cost.
+
+### Cost observations
+- Quick focused automation iteration.
+
+---
+
 ## Cross-Milestone Trends
