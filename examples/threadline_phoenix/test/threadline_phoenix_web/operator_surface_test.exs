@@ -1,11 +1,15 @@
 defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
   use ThreadlinePhoenixWeb.ConnCase, async: false
 
+  import Ecto.Query
   import ThreadlinePhoenix.AccountsFixtures
   import ThreadlinePhoenix.HelpDeskFixtures
 
+  alias Threadline.Capture.AuditChange
   alias Threadline.Semantics.{ActorRef, AuditContext}
   alias ThreadlinePhoenix.Blog
+  alias ThreadlinePhoenix.Demo.Tables
+  alias ThreadlinePhoenix.HelpDesk
   alias ThreadlinePhoenix.Repo
 
   test "anonymous request is rejected", %{conn: conn} do
@@ -46,6 +50,33 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
     assert html_response(hidden_conn, 200) =~ "Transaction Not Found"
   end
 
+  test "admin user can reach evidence surface", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    conn =
+      conn
+      |> login_via_sigra(user)
+      |> get("/audit/evidence")
+
+    html = html_response(conn, 200)
+    refute html =~ "Evidence view unavailable."
+  end
+
+  test "support user sees unsupported evidence view", %{conn: conn} do
+    user = user_fixture(email: "support@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "support")
+
+    conn =
+      conn
+      |> login_via_sigra(user)
+      |> get("/audit/evidence")
+
+    assert html_response(conn, 200) =~ "Evidence view unavailable."
+  end
+
   test "support user cannot export from the shared operator surface", %{conn: conn} do
     user = user_fixture(email: "support@example.com")
     org = organization_fixture()
@@ -57,6 +88,51 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> get("/audit/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00")
 
     assert response(conn, 403) == "forbidden"
+  end
+
+  test "admin reaches ticket_replies row history via :schemas mount", %{conn: conn} do
+    Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+      org = organization_fixture()
+      agent = agent_fixture(org, %{user_id: "history-admin"})
+      ticket = ticket_fixture(org, agent)
+      ctx = audit_context_for_user("history-admin")
+
+      assert {:ok, result} =
+               HelpDesk.ticket_replied_and_closed(
+                 ctx,
+                 org,
+                 ticket,
+                 %{body: "public reply", internal_note_body: nil},
+                 %{status: "closed", closed_at: DateTime.utc_now(:second)},
+                 []
+               )
+
+      reply_change =
+        Repo.one!(
+          from(ac in AuditChange,
+            where: ac.transaction_id == ^result.audit_transaction_id,
+            where: ac.table_name == "ticket_replies",
+            where: ac.op == "insert"
+          )
+        )
+
+      reply_pk = reply_change.table_pk["id"]
+      tx_id = result.audit_transaction_id
+
+      user = user_fixture(email: "admin@example.com")
+      membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+      conn =
+        conn
+        |> login_via_sigra(user)
+        |> get("/audit/transactions/#{tx_id}/history/ticket_replies/#{reply_pk}")
+
+      html = html_response(conn, 200)
+      assert html =~ "Row History: ticket_replies / #{reply_pk}"
+      refute html =~ "not mapped to an Ecto schema"
+
+      Repo.query!(Tables.truncate_sql(), [])
+    end)
   end
 
   test "agent membership without admin email receives 403 on audit", %{conn: conn} do

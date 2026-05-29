@@ -38,7 +38,6 @@ defmodule ThreadlinePhoenixWeb.AuthErrorHandler do
     |> send_resp(429, "Too many requests. Please try again later.")
   end
 
-
   # Phase 24.1: under --no-organizations the /organizations route is
   # not wired, so the :no_active_org branch is unreachable (it is only
   # produced by org-related plugs which are also omitted under
@@ -49,11 +48,13 @@ defmodule ThreadlinePhoenixWeb.AuthErrorHandler do
     redirect(conn, to: ~p"/")
   end
 
-
   @impl true
   def auth_error(conn, :insufficient_role, _opts) do
     conn
-    |> put_flash(:error, "You don't have permission to access this page in the current organization.")
+    |> put_flash(
+      :error,
+      "You don't have permission to access this page in the current organization."
+    )
     |> put_status(:forbidden)
     |> put_view(ThreadlinePhoenixWeb.ErrorHTML)
     |> render(:"403")

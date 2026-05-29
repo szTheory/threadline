@@ -29,7 +29,13 @@ defmodule ThreadlinePhoenixWeb.ResetPasswordController do
     end
 
     conn
-    |> put_flash(:info, dgettext("sigra", "If your email is in our system, you will receive reset instructions shortly."))
+    |> put_flash(
+      :info,
+      dgettext(
+        "sigra",
+        "If your email is in our system, you will receive reset instructions shortly."
+      )
+    )
     |> redirect(to: ~p"/users/log_in")
   end
 

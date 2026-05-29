@@ -23,7 +23,9 @@ defmodule ThreadlinePhoenix.HelpDeskAuditHttpTest do
         |> get(~p"/")
 
       assert conn.assigns.current_scope.user.id
-      assert %ActorRef{type: :user, id: _} = Threadline.Integrations.Sigra.actor_ref_from_conn(conn)
+
+      assert %ActorRef{type: :user, id: _} =
+               Threadline.Integrations.Sigra.actor_ref_from_conn(conn)
 
       conn =
         post(conn, ~p"/dev/help_desk/ticket_reply", %{

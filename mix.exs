@@ -79,11 +79,12 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs"
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
+      "verify.example_browser": &verify_example_browser/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
@@ -133,6 +134,24 @@ defmodule Threadline.MixProject do
     end
   end
 
+  defp verify_example_browser(_args) do
+    script = Path.expand("examples/threadline_phoenix/e2e/run-e2e.sh")
+
+    env =
+      System.get_env()
+      |> Enum.map(fn {k, v} -> {k, v} end)
+      |> Kernel.++([
+        {"DB_HOST", System.get_env("DB_HOST") || "localhost"},
+        {"DB_PORT", System.get_env("DB_PORT") || "5432"},
+        {"THREADLINE_E2E", "1"}
+      ])
+
+    case System.cmd("bash", [script], env: env, into: IO.stream(:stdio, :line)) do
+      {_output, 0} -> :ok
+      {_output, status} -> Mix.raise("verify.example_browser failed (#{status})")
+    end
+  end
+
   defp verify_hex_evaluator(_args) do
     cmd =
       "bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test'"
@@ -174,6 +193,7 @@ defmodule Threadline.MixProject do
   defp package do
     [
       licenses: ["MIT"],
+      keywords: ["audit", "phoenix", "ecto", "postgres", "history", "security", "telemetry"],
       links: %{
         "GitHub" => @source_url,
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
@@ -200,6 +220,7 @@ defmodule Threadline.MixProject do
         "guides/incident-playbook.md",
         "guides/getting-started-saas.md",
         "guides/adoption-pilot-backlog.md",
+        "guides/adoption-evidence-playbook.md",
         "guides/evaluating-threadline.md",
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",

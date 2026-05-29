@@ -10,20 +10,16 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
   import Ecto.Query
   import ThreadlinePhoenix.HelpDeskFixtures
+  import ThreadlinePhoenixWeb.WalkthroughCase
 
-  alias Threadline.Capture.AuditTransaction
+  alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.AuditAction
-  alias ThreadlinePhoenix.Accounts
-  alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
-  alias ThreadlinePhoenix.HelpDesk.{Agent, Organization}
+  alias ThreadlinePhoenix.Demo.Manifest
+  alias ThreadlinePhoenix.HelpDesk.{Agent, Organization, Ticket}
   alias ThreadlinePhoenix.Repo
 
   setup do
-    Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
-      assert :ok = Reset.run()
-      assert :ok = Seed.run()
-    end)
-
+    seed_demo_fiction!()
     :ok
   end
 
@@ -48,7 +44,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
       html = html_response(conn, 200)
       refute html =~ "Forbidden"
-      assert html =~ "timeline" or html =~ "Audit" or html =~ "audit"
+      assert html =~ "correlation_id"
     end
 
     test "WALK-01-07 support ticket reply via dev route returns audit_transaction_id" do
@@ -111,7 +107,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
           |> get(~p"/audit/transactions/#{tx_id}")
 
         html = html_response(admin_conn, 200)
-        assert html =~ "ticket_replies" or html =~ "tickets"
+        assert html =~ "ticket_replies"
+        assert html =~ "tickets"
       end)
     end
 
@@ -124,7 +121,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
       html = html_response(conn, 200)
       refute html =~ "Forbidden"
-      assert html =~ "timeline" or html =~ "Audit"
+      assert html =~ "correlation_id"
     end
 
     test "WALK-02-03 support cannot export from operator surface" do
@@ -137,17 +134,18 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
     end
   end
 
-  describe "§4 operator incidents (WALK-03-01..03)" do
+  describe "§4 operator incidents (WALK-03-01..04)" do
     test "WALK-03-01 correlation filter surfaces hero #4521 close transaction" do
       correlation = Manifest.correlation_id(:acme_4521_close)
 
       conn =
         build_conn()
         |> login_demo(:admin)
-        |> get(~p"/audit?#{%{filter: %{correlation_id: correlation}}}")
+        |> get(~p"/audit?correlation_id=#{correlation}")
 
       html = html_response(conn, 200)
-      assert html =~ correlation or html =~ "4521" or html =~ "ticket"
+      assert html =~ correlation
+      assert html =~ "tickets"
     end
 
     test "WALK-03-02 admin actor history for agent2 persona" do
@@ -160,7 +158,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
       html = html_response(conn, 200)
       refute html =~ "Forbidden"
-      assert html =~ "Actor" or html =~ "agent2" or html =~ "tickets"
+      assert html =~ "Actor"
+      assert html =~ agent2_id
     end
 
     test "WALK-03-03 retention evidence row present for offboarded-co purge proof" do
@@ -172,27 +171,42 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
         |> get(~p"/audit/evidence")
 
       html = html_response(conn, 200)
-      assert html =~ "retention_run" or html =~ run_id or html =~ "offboarded"
+      assert html =~ "retention_run"
+      assert html =~ run_id
     end
-  end
 
-  defp demo_user!(key) do
-    email = Manifest.user_email(key)
+    test "WALK-03-04 deleter hard-delete on #4518 visible to admin" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
+        _ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4518)
+        deleter_id = Manifest.user_id(:deleter)
+        delete_at = DateTime.add(Manifest.last_tuesday(), 2, :hour)
 
-    case Accounts.get_user_by_email(email) do
-      nil -> flunk("missing seeded demo user #{email}")
-      user -> user
-    end
-  end
+        at =
+          from(ac in AuditChange,
+            join: at in assoc(ac, :transaction),
+            where: ac.table_name == "ticket_replies",
+            where: ac.op == "delete",
+            where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(acme.id)),
+            where: at.occurred_at == ^delete_at,
+            select: at
+          )
+          |> Repo.all()
+          |> Enum.find(fn at ->
+            match?(%Threadline.Semantics.ActorRef{type: :user, id: ^deleter_id}, at.actor_ref)
+          end)
 
-  defp login_demo(conn, key) do
-    login_via_sigra(conn, demo_user!(key))
-  end
+        refute is_nil(at)
 
-  defp follow_audit_redirect(conn) do
-    case conn.status do
-      302 -> get(conn, redirected_to(conn))
-      _ -> conn
+        conn =
+          build_conn()
+          |> login_demo(:admin)
+          |> get(~p"/audit/transactions/#{at.id}")
+
+        html = html_response(conn, 200)
+        assert html =~ "ticket_replies"
+        assert html =~ "DELETE"
+      end)
     end
   end
 end

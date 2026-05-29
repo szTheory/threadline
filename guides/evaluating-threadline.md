@@ -54,6 +54,7 @@ Use [`guides/production-checklist.md`](production-checklist.md) for the checklis
 2. **Full contributor gate** — `DB_PORT=5433 MIX_ENV=test mix ci.all` when Postgres is available (see [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Compose port `5433` and env setup). The chain runs: `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract`.
 3. **Targeted checks** — `mix verify.doc_contract`, `mix verify.example`, and/or `mix verify.hex_evaluator` when you only need doc, reference-app, or Hex-install proof.
 4. **Optional Track A (sigra-reference)** — walk `examples/threadline_phoenix` per its README and walkthrough docs.
+5. **Optional Track B automation** — see [`guides/adoption-evidence-playbook.md`](adoption-evidence-playbook.md) for the full demo tour, ConnCase proofs (`walkthrough_*_test.exs`, `track_a_golden_path_test.exs`), and optional `mix verify.example_browser` (Playwright).
 
 Cite **entrypoint names only** when recording evidence — do not substitute test counts for proof.
 

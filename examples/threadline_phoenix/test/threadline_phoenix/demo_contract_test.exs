@@ -105,14 +105,43 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   describe "SEED-03 leaving agent window" do
     test "agent2 audit transactions fall within demo_last_tuesday through demo_epoch" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
         agent2_id = "33123cc4-da21-5674-b030-e168cee90521"
         {:ok, agent2_ref} = ActorRef.new(:user, agent2_id)
-        from_ts = ~U[2026-05-20 14:30:00Z]
-        to_ts = ~U[2026-05-27 12:00:00Z]
+        from_ts = Manifest.last_tuesday()
+        to_ts = Manifest.epoch()
+
+        leaving_ticket_ids =
+          Repo.all(
+            from(t in Ticket,
+              where: t.organization_id == ^acme.id,
+              where: t.number >= 4601 and t.number <= 4612,
+              select: type(t.id, :string)
+            )
+          )
 
         count =
-          Repo.aggregate(
+          Repo.one!(
             from(at in AuditTransaction,
+              join: ac in assoc(at, :changes),
+              where: ac.table_name == "tickets",
+              where: fragment("?->>'id'", ac.table_pk) in ^leaving_ticket_ids,
+              where:
+                fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
+              where: at.occurred_at >= ^from_ts,
+              where: at.occurred_at <= ^to_ts,
+              select: count(at.id, :distinct)
+            )
+          )
+
+        assert count == 12
+
+        ticket_change_count =
+          Repo.aggregate(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "tickets",
+              where: fragment("?->>'id'", ac.table_pk) in ^leaving_ticket_ids,
               where:
                 fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
               where: at.occurred_at >= ^from_ts,
@@ -121,7 +150,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             :count
           )
 
-        assert count >= 1
+        assert ticket_change_count >= 1
       end)
     end
   end

@@ -17,7 +17,7 @@ defmodule Threadline.V123CharterDocContractTest do
 
     assert String.contains?(
              doc,
-             "## Latest Milestone Shipped: v1.29 First-Hour Parity"
+             "## Latest Milestone Shipped: v1.30 Adoption Evidence Automation"
            )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")

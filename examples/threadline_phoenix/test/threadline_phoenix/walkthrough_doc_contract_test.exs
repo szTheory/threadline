@@ -95,6 +95,25 @@ defmodule ThreadlinePhoenix.WalkthroughDocContractTest do
     end
   end
 
+  describe "walkthrough automation modules" do
+    test "README and WALKTHROUGH cite ConnCase automation modules" do
+      readme = File.read!(Path.expand("../../README.md", __DIR__))
+      walkthrough = File.read!(@walkthrough)
+
+      for module <- [
+            "walkthrough_happy_path_test.exs",
+            "walkthrough_evidence_test.exs",
+            "track_a_golden_path_test.exs"
+          ] do
+        assert String.contains?(readme, module)
+      end
+
+      assert String.contains?(walkthrough, "walkthrough_happy_path_test.exs")
+      assert String.contains?(walkthrough, "walkthrough_evidence_test.exs")
+      assert String.contains?(walkthrough, "adoption-evidence-playbook.md")
+    end
+  end
+
   defp section_slice(doc, start_heading, end_heading) do
     doc
     |> String.split(start_heading, parts: 2)

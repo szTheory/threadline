@@ -31,7 +31,8 @@ defmodule ThreadlinePhoenixWeb.Auth.SudoController do
 
         # Validate return_to is a local path (not an external URL)
         safe_return_to =
-          if return_to && String.starts_with?(return_to, "/") && !String.starts_with?(return_to, "//") do
+          if return_to && String.starts_with?(return_to, "/") &&
+               !String.starts_with?(return_to, "//") do
             return_to
           else
             ~p"/"

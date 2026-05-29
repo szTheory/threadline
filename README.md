@@ -33,7 +33,7 @@ legal hold system, an immutable-storage guarantee beyond the host
 runtime/storage contract, a generic compliance pack, a vendor-specific
 reporting suite, or a Threadline-owned RBAC or tenancy DSL.
 
-Keep the README as the map. For the canonical non-goals list, read
+For the canonical non-goals list, read
 [guides/how-threadline-works.md](guides/how-threadline-works.md). For the
 named lane contract, including separately authorized `/audit/evidence`, read
 [guides/upgrade-path.md](guides/upgrade-path.md). For the public verdict
@@ -101,7 +101,7 @@ Use `Threadline.timeline/2` for smaller eager slices. When the window is too
 large to read eagerly, switch to `Threadline.timeline_page/2` and continue with
 `next_cursor` instead of offset pagination.
 
-Keep the root README as the map, then use
+See
 [guides/domain-reference.md](guides/domain-reference.md) for the canonical
 "which public API first?" table,
 [guides/getting-started-saas.md](guides/getting-started-saas.md) for the
@@ -115,11 +115,10 @@ trail natively in your app, including a polled coverage dashboard at
 `/audit/coverage`, a read-only redaction drift viewer at
 `/audit/policy/redaction`, and parity Mix tasks
 `mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you
-have the optional Phoenix surface dependencies declared in `mix.exs`. Threadline
-stays in-tree for now rather than splitting the UI into a separate package; keep
-the closeout rationale and exact current proof pins in
-[guides/upgrade-path.md](guides/upgrade-path.md) rather than copying them into
-generic install docs.
+have the optional Phoenix surface dependencies declared in `mix.exs`. The Threadline
+UI currently ships as an optional in-tree dependency. For details on this architecture decision
+and support guarantees, see the
+[Upgrade Path](guides/upgrade-path.md).
 
 **1-Minute Mount**
 

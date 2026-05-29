@@ -27,6 +27,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             {:cont,
              socket
+             |> Phoenix.Component.assign(:threadline_scope, nil)
              |> assign_exports_enabled(opts)
              |> assign_coverage_enabled(opts)
              |> assign_policy_enabled(opts)
@@ -37,6 +38,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             {:cont,
              socket
+             |> Phoenix.Component.assign(:threadline_scope, nil)
              |> assign_exports_enabled(opts)
              |> assign_coverage_enabled(opts)
              |> assign_policy_enabled(opts)

@@ -332,6 +332,6 @@ Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / D
 
 ### Telemetry
 
-`[:threadline, :health, :checked]` fires on every successful poll with measurements `%{covered, uncovered, expected_uncovered}`. The `expected_uncovered` measurement is additive (Phase 66) — old subscribers reading only `covered`/`uncovered` keep working unchanged.
+`[:threadline, :health, :checked]` fires on every successful poll with measurements `%{covered, uncovered, expected_uncovered}`. The `expected_uncovered` measurement is additive — old subscribers reading only `covered`/`uncovered` keep working unchanged.
 
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.

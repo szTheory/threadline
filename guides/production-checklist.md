@@ -62,7 +62,7 @@ See also `guides/operator-surface.md` §"Coverage dashboard".
 - Start **`batch_size`** near **500** (the `Threadline.Retention.purge/1` default), then adjust with **lock wait**, **statement duration**, and **capture concurrency** in mind; the Mix task maps **`--batch-size`** / **`--max-batches`** to the same options.
 - **`Threadline.Retention.Policy`** is the validated view of **`config :threadline, :retention`**; call **`Threadline.Retention.purge/1`** with a required **`repo:`** keyword (and optional `dry_run:`, `batch_size`, `max_batches`, `cutoff:`) from automation, or use **`mix threadline.retention.purge`**: always **`--dry-run`** first, then production **`MIX_ENV=prod mix threadline.retention.purge --execute`** only after ops sign-off — until **`enabled: true`**, programmatic calls return **`{:error, :disabled}`** and the Mix task raises.
 - **Monitor each run:** Mix and library logs include batch indices and cumulative **`deleted_changes`** (and empty-transaction counts when applicable); track **wall-clock duration per run** and whether the final summary shows unused **`max_batches`** headroom.
-- Cutoff clock, orphan **`audit_transactions`**, and empty-parent semantics stay in **[`domain-reference.md` — Retention (Phase 13)](domain-reference.md#retention-phase-13)** — do not fork a second spec in this checklist.
+- Cutoff clock, orphan **`audit_transactions`**, and empty-parent semantics stay in **[`domain-reference.md` — Retention](domain-reference.md#retention)** — do not fork a second spec in this checklist.
 
 ## 5. Export and investigation
 
@@ -70,7 +70,7 @@ Confirm [Host repo wiring (prerequisite)](#host-repo-wiring-prerequisite) before
 
 - [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
-- [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export (Phase 14)](domain-reference.md#export-phase-14)**.
+- [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export](domain-reference.md#export)**.
 - [ ] **Operator Surface:** If you mount the LiveView operator UI, ensure it is protected behind an authenticated admin pipeline with a strict `:authorize_fn` policy. See the [Operator Surface guide](operator-surface.md) for fail-closed requirements.
 - [ ] **Policy drift review:** add `/audit/policy/redaction` or `mix threadline.policy.show` to the same post-deploy operational pass where you already check trigger coverage, especially after redaction config changes.
 

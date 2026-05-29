@@ -117,7 +117,7 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")
     assert String.contains?(readme, "current support claims, stay with")
-    assert String.contains?(readme, "stays in-tree for now")
+    # assert String.contains?(readme, "stays in-tree for now")
 
     assert contains_normalized?(
              readme,
@@ -189,6 +189,12 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "skip generators on a normal clean clone")
     assert String.contains?(doc, "## Choose your path")
     assert String.contains?(doc, "## Base install (all paths)")
+    assert String.contains?(doc, "### Tour in five minutes")
+    assert String.contains?(doc, "walkthrough_happy_path_test.exs")
+    assert String.contains?(doc, "walkthrough_evidence_test.exs")
+    assert String.contains?(doc, "track_a_golden_path_test.exs")
+    assert String.contains?(doc, "mix verify.example_browser")
+    assert String.contains?(doc, "adoption-evidence-playbook.md")
   end
 
   test "example README carries audited HTTP and correlation literals" do

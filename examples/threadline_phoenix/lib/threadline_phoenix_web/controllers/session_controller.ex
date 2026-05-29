@@ -28,6 +28,7 @@ defmodule ThreadlinePhoenixWeb.SessionController do
     email = Phoenix.Flash.get(conn.assigns.flash, :email) || ""
     form = Phoenix.Component.to_form(%{"email" => email}, as: "user")
     magic_link_form = Phoenix.Component.to_form(%{"email" => email}, as: "user")
+
     render(conn, :new,
       form: form,
       magic_link_form: magic_link_form
@@ -95,8 +96,6 @@ defmodule ThreadlinePhoenixWeb.SessionController do
     end
   end
 
-
-
   def delete(conn, _params) do
     Sigra.Telemetry.event(
       [:sigra, :auth, :logout, :stop],
@@ -116,6 +115,4 @@ defmodule ThreadlinePhoenixWeb.SessionController do
   defp client_user_agent(conn) do
     conn |> get_req_header("user-agent") |> List.first() || ""
   end
-
-
 end

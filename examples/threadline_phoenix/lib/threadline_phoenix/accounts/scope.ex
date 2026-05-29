@@ -27,10 +27,8 @@ defmodule ThreadlinePhoenix.Accounts.Scope do
 
   @type t :: %__MODULE__{
           user: %User{} | nil,
-
           active_organization: nil,
           membership: nil,
-
           impersonating_from: %User{} | nil
         }
 

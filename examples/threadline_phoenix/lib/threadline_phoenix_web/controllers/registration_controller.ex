@@ -31,5 +31,4 @@ defmodule ThreadlinePhoenixWeb.RegistrationController do
         render(conn, :new, form: Phoenix.Component.to_form(changeset, as: "user"))
     end
   end
-
 end

@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-docs, verify-hex-package, verify-release-shape
+# verify-format, verify-credo, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-docs, verify-hex-package, verify-release-shape
 
 name: CI
 
@@ -152,6 +152,50 @@ jobs:
 
       - name: Verify Hex-published threadline adopt path
         run: mix verify.hex_evaluator
+
+  verify-example-browser:
+    name: Example app browser E2E (Playwright)
+    runs-on: ubuntu-24.04
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install root dependencies
+        run: mix deps.get
+
+      - name: Ensure threadline_phoenix_test database exists
+        env:
+          PGPASSWORD: postgres
+        run: |
+          createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      - name: Run example Playwright suite
+        run: mix verify.example_browser
 
   verify-pgbouncer-topology:
     name: PgBouncer transaction topology

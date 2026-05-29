@@ -23,6 +23,20 @@ end
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+if System.get_env("THREADLINE_E2E") == "1" do
+  config :threadline_phoenix, Oban, plugins: false, queues: false, testing: :manual
+  config :logger, level: :warning
+  config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
+    code_reloader: false,
+    server: true
+
+  if config_env() == :test do
+    config :threadline_phoenix, ThreadlinePhoenix.Repo,
+      pool: DBConnection.ConnectionPool,
+      pool_size: 10
+  end
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

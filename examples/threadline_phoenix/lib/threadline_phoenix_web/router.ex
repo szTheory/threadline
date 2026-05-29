@@ -95,6 +95,20 @@ defmodule ThreadlinePhoenixWeb.Router do
     end
   end
 
+  def my_coverage_authorize_fn(%{assigns: assigns}) do
+    case assigns[:current_user] do
+      %{is_admin: true} -> :ok
+      _ -> {:error, :unauthorized}
+    end
+  end
+
+  def my_policy_authorize_fn(%{assigns: assigns}) do
+    case assigns[:current_user] do
+      %{is_admin: true} -> :ok
+      _ -> {:error, :unauthorized}
+    end
+  end
+
   def scope_operator_query(query, %{organization_id: org_id}, %{surface: :actor_history})
       when is_binary(org_id) and org_id != "" do
     where(query, [at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
@@ -106,7 +120,8 @@ defmodule ThreadlinePhoenixWeb.Router do
   end
 
   def scope_operator_query(query, %{organization_id: org_id}, %{surface: surface})
-      when surface in [:timeline, :transaction, :export] and is_binary(org_id) and org_id != "" do
+      when surface in [:timeline, :transaction, :export, :row_history] and
+             is_binary(org_id) and org_id != "" do
     where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
   end
 
@@ -150,7 +165,13 @@ defmodule ThreadlinePhoenixWeb.Router do
       authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
       export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
       evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
+      coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
+      policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
       scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+      schemas: %{
+        "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+        "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+      },
       repo: ThreadlinePhoenix.Repo
     )
   end

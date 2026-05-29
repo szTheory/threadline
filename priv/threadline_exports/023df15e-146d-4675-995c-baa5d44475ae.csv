@@ -1,0 +1,1 @@
+id,transaction_id,table_schema,table_name,op,captured_at,table_pk,data_after,changed_fields,changed_from,transaction_json

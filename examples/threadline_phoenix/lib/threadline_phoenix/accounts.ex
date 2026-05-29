@@ -46,7 +46,9 @@ defmodule ThreadlinePhoenix.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    case SigraAuth.authenticate(Repo, %{"email" => email, "password" => password}, user_schema: User) do
+    case SigraAuth.authenticate(Repo, %{"email" => email, "password" => password},
+           user_schema: User
+         ) do
       {:ok, user} -> user
       {:error, _} -> nil
     end
@@ -95,8 +97,11 @@ defmodule ThreadlinePhoenix.Accounts do
 
         {:ok, user}
 
-      {:error, :email_taken} -> {:error, :email_taken}
-      {:error, changeset} -> {:error, changeset}
+      {:error, :email_taken} ->
+        {:error, :email_taken}
+
+      {:error, changeset} ->
+        {:error, changeset}
     end
   end
 
@@ -170,7 +175,9 @@ defmodule ThreadlinePhoenix.Accounts do
     with {:ok, query} <- UserToken.verify_email_token_query(token, context),
          %User{} = user_from_token <- Repo.one(query),
          true <- user.id == user_from_token.id || :token_user_mismatch do
-      user_changeset = user |> User.email_changeset(%{email: user_from_token.email}) |> User.confirm_changeset()
+      user_changeset =
+        user |> User.email_changeset(%{email: user_from_token.email}) |> User.confirm_changeset()
+
       Ecto.Multi.new()
       |> Ecto.Multi.update(:user, user_changeset)
       |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, [context]))
@@ -352,15 +359,19 @@ defmodule ThreadlinePhoenix.Accounts do
       url = confirmation_url_fun.(signed_token)
       email = ThreadlinePhoenix.Accounts.Emails.confirmation_email(user, url, code)
 
-      Sigra.Delivery.deliver(:confirmation, %{
-        user_id: user.id,
-        to: user.email,
-        subject: email.subject,
-        body: %{html: email.html_body, text: email.text_body},
-        token: signed_token,
-        code: code,
-        url: url
-      }, delivery_opts())
+      Sigra.Delivery.deliver(
+        :confirmation,
+        %{
+          user_id: user.id,
+          to: user.email,
+          subject: email.subject,
+          body: %{html: email.html_body, text: email.text_body},
+          token: signed_token,
+          code: code,
+          url: url
+        },
+        delivery_opts()
+      )
 
       {:ok, :sent}
     end
@@ -409,25 +420,29 @@ defmodule ThreadlinePhoenix.Accounts do
   def deliver_user_reset_password_instructions(email, reset_password_url_fun)
       when is_binary(email) and is_function(reset_password_url_fun, 1) do
     case Sigra.Auth.request_password_reset(Repo, email,
-      user_schema: User,
-      user_token_schema: UserToken,
-      secret_key_base: ThreadlinePhoenixWeb.Endpoint.config(:secret_key_base),
-      url_fun: reset_password_url_fun
-    ) do
+           user_schema: User,
+           user_token_schema: UserToken,
+           secret_key_base: ThreadlinePhoenixWeb.Endpoint.config(:secret_key_base),
+           url_fun: reset_password_url_fun
+         ) do
       {:ok, {signed_token, url}} ->
         user = get_user_by_email(email)
 
         if user do
           email_struct = ThreadlinePhoenix.Accounts.Emails.reset_password_email(user, url)
 
-          Sigra.Delivery.deliver(:reset_password, %{
-            user_id: user.id,
-            to: user.email,
-            subject: email_struct.subject,
-            body: %{html: email_struct.html_body, text: email_struct.text_body},
-            token: signed_token,
-            url: url
-          }, delivery_opts())
+          Sigra.Delivery.deliver(
+            :reset_password,
+            %{
+              user_id: user.id,
+              to: user.email,
+              subject: email_struct.subject,
+              body: %{html: email_struct.html_body, text: email_struct.text_body},
+              token: signed_token,
+              url: url
+            },
+            delivery_opts()
+          )
         end
 
         {:ok, :sent}
@@ -459,7 +474,8 @@ defmodule ThreadlinePhoenix.Accounts do
     secret_key_base = ThreadlinePhoenixWeb.Endpoint.config(:secret_key_base)
 
     with {:ok, signed} <- Base.url_decode64(signed_token, padding: false),
-         {:ok, raw_token} <- Plug.Crypto.verify(secret_key_base, "sigra-reset-token", signed, max_age: 3600) do
+         {:ok, raw_token} <-
+           Plug.Crypto.verify(secret_key_base, "sigra-reset-token", signed, max_age: 3600) do
       hashed_token = Sigra.Token.hash_token(raw_token)
 
       Repo.one(
@@ -557,7 +573,11 @@ defmodule ThreadlinePhoenix.Accounts do
 
   @doc "Revoke all sessions for a user. Broadcasts PubSub disconnect."
   def revoke_all_sessions(user, opts \\ []) do
-    Sigra.Auth.delete_all_sessions(sigra_config(), user.id, Keyword.put(opts, :pubsub, ThreadlinePhoenixWeb.PubSub))
+    Sigra.Auth.delete_all_sessions(
+      sigra_config(),
+      user.id,
+      Keyword.put(opts, :pubsub, ThreadlinePhoenixWeb.PubSub)
+    )
   end
 
   @doc "Confirm sudo mode for a session."
@@ -577,6 +597,7 @@ defmodule ThreadlinePhoenix.Accounts do
 
   defp lockout_opts do
     config = sigra_config()
+
     [
       threshold: Keyword.get(config.lockout, :threshold, 5),
       duration: Keyword.get(config.lockout, :duration, 900)
@@ -588,7 +609,6 @@ defmodule ThreadlinePhoenix.Accounts do
   alias ThreadlinePhoenix.Accounts.UserMFACredential
   alias ThreadlinePhoenix.Accounts.UserBackupCode
 
-
   @doc "Begin MFA enrollment. Returns secret, otpauth URI, and QR code SVG."
   def mfa_enroll(opts \\ []) do
     Sigra.MFA.enroll(sigra_config(), opts)
@@ -596,35 +616,61 @@ defmodule ThreadlinePhoenix.Accounts do
 
   @doc "Confirm MFA enrollment with a TOTP code. Creates credential and backup codes."
   def mfa_confirm_enrollment(user, raw_secret, code, opts \\ []) do
-    Sigra.MFA.confirm_enrollment(sigra_config(), user, raw_secret, code,
-      Keyword.merge([
-        mfa_credential_schema: UserMFACredential,
-        backup_code_schema: UserBackupCode
-      ], opts))
+    Sigra.MFA.confirm_enrollment(
+      sigra_config(),
+      user,
+      raw_secret,
+      code,
+      Keyword.merge(
+        [
+          mfa_credential_schema: UserMFACredential,
+          backup_code_schema: UserBackupCode
+        ],
+        opts
+      )
+    )
   end
 
   @doc "Verify a TOTP code for MFA challenge."
   def mfa_verify(user, code, opts \\ []) do
-    Sigra.MFA.verify(sigra_config(), user, code,
-      Keyword.merge([mfa_credential_schema: UserMFACredential], opts))
+    Sigra.MFA.verify(
+      sigra_config(),
+      user,
+      code,
+      Keyword.merge([mfa_credential_schema: UserMFACredential], opts)
+    )
   end
 
   @doc "Verify a backup code for MFA challenge."
   def mfa_verify_backup(user, code, opts \\ []) do
-    Sigra.MFA.verify_backup(sigra_config(), user, code,
-      Keyword.merge([
-        mfa_credential_schema: UserMFACredential,
-        backup_code_schema: UserBackupCode
-      ], opts))
+    Sigra.MFA.verify_backup(
+      sigra_config(),
+      user,
+      code,
+      Keyword.merge(
+        [
+          mfa_credential_schema: UserMFACredential,
+          backup_code_schema: UserBackupCode
+        ],
+        opts
+      )
+    )
   end
 
   @doc "Disable MFA for a user. Requires valid TOTP or backup code."
   def mfa_disable(user, code, opts \\ []) do
-    Sigra.MFA.disable(sigra_config(), user, code,
-      Keyword.merge([
-        mfa_credential_schema: UserMFACredential,
-        backup_code_schema: UserBackupCode
-      ], opts))
+    Sigra.MFA.disable(
+      sigra_config(),
+      user,
+      code,
+      Keyword.merge(
+        [
+          mfa_credential_schema: UserMFACredential,
+          backup_code_schema: UserBackupCode
+        ],
+        opts
+      )
+    )
   end
 
   @doc """
@@ -633,11 +679,18 @@ defmodule ThreadlinePhoenix.Accounts do
   Requires `{:totp, code}` — backup codes **cannot** authorize rotation.
   """
   def mfa_regenerate_backup_codes(user, {:totp, _} = verification, opts \\ []) do
-    Sigra.MFA.regenerate_backup_codes(sigra_config(), user, verification,
-      Keyword.merge([
-        mfa_credential_schema: UserMFACredential,
-        backup_code_schema: UserBackupCode
-      ], opts))
+    Sigra.MFA.regenerate_backup_codes(
+      sigra_config(),
+      user,
+      verification,
+      Keyword.merge(
+        [
+          mfa_credential_schema: UserMFACredential,
+          backup_code_schema: UserBackupCode
+        ],
+        opts
+      )
+    )
   end
 
   @doc "Check if a user has MFA enabled."
@@ -658,18 +711,12 @@ defmodule ThreadlinePhoenix.Accounts do
     )
   end
 
-
-
   @doc "Returns whether magic-link recovery is available for login."
   def magic_link_recovery_available?() do
-
     sigra_config()
     |> Map.get(:magic_link, [])
     |> Keyword.get(:enabled, true)
-
   end
-
-
 
   ## Account Lifecycle
 
@@ -692,12 +739,17 @@ defmodule ThreadlinePhoenix.Accounts do
   Returns `{:ok, user}` or `:error`.
   """
   def confirm_email_change(encoded_token, opts \\ []) do
-    Sigra.Auth.confirm_email_change(sigra_config(), encoded_token,
-      Keyword.merge([
-        user_token_schema: UserToken,
-        user_schema: User,
-        session_store: Sigra.SessionStores.Ecto
-      ], opts)
+    Sigra.Auth.confirm_email_change(
+      sigra_config(),
+      encoded_token,
+      Keyword.merge(
+        [
+          user_token_schema: UserToken,
+          user_schema: User,
+          session_store: Sigra.SessionStores.Ecto
+        ],
+        opts
+      )
     )
   end
 
@@ -731,9 +783,7 @@ defmodule ThreadlinePhoenix.Accounts do
   Requires sudo mode. Returns `{:ok, user}` or `{:error, changeset}`.
   """
   def set_password(user, attrs) do
-    Sigra.Auth.set_password(sigra_config(), user, attrs,
-      changeset_fn: &User.password_changeset/3
-    )
+    Sigra.Auth.set_password(sigra_config(), user, attrs, changeset_fn: &User.password_changeset/3)
   end
 
   @doc """
@@ -754,7 +804,9 @@ defmodule ThreadlinePhoenix.Accounts do
   Returns `{:ok, user}` or `{:error, reason}`.
   """
   def cancel_deletion(user, opts \\ []) do
-    Sigra.Auth.cancel_deletion(sigra_config(), user,
+    Sigra.Auth.cancel_deletion(
+      sigra_config(),
+      user,
       Keyword.merge([changeset_fn: &User.deletion_changeset/2], opts)
     )
   end

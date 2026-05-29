@@ -59,6 +59,16 @@ Even obvious one-line fixes become numbered finding files. Phase 110 triages the
 | §4 Operator incidents | WALK-03 four playbooks | This section |
 | §5 Evidence exercises | WALK-04 three exercises | This section |
 
+### Automated proof (ConnCase + optional browser)
+
+Maintainer walk steps **§1–§5** have ConnCase HTTP automation in `mix verify.example`:
+
+- `test/threadline_phoenix_web/walkthrough_happy_path_test.exs` — §1–§4
+- `test/threadline_phoenix_web/walkthrough_evidence_test.exs` — §5
+- `test/threadline_phoenix_web/track_a_golden_path_test.exs` — Track A without `demo.seed`
+
+Optional LiveView gaps: `mix verify.example_browser` (Playwright). See [`../../guides/adoption-evidence-playbook.md`](../../guides/adoption-evidence-playbook.md).
+
 ---
 
 ## §1 Clean clone install

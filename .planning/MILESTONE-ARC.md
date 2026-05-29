@@ -1,8 +1,8 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-05-29 (milestone v1.29 shipped)
-**Active milestone:** **Hold** (v1.28 External Pilot queued — signal-gated)
-**Next ranked candidate:** **Hold** (default); **v1.28** when sustained real-adopter signal exists
+**Updated:** 2026-05-29 (milestone v1.30 shipped)
+**Active milestone:** **Hold**
+**Next ranked candidate:** **Hold** after v1.30; **v1.28** when sustained real-adopter signal exists
 
 ## Strategic thesis
 
@@ -22,6 +22,7 @@ The v1.22 **real-adopter-first** rule re-engages on first sustained external sig
 | 12 | External pilot | **When signal exists (v1.28)** | Pilot unblockers + STG host matrices — not synthetic scope |
 | 13 | Hex 0.6.0 publish | **Shipped (v1.27)** | hex.pm 0.6.0 aligned with in-repo semver |
 | 14 | First-hour parity & verify hygiene | **Shipped (v1.29)** | README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125 — last synthetic pass before hold |
+| 15 | Adoption evidence automation | **In progress (v1.30)** | ConnCase §5, Track A golden path, Playwright gaps — automation debt on existing demo fiction |
 
 ## Arc order
 
@@ -31,6 +32,7 @@ The v1.22 **real-adopter-first** rule re-engages on first sustained external sig
 | v1.27 | **shipped** | Distribution & First-Hour Finish | In-repo done ≠ adopter can install/evaluate; `ecto_repos` hole; Hex lag. | Honest "done for scope"; evaluator path from Hex 0.6.0. | External pilot; compliance expansion; new product surface. |
 | v1.28 | **queued (signal-gated)** | External Pilot | First sustained real-adopter signal. | Concrete host blockers; STG truth. | Synthetic walkthrough v2; compliance expansion. |
 | v1.29 | **shipped** | First-Hour Parity & Verify Hygiene | Last adopter-facing doc footguns post-v1.27. | README/quick-path parity; WALKTHROUGH truth; Nyquist 125. | New product surface; pilot pretense. |
+| v1.30 | **in progress** | Adoption Evidence Automation | Close WALKTHROUGH §5 + LiveView E2E gaps on existing demo. | Full §1–§5 CI proof; evaluator playbook. | Walkthrough v2; new domain; host STG pretense. |
 
 ## Path to done
 

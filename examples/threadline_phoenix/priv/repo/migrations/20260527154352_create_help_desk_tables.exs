@@ -14,6 +14,7 @@ defmodule ThreadlinePhoenix.Repo.Migrations.CreateHelpDeskTables do
 
     create table(:org_memberships, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :organization_id, references(:organizations, type: :binary_id, on_delete: :delete_all),
         null: false
 
@@ -27,6 +28,7 @@ defmodule ThreadlinePhoenix.Repo.Migrations.CreateHelpDeskTables do
 
     create table(:agents, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :organization_id, references(:organizations, type: :binary_id, on_delete: :delete_all),
         null: false
 
@@ -40,6 +42,7 @@ defmodule ThreadlinePhoenix.Repo.Migrations.CreateHelpDeskTables do
 
     create table(:tickets, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :organization_id, references(:organizations, type: :binary_id, on_delete: :delete_all),
         null: false
 

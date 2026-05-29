@@ -51,7 +51,7 @@
       "assessment_supersedes_prior_thread": true
     }
   },
-  "model_profile": "adaptive",
+  "model_profile": "balanced",
   "granularity": "coarse",
   "runtime": "cursor",
   "model_profile_overrides": {

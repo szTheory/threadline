@@ -223,7 +223,10 @@ defmodule ThreadlinePhoenix.Accounts.Emails do
   @doc "Builds a notification email when a passkey is registered on an account."
   def passkey_registration_email(user, details) do
     ip = details |> Map.get(:ip, "Unknown") |> html_escape_string()
-    city = details |> Map.get(:city, Map.get(details, :geo_city, "Unknown")) |> html_escape_string()
+
+    city =
+      details |> Map.get(:city, Map.get(details, :geo_city, "Unknown")) |> html_escape_string()
+
     device = details |> Map.get(:device, "Unknown device") |> html_escape_string()
 
     time =
@@ -764,7 +767,6 @@ defmodule ThreadlinePhoenix.Accounts.Emails do
   # priv/templates/sigra.install/organizations/organization_invitation_email.ex.
   # Both must stay in sync — the fragment file is the documentation reference.
   # Wrapped in `<%= if organizations? do %%>` so --no-organizations omits it.
-
 
   # -- Private helpers --
 

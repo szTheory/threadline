@@ -42,7 +42,7 @@ An `AuditChange` is one row-level mutation on an audited table: schema/name, pri
 
 Threadline can **exclude** or **mask** configured columns when PL/pgSQL capture functions are generated (`mix threadline.gen.triggers`), so JSON written to `audit_changes` never contains raw values for those keys. **`exclude`** removes keys from `data_after` (and from change lists where the generator applies the same filter). **`mask`** keeps the key but persists only a stable placeholder (default `"[REDACTED]"`) for both `data_after` and sparse **`changed_from`** when that mode is enabled. Overlap between exclude and mask is a hard error at codegen. **json/jsonb** columns use whole-value masking only. Configuration lives under **`config :threadline, :trigger_capture`** (see README). Path B is preserved: redaction is static SQL and trigger paths do not introduce new session writes.
 
-### Configured versus deployed redaction drift (Phase 67)
+### Configured versus deployed redaction drift
 
 Phase 67 adds a second operator question on top of capture-time redaction: does the deployed trigger SQL still match the configured policy? Threadline answers that through the operator-surface page at `/audit/policy/redaction` and the parity Mix task `mix threadline.policy.show`.
 
@@ -54,7 +54,7 @@ Both surfaces use the same three-state taxonomy:
 
 This is a viewer, not a mutator. Policy edits still happen in `config :threadline, :trigger_capture`, then through regenerated trigger migrations. Both surfaces stay read-only and never show sample values; they expose only column names plus `mask_placeholder` metadata so operators can verify policy shape safely.
 
-## Retention (Phase 13)
+## Retention
 
 Operators cap table growth with a **global retention window** under **`config :threadline, :retention`**, validated by `Threadline.Retention.Policy` before purge runs.
 
@@ -63,7 +63,7 @@ Operators cap table growth with a **global retention window** under **`config :t
 - **Long transactions:** multiple `AuditChange` rows under one `audit_transactions` row can carry **different** `captured_at` values; retention is evaluated **per change row**, not “whole transaction expires as one timestamp.”
 - **Empty parents:** after eligible changes are removed, the default purge path deletes **`audit_transactions`** rows that have **no** remaining child changes (optional `delete_empty_transactions: false` for transitional installs). See `Threadline.Retention` / `mix threadline.retention.purge`.
 
-## Export (Phase 14)
+## Export
 
 Read-only exports for operator playbooks (“export then purge”, cross-checks, ad-hoc analysis).
 
@@ -91,7 +91,7 @@ Threadline does not auto-populate evidence from retention, health, or export pat
 
 An empty evidence view means the host has not yet recorded an attestation for that subject — not that a missing background job failed.
 
-## Evidence proof contract (Phase 97)
+## Evidence proof contract
 
 `mix threadline.evidence.show` is the canonical no-Phoenix viewer for
 Threadline-owned evidence records. It is a viewer, not a compliance gate, and
@@ -225,21 +225,21 @@ See also: `Threadline.Telemetry` on HexDocs for copy-paste attach examples.
 
 ## Trigger coverage (operational)
 
-`Threadline.Health.trigger_coverage/1` takes **`repo:`** (required `Ecto.Repo` module) and an optional **`:schema`** keyword (default `"public"`, Phase 66+) and returns a list of tagged tuples:
+`Threadline.Health.trigger_coverage/1` takes **`repo:`** (required `Ecto.Repo` module) and an optional **`:schema`** keyword (default `"public"`) and returns a list of tagged tuples:
 
 `[{:covered, String.t()} | {:uncovered, String.t()} | {:expected_uncovered, String.t()}]`
 
-Each tuple names a user table the catalog query sees in the requested schema. `{:covered, name}` means Threadline’s `threadline_audit_*` trigger was found on that relation; `{:uncovered, name}` means it was not; `{:expected_uncovered, name}` means the table is intentionally not audited (Phase 66+ — `schema_migrations` baseline plus adopter-configured `:expected_uncovered_tables`). The third tuple variant is **additive** — pre-Phase-66 callsites that pattern-match only `{:covered, _}` / `{:uncovered, _}` keep working unchanged.
+Each tuple names a user table the catalog query sees in the requested schema. `{:covered, name}` means Threadline’s `threadline_audit_*` trigger was found on that relation; `{:uncovered, name}` means it was not; `{:expected_uncovered, name}` means the table is intentionally not audited (`schema_migrations` baseline plus adopter-configured `:expected_uncovered_tables`). The third tuple variant is **additive** — existing callsites that pattern-match only `{:covered, _}` / `{:uncovered, _}` keep working unchanged.
 
 **Schema scope.** Pass `:schema` to query a non-`public` schema (e.g. `Threadline.Health.trigger_coverage(repo: MyApp.Repo, schema: "tenant_42")`). The lib does **NOT** validate `:schema` against `pg_namespace` — programmatic callers are responsible for sanitizing or trusting their own input. Surfaces that take untrusted input (the Operator-Surface coverage LV and the Mix tasks) validate at the edge with a regex + `pg_namespace` lookup.
 
 **Audit catalog tables.** `audit_transactions`, `audit_changes`, and `audit_actions` are **excluded** from the per-table list — they are not expected to carry capture triggers (CAP-10 / `Threadline.Health` `@moduledoc`). Do not expect them in `Health` output.
 
-**`mix threadline.health.coverage` (Phase 66+).** Viewer-only Mix-task parity for capture-only adopters: prints a three-section `TABLE / STATUS / SOURCE` table by default, or a JSON object via `--json` (`covered`, `uncovered`, `expected_uncovered`, `schema` keys; `expected_uncovered` entries are `{"table", "source"}` objects with `source ∈ {"baseline", "config"}`). Always exits 0 — viewer, not gate. Pass `--schema=NAME` for multi-schema adopters. Cross-link: see `guides/operator-surface.md` §"Coverage dashboard" for the LV companion.
+**`mix threadline.health.coverage`.** Viewer-only Mix-task parity for capture-only adopters: prints a three-section `TABLE / STATUS / SOURCE` table by default, or a JSON object via `--json` (`covered`, `uncovered`, `expected_uncovered`, `schema` keys; `expected_uncovered` entries are `{"table", "source"}` objects with `source ∈ {"baseline", "config"}`). Always exits 0 — viewer, not gate. Pass `--schema=NAME` for multi-schema adopters. Cross-link: see `guides/operator-surface.md` §"Coverage dashboard" for the LV companion.
 
-**`mix threadline.policy.show` (Phase 67+).** Viewer-only parity for redaction drift: prints one summary line, one aligned `TABLE / STATUS / CONFIG / DEPLOYED / HINT` table, and detail blocks only for actionable rows. `--json` emits additive top-level counts plus `tables`, with stable status values `config_matches_deployed`, `drift_detected`, and `could_not_introspect`. `/audit/policy/redaction` is the LiveView companion for Phoenix adopters; both surfaces use the same rerun guidance and never show sample values.
+**`mix threadline.policy.show`.** Viewer-only parity for redaction drift: prints one summary line, one aligned `TABLE / STATUS / CONFIG / DEPLOYED / HINT` table, and detail blocks only for actionable rows. `--json` emits additive top-level counts plus `tables`, with stable status values `config_matches_deployed`, `drift_detected`, and `could_not_introspect`. `/audit/policy/redaction` is the LiveView companion for Phoenix adopters; both surfaces use the same rerun guidance and never show sample values.
 
-**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself. `{:expected_uncovered, _}` tuples are treated as covered-equivalent for the CI gate (Phase 66+ additive case clause). Phase 66 adds an additive `--schema=NAME` flag with the same edge-validation contract as the new Mix task; default behavior is unchanged.
+**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself. `{:expected_uncovered, _}` tuples are treated as covered-equivalent for the CI gate. It also supports a `--schema=NAME` flag with the same edge-validation contract as the new Mix task; default behavior is unchanged.
 
 **Telemetry link.** When you need how those aggregate counts surface in metrics, see the [`[:threadline, :health, :checked]`](#threadline-health-checked) subsection under [`## Telemetry (operator reference)`](#telemetry-operator-reference).
 
@@ -436,3 +436,8 @@ WHERE  aa.id = 999001
 ORDER BY ac.captured_at DESC
 LIMIT 500;
 ```
+
+red_at DESC
+LIMIT 500;
+```
+

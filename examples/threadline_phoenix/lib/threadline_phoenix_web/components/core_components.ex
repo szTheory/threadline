@@ -79,12 +79,14 @@ defmodule ThreadlinePhoenixWeb.CoreComponents do
   attr :value, :any, default: nil
   attr :label, :string, default: nil
   attr :errors, :list, default: []
+
   attr :rest, :global,
     include: ~w(autocomplete disabled required readonly maxlength pattern placeholder)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns =
       assigns
+      |> assign(:field, nil)
       |> assign(:name, field.name)
       |> assign(:id, field.id)
       |> assign(:value, field.value)

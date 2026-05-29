@@ -14,7 +14,11 @@ defmodule ThreadlinePhoenix.HelpDeskProvisionTest do
       Repo.get_by!(OrgMembership, organization_id: org.id, user_id: user_id)
 
     assert membership.role == "agent"
-    assert Repo.get_by(ThreadlinePhoenix.HelpDesk.Agent, organization_id: org.id, user_id: user_id)
+
+    assert Repo.get_by(ThreadlinePhoenix.HelpDesk.Agent,
+             organization_id: org.id,
+             user_id: user_id
+           )
   end
 
   test "provision_default_workspace_for_user/2 is idempotent for the same user_id" do

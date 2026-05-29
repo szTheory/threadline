@@ -8,7 +8,7 @@ composition story through this example app, the companion guides, and repo
 verification. It does not claim that arbitrary Sigra versions, arbitrary auth
 layouts, or non-Phoenix hosts are supported automatically.
 
-For the **reference-app maintainer walk** (Phase 109 dry-run), start with
+For the **reference-app maintainer walk**, start with
 [`./WALKTHROUGH.md`](./WALKTHROUGH.md). Integrators wiring Threadline into their
 own app should still use
 [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md).
@@ -125,6 +125,25 @@ mix demo.reset
 ```
 
 Credentials: [DEMO_USERS.md](DEMO_USERS.md).
+
+### Tour in five minutes
+
+```bash
+mix setup
+mix demo.seed
+mix phx.server
+```
+
+Sign in as **`admin@example.com`** / **`password123456`**, then open:
+
+| Surface | URL |
+|---------|-----|
+| Timeline + correlation filter | `http://localhost:4000/audit?correlation_id=walk-acme-4521-close` |
+| Evidence plane | `http://localhost:4000/audit/evidence` |
+| Redaction policy drift | `http://localhost:4000/audit/policy/redaction` |
+| Trigger coverage | `http://localhost:4000/audit/coverage` |
+
+Automated ConnCase proofs: `walkthrough_happy_path_test.exs`, `walkthrough_evidence_test.exs`, `track_a_golden_path_test.exs`. Optional browser suite: `mix verify.example_browser` from the repo root. See [`../../guides/adoption-evidence-playbook.md`](../../guides/adoption-evidence-playbook.md).
 
 ## Demo walkthrough data
 
@@ -285,18 +304,24 @@ host-owned `scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3`
 seam:
 
 ```elixir
-scope "/audit" do
-  pipe_through([:browser, :operator_browser, :operator_auth])
+  scope "/audit" do
+    pipe_through([:browser, :operator_browser, :operator_auth])
 
-  threadline_operator_surface("/",
-    actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
-    authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
-    export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
-    evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
-    scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
-    repo: ThreadlinePhoenix.Repo
-  )
-end
+    threadline_operator_surface("/",
+      actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+      authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+      export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+      evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
+      coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
+      policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
+      scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+      schemas: %{
+        "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+        "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+      },
+      repo: ThreadlinePhoenix.Repo
+    )
+  end
 ```
 
 `pipeline :operator_browser` maps Sigra `current_scope` to help-desk-aware

@@ -228,16 +228,16 @@ defmodule ThreadlinePhoenixWeb.UserAuth do
     end
   end
 
-
   defp build_current_scope(user, _session, admin_user) do
     user
     |> Scope.for_user()
     |> maybe_put_impersonating_from(admin_user)
   end
 
-
   defp maybe_put_impersonating_from(scope, nil), do: scope
-  defp maybe_put_impersonating_from(scope, admin_user), do: %{scope | impersonating_from: admin_user}
+
+  defp maybe_put_impersonating_from(scope, admin_user),
+    do: %{scope | impersonating_from: admin_user}
 
   defp valid_admin_token(admin_token, admin_user)
        when is_binary(admin_token) and not is_nil(admin_user),
@@ -337,6 +337,7 @@ defmodule ThreadlinePhoenixWeb.UserAuth do
         case ThreadlinePhoenix.Accounts.get_user_and_session_by_token(user_token) do
           {user, sigra_session} when not is_nil(user) ->
             build_current_scope(user, sigra_session, admin_user)
+
           _ ->
             nil
         end
@@ -413,7 +414,13 @@ defmodule ThreadlinePhoenixWeb.UserAuth do
 
       unconfirmed_access_mode(opts) == :allow_with_banner ->
         conn
-        |> put_flash(:info, dgettext("sigra", "Please confirm your email. Check your inbox or request a new confirmation email."))
+        |> put_flash(
+          :info,
+          dgettext(
+            "sigra",
+            "Please confirm your email. Check your inbox or request a new confirmation email."
+          )
+        )
 
       unconfirmed_access_mode(opts) == :block ->
         # D-04: auto-resend confirmation on blocked login attempt
@@ -423,7 +430,13 @@ defmodule ThreadlinePhoenixWeb.UserAuth do
         )
 
         conn
-        |> put_flash(:error, dgettext("sigra", "You must confirm your email before logging in. We've sent a new confirmation email."))
+        |> put_flash(
+          :error,
+          dgettext(
+            "sigra",
+            "You must confirm your email before logging in. We've sent a new confirmation email."
+          )
+        )
         |> redirect(to: ~p"/users/confirm")
         |> halt()
     end
@@ -489,7 +502,10 @@ defmodule ThreadlinePhoenixWeb.UserAuth do
 
     if user && Map.get(user, :must_change_password, false) do
       conn
-      |> put_flash(:error, "You must change your password before you can continue using your account.")
+      |> put_flash(
+        :error,
+        "You must change your password before you can continue using your account."
+      )
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/settings#password")
       |> halt()
