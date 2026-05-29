@@ -13,8 +13,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 **Goal:** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
 
 **Target features:**
-- **README + phx-gen-auth mount parity** — `ecto_repos` in README Quick Start; canonical scope-shaped mount snippet in phx-gen-auth guide; trigger-table SSOT cross-links
-- **WALKTHROUGH truth** — `verify.threadline` cwd honesty; row-history URL shorthand aligned with shipped transaction-scoped route
+- **README + phx-gen-auth mount parity** — ✓ Phases 128 (2026-05-28)
+- **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-28): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
 - **Verify/planning hygiene** — Nyquist finalize on Phase 125; SUMMARY frontmatter convention for requirements-completed values
 
 **Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
