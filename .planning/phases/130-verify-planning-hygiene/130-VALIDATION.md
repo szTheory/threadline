@@ -63,12 +63,20 @@ All phase behaviors have automated verification.
 
 ---
 
+## Status column (superseded)
+
+Per-task Status cells (⬜ pending) were planning-time scaffolding. Authoritative evidence: `130-VERIFICATION.md` (status: passed, 12/12) and session-close `mix ci.all` recorded there.
+
+Do not mass-flip per-task rows to ✅ without re-running each row's Automated Command on the current tree.
+
+---
+
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Tier 1 bundle recorded in archived `125-VALIDATION.md` Commands Actually Used
-- [ ] Tier 2 `mix ci.all` recorded in `130-VERIFICATION.md`
-- [ ] `nyquist_compliant: true` on 125-VALIDATION only after Tier 1 green
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Tier 1 bundle recorded in archived `125-VALIDATION.md` Commands Actually Used
+- [x] Tier 2 `mix ci.all` recorded in `130-VERIFICATION.md`
+- [x] `nyquist_compliant: true` on 125-VALIDATION only after Tier 1 green
 - [x] `nyquist_compliant: true` set in this file after phase complete
 
 **Approval:** Phase 130 session-close `mix ci.all` green (130-VERIFICATION.md)
