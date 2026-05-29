@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
-status: executing
-last_updated: "2026-05-29T01:03:36.002Z"
-last_activity: 2026-05-29 -- Phase 130.1 planning complete
+status: ready_to_ship
+last_updated: "2026-05-29T12:00:00.000Z"
+last_activity: 2026-05-29 -- Phase 130.1 execution complete
 progress:
   total_phases: 4
   completed_phases: 3
@@ -20,18 +20,18 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 130.1 — Address tech debt: planning metadata hygiene
+**Current focus:** Phase 130.1 — address-tech-debt-planning-metadata-hygiene
 
 ## Current Position
 
-Phase: 130.1 (Address tech debt: planning metadata hygiene) — EXECUTING
-Plan: 1 of ?
-Status: Ready to execute
-Last activity: 2026-05-29 -- Phase 130.1 planning complete
+Phase: 130.1 (address-tech-debt-planning-metadata-hygiene) — COMPLETE
+Plan: 2 of 2
+Status: Verification passed — ready for milestone closeout
+Last activity: 2026-05-29 -- Phase 130.1 execution complete
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.27 — Distribution & First-Hour Finish (2026-05-28)
+- **Last Milestone Shipped**: v1.29 — First-Hour Parity (2026-05-29)
 - **Scope completion (assessment)**: **~92%** for stated narrow audit-platform scope (band: 90–95% near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.6.0** (tag `v0.6.0`, verified 2026-05-28)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -66,12 +66,15 @@ Last activity: 2026-05-29 -- Phase 130.1 planning complete
 
 ## Session Continuity
 
-- **130-02 (2026-05-29):** PLAN-01 convention + v1.27 SUMMARY archive/backfill; NYQ-01/PLAN-01 closed; `mix ci.all` green.
-- **Last Action**: Completed 130-02-PLAN.md (2026-05-29)
-- **Next Step**: Milestone audit / ship v1.29 (`/gsd-audit-milestone` or `/gsd-complete-milestone`)
+- **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
+- **130.1-01 (2026-05-29):** ROADMAP/REQUIREMENTS authority reconciled with v1.29 shipped truth; Tier 1 greps green.
+- **Last Action**: Completed Phase 130.1 (2026-05-29)
+- **Next Step**: `/gsd-complete-milestone v1.29`
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **v1.29 phases 128–130 complete** — run milestone audit before ship
+- **Phase 130.1 complete** — run `/gsd-complete-milestone v1.29`
+- Optional post-tag: `/gsd-cleanup` → `milestones/v1.29-phases/`
+- Hold v1.28 until sustained adopter signal
 - Do **not** open v1.28 external pilot until sustained adopter signal

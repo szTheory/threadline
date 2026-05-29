@@ -94,7 +94,7 @@
 
 **Requirements:** (audit-driven; no new REQ-IDs)
 **Depends on:** Phase 130
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 **Success Criteria:**
 
@@ -108,11 +108,11 @@ Plans:
 
 **Wave 1** *(no dependencies)*
 
-- [ ] 130.1-01-PLAN.md — ROADMAP + REQUIREMENTS authority reconciliation + partial Tier 1 greps
+- [x] 130.1-01-PLAN.md — ROADMAP + REQUIREMENTS authority reconciliation + partial Tier 1 greps
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 130.1-02-PLAN.md — 130-VALIDATION footnote + audit Nyquist waiver + VERIFICATION closeout + STATE + `mix ci.all`
+- [x] 130.1-02-PLAN.md — 130-VALIDATION footnote + audit Nyquist waiver + VERIFICATION closeout + STATE + `mix ci.all`
 
 **Cross-cutting constraints:**
 
