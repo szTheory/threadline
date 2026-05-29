@@ -20,13 +20,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 129 — walkthrough-truth
+**Current focus:** Phase 130 — verify-planning-hygiene
 
 ## Current Position
 
 Phase: 130
 Plan: Not started
-Status: Executing Phase 129
+Status: Context gathered — ready for planning
 Last activity: 2026-05-29
 
 ## Performance Metrics
@@ -63,11 +63,11 @@ Last activity: 2026-05-29
 
 ## Session Continuity
 
-- **Last Action**: Completed 128-02-PLAN.md — phx-gen-auth scope-first mount + doc-contract locks (2026-05-28)
-- **Next Step**: Phase 129 WALKTHROUGH Truth or `/gsd-verify-work 128`
-- **Resume file**: None
+- **Last Action**: Phase 130 context gathered — Nyquist 125 archive + GAP ID convention (2026-05-29)
+- **Next Step**: `/gsd-plan-phase 130`
+- **Resume file**: `.planning/phases/130-verify-planning-hygiene/130-CONTEXT.md`
 
 ## Operator Next Steps
 
-- Phase 128 complete — proceed to **Phase 129** (WALKTHROUGH cwd + row-history URL truth)
+- Phase 129 complete — proceed to **Phase 130** (Nyquist 125 finalize + SUMMARY convention)
 - Do **not** open v1.28 external pilot until sustained adopter signal
