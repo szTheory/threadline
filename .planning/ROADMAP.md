@@ -87,3 +87,35 @@
 | 128 README + phx-gen-auth Mount Parity | v1.29 | 2/2 | Complete    | 2026-05-28 |
 | 129 WALKTHROUGH Truth | v1.29 | 2/2 | Complete    | 2026-05-29 |
 | 130 Verify & Planning Hygiene | v1.29 | 2/2 | Complete    | 2026-05-29 |
+
+### Phase 130.1: Address tech debt: planning metadata hygiene (INSERTED)
+
+**Goal:** Close residual v1.29 audit planning-metadata drift — align active ROADMAP/REQUIREMENTS authority with shipped product truth, document 130-VALIDATION honesty and Nyquist waivers for doc-only phases 128–129, without code changes or milestone archive.
+
+**Requirements:** (audit-driven; no new REQ-IDs)
+**Depends on:** Phase 130
+**Plans:** 2 plans
+
+**Success Criteria:**
+
+1. ROADMAP header + Current Planning State reflect v1.29 Complete / Hold — not in-progress or ready for Phase 128.
+2. ROADMAP Phase 129 SC#1 + REQUIREMENTS WALK-01 describe `mix threadline.verify_coverage` from `examples/threadline_phoenix/` cwd; root `mix verify.threadline` contributor alias only.
+3. ROADMAP Phase 130 SC#2 uses hyphenated `requirements-completed` and cites `.planning/conventions/summary-frontmatter.md`.
+4. `130-VALIDATION.md` Status column superseded footnote; `v1.29-MILESTONE-AUDIT.md` Nyquist waiver rows for 128–129.
+5. `130.1-VERIFICATION.md` closure table + Tier 1 greps green + session-close `mix ci.all` green.
+
+Plans:
+
+**Wave 1** *(no dependencies)*
+
+- [ ] 130.1-01-PLAN.md — ROADMAP + REQUIREMENTS authority reconciliation + partial Tier 1 greps
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 130.1-02-PLAN.md — 130-VALIDATION footnote + audit Nyquist waiver + VERIFICATION closeout + STATE + `mix ci.all`
+
+**Cross-cutting constraints:**
+
+- No retroactive `128-VALIDATION.md` / `129-VALIDATION.md` with `nyquist_compliant: true` without rerun
+- Charter test literal update deferred to `/gsd-complete-milestone v1.29` (D-130.1-08)
+- Single `mix ci.all` at session close only — not per intermediate plan
