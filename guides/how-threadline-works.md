@@ -227,7 +227,7 @@ The next chunks that feel naturally adjacent are:
 - extraction pressure checks for whether a separate UI package is ever worth the maintenance cost
 - a `threadline_web` split only if objective extraction triggers show up
 
-Those are the kinds of problems that usually belong in the next milestone once adopters start using the current surface for real.
+Those are the kinds of problems that usually belong in future releases once adopters start using the current surface for real.
 
 ## Where to go next
 

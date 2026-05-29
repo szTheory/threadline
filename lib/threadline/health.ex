@@ -16,7 +16,7 @@ defmodule Threadline.Health do
 
   On every successful call, emits `[:threadline, :health, :checked]` with
   measurements `%{covered: integer, uncovered: integer, expected_uncovered: integer}`.
-  The `expected_uncovered` measurement was added in Phase 66 (additive — old
+  The `expected_uncovered` measurement is an additive — old
   subscribers reading only `covered`/`uncovered` keep working unchanged).
   """
 
@@ -30,7 +30,7 @@ defmodule Threadline.Health do
   Audit tables (`audit_transactions`, `audit_changes`, `audit_actions`) are
   excluded from the result — they are not expected to have triggers (CAP-10).
 
-  Phase 66 introduced a third tuple variant `{:expected_uncovered, name}` for
+  A third tuple variant `{:expected_uncovered, name}` is supported for
   bookkeeping tables that are intentionally not audited (e.g. `schema_migrations`).
   The bucket is computed from a hardcoded baseline plus
   `config :threadline, :health, expected_uncovered_tables: [...]`, with

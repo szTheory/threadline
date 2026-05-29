@@ -51,7 +51,7 @@ defmodule Threadline.Capture.AuditTransaction do
     field(:source, :string)
     field(:meta, :map)
 
-    # Phase 2 additions — both nullable (CTX-04: capture works without context)
+    # Additive fields — both nullable (CTX-04: capture works without context)
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
     @compile {:no_warn_undefined, Threadline.Semantics.AuditAction}

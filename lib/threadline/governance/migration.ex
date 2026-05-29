@@ -1,6 +1,6 @@
 defmodule Threadline.Governance.Migration do
   @moduledoc """
-  SQL DDL for the Threadline governance schema (Phase 75).
+  SQL DDL for the Threadline governance schema .
 
   Used by `mix threadline.install` to generate a migration file. The generated
   migration creates `threadline_export_jobs`, `threadline_retention_runs`,

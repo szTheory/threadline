@@ -1,9 +1,9 @@
 defmodule Threadline.Semantics.Migration do
   @moduledoc """
-  DDL helpers for the Threadline semantics schema (Phase 2).
+  DDL helpers for the Threadline semantics schema .
 
   Provides `migration_content/0` for use by `mix threadline.install` when
-  generating the Phase 2 migration in host applications.
+  generating the migration in host applications.
   """
 
   @doc "Returns the Ecto migration module content as a string for file generation."

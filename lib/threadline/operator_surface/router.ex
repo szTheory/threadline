@@ -9,7 +9,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     2. An explicit `:authorize_fn` option.
     3. An explicit `:adopter_acknowledges_unauthenticated` option.
 
-    ## Export endpoints (Phase 65+)
+    ## Export endpoints 
 
     When `phoenix` is available at compile time, the macro also emits a
     sibling `scope <path>/exports` block with three GET routes —
@@ -24,7 +24,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     `alias: false, as: false` hygiene is preserved so the host's alias
     namespace is not polluted.
 
-    ## Options (Phase 65+)
+    ## Options 
 
     - `:exports` (boolean, default `true`) — set to `false` to suppress the
       sibling export-controller scope (rare LV-only adopters).

@@ -11,7 +11,7 @@ defmodule Threadline.ChangeDiff do
 
   Relationship to **`Threadline.Export`**: the `:export_compat` format mirrors the
   **base** string-key map produced by export's internal `change_map/1` (`"op"`,
-  `"data_after"`, `"changed_fields"`, `"changed_from"`, identifiers). Phase 31
+  `"data_after"`, `"changed_fields"`, `"changed_from"`, identifiers).
   **omits** nested `"transaction"` and `"action"` objects; full export rows may still
   include those when preloaded. Use export for CSV/NDJSON documents; use this module
   when you need **`field_changes`** or the same triple without join metadata.
@@ -79,7 +79,7 @@ defmodule Threadline.ChangeDiff do
   `"table_pk"`, `"data_after"`, `"changed_fields"`, `"changed_from"`. IDs are coerced
   with `to_string/1`; `table_pk` defaults to `%{}`, `changed_fields` to `[]`,
   `changed_from` to `%{}` when nil. Nested `"transaction"` and `"action"` are **not**
-  included in Phase 31 unless a later phase adds optional preload parameters.
+  included unless future versions add optional preload parameters.
   """
   @spec from_audit_change(AuditChange.t(), keyword()) :: map()
   def from_audit_change(%AuditChange{} = ch, opts \\ []) do

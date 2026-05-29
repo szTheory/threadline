@@ -33,7 +33,7 @@ defmodule Threadline.Capture.AuditChange do
   Triggers are installed per table by `mix threadline.gen.triggers`, which emits
   SQL calling `threadline_capture_changes()` from `mix threadline.install`. See
   [guides/domain-reference.md](guides/domain-reference.md) for the domain model
-  and `.planning/phases/01-capture-foundation/gate-01-01.md` for the capture
+  for the capture
   contract.
   """
 

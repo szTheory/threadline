@@ -16,11 +16,11 @@ defmodule Threadline.Telemetry do
   - `[:threadline, :health, :checked]` — after
     `Threadline.Health.trigger_coverage/1` returns. Measurements:
     `%{covered: integer, uncovered: integer, expected_uncovered: integer}`.
-    The `expected_uncovered` measurement was added in Phase 66 (additive —
+    The `expected_uncovered` measurement is an additive —
     subscribers that destructure only `covered` and `uncovered` keep working).
 
   - `[:threadline, :health, :checked, :error]` — sibling event emitted when a
-    polled coverage check raises (Phase 66 D-30c). Metadata: `%{error: message}`.
+    polled coverage check raises . Metadata: `%{error: message}`.
     The dashboard keeps the last-good snapshot and reschedules the next poll;
     this event lets adopters alert on transient or sustained failure.
 
@@ -68,7 +68,7 @@ defmodule Threadline.Telemetry do
   Emits the `[:threadline, :health, :checked]` event with covered / uncovered /
   expected_uncovered measurements.
 
-  Phase 66 added the `expected_uncovered` measurement key (additive). External
+  The `expected_uncovered` measurement key is (additive). External
   subscribers that destructure only `%{covered: c, uncovered: u}` continue to
   work unchanged.
   """
@@ -82,7 +82,7 @@ defmodule Threadline.Telemetry do
 
   @doc """
   Emits the `[:threadline, :health, :checked, :error]` event when a polled
-  coverage check fails (Phase 66 D-30c). The dashboard keeps the last-good
+  coverage check fails . The dashboard keeps the last-good
   snapshot and ALWAYS reschedules the next poll; this event lets adopters
   alert on transient or sustained failure.
   """

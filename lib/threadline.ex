@@ -178,7 +178,7 @@ defmodule Threadline do
   and optional action metadata.
 
   This packages the existing transaction drill-down primitive into a reusable
-  helper contract without adding Phase 55 diff or incident-bundle rendering.
+  helper contract without adding diff or incident-bundle rendering.
   """
   def transaction_context(transaction_id, opts \\ []),
     do: Investigation.transaction_context(transaction_id, opts)

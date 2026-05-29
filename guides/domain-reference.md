@@ -306,7 +306,7 @@ authorization policy beyond that baseline.
 
 ## Support incident queries
 
-SQL-native operator playbooks for the five canonical support questions (see `.planning/milestones/v1.8-REQUIREMENTS.md`, “Evidence-driving questions”). Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.
+SQL-native operator playbooks for the five canonical evidence-driving support questions. Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** — replace it (and any `your_table` / PK literals) with your install’s names before executing.
 
 **Replace before run:** `your_schema` → audited schema (often `public`); `your_table` / PK values → the row under investigation; time literals → bounded window; `your_correlation_id` → trace string from logs.
 
@@ -433,6 +433,14 @@ FROM   your_schema.audit_actions aa
 JOIN   your_schema.audit_transactions at ON at.action_id = aa.id
 JOIN   your_schema.audit_changes ac ON ac.transaction_id = at.id
 WHERE  aa.id = 999001
+ORDER BY ac.captured_at DESC
+LIMIT 500;
+```
+
+red_at DESC
+LIMIT 500;
+```
+
 ORDER BY ac.captured_at DESC
 LIMIT 500;
 ```

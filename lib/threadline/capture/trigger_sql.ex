@@ -155,7 +155,7 @@ defmodule Threadline.Capture.TriggerSQL do
 
   defp per_table_function_name(table_name), do: "threadline_capture_changes_#{table_name}"
 
-  # Exact legacy SQL (pre–Phase 12) when no redaction rules apply.
+  # Exact legacy SQL (legacy) when no redaction rules apply.
   defp global_install_function_sql_legacy do
     """
     CREATE OR REPLACE FUNCTION threadline_capture_changes()

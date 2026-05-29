@@ -26,7 +26,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       actor_ref = socket.assigns[:threadline_actor_ref]
 
       # Datalist refreshed at mount; long-lived sessions may not see newly-audited tables
-      # until the next page load. Phase 66 will introduce a polled coverage source we can
+      # until the next page load. Future iterations may introduce a polled coverage source we can
       # subscribe to.
       audited_tables =
         Threadline.Health.trigger_coverage(repo: repo)

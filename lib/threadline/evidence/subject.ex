@@ -2,7 +2,7 @@ defmodule Threadline.Evidence.Subject do
   @moduledoc """
   Closed subject inventory for Threadline-owned evidence records.
 
-  Phase 95 keeps this boundary intentionally narrow so later evidence APIs and
+  This boundary is kept intentionally narrow so later evidence APIs and
   surfaces cannot silently expand into host-owned auth, tenancy, or compliance
   workflow semantics.
   """

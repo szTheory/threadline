@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
 
   Table names in output are public-schema metadata only (same scope as `Health`).
 
-  ## Schema scope (Phase 66)
+  ## Schema scope
 
   By default, this task verifies the `"public"` schema. Pass `--schema=NAME`
   to verify a non-`public` schema (e.g. `mix threadline.verify_coverage --schema=tenant_42`).
