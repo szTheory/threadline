@@ -24,7 +24,7 @@
 
 ### WALKTHROUGH truth (Phase 129)
 
-- [x] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` runs `mix verify.threadline` from repo root (or documents cwd explicitly if a wrapper is introduced) — alias lives on root `mix.exs`, not example app.
+- [x] **WALK-01**: `examples/threadline_phoenix/WALKTHROUGH.md` optional verify uses `mix threadline.verify_coverage` from `examples/threadline_phoenix/` cwd (WALKTHROUGH §0). Contributor root gate: `mix verify.threadline` from repo root — see root mix.exs alias; not a walk-step command.
 - [x] **WALK-02**: WALKTHROUGH row-history URLs match shipped transaction-scoped route (`/audit/transactions/:id/history/:table/:record_id`) or clearly label shorthand vs canonical path with navigation steps from transaction drill-down.
 - [x] **WALK-03**: Doc-contract test locks WALKTHROUGH verify cwd and row-history URL truth (extend `walkthrough_doc_contract_test.exs` or dedicated contract).
 
