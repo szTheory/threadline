@@ -14,7 +14,17 @@ You are a **maintainer** running the Phase 109 observe-only dry-run. Do not trea
 - PostgreSQL with trigger support, reachable before database tasks
 - Repository cloned; all commands run from **`examples/threadline_phoenix/`**
 
+> **Walk vs contributor cwd:** All **walk steps** in this runbook run from **`examples/threadline_phoenix/`**. **Contributor CI gates** (`mix verify.*`, `mix ci.all`) run from the **repository root** — see [`CONTRIBUTING.md`](../../CONTRIBUTING.md). Host/operator tasks use the `threadline.*` namespace (`mix threadline.verify_coverage`, `mix threadline.evidence.show`); root `verify.*` aliases target the library test harness.
+
 Optional: from the repository root, `docker compose up -d postgres` publishes Postgres on port **5433** by default. Set `DB_HOST` / `DB_PORT` to match your environment.
+
+### Row history URLs
+
+Guide shorthand `/audit/rows/:table/:pk` describes the **operator question**; the **shipped route** is transaction-scoped: `/audit/transactions/:id/history/:table/:record_id` (slide-over via **History** on a change row).
+
+**Do not paste** `/audit/rows/…` URLs — they are not mounted standalone routes.
+
+See [`guides/operator-surface.md`](../../guides/operator-surface.md) Row History / As-of Sub-view for the full contract. Canonical route: `/audit/transactions/:id/history/:table/:record_id`
 
 ### Recovery
 
@@ -117,7 +127,13 @@ Run every command from **`examples/threadline_phoenix/`**. PostgreSQL must alrea
 - Help-desk tables (`organizations`, `tickets`, `ticket_replies`, …) exist
 - Threadline triggers installed on audited tables
 
-**Verify:** Optional — `mix verify.threadline` coverage check passes.
+**Verify:** Optional — from this directory:
+
+```bash
+mix threadline.verify_coverage
+```
+
+Uses this app's `config :threadline, :verify_coverage` and `ThreadlinePhoenix.Repo` (not the root library verify ladder — see [`CONTRIBUTING.md`](../../CONTRIBUTING.md)).
 
 **If different:** File a finding citing `WALK-01-02`; STOP if migrations fail — recovery may require `mix ecto.reset` then repeat from WALK-01-02.
 
@@ -238,7 +254,7 @@ Sigra auth and help-desk provisioning prove the reference app's first-hour opera
 |-------|-------|---------|------------|
 | `/audit` | Support org-scoped timeline | table, time window | → `/audit/transactions/:id` |
 | `/audit/actors/:kind/:id` | Support org-scoped actor history | actor, time window | → transaction drill-down |
-| `/audit/rows/:table/:pk` | Support org-scoped row history | table, pk | as-of sub-view |
+| Row history *(shorthand /audit/rows/:table/:pk)* | Support org-scoped row history | table, pk | → **History** on change row → `/audit/transactions/:id/history/:table/:record_id` |
 
 **Verify:** Human — `/audit` renders timeline without 403.
 
@@ -388,7 +404,7 @@ Daily operator flows use seeded personas and the mounted `/audit` surface. When 
 | Route | Scope | Filters | Drill-down |
 |-------|-------|---------|------------|
 | `/audit` | Support read-only, org-scoped | `table`, time window | → transaction (org-scoped) |
-| `/audit/rows/tickets/:pk` | Support org-scoped | ticket pk | row history / as-of |
+| Row history *(shorthand /audit/rows/tickets/:pk)* | Support org-scoped | ticket pk | → **History** on change row → `/audit/transactions/:id/history/tickets/:record_id` |
 
 **Verify:** Human — no Globex org rows visible; export denied.
 
@@ -423,7 +439,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 3. Narrow time window to include **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`)
 4. Open the matching transaction drill-down **`/audit/transactions/:id`**
 5. Inspect row changes on **`tickets`** (status → closed) and **`ticket_replies`** (close reply insert)
-6. Open row history for the close reply on **`/audit/rows/ticket_replies/:pk`** and confirm sensitive fields
+6. On the transaction drill-down, click **History** on the `ticket_replies` change row (canonical path: `/audit/transactions/:id/history/ticket_replies/:record_id`) and confirm sensitive fields
 
 **Expected outcome:**
 
@@ -438,7 +454,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 |-------|-------|---------|------------|
 | `/audit` | Support org-scoped or admin cross-org | `correlation_id: walk-acme-4521-close`, `from`/`to` anchored to `2026-05-20T14:30:00Z` | → `/audit/transactions/:id` |
 | `/audit/transactions/:id` | Org-scoped or admin | transaction id from timeline | row changes on `tickets`, `ticket_replies` |
-| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | table pk from transaction | prior values / redaction on `body` or masked columns |
+| Row history *(shorthand /audit/rows/ticket_replies/:pk)* | Org-scoped or admin | table pk from transaction | → **History** on change row → `/audit/transactions/:id/history/ticket_replies/:record_id` |
 
 **Verify:** Optional — `demo_contract_test.exs` describes `"ticket_replied_and_closed action on #4521 close transaction"` and `"close reply insert is redacted on #4521"`.
 
@@ -448,7 +464,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 
 #### Step WALK-03-02 — Leaving agent activity window
 
-**Operator question:** Agent **`agent2@acme.example.com`** is leaving — what did they touch in the last 24 hours before offboard?
+**Operator question:** Agent **`agent2@acme.example.com`** is leaving — what did they touch from **`demo_last_tuesday`** through **`demo_epoch`**?
 
 **Prerequisites:** Demo seed loaded. Log in as **`admin@example.com`** / **`password123456`**.
 
@@ -457,11 +473,11 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 1. Open **`http://localhost:4000/audit/actors/user/33123cc4-da21-5674-b030-e168cee90521`** (Appendix A — `agent2@acme.example.com` user id)
 2. Set time window from **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — consistent with WALK-03-01 step 3
 3. Alternatively: cross-org **`/audit`** timeline with actor filter for **`agent2@acme.example.com`** and the same window
-4. Scan the actor history list for Acme help-desk tables (`tickets`, `ticket_replies`)
+4. Scan the actor history list for **`tickets`** table activity (status changes)
 
 **Expected outcome:**
 
-- Actor history lists seeded leaving-agent window activity (multiple ticket/reply mutations attributed to **`agent2@acme.example.com`**)
+- Actor history lists seeded leaving-agent window activity (**ticket status changes on `tickets` only** — 12 transactions in seed)
 - Rows span Acme org only for this persona — not cross-org admin noise
 - Each entry drill-downs to a transaction with **`agent2@acme.example.com`** as actor
 
@@ -528,7 +544,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 2. Filter timeline to **`table: ticket_replies`** and time window including **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`)
 3. Locate **DELETE** operation on a reply row tied to hero ticket **#4518** (distinct from #4521 close story)
 4. Open delete transaction **`/audit/transactions/:id`** — confirm actor **`deleter@acme.example.com`**
-5. Open **prior row history** for the deleted reply pk on **`/audit/rows/ticket_replies/:pk`** — inspect state before delete
+5. On the delete transaction drill-down, click **History** on the deleted reply change row (canonical path: `/audit/transactions/:id/history/ticket_replies/:record_id`) — inspect state before delete
 6. Confirm sensitive reply fields show masking where policy applies
 
 **Expected outcome:**
@@ -544,7 +560,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 |-------|-------|---------|------------|
 | `/audit` | Support org-scoped or admin | `table: ticket_replies`, `from`/`to` including `2026-05-20T14:30:00Z`, op DELETE | → `/audit/transactions/:id` |
 | `/audit/transactions/:id` | Org-scoped or admin | delete transaction id | actor = deleter |
-| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | reply pk from delete change | prior row history / as-of before delete |
+| Row history *(shorthand /audit/rows/ticket_replies/:pk)* | Org-scoped or admin | reply pk from delete change | → **History** on change row → `/audit/transactions/:id/history/ticket_replies/:record_id` |
 
 **Verify:** Optional — `demo_contract_test.exs` describes `"hard delete on ticket_replies for #4518 by deleter not closer"`.
 
@@ -567,7 +583,7 @@ Three evidence exercises prove the Threadline evidence plane using seeded rows f
 
 **Prerequisites:** WALK-01-03 complete — **`mix demo.seed`** must have run successfully. Org Y retention purge executes **during** `demo.seed` (RetentionTail tail); there is no separate live purge step in this walk. If state drifted, recover with **`mix demo.reset`**.
 
-> **CLI footnote:** REQUIREMENTS and PROJECT prose may reference **`mix verify.evidence`**. The canonical viewer in this repo is **`mix threadline.evidence.show`** — use that command throughout this section.
+> **CLI footnote:** Earlier milestones and planning prose referenced **`mix verify.evidence`**. That alias was **never shipped**. The canonical viewer in this repo is **`mix threadline.evidence.show`** — use it in body steps and Appendix B.
 
 > **Production sidebar (non-proof):** Hosts may run **`mix threadline.retention.purge --dry-run`** in production planning — that is optional prose only; org Y purge proof here comes from the seeded retention run, not a live purge during Phase 109.
 
@@ -648,7 +664,7 @@ Document these fields — not full JSON blobs: **`subject`**, **`subject_ref`** 
    mix threadline.policy.show
    ```
 
-5. Corroborate capture: repeat WALK-03-01 row history on **`/audit/rows/ticket_replies/:pk`** for the #4521 close reply — internal note shows **`[REDACTED]`**, never plaintext secret text
+5. Corroborate capture: repeat WALK-03-01 step 6 row-history navigation for the #4521 close reply — internal note shows **`[REDACTED]`**, never plaintext secret text
 
 **Expected outcome:**
 
@@ -672,7 +688,7 @@ Document these fields — not full JSON blobs: **`subject`**, **`subject_ref`** 
 | Route | Scope | Filters | Drill-down |
 |-------|-------|---------|------------|
 | `/audit/policy/redaction` | Admin global | policy `walk-demo-redaction-policy` | policy drift detail |
-| `/audit/rows/ticket_replies/:pk` | Org-scoped or admin | #4521 close reply pk | `[REDACTED]` on internal note |
+| Row history *(shorthand /audit/rows/ticket_replies/:pk)* | Org-scoped or admin | #4521 close reply pk | → **History** on change row → `/audit/transactions/:id/history/ticket_replies/:record_id` |
 
 **Verify:** Optional — `demo_contract_test.exs` `"post-demo.seed redaction_policy row matches manifest subject_ref"`.
 
@@ -727,7 +743,13 @@ Document these fields — not full JSON blobs: **`subject`**, **`subject_ref`** 
 |-------|-------|---------|------------|
 | `/audit/coverage` | Admin global | snapshot `walk-demo-trigger-coverage` | per-table trigger buckets |
 
-**Verify:** Optional — `mix verify.threadline` coverage check after fresh migrate.
+**Verify:** Optional — from this directory:
+
+```bash
+mix threadline.verify_coverage
+```
+
+Uses this app's `config :threadline, :verify_coverage` and `ThreadlinePhoenix.Repo` (not the root library verify ladder — see [`CONTRIBUTING.md`](../../CONTRIBUTING.md)). Run after fresh migrate.
 
 **If different:** File a finding citing **`WALK-04-03`**; do not fix during Phase 109.
 
@@ -831,4 +853,5 @@ Run from **`examples/threadline_phoenix/`** unless noted.
 Optional context after the Phase 109 dry-run — **not** needed mid-walk:
 
 - [`../../guides/getting-started-saas.md`](../../guides/getting-started-saas.md) — integrator first-hour wiring in your own app
+- [`../../guides/operator-surface.md`](../../guides/operator-surface.md) — row history shorthand vs canonical transaction-scoped path
 - [`README.md`](./README.md) — runnable install contract, operator mount recipe, and test entrypoints
