@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: First-Hour Parity
 status: executing
-last_updated: "2026-05-29T00:52:00Z"
-last_activity: 2026-05-29 -- Completed 130-01-PLAN.md
+last_updated: "2026-05-29T01:35:00Z"
+last_activity: 2026-05-29 -- Completed 130-02-PLAN.md
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 130 — Verify & Planning Hygiene
+**Current focus:** v1.29 milestone closeout — all phases 128–130 complete
 
 ## Current Position
 
-Phase: 130 — Verify & Planning Hygiene (in progress)
-Plan: 1 of 2 complete (130-01 done; 130-02 next)
-Status: Executing Phase 130
-Last activity: 2026-05-29 -- Completed 130-01 Nyquist 125 archive + Tier 1 finalize
+Phase: 130 — Verify & Planning Hygiene (complete)
+Plan: 2 of 2 complete (130-01, 130-02)
+Status: v1.29 phases done; ready for milestone audit / ship
+Last activity: 2026-05-29 -- Completed 130-02 SUMMARY convention + session-close ci.all
 
 ## Performance Metrics
 
@@ -50,11 +50,10 @@ Last activity: 2026-05-29 -- Completed 130-01 Nyquist 125 archive + Tier 1 final
 
 ### Decisions
 
-- **128-02 (2026-05-28):** phx-gen-auth mount uses `&MyApp.Audit.authorize_operator/1` with scope-first lookup and `is_admin: true` gate; integration test mirrors guide module.
-- **128-01 (2026-05-28):** README Quick Start uses posts-only triggers with SSOT cross-links; ecto_repos step before install without claiming install validates Threadline repo wiring.
-- **v1.29 (2026-05-28):** Optional thin hygiene pass — README/`ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125; no pilot pretense or product expansion.
-- **Path-to-done (2026-05-28):** ~92% done for stated scope; no adopter signal — hold after v1.29.
-- **v1.27 (2026-05-28):** Distribution + first-hour finish over external pilot.
+- **130-02 (2026-05-28):** SUMMARY SSOT at `conventions/summary-frontmatter.md`; GAP IDs for 125–127 only; single `mix ci.all` in 130-VERIFICATION.
+- **130-01 (2026-05-29):** Phase 125 archived under `milestones/v1.27-phases/`; `125-VALIDATION.md` finalized after Tier 1 green; charter test v1.29.
+- **128-02 (2026-05-28):** phx-gen-auth mount uses `&MyApp.Audit.authorize_operator/1` with scope-first lookup and `is_admin: true` gate.
+- **v1.29 (2026-05-28):** Optional thin hygiene pass — README/`ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125; no pilot pretense.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
 
 ### Blockers
@@ -63,12 +62,12 @@ Last activity: 2026-05-29 -- Completed 130-01 Nyquist 125 archive + Tier 1 final
 
 ## Session Continuity
 
-- **130-01 (2026-05-29):** Phase 125 archived under `milestones/v1.27-phases/`; `125-VALIDATION.md` finalized after Tier 1 green; charter test v1.29.
-- **Last Action**: Completed 130-01-PLAN.md (2026-05-29)
-- **Next Step**: Execute **130-02** (SUMMARY convention, GAP backfill, session-close `mix ci.all`)
-- **Resume file**: `.planning/phases/130-verify-planning-hygiene/130-02-PLAN.md`
+- **130-02 (2026-05-29):** PLAN-01 convention + v1.27 SUMMARY archive/backfill; NYQ-01/PLAN-01 closed; `mix ci.all` green.
+- **Last Action**: Completed 130-02-PLAN.md (2026-05-29)
+- **Next Step**: Milestone audit / ship v1.29 (`/gsd-audit-milestone` or `/gsd-complete-milestone`)
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- **130-01 complete** — proceed to **130-02** (PLAN-01 convention + `mix ci.all` closeout)
+- **v1.29 phases 128–130 complete** — run milestone audit before ship
 - Do **not** open v1.28 external pilot until sustained adopter signal
