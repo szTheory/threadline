@@ -9,16 +9,16 @@
 - ✅ **v1.25 Adopter-Ready Release & First-Hour Truth** — Phases 114-118, shipped 2026-05-28. Archive: `.planning/milestones/v1.25-ROADMAP.md`
 - ✅ **v1.26 Auth Lane Breadth** — Phases 119-121, shipped 2026-05-28. Archive: `.planning/milestones/v1.26-ROADMAP.md`
 - ✅ **v1.27 Distribution & First-Hour Finish** — Phases 122-127, shipped 2026-05-28. Archive: `.planning/milestones/v1.27-ROADMAP.md`
-- 🚧 **v1.29 First-Hour Parity** — Phases 128-130 (in progress)
+- ✅ **v1.29 First-Hour Parity** — Phases 128-130, shipped 2026-05-29. Audit: `.planning/v1.29-MILESTONE-AUDIT.md`
 
 ## Current Planning State
 
-**Milestone:** v1.29 — First-Hour Parity
-**Status:** Requirements defined; ready for Phase 128
-**Last shipped:** v1.27 — Distribution & First-Hour Finish (2026-05-28)
-**Next step:** `/gsd-discuss-phase 128` or `/gsd-plan-phase 128`
+**Milestone:** v1.29 — First-Hour Parity — **Complete** (2026-05-29)
+**Status:** Hold — v1.28 External Pilot signal-gated; no adopter signal
+**Last shipped:** v1.29 — First-Hour Parity (2026-05-29)
+**Next step:** `/gsd-complete-milestone v1.29` after Phase 130.1 green
 
-**Assessment:** Post-v1.27 path-to-done ~92%; remaining delta is doc parity + verify hygiene, not missing engine. No adopter signal — v1.28 deferred.
+**Assessment:** v1.29 Phases 128–130 complete; Phase 130.1 closes audit planning-metadata remainder. Post-v1.27 path-to-done ~92%; remaining delta is doc parity + verify hygiene, not missing engine. No adopter signal — v1.28 deferred.
 
 **Non-goals:** External pilot (v1.28); compliance DEFER trio; second reference app; evidence auto-population; Pow/bearer lane; Hex semver bump.
 
@@ -58,7 +58,7 @@
 
 **Success Criteria:**
 
-1. WALKTHROUGH `mix verify.threadline` instructions run from repo root or document cwd explicitly.
+1. WALKTHROUGH optional verify uses `mix threadline.verify_coverage` from `examples/threadline_phoenix/` cwd (WALKTHROUGH §0). Contributor root gate: `mix verify.threadline` from repo root — alias to coverage policy per root mix.exs; not a walk-step command.
 2. Row-history URLs in WALKTHROUGH match shipped transaction-scoped route or clearly distinguish shorthand from canonical path with navigation steps.
 3. Doc-contract test locks verify cwd and row-history URL truth.
 
@@ -75,7 +75,7 @@
 **Success Criteria:**
 
 1. `125-VALIDATION.md` under `.planning/milestones/v1.27-phases/125-authority-surface-reconciliation/` signed `nyquist_compliant: true` with recorded green verification bundle.
-2. SUMMARY frontmatter convention documents `requirements_completed`; v1.27 phase SUMMARY files or planning note updated.
+2. SUMMARY frontmatter convention documents `requirements-completed` (hyphenated SSOT per `.planning/conventions/summary-frontmatter.md`); v1.27 gap-closure SUMMARYs (125–127) backfilled with GAP IDs.
 3. `mix verify.doc_contract` and `mix ci.all` green at milestone closeout.
 
 ---
