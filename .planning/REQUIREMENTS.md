@@ -30,7 +30,7 @@
 
 ### Verify/planning hygiene (Phase 130)
 
-- [ ] **NYQ-01**: `.planning/phases/125-authority-surface-reconciliation/125-VALIDATION.md` signed `nyquist_compliant: true` with green verification bundle recorded.
+- [ ] **NYQ-01**: `.planning/milestones/v1.27-phases/125-authority-surface-reconciliation/125-VALIDATION.md` signed `nyquist_compliant: true` with green verification bundle recorded.
 - [ ] **PLAN-01**: Phase SUMMARY frontmatter convention documents `requirements_completed` values; existing v1.27 phase SUMMARY files updated or a single planning convention note added so closeout metadata is not ambiguous.
 
 ---

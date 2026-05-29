@@ -1,10 +1,11 @@
 ---
 phase: 125
 slug: authority-surface-reconciliation
-status: draft
-nyquist_compliant: false
+status: finalized
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
+updated: 2026-05-28
 ---
 
 # Phase 125 — Validation Strategy
@@ -59,13 +60,29 @@ All phase behaviors have automated verification.
 
 ---
 
+## Commands Actually Used
+
+```bash
+mix test test/threadline/v1_23_charter_doc_contract_test.exs
+mix verify.doc_contract
+```
+
+Results (current tree, 2026-05-28):
+
+1. `mix test test/threadline/v1_23_charter_doc_contract_test.exs` → PASS (`2 tests, 0 failures`), exit 0
+2. `mix verify.doc_contract` → PASS (`99 tests, 0 failures`), exit 0
+
+## Nyquist Notes
+
+Phase 125 executed 2026-05-28; current-tree Nyquist backfill Phase 130 2026-05-28. Session-close `mix ci.all` recorded in Phase 130 `130-VERIFICATION.md`.
+
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s for doc contract path
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s for doc contract path
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** finalized on 2026-05-28 (Tier 1 bundle on current tree; Tier 2 `mix ci.all` deferred to Phase 130 Plan 02)

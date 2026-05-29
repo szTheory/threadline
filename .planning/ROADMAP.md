@@ -74,7 +74,7 @@
 
 **Success Criteria:**
 
-1. `125-VALIDATION.md` signed `nyquist_compliant: true` with recorded green verification bundle.
+1. `125-VALIDATION.md` under `.planning/milestones/v1.27-phases/125-authority-surface-reconciliation/` signed `nyquist_compliant: true` with recorded green verification bundle.
 2. SUMMARY frontmatter convention documents `requirements_completed`; v1.27 phase SUMMARY files or planning note updated.
 3. `mix verify.doc_contract` and `mix ci.all` green at milestone closeout.
 
