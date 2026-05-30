@@ -1,0 +1,54 @@
+# Opt-in / nightly flake detection. Re-runs the test suite under
+# `--repeat-until-failure` (fresh seed each repeat) to surface intermittent
+# failures before they bite a release. Intentionally separate from ci.yml so
+# per-PR CI stays fast; trigger manually from the Actions tab or let the nightly
+# schedule run it on main.
+name: Flake Detection
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 07:00 UTC nightly (after typical US/EU working hours).
+    - cron: "0 7 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  # Job id is stable (relied on by docs/CI conventions); evolve `name:` freely.
+  verify-flake:
+    name: Suite repeat-until-failure
+    runs-on: ubuntu-24.04
+    env:
+      DB_HOST: localhost
+      MIX_ENV: test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: threadline_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      - name: Repeat the suite until failure
+        run: mix verify.flake
