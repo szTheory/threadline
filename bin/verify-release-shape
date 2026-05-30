@@ -32,8 +32,15 @@ if ! grep -qF "@version \"$VER\"" mix.exs; then
   exit 1
 fi
 
-if ! grep -qE "^## \\[${VER//./\\.}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
-  echo "CHANGELOG.md must contain a dated heading: ## [$VER] - YYYY-MM-DD" >&2
+# Accept either heading shape for a shipped release:
+#   - Keep-a-Changelog (hand-maintained):  ## [0.7.0] - 2026-05-29
+#   - release-please (auto-generated):     ## [0.7.0](https://.../compare/v0.6.0...v0.7.0) (2026-05-29)
+# Both anchor a dated section for $VER; a bare undated heading is still rejected below.
+ESC_VER="${VER//./\\.}"
+DATE_RE="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+HEADING_RE="^## \\[${ESC_VER}\\]( - ${DATE_RE}|\\([^)]*\\) \\(${DATE_RE}\\))$"
+if ! grep -qE "$HEADING_RE" CHANGELOG.md; then
+  echo "CHANGELOG.md must contain a dated heading for $VER, e.g. '## [$VER] - YYYY-MM-DD' or release-please's '## [$VER](<link>) (YYYY-MM-DD)'" >&2
   exit 1
 fi
 
