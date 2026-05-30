@@ -8,6 +8,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Allow the Release workflow's "Bootstrap CI on Release PR" job to dispatch CI
+  # onto the release-please branch (`gh workflow run ci.yml --ref ...`). Without
+  # this trigger the dispatch fails with HTTP 422.
+  workflow_dispatch:
 
 permissions:
   contents: read
