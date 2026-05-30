@@ -9,21 +9,12 @@ defmodule Threadline.ExportQueue.TaskAdapterTest do
   test "enqueue/2 spawns a background task via an explicit supervisor override" do
     supervisor = start_supervised!({Task.Supervisor, name: Threadline.Test.ExportTaskSupervisor})
 
-    # We pass an invalid job_id so that Orchestrator.run fails safely, or
-    # since we just care about it being spawned, we can pass a random job_id.
-    # The actual failure in the background process will be logged but it shouldn't
-    # crash the test process since they are supervised differently.
-
-    # Alternatively, we just check the return type.
+    # The background task runs the orchestrator with a dummy job_id and fails
+    # safely (logged, supervised separately) — this test only asserts that
+    # enqueue accepts the explicit supervisor override and returns :ok, in
+    # contrast to the unstarted-supervisor error case below. No sleep needed:
+    # the spawn is fire-and-forget and nothing is asserted about its outcome.
     assert :ok = TaskAdapter.enqueue("dummy-job-id", supervisor: supervisor)
-
-    # Allow some time for the task to be spawned and run
-    Process.sleep(10)
-
-    # Supervisor should have started the child
-    _children = Task.Supervisor.children(supervisor)
-    # The child may have already exited, or might still be running.
-    # Let's just assert that enqueue returns :ok.
   end
 
   test "enqueue/2 returns error if supervisor is not started" do

@@ -1,7 +1,11 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.ExportAuthPlugTest do
     @moduledoc false
-    use ExUnit.Case, async: true
+    # async: false — attaches a process-global :telemetry handler for
+    # [:threadline, :operator_surface, :authorize]; running concurrently with
+    # another emitter of that event (e.g. AuthTest) leaks foreign events into
+    # this test's mailbox.
+    use ExUnit.Case, async: false
 
     import Plug.Test, only: [conn: 2]
     import Plug.Conn, only: [get_resp_header: 2]

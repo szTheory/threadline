@@ -1,5 +1,10 @@
 defmodule Threadline.OperatorSurface.AuthTest do
-  use ExUnit.Case, async: true
+  # async: false — this module attaches a process-global :telemetry handler for
+  # [:threadline, :operator_surface, :authorize] and asserts on the events it
+  # receives. Telemetry handlers fire for *every* emitter, so running
+  # concurrently with another module that emits the same event (e.g.
+  # ExportAuthPlugTest) leaks foreign events into this test's mailbox.
+  use ExUnit.Case, async: false
 
   alias Threadline.OperatorSurface.Auth
 
