@@ -16,9 +16,12 @@
 **Milestone:** Hold
 **Status:** In progress (evaluating pilot readiness)
 **Last shipped:** v1.30 — Adoption Evidence Automation (2026-05-29)
+**Live on Hex:** **0.7.0** (tag `v0.7.0`, 2026-05-30)
 **Next step:** Await real adopter signal for v1.28
 
 **Assessment:** v1.30 closed shift-left automation gaps (ConnCase, hex_evaluator) to ensure demo walkthrough and adoption path are bulletproof. Pre-pilot hardening complete. Defaulting to Hold.
+
+**Post-v1.30 maintenance (2026-05-30, direct PRs — not a milestone):** Cut and published **0.7.0**; fixed the operator-surface timeline crash on `?correlation_id=` that had kept the v1.30 Playwright job (Phase 132) red; hardened the release pipeline (`verify-release-shape`, `post-publish-distribution-sync`, bootstrap CI); made the test suite deterministic (retention-pruner + telemetry flakes fixed, `mix verify.flake` + nightly Flake Detection workflow). See `STATE.md` → Roadmap Evolution.
 
 **Non-goals:** External pilot without signal (v1.28); compliance DEFER trio; second reference app.
 
