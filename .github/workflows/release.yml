@@ -424,15 +424,14 @@ jobs:
           BRANCH="release/sync-${RELEASE_VERSION}-${GITHUB_RUN_ID}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add guides/adoption-pilot-backlog.md
+          # Idempotent: if the preflight already attests this version, there is
+          # nothing to sync — skip the branch/PR instead of failing on an empty commit.
+          if git diff --cached --quiet; then
+            echo "Distribution docs already at ${RELEASE_VERSION}; nothing to sync."
+            exit 0
+          fi
           git checkout -b "$BRANCH"
-          git add \
-            guides/adoption-pilot-backlog.md \
-            guides/evaluating-threadline.md \
-            .planning/phases/122-release-distribution-truth/122-VERIFICATION.md \
-            .planning/REQUIREMENTS.md \
-            .planning/STATE.md \
-            .planning/ROADMAP.md \
-            CONTRIBUTING.md
           git commit -m "chore(release): sync distribution docs for ${RELEASE_VERSION}"
           git push -u origin "$BRANCH"
           gh pr create \

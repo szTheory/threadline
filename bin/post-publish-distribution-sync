@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-# Post-publish distribution doc sync (DIST-01/DIST-02 attestation).
-# Called from .github/workflows/release.yml after Hex registry confirms the version.
+# Post-publish distribution doc sync.
+# Called from .github/workflows/release.yml after the Hex registry confirms the
+# version. Version-agnostic and idempotent: it normalizes the adoption-pilot
+# distribution preflight to attest the just-published version. Re-running with
+# the same arguments is a no-op.
+#
+# It deliberately touches ONLY guides/adoption-pilot-backlog.md. Other docs that
+# mention a version (e.g. guides/evaluating-threadline.md) carry intentional
+# historical narrative pinned by their own doc-contract tests and must not be
+# auto-bumped here.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,152 +21,71 @@ VERIFIED_DATE="${4:-}"
 
 if [[ -z "$VERSION" || -z "$TAG" || -z "$WORKFLOW_URL" || -z "$VERIFIED_DATE" ]]; then
   echo "usage: $0 VERSION TAG WORKFLOW_URL VERIFIED_DATE" >&2
-  echo "  e.g. $0 0.6.0 v0.6.0 https://github.com/org/threadline/actions/runs/123 2026-05-28" >&2
+  echo "  e.g. $0 0.7.0 v0.7.0 https://github.com/org/threadline/actions/runs/123 2026-05-30" >&2
   exit 1
 fi
 
 ADOPTION_PILOT="guides/adoption-pilot-backlog.md"
-EVALUATING="guides/evaluating-threadline.md"
-VERIFICATION=".planning/phases/122-release-distribution-truth/122-VERIFICATION.md"
-CONTRIBUTING="CONTRIBUTING.md"
 
-HEX_EVIDENCE="Verified ${VERIFIED_DATE}: [hex.pm](https://hex.pm/packages/threadline) latest is **${VERSION}** (tag **\`${TAG}\`**). Publish workflow: ${WORKFLOW_URL}. Confirm locally: \`mix hex.info threadline\` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: \`test/threadline/adoption_pilot_doc_contract_test.exs\`"
-
-# adoption-pilot Hex row: Pending -> OK
-python3 - <<PY
+VERSION="$VERSION" TAG="$TAG" WORKFLOW_URL="$WORKFLOW_URL" VERIFIED_DATE="$VERIFIED_DATE" \
+ADOPTION_PILOT="$ADOPTION_PILOT" python3 - <<'PY'
+import os
 import pathlib
 import re
 
-path = pathlib.Path("${ADOPTION_PILOT}")
-text = path.read_text()
-evidence = """${HEX_EVIDENCE}"""
-version = "${VERSION}"
-escaped = re.escape(version)
-pattern = (
-    rf"(\| \`threadline\` \*\*{escaped}\*\* on \[Hex\]\(https://hex\.pm/packages/threadline\) \| )Pending( \| ).*?(\|)"
-)
-replacement = rf"\1OK\2{evidence}\3"
-new_text, n = re.subn(pattern, replacement, text, count=1, flags=re.DOTALL)
-if n != 1:
-    raise SystemExit(f"expected exactly one Hex distribution row to update in {path}, got {n}")
-path.write_text(new_text)
-PY
+version = os.environ["VERSION"]
+tag = os.environ["TAG"]
+workflow_url = os.environ["WORKFLOW_URL"]
+verified_date = os.environ["VERIFIED_DATE"]
+path = pathlib.Path(os.environ["ADOPTION_PILOT"])
 
-# evaluating guide: remove lag caveat
-python3 - <<'PY'
-import pathlib
-
-path = pathlib.Path("guides/evaluating-threadline.md")
 text = path.read_text()
-old = (
-    "Threadline **0.6.0** is the in-repo and doc SSOT (`mix.exs` `@version`). "
-    "As of 2026-05-27, [hex.pm](https://hex.pm/packages/threadline) may still list **0.5.0** as latest "
-    "until maintainers push tag **`v0.6.0`** (see [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight)."
+original = text
+
+# 1) SSOT line: normalize to attest the published version, dropping any
+#    pre-publish lag note. Matches the stable sentence prefix; version-agnostic.
+ssot_line = (
+    f"Distribution preflight below reflects the **{version}** tree "
+    f"(`mix.exs` `@version` is SSOT); lane and upgrade narrative live in "
+    f"[`guides/upgrade-path.md`](upgrade-path.md)."
 )
-new = (
-    "Threadline **0.6.0** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT "
-    "(`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) "
-    "Distribution preflight for maintainer attestation and publish workflow evidence."
+text, n_ssot = re.subn(
+    r"^Distribution preflight below reflects the .*$",
+    lambda _m: ssot_line,
+    text,
+    count=1,
+    flags=re.MULTILINE,
 )
-if old not in text:
-    if new in text:
-        print("evaluating guide already synced")
-    else:
-        raise SystemExit("evaluating-threadline.md lag paragraph not found")
+if n_ssot != 1:
+    print(f"WARN: SSOT preflight line not found in {path}; leaving as-is")
+
+# 2) Hex attestation row: replace the existing `threadline **<ver>** on [Hex]`
+#    row with an OK row for the published version + dated evidence. Matches any
+#    prior version so it is version-agnostic and idempotent.
+evidence = (
+    f"Verified {verified_date}: [hex.pm](https://hex.pm/packages/threadline) latest is "
+    f"**{version}** (tag **`{tag}`**). Publish workflow: {workflow_url}. Confirm locally: "
+    f"`mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). "
+    f"Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs`"
+)
+hex_row = (
+    f"| `threadline` **{version}** on [Hex](https://hex.pm/packages/threadline) | OK | {evidence} |"
+)
+text, n_row = re.subn(
+    r"^\| `threadline` \*\*[^*]+\*\* on \[Hex\]\(https://hex\.pm/packages/threadline\) \|.*$",
+    lambda _m: hex_row,
+    text,
+    count=1,
+    flags=re.MULTILINE,
+)
+if n_row != 1:
+    print(f"WARN: Hex attestation row not found in {path}; leaving as-is")
+
+if text != original:
+    path.write_text(text)
+    print(f"adoption-pilot distribution preflight synced to {version}")
 else:
-    path.write_text(text.replace(old, new, 1))
-PY
-
-# 122-VERIFICATION.md
-mkdir -p "$(dirname "$VERIFICATION")"
-cat >"$VERIFICATION" <<EOF
----
-status: passed
-phase: 122-release-distribution-truth
-verified: ${VERIFIED_DATE}
-requirements: DIST-01, DIST-02, DIST-03
----
-
-# Phase 122 Verification Report
-
-## Registry publish (DIST-01)
-
-- Tag: \`${TAG}\`
-- Workflow: ${WORKFLOW_URL}
-- Registry excerpt (\`mix hex.info threadline\`, redacted):
-  \`\`\`
-  Recent releases include **${VERSION}** on hex.pm (verified ${VERIFIED_DATE} by release workflow).
-  \`\`\`
-
-## Adopter surfaces (DIST-02)
-
-- adoption-pilot Hex row: OK with dated evidence (see \`${ADOPTION_PILOT}\`)
-- evaluating-threadline: no \`may still list **0.5.0** as latest\` caveat
-
-## CHANGELOG (DIST-03)
-
-- \`[0.6.0]\` four-lane upgrade bullet lists \`phx-gen-auth-reference\`
-- \`release_distribution_doc_contract_test.exs\` green via \`mix verify.doc_contract\`
-EOF
-
-# CONTRIBUTING cross-link (idempotent)
-if ! grep -q '122-VERIFICATION.md' "$CONTRIBUTING"; then
-  python3 - <<'PY'
-import pathlib
-
-path = pathlib.Path("CONTRIBUTING.md")
-text = path.read_text()
-needle = "5. Watch the **Hex publish** workflow on the Actions tab; confirm with **`mix hex.info threadline`** after the registry updates."
-insert = needle + "\n\nPost-publish distribution proof for adopters: adoption-pilot Distribution preflight OK row in `guides/adoption-pilot-backlog.md` plus `.planning/phases/122-release-distribution-truth/122-VERIFICATION.md`."
-if needle not in text:
-    raise SystemExit("CONTRIBUTING.md anchor for post-publish cross-link not found")
-path.write_text(text.replace(needle, insert, 1))
-PY
-fi
-
-# Planning closeout: REQUIREMENTS, STATE, ROADMAP
-python3 - <<PY
-import pathlib
-import re
-
-req = pathlib.Path(".planning/REQUIREMENTS.md")
-text = req.read_text()
-for dist in ("DIST-01", "DIST-02", "DIST-03"):
-    text, n = re.subn(
-        rf"- \[ \] (\*\*{dist}\*\*:)",
-        r"- [x] \1",
-        text,
-        count=1,
-    )
-    if n != 1:
-        raise SystemExit(f"could not tick {dist} in REQUIREMENTS.md")
-req.write_text(text)
-
-state = pathlib.Path(".planning/STATE.md")
-st = state.read_text()
-st = re.sub(
-    r"- \*\*Hex distribution\*\*: in-repo \*\*0\.6\.0\*\*; hex\.pm latest \*\*0\.5\.0\*\* until tag.*",
-    "- **Hex distribution**: in-repo and hex.pm latest **0.6.0** (tag `${TAG}`, verified ${VERIFIED_DATE})",
-    st,
-    count=1,
-)
-if "hex.pm latest **0.6.0**" not in st:
-    st = st.replace(
-        "hex.pm latest **0.5.0**",
-        "hex.pm latest **0.6.0**",
-        1,
-    )
-state.write_text(st)
-
-roadmap = pathlib.Path(".planning/ROADMAP.md")
-rm = roadmap.read_text()
-rm = re.sub(
-    r"- \[ \] (\*\*Phase 122: Release & Distribution Truth\*\*)",
-    r"- [x] \1",
-    rm,
-    count=1,
-)
-roadmap.write_text(rm)
+    print(f"adoption-pilot distribution preflight already at {version} (no-op)")
 PY
 
 echo "Post-publish distribution sync complete for ${VERSION} (${TAG})."
