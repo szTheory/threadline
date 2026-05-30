@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0](https://github.com/szTheory/threadline/compare/v0.6.0...v0.7.0) (2026-05-30)
+
+
+### Features
+
+* **123-01:** add Configure Threadline subsection to getting-started ([7b929a1](https://github.com/szTheory/threadline/commit/7b929a17963b01b09cd1c51d0972f77cce73927a))
+* **123-02:** add Host repo wiring prerequisite to production checklist ([a07775d](https://github.com/szTheory/threadline/commit/a07775dd039aa3dedfa6b40eca21f3c6bf80bd5f))
+* **127-01:** wire :schemas mount and sync operator-surface doc snippets examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex guides/getting-started-saas.md examples/threadline_phoenix/README.md .planning/phases/127-example-app-schemas-demonstration/127-01-SUMMARY.md ([17507ba](https://github.com/szTheory/threadline/commit/17507ba958215b86c761d1e4b613ab5193bdd502))
+* **128-02:** add PhxGenAuthReference.Audit mirroring guide module ([2836be1](https://github.com/szTheory/threadline/commit/2836be141df0e5c2547a9fb91f9478cf35431213))
+
+
+### Bug Fixes
+
+* **130-02:** format phx_gen_auth_integration_test for ci.all gate ([e04f275](https://github.com/szTheory/threadline/commit/e04f275cd3bd123ae18f192da73f6da332aa1285))
+* operator timeline crash on correlation_id filter (+ release-please changelog guard) ([43a6f23](https://github.com/szTheory/threadline/commit/43a6f2364feb3a285c15b13a68f35f905bc8a0d5))
+* **operator-surface:** prevent timeline crash on correlation_id filter ([d62e509](https://github.com/szTheory/threadline/commit/d62e509e932b3b85b1749a13745b510ad78c0042))
+* **release:** run publish chain when release-ref succeeds via dispatch ([19c7549](https://github.com/szTheory/threadline/commit/19c7549d64f67f34329566590ebf45eca96223a7))
+* **release:** use hex.build preflight instead of verify.release in CI ([d4413ef](https://github.com/szTheory/threadline/commit/d4413efe783779554a8d9b39d395034d0dea405f))
+
 ## [Unreleased]
 
 ## [0.6.0] - 2026-05-27
