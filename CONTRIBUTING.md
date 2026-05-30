@@ -47,6 +47,48 @@ Integration tests use a **real** database and triggers; they are not excluded fr
 
 **Environment:** `DB_HOST` defaults to `localhost`; **`DB_PORT`** defaults to `5432` (see `config/test.exs`). Override if Postgres listens on another port (e.g. **`DB_PORT=5433`** with the default `docker-compose.yml` mapping).
 
+## Deterministic tests (no flakes)
+
+Tests must be deterministic — a green run must mean the code is correct, not that
+the dice landed well. Re-running a flaky test to get green hides real races and,
+as we learned, can block a release.
+
+**Test model.** This suite does **not** use Ecto's SQL Sandbox (audit triggers
+and `SET LOCAL` GUCs operate at the DB level, outside sandbox awareness).
+`Threadline.DataCase` is therefore `async: false` and cleans audit tables in
+`setup` (FK order). Keep DB-touching tests on `DataCase`.
+
+**Rules of thumb:**
+
+- **Never `Process.sleep` to wait for a condition.** Use
+  `assert_eventually/2` (from `Threadline.AsyncHelpers`, imported by `DataCase`) —
+  it polls against a real deadline, robust on slow CI without being racy.
+- **Drain GenServers deterministically.** Use `drain_mailbox/1` (two
+  `:sys.get_state` round-trips) instead of sleeping after a `cast`/`send`.
+- **Advisory locks: hold them on a dedicated session.** Use
+  `with_advisory_lock_held/3`, not the repo pool — a pooled lock-holder races
+  with the code under test on pool allocation.
+- **Stop singletons in `setup`.** For globally-named GenServers (e.g.
+  `Threadline.Retention.Pruner`), call `stop_named_process!/1` so a previous
+  test can't leak work into the next.
+- **Telemetry tests are `async: false`.** `:telemetry` handlers are
+  process-global; an `async: true` module that attaches a handler will receive
+  events emitted by *any* concurrently-running test for the same event name.
+- **Don't assert on unordered query results positionally.** Add an explicit
+  `order_by` when a test depends on row order.
+
+**Reproduce / prove determinism.** Run a test (or the suite) repeatedly:
+
+```bash
+mix test test/path/to/flaky_test.exs --repeat-until-failure 200
+mix test --seed 0 --repeat-until-failure 20   # pin a specific ordering
+mix verify.flake                              # full suite, 50 repeats (fresh seed each)
+```
+
+`mix verify.flake` is also run nightly (and on demand) by the **Flake Detection**
+workflow ([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml));
+it is intentionally kept out of `mix ci.all` so per-PR CI stays fast.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):

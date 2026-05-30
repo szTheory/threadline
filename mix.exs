@@ -88,6 +88,10 @@ defmodule Threadline.MixProject do
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
+      # Flake detection: re-run the suite until a failure surfaces (each repeat
+      # uses a fresh seed). Opt-in / nightly — not part of `ci.all` so per-PR CI
+      # stays fast. See the "Deterministic tests" section in CONTRIBUTING.md.
+      "verify.flake": ["test --repeat-until-failure 50"],
       "ci.all": [
         "verify.format",
         "verify.credo",
