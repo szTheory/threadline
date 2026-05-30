@@ -17,6 +17,7 @@ defmodule Threadline.DataCase do
       alias Threadline.Test.Repo
       alias Threadline.Capture.{AuditChange, AuditTransaction}
       import Ecto.Query
+      import Threadline.AsyncHelpers
 
       setup do
         # FK order: changes first, then transactions, then actions

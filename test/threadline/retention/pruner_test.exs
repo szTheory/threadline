@@ -7,6 +7,11 @@ defmodule Threadline.Retention.PrunerTest do
   @lock_key :erlang.phash2("threadline_retention_pruner")
 
   setup do
+    # The pruner is a singleton (named __MODULE__). A pruner left running by a
+    # previous test could insert a RetentionRun into this test after our
+    # delete_all, so stop it deterministically before we begin.
+    stop_named_process!(Pruner)
+
     prev = Application.get_env(:threadline, :retention)
 
     on_exit(fn ->
@@ -32,21 +37,6 @@ defmodule Threadline.Retention.PrunerTest do
       |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
 
     start_supervised!({Threadline.Retention.Pruner, opts})
-  end
-
-  defp eventually(assertion, attempts \\ 20)
-
-  defp eventually(assertion, 1), do: assertion.()
-
-  defp eventually(assertion, attempts) do
-    case assertion.() do
-      true ->
-        true
-
-      false ->
-        Process.sleep(25)
-        eventually(assertion, attempts - 1)
-    end
   end
 
   test "application-owned startup marks running RetentionRuns older than 24h as failed" do
@@ -84,49 +74,47 @@ defmodule Threadline.Retention.PrunerTest do
 
     start_application_supervisor!()
 
-    assert eventually(fn ->
-             runs = Repo.all(RetentionRun)
-             length(runs) >= 1 and Enum.any?(runs, fn run -> run.status == "completed" end)
-           end)
+    assert_eventually(
+      fn ->
+        runs = Repo.all(RetentionRun)
+        length(runs) >= 1 and Enum.any?(runs, fn run -> run.status == "completed" end)
+      end,
+      message: "scheduled pruner should record a completed RetentionRun"
+    )
   end
 
-  test "skips purging if lock is held elsewhere" do
+  test "skips purging while the advisory lock is held elsewhere, then resumes after release" do
     Repo.delete_all(RetentionRun)
-    parent = self()
 
-    task =
-      Task.async(fn ->
-        Repo.transaction(fn ->
-          Ecto.Adapters.SQL.query!(Repo, "SELECT pg_try_advisory_lock($1)", [@lock_key])
-          send(parent, :lock_acquired)
+    # 24h interval so the only prune attempts are the ones we trigger explicitly —
+    # no timer-driven runs racing the assertions.
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: true,
+      interval_ms: :timer.hours(24),
+      sleep_ms: 0
+    )
 
-          receive do
-            :release_lock ->
-              Ecto.Adapters.SQL.query!(Repo, "SELECT pg_advisory_unlock($1)", [@lock_key])
-              :ok
-          end
-        end)
-      end)
+    start_application_supervisor!()
 
-    assert_receive :lock_acquired, 1_000
+    # Hold the lock on a dedicated session (outside the repo pool) so the pruner's
+    # pg_try_advisory_lock reliably fails — no pool-allocation race.
+    with_advisory_lock_held(Repo, @lock_key, fn ->
+      Pruner.trigger()
+      drain_mailbox(Pruner)
 
-    try do
-      Application.put_env(:threadline, :retention,
-        enabled: true,
-        keep_days: 1,
-        delete_empty_transactions: true,
-        interval_ms: 10,
-        sleep_ms: 0
-      )
+      assert Repo.all(RetentionRun) == [],
+             "pruner must skip purging while the advisory lock is held by another session"
+    end)
 
-      start_application_supervisor!()
+    # Lock released: a triggered prune now acquires the lock and records a run.
+    Pruner.trigger()
+    drain_mailbox(Pruner)
 
-      Process.sleep(100)
-
-      assert Repo.all(RetentionRun) == []
-    after
-      send(task.pid, :release_lock)
-      Task.await(task)
-    end
+    assert_eventually(
+      fn -> Repo.all(RetentionRun) != [] end,
+      message: "pruner should record a RetentionRun once the lock is free"
+    )
   end
 end

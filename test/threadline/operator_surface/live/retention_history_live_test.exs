@@ -77,29 +77,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       start_supervised!({Threadline.Retention.Pruner, opts})
     end
 
-    defp stop_existing_pruner! do
-      if pid = Process.whereis(Pruner) do
-        ref = Process.monitor(pid)
-        GenServer.stop(pid, :normal, 1_000)
-        assert_receive {:DOWN, ^ref, :process, ^pid, _reason}, 1_000
-      end
-    end
-
-    defp eventually(assertion, attempts \\ 20)
-
-    defp eventually(assertion, 1), do: assertion.()
-
-    defp eventually(assertion, attempts) do
-      case assertion.() do
-        true ->
-          true
-
-        false ->
-          Process.sleep(25)
-          eventually(assertion, attempts - 1)
-      end
-    end
-
     setup_all do
       Application.put_env(
         :threadline,
@@ -127,7 +104,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      stop_existing_pruner!()
+      stop_named_process!(Pruner)
       Threadline.Test.Repo.delete_all(RetentionRun)
 
       original_retention = Application.get_env(:threadline, :retention)
@@ -210,9 +187,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> element("button", "Run Pruning Batch")
         |> render_click()
 
-        assert eventually(fn ->
-                 Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
-               end)
+        assert_eventually(fn ->
+          Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
+        end)
       end
 
       test "page auto-refreshes periodically", %{conn: conn} do

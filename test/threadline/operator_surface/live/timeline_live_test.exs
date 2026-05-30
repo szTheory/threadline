@@ -613,7 +613,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       patched_once = assert_patch(lv)
       assert patched_once =~ "table=posts"
 
-      refute_receive {:phoenix, :patch, _}, 50
+      # Guard: no *second* patch follows. Use a window wide enough that a stray
+      # late patch on a loaded CI runner is reliably caught (50ms was too short
+      # to be a meaningful negative assertion).
+      refute_receive {:phoenix, :patch, _}, 300
     end
 
     # -------------------------------------------------------------------
