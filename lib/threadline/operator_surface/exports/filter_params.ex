@@ -32,7 +32,24 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
 
   alias Threadline.Semantics.ActorRef
 
-  @filter_keys ~w(from to table actor_kind actor_id correlation_id)
+  # Allowed URL keys mapped to their filter atoms. Declaring the atoms in a
+  # compile-time literal here (rather than deriving them at runtime via
+  # String.to_existing_atom/1) guarantees they exist no matter which threadline
+  # modules have been lazily loaded when a request first hits the timeline — the
+  # example app crashed with "not an already existing atom" on
+  # `?correlation_id=…` precisely because `:correlation_id` is only created when
+  # `Threadline.Query` loads, which happens *after* normalize_params/1 runs.
+  # Bounding the conversion to this fixed allowlist also preserves the
+  # atom-table-exhaustion guard (Pitfall 11): arbitrary input can never mint a
+  # fresh atom.
+  @filter_key_atoms %{
+    "from" => :from,
+    "to" => :to,
+    "table" => :table,
+    "actor_kind" => :actor_kind,
+    "actor_id" => :actor_id,
+    "correlation_id" => :correlation_id
+  }
 
   @doc """
   Parses a string-keyed map of URL params into either a validated keyword list
@@ -77,11 +94,11 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
 
   defp normalize_params(params) do
     for {key, value} <- params,
-        key in @filter_keys,
+        is_map_key(@filter_key_atoms, key),
         is_binary(value),
         value != "",
         into: [] do
-      {String.to_existing_atom(key), value}
+      {Map.fetch!(@filter_key_atoms, key), value}
     end
   end
 

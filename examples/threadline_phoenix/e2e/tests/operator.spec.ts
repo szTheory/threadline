@@ -40,7 +40,12 @@ test.describe("operator surface (demo fiction)", () => {
     await incidentLink.click();
 
     await expect(page).toHaveURL(/\/audit\/transactions\//);
-    const historyLink = page.locator("a.history-link", { hasText: "History" }).first();
+    // The close transaction captures BOTH a tickets update and a ticket_replies
+    // insert; target the reply's row-history link specifically (the redacted
+    // internal_note_body lives on ticket_replies, not the ticket).
+    const historyLink = page
+      .locator('a.history-link[href*="/history/ticket_replies/"]')
+      .first();
     await expect(historyLink).toBeVisible();
     await historyLink.click();
 
