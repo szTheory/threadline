@@ -16,6 +16,22 @@ services:
       timeout: 5s
       retries: 10
 
+  demo:
+    build:
+      context: .
+      dockerfile: examples/threadline_phoenix/Dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - PHX_SERVER=true
+    volumes:
+      - ./examples/threadline_phoenix:/app/examples/threadline_phoenix
+
   pgbouncer:
     image: edoburu/pgbouncer:latest
     depends_on:

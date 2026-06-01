@@ -14,8 +14,8 @@ alias ThreadlinePhoenix.{Post, Repo}
 
 %Post{}
 |> Post.changeset(%{title: "Synthetic note A", slug: "synthetic-note-a"})
-|> Repo.insert!()
+|> Repo.insert(on_conflict: :nothing, conflict_target: :slug)
 
 %Post{}
 |> Post.changeset(%{title: "Synthetic note B", slug: "synthetic-note-b"})
-|> Repo.insert!()
+|> Repo.insert(on_conflict: :nothing, conflict_target: :slug)

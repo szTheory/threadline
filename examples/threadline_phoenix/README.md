@@ -1,6 +1,24 @@
 # ThreadlinePhoenix
 
-Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract. Mix commands in this document are meant to be run **from `examples/threadline_phoenix/`**; the dependency `{:threadline, path: "../.."}` points at the **repository root** (two levels up from this directory).
+Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract.
+
+## 🚀 Quick Start (Zero-Friction Docker Demo)
+
+Want to see the Operator Surface and click around realistic walkthrough data immediately? You can spin up the entire demo environment (app, PostgreSQL, and seeded data) with a single command from the **repository root**:
+
+```bash
+# Run from the repository root (two levels up)
+docker compose up demo --build
+```
+
+The app will be available at **http://localhost:4000**.
+Sign in with the seeded cross-org admin credentials:
+- **Email:** `admin@example.com`
+- **Password:** `password123456`
+
+*(See [DEMO_USERS.md](DEMO_USERS.md) for other seeded roles like `closer@acme.example.com`)*.
+
+---
 
 This app is the current `sigra-reference` lane: the maintained first-party
 reference path for a Phoenix host that already uses Sigra. It proves a narrow
