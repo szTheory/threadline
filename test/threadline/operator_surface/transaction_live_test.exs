@@ -259,7 +259,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
 
-        assert html =~ ~s|class="threadline-ui-header"|
+        assert html =~ ~s|class="tl-topbar"|
         refute html =~ ~s|href="/audit/coverage"|
       end
     end

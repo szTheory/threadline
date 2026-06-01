@@ -194,8 +194,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            } do
         {:ok, _lv, html} = live(conn, "/audit/actors/user/surface_header_test")
 
-        # Surface header threadline-ui-header (Plan 03 component + style.ex rule)
-        assert html =~ ~s|class="threadline-ui-header"|
+        # Surface header tl-topbar (BEM operator surface component)
+        assert html =~ ~s|class="tl-topbar"|
 
         # Badge link to /audit/coverage (D-31d) should be hidden
         refute html =~ ~s|href="/audit/coverage"|

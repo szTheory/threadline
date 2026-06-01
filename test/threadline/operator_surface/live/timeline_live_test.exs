@@ -477,8 +477,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, _lv, html} =
                live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59")
 
-      # No filter-error rendered (means the lib accepted the parsed DateTime)
-      refute html =~ ~s|class="filter-error"|
+      # No error alert rendered (means the lib accepted the parsed DateTime)
+      refute html =~ ~s|class="tl-alert tl-alert--error"|
     end
 
     # -------------------------------------------------------------------
@@ -659,7 +659,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html_after_back =~ ~s(value="users")
 
       # Result set re-queried with filter A (no error rendered).
-      refute html_after_back =~ ~s|class="filter-error"|
+      refute html_after_back =~ ~s|class="tl-alert tl-alert--error"|
     end
 
     # -------------------------------------------------------------------
@@ -673,10 +673,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _lv, html} =
         live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts")
 
-      # All three labels present (D-22, Plan 04 doc-contract pinned)
-      assert html =~ "Download CSV"
-      assert html =~ "Download JSON"
-      assert html =~ "Download NDJSON"
+      # All three compact labels present (D-22, Plan 04 doc-contract pinned)
+      assert html =~ ">CSV<"
+      assert html =~ ">JSON<"
+      assert html =~ ">NDJSON<"
 
       # All three hrefs include the canonical filter querystring; HEEx
       # escapes & to &amp; in attribute values, so match the prefix only.
@@ -692,7 +692,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # socket alive on click). Match label content (handles whitespace
       # between attributes).
       download_anchors =
-        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>Download (CSV|JSON|NDJSON)</a>}s, html)
+        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>\s*(CSV|JSON|NDJSON)\s*</a>}s, html)
 
       assert length(download_anchors) == 3
     end
@@ -712,7 +712,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # The status line contains "Showing N of 7 matches in this window."
       assert html =~ ~r/Showing \d+ of 7 matches in this window\./
       # Wrapper class is present for the doc-contract test
-      assert html =~ "match-count-status"
+      assert html =~ "tl-status"
     end
 
     # -------------------------------------------------------------------
@@ -731,7 +731,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "Large export — will stream in chunks."
       refute html =~ "Truncated to first 10,000 rows"
-      assert html =~ "truncation-banner informational"
+      assert html =~ "tl-alert--info"
     end
 
     # -------------------------------------------------------------------
@@ -752,7 +752,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Truncated to first 10,000 rows"
       # Status line shows the cap approximation (not the literal integer).
       assert html =~ "10,000+"
-      assert html =~ "truncation-banner warning"
+      assert html =~ "tl-alert--warning"
       # Bands are mutually exclusive — band 1 must NOT render at the cap.
       refute html =~ "Large export — will stream in chunks."
     end
@@ -775,7 +775,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            } do
         {:ok, _view, html} = mount_audit(conn)
 
-        assert html =~ ~s|class="threadline-ui-header"|
+        assert html =~ ~s|class="tl-topbar"|
         refute html =~ ~s|href="/audit/coverage"|
       end
 
@@ -1009,7 +1009,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
 
       # Click the export button
-      lv |> element("button", "Request Background Export") |> render_click()
+      lv |> element("button", "Queue export") |> render_click()
 
       # Assert redirected to /audit_scoped/exports
       assert_redirect(lv, "/audit_scoped/exports")
@@ -1048,14 +1048,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      _html = lv |> element("button", "Request Background Export") |> render_click()
+      _html = lv |> element("button", "Queue export") |> render_click()
 
       [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
       assert job.status == "failed"
       assert job.error_message =~ "built-in export runtime is unavailable"
       assert %DateTime{} = job.expires_at
       assert job.query_params["table"] == "support_posts"
-      assert render(lv) =~ "Request Background Export"
+      assert render(lv) =~ "Queue export"
       assert render(lv) =~ "support_posts"
     end
   end
@@ -1089,10 +1089,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      refute html =~ "Request Background Export"
-      refute html =~ "Download CSV"
-      refute html =~ "Download JSON"
-      refute html =~ "Download NDJSON"
+      refute html =~ "Queue export"
+      refute html =~ ">CSV<"
+      refute html =~ ">JSON<"
+      refute html =~ ">NDJSON<"
     end
   end
 end

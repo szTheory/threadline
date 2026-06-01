@@ -101,52 +101,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
         />
 
-        <main class="coverage-page">
+        <main class="tl-page">
           <%= if @threadline_coverage_enabled do %>
-            <h2>Coverage — schema: <%= @schema_param %></h2>
-
-            <p class="filter-hint">
-              <%= if @coverage_for_schema.last_checked_at do %>
-                Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
-              <% end %>
-              <a href="#" phx-click="refresh">Refresh</a>
-            </p>
+            <header class="tl-page__header">
+              <div>
+                <h2 class="tl-page__title">Coverage — schema: <%= @schema_param %></h2>
+                <p class="tl-page__lede">
+                  <%= if @coverage_for_schema.last_checked_at do %>
+                    Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
+                  <% end %>
+                </p>
+              </div>
+              <a href="#" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</a>
+            </header>
 
             <%= if @form_error do %>
-              <div class="filter-error" role="alert"><%= @form_error %></div>
+              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @threadline_coverage_error do %>
-                <div class="truncation-banner warning" role="status">
+                <div class="tl-alert tl-alert--warning" role="status">
                   Coverage check failed at <%= now_label() %> — showing last successful result from <%= last_label(@coverage_for_schema.last_checked_at) %>.
                 </div>
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
-                <div class="empty-state">
+                <div class="tl-empty">
                   No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
                 </div>
               <% else %>
-                <table class="coverage-table">
+                <table class="tl-table tl-table--coverage">
                   <thead>
                     <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
                   </thead>
                   <tbody>
                     <%= for table <- @coverage_for_schema.tables[:covered] do %>
-                      <tr class="coverage-row--covered">
+                      <tr class="tl-table__row--covered">
                         <td><%= table %></td>
                         <td>covered</td>
                         <td></td>
                       </tr>
                     <% end %>
                     <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
-                      <tr class="coverage-row--uncovered">
+                      <tr class="tl-table__row--uncovered">
                         <td><%= table %></td>
                         <td>uncovered</td>
                         <td></td>
                       </tr>
                     <% end %>
                     <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
-                      <tr class="coverage-row--expected" title={tooltip_for(table)}>
+                      <tr class="tl-table__row--expected" title={tooltip_for(table)}>
                         <td><%= table %></td>
                         <td>expected</td>
                         <td><%= source_for(table) %></td>
@@ -155,7 +158,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </tbody>
                 </table>
 
-                <p class="filter-hint">
+                <p class="tl-hint">
                   Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered
                 </p>
               <% end %>

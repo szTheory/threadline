@@ -91,17 +91,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
         />
         <%= if @not_found do %>
-          <div class="empty-state">
-            <p>Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
+          <div class="tl-empty tl-empty--error">
+            <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
           </div>
         <% else %>
-          <div class="transaction-header">
-            <a href={@base_path} class="back-link">← Timeline</a>
-            <h2>Transaction: <%= @bundle.transaction.id %></h2>
+          <div class="tl-transaction">
+            <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
+            <h2 class="tl-transaction__title">Transaction: <%= @bundle.transaction.id %></h2>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
-            <div class="empty-state">
-              <p>No Changes Recorded</p>
+            <div class="tl-empty">
+              <p class="tl-empty__body">No Changes Recorded</p>
             </div>
           <% else %>
             <div
@@ -109,28 +109,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               phx-update="stream"
               phx-viewport-top="prev-page"
               phx-viewport-bottom="next-page"
-              class="viewport-container"
+              class="tl-viewport"
             >
-              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="change-row">
-                <div class="change-header">
-                  <span class="change-op"><%= change.change_diff["op"] %></span>
-                  <span class="change-table"><%= change.change_diff["table_name"] %></span>
-                  <span class="change-time"><%= change.change_diff["captured_at"] %></span>
-                  <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="history-link" title="View Row History">
+              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change">
+                <div class="tl-change__meta">
+                  <span class="tl-change__op"><%= change.change_diff["op"] %></span>
+                  <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
+                  <span class="tl-change__time"><%= change.change_diff["captured_at"] %></span>
+                  <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="View Row History">
                     History
                   </.link>
                 </div>
-                <div class="change-fields">
+                <div class="tl-change__fields">
                   <%= for field <- change.change_diff["field_changes"] do %>
-                    <div class="field-diff">
-                      <span class="field-name"><%= field["name"] %></span>:
+                    <div class="tl-change__field">
+                      <span class="tl-change__field-name"><%= field["name"] %></span>:
                       <%= if Map.has_key?(field, "before") do %>
-                        <span class="field-before"><%= inspect(field["before"]) %></span> ->
+                        <span class="tl-change__before"><%= inspect(field["before"]) %></span> ->
                       <% end %>
                       <%= if Map.has_key?(field, "prior_state") do %>
-                        <span class="field-prior-omitted">(omitted)</span> ->
+                        <span class="tl-change__omitted">(omitted)</span> ->
                       <% end %>
-                      <span class="field-after"><%= inspect(field["after"]) %></span>
+                      <span class="tl-change__after"><%= inspect(field["after"]) %></span>
                     </div>
                   <% end %>
                 </div>

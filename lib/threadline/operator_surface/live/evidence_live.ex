@@ -61,33 +61,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="evidence-page">
+        <main class="tl-page">
           <%= if @threadline_evidence_enabled do %>
-            <header>
-              <h2>What can Threadline prove right now?</h2>
-              <p class="filter-hint">
+            <header class="tl-page__header">
+              <div>
+                <h2 class="tl-page__title">What can Threadline prove right now?</h2>
+                <p class="tl-page__lede">
                 <%= if @request.mode == :history do %>
                   Viewing append-only history for one evidence subject reference.
                 <% else %>
                   Latest is a projection over append-only evidence history, not a mutable state record.
                 <% end %>
-              </p>
+                </p>
+              </div>
             </header>
 
-            <nav class="evidence-toolbar" aria-label="Evidence navigation">
-              <.link patch={overview_path(@base_path)}>Overview</.link>
-              <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)}>
+            <nav class="tl-nav" aria-label="Evidence navigation">
+              <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">Overview</.link>
+              <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
                 Back to latest for <%= @request.subject %>
               </.link>
             </nav>
 
             <%= if @form_error do %>
-              <div class="filter-error" role="alert"><%= @form_error %></div>
+              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @groups == [] do %>
-                <div class="empty-state">
-                  <h3>No evidence records yet</h3>
-                  <p>
+                <div class="tl-empty">
+                  <h3 class="tl-empty__title">No evidence records yet</h3>
+                  <p class="tl-empty__body">
                     Threadline has not recorded evidence for this selection yet. Use
                     <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
                     API to confirm the current proof state, then narrow by subject or date if
@@ -95,12 +97,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </p>
                 </div>
               <% else %>
-                <section :for={group <- @groups} class="evidence-section">
-                  <header>
-                    <h3><%= group.title %></h3>
+                <section :for={group <- @groups} class="tl-section">
+                  <header class="tl-section__header">
+                    <h3 class="tl-section__title"><%= group.title %></h3>
                   </header>
 
-                  <table class="evidence-table">
+                  <table class="tl-table tl-table--evidence">
                     <thead>
                       <tr>
                         <th>Verdict</th>
@@ -113,22 +115,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <tbody>
                       <tr :for={row <- group.rows}>
                         <td>
-                          <span class={["evidence-verdict", "evidence-verdict--#{row.verdict_status}"]}>
+                          <span class={["tl-chip", evidence_verdict_modifier(row.verdict_status)]}>
                             <%= row.verdict_status %>
                           </span>
                         </td>
                         <td>
-                          <div class="evidence-ref"><%= row.subject_ref_json %></div>
-                          <div class="evidence-meta"><%= row.subject %></div>
+                          <div class="tl-evidence__ref"><%= row.subject_ref_json %></div>
+                          <div class="tl-evidence__meta"><%= row.subject %></div>
                         </td>
                         <td><%= row.recorded_at %></td>
                         <td><%= row.summary_status %></td>
                         <td>
-                          <div class="evidence-meta">
+                          <div class="tl-evidence__meta">
                             <.link
                               :if={show_subject_link?(@request)}
                               patch={subject_path(@base_path, row.subject)}
-                              class="evidence-action"
+                              class="tl-link tl-link--deep"
                             >
                               Only this subject
                             </.link>
@@ -137,7 +139,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             <.link
                               :if={show_history_link?(@request)}
                               patch={history_path(@base_path, row.subject, row.subject_ref_json)}
-                              class="evidence-action"
+                              class="tl-link tl-link--deep"
                             >
                               View history
                             </.link>
@@ -272,6 +274,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp show_history_link?(%{mode: :latest}), do: true
     defp show_history_link?(_request), do: false
+
+    defp evidence_verdict_modifier("unsupported"), do: "tl-chip--warning"
+    defp evidence_verdict_modifier("proven"), do: "tl-chip--success"
+    defp evidence_verdict_modifier(_status), do: "tl-chip--muted"
 
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"

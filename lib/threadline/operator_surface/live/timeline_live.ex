@@ -304,67 +304,67 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
         />
 
-        <header class="timeline-toolbar">
-          <form id="timeline-filters" phx-submit="apply" role="search">
-            <label>From
+        <header class="tl-toolbar">
+          <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
+            <label class="tl-toolbar__field">From
               <input type="datetime-local" name="filter[from]" id="filter-from"
-                     aria-label="from" value={@filters_raw["from"] || ""} phx-debounce="blur" />
+                     aria-label="from" value={@filters_raw["from"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
             </label>
-            <label>To
+            <label class="tl-toolbar__field">To
               <input type="datetime-local" name="filter[to]" id="filter-to"
-                     aria-label="to" value={@filters_raw["to"] || ""} phx-debounce="blur" />
+                     aria-label="to" value={@filters_raw["to"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
             </label>
-            <label>Table
+            <label class="tl-toolbar__field">Table
               <input type="text" list="audited-tables" name="filter[table]" id="filter-table"
-                     aria-label="table" value={@filters_raw["table"] || ""} phx-debounce="blur" />
+                     aria-label="table" value={@filters_raw["table"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
               <datalist id="audited-tables">
                 <option :for={name <- @audited_tables} value={name}></option>
               </datalist>
             </label>
-            <label>Actor kind
-              <select name="filter[actor_kind]" id="filter-actor-kind" aria-label="actor kind">
+            <label class="tl-toolbar__field">Actor kind
+              <select name="filter[actor_kind]" id="filter-actor-kind" aria-label="actor kind" class="tl-toolbar__control">
                 <option value="">Any kind</option>
                 <option :for={k <- ~w(user admin service_account job system anonymous)}
                         value={k} selected={@filters_raw["actor_kind"] == k}><%= k %></option>
               </select>
             </label>
-            <label>Actor id
+            <label class="tl-toolbar__field">Actor id
               <input type="text" name="filter[actor_id]" id="filter-actor-id"
                      aria-label="actor id"
                      value={@filters_raw["actor_id"] || ""}
                      disabled={@filters_raw["actor_kind"] == "anonymous"}
-                     phx-debounce="blur" />
+                     phx-debounce="blur" class="tl-toolbar__control" />
             </label>
-            <label>Correlation id
+            <label class="tl-toolbar__field tl-toolbar__field--wide">Correlation id
               <input type="text" name="filter[correlation_id]" id="filter-correlation-id"
                      aria-label="correlation id"
                      value={@filters_raw["correlation_id"] || ""}
-                     maxlength="256" phx-debounce="300" />
-              <small>request_id, job_id, or integration token. Up to 256 chars.</small>
+                     maxlength="256" phx-debounce="300" class="tl-toolbar__control" />
+              <small class="tl-toolbar__hint">request_id, job_id, or integration token. Up to 256 chars.</small>
             </label>
-            <div class="button-cluster">
-              <.link patch={@base_path} class="clear-link">Clear all</.link>
-              <button type="submit">Apply</button>
+            <div class="tl-toolbar__actions">
+              <.link patch={@base_path} class="tl-button tl-button--ghost">Clear all</.link>
+              <button type="submit" class="tl-button tl-button--primary">Apply</button>
               <%= if @threadline_exports_enabled do %>
-                <button phx-click="request_background_export" type="button" class="download-button primary">Request Background Export</button>
-                <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="download-button">Download CSV</.link>
-                <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="download-button">Download JSON</.link>
-                <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="download-button">Download NDJSON</.link>
+                <button phx-click="request_background_export" type="button" class="tl-button tl-button--primary">Queue export</button>
+                <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--secondary">CSV</.link>
+                <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--secondary">JSON</.link>
+                <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--secondary">NDJSON</.link>
               <% end %>
             </div>
           </form>
           <%= if assigns[:threadline_actor_ref] do %>
-            <div class="saved-views-toolbar">
-              <form id="save-view-form" phx-submit="save-view" class="save-view-form">
-                <input type="text" name="name" placeholder="Name this view..." aria-label="View name" required />
-                <button type="submit">Save View</button>
+            <div class="tl-toolbar__saved-views">
+              <form id="save-view-form" phx-submit="save-view" class="tl-nav">
+                <input type="text" name="name" placeholder="Name this view..." aria-label="View name" required class="tl-control" />
+                <button type="submit" class="tl-button tl-button--secondary">Save View</button>
               </form>
-              <div class="saved-views-list" :if={@saved_views != []}>
+              <div class="tl-nav" :if={@saved_views != []}>
                 <strong>Saved Views:</strong>
-                <ul class="saved-views-ul">
-                  <li :for={view <- @saved_views} class="saved-view-item">
-                    <button phx-click="apply-view" phx-value-id={view.id} type="button" class="apply-view-btn"><%= view.name %></button>
-                    <button phx-click="delete-view" phx-value-id={view.id} type="button" class="delete-view-btn" aria-label={"Delete " <> view.name}>&times;</button>
+                <ul class="tl-toolbar__saved-list">
+                  <li :for={view <- @saved_views} class="tl-toolbar__saved-item">
+                    <button phx-click="apply-view" phx-value-id={view.id} type="button" class="tl-button tl-button--secondary"><%= view.name %></button>
+                    <button phx-click="delete-view" phx-value-id={view.id} type="button" class="tl-button tl-button--ghost tl-button--danger" aria-label={"Delete " <> view.name}>&times;</button>
                   </li>
                 </ul>
               </div>
@@ -373,44 +373,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </header>
 
         <%= if @form_error do %>
-          <div class="filter-error" role="alert"><%= @form_error %></div>
+          <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
         <% end %>
 
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
-          <div class="filter-hint">
+          <div class="tl-alert tl-alert--info">
             No rows found for this table. Audited tables: <%= Enum.join(@audited_tables, ", ") %>
           </div>
         <% end %>
 
-        <div class="match-count-status" role="status">
+        <div class="tl-status" role="status">
           Showing <%= length(@streams.changes.inserts) %> of <%= format_count(@match_count) %> matches in this window.
         </div>
 
         <%= if @match_count > 5_000 and @match_count < 10_001 do %>
-          <div class="truncation-banner informational" role="status">
+          <div class="tl-alert tl-alert--info" role="status">
             Large export — will stream in chunks.
           </div>
         <% end %>
 
         <%= if @match_count >= 10_001 do %>
-          <div class="truncation-banner warning" role="alert">
+          <div class="tl-alert tl-alert--warning" role="alert">
             Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
           </div>
         <% end %>
 
-        <section class="timeline-rows" id="timeline-rows" phx-update="stream"
+        <section class="tl-change-list" id="timeline-rows" phx-update="stream"
                  phx-viewport-bottom={@cursor && "next-page"}>
-          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="change-row">
-            <div class="change-header">
-              <span class="change-op"><%= change.op %></span>
-              <span class="change-table"><%= change.table_name %></span>
-              <span class="change-time"><%= change.captured_at %></span>
-              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tx-link">View Incident</a>
+          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change">
+            <div class="tl-change__meta">
+              <span class="tl-change__op"><%= change.op %></span>
+              <span class="tl-change__table"><%= change.table_name %></span>
+              <span class="tl-change__time"><%= change.captured_at %></span>
+              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep">View transaction</a>
             </div>
           </div>
         </section>
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
-             class="empty-state">
+             class="tl-empty">
           No changes match these filters in the selected window.
         </div>
       </div>

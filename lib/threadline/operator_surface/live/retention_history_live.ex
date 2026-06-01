@@ -79,20 +79,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="retention-history-page">
+        <main class="tl-page">
           <%= if @threadline_policy_enabled do %>
-            <header class="page-header">
-              <h2>Retention History</h2>
-              <button class="primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
+            <header class="tl-page__header">
+              <h2 class="tl-page__title">Retention History</h2>
+              <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
             </header>
 
             <%= if not @has_runs do %>
-              <div class="empty-state">
-                <h3>No Retention History</h3>
-                <p>There is no retention history. Configure your retention policy and trigger a prune to see runs here.</p>
+              <div class="tl-empty">
+                <h3 class="tl-empty__title">No Retention History</h3>
+                <p class="tl-empty__body">Configure your retention policy and trigger a prune to see runs here.</p>
               </div>
             <% else %>
-              <table class="retention-table">
+              <table class="tl-table tl-table--retention">
                 <thead>
                   <tr>
                     <th>Status</th>
@@ -102,7 +102,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </tr>
                 </thead>
                 <tbody id="retention-runs" phx-update="stream">
-                  <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"run-row--" <> run.status}>
+                  <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
                     <td><%= run.status %></td>
                     <td><%= run.deleted_count || "-" %></td>
                     <td><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>

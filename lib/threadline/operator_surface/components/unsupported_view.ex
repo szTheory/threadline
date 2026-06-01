@@ -28,14 +28,16 @@ if Code.ensure_loaded?(Phoenix.Component) do
         |> assign(:fallback_value, Map.get(descriptor, :fallback_value, assigns[:fallback_value]))
 
       ~H"""
-      <div class="empty-state unsupported-state" role="status">
-        <h3><%= @title %></h3>
-        <p><%= @body %></p>
-        <p :if={@fallback_value} class="filter-hint">
+      <div class="tl-empty tl-empty--unsupported" role="status">
+        <h3 class="tl-empty__title"><%= @title %></h3>
+        <p class="tl-empty__body"><%= @body %></p>
+        <p :if={@fallback_value} class="tl-hint">
           <strong><%= @fallback_label || "Try instead" %>:</strong>
           <code><%= @fallback_value %></code>
         </p>
-        <.link :if={@base_path} href={@base_path} class="secondary-button">Back to Timeline</.link>
+        <.link :if={@base_path} href={@base_path} class="tl-button tl-button--secondary">
+          Back to Timeline
+        </.link>
       </div>
       """
     end

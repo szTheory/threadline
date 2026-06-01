@@ -287,7 +287,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp section_titles(html) do
-      Regex.scan(~r/<h3>([^<]+)<\/h3>/, html, capture: :all_but_first)
+      Regex.scan(~r/<h3 class="tl-section__title">([^<]+)<\/h3>/, html, capture: :all_but_first)
       |> List.flatten()
     end
 
@@ -307,11 +307,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp section_tables(html, heading) do
       [_, body] =
         Regex.run(
-          ~r/<h3>#{Regex.escape(heading)}<\/h3><\/div><div class="policy-redaction-rows">(.+?)<\/div><\/section>/s,
+          ~r/<h3 class="tl-section__title">#{Regex.escape(heading)}<\/h3><\/div><div class="tl-policy__rows">(.+?)<\/div><\/section>/s,
           html
         )
 
-      Regex.scan(~r/class="policy-redaction-table">([^<]+)</, body, capture: :all_but_first)
+      Regex.scan(~r/class="tl-policy__table">([^<]+)</, body, capture: :all_but_first)
       |> List.flatten()
     end
 

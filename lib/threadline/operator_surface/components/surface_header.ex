@@ -8,8 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     `base_path` (the operator-surface mount path, e.g. `"/audit"`) from the
     parent LV's assigns.
 
-    - `uncovered_count == 0` → `<a class="surface-badge surface-badge--ok">All covered</a>` (D-31a — never hidden).
-    - `uncovered_count > 0`  → `<a class="surface-badge surface-badge--warn">{n} uncovered</a>`.
+    - `uncovered_count == 0` → `<a class="tl-chip tl-chip--muted">All covered</a>` (D-31a — never hidden).
+    - `uncovered_count > 0`  → `<a class="tl-chip tl-chip--warning">{n} uncovered</a>`.
     - `:threadline_coverage_error` set → small "stale (last checked Xs ago)" indicator.
     """
 
@@ -24,21 +24,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def surface_header(assigns) do
       ~H"""
-      <header class="threadline-ui-header">
-        <span class="brand">Threadline</span>
+      <header class="tl-topbar">
+        <span class="tl-topbar__brand">Threadline</span>
         <%= if @coverage_enabled do %>
           <%= if @coverage && @coverage.uncovered_count > 0 do %>
-            <a class="surface-badge surface-badge--warn" href={"#{@base_path}/coverage"}>
+            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
               <%= @coverage.uncovered_count %> uncovered
             </a>
           <% else %>
-            <a class="surface-badge surface-badge--ok" href={"#{@base_path}/coverage"}>All covered</a>
+            <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All covered</a>
           <% end %>
         <% end %>
-        <a :if={@evidence_enabled} class="surface-badge surface-badge--ok" href={"#{@base_path}/evidence"}>Evidence</a>
-        <a :if={@policy_enabled} class="surface-badge surface-badge--ok" href={"#{@base_path}/policy/retention"}>Retention</a>
+        <a :if={@evidence_enabled} class="tl-chip tl-chip--muted" href={"#{@base_path}/evidence"}>Evidence</a>
+        <a :if={@policy_enabled} class="tl-chip tl-chip--muted" href={"#{@base_path}/policy/retention"}>Retention</a>
         <%= if @error do %>
-          <span class="stale-indicator">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
+          <span class="tl-topbar__stale">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
         <% end %>
       </header>
       """

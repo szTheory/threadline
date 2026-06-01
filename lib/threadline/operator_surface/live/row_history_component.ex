@@ -60,24 +60,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui-subview slide-over" id={@id}>
-        <div class="subview-header">
-          <h3>Row History: <%= @table %> / <%= @record_id %></h3>
-          <.link patch={@base_path} class="close-button">Close</.link>
+      <div class="tl-subview" id={@id}>
+        <div class="tl-subview__header">
+          <h3 class="tl-subview__title">Row History: <%= @table %> / <%= @record_id %></h3>
+          <.link patch={@base_path} class="tl-button tl-button--secondary">Close</.link>
         </div>
         
         <%= if @error do %>
-          <div class="empty-state error-state"><%= @error %></div>
+          <div class="tl-empty tl-empty--error"><%= @error %></div>
         <% else %>
-          <div class="subview-content">
-            <div class="timeline-panel">
-              <h4>Timeline</h4>
+          <div class="tl-subview__content">
+            <div class="tl-subview__panel">
+              <h4 class="tl-subview__panel-title">Timeline</h4>
               <form phx-change="update-as-of" phx-target={@myself}>
                 <label>Manual As-Of:
-                  <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} />
+                  <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} class="tl-control" />
                 </label>
               </form>
-              <ul class="timeline-list">
+              <ul class="tl-subview__timeline">
                 <%= for change <- @history do %>
                   <li>
                     <.link patch={"#{@base_path}/history/#{@table}/#{@record_id}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
@@ -88,8 +88,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </ul>
             </div>
             
-            <div class="snapshot-panel">
-              <h4>Snapshot as of <%= @as_of_dt %></h4>
+            <div class="tl-subview__panel">
+              <h4 class="tl-subview__panel-title">Snapshot as of <%= @as_of_dt %></h4>
               <%= if @snapshot do %>
                 <pre><%= inspect(@snapshot, pretty: true) %></pre>
               <% else %>

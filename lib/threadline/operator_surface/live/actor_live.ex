@@ -87,31 +87,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
         />
         <%= if @not_found do %>
-          <div class="empty-state">
-            <.link patch={@base_path} class="back-link">← Timeline</.link>
-            <p>Invalid Actor Reference</p>
+          <div class="tl-empty tl-empty--error">
+            <.link patch={@base_path} class="tl-link tl-link--back">← Timeline</.link>
+            <p class="tl-empty__body">Invalid Actor Reference</p>
           </div>
         <% else %>
-          <div class="actor-header">
-            <a href={@base_path} class="back-link">← Timeline</a>
-            <h2>Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
-            <div class="time-picker">
+          <div class="tl-transaction">
+            <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
+            <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
+            <div class="tl-nav">
               Showing last
-              <a href="#" phx-click="set-window" phx-value-hours="1" class={if @time_window_hours == 1, do: "active", else: ""}>1h</a>
-              <a href="#" phx-click="set-window" phx-value-hours="24" class={if @time_window_hours == 24, do: "active", else: ""}>24h</a>
-              <a href="#" phx-click="set-window" phx-value-hours="168" class={if @time_window_hours == 168, do: "active", else: ""}>7d</a>
-              <a href="#" phx-click="set-window" phx-value-hours="720" class={if @time_window_hours == 720, do: "active", else: ""}>30d</a>
+              <a href="#" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</a>
+              <a href="#" phx-click="set-window" phx-value-hours="24" class={time_window_class(@time_window_hours, 24)}>24h</a>
+              <a href="#" phx-click="set-window" phx-value-hours="168" class={time_window_class(@time_window_hours, 168)}>7d</a>
+              <a href="#" phx-click="set-window" phx-value-hours="720" class={time_window_class(@time_window_hours, 720)}>30d</a>
             </div>
           </div>
 
           <%= if not @has_ever_acted do %>
-            <div class="empty-state distinct-empty-never">
-              <p>This actor has never recorded any events.</p>
+            <div class="tl-empty tl-empty--never">
+              <p class="tl-empty__body">This actor has never recorded any events.</p>
             </div>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
-              <div class="empty-state">
-                <p>No events found in the selected time window.</p>
+              <div class="tl-empty">
+                <p class="tl-empty__body">No events found in the selected time window.</p>
               </div>
             <% else %>
               <div
@@ -119,12 +119,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 phx-update="stream"
                 phx-viewport-top="prev-page"
                 phx-viewport-bottom="next-page"
-                class="viewport-container"
+                class="tl-viewport"
               >
-                <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="transaction-row">
-                  <div class="transaction-header">
-                    <span class="tx-time"><%= tx.occurred_at %></span>
-                    <a href={"#{@base_path}/transactions/#{tx.id}"} class="tx-link">View Incident <%= tx.id %></a>
+                <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="tl-change">
+                  <div class="tl-change__meta">
+                    <span class="tl-change__time"><%= tx.occurred_at %></span>
+                    <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep">View transaction <%= tx.id %></a>
                   </div>
                 </div>
               </div>
@@ -207,6 +207,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          |> stream(:transactions, page.entries, at: 0)}
       else
         {:noreply, socket}
+      end
+    end
+
+    defp time_window_class(current, value) do
+      if current == value do
+        "tl-chip tl-chip--accent"
+      else
+        "tl-chip tl-chip--muted"
       end
     end
   end

@@ -69,20 +69,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="export-status-page">
+        <main class="tl-page">
           <%= if @threadline_exports_enabled do %>
-            <header class="page-header">
-              <h2>Export Status</h2>
-              <.link href={"#{@base_path}"} class="secondary-button">Back to Timeline</.link>
+            <header class="tl-page__header">
+              <h2 class="tl-page__title">Export Status</h2>
+              <.link href={"#{@base_path}"} class="tl-button tl-button--secondary">Back to Timeline</.link>
             </header>
 
             <%= if not @has_jobs do %>
-              <div class="empty-state">
-                <h3>No Export Jobs</h3>
-                <p>You haven't requested any background exports yet. Go to the Timeline to request one.</p>
+              <div class="tl-empty">
+                <h3 class="tl-empty__title">No Export Jobs</h3>
+                <p class="tl-empty__body">Go to the timeline to queue a background export.</p>
               </div>
             <% else %>
-              <table class="export-table">
+              <table class="tl-table tl-table--jobs">
                 <thead>
                   <tr>
                     <th>Status</th>
@@ -94,16 +94,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </tr>
                 </thead>
                 <tbody id="export-jobs" phx-update="stream">
-                  <tr :for={{dom_id, job} <- @streams.jobs} id={dom_id} class={"job-row--" <> job.status}>
+                  <tr :for={{dom_id, job} <- @streams.jobs} id={dom_id} class={"tl-table__row--" <> job.status}>
                     <td>
-                      <span class={"status-badge status-" <> job.status} role={status_role(job)}>
+                      <span class={["tl-chip", export_status_modifier(job.status)]} role={status_role(job)}>
                         <%= job.status %>
                       </span>
                       <%= if job.error_message do %>
-                        <div class="error-message" role="alert"><%= job.error_message %></div>
+                        <div class="tl-alert tl-alert--error" role="alert"><%= job.error_message %></div>
                       <% end %>
                     </td>
-                    <td class="filters-cell">
+                    <td class="tl-table__code">
                       <code><%= encode_query(job.query_params) %></code>
                     </td>
                     <td><%= format_date(job.started_at) %></td>
@@ -112,13 +112,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <td>
                       <%= cond do %>
                         <% downloadable?(job) -> %>
-                          <.link href={"#{@base_path}/exports/download/#{job.id}"} class="download-link">
+                          <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-link tl-link--deep">
                             Download Export
                           </.link>
                         <% job.status in ["pending", "running"] -> %>
-                          <span class="download-placeholder" role="status">Preparing download</span>
+                          <span class="tl-hint" role="status">Preparing download</span>
                         <% completed_but_unavailable?(job) -> %>
-                          <span class="download-unavailable">
+                          <span class="tl-hint">
                             This export isn't available to download right now.
                           </span>
                         <% true -> %>
@@ -196,6 +196,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp status_role(%{status: "failed"}), do: "alert"
     defp status_role(_job), do: "status"
+
+    defp export_status_modifier("completed"), do: "tl-chip--success"
+    defp export_status_modifier("failed"), do: "tl-chip--danger"
+
+    defp export_status_modifier(status) when status in ["pending", "running"],
+      do: "tl-chip--accent"
+
+    defp export_status_modifier(_status), do: "tl-chip--muted"
 
     defp downloadable?(job) do
       job.status == "completed" and is_binary(job.file_path) and not expired?(job.expires_at)

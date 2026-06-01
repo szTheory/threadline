@@ -71,13 +71,13 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       assert String.contains?(src, "uncovered"),
              "expected #{@surface_header_path} to render the count + ` uncovered` suffix per D-31a / D-35"
 
-      # Pin the surface-badge--warn class literal (D-31a CSS class)
-      assert String.contains?(src, "surface-badge--warn"),
-             "expected the surface-badge--warn CSS class for the uncovered pill"
+      # Pin the warning chip class literal (D-31a CSS class)
+      assert String.contains?(src, "tl-chip--warning"),
+             "expected the tl-chip--warning CSS class for the uncovered pill"
 
-      # Pin the surface-badge--ok class literal (D-31a CSS class)
-      assert String.contains?(src, "surface-badge--ok"),
-             "expected the surface-badge--ok CSS class for the All-covered pill"
+      # Pin the neutral chip class literal (D-31a CSS class)
+      assert String.contains?(src, "tl-chip--muted"),
+             "expected the tl-chip--muted CSS class for the All-covered pill"
     end
   end
 
