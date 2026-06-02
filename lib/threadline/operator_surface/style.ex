@@ -639,7 +639,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-segmented__item.is-active,
         .tl-segmented__item[aria-pressed="true"] {
           background: var(--tl-color-surface-raised);
           color: var(--tl-color-accent-strong);
@@ -1110,13 +1109,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         /*
          * Metric card — the compact "label + big number" summary tile.
-         * Canonical: .tl-card .tl-card--metric with status via [data-status].
-         * .tl-summary-card / --modifier are retained as byte-identical aliases
-         * (Primer deprecated-alias pattern) so existing markup is unchanged
-         * while new markup migrates to the canonical density variant + the
-         * shared [data-status] stripe contract.
+         * Canonical density variant of the card; status via [data-status]
+         * (the shared stripe contract). Self-sufficient: used standalone as
+         * .tl-card--metric (not composed with .tl-card) so its dense padding
+         * is not overridden by the full card's slot layout.
          */
-        .tl-summary-card,
         .tl-card--metric {
           display: grid;
           gap: var(--tl-space-1);
@@ -1127,35 +1124,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--danger,
         .tl-card--metric[data-status="danger"] {
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--warning,
         .tl-card--metric[data-status="warning"] {
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-warning-border), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--success,
         .tl-card--metric[data-status="success"] {
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--info,
         .tl-card--metric[data-status="info"] {
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-info-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card__label,
         .tl-card__metric-label {
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
         }
 
-        .tl-summary-card strong,
-        .tl-card--metric strong,
         .tl-card__metric {
           font-size: var(--tl-font-size-heading);
           line-height: var(--tl-line-heading);
@@ -1269,8 +1259,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           justify-content: flex-start;
         }
 
-        /* Canonical metadata row. .tl-meta-row is the retained alias. */
-        .tl-meta-row,
+        /* Canonical metadata row. */
         .tl-meta {
           display: flex;
           flex-wrap: wrap;
@@ -1887,6 +1876,62 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-record-list > .tl-record-card,
         #transactions-list > .tl-change {
           animation: tl-fade-in var(--tl-motion-base) var(--tl-ease-out) both;
+        }
+
+        /* C2 — copy id affordance. Vanilla embedded JS (operator_surface/script.ex)
+         * toggles .is-copied on success: a Signal-Cyan pulse + a "Copied" chip.
+         * The chip is a static ::after (not animated) so it still confirms under
+         * prefers-reduced-motion; only the pulse is motion. */
+        .tl-copy {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          min-height: var(--tl-control-height-chip);
+          padding: 0 var(--tl-space-2);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-sm);
+          background: transparent;
+          color: var(--tl-color-muted);
+          font-family: inherit;
+          font-size: var(--tl-font-size-xs);
+          cursor: pointer;
+          transition: var(--tl-transition-fast);
+        }
+
+        .tl-copy:hover {
+          color: var(--tl-color-text);
+          border-color: var(--tl-color-border-strong);
+        }
+
+        .tl-copy.is-copied {
+          color: var(--tl-color-signal);
+          border-color: var(--tl-color-signal-border);
+          animation: tl-copy-pulse var(--tl-motion-base) var(--tl-ease-out);
+        }
+
+        .tl-copy.is-copied::after {
+          content: "Copied";
+          position: absolute;
+          bottom: calc(100% + var(--tl-space-1));
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 2px var(--tl-space-2);
+          border-radius: var(--tl-radius-sm);
+          background: var(--tl-color-signal-bg);
+          color: var(--tl-color-signal);
+          border: 1px solid var(--tl-color-signal-border);
+          font-size: var(--tl-font-size-xs);
+          white-space: nowrap;
+          pointer-events: none;
+        }
+
+        @keyframes tl-copy-pulse {
+          from {
+            box-shadow: 0 0 0 0 var(--tl-color-signal-border);
+          }
+          to {
+            box-shadow: 0 0 0 6px transparent;
+          }
         }
 
         .tl-subview__panel {

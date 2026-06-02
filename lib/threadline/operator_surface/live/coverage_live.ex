@@ -149,17 +149,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               <% else %>
                 <section class="tl-summary-grid" aria-label="Coverage summary">
-                  <div class="tl-summary-card tl-summary-card--success">
-                    <span class="tl-summary-card__label">Captured</span>
-                    <strong><%= @coverage_for_schema.covered_count %></strong>
+                  <div class="tl-card--metric" data-status="success">
+                    <span class="tl-card__metric-label">Captured</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
                   </div>
-                  <div class={["tl-summary-card", @coverage_for_schema.uncovered_count > 0 && "tl-summary-card--danger"]}>
-                    <span class="tl-summary-card__label">Needs capture</span>
-                    <strong><%= @coverage_for_schema.uncovered_count %></strong>
+                  <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
+                    <span class="tl-card__metric-label">Needs capture</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
                   </div>
-                  <div class="tl-summary-card">
-                    <span class="tl-summary-card__label">Expected gaps</span>
-                    <strong><%= @coverage_for_schema.expected_uncovered_count %></strong>
+                  <div class="tl-card--metric">
+                    <span class="tl-card__metric-label">Expected gaps</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
                   </div>
                 </section>
 

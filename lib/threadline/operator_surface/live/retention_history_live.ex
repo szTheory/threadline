@@ -110,17 +110,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             <% else %>
               <section class="tl-summary-grid" aria-label="Retention summary">
-                <div class="tl-summary-card">
-                  <span class="tl-summary-card__label">Latest run</span>
-                  <strong><%= @runs_summary.latest_status %></strong>
+                <div class="tl-card--metric">
+                  <span class="tl-card__metric-label">Latest run</span>
+                  <strong class="tl-card__metric"><%= @runs_summary.latest_status %></strong>
                 </div>
-                <div class="tl-summary-card">
-                  <span class="tl-summary-card__label">Rows deleted</span>
-                  <strong><%= @runs_summary.total_deleted %></strong>
+                <div class="tl-card--metric">
+                  <span class="tl-card__metric-label">Rows deleted</span>
+                  <strong class="tl-card__metric"><%= @runs_summary.total_deleted %></strong>
                 </div>
-                <div class={["tl-summary-card", @runs_summary.failure_count > 0 && "tl-summary-card--danger"]}>
-                  <span class="tl-summary-card__label">Failures</span>
-                  <strong><%= @runs_summary.failure_count %></strong>
+                <div class="tl-card--metric" data-status={if @runs_summary.failure_count > 0, do: "danger"}>
+                  <span class="tl-card__metric-label">Failures</span>
+                  <strong class="tl-card__metric"><%= @runs_summary.failure_count %></strong>
                 </div>
               </section>
 

@@ -81,6 +81,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <Threadline.OperatorSurface.Script.js />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={@threadline_coverage}
           base_path={@base_path}
@@ -113,10 +114,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               </div>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
-                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={@time_window_hours == 1} class={time_window_class(@time_window_hours, 1)}>1h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={@time_window_hours == 24} class={time_window_class(@time_window_hours, 24)}>24h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={@time_window_hours == 168} class={time_window_class(@time_window_hours, 168)}>7d</button>
-                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={@time_window_hours == 720} class={time_window_class(@time_window_hours, 720)}>30d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={@time_window_hours == 1} class="tl-segmented__item">1h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={@time_window_hours == 24} class="tl-segmented__item">24h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={@time_window_hours == 168} class="tl-segmented__item">7d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={@time_window_hours == 720} class="tl-segmented__item">30d</button>
               </div>
             </div>
           </div>
@@ -151,8 +152,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <%= Presentation.human_time(tx.occurred_at) %>
                       </time>
                     </div>
-                    <div class="tl-meta-row">
+                    <div class="tl-meta">
                       <span>Transaction <code title={tx.id}><%= Presentation.short_id(tx.id, 14) %></code></span>
+                      <button type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
                     </div>
                     <div class="tl-change__actions">
                       <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">Open transaction</a>
@@ -250,14 +252,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       "#{base_path}/timeline?#{query}"
-    end
-
-    defp time_window_class(current, value) do
-      if current == value do
-        "tl-segmented__item is-active"
-      else
-        "tl-segmented__item"
-      end
     end
   end
 end

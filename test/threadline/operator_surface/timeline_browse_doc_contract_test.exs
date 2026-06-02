@@ -159,8 +159,8 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   test "TransactionLive header contains Timeline back-link" do
     src = File.read!(@transaction_lv_path)
 
-    assert String.contains?(src, ">Timeline</a>"),
-           "expected #{@transaction_lv_path} to contain inline back-link literal 'Timeline'"
+    assert String.contains?(src, ">← Timeline</a>"),
+           "expected #{@transaction_lv_path} to contain inline back-link literal '← Timeline'"
   end
 
   test "ActorLive header contains ← Timeline back-link" do

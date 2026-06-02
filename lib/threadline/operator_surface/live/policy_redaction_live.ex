@@ -73,17 +73,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
 
             <section class="tl-summary-grid" aria-label="Redaction drift summary">
-              <div class={["tl-summary-card", if(@report.summary.drift_detected > 0, do: "tl-summary-card--danger", else: "tl-summary-card--success")]}>
-                <span class="tl-summary-card__label">Drift</span>
-                <strong><%= @report.summary.drift_detected %></strong>
+              <div class="tl-card--metric" data-status={if @report.summary.drift_detected > 0, do: "danger", else: "success"}>
+                <span class="tl-card__metric-label">Drift</span>
+                <strong class="tl-card__metric"><%= @report.summary.drift_detected %></strong>
               </div>
-              <div class={["tl-summary-card", @report.summary.could_not_introspect > 0 && "tl-summary-card--warning"]}>
-                <span class="tl-summary-card__label">Introspection failures</span>
-                <strong><%= @report.summary.could_not_introspect %></strong>
+              <div class="tl-card--metric" data-status={if @report.summary.could_not_introspect > 0, do: "warning"}>
+                <span class="tl-card__metric-label">Introspection failures</span>
+                <strong class="tl-card__metric"><%= @report.summary.could_not_introspect %></strong>
               </div>
-              <div class="tl-summary-card">
-                <span class="tl-summary-card__label">Deployed matches config</span>
-                <strong><%= @report.summary.config_matches_deployed %></strong>
+              <div class="tl-card--metric">
+                <span class="tl-card__metric-label">Deployed matches config</span>
+                <strong class="tl-card__metric"><%= @report.summary.config_matches_deployed %></strong>
               </div>
             </section>
 
