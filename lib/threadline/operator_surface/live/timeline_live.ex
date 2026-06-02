@@ -312,6 +312,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:timeline}
         />
 
+        <main class="tl-page tl-page--intro">
+          <section class="tl-orientation" aria-label="Investigation starting point">
+            <div class="tl-orientation__header">
+              <div>
+                <h2 class="tl-orientation__title">Investigate audit activity</h2>
+                <p class="tl-orientation__lede">
+                  Start with a time window, table, actor, or correlation id, then open a transaction to see exactly what changed together.
+                </p>
+              </div>
+              <div class="tl-orientation__actions">
+                <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--secondary">
+                  Check coverage
+                </a>
+                <a :if={@threadline_evidence_enabled and @base_path} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary">
+                  Review evidence
+                </a>
+              </div>
+            </div>
+
+            <section class="tl-summary-grid" aria-label="Current investigation summary">
+              <div class="tl-summary-card tl-summary-card--info">
+                <span class="tl-summary-card__label">Current window</span>
+                <strong><%= filter_window_label(@filters_raw) %></strong>
+              </div>
+              <div class="tl-summary-card">
+                <span class="tl-summary-card__label">Matching changes</span>
+                <strong><%= format_count(@match_count) %></strong>
+              </div>
+              <div class={["tl-summary-card", coverage_warning?(assigns[:threadline_coverage]) && "tl-summary-card--warning"]}>
+                <span class="tl-summary-card__label">Audit readiness</span>
+                <strong><%= coverage_summary(assigns[:threadline_coverage]) %></strong>
+              </div>
+            </section>
+          </section>
+        </main>
+
         <header class="tl-toolbar">
           <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
             <label class="tl-toolbar__field">From
@@ -413,21 +449,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <section class="tl-change-list" id="timeline-rows" phx-update="stream"
                  phx-viewport-bottom={@cursor && "next-page"}
                  data-testid="operator-timeline">
-          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="timeline-row">
+          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class={["tl-change", op_row_modifier(change.op)]} data-testid="timeline-row">
             <div class="tl-change__summary">
               <div class="tl-change__meta">
-                <span class="tl-change__op"><%= change.op %></span>
+                <span class={["tl-change__op", op_chip_modifier(change.op)]}><%= change.op %></span>
                 <span class="tl-change__table"><%= change.table_name %></span>
                 <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
                   <%= Presentation.human_time(change.captured_at) %>
                 </time>
               </div>
               <div class="tl-meta-row">
-                <span>Actor <code><%= actor_label(change) %></code></span>
-                <span :if={correlation_id(change)}>Correlation <code><%= correlation_id(change) %></code></span>
+                <span>
+                  Actor
+                  <%= if path = actor_path(@base_path, change) do %>
+                    <a href={path} class="tl-link tl-link--deep"><code><%= actor_label(change) %></code></a>
+                  <% else %>
+                    <code><%= actor_label(change) %></code>
+                  <% end %>
+                </span>
+                <span :if={correlation_id(change)}>
+                  Correlation
+                  <a href={correlation_path(@base_path, correlation_id(change))} class="tl-link tl-link--deep">
+                    <code><%= correlation_id(change) %></code>
+                  </a>
+                </span>
               </div>
               <div class="tl-change__actions">
-                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep" data-testid="transaction-link">Open transaction</a>
+                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">Open transaction</a>
               </div>
             </div>
           </div>
@@ -472,11 +520,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp actor_label(_), do: "unknown"
 
+    defp actor_path(base_path, change) when is_binary(base_path) do
+      case actor_ref(change) do
+        {type, id} when is_binary(type) and is_binary(id) and id != "" ->
+          "#{base_path}/actors/#{URI.encode_www_form(type)}/#{URI.encode_www_form(id)}"
+
+        _ ->
+          nil
+      end
+    end
+
+    defp actor_path(_base_path, _change), do: nil
+
+    defp actor_ref(%{transaction: %{actor_ref: %{type: type, id: id}}}) when not is_nil(id),
+      do: {to_string(type), to_string(id)}
+
+    defp actor_ref(%{transaction: %{actor_ref: %{"type" => type, "id" => id}}})
+         when not is_nil(id),
+         do: {to_string(type), to_string(id)}
+
+    defp actor_ref(_), do: nil
+
     defp correlation_id(%{transaction: %{action: %{correlation_id: correlation_id}}})
          when is_binary(correlation_id) and correlation_id != "",
          do: correlation_id
 
     defp correlation_id(_), do: nil
+
+    defp correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
+      "#{base_path}?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
+    end
+
+    defp correlation_path(base_path, _correlation_id), do: base_path
 
     # Renders the match count for the status line:
     # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
@@ -495,6 +570,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> Enum.map(&Enum.join/1)
           |> Enum.join(",")
           |> String.reverse()
+      end
+    end
+
+    defp filter_window_label(%{} = raw) do
+      non_window_filter? =
+        raw
+        |> Map.drop(["from", "to"])
+        |> Enum.any?(fn {_key, value} -> is_binary(value) and value != "" end)
+
+      cond do
+        non_window_filter? -> "Filtered"
+        raw["from"] not in [nil, ""] and raw["to"] not in [nil, ""] -> "24h window"
+        true -> "Last 24h"
+      end
+    end
+
+    defp filter_window_label(_), do: "Last 24h"
+
+    defp coverage_warning?(%{uncovered_count: count}) when is_integer(count), do: count > 0
+    defp coverage_warning?(_), do: false
+
+    defp coverage_summary(%{uncovered_count: count}) when is_integer(count) and count > 0 do
+      "#{count} need capture"
+    end
+
+    defp coverage_summary(%{uncovered_count: 0}), do: "All captured"
+    defp coverage_summary(_), do: "Not enabled"
+
+    defp op_row_modifier(op) do
+      case op |> to_string() |> String.downcase() do
+        "insert" -> "tl-change--insert"
+        "update" -> "tl-change--update"
+        "delete" -> "tl-change--delete"
+        _ -> nil
+      end
+    end
+
+    defp op_chip_modifier(op) do
+      case op |> to_string() |> String.downcase() do
+        "insert" -> "tl-change__op--insert"
+        "update" -> "tl-change__op--update"
+        "delete" -> "tl-change__op--delete"
+        _ -> nil
       end
     end
 

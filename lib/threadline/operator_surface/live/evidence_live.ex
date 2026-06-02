@@ -79,6 +79,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </header>
 
+            <section class="tl-trust-rail" aria-label="Evidence proof flow">
+              <span class="tl-trust-rail__label">Proof chain</span>
+              <span class="tl-chip tl-chip--success">Append-only history</span>
+              <span class="tl-chip tl-chip--info">Latest projection</span>
+              <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Coverage</a>
+              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">Redaction</a>
+              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">Retention</a>
+            </section>
+
             <nav class="tl-nav" aria-label="Evidence navigation">
               <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">Overview</.link>
               <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
@@ -105,57 +114,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <h3 class="tl-section__title"><%= group.title %></h3>
                   </header>
 
-                  <div class="tl-table-wrap" data-testid="evidence-table">
-                    <table class="tl-table tl-table--evidence">
-                      <thead>
-                        <tr>
-                          <th>Verdict</th>
-                          <th>Subject ref</th>
-                          <th>Recorded</th>
-                          <th>Current state</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr :for={row <- group.rows}>
-                          <td>
-                            <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
-                              <%= Presentation.status_label(row.verdict_status) %>
-                            </span>
-                          </td>
-                          <td>
-                            <div class="tl-evidence__ref"><%= row.subject_ref_json %></div>
-                            <div class="tl-evidence__meta"><%= row.subject %></div>
-                          </td>
-                          <td class="tl-table__date">
-                            <time datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
-                              <%= Presentation.human_time(row.recorded_at) %>
-                            </time>
-                          </td>
-                          <td><%= Presentation.status_label(row.summary_status) %></td>
-                          <td>
-                            <div class="tl-evidence__meta">
-                              <.link
-                                :if={show_subject_link?(@request)}
-                                patch={subject_path(@base_path, row.subject)}
-                                class="tl-link tl-link--deep"
-                              >
-                                Filter to subject
-                              </.link>
-                            </div>
-                            <div>
-                              <.link
-                                :if={show_history_link?(@request)}
-                                patch={history_path(@base_path, row.subject, row.subject_ref_json)}
-                                class="tl-link tl-link--deep"
-                              >
-                                Open proof history
-                              </.link>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div class="tl-record-list" data-testid="evidence-table">
+                    <article :for={row <- group.rows} class={["tl-record-card", record_modifier(row.verdict_status)]}>
+                      <div class="tl-record-card__main">
+                        <h4 class="tl-record-card__title">
+                          <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
+                            <%= Presentation.status_label(row.verdict_status) %>
+                          </span>
+                          <span><%= Presentation.status_label(row.summary_status) %></span>
+                        </h4>
+                        <div class="tl-record-card__ref"><%= row.subject_ref_json %></div>
+                        <div class="tl-record-card__meta">
+                          <span class="tl-evidence__meta"><%= row.subject %></span>
+                          <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
+                            <%= Presentation.human_time(row.recorded_at) %>
+                          </time>
+                        </div>
+                      </div>
+                      <div class="tl-record-card__actions">
+                        <.link
+                          :if={show_subject_link?(@request)}
+                          patch={subject_path(@base_path, row.subject)}
+                          class="tl-button tl-button--compact tl-button--secondary"
+                        >
+                          Filter to subject
+                        </.link>
+                        <.link
+                          :if={show_history_link?(@request)}
+                          patch={history_path(@base_path, row.subject, row.subject_ref_json)}
+                          class="tl-button tl-button--compact tl-button--secondary"
+                        >
+                          Open proof history
+                        </.link>
+                        <%= if action = support_action(@base_path, row.subject) do %>
+                          <a href={action.path} class="tl-button tl-button--compact tl-button--ghost"><%= action.label %></a>
+                        <% end %>
+                      </div>
+                    </article>
                   </div>
                 </section>
               <% end %>
@@ -283,6 +278,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp show_history_link?(%{mode: :latest}), do: true
     defp show_history_link?(_request), do: false
+
+    defp record_modifier(status) do
+      case Presentation.status_modifier(status) do
+        "tl-chip--success" -> "tl-record-card--success"
+        "tl-chip--warning" -> "tl-record-card--warning"
+        "tl-chip--danger" -> "tl-record-card--danger"
+        "tl-chip--info" -> "tl-record-card--info"
+        _ -> nil
+      end
+    end
+
+    defp support_action(base_path, "retention_run") when is_binary(base_path),
+      do: %{path: "#{base_path}/policy/retention", label: "Retention"}
+
+    defp support_action(base_path, "redaction_policy") when is_binary(base_path),
+      do: %{path: "#{base_path}/policy/redaction", label: "Redaction"}
+
+    defp support_action(base_path, "trigger_coverage") when is_binary(base_path),
+      do: %{path: "#{base_path}/coverage", label: "Coverage"}
+
+    defp support_action(base_path, "export_job") when is_binary(base_path),
+      do: %{path: "#{base_path}/exports", label: "Exports"}
+
+    defp support_action(_base_path, _subject), do: nil
 
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"

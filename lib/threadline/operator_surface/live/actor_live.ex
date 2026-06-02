@@ -2,6 +2,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.ActorLive do
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
+
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
@@ -96,13 +98,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% else %>
           <div class="tl-transaction">
             <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
-            <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
-            <div class="tl-nav" role="group" aria-label="Actor activity window">
-              Showing last
-              <a href="#" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</a>
-              <a href="#" phx-click="set-window" phx-value-hours="24" class={time_window_class(@time_window_hours, 24)}>24h</a>
-              <a href="#" phx-click="set-window" phx-value-hours="168" class={time_window_class(@time_window_hours, 168)}>7d</a>
-              <a href="#" phx-click="set-window" phx-value-hours="720" class={time_window_class(@time_window_hours, 720)}>30d</a>
+            <div class="tl-page__header">
+              <div>
+                <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
+                <p class="tl-page__lede">Review transactions recorded for this actor, then open one transaction to inspect the row-level changes.</p>
+              </div>
+              <div class="tl-segmented" role="group" aria-label="Actor activity window">
+                <button type="button" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="24" class={time_window_class(@time_window_hours, 24)}>24h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="168" class={time_window_class(@time_window_hours, 168)}>7d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="720" class={time_window_class(@time_window_hours, 720)}>30d</button>
+              </div>
             </div>
           </div>
 
@@ -126,13 +132,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="tl-change" data-testid="actor-transaction-row">
                   <div class="tl-change__summary">
                     <div class="tl-change__meta">
-                      <span class="tl-change__time"><%= tx.occurred_at %></span>
+                      <time class="tl-change__time" datetime={Presentation.exact_time(tx.occurred_at)} title={Presentation.exact_time(tx.occurred_at)}>
+                        <%= Presentation.human_time(tx.occurred_at) %>
+                      </time>
                     </div>
                     <div class="tl-meta-row">
-                      <span>Transaction <code><%= tx.id %></code></span>
+                      <span>Transaction <code title={tx.id}><%= Presentation.short_id(tx.id, 14) %></code></span>
                     </div>
                     <div class="tl-change__actions">
-                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep" data-testid="transaction-link">Open transaction</a>
+                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">Open transaction</a>
                     </div>
                   </div>
                 </div>
@@ -221,9 +229,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp time_window_class(current, value) do
       if current == value do
-        "tl-chip tl-chip--accent"
+        "tl-segmented__item is-active"
       else
-        "tl-chip tl-chip--muted"
+        "tl-segmented__item"
       end
     end
   end

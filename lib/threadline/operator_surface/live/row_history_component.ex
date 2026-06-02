@@ -62,55 +62,60 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div
-        class="tl-subview"
-        id={@id}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={"#{@id}-title"}
-        tabindex="-1"
-        data-testid="row-history-drawer"
-      >
-        <div class="tl-subview__header">
-          <h3 class="tl-subview__title" id={"#{@id}-title"} title={"#{@table} / #{@record_id}"}>
-            Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>
-          </h3>
-          <.link patch={@base_path} class="tl-button tl-button--secondary">Close</.link>
-        </div>
-        
-        <%= if @error do %>
-          <div class="tl-empty tl-empty--error"><%= @error %></div>
-        <% else %>
-          <div class="tl-subview__content">
-            <div class="tl-subview__panel">
-              <h4 class="tl-subview__panel-title">Timeline</h4>
-              <form phx-change="update-as-of" phx-target={@myself}>
-                <label class="tl-toolbar__field">View snapshot at
-                  <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} class="tl-control" />
-                </label>
-              </form>
-              <ul class="tl-subview__timeline">
-                <%= for change <- @history do %>
-                  <li>
-                    <.link patch={"#{@base_path}/history/#{@table}/#{@record_id}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
-                      <span class="tl-change__op"><%= change.op %></span>
-                      <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
-                        <%= Presentation.human_time(change.captured_at) %>
-                      </time>
-                    </.link>
-                  </li>
-                <% end %>
-              </ul>
+      <div class="tl-subview-shell" id={"#{@id}-shell"}>
+        <div class="tl-subview-backdrop" aria-hidden="true"></div>
+        <div
+          class="tl-subview"
+          id={@id}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={"#{@id}-title"}
+          tabindex="-1"
+          data-testid="row-history-drawer"
+        >
+          <div class="tl-subview__header">
+            <div>
+              <h3 class="tl-subview__title" id={"#{@id}-title"} title={"#{@table} / #{@record_id}"}>
+                Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>
+              </h3>
             </div>
-            
-            <div class="tl-subview__panel">
-              <h4 class="tl-subview__panel-title">
-                Snapshot as of <time datetime={Presentation.exact_time(@as_of_dt)} title={Presentation.exact_time(@as_of_dt)}><%= Presentation.human_time(@as_of_dt) %></time>
-              </h4>
-              <.snapshot_result result={@snapshot_result} />
-            </div>
+            <.link patch={@base_path} class="tl-button tl-button--secondary">Close</.link>
           </div>
-        <% end %>
+
+          <%= if @error do %>
+            <div class="tl-empty tl-empty--error"><%= @error %></div>
+          <% else %>
+            <div class="tl-subview__content">
+              <div class="tl-subview__panel">
+                <h4 class="tl-subview__panel-title">Row timeline</h4>
+                <form phx-change="update-as-of" phx-target={@myself}>
+                  <label class="tl-toolbar__field">View snapshot at
+                    <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} class="tl-control" />
+                  </label>
+                </form>
+                <ul class="tl-subview__timeline">
+                  <%= for change <- @history do %>
+                    <li>
+                      <.link patch={"#{@base_path}/history/#{@table}/#{@record_id}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
+                        <span class="tl-change__op"><%= change.op %></span>
+                        <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
+                          <%= Presentation.human_time(change.captured_at) %>
+                        </time>
+                      </.link>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+
+              <div class="tl-subview__panel">
+                <h4 class="tl-subview__panel-title">
+                  Snapshot as of <time datetime={Presentation.exact_time(@as_of_dt)} title={Presentation.exact_time(@as_of_dt)}><%= Presentation.human_time(@as_of_dt) %></time>
+                </h4>
+                <.snapshot_result result={@snapshot_result} />
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
       """
     end

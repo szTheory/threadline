@@ -4,8 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    alias Threadline.Policy.RedactionPresenter
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Policy.RedactionPresenter
 
     @section_defs [
       {:drift_detected, "Drift detected"},
@@ -78,6 +79,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </section>
 
+            <p :if={@report.summary.drift_detected == 0 and @report.summary.could_not_introspect == 0} class="tl-policy__success">
+              Redaction policy matches deployed trigger policy for every introspected configured table.
+            </p>
+
             <%= for section <- @sections do %>
               <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]} data-testid="policy-section">
                 <div class="tl-section__header tl-policy__section-header">
@@ -93,12 +98,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <summary class="tl-policy__summary">
                           <div class="tl-policy__row-main">
                             <span class="tl-policy__table"><%= row.table %></span>
-                            <span class="tl-policy__status"><%= status_label(row.status) %></span>
+                            <span class={["tl-chip", Presentation.status_modifier(row.status)]}><%= status_label(row.status) %></span>
                           </div>
                           <p class="tl-policy__hint"><%= row.hint %></p>
                           <%= if row.warning do %>
                             <p class="tl-policy__warning"><%= row.warning %></p>
                           <% end %>
+                          <div class="tl-policy__summary-actions">
+                            <a href={timeline_table_path(@base_path, row.table)} class="tl-link tl-link--deep">View table activity</a>
+                            <a href={"#{@base_path}/coverage"} class="tl-link tl-link--deep">Check coverage</a>
+                          </div>
                         </summary>
 
                         <div class="tl-policy__details">
@@ -191,5 +200,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp deployed_placeholder_label(nil), do: "not available"
     defp deployed_placeholder_label(%{mask: []}), do: "not used"
     defp deployed_placeholder_label(%{mask_placeholder: placeholder}), do: placeholder
+
+    defp timeline_table_path(base_path, table) do
+      "#{base_path}?#{URI.encode_query(%{"table" => table})}"
+    end
   end
 end

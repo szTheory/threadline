@@ -90,8 +90,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h2 class="tl-page__title">Retention History</h2>
                 <p class="tl-page__lede">Review pruning runs before triggering another destructive retention pass.</p>
               </div>
-              <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
+              <div class="tl-page__actions">
+                <span class="tl-hint">Permanent delete action</span>
+                <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
+              </div>
             </header>
+
+            <section class="tl-trust-rail" aria-label="Retention context">
+              <span class="tl-trust-rail__label">Retention assurance</span>
+              <span class="tl-chip tl-chip--warning">Permanent deletion</span>
+              <a :if={@threadline_evidence_enabled and @base_path} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">View evidence</a>
+              <a :if={@base_path} href={"#{@base_path}"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+            </section>
 
             <%= if not @has_runs do %>
               <div class="tl-empty">
@@ -108,28 +118,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <span class="tl-summary-card__label">Rows deleted</span>
                   <strong><%= @runs_summary.total_deleted %></strong>
                 </div>
-                <div class="tl-summary-card">
+                <div class={["tl-summary-card", @runs_summary.failure_count > 0 && "tl-summary-card--danger"]}>
                   <span class="tl-summary-card__label">Failures</span>
                   <strong><%= @runs_summary.failure_count %></strong>
                 </div>
               </section>
 
+              <div class="tl-alert tl-alert--warning" role="status">
+                Review the latest status and failure count before running another prune. Retention deletes older audit records permanently.
+              </div>
+
               <div class="tl-table-wrap" data-testid="retention-runs-table">
-                <table class="tl-table tl-table--retention">
+                <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
                   <thead>
                     <tr>
                       <th>Status</th>
                       <th>Deleted Rows</th>
                       <th>Duration</th>
                       <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="retention-runs" phx-update="stream" data-testid="retention-runs">
                     <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
-                      <td><span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span></td>
-                      <td class="tl-table__number"><%= run.deleted_count || "-" %></td>
-                      <td class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
-                      <td class="tl-table__date">
+                      <td data-label="Status"><span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span></td>
+                      <td data-label="Deleted Rows" class="tl-table__number"><%= run.deleted_count || "-" %></td>
+                      <td data-label="Duration" class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
+                      <td data-label="Date" class="tl-table__date">
                         <%= if run.started_at do %>
                           <time datetime={Presentation.exact_time(run.started_at)} title={Presentation.exact_time(run.started_at)}>
                             <%= Presentation.human_time(run.started_at) %>
@@ -137,6 +152,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% else %>
                           <span class="tl-muted">Not started</span>
                         <% end %>
+                      </td>
+                      <td data-label="Actions" class="tl-table__actions">
+                        <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-link tl-link--deep">Evidence</a>
                       </td>
                     </tr>
                   </tbody>

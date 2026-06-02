@@ -84,6 +84,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <.link href={"#{@base_path}"} class="tl-button tl-button--secondary">View Timeline</.link>
             </header>
 
+            <section class="tl-trust-rail" aria-label="Export workflow">
+              <span class="tl-trust-rail__label">Export workflow</span>
+              <span class="tl-chip tl-chip--info">Actor-owned jobs</span>
+              <span class="tl-chip tl-chip--neutral">Filtered timeline packets</span>
+              <a href={"#{@base_path}"} class="tl-button tl-button--compact tl-button--ghost">Start search</a>
+            </section>
+
             <%= if not @has_jobs do %>
               <div class="tl-empty">
                 <h3 class="tl-empty__title">No Export Jobs</h3>
@@ -104,7 +111,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       </span>
                       <div class="tl-job__title">
                         <strong><%= Presentation.export_summary(job.query_params) %></strong>
-                        <span>requested by <code><%= actor_label(job.actor_ref) %></code></span>
+                        <span>
+                          requested by
+                          <%= if path = actor_path(@base_path, job.actor_ref) do %>
+                            <a href={path} class="tl-link tl-link--deep"><code><%= actor_label(job.actor_ref) %></code></a>
+                          <% else %>
+                            <code><%= actor_label(job.actor_ref) %></code>
+                          <% end %>
+                        </span>
                       </div>
                     </div>
 
@@ -151,6 +165,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
                       No filters
                     </span>
+                  </div>
+
+                  <div class="tl-job__source">
+                    <span class="tl-hint">Source Timeline search</span>
+                    <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
+                      Reopen search
+                    </a>
                   </div>
 
                   <%= if job.error_message do %>
@@ -268,5 +289,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp actor_label(%{"type" => type, "id" => id}) when not is_nil(id), do: "#{type}/#{id}"
     defp actor_label(_), do: "unknown actor"
+
+    defp actor_path(base_path, %Threadline.Semantics.ActorRef{type: type, id: id})
+         when is_binary(base_path) and not is_nil(id) do
+      "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
+    end
+
+    defp actor_path(base_path, %{"type" => type, "id" => id})
+         when is_binary(base_path) and not is_nil(id) do
+      "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
+    end
+
+    defp actor_path(_base_path, _actor_ref), do: nil
+
+    defp timeline_search_path(base_path, params) when is_map(params) do
+      pairs =
+        params
+        |> Enum.map(fn {key, value} -> {to_string(key), to_string(value)} end)
+        |> Enum.reject(fn {_key, value} -> value == "" end)
+
+      case URI.encode_query(pairs) do
+        "" -> base_path
+        query -> "#{base_path}?#{query}"
+      end
+    end
+
+    defp timeline_search_path(base_path, _params), do: base_path
   end
 end
