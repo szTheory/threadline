@@ -1835,6 +1835,60 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
         }
 
+        @keyframes tl-fade-in {
+          from {
+            opacity: 0;
+          }
+        }
+
+        /*
+         * Motion — purposeful, brand-coherent micro-interactions.
+         * Pure CSS, GPU-only (transform/opacity), reusing the motion tokens.
+         * Each fires on element mount; LiveView streams replay them only for
+         * newly inserted/changed rows, so a freshly prune-run row or a
+         * just-opened drawer animates while unchanged rows stay put. All
+         * auto-degrade via the prefers-reduced-motion blanket below. The
+         * high-traffic timeline stream is deliberately NOT animated — snappy
+         * paging beats an entrance flourish (never animate high-frequency
+         * actions).
+         */
+
+        /* C1 — a new retention run (the prune-now confirmation) rises in. */
+        #retention-runs > tr {
+          animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
+        }
+
+        /* C4 — opening row history: the drawer's history items stagger in,
+         * reading as the timeline thread continuing into the drawer. */
+        .tl-subview__timeline > * {
+          animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
+        }
+
+        .tl-subview__timeline > *:nth-child(2) {
+          animation-delay: var(--tl-motion-stagger);
+        }
+
+        .tl-subview__timeline > *:nth-child(3) {
+          animation-delay: calc(var(--tl-motion-stagger) * 2);
+        }
+
+        .tl-subview__timeline > *:nth-child(4) {
+          animation-delay: calc(var(--tl-motion-stagger) * 3);
+        }
+
+        .tl-subview__timeline > *:nth-child(n + 5) {
+          animation-delay: calc(var(--tl-motion-stagger) * 4);
+        }
+
+        /* Evidence proofs and actor transactions are low-frequency reveals:
+         * a gentle fade as the records assemble. (Actor rows are scoped to
+         * #transactions-list so the shared .tl-change on the timeline is
+         * untouched.) */
+        .tl-record-list > .tl-record-card,
+        #transactions-list > .tl-change {
+          animation: tl-fade-in var(--tl-motion-base) var(--tl-ease-out) both;
+        }
+
         .tl-subview__panel {
           min-width: 0;
         }
@@ -2139,7 +2193,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           margin-top: var(--tl-space-2);
         }
 
+        /* C5 — when redaction drift clears to zero, a Signal-Cyan thread draws
+         * across the "all clear" message: the consequential "trust restored"
+         * beat. One-shot, left-to-right, like the hero/journey signature. */
         .tl-policy__success {
+          position: relative;
+          overflow: hidden;
           margin: 0 0 var(--tl-space-4);
           padding: var(--tl-space-3) var(--tl-space-4);
           border: 1px solid var(--tl-color-success-border);
@@ -2148,6 +2207,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-success-text);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
+        }
+
+        .tl-policy__success::after {
+          content: "";
+          position: absolute;
+          inset: auto 0 0 0;
+          height: 2px;
+          background: var(--tl-color-signal);
+          transform: scaleX(0);
+          transform-origin: left center;
+          animation: tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both;
         }
 
         .tl-job__actions {
