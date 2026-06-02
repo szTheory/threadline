@@ -20,6 +20,7 @@ defmodule ThreadlinePhoenix.Demo.Seed do
     ctx =
       ctx
       |> Seed.Personas.run()
+      |> Seed.Exports.run()
       |> Seed.Anchors.run()
       |> Seed.Filler.run()
       |> Seed.Temporal.run()

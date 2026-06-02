@@ -22,7 +22,7 @@ test.describe("operator surface (demo fiction)", () => {
     await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
 
     await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
-    await expect(page.locator(".change-table", { hasText: "tickets" }).first()).toBeVisible();
+    await expect(page.getByTestId("timeline-row").filter({ hasText: "tickets" }).first()).toBeVisible();
   });
 
   test("evidence detail lists retention_run proof", async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe("operator surface (demo fiction)", () => {
   test("row history on #4521 close reply shows redacted capture", async ({ page }) => {
     await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
 
-    const incidentLink = page.locator('a.tx-link', { hasText: "View Incident" }).first();
+    const incidentLink = page.getByTestId("transaction-link").first();
     await expect(incidentLink).toBeVisible();
     await incidentLink.click();
 
@@ -44,7 +44,9 @@ test.describe("operator surface (demo fiction)", () => {
     // insert; target the reply's row-history link specifically (the redacted
     // internal_note_body lives on ticket_replies, not the ticket).
     const historyLink = page
-      .locator('a.history-link[href*="/history/ticket_replies/"]')
+      .getByTestId("transaction-change-row")
+      .filter({ hasText: "ticket_replies" })
+      .getByTestId("row-history-link")
       .first();
     await expect(historyLink).toBeVisible();
     await historyLink.click();

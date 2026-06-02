@@ -85,6 +85,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:timeline}
         />
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
@@ -95,7 +97,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <div class="tl-transaction">
             <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
             <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
-            <div class="tl-nav">
+            <div class="tl-nav" role="group" aria-label="Actor activity window">
               Showing last
               <a href="#" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</a>
               <a href="#" phx-click="set-window" phx-value-hours="24" class={time_window_class(@time_window_hours, 24)}>24h</a>
@@ -121,10 +123,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 phx-viewport-bottom="next-page"
                 class="tl-viewport"
               >
-                <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="tl-change">
-                  <div class="tl-change__meta">
-                    <span class="tl-change__time"><%= tx.occurred_at %></span>
-                    <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep">View transaction <%= tx.id %></a>
+                <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="tl-change" data-testid="actor-transaction-row">
+                  <div class="tl-change__summary">
+                    <div class="tl-change__meta">
+                      <span class="tl-change__time"><%= tx.occurred_at %></span>
+                    </div>
+                    <div class="tl-meta-row">
+                      <span>Transaction <code><%= tx.id %></code></span>
+                    </div>
+                    <div class="tl-change__actions">
+                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep" data-testid="transaction-link">View transaction</a>
+                    </div>
                   </div>
                 </div>
               </div>

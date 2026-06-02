@@ -58,6 +58,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage_enabled={@threadline_coverage_enabled}
             policy_enabled={@threadline_policy_enabled}
             evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:evidence}
           />
         <% end %>
 
@@ -102,52 +104,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <h3 class="tl-section__title"><%= group.title %></h3>
                   </header>
 
-                  <table class="tl-table tl-table--evidence">
-                    <thead>
-                      <tr>
-                        <th>Verdict</th>
-                        <th>Subject ref</th>
-                        <th>Recorded</th>
-                        <th>Latest row</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr :for={row <- group.rows}>
-                        <td>
-                          <span class={["tl-chip", evidence_verdict_modifier(row.verdict_status)]}>
-                            <%= row.verdict_status %>
-                          </span>
-                        </td>
-                        <td>
-                          <div class="tl-evidence__ref"><%= row.subject_ref_json %></div>
-                          <div class="tl-evidence__meta"><%= row.subject %></div>
-                        </td>
-                        <td><%= row.recorded_at %></td>
-                        <td><%= row.summary_status %></td>
-                        <td>
-                          <div class="tl-evidence__meta">
-                            <.link
-                              :if={show_subject_link?(@request)}
-                              patch={subject_path(@base_path, row.subject)}
-                              class="tl-link tl-link--deep"
-                            >
-                              Only this subject
-                            </.link>
-                          </div>
-                          <div>
-                            <.link
-                              :if={show_history_link?(@request)}
-                              patch={history_path(@base_path, row.subject, row.subject_ref_json)}
-                              class="tl-link tl-link--deep"
-                            >
-                              View history
-                            </.link>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div class="tl-table-wrap" data-testid="evidence-table">
+                    <table class="tl-table tl-table--evidence">
+                      <thead>
+                        <tr>
+                          <th>Verdict</th>
+                          <th>Subject ref</th>
+                          <th>Recorded</th>
+                          <th>Latest row</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr :for={row <- group.rows}>
+                          <td>
+                            <span class={["tl-chip", evidence_verdict_modifier(row.verdict_status)]}>
+                              <%= row.verdict_status %>
+                            </span>
+                          </td>
+                          <td>
+                            <div class="tl-evidence__ref"><%= row.subject_ref_json %></div>
+                            <div class="tl-evidence__meta"><%= row.subject %></div>
+                          </td>
+                          <td class="tl-table__date"><%= row.recorded_at %></td>
+                          <td><%= row.summary_status %></td>
+                          <td>
+                            <div class="tl-evidence__meta">
+                              <.link
+                                :if={show_subject_link?(@request)}
+                                patch={subject_path(@base_path, row.subject)}
+                                class="tl-link tl-link--deep"
+                              >
+                                Only this subject
+                              </.link>
+                            </div>
+                            <div>
+                              <.link
+                                :if={show_history_link?(@request)}
+                                patch={history_path(@base_path, row.subject, row.subject_ref_json)}
+                                class="tl-link tl-link--deep"
+                              >
+                                View history
+                              </.link>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </section>
               <% end %>
             <% end %>

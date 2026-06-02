@@ -51,7 +51,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-radius-pill: 999px;
           --tl-shadow-subtle: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
           --tl-shadow-raised: 0 8px 24px rgba(17, 24, 39, 0.08);
-          --tl-header-height: 36px;
+          --tl-header-height: 44px;
+          --tl-control-height: 40px;
+          --tl-hit-area: 40px;
           --tl-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.22);
           --tl-transition-fast: 120ms cubic-bezier(0.2, 0, 0, 1);
 
@@ -127,8 +129,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           min-height: var(--tl-header-height);
           display: flex;
           align-items: center;
-          gap: var(--tl-space-2);
-          padding: 0 var(--tl-space-4);
+          gap: var(--tl-space-3);
+          padding: var(--tl-space-1) var(--tl-space-4);
           background: rgba(255, 255, 255, 0.96);
           border-bottom: 1px solid var(--tl-color-border);
           backdrop-filter: blur(8px);
@@ -136,9 +138,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-topbar__brand {
-          margin-right: auto;
+          display: inline-flex;
+          align-items: center;
+          min-height: 32px;
+          color: var(--tl-color-text);
           font-weight: var(--tl-weight-strong);
           letter-spacing: 0;
+          text-decoration: none;
+          white-space: nowrap;
+        }
+
+        .tl-topbar__brand:hover {
+          color: var(--tl-color-text);
+          text-decoration: none;
+        }
+
+        .tl-topbar__nav {
+          display: flex;
+          flex: 1 1 auto;
+          align-items: center;
+          gap: 2px;
+          min-width: 0;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+
+        .tl-topbar__nav::-webkit-scrollbar {
+          display: none;
+        }
+
+        .tl-topbar__nav-item {
+          display: inline-flex;
+          align-items: center;
+          min-height: 32px;
+          padding: var(--tl-space-1) var(--tl-space-2);
+          border-radius: var(--tl-radius-md);
+          color: var(--tl-color-muted);
+          font-weight: var(--tl-weight-strong);
+          text-decoration: none;
+          white-space: nowrap;
+        }
+
+        .tl-topbar__nav-item:hover {
+          background: var(--tl-color-surface);
+          color: var(--tl-color-text);
+          text-decoration: none;
+        }
+
+        .tl-topbar__nav-item--active {
+          background: rgba(59, 130, 246, 0.09);
+          color: var(--tl-color-accent-strong);
+        }
+
+        .tl-topbar__status {
+          display: flex;
+          align-items: center;
+          gap: var(--tl-space-2);
+          white-space: nowrap;
         }
 
         .tl-topbar__stale {
@@ -220,7 +276,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-toolbar__control,
         .tl-control {
-          min-height: 40px;
+          min-height: var(--tl-control-height);
           padding: var(--tl-space-2) var(--tl-space-3);
           border: 1px solid var(--tl-color-border-strong);
           border-radius: var(--tl-radius-md);
@@ -228,6 +284,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-text);
           transition-property: border-color, box-shadow, background-color;
           transition-duration: var(--tl-transition-fast);
+        }
+
+        .tl-toolbar__control[type="datetime-local"],
+        .tl-control[type="datetime-local"],
+        .threadline-ui select.tl-toolbar__control,
+        .threadline-ui select.tl-control {
+          min-width: 178px;
         }
 
         .tl-toolbar__control:disabled,
@@ -259,6 +322,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           margin-left: auto;
         }
 
+        .tl-action-group {
+          display: inline-flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-action-group--secondary {
+          padding-left: var(--tl-space-2);
+          border-left: 1px solid var(--tl-color-border);
+        }
+
         .tl-toolbar__saved-views {
           display: flex;
           flex-wrap: wrap;
@@ -286,7 +361,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-button {
-          min-height: 40px;
+          min-height: var(--tl-hit-area);
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -339,6 +414,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-button--danger {
           color: var(--tl-color-danger);
+        }
+
+        .tl-button--icon {
+          width: var(--tl-hit-area);
+          padding: 0;
+          font-size: 16px;
         }
 
         .tl-link {
@@ -502,9 +583,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-change__op {
+          display: inline-flex;
+          align-items: center;
+          min-height: 22px;
+          padding: 1px var(--tl-space-2);
+          border-radius: var(--tl-radius-pill);
+          background: rgba(59, 130, 246, 0.08);
           color: var(--tl-color-accent-strong);
           font-weight: var(--tl-weight-strong);
           text-transform: uppercase;
+        }
+
+        .tl-change__summary {
+          display: grid;
+          grid-template-columns: minmax(160px, 1fr) minmax(220px, 1.5fr) auto;
+          gap: var(--tl-space-3);
+          align-items: center;
+        }
+
+        .tl-change__detail {
+          min-width: 0;
+        }
+
+        .tl-change__actions {
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .tl-meta-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
+        .tl-meta-row code {
+          color: var(--tl-color-text);
+          font-variant-numeric: tabular-nums;
         }
 
         .tl-change__table,
@@ -579,6 +697,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface-raised);
         }
 
+        .tl-table-wrap {
+          overflow-x: auto;
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          background: var(--tl-color-surface-raised);
+          box-shadow: var(--tl-shadow-subtle);
+        }
+
+        .tl-table-wrap .tl-table {
+          min-width: 720px;
+        }
+
         .tl-table th {
           padding: var(--tl-space-2) var(--tl-space-4);
           border-bottom: 1px solid var(--tl-color-border);
@@ -604,6 +734,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           overflow-wrap: anywhere;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
           font-size: var(--tl-font-size-label);
+        }
+
+        .tl-table__date,
+        .tl-table__number {
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
         }
 
         .tl-table__row--uncovered,
@@ -749,6 +885,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: var(--tl-shadow-raised);
         }
 
+        .tl-subview[role="dialog"] {
+          outline: none;
+        }
+
         .tl-subview__header {
           position: sticky;
           top: 0;
@@ -802,6 +942,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           line-height: var(--tl-line-label);
         }
 
+        .tl-kv {
+          display: grid;
+          gap: var(--tl-space-2);
+          margin: 0;
+        }
+
+        .tl-kv__row {
+          display: grid;
+          grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+          gap: var(--tl-space-3);
+          padding: var(--tl-space-2) 0;
+          border-bottom: 1px solid var(--tl-color-border);
+        }
+
+        .tl-kv__key {
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
+        .tl-kv__value {
+          min-width: 0;
+          overflow-wrap: anywhere;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
         @media (max-width: 720px) {
           .tl-toolbar {
             position: static;
@@ -817,6 +985,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           .tl-subview__content {
             grid-template-columns: 1fr;
+          }
+
+          .tl-change__summary {
+            grid-template-columns: 1fr;
+          }
+
+          .tl-change__actions {
+            justify-content: flex-start;
+          }
+
+          .tl-topbar {
+            align-items: flex-start;
+            flex-wrap: wrap;
+          }
+
+          .tl-topbar__status {
+            width: 100%;
+          }
+
+          .tl-action-group--secondary {
+            padding-left: 0;
+            border-left: 0;
           }
         }
       </style>

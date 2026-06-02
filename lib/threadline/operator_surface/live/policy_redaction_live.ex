@@ -41,6 +41,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <%= if @base_path do %>
+          <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+            coverage={@threadline_coverage || %{uncovered_count: 0}}
+            base_path={@base_path}
+            error={@threadline_coverage_error}
+            coverage_enabled={@threadline_coverage_enabled}
+            policy_enabled={@threadline_policy_enabled}
+            evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:policy}
+          />
+        <% end %>
 
         <main class="tl-page">
           <%= if @threadline_policy_enabled do %>
@@ -58,7 +70,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </header>
 
             <%= for section <- @sections do %>
-              <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]}>
+              <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]} data-testid="policy-section">
                 <div class="tl-section__header tl-policy__section-header">
                   <h3 class="tl-section__title"><%= section.title %> (<%= length(section.rows) %>)</h3>
                 </div>
@@ -81,32 +93,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </summary>
 
                         <div class="tl-policy__details">
-                          <table class="tl-table tl-table--policy">
-                            <thead>
-                              <tr>
-                                <th></th>
-                                <th>Configured</th>
-                                <th>Deployed</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th>exclude</th>
-                                <td><%= columns_label(row.configured.exclude) %></td>
-                                <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
-                              </tr>
-                              <tr>
-                                <th>mask</th>
-                                <td><%= columns_label(row.configured.mask) %></td>
-                                <td><%= deployed_columns_label(row.deployed, :mask) %></td>
-                              </tr>
-                              <tr>
-                                <th>mask placeholder</th>
-                                <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
-                                <td><%= deployed_placeholder_label(row.deployed) %></td>
-                              </tr>
-                            </tbody>
-                          </table>
+                          <div class="tl-table-wrap">
+                            <table class="tl-table tl-table--policy">
+                              <thead>
+                                <tr>
+                                  <th></th>
+                                  <th>Configured</th>
+                                  <th>Deployed</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <th>exclude</th>
+                                  <td><%= columns_label(row.configured.exclude) %></td>
+                                  <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
+                                </tr>
+                                <tr>
+                                  <th>mask</th>
+                                  <td><%= columns_label(row.configured.mask) %></td>
+                                  <td><%= deployed_columns_label(row.deployed, :mask) %></td>
+                                </tr>
+                                <tr>
+                                  <th>mask placeholder</th>
+                                  <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
+                                  <td><%= deployed_placeholder_label(row.deployed) %></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </details>
                     <% end %>

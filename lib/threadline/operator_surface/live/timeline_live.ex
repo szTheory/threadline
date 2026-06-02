@@ -145,7 +145,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 # Default Task.await is 5_000 ms; bump to 8_000 to leave headroom for
                 # slow capped-count queries on large tables (RESEARCH §P-7 line 651).
                 {:ok, %{count: count}} = Task.await(count_task, 8_000)
-                page = Task.await(page_task, 8_000)
+
+                page =
+                  page_task
+                  |> Task.await(8_000)
+                  |> preload_visible_context(socket.assigns.repo)
 
                 filter_query = build_canonical_query(socket.assigns.filters_raw)
 
@@ -277,6 +281,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             page_size: 50,
             cursor: socket.assigns.cursor
           )
+          |> preload_visible_context(socket.assigns.repo)
 
         {:noreply,
          socket
@@ -302,6 +307,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:timeline}
         />
 
         <header class="tl-toolbar">
@@ -343,13 +350,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <small class="tl-toolbar__hint">request_id, job_id, or integration token. Up to 256 chars.</small>
             </label>
             <div class="tl-toolbar__actions">
-              <.link patch={@base_path} class="tl-button tl-button--ghost">Clear all</.link>
-              <button type="submit" class="tl-button tl-button--primary">Apply</button>
+              <div class="tl-action-group">
+                <.link patch={@base_path} class="tl-button tl-button--ghost">Clear all</.link>
+                <button type="submit" class="tl-button tl-button--primary">Apply</button>
+              </div>
               <%= if @threadline_exports_enabled do %>
-                <button phx-click="request_background_export" type="button" class="tl-button tl-button--primary">Queue export</button>
-                <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--secondary">CSV</.link>
-                <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--secondary">JSON</.link>
-                <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--secondary">NDJSON</.link>
+                <div class="tl-action-group tl-action-group--secondary" aria-label="Export actions">
+                  <button phx-click="request_background_export" type="button" class="tl-button tl-button--secondary">Queue export</button>
+                  <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--secondary">CSV</.link>
+                  <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--secondary">JSON</.link>
+                  <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--secondary">NDJSON</.link>
+                </div>
               <% end %>
             </div>
           </form>
@@ -364,7 +375,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <ul class="tl-toolbar__saved-list">
                   <li :for={view <- @saved_views} class="tl-toolbar__saved-item">
                     <button phx-click="apply-view" phx-value-id={view.id} type="button" class="tl-button tl-button--secondary"><%= view.name %></button>
-                    <button phx-click="delete-view" phx-value-id={view.id} type="button" class="tl-button tl-button--ghost tl-button--danger" aria-label={"Delete " <> view.name}>&times;</button>
+                    <button phx-click="delete-view" phx-value-id={view.id} type="button" class="tl-button tl-button--ghost tl-button--danger tl-button--icon" aria-label={"Delete " <> view.name}>&times;</button>
                   </li>
                 </ul>
               </div>
@@ -399,13 +410,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% end %>
 
         <section class="tl-change-list" id="timeline-rows" phx-update="stream"
-                 phx-viewport-bottom={@cursor && "next-page"}>
-          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change">
-            <div class="tl-change__meta">
-              <span class="tl-change__op"><%= change.op %></span>
-              <span class="tl-change__table"><%= change.table_name %></span>
-              <span class="tl-change__time"><%= change.captured_at %></span>
-              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep">View transaction</a>
+                 phx-viewport-bottom={@cursor && "next-page"}
+                 data-testid="operator-timeline">
+          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="timeline-row">
+            <div class="tl-change__summary">
+              <div class="tl-change__meta">
+                <span class="tl-change__op"><%= change.op %></span>
+                <span class="tl-change__table"><%= change.table_name %></span>
+                <span class="tl-change__time"><%= change.captured_at %></span>
+              </div>
+              <div class="tl-meta-row">
+                <span>Actor <code><%= actor_label(change) %></code></span>
+                <span :if={correlation_id(change)}>Correlation <code><%= correlation_id(change) %></code></span>
+              </div>
+              <div class="tl-change__actions">
+                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep" data-testid="transaction-link">View transaction</a>
+              </div>
             </div>
           </div>
         </section>
@@ -435,6 +455,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp default_repo do
       Application.get_env(:threadline, :ecto_repos) |> hd()
     end
+
+    defp preload_visible_context(%{entries: entries} = page, repo) do
+      %{page | entries: repo.preload(entries, transaction: :action)}
+    end
+
+    defp actor_label(%{transaction: %{actor_ref: %{type: type, id: id}}}) when not is_nil(id),
+      do: "#{type}/#{id}"
+
+    defp actor_label(%{transaction: %{actor_ref: %{"type" => type, "id" => id}}})
+         when not is_nil(id),
+         do: "#{type}/#{id}"
+
+    defp actor_label(_), do: "unknown"
+
+    defp correlation_id(%{transaction: %{action: %{correlation_id: correlation_id}}})
+         when is_binary(correlation_id) and correlation_id != "",
+         do: correlation_id
+
+    defp correlation_id(_), do: nil
 
     # Renders the match count for the status line:
     # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)

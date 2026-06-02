@@ -66,6 +66,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage_enabled={@threadline_coverage_enabled}
             policy_enabled={@threadline_policy_enabled}
             evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:exports}
           />
         <% end %>
 
@@ -82,52 +84,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <p class="tl-empty__body">Go to the timeline to queue a background export.</p>
               </div>
             <% else %>
-              <table class="tl-table tl-table--jobs">
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Filters</th>
-                    <th>Started At</th>
-                    <th>Completed At</th>
-                    <th>Expires At</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="export-jobs" phx-update="stream">
-                  <tr :for={{dom_id, job} <- @streams.jobs} id={dom_id} class={"tl-table__row--" <> job.status}>
-                    <td>
-                      <span class={["tl-chip", export_status_modifier(job.status)]} role={status_role(job)}>
-                        <%= job.status %>
-                      </span>
-                      <%= if job.error_message do %>
-                        <div class="tl-alert tl-alert--error" role="alert"><%= job.error_message %></div>
-                      <% end %>
-                    </td>
-                    <td class="tl-table__code">
-                      <code><%= encode_query(job.query_params) %></code>
-                    </td>
-                    <td><%= format_date(job.started_at) %></td>
-                    <td><%= format_date(job.completed_at) %></td>
-                    <td><%= format_date(job.expires_at) %></td>
-                    <td>
-                      <%= cond do %>
-                        <% downloadable?(job) -> %>
-                          <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-link tl-link--deep">
-                            Download Export
-                          </.link>
-                        <% job.status in ["pending", "running"] -> %>
-                          <span class="tl-hint" role="status">Preparing download</span>
-                        <% completed_but_unavailable?(job) -> %>
-                          <span class="tl-hint">
-                            This export isn't available to download right now.
-                          </span>
-                        <% true -> %>
-                          <span>-</span>
-                      <% end %>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="tl-table-wrap" data-testid="export-jobs-table">
+                <table class="tl-table tl-table--jobs">
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Filters</th>
+                      <th>Started At</th>
+                      <th>Completed At</th>
+                      <th>Expires At</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="export-jobs" phx-update="stream" data-testid="export-jobs">
+                    <tr :for={{dom_id, job} <- @streams.jobs} id={dom_id} class={"tl-table__row--" <> job.status}>
+                      <td>
+                        <span class={["tl-chip", export_status_modifier(job.status)]} role={status_role(job)}>
+                          <%= job.status %>
+                        </span>
+                        <%= if job.error_message do %>
+                          <div class="tl-alert tl-alert--error" role="alert"><%= job.error_message %></div>
+                        <% end %>
+                      </td>
+                      <td class="tl-table__code">
+                        <code><%= encode_query(job.query_params) %></code>
+                      </td>
+                      <td class="tl-table__date"><%= format_date(job.started_at) %></td>
+                      <td class="tl-table__date"><%= format_date(job.completed_at) %></td>
+                      <td class="tl-table__date"><%= format_date(job.expires_at) %></td>
+                      <td>
+                        <%= cond do %>
+                          <% downloadable?(job) -> %>
+                            <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-link tl-link--deep">
+                              Download Export
+                            </.link>
+                          <% job.status in ["pending", "running"] -> %>
+                            <span class="tl-hint" role="status">Preparing download</span>
+                          <% completed_but_unavailable?(job) -> %>
+                            <span class="tl-hint">
+                              This export isn't available to download right now.
+                            </span>
+                          <% true -> %>
+                            <span>-</span>
+                        <% end %>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             <% end %>
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view

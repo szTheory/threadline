@@ -89,6 +89,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:timeline}
         />
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
@@ -111,14 +113,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               phx-viewport-bottom="next-page"
               class="tl-viewport"
             >
-              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change">
-                <div class="tl-change__meta">
-                  <span class="tl-change__op"><%= change.change_diff["op"] %></span>
-                  <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
-                  <span class="tl-change__time"><%= change.change_diff["captured_at"] %></span>
-                  <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="View Row History">
-                    History
-                  </.link>
+              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
+                <div class="tl-change__summary">
+                  <div class="tl-change__meta">
+                    <span class="tl-change__op"><%= change.change_diff["op"] %></span>
+                    <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
+                    <span class="tl-change__time"><%= change.change_diff["captured_at"] %></span>
+                  </div>
+                  <div class="tl-meta-row">
+                    <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
+                  </div>
+                  <div class="tl-change__actions">
+                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="View Row History" data-testid="row-history-link">
+                      History
+                    </.link>
+                  </div>
                 </div>
                 <div class="tl-change__fields">
                   <%= for field <- change.change_diff["field_changes"] do %>
@@ -178,5 +187,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp surface_root(_), do: nil
+
+    defp pk_label(pk) when is_map(pk) do
+      pk
+      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
+      |> Enum.join(", ")
+    end
+
+    defp pk_label(pk), do: inspect(pk)
   end
 end

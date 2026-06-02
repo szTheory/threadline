@@ -99,6 +99,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:coverage}
         />
 
         <main class="tl-page">
@@ -129,34 +131,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
                 </div>
               <% else %>
-                <table class="tl-table tl-table--coverage">
-                  <thead>
-                    <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
-                  </thead>
-                  <tbody>
-                    <%= for table <- @coverage_for_schema.tables[:covered] do %>
-                      <tr class="tl-table__row--covered">
-                        <td><%= table %></td>
-                        <td>covered</td>
-                        <td></td>
-                      </tr>
-                    <% end %>
-                    <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
-                      <tr class="tl-table__row--uncovered">
-                        <td><%= table %></td>
-                        <td>uncovered</td>
-                        <td></td>
-                      </tr>
-                    <% end %>
-                    <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
-                      <tr class="tl-table__row--expected" title={tooltip_for(table)}>
-                        <td><%= table %></td>
-                        <td>expected</td>
-                        <td><%= source_for(table) %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
+                <div class="tl-table-wrap" data-testid="coverage-table">
+                  <table class="tl-table tl-table--coverage">
+                    <thead>
+                      <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
+                    </thead>
+                    <tbody>
+                      <%= for table <- @coverage_for_schema.tables[:covered] do %>
+                        <tr class="tl-table__row--covered">
+                          <td><code><%= table %></code></td>
+                          <td><span class="tl-chip tl-chip--success">covered</span></td>
+                          <td></td>
+                        </tr>
+                      <% end %>
+                      <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
+                        <tr class="tl-table__row--uncovered">
+                          <td><code><%= table %></code></td>
+                          <td><span class="tl-chip tl-chip--danger">uncovered</span></td>
+                          <td></td>
+                        </tr>
+                      <% end %>
+                      <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
+                        <tr class="tl-table__row--expected" title={tooltip_for(table)}>
+                          <td><code><%= table %></code></td>
+                          <td><span class="tl-chip tl-chip--muted">expected</span></td>
+                          <td><%= source_for(table) %></td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
 
                 <p class="tl-hint">
                   Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered

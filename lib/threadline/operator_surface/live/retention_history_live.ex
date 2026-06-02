@@ -76,6 +76,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage_enabled={@threadline_coverage_enabled}
             policy_enabled={@threadline_policy_enabled}
             evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:retention}
           />
         <% end %>
 
@@ -92,24 +94,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <p class="tl-empty__body">Configure your retention policy and trigger a prune to see runs here.</p>
               </div>
             <% else %>
-              <table class="tl-table tl-table--retention">
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Deleted Rows</th>
-                    <th>Duration</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody id="retention-runs" phx-update="stream">
-                  <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
-                    <td><%= run.status %></td>
-                    <td><%= run.deleted_count || "-" %></td>
-                    <td><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
-                    <td><%= format_date(run.started_at) %></td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="tl-table-wrap" data-testid="retention-runs-table">
+                <table class="tl-table tl-table--retention">
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Deleted Rows</th>
+                      <th>Duration</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="retention-runs" phx-update="stream" data-testid="retention-runs">
+                    <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
+                      <td><span class={["tl-chip", retention_status_modifier(run.status)]}><%= run.status %></span></td>
+                      <td class="tl-table__number"><%= run.deleted_count || "-" %></td>
+                      <td class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
+                      <td class="tl-table__date"><%= format_date(run.started_at) %></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             <% end %>
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
@@ -160,5 +164,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp format_date(%DateTime{} = dt) do
       DateTime.to_string(dt) |> String.replace("Z", " UTC")
     end
+
+    defp retention_status_modifier("completed"), do: "tl-chip--success"
+    defp retention_status_modifier("failed"), do: "tl-chip--danger"
+
+    defp retention_status_modifier(status) when status in ["pending", "running"],
+      do: "tl-chip--accent"
+
+    defp retention_status_modifier(_), do: "tl-chip--muted"
   end
 end

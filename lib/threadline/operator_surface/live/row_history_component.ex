@@ -23,14 +23,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         as_of_dt =
           assigns.as_of || if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
 
-        snapshot =
+        snapshot_result =
           Threadline.as_of(schema_module, assigns.record_id, as_of_dt, opts)
 
         {:ok,
          socket
          |> assign(:error, nil)
          |> assign(:history, history)
-         |> assign(:snapshot, snapshot)
+         |> assign(:snapshot_result, snapshot_result)
          |> assign(:as_of_dt, as_of_dt)}
       else
         {:ok,
@@ -60,9 +60,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="tl-subview" id={@id}>
+      <div
+        class="tl-subview"
+        id={@id}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={"#{@id}-title"}
+        tabindex="-1"
+        data-testid="row-history-drawer"
+      >
         <div class="tl-subview__header">
-          <h3 class="tl-subview__title">Row History: <%= @table %> / <%= @record_id %></h3>
+          <h3 class="tl-subview__title" id={"#{@id}-title"}>Row History: <%= @table %> / <%= @record_id %></h3>
           <.link patch={@base_path} class="tl-button tl-button--secondary">Close</.link>
         </div>
         
@@ -73,7 +81,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="tl-subview__panel">
               <h4 class="tl-subview__panel-title">Timeline</h4>
               <form phx-change="update-as-of" phx-target={@myself}>
-                <label>Manual As-Of:
+                <label class="tl-toolbar__field">Manual as-of
                   <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} class="tl-control" />
                 </label>
               </form>
@@ -81,7 +89,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <%= for change <- @history do %>
                   <li>
                     <.link patch={"#{@base_path}/history/#{@table}/#{@record_id}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
-                      <%= change.captured_at %> - <%= change.op %>
+                      <span class="tl-change__op"><%= change.op %></span>
+                      <span class="tl-change__time"><%= change.captured_at %></span>
                     </.link>
                   </li>
                 <% end %>
@@ -90,11 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             
             <div class="tl-subview__panel">
               <h4 class="tl-subview__panel-title">Snapshot as of <%= @as_of_dt %></h4>
-              <%= if @snapshot do %>
-                <pre><%= inspect(@snapshot, pretty: true) %></pre>
-              <% else %>
-                <p>Record did not exist at this time.</p>
-              <% end %>
+              <.snapshot_result result={@snapshot_result} />
             </div>
           </div>
         <% end %>
@@ -107,5 +112,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp format_dt(_), do: ""
+
+    attr(:result, :any, required: true)
+
+    defp snapshot_result(%{result: {:ok, snapshot}} = assigns) when is_map(snapshot) do
+      assigns = assign(assigns, :rows, snapshot_rows(snapshot))
+
+      ~H"""
+      <dl class="tl-kv">
+        <div :for={{key, value} <- @rows} class="tl-kv__row">
+          <dt class="tl-kv__key"><%= key %></dt>
+          <dd class="tl-kv__value"><%= value %></dd>
+        </div>
+      </dl>
+      """
+    end
+
+    defp snapshot_result(%{result: {:error, :deleted_record}} = assigns) do
+      ~H"""
+      <div class="tl-empty tl-empty--never">
+        <p class="tl-empty__body">Record was deleted at this time.</p>
+      </div>
+      """
+    end
+
+    defp snapshot_result(%{result: {:error, :before_audit_horizon}} = assigns) do
+      ~H"""
+      <div class="tl-empty tl-empty--never">
+        <p class="tl-empty__body">Record did not exist at this time.</p>
+      </div>
+      """
+    end
+
+    defp snapshot_result(assigns) do
+      ~H"""
+      <div class="tl-empty tl-empty--error">
+        <p class="tl-empty__body">Unable to render this snapshot.</p>
+      </div>
+      """
+    end
+
+    defp snapshot_rows(snapshot) do
+      snapshot
+      |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+      |> Enum.map(fn {key, value} -> {to_string(key), inspect(value)} end)
+    end
   end
 end
