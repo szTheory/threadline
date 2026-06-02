@@ -6,10 +6,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Retention.Pruner
 
-    @default_limit 100
+    @default_limit 40
 
     def mount(_params, _session, socket) do
       if connected?(socket) and socket.assigns[:threadline_policy_enabled] do
@@ -19,7 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket =
         socket
         |> assign(:base_path, nil)
-        |> stream(:runs, fetch_runs(socket))
+        |> assign_runs(fetch_runs(socket))
         |> assign(:has_runs, has_runs?(socket))
 
       {:ok, socket}
@@ -59,6 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Enum.reduce(runs, socket, fn run, acc_socket ->
             stream_insert(acc_socket, :runs, run)
           end)
+          |> assign(:runs_summary, summarize_runs(runs))
           |> assign(:has_runs, length(runs) > 0)
 
         {:noreply, socket}
@@ -76,40 +78,88 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage_enabled={@threadline_coverage_enabled}
             policy_enabled={@threadline_policy_enabled}
             evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:retention}
           />
         <% end %>
 
-        <main class="retention-history-page">
+        <main class="tl-page">
           <%= if @threadline_policy_enabled do %>
-            <header class="page-header">
-              <h2>Retention History</h2>
-              <button class="primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
+            <header class="tl-page__header">
+              <div>
+                <h2 class="tl-page__title">Retention History</h2>
+                <p class="tl-page__lede">Review recent pruning runs and evidence before triggering another destructive retention pass.</p>
+              </div>
+              <div class="tl-page__actions">
+                <span class="tl-hint">Permanent delete action</span>
+                <button class="tl-button tl-button--primary tl-button--danger" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
+              </div>
             </header>
 
+            <section class="tl-trust-rail" aria-label="Retention context">
+              <span class="tl-trust-rail__label">Retention assurance</span>
+              <span class="tl-chip tl-chip--warning">Permanent deletion</span>
+              <a :if={@threadline_evidence_enabled and @base_path} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">View evidence</a>
+              <a :if={@base_path} href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+            </section>
+
             <%= if not @has_runs do %>
-              <div class="empty-state">
-                <h3>No Retention History</h3>
-                <p>There is no retention history. Configure your retention policy and trigger a prune to see runs here.</p>
+              <div class="tl-empty">
+                <h3 class="tl-empty__title">No Retention History</h3>
+                <p class="tl-empty__body">Configure your retention policy and trigger a prune to see runs here.</p>
               </div>
             <% else %>
-              <table class="retention-table">
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Deleted Rows</th>
-                    <th>Duration</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody id="retention-runs" phx-update="stream">
-                  <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"run-row--" <> run.status}>
-                    <td><%= run.status %></td>
-                    <td><%= run.deleted_count || "-" %></td>
-                    <td><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
-                    <td><%= format_date(run.started_at) %></td>
-                  </tr>
-                </tbody>
-              </table>
+              <section class="tl-summary-grid" aria-label="Retention summary">
+                <div class="tl-summary-card">
+                  <span class="tl-summary-card__label">Latest run</span>
+                  <strong><%= @runs_summary.latest_status %></strong>
+                </div>
+                <div class="tl-summary-card">
+                  <span class="tl-summary-card__label">Rows deleted</span>
+                  <strong><%= @runs_summary.total_deleted %></strong>
+                </div>
+                <div class={["tl-summary-card", @runs_summary.failure_count > 0 && "tl-summary-card--danger"]}>
+                  <span class="tl-summary-card__label">Failures</span>
+                  <strong><%= @runs_summary.failure_count %></strong>
+                </div>
+              </section>
+
+              <div class="tl-alert tl-alert--warning" role="status">
+                Review the latest status and failure count before running another prune. Retention deletes older audit records permanently.
+              </div>
+
+              <div class="tl-table-wrap" data-testid="retention-runs-table">
+                <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Deleted Rows</th>
+                      <th>Duration</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="retention-runs" phx-update="stream" data-testid="retention-runs">
+                    <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
+                      <td data-label="Status"><span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span></td>
+                      <td data-label="Deleted Rows" class="tl-table__number"><%= run.deleted_count || "-" %></td>
+                      <td data-label="Duration" class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
+                      <td data-label="Date" class="tl-table__date">
+                        <%= if run.started_at do %>
+                          <time datetime={Presentation.exact_time(run.started_at)} title={Presentation.exact_time(run.started_at)}>
+                            <%= Presentation.human_time(run.started_at) %>
+                          </time>
+                        <% else %>
+                          <span class="tl-muted">Not started</span>
+                        <% end %>
+                      </td>
+                      <td data-label="Actions" class="tl-table__actions">
+                        <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Evidence</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             <% end %>
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
@@ -155,10 +205,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
     end
 
-    defp format_date(nil), do: "-"
+    defp assign_runs(socket, runs) do
+      socket
+      |> stream(:runs, runs)
+      |> assign(:runs_summary, summarize_runs(runs))
+    end
 
-    defp format_date(%DateTime{} = dt) do
-      DateTime.to_string(dt) |> String.replace("Z", " UTC")
+    defp summarize_runs([run | _] = runs) do
+      %{
+        latest_status: Presentation.status_label(run.status),
+        total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
+        failure_count: Enum.count(runs, &(&1.status == "failed"))
+      }
+    end
+
+    defp summarize_runs(_) do
+      %{latest_status: "None", total_deleted: 0, failure_count: 0}
     end
   end
 end

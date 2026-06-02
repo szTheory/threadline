@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Coverage.Snapshot
     alias Threadline.OperatorSurface.Unsupported
 
@@ -99,64 +100,107 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:coverage}
         />
 
-        <main class="coverage-page">
+        <main class="tl-page">
           <%= if @threadline_coverage_enabled do %>
-            <h2>Coverage — schema: <%= @schema_param %></h2>
-
-            <p class="filter-hint">
-              <%= if @coverage_for_schema.last_checked_at do %>
-                Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
-              <% end %>
-              <a href="#" phx-click="refresh">Refresh</a>
-            </p>
+            <header class="tl-page__header">
+              <div>
+                <h2 class="tl-page__title">Coverage — schema: <%= @schema_param %></h2>
+                <p class="tl-page__lede">
+                  Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                </p>
+                <p class="tl-page__meta">
+                  <%= if @coverage_for_schema.last_checked_at do %>
+                    <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                  <% end %>
+                </p>
+              </div>
+              <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</button>
+            </header>
 
             <%= if @form_error do %>
-              <div class="filter-error" role="alert"><%= @form_error %></div>
+              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @threadline_coverage_error do %>
-                <div class="truncation-banner warning" role="status">
+                <div class="tl-alert tl-alert--warning" role="status">
                   Coverage check failed at <%= now_label() %> — showing last successful result from <%= last_label(@coverage_for_schema.last_checked_at) %>.
                 </div>
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
-                <div class="empty-state">
-                  No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
+                <div class="tl-empty">
+                  <h3 class="tl-empty__title">No audited tables found</h3>
+                  <p class="tl-empty__body">
+                    No audited tables were found for schema '<%= @schema_param %>'. Run <code>mix threadline.gen.triggers</code> to set up capture.
+                  </p>
                 </div>
               <% else %>
-                <table class="coverage-table">
-                  <thead>
-                    <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
-                  </thead>
-                  <tbody>
-                    <%= for table <- @coverage_for_schema.tables[:covered] do %>
-                      <tr class="coverage-row--covered">
-                        <td><%= table %></td>
-                        <td>covered</td>
-                        <td></td>
-                      </tr>
-                    <% end %>
-                    <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
-                      <tr class="coverage-row--uncovered">
-                        <td><%= table %></td>
-                        <td>uncovered</td>
-                        <td></td>
-                      </tr>
-                    <% end %>
-                    <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
-                      <tr class="coverage-row--expected" title={tooltip_for(table)}>
-                        <td><%= table %></td>
-                        <td>expected</td>
-                        <td><%= source_for(table) %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                </table>
+                <section class="tl-summary-grid" aria-label="Coverage summary">
+                  <div class="tl-summary-card tl-summary-card--success">
+                    <span class="tl-summary-card__label">Captured</span>
+                    <strong><%= @coverage_for_schema.covered_count %></strong>
+                  </div>
+                  <div class={["tl-summary-card", @coverage_for_schema.uncovered_count > 0 && "tl-summary-card--danger"]}>
+                    <span class="tl-summary-card__label">Needs capture</span>
+                    <strong><%= @coverage_for_schema.uncovered_count %></strong>
+                  </div>
+                  <div class="tl-summary-card">
+                    <span class="tl-summary-card__label">Expected gaps</span>
+                    <strong><%= @coverage_for_schema.expected_uncovered_count %></strong>
+                  </div>
+                </section>
 
-                <p class="filter-hint">
-                  Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered
+                <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
+                  <header class="tl-remediation__header">
+                    <h3 class="tl-remediation__title">Needs capture before complete timeline answers</h3>
+                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables</span>
+                  </header>
+                  <div class="tl-remediation__body">
+                    Missing triggers mean matching Timeline searches can be incomplete for these tables. Add capture before treating investigation results as exhaustive, then return to Timeline and rerun the search.
+                  </div>
+                </section>
+
+                <div class="tl-table-wrap" data-testid="coverage-table">
+                  <table class="tl-table tl-table--coverage tl-table--compact tl-table--sticky tl-table--actionable tl-table--responsive">
+                    <thead>
+                      <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                      <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
+                        <tr class="tl-table__row--uncovered">
+                          <td data-label="TABLE"><code><%= table %></code></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Needs capture</span></td>
+                          <td data-label="SOURCE">missing trigger</td>
+                          <td data-label="Actions" class="tl-table__actions"><span class="tl-hint">Timeline may be incomplete</span></td>
+                        </tr>
+                      <% end %>
+                      <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
+                        <tr class="tl-table__row--expected" title={tooltip_for(table)}>
+                          <td data-label="TABLE"><code><%= table %></code></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--neutral">Expected gap</span></td>
+                          <td data-label="SOURCE"><%= source_for(table) %></td>
+                          <td data-label="Actions" class="tl-table__actions"><span class="tl-hint">Excluded from readiness</span></td>
+                        </tr>
+                      <% end %>
+                      <%= for table <- @coverage_for_schema.tables[:covered] do %>
+                        <tr class="tl-table__row--covered">
+                          <td data-label="TABLE"><code><%= table %></code></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--success">Captured</span></td>
+                          <td data-label="SOURCE">trigger present</td>
+                          <td data-label="Actions" class="tl-table__actions">
+                            <a href={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">View activity</a>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p class="tl-hint">
+                  Coverage: <%= @coverage_for_schema.covered_count %> captured, <%= @coverage_for_schema.uncovered_count %> need capture, <%= @coverage_for_schema.expected_uncovered_count %> expected gaps
                 </p>
               <% end %>
             <% end %>
@@ -211,11 +255,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
 
-    defp seconds_ago(%DateTime{} = ts), do: DateTime.diff(DateTime.utc_now(), ts, :second)
-    defp seconds_ago(_), do: 0
-
-    defp now_label, do: DateTime.utc_now() |> DateTime.to_string()
-    defp last_label(%DateTime{} = ts), do: DateTime.to_string(ts)
+    defp now_label, do: DateTime.utc_now() |> Presentation.human_time()
+    defp last_label(%DateTime{} = ts), do: Presentation.human_time(ts)
     defp last_label(_), do: "never"
 
     defp source_for(table) do
@@ -228,6 +269,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         "Configured via :expected_uncovered_tables"
       end
+    end
+
+    defp timeline_table_path(base_path, table) do
+      "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
     end
 
     defp all_empty?(%Snapshot{

@@ -280,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # Mount /audit, transparently following the default-window canonicalization
     # push_patch the LV emits when params == %{} (BROWSE-01 default-24h contract).
-    defp mount_audit(conn, path \\ "/audit") do
+    defp mount_audit(conn, path \\ "/audit/timeline") do
       case live(conn, path) do
         {:ok, _lv, _html} = ok -> ok
         {:error, {:live_redirect, %{to: redirect_path}}} -> live(conn, redirect_path)
@@ -363,9 +363,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     test "Case 1: First mount with no params defaults to last-24h window in URL", %{conn: conn} do
-      assert {:error, {:live_redirect, %{to: redirect_path}}} = live(conn, "/audit")
+      assert {:error, {:live_redirect, %{to: redirect_path}}} = live(conn, "/audit/timeline")
       # URL was replace-patched to include from/to (24h default)
-      assert redirect_path =~ ~r{^/audit\?from=.+&to=.+$}
+      assert redirect_path =~ ~r{^/audit/timeline\?from=.+&to=.+$}
 
       assert {:ok, _lv, html} = live(conn, redirect_path)
       # Form is present with all six filter keys
@@ -402,7 +402,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       patched_path = assert_patch(lv)
 
       assert patched_path =~
-               ~r{/audit\?from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc123}
+               ~r{/audit/timeline\?from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc123}
 
       _ = html
     end
@@ -426,7 +426,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> DateTime.to_iso8601()
         |> String.slice(0..15)
 
-      assert {:ok, _lv, html} = live(conn, "/audit?from=#{from}&to=#{to}&table=posts")
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?from=#{from}&to=#{to}&table=posts")
       assert html =~ "posts"
       # phx-update="stream" container always renders (Plan 01 BLOCKER 2 fix);
       # phx-viewport-bottom only present when @cursor != nil (i.e. when more pages exist).
@@ -465,7 +465,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 5: correlation id >256 bytes triggers form error", %{conn: conn} do
       long_id = String.duplicate("a", 257)
-      assert {:ok, _lv, html} = live(conn, "/audit?correlation_id=#{long_id}")
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?correlation_id=#{long_id}")
       assert html =~ "256 UTF-8 bytes"
     end
 
@@ -475,10 +475,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 6: 16-char datetime-local pads to :00Z and parses as UTC", %{conn: conn} do
       assert {:ok, _lv, html} =
-               live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59")
+               live(conn, "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59")
 
-      # No filter-error rendered (means the lib accepted the parsed DateTime)
-      refute html =~ ~s|class="filter-error"|
+      # No error alert rendered (means the lib accepted the parsed DateTime)
+      refute html =~ ~s|class="tl-alert tl-alert--error"|
     end
 
     # -------------------------------------------------------------------
@@ -486,7 +486,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -------------------------------------------------------------------
 
     test "Case 7: Unknown table renders the known-tables hint", %{conn: conn} do
-      assert {:ok, _lv, html} = live(conn, "/audit?table=does_not_exist_xyz")
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?table=does_not_exist_xyz")
       # Hint copy mentions the unknown name, plus "known" or "audited" list copy
       assert html =~ "does_not_exist_xyz" or html =~ "No audited table"
     end
@@ -525,7 +525,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> DateTime.to_iso8601()
         |> String.slice(0..15)
 
-      assert {:ok, _lv, html} = live(conn, "/audit?from=#{from}&to=#{to}")
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?from=#{from}&to=#{to}")
       assert html =~ ~s|phx-update="stream"|
 
       # With a non-nil cursor, the conditional binding {@cursor && "next-page"} resolves to "next-page".
@@ -542,7 +542,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, _lv, html} =
                live(
                  conn,
-                 "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc"
+                 "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts&actor_kind=user&actor_id=42&correlation_id=req_abc"
                )
 
       # Each filter value appears as a form `value=` attribute, echoing the URL verbatim.
@@ -565,7 +565,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Mount with an unknown param + valid window. Should not crash.
       # URL has params (not bare /audit), so no auto-patch from default-window logic.
       assert {:ok, lv, _html} =
-               live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&foo=bar")
+               live(conn, "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&foo=bar")
 
       # Submit the form (re-emits the canonical URL via push_patch).
       lv
@@ -631,7 +631,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 14: Re-patching to a prior URL restores prior filter state (back-button equivalent)",
          %{conn: conn} do
       # Mount with filter A (table=posts).
-      {:ok, lv, html_a} = live(conn, "/audit?table=posts")
+      {:ok, lv, html_a} = live(conn, "/audit/timeline?table=posts")
       assert html_a =~ ~s(value="posts")
 
       # Apply filter B (table=users) via form submit — adds a history entry.
@@ -652,14 +652,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert patched_b =~ "table=users"
 
       # Simulate browser back to filter A by patching to A's URL.
-      html_after_back = render_patch(lv, "/audit?table=posts")
+      html_after_back = render_patch(lv, "/audit/timeline?table=posts")
 
       # Form repopulates with filter A; B's value is gone.
       assert html_after_back =~ ~s(value="posts")
       refute html_after_back =~ ~s(value="users")
 
       # Result set re-queried with filter A (no error rendered).
-      refute html_after_back =~ ~s|class="filter-error"|
+      refute html_after_back =~ ~s|class="tl-alert tl-alert--error"|
     end
 
     # -------------------------------------------------------------------
@@ -671,12 +671,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 15: Three download anchors render with canonical hrefs reflecting current filter state",
          %{conn: conn} do
       {:ok, _lv, html} =
-        live(conn, "/audit?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts")
+        live(conn, "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts")
 
-      # All three labels present (D-22, Plan 04 doc-contract pinned)
-      assert html =~ "Download CSV"
-      assert html =~ "Download JSON"
-      assert html =~ "Download NDJSON"
+      # All three compact labels present (D-22, Plan 04 doc-contract pinned)
+      assert html =~ ">CSV<"
+      assert html =~ ">JSON<"
+      assert html =~ ">NDJSON<"
 
       # All three hrefs include the canonical filter querystring; HEEx
       # escapes & to &amp; in attribute values, so match the prefix only.
@@ -692,7 +692,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # socket alive on click). Match label content (handles whitespace
       # between attributes).
       download_anchors =
-        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>Download (CSV|JSON|NDJSON)</a>}s, html)
+        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>\s*(CSV|JSON|NDJSON)\s*</a>}s, html)
 
       assert length(download_anchors) == 3
     end
@@ -707,12 +707,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       for _ <- 1..7, do: seed_change!(table: table)
 
       {:ok, _lv, html} =
-        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+        live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
-      # The status line contains "Showing N of 7 matches in this window."
-      assert html =~ ~r/Showing \d+ of 7 matches in this window\./
+      # The status line uses the compact operator format.
+      assert html =~ ~r/\d+ shown · 7 matches · current filter window/
       # Wrapper class is present for the doc-contract test
-      assert html =~ "match-count-status"
+      assert html =~ "tl-status"
     end
 
     # -------------------------------------------------------------------
@@ -727,11 +727,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       bulk_seed_changes!(5_001, table: table)
 
       {:ok, _lv, html} =
-        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+        live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
       assert html =~ "Large export — will stream in chunks."
       refute html =~ "Truncated to first 10,000 rows"
-      assert html =~ "truncation-banner informational"
+      assert html =~ "tl-alert--info"
     end
 
     # -------------------------------------------------------------------
@@ -747,18 +747,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       bulk_seed_changes!(10_001, table: table)
 
       {:ok, _lv, html} =
-        live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+        live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
       assert html =~ "Truncated to first 10,000 rows"
       # Status line shows the cap approximation (not the literal integer).
       assert html =~ "10,000+"
-      assert html =~ "truncation-banner warning"
+      assert html =~ "tl-alert--warning"
       # Bands are mutually exclusive — band 1 must NOT render at the cap.
       refute html =~ "Large export — will stream in chunks."
     end
 
     test "standard mount without actor_fn does not expose actor-owned saved views", %{conn: conn} do
-      {:ok, _lv, html} = mount_audit(conn, "/audit?table=posts")
+      {:ok, _lv, html} = mount_audit(conn, "/audit/timeline?table=posts")
 
       refute html =~ "save-view-form"
       refute html =~ "Saved Views:"
@@ -775,7 +775,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            } do
         {:ok, _view, html} = mount_audit(conn)
 
-        assert html =~ ~s|class="threadline-ui-header"|
+        assert html =~ ~s|class="tl-topbar"|
         refute html =~ ~s|href="/audit/coverage"|
       end
 
@@ -848,7 +848,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "default actor_fn mount path exposes actor-owned saved views", %{conn: conn} do
-      {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor?table=posts")
+      {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
       assert render(lv) =~ "Save View"
 
@@ -934,7 +934,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       seed_change!(table: "admin_posts", source: "admin", occurred_at: occurred_at)
 
       {:ok, _lv, html} =
-        case live(conn, "/audit_scoped?table=support_posts") do
+        case live(conn, "/audit_scoped/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
@@ -945,7 +945,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 11: Operator can save, apply, and delete a view", %{conn: conn} do
       {:ok, lv, _html} =
-        case live(conn, "/audit_scoped?table=support_posts") do
+        case live(conn, "/audit_scoped/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
@@ -1000,7 +1000,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
 
       {:ok, lv, _html} =
-        case live(conn, "/audit_scoped?table=support_posts") do
+        case live(conn, "/audit_scoped/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
@@ -1009,7 +1009,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
 
       # Click the export button
-      lv |> element("button", "Request Background Export") |> render_click()
+      lv |> element("button", "Queue export") |> render_click()
 
       # Assert redirected to /audit_scoped/exports
       assert_redirect(lv, "/audit_scoped/exports")
@@ -1043,19 +1043,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
 
       {:ok, lv, _html} =
-        case live(conn, "/audit_scoped?table=support_posts") do
+        case live(conn, "/audit_scoped/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      _html = lv |> element("button", "Request Background Export") |> render_click()
+      _html = lv |> element("button", "Queue export") |> render_click()
 
       [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
       assert job.status == "failed"
       assert job.error_message =~ "built-in export runtime is unavailable"
       assert %DateTime{} = job.expires_at
       assert job.query_params["table"] == "support_posts"
-      assert render(lv) =~ "Request Background Export"
+      assert render(lv) =~ "Queue export"
       assert render(lv) =~ "support_posts"
     end
   end
@@ -1084,15 +1084,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       conn = Phoenix.ConnTest.build_conn()
 
       {:ok, _lv, html} =
-        case live(conn, "/audit_support?table=support_posts") do
+        case live(conn, "/audit_support/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      refute html =~ "Request Background Export"
-      refute html =~ "Download CSV"
-      refute html =~ "Download JSON"
-      refute html =~ "Download NDJSON"
+      refute html =~ "Queue export"
+      refute html =~ ">CSV<"
+      refute html =~ ">JSON<"
+      refute html =~ ">NDJSON<"
     end
   end
 end

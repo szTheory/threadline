@@ -202,7 +202,8 @@ defmodule Threadline.MixProject do
         "GitHub" => @source_url,
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
-      files: ~w(lib guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+      files:
+        ~w(lib priv/fonts guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
 

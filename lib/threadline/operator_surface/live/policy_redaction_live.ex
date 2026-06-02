@@ -4,8 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    alias Threadline.Policy.RedactionPresenter
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Policy.RedactionPresenter
 
     @section_defs [
       {:drift_detected, "Drift detected"},
@@ -41,70 +42,110 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <%= if @base_path do %>
+          <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+            coverage={@threadline_coverage || %{uncovered_count: 0}}
+            base_path={@base_path}
+            error={@threadline_coverage_error}
+            coverage_enabled={@threadline_coverage_enabled}
+            policy_enabled={@threadline_policy_enabled}
+            evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:policy}
+          />
+        <% end %>
 
-        <main class="policy-redaction-page">
+        <main class="tl-page">
           <%= if @threadline_policy_enabled do %>
-            <header class="policy-redaction-summary">
-              <h2>Policy redaction drift</h2>
-              <p class="filter-hint">
-                <strong>Drift detected:</strong> <%= @report.summary.drift_detected %>
-                <span aria-hidden="true">|</span>
-                <strong>Could not introspect:</strong> <%= @report.summary.could_not_introspect %>
-                <span aria-hidden="true">|</span>
-                <strong>Config matches deployed:</strong> <%= @report.summary.config_matches_deployed %>
-              </p>
+            <header class="tl-page__header">
+              <div>
+              <h2 class="tl-page__title">Policy redaction drift</h2>
+              <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</p>
+              </div>
             </header>
 
+            <section class="tl-trust-rail" aria-label="Redaction workflow">
+              <span class="tl-trust-rail__label">Redaction assurance</span>
+              <span class="tl-chip tl-chip--warning">Drift blocks trust</span>
+              <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</a>
+              <a :if={@base_path} href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+            </section>
+
+            <section class="tl-summary-grid" aria-label="Redaction drift summary">
+              <div class={["tl-summary-card", if(@report.summary.drift_detected > 0, do: "tl-summary-card--danger", else: "tl-summary-card--success")]}>
+                <span class="tl-summary-card__label">Drift</span>
+                <strong><%= @report.summary.drift_detected %></strong>
+              </div>
+              <div class={["tl-summary-card", @report.summary.could_not_introspect > 0 && "tl-summary-card--warning"]}>
+                <span class="tl-summary-card__label">Introspection failures</span>
+                <strong><%= @report.summary.could_not_introspect %></strong>
+              </div>
+              <div class="tl-summary-card">
+                <span class="tl-summary-card__label">Deployed matches config</span>
+                <strong><%= @report.summary.config_matches_deployed %></strong>
+              </div>
+            </section>
+
+            <p :if={@report.summary.drift_detected == 0 and @report.summary.could_not_introspect == 0} class="tl-policy__success">
+              Redaction policy matches deployed trigger policy for every introspected configured table.
+            </p>
+
             <%= for section <- @sections do %>
-              <section class={["policy-redaction-section", section_modifier(section.status)]}>
-                <div class="policy-redaction-section-header">
-                  <h3><%= section.title %> (<%= length(section.rows) %>)</h3>
+              <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]} data-testid="policy-section">
+                <div class="tl-section__header tl-policy__section-header">
+                  <h3 class="tl-section__title"><%= section.title %> (<%= length(section.rows) %>)</h3>
                 </div>
 
                 <%= if section.rows == [] do %>
-                  <p class="policy-redaction-empty">No tables in this section.</p>
+                  <p class="tl-policy__empty"><%= empty_section_label(section.status) %></p>
                 <% else %>
-                  <div class="policy-redaction-rows">
+                  <div class="tl-policy__rows">
                     <%= for row <- section.rows do %>
-                      <details class={["policy-redaction-row", row_modifier(row.status)]}>
-                        <summary>
-                          <div class="policy-redaction-row-main">
-                            <span class="policy-redaction-table"><%= row.table %></span>
-                            <span class="policy-redaction-status"><%= status_label(row.status) %></span>
+                      <details class={["tl-policy__row", row_modifier(row.status)]}>
+                        <summary class="tl-policy__summary">
+                          <div class="tl-policy__row-main">
+                            <span class="tl-policy__table"><%= row.table %></span>
+                            <span class={["tl-chip", Presentation.status_modifier(row.status)]}><%= status_label(row.status) %></span>
                           </div>
-                          <p class="policy-redaction-hint"><%= row.hint %></p>
+                          <p class="tl-policy__hint"><%= row.hint %></p>
                           <%= if row.warning do %>
-                            <p class="policy-redaction-warning"><%= row.warning %></p>
+                            <p class="tl-policy__warning"><%= row.warning %></p>
                           <% end %>
+                          <div class="tl-policy__summary-actions">
+                            <a href={timeline_table_path(@base_path, row.table)} class="tl-button tl-button--compact tl-button--secondary">View table activity</a>
+                            <a href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">Check coverage</a>
+                          </div>
                         </summary>
 
-                        <div class="policy-redaction-details">
-                          <table class="policy-redaction-detail-table">
-                            <thead>
-                              <tr>
-                                <th></th>
-                                <th>Configured</th>
-                                <th>Deployed</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th>exclude</th>
-                                <td><%= columns_label(row.configured.exclude) %></td>
-                                <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
-                              </tr>
-                              <tr>
-                                <th>mask</th>
-                                <td><%= columns_label(row.configured.mask) %></td>
-                                <td><%= deployed_columns_label(row.deployed, :mask) %></td>
-                              </tr>
-                              <tr>
-                                <th>mask placeholder</th>
-                                <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
-                                <td><%= deployed_placeholder_label(row.deployed) %></td>
-                              </tr>
-                            </tbody>
-                          </table>
+                        <div class="tl-policy__details">
+                          <div class="tl-table-wrap">
+                            <table class="tl-table tl-table--policy tl-table--responsive">
+                              <thead>
+                                <tr>
+                                  <th></th>
+                                  <th>Configured</th>
+                                  <th>Deployed</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <th>exclude</th>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :exclude)}><%= columns_label(row.configured.exclude) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :exclude)}><%= deployed_columns_label(row.deployed, :exclude) %></td>
+                                </tr>
+                                <tr>
+                                  <th>mask</th>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :mask)}><%= columns_label(row.configured.mask) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :mask)}><%= deployed_columns_label(row.deployed, :mask) %></td>
+                                </tr>
+                                <tr>
+                                  <th>mask placeholder</th>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :placeholder)}><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :placeholder)}><%= deployed_placeholder_label(row.deployed) %></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </details>
                     <% end %>
@@ -136,17 +177,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
 
-    defp section_modifier(:drift_detected), do: "policy-redaction-section--drift"
-    defp section_modifier(:could_not_introspect), do: "policy-redaction-section--introspect"
-    defp section_modifier(:config_matches_deployed), do: "policy-redaction-section--match"
+    defp section_modifier(:drift_detected), do: "tl-policy__section--drift"
+    defp section_modifier(:could_not_introspect), do: "tl-policy__section--introspect"
+    defp section_modifier(:config_matches_deployed), do: "tl-policy__section--match"
 
-    defp row_modifier(:drift_detected), do: "policy-redaction-row--drift"
-    defp row_modifier(:could_not_introspect), do: "policy-redaction-row--introspect"
-    defp row_modifier(:config_matches_deployed), do: "policy-redaction-row--match"
+    defp row_modifier(:drift_detected), do: "tl-policy__row--drift"
+    defp row_modifier(:could_not_introspect), do: "tl-policy__row--introspect"
+    defp row_modifier(:config_matches_deployed), do: "tl-policy__row--match"
 
     defp status_label(:drift_detected), do: "Drift detected"
     defp status_label(:could_not_introspect), do: "Could not introspect"
-    defp status_label(:config_matches_deployed), do: "Config matches deployed"
+    defp status_label(:config_matches_deployed), do: "Deployed matches config"
+
+    defp empty_section_label(:drift_detected), do: "No redaction drift detected."
+    defp empty_section_label(:could_not_introspect), do: "All configured tables introspected."
+
+    defp empty_section_label(:config_matches_deployed),
+      do: "No matching deployed policy rows yet."
 
     defp columns_label([]), do: "none"
     defp columns_label(columns), do: Enum.join(columns, ", ")
@@ -160,5 +207,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp deployed_placeholder_label(nil), do: "not available"
     defp deployed_placeholder_label(%{mask: []}), do: "not used"
     defp deployed_placeholder_label(%{mask_placeholder: placeholder}), do: placeholder
+
+    defp timeline_table_path(base_path, table) do
+      "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
+    end
+
+    # Tint only the cells that actually diverge, and only on a real drift row,
+    # so the eye lands on the mismatch instead of scanning identical text.
+    defp diff_cell_class(%{status: :drift_detected, diff: diff}, side, field) do
+      if cell_drifted?(diff, side, field), do: "tl-policy__cell--drift"
+    end
+
+    defp diff_cell_class(_row, _side, _field), do: nil
+
+    defp cell_drifted?(diff, :config, :exclude),
+      do: Map.get(diff, :exclude_only_in_config, []) != []
+
+    defp cell_drifted?(diff, :deployed, :exclude),
+      do: Map.get(diff, :exclude_only_in_deployed, []) != []
+
+    defp cell_drifted?(diff, :config, :mask), do: Map.get(diff, :mask_only_in_config, []) != []
+
+    defp cell_drifted?(diff, :deployed, :mask),
+      do: Map.get(diff, :mask_only_in_deployed, []) != []
+
+    defp cell_drifted?(diff, _side, :placeholder), do: Map.get(diff, :placeholder_mismatch, false)
+    defp cell_drifted?(_diff, _side, _field), do: false
   end
 end

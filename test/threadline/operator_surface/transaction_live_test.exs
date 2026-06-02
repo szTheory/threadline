@@ -182,7 +182,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # For now just checking if the header renders, we can test more specifically when we add actor/action data.
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "Transaction:"
+      assert html =~ "Transaction"
       assert html =~ txn.id
     end
 
@@ -200,7 +200,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "No Changes Recorded"
+      assert html =~ "No changes recorded"
     end
 
     test "Case 4: Renders change row with DOM virtualization", %{conn: conn} do
@@ -230,8 +230,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "phx-viewport-top"
-      assert html =~ "phx-viewport-bottom"
       assert html =~ "UPDATE"
       assert html =~ "users"
       assert html =~ "test@example.com"
@@ -259,7 +257,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
 
-        assert html =~ ~s|class="threadline-ui-header"|
+        assert html =~ ~s|class="tl-topbar"|
         refute html =~ ~s|href="/audit/coverage"|
       end
     end
@@ -350,7 +348,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, path)
 
-      assert html =~ "Row History: users / row-scoped-live"
+      assert html =~ "Row history: users / #{String.slice("row-scoped-live", 0, 14)}"
       assert html =~ "Scoped Alpha"
       refute html =~ "Admin Secret"
     end

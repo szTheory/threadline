@@ -7,6 +7,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Evidence
     alias Threadline.Evidence.Proof
     alias Threadline.Evidence.Subject
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
 
     def mount(_params, _session, socket) do
@@ -58,36 +59,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             coverage_enabled={@threadline_coverage_enabled}
             policy_enabled={@threadline_policy_enabled}
             evidence_enabled={@threadline_evidence_enabled}
+            exports_enabled={@threadline_exports_enabled}
+            current={:evidence}
           />
         <% end %>
 
-        <main class="evidence-page">
+        <main class="tl-page">
           <%= if @threadline_evidence_enabled do %>
-            <header>
-              <h2>What can Threadline prove right now?</h2>
-              <p class="filter-hint">
+            <header class="tl-page__header">
+              <div>
+                <h2 class="tl-page__title">What can Threadline prove right now?</h2>
+                <p class="tl-page__lede">
                 <%= if @request.mode == :history do %>
                   Viewing append-only history for one evidence subject reference.
                 <% else %>
                   Latest is a projection over append-only evidence history, not a mutable state record.
                 <% end %>
-              </p>
+                </p>
+              </div>
             </header>
 
-            <nav class="evidence-toolbar" aria-label="Evidence navigation">
-              <.link patch={overview_path(@base_path)}>Overview</.link>
-              <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)}>
+            <section class="tl-trust-rail" aria-label="Evidence proof flow">
+              <span class="tl-trust-rail__label">Proof chain</span>
+              <span class="tl-chip tl-chip--success">Append-only history</span>
+              <span class="tl-chip tl-chip--info">Latest projection</span>
+              <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Coverage</a>
+              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">Redaction</a>
+              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">Retention</a>
+            </section>
+
+            <nav class="tl-nav" aria-label="Evidence navigation">
+              <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">Overview</.link>
+              <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
                 Back to latest for <%= @request.subject %>
               </.link>
             </nav>
 
             <%= if @form_error do %>
-              <div class="filter-error" role="alert"><%= @form_error %></div>
+              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @groups == [] do %>
-                <div class="empty-state">
-                  <h3>No evidence records yet</h3>
-                  <p>
+                <div class="tl-empty">
+                  <h3 class="tl-empty__title">No evidence records yet</h3>
+                  <p class="tl-empty__body">
                     Threadline has not recorded evidence for this selection yet. Use
                     <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
                     API to confirm the current proof state, then narrow by subject or date if
@@ -95,57 +109,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </p>
                 </div>
               <% else %>
-                <section :for={group <- @groups} class="evidence-section">
-                  <header>
-                    <h3><%= group.title %></h3>
+                <section :for={group <- @groups} class="tl-section">
+                  <header class="tl-section__header">
+                    <h3 class="tl-section__title"><%= group.title %></h3>
                   </header>
 
-                  <table class="evidence-table">
-                    <thead>
-                      <tr>
-                        <th>Verdict</th>
-                        <th>Subject ref</th>
-                        <th>Recorded</th>
-                        <th>Latest row</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr :for={row <- group.rows}>
-                        <td>
-                          <span class={["evidence-verdict", "evidence-verdict--#{row.verdict_status}"]}>
-                            <%= row.verdict_status %>
+                  <div class="tl-record-list" data-testid="evidence-table">
+                    <article :for={row <- group.rows} class={["tl-record-card", record_modifier(row.verdict_status)]}>
+                      <div class="tl-record-card__main">
+                        <h4 class="tl-record-card__title">
+                          <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
+                            <%= Presentation.status_label(row.verdict_status) %>
                           </span>
-                        </td>
-                        <td>
-                          <div class="evidence-ref"><%= row.subject_ref_json %></div>
-                          <div class="evidence-meta"><%= row.subject %></div>
-                        </td>
-                        <td><%= row.recorded_at %></td>
-                        <td><%= row.summary_status %></td>
-                        <td>
-                          <div class="evidence-meta">
-                            <.link
-                              :if={show_subject_link?(@request)}
-                              patch={subject_path(@base_path, row.subject)}
-                              class="evidence-action"
-                            >
-                              Only this subject
-                            </.link>
-                          </div>
-                          <div>
-                            <.link
-                              :if={show_history_link?(@request)}
-                              patch={history_path(@base_path, row.subject, row.subject_ref_json)}
-                              class="evidence-action"
-                            >
-                              View history
-                            </.link>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          <span><%= Presentation.status_label(row.summary_status) %></span>
+                        </h4>
+                        <div class="tl-record-card__ref"><%= row.subject_ref_json %></div>
+                        <div class="tl-record-card__meta">
+                          <span class="tl-evidence__meta"><%= row.subject %></span>
+                          <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
+                            <%= Presentation.human_time(row.recorded_at) %>
+                          </time>
+                        </div>
+                      </div>
+                      <div class="tl-record-card__actions">
+                        <.link
+                          :if={show_subject_link?(@request)}
+                          patch={subject_path(@base_path, row.subject)}
+                          class="tl-button tl-button--compact tl-button--secondary"
+                        >
+                          Filter to subject
+                        </.link>
+                        <.link
+                          :if={show_history_link?(@request)}
+                          patch={history_path(@base_path, row.subject, row.subject_ref_json)}
+                          class="tl-button tl-button--compact tl-button--secondary"
+                        >
+                          Open proof history
+                        </.link>
+                        <%= if action = support_action(@base_path, row.subject) do %>
+                          <a href={action.path} class="tl-button tl-button--compact tl-button--ghost"><%= action.label %></a>
+                        <% end %>
+                      </div>
+                    </article>
+                  </div>
                 </section>
               <% end %>
             <% end %>
@@ -257,7 +263,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         subject: presented.subject,
         subject_ref_json: Jason.encode!(presented.subject_ref),
         summary_status: presented.summary_status,
-        recorded_at: presented.recorded_at,
+        recorded_at: record.recorded_at,
         verdict_status: presented.verdict_status
       }
     end
@@ -272,6 +278,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp show_history_link?(%{mode: :latest}), do: true
     defp show_history_link?(_request), do: false
+
+    defp record_modifier(status) do
+      case Presentation.status_modifier(status) do
+        "tl-chip--success" -> "tl-record-card--success"
+        "tl-chip--warning" -> "tl-record-card--warning"
+        "tl-chip--danger" -> "tl-record-card--danger"
+        "tl-chip--info" -> "tl-record-card--info"
+        _ -> nil
+      end
+    end
+
+    defp support_action(base_path, "retention_run") when is_binary(base_path),
+      do: %{path: "#{base_path}/policy/retention", label: "Retention"}
+
+    defp support_action(base_path, "redaction_policy") when is_binary(base_path),
+      do: %{path: "#{base_path}/policy/redaction", label: "Redaction"}
+
+    defp support_action(base_path, "trigger_coverage") when is_binary(base_path),
+      do: %{path: "#{base_path}/coverage", label: "Coverage"}
+
+    defp support_action(base_path, "export_job") when is_binary(base_path),
+      do: %{path: "#{base_path}/exports", label: "Exports"}
+
+    defp support_action(_base_path, _subject), do: nil
 
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"

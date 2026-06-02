@@ -39,7 +39,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:support_acme)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       html = html_response(conn, 200)
@@ -50,7 +50,10 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
     test "WALK-01-07 support ticket reply via dev route returns audit_transaction_id" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         acme = Repo.get_by!(Organization, slug: "acme")
-        agent = Repo.get_by!(Agent, organization_id: acme.id, user_id: Manifest.user_id(:support_acme))
+
+        agent =
+          Repo.get_by!(Agent, organization_id: acme.id, user_id: Manifest.user_id(:support_acme))
+
         ticket = ticket_fixture(acme, agent)
 
         conn =
@@ -92,11 +95,12 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
         action =
           Repo.one!(
-            from a in AuditAction,
+            from(a in AuditAction,
               join: at in AuditTransaction,
               on: a.id == at.action_id,
               where: at.id == ^tx_id,
               where: a.name == "ticket_replied_and_closed"
+            )
           )
 
         refute is_nil(action)
@@ -116,7 +120,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:admin)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       html = html_response(conn, 200)
@@ -132,6 +136,22 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
       assert response(conn, 403) == "forbidden"
     end
+
+    test "admin export status shows seeded job states" do
+      conn =
+        build_conn()
+        |> login_demo(:admin)
+        |> get(~p"/audit/exports")
+
+      html = html_response(conn, 200)
+      assert html =~ "Export Status"
+      assert html =~ "Completed"
+      assert html =~ "Failed"
+      assert html =~ "Running"
+      assert html =~ "Queued"
+      assert html =~ "Download"
+      assert html =~ "Expired"
+    end
   end
 
   describe "§4 operator incidents (WALK-03-01..04)" do
@@ -141,7 +161,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:admin)
-        |> get(~p"/audit?correlation_id=#{correlation}")
+        |> get(~p"/audit/timeline?correlation_id=#{correlation}")
 
       html = html_response(conn, 200)
       assert html =~ correlation
@@ -173,6 +193,18 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       html = html_response(conn, 200)
       assert html =~ "retention_run"
       assert html =~ run_id
+    end
+
+    test "retention history shows seeded completed purge run" do
+      conn =
+        build_conn()
+        |> login_demo(:admin)
+        |> get(~p"/audit/policy/retention")
+
+      html = html_response(conn, 200)
+      assert html =~ "Retention History"
+      assert html =~ "completed"
+      refute html =~ "No Retention History"
     end
 
     test "WALK-03-04 deleter hard-delete on #4518 visible to admin" do

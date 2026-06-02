@@ -26,7 +26,7 @@ config :threadline_phoenix, ThreadlinePhoenix.Repo,
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}],
+  http: [ip: {0, 0, 0, 0}],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -69,10 +69,16 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
+# Demo drift: the redaction policy masks both `internal_note_body` and `body`,
+# but the deployed trigger (priv/repo/migrations) only masks `internal_note_body`
+# — i.e. the policy was updated and the triggers haven't been regenerated yet.
+# This makes the operator surface's redaction-drift screen demonstrate a real
+# finding instead of the always-green state. Capture is unaffected (the deployed
+# trigger still redacts internal_note_body), so row-history [REDACTED] holds.
 config :threadline, :trigger_capture,
   tables: %{
     "ticket_replies" => [
-      mask: ["internal_note_body"],
+      mask: ["internal_note_body", "body"],
       store_changed_from: true
     ]
   }

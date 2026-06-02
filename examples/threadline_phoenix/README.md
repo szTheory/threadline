@@ -1,6 +1,41 @@
 # ThreadlinePhoenix
 
-Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract. Mix commands in this document are meant to be run **from `examples/threadline_phoenix/`**; the dependency `{:threadline, path: "../.."}` points at the **repository root** (two levels up from this directory).
+Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract.
+
+## 🚀 Quick Start (Zero-Friction Docker Demo)
+
+Want to see the Operator Surface and click around realistic walkthrough data immediately? You can spin up the entire demo environment (app, PostgreSQL, and seeded data) with a single command from the **repository root**:
+
+```bash
+# Run from the repository root (two levels up)
+docker compose --profile demo up demo --build
+```
+
+The app will be available at **http://localhost:4000**.
+Sign in with the seeded cross-org admin credentials:
+- **Email:** `admin@example.com`
+- **Password:** `password123456`
+
+*(See [DEMO_USERS.md](DEMO_USERS.md) for other seeded roles like `closer@acme.example.com`)*.
+
+Running multiple UI demos at once? Give each Compose stack a unique project
+name and host ports:
+
+```bash
+COMPOSE_PROJECT_NAME=threadline-demo-a THREADLINE_DEMO_PORT=4100 THREADLINE_DB_PORT=5434 \
+  docker compose --profile demo up demo --build
+```
+
+Compose keeps service DNS stable inside the stack (`postgres:5432`), while the
+project name isolates containers, networks, and volumes. Local ports are bound
+to `127.0.0.1` by default; see the root [`.env.example`](../../.env.example) for
+all Docker overrides. Normal cleanup is:
+
+```bash
+docker compose down --remove-orphans
+```
+
+---
 
 This app is the current `sigra-reference` lane: the maintained first-party
 reference path for a Phoenix host that already uses Sigra. It proves a narrow
@@ -20,7 +55,7 @@ Treat this README as the runnable proof artifact behind both paths.
 - **Erlang/OTP** matching the Elixir version you install
 - **PostgreSQL** with trigger support, reachable before you run database tasks
 
-Optional: from the **repository root**, `docker compose up -d postgres` publishes Postgres on **`DB_PORT=5433`** by default (see root `docker-compose.yml` and `CONTRIBUTING.md`). When using that compose service, set **`DB_HOST`** / **`DB_PORT`** so this app’s `config/*.exs` resolves the same host and port (defaults remain `localhost` / `5432` if unset).
+Optional: from the **repository root**, `docker compose up -d postgres` publishes Postgres on **`DB_PORT=5433`** by default (see root `docker-compose.yml` and `CONTRIBUTING.md`). When using that compose service, set **`DB_HOST`** / **`DB_PORT`** so this app’s `config/*.exs` resolves the same host and port (defaults remain `localhost` / `5432` if unset). The full Phoenix demo is behind the `demo` Compose profile.
 
 ## Choose your path
 
@@ -138,7 +173,8 @@ Sign in as **`admin@example.com`** / **`password123456`**, then open:
 
 | Surface | URL |
 |---------|-----|
-| Timeline + correlation filter | `http://localhost:4000/audit?correlation_id=walk-acme-4521-close` |
+| Operator home (start here) | `http://localhost:4000/audit` |
+| Timeline + correlation filter | `http://localhost:4000/audit/timeline?correlation_id=walk-acme-4521-close` |
 | Evidence plane | `http://localhost:4000/audit/evidence` |
 | Redaction policy drift | `http://localhost:4000/audit/policy/redaction` |
 | Trigger coverage | `http://localhost:4000/audit/coverage` |

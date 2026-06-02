@@ -2,6 +2,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
+
     def mount(%{"id" => id}, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
@@ -89,19 +91,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           coverage_enabled={@threadline_coverage_enabled}
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          current={:timeline}
         />
         <%= if @not_found do %>
-          <div class="empty-state">
-            <p>Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
+          <div class="tl-empty tl-empty--error">
+            <h3 class="tl-empty__title">Transaction not found</h3>
+            <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
+            <div class="tl-empty__actions">
+              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">Back to Timeline</a>
+            </div>
           </div>
         <% else %>
-          <div class="transaction-header">
-            <a href={@base_path} class="back-link">← Timeline</a>
-            <h2>Transaction: <%= @bundle.transaction.id %></h2>
+          <div class="tl-transaction">
+            <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
+              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">Timeline</a>
+              <span>Transaction</span>
+            </nav>
+            <div class="tl-page__header">
+              <div>
+                <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
+                  Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
+                </h2>
+                <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
+              </div>
+              <div class="tl-param-list" aria-label="Transaction context">
+                <span class="tl-param">
+                  <span class="tl-param__key">Actor</span>
+                  <span class="tl-param__value">
+                    <%= if path = transaction_actor_path(surface_root(@base_path), @bundle.transaction) do %>
+                      <a href={path} class="tl-link tl-link--deep"><%= transaction_actor_label(@bundle.transaction) %></a>
+                    <% else %>
+                      <%= transaction_actor_label(@bundle.transaction) %>
+                    <% end %>
+                  </span>
+                </span>
+                <span :if={transaction_correlation_id(@bundle.transaction)} class="tl-param">
+                  <span class="tl-param__key">Correlation</span>
+                  <span class="tl-param__value">
+                    <a href={timeline_correlation_path(surface_root(@base_path), transaction_correlation_id_raw(@bundle.transaction))} class="tl-link tl-link--deep">
+                      <%= transaction_correlation_id(@bundle.transaction) %>
+                    </a>
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
-            <div class="empty-state">
-              <p>No Changes Recorded</p>
+            <div class="tl-empty">
+              <h3 class="tl-empty__title">No changes recorded</h3>
+              <p class="tl-empty__body">Threadline found the transaction context, but no row-level changes were captured for it.</p>
             </div>
           <% else %>
             <div
@@ -109,28 +148,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               phx-update="stream"
               phx-viewport-top="prev-page"
               phx-viewport-bottom="next-page"
-              class="viewport-container"
+              class="tl-viewport"
             >
-              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="change-row">
-                <div class="change-header">
-                  <span class="change-op"><%= change.change_diff["op"] %></span>
-                  <span class="change-table"><%= change.change_diff["table_name"] %></span>
-                  <span class="change-time"><%= change.change_diff["captured_at"] %></span>
-                  <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="history-link" title="View Row History">
-                    History
-                  </.link>
+              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
+                <div class="tl-change__summary">
+                  <div class="tl-change__meta">
+                    <span class={["tl-change__op", op_chip_modifier(change.change_diff["op"])]}><%= change.change_diff["op"] %></span>
+                    <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
+                    <time class="tl-change__time" datetime={change.change_diff["captured_at"]} title={change.change_diff["captured_at"]}>
+                      <%= change_time(change.change_diff["captured_at"]) %>
+                    </time>
+                  </div>
+                  <div class="tl-meta-row">
+                    <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
+                  </div>
+                  <div class="tl-change__actions">
+                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                      Open row history
+                    </.link>
+                  </div>
                 </div>
-                <div class="change-fields">
+                <div class="tl-change__fields">
                   <%= for field <- change.change_diff["field_changes"] do %>
-                    <div class="field-diff">
-                      <span class="field-name"><%= field["name"] %></span>:
+                    <div class="tl-change__field">
+                      <span class="tl-change__field-name"><%= field["name"] %></span>:
                       <%= if Map.has_key?(field, "before") do %>
-                        <span class="field-before"><%= inspect(field["before"]) %></span> ->
+                        <span class="tl-change__before"><%= inspect(field["before"]) %></span> ->
                       <% end %>
                       <%= if Map.has_key?(field, "prior_state") do %>
-                        <span class="field-prior-omitted">(omitted)</span> ->
+                        <span class="tl-change__omitted">(omitted)</span> ->
                       <% end %>
-                      <span class="field-after"><%= inspect(field["after"]) %></span>
+                      <span class="tl-change__after"><%= inspect(field["after"]) %></span>
                     </div>
                   <% end %>
                 </div>
@@ -178,5 +226,70 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp surface_root(_), do: nil
+
+    defp pk_label(pk) when is_map(pk) do
+      pk
+      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
+      |> Enum.join(", ")
+    end
+
+    defp pk_label(pk), do: inspect(pk)
+
+    defp transaction_actor_label(%{actor_ref: %{type: type, id: id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp transaction_actor_label(%{actor_ref: %{"type" => type, "id" => id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp transaction_actor_label(_), do: "unknown"
+
+    defp transaction_actor_path(base_path, %{actor_ref: %{type: type, id: id}})
+         when is_binary(base_path) and not is_nil(id),
+         do:
+           "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
+
+    defp transaction_actor_path(base_path, %{actor_ref: %{"type" => type, "id" => id}})
+         when is_binary(base_path) and not is_nil(id),
+         do:
+           "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
+
+    defp transaction_actor_path(_base_path, _transaction), do: nil
+
+    defp transaction_correlation_id(%{action: %{correlation_id: correlation_id}})
+         when is_binary(correlation_id) and correlation_id != "",
+         do: Presentation.truncate_middle(correlation_id, 42)
+
+    defp transaction_correlation_id(_), do: nil
+
+    defp transaction_correlation_id_raw(%{action: %{correlation_id: correlation_id}})
+         when is_binary(correlation_id) and correlation_id != "",
+         do: correlation_id
+
+    defp transaction_correlation_id_raw(_), do: nil
+
+    defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
+      "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
+    end
+
+    defp timeline_correlation_path(base_path, _correlation_id), do: base_path
+
+    defp op_chip_modifier(op) do
+      case op |> to_string() |> String.downcase() do
+        "insert" -> "tl-change__op--insert"
+        "update" -> "tl-change__op--update"
+        "delete" -> "tl-change__op--delete"
+        _ -> nil
+      end
+    end
+
+    defp change_time(value) when is_binary(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, dt, _offset} -> Presentation.human_time(dt)
+        _ -> value
+      end
+    end
+
+    defp change_time(%DateTime{} = value), do: Presentation.human_time(value)
+    defp change_time(value), do: inspect(value)
   end
 end

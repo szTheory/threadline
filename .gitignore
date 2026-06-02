@@ -45,3 +45,8 @@ tmp/
 /priv/ci/hex_evaluator/_build/
 /priv/ci/hex_evaluator/deps/
 /bench/results/*.json
+/priv/threadline_exports/
+/examples/threadline_phoenix/priv/threadline_exports/
+/examples/threadline_phoenix/e2e/test-results/
+/examples/threadline_phoenix/e2e/playwright-report/
+/examples/threadline_phoenix/e2e/blob-report/

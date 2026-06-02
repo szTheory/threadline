@@ -50,6 +50,10 @@ Last activity: 2026-05-30 — 0.7.0 published; release-pipeline + test-determini
 
 ## Accumulated Context
 
+### Pending Todos
+
+- **Capture direct demo and UI polish** — decide how to reflect direct Hold-mode commits `253bec3` and `f23a9cc` in GSD authority surfaces, changelog/release notes, or next-milestone planning.
+
 ### Roadmap Evolution
 
 - Phase 130.1 inserted after Phase 130: Address tech debt: planning metadata hygiene (URGENT)

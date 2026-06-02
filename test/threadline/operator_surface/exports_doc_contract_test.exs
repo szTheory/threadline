@@ -13,11 +13,11 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   # ---- EXPO-05: button-label literals (D-22 + D-26) ----
 
   describe "button labels (D-22, D-26)" do
-    test "TimelineLive renders the three download button labels verbatim" do
+    test "TimelineLive renders the three compact download button labels verbatim" do
       src = File.read!(@lv_path)
-      assert String.contains?(src, "Download CSV")
-      assert String.contains?(src, "Download JSON")
-      assert String.contains?(src, "Download NDJSON")
+      assert String.contains?(src, ">CSV<")
+      assert String.contains?(src, ">JSON<")
+      assert String.contains?(src, ">NDJSON<")
     end
 
     test "TimelineLive download anchors include the HTML `download` attribute (PR #2611 / Pitfall 9)" do
@@ -225,19 +225,19 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   describe "count-line and truncation banner literals (D-17, D-18)" do
     test "TimelineLive renders the count status line wrapper class" do
       src = File.read!(@lv_path)
-      assert String.contains?(src, "match-count-status")
+      assert String.contains?(src, "tl-status")
     end
 
     test "TimelineLive renders the band-1 informational banner literal at >5,000" do
       src = File.read!(@lv_path)
       assert String.contains?(src, "Large export — will stream in chunks.")
-      assert String.contains?(src, "truncation-banner informational")
+      assert String.contains?(src, "tl-alert--info")
     end
 
     test "TimelineLive renders the band-2 warning banner literal at >=10,001" do
       src = File.read!(@lv_path)
       assert String.contains?(src, "Truncated to first 10,000 rows.")
-      assert String.contains?(src, "truncation-banner warning")
+      assert String.contains?(src, "tl-alert--warning")
     end
 
     test "TimelineLive uses cap: 10_001 in count_matching (matches controller cap; allows '10,000+' approximation)" do
