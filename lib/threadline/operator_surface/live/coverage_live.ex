@@ -272,7 +272,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp timeline_table_path(base_path, table) do
-      "#{base_path}?#{URI.encode_query(%{"table" => table})}"
+      "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
     end
 
     defp all_empty?(%Snapshot{

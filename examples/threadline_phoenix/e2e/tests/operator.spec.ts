@@ -20,7 +20,7 @@ test.describe("operator surface (demo fiction)", () => {
   });
 
   test("correlation filter surfaces hero close transaction", async ({ page }) => {
-    await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
+    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`);
 
     await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
     await expect(page.getByTestId("timeline-row").filter({ hasText: "tickets" }).first()).toBeVisible();
@@ -34,7 +34,7 @@ test.describe("operator surface (demo fiction)", () => {
   });
 
   test("row history on #4521 close reply shows redacted capture", async ({ page }) => {
-    await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
+    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`);
 
     const incidentLink = page.getByTestId("transaction-link").first();
     await expect(incidentLink).toBeVisible();
@@ -57,7 +57,7 @@ test.describe("operator surface (demo fiction)", () => {
   });
 
   test("#4518 delete story opens deleter transaction", async ({ page }) => {
-    await page.goto("/audit?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
+    await page.goto("/audit/timeline?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
 
     const deleteRow = page.getByTestId("timeline-row").filter({ hasText: "DELETE" }).first();
     await expect(deleteRow).toBeVisible();

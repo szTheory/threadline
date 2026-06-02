@@ -96,7 +96,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               pipe_through(:threadline_actor_session)
             end
 
-            live("/", TimelineLive, :index)
+            live("/", StartLive, :index)
+            live("/timeline", TimelineLive, :index)
             live("/evidence", EvidenceLive, :index)
             live("/coverage", CoverageLive, :index)
             live("/exports", ExportStatusLive, :index)

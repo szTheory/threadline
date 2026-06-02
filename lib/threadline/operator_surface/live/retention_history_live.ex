@@ -100,7 +100,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-trust-rail__label">Retention assurance</span>
               <span class="tl-chip tl-chip--warning">Permanent deletion</span>
               <a :if={@threadline_evidence_enabled and @base_path} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">View evidence</a>
-              <a :if={@base_path} href={"#{@base_path}"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+              <a :if={@base_path} href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
             </section>
 
             <%= if not @has_runs do %>

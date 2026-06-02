@@ -95,13 +95,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <h3 class="tl-empty__title">Invalid Actor Reference</h3>
             <p class="tl-empty__body">This actor kind and id cannot be parsed as a Threadline actor reference.</p>
             <div class="tl-empty__actions">
-              <.link patch={@base_path} class="tl-button tl-button--secondary">← Timeline</.link>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">← Timeline</.link>
             </div>
           </div>
         <% else %>
           <div class="tl-transaction">
             <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
-              <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
+              <a href={"#{@base_path}/timeline"} class="tl-link tl-link--back">← Timeline</a>
               <span>Actor</span>
             </nav>
             <div class="tl-page__header">

@@ -29,9 +29,13 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit");
     await expect(page.getByTestId("operator-header")).toBeVisible();
+    await capture(page, testInfo, "admin-home");
+
+    await page.goto("/audit/timeline");
+    await expect(page.getByTestId("operator-header")).toBeVisible();
     await capture(page, testInfo, "admin-timeline-default");
 
-    await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
+    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`);
     await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
     await expect(page.getByTestId("timeline-row").filter({ hasText: "tickets" }).first()).toBeVisible();
     await capture(page, testInfo, "admin-timeline-correlation");
@@ -51,7 +55,7 @@ test.describe("operator surface screenshots", () => {
     await expect(page.getByText("[REDACTED]")).toBeVisible();
     await capture(page, testInfo, "admin-row-history");
 
-    await page.goto("/audit?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
+    await page.goto("/audit/timeline?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
     await expect(page.getByTestId("timeline-row").filter({ hasText: "DELETE" }).first()).toBeVisible();
     await capture(page, testInfo, "admin-delete-4518-timeline");
 
@@ -90,18 +94,18 @@ test.describe("operator surface screenshots", () => {
   test("empty and denied states", async ({ page }, testInfo) => {
     await login(page);
 
-    await page.goto("/audit?correlation_id=no-such-correlation");
+    await page.goto("/audit/timeline?correlation_id=no-such-correlation");
     await expect(page.getByText("No changes match")).toBeVisible();
     await capture(page, testInfo, "admin-timeline-empty");
 
-    await page.goto("/audit?from=not-a-date");
+    await page.goto("/audit/timeline?from=not-a-date");
     await expect(page.locator("[role='alert']").first()).toBeVisible();
     await capture(page, testInfo, "admin-timeline-invalid-filter");
 
     await page.context().clearCookies();
     await login(page, supportEmail);
 
-    await page.goto("/audit");
+    await page.goto("/audit/timeline");
     await expect(page.getByTestId("timeline-row").first()).toBeVisible();
     await capture(page, testInfo, "support-acme-timeline");
 

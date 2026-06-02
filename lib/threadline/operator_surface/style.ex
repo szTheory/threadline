@@ -20,54 +20,73 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-space-10: 40px;
           --tl-space-12: 48px;
 
-          --tl-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          --tl-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          --tl-font-family: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          --tl-font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
           --tl-font-size-xs: 11px;
           --tl-font-size-sm: 12px;
           --tl-font-size-body: 14px;
           --tl-font-size-label: 12px;
           --tl-font-size-ui: 13px;
           --tl-font-size-heading: 18px;
-          --tl-font-size-title: 20px;
+          --tl-font-size-title: 22px;
+          --tl-font-size-display: 28px;
           --tl-line-body: 1.5;
           --tl-line-label: 1.4;
           --tl-line-heading: 1.2;
+          --tl-line-display: 1.15;
           --tl-weight-regular: 400;
+          --tl-weight-medium: 500;
           --tl-weight-strong: 600;
 
-          --tl-color-bg: #FFFFFF;
-          --tl-color-surface: #F9FAFB;
-          --tl-color-surface-raised: #FFFFFF;
-          --tl-color-surface-tint: rgba(255, 255, 255, 0.96);
-          --tl-color-surface-tint-strong: rgba(255, 255, 255, 0.98);
-          --tl-color-backdrop: rgba(17, 24, 39, 0.18);
-          --tl-color-border: #E5E7EB;
-          --tl-color-border-strong: #D1D5DB;
-          --tl-color-text: #111827;
-          --tl-color-muted: #6B7280;
-          --tl-color-accent: #3B82F6;
-          --tl-color-accent-strong: #2563EB;
-          --tl-color-danger: #EF4444;
-          --tl-color-danger-bg: rgba(239, 68, 68, 0.07);
-          --tl-color-warning-bg: #FEF3C7;
-          --tl-color-warning-text: #92400E;
-          --tl-color-warning-border: #F59E0B;
-          --tl-color-success-bg: #ECFDF5;
-          --tl-color-success-text: #047857;
-          --tl-color-success-border: rgba(4, 120, 87, 0.24);
-          --tl-color-info-bg: rgba(59, 130, 246, 0.08);
-          --tl-color-info-text: #2563EB;
-          --tl-color-info-border: rgba(59, 130, 246, 0.25);
-          --tl-color-neutral-bg: #F9FAFB;
-          --tl-color-neutral-text: #4B5563;
-          --tl-color-neutral-border: #E5E7EB;
-          --tl-color-op-insert-bg: #ECFDF5;
-          --tl-color-op-insert-text: #047857;
-          --tl-color-op-update-bg: #EFF6FF;
-          --tl-color-op-update-text: #2563EB;
-          --tl-color-op-delete-bg: #FEF2F2;
-          --tl-color-op-delete-text: #DC2626;
-          --tl-color-brand-rail: #0F172A;
+          /* Brand: "night infrastructure with luminous signal lines" (Brand Book §10). */
+          --tl-color-bg: #0B1020;
+          /* Threadline Black */
+          --tl-color-surface: #141B2D;
+          /* Graphite */
+          --tl-color-surface-raised: #1A2336;
+          --tl-color-surface-tint: rgba(20, 27, 45, 0.92);
+          --tl-color-surface-tint-strong: rgba(11, 16, 32, 0.96);
+          --tl-color-backdrop: rgba(2, 4, 10, 0.62);
+          --tl-color-border: #23304A;
+          /* Slate Line */
+          --tl-color-border-strong: #2E3D5C;
+          --tl-color-text: #D7DEEA;
+          /* Fog */
+          --tl-color-muted: #8B98B0;
+          /* Steel, lifted for AA on dark */
+          --tl-color-accent: #4F8CFF;
+          /* Thread Blue */
+          --tl-color-accent-strong: #6FA1FF;
+          --tl-color-accent-soft: rgba(79, 140, 255, 0.14);
+          --tl-color-on-accent: #08101F;
+          /* Dark ink for AA contrast on luminous accents */
+          --tl-color-signal: #4EDFD1;
+          /* Signal Cyan — correlation, live traces, positive system flow */
+          --tl-color-signal-bg: rgba(78, 223, 209, 0.12);
+          --tl-color-signal-border: rgba(78, 223, 209, 0.30);
+          --tl-color-ink: #0F1728;
+          --tl-color-paper: #F7F9FC;
+          --tl-color-danger: #F06A6A;
+          --tl-color-danger-bg: rgba(240, 106, 106, 0.13);
+          --tl-color-warning-bg: rgba(243, 185, 76, 0.13);
+          --tl-color-warning-text: #F3B94C;
+          --tl-color-warning-border: rgba(243, 185, 76, 0.34);
+          --tl-color-success-bg: rgba(63, 208, 143, 0.13);
+          --tl-color-success-text: #3FD08F;
+          --tl-color-success-border: rgba(63, 208, 143, 0.32);
+          --tl-color-info-bg: rgba(79, 140, 255, 0.13);
+          --tl-color-info-text: #7FA9FF;
+          --tl-color-info-border: rgba(79, 140, 255, 0.32);
+          --tl-color-neutral-bg: rgba(115, 129, 156, 0.12);
+          --tl-color-neutral-text: #A3AFC2;
+          --tl-color-neutral-border: #2E3D5C;
+          --tl-color-op-insert-bg: rgba(63, 208, 143, 0.13);
+          --tl-color-op-insert-text: #3FD08F;
+          --tl-color-op-update-bg: rgba(79, 140, 255, 0.13);
+          --tl-color-op-update-text: #7FA9FF;
+          --tl-color-op-delete-bg: rgba(240, 106, 106, 0.13);
+          --tl-color-op-delete-text: #F06A6A;
+          --tl-color-brand-rail: #0B1020;
 
           --tl-radius-xs: 3px;
           --tl-radius-sm: 4px;
@@ -76,12 +95,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-radius-xl: 12px;
           --tl-radius-pill: 999px;
           --tl-shadow-border: inset 0 0 0 1px var(--tl-color-border);
-          --tl-shadow-subtle: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
-          --tl-shadow-popover: 0 8px 24px rgba(17, 24, 39, 0.08);
-          --tl-shadow-raised: 0 8px 24px rgba(17, 24, 39, 0.08);
+          --tl-shadow-subtle: 0 1px 2px rgba(2, 4, 10, 0.45), 0 1px 3px rgba(2, 4, 10, 0.30);
+          --tl-shadow-popover: 0 10px 28px rgba(2, 4, 10, 0.55);
+          --tl-shadow-raised: 0 18px 48px rgba(2, 4, 10, 0.66);
+          --tl-z-base: 0;
           --tl-z-toolbar: 20;
           --tl-z-header: 30;
+          --tl-z-popover: 40;
           --tl-z-subview: 50;
+          --tl-z-toast: 60;
           --tl-header-height: 44px;
           --tl-header-height-mobile: 52px;
           --tl-control-height: 40px;
@@ -97,13 +119,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-viewport-max-height: 600px;
           --tl-muted-bg: var(--tl-color-surface);
           --tl-hit-area: 40px;
-          --tl-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.22);
+          --tl-focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.38);
+          --tl-gap-inline: var(--tl-space-2);
+          --tl-gap-stack: var(--tl-space-4);
+          --tl-pad-control: var(--tl-space-3);
+          --tl-pad-panel: var(--tl-space-4);
+          --tl-pad-page: var(--tl-space-6);
           --tl-motion-fast: 120ms;
           --tl-motion-base: 180ms;
+          --tl-motion-slow: 240ms;
+          --tl-motion-distance-sm: 8px;
+          --tl-motion-distance-md: 16px;
+          --tl-motion-stagger: 40ms;
           --tl-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+          --tl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
           --tl-transition-fast: var(--tl-motion-fast) var(--tl-ease-standard);
 
           min-height: 100%;
+          color-scheme: dark;
           font-family: var(--tl-font-family);
           font-size: var(--tl-font-size-body);
           line-height: var(--tl-line-body);
@@ -237,27 +270,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-transform: uppercase;
         }
 
-        .tl-topbar__nav-item {
+        /* `.tl-topbar` prefix raises specificity above the scoped `.threadline-ui a`
+           link color so inactive nav items read as muted tabs, not active links. */
+        .tl-topbar .tl-topbar__nav-item {
           display: inline-flex;
           align-items: center;
           min-height: 32px;
           padding: var(--tl-space-1) var(--tl-space-3);
           border-radius: var(--tl-radius-md);
           color: var(--tl-color-muted);
-          font-weight: var(--tl-weight-strong);
+          font-weight: var(--tl-weight-medium);
           text-decoration: none;
           white-space: nowrap;
+          transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast);
         }
 
-        .tl-topbar__nav-item:hover {
+        .tl-topbar .tl-topbar__nav-item:hover {
           background: var(--tl-color-surface);
           color: var(--tl-color-text);
           text-decoration: none;
         }
 
-        .tl-topbar__nav-item--active {
-          background: rgba(59, 130, 246, 0.09);
+        .tl-topbar .tl-topbar__nav-item--active {
+          background: var(--tl-color-accent-soft);
           color: var(--tl-color-accent-strong);
+          font-weight: var(--tl-weight-strong);
           box-shadow: inset 0 0 0 1px var(--tl-color-info-border);
         }
 
@@ -287,6 +324,148 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-page--intro {
           padding-bottom: 0;
+        }
+
+        /* Operator Home — task launcher (surface root). */
+        .tl-home {
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+
+        .tl-home__hero {
+          padding: var(--tl-space-10) 0 var(--tl-space-6);
+        }
+
+        .tl-home__eyebrow {
+          margin: 0 0 var(--tl-space-2);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--tl-color-signal);
+        }
+
+        .tl-home__headline {
+          margin: 0;
+          font-size: var(--tl-font-size-display);
+          line-height: var(--tl-line-display);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: -0.01em;
+          color: var(--tl-color-text);
+        }
+
+        .tl-home__lede {
+          margin: var(--tl-space-3) 0 0;
+          max-width: 60ch;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-body);
+          line-height: var(--tl-line-body);
+        }
+
+        .tl-home__health {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          margin: var(--tl-space-5) 0 0;
+        }
+
+        .tl-home__health-label {
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--tl-color-muted);
+        }
+
+        .tl-home__cards {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--tl-space-4);
+        }
+
+        .tl-home__card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--tl-space-3);
+          padding: var(--tl-space-6);
+          background: var(--tl-color-surface);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          box-shadow: var(--tl-shadow-subtle);
+          animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
+        }
+
+        .tl-home__cards > .tl-home__card:nth-child(2) {
+          animation-delay: var(--tl-motion-stagger);
+        }
+
+        .tl-home__cards > .tl-home__card:nth-child(3) {
+          animation-delay: calc(var(--tl-motion-stagger) * 2);
+        }
+
+        .tl-home__card--primary {
+          position: relative;
+          overflow: hidden;
+          grid-column: 1 / -1;
+          background:
+            linear-gradient(180deg, rgba(79, 140, 255, 0.07), rgba(79, 140, 255, 0) 64%),
+            var(--tl-color-surface-raised);
+          border-color: var(--tl-color-border-strong);
+        }
+
+        /* Signature: a Signal-Cyan "thread" draws across the top of the front door. */
+        .tl-home__card--primary::before {
+          content: "";
+          position: absolute;
+          inset: 0 0 auto 0;
+          height: 2px;
+          background: linear-gradient(90deg, var(--tl-color-signal), transparent 80%);
+          transform: scaleX(0);
+          transform-origin: left center;
+          animation: tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both;
+        }
+
+        .tl-home__card-kicker {
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--tl-color-signal);
+        }
+
+        .tl-home__card-title {
+          margin: 0;
+          font-size: var(--tl-font-size-title);
+          line-height: var(--tl-line-heading);
+          font-weight: var(--tl-weight-medium);
+          color: var(--tl-color-text);
+        }
+
+        .tl-home__card-body {
+          margin: 0;
+          max-width: 58ch;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-ui);
+          line-height: var(--tl-line-body);
+        }
+
+        .tl-home__card > .tl-button,
+        .tl-home__card-links {
+          margin-top: auto;
+        }
+
+        .tl-home__card-links {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--tl-space-2);
         }
 
         .tl-page__header {
@@ -414,7 +593,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-4);
           background: var(--tl-color-surface-tint-strong);
           border-bottom: 1px solid var(--tl-color-border);
-          box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+          box-shadow: 0 1px 0 rgba(2, 4, 10, 0.30);
           backdrop-filter: blur(8px);
         }
 
@@ -555,6 +734,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transform: translateY(1px);
         }
 
+        .tl-button:disabled,
+        .tl-button[disabled],
+        .tl-button[aria-disabled="true"] {
+          opacity: 0.5;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
+        }
+
+        .tl-button:disabled:hover,
+        .tl-button[disabled]:hover {
+          box-shadow: none;
+        }
+
+        /* LiveView adds these in-flight (phx-disable-with / submitting). */
+        .tl-button.phx-submit-loading,
+        .tl-button.phx-click-loading,
+        .tl-button[aria-busy="true"] {
+          opacity: 0.7;
+          cursor: progress;
+        }
+
         .tl-button--compact {
           min-height: var(--tl-control-height-compact);
           padding: var(--tl-space-1) var(--tl-space-3);
@@ -569,17 +770,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-button--primary {
           background: var(--tl-color-accent);
           border-color: var(--tl-color-accent);
-          color: #FFFFFF;
+          color: var(--tl-color-on-accent);
         }
 
         .threadline-ui a.tl-button--primary {
-          color: #FFFFFF;
+          color: var(--tl-color-on-accent);
         }
 
         .tl-button--primary:hover {
           background: var(--tl-color-accent-strong);
           border-color: var(--tl-color-accent-strong);
-          color: #FFFFFF;
+          color: var(--tl-color-on-accent);
         }
 
         .tl-button--secondary {
@@ -600,7 +801,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-button--primary.tl-button--danger {
           background: var(--tl-color-danger);
           border-color: var(--tl-color-danger);
-          color: #FFFFFF;
+          color: var(--tl-color-on-accent);
         }
 
         .tl-button--icon {
@@ -664,7 +865,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-chip--danger {
-          border-color: rgba(239, 68, 68, 0.28);
+          border-color: var(--tl-color-danger);
           background: var(--tl-color-danger-bg);
           color: var(--tl-color-danger);
         }
@@ -811,12 +1012,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-change-list {
           display: block;
+          background: var(--tl-color-surface);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          overflow: hidden;
+          box-shadow: var(--tl-shadow-subtle);
         }
 
         .tl-change {
           padding: var(--tl-space-4);
           border-bottom: 1px solid var(--tl-color-border);
-          background: var(--tl-color-surface-raised);
+          background: transparent;
           box-shadow: inset 3px 0 0 transparent;
           transition-property: background-color, box-shadow;
           transition-duration: var(--tl-transition-fast);
@@ -827,7 +1033,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-change:hover {
-          background: var(--tl-color-surface);
+          background: var(--tl-color-surface-raised);
         }
 
         .tl-change--insert {
@@ -1397,6 +1603,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
         }
 
+        @keyframes tl-rise-in {
+          from {
+            opacity: 0;
+            transform: translateY(var(--tl-motion-distance-sm));
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes tl-thread-draw {
+          to {
+            transform: scaleX(1);
+          }
+        }
+
         .tl-subview__panel {
           min-width: 0;
         }
@@ -1680,6 +1903,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         @media (max-width: 720px) {
           .tl-page {
             padding: var(--tl-space-3);
+          }
+
+          .tl-home__hero {
+            padding: var(--tl-space-6) 0 var(--tl-space-4);
+          }
+
+          .tl-home__cards {
+            grid-template-columns: 1fr;
+          }
+
+          .tl-home__card {
+            padding: var(--tl-space-5);
           }
 
           .tl-orientation {

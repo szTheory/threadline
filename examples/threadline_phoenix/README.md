@@ -173,7 +173,8 @@ Sign in as **`admin@example.com`** / **`password123456`**, then open:
 
 | Surface | URL |
 |---------|-----|
-| Timeline + correlation filter | `http://localhost:4000/audit?correlation_id=walk-acme-4521-close` |
+| Operator home (start here) | `http://localhost:4000/audit` |
+| Timeline + correlation filter | `http://localhost:4000/audit/timeline?correlation_id=walk-acme-4521-close` |
 | Evidence plane | `http://localhost:4000/audit/evidence` |
 | Redaction policy drift | `http://localhost:4000/audit/policy/redaction` |
 | Trigger coverage | `http://localhost:4000/audit/coverage` |

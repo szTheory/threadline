@@ -99,13 +99,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <h3 class="tl-empty__title">Transaction not found</h3>
             <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
             <div class="tl-empty__actions">
-              <a href={@base_path} class="tl-button tl-button--secondary">Back to Timeline</a>
+              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">Back to Timeline</a>
             </div>
           </div>
         <% else %>
           <div class="tl-transaction">
             <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
-              <a href={@base_path} class="tl-link tl-link--back">Timeline</a>
+              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">Timeline</a>
               <span>Transaction</span>
             </nav>
             <div class="tl-page__header">
@@ -268,7 +268,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp transaction_correlation_id_raw(_), do: nil
 
     defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
-      "#{base_path}?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
+      "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
     end
 
     defp timeline_correlation_path(base_path, _correlation_id), do: base_path

@@ -68,7 +68,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-trust-rail__label">Redaction assurance</span>
               <span class="tl-chip tl-chip--warning">Drift blocks trust</span>
               <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</a>
-              <a :if={@base_path} href={"#{@base_path}"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+              <a :if={@base_path} href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
             </section>
 
             <section class="tl-summary-grid" aria-label="Redaction drift summary">
@@ -209,7 +209,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp deployed_placeholder_label(%{mask_placeholder: placeholder}), do: placeholder
 
     defp timeline_table_path(base_path, table) do
-      "#{base_path}?#{URI.encode_query(%{"table" => table})}"
+      "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
     end
   end
 end

@@ -29,14 +29,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <header class="tl-topbar" data-testid="operator-header">
         <a class="tl-topbar__brand" href={@base_path || "#"}>Threadline</a>
         <nav class="tl-topbar__nav" aria-label="Operator surface">
-          <div class="tl-topbar__nav-group" aria-label="Investigate">
-            <span class="tl-topbar__nav-label">Investigate</span>
-            <.nav_link href={@base_path} current={@current} page={:timeline}>Timeline</.nav_link>
+          <div class="tl-topbar__nav-group" aria-label="Find">
+            <span class="tl-topbar__nav-label">Find</span>
+            <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
           </div>
-          <div class="tl-topbar__nav-group" aria-label="Assure">
-            <span class="tl-topbar__nav-label">Assure</span>
+          <div :if={@coverage_enabled} class="tl-topbar__nav-group" aria-label="Verify">
+            <span class="tl-topbar__nav-label">Verify</span>
+            <.nav_link href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
+          </div>
+          <div
+            :if={@evidence_enabled or @policy_enabled or @exports_enabled}
+            class="tl-topbar__nav-group"
+            aria-label="Prove"
+          >
+            <span class="tl-topbar__nav-label">Prove</span>
             <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
-            <.nav_link :if={@coverage_enabled} href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
@@ -77,6 +84,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       </a>
       """
     end
+
+    defp timeline_path(base_path) when is_binary(base_path), do: "#{base_path}/timeline"
+    defp timeline_path(_), do: "#"
 
     defp seconds_ago(%{last_checked_at: %DateTime{} = ts}) do
       DateTime.diff(DateTime.utc_now(), ts, :second)

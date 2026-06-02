@@ -8,13 +8,23 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   @transaction_lv_path "lib/threadline/operator_surface/live/transaction_live.ex"
   @actor_lv_path "lib/threadline/operator_surface/live/actor_live.ex"
 
-  # --- BROWSE-04: route literal ---
+  # --- BROWSE-04: route literals ---
+  # The Operator Home (StartLive) is the surface root; the timeline browse view
+  # moved to "<surface>/timeline" so the default landing orients the operator
+  # (GDS task launcher) instead of assuming every visitor wants the timeline.
 
-  test "router declares the timeline browse live route at the surface root" do
+  test "router declares the Operator Home at the surface root" do
     router_src = File.read!(@router_path)
 
-    assert String.contains?(router_src, ~s|live("/", TimelineLive, :index)|),
-           "expected #{@router_path} to declare `live(\"/\", TimelineLive, :index)` inside the live_session :threadline scope"
+    assert String.contains?(router_src, ~s|live("/", StartLive, :index)|),
+           "expected #{@router_path} to declare `live(\"/\", StartLive, :index)` inside the live_session :threadline scope"
+  end
+
+  test "router declares the timeline browse live route at /timeline" do
+    router_src = File.read!(@router_path)
+
+    assert String.contains?(router_src, ~s|live("/timeline", TimelineLive, :index)|),
+           "expected #{@router_path} to declare `live(\"/timeline\", TimelineLive, :index)` inside the live_session :threadline scope"
   end
 
   # --- BROWSE-04: ARIA labels ---

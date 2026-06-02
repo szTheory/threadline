@@ -63,6 +63,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:form_error, nil)
         |> assign(:unknown_table_attempted, false)
         |> assign(:base_path, nil)
+        |> assign(:timeline_path, nil)
         |> assign(:match_count, 0)
         |> assign(:filter_query, "")
 
@@ -75,8 +76,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
-      base_path = uri_parsed.path
-      socket = assign(socket, :base_path, base_path)
+      # Timeline is mounted at "<surface>/timeline"; strip the suffix so base_path
+      # stays the surface root for cross-surface links (exports, coverage, actors,
+      # transactions). timeline_path is the timeline's own path for self-patches.
+      timeline_path = uri_parsed.path
+      base_path = (timeline_path || "") |> String.replace_suffix("/timeline", "")
+
+      socket =
+        socket
+        |> assign(:base_path, base_path)
+        |> assign(:timeline_path, timeline_path)
 
       if params == %{} do
         from = DateTime.utc_now() |> DateTime.add(-@default_window_hours * 3600, :second)
@@ -88,7 +97,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {"to", DateTime.to_iso8601(to) |> String.slice(0..15)}
           ])
 
-        {:noreply, push_patch(socket, to: "#{base_path}?#{query_string}", replace: true)}
+        {:noreply, push_patch(socket, to: "#{timeline_path}?#{query_string}", replace: true)}
       else
         socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
 
@@ -204,7 +213,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         view ->
           query = build_canonical_query(view.filters)
-          {:noreply, push_patch(socket, to: "#{socket.assigns.base_path}?#{query}")}
+          {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
       end
     end
 
@@ -222,11 +231,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("apply", %{"filter" => raw}, socket) do
       query = build_canonical_query(raw)
-      {:noreply, push_patch(socket, to: "#{socket.assigns.base_path}?#{query}")}
+      {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
     end
 
     def handle_event("apply", _params, socket) do
-      {:noreply, push_patch(socket, to: socket.assigns.base_path)}
+      {:noreply, push_patch(socket, to: socket.assigns.timeline_path)}
     end
 
     def handle_event("request_background_export", _params, socket) do
@@ -403,7 +412,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </label>
             <div class="tl-toolbar__actions">
               <div class="tl-action-group">
-                <.link patch={@base_path} class="tl-button tl-button--ghost">Clear all</.link>
+                <.link patch={@timeline_path} class="tl-button tl-button--ghost">Clear all</.link>
                 <button type="submit" class="tl-button tl-button--primary">Apply</button>
               </div>
               <%= if @threadline_exports_enabled do %>
@@ -484,7 +493,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </span>
                 <span :if={correlation_id(change)}>
                   Correlation
-                  <a href={correlation_path(@base_path, correlation_id(change))} class="tl-link tl-link--deep">
+                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep">
                     <code><%= correlation_id(change) %></code>
                   </a>
                 </span>
@@ -500,7 +509,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h3 class="tl-empty__title">No changes match</h3>
           <p class="tl-empty__body">No captured audit changes match these filters in the selected window.</p>
           <div class="tl-empty__actions">
-            <.link patch={@base_path} class="tl-button tl-button--secondary">Clear filters</.link>
+            <.link patch={@timeline_path} class="tl-button tl-button--secondary">Clear filters</.link>
           </div>
         </div>
       </div>
