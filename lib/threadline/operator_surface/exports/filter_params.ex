@@ -90,6 +90,32 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
     end
   end
 
+  # Canonical key order for query-string rendering. Shared by TimelineLive
+  # (self-patches, saved-view apply) and StartLive (Home recent/saved fast-path)
+  # so every surface produces byte-identical timeline URLs from a raw filter map.
+  @canonical_key_order ~w(from to table actor_kind actor_id correlation_id)
+
+  @doc """
+  Builds the canonical, deterministically-ordered query string for a string-keyed
+  raw filter map (the shape stored on `SavedView.filters` and produced by the
+  timeline filter form). Drops blank values, applies the `actor_kind=anonymous`
+  strip-id normalization, and orders keys by `@canonical_key_order` so two equal
+  filter sets always encode to the same string.
+  """
+  @spec canonical_query(map()) :: String.t()
+  def canonical_query(%{} = raw) do
+    raw
+    |> normalize_anonymous()
+    |> Enum.filter(fn {k, v} -> k in @canonical_key_order and is_binary(v) and v != "" end)
+    |> Enum.sort_by(fn {k, _v} -> Enum.find_index(@canonical_key_order, &(&1 == k)) end)
+    |> URI.encode_query()
+  end
+
+  defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw),
+    do: Map.delete(raw, "actor_id")
+
+  defp normalize_anonymous(raw), do: raw
+
   # ---- Private helpers (lifted verbatim from timeline_live.ex:282-393) ----
 
   defp normalize_params(params) do

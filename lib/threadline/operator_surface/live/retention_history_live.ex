@@ -99,8 +99,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <section class="tl-trust-rail" aria-label="Retention context">
               <span class="tl-trust-rail__label">Retention assurance</span>
               <span class="tl-chip tl-chip--warning">Permanent deletion</span>
-              <a :if={@threadline_evidence_enabled and @base_path} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">View evidence</a>
-              <a :if={@base_path} href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Review evidence</.link>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
             </section>
 
             <%= if not @has_runs do %>
@@ -124,9 +124,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </section>
 
-              <div class="tl-alert tl-alert--warning" role="status">
-                Review the latest status and failure count before running another prune. Retention deletes older audit records permanently.
-              </div>
+              <%= if @runs_summary.healthy? do %>
+                <div class="tl-alert tl-alert--success" role="status">
+                  Latest run succeeded<%= if @runs_summary.latest_at do %> <%= Presentation.human_time(@runs_summary.latest_at) %><% end %> — retention is healthy. Pruning permanently deletes older audit records, so review before running another.
+                </div>
+              <% else %>
+                <div class="tl-alert tl-alert--warning" role="status">
+                  Review the latest status and failure count before running another prune. Retention deletes older audit records permanently.
+                </div>
+              <% end %>
 
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
@@ -154,7 +160,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% end %>
                       </td>
                       <td data-label="Actions" class="tl-table__actions">
-                        <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Evidence</a>
+                        <.link :if={@threadline_evidence_enabled} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Review evidence</.link>
                       </td>
                     </tr>
                   </tbody>
@@ -212,15 +218,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp summarize_runs([run | _] = runs) do
+      failure_count = Enum.count(runs, &(&1.status == "failed"))
+
       %{
         latest_status: Presentation.status_label(run.status),
+        latest_at: run.started_at,
+        healthy?: failure_count == 0 and run.status == "completed",
         total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
-        failure_count: Enum.count(runs, &(&1.status == "failed"))
+        failure_count: failure_count
       }
     end
 
     defp summarize_runs(_) do
-      %{latest_status: "None", total_deleted: 0, failure_count: 0}
+      %{
+        latest_status: "None",
+        latest_at: nil,
+        healthy?: false,
+        total_deleted: 0,
+        failure_count: 0
+      }
     end
   end
 end

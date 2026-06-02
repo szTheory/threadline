@@ -7,6 +7,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.RetentionRun
+    alias Threadline.Governance.SavedView
+    alias Threadline.OperatorSurface.Exports.FilterParams
 
     # ------------------------------------------------------------------
     # Operator Home — the orienting landing page (surface root).
@@ -30,7 +32,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        socket
        |> assign(:base_path, nil)
        |> assign(:health, [])
-       |> assign(:health_enabled, false)}
+       |> assign(:health_enabled, false)
+       |> assign(:saved_views, [])}
     end
 
     def handle_params(_params, uri, socket) do
@@ -41,7 +44,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        socket
        |> assign(:base_path, base_path)
        |> assign(:health, health_warnings(socket))
-       |> assign(:health_enabled, any_subsystem_enabled?(socket))}
+       |> assign(:health_enabled, any_subsystem_enabled?(socket))
+       |> assign(:saved_views, fetch_saved_views(socket))}
     end
 
     def render(assigns) do
@@ -127,6 +131,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </li>
           </ul>
+
+          <section :if={@saved_views != []} class="tl-home__resume" aria-label="Saved searches">
+            <h2 class="tl-home__section-title">Pick up where you left off</h2>
+            <p class="tl-home__section-lede">Reopen a saved timeline search.</p>
+            <ul class="tl-home__views">
+              <li :for={view <- @saved_views}>
+                <.link navigate={saved_view_path(@base_path, view)} class="tl-chip tl-chip--accent tl-home__view">
+                  <%= view.name %>
+                </.link>
+              </li>
+            </ul>
+          </section>
         </main>
       </div>
       """
@@ -211,6 +227,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp resolve_repo(socket) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
+    end
+
+    # ------------------------------------------------------------------
+    # Recent/saved fast-path (A4) — returning operators skip re-filtering.
+    # Read-only and fail-safe: any error degrades to "no saved views".
+    # ------------------------------------------------------------------
+
+    defp fetch_saved_views(socket) do
+      actor_ref = socket.assigns[:threadline_actor_ref]
+      repo = resolve_repo(socket)
+
+      if actor_ref && repo do
+        try do
+          repo.all(
+            from(v in SavedView,
+              where: v.actor_ref == ^actor_ref,
+              order_by: [desc: v.inserted_at],
+              limit: 6
+            )
+          )
+        rescue
+          _ -> []
+        end
+      else
+        []
+      end
+    end
+
+    defp saved_view_path(base_path, view) do
+      case FilterParams.canonical_query(view.filters || %{}) do
+        "" -> "#{base_path}/timeline"
+        query -> "#{base_path}/timeline?#{query}"
+      end
     end
   end
 end

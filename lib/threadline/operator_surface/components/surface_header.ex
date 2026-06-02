@@ -23,6 +23,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:evidence_enabled, :boolean, default: false)
     attr(:exports_enabled, :boolean, default: false)
     attr(:current, :atom, default: nil)
+    attr(:scoped, :boolean, default: false)
 
     def surface_header(assigns) do
       ~H"""
@@ -50,6 +51,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         </nav>
         <div class="tl-topbar__status">
+        <span
+          :if={@scoped}
+          class="tl-chip tl-chip--info"
+          data-testid="operator-scope"
+          title="Results are limited to the records you are authorized to see."
+        >Scoped view</span>
         <%= if @coverage_enabled do %>
           <%= if @coverage && @coverage.uncovered_count > 0 do %>
             <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>

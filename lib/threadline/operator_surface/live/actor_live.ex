@@ -90,6 +90,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
+          scoped={not is_nil(assigns[:threadline_scope])}
         />
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">

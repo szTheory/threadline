@@ -488,6 +488,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           gap: var(--tl-space-2);
         }
 
+        .tl-home__resume {
+          margin-top: var(--tl-space-6);
+          display: grid;
+          gap: var(--tl-space-1);
+        }
+
+        .tl-home__section-title {
+          margin: 0;
+          font-size: var(--tl-font-size-heading);
+          line-height: var(--tl-line-heading);
+          font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-home__section-lede {
+          margin: 0;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-ui);
+        }
+
+        .tl-home__views {
+          list-style: none;
+          margin: var(--tl-space-2) 0 0;
+          padding: 0;
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-home__view {
+          text-decoration: none;
+        }
+
         .tl-page__header {
           display: block;
           flex-wrap: wrap;
@@ -924,6 +956,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-warning-bg);
           color: var(--tl-color-warning-text);
           border-left: 3px solid var(--tl-color-warning-border);
+        }
+
+        .tl-alert--success {
+          background: var(--tl-color-success-bg);
+          color: var(--tl-color-success-text);
+          border-left: 3px solid var(--tl-color-success-border);
         }
 
         .tl-empty {

@@ -149,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
         assert html =~ "No Export Jobs"
-        assert html =~ "View Timeline"
+        assert html =~ "Open timeline"
       end
 
       test "displays existing jobs for the actor", %{conn: conn, actor_ref: actor_ref} do

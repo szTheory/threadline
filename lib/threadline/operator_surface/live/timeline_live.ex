@@ -10,7 +10,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Query
 
     @page_size 50
-    @filter_keys ~w(from to table actor_kind actor_id correlation_id)
     @default_window_hours 24
 
     # --------------------------------------------------------------------------
@@ -319,6 +318,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
+          scoped={not is_nil(assigns[:threadline_scope])}
         />
 
         <main class="tl-page tl-page--intro">
@@ -507,7 +507,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
              class="tl-empty">
           <h3 class="tl-empty__title">No changes match</h3>
-          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.</p>
+          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.<%= if not is_nil(assigns[:threadline_scope]) do %> Results are limited to the records you are authorized to see.<% end %></p>
           <div class="tl-empty__actions">
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">Clear filters</.link>
           </div>
@@ -653,13 +653,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp build_canonical_query(%{} = raw) do
-      raw
-      |> normalize_anonymous()
-      |> Enum.filter(fn {k, v} -> k in @filter_keys and is_binary(v) and v != "" end)
-      |> Enum.sort_by(fn {k, _v} -> Enum.find_index(@filter_keys, &(&1 == k)) end)
-      |> URI.encode_query()
-    end
+    defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
 
     defp background_export_error_message(:supervisor_not_started) do
       "Background export could not start because the built-in export runtime is unavailable."
@@ -678,10 +672,5 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> DateTime.truncate(:microsecond)
       |> DateTime.add(retention_ttl_hours * 60 * 60, :second)
     end
-
-    defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw),
-      do: Map.delete(raw, "actor_id")
-
-    defp normalize_anonymous(raw), do: raw
   end
 end
