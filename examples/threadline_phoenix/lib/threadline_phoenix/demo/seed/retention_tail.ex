@@ -134,8 +134,69 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
         repo: Repo
       )
 
+    record_verdict_spread!(retention_run_ref)
+
     :ok
   end
+
+  # D1 — make the evidence overview show all three verdicts and a real
+  # drill-down history. Inferred already comes from the posture subjects above
+  # (retention_policy / redaction_policy); here we add an explicit Proven and
+  # Unsupported (via detail.claim_assessment.status), plus two earlier states
+  # for the offboard run so its subject_ref history renders pending -> running
+  # -> completed. All recorded_at are epoch-relative for determinism.
+  defp record_verdict_spread!(retention_run_ref) do
+    now = Manifest.epoch()
+
+    {:ok, _} =
+      Evidence.record_export_delivery(
+        %{"export_id" => "acme-4521-close", "format" => "csv"},
+        %{
+          summary_status: "completed",
+          recorded_at: usec(DateTime.add(now, -18, :minute)),
+          detail: %{
+            "claim_assessment" => %{
+              "status" => "proven",
+              "reason" => "Export artifact written and checksum verified."
+            }
+          }
+        },
+        repo: Repo
+      )
+
+    {:ok, _} =
+      Evidence.record_export_delivery(
+        %{"export_id" => "expired-demo-export", "format" => "ndjson"},
+        %{
+          summary_status: "failed",
+          recorded_at: usec(DateTime.add(now, -10, :day)),
+          detail: %{
+            "claim_assessment" => %{
+              "status" => "unsupported",
+              "reason" => "Destination unreachable during the demo window; delivery unverifiable."
+            }
+          }
+        },
+        repo: Repo
+      )
+
+    for {status, days} <- [{"pending", -90}, {"running", -2}] do
+      {:ok, _} =
+        Evidence.record_retention_run(
+          retention_run_ref,
+          %{
+            summary_status: status,
+            recorded_at: usec(DateTime.add(now, days, :day)),
+            detail: %{"narrative" => "org Y offboard", "phase" => status}
+          },
+          repo: Repo
+        )
+    end
+
+    :ok
+  end
+
+  defp usec(%DateTime{} = dt), do: %{dt | microsecond: {0, 6}}
 
   defp trigger_coverage_detail(coverage) when is_list(coverage) do
     covered = Enum.count(coverage, &match?({:covered, _}, &1))

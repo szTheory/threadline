@@ -50,9 +50,18 @@ config :threadline, :trigger_capture,
     "ticket_replies" => [
       mask: ["internal_note_body", "body"],
       store_changed_from: true
+    ],
+    # `posts` has a deployed trigger with no redaction; an empty configured mask
+    # makes it a green "Deployed matches config" row on the redaction screen,
+    # so the e2e (MIX_ENV=test) shows a match alongside the ticket_replies drift.
+    "posts" => [
+      mask: []
     ]
   }
 
+# `audit_events` exists (migrations) but has no capture trigger, so listing it
+# as expected makes the coverage screen demonstrate a real "Needs capture" row
+# + a non-zero header badge (and matching trigger-coverage evidence) in the e2e.
 config :threadline, :verify_coverage,
   expected_tables: [
     "posts",
@@ -60,7 +69,8 @@ config :threadline, :verify_coverage,
     "org_memberships",
     "agents",
     "tickets",
-    "ticket_replies"
+    "ticket_replies",
+    "audit_events"
   ]
 
 # Sigra authentication

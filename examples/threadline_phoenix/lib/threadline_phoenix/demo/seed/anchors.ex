@@ -19,7 +19,43 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
     |> seed_acme_close()
     |> seed_acme_delete()
     |> seed_leaving_agent_window()
+    |> seed_active_agent_window()
     |> seed_globex_close_sample()
+  end
+
+  # D3 — a currently-active actor. ActorLive's default window keys off
+  # `DateTime.utc_now()` (not the demo epoch), so epoch-anchored actors render
+  # empty in the default 24h view. These closes are anchored wall-clock-recent
+  # so the default Actor view demonstrates a real trajectory. The row count and
+  # ops are fixed; only the timestamp base is "now" — deterministic for
+  # presence assertions. (Distinct from agent2, whose empty 30d window a
+  # screenshot pins — this uses the acme closer and ticket numbers 4700+.)
+  defp seed_active_agent_window(ctx) do
+    acme = Map.fetch!(ctx.orgs, :acme)
+    active_id = to_string(Map.fetch!(ctx.users, :closer).id)
+    active_agent = Repo.get_by!(Agent, organization_id: acme.id, user_id: active_id)
+
+    [1, 3, 6]
+    |> Enum.with_index()
+    |> Enum.reduce(ctx, fn {hours_ago, idx}, acc ->
+      ticket_number = 4700 + idx
+      ticket = upsert_ticket!(acme, ticket_number, active_agent, "open")
+
+      {:ok, tx_id} =
+        Repo.transaction(fn ->
+          Support.set_actor_guc!(active_id)
+
+          ticket
+          |> Ticket.changeset(%{status: "closed", closed_at: Manifest.epoch()})
+          |> Repo.update!()
+
+          Support.stamp_org_meta!(acme)
+          Support.current_audit_transaction_id!()
+        end)
+
+      ts = DateTime.utc_now() |> DateTime.add(-hours_ago, :hour)
+      Support.put_timestamp(acc, tx_id, ts)
+    end)
   end
 
   defp seed_acme_close(ctx) do

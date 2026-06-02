@@ -80,6 +80,12 @@ config :threadline, :trigger_capture,
     "ticket_replies" => [
       mask: ["internal_note_body", "body"],
       store_changed_from: true
+    ],
+    # `posts` has a deployed trigger with no redaction; configuring an empty
+    # mask makes it a green "Deployed matches config" row on the redaction
+    # screen, so the drift screen shows a match alongside the ticket_replies drift.
+    "posts" => [
+      mask: []
     ]
   }
 
