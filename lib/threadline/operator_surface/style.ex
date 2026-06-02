@@ -7,8 +7,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.Component
 
     def css(assigns) do
+      assigns =
+        assign(
+          assigns,
+          :fonts_html,
+          Phoenix.HTML.raw(font_face_style())
+        )
+
       ~H"""
-      <style>
+      {@fonts_html}<style>
         .threadline-ui {
           --tl-space-1: 4px;
           --tl-space-2: 8px;
@@ -2070,6 +2077,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
         }
 
+        /* Phone-width refinements (below the tablet 720px breakpoint). */
+        @media (max-width: 480px) {
+          .tl-page {
+            padding: var(--tl-space-2);
+          }
+
+          .tl-home__headline {
+            font-size: var(--tl-font-size-title);
+          }
+
+          /* Full hit-area on nav tabs for touch. */
+          .tl-topbar .tl-topbar__nav-item {
+            min-height: var(--tl-hit-area);
+          }
+
+          /* Stack filter fields full-width so they're tappable, not cramped. */
+          .tl-toolbar__field,
+          .tl-toolbar__control {
+            width: 100%;
+          }
+
+          .tl-toolbar__form {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          /* Action rows wrap instead of overflowing. */
+          .tl-page__actions,
+          .tl-action-group {
+            flex-wrap: wrap;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .threadline-ui *,
           .threadline-ui *::before,
@@ -2086,6 +2126,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
       </style>
       """
+    end
+
+    defp font_face_style do
+      case Threadline.OperatorSurface.Fonts.face_css() do
+        "" -> ""
+        css -> "<style>" <> css <> "</style>"
+      end
     end
   end
 end
