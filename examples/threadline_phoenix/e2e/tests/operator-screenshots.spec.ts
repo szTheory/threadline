@@ -4,6 +4,7 @@ const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const supportEmail = "support@acme.example.com";
 const correlation = "walk-acme-4521-close";
+const leavingAgentId = "33123cc4-da21-5674-b030-e168cee90521";
 
 async function login(page: Page, email = adminEmail) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
@@ -31,6 +32,7 @@ test.describe("operator surface screenshots", () => {
     await capture(page, testInfo, "admin-timeline-default");
 
     await page.goto(`/audit?correlation_id=${encodeURIComponent(correlation)}`);
+    await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
     await expect(page.getByTestId("timeline-row").filter({ hasText: "tickets" }).first()).toBeVisible();
     await capture(page, testInfo, "admin-timeline-correlation");
 
@@ -46,10 +48,22 @@ test.describe("operator surface screenshots", () => {
       .first()
       .click();
     await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+    await expect(page.getByText("[REDACTED]")).toBeVisible();
     await capture(page, testInfo, "admin-row-history");
+
+    await page.goto("/audit?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
+    await expect(page.getByTestId("timeline-row").filter({ hasText: "DELETE" }).first()).toBeVisible();
+    await capture(page, testInfo, "admin-delete-4518-timeline");
+
+    await page.goto(`/audit/actors/user/${leavingAgentId}`);
+    await page.getByRole("button", { name: "30d" }).click();
+    await expect(page.getByText(`Actor: user / ${leavingAgentId}`)).toBeVisible();
+    await expect(page.getByText("No events found in the selected time window.")).toBeVisible();
+    await capture(page, testInfo, "admin-actor-history-agent2");
 
     await page.goto("/audit/evidence");
     await expect(page.getByTestId("evidence-table").first()).toBeVisible();
+    await expect(page.getByText("walk-retention-offboarded-co")).toBeVisible();
     await capture(page, testInfo, "admin-evidence");
 
     await page.goto("/audit/coverage");
@@ -58,6 +72,7 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit/policy/redaction");
     await expect(page.getByTestId("policy-section").first()).toBeVisible();
+    await expect(page.getByText("Redaction assurance")).toBeVisible();
     await capture(page, testInfo, "admin-policy-redaction");
 
     await page.goto("/audit/policy/retention");
@@ -66,6 +81,9 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit/exports");
     await expect(page.getByText("Export Status")).toBeVisible();
+    await expect(page.getByText("Completed").first()).toBeVisible();
+    await expect(page.getByText("Failed").first()).toBeVisible();
+    await expect(page.getByText("Queued").first()).toBeVisible();
     await capture(page, testInfo, "admin-exports");
   });
 
@@ -82,6 +100,10 @@ test.describe("operator surface screenshots", () => {
 
     await page.context().clearCookies();
     await login(page, supportEmail);
+
+    await page.goto("/audit");
+    await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+    await capture(page, testInfo, "support-acme-timeline");
 
     await page.goto("/audit/evidence");
     await expect(page.getByText("Evidence view unavailable.")).toBeVisible();

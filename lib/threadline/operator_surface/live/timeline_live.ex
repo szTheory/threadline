@@ -313,12 +313,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
 
         <main class="tl-page tl-page--intro">
-          <section class="tl-orientation" aria-label="Investigation starting point">
+          <section class="tl-orientation tl-orientation--investigation" aria-label="Investigation starting point">
             <div class="tl-orientation__header">
               <div>
                 <h2 class="tl-orientation__title">Investigate audit activity</h2>
                 <p class="tl-orientation__lede">
-                  Start with a time window, table, actor, or correlation id, then open a transaction to see exactly what changed together.
+                  Start with a window, table, actor, or correlation id. Check readiness before treating results as exhaustive, then open a transaction to reconstruct what changed together.
                 </p>
               </div>
               <div class="tl-orientation__actions">
@@ -345,6 +345,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <strong><%= coverage_summary(assigns[:threadline_coverage]) %></strong>
               </div>
             </section>
+
+            <div class="tl-journey-rail" aria-label="Investigation journey">
+              <div class="tl-journey-step">
+                <span class="tl-journey-step__label">1. Find</span>
+                <span class="tl-journey-step__title">Filter the timeline</span>
+              </div>
+              <div class="tl-journey-step">
+                <span class="tl-journey-step__label">2. Explain</span>
+                <span class="tl-journey-step__title">Open transaction and row history</span>
+              </div>
+              <div class="tl-journey-step">
+                <span class="tl-journey-step__label">3. Package</span>
+                <span class="tl-journey-step__title">Export or pivot to evidence</span>
+              </div>
+            </div>
           </section>
         </main>
 
@@ -393,10 +408,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
               <%= if @threadline_exports_enabled do %>
                 <div class="tl-action-group tl-action-group--secondary" aria-label="Export actions">
-                  <button phx-click="request_background_export" type="button" class="tl-button tl-button--secondary">Queue export</button>
-                  <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--secondary">CSV</.link>
-                  <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--secondary">JSON</.link>
-                  <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--secondary">NDJSON</.link>
+                  <button phx-click="request_background_export" type="button" class="tl-button tl-button--quiet-primary">Queue export</button>
+                  <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">CSV</.link>
+                  <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">JSON</.link>
+                  <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">NDJSON</.link>
                 </div>
               <% end %>
             </div>
@@ -482,7 +497,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </section>
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
              class="tl-empty">
-          No changes match these filters in the selected window.
+          <h3 class="tl-empty__title">No changes match</h3>
+          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.</p>
+          <div class="tl-empty__actions">
+            <.link patch={@base_path} class="tl-button tl-button--secondary">Clear filters</.link>
+          </div>
         </div>
       </div>
       """

@@ -92,16 +92,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
-            <.link patch={@base_path} class="tl-link tl-link--back">← Timeline</.link>
-            <p class="tl-empty__body">Invalid Actor Reference</p>
+            <h3 class="tl-empty__title">Invalid Actor Reference</h3>
+            <p class="tl-empty__body">This actor kind and id cannot be parsed as a Threadline actor reference.</p>
+            <div class="tl-empty__actions">
+              <.link patch={@base_path} class="tl-button tl-button--secondary">← Timeline</.link>
+            </div>
           </div>
         <% else %>
           <div class="tl-transaction">
-            <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
+            <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
+              <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
+              <span>Actor</span>
+            </nav>
             <div class="tl-page__header">
               <div>
                 <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
-                <p class="tl-page__lede">Review transactions recorded for this actor, then open one transaction to inspect the row-level changes.</p>
+                <p class="tl-page__lede">Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</p>
               </div>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
                 <button type="button" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</button>
@@ -114,11 +120,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           <%= if not @has_ever_acted do %>
             <div class="tl-empty tl-empty--never">
+              <h3 class="tl-empty__title">No actor activity recorded</h3>
               <p class="tl-empty__body">This actor has never recorded any events.</p>
             </div>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
               <div class="tl-empty">
+                <h3 class="tl-empty__title">No events in this window</h3>
                 <p class="tl-empty__body">No events found in the selected time window.</p>
               </div>
             <% else %>

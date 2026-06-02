@@ -118,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <% end %>
                 </p>
               </div>
-              <a href="#" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</a>
+              <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</button>
             </header>
 
             <%= if @form_error do %>
@@ -132,7 +132,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
               <%= if all_empty?(@coverage_for_schema) do %>
                 <div class="tl-empty">
-                  No audited tables found for schema '<%= @schema_param %>'. Run mix threadline.gen.triggers to set up capture.
+                  <h3 class="tl-empty__title">No audited tables found</h3>
+                  <p class="tl-empty__body">
+                    No audited tables were found for schema '<%= @schema_param %>'. Run <code>mix threadline.gen.triggers</code> to set up capture.
+                  </p>
                 </div>
               <% else %>
                 <section class="tl-summary-grid" aria-label="Coverage summary">
@@ -156,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables</span>
                   </header>
                   <div class="tl-remediation__body">
-                    Missing triggers mean matching Timeline searches can be incomplete for these tables. Add capture before treating investigation results as exhaustive.
+                    Missing triggers mean matching Timeline searches can be incomplete for these tables. Add capture before treating investigation results as exhaustive, then return to Timeline and rerun the search.
                   </div>
                 </section>
 
@@ -188,7 +191,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="STATUS"><span class="tl-chip tl-chip--success">Captured</span></td>
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
-                            <a href={timeline_table_path(@base_path, table)} class="tl-link tl-link--deep">View activity</a>
+                            <a href={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">View activity</a>
                           </td>
                         </tr>
                       <% end %>

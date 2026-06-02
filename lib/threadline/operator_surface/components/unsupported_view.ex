@@ -35,9 +35,11 @@ if Code.ensure_loaded?(Phoenix.Component) do
           <strong><%= @fallback_label || "Try instead" %>:</strong>
           <code><%= @fallback_value %></code>
         </p>
-        <.link :if={@base_path} href={@base_path} class="tl-button tl-button--secondary">
-          Back to Timeline
-        </.link>
+        <div :if={@base_path} class="tl-empty__actions">
+          <.link href={@base_path} class="tl-button tl-button--secondary">
+            Back to Timeline
+          </.link>
+        </div>
       </div>
       """
     end

@@ -60,9 +60,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <header class="tl-page__header">
               <div>
               <h2 class="tl-page__title">Policy redaction drift</h2>
-              <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy.</p>
+              <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</p>
               </div>
             </header>
+
+            <section class="tl-trust-rail" aria-label="Redaction workflow">
+              <span class="tl-trust-rail__label">Redaction assurance</span>
+              <span class="tl-chip tl-chip--warning">Drift blocks trust</span>
+              <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</a>
+              <a :if={@base_path} href={"#{@base_path}"} class="tl-button tl-button--compact tl-button--ghost">Timeline</a>
+            </section>
 
             <section class="tl-summary-grid" aria-label="Redaction drift summary">
               <div class="tl-summary-card tl-summary-card--danger">
@@ -105,14 +112,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             <p class="tl-policy__warning"><%= row.warning %></p>
                           <% end %>
                           <div class="tl-policy__summary-actions">
-                            <a href={timeline_table_path(@base_path, row.table)} class="tl-link tl-link--deep">View table activity</a>
-                            <a href={"#{@base_path}/coverage"} class="tl-link tl-link--deep">Check coverage</a>
+                            <a href={timeline_table_path(@base_path, row.table)} class="tl-button tl-button--compact tl-button--secondary">View table activity</a>
+                            <a href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">Check coverage</a>
                           </div>
                         </summary>
 
                         <div class="tl-policy__details">
                           <div class="tl-table-wrap">
-                            <table class="tl-table tl-table--policy">
+                            <table class="tl-table tl-table--policy tl-table--responsive">
                               <thead>
                                 <tr>
                                   <th></th>
@@ -123,18 +130,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               <tbody>
                                 <tr>
                                   <th>exclude</th>
-                                  <td><%= columns_label(row.configured.exclude) %></td>
-                                  <td><%= deployed_columns_label(row.deployed, :exclude) %></td>
+                                  <td data-label="Configured"><%= columns_label(row.configured.exclude) %></td>
+                                  <td data-label="Deployed"><%= deployed_columns_label(row.deployed, :exclude) %></td>
                                 </tr>
                                 <tr>
                                   <th>mask</th>
-                                  <td><%= columns_label(row.configured.mask) %></td>
-                                  <td><%= deployed_columns_label(row.deployed, :mask) %></td>
+                                  <td data-label="Configured"><%= columns_label(row.configured.mask) %></td>
+                                  <td data-label="Deployed"><%= deployed_columns_label(row.deployed, :mask) %></td>
                                 </tr>
                                 <tr>
                                   <th>mask placeholder</th>
-                                  <td><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
-                                  <td><%= deployed_placeholder_label(row.deployed) %></td>
+                                  <td data-label="Configured"><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
+                                  <td data-label="Deployed"><%= deployed_placeholder_label(row.deployed) %></td>
                                 </tr>
                               </tbody>
                             </table>

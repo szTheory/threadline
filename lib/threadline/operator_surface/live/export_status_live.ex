@@ -78,7 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div>
                 <h2 class="tl-page__title">Export Status</h2>
                 <p class="tl-page__lede">
-                  Background exports queued from the audit timeline.
+                  Track background exports queued from Timeline searches, then download or reopen the source search.
                 </p>
               </div>
               <.link href={"#{@base_path}"} class="tl-button tl-button--secondary">View Timeline</.link>
@@ -262,6 +262,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp job_modifier("failed"), do: "tl-job--danger"
     defp job_modifier("running"), do: "tl-job--info"
     defp job_modifier("pending"), do: "tl-job--info"
+    defp job_modifier("completed"), do: "tl-job--success"
     defp job_modifier(_), do: nil
 
     defp downloadable?(job) do

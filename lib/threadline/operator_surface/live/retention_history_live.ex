@@ -10,7 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Retention.Pruner
 
-    @default_limit 100
+    @default_limit 40
 
     def mount(_params, _session, socket) do
       if connected?(socket) and socket.assigns[:threadline_policy_enabled] do
@@ -88,11 +88,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <header class="tl-page__header">
               <div>
                 <h2 class="tl-page__title">Retention History</h2>
-                <p class="tl-page__lede">Review pruning runs before triggering another destructive retention pass.</p>
+                <p class="tl-page__lede">Review recent pruning runs and evidence before triggering another destructive retention pass.</p>
               </div>
               <div class="tl-page__actions">
                 <span class="tl-hint">Permanent delete action</span>
-                <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
+                <button class="tl-button tl-button--primary tl-button--danger" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
               </div>
             </header>
 
@@ -154,7 +154,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% end %>
                       </td>
                       <td data-label="Actions" class="tl-table__actions">
-                        <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-link tl-link--deep">Evidence</a>
+                        <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Evidence</a>
                       </td>
                     </tr>
                   </tbody>

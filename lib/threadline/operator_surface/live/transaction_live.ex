@@ -96,17 +96,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
+            <h3 class="tl-empty__title">Transaction not found</h3>
             <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
+            <div class="tl-empty__actions">
+              <a href={@base_path} class="tl-button tl-button--secondary">Back to Timeline</a>
+            </div>
           </div>
         <% else %>
           <div class="tl-transaction">
-            <a href={@base_path} class="tl-link tl-link--back">Timeline</a>
+            <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
+              <a href={@base_path} class="tl-link tl-link--back">Timeline</a>
+              <span>Transaction</span>
+            </nav>
             <div class="tl-page__header">
               <div>
                 <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
                   Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
                 </h2>
-                <p class="tl-page__lede">Changes captured together in one audited transaction.</p>
+                <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>
               <div class="tl-param-list" aria-label="Transaction context">
                 <span class="tl-param">
@@ -132,7 +139,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
             <div class="tl-empty">
-              <p class="tl-empty__body">No changes recorded</p>
+              <h3 class="tl-empty__title">No changes recorded</h3>
+              <p class="tl-empty__body">Threadline found the transaction context, but no row-level changes were captured for it.</p>
             </div>
           <% else %>
             <div
@@ -155,7 +163,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
                   <div class="tl-change__actions">
-                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="Open row history" data-testid="row-history-link">
+                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
                       Open row history
                     </.link>
                   </div>

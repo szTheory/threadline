@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const correlation = "walk-acme-4521-close";
+const deleterId = "70dd93dc-140a-5d72-950e-85ab11025f40";
 
 async function login(page, email: string) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
@@ -53,5 +54,17 @@ test.describe("operator surface (demo fiction)", () => {
 
     await expect(page).toHaveURL(/\/history\/ticket_replies\//);
     await expect(page.getByText("[REDACTED]")).toBeVisible();
+  });
+
+  test("#4518 delete story opens deleter transaction", async ({ page }) => {
+    await page.goto("/audit?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
+
+    const deleteRow = page.getByTestId("timeline-row").filter({ hasText: "DELETE" }).first();
+    await expect(deleteRow).toBeVisible();
+    await deleteRow.getByTestId("transaction-link").click();
+
+    await expect(page).toHaveURL(/\/audit\/transactions\//);
+    await expect(page.locator(`a[href="/audit/actors/user/${deleterId}"]`)).toBeVisible();
+    await expect(page.getByTestId("transaction-change-row").filter({ hasText: "ticket_replies" })).toBeVisible();
   });
 });
