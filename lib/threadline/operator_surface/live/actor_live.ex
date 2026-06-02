@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               params: %{actor_ref: actor_ref, from: from_time}
             )
 
-          has_ever_acted =
+          {has_ever_acted, last_activity} =
             if Enum.empty?(page.entries) do
               case Threadline.actor_history(actor_ref,
                      repo: repo,
@@ -39,11 +39,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      surface: :actor_history,
                      params: %{actor_ref: actor_ref}
                    ) do
-                %{entries: []} -> false
-                _ -> true
+                %{entries: [latest | _]} -> {true, latest.occurred_at}
+                _ -> {false, nil}
               end
             else
-              true
+              {true, nil}
             end
 
           {:ok,
@@ -54,6 +54,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            |> assign(:from_time, from_time)
            |> assign(:time_window_hours, 24)
            |> assign(:has_ever_acted, has_ever_acted)
+           |> assign(:last_activity, last_activity)
            |> assign(:next_cursor, page.next_cursor)
            |> assign(:prev_cursor, page.prev_cursor)
            |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
@@ -108,6 +109,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div>
                 <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
                 <p class="tl-page__lede">Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</p>
+                <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               </div>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
                 <button type="button" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</button>
@@ -127,7 +129,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
               <div class="tl-empty">
                 <h3 class="tl-empty__title">No events in this window</h3>
-                <p class="tl-empty__body">No events found in the selected time window.</p>
+                <p class="tl-empty__body">No events found in the selected time window.<%= if @last_activity do %> This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %></p>
+                <div class="tl-empty__actions">
+                  <button :if={@time_window_hours != 720} type="button" phx-click="set-window" phx-value-hours="720" class="tl-button tl-button--secondary">Widen to 30 days</button>
+                  <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--ghost">Open in timeline</a>
+                </div>
               </div>
             <% else %>
               <div
@@ -233,6 +239,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         {:noreply, socket}
       end
+    end
+
+    defp timeline_actor_path(base_path, actor_ref) do
+      query =
+        URI.encode_query(%{
+          "actor_kind" => to_string(actor_ref.type),
+          "actor_id" => to_string(actor_ref.id)
+        })
+
+      "#{base_path}/timeline?#{query}"
     end
 
     defp time_window_class(current, value) do
