@@ -130,18 +130,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               <tbody>
                                 <tr>
                                   <th>exclude</th>
-                                  <td data-label="Configured"><%= columns_label(row.configured.exclude) %></td>
-                                  <td data-label="Deployed"><%= deployed_columns_label(row.deployed, :exclude) %></td>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :exclude)}><%= columns_label(row.configured.exclude) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :exclude)}><%= deployed_columns_label(row.deployed, :exclude) %></td>
                                 </tr>
                                 <tr>
                                   <th>mask</th>
-                                  <td data-label="Configured"><%= columns_label(row.configured.mask) %></td>
-                                  <td data-label="Deployed"><%= deployed_columns_label(row.deployed, :mask) %></td>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :mask)}><%= columns_label(row.configured.mask) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :mask)}><%= deployed_columns_label(row.deployed, :mask) %></td>
                                 </tr>
                                 <tr>
                                   <th>mask placeholder</th>
-                                  <td data-label="Configured"><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
-                                  <td data-label="Deployed"><%= deployed_placeholder_label(row.deployed) %></td>
+                                  <td data-label="Configured" class={diff_cell_class(row, :config, :placeholder)}><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
+                                  <td data-label="Deployed" class={diff_cell_class(row, :deployed, :placeholder)}><%= deployed_placeholder_label(row.deployed) %></td>
                                 </tr>
                               </tbody>
                             </table>
@@ -211,5 +211,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp timeline_table_path(base_path, table) do
       "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
     end
+
+    # Tint only the cells that actually diverge, and only on a real drift row,
+    # so the eye lands on the mismatch instead of scanning identical text.
+    defp diff_cell_class(%{status: :drift_detected, diff: diff}, side, field) do
+      if cell_drifted?(diff, side, field), do: "tl-policy__cell--drift"
+    end
+
+    defp diff_cell_class(_row, _side, _field), do: nil
+
+    defp cell_drifted?(diff, :config, :exclude),
+      do: Map.get(diff, :exclude_only_in_config, []) != []
+
+    defp cell_drifted?(diff, :deployed, :exclude),
+      do: Map.get(diff, :exclude_only_in_deployed, []) != []
+
+    defp cell_drifted?(diff, :config, :mask), do: Map.get(diff, :mask_only_in_config, []) != []
+
+    defp cell_drifted?(diff, :deployed, :mask),
+      do: Map.get(diff, :mask_only_in_deployed, []) != []
+
+    defp cell_drifted?(diff, _side, :placeholder), do: Map.get(diff, :placeholder_mismatch, false)
+    defp cell_drifted?(_diff, _side, _field), do: false
   end
 end

@@ -1661,6 +1661,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: 0 var(--tl-space-4) var(--tl-space-4);
         }
 
+        /* Spotlight the diverging configured/deployed cells in a drift row. */
+        .tl-policy__cell--drift {
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
+          font-weight: var(--tl-weight-strong);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-warning-border);
+        }
+
         .tl-subview-backdrop {
           position: fixed;
           inset: 0;
