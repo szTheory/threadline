@@ -140,13 +140,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Unsupported View"
         assert html =~ "Retention history is not available"
         assert html =~ "mix threadline.retention.purge --dry-run"
-        refute html =~ "Run Pruning Batch"
+        refute html =~ "Run prune now"
       end
 
       test "shows empty state when no runs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
         assert html =~ "No Retention History"
-        assert html =~ "Run Pruning Batch"
+        assert html =~ "Run prune now"
       end
 
       test "displays existing retention runs in a table", %{conn: conn} do
@@ -172,11 +172,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "1500"
       end
 
-      test "Run Pruning Batch CTA triggers the supervised runtime path", %{conn: conn} do
+      test "Run prune now CTA triggers the supervised runtime path", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/policy/retention")
 
         # Click the button
-        assert html =~ "Run Pruning Batch"
+        assert html =~ "Run prune now"
 
         # ensure no active runs initially
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0
@@ -184,7 +184,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # simulate click
         view
-        |> element("button", "Run Pruning Batch")
+        |> element("button", "Run prune now")
         |> render_click()
 
         assert_eventually(fn ->
@@ -199,7 +199,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         send(view.pid, :refresh)
 
         # Should not crash and render successfully
-        assert render(view) =~ "Run Pruning Batch"
+        assert render(view) =~ "Run prune now"
       end
     end
   end

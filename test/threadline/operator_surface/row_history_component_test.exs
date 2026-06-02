@@ -25,7 +25,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           as_of: nil
         })
 
-      assert html =~ "Row History:"
+      assert html =~ "Row history:"
       assert html =~ "is not mapped to an Ecto schema"
     end
   end

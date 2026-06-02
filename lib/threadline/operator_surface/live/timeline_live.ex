@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Export
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
 
@@ -394,7 +395,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% end %>
 
         <div class="tl-status" role="status">
-          Showing <%= length(@streams.changes.inserts) %> of <%= format_count(@match_count) %> matches in this window.
+          <%= length(@streams.changes.inserts) %> shown · <%= format_count(@match_count) %> matches · current filter window
         </div>
 
         <%= if @match_count > 5_000 and @match_count < 10_001 do %>
@@ -417,14 +418,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-change__meta">
                 <span class="tl-change__op"><%= change.op %></span>
                 <span class="tl-change__table"><%= change.table_name %></span>
-                <span class="tl-change__time"><%= change.captured_at %></span>
+                <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
+                  <%= Presentation.human_time(change.captured_at) %>
+                </time>
               </div>
               <div class="tl-meta-row">
                 <span>Actor <code><%= actor_label(change) %></code></span>
                 <span :if={correlation_id(change)}>Correlation <code><%= correlation_id(change) %></code></span>
               </div>
               <div class="tl-change__actions">
-                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep" data-testid="transaction-link">View transaction</a>
+                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-link tl-link--deep" data-testid="transaction-link">Open transaction</a>
               </div>
             </div>
           </div>

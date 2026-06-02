@@ -59,15 +59,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <header class="tl-page__header">
               <div>
               <h2 class="tl-page__title">Policy redaction drift</h2>
-              <p class="tl-page__lede">
-                <strong>Drift detected:</strong> <%= @report.summary.drift_detected %>
-                <span aria-hidden="true">|</span>
-                <strong>Could not introspect:</strong> <%= @report.summary.could_not_introspect %>
-                <span aria-hidden="true">|</span>
-                <strong>Config matches deployed:</strong> <%= @report.summary.config_matches_deployed %>
-              </p>
+              <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy.</p>
               </div>
             </header>
+
+            <section class="tl-summary-grid" aria-label="Redaction drift summary">
+              <div class="tl-summary-card tl-summary-card--danger">
+                <span class="tl-summary-card__label">Drift</span>
+                <strong><%= @report.summary.drift_detected %></strong>
+              </div>
+              <div class="tl-summary-card tl-summary-card--warning">
+                <span class="tl-summary-card__label">Introspection failures</span>
+                <strong><%= @report.summary.could_not_introspect %></strong>
+              </div>
+              <div class="tl-summary-card">
+                <span class="tl-summary-card__label">Deployed matches config</span>
+                <strong><%= @report.summary.config_matches_deployed %></strong>
+              </div>
+            </section>
 
             <%= for section <- @sections do %>
               <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]} data-testid="policy-section">
@@ -76,7 +85,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <%= if section.rows == [] do %>
-                  <p class="tl-policy__empty">No tables in this section.</p>
+                  <p class="tl-policy__empty"><%= empty_section_label(section.status) %></p>
                 <% else %>
                   <div class="tl-policy__rows">
                     <%= for row <- section.rows do %>
@@ -162,7 +171,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp status_label(:drift_detected), do: "Drift detected"
     defp status_label(:could_not_introspect), do: "Could not introspect"
-    defp status_label(:config_matches_deployed), do: "Config matches deployed"
+    defp status_label(:config_matches_deployed), do: "Deployed matches config"
+
+    defp empty_section_label(:drift_detected), do: "No redaction drift detected."
+    defp empty_section_label(:could_not_introspect), do: "All configured tables introspected."
+
+    defp empty_section_label(:config_matches_deployed),
+      do: "No matching deployed policy rows yet."
 
     defp columns_label([]), do: "none"
     defp columns_label(columns), do: Enum.join(columns, ", ")

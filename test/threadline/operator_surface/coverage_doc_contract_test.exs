@@ -54,22 +54,18 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
   end
 
   describe "surface header literals (D-31a, D-35 #3, #4)" do
-    test "surface_header.ex contains the literal \"All covered\" for the boring-case pill" do
+    test "surface_header.ex contains the literal \"All tables captured\" for the boring-case pill" do
       src = File.read!(@surface_header_path)
 
-      assert String.contains?(src, "All covered"),
-             "expected #{@surface_header_path} to render the literal \"All covered\" per D-31a / D-35"
+      assert String.contains?(src, "All tables captured"),
+             "expected #{@surface_header_path} to render the literal \"All tables captured\""
     end
 
-    test "surface_header.ex renders the {n} uncovered pluralization format" do
+    test "surface_header.ex renders the audit coverage gap pluralization format" do
       src = File.read!(@surface_header_path)
 
-      # The HEEx template uses `<%= @coverage.uncovered_count %> uncovered` so
-      # the source contains the literal " uncovered" suffix; the count is
-      # interpolated. The runtime regex `~r/\d+ uncovered/` is satisfied at
-      # render time. We assert the source has the suffix at minimum.
-      assert String.contains?(src, "uncovered"),
-             "expected #{@surface_header_path} to render the count + ` uncovered` suffix per D-31a / D-35"
+      assert String.contains?(src, "tables need audit coverage"),
+             "expected #{@surface_header_path} to render clear coverage-gap copy"
 
       # Pin the warning chip class literal (D-31a CSS class)
       assert String.contains?(src, "tl-chip--warning"),
@@ -77,30 +73,30 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
       # Pin the neutral chip class literal (D-31a CSS class)
       assert String.contains?(src, "tl-chip--muted"),
-             "expected the tl-chip--muted CSS class for the All-covered pill"
+             "expected the tl-chip--muted CSS class for the all-captured pill"
     end
   end
 
   describe "three badge state literals on CoverageLive (D-32d, D-35 #5)" do
-    test "coverage_live.ex renders the literal \"covered\" badge state" do
+    test "coverage_live.ex renders the literal \"Captured\" badge state" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, ">covered<"),
-             "expected literal `<td>covered</td>` badge in #{@coverage_lv_path}"
+      assert String.contains?(src, ">Captured<"),
+             "expected literal `Captured` badge in #{@coverage_lv_path}"
     end
 
-    test "coverage_live.ex renders the literal \"uncovered\" badge state" do
+    test "coverage_live.ex renders the literal \"Needs capture\" badge state" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, ">uncovered<"),
-             "expected literal `<td>uncovered</td>` badge in #{@coverage_lv_path}"
+      assert String.contains?(src, ">Needs capture<"),
+             "expected literal `Needs capture` badge in #{@coverage_lv_path}"
     end
 
-    test "coverage_live.ex renders the literal \"expected\" badge state" do
+    test "coverage_live.ex renders the literal \"Expected gap\" badge state" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, ">expected<"),
-             "expected literal `<td>expected</td>` badge in #{@coverage_lv_path}"
+      assert String.contains?(src, ">Expected gap<"),
+             "expected literal `Expected gap` badge in #{@coverage_lv_path}"
     end
 
     test "coverage_live.ex page heading literal Coverage — schema:" do

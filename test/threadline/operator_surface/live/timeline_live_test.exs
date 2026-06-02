@@ -709,8 +709,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _lv, html} =
         live(conn, "/audit?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
-      # The status line contains "Showing N of 7 matches in this window."
-      assert html =~ ~r/Showing \d+ of 7 matches in this window\./
+      # The status line uses the compact operator format.
+      assert html =~ ~r/\d+ shown · 7 matches · current filter window/
       # Wrapper class is present for the doc-contract test
       assert html =~ "tl-status"
     end

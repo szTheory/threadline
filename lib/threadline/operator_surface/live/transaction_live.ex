@@ -2,6 +2,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
+
     def mount(%{"id" => id}, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
@@ -98,12 +100,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% else %>
           <div class="tl-transaction">
-            <a href={@base_path} class="tl-link tl-link--back">← Timeline</a>
-            <h2 class="tl-transaction__title">Transaction: <%= @bundle.transaction.id %></h2>
+            <a href={@base_path} class="tl-link tl-link--back">Timeline</a>
+            <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
+              Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
+            </h2>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
             <div class="tl-empty">
-              <p class="tl-empty__body">No Changes Recorded</p>
+              <p class="tl-empty__body">No changes recorded</p>
             </div>
           <% else %>
             <div
@@ -118,14 +122,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-change__meta">
                     <span class="tl-change__op"><%= change.change_diff["op"] %></span>
                     <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
-                    <span class="tl-change__time"><%= change.change_diff["captured_at"] %></span>
+                    <time class="tl-change__time" datetime={change.change_diff["captured_at"]} title={change.change_diff["captured_at"]}>
+                      <%= change_time(change.change_diff["captured_at"]) %>
+                    </time>
                   </div>
                   <div class="tl-meta-row">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
                   <div class="tl-change__actions">
-                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="View Row History" data-testid="row-history-link">
-                      History
+                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-link tl-link--deep" title="Open row history" data-testid="row-history-link">
+                      Open row history
                     </.link>
                   </div>
                 </div>
@@ -195,5 +201,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp pk_label(pk), do: inspect(pk)
+
+    defp change_time(value) when is_binary(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, dt, _offset} -> Presentation.human_time(dt)
+        _ -> value
+      end
+    end
+
+    defp change_time(%DateTime{} = value), do: Presentation.human_time(value)
+    defp change_time(value), do: inspect(value)
   end
 end

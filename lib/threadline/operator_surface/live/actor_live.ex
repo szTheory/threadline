@@ -132,7 +132,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <span>Transaction <code><%= tx.id %></code></span>
                     </div>
                     <div class="tl-change__actions">
-                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep" data-testid="transaction-link">View transaction</a>
+                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-link tl-link--deep" data-testid="transaction-link">Open transaction</a>
                     </div>
                   </div>
                 </div>

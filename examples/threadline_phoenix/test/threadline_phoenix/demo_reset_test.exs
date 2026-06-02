@@ -6,14 +6,25 @@ defmodule ThreadlinePhoenix.DemoResetTest do
   alias ThreadlinePhoenix.Demo.Reset
   alias ThreadlinePhoenix.HelpDesk.Organization
   alias ThreadlinePhoenix.Repo
+  alias Threadline.Governance.ExportJob
 
   @app_dir Path.expand("../..", __DIR__)
 
   test "run/0 truncates demo tables then reseeds manifest organizations" do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
       _org = organization_fixture(%{slug: "ephemeral-fixture-org"})
+      {:ok, actor_ref} = Threadline.Semantics.ActorRef.new(:user, "ephemeral-export-owner")
+
+      %ExportJob{}
+      |> ExportJob.changeset(%{
+        status: "pending",
+        query_params: %{"table" => "tickets"},
+        actor_ref: actor_ref
+      })
+      |> Repo.insert!()
 
       assert Repo.aggregate(Organization, :count, :id) >= 1
+      assert Repo.get_by(ExportJob, actor_ref: actor_ref)
 
       assert :ok = Reset.run()
 
@@ -21,6 +32,7 @@ defmodule ThreadlinePhoenix.DemoResetTest do
       assert Repo.get_by!(Organization, slug: "globex")
       assert Repo.get_by!(Organization, slug: "offboarded-co")
       refute Repo.get_by(Organization, slug: "ephemeral-fixture-org")
+      refute Repo.get_by(ExportJob, actor_ref: actor_ref)
     end)
   end
 

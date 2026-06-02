@@ -7,6 +7,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Evidence
     alias Threadline.Evidence.Proof
     alias Threadline.Evidence.Subject
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
 
     def mount(_params, _session, socket) do
@@ -111,23 +112,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <th>Verdict</th>
                           <th>Subject ref</th>
                           <th>Recorded</th>
-                          <th>Latest row</th>
+                          <th>Current state</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr :for={row <- group.rows}>
                           <td>
-                            <span class={["tl-chip", evidence_verdict_modifier(row.verdict_status)]}>
-                              <%= row.verdict_status %>
+                            <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
+                              <%= Presentation.status_label(row.verdict_status) %>
                             </span>
                           </td>
                           <td>
                             <div class="tl-evidence__ref"><%= row.subject_ref_json %></div>
                             <div class="tl-evidence__meta"><%= row.subject %></div>
                           </td>
-                          <td class="tl-table__date"><%= row.recorded_at %></td>
-                          <td><%= row.summary_status %></td>
+                          <td class="tl-table__date">
+                            <time datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
+                              <%= Presentation.human_time(row.recorded_at) %>
+                            </time>
+                          </td>
+                          <td><%= Presentation.status_label(row.summary_status) %></td>
                           <td>
                             <div class="tl-evidence__meta">
                               <.link
@@ -135,7 +140,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                                 patch={subject_path(@base_path, row.subject)}
                                 class="tl-link tl-link--deep"
                               >
-                                Only this subject
+                                Filter to subject
                               </.link>
                             </div>
                             <div>
@@ -144,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                                 patch={history_path(@base_path, row.subject, row.subject_ref_json)}
                                 class="tl-link tl-link--deep"
                               >
-                                View history
+                                Open proof history
                               </.link>
                             </div>
                           </td>
@@ -263,7 +268,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         subject: presented.subject,
         subject_ref_json: Jason.encode!(presented.subject_ref),
         summary_status: presented.summary_status,
-        recorded_at: presented.recorded_at,
+        recorded_at: record.recorded_at,
         verdict_status: presented.verdict_status
       }
     end
@@ -278,10 +283,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp show_history_link?(%{mode: :latest}), do: true
     defp show_history_link?(_request), do: false
-
-    defp evidence_verdict_modifier("unsupported"), do: "tl-chip--warning"
-    defp evidence_verdict_modifier("proven"), do: "tl-chip--success"
-    defp evidence_verdict_modifier(_status), do: "tl-chip--muted"
 
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"

@@ -149,10 +149,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "What can Threadline prove right now?"
         assert html =~ ~s|href="/audit/evidence"|
-        assert html =~ "View history"
-        assert html =~ "proven"
-        assert html =~ "inferred_posture"
-        assert html =~ "unsupported"
+        assert html =~ "Open proof history"
+        assert html =~ "Proven"
+        assert html =~ "Inferred"
+        assert html =~ "Unsupported"
       end
 
       test "subject query param narrows to one subject family", %{conn: conn} do
@@ -203,8 +203,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         assert html =~ "Viewing append-only history for one evidence subject reference."
+        assert html =~ "May 26, 12:05 PM UTC"
+        assert html =~ "May 26, 12:00 PM UTC"
         assert html =~ "2026-05-26T12:05:00.000000Z"
-        assert html =~ "2026-05-26T12:00:00.000000Z"
       end
 
       test "renders the locked empty-state copy when no records exist", %{conn: conn} do

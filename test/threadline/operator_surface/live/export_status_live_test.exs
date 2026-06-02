@@ -149,6 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
         assert html =~ "No Export Jobs"
+        assert html =~ "View Timeline"
       end
 
       test "displays existing jobs for the actor", %{conn: conn, actor_ref: actor_ref} do
@@ -166,8 +167,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         refute html =~ "No Export Jobs"
-        assert html =~ "pending"
+        assert html =~ "Queued"
         assert html =~ "users"
+        assert html =~ "Preparing download"
       end
 
       test "does not display jobs for other actors", %{conn: conn} do
@@ -207,9 +209,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "completed"
-        assert html =~ "Download Export"
-        assert html =~ "Expires At"
+        assert html =~ "Completed"
+        assert html =~ "Download"
+        assert html =~ "Expires"
+        assert html =~ "datetime="
         assert html =~ "/audit/exports/download/#{job.id}"
       end
 
@@ -255,7 +258,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         refute html =~ "Download Export"
-        assert html =~ "available to download right now"
+        assert html =~ "Expired"
       end
 
       test "shows the persisted failure reason for failed jobs", %{
@@ -277,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "failed"
+        assert html =~ "Failed"
         assert html =~ "built-in export runtime is unavailable"
       end
     end

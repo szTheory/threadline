@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Retention.Pruner
 
@@ -19,7 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket =
         socket
         |> assign(:base_path, nil)
-        |> stream(:runs, fetch_runs(socket))
+        |> assign_runs(fetch_runs(socket))
         |> assign(:has_runs, has_runs?(socket))
 
       {:ok, socket}
@@ -59,6 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Enum.reduce(runs, socket, fn run, acc_socket ->
             stream_insert(acc_socket, :runs, run)
           end)
+          |> assign(:runs_summary, summarize_runs(runs))
           |> assign(:has_runs, length(runs) > 0)
 
         {:noreply, socket}
@@ -84,8 +86,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <main class="tl-page">
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
-              <h2 class="tl-page__title">Retention History</h2>
-              <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run Pruning Batch</button>
+              <div>
+                <h2 class="tl-page__title">Retention History</h2>
+                <p class="tl-page__lede">Review pruning runs before triggering another destructive retention pass.</p>
+              </div>
+              <button class="tl-button tl-button--primary" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
             </header>
 
             <%= if not @has_runs do %>
@@ -94,6 +99,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <p class="tl-empty__body">Configure your retention policy and trigger a prune to see runs here.</p>
               </div>
             <% else %>
+              <section class="tl-summary-grid" aria-label="Retention summary">
+                <div class="tl-summary-card">
+                  <span class="tl-summary-card__label">Latest run</span>
+                  <strong><%= @runs_summary.latest_status %></strong>
+                </div>
+                <div class="tl-summary-card">
+                  <span class="tl-summary-card__label">Rows deleted</span>
+                  <strong><%= @runs_summary.total_deleted %></strong>
+                </div>
+                <div class="tl-summary-card">
+                  <span class="tl-summary-card__label">Failures</span>
+                  <strong><%= @runs_summary.failure_count %></strong>
+                </div>
+              </section>
+
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <table class="tl-table tl-table--retention">
                   <thead>
@@ -106,10 +126,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </thead>
                   <tbody id="retention-runs" phx-update="stream" data-testid="retention-runs">
                     <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
-                      <td><span class={["tl-chip", retention_status_modifier(run.status)]}><%= run.status %></span></td>
+                      <td><span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span></td>
                       <td class="tl-table__number"><%= run.deleted_count || "-" %></td>
                       <td class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
-                      <td class="tl-table__date"><%= format_date(run.started_at) %></td>
+                      <td class="tl-table__date">
+                        <%= if run.started_at do %>
+                          <time datetime={Presentation.exact_time(run.started_at)} title={Presentation.exact_time(run.started_at)}>
+                            <%= Presentation.human_time(run.started_at) %>
+                          </time>
+                        <% else %>
+                          <span class="tl-muted">Not started</span>
+                        <% end %>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -159,18 +187,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
     end
 
-    defp format_date(nil), do: "-"
-
-    defp format_date(%DateTime{} = dt) do
-      DateTime.to_string(dt) |> String.replace("Z", " UTC")
+    defp assign_runs(socket, runs) do
+      socket
+      |> stream(:runs, runs)
+      |> assign(:runs_summary, summarize_runs(runs))
     end
 
-    defp retention_status_modifier("completed"), do: "tl-chip--success"
-    defp retention_status_modifier("failed"), do: "tl-chip--danger"
+    defp summarize_runs([run | _] = runs) do
+      %{
+        latest_status: Presentation.status_label(run.status),
+        total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
+        failure_count: Enum.count(runs, &(&1.status == "failed"))
+      }
+    end
 
-    defp retention_status_modifier(status) when status in ["pending", "running"],
-      do: "tl-chip--accent"
-
-    defp retention_status_modifier(_), do: "tl-chip--muted"
+    defp summarize_runs(_) do
+      %{latest_status: "None", total_deleted: 0, failure_count: 0}
+    end
   end
 end

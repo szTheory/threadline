@@ -29,7 +29,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       html = html_response(evidence_conn, 200)
       assert html =~ "retention_run"
       assert html =~ run_id
-      assert html =~ "proven"
+      assert html =~ "Proven"
 
       offboarded_timeline_conn =
         build_conn()
@@ -52,7 +52,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       html = html_response(evidence_conn, 200)
       assert html =~ "redaction_policy"
       assert html =~ "walk-demo-redaction-policy"
-      assert html =~ "inferred_posture"
+      assert html =~ "Inferred"
 
       policy_conn = admin_conn() |> get(~p"/audit/policy/redaction")
       policy_html = html_response(policy_conn, 200)

@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Coverage.Snapshot
     alias Threadline.OperatorSurface.Unsupported
 
@@ -110,7 +111,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h2 class="tl-page__title">Coverage — schema: <%= @schema_param %></h2>
                 <p class="tl-page__lede">
                   <%= if @coverage_for_schema.last_checked_at do %>
-                    Last checked <%= seconds_ago(@coverage_for_schema.last_checked_at) %>s ago
+                    <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
                   <% end %>
                 </p>
               </div>
@@ -137,25 +138,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th></tr>
                     </thead>
                     <tbody>
-                      <%= for table <- @coverage_for_schema.tables[:covered] do %>
-                        <tr class="tl-table__row--covered">
-                          <td><code><%= table %></code></td>
-                          <td><span class="tl-chip tl-chip--success">covered</span></td>
-                          <td></td>
-                        </tr>
-                      <% end %>
                       <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
                         <tr class="tl-table__row--uncovered">
                           <td><code><%= table %></code></td>
-                          <td><span class="tl-chip tl-chip--danger">uncovered</span></td>
-                          <td></td>
+                          <td><span class="tl-chip tl-chip--danger">Needs capture</span></td>
+                          <td>missing Threadline trigger</td>
                         </tr>
                       <% end %>
                       <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
                         <tr class="tl-table__row--expected" title={tooltip_for(table)}>
                           <td><code><%= table %></code></td>
-                          <td><span class="tl-chip tl-chip--muted">expected</span></td>
+                          <td><span class="tl-chip tl-chip--neutral">Expected gap</span></td>
                           <td><%= source_for(table) %></td>
+                        </tr>
+                      <% end %>
+                      <%= for table <- @coverage_for_schema.tables[:covered] do %>
+                        <tr class="tl-table__row--covered">
+                          <td><code><%= table %></code></td>
+                          <td><span class="tl-chip tl-chip--success">Captured</span></td>
+                          <td>trigger present</td>
                         </tr>
                       <% end %>
                     </tbody>
@@ -163,7 +164,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <p class="tl-hint">
-                  Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> uncovered, <%= @coverage_for_schema.expected_uncovered_count %> expected uncovered
+                  Coverage: <%= @coverage_for_schema.covered_count %> captured, <%= @coverage_for_schema.uncovered_count %> need capture, <%= @coverage_for_schema.expected_uncovered_count %> expected gaps
                 </p>
               <% end %>
             <% end %>
@@ -218,11 +219,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
 
-    defp seconds_ago(%DateTime{} = ts), do: DateTime.diff(DateTime.utc_now(), ts, :second)
-    defp seconds_ago(_), do: 0
-
-    defp now_label, do: DateTime.utc_now() |> DateTime.to_string()
-    defp last_label(%DateTime{} = ts), do: DateTime.to_string(ts)
+    defp now_label, do: DateTime.utc_now() |> Presentation.human_time()
+    defp last_label(%DateTime{} = ts), do: Presentation.human_time(ts)
     defp last_label(_), do: "never"
 
     defp source_for(table) do

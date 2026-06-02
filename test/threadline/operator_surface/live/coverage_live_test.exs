@@ -111,7 +111,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "mix threadline.health.coverage"
       end
 
-      test "renders three-bucket coverage table with locked badge state literals", %{conn: conn} do
+      test "renders three-bucket coverage table with operator-facing badge labels", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
         assert html =~ "Coverage — schema: public"
@@ -122,12 +122,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "<th>SOURCE</th>"
 
         # The footer summary (locked literal — D-34)
-        assert html =~ ~r/Coverage: \d+ covered, \d+ uncovered, \d+ expected uncovered/
+        assert html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps/
 
-        # The three locked badge state literals (D-32d). schema_migrations is the
+        # The three coverage buckets still render; schema_migrations is the
         # baseline `:expected_uncovered` table — its source label "baseline" appears
-        # in the third column. The bucket label "expected" appears in the STATUS td.
-        assert html =~ ">expected<"
+        # in the third column. The STATUS column uses operator-facing labels.
+        assert html =~ ">Expected gap<"
         assert html =~ "schema_migrations"
         assert html =~ "baseline"
       end
@@ -164,7 +164,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # After refresh, the dashboard should still render normally with the same literals
         assert new_html =~ "Coverage — schema: public"
-        assert new_html =~ ~r/Coverage: \d+ covered, \d+ uncovered, \d+ expected uncovered/
+        assert new_html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps/
       end
     end
 

@@ -145,12 +145,12 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
       html = html_response(conn, 200)
       assert html =~ "Export Status"
-      assert html =~ "completed"
-      assert html =~ "failed"
-      assert html =~ "running"
-      assert html =~ "pending"
-      assert html =~ "Download Export"
-      assert html =~ "available to download"
+      assert html =~ "Completed"
+      assert html =~ "Failed"
+      assert html =~ "Running"
+      assert html =~ "Queued"
+      assert html =~ "Download"
+      assert html =~ "Expired"
     end
   end
 

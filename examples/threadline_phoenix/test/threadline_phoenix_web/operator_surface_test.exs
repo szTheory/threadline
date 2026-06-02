@@ -128,7 +128,7 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
         |> get("/audit/transactions/#{tx_id}/history/ticket_replies/#{reply_pk}")
 
       html = html_response(conn, 200)
-      assert html =~ "Row History: ticket_replies / #{reply_pk}"
+      assert html =~ "Row history: ticket_replies / #{String.slice(reply_pk, 0, 14)}"
       refute html =~ "not mapped to an Ecto schema"
 
       Repo.query!(Tables.truncate_sql(), [])

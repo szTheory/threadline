@@ -8,8 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     `base_path` (the operator-surface mount path, e.g. `"/audit"`) from the
     parent LV's assigns.
 
-    - `uncovered_count == 0` → `<a class="tl-chip tl-chip--muted">All covered</a>` (D-31a — never hidden).
-    - `uncovered_count > 0`  → `<a class="tl-chip tl-chip--warning">{n} uncovered</a>`.
+    - `uncovered_count == 0` → `<a class="tl-chip tl-chip--muted">All tables captured</a>` (never hidden).
+    - `uncovered_count > 0`  → `<a class="tl-chip tl-chip--warning">{n} tables need audit coverage</a>`.
     - `:threadline_coverage_error` set → small "stale (last checked Xs ago)" indicator.
     """
 
@@ -40,10 +40,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if @coverage_enabled do %>
           <%= if @coverage && @coverage.uncovered_count > 0 do %>
             <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
-              <%= @coverage.uncovered_count %> uncovered
+              <%= @coverage.uncovered_count %> tables need audit coverage
             </a>
           <% else %>
-            <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All covered</a>
+            <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All tables captured</a>
           <% end %>
         <% end %>
         <%= if @error do %>
