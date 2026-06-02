@@ -50,3 +50,6 @@ tmp/
 /examples/threadline_phoenix/e2e/test-results/
 /examples/threadline_phoenix/e2e/playwright-report/
 /examples/threadline_phoenix/e2e/blob-report/
+
+# Local agent/session config
+/.claude/
