@@ -1669,6 +1669,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-warning-border);
         }
 
+        /* Expand the configured-vs-deployed detail instead of snapping it open.
+           Progressive enhancement: browsers without ::details-content just snap,
+           and the reduced-motion block below neutralises the transition. */
+        .tl-policy__row {
+          interpolate-size: allow-keywords;
+        }
+
+        .tl-policy__row::details-content {
+          block-size: 0;
+          overflow: clip;
+          transition:
+            block-size var(--tl-motion-base) var(--tl-ease-out),
+            content-visibility var(--tl-motion-base) allow-discrete;
+        }
+
+        .tl-policy__row[open]::details-content {
+          block-size: auto;
+        }
+
         .tl-subview-backdrop {
           position: fixed;
           inset: 0;
@@ -1811,10 +1830,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-journey-rail {
+          position: relative;
           display: grid;
           grid-template-columns: 1fr;
           gap: var(--tl-space-2);
           margin-top: var(--tl-space-3);
+        }
+
+        /* Signature beat: a Signal-Cyan thread draws across the journey steps on
+           enter — the one branded motion moment, tying the steps into a thread. */
+        .tl-journey-rail::before {
+          content: "";
+          position: absolute;
+          top: calc(-1 * var(--tl-space-1));
+          left: 0;
+          right: 0;
+          height: 2px;
+          border-radius: var(--tl-radius-pill);
+          background: linear-gradient(90deg, var(--tl-color-signal), var(--tl-color-signal-border) 70%, transparent);
+          transform: scaleX(0);
+          transform-origin: left center;
+          animation: tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both;
         }
 
         .tl-journey-step {
@@ -2263,9 +2299,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         @media (prefers-reduced-motion: reduce) {
           .threadline-ui *,
           .threadline-ui *::before,
-          .threadline-ui *::after {
+          .threadline-ui *::after,
+          .tl-policy__row::details-content {
             transition-duration: 1ms !important;
             animation-duration: 1ms !important;
+            animation-delay: 0ms !important;
             animation-iteration-count: 1 !important;
             scroll-behavior: auto !important;
           }
