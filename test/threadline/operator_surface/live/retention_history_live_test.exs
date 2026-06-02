@@ -172,6 +172,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "1500"
       end
 
+      test "shows a success alert when latest run succeeded with no failures", %{conn: conn} do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "completed",
+          deleted_count: 42,
+          duration_ms: 500,
+          started_at: DateTime.add(now, -5, :second),
+          completed_at: now
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        assert html =~ "Latest run succeeded"
+        refute html =~ "Review the latest status and failure count"
+      end
+
+      test "shows a warning alert when a run has failed", %{conn: conn} do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "failed",
+          started_at: DateTime.add(now, -5, :second)
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        assert html =~ "Review the latest status and failure count"
+        refute html =~ "Latest run succeeded"
+      end
+
       test "Run prune now CTA triggers the supervised runtime path", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/policy/retention")
 

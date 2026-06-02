@@ -80,9 +80,20 @@ config :threadline, :trigger_capture,
     "ticket_replies" => [
       mask: ["internal_note_body", "body"],
       store_changed_from: true
+    ],
+    # `posts` has a deployed trigger with no redaction; configuring an empty
+    # mask makes it a green "Deployed matches config" row on the redaction
+    # screen, so the drift screen shows a match alongside the ticket_replies drift.
+    "posts" => [
+      mask: []
     ]
   }
 
+# `audit_events` exists (see migrations) but has no capture trigger, so listing
+# it as expected makes the coverage screen demonstrate a real "Needs capture"
+# row + a non-zero header badge instead of the always-green state. The
+# trigger-coverage evidence subject reports the same uncovered_count, so the
+# evidence and coverage stories agree.
 config :threadline, :verify_coverage,
   expected_tables: [
     "posts",
@@ -90,7 +101,8 @@ config :threadline, :verify_coverage,
     "org_memberships",
     "agents",
     "tickets",
-    "ticket_replies"
+    "ticket_replies",
+    "audit_events"
   ]
 
 # Sigra email delivery (dev) — adapter is set on the raw Swoosh.Mailer

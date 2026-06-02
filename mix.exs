@@ -100,7 +100,10 @@ defmodule Threadline.MixProject do
         "verify.test",
         "verify.threadline",
         "verify.example",
-        "verify.doc_contract"
+        "verify.doc_contract",
+        # Browser e2e last (slowest; needs Node + Playwright) so `mix ci.all`
+        # locally runs the same gate CI does, including the operator surface.
+        "verify.example_browser"
       ]
     ]
   end

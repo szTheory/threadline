@@ -10,7 +10,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Query
 
     @page_size 50
-    @filter_keys ~w(from to table actor_kind actor_id correlation_id)
     @default_window_hours 24
 
     # --------------------------------------------------------------------------
@@ -310,6 +309,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <Threadline.OperatorSurface.Script.js />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
           base_path={@base_path}
@@ -319,6 +319,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
+          scoped={not is_nil(assigns[:threadline_scope])}
         />
 
         <main class="tl-page tl-page--intro">
@@ -341,17 +342,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
 
             <section class="tl-summary-grid" aria-label="Current investigation summary">
-              <div class="tl-summary-card tl-summary-card--info">
-                <span class="tl-summary-card__label">Current window</span>
-                <strong><%= filter_window_label(@filters_raw) %></strong>
+              <div class="tl-card--metric" data-status="info">
+                <span class="tl-card__metric-label">Current window</span>
+                <strong class="tl-card__metric"><%= filter_window_label(@filters_raw) %></strong>
               </div>
-              <div class="tl-summary-card">
-                <span class="tl-summary-card__label">Matching changes</span>
-                <strong><%= format_count(@match_count) %></strong>
+              <div class="tl-card--metric">
+                <span class="tl-card__metric-label">Matching changes</span>
+                <strong class="tl-card__metric"><%= format_count(@match_count) %></strong>
               </div>
-              <div class={["tl-summary-card", coverage_warning?(assigns[:threadline_coverage]) && "tl-summary-card--warning"]}>
-                <span class="tl-summary-card__label">Audit readiness</span>
-                <strong><%= coverage_summary(assigns[:threadline_coverage]) %></strong>
+              <div class="tl-card--metric" data-status={if coverage_warning?(assigns[:threadline_coverage]), do: "warning"}>
+                <span class="tl-card__metric-label">Audit readiness</span>
+                <strong class="tl-card__metric"><%= coverage_summary(assigns[:threadline_coverage]) %></strong>
               </div>
             </section>
 
@@ -482,7 +483,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= Presentation.human_time(change.captured_at) %>
                 </time>
               </div>
-              <div class="tl-meta-row">
+              <div class="tl-meta">
                 <span>
                   Actor
                   <%= if path = actor_path(@base_path, change) do %>
@@ -496,6 +497,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep">
                     <code><%= correlation_id(change) %></code>
                   </a>
+                  <button type="button" class="tl-copy" data-tl-copy={correlation_id(change)} aria-label="Copy correlation id">Copy</button>
                 </span>
               </div>
               <div class="tl-change__actions">
@@ -507,7 +509,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
              class="tl-empty">
           <h3 class="tl-empty__title">No changes match</h3>
-          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.</p>
+          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.<%= if not is_nil(assigns[:threadline_scope]) do %> Results are limited to the records you are authorized to see.<% end %></p>
           <div class="tl-empty__actions">
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">Clear filters</.link>
           </div>
@@ -653,13 +655,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp build_canonical_query(%{} = raw) do
-      raw
-      |> normalize_anonymous()
-      |> Enum.filter(fn {k, v} -> k in @filter_keys and is_binary(v) and v != "" end)
-      |> Enum.sort_by(fn {k, _v} -> Enum.find_index(@filter_keys, &(&1 == k)) end)
-      |> URI.encode_query()
-    end
+    defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
 
     defp background_export_error_message(:supervisor_not_started) do
       "Background export could not start because the built-in export runtime is unavailable."
@@ -678,10 +674,5 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> DateTime.truncate(:microsecond)
       |> DateTime.add(retention_ttl_hours * 60 * 60, :second)
     end
-
-    defp normalize_anonymous(%{"actor_kind" => "anonymous"} = raw),
-      do: Map.delete(raw, "actor_id")
-
-    defp normalize_anonymous(raw), do: raw
   end
 end

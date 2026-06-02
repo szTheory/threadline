@@ -84,6 +84,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <div class="threadline-ui">
         <Threadline.OperatorSurface.Style.css />
+        <Threadline.OperatorSurface.Script.js />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={@threadline_coverage}
           base_path={surface_root(@base_path)}
@@ -99,19 +100,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <h3 class="tl-empty__title">Transaction not found</h3>
             <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
             <div class="tl-empty__actions">
-              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">Back to Timeline</a>
+              <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">← Timeline</.link>
             </div>
           </div>
         <% else %>
           <div class="tl-transaction">
             <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
-              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">Timeline</a>
+              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">← Timeline</a>
               <span>Transaction</span>
             </nav>
             <div class="tl-page__header">
               <div>
                 <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
                   Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
+                  <button type="button" class="tl-copy" data-tl-copy={@bundle.transaction.id} aria-label="Copy transaction id">Copy</button>
                 </h2>
                 <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>
@@ -159,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <%= change_time(change.change_diff["captured_at"]) %>
                     </time>
                   </div>
-                  <div class="tl-meta-row">
+                  <div class="tl-meta">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
                   <div class="tl-change__actions">

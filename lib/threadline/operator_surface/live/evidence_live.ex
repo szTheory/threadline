@@ -83,9 +83,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-trust-rail__label">Proof chain</span>
               <span class="tl-chip tl-chip--success">Append-only history</span>
               <span class="tl-chip tl-chip--info">Latest projection</span>
-              <a :if={@threadline_coverage_enabled and @base_path} href={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Coverage</a>
-              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">Redaction</a>
-              <a :if={@threadline_policy_enabled and @base_path} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">Retention</a>
+              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</.link>
+              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">Check redaction</.link>
+              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">Review retention</.link>
+              <.link :if={@threadline_exports_enabled and @base_path} navigate={"#{@base_path}/exports"} class="tl-button tl-button--compact tl-button--secondary">Open exports</.link>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
             </section>
 
             <nav class="tl-nav" aria-label="Evidence navigation">
@@ -290,16 +292,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp support_action(base_path, "retention_run") when is_binary(base_path),
-      do: %{path: "#{base_path}/policy/retention", label: "Retention"}
+      do: %{path: "#{base_path}/policy/retention", label: "Review retention"}
 
     defp support_action(base_path, "redaction_policy") when is_binary(base_path),
-      do: %{path: "#{base_path}/policy/redaction", label: "Redaction"}
+      do: %{path: "#{base_path}/policy/redaction", label: "Check redaction"}
 
     defp support_action(base_path, "trigger_coverage") when is_binary(base_path),
-      do: %{path: "#{base_path}/coverage", label: "Coverage"}
+      do: %{path: "#{base_path}/coverage", label: "Check coverage"}
 
     defp support_action(base_path, "export_job") when is_binary(base_path),
-      do: %{path: "#{base_path}/exports", label: "Exports"}
+      do: %{path: "#{base_path}/exports", label: "Open exports"}
 
     defp support_action(_base_path, _subject), do: nil
 

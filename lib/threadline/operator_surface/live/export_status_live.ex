@@ -81,14 +81,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Track background exports queued from Timeline searches, then download or reopen the source search.
                 </p>
               </div>
-              <.link href={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">View Timeline</.link>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">Open timeline</.link>
             </header>
 
             <section class="tl-trust-rail" aria-label="Export workflow">
               <span class="tl-trust-rail__label">Export workflow</span>
               <span class="tl-chip tl-chip--info">Actor-owned jobs</span>
               <span class="tl-chip tl-chip--neutral">Filtered timeline packets</span>
-              <a href={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Start search</a>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
             </section>
 
             <%= if not @has_jobs do %>

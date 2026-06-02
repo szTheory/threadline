@@ -121,6 +121,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</button>
             </header>
 
+            <section :if={is_nil(@form_error) and not all_empty?(@coverage_for_schema)} class="tl-trust-rail" aria-label="Audit readiness">
+              <span class="tl-trust-rail__label">Audit readiness</span>
+              <%= if @coverage_for_schema.uncovered_count > 0 do %>
+                <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
+              <% else %>
+                <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
+              <% end %>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
+            </section>
+
             <%= if @form_error do %>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
@@ -139,17 +149,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               <% else %>
                 <section class="tl-summary-grid" aria-label="Coverage summary">
-                  <div class="tl-summary-card tl-summary-card--success">
-                    <span class="tl-summary-card__label">Captured</span>
-                    <strong><%= @coverage_for_schema.covered_count %></strong>
+                  <div class="tl-card--metric" data-status="success">
+                    <span class="tl-card__metric-label">Captured</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
                   </div>
-                  <div class={["tl-summary-card", @coverage_for_schema.uncovered_count > 0 && "tl-summary-card--danger"]}>
-                    <span class="tl-summary-card__label">Needs capture</span>
-                    <strong><%= @coverage_for_schema.uncovered_count %></strong>
+                  <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
+                    <span class="tl-card__metric-label">Needs capture</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
                   </div>
-                  <div class="tl-summary-card">
-                    <span class="tl-summary-card__label">Expected gaps</span>
-                    <strong><%= @coverage_for_schema.expected_uncovered_count %></strong>
+                  <div class="tl-card--metric">
+                    <span class="tl-card__metric-label">Expected gaps</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
                   </div>
                 </section>
 
@@ -191,7 +201,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="STATUS"><span class="tl-chip tl-chip--success">Captured</span></td>
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
-                            <a href={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">View activity</a>
+                            <.link navigate={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">View activity</.link>
                           </td>
                         </tr>
                       <% end %>

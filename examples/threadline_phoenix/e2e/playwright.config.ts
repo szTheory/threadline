@@ -13,6 +13,10 @@ export default defineConfig({
     baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    // Neutralize the operator surface's CSS motion (via its prefers-reduced-motion
+    // rules) so timing/artifacts are deterministic across runs — the one flake
+    // risk for a non-pixel-diff suite.
+    reducedMotion: "reduce",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
