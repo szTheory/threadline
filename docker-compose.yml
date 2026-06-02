@@ -3,7 +3,7 @@ services:
     image: postgres:16
     ports:
       # Default to 5433 so host PostgreSQL can own 5432 (see DB_PORT in config/test.exs).
-      - "${THREADLINE_DB_PORT:-5433}:5432"
+      - "${THREADLINE_DB_HOST:-127.0.0.1}:${THREADLINE_DB_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -17,11 +17,12 @@ services:
       retries: 10
 
   demo:
+    profiles: ["demo"]
     build:
       context: .
       dockerfile: examples/threadline_phoenix/Dockerfile
     ports:
-      - "4000:4000"
+      - "${THREADLINE_DEMO_HOST:-127.0.0.1}:${THREADLINE_DEMO_PORT:-4000}:4000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,9 +31,14 @@ services:
       - DB_PORT=5432
       - PHX_SERVER=true
     volumes:
-      - ./examples/threadline_phoenix:/app/examples/threadline_phoenix
+      - .:/app
+      - demo_example_deps:/app/examples/threadline_phoenix/deps
+      - demo_example_build:/app/examples/threadline_phoenix/_build
+      - demo_root_deps:/app/deps
+      - demo_root_build:/app/_build
 
   pgbouncer:
+    profiles: ["pgbouncer"]
     image: edoburu/pgbouncer:latest
     depends_on:
       postgres:
@@ -44,4 +50,10 @@ services:
       MAX_CLIENT_CONN: 200
       DEFAULT_POOL_SIZE: 5
     ports:
-      - "${THREADLINE_PGBOUNCER_PORT:-6432}:5432"
+      - "${THREADLINE_PGBOUNCER_HOST:-127.0.0.1}:${THREADLINE_PGBOUNCER_PORT:-6432}:5432"
+
+volumes:
+  demo_example_deps:
+  demo_example_build:
+  demo_root_deps:
+  demo_root_build:

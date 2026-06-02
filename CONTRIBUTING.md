@@ -18,13 +18,29 @@
    docker compose up -d
    ```
 
-   Wait until Postgres is healthy (`docker compose ps`).
+   Wait until Postgres is healthy (`docker compose ps`). The default Compose
+   stack starts only PostgreSQL; the Phoenix demo and PgBouncer are opt-in
+   profiles.
 
    **Port 5432 already in use (e.g. Homebrew PostgreSQL):** Compose maps the container to host port **`5433`** by default (`THREADLINE_DB_PORT` in [`docker-compose.yml`](docker-compose.yml)). Point Mix at it:
 
    ```bash
    DB_PORT=5433 mix ci.all
    ```
+
+   **Multiple Threadline worktrees or other Docker demos:** give each stack a
+   project name and unique host ports so containers, networks, volumes, and
+   published ports do not collide:
+
+   ```bash
+   COMPOSE_PROJECT_NAME=threadline-ui-polish THREADLINE_DB_PORT=5434 docker compose up -d
+   DB_PORT=5434 mix ci.all
+   ```
+
+   See [`.env.example`](.env.example) for the full set of local Docker
+   overrides. Normal cleanup is `docker compose down --remove-orphans`; use
+   `docker compose down --remove-orphans -v` only when you intentionally want to
+   delete Compose volumes.
 
 4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, compile strict, tests, Threadline trigger coverage, doc contract tests) runs in the **test** environment and picks up `config/test.exs`.
 
@@ -110,9 +126,12 @@ For running the test job locally with [nektos/act](https://github.com/nektos/act
 
 ## PgBouncer topology CI parity
 
-`docker-compose.yml` includes **`pgbouncer`** (transaction mode) on host port **`6432`** by default (`THREADLINE_PGBOUNCER_PORT`), alongside Postgres on **`5433`** (`THREADLINE_DB_PORT`).
+`docker-compose.yml` includes **`pgbouncer`** (transaction mode) behind the
+`pgbouncer` Compose profile on host port **`6432`** by default
+(`THREADLINE_PGBOUNCER_PORT`), alongside Postgres on **`5433`**
+(`THREADLINE_DB_PORT`).
 
-1. `docker compose up -d` and wait until both services are healthy.
+1. `docker compose --profile pgbouncer up -d` and wait until both services are healthy.
 2. Bootstrap migrations + topology fixture on **direct** Postgres (DDL does not go through PgBouncer):
 
    ```bash
