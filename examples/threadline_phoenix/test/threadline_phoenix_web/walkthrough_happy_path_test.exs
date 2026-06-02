@@ -39,7 +39,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:support_acme)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       html = html_response(conn, 200)
@@ -120,7 +120,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:admin)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       html = html_response(conn, 200)
@@ -161,7 +161,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn =
         build_conn()
         |> login_demo(:admin)
-        |> get(~p"/audit?correlation_id=#{correlation}")
+        |> get(~p"/audit/timeline?correlation_id=#{correlation}")
 
       html = html_response(conn, 200)
       assert html =~ correlation
