@@ -40,10 +40,15 @@ config :phoenix,
 # contend with Ecto SQL Sandbox ownership on the Repo connection.
 config :threadline_phoenix, Oban, testing: :manual, plugins: false, queues: false
 
+# Demo drift: redaction policy masks `internal_note_body` + `body`, but the
+# deployed trigger (priv/repo/migrations) only masks `internal_note_body` — the
+# policy was updated and triggers haven't been regenerated. Lets the operator
+# surface's redaction-drift screen demonstrate a real finding (the e2e runs in
+# MIX_ENV=test). Capture is unaffected, so row-history [REDACTED] still holds.
 config :threadline, :trigger_capture,
   tables: %{
     "ticket_replies" => [
-      mask: ["internal_note_body"],
+      mask: ["internal_note_body", "body"],
       store_changed_from: true
     ]
   }
