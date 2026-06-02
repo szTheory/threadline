@@ -22,6 +22,12 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionRuns do
   @doc false
   @spec run(map()) :: map()
   def run(ctx) do
+    # Clear any accumulated runs (the RetentionTail purge run, or rows left by
+    # prior seeds against a persistent dev DB) so the screen shows exactly this
+    # curated lifecycle — deterministic regardless of DB state and unaffected by
+    # the default LIMIT. The offboard story lives in evidence, not this table.
+    Repo.delete_all(RetentionRun)
+
     now = Manifest.epoch()
     inserted_at = DateTime.utc_now(:second)
 
