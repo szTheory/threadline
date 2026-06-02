@@ -113,10 +113,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               </div>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
-                <button type="button" phx-click="set-window" phx-value-hours="1" class={time_window_class(@time_window_hours, 1)}>1h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="24" class={time_window_class(@time_window_hours, 24)}>24h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="168" class={time_window_class(@time_window_hours, 168)}>7d</button>
-                <button type="button" phx-click="set-window" phx-value-hours="720" class={time_window_class(@time_window_hours, 720)}>30d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={@time_window_hours == 1} class={time_window_class(@time_window_hours, 1)}>1h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={@time_window_hours == 24} class={time_window_class(@time_window_hours, 24)}>24h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={@time_window_hours == 168} class={time_window_class(@time_window_hours, 168)}>7d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={@time_window_hours == 720} class={time_window_class(@time_window_hours, 720)}>30d</button>
               </div>
             </div>
           </div>

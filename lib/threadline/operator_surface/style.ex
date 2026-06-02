@@ -44,6 +44,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-weight-regular: 400;
           --tl-weight-medium: 500;
           --tl-weight-strong: 600;
+          /* Letter-spacing scale: caps labels track wider, display tracks tighter. */
+          --tl-tracking-caps: 0.12em;
+          --tl-tracking-caps-wide: 0.16em;
+          --tl-tracking-tight: -0.01em;
 
           /* Brand: "night infrastructure with luminous signal lines" (Brand Book §10). */
           --tl-color-bg: #0B1020;
@@ -307,7 +311,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-topbar .tl-topbar__nav-item--active {
+        /* Selected state: ARIA attribute is the styling hook (single source of
+         * truth with accessibility); the --active class is a retained alias. */
+        .tl-topbar .tl-topbar__nav-item--active,
+        .tl-topbar .tl-topbar__nav-item[aria-current="page"] {
           background: var(--tl-color-accent-soft);
           color: var(--tl-color-accent-strong);
           font-weight: var(--tl-weight-strong);
@@ -361,7 +368,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-xs);
           font-weight: var(--tl-weight-medium);
-          letter-spacing: 0.16em;
+          letter-spacing: var(--tl-tracking-caps-wide);
           text-transform: uppercase;
           color: var(--tl-color-signal);
         }
@@ -371,7 +378,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-size: var(--tl-font-size-title);
           line-height: var(--tl-line-display);
           font-weight: var(--tl-weight-medium);
-          letter-spacing: -0.01em;
+          letter-spacing: var(--tl-tracking-tight);
           color: var(--tl-color-text);
         }
 
@@ -395,7 +402,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-xs);
           font-weight: var(--tl-weight-medium);
-          letter-spacing: 0.1em;
+          letter-spacing: var(--tl-tracking-caps);
           text-transform: uppercase;
           color: var(--tl-color-muted);
         }
@@ -456,7 +463,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-xs);
           font-weight: var(--tl-weight-medium);
-          letter-spacing: 0.12em;
+          letter-spacing: var(--tl-tracking-caps);
           text-transform: uppercase;
           color: var(--tl-color-signal);
         }
@@ -632,7 +639,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-segmented__item.is-active {
+        .tl-segmented__item.is-active,
+        .tl-segmented__item[aria-pressed="true"] {
           background: var(--tl-color-surface-raised);
           color: var(--tl-color-accent-strong);
           box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
@@ -944,7 +952,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-alert--error {
           background: var(--tl-color-danger-bg);
           color: var(--tl-color-danger);
-          border-left: 3px solid var(--tl-color-danger);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-danger);
         }
 
         .tl-alert--info {
@@ -955,13 +963,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-alert--warning {
           background: var(--tl-color-warning-bg);
           color: var(--tl-color-warning-text);
-          border-left: 3px solid var(--tl-color-warning-border);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
         }
 
         .tl-alert--success {
           background: var(--tl-color-success-bg);
           color: var(--tl-color-success-text);
-          border-left: 3px solid var(--tl-color-success-border);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-success-border);
         }
 
         .tl-empty {
@@ -1100,7 +1108,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           gap: var(--tl-space-2);
         }
 
-        .tl-summary-card {
+        /*
+         * Metric card — the compact "label + big number" summary tile.
+         * Canonical: .tl-card .tl-card--metric with status via [data-status].
+         * .tl-summary-card / --modifier are retained as byte-identical aliases
+         * (Primer deprecated-alias pattern) so existing markup is unchanged
+         * while new markup migrates to the canonical density variant + the
+         * shared [data-status] stripe contract.
+         */
+        .tl-summary-card,
+        .tl-card--metric {
           display: grid;
           gap: var(--tl-space-1);
           min-width: 0;
@@ -1110,29 +1127,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--danger {
-          box-shadow: inset 3px 0 0 var(--tl-color-danger), var(--tl-shadow-border), var(--tl-shadow-subtle);
+        .tl-summary-card--danger,
+        .tl-card--metric[data-status="danger"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--warning {
-          box-shadow: inset 3px 0 0 var(--tl-color-warning-border), var(--tl-shadow-border), var(--tl-shadow-subtle);
+        .tl-summary-card--warning,
+        .tl-card--metric[data-status="warning"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-warning-border), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--success {
-          box-shadow: inset 3px 0 0 var(--tl-color-success-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
+        .tl-summary-card--success,
+        .tl-card--metric[data-status="success"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card--info {
-          box-shadow: inset 3px 0 0 var(--tl-color-info-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
+        .tl-summary-card--info,
+        .tl-card--metric[data-status="info"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-info-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
-        .tl-summary-card__label {
+        .tl-summary-card__label,
+        .tl-card__metric-label {
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
         }
 
-        .tl-summary-card strong {
+        .tl-summary-card strong,
+        .tl-card--metric strong,
+        .tl-card__metric {
           font-size: var(--tl-font-size-heading);
           line-height: var(--tl-line-heading);
           font-variant-numeric: tabular-nums;
@@ -1160,7 +1184,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-4);
           border-bottom: 1px solid var(--tl-color-border);
           background: transparent;
-          box-shadow: inset 3px 0 0 transparent;
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 transparent;
           transition-property: background-color, box-shadow;
           transition-duration: var(--tl-transition-fast);
         }
@@ -1174,20 +1198,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-change--insert {
-          box-shadow: inset 3px 0 0 var(--tl-color-op-insert-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-insert-text);
         }
 
         .tl-change--update {
-          box-shadow: inset 3px 0 0 var(--tl-color-op-update-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-update-text);
         }
 
         .tl-change--delete {
-          box-shadow: inset 3px 0 0 var(--tl-color-op-delete-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-delete-text);
         }
 
         .tl-change--featured {
           border-top: 1px solid var(--tl-color-border);
-          box-shadow: inset 3px 0 0 var(--tl-color-brand-rail), var(--tl-shadow-subtle);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-brand-rail), var(--tl-shadow-subtle);
         }
 
         .tl-change__meta {
@@ -1245,7 +1269,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           justify-content: flex-start;
         }
 
-        .tl-meta-row {
+        /* Canonical metadata row. .tl-meta-row is the retained alias. */
+        .tl-meta-row,
+        .tl-meta {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
@@ -1409,7 +1435,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-table__row--uncovered,
         .tl-table__row--failed {
-          box-shadow: inset 3px 0 0 var(--tl-color-danger);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger);
         }
 
         .tl-table__row--expected {
@@ -1419,15 +1445,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-table__row--pending,
         .tl-table__row--running {
-          box-shadow: inset 3px 0 0 var(--tl-color-info-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-info-text);
         }
 
         .tl-table__row--completed {
-          box-shadow: inset 3px 0 0 var(--tl-color-success-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text);
         }
 
         .tl-table__row--covered {
-          box-shadow: inset 3px 0 0 var(--tl-color-success-text);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text);
         }
 
         /* Status-driven stripe: map a row's state to a status once in markup
@@ -1469,15 +1495,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-job--danger {
-          box-shadow: inset 3px 0 0 var(--tl-color-danger), var(--tl-shadow-border), var(--tl-shadow-subtle);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
         .tl-job--info {
-          box-shadow: inset 3px 0 0 var(--tl-color-info-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-info-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
         .tl-job--success {
-          box-shadow: inset 3px 0 0 var(--tl-color-success-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text), var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
         .tl-job__main {
@@ -1622,15 +1648,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-policy__section--drift .tl-policy__section-header {
-          border-left: 3px solid var(--tl-color-warning-border);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
         }
 
         .tl-policy__section--introspect .tl-policy__section-header {
-          border-left: 3px solid var(--tl-color-warning-border);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
         }
 
         .tl-policy__section--match .tl-policy__section-header {
-          border-left: 3px solid var(--tl-color-border-strong);
+          border-left: var(--tl-status-stripe-width) solid var(--tl-color-border-strong);
         }
 
         .tl-policy__empty {
