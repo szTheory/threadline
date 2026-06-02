@@ -72,11 +72,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
 
             <section class="tl-summary-grid" aria-label="Redaction drift summary">
-              <div class="tl-summary-card tl-summary-card--danger">
+              <div class={["tl-summary-card", if(@report.summary.drift_detected > 0, do: "tl-summary-card--danger", else: "tl-summary-card--success")]}>
                 <span class="tl-summary-card__label">Drift</span>
                 <strong><%= @report.summary.drift_detected %></strong>
               </div>
-              <div class="tl-summary-card tl-summary-card--warning">
+              <div class={["tl-summary-card", @report.summary.could_not_introspect > 0 && "tl-summary-card--warning"]}>
                 <span class="tl-summary-card__label">Introspection failures</span>
                 <strong><%= @report.summary.could_not_introspect %></strong>
               </div>

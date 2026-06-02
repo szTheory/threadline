@@ -143,7 +143,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span class="tl-summary-card__label">Captured</span>
                     <strong><%= @coverage_for_schema.covered_count %></strong>
                   </div>
-                  <div class="tl-summary-card tl-summary-card--danger">
+                  <div class={["tl-summary-card", @coverage_for_schema.uncovered_count > 0 && "tl-summary-card--danger"]}>
                     <span class="tl-summary-card__label">Needs capture</span>
                     <strong><%= @coverage_for_schema.uncovered_count %></strong>
                   </div>
