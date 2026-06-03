@@ -113,7 +113,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div>
                 <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
                   Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
-                  <button type="button" class="tl-copy" data-tl-copy={@bundle.transaction.id} aria-label="Copy transaction id">Copy</button>
+                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={@bundle.transaction.id} aria-label="Copy transaction id">Copy</button>
                 </h2>
                 <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>

@@ -98,6 +98,16 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     refute String.contains?(guide, "{:ok, conn}")
   end
 
+  test "operator surface guide documents asset embedding and CSP opt-outs" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "## Assets and Content-Security-Policy")
+    assert String.contains?(guide, "operator_surface_embed_fonts: false")
+    assert String.contains?(guide, "operator_surface_embed_scripts: false")
+    assert String.contains?(guide, "style-src 'unsafe-inline'")
+    assert String.contains?(guide, "script-src 'unsafe-inline'")
+  end
+
   test "operator surface guide locks the default actor handoff story" do
     guide = File.read!("guides/operator-surface.md")
 

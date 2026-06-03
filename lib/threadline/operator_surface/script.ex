@@ -26,6 +26,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    @doc """
+    Whether the embedded copy helper is active. LiveViews gate the copy
+    affordances on this so a disabled-script (CSP-strict) deployment shows the
+    ids for native selection instead of an inert button.
+    """
+    def enabled?, do: embed_scripts?()
+
     defp script_html do
       if embed_scripts?() do
         Phoenix.HTML.raw(["<script>", script_body(), "</script>"])

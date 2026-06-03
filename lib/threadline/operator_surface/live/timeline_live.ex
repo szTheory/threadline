@@ -497,7 +497,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep">
                     <code><%= correlation_id(change) %></code>
                   </a>
-                  <button type="button" class="tl-copy" data-tl-copy={correlation_id(change)} aria-label="Copy correlation id">Copy</button>
+                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={correlation_id(change)} aria-label="Copy correlation id">Copy</button>
                 </span>
               </div>
               <div class="tl-change__actions">
