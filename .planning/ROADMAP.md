@@ -18,7 +18,7 @@
 | Phase | Name | Requirement | Status |
 |-------|------|-------------|--------|
 | 134 | Baseline Audit & Screenshot Inventory | POLISH-AUDIT | not started |
-| 135 | 2/4 | In Progress|  |
+| 135 | 3/4 | In Progress|  |
 | 136 | Design-System Hardening | POLISH-DS | not started |
 | 137 | "Prove" Cluster Polish | POLISH-PROVE | not started |
 | 138 | "Find" Cluster Polish | POLISH-FIND | not started |
@@ -55,7 +55,7 @@
 **Plans**: 4 plans
 - [x] 135-01-PLAN.md — Generalize Support actor helpers (D-07) + fix D-05 persona/setup actor attribution + named actor literals
 - [x] 135-02-PLAN.md — Lock PERSONAS-IA.md (status header, EF1–EF5, J1–J11) + UI-AUDIT pointer + IA doc-contract test
-- [ ] 135-03-PLAN.md — In-window variety pack (5/4/2 op + multi-kind actors, reply-edit [REDACTED] diff, D-13) + filler DELETE branch + SavedView seed
+- [x] 135-03-PLAN.md — In-window variety pack (5/4/2 op + multi-kind actors, reply-edit [REDACTED] diff, D-13) + filler DELETE branch + SavedView seed
 - [ ] 135-04-PLAN.md — DEMO-MANIFEST.md per-state recipe table + named actor literals + recipe doc-contract test
 
 ### Phase 136: Design-System Hardening

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: executing
-last_updated: "2026-06-03T23:09:06.279Z"
+last_updated: "2026-06-03T23:20:24.245Z"
 last_activity: 2026-06-03
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 ## Current Position
 
 Phase: 135 (seed-enrichment-ia-lock-in) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
+Plan: 4 of 4
+Status: Plan 03 complete (in-window variety pack + filler DELETE branch + SavedView data)
 Last activity: 2026-06-03
-Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
+Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-03-SUMMARY.md`
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 | Pow / bearer auth lane | On explicit demand only | Not planned |
 | Phase 135-seed-enrichment-ia-lock-in P01 | 3m | 3 tasks | 4 files |
 | Phase 135 P02 | 2m | 2 tasks | 3 files |
+| Phase 135 P03 | 8m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 - [Phase ?]: Generalize actor helpers
 - [Phase ?]: D-05 fix: setup rows actor-attributed and backdated
 - [Phase ?]: D-06: named actor literals in Manifest
+- [135-03]: Membership role change backdated outside 24h window (D-05 compatible); D-13 UPDATE satisfied by ticket/ticket_replies in-window mutations
+- [135-03]: agent2 used for role flip to guarantee Ecto sends real SQL UPDATE (trigger fires)
+- [135-03]: SavedView actor_ref uses type: :user (matches Timeline mount query for admin)
 
 ### Blockers
 
