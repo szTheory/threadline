@@ -259,6 +259,48 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end
   end
 
+  describe "D-05 persona setup actor attribution" do
+    test "org_memberships setup rows have non-null actor_ref on transaction" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        import Ecto.Query
+
+        count =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "org_memberships",
+              where: not is_nil(at.actor_ref),
+              select: count(ac.id)
+            )
+          )
+
+        assert count >= 1,
+               "expected ≥1 org_memberships AuditChange with non-null actor_ref, got #{count}"
+      end)
+    end
+
+    test "org_memberships setup rows are backdated outside the default 24h window" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        import Ecto.Query
+
+        window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
+
+        in_window_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "org_memberships",
+              where: at.occurred_at >= ^window_start,
+              select: count(ac.id)
+            )
+          )
+
+        assert in_window_count == 0,
+               "expected 0 org_memberships setup rows in default 24h window, got #{in_window_count}"
+      end)
+    end
+  end
+
   defp semantic_fingerprint do
     acme = Repo.get_by!(Organization, slug: "acme")
 
