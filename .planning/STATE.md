@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: Hold
 milestone_name: None
 status: Completed
-last_updated: "2026-05-30T12:00:00.000Z"
-last_activity: 2026-05-30 — 0.7.0 published to Hex; release-pipeline + test-determinism hardening (direct PRs, not a milestone)
+last_updated: "2026-06-03T12:00:00.000Z"
+last_activity: 2026-06-03 — 0.9.0 published to Hex; release-please born-red root-cause fix (direct PRs, not a milestone)
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,20 +20,20 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Hold — pre-pilot hardening (Hex CI + WALKTHROUGH automation) shipped in v1.30; v1.28 signal-gated. Post-v1.30: 0.7.0 cut + release-pipeline and test-determinism hardening landed as direct PRs (no milestone).
+**Current focus:** Hold — pre-pilot hardening (Hex CI + WALKTHROUGH automation) shipped in v1.30; v1.28 signal-gated. Post-v1.30, all as direct PRs (no milestone): 0.7.0 cut + release-pipeline/test-determinism hardening (2026-05-30); operator-surface first-class positioning + a11y pass and 0.8.0/0.9.0 cuts (2026-06-03); release-please born-red root-cause fix (2026-06-03).
 
 ## Current Position
 
 Phase: None
 Plan: None
 Status: Hold
-Last activity: 2026-05-30 — 0.7.0 published; release-pipeline + test-determinism hardening (direct PRs)
+Last activity: 2026-06-03 — 0.9.0 published; release-please born-red root-cause fix (direct PRs)
 
 ## Performance Metrics
 
 - **Last Milestone Shipped**: v1.30 — Adoption Evidence Automation (2026-05-29)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
-- **Hex distribution**: in-repo and hex.pm latest **0.7.0** (tag `v0.7.0`, published 2026-05-30; prior `v0.6.0` 2026-05-28)
+- **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
 - **Posture thread**: `.planning/threads/2026-05-29-post-v1.29-posture.md`
 - **v1.28 pilot readiness**: `.planning/threads/2026-05-29-v1.28-pilot-readiness.md`
@@ -62,6 +62,10 @@ Last activity: 2026-05-30 — 0.7.0 published; release-pipeline + test-determini
   - **0.7.0 release** — unblocked the stuck release-please PR; fixed `bin/verify-release-shape` to accept release-please's CHANGELOG heading; published `v0.7.0` to Hex. Fixed the operator-surface timeline crash on `?correlation_id=` (`FilterParams` `String.to_existing_atom` → compile-time allowlist) that had kept the v1.30 Playwright job (Phase 132) red.
   - **Release-pipeline hardening** — generalized `bin/post-publish-distribution-sync` (was 0.5→0.6-pinned); added `workflow_dispatch` to `ci.yml` so "Bootstrap CI on Release PR" stops failing.
   - **Test determinism** — fixed the ~40% retention-pruner flake + a telemetry cross-contamination flake; added `test/support/async_helpers.ex`, `mix verify.flake`, and a nightly **Flake Detection** workflow. See `CONTRIBUTING.md` "Deterministic tests".
+- **Direct-PR work (2026-06-03, no milestone):**
+  - **Operator surface** — first-class positioning + accessibility pass (#16); deterministic evidence `record_*` export assertions (#18).
+  - **0.8.0 + 0.9.0 cuts** — published to Hex via release-please.
+  - **Release-please born-red root-cause fix (#22)** — every release PR was born red because release-please bumped `mix.exs` but not the adoption-pilot guide, failing `adoption_pilot_doc_contract_test`. Fixed via `extra-files` + `x-release-please-version` annotation so the SSOT line is bumped atomically in the release commit (green by construction, no manual prep). `bin/post-publish-distribution-sync` now owns only the post-publish Hex row; a guard test enforces the wiring. See memory `release-runbook` and `CONTRIBUTING.md`.
 
 ### Decisions
 
@@ -80,7 +84,7 @@ Last activity: 2026-05-30 — 0.7.0 published; release-pipeline + test-determini
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: 0.7.0 published + release-pipeline/test-determinism hardening via direct PRs (2026-05-30)
+- **Last Action**: 0.9.0 published + release-please born-red root-cause fix via direct PRs (2026-06-03)
 - **Next Step**: Hold — use evaluator ladder; open v1.28 via `/gsd-new-milestone` when adopter signal appears (see `2026-05-29-v1.28-pilot-readiness.md`)
 - **Resume file**: None
 
