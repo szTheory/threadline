@@ -154,7 +154,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                     <div class="tl-meta">
                       <span>Transaction <code title={tx.id}><%= Presentation.short_id(tx.id, 14) %></code></span>
-                      <button type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
+                      <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
                     </div>
                     <div class="tl-change__actions">
                       <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">Open transaction</a>

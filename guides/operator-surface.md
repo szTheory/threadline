@@ -334,4 +334,34 @@ Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / D
 
 `[:threadline, :health, :checked]` fires on every successful poll with measurements `%{covered, uncovered, expected_uncovered}`. The `expected_uncovered` measurement is additive — old subscribers reading only `covered`/`uncovered` keep working unchanged.
 
+## Assets and Content-Security-Policy
+
+The operator surface ships with **no external asset pipeline and no JavaScript dependencies**. Everything it needs is embedded inline by the mounted LiveViews at render time:
+
+- **Styles** — a single scoped `<style>` block (`Threadline.OperatorSurface.Style`).
+- **Fonts** — Geist and IBM Plex Mono as `@font-face` data-URIs, embedded at compile time (`Threadline.OperatorSurface.Fonts`).
+- **Copy helper** — a tiny, dependency-free `<script>` (`Threadline.OperatorSurface.Script`) that powers the "Copy" affordance on correlation and transaction ids. It binds one delegated listener; there is no host LiveSocket hook to register.
+
+This keeps the surface a true drop-in: mount it and the screens render fully styled, with no `assets/` build step.
+
+### Opt-outs
+
+Both inline embeds can be disabled — for example to satisfy a strict Content-Security-Policy that forbids inline `<style>` / `<script>`:
+
+    # Use the host's system font stack instead of the embedded webfonts.
+    config :threadline, operator_surface_embed_fonts: false
+
+    # Drop the inline copy-to-clipboard helper. The id "Copy" buttons are then
+    # hidden; operators select-and-copy the ids natively instead.
+    config :threadline, operator_surface_embed_scripts: false
+
+### CSP guidance
+
+If you enforce a Content-Security-Policy, the embedded assets require:
+
+- `style-src 'unsafe-inline'` (or a per-response nonce) for the inline styles and `@font-face` data-URIs.
+- `script-src 'unsafe-inline'` for the copy helper — **or** set `operator_surface_embed_scripts: false` and drop the `'unsafe-inline'` script allowance entirely.
+
+Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
+
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
