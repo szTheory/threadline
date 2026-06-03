@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
-status: executing
-last_updated: "2026-06-03T23:20:24.245Z"
+status: verifying
+last_updated: "2026-06-03T23:26:29.550Z"
 last_activity: 2026-06-03
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 0
+  completed_plans: 4
+  percent: 10
 ---
 
 # Project State: Threadline
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 Phase: 135 (seed-enrichment-ia-lock-in) — EXECUTING
 Plan: 4 of 4
-Status: Plan 03 complete (in-window variety pack + filler DELETE branch + SavedView data)
+Status: Phase complete — ready for verification
 Last activity: 2026-06-03
-Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-03-SUMMARY.md`
+Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-04-SUMMARY.md`
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-03-SUMMARY.md`
 | Phase 135-seed-enrichment-ia-lock-in P01 | 3m | 3 tasks | 4 files |
 | Phase 135 P02 | 2m | 2 tasks | 3 files |
 | Phase 135 P03 | 8m | 3 tasks | 4 files |
+| Phase 135 P04 | 5m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-03-SUMMARY.md`
 - [135-03]: Membership role change backdated outside 24h window (D-05 compatible); D-13 UPDATE satisfied by ticket/ticket_replies in-window mutations
 - [135-03]: agent2 used for role flip to guarantee Ecto sends real SQL UPDATE (trigger fires)
 - [135-03]: SavedView actor_ref uses type: :user (matches Timeline mount query for admin)
+- [135-04]: D-03: Recipe table in DEMO-MANIFEST.md backed by demo_manifest_contract_test.exs; 24 rows covering all operator-surface screen states
+- [135-04]: D-04 deferred: Coverage fully-covered/all-empty state noted as Phase-138-owned (trigger-registration dependent, not seed-reachable)
+- [135-04]: demo_manifest_contract_test.exs kept separate from demo_manifest_test.exs (different concerns: doc vs module)
 
 ### Blockers
 

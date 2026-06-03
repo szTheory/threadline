@@ -18,7 +18,7 @@
 | Phase | Name | Requirement | Status |
 |-------|------|-------------|--------|
 | 134 | Baseline Audit & Screenshot Inventory | POLISH-AUDIT | not started |
-| 135 | 3/4 | In Progress|  |
+| 135 | 4/4 | Complete   | 2026-06-03 |
 | 136 | Design-System Hardening | POLISH-DS | not started |
 | 137 | "Prove" Cluster Polish | POLISH-PROVE | not started |
 | 138 | "Find" Cluster Polish | POLISH-FIND | not started |
@@ -56,7 +56,7 @@
 - [x] 135-01-PLAN.md — Generalize Support actor helpers (D-07) + fix D-05 persona/setup actor attribution + named actor literals
 - [x] 135-02-PLAN.md — Lock PERSONAS-IA.md (status header, EF1–EF5, J1–J11) + UI-AUDIT pointer + IA doc-contract test
 - [x] 135-03-PLAN.md — In-window variety pack (5/4/2 op + multi-kind actors, reply-edit [REDACTED] diff, D-13) + filler DELETE branch + SavedView seed
-- [ ] 135-04-PLAN.md — DEMO-MANIFEST.md per-state recipe table + named actor literals + recipe doc-contract test
+- [x] 135-04-PLAN.md — DEMO-MANIFEST.md per-state recipe table + named actor literals + recipe doc-contract test
 
 ### Phase 136: Design-System Hardening
 **Goal**: Dedupe and formalize the token scales (spacing, control-size, radius, shadow, typography, canonical status-color map, z-index, motion — including the currently-missing control-size scale and a canonical status-color map); document the `.tl-*` class catalog in `v1.31-DESIGN-SYSTEM.md` (each canonical / deprecated / consolidated with usage rules + antipatterns); unify shared primitives (badge, button, panel, empty-state, table, toast, drawer, copy-affordance). Freeze the token scale at end of phase.
