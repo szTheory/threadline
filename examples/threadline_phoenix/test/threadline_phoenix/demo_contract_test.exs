@@ -299,6 +299,31 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end
   end
 
+  describe "D-13 in-window variety guarantee" do
+    test "default 24h window contains ≥1 UPDATE and ≥1 DELETE" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        import Ecto.Query
+
+        window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
+
+        for op <- ["update", "delete"] do
+          count =
+            Repo.one!(
+              from(ac in AuditChange,
+                join: at in assoc(ac, :transaction),
+                where: ac.op == ^op,
+                where: at.occurred_at >= ^window_start,
+                select: count(ac.id)
+              )
+            )
+
+          assert count >= 1,
+                 "expected ≥1 #{op} in default 24h window, got #{count}"
+        end
+      end)
+    end
+  end
+
   defp semantic_fingerprint do
     acme = Repo.get_by!(Organization, slug: "acme")
 
