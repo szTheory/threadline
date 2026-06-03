@@ -50,3 +50,22 @@
 | New backend features / new queries / new screens | Polish the 10 existing LiveViews; no product-surface expansion |
 | v1.28 External Pilot work | Still signal-gated; this milestone is independent |
 | Speculative UX flows | Every new flow must trace to a persona JTBD + a decision record |
+
+## Traceability
+
+Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continues from the prior milestone's last phase (133).
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| POLISH-AUDIT | Phase 134 — Baseline Audit & Screenshot Inventory | Pending |
+| POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Pending |
+| POLISH-DS | Phase 136 — Design-System Hardening | Pending |
+| POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Pending |
+| POLISH-FIND | Phase 138 — "Find" Cluster Polish | Pending |
+| POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Pending |
+| POLISH-FLOWS | Phase 140 — Earned New Flows | Pending |
+| POLISH-MOTION | Phase 141 — Motion & Micro-animation | Pending |
+| POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Pending |
+| POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Pending |
+
+**Coverage:** 10/10 requirements mapped — no orphans, no duplicates.

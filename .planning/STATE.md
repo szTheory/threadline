@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-03T21:54:37.608Z"
 last_activity: 2026-06-03
 progress:
-  total_phases: 0
+  total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Hold — pre-pilot hardening (Hex CI + WALKTHROUGH automation) shipped in v1.30; v1.28 signal-gated. Post-v1.30, all as direct PRs (no milestone): 0.7.0 cut + release-pipeline/test-determinism hardening (2026-05-30); operator-surface first-class positioning + a11y pass and 0.8.0/0.9.0 cuts (2026-06-03); release-please born-red root-cause fix (2026-06-03).
+**Current focus:** v1.31 — Operator Surface: Insane Polish (phases 134–143). A systematic second pass over the entire `/audit` operator surface: one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system, IA aligned to personas/JTBD with a few earned new flows, restrained micro-animation, enriched seed — screenshot-/decision-recorded so a context clear loses nothing. Foundations (audit → seed → design-system) precede per-screen work.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 134 — Baseline Audit & Screenshot Inventory (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-03 — Milestone v1.31 started
+Status: Planning — roadmap drafted, phases 134–143 mapped 1:1 to POLISH-* requirements
+Last activity: 2026-06-03 — Milestone v1.31 roadmap created
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Last activity: 2026-06-03 — Milestone v1.31 started
 | Category | Item | Status |
 |----------|------|--------|
 | external-pilot | v1.28 pilot unblockers | **Deferred** until sustained real-adopter signal |
-| post-v1.29 | Hold mode | **Active** — default after v1.29 ships; pre-pilot hardening in-repo |
+| post-v1.29 | Hold mode | **Superseded** by v1.31 polish milestone (2026-06-03) |
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until procurement pressure |
 | host-class | STG-01 host staging depth | Integrator-owned; v1.28 when signal |
 | Pow / bearer auth lane | On explicit demand only | Not planned |
@@ -52,7 +52,7 @@ Last activity: 2026-06-03 — Milestone v1.31 started
 
 ### Pending Todos
 
-- **Capture direct demo and UI polish** — decide how to reflect direct Hold-mode commits `253bec3` and `f23a9cc` in GSD authority surfaces, changelog/release notes, or next-milestone planning.
+- **Capture direct demo and UI polish** — direct Hold-mode commits `253bec3` and `f23a9cc` (operator-surface positioning + a11y pass) are now the baseline that v1.31 systematizes; reconcile any deltas during Phase 134 audit.
 
 ### Roadmap Evolution
 
@@ -66,6 +66,7 @@ Last activity: 2026-06-03 — Milestone v1.31 started
   - **Operator surface** — first-class positioning + accessibility pass (#16); deterministic evidence `record_*` export assertions (#18).
   - **0.8.0 + 0.9.0 cuts** — published to Hex via release-please.
   - **Release-please born-red root-cause fix (#22)** — every release PR was born red because release-please bumped `mix.exs` but not the adoption-pilot guide, failing `adoption_pilot_doc_contract_test`. Fixed via `extra-files` + `x-release-please-version` annotation so the SSOT line is bumped atomically in the release commit (green by construction, no manual prep). `bin/post-publish-distribution-sync` now owns only the post-publish Hex row; a guard test enforces the wiring. See memory `release-runbook` and `CONTRIBUTING.md`.
+- **Milestone v1.31 opened (2026-06-03):** Hold superseded by a non-signal-gated polish milestone. 10 phases (134–143), 1:1 with 10 POLISH-* requirements, fully pre-decided order: measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep.
 
 ### Decisions
 
@@ -84,13 +85,12 @@ Last activity: 2026-06-03 — Milestone v1.31 started
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: 0.9.0 published + release-please born-red root-cause fix via direct PRs (2026-06-03)
-- **Next Step**: Hold — use evaluator ladder; open v1.28 via `/gsd-new-milestone` when adopter signal appears (see `2026-05-29-v1.28-pilot-readiness.md`)
+- **Last Action**: v1.31 roadmap created — phases 134–143 mapped 1:1 to POLISH-* requirements (2026-06-03)
+- **Next Step**: Plan Phase 134 (`/gsd:plan-phase 134`) — Baseline Audit & Screenshot Inventory
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **Hold** — no new milestone until sustained adopter signal
-- **Evaluator ladder** — `mix ci.all`, `mix verify.hex_evaluator`, example Track A/B, evaluating guide
-- **v1.28 trigger** — `/gsd-new-milestone` when pilot-readiness thread conditions met
-- Do **not** open v1.28 external pilot until sustained adopter signal
+- **Plan Phase 134** — Baseline Audit & Screenshot Inventory (foundation: every later phase cites its findings)
+- **Locked constraints** — keep BEM `.tl-*` + `--tl-*` tokens in `style.ex` (no Tailwind/build step); dark-first brand; seed enrichment only; no new backend/screens; every new flow traces to a JTBD + decision record
+- v1.28 external pilot remains signal-gated and out of scope for v1.31
