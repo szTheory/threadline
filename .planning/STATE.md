@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: Hold
-milestone_name: None
-status: Completed
-last_updated: "2026-06-03T12:00:00.000Z"
-last_activity: 2026-06-03 — 0.9.0 published to Hex; release-please born-red root-cause fix (direct PRs, not a milestone)
+milestone: v1.31
+milestone_name: "Operator Surface: Insane Polish"
+status: planning
+last_updated: "2026-06-03T21:54:37.608Z"
+last_activity: 2026-06-03
 progress:
   total_phases: 0
   completed_phases: 0
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 ## Current Position
 
-Phase: None
-Plan: None
-Status: Hold
-Last activity: 2026-06-03 — 0.9.0 published; release-please born-red root-cause fix (direct PRs)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-03 — Milestone v1.31 started
 
 ## Performance Metrics
 

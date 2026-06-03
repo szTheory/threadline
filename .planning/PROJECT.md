@@ -8,6 +8,26 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.31 Operator Surface: Insane Polish
+
+**Goal:** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app) — bring every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system, align IA to real personas/JTBD with a few earned new flows, add restrained purposeful micro-animation, and enrich seed data so every screen demonstrates itself — captured durably and screenshot-/decision-recorded so a context clear loses nothing.
+
+**Why now (non-signal-gated):** Independent of the deferred, signal-gated v1.28 External Pilot. Polish is currently uneven (Home/Timeline iterated; Coverage/Evidence/Exports/Policy/Retention/Actor lag). This establishes a high, consistent foundation for all future UI iteration. Persona/IA model, methodology, and full Phase 0–8 breakdown live in the approved plan: `~/.claude/plans/recap-goal-was-shipping-robust-lark.md`.
+
+**Target features (requirement themes):**
+- Baseline screenshot audit + ranked findings (`POLISH-AUDIT`)
+- Seed enrichment so every screen-state shows well (`POLISH-SEED`)
+- Design-system hardening: token scales + audited `.tl-*` catalog (`POLISH-DS`)
+- "Prove" cluster polish — least-iterated screens first (`POLISH-PROVE`)
+- "Find" cluster polish — Timeline/Transaction/Row-history/Actor (`POLISH-FIND`)
+- Orientation hub (Home/nav) aligned to IA (`POLISH-HOME`)
+- Earned new flows: record-first lookup, export loop, correlation deep-link, first-class row-history (`POLISH-FLOWS`)
+- Restrained, research-backed micro-animation (`POLISH-MOTION`)
+- Genuine mobile-first responsive across all screens (`POLISH-RESPONSIVE`)
+- Accessibility + final consistency sweep + screenshot-diff regression guard (`POLISH-A11Y`)
+
+**Locked constraints:** Keep BEM (`.tl-*`) + `--tl-*` tokens in `style.ex` (no Tailwind, no build step). Dark-first brand locked (no light mode). Seed enrichment only (no demo-app redesign). No new backend features/queries. Every new flow traces to a persona JTBD + a decision record — no speculative features.
+
 ## Latest Milestone Shipped: v1.30 Adoption Evidence Automation (2026-05-29)
 
 **Goal (achieved):** Close shift-left automation gaps on the existing help-desk demo journey (WALKTHROUGH §5, Track A golden path, minimal browser E2E) without new fiction or host STG pretense.
