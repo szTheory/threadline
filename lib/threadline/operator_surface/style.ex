@@ -204,6 +204,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: var(--tl-focus-ring);
         }
 
+        /* Skip-to-content link: visually hidden until focused, then the first
+         * tab stop jumps keyboard / screen-reader users past the nav to <main>. */
+        .tl-skip-link {
+          position: absolute;
+          left: var(--tl-space-2);
+          top: calc(-1 * var(--tl-space-12));
+          z-index: var(--tl-z-toast);
+          padding: var(--tl-space-2) var(--tl-space-3);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-accent);
+          color: var(--tl-color-on-accent);
+          font-weight: var(--tl-weight-medium);
+          text-decoration: none;
+        }
+
+        .tl-skip-link:focus {
+          top: var(--tl-space-2);
+        }
+
         .threadline-ui code,
         .threadline-ui pre,
         .tl-code {

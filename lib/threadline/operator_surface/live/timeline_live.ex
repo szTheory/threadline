@@ -322,11 +322,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           scoped={not is_nil(assigns[:threadline_scope])}
         />
 
-        <main class="tl-page tl-page--intro">
+        <main id="tl-main" class="tl-page tl-page--intro">
           <section class="tl-orientation tl-orientation--investigation" aria-label="Investigation starting point">
             <div class="tl-orientation__header">
               <div>
-                <h2 class="tl-orientation__title">Investigate audit activity</h2>
+                <h1 class="tl-orientation__title">Investigate audit activity</h1>
                 <p class="tl-orientation__lede">
                   Start with a window, table, actor, or correlation id. Check readiness before treating results as exhaustive, then open a transaction to reconstruct what changed together.
                 </p>

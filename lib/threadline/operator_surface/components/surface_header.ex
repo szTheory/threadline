@@ -27,6 +27,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def surface_header(assigns) do
       ~H"""
+      <a class="tl-skip-link" href="#tl-main">Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
         <a class="tl-topbar__brand" href={@base_path || "#"}>Threadline</a>
         <nav class="tl-topbar__nav" aria-label="Operator surface">

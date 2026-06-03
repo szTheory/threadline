@@ -64,11 +64,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="tl-page">
+        <main id="tl-main" class="tl-page">
           <%= if @threadline_evidence_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h2 class="tl-page__title">What can Threadline prove right now?</h2>
+                <h1 class="tl-page__title">What can Threadline prove right now?</h1>
                 <p class="tl-page__lede">
                 <%= if @request.mode == :history do %>
                   Viewing append-only history for one evidence subject reference.

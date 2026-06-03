@@ -110,15 +110,19 @@ canonical first-hour Phoenix walkthrough, and
 
 ## Operator Surface
 
-Threadline provides an optional, drop-in LiveView UI to investigate the audit
-trail natively in your app, including a polled coverage dashboard at
-`/audit/coverage`, a read-only redaction drift viewer at
-`/audit/policy/redaction`, and parity Mix tasks
-`mix threadline.health.coverage` plus `mix threadline.policy.show`. Ensure you
-have the optional Phoenix surface dependencies declared in `mix.exs`. The Threadline
-UI currently ships as an optional in-tree dependency. For details on this architecture decision
-and support guarantees, see the
-[Upgrade Path](guides/upgrade-path.md).
+Threadline ships an optional, drop-in LiveView **operator console** — a dark,
+branded admin surface for investigating the audit trail natively in your app,
+with no asset build step. It opens on a task launcher (**Find / Verify /
+Prove**) and threads into a filterable change timeline, atomic-transaction and
+row-level diffs, per-actor history, append-only **evidence** with
+Proven / Inferred / Unsupported verdicts, a polled **coverage** dashboard, and
+read-only **redaction-drift** and **retention** viewers — backed by parity Mix
+tasks (`mix threadline.incident`, `mix threadline.health.coverage`,
+`mix threadline.policy.show`) for capture-only adopters. Mount is fail-closed by
+default. Ensure you have the optional Phoenix
+surface dependencies declared in `mix.exs`. The Threadline UI currently ships as
+an optional in-tree dependency. For details on this architecture decision and
+support guarantees, see the [Upgrade Path](guides/upgrade-path.md).
 
 **1-Minute Mount**
 

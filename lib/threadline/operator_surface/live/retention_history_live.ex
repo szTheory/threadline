@@ -83,11 +83,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="tl-page">
+        <main id="tl-main" class="tl-page">
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h2 class="tl-page__title">Retention History</h2>
+                <h1 class="tl-page__title">Retention History</h1>
                 <p class="tl-page__lede">Review recent pruning runs and evidence before triggering another destructive retention pass.</p>
               </div>
               <div class="tl-page__actions">

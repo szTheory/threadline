@@ -71,7 +71,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:start}
         />
 
-        <main class="tl-page tl-home">
+        <main id="tl-main" class="tl-page tl-home">
           <header class="tl-home__hero">
             <p class="tl-home__eyebrow">Threadline</p>
             <h1 class="tl-home__headline">Follow what happened.</h1>

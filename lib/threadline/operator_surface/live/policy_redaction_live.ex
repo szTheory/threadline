@@ -55,11 +55,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="tl-page">
+        <main id="tl-main" class="tl-page">
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
               <div>
-              <h2 class="tl-page__title">Policy redaction drift</h2>
+              <h1 class="tl-page__title">Policy redaction drift</h1>
               <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</p>
               </div>
             </header>

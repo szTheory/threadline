@@ -93,6 +93,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:timeline}
           scoped={not is_nil(assigns[:threadline_scope])}
         />
+        <main id="tl-main">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Invalid Actor Reference</h3>
@@ -109,7 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </nav>
             <div class="tl-page__header">
               <div>
-                <h2 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h2>
+                <h1 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h1>
                 <p class="tl-page__lede">Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</p>
                 <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               </div>
@@ -165,6 +166,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
           <% end %>
         <% end %>
+        </main>
       </div>
       """
     end
