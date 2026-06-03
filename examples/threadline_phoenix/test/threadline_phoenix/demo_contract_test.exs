@@ -63,7 +63,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             )
           )
 
-        refute is_nil(action)
+        assert action.name == "ticket_replied_and_closed"
       end)
     end
 
@@ -94,7 +94,6 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             )
           )
 
-        refute is_nil(reply_change)
         encoded = Jason.encode!(reply_change.data_after)
         assert encoded =~ "[REDACTED]"
         refute encoded =~ "WALKTHROUGH-INTERNAL-SECRET-4521"
@@ -205,6 +204,15 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert Repo.get_by!(Organization, slug: "offboarded-co")
       end)
     end
+
+    # Regression guard for CR-01: mix demo.reset (which calls Seed.run/0) followed
+    # by mix demo.seed (which calls Seed.run/0 again on an already-populated DB)
+    # must not raise Ecto.NoResultsError when no DML fires on the second pass.
+    test "Seed.run/0 twice in sequence (reset-then-seed) does not raise" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        assert :ok = Seed.run()
+      end)
+    end
   end
 
   describe "SEED-04 org Y retention end state" do
@@ -300,13 +308,13 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   end
 
   describe "D-13 in-window variety guarantee" do
-    test "default 24h window contains ≥1 UPDATE and ≥1 DELETE" do
+    test "default 24h window contains ≥1 INSERT, ≥1 UPDATE, and ≥1 DELETE" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
-        for op <- ["update", "delete"] do
+        for op <- ["insert", "update", "delete"] do
           count =
             Repo.one!(
               from(ac in AuditChange,
