@@ -12,7 +12,7 @@
 
 ### Seed enrichment
 
-- [ ] **POLISH-SEED**: Every operator-surface screen demonstrates itself from seed — empty states, long/paginated lists, status variety, and permission/edge cases are all reachable via `mix demo.reset && mix demo.seed`; DEMO-MANIFEST.md updated as SSOT. Seed only — no schema/route/business-logic changes to the demo app.
+- [x] **POLISH-SEED**: Every operator-surface screen demonstrates itself from seed — empty states, long/paginated lists, status variety, and permission/edge cases are all reachable via `mix demo.reset && mix demo.seed`; DEMO-MANIFEST.md updated as SSOT. Seed only — no schema/route/business-logic changes to the demo app.
 
 ### Design system
 
@@ -58,7 +58,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | POLISH-AUDIT | Phase 134 — Baseline Audit & Screenshot Inventory | Pending |
-| POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Pending |
+| POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Complete |
 | POLISH-DS | Phase 136 — Design-System Hardening | Pending |
 | POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Pending |
 | POLISH-FIND | Phase 138 — "Find" Cluster Polish | Pending |

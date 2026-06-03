@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: executing
-last_updated: "2026-06-03T22:55:24.564Z"
-last_activity: 2026-06-03 -- Phase 135 planning complete
+last_updated: "2026-06-03T23:04:54.065Z"
+last_activity: 2026-06-03
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.31 — Operator Surface: Insane Polish (phases 134–143). A systematic second pass over the entire `/audit` operator surface: one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system, IA aligned to personas/JTBD with a few earned new flows, restrained micro-animation, enriched seed — screenshot-/decision-recorded so a context clear loses nothing. Foundations (audit → seed → design-system) precede per-screen work.
+**Current focus:** Phase 135 — seed-enrichment-ia-lock-in
 
 ## Current Position
 
-Phase: 135 — Seed Enrichment & IA Lock-In (context gathered)
-Plan: — (next: /gsd:plan-phase 135)
+Phase: 135 (seed-enrichment-ia-lock-in) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-03 -- Phase 135 planning complete
+Last activity: 2026-06-03
 Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 
 ## Performance Metrics
@@ -48,6 +48,7 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until procurement pressure |
 | host-class | STG-01 host staging depth | Integrator-owned; v1.28 when signal |
 | Pow / bearer auth lane | On explicit demand only | Not planned |
+| Phase 135-seed-enrichment-ia-lock-in P01 | 3m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 - **128-02 (2026-05-28):** phx-gen-auth mount uses `&MyApp.Audit.authorize_operator/1` with scope-first lookup and `is_admin: true` gate.
 - **v1.29 posture (2026-05-29):** Hold for milestones; pre-pilot hardening: `mix verify.hex_evaluator`, WALKTHROUGH ConnCase tests; pilot pack queued.
 - Full decision log: `.planning/PROJECT.md` Key Decisions table.
+- [Phase ?]: Generalize actor helpers
+- [Phase ?]: D-05 fix: setup rows actor-attributed and backdated
+- [Phase ?]: D-06: named actor literals in Manifest
 
 ### Blockers
 

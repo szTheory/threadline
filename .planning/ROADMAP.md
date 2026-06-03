@@ -18,7 +18,7 @@
 | Phase | Name | Requirement | Status |
 |-------|------|-------------|--------|
 | 134 | Baseline Audit & Screenshot Inventory | POLISH-AUDIT | not started |
-| 135 | Seed Enrichment & IA Lock-In | POLISH-SEED | not started |
+| 135 | 1/4 | In Progress|  |
 | 136 | Design-System Hardening | POLISH-DS | not started |
 | 137 | "Prove" Cluster Polish | POLISH-PROVE | not started |
 | 138 | "Find" Cluster Polish | POLISH-FIND | not started |
@@ -53,7 +53,7 @@
   3. No demo-app schema, route, or business-logic changes were introduced (seed-only diff).
   4. The locked persona/JTBD IA decisions are recorded in the audit doc and referenced by later phases.
 **Plans**: 4 plans
-- [ ] 135-01-PLAN.md — Generalize Support actor helpers (D-07) + fix D-05 persona/setup actor attribution + named actor literals
+- [x] 135-01-PLAN.md — Generalize Support actor helpers (D-07) + fix D-05 persona/setup actor attribution + named actor literals
 - [ ] 135-02-PLAN.md — Lock PERSONAS-IA.md (status header, EF1–EF5, J1–J11) + UI-AUDIT pointer + IA doc-contract test
 - [ ] 135-03-PLAN.md — In-window variety pack (5/4/2 op + multi-kind actors, reply-edit [REDACTED] diff, D-13) + filler DELETE branch + SavedView seed
 - [ ] 135-04-PLAN.md — DEMO-MANIFEST.md per-state recipe table + named actor literals + recipe doc-contract test
