@@ -126,8 +126,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               join: ac in assoc(at, :changes),
               where: ac.table_name == "tickets",
               where: fragment("?->>'id'", ac.table_pk) in ^leaving_ticket_ids,
-              where:
-                fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
+              where: fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts,
               select: count(at.id, :distinct)
@@ -142,8 +141,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               join: at in assoc(ac, :transaction),
               where: ac.table_name == "tickets",
               where: fragment("?->>'id'", ac.table_pk) in ^leaving_ticket_ids,
-              where:
-                fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
+              where: fragment("? @> ?::jsonb", at.actor_ref, ^ActorRef.to_map(agent2_ref)),
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts
             ),
@@ -308,8 +306,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       org_count: Repo.aggregate(Organization, :count, :id),
       acme_ticket_count:
         Repo.aggregate(from(t in Ticket, where: t.organization_id == ^acme.id), :count),
-      ticket_4521_number:
-        Repo.get_by!(Ticket, organization_id: acme.id, number: 4521).number,
+      ticket_4521_number: Repo.get_by!(Ticket, organization_id: acme.id, number: 4521).number,
       acme_slug: acme.slug
     }
   end
