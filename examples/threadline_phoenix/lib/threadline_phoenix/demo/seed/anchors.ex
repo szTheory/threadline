@@ -279,7 +279,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
   defp seed_variety_ticket_reopen(ctx, acme, support_agent) do
     ticket = upsert_ticket!(acme, 5002, support_agent, "closed")
     job_id = Manifest.actor_id(:oban_retention_purge)
-    closer_agent_id = to_string(support_agent.user_id)
+    support_agent_id = to_string(support_agent.user_id)
 
     # Reopen the ticket (status closed→open)
     {:ok, reopen_tx_id} =
@@ -300,7 +300,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
     # Reassign the ticket (separate UPDATE)
     {:ok, reassign_tx_id} =
       Repo.transaction(fn ->
-        Support.set_actor_guc!(closer_agent_id)
+        Support.set_actor_guc!(support_agent_id)
 
         Repo.get!(Ticket, ticket.id)
         |> Ticket.changeset(%{assignee_id: support_agent.id, status: "in_progress"})
@@ -355,8 +355,6 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
   defp seed_variety_reply_delete(ctx, acme, closer_agent) do
     # Insert a reply to delete
     ticket = upsert_ticket!(acme, 5003, closer_agent, "open")
-    anon_insert_tx_id_ref = make_ref()
-    _ = anon_insert_tx_id_ref
 
     {:ok, {reply, insert_tx_id}} =
       Repo.transaction(fn ->
