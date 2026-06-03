@@ -65,7 +65,7 @@ How to reach every meaningful operator-surface state from the enriched seed — 
 |--------|-------|-------|---------------|-------|
 | Timeline | default (op variety, non-human actors above fold) | `admin@example.com` | `/audit/timeline` (default 24h window) | In-window variety pack: 5 INSERT / 4 UPDATE / 2 DELETE; all non-human actor kinds visible |
 | Timeline | op filter — updates only | `admin@example.com` | `/audit/timeline?op=update` | Shows ticket reopened, ticket_replies edit, role change |
-| Timeline | op filter — deletes only | `admin@example.com` | `/audit/timeline?op=delete` | Shows reply hard-delete, ticket delete, membership delete |
+| Timeline | op filter — deletes only | `admin@example.com` | `/audit/timeline?op=delete` | Shows reply hard-delete (ticket_replies), ticket delete (tickets); membership role change is UPDATE backdated outside 24h window — not visible here |
 | Timeline | empty (future-date filter) | `admin@example.com` | `/audit/timeline?from=2030-01-01` | No records match; empty-state copy visible |
 | Timeline | dense (wide date range) | `admin@example.com` | `/audit/timeline?from=2026-01-01` | Filler corpus: ~50 tickets/org across INSERT/UPDATE/DELETE |
 | Timeline | scoped (org-filtered) | `support@acme.example.com` | `/audit/timeline` | Scoped via `scope_operator_query/3`; only Acme rows |
@@ -101,7 +101,7 @@ Non-human actors seeded by the variety pack (Plan 03). All are small, named, in-
 |------|----------|--------------------------|-----------------|
 | `:service_account` | `zendesk-sync` | `:zendesk_sync` | Inbound ticket sync INSERT + UPDATE upserts (1h ago, 6h ago) |
 | `:job` | `oban-retention-purge` | `:oban_retention_purge` | Ticket reopen + stale-ticket sweep (2h ago, 3.5h ago) |
-| `:system` | `trigger-backfill` | `:trigger_backfill` | Backfill correction + ticket/membership deletes (2.75h ago, 5h ago) |
+| `:system` | `trigger-backfill` | `:trigger_backfill` | Backfill correction UPDATE (ticket 5007, 2.75h ago) + ticket DELETE (ticket 5004, 5h ago); membership role change is epoch-backdated UPDATE (outside 24h window) |
 | `:anonymous` | _(no id)_ | — | Public ticket-submission form cluster; renders as muted "unknown" (deliberate) (5.5h ago, 4h ago) |
 
 `Manifest.actor_id/1` returns the bare actor ID string; the `:kind` is supplied at the call site:
