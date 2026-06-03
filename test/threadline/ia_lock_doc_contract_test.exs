@@ -42,6 +42,7 @@ defmodule Threadline.IaLockDocContractTest do
 
   test "PERSONAS-IA.md carries the Phase 135 lock status header" do
     doc = File.read!(@personas_ia)
+
     assert String.contains?(doc, "Locked by Phase 135"),
            "expected v1.31-PERSONAS-IA.md to contain 'Locked by Phase 135'"
   end
