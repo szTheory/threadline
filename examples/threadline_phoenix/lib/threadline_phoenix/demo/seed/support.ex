@@ -38,6 +38,16 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   end
 
   @doc false
+  def current_audit_transaction_id do
+    Repo.one(
+      from(at in AuditTransaction,
+        where: at.txid == fragment("txid_current()"),
+        select: at.id
+      )
+    )
+  end
+
+  @doc false
   def stamp_org_meta!(%Organization{} = organization) do
     meta = %{"organization_id" => to_string(organization.id)}
 

@@ -107,10 +107,10 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
             Support.set_actor_guc!(admin_id, :admin)
             ensure_membership!(org, admin_id, "support")
             ensure_agent!(org, admin_id, "Admin")
-            Support.current_audit_transaction_id!()
+            Support.current_audit_transaction_id()
           end)
 
-        Support.put_timestamp(acc, tx_id, setup_ts)
+        if tx_id, do: Support.put_timestamp(acc, tx_id, setup_ts), else: acc
       end)
 
     Enum.reduce(@org_specs, ctx, fn {org_slug, _name, persona_keys}, acc ->
@@ -130,10 +130,10 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
             Support.set_actor_guc!(admin_id, :admin)
             ensure_membership!(org, user_id, role)
             ensure_agent!(org, user_id, display_name(key))
-            Support.current_audit_transaction_id!()
+            Support.current_audit_transaction_id()
           end)
 
-        Support.put_timestamp(inner_acc, tx_id, setup_ts)
+        if tx_id, do: Support.put_timestamp(inner_acc, tx_id, setup_ts), else: inner_acc
       end)
     end)
   end
