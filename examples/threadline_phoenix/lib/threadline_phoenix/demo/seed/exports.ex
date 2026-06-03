@@ -1,7 +1,7 @@
 defmodule ThreadlinePhoenix.Demo.Seed.Exports do
   @moduledoc false
 
-  alias Threadline.Governance.ExportJob
+  alias Threadline.Governance.{ExportJob, SavedView}
   alias Threadline.Semantics.ActorRef
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Manifest.UUID
@@ -87,7 +87,37 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
       conflict_target: :id
     )
 
+    seed_saved_views(actor_ref, inserted_at)
+
     ctx
+  end
+
+  # F-204 data: 1–2 SavedView rows for admin's actor_ref so the Home "pick up
+  # where you left off" section has data. Render defers to Phase 139.
+  defp seed_saved_views(actor_ref, inserted_at) do
+    saved_view_rows = [
+      %{
+        id: saved_view_id("recent-deletes"),
+        name: "Recent deletes",
+        actor_ref: actor_ref,
+        filters: %{"op" => "delete"},
+        inserted_at: inserted_at,
+        updated_at: inserted_at
+      },
+      %{
+        id: saved_view_id("closed-tickets"),
+        name: "Closed this week",
+        actor_ref: actor_ref,
+        filters: %{"table" => "tickets", "status" => "closed"},
+        inserted_at: inserted_at,
+        updated_at: inserted_at
+      }
+    ]
+
+    Repo.insert_all(SavedView, saved_view_rows,
+      on_conflict: {:replace, [:name, :filters, :actor_ref, :updated_at]},
+      conflict_target: :id
+    )
   end
 
   defp write_completed_export! do
@@ -106,6 +136,10 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
 
   defp export_id(name) do
     UUID.format(UUID.v5_binary(@demo_namespace_bin, "export/#{name}"))
+  end
+
+  defp saved_view_id(name) do
+    UUID.format(UUID.v5_binary(@demo_namespace_bin, "saved_view/#{name}"))
   end
 
   defp usec(%DateTime{} = dt), do: %{dt | microsecond: {0, 6}}
