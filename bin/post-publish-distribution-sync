@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 # Post-publish distribution doc sync.
 # Called from .github/workflows/release.yml after the Hex registry confirms the
-# version. Version-agnostic and idempotent: it normalizes the adoption-pilot
-# distribution preflight to attest the just-published version. Re-running with
-# the same arguments is a no-op.
+# version. Version-agnostic and idempotent: it attests the just-published version
+# in the adoption-pilot Hex distribution row. Re-running with the same arguments
+# is a no-op.
+#
+# Ownership split (see release-please-config.json `extra-files`):
+#   - The SSOT line ("Distribution preflight below reflects the **X** tree") is
+#     bumped by release-please IN THE RELEASE COMMIT via the `generic` updater
+#     (line carries an `x-release-please-version` annotation). This script must
+#     NOT rewrite it — doing so would strip the annotation and silently break the
+#     next release. The doc-contract test guards the wiring.
+#   - This script owns ONLY the Hex attestation row (the "latest is X on Hex"
+#     fact), which is only true AFTER publish.
 #
 # It deliberately touches ONLY guides/adoption-pilot-backlog.md. Other docs that
 # mention a version (e.g. guides/evaluating-threadline.md) carry intentional
@@ -42,24 +51,13 @@ path = pathlib.Path(os.environ["ADOPTION_PILOT"])
 text = path.read_text()
 original = text
 
-# 1) SSOT line: normalize to attest the published version, dropping any
-#    pre-publish lag note. Matches the stable sentence prefix; version-agnostic.
-ssot_line = (
-    f"Distribution preflight below reflects the **{version}** tree "
-    f"(`mix.exs` `@version` is SSOT); lane and upgrade narrative live in "
-    f"[`guides/upgrade-path.md`](upgrade-path.md)."
-)
-text, n_ssot = re.subn(
-    r"^Distribution preflight below reflects the .*$",
-    lambda _m: ssot_line,
-    text,
-    count=1,
-    flags=re.MULTILINE,
-)
-if n_ssot != 1:
-    print(f"WARN: SSOT preflight line not found in {path}; leaving as-is")
+# NOTE: The SSOT line ("Distribution preflight below reflects the **X** tree") is
+# intentionally NOT touched here — release-please owns it via `extra-files`
+# (release-please-config.json) using the `x-release-please-version` annotation on
+# that line. Rewriting it here would strip the annotation and break the next
+# release. This script syncs ONLY the post-publish Hex attestation row below.
 
-# 2) Hex attestation row: replace the existing `threadline **<ver>** on [Hex]`
+# Hex attestation row: replace the existing `threadline **<ver>** on [Hex]`
 #    row with an OK row for the published version + dated evidence. Matches any
 #    prior version so it is version-agnostic and idempotent.
 evidence = (

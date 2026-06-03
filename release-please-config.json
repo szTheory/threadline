@@ -13,7 +13,10 @@
   "packages": {
     ".": {
       "changelog-path": "CHANGELOG.md",
-      "include-v-in-tag": true
+      "include-v-in-tag": true,
+      "extra-files": [
+        {"type": "generic", "path": "guides/adoption-pilot-backlog.md"}
+      ]
     }
   }
 }

@@ -186,7 +186,9 @@ The release workflow:
 2. Waits for green **`ci.yml`** on the release SHA (`gate-ci-green`).
 3. Runs **`mix verify.release`**, then **`mix hex.publish --yes`** (idempotent if version already on Hex).
 4. Polls Hex.pm until the version is indexed.
-5. Opens a **distribution sync PR** (`bin/post-publish-distribution-sync`) that flips the adoption-pilot Hex row to OK, trims evaluating-guide lag prose, and writes `.planning/phases/122-release-distribution-truth/122-VERIFICATION.md`.
+5. Opens a **distribution sync PR** (`bin/post-publish-distribution-sync`) that flips the adoption-pilot **Hex attestation row** ("latest is X on Hex") to OK with dated evidence — the one version statement that is only true *after* publish.
+
+> The adoption-pilot **SSOT line** ("Distribution preflight below reflects the **X** tree") is bumped **automatically by Release Please** in the release commit (`release-please-config.json` → `extra-files`, via the `x-release-please-version` annotation on that line). There is **no manual doc prep** before a Release PR — it is green by construction. `test/threadline/adoption_pilot_doc_contract_test.exs` guards this wiring.
 
 **Secrets:** **`HEX_API_KEY`** (required). **`RELEASE_PLEASE_TOKEN`** (optional fine-grained PAT — recommended for Release Please PRs and distribution sync PRs).
 
@@ -202,7 +204,7 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 ### Ongoing releases (0.6.1+)
 
-1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`).
+1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
 ### Recovery / dry-run
