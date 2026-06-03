@@ -4,13 +4,13 @@ Use this with [`production-checklist.md`](production-checklist.md) when you firs
 
 **Evidence pass:** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, and **`.github/workflows/ci.yml`**. The canonical local maintainer gate is **`DB_PORT=5433 MIX_ENV=test mix ci.all`**, which runs (in order): `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract`. See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Postgres/Compose setup and the CI job table. **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below.
 
-Distribution preflight below reflects the **0.7.0** tree (`mix.exs` `@version` is SSOT); lane and upgrade narrative live in [`guides/upgrade-path.md`](upgrade-path.md).
+Distribution preflight below reflects the **0.8.0** tree (`mix.exs` `@version` is SSOT); lane and upgrade narrative live in [`guides/upgrade-path.md`](upgrade-path.md).
 
 ## Distribution preflight (maintainer / CI)
 
 | Item | Status | Evidence / notes |
 |------|--------|------------------|
-| `threadline` **0.7.0** on [Hex](https://hex.pm/packages/threadline) | OK | Verified 2026-05-30: [hex.pm](https://hex.pm/packages/threadline) latest is **0.7.0** (tag **`v0.7.0`**). Publish workflow: https://github.com/szTheory/threadline/actions/runs/26680346145. Confirm locally: `mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
+| `threadline` **0.8.0** on [Hex](https://hex.pm/packages/threadline) | OK | Verified 2026-06-03: [hex.pm](https://hex.pm/packages/threadline) latest is **0.8.0** (tag **`v0.8.0`**). Publish workflow: https://github.com/szTheory/threadline/actions. Confirm locally: `mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
 | App depends on `{:threadline, "~> 0.6"}` | OK | README + adoption-pilot doc contract lock constraint |
 | `mix deps.get` resolves without overrides | OK | **GitHub Actions** runs `mix deps.get` per job (e.g. `.github/workflows/ci.yml` → `verify-test` / `verify-format`); root **`mix.lock`** pins resolution — no `override: true` on library deps. |
 

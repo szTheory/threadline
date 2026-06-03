@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0] - 2026-06-03
+
+Operator-surface release: the `/audit` admin UI matured into a coherent, branded operator console, backed by a fully automated (zero-human-verification) test gate.
+
+### Added
+
+- **Operator surface overhaul** — dark "night infrastructure" theme; a Home task-launcher (Find / Verify / Prove) as the default `/audit` page; copy-to-clipboard affordances for correlation and transaction ids; evidence verdicts (Proven / Inferred / Unsupported) with drill-down history; forward "completion" links so every Verify/Prove screen reaches a done state; a scoped-view indicator and scope-aware empty states for support-read-only operators; explicit "all clear" success states; and restrained, brand-coherent motion.
+- **Asset/CSP controls** — `config :threadline, operator_surface_embed_scripts: false` opts out of the embedded (zero-dependency) copy-to-clipboard helper; the new "Assets and Content-Security-Policy" section in `guides/operator-surface.md` documents the inline style/font/script embeds and CSP guidance.
+
+### Changed
+
+- **Design system** — consolidated onto tokenized status stripes and a letter-spacing scale, a canonical metric card (`tl-card--metric` + `[data-status]`) and metadata row (`tl-meta`), and ARIA-driven selected/active state.
+- **CI / quality** — official GitHub Actions bumped to their Node 24 majors ahead of GitHub's forced migration; an opt-in/nightly flake-detection gate; and test-determinism hardening across the suite. The operator-surface behaviors are locked by deterministic LiveView + Playwright assertions that gate every PR.
+
 ## [0.7.0](https://github.com/szTheory/threadline/compare/v0.6.0...v0.7.0) (2026-05-30)
 
 
