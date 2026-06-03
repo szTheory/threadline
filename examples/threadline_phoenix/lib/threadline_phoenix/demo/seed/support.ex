@@ -16,8 +16,9 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   end
 
   @doc false
-  def audit_context(user_id, opts \\ []) when is_binary(user_id) do
-    {:ok, actor_ref} = ActorRef.new(:user, user_id)
+  def audit_context(actor_id, opts \\ []) when is_binary(actor_id) do
+    kind = Keyword.get(opts, :kind, :user)
+    {:ok, actor_ref} = ActorRef.new(kind, actor_id)
 
     %Threadline.Semantics.AuditContext{
       actor_ref: actor_ref,
@@ -54,8 +55,21 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   end
 
   @doc false
-  def set_actor_guc!(user_id) when is_binary(user_id) do
-    {:ok, actor_ref} = ActorRef.new(:user, user_id)
+  def set_actor_guc!(actor_id, kind \\ :user)
+      when is_binary(actor_id) and kind in [:user, :admin, :service_account, :job, :system] do
+    {:ok, actor_ref} = ActorRef.new(kind, actor_id)
+
+    json =
+      actor_ref
+      |> Threadline.Semantics.ActorRef.to_map()
+      |> Jason.encode!()
+
+    Repo.query!("SELECT set_config('threadline.actor_ref', $1::text, true)", [json])
+  end
+
+  @doc false
+  def set_anonymous_actor_guc! do
+    {:ok, actor_ref} = ActorRef.new(:anonymous)
 
     json =
       actor_ref
