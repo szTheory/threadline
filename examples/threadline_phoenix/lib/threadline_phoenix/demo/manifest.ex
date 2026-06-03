@@ -62,6 +62,11 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   @demo_epoch ~U[2026-05-27 12:00:00Z]
   @demo_last_tuesday ~U[2026-05-20 14:30:00Z]
 
+  # Named actor literals (D-06) — used in seed clusters and DEMO-MANIFEST.md
+  @actor_zendesk_sync "zendesk-sync"
+  @actor_oban_retention_purge "oban-retention-purge"
+  @actor_trigger_backfill "trigger-backfill"
+
   @hero_close_number 4521
   @hero_delete_number 4518
 
@@ -148,6 +153,11 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   def evidence_subject_ref(:redaction_policy), do: @evidence_redaction_policy_ref
 
   def evidence_subject_ref(:trigger_coverage), do: @evidence_trigger_coverage_ref
+
+  @doc "Named actor id for a non-human seed actor (:zendesk_sync, :oban_retention_purge, :trigger_backfill)."
+  def actor_id(:zendesk_sync), do: @actor_zendesk_sync
+  def actor_id(:oban_retention_purge), do: @actor_oban_retention_purge
+  def actor_id(:trigger_backfill), do: @actor_trigger_backfill
 
   @doc "Demo password for seeded Sigra users (overridable via app env or `DEMO_SEED_PASSWORD`)."
   def demo_seed_password do
