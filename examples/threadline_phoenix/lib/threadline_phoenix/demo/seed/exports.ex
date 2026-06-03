@@ -28,7 +28,11 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
           file_path: completed_path,
           started_at: usec(DateTime.add(now, -20, :minute)),
           completed_at: usec(DateTime.add(now, -18, :minute)),
-          expires_at: usec(DateTime.add(now, 7, :day))
+          # Wall-clock-relative so this job stays downloadable no matter how far
+          # real time has advanced past the fixed demo epoch — the export screen
+          # computes expiry against DateTime.utc_now/0. (started_at/completed_at
+          # stay epoch-relative; they only affect display, not the expiry logic.)
+          expires_at: usec(DateTime.add(DateTime.utc_now(), 7, :day))
         },
         %{
           id: export_id("failed"),
