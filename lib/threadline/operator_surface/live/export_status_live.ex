@@ -72,11 +72,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main class="tl-page">
+        <main id="tl-main" class="tl-page">
           <%= if @threadline_exports_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h2 class="tl-page__title">Export Status</h2>
+                <h1 class="tl-page__title">Export Status</h1>
                 <p class="tl-page__lede">
                   Track background exports queued from Timeline searches, then download or reopen the source search.
                 </p>

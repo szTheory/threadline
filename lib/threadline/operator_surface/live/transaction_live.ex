@@ -95,6 +95,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
         />
+        <main id="tl-main">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Transaction not found</h3>
@@ -111,10 +112,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </nav>
             <div class="tl-page__header">
               <div>
-                <h2 class="tl-transaction__title" title={@bundle.transaction.id}>
+                <h1 class="tl-transaction__title" title={@bundle.transaction.id}>
                   Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
                   <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={@bundle.transaction.id} aria-label="Copy transaction id">Copy</button>
-                </h2>
+                </h1>
                 <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>
               <div class="tl-param-list" aria-label="Transaction context">
@@ -201,7 +202,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope={@threadline_scope}
             scope_query_fn={@threadline_scope_query_fn}
           />
-        <% end %>      </div>
+        <% end %>
+        </main>
+      </div>
       """
     end
 

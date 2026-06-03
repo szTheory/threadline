@@ -104,11 +104,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:coverage}
         />
 
-        <main class="tl-page">
+        <main id="tl-main" class="tl-page">
           <%= if @threadline_coverage_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h2 class="tl-page__title">Coverage — schema: <%= @schema_param %></h2>
+                <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
                 <p class="tl-page__lede">
                   Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
                 </p>
