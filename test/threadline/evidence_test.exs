@@ -8,6 +8,9 @@ defmodule Threadline.EvidenceTest do
   @repo Threadline.Test.Repo
 
   setup do
+    # `function_exported?/3` returns false for a not-yet-loaded module, so the
+    # record_* export assertions below were seed-order flaky. Force the load.
+    Code.ensure_loaded!(Evidence)
     Repo.delete_all(EvidenceRecord)
     :ok
   end
