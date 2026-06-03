@@ -24,10 +24,11 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 ## Current Position
 
-Phase: 134 — Baseline Audit & Screenshot Inventory (not started)
-Plan: —
-Status: Planning — roadmap drafted, phases 134–143 mapped 1:1 to POLISH-* requirements
-Last activity: 2026-06-03 — Milestone v1.31 roadmap created
+Phase: 135 — Seed Enrichment & IA Lock-In (context gathered)
+Plan: — (next: /gsd:plan-phase 135)
+Status: Planning — Phase 134 baseline audit captured (`v1.31-UI-AUDIT.md`); Phase 135 CONTEXT.md locked (4 research-backed decisions)
+Last activity: 2026-06-03 — Phase 135 context gathered (seed enrichment + IA lock-in)
+Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-CONTEXT.md`
 
 ## Performance Metrics
 
