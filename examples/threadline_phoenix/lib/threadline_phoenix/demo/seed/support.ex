@@ -65,6 +65,19 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   end
 
   @doc false
+  def stamp_org_meta(%Organization{} = organization) do
+    meta = %{"organization_id" => to_string(organization.id)}
+
+    {_count, _} =
+      Repo.update_all(
+        from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
+        set: [meta: meta]
+      )
+
+    :ok
+  end
+
+  @doc false
   def set_actor_guc!(actor_id, kind \\ :user)
       when is_binary(actor_id) and kind in [:user, :admin, :service_account, :job, :system] do
     {:ok, actor_ref} = ActorRef.new(kind, actor_id)

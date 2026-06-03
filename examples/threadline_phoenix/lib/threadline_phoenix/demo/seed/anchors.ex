@@ -328,7 +328,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
     # Find agent2's membership in acme (role = "agent" by default)
     membership = Repo.get_by(OrgMembership, organization_id: acme.id, user_id: agent2_id)
 
-    if membership do
+    # Only attempt if membership exists and role is still "agent" — idempotent on re-seed
+    if membership && membership.role != "support" do
       {:ok, tx_id} =
         Repo.transaction(fn ->
           Support.set_actor_guc!(backfill_id, :system)
@@ -423,12 +424,12 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
         })
         |> Repo.insert!(on_conflict: :nothing, conflict_target: [:organization_id, :number])
 
-        Support.stamp_org_meta!(acme)
-        Support.current_audit_transaction_id!()
+        Support.stamp_org_meta(acme)
+        Support.current_audit_transaction_id()
       end)
 
     ts = DateTime.utc_now() |> DateTime.add(-6, :hour)
-    Support.put_timestamp(ctx, tx_id, ts)
+    if tx_id, do: Support.put_timestamp(ctx, tx_id, ts), else: ctx
   end
 
   # Story 7 (D-06): Stale-ticket sweep by job/oban-retention-purge. 3h+30m ago.
@@ -487,11 +488,11 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
         })
         |> Repo.insert!(on_conflict: :nothing, conflict_target: [:organization_id, :number])
 
-        Support.stamp_org_meta!(acme)
-        Support.current_audit_transaction_id!()
+        Support.stamp_org_meta(acme)
+        Support.current_audit_transaction_id()
       end)
 
     ts = DateTime.utc_now() |> DateTime.add(-5, :hour) |> DateTime.add(-30, :minute)
-    Support.put_timestamp(ctx, tx_id, ts)
+    if tx_id, do: Support.put_timestamp(ctx, tx_id, ts), else: ctx
   end
 end
