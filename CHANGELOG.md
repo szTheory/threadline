@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/szTheory/threadline/compare/v0.8.0...v0.9.0) (2026-06-03)
+
+
+### Features
+
+* **operator-surface:** first-class positioning + accessibility pass ([#16](https://github.com/szTheory/threadline/issues/16)) ([4bf1a07](https://github.com/szTheory/threadline/commit/4bf1a071cc26a81efd08b01cd19c8f91a16f6cc0))
+
 ## [0.8.0] - 2026-06-03
 
 Operator-surface release: the `/audit` admin UI matured into a coherent, branded operator console, backed by a fully automated (zero-human-verification) test gate.
