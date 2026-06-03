@@ -66,7 +66,12 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
   defp insert_filler_ticket(ctx, %Organization{} = org, number, agent_user_ids) do
     user_id = Enum.at(agent_user_ids, :rand.uniform(length(agent_user_ids)) - 1)
     agent = Repo.get_by!(Agent, organization_id: org.id, user_id: user_id)
-    status = if rem(number, 3) == 0, do: "closed", else: "open"
+
+    # D-11 op-mix: ~10% DELETE, ~30–35% closed-UPDATE, ~55–60% open/in_progress-UPDATE
+    # Deterministic — rem(number, 10) is a pure function of the ticket number.
+    # Filler stays epoch-relative (not in-window); delete branch produces a DELETE
+    # audit_change in the same transaction for honest wide-date-range op counts.
+    status_roll = rem(number, 10)
 
     {:ok, tx_id} =
       Repo.transaction(fn ->
@@ -81,17 +86,25 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
           })
           |> Repo.insert!()
 
-        if status == "closed" do
-          ticket
-          |> Ticket.changeset(%{
-            status: "closed",
-            closed_at: ThreadlinePhoenix.Demo.Manifest.epoch()
-          })
-          |> Repo.update!()
-        else
-          ticket
-          |> Ticket.changeset(%{status: "in_progress"})
-          |> Repo.update!()
+        cond do
+          status_roll == 0 ->
+            # ~10% DELETE branch — corpus DELETE for wide-date-range op counts
+            Repo.delete!(ticket)
+
+          status_roll in 1..3 ->
+            # ~30–35% closed UPDATE
+            ticket
+            |> Ticket.changeset(%{
+              status: "closed",
+              closed_at: ThreadlinePhoenix.Demo.Manifest.epoch()
+            })
+            |> Repo.update!()
+
+          true ->
+            # ~55–60% open/in_progress UPDATE
+            ticket
+            |> Ticket.changeset(%{status: "in_progress"})
+            |> Repo.update!()
         end
 
         Support.stamp_org_meta!(org)
