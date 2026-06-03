@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
   alias ThreadlinePhoenix.Accounts.User
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Manifest.UUID
+  alias ThreadlinePhoenix.Demo.Seed.Support
   alias ThreadlinePhoenix.HelpDesk.{Agent, OrgMembership, Organization}
   alias ThreadlinePhoenix.Repo
 
@@ -94,20 +95,29 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
   defp maybe_confirm!(user), do: user
 
   defp seed_memberships(ctx) do
-    admin = Map.fetch!(ctx.users, :admin)
-    admin_id = to_string(admin.id)
+    admin_id = to_string(Map.fetch!(ctx.users, :admin).id)
+    setup_ts = DateTime.add(Manifest.epoch(), -21, :day)
 
-    Enum.each(Map.keys(ctx.orgs), fn org_slug ->
-      org = Map.fetch!(ctx.orgs, org_slug)
-      ensure_membership!(org, admin_id, "support")
-      ensure_agent!(org, admin_id, "Admin")
-    end)
+    ctx =
+      Enum.reduce(Map.keys(ctx.orgs), ctx, fn org_slug, acc ->
+        org = Map.fetch!(acc.orgs, org_slug)
 
-    Enum.each(@org_specs, fn {org_slug, _name, persona_keys} ->
-      org = Map.fetch!(ctx.orgs, org_slug)
+        {:ok, tx_id} =
+          Repo.transaction(fn ->
+            Support.set_actor_guc!(admin_id, :admin)
+            ensure_membership!(org, admin_id, "support")
+            ensure_agent!(org, admin_id, "Admin")
+            Support.current_audit_transaction_id!()
+          end)
 
-      Enum.each(persona_keys, fn key ->
-        user = Map.fetch!(ctx.users, key)
+        Support.put_timestamp(acc, tx_id, setup_ts)
+      end)
+
+    Enum.reduce(@org_specs, ctx, fn {org_slug, _name, persona_keys}, acc ->
+      org = Map.fetch!(acc.orgs, org_slug)
+
+      Enum.reduce(persona_keys, acc, fn key, inner_acc ->
+        user = Map.fetch!(inner_acc.users, key)
         user_id = to_string(user.id)
 
         role =
@@ -115,12 +125,17 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
             do: "support",
             else: "agent"
 
-        ensure_membership!(org, user_id, role)
-        ensure_agent!(org, user_id, display_name(key))
+        {:ok, tx_id} =
+          Repo.transaction(fn ->
+            Support.set_actor_guc!(admin_id, :admin)
+            ensure_membership!(org, user_id, role)
+            ensure_agent!(org, user_id, display_name(key))
+            Support.current_audit_transaction_id!()
+          end)
+
+        Support.put_timestamp(inner_acc, tx_id, setup_ts)
       end)
     end)
-
-    ctx
   end
 
   defp ensure_membership!(%Organization{} = org, user_id, role) do
