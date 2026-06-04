@@ -16,7 +16,7 @@
 
 ### Design system
 
-- [ ] **POLISH-DS**: The design system pays reuse dividends — token scales (spacing, control-size, radius, shadow, typography, canonical status-color map, z-index, motion) are deduplicated and formalized; the `.tl-*` class catalog is documented in `v1.31-DESIGN-SYSTEM.md` (each canonical/deprecated/consolidated with usage rules + antipatterns); shared primitives (badge, button, panel, empty-state, table, toast, drawer, copy-affordance) are unified. Token scale frozen at end of phase.
+- [x] **POLISH-DS**: The design system pays reuse dividends — token scales (spacing, control-size, radius, shadow, typography, canonical status-color map, z-index, motion) are deduplicated and formalized; the `.tl-*` class catalog is documented in `v1.31-DESIGN-SYSTEM.md` (each canonical/deprecated/consolidated with usage rules + antipatterns); shared primitives (badge, button, panel, empty-state, table, toast, drawer, copy-affordance) are unified. Token scale frozen at end of phase. Closed by Phase 144 source-first catalog/freeze verification in `.planning/milestones/v1.31-DESIGN-SYSTEM.md` and `.planning/phases/144-close-gap-polish-audit-and-polish-ds/144-VERIFICATION.md`.
 
 ### Per-screen polish (least-iterated first)
 
@@ -59,7 +59,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 |-------------|-------|--------|
 | POLISH-AUDIT | Phase 134 — Baseline Audit & Screenshot Inventory | Complete via Phase 144 errata verification |
 | POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Complete |
-| POLISH-DS | Phase 136 — Design-System Hardening | Pending |
+| POLISH-DS | Phase 136 — Design-System Hardening | Complete via Phase 144 source-first catalog/freeze verification |
 | POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Complete |
 | POLISH-FIND | Phase 138 — "Find" Cluster Polish | Complete |
 | POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Complete |

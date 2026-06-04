@@ -4,7 +4,7 @@ milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: executing
 last_updated: "2026-06-04T21:35:10.951Z"
-last_activity: 2026-06-04 -- Completed 144-03-PLAN.md
+last_activity: 2026-06-04 -- Completed 144-04-PLAN.md
 progress:
   total_phases: 11
   completed_phases: 9
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 Phase: 144 (close-gap-polish-audit-and-polish-ds) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-06-04 -- Completed 144-03-PLAN.md
-Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
+Status: Phase 144 verification complete
+Last activity: 2026-06-04 -- Completed 144-04-PLAN.md
+Resume: None
 
 ## Performance Metrics
 
@@ -99,6 +99,7 @@ Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 - [Phase 144]: Unknown operations use string-safe normalization with an empty modifier and uppercase fallback label; no String.to_atom/1.
 - [Phase 144-03]: The v1.31 design-system freeze is source-first: style.ex and style_contract_test.exs govern the catalog.
 - [Phase 144-03]: Phase 144 documents the local .tl-* and --tl-* system without Tailwind, build tooling, light/system theme support, external dependencies, or a public component API.
+- [Phase 144-04]: POLISH-AUDIT and POLISH-DS are closed by Phase 144 verification while preserving Phase 134 and Phase 136 as the original roadmap owners.
 
 ### Blockers
 
@@ -108,12 +109,12 @@ Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed 144-03-PLAN.md — design-system catalog and source-contract freeze (2026-06-04)
-- **Next Step**: Execute 144-04-PLAN.md — final verification and traceability closure
-- **Resume file**: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
+- **Last Action**: Completed 144-04-PLAN.md — final verification and traceability closure (2026-06-04)
+- **Next Step**: Rerun milestone audit and proceed to milestone closeout if no blockers remain
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- **Execute 144-04-PLAN.md** — final verification and traceability closure
+- **Review 144-04-SUMMARY.md** — Phase 144 close-gap verification and milestone audit rerun evidence
 - **Locked constraints** — keep BEM `.tl-*` + `--tl-*` tokens in `style.ex` (no Tailwind/build step); dark-first brand; seed enrichment only; no new backend/screens; every new flow traces to a JTBD + decision record
 - v1.28 external pilot remains signal-gated and out of scope for v1.31
