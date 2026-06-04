@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   use ExUnit.Case, async: true
 
   @style_path "lib/threadline/operator_surface/style.ex"
+  @motion_inventory_path ".planning/phases/141-motion-micro-animation/141-MOTION-INVENTORY.md"
 
   test "operator surface stays dark-only and token-driven" do
     src = File.read!(@style_path)
@@ -169,5 +170,211 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(home_section, "prefers-color-scheme")
     refute String.contains?(home_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
+  end
+
+  test "phase 141 motion inventory is source-testable and rationale-backed" do
+    inventory = File.read!(@motion_inventory_path)
+
+    for required <- [
+          "selector_or_keyframe",
+          "persona_jtbd",
+          "reduced_motion",
+          "prefers-reduced-motion",
+          "tl-thread-draw"
+        ] do
+      assert String.contains?(inventory, required)
+    end
+
+    rows = motion_inventory_rows(inventory)
+    assert length(rows) >= 19
+
+    for row <- rows do
+      for field <- [:id, :selector_or_keyframe, :trigger, :persona_jtbd, :rationale, :token, :reduced_motion] do
+        value = Map.fetch!(row, field)
+        assert value != "", "motion inventory #{row.id} has empty #{field}"
+        refute Regex.match?(~r/\bTBD\b/i, value), "motion inventory #{row.id} has TBD in #{field}"
+      end
+    end
+  end
+
+  test "phase 141 motion tokens and keyframes stay locked" do
+    src = File.read!(@style_path)
+
+    for token <- [
+          "--tl-motion-fast: 120ms;",
+          "--tl-motion-base: 180ms;",
+          "--tl-motion-slow: 240ms;",
+          "--tl-motion-stagger: 40ms;",
+          "--tl-motion-distance-sm: 8px;",
+          "--tl-motion-distance-md: 16px;",
+          "--tl-ease-standard: cubic-bezier(0.2, 0, 0, 1);",
+          "--tl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);",
+          "--tl-transition-fast: var(--tl-motion-fast) var(--tl-ease-standard);"
+        ] do
+      assert String.contains?(src, token), "missing locked motion token #{token}"
+    end
+
+    keyframes =
+      Regex.scan(~r/@keyframes\s+([a-z0-9-]+)/, src, capture: :all_but_first)
+      |> List.flatten()
+      |> Enum.sort()
+
+    assert keyframes ==
+             Enum.sort(~w(tl-drawer-in tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse))
+  end
+
+  test "phase 141 animation consumers are inventoried and token-backed" do
+    src = File.read!(@style_path)
+    inventory = File.read!(@motion_inventory_path)
+
+    for {selector, keyframe} <- [
+          {".tl-home__card", "tl-rise-in"},
+          {".tl-home__card--primary::before", "tl-thread-draw"},
+          {".tl-subview", "tl-drawer-in"},
+          {"#retention-runs > tr", "tl-rise-in"},
+          {".tl-subview__timeline > *", "tl-rise-in"},
+          {".tl-record-list > .tl-record-card", "tl-fade-in"},
+          {"#transactions-list > .tl-change", "tl-fade-in"},
+          {".tl-copy.is-copied", "tl-copy-pulse"},
+          {".tl-journey-rail::before", "tl-thread-draw"},
+          {".tl-policy__success::after", "tl-thread-draw"}
+        ] do
+      assert String.contains?(inventory, selector), "motion inventory is missing #{selector}"
+      assert String.contains?(inventory, keyframe), "motion inventory is missing #{keyframe}"
+      assert_selector_uses_animation(src, selector, keyframe)
+    end
+
+    for selector <- [
+          ".tl-home__card--primary::before",
+          ".tl-journey-rail::before",
+          ".tl-policy__success::after"
+        ] do
+      row = motion_inventory_row!(inventory, selector)
+
+      assert Regex.match?(~r/signature|proof|progression/i, row.rationale),
+             "#{selector} must justify tl-thread-draw as signature/proof/progression motion"
+    end
+  end
+
+  test "phase 141 transition families are inventoried and token-backed" do
+    src = File.read!(@style_path)
+    inventory = File.read!(@motion_inventory_path)
+
+    for selector <- [
+          ".threadline-ui a",
+          ".tl-topbar .tl-topbar__nav-item",
+          ".tl-toolbar__control",
+          ".tl-control",
+          ".tl-button",
+          ".tl-change",
+          ".tl-policy__summary",
+          ".tl-policy__row::details-content",
+          ".tl-copy",
+          ".tl-policy__summary::before"
+        ] do
+      assert String.contains?(inventory, selector), "motion inventory is missing transition #{selector}"
+      assert_selector_uses_tokenized_transition(src, selector)
+    end
+  end
+
+  test "phase 141 rejects ad-hoc motion and ungoverned duration drift" do
+    src = File.read!(@style_path)
+
+    refute Regex.match?(~r/transition:\s*all\b/, src)
+
+    for marker <- ["animejs", "framer-motion", "gsap", "motion.dev", "lottie"] do
+      refute String.contains?(String.downcase(src), marker)
+    end
+
+    for [keyframe] <- Regex.scan(~r/animation:\s*(tl-[a-z0-9-]+)/, src, capture: :all_but_first) do
+      assert keyframe in ~w(tl-drawer-in tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse),
+             "unapproved animation keyframe #{keyframe}"
+    end
+
+    for line <- String.split(src, "\n"), Regex.match?(~r/\b\d+ms\b/, line) do
+      assert allowed_motion_duration_line?(line), "literal motion duration is not governed: #{line}"
+    end
+  end
+
+  test "phase 141 reduced-motion blanket covers animations, transitions, and transform reset" do
+    src = File.read!(@style_path)
+
+    reduced_motion =
+      src
+      |> String.split("@media (prefers-reduced-motion: reduce) {")
+      |> Enum.at(1)
+      |> String.split("</style>")
+      |> List.first()
+
+    for required <- [
+          ".threadline-ui *",
+          ".threadline-ui *::before",
+          ".threadline-ui *::after",
+          ".tl-policy__row::details-content",
+          "transition-duration: 1ms !important;",
+          "animation-duration: 1ms !important;",
+          "animation-delay: 0ms !important;",
+          "animation-iteration-count: 1 !important;",
+          "scroll-behavior: auto !important;",
+          ".tl-button:active",
+          "transform: none;"
+        ] do
+      assert String.contains?(reduced_motion, required), "reduced-motion block missing #{required}"
+    end
+  end
+
+  defp motion_inventory_rows(inventory) do
+    inventory
+    |> String.split("\n")
+    |> Enum.filter(&String.starts_with?(&1, "| M-"))
+    |> Enum.map(fn row ->
+      [id, selector_or_keyframe, _surface, trigger, persona_jtbd, rationale, token, _properties, _frequency, reduced_motion, _source, _status] =
+        row
+        |> String.trim()
+        |> String.trim_leading("|")
+        |> String.trim_trailing("|")
+        |> String.split("|")
+        |> Enum.map(&String.trim/1)
+
+      %{
+        id: id,
+        selector_or_keyframe: selector_or_keyframe,
+        trigger: trigger,
+        persona_jtbd: persona_jtbd,
+        rationale: rationale,
+        token: token,
+        reduced_motion: reduced_motion
+      }
+    end)
+  end
+
+  defp motion_inventory_row!(inventory, selector) do
+    inventory
+    |> motion_inventory_rows()
+    |> Enum.find(fn row -> String.contains?(row.selector_or_keyframe, selector) end) ||
+      flunk("motion inventory is missing #{selector}")
+  end
+
+  defp assert_selector_uses_animation(src, selector, keyframe) do
+    pattern =
+      ~r/#{Regex.escape(selector)}[^}]*animation:\s*#{Regex.escape(keyframe)}\s+var\(--tl-motion-[a-z-]+\)\s+var\(--tl-ease-[a-z-]+\)(?:\s+120ms)?(?:\s+both)?\s*;/s
+
+    assert Regex.match?(pattern, src),
+           "#{selector} must use #{keyframe} with var(--tl-motion-*) duration and named easing token"
+  end
+
+  defp assert_selector_uses_tokenized_transition(src, selector) do
+    pattern =
+      ~r/#{Regex.escape(selector)}[^}]*transition(?:-property|-duration)?:[^}]*var\(--tl-(?:transition-fast|motion-base|ease-out|ease-standard)/s
+
+    assert Regex.match?(pattern, src),
+           "#{selector} must use var(--tl-transition-fast) or named motion/ease tokens"
+  end
+
+  defp allowed_motion_duration_line?(line) do
+    String.contains?(line, "--tl-motion-") or
+      String.contains?(line, "tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both") or
+      String.contains?(line, "1ms !important") or
+      String.contains?(line, "0ms !important")
   end
 end
