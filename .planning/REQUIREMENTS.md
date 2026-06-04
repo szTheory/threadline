@@ -26,7 +26,7 @@
 
 ### Earned new flows (each traces to a JTBD + decision record)
 
-- [ ] **POLISH-FLOWS**: A support operator can look up one record's history from Home without building filters (record-first cordoned path); a reviewer can carry a filtered Timeline/Evidence view into a pre-populated export (closed export loop); an incident responder can paste/deep-link a correlation_id from Home; and row history is reachable as a first-class entry, not only from inside a transaction.
+- [x] **POLISH-FLOWS**: A support operator can look up one record's history from Home without building filters (record-first cordoned path); a reviewer can carry a filtered Timeline/Evidence view into a pre-populated export (closed export loop); an incident responder can paste/deep-link a correlation_id from Home; and row history is reachable as a first-class entry, not only from inside a transaction.
 
 ### Motion
 
@@ -63,7 +63,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Complete |
 | POLISH-FIND | Phase 138 — "Find" Cluster Polish | Complete |
 | POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Complete |
-| POLISH-FLOWS | Phase 140 — Earned New Flows | Pending |
+| POLISH-FLOWS | Phase 140 — Earned New Flows | Complete |
 | POLISH-MOTION | Phase 141 — Motion & Micro-animation | Pending |
 | POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Pending |
 | POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Pending |

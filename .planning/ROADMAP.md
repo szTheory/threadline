@@ -23,7 +23,7 @@
 | 137 | 4/4 | Complete    | 2026-06-04 |
 | 138 | 4/4 | Complete    | 2026-06-04 |
 | 139 | 3/3 | Complete    | 2026-06-04 |
-| 140 | Earned New Flows | POLISH-FLOWS | not started |
+| 140 | 5/5 | Complete    | 2026-06-04 |
 | 141 | Motion & Micro-animation | POLISH-MOTION | not started |
 | 142 | Responsive / Mobile-First | POLISH-RESPONSIVE | not started |
 | 143 | Accessibility + Consistency Sweep + Regression | POLISH-A11Y | not started |
@@ -127,11 +127,11 @@
   4. Row history is reachable as a first-class entry, not only from inside a transaction.
   5. Each new flow traces to a named persona JTBD and a recorded decision; no speculative flows shipped.
 **Plans**: 5 plans
-- [ ] 140-01-PLAN.md — First-class row-history route and safe route-aware component paths
-- [ ] 140-02-PLAN.md — Home record-first lookup and correlation paste/deep-link
-- [ ] 140-03-PLAN.md — Timeline filtered context carried into Exports
-- [ ] 140-04-PLAN.md — Evidence proof context carried into Exports
-- [ ] 140-05-PLAN.md — Focused browser UAT for earned flows
+- [x] 140-01-PLAN.md — First-class row-history route and safe route-aware component paths
+- [x] 140-02-PLAN.md — Home record-first lookup and correlation paste/deep-link
+- [x] 140-03-PLAN.md — Timeline filtered context carried into Exports
+- [x] 140-04-PLAN.md — Evidence proof context carried into Exports
+- [x] 140-05-PLAN.md — Focused browser UAT for earned flows
 **UI hint**: yes
 
 ### Phase 141: Motion & Micro-animation
