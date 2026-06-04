@@ -20,8 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         socket
         |> assign(:base_path, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
-        |> stream(:jobs, fetch_jobs(socket))
-        |> assign(:has_jobs, has_jobs?(socket))
+        |> assign_jobs(fetch_jobs(socket))
 
       {:ok, socket}
     end
@@ -44,13 +43,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         schedule_refresh(socket)
 
-        jobs = fetch_jobs(socket)
-
-        socket =
-          Enum.reduce(jobs, socket, fn job, acc_socket ->
-            stream_insert(acc_socket, :jobs, job)
-          end)
-          |> assign(:has_jobs, length(jobs) > 0)
+        socket = assign_jobs(socket, fetch_jobs(socket))
 
         {:noreply, socket}
       end
@@ -76,9 +69,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @threadline_exports_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h1 class="tl-page__title">Export Status</h1>
+                <h1 class="tl-page__title">What's ready to hand off?</h1>
                 <p class="tl-page__lede">
-                  Track background exports queued from Timeline searches, then download or reopen the source search.
+                  Download completed Timeline packets, or reopen the source search when an export needs another pass.
                 </p>
               </div>
               <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">Open timeline</.link>
@@ -93,93 +86,102 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <%= if not @has_jobs do %>
               <div class="tl-empty">
-                <h3 class="tl-empty__title">No Export Jobs</h3>
-                <p class="tl-empty__body">Go to the timeline to queue a background export.</p>
+                <h3 class="tl-empty__title">No export jobs queued</h3>
+                <p class="tl-empty__body">Queue an export from Timeline, then return here to download the completed packet or reopen the source search.</p>
+                <div class="tl-empty__actions">
+                  <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">Open timeline</.link>
+                </div>
               </div>
             <% else %>
-              <section class="tl-job-list" id="export-jobs" phx-update="stream" data-testid="export-jobs">
-                <article
-                  :for={{dom_id, job} <- @streams.jobs}
-                  id={dom_id}
-                  class={["tl-job", job_modifier(job.status)]}
-                  data-testid="export-job"
-                >
-                  <div class="tl-job__main">
-                    <div class="tl-job__summary">
-                      <span class={["tl-chip", Presentation.status_modifier(job.status)]} role={status_role(job)}>
-                        <%= Presentation.status_label(job.status) %>
-                      </span>
-                      <div class="tl-job__title">
-                        <strong><%= Presentation.export_summary(job.query_params) %></strong>
-                        <span>
-                          requested by
-                          <%= if path = actor_path(@base_path, job.actor_ref) do %>
-                            <a href={path} class="tl-link tl-link--deep"><code><%= actor_label(job.actor_ref) %></code></a>
+              <section id="export-jobs" data-testid="export-jobs">
+                <section :for={group <- @job_groups} class="tl-job-group" data-testid="export-readiness-group">
+                  <header class="tl-job-group__header">
+                    <h2 class="tl-job-group__title"><%= group.title %></h2>
+                    <span><%= length(group.jobs) %> <%= if length(group.jobs) == 1, do: "job", else: "jobs" %></span>
+                  </header>
+
+                  <div class="tl-job-list">
+                    <article
+                      :for={job <- group.jobs}
+                      id={"export-job-#{job.id}"}
+                      class={["tl-job", job_modifier(job)]}
+                      data-testid="export-job"
+                    >
+                      <div class="tl-job__main">
+                        <div class="tl-job__summary">
+                          <span class={["tl-chip", Presentation.status_modifier(job.status)]} role={status_role(job)}>
+                            <%= Presentation.status_label(job.status) %>
+                          </span>
+                          <div class="tl-job__title">
+                            <strong><%= Presentation.export_summary(job.query_params) %></strong>
+                            <% actor = Presentation.secondary_ref(job.actor_ref, 34) %>
+                            <span>
+                              requested by
+                              <%= if path = actor_path(@base_path, job.actor_ref) do %>
+                                <a href={path} class="tl-link tl-link--deep tl-secondary-ref" title={actor.title}><%= actor.visible %></a>
+                              <% else %>
+                                <code class="tl-secondary-ref" title={actor.title}><%= actor.visible %></code>
+                              <% end %>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="tl-job__actions">
+                          <%= if Presentation.export_downloadable?(job) do %>
+                            <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-button tl-button--primary tl-button--compact">
+                              Download export
+                            </.link>
                           <% else %>
-                            <code><%= actor_label(job.actor_ref) %></code>
+                            <span class="tl-hint" role="status"><%= Presentation.export_action_label(job) %></span>
                           <% end %>
+                        </div>
+                      </div>
+
+                      <dl class="tl-job__meta" aria-label="Export job timestamps">
+                        <div>
+                          <dt>Started</dt>
+                          <dd><.time_label value={job.started_at} empty="Not started" /></dd>
+                        </div>
+                        <div>
+                          <dt>Completed</dt>
+                          <dd><.time_label value={job.completed_at} empty="Not completed" /></dd>
+                        </div>
+                        <div>
+                          <dt>Expires</dt>
+                          <dd><.time_label value={job.expires_at} empty="No expiration" /></dd>
+                        </div>
+                      </dl>
+
+                      <div class="tl-param-list" aria-label="Export filters">
+                        <%= for {key, value} <- Presentation.query_pairs(job.query_params) do %>
+                          <% ref = Presentation.secondary_ref(value, 42) %>
+                          <span class="tl-param" title={"#{key}: #{ref.title}"}>
+                            <span class="tl-param__key"><%= key %></span>
+                            <span class="tl-param__value tl-secondary-ref"><%= ref.visible %></span>
+                          </span>
+                        <% end %>
+                        <span :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
+                          No filters
                         </span>
                       </div>
-                    </div>
 
-                    <div class="tl-job__actions">
-                      <%= cond do %>
-                        <% downloadable?(job) -> %>
-                          <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-button tl-button--primary tl-button--compact">
-                            Download
-                          </.link>
-                        <% job.status in ["pending", "running"] -> %>
-                          <span class="tl-hint" role="status">Preparing download</span>
-                        <% completed_but_unavailable?(job) -> %>
-                          <span class="tl-hint">
-                            <%= unavailable_label(job) %>
-                          </span>
-                        <% true -> %>
-                          <span class="tl-hint">No action available</span>
+                      <div :if={Presentation.query_pairs(job.query_params) != []} class="tl-job__source">
+                        <span class="tl-hint">Source Timeline search</span>
+                        <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
+                          Reopen source search
+                        </a>
+                      </div>
+
+                      <%= if job.status == "failed" do %>
+                        <div class="tl-alert tl-alert--error" role="alert">
+                          <strong>Export failed.</strong>
+                          Reopen the source search, adjust filters if needed, and queue a new export.
+                          <span :if={job.error_message}><%= job.error_message %></span>
+                        </div>
                       <% end %>
-                    </div>
+                    </article>
                   </div>
-
-                  <dl class="tl-job__meta" aria-label="Export job timestamps">
-                    <div>
-                      <dt>Started</dt>
-                      <dd><.time_label value={job.started_at} empty="Not started" /></dd>
-                    </div>
-                    <div>
-                      <dt>Completed</dt>
-                      <dd><.time_label value={job.completed_at} empty="Not completed" /></dd>
-                    </div>
-                    <div>
-                      <dt>Expires</dt>
-                      <dd><.time_label value={job.expires_at} empty="No expiration" /></dd>
-                    </div>
-                  </dl>
-
-                  <div class="tl-param-list" aria-label="Export filters">
-                    <%= for {key, value} <- Presentation.query_pairs(job.query_params) do %>
-                      <span class="tl-param" title={"#{key}: #{value}"}>
-                        <span class="tl-param__key"><%= key %></span>
-                        <span class="tl-param__value"><%= Presentation.truncate_middle(value, 42) %></span>
-                      </span>
-                    <% end %>
-                    <span :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
-                      No filters
-                    </span>
-                  </div>
-
-                  <div class="tl-job__source">
-                    <span class="tl-hint">Source Timeline search</span>
-                    <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
-                      Reopen search
-                    </a>
-                  </div>
-
-                  <%= if job.error_message do %>
-                    <div class="tl-job__note tl-job__note--error" role="alert">
-                      <strong>Failed:</strong> <%= job.error_message %>
-                    </div>
-                  <% end %>
-                </article>
+                </section>
               </section>
             <% end %>
           <% else %>
@@ -213,21 +215,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp has_jobs?(socket) do
-      if not socket.assigns[:threadline_exports_enabled] do
-        false
-      else
-        repo = resolve_repo(socket)
-        actor_ref = socket.assigns[:threadline_actor_ref]
-
-        if actor_ref do
-          repo.exists?(from(j in ExportJob, where: j.actor_ref == ^actor_ref))
-        else
-          false
-        end
-      end
-    end
-
     defp schedule_refresh(socket) do
       interval =
         socket.assigns[:threadline_export_status_poll_ms] ||
@@ -239,6 +226,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp resolve_repo(socket) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
+    end
+
+    defp assign_jobs(socket, jobs) do
+      socket
+      |> assign(:jobs, jobs)
+      |> assign(:job_groups, group_jobs(jobs))
+      |> assign(:has_jobs, length(jobs) > 0)
+    end
+
+    defp group_jobs(jobs) do
+      jobs
+      |> Enum.sort_by(fn job ->
+        {Presentation.export_readiness_rank(job), -job_time(job)}
+      end)
+      |> Enum.group_by(&Presentation.export_readiness/1)
+      |> then(fn grouped ->
+        for bucket <- [:ready, :preparing, :needs_attention, :unavailable],
+            jobs = Map.get(grouped, bucket, []),
+            jobs != [] do
+          %{title: Presentation.export_readiness_title(List.first(jobs)), jobs: jobs}
+        end
+      end)
+    end
+
+    defp job_time(job) do
+      (job.inserted_at || job.started_at || job.completed_at || DateTime.from_unix!(0))
+      |> DateTime.to_unix()
     end
 
     defp status_role(%{status: "failed"}), do: "alert"
@@ -259,37 +273,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    defp job_modifier("failed"), do: "tl-job--danger"
-    defp job_modifier("running"), do: "tl-job--info"
-    defp job_modifier("pending"), do: "tl-job--info"
-    defp job_modifier("completed"), do: "tl-job--success"
-    defp job_modifier(_), do: nil
-
-    defp downloadable?(job) do
-      job.status == "completed" and is_binary(job.file_path) and not expired?(job.expires_at)
+    defp job_modifier(job) do
+      case Presentation.export_readiness(job) do
+        :ready -> "tl-job--success"
+        :preparing -> "tl-job--info"
+        :needs_attention -> "tl-job--danger"
+        :unavailable -> nil
+      end
     end
-
-    defp completed_but_unavailable?(job) do
-      job.status == "completed" and not downloadable?(job)
-    end
-
-    defp expired?(%DateTime{} = expires_at) do
-      DateTime.compare(expires_at, DateTime.utc_now()) != :gt
-    end
-
-    defp expired?(_expires_at), do: false
-
-    defp unavailable_label(%{expires_at: %DateTime{} = expires_at}) do
-      if expired?(expires_at), do: "Expired", else: "File unavailable"
-    end
-
-    defp unavailable_label(_job), do: "File unavailable"
-
-    defp actor_label(%Threadline.Semantics.ActorRef{type: type, id: id}) when not is_nil(id),
-      do: "#{type}/#{id}"
-
-    defp actor_label(%{"type" => type, "id" => id}) when not is_nil(id), do: "#{type}/#{id}"
-    defp actor_label(_), do: "unknown actor"
 
     defp actor_path(base_path, %Threadline.Semantics.ActorRef{type: type, id: id})
          when is_binary(base_path) and not is_nil(id) do

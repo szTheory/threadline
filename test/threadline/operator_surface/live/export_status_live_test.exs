@@ -148,7 +148,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
-        assert html =~ "No Export Jobs"
+        assert html =~ "What&#39;s ready to hand off?"
+        assert html =~ "No export jobs queued"
         assert html =~ "Open timeline"
       end
 
@@ -166,7 +167,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        refute html =~ "No Export Jobs"
+        refute html =~ "No export jobs queued"
         assert html =~ "Queued"
         assert html =~ "users"
         assert html =~ "Preparing download"
@@ -188,7 +189,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "No Export Jobs"
+        assert html =~ "No export jobs queued"
       end
 
       test "shows download link when completed", %{conn: conn, actor_ref: actor_ref} do
@@ -210,7 +211,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         assert html =~ "Completed"
-        assert html =~ "Download"
+        assert html =~ "Ready to hand off"
+        assert html =~ "Download export"
         assert html =~ "Expires"
         assert html =~ "datetime="
         assert html =~ "/audit/exports/download/#{job.id}"
@@ -234,7 +236,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         assert html =~ "Preparing download"
-        refute html =~ "Download Export"
+        refute html =~ "Download export"
       end
 
       test "hides the download action for expired completed exports", %{
@@ -257,8 +259,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        refute html =~ "Download Export"
-        assert html =~ "Expired"
+        refute html =~ "Download export"
+        assert html =~ "Export expired"
       end
 
       test "shows the persisted failure reason for failed jobs", %{
@@ -281,7 +283,80 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         assert html =~ "Failed"
+        assert html =~ "Needs attention"
+        assert html =~ "Export failed."
+        assert html =~ "Reopen source search"
         assert html =~ "built-in export runtime is unavailable"
+      end
+
+      test "groups exports by readiness in operator order with secondary refs", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+        long_correlation = "corr-" <> String.duplicate("abc123", 8)
+
+        [
+          %{
+            status: "completed",
+            query_params: %{"table" => "users", "correlation_id" => long_correlation},
+            file_path: "ready.csv",
+            expires_at: DateTime.add(now, 600, :second),
+            started_at: DateTime.add(now, -10, :second),
+            completed_at: DateTime.add(now, -5, :second)
+          },
+          %{
+            status: "running",
+            query_params: %{"table" => "users"},
+            started_at: DateTime.add(now, -20, :second)
+          },
+          %{
+            status: "failed",
+            query_params: %{"table" => "users"},
+            started_at: DateTime.add(now, -30, :second),
+            error_message: "runtime unavailable"
+          },
+          %{
+            status: "completed",
+            query_params: %{"table" => "users"},
+            file_path: "expired.csv",
+            expires_at: DateTime.add(now, -60, :second),
+            started_at: DateTime.add(now, -40, :second),
+            completed_at: DateTime.add(now, -35, :second)
+          },
+          %{
+            status: "completed",
+            query_params: %{"table" => "users"},
+            started_at: DateTime.add(now, -50, :second),
+            completed_at: DateTime.add(now, -45, :second)
+          }
+        ]
+        |> Enum.each(fn attrs ->
+          %ExportJob{}
+          |> ExportJob.changeset(Map.put(attrs, :actor_ref, actor_ref))
+          |> Threadline.Test.Repo.insert!()
+        end)
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "Ready to hand off"
+        assert html =~ "Preparing"
+        assert html =~ "Needs attention"
+        assert html =~ "Unavailable"
+        assert html =~ "Download export"
+        assert html =~ "Preparing download"
+        assert html =~ "Export expired"
+        assert html =~ "File unavailable"
+        assert html =~ "tl-secondary-ref"
+        assert html =~ long_correlation
+
+        assert html =~
+                 ~s(title="correlation_id: #{long_correlation}")
+
+        assert String.contains?(html, "Ready to hand off") and
+                 String.contains?(html, "Preparing") and
+                 String.contains?(html, "Needs attention") and
+                 String.contains?(html, "Unavailable")
       end
     end
   end
