@@ -21,7 +21,7 @@
 | 135 | 4/4 | Complete    | 2026-06-04 |
 | 136 | Design-System Hardening | POLISH-DS | in progress |
 | 137 | 4/4 | Complete    | 2026-06-04 |
-| 138 | "Find" Cluster Polish | POLISH-FIND | not started |
+| 138 | 4/4 | Complete    | 2026-06-04 |
 | 139 | Orientation Hub (Home / Nav) | POLISH-HOME | not started |
 | 140 | Earned New Flows | POLISH-FLOWS | not started |
 | 141 | Motion & Micro-animation | POLISH-MOTION | not started |
@@ -96,10 +96,10 @@
   3. Filter, diff, and correlation interactions behave consistently across all four screens.
   4. Every Phase-134 audit finding owned by these four screens is closed.
 **Plans**: 4 plans
-- [ ] 138-01-PLAN.md — Shared Find presentation primitives
-- [ ] 138-02-PLAN.md — Transaction and Row-history value convergence
-- [ ] 138-03-PLAN.md — Timeline dense/error/mobile and refs
-- [ ] 138-04-PLAN.md — Actor blast-radius and Coverage remediation closure
+- [x] 138-01-PLAN.md — Shared Find presentation primitives
+- [x] 138-02-PLAN.md — Transaction and Row-history value convergence
+- [x] 138-03-PLAN.md — Timeline dense/error/mobile and refs
+- [x] 138-04-PLAN.md — Actor blast-radius and Coverage remediation closure
 **UI hint**: yes
 
 ### Phase 139: Orientation Hub (Home / Nav)

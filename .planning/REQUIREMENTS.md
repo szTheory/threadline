@@ -21,7 +21,7 @@
 ### Per-screen polish (least-iterated first)
 
 - [x] **POLISH-PROVE**: Each of Evidence, Policy·Redaction, Retention, and Exports is brought to the consistent baseline — canonical primitives applied, audit findings closed, quality empty/error/dense states, least-surprise alignment of actions/filters/status.
-- [ ] **POLISH-FIND**: Each of Timeline, Transaction, Row-history, and Actor is brought to the consistent baseline — focus on the less-iterated screens and Timeline's unaddressed states (dense/error/mobile); filter/diff/correlation interactions made consistent.
+- [x] **POLISH-FIND**: Each of Timeline, Transaction, Row-history, and Actor is brought to the consistent baseline — focus on the less-iterated screens and Timeline's unaddressed states (dense/error/mobile); filter/diff/correlation interactions made consistent.
 - [ ] **POLISH-HOME**: The Home start page and `surface_header` nav reflect the locked persona/JTBD IA — consistent active states, grouping, and a mobile nav pattern; Home orients each persona to an obvious next action (GDS start-page philosophy).
 
 ### Earned new flows (each traces to a JTBD + decision record)
@@ -61,7 +61,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Complete |
 | POLISH-DS | Phase 136 — Design-System Hardening | Pending |
 | POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Complete |
-| POLISH-FIND | Phase 138 — "Find" Cluster Polish | Pending |
+| POLISH-FIND | Phase 138 — "Find" Cluster Polish | Complete |
 | POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Pending |
 | POLISH-FLOWS | Phase 140 — Earned New Flows | Pending |
 | POLISH-MOTION | Phase 141 — Motion & Micro-animation | Pending |
