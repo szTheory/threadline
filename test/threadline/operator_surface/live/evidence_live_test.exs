@@ -14,7 +14,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Auth do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_evidence, true)
-    def authorize_exports(_mirror), do: Application.get_env(:threadline, :test_allow_exports, true)
+
+    def authorize_exports(_mirror),
+      do: Application.get_env(:threadline, :test_allow_exports, true)
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Router do
@@ -37,7 +39,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
         evidence_authorize_fn: &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize_exports/1,
+        export_authorize_fn:
+          &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize_exports/1,
         repo: Threadline.Test.Repo
       )
     end
@@ -246,8 +249,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Carry to Exports"
         assert html =~ "source=evidence"
         assert html =~ "subject=retention_run"
-        refute html =~ "subject_ref_json="
-        refute html =~ "mode="
+        assert html =~ ~r|href="/audit/exports\?[^"]*source=evidence[^"]*subject=retention_run|
+        refute html =~ ~r|href="/audit/exports\?[^"]*subject_ref_json=|
+        refute html =~ ~r|href="/audit/exports\?[^"]*mode=|
       end
 
       test "hides carry-to-exports when export access is disabled", %{conn: conn} do

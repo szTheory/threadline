@@ -10,6 +10,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
 
+    @evidence_source_query "source=evidence"
+
     def mount(_params, _session, socket) do
       {:ok,
        socket
@@ -94,6 +96,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">Overview</.link>
               <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
                 Back to latest for <%= @request.subject %>
+              </.link>
+              <.link
+                :if={carry_to_exports_path(@base_path, @request, @threadline_exports_enabled)}
+                navigate={carry_to_exports_path(@base_path, @request, @threadline_exports_enabled)}
+                class="tl-button tl-button--ghost"
+                data-earned-flow="EF3"
+                data-persona="P3"
+                data-jtbd="J6"
+              >
+                Carry to Exports
               </.link>
             </nav>
 
@@ -321,6 +333,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"
 
+    defp carry_to_exports_path(base_path, %{subject: nil}, true) when is_binary(base_path),
+      do: nil
+
+    defp carry_to_exports_path(base_path, request, true) when is_binary(base_path) do
+      params =
+        URI.decode_query(@evidence_source_query)
+        |> maybe_put("subject", request.subject)
+        |> maybe_put_subject_ref(request.subject_ref)
+        |> maybe_put_mode(request.mode)
+
+      "#{base_path}/exports?#{URI.encode_query(params)}"
+    end
+
+    defp carry_to_exports_path(_base_path, _request, _exports_enabled), do: nil
+
     defp history_path(base_path, subject, subject_ref_json) do
       "#{base_path}/evidence?" <>
         URI.encode_query(%{
@@ -329,5 +356,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "mode" => "history"
         })
     end
+
+    defp maybe_put(params, _key, nil), do: params
+    defp maybe_put(params, _key, ""), do: params
+    defp maybe_put(params, key, value), do: Map.put(params, key, value)
+
+    defp maybe_put_subject_ref(params, nil), do: params
+
+    defp maybe_put_subject_ref(params, subject_ref),
+      do: Map.put(params, "subject_ref_json", Jason.encode!(subject_ref))
+
+    defp maybe_put_mode(params, :history), do: Map.put(params, "mode", "history")
+    defp maybe_put_mode(params, _mode), do: params
   end
 end

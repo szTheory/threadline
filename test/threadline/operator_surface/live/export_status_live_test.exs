@@ -236,7 +236,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "rejects invalid Evidence proof context without creating ExportJobs", %{conn: conn} do
         for {query, message} <- [
               {"source=evidence&subject=not_supported", "Unsupported evidence subject"},
-              {"source=evidence&subject=export_delivery&mode=archive", "Unsupported evidence mode"},
+              {"source=evidence&subject=export_delivery&mode=archive",
+               "Unsupported evidence mode"},
               {"source=evidence&subject_ref_json=%7Bbad", "Invalid subject_ref_json"},
               {"source=evidence&subject_ref_json=%7B%22export_id%22%3A%22123%22%7D",
                "subject_ref_json requires a subject filter"},
