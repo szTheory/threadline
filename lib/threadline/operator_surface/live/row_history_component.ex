@@ -7,11 +7,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def update(assigns, socket) do
       schemas = assigns[:threadline_schemas] || %{}
+      table = to_string(assigns.table)
+      record_id = to_string(assigns.record_id)
+      schema_module = schema_for_table(schemas, table)
 
-      schema_module =
-        Map.get(schemas, assigns.table) || Map.get(schemas, String.to_atom(assigns.table))
-
-      socket = assign(socket, assigns)
+      socket =
+        socket
+        |> assign(assigns)
+        |> assign(:table, table)
+        |> assign(:record_id, record_id)
+        |> assign_new(:close_path, fn -> assigns[:base_path] end)
+        |> assign_new(:history_path, fn ->
+          "#{assigns[:base_path]}/history/#{URI.encode_www_form(table)}/#{URI.encode_www_form(record_id)}"
+        end)
 
       if schema_module do
         opts = [
@@ -54,10 +62,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _ -> socket.assigns.as_of_dt
         end
 
-      path =
-        "#{socket.assigns.base_path}/history/#{socket.assigns.table}/#{socket.assigns.record_id}?as_of=#{URI.encode_www_form(DateTime.to_iso8601(as_of))}"
-
-      {:noreply, push_patch(socket, to: path)}
+      {:noreply, push_patch(socket, to: as_of_path(socket.assigns.history_path, as_of))}
     end
 
     def render(assigns) do
@@ -79,7 +84,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>
               </h3>
             </div>
-            <.link patch={@base_path} class="tl-button tl-button--secondary">Close</.link>
+            <.link patch={@close_path} class="tl-button tl-button--secondary">Close</.link>
           </div>
 
           <%= if @error do %>
@@ -96,7 +101,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <ul class="tl-subview__timeline">
                   <%= for change <- @history do %>
                     <li>
-                      <.link patch={"#{@base_path}/history/#{@table}/#{@record_id}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
+                      <.link patch={"#{@history_path}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
                         <span class="tl-change__op"><%= change.op %></span>
                         <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
                           <%= Presentation.human_time(change.captured_at) %>
@@ -125,6 +130,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp format_dt(_), do: ""
+
+    defp schema_for_table(schemas, table) when is_map(schemas) do
+      case Map.fetch(schemas, table) do
+        {:ok, schema} ->
+          schema
+
+        :error ->
+          schemas
+          |> Enum.find_value(fn
+            {key, schema} when is_atom(key) ->
+              if Atom.to_string(key) == table, do: schema
+
+            _entry ->
+              nil
+          end)
+      end
+    end
+
+    defp schema_for_table(_schemas, _table), do: nil
+
+    defp as_of_path(history_path, %DateTime{} = as_of) do
+      "#{history_path}?#{URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})}"
+    end
 
     attr(:result, :any, required: true)
 

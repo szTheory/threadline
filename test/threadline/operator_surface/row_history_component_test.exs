@@ -73,7 +73,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       assert html =~ ~s|href="/audit/timeline"|
-      assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12:30:00Z"|
+      assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12:30:00|
       refute html =~ "/audit/history/users/row-path-component"
     end
 

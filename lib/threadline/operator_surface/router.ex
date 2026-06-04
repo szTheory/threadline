@@ -103,6 +103,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             live("/exports", ExportStatusLive, :index)
             live("/policy/redaction", PolicyRedactionLive, :index)
             live("/policy/retention", RetentionHistoryLive, :index)
+            live("/rows/:table/:record_id", RowHistoryLive, :show)
             live("/transactions/:id", TransactionLive, :show)
             live("/transactions/:id/history/:table/:record_id", TransactionLive, :history)
             live("/actors/:kind/:id", ActorLive, :show)

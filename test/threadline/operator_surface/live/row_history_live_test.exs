@@ -154,7 +154,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]
       )
 
-      Application.put_env(:threadline, Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
         secret_key_base: "s" |> String.duplicate(64),
         live_view: [signing_salt: "s" |> String.duplicate(8)],
         render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]
@@ -209,7 +211,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute source =~ "String.to_existing_atom(table)"
     end
 
-    test "first-class as_of changes patch under /rows and close returns to timeline", %{conn: conn} do
+    test "first-class as_of changes patch under /rows and close returns to timeline", %{
+      conn: conn
+    } do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
 
@@ -262,7 +266,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
         secret_key_base: "s" |> String.duplicate(64),
         live_view: [signing_salt: "s" |> String.duplicate(8)],
         render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]

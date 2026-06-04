@@ -207,6 +207,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             record_id={@history_record_id}
             as_of={@history_as_of}
             base_path={@base_path}
+            close_path={@base_path}
+            history_path={history_path(@base_path, @history_table, @history_record_id)}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
             scope={@threadline_scope}
@@ -287,6 +289,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp timeline_correlation_path(base_path, _correlation_id), do: base_path
+
+    defp history_path(base_path, table, record_id) do
+      "#{base_path}/history/#{URI.encode_www_form(to_string(table))}/#{URI.encode_www_form(to_string(record_id))}"
+    end
 
     defp op_chip_modifier(op) do
       case op |> to_string() |> String.downcase() do
