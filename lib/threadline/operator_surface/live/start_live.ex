@@ -73,7 +73,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <main id="tl-main" class="tl-page tl-home">
           <header class="tl-home__hero">
-            <p class="tl-home__eyebrow">Threadline</p>
             <h1 class="tl-home__headline">Follow what happened.</h1>
             <p class="tl-home__lede">
               Every change is connected to the action, context, and story around it.
@@ -84,7 +83,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <%= if @health == [] do %>
                 <span class="tl-chip tl-chip--success">All systems healthy</span>
               <% else %>
-                <a :for={signal <- @health} class="tl-chip tl-chip--warning" href={"#{@base_path}#{signal.path}"}>
+                <a
+                  :for={signal <- @health}
+                  class={"tl-chip #{health_chip_class(signal)}"}
+                  href={"#{@base_path}#{signal.path}"}
+                >
                   <%= signal.label %>
                 </a>
               <% end %>
@@ -124,18 +127,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 redaction status, and downloadable exports.
               </p>
               <div class="tl-home__card-links">
-                <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">Evidence</a>
-                <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">Redaction</a>
-                <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">Retention</a>
-                <a :if={@threadline_exports_enabled} href={"#{@base_path}/exports"} class="tl-button tl-button--secondary tl-button--compact">Exports</a>
+                <div class="tl-home__prove-controls">
+                  <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">Evidence</a>
+                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">Redaction</a>
+                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">Retention</a>
+                </div>
+                <div :if={@threadline_exports_enabled} class="tl-home__prove-handoff" aria-label="Deliverable handoff">
+                  <span class="tl-home__handoff-label">Handoff</span>
+                  <a href={"#{@base_path}/exports"} class="tl-button tl-button--secondary tl-button--compact">Exports</a>
+                </div>
               </div>
             </li>
           </ul>
 
-          <section :if={@saved_views != []} class="tl-home__resume" aria-label="Saved searches">
+          <section class="tl-home__resume" aria-label="Saved searches">
             <h2 class="tl-home__section-title">Pick up where you left off</h2>
-            <p class="tl-home__section-lede">Reopen a saved timeline search.</p>
-            <ul class="tl-home__views">
+            <p :if={@saved_views != []} class="tl-home__section-lede">Reopen a saved timeline search.</p>
+            <p :if={@saved_views == []} class="tl-home__resume-empty">
+              No saved timeline searches yet. Use Timeline filters when you are ready to save a repeat investigation.
+            </p>
+            <ul :if={@saved_views != []} class="tl-home__views">
               <li :for={view <- @saved_views}>
                 <.link navigate={saved_view_path(@base_path, view)} class="tl-chip tl-chip--accent tl-home__view">
                   <%= view.name %>
@@ -167,7 +178,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       if socket.assigns[:threadline_coverage_enabled] && coverage &&
            coverage.uncovered_count > 0 do
-        [%{label: "#{coverage.uncovered_count} tables need audit coverage", path: "/coverage"}]
+        [
+          %{
+            label: "Close coverage gaps before trusting Timeline answers",
+            path: "/coverage",
+            severity: :warning
+          }
+        ]
       else
         []
       end
@@ -177,7 +194,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       with true <- !!socket.assigns[:threadline_exports_enabled],
            n when is_integer(n) and n > 0 <- failed_export_count(socket) do
         unit = if n == 1, do: "export", else: "exports"
-        [%{label: "#{n} failed #{unit}", path: "/exports"}]
+        verb = if n == 1, do: "needs", else: "need"
+
+        [
+          %{
+            label: "#{n} failed #{unit} #{verb} attention",
+            path: "/exports",
+            severity: :danger
+          }
+        ]
       else
         _ -> []
       end
@@ -185,7 +210,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp retention_warning(socket) do
       if socket.assigns[:threadline_policy_enabled] && latest_retention_failed?(socket) do
-        [%{label: "Latest retention run failed", path: "/policy/retention"}]
+        [%{label: "Latest retention run failed", path: "/policy/retention", severity: :danger}]
       else
         []
       end
@@ -261,5 +286,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         query -> "#{base_path}/timeline?#{query}"
       end
     end
+
+    defp health_chip_class(%{severity: :danger}), do: "tl-chip--danger"
+    defp health_chip_class(%{severity: :warning}), do: "tl-chip--warning"
+    defp health_chip_class(_signal), do: "tl-chip--warning"
   end
 end

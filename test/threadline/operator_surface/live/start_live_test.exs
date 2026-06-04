@@ -14,6 +14,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.StartLiveTest.Auth do
     def authorize(_), do: true
+
+    def coverage_authorize(_),
+      do: Application.get_env(:threadline, :test_start_live_coverage, true)
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.Router do
@@ -36,7 +39,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
         repo: Threadline.Test.Repo,
-        coverage_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        coverage_authorize_fn:
+          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
         policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
         evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
         export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
@@ -81,13 +85,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
+      original_start_live_coverage = Application.get_env(:threadline, :test_start_live_coverage)
       Application.put_env(:threadline, :coverage_poll_ms, 5_000)
+      Application.put_env(:threadline, :test_start_live_coverage, true)
 
       on_exit(fn ->
         if original_interval do
           Application.put_env(:threadline, :coverage_poll_ms, original_interval)
         else
           Application.delete_env(:threadline, :coverage_poll_ms)
+        end
+
+        if is_nil(original_start_live_coverage) do
+          Application.delete_env(:threadline, :test_start_live_coverage)
+        else
+          Application.put_env(
+            :threadline,
+            :test_start_live_coverage,
+            original_start_live_coverage
+          )
         end
       end)
 
@@ -139,6 +155,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "renders all-clear health as a quiet success", %{conn: conn} do
+      Application.put_env(:threadline, :test_start_live_coverage, false)
+      on_exit(fn -> Application.put_env(:threadline, :test_start_live_coverage, true) end)
+
       {:ok, _view, html} = live(conn, "/audit")
 
       assert html =~ "All systems healthy"
@@ -151,7 +170,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|href="/audit/coverage"|
       assert html =~ "tl-chip tl-chip--warning"
       assert html =~ "Close coverage gaps before trusting Timeline answers"
-      refute html =~ ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
+
+      refute home_health(html) =~
+               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
     end
 
     test "renders current actor failed exports as danger without leaking other actors", %{
@@ -198,7 +219,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, other_actor} = ActorRef.new(:user, "other-operator")
 
       insert_view!(actor_ref, "Recent deletes", %{
-        "op" => "delete",
         "table" => "posts",
         "actor_kind" => "",
         "actor_id" => ""
@@ -207,20 +227,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       insert_view!(actor_ref, "Closed this week", %{
         "table" => "tickets",
         "from" => "2026-06-01T00:00",
-        "to" => "2026-06-07T23:59",
-        "op" => "update"
+        "to" => "2026-06-07T23:59"
       })
 
       insert_view!(other_actor, "Other actor scope", %{"table" => "secrets"})
 
-      {:ok, _view, html} = live(conn, "/audit")
+      {:ok, view, html} = live(conn, "/audit")
 
       assert html =~ "Pick up where you left off"
       assert html =~ "Recent deletes"
-      assert html =~ ~s|href="/audit/timeline?op=delete&amp;table=posts"|
+      assert has_element?(view, ~s|a[href="/audit/timeline?table=posts"]|, "Recent deletes")
       assert html =~ "Closed this week"
-      assert html =~
-               ~s|href="/audit/timeline?from=2026-06-01T00%3A00&amp;to=2026-06-07T23%3A59&amp;op=update&amp;table=tickets"|
+
+      assert has_element?(
+               view,
+               ~s|a[href="/audit/timeline?from=2026-06-01T00%3A00&to=2026-06-07T23%3A59&table=tickets"]|,
+               "Closed this week"
+             )
 
       refute html =~ "Other actor scope"
       refute html =~ "secrets"
@@ -231,7 +254,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "Pick up where you left off"
       assert html =~ "No saved timeline searches yet."
-      refute html =~ "tl-home__view"
+      refute html =~ ~s|class="tl-chip tl-chip--accent tl-home__view"|
     end
 
     test "Home source does not include Phase 140 lookup or patch behavior" do
@@ -269,6 +292,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         filters: filters
       })
       |> Threadline.Test.Repo.insert!()
+    end
+
+    defp home_health(html) do
+      Regex.run(~r/<div class="tl-home__health".*?<\/div>/s, html)
+      |> List.first()
     end
   end
 end

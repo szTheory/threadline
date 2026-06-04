@@ -402,16 +402,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-6) 0 var(--tl-space-4);
         }
 
-        .tl-home__eyebrow {
-          margin: 0 0 var(--tl-space-2);
-          font-family: var(--tl-font-mono);
-          font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-medium);
-          letter-spacing: var(--tl-tracking-caps-wide);
-          text-transform: uppercase;
-          color: var(--tl-color-signal);
-        }
-
         .tl-home__headline {
           margin: 0;
           font-size: var(--tl-font-size-title);
@@ -532,12 +522,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: flex;
           flex-wrap: wrap;
           gap: var(--tl-space-2);
+          width: 100%;
+          align-items: stretch;
+        }
+
+        .tl-home__prove-controls,
+        .tl-home__prove-handoff {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-home__prove-handoff {
+          padding-left: var(--tl-space-3);
+          border-left: 1px solid var(--tl-color-border);
+        }
+
+        .tl-home__handoff-label {
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: var(--tl-tracking-caps);
+          text-transform: uppercase;
+          color: var(--tl-color-muted);
         }
 
         .tl-home__resume {
           margin-top: var(--tl-space-6);
           display: grid;
           gap: var(--tl-space-1);
+        }
+
+        .tl-home__resume-empty {
+          margin: 0;
+          max-width: 56ch;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-ui);
+          line-height: var(--tl-line-body);
         }
 
         .tl-home__section-title {
