@@ -341,22 +341,22 @@ Use HEEx interpolation so strings remain HTML-escaped; do not return raw HTML fr
 |---|-------|---------|---------------|
 | A1 | Actor row summaries can be implemented with a local visible-page preload or presenter without public API churn. | Common Pitfalls / Recommended Plan Slicing | If existing data access cannot do this without N+1 queries, the plan must use `Changes unavailable` fallback or add a tightly scoped query change after explicit review. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Where should INSERT field expansion happen?**
    - What we know: `ChangeDiff.from_audit_change/2` supports `expand_insert_fields: true`, while `incident_bundle/2` currently calls `Threadline.change_diff(linked_change.audit_change)` without options. [VERIFIED: `change_diff.ex`; `investigation.ex`]
-   - What's unclear: Whether the team prefers changing incident-bundle presentation output or deriving inserted value rows inside TransactionLive.
-   - Recommendation: Keep it presentation-only and test F-201 first; planner should choose the smallest change that does not alter public semantics. [VERIFIED: CONTEXT.md]
+   - RESOLVED: Plan 02 chooses TransactionLive-local presentation for Phase 138. It tests F-201 first, then renders inserted column values from `data_after` when `field_changes` is empty, without changing `incident_bundle/2` public semantics. [VERIFIED: `138-02-PLAN.md`]
+   - Execution guard: if implementation proves `data_after` is unavailable in the existing bundle shape, the executor must keep the change presentation-only and document the smallest required follow-up rather than expanding public API behavior silently.
 
 2. **How much Actor summary data is available without extra queries?**
    - What we know: `actor_history/2` returns `AuditTransaction` structs and ActorLive does not preload changes. [VERIFIED: `query.ex`; `actor_live.ex`]
-   - What's unclear: Whether visible-page transaction IDs can be batch-loaded with change counts cheaply inside ActorLive.
-   - Recommendation: Plan a proof task with an explicit N+1 check; use the locked fallback if summary data is unavailable. [VERIFIED: CONTEXT.md]
+   - RESOLVED: Plan 04 requires one private bounded batch query for visible unscoped transaction IDs only, grouped before rendering through `Presentation.actor_transaction_summary/1`. Scoped sessions render `Changes unavailable` plus `Open transaction` unless a scoped batch query passes an explicit scope-leak test. [VERIFIED: `138-04-PLAN.md`]
+   - Execution guard: no per-row query, no `Threadline.Query.audit_changes_for_transaction/2` inside row rendering, and no new public Actor query API.
 
 3. **Exact Coverage command copy**
    - What we know: `mix threadline.gen.triggers --tables users` and `mix threadline.gen.triggers --tables users,posts,comments` are documented task forms. [VERIFIED: `threadline.gen.triggers.ex`]
-   - What's unclear: Whether UI should show a literal single-table command, a schema-qualified hint, or a revealable snippet.
-   - Recommendation: Prefer `mix threadline.gen.triggers --tables <table>` for unqualified table names and avoid interpolating `schema.table` incorrectly. [VERIFIED: CONTEXT.md; `threadline.gen.triggers.ex`]
+   - RESOLVED: Plans 01 and 04 use `Presentation.coverage_remediation/1` to produce label `Add capture`, command `mix threadline.gen.triggers --tables <table>`, and follow-up `Run mix threadline.verify_coverage after applying the migration.` [VERIFIED: `138-01-PLAN.md`; `138-04-PLAN.md`]
+   - Execution guard: the command helper must avoid incorrectly interpolating `schema.table`; if the visible table name is schema-qualified, implementation should sanitize or present guidance without emitting an invalid command.
 
 ## Environment Availability
 
