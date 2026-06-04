@@ -17,6 +17,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       {@fonts_html}<style>
         .threadline-ui {
+          /* Phase 144 token freeze: this block is the source contract for the
+             final v1.31 design-system catalog. */
           --tl-space-1: 4px;
           --tl-space-2: 8px;
           --tl-space-3: 12px;
