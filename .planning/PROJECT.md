@@ -28,6 +28,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 **Locked constraints:** Keep BEM (`.tl-*`) + `--tl-*` tokens in `style.ex` (no Tailwind, no build step). Dark-first brand locked (no light mode). Seed enrichment only (no demo-app redesign). No new backend features/queries. Every new flow traces to a persona JTBD + a decision record — no speculative features.
 
+**Close-gap status (2026-06-04):** Phase 144 closed the two remaining v1.31 audit blockers without adding product scope: `POLISH-AUDIT` is satisfied by explicit errata verification of the existing Phase 134-labeled baseline/final evidence, and `POLISH-DS` is satisfied by source-first operation primitive consolidation, token/class freeze contracts, and `v1.31-DESIGN-SYSTEM.md`. `.planning/v1.31-MILESTONE-AUDIT.md` now records all ten v1.31 requirements satisfied and ready for milestone closeout.
+
 ## Latest Milestone Shipped: v1.30 Adoption Evidence Automation (2026-05-29)
 
 **Goal (achieved):** Close shift-left automation gaps on the existing help-desk demo journey (WALKTHROUGH §5, Track A golden path, minimal browser E2E) without new fiction or host STG pretense.
@@ -404,6 +406,8 @@ Every row mutation that matters is captured durably and linked to who did it and
 - [x] **AUTH-MOUNT-01** / **AUTH-MOUNT-02 (Phase 128)** — phx-gen-auth scope-first `authorize_fn` mount; integration proof and doc-contract locks. Validated in v1.29 (2026-05-28).
 - [x] **WALK-01** / **WALK-02** / **WALK-03 (Phase 129)** — WALKTHROUGH verify cwd and row-history URL truth with doc-contract locks. Validated in v1.29 (2026-05-29).
 - [x] **NYQ-01** / **PLAN-01 (Phase 130)** — `125-VALIDATION.md` Nyquist finalized; SUMMARY `requirements-completed` SSOT and v1.27 GAP backfill. Validated in v1.29 (2026-05-29).
+- [x] **POLISH-AUDIT (Phase 144 close-gap)** — Phase 144 errata verifies the Phase 134-labeled baseline audit, baseline/final screenshot inventories, and closure artifacts without fabricating a Phase 134 ledger. Validated in v1.31 close-gap audit (2026-06-04).
+- [x] **POLISH-DS (Phase 144 close-gap)** — Operation primitive consolidation, `v1.31-DESIGN-SYSTEM.md`, source freeze marker, and style contract tests close the design-system catalog/freeze requirement. Validated in v1.31 close-gap audit (2026-06-04).
 
 ### Active
 
@@ -512,4 +516,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-05-29 after v1.30 milestone*
+*Last updated: 2026-06-04 after Phase 144 v1.31 close-gap audit*
