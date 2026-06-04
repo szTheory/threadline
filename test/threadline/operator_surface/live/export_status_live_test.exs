@@ -40,6 +40,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_exports, true)
   end
 
+  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.SuccessfulQueueAdapter do
+    @behaviour Threadline.ExportQueue
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def enqueue(_job_id, _opts \\ []), do: :ok
+  end
+
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -151,6 +161,89 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "What&#39;s ready to hand off?"
         assert html =~ "No export jobs queued"
         assert html =~ "Open timeline"
+      end
+
+      test "renders carried Timeline export context with canonical allowed filters", %{conn: conn} do
+        {:ok, _view, html} =
+          live(
+            conn,
+            "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
+          )
+
+        assert html =~ "Timeline export context"
+        assert html =~ "Exports handoff"
+        assert html =~ ~s|data-testid="timeline-export-context"|
+        assert html =~ ~s|data-earned-flow="EF3"|
+        assert html =~ ~s|data-persona="P3"|
+        assert html =~ ~s|data-jtbd="J6"|
+        assert html =~ "table"
+        assert html =~ "ticket_replies"
+        assert html =~ "correlation_id"
+        assert html =~ "req_ef3"
+        assert html =~ "from"
+        assert html =~ "2026-05-01T00:00"
+        assert html =~ "to"
+        assert html =~ "2026-05-06T23:59"
+        assert html =~ "Queue Timeline export"
+        refute html =~ "unknown"
+        refute html =~ "drop_me"
+        refute html =~ "subject_ref_json"
+      end
+
+      test "invalid carried Timeline context is visible and cannot queue a job", %{conn: conn} do
+        {:ok, view, html} = live(conn, "/audit/exports?from=not-a-date")
+
+        assert html =~ "Timeline export context"
+        assert html =~ "Timeline export context could not be applied"
+        refute html =~ "Queue Timeline export"
+
+        assert_raise ArgumentError, fn ->
+          view |> element("button", "Queue Timeline export") |> render_click()
+        end
+
+        assert Threadline.Test.Repo.all(ExportJob) == []
+      end
+
+      test "queueing carried Timeline context creates an actor-owned canonical ExportJob", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        original_adapter = Application.get_env(:threadline, :export_queue_adapter)
+
+        Application.put_env(
+          :threadline,
+          :export_queue_adapter,
+          Threadline.OperatorSurface.ExportStatusLiveTest.SuccessfulQueueAdapter
+        )
+
+        on_exit(fn ->
+          if original_adapter do
+            Application.put_env(:threadline, :export_queue_adapter, original_adapter)
+          else
+            Application.delete_env(:threadline, :export_queue_adapter)
+          end
+        end)
+
+        {:ok, view, _html} =
+          live(
+            conn,
+            "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
+          )
+
+        view |> element("button", "Queue Timeline export") |> render_click()
+
+        assert_redirect(view, "/audit/exports")
+
+        [job] = Threadline.Test.Repo.all(ExportJob)
+        assert job.status == "pending"
+        assert job.actor_ref == actor_ref
+
+        assert job.query_params == %{
+                 "from" => "2026-05-01T00:00",
+                 "to" => "2026-05-06T23:59",
+                 "table" => "ticket_replies",
+                 "correlation_id" => "req_ef3"
+               }
       end
 
       test "displays existing jobs for the actor", %{conn: conn, actor_ref: actor_ref} do

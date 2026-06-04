@@ -307,6 +307,17 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       assert response(conn, 422) =~ "invalid"
     end
 
+    test "GET JSON and NDJSON with invalid datetime filters also return 422", %{conn: conn} do
+      json_conn = get(conn, "/audit/exports/changes.json?from=not-a-date")
+      ndjson_conn = get(conn, "/audit/exports/changes.ndjson?to=not-a-date")
+
+      assert json_conn.status == 422
+      assert response(json_conn, 422) =~ "invalid filter"
+
+      assert ndjson_conn.status == 422
+      assert response(ndjson_conn, 422) =~ "invalid filter"
+    end
+
     # ---- Empty window — header-only CSV (RFC 4180 valid) ----
 
     test "GET with no matching rows returns 200 + header-only CSV (RFC 4180 valid)", %{conn: conn} do
@@ -691,6 +702,17 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       assert conn.status == 403
       assert response(conn, 403) == "forbidden"
+    end
+
+    test "direct JSON and NDJSON exports are also guarded by ExportAuthPlug", %{conn: conn} do
+      json_conn = get(conn, "/audit_denied/exports/changes.json?table=posts")
+      ndjson_conn = get(conn, "/audit_denied/exports/changes.ndjson?table=posts")
+
+      assert json_conn.status == 403
+      assert response(json_conn, 403) == "forbidden"
+
+      assert ndjson_conn.status == 403
+      assert response(ndjson_conn, 403) == "forbidden"
     end
 
     setup do

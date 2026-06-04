@@ -721,6 +721,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert length(download_anchors) == 3
     end
 
+    test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=ticket_replies&correlation_id=req_ef3"
+        )
+
+      assert html =~ "Carry to Exports"
+      assert html =~ ~s|data-earned-flow="EF3"|
+      assert html =~ ~s|data-persona="P3"|
+      assert html =~ ~s|data-jtbd="J6"|
+      assert html =~ ~s|href="/audit/exports?|
+      assert html =~ "from=2026-05-01T00%3A00"
+      assert html =~ "to=2026-05-06T23%3A59"
+      assert html =~ "table=ticket_replies"
+      assert html =~ "correlation_id=req_ef3"
+      refute html =~ "subject_ref_json"
+    end
+
     # -------------------------------------------------------------------
     # Case 16 — match-count status line renders (EXPO-04 / D-17)
     # -------------------------------------------------------------------
@@ -1192,6 +1211,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ">CSV<"
       refute html =~ ">JSON<"
       refute html =~ ">NDJSON<"
+      refute html =~ "Carry to Exports"
     end
   end
 end
