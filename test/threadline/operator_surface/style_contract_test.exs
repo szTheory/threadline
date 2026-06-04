@@ -142,4 +142,32 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(home_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
+
+  test "phase 140 home earned-flow controls stay scoped token-backed and dark-only" do
+    src = File.read!(@style_path)
+
+    home_section =
+      src
+      |> String.split("/* Operator Home")
+      |> Enum.at(1)
+      |> String.split(".tl-page__header")
+      |> List.first()
+
+    for selector <- [
+          ".tl-home__earned-flow",
+          ".tl-home__earned-panel",
+          ".tl-home__earned-copy",
+          ".tl-home__earned-form",
+          ".tl-home__earned-panel .tl-alert"
+        ] do
+      assert String.contains?(home_section, selector)
+    end
+
+    assert String.contains?(home_section, "var(--tl-")
+    refute String.contains?(home_section, "@tailwind")
+    refute String.contains?(home_section, "from shadcn")
+    refute String.contains?(home_section, "prefers-color-scheme")
+    refute String.contains?(home_section, "color-scheme: light")
+    refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
+  end
 end

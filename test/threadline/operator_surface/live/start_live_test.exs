@@ -334,7 +334,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-jtbd="J4"|
       assert html =~ ~s|name="record_lookup[table]"|
       assert html =~ ~s|name="record_lookup[record_id]"|
-      assert has_element?(view, ~s|select[name="record_lookup[table]"] option[value="ticket_replies"]|)
+
+      assert has_element?(
+               view,
+               ~s|select[name="record_lookup[table]"] option[value="ticket_replies"]|
+             )
+
       assert has_element?(view, ~s|select[name="record_lookup[table]"] option[value="users"]|)
 
       record_form = form_html(html, "open-row-history")
@@ -363,7 +368,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_redirect(view, "/audit/rows/ticket_replies/reply-123")
     end
 
-    test "record-first lookup validates blank and unmapped input without navigating", %{conn: conn} do
+    test "record-first lookup validates blank and unmapped input without navigating", %{
+      conn: conn
+    } do
       {:ok, view, _html} = live(conn, "/audit")
 
       assert view
@@ -372,11 +379,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              })
              |> render_submit() =~ "Choose a table to open row history."
 
-      assert view
-             |> form("#tl-record-lookup", %{
+      assert render_submit(view, "open-row-history", %{
                "record_lookup" => %{"table" => "secrets", "record_id" => "row-1"}
-             })
-             |> render_submit() =~ "Choose a mapped table from the list."
+             }) =~ "Choose a mapped table from the list."
 
       assert view
              |> form("#tl-record-lookup", %{

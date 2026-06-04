@@ -33,7 +33,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:base_path, nil)
        |> assign(:health, [])
        |> assign(:health_enabled, false)
-       |> assign(:saved_views, [])}
+       |> assign(:saved_views, [])
+       |> assign(:record_lookup_error, nil)
+       |> assign(:correlation_lookup_error, nil)}
     end
 
     def handle_params(_params, uri, socket) do
@@ -45,7 +47,60 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:base_path, base_path)
        |> assign(:health, health_warnings(socket))
        |> assign(:health_enabled, any_subsystem_enabled?(socket))
-       |> assign(:saved_views, fetch_saved_views(socket))}
+       |> assign(:saved_views, fetch_saved_views(socket))
+       |> assign(:record_table_options, schema_table_options(socket))}
+    end
+
+    def handle_event("open-row-history", %{"record_lookup" => params}, socket) do
+      table = params |> Map.get("table", "") |> String.trim()
+      record_id = params |> Map.get("record_id", "") |> String.trim()
+
+      cond do
+        table == "" ->
+          {:noreply, assign(socket, :record_lookup_error, "Choose a table to open row history.")}
+
+        not mapped_table?(socket, table) ->
+          {:noreply, assign(socket, :record_lookup_error, "Choose a mapped table from the list.")}
+
+        record_id == "" ->
+          {:noreply,
+           assign(socket, :record_lookup_error, "Enter a record id to open row history.")}
+
+        true ->
+          path =
+            "#{socket.assigns.base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+
+          {:noreply,
+           socket
+           |> assign(:record_lookup_error, nil)
+           |> push_navigate(to: path)}
+      end
+    end
+
+    def handle_event("open-correlation", %{"correlation" => params}, socket) do
+      correlation_id = params |> Map.get("correlation_id", "") |> String.trim()
+
+      cond do
+        correlation_id == "" ->
+          {:noreply,
+           assign(socket, :correlation_lookup_error, "Paste a correlation id to open Timeline.")}
+
+        byte_size(correlation_id) > 256 ->
+          {:noreply,
+           assign(
+             socket,
+             :correlation_lookup_error,
+             "Correlation ids must be 256 bytes or fewer."
+           )}
+
+        true ->
+          query = FilterParams.canonical_query(%{"correlation_id" => correlation_id})
+
+          {:noreply,
+           socket
+           |> assign(:correlation_lookup_error, nil)
+           |> push_navigate(to: "#{socket.assigns.base_path}/timeline?#{query}")}
+      end
     end
 
     def render(assigns) do
@@ -140,6 +195,75 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </li>
           </ul>
+
+          <section class="tl-home__earned-flow" aria-label="Go straight to an audited record">
+            <div
+              class="tl-home__earned-panel"
+              data-earned-flow="EF1"
+              data-persona="P2"
+              data-jtbd="J4"
+            >
+              <div class="tl-home__earned-copy">
+                <span class="tl-home__card-kicker">Record</span>
+                <h2 class="tl-home__section-title">Open row history</h2>
+                <p class="tl-home__section-lede">
+                  Choose an audited table and paste one record id.
+                </p>
+              </div>
+              <form id="tl-record-lookup" class="tl-home__earned-form" phx-submit="open-row-history">
+                <label class="tl-toolbar__field">
+                  Table
+                  <select name="record_lookup[table]" class="tl-control">
+                    <option value="">Choose table</option>
+                    <option :for={table <- @record_table_options} value={table}><%= table %></option>
+                  </select>
+                </label>
+                <label class="tl-toolbar__field tl-toolbar__field--wide">
+                  Record id
+                  <input
+                    class="tl-control"
+                    type="text"
+                    name="record_lookup[record_id]"
+                    autocomplete="off"
+                  />
+                </label>
+                <button class="tl-button tl-button--secondary" type="submit">Open row history</button>
+              </form>
+              <div :if={@record_lookup_error} class="tl-alert tl-alert--error" role="alert">
+                <%= @record_lookup_error %>
+              </div>
+            </div>
+
+            <div
+              class="tl-home__earned-panel"
+              data-earned-flow="EF4"
+              data-persona="P1"
+              data-jtbd="J1"
+            >
+              <div class="tl-home__earned-copy">
+                <span class="tl-home__card-kicker">Correlation</span>
+                <h2 class="tl-home__section-title">Open incident timeline</h2>
+                <p class="tl-home__section-lede">
+                  Paste a correlation id to resume the exact Timeline thread.
+                </p>
+              </div>
+              <form id="tl-correlation-lookup" class="tl-home__earned-form" phx-submit="open-correlation">
+                <label class="tl-toolbar__field tl-toolbar__field--wide">
+                  Correlation id
+                  <input
+                    class="tl-control"
+                    type="text"
+                    name="correlation[correlation_id]"
+                    autocomplete="off"
+                  />
+                </label>
+                <button class="tl-button tl-button--secondary" type="submit">Open Timeline</button>
+              </form>
+              <div :if={@correlation_lookup_error} class="tl-alert tl-alert--error" role="alert">
+                <%= @correlation_lookup_error %>
+              </div>
+            </div>
+          </section>
 
           <section class="tl-home__resume" aria-label="Saved searches">
             <h2 class="tl-home__section-title">Pick up where you left off</h2>
@@ -287,6 +411,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         query -> "#{base_path}/timeline?#{query}"
       end
     end
+
+    defp schema_table_options(socket) do
+      socket.assigns[:threadline_schemas]
+      |> table_keys()
+      |> Enum.sort()
+    end
+
+    defp mapped_table?(socket, table) do
+      socket.assigns[:threadline_schemas]
+      |> table_keys()
+      |> Enum.member?(table)
+    end
+
+    defp table_keys(schemas) when is_map(schemas) do
+      Enum.map(schemas, fn
+        {key, _schema} when is_binary(key) -> key
+        {key, _schema} when is_atom(key) -> Atom.to_string(key)
+        {key, _schema} -> to_string(key)
+      end)
+    end
+
+    defp table_keys(_schemas), do: []
+
+    defp encode_segment(value), do: URI.encode(value, &URI.char_unreserved?/1)
 
     defp health_chip_class(%{severity: :danger}), do: "tl-chip--danger"
     defp health_chip_class(%{severity: :warning}), do: "tl-chip--warning"
