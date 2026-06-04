@@ -204,6 +204,75 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Threadline.Test.Repo.all(ExportJob) == []
       end
 
+      test "renders carried Evidence proof context separately from Timeline exports", %{
+        conn: conn
+      } do
+        subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
+
+        {:ok, _view, html} =
+          live(
+            conn,
+            "/audit/exports?source=evidence&subject=export_delivery&mode=history&subject_ref_json=#{subject_ref_json}"
+          )
+
+        assert html =~ "Evidence proof context"
+        assert html =~ "Proof handoff"
+        assert html =~ ~s|data-testid="evidence-export-context"|
+        assert html =~ ~s|data-earned-flow="EF3"|
+        assert html =~ ~s|data-persona="P3"|
+        assert html =~ ~s|data-jtbd="J6"|
+        assert html =~ "export_delivery"
+        assert html =~ "history"
+        assert html =~ "export-123"
+        assert html =~ ~s|href="/audit/evidence?|
+        assert html =~ "subject=export_delivery"
+        assert html =~ "subject_ref_json="
+        assert html =~ "mode=history"
+        assert html =~ "Reopen Evidence proof"
+        refute html =~ "Queue Timeline export"
+        refute html =~ ~s|data-testid="timeline-export-context"|
+      end
+
+      test "rejects invalid Evidence proof context without creating ExportJobs", %{conn: conn} do
+        for {query, message} <- [
+              {"source=evidence&subject=not_supported", "Unsupported evidence subject"},
+              {"source=evidence&subject=export_delivery&mode=archive", "Unsupported evidence mode"},
+              {"source=evidence&subject_ref_json=%7Bbad", "Invalid subject_ref_json"},
+              {"source=evidence&subject_ref_json=%7B%22export_id%22%3A%22123%22%7D",
+               "subject_ref_json requires a subject filter"},
+              {"source=evidence&subject=export_delivery&mode=history",
+               "History drill-down requires subject_ref_json"},
+              {"source=evidence&subject=export_delivery&unexpected=param",
+               "Unsupported Evidence proof context parameter"}
+            ] do
+          {:ok, _view, html} = live(conn, "/audit/exports?#{query}")
+
+          assert html =~ "Evidence proof context could not be applied"
+          assert html =~ message
+          refute html =~ "Reopen Evidence proof"
+          refute html =~ "Queue Timeline export"
+        end
+
+        assert Threadline.Test.Repo.all(ExportJob) == []
+      end
+
+      test "does not pass Evidence proof params into Timeline file export hrefs", %{conn: conn} do
+        subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
+
+        {:ok, _view, html} =
+          live(
+            conn,
+            "/audit/exports?source=evidence&subject=export_delivery&mode=history&subject_ref_json=#{subject_ref_json}"
+          )
+
+        refute html =~ "/exports/changes.csv"
+        refute html =~ "/exports/changes.json"
+        refute html =~ "/exports/changes.ndjson"
+        refute html =~ "/exports/changes.csv?subject_ref_json"
+        refute html =~ "/exports/changes.json?subject_ref_json"
+        refute html =~ "/exports/changes.ndjson?subject_ref_json"
+      end
+
       test "queueing carried Timeline context creates an actor-owned canonical ExportJob", %{
         conn: conn,
         actor_ref: actor_ref

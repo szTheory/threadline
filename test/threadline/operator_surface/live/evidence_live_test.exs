@@ -14,6 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Auth do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_evidence, true)
+    def authorize_exports(_mirror), do: Application.get_env(:threadline, :test_allow_exports, true)
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Router do
@@ -36,6 +37,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
         evidence_authorize_fn: &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize/1,
+        export_authorize_fn: &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize_exports/1,
         repo: Threadline.Test.Repo
       )
     end
@@ -76,6 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       Application.put_env(:threadline, :test_allow_evidence, true)
+      Application.put_env(:threadline, :test_allow_exports, true)
 
       start_supervised!(@endpoint)
       :ok
@@ -195,6 +198,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> Enum.reverse()
 
         assert :binary.match(html, "Open proof history") < card_support_position
+      end
+
+      test "renders carry-to-exports link for the current proof history context", %{conn: conn} do
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "export-123"},
+          summary_status: "completed",
+          detail: %{"status" => "completed"}
+        )
+
+        subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
+
+        {:ok, _view, html} =
+          live(
+            conn,
+            "/audit/evidence?subject=export_delivery&subject_ref_json=#{subject_ref_json}&mode=history"
+          )
+
+        assert html =~ "Carry to Exports"
+        assert html =~ ~s|data-earned-flow="EF3"|
+        assert html =~ ~s|data-persona="P3"|
+        assert html =~ ~s|data-jtbd="J6"|
+        assert html =~ ~s|href="/audit/exports?|
+        assert html =~ "source=evidence"
+        assert html =~ "subject=export_delivery"
+        assert html =~ "mode=history"
+        assert html =~ "subject_ref_json="
+        refute html =~ "unknown="
+        refute html =~ "from="
+        refute html =~ "to="
+        refute html =~ "table="
+        refute html =~ "correlation_id="
+      end
+
+      test "carries only available proof-context keys from subject-only Evidence filters", %{
+        conn: conn
+      } do
+        insert_evidence(
+          subject: "retention_run",
+          subject_ref: %{"run_id" => "ret-run-1"},
+          detail: %{"deleted_count" => 2}
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/evidence?subject=retention_run")
+
+        assert html =~ "Carry to Exports"
+        assert html =~ "source=evidence"
+        assert html =~ "subject=retention_run"
+        refute html =~ "subject_ref_json="
+        refute html =~ "mode="
+      end
+
+      test "hides carry-to-exports when export access is disabled", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_exports, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
+
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "export-123"},
+          summary_status: "completed",
+          detail: %{"status" => "completed"}
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/evidence?subject=export_delivery")
+
+        refute html =~ "Carry to Exports"
+        refute html =~ "source=evidence"
+        refute html =~ ~s|href="/audit/exports?|
       end
 
       test "subject query param narrows to one subject family", %{conn: conn} do
