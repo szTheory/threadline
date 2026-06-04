@@ -291,6 +291,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo = Threadline.Test.Repo
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
+      correlation_id = Keyword.get(opts, :correlation_id)
+
+      action =
+        if correlation_id do
+          repo.insert!(
+            Threadline.Semantics.AuditAction.changeset(%{
+              name: "timeline.test",
+              actor_ref: actor_ref,
+              status: "ok",
+              correlation_id: correlation_id
+            })
+          )
+        end
 
       txn =
         repo.insert!(
@@ -298,7 +311,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
-            source: Keyword.get(opts, :source, "support")
+            source: Keyword.get(opts, :source, "support"),
+            action_id: action && action.id
           })
         )
 
@@ -308,7 +322,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           table_schema: "public",
           table_name: Keyword.get(opts, :table, "posts"),
           table_pk: %{"id" => "1"},
-          op: "insert",
+          op: Keyword.get(opts, :op, "insert"),
           data_after: %{"title" => "x"},
           changed_fields: nil,
           captured_at: occurred_at
@@ -459,6 +473,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert patched_path =~ "actor_kind=anonymous"
     end
 
+    test "F-404: anonymous actor kind explains why actor id is disabled", %{conn: conn} do
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?actor_kind=anonymous&actor_id=ignored")
+
+      assert html =~ ~s|id="filter-actor-id"|
+      assert html =~ ~s|disabled|
+      assert html =~ "n/a for anonymous"
+    end
+
     # -------------------------------------------------------------------
     # Case 5 — correlation_id_too_long
     # -------------------------------------------------------------------
@@ -466,6 +489,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 5: correlation id >256 bytes triggers form error", %{conn: conn} do
       long_id = String.duplicate("a", 257)
       assert {:ok, _lv, html} = live(conn, "/audit/timeline?correlation_id=#{long_id}")
+      assert html =~ "Timeline filters could not be applied. Fix the highlighted value, then apply filters again."
       assert html =~ "256 UTF-8 bytes"
     end
 
@@ -755,6 +779,81 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "tl-alert--warning"
       # Bands are mutually exclusive — band 1 must NOT render at the cap.
       refute html =~ "Large export — will stream in chunks."
+    end
+
+    test "F-401: empty Timeline uses locked recovery copy", %{conn: conn} do
+      table = "empty_timeline_#{System.unique_integer([:positive])}"
+
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}")
+
+      assert html =~ "No captured changes match this window"
+
+      assert html =~
+               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+    end
+
+    test "F-402: future-window empty state explains data exists outside the selected window",
+         %{conn: conn} do
+      table = "future_window_#{System.unique_integer([:positive])}"
+      seed_change!(table: table, occurred_at: DateTime.utc_now() |> DateTime.add(-60, :second))
+
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?from=2099-01-01T00:00&to=2099-01-02T00:00&table=#{table}")
+
+      assert html =~ "No captured changes in this time window"
+
+      assert html =~
+               "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
+    end
+
+    test "F-401: scoped empty state keeps authorized-record caveat", %{conn: conn} do
+      table = "scoped_empty_#{System.unique_integer([:positive])}"
+
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}")
+
+      assert html =~ "Scoped views only show records you are authorized to see."
+    end
+
+    test "F-403: dense Timeline renders filter summary and rows before demoted journey legend",
+         %{conn: conn} do
+      table = "dense_order_#{System.unique_integer([:positive])}"
+      seed_change!(table: table)
+
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+
+      assert html =~ ~s|class="tl-filter-summary"|
+      assert html =~ ~s|data-testid="timeline-row"|
+      assert html =~ ~s|class="tl-journey--legend"|
+
+      assert :binary.match(html, ~s|class="tl-filter-summary"|) != :nomatch
+      {row_index, _} = :binary.match(html, ~s|data-testid="timeline-row"|)
+      {legend_index, _} = :binary.match(html, ~s|class="tl-journey--legend"|)
+      assert row_index < legend_index
+
+      refute html =~ ~r/tl-card[^"]*[^>]*>\s*(FIND|EXPLAIN|PACKAGE)/i
+    end
+
+    test "F-405: long table and correlation refs are middle-truncated with titles and copy",
+         %{conn: conn} do
+      table = "threadline_extremely_long_schema_table_name_for_mobile_pressure_checks"
+      correlation_id = "corr_" <> String.duplicate("abcdef1234567890", 8)
+      seed_change!(table: table, correlation_id: correlation_id)
+
+      assert {:ok, _lv, html} =
+               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+
+      table_ref = Threadline.OperatorSurface.Presentation.secondary_ref(table, 30)
+      correlation_ref = Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 34)
+
+      assert html =~ ~s|title="#{table}"|
+      assert html =~ table_ref.visible
+      assert html =~ ~s|title="#{correlation_id}"|
+      assert html =~ correlation_ref.visible
+      assert html =~ ~s|data-tl-copy="#{correlation_id}"|
+      assert html =~ ~s|aria-label="Copy correlation id"|
     end
 
     test "standard mount without actor_fn does not expose actor-owned saved views", %{conn: conn} do
