@@ -95,7 +95,11 @@
   2. Timeline's previously-unaddressed dense, error, and mobile states are correct.
   3. Filter, diff, and correlation interactions behave consistently across all four screens.
   4. Every Phase-134 audit finding owned by these four screens is closed.
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 138-01-PLAN.md — Shared Find presentation primitives
+- [ ] 138-02-PLAN.md — Transaction and Row-history value convergence
+- [ ] 138-03-PLAN.md — Timeline dense/error/mobile and refs
+- [ ] 138-04-PLAN.md — Actor blast-radius and Coverage remediation closure
 **UI hint**: yes
 
 ### Phase 139: Orientation Hub (Home / Nav)
@@ -181,7 +185,7 @@
 | 135 Seed Enrichment & IA Lock-In | v1.31 | 0/4 | Planned | - |
 | 136 Design-System Hardening | v1.31 | 1/1 | In progress | - |
 | 137 "Prove" Cluster Polish | v1.31 | 4/4 | Complete | 2026-06-04 |
-| 138 "Find" Cluster Polish | v1.31 | 0/0 | Not started | - |
+| 138 "Find" Cluster Polish | v1.31 | 0/4 | Planned | - |
 | 139 Orientation Hub (Home / Nav) | v1.31 | 0/0 | Not started | - |
 | 140 Earned New Flows | v1.31 | 0/0 | Not started | - |
 | 141 Motion & Micro-animation | v1.31 | 0/0 | Not started | - |
