@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: ready_to_plan
-last_updated: 2026-06-04T01:26:40.077Z
-last_activity: 2026-06-03
+last_updated: 2026-06-04T07:58:34.341Z
+last_activity: 2026-06-04 -- Phase 137 complete
 progress:
   total_phases: 10
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 10
-stopped_at: Phase 135 complete (4/4) — ready to discuss Phase 136
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 9
+  percent: 20
+stopped_at: Phase 137 complete (4/4) — ready to discuss Phase 138
 ---
 
 # Project State: Threadline
@@ -21,15 +21,15 @@ stopped_at: Phase 135 complete (4/4) — ready to discuss Phase 136
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 136 — design system hardening
+**Current focus:** Phase 138 — "find" cluster polish
 
 ## Current Position
 
-Phase: 136
+Phase: 138
 Plan: Not started
 Status: Ready to plan
 Last activity: 2026-06-04
-Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-04-SUMMARY.md`
+Resume: `.planning/phases/137-prove-cluster-polish/137-04-SUMMARY.md`
 
 ## Performance Metrics
 
@@ -76,6 +76,8 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-04-SUMMARY.md`
 
 ### Decisions
 
+- [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle.
+- [136-01]: Lift muted/status contrast and make hover/focus/disabled states explicit through shared `--tl-*` tokens before per-screen polish.
 - **130.1-02 (2026-05-29):** Nyquist waivers for doc-only phases 128–129; 130-VALIDATION superseded footnote; `mix ci.all` green at closeout.
 - **130-02 (2026-05-28):** SUMMARY SSOT at `conventions/summary-frontmatter.md`; GAP IDs for 125–127 only; single `mix ci.all` in 130-VERIFICATION.
 - **130-01 (2026-05-29):** Phase 125 archived under `milestones/v1.27-phases/`; `125-VALIDATION.md` finalized after Tier 1 green.
@@ -100,12 +102,12 @@ Resume: `.planning/phases/135-seed-enrichment-ia-lock-in/135-04-SUMMARY.md`
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: v1.31 roadmap created — phases 134–143 mapped 1:1 to POLISH-* requirements (2026-06-03)
-- **Next Step**: Plan Phase 134 (`/gsd:plan-phase 134`) — Baseline Audit & Screenshot Inventory
+- **Last Action**: Phase 137 completed — Prove cluster polish closed with automated dense-mobile UAT (2026-06-04)
+- **Next Step**: Plan Phase 138 — "Find" Cluster Polish
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **Plan Phase 134** — Baseline Audit & Screenshot Inventory (foundation: every later phase cites its findings)
+- **Plan Phase 138** — "Find" Cluster Polish for Timeline, Transaction, Row-history, and Actor
 - **Locked constraints** — keep BEM `.tl-*` + `--tl-*` tokens in `style.ex` (no Tailwind/build step); dark-first brand; seed enrichment only; no new backend/screens; every new flow traces to a JTBD + decision record
 - v1.28 external pilot remains signal-gated and out of scope for v1.31

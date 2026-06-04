@@ -19,8 +19,8 @@
 |-------|------|-------------|--------|
 | 134 | Baseline Audit & Screenshot Inventory | POLISH-AUDIT | not started |
 | 135 | 4/4 | Complete    | 2026-06-04 |
-| 136 | Design-System Hardening | POLISH-DS | not started |
-| 137 | "Prove" Cluster Polish | POLISH-PROVE | not started |
+| 136 | Design-System Hardening | POLISH-DS | in progress |
+| 137 | 4/4 | Complete    | 2026-06-04 |
 | 138 | "Find" Cluster Polish | POLISH-FIND | not started |
 | 139 | Orientation Hub (Home / Nav) | POLISH-HOME | not started |
 | 140 | Earned New Flows | POLISH-FLOWS | not started |
@@ -67,7 +67,8 @@
   2. `v1.31-DESIGN-SYSTEM.md` documents the `.tl-*` catalog with each class marked canonical / deprecated / consolidated plus usage rules and antipatterns.
   3. Shared primitives (badge, button, panel, empty-state, table, toast, drawer, copy-affordance) render from one unified definition rather than per-screen variants.
   4. The token scale is explicitly frozen at end of phase so downstream per-screen work builds on a stable foundation.
-**Plans**: TBD
+**Plans**: 1 plan
+- [x] 136-01-PLAN.md — Dark token and interaction contrast foundation
 **UI hint**: yes
 
 ### Phase 137: "Prove" Cluster Polish
@@ -78,7 +79,11 @@
   1. Evidence, Policy·Redaction, Retention, and Exports each render with the canonical primitives and tokens from Phase 136.
   2. Each of the four screens shows quality empty, error, and dense states, with actions/filters/status aligned for least surprise.
   3. Every Phase-134 audit finding owned by these four screens is closed, with a per-touchpoint decision recorded.
-**Plans**: TBD
+**Plans**: 4 plans
+- [x] 137-01-PLAN.md — Shared Prove presentation primitives
+- [x] 137-02-PLAN.md — Exports readiness polish
+- [x] 137-03-PLAN.md — Retention safety polish
+- [x] 137-04-PLAN.md — Evidence hierarchy polish and Redaction alignment
 **UI hint**: yes
 
 ### Phase 138: "Find" Cluster Polish
@@ -174,8 +179,8 @@
 | 133 Evaluator playbook + doc contracts | v1.30 | - | Complete | 2026-05-29 |
 | 134 Baseline Audit & Screenshot Inventory | v1.31 | 0/0 | Not started | - |
 | 135 Seed Enrichment & IA Lock-In | v1.31 | 0/4 | Planned | - |
-| 136 Design-System Hardening | v1.31 | 0/0 | Not started | - |
-| 137 "Prove" Cluster Polish | v1.31 | 0/0 | Not started | - |
+| 136 Design-System Hardening | v1.31 | 1/1 | In progress | - |
+| 137 "Prove" Cluster Polish | v1.31 | 4/4 | Complete | 2026-06-04 |
 | 138 "Find" Cluster Polish | v1.31 | 0/0 | Not started | - |
 | 139 Orientation Hub (Home / Nav) | v1.31 | 0/0 | Not started | - |
 | 140 Earned New Flows | v1.31 | 0/0 | Not started | - |
