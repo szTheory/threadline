@@ -300,17 +300,19 @@ test("operator motion collapses under reduced motion", async ({ page }) => {
 | A2 | Reduced-motion tests should wait for visibility/page settle before sampling computed transforms. | Common Pitfalls | Early sampling could produce flaky assertions. |
 | A3 | Markdown inventory drift should be prevented by reading both CSS and inventory from ExUnit. | Common Pitfalls / Code Examples | If planner rejects cross-file contract tests, inventory may become manual-only. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the approved `120ms` thread-draw delay become a token?**
    - What we know: Current thread-draw usages include `120ms` as a delay while motion token definitions also use `120ms` for `--tl-motion-fast`. [VERIFIED: codebase grep]
    - What's unclear: D-02 locks timing tokens but does not explicitly say whether animation delays must use only `var(--tl-motion-fast)`. [VERIFIED: `.planning/phases/141-motion-micro-animation/141-CONTEXT.md`]
    - Recommendation: Prefer replacing the literal delay with `var(--tl-motion-fast)` or explicitly allowlist that delay in the source-contract test. [ASSUMED]
+   - RESOLVED: Plans 141-01 and 141-02 allow either replacing the delay with an existing token or retaining it only when documented as the signature thread delay in the inventory and guarded by the source-contract test.
 
 2. **Should generic control transitions appear as one inventory row or many?**
    - What we know: The CSS has generic transitions for buttons/links/controls and specific motion animations for surfaces. [VERIFIED: codebase grep]
    - What's unclear: The phase asks every animation to be inventoried; generic transition families may be better documented as one reusable pattern. [ASSUMED]
    - Recommendation: Inventory generic control transitions as a single "control feedback transition" row and require all future generic transitions to use `--tl-transition-fast`. [ASSUMED]
+   - RESOLVED: Plan 141-01 groups generic color/background/border/focus transitions only when they share one token contract and one JTBD, while listing transform transitions and every `tl-thread-draw` consumer explicitly.
 
 ## Environment Availability
 
