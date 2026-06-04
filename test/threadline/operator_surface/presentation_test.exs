@@ -8,6 +8,39 @@ defmodule Threadline.OperatorSurface.PresentationTest do
   @future ~U[2026-06-04 13:00:00Z]
   @past ~U[2026-06-04 11:00:00Z]
 
+  describe "operation presentation" do
+    test "maps insert operation variants to the insert modifier" do
+      assert Presentation.operation_modifier("INSERT") == "tl-change__op--insert"
+      assert Presentation.operation_modifier("insert") == "tl-change__op--insert"
+      assert Presentation.operation_modifier(:insert) == "tl-change__op--insert"
+    end
+
+    test "maps update operations to the update modifier" do
+      assert Presentation.operation_modifier("UPDATE") == "tl-change__op--update"
+    end
+
+    test "maps delete operations to the delete modifier" do
+      assert Presentation.operation_modifier("DELETE") == "tl-change__op--delete"
+    end
+
+    test "returns a safe empty modifier for nil and unknown operations without creating atoms" do
+      unknown = "SURPRISE_#{System.unique_integer([:positive])}"
+
+      assert_raise ArgumentError, fn -> :erlang.binary_to_existing_atom(unknown) end
+      assert Presentation.operation_modifier(nil) == ""
+      assert Presentation.operation_modifier(unknown) == ""
+      assert_raise ArgumentError, fn -> :erlang.binary_to_existing_atom(unknown) end
+    end
+
+    test "labels known operations uppercase and unknown operations safely" do
+      assert Presentation.operation_label("insert") == "INSERT"
+      assert Presentation.operation_label(:update) == "UPDATE"
+      assert Presentation.operation_label("DELETE") == "DELETE"
+      assert Presentation.operation_label("snapshot") == "SNAPSHOT"
+      assert Presentation.operation_label(nil) == "UNKNOWN"
+    end
+  end
+
   describe "export readiness" do
     test "completed unexpired jobs with a file path are ready to hand off" do
       job = %{status: "completed", file_path: "/tmp/export.csv", expires_at: @future}
