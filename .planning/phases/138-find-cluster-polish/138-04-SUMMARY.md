@@ -40,7 +40,7 @@ patterns-established:
   - "Coverage remediation row pattern: Add capture label, copyable mix threadline.gen.triggers command, verify_coverage follow-up."
   - "Mobile Find UAT pattern: seeded navigation plus no-horizontal-overflow assertions for each operator surface."
 
-requirements-completed: []
+requirements-completed: [POLISH-FIND]
 
 duration: 1h 40m
 completed: 2026-06-04

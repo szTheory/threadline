@@ -278,19 +278,31 @@ defmodule Threadline.OperatorSurface.Presentation do
   def expected_gap_count_label(1), do: "1 expected gap"
   def expected_gap_count_label(count), do: "#{count} expected gaps"
 
-  @spec coverage_remediation(term()) :: %{
+  @safe_generator_identifier ~r/\A[a-z_][a-z0-9_]{0,62}\z/
+
+  @spec coverage_remediation(term(), keyword()) :: %{
           label: String.t(),
-          command: String.t(),
+          command: String.t() | nil,
           follow_up: String.t()
         }
-  def coverage_remediation(table_name) do
-    table_name = to_string(table_name)
+  def coverage_remediation(table_name, opts \\ []) do
+    table_name = table_name |> to_string() |> String.trim()
+    schema = opts |> Keyword.get(:schema, "public") |> to_string() |> String.trim()
 
-    %{
-      label: "Add capture",
-      command: "mix threadline.gen.triggers --tables #{table_name}",
-      follow_up: "Run mix threadline.verify_coverage after applying the migration."
-    }
+    if schema == "public" and safe_generator_identifier?(table_name) do
+      %{
+        label: "Add capture",
+        command: "mix threadline.gen.triggers --tables #{table_name}",
+        follow_up: "Run mix threadline.verify_coverage after applying the migration."
+      }
+    else
+      %{
+        label: "Add capture",
+        command: nil,
+        follow_up:
+          "Generate a trigger migration for #{schema}.#{table_name} after confirming the identifier; do not paste an auto-built shell command for this table."
+      }
+    end
   end
 
   @spec actor_transaction_summary(nil | [map()]) :: String.t()
@@ -373,6 +385,8 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   defp deterministic_json(value), do: Jason.encode!(value)
+
+  defp safe_generator_identifier?(value), do: Regex.match?(@safe_generator_identifier, value)
 
   defp fetch_axis(field, axis) do
     axis = normalize_axis(axis)

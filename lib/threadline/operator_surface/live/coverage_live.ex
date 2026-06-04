@@ -180,15 +180,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </thead>
                     <tbody>
                       <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
-                        <% remediation = Presentation.coverage_remediation(table) %>
+                        <% remediation = Presentation.coverage_remediation(table, schema: @schema_param) %>
                         <tr class="tl-table__row--uncovered">
                           <td data-label="TABLE"><code><%= table %></code></td>
                           <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Needs capture</span></td>
                           <td data-label="SOURCE">missing trigger</td>
                           <td data-label="Actions" class="tl-table__actions">
                             <span class="tl-remediation__action"><%= remediation.label %></span>
-                            <code class="tl-remediation__command"><%= remediation.command %></code>
-                            <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>Copy</button>
+                            <code :if={remediation.command} class="tl-remediation__command"><%= remediation.command %></code>
+                            <button :if={remediation.command && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>Copy</button>
                             <span class="tl-hint"><%= remediation.follow_up %></span>
                           </td>
                         </tr>

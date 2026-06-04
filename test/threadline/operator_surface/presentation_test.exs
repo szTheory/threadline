@@ -153,6 +153,24 @@ defmodule Threadline.OperatorSurface.PresentationTest do
                follow_up: "Run mix threadline.verify_coverage after applying the migration."
              }
     end
+
+    test "does not build copyable remediation commands for unsupported identifiers" do
+      assert Presentation.coverage_remediation("unsafe; touch /tmp/pwned") == %{
+               label: "Add capture",
+               command: nil,
+               follow_up:
+                 "Generate a trigger migration for public.unsafe; touch /tmp/pwned after confirming the identifier; do not paste an auto-built shell command for this table."
+             }
+    end
+
+    test "does not build copyable remediation commands for non-public schemas" do
+      assert Presentation.coverage_remediation("tickets", schema: "tenant_iso") == %{
+               label: "Add capture",
+               command: nil,
+               follow_up:
+                 "Generate a trigger migration for tenant_iso.tickets after confirming the identifier; do not paste an auto-built shell command for this table."
+             }
+    end
   end
 
   describe "find actor transaction summaries" do
