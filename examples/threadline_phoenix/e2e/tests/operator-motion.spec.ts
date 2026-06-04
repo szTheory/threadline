@@ -72,6 +72,7 @@ test.describe("operator motion contracts with default motion", () => {
   test.use({ reducedMotion: "no-preference" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await login(page);
   });
 
@@ -97,6 +98,7 @@ test.describe("operator motion contracts with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
   test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await login(page);
   });
 
