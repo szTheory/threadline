@@ -5,7 +5,7 @@ status: passed
 score: 12/12 must-haves verified
 overrides_applied: 0
 re_verification:
-  previous_status: human_needed
+  previous_status: pending_manual_evidence
   previous_score: 12/12
   gaps_closed:
     - "Mobile visual comfort check closed by true 375px viewport metrics, Playwright viewport assertions, and screenshot inspection."
@@ -19,7 +19,7 @@ re_verification:
 **Phase Goal:** Make the Home start page and `surface_header` nav reflect the locked persona/JTBD IA -- consistent active states, grouping, and a mobile nav pattern; Home orients each persona to an obvious next action.
 **Verified:** 2026-06-04T15:15:11Z
 **Status:** passed
-**Re-verification:** Yes -- after mobile viewport fix and human-needed evidence
+**Re-verification:** Yes -- after mobile viewport fix and manual-only evidence
 
 ## Goal Achievement
 
@@ -83,7 +83,7 @@ re_verification:
 | Browser UAT availability | `curl --max-time 2 -fsS http://127.0.0.1:4002/users/log_in` | server unavailable in verifier process | SKIP |
 | Browser UAT result | Orchestrator evidence: `cd examples/threadline_phoenix/e2e && E2E_BASE_URL=http://127.0.0.1:4002 npm test -- tests/operator-home-nav-mobile.spec.ts` | 9 tests, 0 failures after viewport assertion | PASS |
 | Schema drift | `gsd-sdk query verify.schema-drift 139` | `drift_detected: false` | PASS |
-| Human visual evidence | Orchestrator screenshot `/tmp/threadline-phase-139-visual/home-true-375.png`; verifier inspected local PNG | Home cards stack, health chips wrap, saved-view chips fit, nav is a horizontal scroll strip, and no root overflow is visible | PASS |
+| Manual visual evidence | Orchestrator screenshot `/tmp/threadline-phase-139-visual/home-true-375.png`; verifier inspected local PNG | Home cards stack, health chips wrap, saved-view chips fit, nav is a horizontal scroll strip, and no root overflow is visible | PASS |
 
 ### Probe Execution
 
@@ -95,7 +95,7 @@ re_verification:
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |---|---|---|---|---|
-| `POLISH-HOME` | 139-01, 139-02, 139-03 | Home and `surface_header` nav reflect locked IA, active states, grouping, mobile nav, and GDS Home next actions. | SATISFIED | Code, ExUnit, style contracts, Playwright evidence, true mobile metrics, and screenshot inspection cover implementation and prior human-needed checks. |
+| `POLISH-HOME` | 139-01, 139-02, 139-03 | Home and `surface_header` nav reflect locked IA, active states, grouping, mobile nav, and GDS Home next actions. | SATISFIED | Code, ExUnit, style contracts, Playwright evidence, true mobile metrics, and screenshot inspection cover implementation and prior manual-only checks. |
 
 ### Anti-Patterns Found
 
@@ -105,14 +105,14 @@ re_verification:
 
 ### Manual Verification Closure
 
-None. Prior human-needed items are closed by supplied orchestrator evidence and verifier screenshot inspection:
+None. Prior manual-only items are closed by supplied orchestrator evidence and verifier screenshot inspection:
 
 1. Mobile nav visual comfort: true 375px metrics and screenshot inspection show stacked Home cards, wrapped health chips, fitting saved-view chips, intentional nav scroll continuation, and no root overflow.
 2. Home card copy persona fit: implementation and tests keep Find / Verify / Prove orientation pointed only at existing destinations and explicitly refute Phase 140 workflow controls/routes.
 
 ### Gaps Summary
 
-No blocking implementation gaps found. No human verification items remain. Phase 139's Home/nav orientation goal is achieved and ready to proceed.
+No blocking implementation gaps found. No manual verification items remain. Phase 139's Home/nav orientation goal is achieved and ready to proceed.
 
 ---
 
