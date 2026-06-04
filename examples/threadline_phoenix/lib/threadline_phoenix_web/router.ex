@@ -22,6 +22,7 @@ defmodule ThreadlinePhoenixWeb.Router do
   end
 
   pipeline :operator_browser do
+    plug(:put_root_layout, html: {ThreadlinePhoenixWeb.Layouts, :app})
     plug(ThreadlinePhoenixWeb.Plugs.AssignOperatorUser)
   end
 

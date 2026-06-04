@@ -42,6 +42,18 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function expectMobileLayoutViewport(page: Page) {
+  const viewport = await page.evaluate(() => ({
+    hasViewportMeta: !!document.querySelector('meta[name="viewport"]'),
+    innerWidth: window.innerWidth,
+    rootClientWidth: document.documentElement.clientWidth,
+  }));
+
+  expect(viewport.hasViewportMeta).toBeTruthy();
+  expect(viewport.innerWidth).toBeLessThanOrEqual(375);
+  expect(viewport.rootClientWidth).toBeLessThanOrEqual(375);
+}
+
 async function expectReachable(locator: Locator) {
   await locator.scrollIntoViewIfNeeded();
   await expect(locator).toBeVisible();
@@ -106,6 +118,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     await expect(main.getByLabel(/record/i)).toHaveCount(0);
     await expect(main.getByLabel(/correlation/i)).toHaveCount(0);
 
+    await expectMobileLayoutViewport(page);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -115,6 +128,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     for (const screen of representativeScreens) {
       await page.goto(screen);
       await expectPath(page, screen);
+      await expectMobileLayoutViewport(page);
       await expectHeaderDestinationsReachable(page);
       await expectNoHorizontalOverflow(page);
     }
@@ -130,6 +144,7 @@ test.describe("operator Home orientation mobile UAT", () => {
       await link.click();
 
       await expectPath(page, destination.path);
+      await expectMobileLayoutViewport(page);
       await expectNoHorizontalOverflow(page);
     }
   });
