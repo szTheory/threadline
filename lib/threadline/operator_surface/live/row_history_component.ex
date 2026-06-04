@@ -133,9 +133,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       ~H"""
       <dl class="tl-kv">
-        <div :for={{key, value} <- @rows} class="tl-kv__row">
+        <div :for={{key, token} <- @rows} class="tl-kv__row">
           <dt class="tl-kv__key"><%= key %></dt>
-          <dd class="tl-kv__value"><%= value %></dd>
+          <dd class="tl-kv__value">
+            <span class={["tl-value", token.modifier]} title={Map.get(token, :title)}>
+              <%= token.text %>
+            </span>
+          </dd>
         </div>
       </dl>
       """
@@ -168,7 +172,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp snapshot_rows(snapshot) do
       snapshot
       |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
-      |> Enum.map(fn {key, value} -> {to_string(key), inspect(value)} end)
+      |> Enum.map(fn {key, value} -> {to_string(key), Presentation.value_token(value)} end)
     end
   end
 end

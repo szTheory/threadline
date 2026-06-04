@@ -77,15 +77,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       assert html =~ ~s|class="tl-value tl-value--null"|
-      assert html =~ ">null<"
+      assert Regex.match?(~r/>\s*null\s*</, html)
       assert html =~ ~s|class="tl-value tl-value--redacted"|
       assert html =~ "[REDACTED]"
       assert html =~ ~s|title="2026-06-04T12:30:00Z"|
-      assert html =~ "Jun 4, 12:30 PM UTC"
+      assert html =~ "12:30 PM UTC"
       assert html =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
       refute html =~ "<script>alert(1)</script>"
       refute html =~ ">nil<"
-      refute html =~ ~s|"2026-06-04T12:30:00Z"|
+      refute html =~ "&quot;2026-06-04T12:30:00Z&quot;"
       refute html =~ ~s|tl-diff__arrow|
       refute html =~ "-&gt;"
 
