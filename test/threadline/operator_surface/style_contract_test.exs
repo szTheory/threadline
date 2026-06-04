@@ -114,4 +114,32 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, topbar_section)
     refute Regex.match?(~r/\.tl-topbar__nav-label\s*\{[^}]*display:\s*none/s, topbar_section)
   end
+
+  test "phase 139 home orientation primitives stay scoped token-backed and dark-only" do
+    src = File.read!(@style_path)
+
+    home_section =
+      src
+      |> String.split("/* Operator Home")
+      |> Enum.at(1)
+      |> String.split(".tl-page__header")
+      |> List.first()
+
+    for selector <- [
+          ".tl-home__health",
+          ".tl-home__resume",
+          ".tl-home__resume-empty",
+          ".tl-home__card-links",
+          ".tl-home__prove-handoff"
+        ] do
+      assert String.contains?(home_section, selector)
+    end
+
+    assert String.contains?(home_section, "var(--tl-")
+    refute String.contains?(home_section, "@tailwind")
+    refute String.contains?(home_section, "from shadcn")
+    refute String.contains?(home_section, "prefers-color-scheme")
+    refute String.contains?(home_section, "color-scheme: light")
+    refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
+  end
 end
