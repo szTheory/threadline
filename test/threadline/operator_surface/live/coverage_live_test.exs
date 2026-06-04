@@ -122,7 +122,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "<th>SOURCE</th>"
 
         # The footer summary (locked literal — D-34)
-        assert html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps/
+        assert html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps?/
 
         # The three coverage buckets still render; schema_migrations is the
         # baseline `:expected_uncovered` table — its source label "baseline" appears
@@ -203,7 +203,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # After refresh, the dashboard should still render normally with the same literals
         assert new_html =~ "Coverage — schema: public"
-        assert new_html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps/
+        assert new_html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps?/
       end
     end
 

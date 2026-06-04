@@ -169,7 +169,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables</span>
                   </header>
                   <div class="tl-remediation__body">
-                    Missing triggers mean matching Timeline searches can be incomplete for these tables. Add capture before treating investigation results as exhaustive, then return to Timeline and rerun the search.
+                    Timeline may be incomplete for these tables. Add capture before treating investigation results as exhaustive, then return to Timeline and rerun the search.
                   </div>
                 </section>
 
@@ -180,17 +180,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </thead>
                     <tbody>
                       <%= for table <- @coverage_for_schema.tables[:uncovered] do %>
+                        <% remediation = Presentation.coverage_remediation(table) %>
                         <tr class="tl-table__row--uncovered">
                           <td data-label="TABLE"><code><%= table %></code></td>
                           <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Needs capture</span></td>
                           <td data-label="SOURCE">missing trigger</td>
-                          <td data-label="Actions" class="tl-table__actions"><span class="tl-hint">Timeline may be incomplete</span></td>
+                          <td data-label="Actions" class="tl-table__actions">
+                            <span class="tl-remediation__action"><%= remediation.label %></span>
+                            <code class="tl-remediation__command"><%= remediation.command %></code>
+                            <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>Copy</button>
+                            <span class="tl-hint"><%= remediation.follow_up %></span>
+                          </td>
                         </tr>
                       <% end %>
                       <%= for table <- @coverage_for_schema.tables[:expected_uncovered] do %>
                         <tr class="tl-table__row--expected" title={tooltip_for(table)}>
                           <td data-label="TABLE"><code><%= table %></code></td>
-                          <td data-label="STATUS"><span class="tl-chip tl-chip--neutral">Expected gap</span></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--warning">Expected gap</span></td>
                           <td data-label="SOURCE"><%= source_for(table) %></td>
                           <td data-label="Actions" class="tl-table__actions"><span class="tl-hint">Excluded from readiness</span></td>
                         </tr>
@@ -210,7 +216,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <p class="tl-hint">
-                  Coverage: <%= @coverage_for_schema.covered_count %> captured, <%= @coverage_for_schema.uncovered_count %> need capture, <%= @coverage_for_schema.expected_uncovered_count %> expected gaps
+                  Coverage: <%= @coverage_for_schema.covered_count %> captured, <%= @coverage_for_schema.uncovered_count %> need capture, <%= Presentation.expected_gap_count_label(@coverage_for_schema.expected_uncovered_count) %>
                 </p>
               <% end %>
             <% end %>
