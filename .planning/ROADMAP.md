@@ -27,6 +27,7 @@
 | 141 | 3/3 | Complete    | 2026-06-04 |
 | 142 | 3/3 | Complete    | 2026-06-04 |
 | 143 | 4/4 | Complete    | 2026-06-04 |
+| 144 | Close gap: POLISH-AUDIT and POLISH-DS | POLISH-AUDIT, POLISH-DS | Planned |
 
 **Ordering rationale:** measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep. Foundations (audit, seed, design-system) precede per-screen work so screens aren't redone when tokens change.
 
@@ -183,6 +184,19 @@ Plans:
 - [x] 143-04-PLAN.md — Screenshot regression guard
 **UI hint**: yes
 
+### Phase 144: Close gap: POLISH-AUDIT and POLISH-DS
+
+**Goal:** Close the two remaining v1.31 audit blockers by verifying the existing Phase 134-labeled baseline evidence through explicit Phase 144 errata, completing the source-first design-system consolidation/catalog/freeze for POLISH-DS, and rerunning final traceability/milestone audit checks without adding product scope.
+**Requirements**: POLISH-AUDIT, POLISH-DS
+**Depends on:** Phase 143
+**Plans:** 4 plans
+
+Plans:
+- [ ] 144-01-PLAN.md — Phase 144 audit errata closure for POLISH-AUDIT
+- [ ] 144-02-PLAN.md — Source-first operation primitive consolidation for POLISH-DS
+- [ ] 144-03-PLAN.md — Design-system catalog and token/class freeze contracts for POLISH-DS
+- [ ] 144-04-PLAN.md — Final verification, traceability updates, and milestone audit rerun
+
 ## Shipped milestones (index)
 
 - ✅ **v1.22 Policy / Evidence Plane** — Phases 95-103, shipped 2026-05-27. Archive: `.planning/milestones/v1.22-ROADMAP.md`
@@ -212,3 +226,4 @@ Plans:
 | 141 Motion & Micro-animation | v1.31 | 0/0 | Not started | - |
 | 142 Responsive / Mobile-First | v1.31 | 0/0 | Not started | - |
 | 143 Accessibility + Consistency Sweep + Regression | v1.31 | 0/0 | Not started | - |
+| 144 Close gap: POLISH-AUDIT and POLISH-DS | v1.31 | 0/4 | Planned | - |
