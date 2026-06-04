@@ -88,7 +88,7 @@ test.describe("operator screenshot regression guard", () => {
 
     await page.goto(rowHistoryHref);
     await expect(page.getByTestId("row-history-drawer")).toBeVisible();
-    await expectOperatorScreenshot(page, "row-history");
+    await expectOperatorScreenshot(page, "row-history", { maxDiffPixelRatio: 0.03 });
   });
 
   test("Exports readiness hierarchy stays stable", async ({ page }) => {

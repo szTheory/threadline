@@ -114,10 +114,15 @@ test.describe("operator accessibility baseline", () => {
     const { transactionHref, rowHistoryHref } = await discoverTransactionAndRowHistory(page);
 
     await page.goto(transactionHref);
-    await page.getByTestId("transaction-change-row").filter({ hasText: rowTable }).getByTestId("row-history-link").first().focus();
-    await expectFocused(
-      page.getByTestId("transaction-change-row").filter({ hasText: rowTable }).getByTestId("row-history-link").first(),
-    );
+    const rowHistoryLink = page
+      .getByTestId("transaction-change-row")
+      .filter({ hasText: rowTable })
+      .getByTestId("row-history-link")
+      .first();
+    await expect(rowHistoryLink).toBeVisible();
+    await rowHistoryLink.scrollIntoViewIfNeeded();
+    await rowHistoryLink.focus();
+    await expectFocused(rowHistoryLink);
 
     await page.goto(rowHistoryHref);
     const drawer = page.getByTestId("row-history-drawer");
