@@ -85,4 +85,33 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, find_section)
     assert String.contains?(src, ".tl-copy:hover")
   end
+
+  test "phase 139 header nav primitives stay mobile-reachable and token-backed" do
+    src = File.read!(@style_path)
+
+    topbar_section =
+      src
+      |> String.split(".tl-topbar {")
+      |> Enum.at(1)
+      |> String.split("/* Mobile-first base:")
+      |> List.first()
+
+    for selector <- [
+          ".tl-topbar__nav",
+          ".tl-topbar__nav-group",
+          ".tl-topbar__nav-label",
+          ".tl-topbar__nav-handoff",
+          ~s|.tl-topbar .tl-topbar__nav-item[aria-current="page"]|
+        ] do
+      assert String.contains?(topbar_section, selector)
+    end
+
+    assert String.contains?(topbar_section, "var(--tl-")
+    refute String.contains?(topbar_section, "@tailwind")
+    refute String.contains?(topbar_section, "from shadcn")
+    refute String.contains?(topbar_section, "prefers-color-scheme")
+    refute String.contains?(topbar_section, "color-scheme: light")
+    refute Regex.match?(~r/#[0-9a-fA-F]{6}/, topbar_section)
+    refute Regex.match?(~r/\.tl-topbar__nav-label\s*\{[^}]*display:\s*none/s, topbar_section)
+  end
 end

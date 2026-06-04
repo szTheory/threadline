@@ -48,7 +48,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
-            <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
+            <span :if={@exports_enabled} class="tl-topbar__nav-handoff">
+              <.nav_link href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
+            </span>
           </div>
         </nav>
         <div class="tl-topbar__status">

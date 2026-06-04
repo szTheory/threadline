@@ -307,12 +307,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-topbar__nav-label {
-          display: none;
+          display: inline-flex;
+          align-items: center;
           padding: 0 var(--tl-space-1);
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-xs);
           font-weight: var(--tl-weight-strong);
           text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .tl-topbar__nav-handoff {
+          display: inline-flex;
+          align-items: center;
+          min-width: max-content;
+          margin-left: var(--tl-space-1);
+          padding-left: var(--tl-space-2);
+          border-left: 1px solid var(--tl-color-accent-border);
         }
 
         /* `.tl-topbar` prefix raises specificity above the scoped `.threadline-ui a`
