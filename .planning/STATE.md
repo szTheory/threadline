@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: executing
-last_updated: "2026-06-04T21:16:24.334Z"
-last_activity: 2026-06-04 -- Phase 144 planning complete
+last_updated: "2026-06-04T21:17:22.996Z"
+last_activity: 2026-06-04 -- Phase 144 execution started
 progress:
   total_phases: 11
   completed_phases: 9
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Close v1.31 audit gaps
+**Current focus:** Phase 144 — close-gap-polish-audit-and-polish-ds
 
 ## Current Position
 
-Phase: 144
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-04 -- Phase 144 planning complete
+Phase: 144 (close-gap-polish-audit-and-polish-ds) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 144
+Last activity: 2026-06-04 -- Phase 144 execution started
 Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 
 ## Performance Metrics
