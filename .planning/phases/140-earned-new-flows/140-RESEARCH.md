@@ -383,24 +383,22 @@ live("/rows/:table/:record_id", RowHistoryLive, :show)
 - `140-CONTEXT.md` references `lib/threadline/operator_surface/components/row_history_component.ex`, but the actual current file is `lib/threadline/operator_surface/live/row_history_component.ex`. [VERIFIED: codebase grep]
 - Existing walkthrough doc-contracts refute bare `/audit/rows/...` URLs before Phase 140; planner must update those contracts if Phase 140 intentionally ships `/rows`. [VERIFIED: `examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs:53`]
 
-## Assumptions Log
+## Resolved Planning Decisions
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | The preferred first-class route literal should be `/rows/:table/:record_id`, not `/row-history/:table/:record_id`. | Summary / Open Questions | Existing docs or user preference may require a different route literal; implementation still uses same component. |
-| A2 | Evidence-to-Exports should display proof context rather than generate Timeline export files from proof params. | Open Questions / Pitfalls | If stakeholders expect evidence record export files, this would need a separate export format and is broader than current Phase 140 scope. |
+| # | Decision | Evidence | Impact |
+|---|----------|----------|--------|
+| D-140-R1 | The first-class row-history route literal is `/rows/:table/:record_id`. | Existing transaction route already uses `.../history/:table/:record_id`; Phase 140 needs a short Home target that is not transaction-scoped. [VERIFIED: `router.ex:106`] | Plans should implement `/rows/:table/:record_id`, update doc contracts that previously rejected bare `/audit/rows/...`, and keep the implementation as a thin wrapper over `RowHistoryComponent`. |
+| D-140-R2 | Evidence-to-Exports is an explicit proof-context handoff/banner in Exports, not a persisted `ExportJob` and not a file export generated from Evidence-only params. | `ExportJob.query_params` and `FilterParams` are Timeline-filter shaped, while Evidence params are `subject`, `subject_ref_json`, and `mode`. [VERIFIED: `export_status_live.ex:155`; VERIFIED: `evidence_live.ex:172`] | This satisfies POLISH-FLOWS by pre-populating the Exports handoff surface with the Evidence proof context while avoiding a fictitious Timeline export filter. A downloadable Evidence package is a separate future export format, outside Phase 140. |
 
 ## Open Questions
 
-1. **Should the route literal be `/rows/:table/:record_id` or `/row-history/:table/:record_id`?**
-   - What we know: `/transactions/:id/history/:table/:record_id` exists today, and older docs explicitly avoided bare `/audit/rows/...` before Phase 140. [VERIFIED: `router.ex:106`; VERIFIED: `examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs:53`]
-   - What's unclear: Final product naming preference for the public route.
-   - Recommendation: Use `/rows/:table/:record_id` because it matches existing row-history language and is short for Home navigation. [ASSUMED]
+All research questions that affect shipped Phase 140 scope are resolved above. Remaining details are implementation choices inside the committed plans:
 
-2. **Should Evidence context create a persisted ExportJob?**
-   - What we know: ExportJob currently stores Timeline-like `query_params`; Evidence has proof-specific params. [VERIFIED: `export_status_live.ex:155`; VERIFIED: `evidence_live.ex:172`]
-   - What's unclear: Whether "closed export loop" for Evidence means proof context handoff only or a downloadable proof package.
-   - Recommendation: Ship context handoff/banner only in Phase 140 unless the planner can map it to existing Timeline export filters without fiction. [ASSUMED]
+- Use `/rows/:table/:record_id` for first-class row history.
+- Use Timeline `FilterParams` for Timeline-to-Exports context.
+- Use a separate Evidence proof-context allowlist/banner for Evidence-to-Exports context.
+- Use seeded `walk-acme-4521-close`, `tickets`, and `ticket_replies` for browser UAT.
+- Preserve scope via existing `surface: :row_history` and `surface: :export` paths.
 
 ## Environment Availability
 

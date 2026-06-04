@@ -36,11 +36,23 @@
 
 ## Open Questions For Research/Planning
 
-- Which existing route shape best supports first-class row-history without duplicating `TransactionLive` history behavior?
-- Does the current export surface already accept enough query context to pre-populate filtered exports, or does it need a small parameter adapter?
-- Which seeded example records/correlation ids provide the most stable browser UAT path for all four flows?
-- How should feature flags gate Home controls when Coverage/Evidence/Exports/Policy sections are disabled?
-- What scope-query contexts are required to preserve scoped operator behavior for row-history and export carry-forward?
+Resolved by `140-RESEARCH.md` and `140-PATTERNS.md`:
+
+- First-class row history uses `/rows/:table/:record_id` as the route literal.
+- Timeline-to-Exports reuses `FilterParams` and existing Timeline export semantics.
+- Evidence-to-Exports uses an explicit proof-context allowlist/banner in Exports; it does not create a persisted `ExportJob` or pass Evidence-only params into Timeline file exports.
+- Browser UAT uses seeded `walk-acme-4521-close`, `tickets`, and `ticket_replies`.
+- Scoped behavior is preserved through existing `surface: :row_history` and `surface: :export` scope-query contexts.
+
+## Resolved Decisions Added Before Execution
+
+1. **Row-history route literal**
+   - Selected: `/rows/:table/:record_id`.
+   - Rationale: short Home target, clearly first-class, and still distinct from transaction-scoped `/transactions/:id/history/:table/:record_id`.
+
+2. **Evidence export semantics**
+   - Selected: Exports shows pre-populated Evidence proof context and a reopen link; no Evidence file export job in Phase 140.
+   - Rationale: existing export jobs are Timeline-filter shaped. Treating Evidence params as Timeline export filters would be misleading; a downloadable Evidence package is a separate future export format.
 
 ---
 *Discussion captured: 2026-06-04*
