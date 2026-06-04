@@ -335,6 +335,45 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  test "phase 142 breakpoint scale is tokenized and source-governed" do
+    src = File.read!(@style_path)
+
+    for token <- [
+          "--tl-breakpoint-phone-proof: 375px;",
+          "--tl-breakpoint-tablet: 768px;",
+          "--tl-breakpoint-desktop: 1280px;"
+        ] do
+      assert String.contains?(src, token), "missing phase 142 breakpoint token #{token}"
+    end
+
+    for comment <- [
+          "Phase 142 breakpoint tokens document the accepted phone/tablet/desktop scale",
+          "CSS custom properties are not valid inside @media conditions",
+          "Phone-proof base: 375px acceptance viewport",
+          "Tablet enhancement layer starts at 768px",
+          "Desktop dense/operator layer starts at 1280px"
+        ] do
+      assert String.contains?(src, comment), "missing phase 142 breakpoint comment #{comment}"
+    end
+
+    min_width_literals =
+      Regex.scan(~r/@media\s+\(min-width:\s*(\d+)px\)/, src, capture: :all_but_first)
+      |> List.flatten()
+      |> Enum.sort()
+
+    assert min_width_literals == ["1280", "768"],
+           "phase 142 allows only 768px and 1280px min-width media literals"
+
+    refute String.contains?(src, "@media (min-width: 481px)"),
+           "phase 142 retires the old 481px tablet media layer"
+
+    refute String.contains?(src, "@media (min-width: 721px)"),
+           "phase 142 retires the old 721px desktop media layer"
+
+    refute Regex.match?(~r/@media[^{]*var\(--tl-breakpoint/, src),
+           "phase 142 breakpoint tokens must not be used inside @media conditions"
+  end
+
   defp motion_inventory_rows(inventory) do
     inventory
     |> String.split("\n")
