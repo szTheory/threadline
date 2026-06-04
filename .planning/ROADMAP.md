@@ -175,7 +175,12 @@ Plans:
   2. A final cross-surface consistency sweep closes all remaining Phase-134 audit findings.
   3. A final screenshot set is diffed against the baseline, with every delta explained.
   4. A screenshot-diff guard runs in the Playwright/CI lane so future PRs can't silently degrade the polished baseline.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 143-01-PLAN.md — Accessibility primitive baseline
+- [ ] 143-02-PLAN.md — Consistency sweep and browser suite repair
+- [ ] 143-03-PLAN.md — Final screenshot diff and audit closure
+- [ ] 143-04-PLAN.md — Screenshot regression guard
 **UI hint**: yes
 
 ## Shipped milestones (index)
