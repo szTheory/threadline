@@ -21,6 +21,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def scoped_authorize(_), do: {:ok, %{tenant_id: "support"}}
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.FakeUser do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "users" do
+      field(:name, :string)
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.FakeTicketReply do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "ticket_replies" do
+      field(:body, :string)
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StartLiveTest.Router do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -41,6 +59,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
         repo: Threadline.Test.Repo,
+        schemas: %{
+          "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
+          "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
+        },
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
         policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
@@ -70,6 +92,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
         repo: Threadline.Test.Repo,
+        schemas: %{
+          "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
+          "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
+        },
         authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.scoped_authorize/1,
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
@@ -298,6 +324,102 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "secrets"
     end
 
+    test "renders earned record-first lookup without Timeline filter builder controls", %{
+      conn: conn
+    } do
+      {:ok, view, html} = live(conn, "/audit")
+
+      assert html =~ ~s|data-earned-flow="EF1"|
+      assert html =~ ~s|data-persona="P2"|
+      assert html =~ ~s|data-jtbd="J4"|
+      assert html =~ ~s|name="record_lookup[table]"|
+      assert html =~ ~s|name="record_lookup[record_id]"|
+      assert has_element?(view, ~s|select[name="record_lookup[table]"] option[value="ticket_replies"]|)
+      assert has_element?(view, ~s|select[name="record_lookup[table]"] option[value="users"]|)
+
+      record_form = form_html(html, "open-row-history")
+
+      for forbidden <- [
+            ~s|name="filter[from]"|,
+            ~s|name="filter[to]"|,
+            ~s|name="filter[actor_kind]"|,
+            ~s|name="filter[actor_id]"|,
+            "query_dsl",
+            "saved_search_builder"
+          ] do
+        refute record_form =~ forbidden
+      end
+    end
+
+    test "record-first lookup navigates to first-class row history", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/audit")
+
+      view
+      |> form("#tl-record-lookup", %{
+        "record_lookup" => %{"table" => "ticket_replies", "record_id" => " reply-123 "}
+      })
+      |> render_submit()
+
+      assert_redirect(view, "/audit/rows/ticket_replies/reply-123")
+    end
+
+    test "record-first lookup validates blank and unmapped input without navigating", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/audit")
+
+      assert view
+             |> form("#tl-record-lookup", %{
+               "record_lookup" => %{"table" => "", "record_id" => "row-1"}
+             })
+             |> render_submit() =~ "Choose a table to open row history."
+
+      assert view
+             |> form("#tl-record-lookup", %{
+               "record_lookup" => %{"table" => "secrets", "record_id" => "row-1"}
+             })
+             |> render_submit() =~ "Choose a mapped table from the list."
+
+      assert view
+             |> form("#tl-record-lookup", %{
+               "record_lookup" => %{"table" => "ticket_replies", "record_id" => "   "}
+             })
+             |> render_submit() =~ "Enter a record id to open row history."
+    end
+
+    test "renders earned correlation shortcut and navigates with canonical query", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/audit")
+
+      assert html =~ ~s|data-earned-flow="EF4"|
+      assert html =~ ~s|data-persona="P1"|
+      assert html =~ ~s|data-jtbd="J1"|
+      assert html =~ ~s|name="correlation[correlation_id]"|
+
+      view
+      |> form("#tl-correlation-lookup", %{
+        "correlation" => %{"correlation_id" => " incident 42/alpha "}
+      })
+      |> render_submit()
+
+      assert_redirect(view, "/audit/timeline?correlation_id=incident+42%2Falpha")
+    end
+
+    test "correlation shortcut validates blank and overlong ids without navigating", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/audit")
+
+      assert view
+             |> form("#tl-correlation-lookup", %{
+               "correlation" => %{"correlation_id" => "   "}
+             })
+             |> render_submit() =~ "Paste a correlation id to open Timeline."
+
+      too_long = String.duplicate("a", 257)
+
+      assert view
+             |> form("#tl-correlation-lookup", %{
+               "correlation" => %{"correlation_id" => too_long}
+             })
+             |> render_submit() =~ "Correlation ids must be 256 bytes or fewer."
+    end
+
     test "renders honest resume empty state when the actor has no saved views", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/audit")
 
@@ -306,17 +428,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ~s|class="tl-chip tl-chip--accent tl-home__view"|
     end
 
-    test "Home source does not include Phase 140 lookup or patch behavior" do
+    test "Home source only includes earned flow shortcuts and no speculative builders" do
       src = File.read!("lib/threadline/operator_surface/live/start_live.ex")
 
       for forbidden <- [
-            "<form",
-            "phx-submit",
-            "phx-change",
-            ~s|name="record|,
-            ~s|name="correlation_id"|,
-            "record_lookup",
-            "push_patch"
+            "advanced",
+            "query_dsl",
+            "bulk_export",
+            "saved_search_builder",
+            "export builder",
+            "push_patch",
+            ~s|href={"#\{@base_path}/records"}|,
+            ~s|href={"#\{@base_path}/correlations"}|,
+            ~s|href={"#\{@base_path}/row-history"}|
           ] do
         refute String.contains?(src, forbidden)
       end
@@ -345,6 +469,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp home_health(html) do
       Regex.run(~r/<div class="tl-home__health".*?<\/div>/s, html)
+      |> List.first()
+    end
+
+    defp form_html(html, event) do
+      Regex.run(~r/<form[^>]*phx-submit="#{event}".*?<\/form>/s, html)
       |> List.first()
     end
   end
