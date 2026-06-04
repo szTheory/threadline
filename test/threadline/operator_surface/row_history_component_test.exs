@@ -48,6 +48,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "is not mapped to an Ecto schema"
     end
 
+    test "uses explicit close and history paths when supplied" do
+      captured_at = ~U[2026-06-04 12:30:00Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "row-path-component"},
+        data_after: %{"id" => "row-path-component", "name" => "Path Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      html =
+        render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, %{
+          id: "test-history",
+          table: "users",
+          record_id: "row-path-component",
+          base_path: "/audit",
+          close_path: "/audit/timeline",
+          history_path: "/audit/rows/users/row-path-component",
+          threadline_schemas: %{"users" => FakeUser},
+          repo: Threadline.Test.Repo,
+          as_of: captured_at
+        })
+
+      assert html =~ ~s|href="/audit/timeline"|
+      assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12:30:00Z"|
+      refute html =~ "/audit/history/users/row-path-component"
+    end
+
     test "renders sorted snapshot rows with shared semantic value tokens" do
       captured_at = ~U[2026-06-04 12:30:00Z]
       txn = insert_transaction(%{occurred_at: captured_at})
