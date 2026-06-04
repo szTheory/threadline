@@ -25,7 +25,7 @@
 | 139 | 3/3 | Complete    | 2026-06-04 |
 | 140 | 5/5 | Complete    | 2026-06-04 |
 | 141 | 3/3 | Complete    | 2026-06-04 |
-| 142 | Responsive / Mobile-First | POLISH-RESPONSIVE | not started |
+| 142 | 3/3 | Complete    | 2026-06-04 |
 | 143 | Accessibility + Consistency Sweep + Regression | POLISH-A11Y | not started |
 
 **Ordering rationale:** measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep. Foundations (audit, seed, design-system) precede per-screen work so screens aren't redone when tokens change.
@@ -161,9 +161,9 @@ Plans:
   4. No horizontal-scroll regressions exist at any breakpoint.
 **Plans**: 3 plans
 Plans:
-- [ ] 142-01-PLAN.md — Breakpoint token and source-contract foundation
-- [ ] 142-02-PLAN.md — Shared responsive CSS primitive alignment
-- [ ] 142-03-PLAN.md — Responsive browser matrix UAT
+- [x] 142-01-PLAN.md — Breakpoint token and source-contract foundation
+- [x] 142-02-PLAN.md — Shared responsive CSS primitive alignment
+- [x] 142-03-PLAN.md — Responsive browser matrix UAT
 **UI hint**: yes
 
 ### Phase 143: Accessibility + Consistency Sweep + Regression

@@ -34,7 +34,7 @@
 
 ### Responsive
 
-- [ ] **POLISH-RESPONSIVE**: Every operator-surface screen is usable and correct at 375 / 768 / 1280 — a breakpoint scale is tokenized; tables, filters, drawers, and nav have mobile-first layouts; no horizontal-scroll regressions.
+- [x] **POLISH-RESPONSIVE**: Every operator-surface screen is usable and correct at 375 / 768 / 1280 — a breakpoint scale is tokenized; tables, filters, drawers, and nav have mobile-first layouts; no horizontal-scroll regressions.
 
 ### Accessibility & regression
 
@@ -65,7 +65,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Complete |
 | POLISH-FLOWS | Phase 140 — Earned New Flows | Complete |
 | POLISH-MOTION | Phase 141 — Motion & Micro-animation | Complete |
-| POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Pending |
+| POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Complete |
 | POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Pending |
 
 **Coverage:** 10/10 requirements mapped — no orphans, no duplicates.
