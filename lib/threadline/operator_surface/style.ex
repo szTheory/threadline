@@ -47,29 +47,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           /* Letter-spacing scale: caps labels track wider, display tracks tighter. */
           --tl-tracking-caps: 0.12em;
           --tl-tracking-caps-wide: 0.16em;
-          --tl-tracking-tight: -0.01em;
+          --tl-tracking-tight: 0;
 
           /* Brand: "night infrastructure with luminous signal lines" (Brand Book §10). */
           --tl-color-bg: #0B1020;
           /* Threadline Black */
           --tl-color-surface: #141B2D;
           /* Graphite */
-          --tl-color-surface-raised: #1A2336;
-          --tl-color-surface-tint: rgba(20, 27, 45, 0.92);
+          --tl-color-surface-raised: #1B253A;
+          --tl-color-surface-hover: #202B42;
+          --tl-color-surface-selected: #22304D;
+          --tl-color-surface-tint: rgba(20, 27, 45, 0.94);
           --tl-color-surface-tint-strong: rgba(11, 16, 32, 0.96);
           --tl-color-backdrop: rgba(2, 4, 10, 0.62);
           --tl-color-border: #23304A;
           /* Slate Line */
           --tl-color-border-strong: #2E3D5C;
+          --tl-color-border-focus: #7FA9FF;
           --tl-color-text: #D7DEEA;
           /* Fog */
-          --tl-color-muted: #8B98B0;
+          --tl-color-muted: #A3AFC2;
           /* Steel, lifted for AA on dark */
+          --tl-color-muted-soft: #8F9DB5;
           --tl-color-accent: #4F8CFF;
           /* Thread Blue */
           --tl-color-accent-strong: #6FA1FF;
-          --tl-color-accent-soft: rgba(79, 140, 255, 0.14);
-          --tl-color-accent-wash: rgba(79, 140, 255, 0.07);
+          --tl-color-accent-soft: rgba(79, 140, 255, 0.18);
+          --tl-color-accent-wash: rgba(79, 140, 255, 0.09);
+          --tl-color-accent-border: rgba(127, 169, 255, 0.48);
           /* Faint accent veil for raised front-door surfaces */
           --tl-color-on-accent: #08101F;
           /* Dark ink for AA contrast on luminous accents */
@@ -79,26 +84,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-signal-border: rgba(78, 223, 209, 0.30);
           --tl-color-ink: #0F1728;
           --tl-color-paper: #F7F9FC;
-          --tl-color-danger: #F06A6A;
-          --tl-color-danger-bg: rgba(240, 106, 106, 0.13);
-          --tl-color-warning-bg: rgba(243, 185, 76, 0.13);
-          --tl-color-warning-text: #F3B94C;
-          --tl-color-warning-border: rgba(243, 185, 76, 0.34);
-          --tl-color-success-bg: rgba(63, 208, 143, 0.13);
-          --tl-color-success-text: #3FD08F;
-          --tl-color-success-border: rgba(63, 208, 143, 0.32);
-          --tl-color-info-bg: rgba(79, 140, 255, 0.13);
-          --tl-color-info-text: #7FA9FF;
-          --tl-color-info-border: rgba(79, 140, 255, 0.32);
-          --tl-color-neutral-bg: rgba(115, 129, 156, 0.12);
-          --tl-color-neutral-text: #A3AFC2;
+          --tl-color-danger: #FF8585;
+          --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
+          --tl-color-danger-border: rgba(255, 133, 133, 0.48);
+          --tl-color-warning-bg: rgba(243, 185, 76, 0.16);
+          --tl-color-warning-text: #FFD166;
+          --tl-color-warning-border: rgba(255, 209, 102, 0.50);
+          --tl-color-success-bg: rgba(63, 208, 143, 0.16);
+          --tl-color-success-text: #5AE0A2;
+          --tl-color-success-border: rgba(90, 224, 162, 0.44);
+          --tl-color-info-bg: rgba(79, 140, 255, 0.16);
+          --tl-color-info-text: #9AB9FF;
+          --tl-color-info-border: rgba(127, 169, 255, 0.44);
+          --tl-color-neutral-bg: rgba(115, 129, 156, 0.15);
+          --tl-color-neutral-text: #B5C0D2;
           --tl-color-neutral-border: #2E3D5C;
-          --tl-color-op-insert-bg: rgba(63, 208, 143, 0.13);
-          --tl-color-op-insert-text: #3FD08F;
-          --tl-color-op-update-bg: rgba(79, 140, 255, 0.13);
-          --tl-color-op-update-text: #7FA9FF;
-          --tl-color-op-delete-bg: rgba(240, 106, 106, 0.13);
-          --tl-color-op-delete-text: #F06A6A;
+          --tl-color-op-insert-bg: var(--tl-color-success-bg);
+          --tl-color-op-insert-text: var(--tl-color-success-text);
+          --tl-color-op-update-bg: var(--tl-color-info-bg);
+          --tl-color-op-update-text: var(--tl-color-info-text);
+          --tl-color-op-delete-bg: var(--tl-color-danger-bg);
+          --tl-color-op-delete-text: var(--tl-color-danger);
           --tl-color-brand-rail: #0B1020;
 
           --tl-radius-xs: 3px;
@@ -108,7 +114,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-radius-xl: 12px;
           --tl-radius-pill: 999px;
           --tl-shadow-border: inset 0 0 0 1px var(--tl-color-border);
-          --tl-shadow-subtle: 0 1px 2px rgba(2, 4, 10, 0.45), 0 1px 3px rgba(2, 4, 10, 0.30);
+          --tl-shadow-subtle: 0 1px 2px rgba(2, 4, 10, 0.50), 0 1px 3px rgba(2, 4, 10, 0.34);
           --tl-shadow-popover: 0 10px 28px rgba(2, 4, 10, 0.55);
           --tl-shadow-raised: 0 18px 48px rgba(2, 4, 10, 0.66);
           --tl-z-base: 0;
@@ -132,7 +138,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-viewport-max-height: 600px;
           --tl-muted-bg: var(--tl-color-surface);
           --tl-hit-area: 40px;
-          --tl-focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.38);
+          --tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
           --tl-gap-inline: var(--tl-space-2);
           --tl-gap-stack: var(--tl-space-4);
           --tl-pad-control: var(--tl-space-3);
@@ -316,16 +322,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           align-items: center;
           min-height: var(--tl-hit-area);
           padding: var(--tl-space-1) var(--tl-space-3);
+          border: 1px solid transparent;
           border-radius: var(--tl-radius-md);
           color: var(--tl-color-muted);
           font-weight: var(--tl-weight-medium);
           text-decoration: none;
           white-space: nowrap;
-          transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast);
+          transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast), border-color var(--tl-transition-fast), box-shadow var(--tl-transition-fast);
         }
 
         .tl-topbar .tl-topbar__nav-item:hover {
-          background: var(--tl-color-surface);
+          background: var(--tl-color-surface-hover);
+          border-color: var(--tl-color-border);
           color: var(--tl-color-text);
           text-decoration: none;
         }
@@ -336,8 +344,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-topbar .tl-topbar__nav-item[aria-current="page"] {
           background: var(--tl-color-accent-soft);
           color: var(--tl-color-accent-strong);
+          border-color: var(--tl-color-accent-border);
           font-weight: var(--tl-weight-strong);
-          box-shadow: inset 0 0 0 1px var(--tl-color-info-border);
+          box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);
         }
 
         .tl-topbar__status .tl-chip {
@@ -653,15 +662,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-segmented__item:hover {
-          background: var(--tl-color-surface-raised);
+          background: var(--tl-color-surface-hover);
           color: var(--tl-color-text);
           text-decoration: none;
         }
 
         .tl-segmented__item[aria-pressed="true"] {
-          background: var(--tl-color-surface-raised);
+          background: var(--tl-color-accent-soft);
           color: var(--tl-color-accent-strong);
-          box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
+          box-shadow: inset 0 0 0 1px var(--tl-color-accent-border), var(--tl-shadow-subtle);
         }
 
         .tl-toolbar {
@@ -723,14 +732,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-toolbar__control:disabled,
         .tl-control:disabled {
-          color: var(--tl-color-muted);
+          border-color: var(--tl-color-border);
+          color: var(--tl-color-muted-soft);
           background: var(--tl-color-surface);
           cursor: not-allowed;
         }
 
+        .tl-toolbar__control:hover:not(:disabled),
+        .tl-control:hover:not(:disabled) {
+          border-color: var(--tl-color-border-focus);
+          background: var(--tl-color-surface-hover);
+        }
+
         .tl-toolbar__control:focus,
-        .tl-control:focus {
-          border-color: var(--tl-color-accent);
+        .tl-control:focus,
+        .tl-toolbar__control:focus-visible,
+        .tl-control:focus-visible {
+          border-color: var(--tl-color-border-focus);
+          background: var(--tl-color-surface-hover);
         }
 
         .tl-toolbar__hint,
@@ -809,6 +828,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-button:hover {
+          border-color: var(--tl-color-border-strong);
+          background: var(--tl-color-surface-hover);
+          color: var(--tl-color-text);
           text-decoration: none;
           box-shadow: var(--tl-shadow-subtle);
         }
@@ -820,7 +842,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-button:disabled,
         .tl-button[disabled],
         .tl-button[aria-disabled="true"] {
-          opacity: 0.5;
+          opacity: 1;
+          border-color: var(--tl-color-border);
+          background: var(--tl-color-surface);
+          color: var(--tl-color-muted-soft);
           cursor: not-allowed;
           box-shadow: none;
           transform: none;
@@ -850,6 +875,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-accent-strong);
         }
 
+        .tl-button--quiet-primary:hover {
+          border-color: var(--tl-color-accent-border);
+          background: var(--tl-color-accent-soft);
+          color: var(--tl-color-accent-strong);
+        }
+
         .tl-button--primary {
           background: var(--tl-color-accent);
           border-color: var(--tl-color-accent);
@@ -871,19 +902,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-text);
         }
 
+        .tl-button--secondary:hover {
+          border-color: var(--tl-color-border-focus);
+        }
+
         .tl-button--ghost {
           border-color: transparent;
           background: transparent;
           color: var(--tl-color-muted);
         }
 
+        .tl-button--ghost:hover {
+          border-color: var(--tl-color-border);
+          background: var(--tl-color-neutral-bg);
+          color: var(--tl-color-text);
+        }
+
         .tl-button--danger {
+          color: var(--tl-color-danger);
+        }
+
+        .tl-button--danger:hover {
+          border-color: var(--tl-color-danger-border);
+          background: var(--tl-color-danger-bg);
           color: var(--tl-color-danger);
         }
 
         .tl-button--primary.tl-button--danger {
           background: var(--tl-color-danger);
-          border-color: var(--tl-color-danger);
+          border-color: var(--tl-color-danger-border);
           color: var(--tl-color-on-accent);
         }
 
@@ -937,7 +984,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-chip--muted,
         .tl-chip--neutral {
-          background: transparent;
+          border-color: var(--tl-color-neutral-border);
+          background: var(--tl-color-neutral-bg);
           color: var(--tl-color-muted);
         }
 
@@ -948,7 +996,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-chip--danger {
-          border-color: var(--tl-color-danger);
+          border-color: var(--tl-color-danger-border);
           background: var(--tl-color-danger-bg);
           color: var(--tl-color-danger);
         }
@@ -962,6 +1010,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-alert {
           margin: var(--tl-space-3) var(--tl-space-4);
           padding: var(--tl-space-3) var(--tl-space-4);
+          border: 1px solid var(--tl-color-border);
           border-radius: var(--tl-radius-md);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
@@ -970,23 +1019,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-alert--error {
           background: var(--tl-color-danger-bg);
           color: var(--tl-color-danger);
+          border-color: var(--tl-color-danger-border);
           border-left: var(--tl-status-stripe-width) solid var(--tl-color-danger);
         }
 
         .tl-alert--info {
-          background: var(--tl-color-surface);
-          color: var(--tl-color-muted);
+          background: var(--tl-color-info-bg);
+          color: var(--tl-color-info-text);
+          border-color: var(--tl-color-info-border);
         }
 
         .tl-alert--warning {
           background: var(--tl-color-warning-bg);
           color: var(--tl-color-warning-text);
+          border-color: var(--tl-color-warning-border);
           border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
         }
 
         .tl-alert--success {
           background: var(--tl-color-success-bg);
           color: var(--tl-color-success-text);
+          border-color: var(--tl-color-success-border);
           border-left: var(--tl-status-stripe-width) solid var(--tl-color-success-border);
         }
 
@@ -1025,6 +1078,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-empty--error {
           color: var(--tl-color-danger);
           background: var(--tl-color-danger-bg);
+          box-shadow: inset 0 0 0 1px var(--tl-color-danger-border);
         }
 
         .tl-empty--never {
@@ -1491,6 +1545,57 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
           gap: var(--tl-space-3);
           margin: var(--tl-space-4) 0;
+        }
+
+        .tl-job-group {
+          display: grid;
+          gap: var(--tl-space-3);
+          margin: var(--tl-space-4) 0;
+          padding: var(--tl-space-3);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          background: var(--tl-color-surface);
+        }
+
+        .tl-job-group__header {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--tl-space-2);
+          min-width: 0;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
+        .tl-job-group__title {
+          margin: 0;
+          color: var(--tl-color-text);
+          font-size: var(--tl-font-size-heading);
+          line-height: var(--tl-line-heading);
+          font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-secondary-ref {
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;
+          color: var(--tl-color-muted);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          text-overflow: ellipsis;
+          overflow-wrap: anywhere;
+        }
+
+        .tl-target-row {
+          scroll-margin-top: calc(var(--tl-header-height-mobile) + var(--tl-space-4));
+        }
+
+        .tl-target-row:target {
+          background: var(--tl-color-surface-raised);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger), var(--tl-shadow-border);
         }
 
         .tl-job {

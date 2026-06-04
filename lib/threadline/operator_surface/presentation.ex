@@ -140,6 +140,102 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   def export_summary(_), do: "Timeline export"
 
+  @spec export_readiness(map(), keyword()) ::
+          :ready | :preparing | :needs_attention | :unavailable
+  def export_readiness(job, opts \\ []) when is_map(job) do
+    status = job |> Map.get(:status, Map.get(job, "status")) |> normalize_status()
+    file_path = Map.get(job, :file_path, Map.get(job, "file_path"))
+    expires_at = Map.get(job, :expires_at, Map.get(job, "expires_at"))
+
+    cond do
+      status == "completed" and has_file_path?(file_path) and not expired?(expires_at, opts) ->
+        :ready
+
+      status in ~w(pending running queued processing) ->
+        :preparing
+
+      status in ~w(failed error) ->
+        :needs_attention
+
+      true ->
+        :unavailable
+    end
+  end
+
+  @spec export_readiness_title(map(), keyword()) :: String.t()
+  def export_readiness_title(job, opts \\ []) do
+    case export_readiness(job, opts) do
+      :ready -> "Ready to hand off"
+      :preparing -> "Preparing"
+      :needs_attention -> "Needs attention"
+      :unavailable -> "Unavailable"
+    end
+  end
+
+  @spec export_readiness_rank(map(), keyword()) :: non_neg_integer()
+  def export_readiness_rank(job, opts \\ []) do
+    case export_readiness(job, opts) do
+      :ready -> 0
+      :preparing -> 1
+      :needs_attention -> 2
+      :unavailable -> 3
+    end
+  end
+
+  @spec export_downloadable?(map(), keyword()) :: boolean()
+  def export_downloadable?(job, opts \\ []), do: export_readiness(job, opts) == :ready
+
+  @spec export_action_label(map(), keyword()) :: String.t()
+  def export_action_label(job, opts \\ []) when is_map(job) do
+    status = job |> Map.get(:status, Map.get(job, "status")) |> normalize_status()
+    expires_at = Map.get(job, :expires_at, Map.get(job, "expires_at"))
+
+    case export_readiness(job, opts) do
+      :ready ->
+        "Download export"
+
+      :preparing ->
+        "Preparing download"
+
+      :needs_attention ->
+        "Reopen source search"
+
+      :unavailable ->
+        if status == "completed" and expired?(expires_at, opts),
+          do: "Export expired",
+          else: "File unavailable"
+    end
+  end
+
+  @spec secondary_ref(term(), pos_integer()) :: %{visible: String.t(), title: String.t()}
+  def secondary_ref(value, max_length \\ 34) do
+    full = secondary_ref_value(value)
+
+    %{
+      visible: truncate_middle(full, max_length),
+      title: full
+    }
+  end
+
+  defp secondary_ref_value(%Threadline.Semantics.ActorRef{type: type, id: id})
+       when not is_nil(id),
+       do: "#{type}/#{id}"
+
+  defp secondary_ref_value(%{"type" => type, "id" => id}) when not is_nil(id), do: "#{type}/#{id}"
+  defp secondary_ref_value(%{} = value), do: Jason.encode!(value)
+  defp secondary_ref_value(nil), do: ""
+  defp secondary_ref_value(value), do: to_string(value)
+
+  defp has_file_path?(value) when is_binary(value), do: String.trim(value) != ""
+  defp has_file_path?(_), do: false
+
+  defp expired?(%DateTime{} = expires_at, opts) do
+    now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
+    DateTime.compare(expires_at, now) != :gt
+  end
+
+  defp expired?(_expires_at, _opts), do: false
+
   defp normalize_status(nil), do: nil
   defp normalize_status(status) when is_atom(status), do: Atom.to_string(status)
   defp normalize_status(status) when is_binary(status), do: status
