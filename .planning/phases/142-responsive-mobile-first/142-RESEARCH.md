@@ -342,17 +342,15 @@ async function expectFitsViewport(locator: Locator, width: number) {
 | A3 | Blanket root overflow clipping can hide unreachable controls. | Anti-Patterns / Pitfalls | Planner might accept a visually passing but unusable layout. |
 | A4 | Tablet can overflow if desktop table semantics restore below 768. | Pitfalls | Planner may keep the current `721px` restore point and miss tablet failures. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should desktop table semantics restore exactly at 768 or later?**
    - What we know: Acceptance includes 768 as a required viewport and current restore is 721. [VERIFIED: codebase grep]
-   - What's unclear: Whether 768 should show tablet wrapped/card layout or desktop table layout for every table. [ASSUMED]
-   - Recommendation: Make 768 the tablet proof point and only restore true desktop table behavior where Playwright proves no root overflow and controls remain reachable. [ASSUMED]
+   - RESOLVED: Treat 768 as the tablet proof point; keep responsive tables in labelled card mode through tablet and restore true desktop table semantics only in the 1280px desktop layer, as specified by `142-02-PLAN.md` Task 1 and Task 2. [VERIFIED: `.planning/phases/142-responsive-mobile-first/142-02-PLAN.md`]
 
 2. **Should the matrix run in all Playwright projects or a focused Chromium-only spec?**
    - What we know: Existing config has `chromium`, `desktop-chromium`, and `mobile-chromium` projects. [VERIFIED: codebase grep]
-   - What's unclear: Whether full-project multiplication is worth the runtime for every route/viewport pair. [ASSUMED]
-   - Recommendation: Keep the Phase 142 matrix as one focused spec that sets viewport sizes directly, then let `mix verify.example_browser` run the full configured suite as the gate. [ASSUMED]
+   - RESOLVED: Create one focused responsive matrix spec that sets 375 / 768 / 1280 viewport sizes directly, then run `mix verify.example_browser` as the phase-level browser gate, as specified by `142-03-PLAN.md` Task 1 through Task 3. [VERIFIED: `.planning/phases/142-responsive-mobile-first/142-03-PLAN.md`]
 
 ## Environment Availability
 
