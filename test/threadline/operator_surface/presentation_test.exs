@@ -76,4 +76,95 @@ defmodule Threadline.OperatorSurface.PresentationTest do
       assert ref.visible == ref.title
     end
   end
+
+  describe "find value tokens" do
+    test "renders nil, redacted strings, and ordinary primitives as escaped text data" do
+      assert Presentation.value_token(nil) == %{text: "null", modifier: "tl-value--null"}
+      assert Presentation.value_token("[REDACTED]") == %{text: "[REDACTED]", modifier: "tl-value--redacted"}
+      assert Presentation.value_token("open") == %{text: "open", modifier: "tl-value--string"}
+      assert Presentation.value_token(true) == %{text: "true", modifier: "tl-value--primitive"}
+      assert Presentation.value_token(42) == %{text: "42", modifier: "tl-value--primitive"}
+    end
+
+    test "renders DateTime and ISO8601 timestamp strings with exact titles" do
+      dt = ~U[2026-06-04 12:30:00Z]
+
+      assert Presentation.value_token(dt) == %{
+               text: "Today, 12:30 PM UTC",
+               title: "2026-06-04T12:30:00Z",
+               modifier: "tl-value--time"
+             }
+
+      assert Presentation.value_token("2026-06-04T12:30:00Z") == %{
+               text: "Today, 12:30 PM UTC",
+               title: "2026-06-04T12:30:00Z",
+               modifier: "tl-value--time"
+             }
+    end
+
+    test "renders maps and lists as deterministic JSON text" do
+      assert Presentation.value_token(%{"b" => 2, "a" => 1}) == %{
+               text: ~s({"a":1,"b":2}),
+               modifier: "tl-value--json"
+             }
+
+      assert Presentation.value_token([%{"id" => 2}, %{"id" => 1}]) == %{
+               text: ~s([{"id":2},{"id":1}]),
+               modifier: "tl-value--json"
+             }
+    end
+  end
+
+  describe "find change value tokens" do
+    test "distinguishes absent keys, omitted prior state, and present nil" do
+      assert Presentation.change_value_token(%{"name" => "status"}, "before") == %{
+               text: "(omitted)",
+               modifier: "tl-value--omitted"
+             }
+
+      assert Presentation.change_value_token(%{"name" => "status"}, "after") == %{
+               text: "(absent)",
+               modifier: "tl-value--absent"
+             }
+
+      assert Presentation.change_value_token(%{"name" => "status", "before" => nil}, "before") == %{
+               text: "null",
+               modifier: "tl-value--null"
+             }
+    end
+  end
+
+  describe "find coverage labels" do
+    test "renders expected gap count grammar" do
+      assert Presentation.expected_gap_count_label(1) == "1 expected gap"
+      assert Presentation.expected_gap_count_label(2) == "2 expected gaps"
+    end
+
+    test "returns concrete remediation guidance for a table" do
+      assert Presentation.coverage_remediation("tickets") == %{
+               label: "Add capture",
+               command: "mix threadline.gen.triggers --tables tickets",
+               follow_up: "Run mix threadline.verify_coverage after applying the migration."
+             }
+    end
+  end
+
+  describe "find actor transaction summaries" do
+    test "falls back when change data is unavailable" do
+      assert Presentation.actor_transaction_summary(nil) == "Changes unavailable"
+      assert Presentation.actor_transaction_summary([]) == "Changes unavailable"
+    end
+
+    test "summarizes operation, table breadth, and field-change count" do
+      assert Presentation.actor_transaction_summary([
+               %{"op" => "update", "table_name" => "tickets", "field_changes" => [1, 2, 3]}
+             ]) == "UPDATE tickets - 3 changes"
+
+      assert Presentation.actor_transaction_summary([
+               %{"op" => "update", "table_name" => "tickets", "field_changes" => [1, 2, 3]},
+               %{"op" => "update", "table_name" => "ticket_replies", "field_changes" => [4, 5]},
+               %{"op" => "update", "table_name" => "accounts", "field_changes" => [6, 7]}
+             ]) == "UPDATE tickets + 2 tables - 7 changes"
+    end
+  end
 end
