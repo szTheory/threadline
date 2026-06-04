@@ -1,6 +1,6 @@
 # Roadmap: v1.31 — Operator Surface: Insane Polish
 
-**Status:** in progress
+**Status:** complete
 **Opened:** 2026-06-03
 **Goal:** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app) — bring every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system, align IA to real personas/JTBD with a few earned new flows, add restrained purposeful micro-animation, and enrich seed data so every screen demonstrates itself — captured durably and screenshot-/decision-recorded so a context clear loses nothing.
 
@@ -17,16 +17,16 @@
 
 | Phase | Name | Requirement | Status |
 |-------|------|-------------|--------|
-| 134 | Baseline Audit & Screenshot Inventory | POLISH-AUDIT | not started |
+| 134 | Baseline Audit & Screenshot Inventory | Complete | 2026-06-03 |
 | 135 | 4/4 | Complete    | 2026-06-04 |
-| 136 | Design-System Hardening | POLISH-DS | in progress |
+| 136 | 1/1 | Complete    | 2026-06-04 |
 | 137 | 4/4 | Complete    | 2026-06-04 |
 | 138 | 4/4 | Complete    | 2026-06-04 |
 | 139 | 3/3 | Complete    | 2026-06-04 |
 | 140 | 5/5 | Complete    | 2026-06-04 |
 | 141 | 3/3 | Complete    | 2026-06-04 |
 | 142 | 3/3 | Complete    | 2026-06-04 |
-| 143 | Accessibility + Consistency Sweep + Regression | POLISH-A11Y | not started |
+| 143 | 4/4 | Complete    | 2026-06-04 |
 
 **Ordering rationale:** measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep. Foundations (audit, seed, design-system) precede per-screen work so screens aren't redone when tokens change.
 
@@ -177,10 +177,10 @@ Plans:
   4. A screenshot-diff guard runs in the Playwright/CI lane so future PRs can't silently degrade the polished baseline.
 **Plans**: 4 plans
 Plans:
-- [ ] 143-01-PLAN.md — Accessibility primitive baseline
-- [ ] 143-02-PLAN.md — Consistency sweep and browser suite repair
-- [ ] 143-03-PLAN.md — Final screenshot diff and audit closure
-- [ ] 143-04-PLAN.md — Screenshot regression guard
+- [x] 143-01-PLAN.md — Accessibility primitive baseline
+- [x] 143-02-PLAN.md — Consistency sweep and browser suite repair
+- [x] 143-03-PLAN.md — Final screenshot diff and audit closure
+- [x] 143-04-PLAN.md — Screenshot regression guard
 **UI hint**: yes
 
 ## Shipped milestones (index)

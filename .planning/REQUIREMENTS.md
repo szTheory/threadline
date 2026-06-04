@@ -38,7 +38,7 @@
 
 ### Accessibility & regression
 
-- [ ] **POLISH-A11Y**: Interactive primitives meet an accessibility baseline (focus order, focus-visible, contrast, ARIA); a final cross-surface consistency sweep closes all remaining audit findings; a final screenshot set is diffed against baseline with every delta explained; a lightweight screenshot-diff guard is wired into the Playwright/CI lane so future PRs can't silently degrade the polished baseline.
+- [x] **POLISH-A11Y**: Interactive primitives meet an accessibility baseline (focus order, focus-visible, contrast, ARIA); a final cross-surface consistency sweep closes all remaining audit findings; a final screenshot set is diffed against baseline with every delta explained; a lightweight screenshot-diff guard is wired into the Playwright/CI lane so future PRs can't silently degrade the polished baseline.
 
 ## Explicit non-goals
 
@@ -66,6 +66,6 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | POLISH-FLOWS | Phase 140 — Earned New Flows | Complete |
 | POLISH-MOTION | Phase 141 — Motion & Micro-animation | Complete |
 | POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Complete |
-| POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Pending |
+| POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Complete |
 
 **Coverage:** 10/10 requirements mapped — no orphans, no duplicates.
