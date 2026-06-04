@@ -157,7 +157,13 @@ test.describe("operator earned-flow browser UAT", () => {
   test("EF3 filtered Evidence proof context carries into Exports", async ({ page }) => {
     await page.goto("/audit/evidence");
 
-    await page.getByRole("link", { name: "Open proof history" }).first().click();
+    const proofHistory = page.getByRole("link", { name: "Open proof history" }).first();
+    await expect(proofHistory).toBeVisible();
+    await expect(proofHistory).toHaveAttribute("href", /\/audit\/evidence\?.*mode=history/);
+    await Promise.all([
+      page.waitForURL(/\/audit\/evidence\?.*mode=history/),
+      proofHistory.click(),
+    ]);
     await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
 
     const carry = page

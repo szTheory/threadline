@@ -83,7 +83,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     await login(page);
   });
 
-  test("home exposes orientation cards, health, resume, and no workflow form", async ({
+  test("home exposes orientation cards, health, resume, and workflow launchers", async ({
     page,
   }) => {
     await page.goto("/audit");
@@ -113,10 +113,18 @@ test.describe("operator Home orientation mobile UAT", () => {
     await expect(main.getByRole("link", { name: "Recent deletes" })).toBeVisible();
     await expect(main.getByRole("link", { name: "Closed this week" })).toBeVisible();
 
-    await expect(main.locator("form")).toHaveCount(0);
-    await expect(main.locator("input, textarea, select")).toHaveCount(0);
-    await expect(main.getByLabel(/record/i)).toHaveCount(0);
-    await expect(main.getByLabel(/correlation/i)).toHaveCount(0);
+    await expect(main.locator('[data-earned-flow="EF1"]')).toBeVisible();
+    await expect(main.locator("#tl-record-lookup").getByLabel("Table")).toBeVisible();
+    await expect(main.locator("#tl-record-lookup").getByLabel("Record id")).toBeVisible();
+    await expect(
+      main.locator("#tl-record-lookup").getByRole("button", { name: "Open row history" }),
+    ).toBeVisible();
+
+    await expect(main.locator('[data-earned-flow="EF4"]')).toBeVisible();
+    await expect(main.locator("#tl-correlation-lookup").getByLabel("Correlation id")).toBeVisible();
+    await expect(
+      main.locator("#tl-correlation-lookup").getByRole("button", { name: "Open Timeline" }),
+    ).toBeVisible();
 
     await expectMobileLayoutViewport(page);
     await expectNoHorizontalOverflow(page);

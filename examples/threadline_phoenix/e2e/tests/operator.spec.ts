@@ -53,7 +53,7 @@ test.describe("operator surface (demo fiction)", () => {
     await historyLink.click();
 
     await expect(page).toHaveURL(/\/history\/ticket_replies\//);
-    await expect(page.getByText("[REDACTED]")).toBeVisible();
+    await expect(page.getByTestId("row-history-drawer").getByText("[REDACTED]")).toBeVisible();
   });
 
   test("#4518 delete story opens deleter transaction", async ({ page }) => {

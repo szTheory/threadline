@@ -52,7 +52,7 @@ test.describe("operator surface screenshots", () => {
       .first()
       .click();
     await expect(page.getByTestId("row-history-drawer")).toBeVisible();
-    await expect(page.getByText("[REDACTED]")).toBeVisible();
+    await expect(page.getByTestId("row-history-drawer").getByText("[REDACTED]")).toBeVisible();
     await capture(page, testInfo, "admin-row-history");
 
     await page.goto("/audit/timeline?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
@@ -62,7 +62,8 @@ test.describe("operator surface screenshots", () => {
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
     await expect(page.getByText(`Actor: user / ${leavingAgentId}`)).toBeVisible();
-    await expect(page.getByText("No events found in the selected time window.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "30d", pressed: true })).toBeVisible();
+    await expect(page.locator("#transactions-list, .tl-empty")).toBeVisible();
     await capture(page, testInfo, "admin-actor-history-agent2");
 
     await page.goto("/audit/evidence");
@@ -95,7 +96,7 @@ test.describe("operator surface screenshots", () => {
     await login(page);
 
     await page.goto("/audit/timeline?correlation_id=no-such-correlation");
-    await expect(page.getByText("No changes match")).toBeVisible();
+    await expect(page.getByText("No captured changes match this window")).toBeVisible();
     await capture(page, testInfo, "admin-timeline-empty");
 
     await page.goto("/audit/timeline?from=not-a-date");
