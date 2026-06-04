@@ -87,12 +87,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
               <div>
-                <h1 class="tl-page__title">Retention History</h1>
-                <p class="tl-page__lede">Review recent pruning runs and evidence before triggering another destructive retention pass.</p>
-              </div>
-              <div class="tl-page__actions">
-                <span class="tl-hint">Permanent delete action</span>
-                <button class="tl-button tl-button--primary tl-button--danger" phx-click="prune_now" data-confirm="Prune: Are you sure you want to run a pruning batch? This permanently deletes older records.">Run prune now</button>
+                <h1 class="tl-page__title">What was purged, and did it succeed?</h1>
+                <p class="tl-page__lede">Review the latest completed purge, failures, and evidence before triggering another destructive retention pass.</p>
               </div>
             </header>
 
@@ -105,8 +101,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <%= if not @has_runs do %>
               <div class="tl-empty">
-                <h3 class="tl-empty__title">No Retention History</h3>
-                <p class="tl-empty__body">Configure your retention policy and trigger a prune to see runs here.</p>
+                <h3 class="tl-empty__title">No retention runs yet</h3>
+                <p class="tl-empty__body">Configure retention, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
+                <div class="tl-empty__actions">
+                  <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">Run retention prune</button>
+                </div>
               </div>
             <% else %>
               <section class="tl-summary-grid" aria-label="Retention summary">
@@ -115,12 +114,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <strong class="tl-card__metric"><%= @runs_summary.latest_status %></strong>
                 </div>
                 <div class="tl-card--metric">
+                  <span class="tl-card__metric-label">Latest completed run</span>
+                  <strong class="tl-card__metric"><%= latest_completed_label(@runs_summary.latest_completed_at) %></strong>
+                </div>
+                <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Rows deleted</span>
                   <strong class="tl-card__metric"><%= @runs_summary.total_deleted %></strong>
                 </div>
                 <div class="tl-card--metric" data-status={if @runs_summary.failure_count > 0, do: "danger"}>
                   <span class="tl-card__metric-label">Failures</span>
-                  <strong class="tl-card__metric"><%= @runs_summary.failure_count %></strong>
+                  <strong class="tl-card__metric">
+                    <%= if @runs_summary.first_failed_dom_id do %>
+                      <a href={"##{@runs_summary.first_failed_dom_id}"} class="tl-link tl-link--deep"><%= @runs_summary.failure_count %></a>
+                    <% else %>
+                      <%= @runs_summary.failure_count %>
+                    <% end %>
+                  </strong>
                 </div>
               </section>
 
@@ -134,6 +143,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               <% end %>
 
+              <div class="tl-page__actions">
+                <span class="tl-hint">Permanent delete action</span>
+                <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">Run retention prune</button>
+              </div>
+
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
                   <thead>
@@ -146,10 +160,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </tr>
                   </thead>
                   <tbody id="retention-runs" phx-update="stream" data-testid="retention-runs">
-                    <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={"tl-table__row--" <> run.status}>
+                    <tr :for={{dom_id, run} <- @streams.runs} id={dom_id} class={["tl-table__row--" <> run.status, if(run.status == "failed", do: "tl-target-row")]}>
                       <td data-label="Status"><span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span></td>
-                      <td data-label="Deleted Rows" class="tl-table__number"><%= run.deleted_count || "-" %></td>
-                      <td data-label="Duration" class="tl-table__number"><%= if run.duration_ms, do: "#{run.duration_ms}ms", else: "-" %></td>
+                      <td data-label="Deleted Rows" class="tl-table__number"><%= count_label(run.deleted_count) %></td>
+                      <td data-label="Duration" class="tl-table__number"><%= duration_label(run.duration_ms) %></td>
                       <td data-label="Date" class="tl-table__date">
                         <%= if run.started_at do %>
                           <time datetime={Presentation.exact_time(run.started_at)} title={Presentation.exact_time(run.started_at)}>
@@ -219,13 +233,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp summarize_runs([run | _] = runs) do
       failure_count = Enum.count(runs, &(&1.status == "failed"))
+      latest_completed = Enum.find(runs, &(&1.status == "completed"))
+      first_failed = Enum.find(runs, &(&1.status == "failed"))
 
       %{
         latest_status: Presentation.status_label(run.status),
         latest_at: run.started_at,
+        latest_completed_at: latest_completed && latest_completed.completed_at,
         healthy?: failure_count == 0 and run.status == "completed",
         total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
-        failure_count: failure_count
+        failure_count: failure_count,
+        first_failed_dom_id: first_failed && "runs-#{first_failed.id}"
       }
     end
 
@@ -233,10 +251,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       %{
         latest_status: "None",
         latest_at: nil,
+        latest_completed_at: nil,
         healthy?: false,
         total_deleted: 0,
-        failure_count: 0
+        failure_count: 0,
+        first_failed_dom_id: nil
       }
     end
+
+    defp latest_completed_label(nil), do: "No completed run yet"
+    defp latest_completed_label(%DateTime{} = value), do: Presentation.human_time(value)
+
+    defp count_label(nil), do: "No rows deleted"
+    defp count_label(value), do: value
+
+    defp duration_label(nil), do: "No duration yet"
+    defp duration_label(value), do: "#{value}ms"
   end
 end

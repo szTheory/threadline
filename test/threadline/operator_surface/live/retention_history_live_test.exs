@@ -140,13 +140,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Unsupported View"
         assert html =~ "Retention history is not available"
         assert html =~ "mix threadline.retention.purge --dry-run"
-        refute html =~ "Run prune now"
+        refute html =~ "Run retention prune"
       end
 
       test "shows empty state when no runs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
-        assert html =~ "No Retention History"
-        assert html =~ "Run prune now"
+        assert html =~ "What was purged, and did it succeed?"
+        assert html =~ "No retention runs yet"
+        assert html =~ "mix threadline.retention.purge --dry-run"
+        assert html =~ "Run retention prune"
+        assert html =~ "tl-button--secondary tl-button--danger"
+
+        assert html =~
+                 "Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first."
       end
 
       test "displays existing retention runs in a table", %{conn: conn} do
@@ -170,6 +176,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "100"
         # Or formatted, depending on implementation
         assert html =~ "1500"
+        assert html =~ "Latest completed run"
       end
 
       test "shows a success alert when latest run succeeded with no failures", %{conn: conn} do
@@ -207,11 +214,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "Latest run succeeded"
       end
 
-      test "Run prune now CTA triggers the supervised runtime path", %{conn: conn} do
+      test "Run retention prune CTA triggers the supervised runtime path", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/policy/retention")
 
         # Click the button
-        assert html =~ "Run prune now"
+        assert html =~ "Run retention prune"
 
         # ensure no active runs initially
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0
@@ -219,7 +226,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # simulate click
         view
-        |> element("button", "Run prune now")
+        |> element("button", "Run retention prune")
         |> render_click()
 
         assert_eventually(fn ->
@@ -234,7 +241,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         send(view.pid, :refresh)
 
         # Should not crash and render successfully
-        assert render(view) =~ "Run prune now"
+        assert render(view) =~ "Run retention prune"
+      end
+
+      test "latest completed context is separate from newest failed run", %{conn: conn} do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        completed =
+          %RetentionRun{}
+          |> RetentionRun.changeset(%{
+            status: "completed",
+            deleted_count: 10,
+            duration_ms: 250,
+            started_at: DateTime.add(now, -120, :second),
+            completed_at: DateTime.add(now, -110, :second)
+          })
+          |> Threadline.Test.Repo.insert!()
+
+        failed =
+          %RetentionRun{}
+          |> RetentionRun.changeset(%{
+            status: "failed",
+            started_at: DateTime.add(now, -10, :second)
+          })
+          |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        assert html =~ "Latest run"
+        assert html =~ "Failed"
+        assert html =~ "Latest completed run"
+        assert html =~ Calendar.strftime(completed.completed_at, "%Y")
+        assert html =~ ~s(href="#runs-#{failed.id}")
+        assert html =~ "tl-target-row"
+        assert html =~ "No rows deleted"
+        assert html =~ "No duration yet"
       end
     end
   end
