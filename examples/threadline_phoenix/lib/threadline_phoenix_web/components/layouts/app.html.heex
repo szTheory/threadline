@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
     <title>ThreadlinePhoenix</title>
     <style>
       :root {
@@ -36,5 +37,7 @@
   <body>
     <.flash_group flash={@flash} />
     {@inner_content}
+    <script type="module" src="/assets/app.js">
+    </script>
   </body>
 </html>
