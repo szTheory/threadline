@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
-status: milestone_complete
-last_updated: 2026-06-04T19:23:55.490Z
-last_activity: 2026-06-04 -- Phase 143 complete; v1.31 milestone complete
+status: executing
+last_updated: "2026-06-04T21:16:24.334Z"
+last_activity: 2026-06-04 -- Phase 144 planning complete
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
-stopped_at: Milestone complete (Phase 143 was final phase)
+  total_phases: 11
+  completed_phases: 9
+  total_plans: 35
+  completed_plans: 31
+  percent: 82
 ---
 
 # Project State: Threadline
@@ -21,15 +20,15 @@ stopped_at: Milestone complete (Phase 143 was final phase)
 See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Milestone complete
+**Current focus:** Close v1.31 audit gaps
 
 ## Current Position
 
-Phase: 143
+Phase: 144
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-04
-Resume: `.planning/phases/143-accessibility-consistency-sweep-regression/143-VERIFICATION.md`
+Status: Ready to execute
+Last activity: 2026-06-04 -- Phase 144 planning complete
+Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 
 ## Performance Metrics
 
@@ -73,6 +72,7 @@ Resume: `.planning/phases/143-accessibility-consistency-sweep-regression/143-VER
   - **0.8.0 + 0.9.0 cuts** — published to Hex via release-please.
   - **Release-please born-red root-cause fix (#22)** — every release PR was born red because release-please bumped `mix.exs` but not the adoption-pilot guide, failing `adoption_pilot_doc_contract_test`. Fixed via `extra-files` + `x-release-please-version` annotation so the SSOT line is bumped atomically in the release commit (green by construction, no manual prep). `bin/post-publish-distribution-sync` now owns only the post-publish Hex row; a guard test enforces the wiring. See memory `release-runbook` and `CONTRIBUTING.md`.
 - **Milestone v1.31 opened (2026-06-03):** Hold superseded by a non-signal-gated polish milestone. 10 phases (134–143), 1:1 with 10 POLISH-* requirements, fully pre-decided order: measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep.
+- Phase 144 added: Close gap: POLISH-AUDIT and POLISH-DS
 
 ### Decisions
 
@@ -102,12 +102,12 @@ Resume: `.planning/phases/143-accessibility-consistency-sweep-regression/143-VER
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Phase 137 completed — Prove cluster polish closed with automated dense-mobile UAT (2026-06-04)
-- **Next Step**: Plan Phase 138 — "Find" Cluster Polish
-- **Resume file**: None
+- **Last Action**: Phase 144 added — Close gap: POLISH-AUDIT and POLISH-DS (2026-06-04)
+- **Next Step**: Plan Phase 144 — Close gap: POLISH-AUDIT and POLISH-DS
+- **Resume file**: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 
 ## Operator Next Steps
 
-- **Plan Phase 138** — "Find" Cluster Polish for Timeline, Transaction, Row-history, and Actor
+- **Plan Phase 144** — Close gap: POLISH-AUDIT and POLISH-DS
 - **Locked constraints** — keep BEM `.tl-*` + `--tl-*` tokens in `style.ex` (no Tailwind/build step); dark-first brand; seed enrichment only; no new backend/screens; every new flow traces to a JTBD + decision record
 - v1.28 external pilot remains signal-gated and out of scope for v1.31
