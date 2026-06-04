@@ -333,7 +333,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           scoped={not is_nil(assigns[:threadline_scope])}
         />
 
-        <main id="tl-main" class="tl-page tl-page--intro">
+        <main id="tl-main" class="tl-page tl-page--intro" tabindex="-1">
           <section class="tl-orientation tl-orientation--investigation" aria-label="Investigation starting point">
             <div class="tl-orientation__header">
               <div>

@@ -393,7 +393,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-table-wrap .tl-table--responsive", ["min-width: 0;"])
     assert_selector_contains(base, ".tl-table--responsive thead", ["display: none;"])
-    assert_selector_contains(base, ".tl-table--responsive td::before", ["content: attr(data-label);"])
+
+    assert_selector_contains(base, ".tl-table--responsive td::before", [
+      "content: attr(data-label);"
+    ])
 
     assert_selector_contains(base, ".tl-subview", [
       "width: 100vw;",
@@ -408,7 +411,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           ".tl-record-card__ref",
           ".tl-kv__row"
         ] do
-      assert Regex.match?(selector_block_pattern(selector, ~r/min-width:\s*0;|overflow-wrap:\s*anywhere;/), base),
+      assert Regex.match?(
+               selector_block_pattern(selector, ~r/min-width:\s*0;|overflow-wrap:\s*anywhere;/),
+               base
+             ),
              "#{selector} must keep min-width: 0 or overflow-wrap: anywhere in the mobile/base layer"
     end
 
@@ -457,6 +463,75 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(desktop, ".tl-table--responsive td::before", [
       "display: none;"
     ])
+  end
+
+  test "phase 143 accessibility tokens meet dark-surface contrast baseline" do
+    src = File.read!(@style_path)
+
+    tokens = color_tokens(src)
+
+    backgrounds = [
+      "--tl-color-bg",
+      "--tl-color-surface",
+      "--tl-color-surface-raised",
+      "--tl-color-surface-hover"
+    ]
+
+    for text_token <- [
+          "--tl-color-text",
+          "--tl-color-muted",
+          "--tl-color-muted-soft",
+          "--tl-color-info-text",
+          "--tl-color-warning-text",
+          "--tl-color-success-text",
+          "--tl-color-danger",
+          "--tl-color-accent-strong"
+        ],
+        background_token <- backgrounds do
+      assert contrast_ratio(tokens[text_token], tokens[background_token]) >= 4.5,
+             "#{text_token} must meet AA contrast on #{background_token}"
+    end
+
+    assert contrast_ratio(tokens["--tl-color-accent"], tokens["--tl-color-surface-raised"]) >= 4.5,
+           "base accent links must meet AA contrast on raised surfaces"
+  end
+
+  test "phase 143 focus-visible and non-color status contracts stay locked" do
+    src = File.read!(@style_path)
+
+    assert String.contains?(src, "--tl-focus-ring:")
+
+    for selector <- [
+          ".threadline-ui button:focus-visible",
+          ".threadline-ui [role=\"button\"]:focus-visible",
+          ".threadline-ui input:focus-visible",
+          ".threadline-ui select:focus-visible",
+          ".threadline-ui a:focus-visible",
+          ".threadline-ui summary:focus-visible"
+        ] do
+      assert String.contains?(src, selector), "missing focus-visible selector #{selector}"
+    end
+
+    focus_block =
+      src
+      |> String.split(".threadline-ui button:focus-visible,")
+      |> Enum.at(1)
+      |> String.split("}")
+      |> List.first()
+
+    assert String.contains?(focus_block, "box-shadow: var(--tl-focus-ring);")
+
+    refute Regex.match?(~r/\.threadline-ui\s+\*\s*\{[^}]*outline:\s*none/s, src),
+           "blanket focus outline removal is forbidden"
+
+    for selector <- [
+          ".tl-chip--info",
+          ".tl-chip--warning",
+          ".tl-chip--danger",
+          ".tl-chip--success"
+        ] do
+      assert_selector_contains(src, selector, ["border-color:", "background:", "color:"])
+    end
   end
 
   defp motion_inventory_rows(inventory) do
@@ -568,4 +643,39 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   defp selector_block_pattern(selector, declaration_pattern \\ ~r/[^}]*/) do
     ~r/#{Regex.escape(selector)}\s*\{[^}]*#{Regex.source(declaration_pattern)}[^}]*\}/s
   end
+
+  defp color_tokens(src) do
+    ~r/(--tl-color-[a-z-]+):\s*(#[0-9a-fA-F]{6});/
+    |> Regex.scan(src)
+    |> Map.new(fn [_match, token, hex] -> {token, hex} end)
+  end
+
+  defp contrast_ratio(foreground, background) do
+    fg = relative_luminance(foreground)
+    bg = relative_luminance(background)
+    lighter = max(fg, bg)
+    darker = min(fg, bg)
+
+    (lighter + 0.05) / (darker + 0.05)
+  end
+
+  defp relative_luminance("#" <> hex) do
+    [r, g, b] =
+      hex
+      |> String.graphemes()
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn pair ->
+        pair
+        |> Enum.join()
+        |> String.to_integer(16)
+        |> Kernel./(255)
+        |> linear_channel()
+      end)
+
+    0.2126 * r + 0.7152 * g + 0.0722 * b
+  end
+
+  defp linear_channel(channel) when channel <= 0.03928, do: channel / 12.92
+
+  defp linear_channel(channel), do: :math.pow((channel + 0.055) / 1.055, 2.4)
 end

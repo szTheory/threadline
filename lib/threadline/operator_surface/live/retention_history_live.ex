@@ -83,7 +83,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         <% end %>
 
-        <main id="tl-main" class="tl-page">
+        <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
               <div>

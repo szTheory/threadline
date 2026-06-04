@@ -98,7 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:timeline}
           scoped={not is_nil(assigns[:threadline_scope])}
         />
-        <main id="tl-main">
+        <main id="tl-main" tabindex="-1">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Invalid Actor Reference</h3>
@@ -120,10 +120,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               </div>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
-                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={@time_window_hours == 1} class="tl-segmented__item">1h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={@time_window_hours == 24} class="tl-segmented__item">24h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={@time_window_hours == 168} class="tl-segmented__item">7d</button>
-                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={@time_window_hours == 720} class="tl-segmented__item">30d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={pressed_state(@time_window_hours, 1)} class="tl-segmented__item">1h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={pressed_state(@time_window_hours, 24)} class="tl-segmented__item">24h</button>
+                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={pressed_state(@time_window_hours, 168)} class="tl-segmented__item">7d</button>
+                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={pressed_state(@time_window_hours, 720)} class="tl-segmented__item">30d</button>
               </div>
             </div>
           </div>
@@ -280,6 +280,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       "#{base_path}/timeline?#{query}"
     end
+
+    defp pressed_state(current, value) when current == value, do: "true"
+    defp pressed_state(_current, _value), do: "false"
 
     defp actor_summaries(_transactions, _repo, scope)
          when not is_nil(scope),

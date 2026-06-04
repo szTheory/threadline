@@ -127,7 +127,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           scoped={not is_nil(assigns[:threadline_scope])}
         />
 
-        <main id="tl-main" class="tl-page tl-home">
+        <main id="tl-main" class="tl-page tl-home" tabindex="-1">
           <header class="tl-home__hero">
             <h1 class="tl-home__headline">Follow what happened.</h1>
             <p class="tl-home__lede">

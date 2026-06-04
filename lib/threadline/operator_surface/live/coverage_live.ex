@@ -104,7 +104,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:coverage}
         />
 
-        <main id="tl-main" class="tl-page">
+        <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_coverage_enabled do %>
             <header class="tl-page__header">
               <div>

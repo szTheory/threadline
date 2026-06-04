@@ -45,6 +45,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
         <main
           id="tl-main"
+          tabindex="-1"
           data-earned-flow="EF2"
           data-persona="P1"
           data-jtbd="J2"

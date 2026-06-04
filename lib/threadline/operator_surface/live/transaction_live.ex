@@ -95,7 +95,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
         />
-        <main id="tl-main">
+        <main id="tl-main" tabindex="-1">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Transaction not found</h3>
