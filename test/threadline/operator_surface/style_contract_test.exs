@@ -534,6 +534,108 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  test "phase 144 token freeze preserves the source token and canonical primitive catalog" do
+    src = File.read!(@style_path)
+
+    assert String.contains?(src, "Phase 144 token freeze")
+
+    for token <- [
+          "--tl-space-1: 4px;",
+          "--tl-font-family:",
+          "--tl-font-mono:",
+          "--tl-font-size-body: 14px;",
+          "--tl-color-bg: #0B1020;",
+          "--tl-color-surface: #141B2D;",
+          "--tl-color-text: #D7DEEA;",
+          "--tl-color-muted: #A3AFC2;",
+          "--tl-color-danger: #FF8585;",
+          "--tl-color-success-text: #5AE0A2;",
+          "--tl-radius-md: 6px;",
+          "--tl-radius-pill: 999px;",
+          "--tl-shadow-border:",
+          "--tl-z-subview: 50;",
+          "--tl-control-height: 40px;",
+          "--tl-control-height-chip: 24px;",
+          "--tl-breakpoint-tablet: 768px;",
+          "--tl-breakpoint-desktop: 1280px;",
+          "--tl-motion-fast: 120ms;",
+          "--tl-motion-base: 180ms;",
+          "--tl-focus-ring:",
+          "--tl-table-min-width: 720px;",
+          "--tl-drawer-width: 760px;"
+        ] do
+      assert String.contains?(src, token), "missing phase 144 frozen token #{token}"
+    end
+
+    for selector <- [
+          ".tl-button",
+          ".tl-chip",
+          ".tl-card",
+          ".tl-alert",
+          ".tl-empty",
+          ".tl-table",
+          ".tl-value",
+          ".tl-kv",
+          ".tl-diff",
+          ".tl-copy",
+          ".tl-subview",
+          ".tl-topbar",
+          ".tl-toolbar",
+          ".tl-change__op"
+        ] do
+      assert String.contains?(src, selector), "missing phase 144 canonical primitive #{selector}"
+    end
+
+    for anti_pattern <- [
+          "@tailwind",
+          "prefers-color-scheme",
+          "color-scheme: light",
+          "theme-toggle",
+          "shadcn",
+          "daisyui",
+          "heroicons"
+        ] do
+      refute String.contains?(src, anti_pattern), "phase 144 forbids #{anti_pattern}"
+    end
+  end
+
+  test "phase 144 status verdict and operation semantics stay token-backed" do
+    src = File.read!(@style_path)
+
+    for selector <- [
+          ".tl-chip--info",
+          ".tl-chip--warning",
+          ".tl-chip--danger",
+          ".tl-chip--success",
+          ".tl-alert--error",
+          ".tl-alert--warning",
+          ".tl-alert--success"
+        ] do
+      assert_selector_contains(src, selector, ["border-color:", "background:", "color:"])
+      assert String.contains?(selector_block!(src, selector), "var(--tl-")
+    end
+
+    for selector <- [
+          ".tl-change__op--insert",
+          ".tl-change__op--update",
+          ".tl-change__op--delete"
+        ] do
+      assert_selector_contains(src, selector, ["background:", "color:"])
+      assert String.contains?(selector_block!(src, selector), "var(--tl-color-op-")
+    end
+
+    for token <- [
+          "--tl-color-op-insert-bg: var(--tl-color-success-bg);",
+          "--tl-color-op-insert-text: var(--tl-color-success-text);",
+          "--tl-color-op-update-bg: var(--tl-color-info-bg);",
+          "--tl-color-op-update-text: var(--tl-color-info-text);",
+          "--tl-color-op-delete-bg: var(--tl-color-danger-bg);",
+          "--tl-color-op-delete-text: var(--tl-color-danger);"
+        ] do
+      assert String.contains?(src, token), "missing phase 144 operation token #{token}"
+    end
+  end
+
   defp motion_inventory_rows(inventory) do
     inventory
     |> String.split("\n")
