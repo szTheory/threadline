@@ -103,7 +103,7 @@ re_verification:
 |---|---|---|---|---|
 | `lib/threadline/operator_surface/live/start_live.ex` | 84, 146, 147, 150 | Empty-list render conditions | Info | Legitimate all-clear / empty resume branches, not stubs; populated by data queries. |
 
-### Human Verification Required
+### Manual Verification Closure
 
 None. Prior human-needed items are closed by supplied orchestrator evidence and verifier screenshot inspection:
 
