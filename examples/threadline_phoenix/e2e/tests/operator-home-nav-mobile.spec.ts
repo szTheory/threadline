@@ -5,6 +5,25 @@ const adminEmail = "admin@example.com";
 
 test.use({ viewport: { width: 375, height: 812 }, isMobile: true });
 
+const destinations = [
+  { label: "Timeline", testId: "operator-nav-timeline", path: "/audit/timeline" },
+  { label: "Coverage", testId: "operator-nav-coverage", path: "/audit/coverage" },
+  { label: "Evidence", testId: "operator-nav-evidence", path: "/audit/evidence" },
+  { label: "Redaction", testId: "operator-nav-policy", path: "/audit/policy/redaction" },
+  { label: "Retention", testId: "operator-nav-retention", path: "/audit/policy/retention" },
+  { label: "Exports", testId: "operator-nav-exports", path: "/audit/exports" },
+];
+
+const representativeScreens = [
+  "/audit",
+  "/audit/timeline",
+  "/audit/coverage",
+  "/audit/evidence",
+  "/audit/policy/redaction",
+  "/audit/policy/retention",
+  "/audit/exports",
+];
+
 async function login(page: Page) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
@@ -26,6 +45,25 @@ async function expectNoHorizontalOverflow(page: Page) {
 async function expectReachable(locator: Locator) {
   await locator.scrollIntoViewIfNeeded();
   await expect(locator).toBeVisible();
+}
+
+async function expectHeaderDestinationsReachable(page: Page) {
+  const nav = page.locator(".tl-topbar__nav");
+  await expect(nav).toBeVisible();
+
+  for (const group of ["Find", "Verify", "Prove"]) {
+    await expectReachable(nav.locator(`.tl-topbar__nav-group[aria-label="${group}"] .tl-topbar__nav-label`));
+  }
+
+  for (const destination of destinations) {
+    const link = page.getByTestId(destination.testId);
+    await expectReachable(link);
+    await expect(link).toHaveAttribute("href", destination.path);
+  }
+}
+
+async function expectPath(page: Page, path: string) {
+  await expect.poll(() => new URL(page.url()).pathname).toBe(path);
 }
 
 test.describe("operator Home orientation mobile UAT", () => {
@@ -69,5 +107,30 @@ test.describe("operator Home orientation mobile UAT", () => {
     await expect(main.getByLabel(/correlation/i)).toHaveCount(0);
 
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("header destinations stay reachable from representative screens", async ({
+    page,
+  }) => {
+    for (const screen of representativeScreens) {
+      await page.goto(screen);
+      await expectPath(page, screen);
+      await expectHeaderDestinationsReachable(page);
+      await expectNoHorizontalOverflow(page);
+    }
+  });
+
+  test("home header nav activates every enabled destination", async ({ page }) => {
+    for (const destination of destinations) {
+      await page.goto("/audit");
+      await expectPath(page, "/audit");
+
+      const link = page.getByTestId(destination.testId);
+      await expectReachable(link);
+      await link.click();
+
+      await expectPath(page, destination.path);
+      await expectNoHorizontalOverflow(page);
+    }
   });
 });
