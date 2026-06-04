@@ -17,7 +17,7 @@ Phase 144 closes `POLISH-AUDIT` and `POLISH-DS` through the three-source traceab
 | `test/threadline/operator_surface/style_contract_test.exs` | `POLISH-DS` | Passing source contract for frozen tokens, canonical primitive families, anti-patterns, and operation/status semantics. |
 | `DB_PORT=5433 mix verify.example_browser` | `POLISH-AUDIT`, `POLISH-DS` | Passing after a narrow verification-lane repair: `133 passed`, `5 skipped`. |
 | `gsd-sdk query verify.schema-drift 144 --raw` | `POLISH-DS` | Passing; `drift_detected: false`, `blocking: false`. |
-| `gsd-sdk query milestone.audit v1.31` | `POLISH-AUDIT`, `POLISH-DS` | To be rerun after ledger updates in Task 3; this report is updated with the final audit result before closeout. |
+| `gsd-sdk query milestone.audit v1.31` | `POLISH-AUDIT`, `POLISH-DS` | Tooling drift found: command is not registered in the installed SDK. The workflow-equivalent audit rerun is recorded in `.planning/v1.31-MILESTONE-AUDIT.md` with `status: passed` and empty requirement gaps. |
 
 ## Automated Evidence
 
@@ -28,7 +28,7 @@ Phase 144 closes `POLISH-AUDIT` and `POLISH-DS` through the three-source traceab
 | `gsd-sdk query verify.schema-drift 144 --raw` | Passed: `{"drift_detected": false, "blocking": false, "schema_files": [], "orms": [], "unpushed_orms": [], "message": "", "skipped": false}`. |
 | `find .planning/milestones/v1.31-screenshots/baseline -maxdepth 1 -type f -name '*.png' \| wc -l` | Passed: `24`. |
 | `find .planning/milestones/v1.31-screenshots/final -maxdepth 1 -type f -name '*.png' \| wc -l` | Passed: `24`. |
-| `gsd-sdk query milestone.audit v1.31` | Pending Task 3 rerun after requirement and roadmap/state traceability updates. |
+| `gsd-sdk query milestone.audit v1.31` | Failed due installed SDK command drift: fallback `gsd-tools.cjs` reported `Unknown milestone subcommand. Available: complete`. Manual workflow-equivalent audit rerun passed in `.planning/v1.31-MILESTONE-AUDIT.md`: `status: passed`, `requirements: 10/10`, no requirement gaps. |
 
 Browser verification initially exposed unstable verification assumptions around row-history evidence: the accessibility test focused a LiveView link before proving the final row node was visible, and the row-history screenshot guard compared generated UUID/timestamp pixels too tightly. The verification lane was repaired by waiting for the row-history link to be visible and scrolled before asserting focus, and by applying a scoped `0.03` screenshot diff ratio only to the row-history guard. The final rerun passed.
 
@@ -36,8 +36,8 @@ Browser verification initially exposed unstable verification assumptions around 
 
 | Requirement | Closure source | Verification status |
 |---|---|---|
-| `POLISH-AUDIT` | Phase 144 errata verifies the Phase 134-labeled `v1.31-UI-AUDIT.md` baseline, 24 baseline PNGs, 24 final PNGs, Phase 143 screenshot diff, and Phase 143 audit closure registry. | Closed by artifact checks, screenshot counts, browser proof, and milestone-audit rerun. |
-| `POLISH-DS` | Phase 144 source-first operation consolidation, `style.ex` freeze marker, `style_contract_test.exs`, and `v1.31-DESIGN-SYSTEM.md` catalog complete the missing Phase 136 evidence. | Closed by source contract tests, design-system catalog evidence, browser proof, schema-drift check, and milestone-audit rerun. |
+| `POLISH-AUDIT` | Phase 144 errata verifies the Phase 134-labeled `v1.31-UI-AUDIT.md` baseline, 24 baseline PNGs, 24 final PNGs, Phase 143 screenshot diff, and Phase 143 audit closure registry. | Closed by artifact checks, screenshot counts, browser proof, and milestone audit rerun. |
+| `POLISH-DS` | Phase 144 source-first operation consolidation, `style.ex` freeze marker, `style_contract_test.exs`, and `v1.31-DESIGN-SYSTEM.md` catalog complete the missing Phase 136 evidence. | Closed by source contract tests, design-system catalog evidence, browser proof, schema-drift check, and milestone audit rerun. |
 
 The final `144-04-SUMMARY.md` must use `requirements-completed: [POLISH-AUDIT, POLISH-DS]`. New Phase 144 summaries must not use deprecated `requirements_completed`.
 
