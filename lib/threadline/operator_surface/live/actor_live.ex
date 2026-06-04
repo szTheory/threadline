@@ -1,7 +1,9 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.ActorLive do
     use Phoenix.LiveView
+    import Ecto.Query
 
+    alias Threadline.Capture.AuditChange
     alias Threadline.OperatorSurface.Presentation
 
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
@@ -46,11 +48,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {true, nil}
             end
 
+          actor_summaries = actor_summaries(page.entries, repo, socket.assigns[:threadline_scope])
+
           {:ok,
            socket
            |> assign(:not_found, false)
            |> assign(:actor_ref, actor_ref)
            |> assign(:repo, repo)
+           |> assign(:actor_summaries, actor_summaries)
            |> assign(:from_time, from_time)
            |> assign(:time_window_hours, 24)
            |> assign(:has_ever_acted, has_ever_acted)
@@ -149,12 +154,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div :for={{dom_id, tx} <- @streams.transactions} id={dom_id} class="tl-change" data-testid="actor-transaction-row">
                   <div class="tl-change__summary">
                     <div class="tl-change__meta">
+                      <span class="tl-actor-summary"><%= Map.get(@actor_summaries, tx.id, Presentation.actor_transaction_summary(nil)) %></span>
                       <time class="tl-change__time" datetime={Presentation.exact_time(tx.occurred_at)} title={Presentation.exact_time(tx.occurred_at)}>
                         <%= Presentation.human_time(tx.occurred_at) %>
                       </time>
                     </div>
                     <div class="tl-meta">
-                      <span>Transaction <code title={tx.id}><%= Presentation.short_id(tx.id, 14) %></code></span>
+                      <% tx_ref = Presentation.secondary_ref(tx.id, 24) %>
+                      <span>Transaction <code class="tl-secondary-ref" title={tx_ref.title}><%= tx_ref.visible %></code></span>
                       <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
                     </div>
                     <div class="tl-change__actions">
@@ -185,10 +192,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
         )
 
+      actor_summaries = actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+
       {:noreply,
        socket
        |> assign(:time_window_hours, hours)
        |> assign(:from_time, from_time)
+       |> assign(:actor_summaries, actor_summaries)
        |> assign(:next_cursor, page.next_cursor)
        |> assign(:prev_cursor, page.prev_cursor)
        |> stream(:transactions, page.entries, reset: true)}
@@ -211,8 +221,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             }
           )
 
+        actor_summaries =
+          Map.merge(
+            socket.assigns.actor_summaries,
+            actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+          )
+
         {:noreply,
          socket
+         |> assign(:actor_summaries, actor_summaries)
          |> assign(:next_cursor, page.next_cursor)
          |> stream(:transactions, page.entries, at: -1)}
       else
@@ -237,8 +254,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             }
           )
 
+        actor_summaries =
+          Map.merge(
+            socket.assigns.actor_summaries,
+            actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+          )
+
         {:noreply,
          socket
+         |> assign(:actor_summaries, actor_summaries)
          |> assign(:prev_cursor, page.prev_cursor)
          |> stream(:transactions, page.entries, at: 0)}
       else
@@ -254,6 +278,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       "#{base_path}/timeline?#{query}"
+    end
+
+    defp actor_summaries(_transactions, _repo, scope)
+         when not is_nil(scope),
+         do: %{}
+
+    defp actor_summaries(transactions, repo, _scope) do
+      ids = transactions |> Enum.map(& &1.id) |> Enum.reject(&is_nil/1)
+
+      if ids == [] do
+        %{}
+      else
+        AuditChange
+        |> where([ac], ac.transaction_id in ^ids)
+        |> order_by([ac], asc: ac.transaction_id, desc: ac.captured_at, desc: ac.table_name)
+        |> repo.all()
+        |> Enum.group_by(& &1.transaction_id)
+        |> Map.new(fn {transaction_id, changes} ->
+          {transaction_id, Presentation.actor_transaction_summary(Enum.map(changes, &summary_change/1))}
+        end)
+      end
+    end
+
+    defp summary_change(%AuditChange{} = change) do
+      %{
+        op: change.op,
+        table_name: change.table_name,
+        field_changes: change.changed_fields || []
+      }
     end
   end
 end
