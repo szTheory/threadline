@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Ecto.Query
 
     alias Threadline.Governance.ExportJob
+    alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
 
@@ -19,6 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket =
         socket
         |> assign(:base_path, nil)
+        |> assign(:timeline_export_context, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
         |> assign_jobs(fetch_jobs(socket))
 
@@ -32,9 +34,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket =
         socket
         |> assign(:base_path, base_path)
+        |> assign(:timeline_export_context, timeline_export_context(params))
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor(params))
 
       {:noreply, socket}
+    end
+
+    def handle_event("queue_timeline_export_context", _params, socket) do
+      case socket.assigns.timeline_export_context do
+        %{status: :valid, query_params: query_params} when query_params != %{} ->
+          repo = resolve_repo(socket)
+
+          job =
+            %ExportJob{
+              status: "pending",
+              query_params: query_params,
+              actor_ref: socket.assigns[:threadline_actor_ref]
+            }
+            |> repo.insert!()
+
+          adapter =
+            Application.get_env(
+              :threadline,
+              :export_queue_adapter,
+              Threadline.ExportQueue.TaskAdapter
+            )
+
+          case adapter.enqueue(job.id) do
+            :ok ->
+              {:noreply,
+               socket
+               |> put_flash(:info, "Timeline export context queued.")
+               |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
+
+            {:error, reason} ->
+              error_message = background_export_error_message(reason)
+
+              job
+              |> ExportJob.changeset(%{
+                status: "failed",
+                error_message: error_message,
+                expires_at: terminal_export_expiry()
+              })
+              |> repo.update!()
+
+              {:noreply, put_flash(socket, :error, error_message)}
+          end
+
+        _ ->
+          {:noreply, socket}
+      end
     end
 
     def handle_info(:refresh, socket) do
@@ -83,6 +132,52 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-chip tl-chip--neutral">Filtered timeline packets</span>
               <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
             </section>
+
+            <%= if @timeline_export_context do %>
+              <section
+                class="tl-job tl-job--info"
+                data-testid="timeline-export-context"
+                data-earned-flow="EF3"
+                data-persona="P3"
+                data-jtbd="J6"
+              >
+                <div class="tl-job__main">
+                  <div class="tl-job__summary">
+                    <span class="tl-chip tl-chip--info">Timeline export context</span>
+                    <div class="tl-job__title">
+                      <strong>Exports handoff</strong>
+                      <span>Pre-populated from the active Timeline filters.</span>
+                    </div>
+                  </div>
+                  <div class="tl-job__actions">
+                    <button
+                      :if={@timeline_export_context.status == :valid}
+                      type="button"
+                      phx-click="queue_timeline_export_context"
+                      class="tl-button tl-button--primary tl-button--compact"
+                    >
+                      Queue Timeline export
+                    </button>
+                  </div>
+                </div>
+
+                <div :if={@timeline_export_context.status == :valid} class="tl-param-list" aria-label="Timeline export filters">
+                  <%= for {key, value} <- @timeline_export_context.pairs do %>
+                    <% ref = Presentation.secondary_ref(value, 42) %>
+                    <span class="tl-param" title={"#{key}: #{ref.title}"}>
+                      <span class="tl-param__key"><%= key %></span>
+                      <span class="tl-param__value tl-secondary-ref"><%= ref.visible %></span>
+                    </span>
+                  <% end %>
+                </div>
+
+                <div :if={@timeline_export_context.status == :invalid} class="tl-alert tl-alert--error" role="alert">
+                  <strong>Timeline export context could not be applied.</strong>
+                  Fix the Timeline filters, then carry them to Exports again.
+                  <span><%= @timeline_export_context.error %></span>
+                </div>
+              </section>
+            <% end %>
 
             <%= if not @has_jobs do %>
               <div class="tl-empty">
@@ -307,5 +402,66 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp timeline_search_path(base_path, _params), do: base_path
+
+    defp timeline_export_context(params) when is_map(params) do
+      raw = FilterParams.filters_raw_from_params(params)
+
+      if FilterParams.canonical_query(raw) == "" do
+        nil
+      else
+        case FilterParams.parse(params) do
+          {:ok, filters} ->
+            case safe_validate(filters) do
+              :ok ->
+                query_params = canonical_query_params(raw)
+
+                %{
+                  status: :valid,
+                  query_params: query_params,
+                  pairs: Presentation.query_pairs(query_params)
+                }
+
+              {:error, message} ->
+                %{status: :invalid, error: message}
+            end
+
+          {:error, message} ->
+            %{status: :invalid, error: message}
+        end
+      end
+    end
+
+    defp canonical_query_params(raw) do
+      raw
+      |> FilterParams.canonical_query()
+      |> URI.decode_query()
+    end
+
+    defp safe_validate(filters) do
+      try do
+        Threadline.Query.validate_timeline_filters!(filters)
+        :ok
+      rescue
+        e in ArgumentError -> {:error, e.message}
+      end
+    end
+
+    defp background_export_error_message(:supervisor_not_started) do
+      "Background export could not start because the built-in export runtime is unavailable."
+    end
+
+    defp background_export_error_message(reason) do
+      "Background export could not start: #{inspect(reason)}."
+    end
+
+    defp terminal_export_expiry do
+      retention_ttl_hours =
+        Application.get_env(:threadline, :exports, [])
+        |> Keyword.get(:retention_ttl_hours, 24 * 7)
+
+      DateTime.utc_now()
+      |> DateTime.truncate(:microsecond)
+      |> DateTime.add(retention_ttl_hours * 60 * 60, :second)
+    end
   end
 end

@@ -411,6 +411,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <%= if @threadline_exports_enabled do %>
                 <div class="tl-action-group tl-action-group--secondary" aria-label="Export actions">
                   <button phx-click="request_background_export" type="button" class="tl-button tl-button--quiet-primary">Queue export</button>
+                  <.link
+                    navigate={"#{@base_path}/exports?#{@filter_query}"}
+                    class="tl-button tl-button--compact tl-button--secondary"
+                    data-earned-flow="EF3"
+                    data-persona="P3"
+                    data-jtbd="J6"
+                  >
+                    Carry to Exports
+                  </.link>
                   <.link href={"#{@base_path}/exports/changes.csv?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">CSV</.link>
                   <.link href={"#{@base_path}/exports/changes.json?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">JSON</.link>
                   <.link href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"} download class="tl-button tl-button--compact tl-button--secondary">NDJSON</.link>
