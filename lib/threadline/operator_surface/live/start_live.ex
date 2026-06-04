@@ -69,6 +69,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
           current={:start}
+          scoped={not is_nil(assigns[:threadline_scope])}
         />
 
         <main id="tl-main" class="tl-page tl-home">

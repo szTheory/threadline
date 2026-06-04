@@ -17,6 +17,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def coverage_authorize(_),
       do: Application.get_env(:threadline, :test_start_live_coverage, true)
+
+    def scoped_authorize(_), do: {:ok, %{tenant_id: "support"}}
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.Router do
@@ -48,6 +50,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.ScopedRouter do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scoped",
+        repo: Threadline.Test.Repo,
+        authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.scoped_authorize/1,
+        coverage_authorize_fn:
+          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
+        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+      )
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StartLiveTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -63,6 +95,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.StartLiveTest.Router)
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_start_scoped_key",
+      signing_salt: "start-scoped"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.StartLiveTest.ScopedRouter)
   end
 
   defmodule Threadline.OperatorSurface.Live.StartLiveTest do
@@ -297,6 +346,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp home_health(html) do
       Regex.run(~r/<div class="tl-home__health".*?<\/div>/s, html)
       |> List.first()
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.StartLiveScopedTest do
+    use Threadline.DataCase, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    alias Threadline.Semantics.ActorRef
+
+    @endpoint Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint,
+        secret_key_base: "z" |> String.duplicate(64),
+        live_view: [signing_salt: "z" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
+
+      conn =
+        build_conn()
+        |> Plug.Test.init_test_session(
+          threadline_actor_ref: Jason.encode!(ActorRef.to_map(actor_ref))
+        )
+
+      {:ok, conn: conn}
+    end
+
+    test "renders scoped affordance when Home is mounted with an operator scope", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/audit_scoped")
+
+      assert html =~ "Scoped view"
+      assert has_element?(view, ~s|[data-testid="operator-scope"]|, "Scoped view")
+      assert has_element?(view, ~s|a[href="/audit_scoped/timeline"]|, "Timeline")
+      assert has_element?(view, ~s|a[href="/audit_scoped/coverage"]|)
     end
   end
 end
