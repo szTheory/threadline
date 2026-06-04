@@ -47,4 +47,42 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "background: var(--tl-color-surface-raised)")
     assert String.contains?(src, "border-color: var(--tl-color-border)")
   end
+
+  test "phase 138 find primitives stay token-backed and dark-only" do
+    src = File.read!(@style_path)
+
+    for class <- [
+          ".tl-value",
+          ".tl-value--null",
+          ".tl-value--time",
+          ".tl-value--redacted",
+          ".tl-value--omitted",
+          ".tl-value--absent",
+          ".tl-diff",
+          ".tl-diff__arrow",
+          ".tl-filter-summary",
+          ".tl-journey--legend",
+          ".tl-actor-summary",
+          ".tl-remediation__command",
+          ".tl-remediation__action",
+          ".tl-short-content"
+        ] do
+      assert String.contains?(src, class)
+    end
+
+    find_section =
+      src
+      |> String.split("/* Find cluster primitives")
+      |> List.last()
+      |> String.split("/* End Find cluster primitives */")
+      |> List.first()
+
+    assert String.contains?(find_section, "var(--tl-")
+    refute String.contains?(find_section, "prefers-color-scheme")
+    refute String.contains?(find_section, "color-scheme: light")
+    refute String.contains?(find_section, "@tailwind")
+    refute String.contains?(find_section, "from shadcn")
+    refute Regex.match?(~r/#[0-9a-fA-F]{6}/, find_section)
+    assert String.contains?(src, ".tl-copy:hover")
+  end
 end
