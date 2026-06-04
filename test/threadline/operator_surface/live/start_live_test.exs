@@ -1,0 +1,274 @@
+if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.StartLiveTest.Layouts do
+    use Phoenix.Component
+
+    def root(assigns) do
+      ~H"""
+      <html>
+        <head><title>Test</title></head>
+        <body><%= @inner_content %></body>
+      </html>
+      """
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.Auth do
+    def authorize(_), do: true
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.Router do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        repo: Threadline.Test.Repo,
+        coverage_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+      )
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.Endpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_start_key",
+      signing_salt: "start-home"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.StartLiveTest.Router)
+  end
+
+  defmodule Threadline.OperatorSurface.Live.StartLiveTest do
+    use Threadline.DataCase, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    alias Threadline.Governance.ExportJob
+    alias Threadline.Governance.RetentionRun
+    alias Threadline.Governance.SavedView
+    alias Threadline.Semantics.ActorRef
+
+    @endpoint Threadline.OperatorSurface.StartLiveTest.Endpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.Endpoint,
+        secret_key_base: "s" |> String.duplicate(64),
+        live_view: [signing_salt: "s" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
+      )
+
+      original_interval = Application.get_env(:threadline, :coverage_poll_ms)
+      Application.put_env(:threadline, :coverage_poll_ms, 5_000)
+
+      on_exit(fn ->
+        if original_interval do
+          Application.put_env(:threadline, :coverage_poll_ms, original_interval)
+        else
+          Application.delete_env(:threadline, :coverage_poll_ms)
+        end
+      end)
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      Threadline.Test.Repo.delete_all(SavedView)
+      Threadline.Test.Repo.delete_all(ExportJob)
+      Threadline.Test.Repo.delete_all(RetentionRun)
+
+      {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
+
+      conn =
+        build_conn()
+        |> Plug.Test.init_test_session(
+          threadline_actor_ref: Jason.encode!(ActorRef.to_map(actor_ref))
+        )
+
+      {:ok, conn: conn, actor_ref: actor_ref}
+    end
+
+    test "renders Home as an orientation hub with existing destinations", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ "Follow what happened."
+      refute html =~ ~s|class="tl-home__eyebrow">Threadline</p>|
+
+      assert html =~ "Find"
+      assert html =~ "What changed?"
+      assert html =~ ~s|href="/audit/timeline"|
+
+      assert html =~ "Verify"
+      assert html =~ "Is everything captured?"
+      assert html =~ ~s|href="/audit/coverage"|
+
+      assert html =~ "Prove"
+      assert html =~ "Prove and export"
+      assert html =~ ~s|href="/audit/evidence"|
+      assert html =~ ~s|href="/audit/policy/redaction"|
+      assert html =~ ~s|href="/audit/policy/retention"|
+      assert html =~ ~s|href="/audit/exports"|
+      assert html =~ "tl-home__prove-handoff"
+
+      refute html =~ ~s|href="/audit/records"|
+      refute html =~ ~s|href="/audit/correlations"|
+      refute html =~ ~s|href="/audit/row-history"|
+    end
+
+    test "renders all-clear health as a quiet success", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ "All systems healthy"
+      assert html =~ "tl-chip tl-chip--success"
+    end
+
+    test "renders coverage gaps as an action narrative distinct from topbar count", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ ~s|href="/audit/coverage"|
+      assert html =~ "tl-chip tl-chip--warning"
+      assert html =~ "Close coverage gaps before trusting Timeline answers"
+      refute html =~ ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
+    end
+
+    test "renders current actor failed exports as danger without leaking other actors", %{
+      conn: conn,
+      actor_ref: actor_ref
+    } do
+      {:ok, other_actor} = ActorRef.new(:user, "other-operator")
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      insert_export!(actor_ref, "failed", now)
+      insert_export!(other_actor, "failed", now)
+
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ ~s|href="/audit/exports"|
+      assert html =~ "tl-chip tl-chip--danger"
+      assert html =~ "1 failed export needs attention"
+      refute html =~ "2 failed exports"
+    end
+
+    test "renders latest failed retention run as danger", %{conn: conn} do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      %RetentionRun{}
+      |> RetentionRun.changeset(%{
+        status: "failed",
+        started_at: now,
+        completed_at: now,
+        deleted_count: 0
+      })
+      |> Threadline.Test.Repo.insert!()
+
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ ~s|href="/audit/policy/retention"|
+      assert html =~ "Latest retention run failed"
+      assert html =~ "tl-chip tl-chip--danger"
+    end
+
+    test "renders actor-owned saved view resume links with canonical timeline URLs", %{
+      conn: conn,
+      actor_ref: actor_ref
+    } do
+      {:ok, other_actor} = ActorRef.new(:user, "other-operator")
+
+      insert_view!(actor_ref, "Recent deletes", %{
+        "op" => "delete",
+        "table" => "posts",
+        "actor_kind" => "",
+        "actor_id" => ""
+      })
+
+      insert_view!(actor_ref, "Closed this week", %{
+        "table" => "tickets",
+        "from" => "2026-06-01T00:00",
+        "to" => "2026-06-07T23:59",
+        "op" => "update"
+      })
+
+      insert_view!(other_actor, "Other actor scope", %{"table" => "secrets"})
+
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ "Pick up where you left off"
+      assert html =~ "Recent deletes"
+      assert html =~ ~s|href="/audit/timeline?op=delete&amp;table=posts"|
+      assert html =~ "Closed this week"
+      assert html =~
+               ~s|href="/audit/timeline?from=2026-06-01T00%3A00&amp;to=2026-06-07T23%3A59&amp;op=update&amp;table=tickets"|
+
+      refute html =~ "Other actor scope"
+      refute html =~ "secrets"
+    end
+
+    test "renders honest resume empty state when the actor has no saved views", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit")
+
+      assert html =~ "Pick up where you left off"
+      assert html =~ "No saved timeline searches yet."
+      refute html =~ "tl-home__view"
+    end
+
+    test "Home source does not include Phase 140 lookup or patch behavior" do
+      src = File.read!("lib/threadline/operator_surface/live/start_live.ex")
+
+      for forbidden <- [
+            "<form",
+            "phx-submit",
+            "phx-change",
+            ~s|name="record|,
+            ~s|name="correlation_id"|,
+            "record_lookup",
+            "push_patch"
+          ] do
+        refute String.contains?(src, forbidden)
+      end
+    end
+
+    defp insert_export!(actor_ref, status, started_at) do
+      %ExportJob{}
+      |> ExportJob.changeset(%{
+        status: status,
+        query_params: %{"table" => "tickets"},
+        actor_ref: actor_ref,
+        started_at: started_at
+      })
+      |> Threadline.Test.Repo.insert!()
+    end
+
+    defp insert_view!(actor_ref, name, filters) do
+      %SavedView{}
+      |> SavedView.changeset(%{
+        name: name,
+        actor_ref: actor_ref,
+        filters: filters
+      })
+      |> Threadline.Test.Repo.insert!()
+    end
+  end
+end
