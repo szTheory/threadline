@@ -390,7 +390,7 @@ live("/rows/:table/:record_id", RowHistoryLive, :show)
 | D-140-R1 | The first-class row-history route literal is `/rows/:table/:record_id`. | Existing transaction route already uses `.../history/:table/:record_id`; Phase 140 needs a short Home target that is not transaction-scoped. [VERIFIED: `router.ex:106`] | Plans should implement `/rows/:table/:record_id`, update doc contracts that previously rejected bare `/audit/rows/...`, and keep the implementation as a thin wrapper over `RowHistoryComponent`. |
 | D-140-R2 | Evidence-to-Exports is an explicit proof-context handoff/banner in Exports, not a persisted `ExportJob` and not a file export generated from Evidence-only params. | `ExportJob.query_params` and `FilterParams` are Timeline-filter shaped, while Evidence params are `subject`, `subject_ref_json`, and `mode`. [VERIFIED: `export_status_live.ex:155`; VERIFIED: `evidence_live.ex:172`] | This satisfies POLISH-FLOWS by pre-populating the Exports handoff surface with the Evidence proof context while avoiding a fictitious Timeline export filter. A downloadable Evidence package is a separate future export format, outside Phase 140. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 All research questions that affect shipped Phase 140 scope are resolved above. Remaining details are implementation choices inside the committed plans:
 
