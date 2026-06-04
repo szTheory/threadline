@@ -236,7 +236,7 @@ Plans:
 **Goal:** Close the two remaining v1.31 audit blockers by verifying the existing Phase 134-labeled baseline evidence through explicit Phase 144 errata, completing the source-first design-system consolidation/catalog/freeze for POLISH-DS, and rerunning final traceability/milestone audit checks without adding product scope.
 **Requirements**: POLISH-AUDIT, POLISH-DS
 **Depends on:** Phase 143
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
