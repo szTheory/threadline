@@ -305,6 +305,27 @@ defmodule ThreadlinePhoenix.DemoContractTest do
                "expected 0 org_memberships setup rows in default 24h window, got #{in_window_count}"
       end)
     end
+
+    test "untracked null-actor setup rows are backdated outside the default 24h window" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        import Ecto.Query
+
+        window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
+
+        in_window_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: is_nil(at.actor_ref),
+              where: at.occurred_at >= ^window_start,
+              select: count(ac.id)
+            )
+          )
+
+        assert in_window_count == 0,
+               "expected 0 null-actor setup rows in default 24h window, got #{in_window_count}"
+      end)
+    end
   end
 
   describe "D-13 in-window variety guarantee" do

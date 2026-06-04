@@ -93,6 +93,7 @@ mix deps.get --only test
 mix compile
 mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
 mix ecto.migrate --quiet
+mix demo.reset
 mix demo.seed
 
 cd "$E2E_DIR"

@@ -1,6 +1,10 @@
 defmodule ThreadlinePhoenix.Demo.Seed.Temporal do
   @moduledoc false
 
+  import Ecto.Query
+
+  alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Repo
 
   @doc false
@@ -20,8 +24,39 @@ defmodule ThreadlinePhoenix.Demo.Seed.Temporal do
       )
     end)
 
+    backdate_untracked_null_actor_transactions(Map.keys(timestamps))
     ctx
   end
 
-  def run(ctx), do: ctx
+  def run(ctx) do
+    backdate_untracked_null_actor_transactions([])
+    ctx
+  end
+
+  defp backdate_untracked_null_actor_transactions(timestamped_ids) do
+    setup_ts = DateTime.add(Manifest.epoch(), -21, :day)
+
+    query =
+      from(at in AuditTransaction,
+        where: is_nil(at.actor_ref),
+        where: at.id not in ^timestamped_ids,
+        select: at.id
+      )
+
+    ids = Repo.all(query)
+
+    if ids != [] do
+      Repo.update_all(
+        from(at in AuditTransaction, where: at.id in ^ids),
+        set: [occurred_at: setup_ts]
+      )
+
+      Repo.update_all(
+        from(ac in AuditChange, where: ac.transaction_id in ^ids),
+        set: [captured_at: setup_ts]
+      )
+    end
+
+    :ok
+  end
 end

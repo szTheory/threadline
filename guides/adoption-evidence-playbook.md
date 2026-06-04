@@ -20,7 +20,7 @@ This is **not** a substitute for integrator-owned staging evidence. See [evaluat
    - `track_a_golden_path_test.exs` — first audited write without `demo.seed`
    - `threadline_evidence_show_example_test.exs` — `mix threadline.evidence.show` on seeded fiction
 
-4. **Browser gaps (optional)** — `mix verify.example_browser` runs Playwright against `mix phx.server` + `mix demo.seed` fiction.
+4. **Browser gaps (optional)** — `mix verify.example_browser` resets/seeds demo fiction, starts `mix phx.server`, and runs Playwright.
 
 ## Demo app tracks
 

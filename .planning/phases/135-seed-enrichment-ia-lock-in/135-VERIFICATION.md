@@ -1,34 +1,35 @@
 ---
 phase: 135-seed-enrichment-ia-lock-in
-verified: 2026-06-03T00:00:00Z
-status: human_needed
+verified: 2026-06-04T00:00:00Z
+status: passed
 score: 4/4
 overrides_applied: 0
-human_verification:
-  - test: "After `mix demo.reset && mix demo.seed`, log in as admin@example.com, open /audit/timeline (default 24h window). Confirm: op variety rows (INSERT/UPDATE/DELETE) are visible above the fold; service_account/zendesk-sync, job/oban-retention-purge, system/trigger-backfill, and anonymous actor labels appear in the actor column."
-    expected: "All four non-human actor kinds visible in-window, with at least one UPDATE and one DELETE row visible without changing filters."
-    why_human: "Verifies rendering/display on the operator surface; the code injects the data and the D-13 contract test passes, but whether the LiveView _renders_ those rows correctly cannot be confirmed without a running browser."
-  - test: "Open the transaction for the reply-edit story (ticket 5001, the UPDATE that occurred ~1h ago). Inspect the diff panel. Confirm `internal_note_body` shows `[REDACTED]` (not the raw internal text) and `body` shows a before/after diff."
-    expected: "Rich before/after diff visible; internal_note_body masked as [REDACTED]; body diff shows original vs edited text."
-    why_human: "D-12.1/D-14 redaction cohesion — the seed inserts the masked data via the existing trigger mask config. Whether the operator surface renders the masked before/after correctly (not just stores it) requires visual confirmation."
-  - test: "Log in as support@offboarded-co.example.com and open /audit/timeline. Confirm the Timeline is empty and shows an empty-state message (not an error)."
-    expected: "Honest empty scoped Timeline — no audit rows visible, empty-state copy rendered."
-    why_human: "Per-screen render state; the seed guarantees zero audit footprint for offboarded-co (RetentionTail contract test passes), but the empty-state display is a LiveView render concern."
-  - test: "Log in as support@acme.example.com and attempt to open /audit/coverage. Confirm an unauthorized response is returned (redirect, 403, or Phoenix error page) and NOT a scoped Coverage screen."
-    expected: "Permission-edge state: {:error, :unauthorized} from LiveView authorize_fn prevents access; operator surface does not crash."
-    why_human: "Authorization behavior at the LiveView mount is runtime behavior; cannot be verified with grep."
+human_verification: []
+automated_uat:
+  - test: "In-window Timeline op variety and non-human actor labels"
+    expected: "Default /audit/timeline renders UPDATE and DELETE rows plus service_account/zendesk-sync, job/oban-retention-purge, system/trigger-backfill, and anonymous/unknown actor rendering."
+    evidence: "`examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts`; verified by `mix verify.example_browser` (`145 passed`, `5 skipped`)."
+  - test: "Reply-edit transaction diff with masked internal_note_body"
+    expected: "The ticket_replies UPDATE transaction renders body before/after values and [REDACTED] for internal_note_body, without raw internal note text."
+    evidence: "`examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts`; verified by `mix verify.example_browser` (`145 passed`, `5 skipped`)."
+  - test: "Offboarded support scoped empty Timeline"
+    expected: "support@offboarded-co.example.com renders a scoped empty Timeline without crashing."
+    evidence: "`examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts`; verified by `mix verify.example_browser` (`145 passed`, `5 skipped`)."
+  - test: "Support user denied admin-only Coverage"
+    expected: "support@acme.example.com cannot render the Coverage dashboard and receives the unsupported/denied support-lane state without a crash."
+    evidence: "`examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts`; verified by `mix verify.example_browser` (`145 passed`, `5 skipped`)."
 ---
 
 # Phase 135: Seed Enrichment & IA Lock-In Verification Report
 
 **Phase Goal:** Enrich the demo seed so every operator-surface screen demonstrates itself (empty / long-list / status-variety / edge cases all reachable with NO code changes), update DEMO-MANIFEST.md as SSOT, and lock the persona/JTBD IA decisions into the audit doc. SEED ONLY — no schema, route, or business-logic changes.
-**Verified:** 2026-06-03T00:00:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-06-04T00:00:00Z
+**Status:** passed
+**Re-verification:** Yes - previous verification was `human_needed`; render/permission-edge checks are now automated by Playwright.
 
 ## Goal Achievement
 
-All four success criteria pass automated checks. Four human verification items are required for render/permission-edge confirmation (the phase explicitly defers per-screen render fixes to phases 136–143; the data and data-layer guarantees are fully in place).
+All four success criteria pass automated checks. The prior render/permission-edge confirmations are now covered by focused Playwright E2E assertions in `operator-phase-135-uat.spec.ts`; no human verification remains.
 
 ### Observable Truths
 
@@ -47,6 +48,7 @@ All four success criteria pass automated checks. Four human verification items a
 |----------|----------|--------|---------|
 | `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex` | Actor-kind-generalized GUC + audit_context helpers (D-07) | VERIFIED | `set_actor_guc!(actor_id, kind \\ :user)` with kind guard for 5 non-anonymous kinds; `set_anonymous_actor_guc!/0` for :anonymous; `audit_context/2` reads `kind = Keyword.get(opts, :kind, :user)`. No :integration kind. Existing callers (anchors.ex, personas.ex) use the :user default — no arity break. |
 | `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex` | D-05 fix: persona/setup rows get :admin actor + backdated timestamp | VERIFIED | `seed_memberships/1` uses `Enum.reduce` pattern; calls `Support.set_actor_guc!(admin_id, :admin)` inside each `Repo.transaction`; `setup_ts = DateTime.add(Manifest.epoch(), -21, :day)` (21 days before epoch = outside 24h window); no `DateTime.utc_now` in setup rows. |
+| `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/temporal.ex` | Setup/upsert noise is backdated out of the default 24h window | VERIFIED | `Temporal.run/1` applies explicit story timestamps and then backdates untracked null-actor transactions to `Manifest.epoch() - 21 days`; `demo_contract_test.exs` asserts zero null-actor audit rows in the default 24h window. |
 | `examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex` | Named actor literals + accessor (D-06) | VERIFIED | `@actor_zendesk_sync "zendesk-sync"`, `@actor_oban_retention_purge "oban-retention-purge"`, `@actor_trigger_backfill "trigger-backfill"` as module attributes; `def actor_id(:zendesk_sync)`, `def actor_id(:oban_retention_purge)`, `def actor_id(:trigger_backfill)` accessors present. |
 | `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex` | seed_variety_pack/1 — in-window 5/4/2 op + multi-kind actor cluster (D-10/11/12) | VERIFIED | `seed_variety_pack/1` defined and called last in `run/1` (line 24). 9 private functions implement: reply-edit (INSERT+UPDATE with zendesk-sync service_account), ticket reopen+reassign (UPDATE with oban-retention-purge job), membership role change (UPDATE with trigger-backfill system, epoch-backdated per D-05), reply hard-delete (DELETE, anonymous actor), ticket delete (DELETE, trigger-backfill system), zendesk sync INSERT, stale sweep UPDATE, backfill UPDATE, anon submission INSERT. All in-window via `DateTime.utc_now() |> DateTime.add(-N, :hour)` + `Support.put_timestamp`. |
 | `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/filler.ex` | DELETE branch shifting corpus op-mix toward 55/35/10 (D-11) | VERIFIED | `status_roll = rem(number, 10)` deterministic; `status_roll == 0` → `Repo.delete!(ticket)` (~10%); `1..3` → closed UPDATE (~30–35%); else → in_progress UPDATE (~55–60%). Stays epoch-relative via `Support.random_days_ago_timestamp()` — no `DateTime.utc_now`. |
@@ -121,39 +123,35 @@ No `TBD`, `FIXME`, or `XXX` debt markers found in any files modified by this pha
 
 The code review (135-REVIEW.md) identified that D-12 story 6 (a membership DELETE) was not implemented. The DEMO-MANIFEST.md was corrected to honestly describe the membership operation as a role-change UPDATE (backdated outside the 24h window). This is not a gap — the manifest is now accurate, and the D-13 in-window DELETE guarantee is satisfied by ticket_replies and ticket DELETEs (stories 4 and 5). The manifest documents this correctly in the recipe table notes.
 
-### Human Verification Required
+### Automated UAT
 
-The automated checks (tests, grep patterns, git diff analysis) fully verify the data layer and the contracts. Four items require human confirmation because they depend on runtime rendering behavior in the LiveViews — the phase explicitly defers per-screen render fixes to phases 136–143, but these four behavioral confirmations verify that the seeded data _reaches_ the operator surface correctly.
+The prior render/permission-edge checks are now covered by `examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts` and run through the existing `mix verify.example_browser` CI lane. The browser harness now runs `mix demo.reset && mix demo.seed` before Playwright so repeated local/CI runs start from the documented UAT state.
 
 #### 1. In-window variety and non-human actors visible above fold in Timeline
 
-**Test:** After `mix demo.reset && mix demo.seed`, log in as `admin@example.com`, open `/audit/timeline` (default 24h window, no filters). Scan the visible rows.
-**Expected:** At least one UPDATE row and one DELETE row visible without changing filters. At least one row shows a non-human actor (service_account/zendesk-sync, job/oban-retention-purge, system/trigger-backfill, or anonymous).
-**Why human:** The D-13 contract test confirms the data exists in the DB; whether the Timeline LiveView renders those rows in the default sort order without code changes cannot be confirmed by grep.
+**Automated:** The spec logs in as `admin@example.com`, opens `/audit/timeline`, and asserts visible UPDATE and DELETE rows plus service_account/zendesk-sync, job/oban-retention-purge, system/trigger-backfill, and anonymous/unknown actor rendering.
 
 #### 2. Reply-edit rich diff with [REDACTED] internal_note_body
 
-**Test:** Open the in-window transaction for the reply-edit story (ticket 5001, UPDATE occurred ~1h ago in Timeline). Inspect the diff panel.
-**Expected:** `body` field shows before/after text diff; `internal_note_body` shows `[REDACTED]` (not the raw internal text). This demonstrates the D-12.1/D-14 redaction cohesion.
-**Why human:** The trigger mask config is in place and the seed inserts the data. Whether the diff panel renders the masked field visually requires a running app and visual inspection.
+**Automated:** The spec opens the in-window `ticket_replies` UPDATE transaction, asserts `body` before/after values, asserts `internal_note_body` renders `[REDACTED]`, and asserts the raw internal note strings are absent.
 
 #### 3. Empty scoped Timeline for offboarded-co support login
 
-**Test:** Log in as `support@offboarded-co.example.com`, open `/audit/timeline`.
-**Expected:** Empty Timeline state renders (no audit rows, empty-state copy visible — not an error or crash).
-**Why human:** The RetentionTail contract test asserts zero audit footprint. Whether the empty-state LiveView template renders correctly (rather than crashing on empty data) requires a running browser session.
+**Automated:** The spec logs in as `support@offboarded-co.example.com`, opens `/audit/timeline`, and asserts a scoped empty state with zero Timeline rows.
 
 #### 4. Permission-edge: support login on admin-only Coverage screen
 
-**Test:** Log in as `support@acme.example.com`, navigate to `/audit/coverage`.
-**Expected:** Access denied response — redirect, 403, or Phoenix error page. The LiveView `authorize_fn` should return `{:error, :unauthorized}` and the operator surface should handle it gracefully.
-**Why human:** Authorization at LiveView mount is runtime behavior; grep confirms the mechanism exists (`my_authorize_fn/1` + `scope_operator_query/3` referenced in DEMO-MANIFEST.md and CONTEXT.md), but whether it fires correctly without crashing requires a running session.
+**Automated:** The spec logs in as `support@acme.example.com`, opens `/audit/coverage`, and asserts the support session receives the unsupported/denied state rather than the Coverage dashboard.
+
+### Human Verification Required
+
+None. The runtime/browser behaviors that previously required human confirmation are now covered by focused Playwright assertions and the example browser CI lane.
 
 ### Gaps Summary
 
-No gaps found. All four success criteria are verified by automated checks. Status is `human_needed` because four runtime/render behaviors require a live browser session to confirm, per the Escalation Gate pattern: automated checks pass, human confirms rendering.
+No gaps found. All four success criteria are verified by automated checks, including the prior runtime/render behaviors. Status is `passed`; no human verification remains.
 
 ---
 
-_Verified: 2026-06-03T00:00:00Z_
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-06-04T00:00:00Z_
+_Verifier: the agent (automated UAT closure)_
