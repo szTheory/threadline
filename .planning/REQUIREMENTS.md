@@ -8,7 +8,7 @@
 
 ### Baseline & evidence
 
-- [ ] **POLISH-AUDIT**: An operator can review an objective current-state baseline — a screenshot set covering every screen × every meaningful state (empty/sparse/dense/error/scoped, mobile-375 + desktop-1280, N/A cells marked with reason) plus `v1.31-UI-AUDIT.md` (state matrix + touchpoint inventory + ranked consistency findings, each with ID/severity/proposed resolution/owning phase).
+- [x] **POLISH-AUDIT**: An operator can review an objective current-state baseline — a screenshot set covering every screen × every meaningful state (empty/sparse/dense/error/scoped, mobile-375 + desktop-1280, N/A cells marked with reason) plus `v1.31-UI-AUDIT.md` (state matrix + touchpoint inventory + ranked consistency findings, each with ID/severity/proposed resolution/owning phase). Closed by Phase 144 errata verification in `.planning/phases/144-close-gap-polish-audit-and-polish-ds/144-AUDIT-ERRATA.md`.
 
 ### Seed enrichment
 
@@ -57,7 +57,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| POLISH-AUDIT | Phase 134 — Baseline Audit & Screenshot Inventory | Pending |
+| POLISH-AUDIT | Phase 134 — Baseline Audit & Screenshot Inventory | Complete via Phase 144 errata verification |
 | POLISH-SEED | Phase 135 — Seed Enrichment & IA Lock-In | Complete |
 | POLISH-DS | Phase 136 — Design-System Hardening | Pending |
 | POLISH-PROVE | Phase 137 — "Prove" Cluster Polish | Complete |
