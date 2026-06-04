@@ -22,7 +22,7 @@
 | 136 | Design-System Hardening | POLISH-DS | in progress |
 | 137 | 4/4 | Complete    | 2026-06-04 |
 | 138 | 4/4 | Complete    | 2026-06-04 |
-| 139 | Orientation Hub (Home / Nav) | POLISH-HOME | not started |
+| 139 | 3/3 | Complete    | 2026-06-04 |
 | 140 | Earned New Flows | POLISH-FLOWS | not started |
 | 141 | Motion & Micro-animation | POLISH-MOTION | not started |
 | 142 | Responsive / Mobile-First | POLISH-RESPONSIVE | not started |
@@ -111,9 +111,9 @@
   2. A mobile nav pattern works at 375 and is reachable on every screen.
   3. The Home start page orients each defined persona to an obvious next action.
 **Plans**: 3 plans
-- [ ] 139-01-PLAN.md — SurfaceHeader grouped nav, active states, Exports handoff, and mobile-reachable primitives
-- [ ] 139-02-PLAN.md — Home orientation, health severity, saved-view resume, and Phase 140 non-leakage guards
-- [ ] 139-03-PLAN.md — Focused 375px Home/nav Playwright UAT
+- [x] 139-01-PLAN.md — SurfaceHeader grouped nav, active states, Exports handoff, and mobile-reachable primitives
+- [x] 139-02-PLAN.md — Home orientation, health severity, saved-view resume, and Phase 140 non-leakage guards
+- [x] 139-03-PLAN.md — Focused 375px Home/nav Playwright UAT
 **UI hint**: yes
 
 ### Phase 140: Earned New Flows
