@@ -30,7 +30,7 @@
 
 ### Motion
 
-- [ ] **POLISH-MOTION**: Micro-animation is restrained and purposeful — a documented motion inventory maps each animation → trigger → JTBD → token; every animation has a research-backed rationale; `prefers-reduced-motion` is honored; no gratuitous motion.
+- [x] **POLISH-MOTION**: Micro-animation is restrained and purposeful — a documented motion inventory maps each animation → trigger → JTBD → token; every animation has a research-backed rationale; `prefers-reduced-motion` is honored; no gratuitous motion.
 
 ### Responsive
 
@@ -64,7 +64,7 @@ Every v1.31 requirement maps to exactly one phase (1:1). Phase numbering continu
 | POLISH-FIND | Phase 138 — "Find" Cluster Polish | Complete |
 | POLISH-HOME | Phase 139 — Orientation Hub (Home / Nav) | Complete |
 | POLISH-FLOWS | Phase 140 — Earned New Flows | Complete |
-| POLISH-MOTION | Phase 141 — Motion & Micro-animation | Pending |
+| POLISH-MOTION | Phase 141 — Motion & Micro-animation | Complete |
 | POLISH-RESPONSIVE | Phase 142 — Responsive / Mobile-First | Pending |
 | POLISH-A11Y | Phase 143 — Accessibility + Consistency Sweep + Regression | Pending |
 

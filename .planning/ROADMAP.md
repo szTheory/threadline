@@ -24,7 +24,7 @@
 | 138 | 4/4 | Complete    | 2026-06-04 |
 | 139 | 3/3 | Complete    | 2026-06-04 |
 | 140 | 5/5 | Complete    | 2026-06-04 |
-| 141 | Motion & Micro-animation | POLISH-MOTION | not started |
+| 141 | 3/3 | Complete    | 2026-06-04 |
 | 142 | Responsive / Mobile-First | POLISH-RESPONSIVE | not started |
 | 143 | Accessibility + Consistency Sweep + Regression | POLISH-A11Y | not started |
 
@@ -145,9 +145,9 @@
   4. Each shipped animation has a research-backed rationale; no gratuitous motion remains.
 **Plans**: 3 plans
 Plans:
-- [ ] 141-01-PLAN.md — Motion inventory and source-contract tests
-- [ ] 141-02-PLAN.md — Contract-driven CSS/inventory alignment
-- [ ] 141-03-PLAN.md — Focused browser motion/reduced-motion UAT
+- [x] 141-01-PLAN.md — Motion inventory and source-contract tests
+- [x] 141-02-PLAN.md — Contract-driven CSS/inventory alignment
+- [x] 141-03-PLAN.md — Focused browser motion/reduced-motion UAT
 **UI hint**: yes
 
 ### Phase 142: Responsive / Mobile-First
