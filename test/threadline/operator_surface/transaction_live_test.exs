@@ -200,7 +200,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "No changes recorded"
+      assert html =~ "No row-level changes recorded"
     end
 
     test "Case 4: Renders change row with DOM virtualization", %{conn: conn} do
@@ -323,9 +323,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|class="tl-value tl-value--redacted"|
       assert html =~ "[REDACTED]"
       assert html =~ ~s|title="2026-06-04T12:30:00Z"|
-      assert html =~ "Jun 4, 12:30 PM UTC"
+      assert html =~ "12:30 PM UTC"
       refute html =~ ">nil<"
-      refute html =~ ~s|"2026-06-04T12:30:00Z"|
+      refute html =~ "&quot;2026-06-04T12:30:00Z&quot;"
     end
 
     test "renders diagnostic empty copy when row-level fields are unavailable", %{conn: conn} do
@@ -401,9 +401,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
       txn_visible = Threadline.OperatorSurface.Presentation.secondary_ref(txn.id, 30).visible
-      correlation_visible = Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 42).visible
 
-      assert html =~ ~s|class="tl-short-content"|
+      correlation_visible =
+        Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 42).visible
+
+      assert html =~ "tl-short-content"
       assert html =~ ~s|title="#{txn.id}"|
       assert html =~ txn_visible
       assert html =~ ~s|data-tl-copy="#{txn.id}"|

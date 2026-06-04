@@ -105,16 +105,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
           </div>
         <% else %>
-          <div class="tl-transaction">
+          <div class="tl-transaction tl-short-content">
             <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
               <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">← Timeline</a>
               <span>Transaction</span>
             </nav>
             <div class="tl-page__header">
               <div>
-                <h1 class="tl-transaction__title" title={@bundle.transaction.id}>
-                  Transaction <code><%= Presentation.short_id(@bundle.transaction.id, 14) %></code>
-                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={@bundle.transaction.id} aria-label="Copy transaction id">Copy</button>
+                <% transaction_ref = Presentation.secondary_ref(@bundle.transaction.id, 30) %>
+                <h1 class="tl-transaction__title" title={transaction_ref.title}>
+                  Transaction <code><%= transaction_ref.visible %></code>
+                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">Copy</button>
                 </h1>
                 <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>
@@ -132,9 +133,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <span :if={transaction_correlation_id(@bundle.transaction)} class="tl-param">
                   <span class="tl-param__key">Correlation</span>
                   <span class="tl-param__value">
-                    <a href={timeline_correlation_path(surface_root(@base_path), transaction_correlation_id_raw(@bundle.transaction))} class="tl-link tl-link--deep">
-                      <%= transaction_correlation_id(@bundle.transaction) %>
+                    <% correlation_ref = transaction_correlation_ref(@bundle.transaction) %>
+                    <a href={timeline_correlation_path(surface_root(@base_path), correlation_ref.title)} class="tl-link tl-link--deep" title={correlation_ref.title}>
+                      <%= correlation_ref.visible %>
                     </a>
+                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={correlation_ref.title} aria-label="Copy correlation id">Copy</button>
                   </span>
                 </span>
               </div>
@@ -142,8 +145,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
             <div class="tl-empty">
-              <h3 class="tl-empty__title">No changes recorded</h3>
-              <p class="tl-empty__body">Threadline found the transaction context, but no row-level changes were captured for it.</p>
+              <h3 class="tl-empty__title">No row-level changes recorded</h3>
+              <p class="tl-empty__body">Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline.</p>
             </div>
           <% else %>
             <div
@@ -171,18 +174,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </.link>
                   </div>
                 </div>
-                <div class="tl-change__fields">
-                  <%= for field <- change.change_diff["field_changes"] do %>
-                    <div class="tl-change__field">
-                      <span class="tl-change__field-name"><%= field["name"] %></span>:
-                      <%= if Map.has_key?(field, "before") do %>
-                        <span class="tl-change__before"><%= inspect(field["before"]) %></span> ->
-                      <% end %>
-                      <%= if Map.has_key?(field, "prior_state") do %>
-                        <span class="tl-change__omitted">(omitted)</span> ->
-                      <% end %>
-                      <span class="tl-change__after"><%= inspect(field["after"]) %></span>
+                <div class="tl-change__fields tl-diff">
+                  <%= if normalized_fields(change) == [] do %>
+                    <div class="tl-empty">
+                      <h3 class="tl-empty__title">No row-level changes recorded</h3>
+                      <p class="tl-empty__body">Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline.</p>
                     </div>
+                  <% else %>
+                    <%= for field <- normalized_fields(change) do %>
+                      <div class="tl-change__field tl-diff__row">
+                        <span class="tl-change__field-name"><%= field["name"] %></span>
+                        <%= if has_before_axis?(field) do %>
+                          <% before = Presentation.change_value_token(field, :before) %>
+                          <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
+                          <span class="tl-diff__arrow">-&gt;</span>
+                        <% end %>
+                        <% after_token = Presentation.change_value_token(field, :after) %>
+                        <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
+                      </div>
+                    <% end %>
                   <% end %>
                 </div>
               </div>
@@ -262,15 +272,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp transaction_correlation_id(%{action: %{correlation_id: correlation_id}})
          when is_binary(correlation_id) and correlation_id != "",
-         do: Presentation.truncate_middle(correlation_id, 42)
+         do: Presentation.secondary_ref(correlation_id, 42).visible
 
     defp transaction_correlation_id(_), do: nil
 
-    defp transaction_correlation_id_raw(%{action: %{correlation_id: correlation_id}})
+    defp transaction_correlation_ref(%{action: %{correlation_id: correlation_id}})
          when is_binary(correlation_id) and correlation_id != "",
-         do: correlation_id
+         do: Presentation.secondary_ref(correlation_id, 42)
 
-    defp transaction_correlation_id_raw(_), do: nil
+    defp transaction_correlation_ref(_), do: nil
 
     defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
       "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
@@ -296,5 +306,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp change_time(%DateTime{} = value), do: Presentation.human_time(value)
     defp change_time(value), do: inspect(value)
+
+    defp normalized_fields(%{change_diff: %{} = diff}), do: normalized_fields(diff)
+
+    defp normalized_fields(%{} = diff) do
+      fields = Map.get(diff, "field_changes", [])
+
+      cond do
+        is_list(fields) and fields != [] ->
+          fields
+
+        Map.get(diff, "op") == "INSERT" and is_map(Map.get(diff, "data_after")) ->
+          diff
+          |> Map.fetch!("data_after")
+          |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+          |> Enum.map(fn {key, value} ->
+            %{"name" => to_string(key), "after" => value}
+          end)
+
+        true ->
+          []
+      end
+    end
+
+    defp has_before_axis?(field) when is_map(field) do
+      Map.has_key?(field, "before") or Map.has_key?(field, :before) or
+        Map.has_key?(field, "prior_state") or Map.has_key?(field, :prior_state)
+    end
   end
 end
