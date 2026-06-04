@@ -126,7 +126,12 @@
   3. An incident responder can paste or deep-link a correlation_id from Home.
   4. Row history is reachable as a first-class entry, not only from inside a transaction.
   5. Each new flow traces to a named persona JTBD and a recorded decision; no speculative flows shipped.
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 140-01-PLAN.md — First-class row-history route and safe route-aware component paths
+- [ ] 140-02-PLAN.md — Home record-first lookup and correlation paste/deep-link
+- [ ] 140-03-PLAN.md — Timeline filtered context carried into Exports
+- [ ] 140-04-PLAN.md — Evidence proof context carried into Exports
+- [ ] 140-05-PLAN.md — Focused browser UAT for earned flows
 **UI hint**: yes
 
 ### Phase 141: Motion & Micro-animation
