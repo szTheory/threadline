@@ -27,7 +27,7 @@
 | 141 | 3/3 | Complete    | 2026-06-04 |
 | 142 | 3/3 | Complete    | 2026-06-04 |
 | 143 | 4/4 | Complete    | 2026-06-04 |
-| 144 | Close gap: POLISH-AUDIT and POLISH-DS | 1/4 | In Progress |
+| 144 | Close gap: POLISH-AUDIT and POLISH-DS | 2/4 | In Progress |
 
 **Ordering rationale:** measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep. Foundations (audit, seed, design-system) precede per-screen work so screens aren't redone when tokens change.
 
@@ -236,13 +236,13 @@ Plans:
 **Goal:** Close the two remaining v1.31 audit blockers by verifying the existing Phase 134-labeled baseline evidence through explicit Phase 144 errata, completing the source-first design-system consolidation/catalog/freeze for POLISH-DS, and rerunning final traceability/milestone audit checks without adding product scope.
 **Requirements**: POLISH-AUDIT, POLISH-DS
 **Depends on:** Phase 143
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 144-01-PLAN.md — Phase 144 audit errata closure for POLISH-AUDIT
-- [ ] 144-02-PLAN.md — Source-first operation primitive consolidation for POLISH-DS
+- [x] 144-02-PLAN.md — Source-first operation primitive consolidation for POLISH-DS
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

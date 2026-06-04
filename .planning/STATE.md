@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
 status: executing
-last_updated: "2026-06-04T21:20:51.360Z"
-last_activity: 2026-06-04 -- Completed 144-01-PLAN.md
+last_updated: "2026-06-04T21:27:45.314Z"
+last_activity: 2026-06-04 -- Completed 144-02-PLAN.md
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 35
-  completed_plans: 32
-  percent: 91
+  completed_plans: 33
+  percent: 94
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 ## Current Position
 
 Phase: 144 (close-gap-polish-audit-and-polish-ds) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
-Last activity: 2026-06-04 -- Completed 144-01-PLAN.md
+Last activity: 2026-06-04 -- Completed 144-02-PLAN.md
 Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 
 ## Performance Metrics
@@ -52,6 +52,7 @@ Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 | Phase 135 P02 | 2m | 2 tasks | 3 files |
 | Phase 135 P03 | 8m | 3 tasks | 4 files |
 | Phase 135 P04 | 5m | 2 tasks | 2 files |
+| Phase 144 P02 | 2m16s | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Resume: `.planning/phases/144-close-gap-polish-audit-and-polish-ds/`
 - [135-04]: D-03: Recipe table in DEMO-MANIFEST.md backed by demo_manifest_contract_test.exs; 24 rows covering all operator-surface screen states
 - [135-04]: D-04 deferred: Coverage fully-covered/all-empty state noted as Phase-138-owned (trigger-registration dependent, not seed-reachable)
 - [135-04]: demo_manifest_contract_test.exs kept separate from demo_manifest_test.exs (different concerns: doc vs module)
+- [Phase 144]: Operation badge semantics stay in Presentation as pure helpers; no Phoenix component/public UI API expansion.
+- [Phase 144]: Unknown operations use string-safe normalization with an empty modifier and uppercase fallback label; no String.to_atom/1.
 
 ### Blockers
 
