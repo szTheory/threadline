@@ -264,17 +264,17 @@ async function expectNoHorizontalOverflow(page: Page) {
 |---|-------|---------|---------------|
 | — | No `[ASSUMED]` claims are required; recommendations are constrained to locked planning docs, local code, local tests, registry version checks, and local environment probes. [VERIFIED: research process] | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should mobile nav remain scrollable or become a disclosure?**
    - What we know: D-05 allows either a deliberately scrollable grouped nav or overflow/hamburger/disclosure. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md]
-   - What's unclear: The planner should choose after evaluating whether the current horizontal-scroll base can satisfy reachable-link tests and keep group labels/scope/health legible at 375px. [VERIFIED: lib/threadline/operator_surface/style.ex]
-   - Recommendation: Start with the lowest-churn scrollable grouped nav and escalate to disclosure only if Playwright proves reachability/legibility is weak. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md]
+   - Resolution: Use the existing CSS-only scrollable grouped nav pattern first. Keep `Find`, `Verify`, and `Prove` labels in the mobile nav DOM and make every enabled destination reachable at 375px through the nav scroll container. Do not add hamburger/disclosure JavaScript unless execution proves the scrollable grouped pattern cannot pass the Phase 139 Playwright reachability UAT. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md; VERIFIED: lib/threadline/operator_surface/style.ex]
+   - Planning impact: Plan 01 owns the CSS/mobile nav primitive and Plan 03 owns browser proof; disclosure/hamburger behavior is not planned unless the executor records failed scroll reachability evidence. [CITED: .planning/phases/139-orientation-hub-home-nav/139-01-PLAN.md; CITED: .planning/phases/139-orientation-hub-home-nav/139-03-PLAN.md]
 
 2. **Should Home card copy use `Trust` while nav stays `Verify`?**
    - What we know: D-02 permits card-level `Trust` language while keeping nav `Verify`. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md]
-   - What's unclear: No test-backed copy decision exists yet. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md]
-   - Recommendation: Use `Verify` in nav and either `Trust` or `Is everything captured?` on Home only if the planned copy still maps P4 to Coverage/Retention/Exports without nav churn. [CITED: .planning/milestones/v1.31-PERSONAS-IA.md]
+   - Resolution: Keep `Find`, `Verify`, and `Prove` as the Home card families to match the navigation backbone. Card copy should orient P1/P2/P3/P4/P5 personas to existing destinations only, with wording that describes investigation, capture health, proof controls, and handoff readiness without implying Phase 140 record-first lookup, correlation paste/deep-link, export loop, or row-history entry flows. [CITED: .planning/phases/139-orientation-hub-home-nav/139-CONTEXT.md; CITED: .planning/milestones/v1.31-UI-AUDIT.md]
+   - Planning impact: Plan 02 tests and implements only existing-destination card links; any Phase 140-oriented copy must remain navigation guidance and must not introduce forms, events, routes, query APIs, schemas, or backend behavior. [CITED: .planning/phases/139-orientation-hub-home-nav/139-02-PLAN.md]
 
 ## Environment Availability
 
