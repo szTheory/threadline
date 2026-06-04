@@ -189,7 +189,15 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert length(rows) >= 19
 
     for row <- rows do
-      for field <- [:id, :selector_or_keyframe, :trigger, :persona_jtbd, :rationale, :token, :reduced_motion] do
+      for field <- [
+            :id,
+            :selector_or_keyframe,
+            :trigger,
+            :persona_jtbd,
+            :rationale,
+            :token,
+            :reduced_motion
+          ] do
         value = Map.fetch!(row, field)
         assert value != "", "motion inventory #{row.id} has empty #{field}"
         refute Regex.match?(~r/\bTBD\b/i, value), "motion inventory #{row.id} has TBD in #{field}"
@@ -272,7 +280,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           ".tl-copy",
           ".tl-policy__summary::before"
         ] do
-      assert String.contains?(inventory, selector), "motion inventory is missing transition #{selector}"
+      assert String.contains?(inventory, selector),
+             "motion inventory is missing transition #{selector}"
+
       assert_selector_uses_tokenized_transition(src, selector)
     end
   end
@@ -292,7 +302,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
 
     for line <- String.split(src, "\n"), Regex.match?(~r/\b\d+ms\b/, line) do
-      assert allowed_motion_duration_line?(line), "literal motion duration is not governed: #{line}"
+      assert allowed_motion_duration_line?(line),
+             "literal motion duration is not governed: #{line}"
     end
   end
 
@@ -319,7 +330,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           ".tl-button:active",
           "transform: none;"
         ] do
-      assert String.contains?(reduced_motion, required), "reduced-motion block missing #{required}"
+      assert String.contains?(reduced_motion, required),
+             "reduced-motion block missing #{required}"
     end
   end
 
@@ -328,7 +340,20 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     |> String.split("\n")
     |> Enum.filter(&String.starts_with?(&1, "| M-"))
     |> Enum.map(fn row ->
-      [id, selector_or_keyframe, _surface, trigger, persona_jtbd, rationale, token, _properties, _frequency, reduced_motion, _source, _status] =
+      [
+        id,
+        selector_or_keyframe,
+        _surface,
+        trigger,
+        persona_jtbd,
+        rationale,
+        token,
+        _properties,
+        _frequency,
+        reduced_motion,
+        _source,
+        _status
+      ] =
         row
         |> String.trim()
         |> String.trim_leading("|")
@@ -366,6 +391,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   defp assert_selector_uses_tokenized_transition(src, selector) do
     pattern =
       ~r/#{Regex.escape(selector)}[^}]*transition(?:-property|-duration)?:[^}]*var\(--tl-(?:transition-fast|motion-base|ease-out|ease-standard)/s
+
+    refute src =~ "transition-duration: var(--tl-transition-fast);",
+           "transition-duration cannot use --tl-transition-fast because that token includes easing"
 
     assert Regex.match?(pattern, src),
            "#{selector} must use var(--tl-transition-fast) or named motion/ease tokens"

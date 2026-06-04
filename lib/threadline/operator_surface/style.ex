@@ -179,7 +179,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-accent);
           text-decoration: none;
           transition-property: color, background-color, border-color, box-shadow, transform;
-          transition-duration: var(--tl-transition-fast);
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .threadline-ui a:hover {
@@ -793,7 +794,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface-raised);
           color: var(--tl-color-text);
           transition-property: border-color, box-shadow, background-color;
-          transition-duration: var(--tl-transition-fast);
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-toolbar__control[type="datetime-local"],
@@ -897,7 +899,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-weight: var(--tl-weight-strong);
           text-decoration: none;
           transition-property: color, background-color, border-color, box-shadow, transform;
-          transition-duration: var(--tl-transition-fast);
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-button:hover {
@@ -1322,7 +1325,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: transparent;
           box-shadow: inset var(--tl-status-stripe-width) 0 0 transparent;
           transition-property: background-color, box-shadow;
-          transition-duration: var(--tl-transition-fast);
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-change:last-child {
@@ -1994,7 +1998,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           cursor: pointer;
           list-style: none;
           transition-property: background-color;
-          transition-duration: var(--tl-transition-fast);
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-policy__summary:hover {
