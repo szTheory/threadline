@@ -144,13 +144,13 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
         |> get(~p"/audit/exports")
 
       html = html_response(conn, 200)
-      assert html =~ "Export Status"
+      assert html =~ "ready to hand off?"
       assert html =~ "Completed"
       assert html =~ "Failed"
       assert html =~ "Running"
       assert html =~ "Queued"
-      assert html =~ "Download"
-      assert html =~ "Expired"
+      assert html =~ "Download export"
+      assert html =~ "Export expired"
     end
   end
 
@@ -202,9 +202,9 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
         |> get(~p"/audit/policy/retention")
 
       html = html_response(conn, 200)
-      assert html =~ "Retention History"
+      assert html =~ "What was purged, and did it succeed?"
       assert html =~ "completed"
-      refute html =~ "No Retention History"
+      refute html =~ "No retention runs yet"
     end
 
     test "WALK-03-04 deleter hard-delete on #4518 visible to admin" do

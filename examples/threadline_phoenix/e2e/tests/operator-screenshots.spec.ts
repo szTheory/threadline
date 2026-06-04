@@ -67,7 +67,7 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit/evidence");
     await expect(page.getByTestId("evidence-table").first()).toBeVisible();
-    await expect(page.getByText("walk-retention-offboarded-co")).toBeVisible();
+    await expect(page.locator('.tl-secondary-ref[title*="walk-retention-offboarded-co"]')).toBeVisible();
     await capture(page, testInfo, "admin-evidence");
 
     await page.goto("/audit/coverage");
@@ -76,15 +76,15 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit/policy/redaction");
     await expect(page.getByTestId("policy-section").first()).toBeVisible();
-    await expect(page.getByText("Redaction assurance")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Redaction assurance" })).toBeVisible();
     await capture(page, testInfo, "admin-policy-redaction");
 
     await page.goto("/audit/policy/retention");
-    await expect(page.getByText("Retention History")).toBeVisible();
+    await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
     await capture(page, testInfo, "admin-retention");
 
     await page.goto("/audit/exports");
-    await expect(page.getByText("Export Status")).toBeVisible();
+    await expect(page.getByText("What's ready to hand off?")).toBeVisible();
     await expect(page.getByText("Completed").first()).toBeVisible();
     await expect(page.getByText("Failed").first()).toBeVisible();
     await expect(page.getByText("Queued").first()).toBeVisible();

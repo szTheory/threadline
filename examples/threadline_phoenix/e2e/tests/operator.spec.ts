@@ -30,7 +30,7 @@ test.describe("operator surface (demo fiction)", () => {
     await page.goto("/audit/evidence");
 
     await expect(page.getByText("retention_run").first()).toBeVisible();
-    await expect(page.getByText("walk-retention-offboarded-co")).toBeVisible();
+    await expect(page.locator('.tl-secondary-ref[title*="walk-retention-offboarded-co"]')).toBeVisible();
   });
 
   test("row history on #4521 close reply shows redacted capture", async ({ page }) => {
