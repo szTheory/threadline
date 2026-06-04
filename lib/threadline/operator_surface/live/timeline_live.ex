@@ -495,7 +495,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class={["tl-change", op_row_modifier(change.op)]} data-testid="timeline-row">
             <div class="tl-change__summary">
               <div class="tl-change__meta">
-                <span class={["tl-change__op", op_chip_modifier(change.op)]}><%= change.op %></span>
+                <span class={["tl-change__op", Presentation.operation_modifier(change.op)]}><%= Presentation.operation_label(change.op) %></span>
                 <span class="tl-change__table tl-secondary-ref" title={table_ref(change).title}>
                   <%= table_ref(change).visible %>
                 </span>
@@ -726,15 +726,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         "insert" -> "tl-change--insert"
         "update" -> "tl-change--update"
         "delete" -> "tl-change--delete"
-        _ -> nil
-      end
-    end
-
-    defp op_chip_modifier(op) do
-      case op |> to_string() |> String.downcase() do
-        "insert" -> "tl-change__op--insert"
-        "update" -> "tl-change__op--update"
-        "delete" -> "tl-change__op--delete"
         _ -> nil
       end
     end

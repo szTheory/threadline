@@ -159,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
                 <div class="tl-change__summary">
                   <div class="tl-change__meta">
-                    <span class={["tl-change__op", op_chip_modifier(change.change_diff["op"])]}><%= change.change_diff["op"] %></span>
+                    <span class={["tl-change__op", Presentation.operation_modifier(change.change_diff["op"])]}><%= Presentation.operation_label(change.change_diff["op"]) %></span>
                     <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
                     <time class="tl-change__time" datetime={change.change_diff["captured_at"]} title={change.change_diff["captured_at"]}>
                       <%= change_time(change.change_diff["captured_at"]) %>
@@ -302,15 +302,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       captured_at = change.change_diff["captured_at"]
 
       "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
-    end
-
-    defp op_chip_modifier(op) do
-      case op |> to_string() |> String.downcase() do
-        "insert" -> "tl-change__op--insert"
-        "update" -> "tl-change__op--update"
-        "delete" -> "tl-change__op--delete"
-        _ -> nil
-      end
     end
 
     defp change_time(value) when is_binary(value) do
