@@ -132,6 +132,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "baseline"
       end
 
+      test "uncovered rows render Add capture command and verify follow-up without repeated consequence copy",
+           %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        assert html =~ "Add capture"
+        assert html =~ "mix threadline.gen.triggers --tables"
+        assert html =~ "Run mix threadline.verify_coverage after applying the migration."
+        assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
+
+        assert html =~ "Timeline may be incomplete"
+
+        row_actions =
+          Regex.scan(~r/<td data-label="Actions" class="tl-table__actions">(.*?)<\/td>/s, html)
+          |> Enum.map(fn [_, action_html] -> action_html end)
+
+        assert row_actions != []
+        refute Enum.any?(row_actions, &String.contains?(&1, "Timeline may be incomplete"))
+      end
+
+      test "expected-gap rows use expected styling and do not render Add capture", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        expected_row =
+          Regex.run(~r/<tr class="tl-table__row--expected".*?<\/tr>/s, html)
+          |> List.first()
+
+        assert expected_row =~ "Expected gap"
+        assert expected_row =~ "tl-chip--warning"
+        refute expected_row =~ "Add capture"
+        refute expected_row =~ "mix threadline.gen.triggers --tables"
+      end
+
+      test "footer expected-gap count uses singular grammar", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        assert html =~ "1 expected gap"
+        refute html =~ "1 expected gaps"
+      end
+
       test "shows 'Refresh' link with phx-click=refresh", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
@@ -165,6 +204,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # After refresh, the dashboard should still render normally with the same literals
         assert new_html =~ "Coverage — schema: public"
         assert new_html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps/
+      end
+    end
+
+    describe "footer grammar" do
+      test "expected-gap count uses plural grammar", %{conn: conn} do
+        original = Application.get_env(:threadline, :health)
+
+        Ecto.Adapters.SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE IF NOT EXISTS public.coverage_expected_extra (id bigint PRIMARY KEY)",
+          []
+        )
+
+        Application.put_env(:threadline, :health,
+          expected_uncovered_tables: ["coverage_expected_extra"]
+        )
+
+        on_exit(fn ->
+          Ecto.Adapters.SQL.query!(
+            Threadline.Test.Repo,
+            "DROP TABLE IF EXISTS public.coverage_expected_extra",
+            []
+          )
+
+          if original do
+            Application.put_env(:threadline, :health, original)
+          else
+            Application.delete_env(:threadline, :health)
+          end
+        end)
+
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        assert html =~ "2 expected gaps"
       end
     end
 

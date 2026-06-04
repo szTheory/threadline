@@ -112,6 +112,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+
     @endpoint Threadline.OperatorSurface.ActorLiveTest.Endpoint
 
     setup_all do
@@ -127,6 +129,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    defp insert_transaction(attrs) do
+      defaults = %{
+        txid: System.unique_integer([:positive]),
+        occurred_at: DateTime.utc_now()
+      }
+
+      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+    end
+
+    defp insert_change(transaction, attrs) do
+      defaults = %{
+        transaction_id: transaction.id,
+        table_schema: "public",
+        table_name: "tickets",
+        table_pk: %{"id" => Ecto.UUID.generate()},
+        op: "update",
+        data_after: %{"id" => "ticket-1", "status" => "open"},
+        changed_fields: ["status"],
+        changed_from: %{"status" => "closed"},
+        captured_at: transaction.occurred_at || DateTime.utc_now()
+      }
+
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
     end
 
     test "Case 1: Renders invalid actor reference for invalid kind", %{conn: conn} do
@@ -164,7 +191,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             actor_ref: %{"type" => "user", "id" => "tx_test"}
@@ -180,11 +207,77 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Test time window change
       html_7d = render_click(lv, "set-window", %{"hours" => "168"})
-      assert html_7d =~ "active"
+      assert html =~ ~s|phx-value-hours="24"|
+      assert html =~ ~s|aria-pressed="true"|
+      assert html_7d =~ ~s|phx-value-hours="168"|
+      assert html_7d =~ ~s|aria-pressed="true"|
 
       # Verify dummy event handlers for pagination
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})
+    end
+
+    test "unscoped actor rows render blast-radius summaries and copyable transaction refs", %{
+      conn: conn
+    } do
+      tx_id = "actor_summary_#{System.unique_integer([:positive])}"
+
+      txn =
+        insert_transaction(%{
+          actor_ref: %{"type" => "user", "id" => tx_id},
+          occurred_at: DateTime.utc_now()
+        })
+
+      insert_change(txn, %{op: "update", table_name: "tickets", changed_fields: ["status"]})
+
+      insert_change(txn, %{
+        op: "update",
+        table_name: "tickets",
+        changed_fields: ["priority", "assignee_id"]
+      })
+
+      {:ok, _lv, html} = live(conn, "/audit/actors/user/#{tx_id}")
+
+      assert html =~ "UPDATE tickets - 3 changes"
+      assert html =~ "Transaction"
+      assert html =~ ~s|title="#{txn.id}"|
+      assert html =~ ~s|data-tl-copy="#{txn.id}"|
+      assert html =~ "Open transaction"
+    end
+
+    test "unscoped mixed-table actor rows summarize additional tables and total changes", %{
+      conn: conn
+    } do
+      tx_id = "actor_mixed_#{System.unique_integer([:positive])}"
+
+      txn =
+        insert_transaction(%{
+          actor_ref: %{"type" => "user", "id" => tx_id},
+          occurred_at: DateTime.utc_now()
+        })
+
+      insert_change(txn, %{
+        op: "update",
+        table_name: "tickets",
+        changed_fields: ["status", "priority", "assignee_id"]
+      })
+
+      insert_change(txn, %{
+        op: "update",
+        table_name: "ticket_replies",
+        changed_fields: ["body", "internal_note_body"]
+      })
+
+      insert_change(txn, %{
+        op: "update",
+        table_name: "org_memberships",
+        changed_fields: ["role", "updated_at"]
+      })
+
+      {:ok, _lv, html} = live(conn, "/audit/actors/user/#{tx_id}")
+
+      assert html =~ "UPDATE tickets + 2 tables - 7 changes"
+      assert html =~ "Open transaction"
     end
 
     describe "surface header (Phase 66)" do
@@ -208,6 +301,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+
     @endpoint Threadline.OperatorSurface.ActorLiveTest.ScopedEndpoint
 
     setup_all do
@@ -225,6 +320,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
+    defp insert_transaction(attrs) do
+      defaults = %{
+        txid: System.unique_integer([:positive]),
+        occurred_at: DateTime.utc_now()
+      }
+
+      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+    end
+
+    defp insert_change(transaction, attrs) do
+      defaults = %{
+        transaction_id: transaction.id,
+        table_schema: "public",
+        table_name: "support_visible",
+        table_pk: %{"id" => Ecto.UUID.generate()},
+        op: "update",
+        data_after: %{"id" => "support-row", "status" => "open"},
+        changed_fields: ["status"],
+        changed_from: %{"status" => "closed"},
+        captured_at: transaction.occurred_at || DateTime.utc_now()
+      }
+
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+    end
+
     test "scoped actor history hides out-of-scope actor events", %{conn: conn} do
       repo = Threadline.Test.Repo
 
@@ -240,6 +360,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/actors/user/scoped_actor")
       assert html =~ "This actor has never recorded any events."
       refute html =~ "View Incident"
+    end
+
+    test "scoped actor rows use honest fallback without leaking table/change labels", %{conn: conn} do
+      tx_id = "scoped_visible_#{System.unique_integer([:positive])}"
+
+      txn =
+        insert_transaction(%{
+          actor_ref: %{"type" => "user", "id" => tx_id},
+          occurred_at: DateTime.utc_now(),
+          source: "support"
+        })
+
+      insert_change(txn, %{
+        table_name: "sensitive_admin_table",
+        changed_fields: ["classified_label", "escalation_reason"]
+      })
+
+      {:ok, _lv, html} = live(conn, "/audit_scoped/actors/user/#{tx_id}")
+
+      assert html =~ "Changes unavailable"
+      assert html =~ "Open transaction"
+      refute html =~ "sensitive_admin_table"
+      refute html =~ "classified_label"
+      refute html =~ "escalation_reason"
     end
   end
 end
