@@ -374,6 +374,91 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "phase 142 breakpoint tokens must not be used inside @media conditions"
   end
 
+  test "phase 142 responsive primitives keep mobile-first source contracts" do
+    src = File.read!(@style_path)
+    base = base_responsive_section(src)
+
+    assert_selector_contains(base, ".tl-topbar__nav", [
+      "min-width: 0;",
+      "overflow-x: auto;"
+    ])
+
+    refute Regex.match?(~r/\.tl-topbar__nav-label\s*\{[^}]*display:\s*none/s, base),
+           "mobile/base topbar nav labels must remain reachable"
+
+    assert_selector_contains(base, ".tl-toolbar__form", [
+      "flex-direction: column;",
+      "align-items: stretch;"
+    ])
+
+    assert_selector_contains(base, ".tl-table-wrap .tl-table--responsive", ["min-width: 0;"])
+    assert_selector_contains(base, ".tl-table--responsive thead", ["display: none;"])
+    assert_selector_contains(base, ".tl-table--responsive td::before", ["content: attr(data-label);"])
+
+    assert_selector_contains(base, ".tl-subview", [
+      "width: 100vw;",
+      "min-height: 100dvh;",
+      "overflow: auto;"
+    ])
+
+    for selector <- [
+          ".tl-secondary-ref",
+          ".tl-value",
+          ".tl-param",
+          ".tl-record-card__ref",
+          ".tl-kv__row"
+        ] do
+      assert Regex.match?(selector_block_pattern(selector, ~r/min-width:\s*0;|overflow-wrap:\s*anywhere;/), base),
+             "#{selector} must keep min-width: 0 or overflow-wrap: anywhere in the mobile/base layer"
+    end
+
+    refute Regex.match?(~r/(?:body|html|\.threadline-ui)\s*\{[^}]*overflow-x:\s*hidden;/s, src),
+           "root/body overflow-x hidden masks responsive bugs instead of fixing components"
+  end
+
+  test "phase 142 responsive primitives keep tablet wrapping and desktop table restoration" do
+    src = File.read!(@style_path)
+    tablet = media_section(src, "768px")
+    desktop = media_section(src, "1280px")
+
+    assert_selector_contains(tablet, ".tl-toolbar__form", [
+      "flex-direction: row;",
+      "flex-wrap: wrap;",
+      "align-items: flex-end;"
+    ])
+
+    assert_selector_contains(tablet, ".tl-topbar .tl-topbar__nav-item", [
+      "min-height: var(--tl-control-height-compact);"
+    ])
+
+    refute String.contains?(tablet, ".tl-table--responsive thead"),
+           "tablet layer must keep responsive tables in labelled card mode"
+
+    assert_selector_contains(desktop, ".tl-subview", [
+      "width: min(var(--tl-drawer-width), 100vw);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table-wrap .tl-table--responsive", [
+      "min-width: var(--tl-table-min-width);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--responsive thead", [
+      "display: table-header-group;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--responsive tr", [
+      "display: table-row;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--responsive td", [
+      "display: table-cell;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--responsive td::before", [
+      "display: none;"
+    ])
+  end
+
   defp motion_inventory_rows(inventory) do
     inventory
     |> String.split("\n")
@@ -443,5 +528,44 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       String.contains?(line, "tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both") or
       String.contains?(line, "1ms !important") or
       String.contains?(line, "0ms !important")
+  end
+
+  defp base_responsive_section(src) do
+    src
+    |> String.split("@media (min-width: 768px)")
+    |> List.first()
+  end
+
+  defp media_section(src, width) do
+    src
+    |> String.split("@media (min-width: #{width}) {")
+    |> Enum.at(1)
+    |> String.split(next_media_boundary(width))
+    |> List.first()
+  end
+
+  defp next_media_boundary("768px"), do: "@media (min-width: 1280px)"
+  defp next_media_boundary("1280px"), do: "@media (prefers-reduced-motion: reduce)"
+
+  defp assert_selector_contains(section, selector, declarations) do
+    block = selector_block!(section, selector)
+
+    for declaration <- declarations do
+      assert String.contains?(block, declaration),
+             "#{selector} is missing #{declaration}"
+    end
+  end
+
+  defp selector_block!(section, selector) do
+    pattern = selector_block_pattern(selector)
+
+    case Regex.run(pattern, section) do
+      [block] -> block
+      _ -> flunk("missing selector #{selector}")
+    end
+  end
+
+  defp selector_block_pattern(selector, declaration_pattern \\ ~r/[^}]*/) do
+    ~r/#{Regex.escape(selector)}\s*\{[^}]*#{Regex.source(declaration_pattern)}[^}]*\}/s
   end
 end

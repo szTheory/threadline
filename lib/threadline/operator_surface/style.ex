@@ -2814,6 +2814,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           .tl-table--responsive td::before {
             content: none;
+            display: none;
           }
         }
 
