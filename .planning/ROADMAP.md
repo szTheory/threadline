@@ -110,7 +110,10 @@
   1. The `surface_header` nav shows consistent active states and grouping that match the locked IA across every screen.
   2. A mobile nav pattern works at 375 and is reachable on every screen.
   3. The Home start page orients each defined persona to an obvious next action.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 139-01-PLAN.md — SurfaceHeader grouped nav, active states, Exports handoff, and mobile-reachable primitives
+- [ ] 139-02-PLAN.md — Home orientation, health severity, saved-view resume, and Phase 140 non-leakage guards
+- [ ] 139-03-PLAN.md — Focused 375px Home/nav Playwright UAT
 **UI hint**: yes
 
 ### Phase 140: Earned New Flows
