@@ -136,6 +136,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-table-min-width: 720px;
           --tl-drawer-width: 760px;
           --tl-viewport-max-height: 600px;
+          /* Phase 142 breakpoint tokens document the accepted phone/tablet/desktop scale.
+             CSS custom properties are not valid inside @media conditions, so media
+             layers below keep standards-compliant literals governed by source tests. */
+          --tl-breakpoint-phone-proof: 375px;
+          --tl-breakpoint-tablet: 768px;
+          --tl-breakpoint-desktop: 1280px;
           --tl-muted-bg: var(--tl-color-surface);
           --tl-hit-area: 40px;
           --tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
@@ -383,8 +389,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-variant-numeric: tabular-nums;
         }
 
-        /* Mobile-first base: phone layout. Tablet (min-width: 481px) and desktop
-           (min-width: 721px) layers progressively enhance below the keyframes. */
+        /* Phone-proof base: 375px acceptance viewport. Tablet and desktop layers
+           progressively enhance below the keyframes. */
         .tl-page {
           padding: var(--tl-space-2);
         }
@@ -2503,7 +2509,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /* Mobile-first base: responsive tables stack into labelled cards.
-           The desktop layer (min-width: 721px) restores the real table. */
+           The desktop dense/operator layer starts at 1280px and restores the real table. */
         .tl-table-wrap .tl-table--responsive {
           min-width: 0;
         }
@@ -2611,8 +2617,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-top: 1px solid var(--tl-color-border);
         }
 
-        /* Tablet layer: lift the phone refinements once there's room (>= 481px). */
-        @media (min-width: 481px) {
+        /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
+        @media (min-width: 768px) {
           .tl-page {
             padding: var(--tl-space-3);
           }
@@ -2637,8 +2643,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
         }
 
-        /* Desktop layer: full multi-column layout and sticky chrome (>= 721px). */
-        @media (min-width: 721px) {
+        /* Desktop dense/operator layer starts at 1280px: full multi-column layout and sticky chrome. */
+        @media (min-width: 1280px) {
           .tl-page {
             padding: var(--tl-space-4);
           }
