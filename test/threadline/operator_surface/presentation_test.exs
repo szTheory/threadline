@@ -80,7 +80,12 @@ defmodule Threadline.OperatorSurface.PresentationTest do
   describe "find value tokens" do
     test "renders nil, redacted strings, and ordinary primitives as escaped text data" do
       assert Presentation.value_token(nil) == %{text: "null", modifier: "tl-value--null"}
-      assert Presentation.value_token("[REDACTED]") == %{text: "[REDACTED]", modifier: "tl-value--redacted"}
+
+      assert Presentation.value_token("[REDACTED]") == %{
+               text: "[REDACTED]",
+               modifier: "tl-value--redacted"
+             }
+
       assert Presentation.value_token("open") == %{text: "open", modifier: "tl-value--string"}
       assert Presentation.value_token(true) == %{text: "true", modifier: "tl-value--primitive"}
       assert Presentation.value_token(42) == %{text: "42", modifier: "tl-value--primitive"}
@@ -127,10 +132,11 @@ defmodule Threadline.OperatorSurface.PresentationTest do
                modifier: "tl-value--absent"
              }
 
-      assert Presentation.change_value_token(%{"name" => "status", "before" => nil}, "before") == %{
-               text: "null",
-               modifier: "tl-value--null"
-             }
+      assert Presentation.change_value_token(%{"name" => "status", "before" => nil}, "before") ==
+               %{
+                 text: "null",
+                 modifier: "tl-value--null"
+               }
     end
   end
 
