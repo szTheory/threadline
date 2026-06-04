@@ -1598,6 +1598,136 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-danger), var(--tl-shadow-border);
         }
 
+        /* Find cluster primitives: shared value, diff, filter, actor, and remediation seams. */
+        .tl-value {
+          display: inline;
+          min-width: 0;
+          color: var(--tl-color-text);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          overflow-wrap: anywhere;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .tl-value--null,
+        .tl-value--omitted,
+        .tl-value--absent {
+          color: var(--tl-color-muted-soft);
+          font-style: italic;
+        }
+
+        .tl-value--time {
+          color: var(--tl-color-signal);
+        }
+
+        .tl-value--redacted {
+          border-radius: var(--tl-radius-sm);
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
+          padding: 0 var(--tl-space-1);
+        }
+
+        .tl-value--json {
+          color: var(--tl-color-neutral-text);
+        }
+
+        .tl-value--primitive {
+          color: var(--tl-color-info-text);
+        }
+
+        .tl-diff {
+          display: grid;
+          gap: var(--tl-space-2);
+          padding: var(--tl-space-3);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-surface);
+        }
+
+        .tl-diff__row {
+          display: grid;
+          gap: var(--tl-space-2);
+          min-width: 0;
+        }
+
+        .tl-diff__arrow {
+          color: var(--tl-color-muted);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
+        .tl-filter-summary {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          padding: var(--tl-space-2) var(--tl-space-3);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-surface);
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+        }
+
+        .tl-journey--legend {
+          padding: var(--tl-space-2) 0;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+          color: var(--tl-color-muted);
+        }
+
+        .tl-actor-summary {
+          display: inline-flex;
+          align-items: center;
+          min-width: 0;
+          gap: var(--tl-space-2);
+          color: var(--tl-color-text);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          font-weight: var(--tl-weight-medium);
+        }
+
+        .tl-remediation {
+          display: grid;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-remediation__command {
+          display: inline-flex;
+          align-items: center;
+          max-width: 100%;
+          min-height: var(--tl-control-height-compact);
+          padding: var(--tl-space-1) var(--tl-space-2);
+          border: 1px solid var(--tl-color-warning-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          overflow-wrap: anywhere;
+        }
+
+        .tl-remediation__action {
+          display: inline-flex;
+          align-items: center;
+          min-height: var(--tl-control-height-compact);
+          color: var(--tl-color-accent);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-short-content {
+          max-width: 72ch;
+          margin-inline: auto;
+        }
+        /* End Find cluster primitives */
+
         .tl-job {
           display: grid;
           gap: var(--tl-space-3);
