@@ -308,17 +308,15 @@ Phoenix function components support declared attributes and slots with compile-t
 |---|-------|---------|---------------|
 | A1 | Warning signs listed for pitfalls are predictive indicators rather than verified failures in the repo. | Common Pitfalls | Planner may add unnecessary grep checks, but checks are low-cost. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 144 update Phase 136's `136-VERIFICATION.md` or create only `144-VERIFICATION.md`?**
    - What we know: The context says close via Phase 144 and do not fabricate Phase 134 history; milestone audit says close `POLISH-DS` then re-run Phase 136 verification or equivalent requirement evidence. [VERIFIED: 144-CONTEXT.md, `.planning/v1.31-MILESTONE-AUDIT.md`]
-   - What's unclear: Whether the project wants a modified historical Phase 136 verification or a Phase 144 superseding verification note.
-   - Recommendation: Prefer a Phase 144 verification that explicitly supersedes the partial Phase 136 status for `POLISH-DS`, with a short errata note in `136-VERIFICATION.md` only if the planner needs strict cross-file audit compatibility. [ASSUMED]
+   - Resolution: Use `144-VERIFICATION.md` as the superseding closure record for `POLISH-DS`. Do not edit `136-VERIFICATION.md` unless execution discovers the milestone audit cannot consume Phase 144 closure without a cross-reference note. If such a note is required, it must say Phase 144 supersedes the partial Phase 136 status; it must not rewrite Phase 136 as originally complete. [RESOLVED: 144-CONTEXT.md D-05/D-12, plan-checker feedback]
 
 2. **How detailed should deprecated/consolidated `.tl-*` catalog entries be?**
    - What we know: The required doc must mark canonical, deprecated, and consolidated classes with usage rules and anti-patterns. [VERIFIED: 144-CONTEXT.md]
-   - What's unclear: Whether every historical class needs line-by-line migration notes or family-level cataloging is enough.
-   - Recommendation: Catalog by primitive families and include exact class lists for frozen public/internal classes; do not create busy per-selector prose unless a class is deprecated or consolidated. [ASSUMED]
+   - Resolution: Catalog by primitive family with exact frozen class lists for canonical classes. Add per-class notes only for deprecated or consolidated selectors where future executors need migration guidance. Do not write line-by-line prose for every stable selector. [RESOLVED: 144-CONTEXT.md D-08/D-10, plan-checker feedback]
 
 ## Environment Availability
 
