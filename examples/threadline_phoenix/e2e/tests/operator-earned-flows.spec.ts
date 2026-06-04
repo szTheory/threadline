@@ -32,6 +32,10 @@ async function expectEarnedFlow(locator: Locator, flow: string) {
   await expect(locator).toHaveAttribute("data-earned-flow", flow);
 }
 
+async function expectEarnedFlowTrace(locator: Locator, flow: string) {
+  await expect(locator).toHaveAttribute("data-earned-flow", flow);
+}
+
 async function discoverTicketReplyRecordId(page: Page) {
   await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
   await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
@@ -73,7 +77,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await form.getByRole("button", { name: "Open row history" }).click();
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
-    await expectEarnedFlow(page.locator("#tl-main"), "EF2");
+    await expectEarnedFlowTrace(page.locator("#tl-main"), "EF2");
     const drawer = page.getByTestId("row-history-drawer");
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText("Row history:")).toBeVisible();
@@ -86,7 +90,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
-    await expectEarnedFlow(page.locator("#tl-main"), "EF2");
+    await expectEarnedFlowTrace(page.locator("#tl-main"), "EF2");
     const drawer = page.getByTestId("row-history-drawer");
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(`Row history: ${rowTable}`)).toBeVisible();
@@ -174,7 +178,10 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectEarnedFlow(context, "EF3");
     await expect(context.getByText("Evidence proof context")).toBeVisible();
     await expect(context.getByText("Proof handoff")).toBeVisible();
-    await expect(context.locator(".tl-param", { hasText: "subject" })).toBeVisible();
+    await expect(context.locator('.tl-param[title^="subject: "]')).toHaveAttribute(
+      "title",
+      /subject: .+/,
+    );
     await expect(context.locator(".tl-param", { hasText: "mode" })).toHaveAttribute(
       "title",
       "mode: history",
