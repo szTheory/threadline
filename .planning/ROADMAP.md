@@ -143,7 +143,11 @@
   2. Animations reuse the existing 120/180/240ms timings and the signature thread-draw rather than introducing ad-hoc motion.
   3. `prefers-reduced-motion` is honored on every animated surface.
   4. Each shipped animation has a research-backed rationale; no gratuitous motion remains.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 141-01-PLAN.md — Motion inventory and source-contract tests
+- [ ] 141-02-PLAN.md — Contract-driven CSS/inventory alignment
+- [ ] 141-03-PLAN.md — Focused browser motion/reduced-motion UAT
 **UI hint**: yes
 
 ### Phase 142: Responsive / Mobile-First
