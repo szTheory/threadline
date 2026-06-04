@@ -362,7 +362,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "View Incident"
     end
 
-    test "scoped actor rows use honest fallback without leaking table/change labels", %{conn: conn} do
+    test "scoped actor rows use honest fallback without leaking table/change labels", %{
+      conn: conn
+    } do
       tx_id = "scoped_visible_#{System.unique_integer([:positive])}"
 
       txn =

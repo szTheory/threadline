@@ -192,7 +192,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
         )
 
-      actor_summaries = actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+      actor_summaries =
+        actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
 
       {:noreply,
        socket
@@ -296,7 +297,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> repo.all()
         |> Enum.group_by(& &1.transaction_id)
         |> Map.new(fn {transaction_id, changes} ->
-          {transaction_id, Presentation.actor_transaction_summary(Enum.map(changes, &summary_change/1))}
+          {transaction_id,
+           Presentation.actor_transaction_summary(Enum.map(changes, &summary_change/1))}
         end)
       end
     end
