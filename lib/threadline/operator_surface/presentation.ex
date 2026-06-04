@@ -109,6 +109,25 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
+  @spec operation_modifier(String.t() | atom() | nil) :: String.t()
+  def operation_modifier(operation) do
+    case normalize_operation(operation) do
+      "insert" -> "tl-change__op--insert"
+      "update" -> "tl-change__op--update"
+      "delete" -> "tl-change__op--delete"
+      _ -> ""
+    end
+  end
+
+  @spec operation_label(String.t() | atom() | nil) :: String.t()
+  def operation_label(operation) do
+    case normalize_operation(operation) do
+      nil -> "UNKNOWN"
+      "" -> "UNKNOWN"
+      operation -> String.upcase(operation)
+    end
+  end
+
   @spec query_pairs(map() | nil) :: [{String.t(), String.t()}]
   def query_pairs(nil), do: []
 
@@ -361,6 +380,20 @@ defmodule Threadline.OperatorSurface.Presentation do
   defp normalize_status(status) when is_atom(status), do: Atom.to_string(status)
   defp normalize_status(status) when is_binary(status), do: status
   defp normalize_status(status), do: to_string(status)
+
+  defp normalize_operation(nil), do: nil
+
+  defp normalize_operation(operation) when is_atom(operation) do
+    operation |> Atom.to_string() |> normalize_operation()
+  end
+
+  defp normalize_operation(operation) when is_binary(operation) do
+    operation
+    |> String.trim()
+    |> String.downcase()
+  end
+
+  defp normalize_operation(operation), do: operation |> to_string() |> normalize_operation()
 
   defp parse_iso8601(value) do
     case DateTime.from_iso8601(value) do
