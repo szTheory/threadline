@@ -159,7 +159,11 @@ Plans:
   2. Tables, filters, drawers, and nav have mobile-first layouts.
   3. Every operator-surface screen is usable and correct at 375, 768, and 1280.
   4. No horizontal-scroll regressions exist at any breakpoint.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 142-01-PLAN.md — Breakpoint token and source-contract foundation
+- [ ] 142-02-PLAN.md — Shared responsive CSS primitive alignment
+- [ ] 142-03-PLAN.md — Responsive browser matrix UAT
 **UI hint**: yes
 
 ### Phase 143: Accessibility + Consistency Sweep + Regression
