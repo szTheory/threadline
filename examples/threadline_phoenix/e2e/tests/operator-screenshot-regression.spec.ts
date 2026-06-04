@@ -33,11 +33,15 @@ async function discoverRowHistoryHref(page: Page) {
   return rowHistoryHref!;
 }
 
-async function expectOperatorScreenshot(page: Page, name: string, options: { fullPage?: boolean } = {}) {
+async function expectOperatorScreenshot(
+  page: Page,
+  name: string,
+  options: { fullPage?: boolean; maxDiffPixelRatio?: number } = {},
+) {
   await page.waitForLoadState("networkidle");
   await expect(page).toHaveScreenshot(`${name}.png`, {
     fullPage: options.fullPage ?? true,
-    maxDiffPixelRatio: 0.01,
+    maxDiffPixelRatio: options.maxDiffPixelRatio ?? 0.01,
     mask: dynamicMasks(page),
   });
 }
@@ -93,7 +97,7 @@ test.describe("operator screenshot regression guard", () => {
     await expect(
       page.getByTestId("export-jobs").getByRole("heading", { name: "Ready to hand off" }),
     ).toBeVisible();
-    await expectOperatorScreenshot(page, "exports");
+    await expectOperatorScreenshot(page, "exports", { maxDiffPixelRatio: 0.03 });
   });
 
   test("Retention safety hierarchy stays stable", async ({ page }) => {

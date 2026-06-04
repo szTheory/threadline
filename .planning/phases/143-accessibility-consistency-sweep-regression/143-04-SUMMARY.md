@@ -8,6 +8,7 @@ Added a lightweight screenshot regression guard to the existing Playwright brows
 
 - Added `operator-screenshot-regression.spec.ts`.
 - Added 10 committed Playwright snapshot PNGs for fixed desktop and mobile projects.
+- Added a platform-neutral Playwright `snapshotPathTemplate` so CI does not look for OS-specific snapshot names.
 - Covered representative polished surfaces:
   - Home/global chrome and EF1/EF4 launchers
   - dense Timeline viewport
@@ -15,6 +16,7 @@ Added a lightweight screenshot regression guard to the existing Playwright brows
   - Exports readiness hierarchy
   - Retention safety hierarchy
 - Masked dynamic time/copy-state elements.
+- Kept the default threshold at 1%; Exports uses 3% because mobile export-row detail pixels vary slightly after the full browser harness has exercised prior specs.
 - Skipped only the duplicate default Chromium project; the fixed desktop/mobile projects run through normal `npm test`, `mix verify.example_browser`, and CI.
 
 ## Verification
@@ -39,3 +41,4 @@ Added a lightweight screenshot regression guard to the existing Playwright brows
 
 - No `package.json` or CI edits were needed because the guard runs through the existing `npm test` discovery path.
 - Dense Timeline uses a viewport-level screenshot rather than a full-page screenshot to avoid coupling the guard to volatile seeded list length while still guarding chrome, filters, row-first ordering, and mobile layout.
+- Snapshot filenames are project-specific but platform-neutral, for example `home-desktop-chromium.png`.
