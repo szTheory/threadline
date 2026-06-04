@@ -240,6 +240,181 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "renders INSERT data_after fields when field_changes is empty", %{conn: conn} do
+      repo = Threadline.Test.Repo
+      captured_at = ~U[2026-06-04 12:30:00Z]
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: captured_at
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "user-insert-1"},
+          op: "insert",
+          data_after: %{
+            "id" => "user-insert-1",
+            "email" => "test@example.com",
+            "name" => "Test User"
+          },
+          changed_fields: nil,
+          changed_from: nil,
+          captured_at: captured_at
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~ "email"
+      assert html =~ "test@example.com"
+      assert html =~ "name"
+      assert html =~ "Test User"
+      refute html =~ "No row-level changes recorded"
+    end
+
+    test "renders UPDATE values with semantic before and after tokens", %{conn: conn} do
+      repo = Threadline.Test.Repo
+      captured_at = ~U[2026-06-04 12:30:00Z]
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: captured_at
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "user-update-1"},
+          op: "update",
+          data_after: %{
+            "id" => "user-update-1",
+            "closed_at" => nil,
+            "email" => "[REDACTED]",
+            "updated_at" => "2026-06-04T12:30:00Z"
+          },
+          changed_fields: ["closed_at", "email", "updated_at"],
+          changed_from: %{
+            "closed_at" => "2026-06-03T12:30:00Z",
+            "email" => "person@example.com",
+            "updated_at" => "2026-06-03T12:30:00Z"
+          },
+          captured_at: captured_at
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~ ~s|class="tl-diff__arrow"|
+      assert html =~ "-&gt;"
+      assert html =~ ~s|class="tl-value tl-value--null"|
+      assert html =~ "null"
+      assert html =~ ~s|class="tl-value tl-value--redacted"|
+      assert html =~ "[REDACTED]"
+      assert html =~ ~s|title="2026-06-04T12:30:00Z"|
+      assert html =~ "Jun 4, 12:30 PM UTC"
+      refute html =~ ">nil<"
+      refute html =~ ~s|"2026-06-04T12:30:00Z"|
+    end
+
+    test "renders diagnostic empty copy when row-level fields are unavailable", %{conn: conn} do
+      repo = Threadline.Test.Repo
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "user-delete-1"},
+          op: "delete",
+          data_after: nil,
+          changed_fields: nil,
+          changed_from: nil,
+          captured_at: DateTime.utc_now()
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~ "No row-level changes recorded"
+
+      assert html =~
+               "Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline."
+    end
+
+    test "renders verifiable secondary refs and enabled copy affordances", %{conn: conn} do
+      repo = Threadline.Test.Repo
+      correlation_id = "request-" <> String.duplicate("abcdef", 10)
+
+      action =
+        repo.insert!(
+          Threadline.Semantics.AuditAction.changeset(%{
+            name: "support.reply",
+            actor_ref: %{"type" => "user", "id" => "agent-1"},
+            status: :ok,
+            correlation_id: correlation_id,
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            action_id: action.id
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "user-ref-1"},
+          op: "update",
+          data_after: %{"id" => "user-ref-1", "email" => "new@example.com"},
+          changed_fields: ["email"],
+          changed_from: %{"email" => "old@example.com"},
+          captured_at: DateTime.utc_now()
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+      txn_visible = Threadline.OperatorSurface.Presentation.secondary_ref(txn.id, 30).visible
+      correlation_visible = Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 42).visible
+
+      assert html =~ ~s|class="tl-short-content"|
+      assert html =~ ~s|title="#{txn.id}"|
+      assert html =~ txn_visible
+      assert html =~ ~s|data-tl-copy="#{txn.id}"|
+      assert html =~ ~s|class="tl-copy tl-button tl-button--compact tl-button--secondary"|
+      assert html =~ ~s|title="#{correlation_id}"|
+      assert html =~ correlation_visible
+      assert html =~ ~s|data-tl-copy="#{correlation_id}"|
+      refute html =~ String.slice(txn.id, 0, 14) <> "</code>"
+      refute html =~ "tl-copy tl-button--disabled"
+    end
+
     describe "surface header (Phase 66)" do
       test "does not render the surface badge linking to /audit/coverage when coverage is disabled",
            %{
