@@ -27,7 +27,7 @@
 | 141 | 3/3 | Complete    | 2026-06-04 |
 | 142 | 3/3 | Complete    | 2026-06-04 |
 | 143 | 4/4 | Complete    | 2026-06-04 |
-| 144 | Close gap: POLISH-AUDIT and POLISH-DS | Complete | 2026-06-04 |
+| 144 | 4/4 | Complete    | 2026-06-04 |
 
 **Ordering rationale:** measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep. Foundations (audit, seed, design-system) precede per-screen work so screens aren't redone when tokens change.
 
