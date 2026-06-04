@@ -61,6 +61,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:filters_raw, %{})
         |> assign(:form_error, nil)
         |> assign(:unknown_table_attempted, false)
+        |> assign(:future_window_empty, false)
         |> assign(:base_path, nil)
         |> assign(:timeline_path, nil)
         |> assign(:match_count, 0)
@@ -107,6 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               |> assign(:form_error, message)
               |> assign(:filters, [])
               |> assign(:cursor, nil)
+              |> assign(:future_window_empty, false)
               |> assign(:match_count, 0)
               |> assign(:filter_query, "")
               |> stream(:changes, [], reset: true)
@@ -121,6 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> assign(:form_error, message)
                   |> assign(:filters, [])
                   |> assign(:cursor, nil)
+                  |> assign(:future_window_empty, false)
                   |> assign(:match_count, 0)
                   |> assign(:filter_query, "")
                   |> stream(:changes, [], reset: true)
@@ -142,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 count_task =
                   Task.async(fn ->
-                    Export.count_matching(filters, cap: 10_001, repo: socket.assigns.repo)
+                    Export.count_matching(filters, count_opts(socket, 10_001))
                   end)
 
                 page_task =
@@ -161,12 +164,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> preload_visible_context(socket.assigns.repo)
 
                 filter_query = build_canonical_query(socket.assigns.filters_raw)
+                future_window_empty = future_window_empty?(filters, count, socket)
 
                 socket =
                   socket
                   |> assign(:filters, filters)
                   |> assign(:form_error, nil)
                   |> assign(:unknown_table_attempted, unknown_table_attempted)
+                  |> assign(:future_window_empty, future_window_empty)
                   |> assign(:match_count, count)
                   |> assign(:filter_query, filter_query)
                   |> stream(:changes, page.entries, reset: true)
@@ -356,20 +361,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </section>
 
-            <div class="tl-journey-rail" aria-label="Investigation journey">
-              <div class="tl-journey-step">
-                <span class="tl-journey-step__label">1. Find</span>
-                <span class="tl-journey-step__title">Filter the timeline</span>
-              </div>
-              <div class="tl-journey-step">
-                <span class="tl-journey-step__label">2. Explain</span>
-                <span class="tl-journey-step__title">Open transaction and row history</span>
-              </div>
-              <div class="tl-journey-step">
-                <span class="tl-journey-step__label">3. Package</span>
-                <span class="tl-journey-step__title">Export or pivot to evidence</span>
-              </div>
-            </div>
           </section>
         </main>
 
@@ -403,6 +394,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      value={@filters_raw["actor_id"] || ""}
                      disabled={@filters_raw["actor_kind"] == "anonymous"}
                      phx-debounce="blur" class="tl-toolbar__control" />
+              <small :if={@filters_raw["actor_kind"] == "anonymous"} class="tl-toolbar__hint">n/a for anonymous</small>
             </label>
             <label class="tl-toolbar__field tl-toolbar__field--wide">Correlation id
               <input type="text" name="filter[correlation_id]" id="filter-correlation-id"
@@ -446,7 +438,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </header>
 
         <%= if @form_error do %>
-          <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
+          <div class="tl-alert tl-alert--error" role="alert">
+            <%= invalid_filter_message(@form_error) %>
+          </div>
         <% end %>
 
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
@@ -458,6 +452,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <div class="tl-status" role="status">
           <%= length(@streams.changes.inserts) %> shown · <%= format_count(@match_count) %> matches · current filter window
         </div>
+
+        <section class="tl-filter-summary" aria-label="Active Timeline filters">
+          <strong>Active filters</strong>
+          <span>Window: <%= filter_window_label(@filters_raw) %></span>
+          <span :for={{label, value} <- active_filter_pairs(@filters_raw)} class="tl-chip tl-chip--neutral">
+            <%= label %>: <%= value %>
+          </span>
+          <span :if={active_filter_pairs(@filters_raw) == []}>No table, actor, or correlation filter</span>
+        </section>
 
         <%= if @match_count > 5_000 and @match_count < 10_001 do %>
           <div class="tl-alert tl-alert--info" role="status">
@@ -478,7 +481,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="tl-change__summary">
               <div class="tl-change__meta">
                 <span class={["tl-change__op", op_chip_modifier(change.op)]}><%= change.op %></span>
-                <span class="tl-change__table"><%= change.table_name %></span>
+                <span class="tl-change__table tl-secondary-ref" title={table_ref(change).title}>
+                  <%= table_ref(change).visible %>
+                </span>
                 <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
                   <%= Presentation.human_time(change.captured_at) %>
                 </time>
@@ -494,8 +499,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </span>
                 <span :if={correlation_id(change)}>
                   Correlation
-                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep">
-                    <code><%= correlation_id(change) %></code>
+                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep" title={correlation_ref(change).title}>
+                    <code class="tl-secondary-ref"><%= correlation_ref(change).visible %></code>
                   </a>
                   <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={correlation_id(change)} aria-label="Copy correlation id">Copy</button>
                 </span>
@@ -508,12 +513,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </section>
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
              class="tl-empty">
-          <h3 class="tl-empty__title">No changes match</h3>
-          <p class="tl-empty__body">No captured audit changes match these filters in the selected window.<%= if not is_nil(assigns[:threadline_scope]) do %> Results are limited to the records you are authorized to see.<% end %></p>
+          <h3 class="tl-empty__title"><%= empty_title(@future_window_empty) %></h3>
+          <p class="tl-empty__body"><%= empty_body(@future_window_empty) %></p>
           <div class="tl-empty__actions">
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">Clear filters</.link>
           </div>
         </div>
+        <aside class="tl-journey--legend" aria-label="Investigation journey">
+          <p>
+            <strong>FIND</strong> filter the timeline ·
+            <strong>EXPLAIN</strong> open transaction and row history ·
+            <strong>PACKAGE</strong> queue or download the current export
+          </p>
+        </aside>
       </div>
       """
     end
@@ -531,6 +543,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         surface: :timeline,
         params: %{filters: socket.assigns.filters}
       ]
+    end
+
+    defp count_opts(socket, cap) do
+      socket
+      |> scope_aware_opts()
+      |> Keyword.put(:cap, cap)
     end
 
     defp default_repo do
@@ -583,6 +601,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp correlation_path(base_path, _correlation_id), do: base_path
 
+    defp table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
+    defp table_ref(_change), do: Presentation.secondary_ref("", 30)
+
+    defp correlation_ref(change), do: Presentation.secondary_ref(correlation_id(change), 34)
+
     # Renders the match count for the status line:
     # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
     # - Below the cap → exact integer with thousands separators
@@ -617,6 +640,61 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp filter_window_label(_), do: "Last 24h"
+
+    defp active_filter_pairs(%{} = raw) do
+      raw
+      |> Map.take(["table", "actor_kind", "actor_id", "correlation_id"])
+      |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
+      |> Enum.map(fn {key, value} -> {filter_label(key), value} end)
+    end
+
+    defp active_filter_pairs(_), do: []
+
+    defp filter_label("actor_kind"), do: "actor kind"
+    defp filter_label("actor_id"), do: "actor id"
+    defp filter_label("correlation_id"), do: "correlation id"
+    defp filter_label(key), do: key
+
+    defp invalid_filter_message(message) do
+      "Timeline filters could not be applied. Fix the highlighted value, then apply filters again. #{message}"
+    end
+
+    defp empty_title(true), do: "No captured changes in this time window"
+    defp empty_title(false), do: "No captured changes match this window"
+
+    defp empty_body(true) do
+      "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
+    end
+
+    defp empty_body(false) do
+      "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+    end
+
+    defp future_window_empty?(_filters, count, _socket) when count != 0, do: false
+
+    defp future_window_empty?(filters, 0, socket) do
+      if future_leaning_window?(filters) do
+        filters
+        |> Keyword.drop([:from, :to])
+        |> Export.count_matching(count_opts(socket, 1))
+        |> case do
+          {:ok, %{count: count}} -> count > 0
+          _ -> false
+        end
+      else
+        false
+      end
+    end
+
+    defp future_leaning_window?(filters) do
+      now = DateTime.utc_now()
+
+      filters
+      |> Keyword.take([:from, :to])
+      |> Enum.any?(fn {_key, value} ->
+        match?(%DateTime{}, value) and DateTime.compare(value, now) == :gt
+      end)
+    end
 
     defp coverage_warning?(%{uncovered_count: count}) when is_integer(count), do: count > 0
     defp coverage_warning?(_), do: false
