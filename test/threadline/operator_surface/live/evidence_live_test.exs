@@ -153,6 +153,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Proven"
         assert html =~ "Inferred"
         assert html =~ "Unsupported"
+
+        assert html =~ "tl-secondary-ref"
+        assert html =~ ~s(title="{&quot;run_id&quot;:&quot;ret-run-1&quot;}")
+      end
+
+      test "renders failed export evidence as presentation-only failure context", %{conn: conn} do
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "export-123"},
+          summary_status: "failed",
+          detail: %{"error" => "runtime unavailable"}
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/evidence")
+
+        assert html =~ "Failed export evidence"
+        assert html =~ "export_delivery"
+        assert html =~ "Open proof history"
+
+        refute html =~
+                 ">Unsupported</span>\n                          <span>Failed export evidence"
+      end
+
+      test "opens proof history before support navigation", %{conn: conn} do
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "export-123"},
+          summary_status: "completed",
+          detail: %{"status" => "completed"}
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/evidence")
+
+        assert html =~ "Open proof history"
+        assert html =~ "Open exports"
+
+        [card_support_position | _] =
+          html
+          |> :binary.matches("Open exports")
+          |> Enum.reverse()
+
+        assert :binary.match(html, "Open proof history") < card_support_position
       end
 
       test "subject query param narrows to one subject family", %{conn: conn} do

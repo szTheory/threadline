@@ -59,7 +59,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @threadline_policy_enabled do %>
             <header class="tl-page__header">
               <div>
-              <h1 class="tl-page__title">Policy redaction drift</h1>
+              <h1 class="tl-page__title">Redaction assurance</h1>
               <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</p>
               </div>
             </header>
@@ -88,7 +88,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
 
             <p :if={@report.summary.drift_detected == 0 and @report.summary.could_not_introspect == 0} class="tl-policy__success">
-              Redaction policy matches deployed trigger policy for every introspected configured table.
+              Configured redaction matches deployed trigger policy for every introspected table. Continue to Evidence for the latest proof record.
             </p>
 
             <%= for section <- @sections do %>

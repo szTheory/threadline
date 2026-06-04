@@ -169,7 +169,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Unsupported View"
         assert html =~ "Policy redaction drift is not available"
         assert html =~ "mix threadline.policy.show"
-        refute html =~ "<h2>Policy redaction drift</h2>"
+        refute html =~ "Redaction assurance"
       end
 
       test "renders presenter-driven sections in locked order with safe detail copy", %{
@@ -178,7 +178,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/policy/redaction")
         report = RedactionPresenter.build(repo: Repo, schema: "public")
 
-        assert html =~ "Policy redaction drift"
+        assert html =~ "Redaction assurance"
         assert section_titles(html) == expected_section_titles(report)
 
         assert section_tables(html, section_heading(report, :drift_detected)) ==
@@ -197,6 +197,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Configured redaction does not match deployed trigger SQL."
         assert html =~ "Could not inspect deployed trigger SQL."
         assert html =~ "Configured redaction matches deployed trigger redaction."
+
         assert html =~ "No deployed Threadline trigger found for configured table."
         assert html =~ "Deployed trigger SQL did not match the expected Threadline trigger shape."
 

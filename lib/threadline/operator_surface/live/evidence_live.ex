@@ -123,11 +123,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
                             <%= Presentation.status_label(row.verdict_status) %>
                           </span>
-                          <span><%= Presentation.status_label(row.summary_status) %></span>
+                          <span><%= row.proof_label %></span>
                         </h4>
-                        <div class="tl-record-card__ref"><%= row.subject_ref_json %></div>
                         <div class="tl-record-card__meta">
                           <span class="tl-evidence__meta"><%= row.subject %></span>
+                          <% ref = Presentation.secondary_ref(row.subject_ref, 56) %>
+                          <span class="tl-secondary-ref" title={ref.title}><%= ref.visible %></span>
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                             <%= Presentation.human_time(row.recorded_at) %>
                           </time>
@@ -135,18 +136,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       </div>
                       <div class="tl-record-card__actions">
                         <.link
-                          :if={show_subject_link?(@request)}
-                          patch={subject_path(@base_path, row.subject)}
-                          class="tl-button tl-button--compact tl-button--secondary"
-                        >
-                          Filter to subject
-                        </.link>
-                        <.link
                           :if={show_history_link?(@request)}
                           patch={history_path(@base_path, row.subject, row.subject_ref_json)}
                           class="tl-button tl-button--compact tl-button--secondary"
                         >
                           Open proof history
+                        </.link>
+                        <.link
+                          :if={show_subject_link?(@request)}
+                          patch={subject_path(@base_path, row.subject)}
+                          class="tl-button tl-button--compact tl-button--secondary"
+                        >
+                          Filter to subject
                         </.link>
                         <%= if action = support_action(@base_path, row.subject) do %>
                           <a href={action.path} class="tl-button tl-button--compact tl-button--ghost"><%= action.label %></a>
@@ -263,12 +264,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       %{
         id: record.id,
         subject: presented.subject,
+        subject_ref: presented.subject_ref,
         subject_ref_json: Jason.encode!(presented.subject_ref),
         summary_status: presented.summary_status,
+        proof_label: proof_label(presented),
         recorded_at: record.recorded_at,
         verdict_status: presented.verdict_status
       }
     end
+
+    defp proof_label(%{subject: "export_delivery", summary_status: status})
+         when status in ["failed", "error", "unsupported"] do
+      "Failed export evidence"
+    end
+
+    defp proof_label(%{summary_status: status}), do: Presentation.status_label(status)
 
     defp resolve_repo(socket) do
       socket.assigns[:threadline_repo] ||
@@ -301,6 +311,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       do: %{path: "#{base_path}/coverage", label: "Check coverage"}
 
     defp support_action(base_path, "export_job") when is_binary(base_path),
+      do: %{path: "#{base_path}/exports", label: "Open exports"}
+
+    defp support_action(base_path, "export_delivery") when is_binary(base_path),
       do: %{path: "#{base_path}/exports", label: "Open exports"}
 
     defp support_action(_base_path, _subject), do: nil
