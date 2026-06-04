@@ -489,7 +489,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "Case 5: correlation id >256 bytes triggers form error", %{conn: conn} do
       long_id = String.duplicate("a", 257)
       assert {:ok, _lv, html} = live(conn, "/audit/timeline?correlation_id=#{long_id}")
-      assert html =~ "Timeline filters could not be applied. Fix the highlighted value, then apply filters again."
+
+      assert html =~
+               "Timeline filters could not be applied. Fix the highlighted value, then apply filters again."
+
       assert html =~ "256 UTF-8 bytes"
     end
 
@@ -804,7 +807,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       table = "empty_timeline_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
-               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}")
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
+               )
 
       assert html =~ "No captured changes match this window"
 
@@ -818,7 +824,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       seed_change!(table: table, occurred_at: DateTime.utc_now() |> DateTime.add(-60, :second))
 
       assert {:ok, _lv, html} =
-               live(conn, "/audit/timeline?from=2099-01-01T00:00&to=2099-01-02T00:00&table=#{table}")
+               live(
+                 conn,
+                 "/audit/timeline?from=2099-01-01T00:00&to=2099-01-02T00:00&table=#{table}"
+               )
 
       assert html =~ "No captured changes in this time window"
 
@@ -830,7 +839,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       table = "scoped_empty_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
-               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}")
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
+               )
 
       assert html =~ "Scoped views only show records you are authorized to see."
     end
@@ -841,7 +853,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       seed_change!(table: table)
 
       assert {:ok, _lv, html} =
-               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
+               )
 
       assert html =~ ~s|class="tl-filter-summary"|
       assert html =~ ~s|data-testid="timeline-row"|
@@ -862,7 +877,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       seed_change!(table: table, correlation_id: correlation_id)
 
       assert {:ok, _lv, html} =
-               live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
+               )
 
       table_ref = Threadline.OperatorSurface.Presentation.secondary_ref(table, 30)
       correlation_ref = Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 34)
@@ -1198,9 +1216,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       :ok
     end
 
-    test "support-scoped mounts hide export affordances when export auth denies access" do
-      conn = Phoenix.ConnTest.build_conn()
+    setup do
+      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
 
+    test "support-scoped mounts hide export affordances when export auth denies access", %{
+      conn: conn
+    } do
       {:ok, _lv, html} =
         case live(conn, "/audit_support/timeline?table=support_posts") do
           {:ok, _, _} = ok -> ok
@@ -1212,6 +1235,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ">JSON<"
       refute html =~ ">NDJSON<"
       refute html =~ "Carry to Exports"
+    end
+
+    test "support-scoped mounts ignore forged export queue events when export auth denies access",
+         %{conn: conn} do
+      {:ok, lv, _html} =
+        case live(conn, "/audit_support/timeline?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob) == []
     end
   end
 end

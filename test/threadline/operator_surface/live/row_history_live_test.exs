@@ -233,6 +233,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit/rows/users/row-path-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
 
+    test "first-class row-history path preserves slash-containing record ids", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "tenant/row-1"},
+        data_after: %{"id" => "tenant/row-1", "name" => "Segment Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, lv, html} = live(conn, "/audit/rows/users/tenant%2Frow-1")
+      assert html =~ "Segment Value"
+      assert html =~ ~s|href="/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12:00:00|
+
+      render_change(element(lv, "form"), %{"as_of" => "2026-10-03T12:00"})
+
+      assert_patch(lv, "/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12%3A00%3A00Z")
+    end
+
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 

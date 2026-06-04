@@ -88,7 +88,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp row_history_path(base_path, table, record_id) do
-      "#{base_path}/rows/#{URI.encode_www_form(to_string(table))}/#{URI.encode_www_form(to_string(record_id))}"
+      "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
     end
+
+    defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
   end
 end

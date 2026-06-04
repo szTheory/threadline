@@ -240,6 +240,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "transaction row-history links encode slash-containing record ids", %{conn: conn} do
+      repo = Threadline.Test.Repo
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "tenant/row-transaction"},
+          op: "update",
+          data_after: %{"id" => "tenant/row-transaction", "email" => "test@example.com"},
+          changed_fields: ["id", "email"],
+          changed_from: %{"email" => "old@example.com"},
+          captured_at: DateTime.utc_now()
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~
+               ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-transaction?as_of=|
+
+      refute html =~ "/history/users/tenant/row-transaction"
+    end
+
     test "renders INSERT data_after fields when field_changes is empty", %{conn: conn} do
       repo = Threadline.Test.Repo
       captured_at = ~U[2026-06-04 12:30:00Z]

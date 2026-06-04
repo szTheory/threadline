@@ -44,7 +44,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, socket}
     end
 
-    def handle_event("queue_timeline_export_context", _params, socket) do
+    def handle_event(
+          "queue_timeline_export_context",
+          _params,
+          %{assigns: %{threadline_exports_enabled: true}} = socket
+        ) do
       case socket.assigns.timeline_export_context do
         %{status: :valid, query_params: query_params} when query_params != %{} ->
           repo = resolve_repo(socket)
@@ -89,6 +93,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, socket}
       end
     end
+
+    def handle_event("queue_timeline_export_context", _params, socket), do: {:noreply, socket}
 
     def handle_info(:refresh, socket) do
       if not socket.assigns[:threadline_exports_enabled] do

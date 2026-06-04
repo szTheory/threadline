@@ -23,7 +23,7 @@ config :threadline_phoenix, ThreadlinePhoenix.Repo,
 # you can enable the server option below.
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  check_origin: false,
+  check_origin: ["//127.0.0.1:4002", "//localhost:4002"],
   secret_key_base: "EjvmPWRdJYl2nuzaH1YTk0jrEqwiEFmBxkknVmdDY2eYjwJ16VMVmRYqleJVRC25",
   server: false
 

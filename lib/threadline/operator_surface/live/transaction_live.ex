@@ -169,7 +169,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
                   <div class="tl-change__actions">
-                    <.link patch={"#{@base_path}/history/#{change.change_diff["table_name"]}/#{change.change_diff["table_pk"] |> Map.values() |> List.first()}?as_of=#{change.change_diff["captured_at"]}"} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                    <.link patch={change_history_path(@base_path, change)} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
                       Open row history
                     </.link>
                   </div>
@@ -291,7 +291,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp timeline_correlation_path(base_path, _correlation_id), do: base_path
 
     defp history_path(base_path, table, record_id) do
-      "#{base_path}/history/#{URI.encode_www_form(to_string(table))}/#{URI.encode_www_form(to_string(record_id))}"
+      "#{base_path}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
+    end
+
+    defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
+
+    defp change_history_path(base_path, change) do
+      table = change.change_diff["table_name"]
+      record_id = change.change_diff["table_pk"] |> Map.values() |> List.first()
+      captured_at = change.change_diff["captured_at"]
+
+      "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
     end
 
     defp op_chip_modifier(op) do

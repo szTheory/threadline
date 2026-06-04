@@ -77,6 +77,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "/audit/history/users/row-path-component"
     end
 
+    test "fallback history path encodes slash-containing record ids as a single route segment" do
+      captured_at = ~U[2026-06-04 12:30:00Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "tenant/row-component"},
+        data_after: %{"id" => "tenant/row-component", "name" => "Path Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      html =
+        render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, %{
+          id: "test-history",
+          table: "users",
+          record_id: "tenant/row-component",
+          base_path: "/audit/transactions/#{txn.id}",
+          threadline_schemas: %{"users" => FakeUser},
+          repo: Threadline.Test.Repo,
+          as_of: captured_at
+        })
+
+      assert html =~
+               ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-component?as_of=2026-06-04T12:30:00|
+
+      refute html =~ "/history/users/tenant/row-component"
+    end
+
     test "renders sorted snapshot rows with shared semantic value tokens" do
       captured_at = ~U[2026-06-04 12:30:00Z]
       txn = insert_transaction(%{occurred_at: captured_at})

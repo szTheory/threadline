@@ -204,6 +204,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Threadline.Test.Repo.all(ExportJob) == []
       end
 
+      test "denied exports ignore forged Timeline context queue events", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_exports, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
+
+        {:ok, view, html} =
+          live(conn, "/audit/exports?table=ticket_replies&correlation_id=req_ef3")
+
+        assert html =~ "Action Denied"
+        refute html =~ "Queue Timeline export"
+
+        render_click(view, "queue_timeline_export_context", %{})
+
+        assert Threadline.Test.Repo.all(ExportJob) == []
+      end
+
       test "renders carried Evidence proof context separately from Timeline exports", %{
         conn: conn
       } do

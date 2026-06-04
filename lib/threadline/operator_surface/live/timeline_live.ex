@@ -242,7 +242,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, push_patch(socket, to: socket.assigns.timeline_path)}
     end
 
-    def handle_event("request_background_export", _params, socket) do
+    def handle_event(
+          "request_background_export",
+          _params,
+          %{assigns: %{threadline_exports_enabled: true}} = socket
+        ) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
       job = %Threadline.Governance.ExportJob{
@@ -284,6 +288,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, put_flash(socket, :error, error_message)}
       end
     end
+
+    def handle_event("request_background_export", _params, socket), do: {:noreply, socket}
 
     def handle_event("next-page", _, socket) do
       if socket.assigns.cursor do

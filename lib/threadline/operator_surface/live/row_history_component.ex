@@ -18,7 +18,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:record_id, record_id)
         |> assign_new(:close_path, fn -> assigns[:base_path] end)
         |> assign_new(:history_path, fn ->
-          "#{assigns[:base_path]}/history/#{URI.encode_www_form(table)}/#{URI.encode_www_form(record_id)}"
+          "#{assigns[:base_path]}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
         end)
 
       if schema_module do
@@ -153,6 +153,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp as_of_path(history_path, %DateTime{} = as_of) do
       "#{history_path}?#{URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})}"
     end
+
+    defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 
     attr(:result, :any, required: true)
 
