@@ -7,7 +7,7 @@
 
 ### Brand Strategy And Audit
 
-- [ ] **BRAND-AUDIT-01**: The existing brand book, prior research, README positioning, operator-surface token system, and the reverted one-shot brandbook commit are critically audited before final assets are accepted.
+- [x] **BRAND-AUDIT-01**: The existing brand book, prior research, README positioning, operator-surface token system, and the reverted one-shot brandbook commit are critically audited before final assets are accepted. Completed in Phase 145.
 - [ ] **BRAND-DNA-01**: The milestone captures Threadline's brand essence, audience, technical promise, visual metaphor, voice principles, anti-traits, and OSS/Elixir ecosystem fit in durable source docs.
 
 ### Implementation-Ready Brand System
@@ -37,7 +37,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRAND-AUDIT-01 | Phase 145 | Pending |
+| BRAND-AUDIT-01 | Phase 145 | Complete |
 | BRAND-DNA-01 | Phase 146 | Pending |
 | BRAND-TOKENS-01 | Phase 147 | Pending |
 | BRAND-LOGO-01 | Phase 147 | Pending |
