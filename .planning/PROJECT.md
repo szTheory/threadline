@@ -10,18 +10,23 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-v1.32 Brand System Foundation is active. This milestone corrects a premature one-shot brandbook artifact pass by reverting it first, then rebuilding Threadline's brand system through normal GSD requirements, phase verification, and closeout.
+v1.32 is shipped and archived. No active milestone is open; the next milestone should start from fresh requirements via `$gsd-new-milestone`.
 
-## Current Milestone: v1.32 Brand System Foundation
+## Latest Milestone Shipped: v1.32 Brand System Foundation (2026-06-05)
 
-**Goal:** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
+**Goal (achieved):** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
 
-**Target features:**
-- Critical audit and brand DNA extraction from the existing brand book, prior research, README, and operator-surface design-system context.
-- Self-contained `brandbook/` artifact set: static HTML, Markdown source docs, JSON/CSS tokens, and editable SVG source assets.
-- Verification evidence for source-control hygiene, accessibility contrast, browser rendering, small SVG asset validity, and milestone requirement traceability.
+**Shipped:**
+- **Process correction** — reverted the premature one-shot brandbook commit, then reopened the work through requirements, roadmap, phases, verification, and audit.
+- **Brand source docs** — `brandbook/brand-book.md` and `brandbook/pressure-test.md` capture brand DNA, pressure-test scores, voice, microcopy, artifacts, and QA rules.
+- **Source-controlled artifacts** — `brandbook/index.html`, JSON/CSS tokens, SVG logo system, social card, and useful visual specimens.
+- **Verification** — JSON/SVG parse checks, browser desktop/mobile checks, image-load checks, contrast checks, file-size check, and binary-exclusion check.
 
-## Latest Milestone Shipped: v1.31 Operator Surface: Insane Polish (2026-06-05)
+**Archives:** `.planning/milestones/v1.32-ROADMAP.md`, `.planning/milestones/v1.32-REQUIREMENTS.md`, `.planning/milestones/v1.32-MILESTONE-AUDIT.md`
+
+**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements; candidate follow-ups are README/docs rollout, HexDocs theme, or marketing site only if explicitly selected.
+
+## Prior shipped milestone: v1.31 Operator Surface: Insane Polish (2026-06-05)
 
 **Goal (achieved):** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app), bringing every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system.
 

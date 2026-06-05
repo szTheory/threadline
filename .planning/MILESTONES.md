@@ -1,5 +1,30 @@
 # Project milestones: Threadline
 
+## v1.32 Brand System Foundation (Shipped: 2026-06-05)
+
+**Phases completed:** 5 phases, 5 plans
+
+**Delivered:** Source-control-ready Threadline brand system under `brandbook/`: strategic pressure test, durable brand book, design tokens, SVG logo system, static HTML brandbook, visual specimens, and final verification evidence.
+
+**Key accomplishments:**
+
+- Reverted the premature one-shot brandbook commit and reopened the work through GSD requirements, roadmap, phase plans, verification, and audit.
+- Preserved the strong Threadline core ("Follow what happened", connected audit history, calm technical voice) while tightening implementation readiness.
+- Added JSON/CSS tokens for dark/light surfaces, state roles, focus, code, callouts, type, spacing, radius, borders, and modest elevation.
+- Added editable SVG logo, mark, monochrome, favicon, social card, and useful visual specimens without raster/font bloat.
+- Verified direct-open HTML at desktop and mobile sizes, image-load state, representative WCAG AA contrast pairs, XML/JSON parsing, and file inventory.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.32-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.32-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.32-MILESTONE-AUDIT.md`
+- Phase history: `.planning/milestones/v1.32-phases/`
+
+**What is next:** `$gsd-new-milestone` — define fresh requirements before opening new work.
+
+---
+
 ## v1.31 Operator Surface: Insane Polish (Shipped: 2026-06-05)
 
 **Phases completed:** 10 phases, 35 plans, 51 tasks

@@ -1,13 +1,13 @@
 ---
 phase: 147-token-asset-source-system
 verified: 2026-06-05
-status: pending-final-command-rerun
+status: passed
 requirements: [BRAND-TOKENS-01, BRAND-LOGO-01]
 ---
 
 # Phase 147 Verification
 
-Phase 147 created the token and logo source artifacts. Final command output is recorded in Phase 149 after all brandbook changes are complete.
+Phase 147 created the token and logo source artifacts. Final command output was rerun in Phase 149 after all brandbook changes were complete.
 
 ## Artifact Checks
 
@@ -23,7 +23,7 @@ Phase 147 created the token and logo source artifacts. Final command output is r
 
 ## Acceptance Criteria
 
-- JSON must parse.
-- SVGs must parse as XML.
-- Representative contrast pairs must pass WCAG AA.
-- Assets must remain source SVG only, with titles/descriptions where appropriate.
+- JSON parses: `tokens.json OK`.
+- SVGs parse as XML: `svg XML OK`.
+- Representative contrast pairs pass WCAG AA; see Phase 149.
+- Assets remain source SVG only, with titles/descriptions where appropriate.

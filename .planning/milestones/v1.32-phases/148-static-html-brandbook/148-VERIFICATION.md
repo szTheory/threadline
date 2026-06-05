@@ -1,13 +1,13 @@
 ---
 phase: 148-static-html-brandbook
 verified: 2026-06-05
-status: pending-final-browser-rerun
+status: passed
 requirements: [BRAND-HTML-01, BRAND-EXAMPLES-01, BRAND-REPO-01]
 ---
 
 # Phase 148 Verification
 
-Phase 148 created the direct-open HTML brandbook and SVG implementation specimens. Final browser screenshots and image-load checks are recorded in Phase 149 after all brandbook changes are complete.
+Phase 148 created the direct-open HTML brandbook and SVG implementation specimens. Final browser screenshots and image-load checks were recorded in Phase 149 after all brandbook changes were complete.
 
 ## Artifact Checks
 
@@ -25,8 +25,8 @@ Phase 148 created the direct-open HTML brandbook and SVG implementation specimen
 
 ## Acceptance Criteria
 
-- HTML opens from `file://`.
-- Desktop and mobile first viewports are readable.
-- All image elements resolve to loaded dimensions.
-- Lower example section has no SVG text overflow at mobile width.
+- HTML opens from `file://`: `agent-browser --allow-file-access open file:///Users/jon/projects/threadline/brandbook/index.html`.
+- Desktop and mobile first viewports are readable; screenshots saved under `/tmp/threadline-brandbook-v132-*.png`.
+- All image elements resolve to loaded dimensions; see Phase 149 image-load output.
+- Lower example section has no SVG text overflow at mobile width; inspected via `/tmp/threadline-brandbook-v132-examples-mobile.png`.
 - File inventory stays text/SVG/CSS/JSON/Markdown only.
