@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Landing page hero mock</title>
+  <desc id="desc">A landing hero concept for Threadline with audit timeline linework.</desc>
+  <defs>
+    <linearGradient id="hero-line" x1="162" y1="590" x2="1048" y2="156" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/><stop offset=".55" stop-color="#4EDFD1"/><stop offset="1" stop-color="#8A7CFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" fill="#0B1020"/>
+  <g opacity=".14" stroke="#D7DEEA"><path d="M0 160H1200M0 320H1200M0 480H1200M0 640H1200"/><path d="M200 0V760M400 0V760M600 0V760M800 0V760M1000 0V760"/></g>
+  <text x="80" y="116" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="15" letter-spacing="4">THREADLINE</text>
+  <text x="80" y="220" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="72" font-weight="600">Follow what happened.</text>
+  <text x="84" y="284" fill="#A3AFC2" font-family="Geist, Inter, system-ui, sans-serif" font-size="24">Audit history for Phoenix, Ecto, and PostgreSQL.</text>
+  <rect x="82" y="334" width="192" height="50" rx="6" fill="#4F8CFF"/><text x="111" y="366" fill="#08101F" font-family="Geist, Inter, system-ui, sans-serif" font-size="16" font-weight="600">Read the docs</text>
+  <rect x="292" y="334" width="170" height="50" rx="6" fill="#141B2D" stroke="#2E3D5C"/><text x="323" y="366" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="16" font-weight="600">GitHub</text>
+  <path d="M160 590C292 244 448 285 548 470C632 626 814 486 875 268C922 100 1032 130 1092 194" fill="none" stroke="url(#hero-line)" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#0B1020" stroke-width="5"><circle cx="160" cy="590" r="16" stroke="#4F8CFF"/><circle cx="548" cy="470" r="16" stroke="#4EDFD1"/><circle cx="875" cy="268" r="16" stroke="#8A7CFF"/><circle cx="1092" cy="194" r="16" stroke="#D7DEEA"/></g>
+</svg>

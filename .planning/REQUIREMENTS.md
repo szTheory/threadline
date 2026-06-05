@@ -14,13 +14,13 @@
 
 - [x] **BRAND-TOKENS-01**: Token artifacts define raw palette values and semantic roles for dark, light, interaction states, status states, code blocks, callouts, focus, typography, spacing, radius, borders, and modest elevation. Completed in Phase 147.
 - [x] **BRAND-LOGO-01**: Logo and mark SVG assets are simple, editable, accessible, monochrome-capable, transparent-background-safe, and usable at small sizes. Completed in Phase 147.
-- [ ] **BRAND-HTML-01**: The static HTML brandbook is complete, navigable, responsive, and usable directly from the repository without a build step or network dependency.
-- [ ] **BRAND-EXAMPLES-01**: The brandbook includes only useful source-controlled visual specimens: palette, typography, components, README header, docs page, landing hero, terminal style, and social preview.
+- [x] **BRAND-HTML-01**: The static HTML brandbook is complete, navigable, responsive, and usable directly from the repository without a build step or network dependency. Completed in Phase 148.
+- [x] **BRAND-EXAMPLES-01**: The brandbook includes only useful source-controlled visual specimens: palette, typography, components, README header, docs page, landing hero, terminal style, and social preview. Completed in Phase 148.
 
 ### Voice, Repo Hygiene, And Verification
 
 - [x] **BRAND-VOICE-01**: The brand system includes ready-to-use technical copy and UX microcopy examples for README/docs/marketing/error/success/warning/release surfaces without hype or compliance overreach. Completed in Phase 146.
-- [ ] **BRAND-REPO-01**: All brand artifacts live under `brandbook/`, remain text/SVG-first, avoid duplicate font binaries and large raster assets, and document what should and should not be committed.
+- [x] **BRAND-REPO-01**: All brand artifacts live under `brandbook/`, remain text/SVG-first, avoid duplicate font binaries and large raster assets, and document what should and should not be committed. Completed in Phase 148.
 - [ ] **BRAND-QA-01**: Verification records cover JSON parsing, SVG XML parsing, browser rendering at desktop and mobile sizes, representative WCAG AA contrast pairs, image load state, file-size budget, and clean source-control boundaries.
 
 ## Out of Scope
@@ -41,10 +41,10 @@
 | BRAND-DNA-01 | Phase 146 | Complete |
 | BRAND-TOKENS-01 | Phase 147 | Complete |
 | BRAND-LOGO-01 | Phase 147 | Complete |
-| BRAND-HTML-01 | Phase 148 | Pending |
-| BRAND-EXAMPLES-01 | Phase 148 | Pending |
+| BRAND-HTML-01 | Phase 148 | Complete |
+| BRAND-EXAMPLES-01 | Phase 148 | Complete |
 | BRAND-VOICE-01 | Phase 146 | Complete |
-| BRAND-REPO-01 | Phase 148 | Pending |
+| BRAND-REPO-01 | Phase 148 | Complete |
 | BRAND-QA-01 | Phase 149 | Pending |
 
 **Coverage:**
