@@ -2,38 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: "Operator Surface: Insane Polish"
-status: milestone_complete
-last_updated: 2026-06-04T22:00:30.719Z
-last_activity: 2026-06-04 -- Completed 144-04-PLAN.md
+status: Awaiting next milestone
+last_updated: "2026-06-05T00:28:56.998Z"
+last_activity: 2026-06-05 — Milestone v1.31 completed and archived
 progress:
   total_phases: 11
   completed_phases: 11
   total_plans: 35
   completed_plans: 35
   percent: 100
-stopped_at: Milestone complete (Phase 144 was final phase)
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-29)
+See: `.planning/PROJECT.md` (updated 2026-06-05)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Milestone complete
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 144
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-04
-Resume: None
+Phase: Milestone v1.31 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-05 — Milestone v1.31 completed and archived
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.30 — Adoption Evidence Automation (2026-05-29)
+- **Last Milestone Shipped**: v1.31 — Operator Surface: Insane Polish (2026-06-05)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -61,7 +59,7 @@ Resume: None
 
 ### Pending Todos
 
-- **Capture direct demo and UI polish** — direct Hold-mode commits `253bec3` and `f23a9cc` (operator-surface positioning + a11y pass) are now the baseline that v1.31 systematizes; reconcile any deltas during Phase 134 audit.
+None.
 
 ### Roadmap Evolution
 
@@ -77,6 +75,9 @@ Resume: None
   - **Release-please born-red root-cause fix (#22)** — every release PR was born red because release-please bumped `mix.exs` but not the adoption-pilot guide, failing `adoption_pilot_doc_contract_test`. Fixed via `extra-files` + `x-release-please-version` annotation so the SSOT line is bumped atomically in the release commit (green by construction, no manual prep). `bin/post-publish-distribution-sync` now owns only the post-publish Hex row; a guard test enforces the wiring. See memory `release-runbook` and `CONTRIBUTING.md`.
 - **Milestone v1.31 opened (2026-06-03):** Hold superseded by a non-signal-gated polish milestone. 10 phases (134–143), 1:1 with 10 POLISH-* requirements, fully pre-decided order: measure → enrich → systematize → apply (least-iterated first) → hub → flows → motion → responsive → sweep.
 - Phase 144 added: Close gap: POLISH-AUDIT and POLISH-DS
+- **v1.31 closeout hygiene (2026-06-05):**
+  - The pending "Capture direct demo and UI polish" todo is resolved: the Docker demo is documented in `examples/threadline_phoenix/README.md`, operator-surface polish was absorbed by v1.31, and release notes already cover the automated operator-surface/design-system gate.
+  - Phase 135 and Phase 137 HUMAN-UAT records are terminal `status: complete`; their checks are automated by `operator-phase-135-uat.spec.ts` and `operator-prove-mobile.spec.ts` under `mix verify.example_browser`, so no human UAT remains.
 
 ### Decisions
 
@@ -111,12 +112,10 @@ Resume: None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed 144-04-PLAN.md — final verification and traceability closure (2026-06-04)
-- **Next Step**: Proceed to milestone closeout review; refreshed v1.31 audit has no POLISH-AUDIT or POLISH-DS blockers
+- **Last Action**: Archived v1.31 milestone, requirements, audit, and phase directories (2026-06-05)
+- **Next Step**: Start the next milestone with `$gsd-new-milestone`
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- **Review 144-04-SUMMARY.md** — Phase 144 close-gap verification and milestone audit rerun evidence
-- **Locked constraints** — keep BEM `.tl-*` + `--tl-*` tokens in `style.ex` (no Tailwind/build step); dark-first brand; seed enrichment only; no new backend/screens; every new flow traces to a JTBD + decision record
-- v1.28 external pilot remains signal-gated and out of scope for v1.31
+- Start the next milestone with /gsd-new-milestone

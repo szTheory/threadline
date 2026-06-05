@@ -8,29 +8,26 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.31 Operator Surface: Insane Polish
+## Current State
 
-**Goal:** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app) — bring every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system, align IA to real personas/JTBD with a few earned new flows, add restrained purposeful micro-animation, and enrich seed data so every screen demonstrates itself — captured durably and screenshot-/decision-recorded so a context clear loses nothing.
+v1.31 is shipped and archived. No active milestone is open; the next milestone should start from fresh requirements via `$gsd-new-milestone`.
 
-**Why now (non-signal-gated):** Independent of the deferred, signal-gated v1.28 External Pilot. Polish is currently uneven (Home/Timeline iterated; Coverage/Evidence/Exports/Policy/Retention/Actor lag). This establishes a high, consistent foundation for all future UI iteration. Persona/IA model, methodology, and full Phase 0–8 breakdown live in the approved plan: `~/.claude/plans/recap-goal-was-shipping-robust-lark.md`.
+## Latest Milestone Shipped: v1.31 Operator Surface: Insane Polish (2026-06-05)
 
-**Target features (requirement themes):**
-- Baseline screenshot audit + ranked findings (`POLISH-AUDIT`)
-- Seed enrichment so every screen-state shows well (`POLISH-SEED`)
-- Design-system hardening: token scales + audited `.tl-*` catalog (`POLISH-DS`)
-- "Prove" cluster polish — least-iterated screens first (`POLISH-PROVE`)
-- "Find" cluster polish — Timeline/Transaction/Row-history/Actor (`POLISH-FIND`)
-- Orientation hub (Home/nav) aligned to IA (`POLISH-HOME`)
-- Earned new flows: record-first lookup, export loop, correlation deep-link, first-class row-history (`POLISH-FLOWS`)
-- Restrained, research-backed micro-animation (`POLISH-MOTION`)
-- Genuine mobile-first responsive across all screens (`POLISH-RESPONSIVE`)
-- Accessibility + final consistency sweep + screenshot-diff regression guard (`POLISH-A11Y`)
+**Goal (achieved):** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app), bringing every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system.
 
-**Locked constraints:** Keep BEM (`.tl-*`) + `--tl-*` tokens in `style.ex` (no Tailwind, no build step). Dark-first brand locked (no light mode). Seed enrichment only (no demo-app redesign). No new backend features/queries. Every new flow traces to a persona JTBD + a decision record — no speculative features.
+**Shipped:**
+- **Baseline evidence and seed enrichment** — Phase 134/135 evidence plus Phase 144 errata close the screenshot audit, state matrix, seed recipes, and persona/IA decisions.
+- **Design-system hardening** — Phase 136 plus Phase 144 source-first catalog/freeze work locks the `.tl-*` class catalog, `--tl-*` token contract, operation primitives, and dark-only brand constraints.
+- **Operator-surface polish** — Phases 137-139 bring Prove, Find, Home, and grouped navigation to the same primitive and responsive baseline.
+- **Earned flows** — Phase 140 ships record-first lookup, correlation paste/deep-link, first-class row history, and Timeline/Evidence export carry-forward.
+- **Motion, responsive, accessibility, and regression guard** — Phases 141-143 verify motion governance, 375/768/1280 responsive behavior, accessibility primitives, screenshot diff, and screenshot-regression guard.
 
-**Close-gap status (2026-06-04):** Phase 144 closed the two remaining v1.31 audit blockers without adding product scope: `POLISH-AUDIT` is satisfied by explicit errata verification of the existing Phase 134-labeled baseline/final evidence, and `POLISH-DS` is satisfied by source-first operation primitive consolidation, token/class freeze contracts, and `v1.31-DESIGN-SYSTEM.md`. `.planning/v1.31-MILESTONE-AUDIT.md` now records all ten v1.31 requirements satisfied and ready for milestone closeout.
+**Archives:** `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`, `.planning/milestones/v1.31-MILESTONE-AUDIT.md`
 
-## Latest Milestone Shipped: v1.30 Adoption Evidence Automation (2026-05-29)
+**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements; v1.28 External Pilot remains signal-gated.
+
+## Prior shipped milestone: v1.30 Adoption Evidence Automation (2026-05-29)
 
 **Goal (achieved):** Close shift-left automation gaps on the existing help-desk demo journey (WALKTHROUGH §5, Track A golden path, minimal browser E2E) without new fiction or host STG pretense.
 
@@ -150,7 +147,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 - `WALKTHROUGH.md` (§0–§5), findings template + classification protocol, Phase 109 dry-run, Phase 110 triage (0001–0003 fixed, RUN-01/02/03 pass on validation re-walk)
 - Zero `lib/threadline/**` commits for inventory fixes; `mix ci.all` green at closeout
 
-**Next milestone goals:** _(superseded by v1.24 — see Current Milestone above)_
+**Next milestone goals:** _(superseded by v1.24 — see later shipped milestone sections above)_
 
 ## Prior latest milestone: v1.22 Policy / Evidence Plane
 
@@ -516,4 +513,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-04 after Phase 144 v1.31 close-gap audit*
+*Last updated: 2026-06-05 after v1.31 milestone closeout*

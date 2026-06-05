@@ -27,9 +27,9 @@ The code is committed and verified, but the planning authority surfaces still de
 
 ## Solution
 
-During the next planning hygiene pass, decide how to reflect these commits in GSD:
+Resolved during v1.31 closeout hygiene on 2026-06-05:
 
-- update `STATE.md` / `ROADMAP.md` direct-work notes if this is Hold-mode hardening;
-- consider a short `PROJECT.md` capability note if the Docker demo is now part of adopter evaluation;
-- decide whether CHANGELOG or release notes need an unreleased entry for the operator-surface polish and containerized demo;
-- keep v1.28 external-pilot gating unchanged unless real adopter signal appears.
+- The containerized Phoenix demo is documented in `examples/threadline_phoenix/README.md` as the zero-friction Docker demo path.
+- The operator-surface design-system polish was absorbed by v1.31 and the release notes already cover the automated operator-surface/design-system gate in `CHANGELOG.md`.
+- `STATE.md` records the direct-work baseline and now treats the v1.31 automated UAT records as complete.
+- v1.28 external-pilot gating remains unchanged until sustained real-adopter signal appears.

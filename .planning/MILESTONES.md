@@ -1,5 +1,39 @@
 # Project milestones: Threadline
 
+## v1.31 Operator Surface: Insane Polish (Shipped: 2026-06-05)
+
+**Phases completed:** 10 phases, 35 plans, 51 tasks
+
+**Delivered:** Full `/audit` operator-surface polish pass: baseline/final screenshot evidence, seed-state enrichment, design-system hardening, Prove/Find/Home screen polish, earned investigation/export flows, motion governance, responsive coverage, accessibility baseline, and screenshot regression guard.
+
+**Key accomplishments:**
+
+- Baseline/final evidence was made durable: `v1.31-UI-AUDIT.md`, 24 baseline screenshots, 24 final screenshots, screenshot diff, and Phase 144 errata close `POLISH-AUDIT`.
+- Demo seed and `DEMO-MANIFEST.md` now expose the operator surface across empty, sparse, dense, error, scoped, and edge states with named actor literals and doc-contract coverage.
+- The dark BEM/token design system is source-first and frozen through `v1.31-DESIGN-SYSTEM.md`, `style.ex`, style contract tests, and shared operation presentation helpers.
+- Prove and Find clusters now share canonical value, status, remediation, action, table, card, and mobile primitives across Evidence, Policy, Retention, Exports, Timeline, Transaction, Row-history, Actor, and Coverage.
+- Home/nav orientation and earned flows now support record-first lookup, correlation paste/deep-link, first-class row history, and Timeline/Evidence to Exports carry-forward.
+- Motion, responsive, accessibility, screenshot diff, and screenshot-regression verification are wired into the browser/source-contract lanes that protect the polished baseline.
+
+**Stats:**
+
+- Timeline: 3 days (opened 2026-06-03, shipped 2026-06-05).
+- Requirements: 10/10 complete.
+- Audit: `passed` — requirements 10/10, phases 11/11, integration 10/10, flows 10/10.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.31-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.31-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.31-MILESTONE-AUDIT.md`
+- Phase history: `.planning/milestones/v1.31-phases/`
+
+**Tech debt (non-blocking):** Historical validation/frontmatter metadata remains stale in a few older phase files; Phase 144 audit records the debt as non-blocking and closes the milestone requirements.
+
+**What is next:** `$gsd-new-milestone` — define fresh requirements before opening new work.
+
+---
+
 ## v1.29 First-Hour Parity (Shipped: 2026-05-29)
 
 **Delivered:** README Quick Start `ecto_repos` parity; scope-first phx-gen-auth mount with integration proof; WALKTHROUGH verify cwd and row-history URL truth; Nyquist 125 finalized; SUMMARY frontmatter SSOT; planning-metadata audit closeout via Phase 130.1.

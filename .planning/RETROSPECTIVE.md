@@ -838,4 +838,39 @@
 
 ---
 
+## Milestone: v1.31 — Operator Surface: Insane Polish
+
+**Shipped:** 2026-06-05
+**Phases:** 11 | **Plans:** 35
+
+### What was built
+- Objective `/audit` surface baseline and final screenshot evidence, with Phase 144 errata tying historical Phase 134 evidence to closeout.
+- Seed-state enrichment and DEMO-MANIFEST recipes so every operator screen demonstrates useful empty, sparse, dense, error, scoped, and edge states.
+- Source-first dark BEM/token design-system catalog and freeze, with shared primitives across Prove, Find, Home, navigation, operation badges, tables, cards, drawers, and affordances.
+- Earned investigation/export flows: record-first lookup, correlation paste/deep-link, first-class row history, and Timeline/Evidence context handoff into Exports.
+- Motion, responsive, accessibility, screenshot diff, and screenshot-regression verification for the polished operator baseline.
+
+### What worked
+- Closing POLISH-AUDIT and POLISH-DS through Phase 144 preserved provenance instead of fabricating missing Phase 134/136 execution records.
+- Source contracts around `style.ex`, the design-system catalog, and browser screenshot checks made subjective UI polish auditable.
+- Moving phase history into `.planning/milestones/v1.31-phases/` keeps the active planning surface small for the next milestone.
+
+### What was inefficient
+- Early summary extraction was noisy (`One-liner:` / invalid fragments), so milestone closeout still required editorial cleanup in `MILESTONES.md`.
+- Historical validation/frontmatter drift in older v1.31 phases created audit noise even though later verification satisfied the requirements.
+
+### Patterns established
+- Use a narrow close-gap phase when audit blockers are evidence/provenance issues, and explicitly name the original roadmap owner plus the closing evidence.
+- Treat UI polish as a governed surface: baseline screenshots, token/class catalog, browser matrix, reduced-motion checks, and regression guard all belong in the milestone definition of done.
+
+### Key lessons
+1. A polish milestone can be non-signal-gated when it raises the floor of an already-shipped operator surface without widening backend/product scope.
+2. Historical gaps should be closed with truthful errata and current-tree proof, not invented phase artifacts.
+
+### Cost observations
+- Timeline: 3 days (2026-06-03 → 2026-06-05); 35 plans; 51 tasks.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends
