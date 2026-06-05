@@ -8,7 +8,7 @@
 ### Brand Strategy And Audit
 
 - [x] **BRAND-AUDIT-01**: The existing brand book, prior research, README positioning, operator-surface token system, and the reverted one-shot brandbook commit are critically audited before final assets are accepted. Completed in Phase 145.
-- [ ] **BRAND-DNA-01**: The milestone captures Threadline's brand essence, audience, technical promise, visual metaphor, voice principles, anti-traits, and OSS/Elixir ecosystem fit in durable source docs.
+- [x] **BRAND-DNA-01**: The milestone captures Threadline's brand essence, audience, technical promise, visual metaphor, voice principles, anti-traits, and OSS/Elixir ecosystem fit in durable source docs. Completed in Phase 146.
 
 ### Implementation-Ready Brand System
 
@@ -19,7 +19,7 @@
 
 ### Voice, Repo Hygiene, And Verification
 
-- [ ] **BRAND-VOICE-01**: The brand system includes ready-to-use technical copy and UX microcopy examples for README/docs/marketing/error/success/warning/release surfaces without hype or compliance overreach.
+- [x] **BRAND-VOICE-01**: The brand system includes ready-to-use technical copy and UX microcopy examples for README/docs/marketing/error/success/warning/release surfaces without hype or compliance overreach. Completed in Phase 146.
 - [ ] **BRAND-REPO-01**: All brand artifacts live under `brandbook/`, remain text/SVG-first, avoid duplicate font binaries and large raster assets, and document what should and should not be committed.
 - [ ] **BRAND-QA-01**: Verification records cover JSON parsing, SVG XML parsing, browser rendering at desktop and mobile sizes, representative WCAG AA contrast pairs, image load state, file-size budget, and clean source-control boundaries.
 
@@ -38,12 +38,12 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BRAND-AUDIT-01 | Phase 145 | Complete |
-| BRAND-DNA-01 | Phase 146 | Pending |
+| BRAND-DNA-01 | Phase 146 | Complete |
 | BRAND-TOKENS-01 | Phase 147 | Pending |
 | BRAND-LOGO-01 | Phase 147 | Pending |
 | BRAND-HTML-01 | Phase 148 | Pending |
 | BRAND-EXAMPLES-01 | Phase 148 | Pending |
-| BRAND-VOICE-01 | Phase 146 | Pending |
+| BRAND-VOICE-01 | Phase 146 | Complete |
 | BRAND-REPO-01 | Phase 148 | Pending |
 | BRAND-QA-01 | Phase 149 | Pending |
 

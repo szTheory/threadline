@@ -22,7 +22,7 @@ v1.32 Brand System Foundation is active. It reverts the premature one-shot brand
 **Goal:** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
 
 - [x] Phase 145: Brand Audit & Milestone Baseline
-- [ ] Phase 146: Brand System Spec
+- [x] Phase 146: Brand System Spec
 - [ ] Phase 147: Token & Asset Source System
 - [ ] Phase 148: Static HTML Brandbook
 - [ ] Phase 149: Verification, Review, and Closeout
