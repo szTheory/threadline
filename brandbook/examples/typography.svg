@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">Threadline typography specimen</title>
+  <desc id="desc">Type roles for display, body, labels, and code.</desc>
+  <rect width="960" height="520" fill="#F7F9FC"/>
+  <text x="56" y="88" fill="#0F1728" font-family="Geist, Inter, system-ui, sans-serif" font-size="56" font-weight="600">Follow what happened.</text>
+  <text x="60" y="138" fill="#3B4762" font-family="Geist, Inter, system-ui, sans-serif" font-size="20">Geist carries the product voice: precise, readable, and calm.</text>
+  <text x="60" y="204" fill="#73819C" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="13" font-weight="500" letter-spacing="2">METADATA AND CODE USE IBM PLEX MONO</text>
+  <rect x="56" y="230" width="848" height="196" rx="8" fill="#0B1020"/>
+  <text x="88" y="280" fill="#8F9DB5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="15">iex&gt; Threadline.timeline([table: "posts"], repo: MyApp.Repo)</text>
+  <text x="88" y="318" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="15">[%{action: :update, actor: "user:42", subject: "posts:9"}]</text>
+  <text x="88" y="376" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="22" font-weight="600">Readable timelines beat raw audit noise.</text>
+  <text x="88" y="405" fill="#A3AFC2" font-family="Geist, Inter, system-ui, sans-serif" font-size="16">Use mono for identifiers, request IDs, table names, and diffs. Do not set long prose in mono.</text>
+</svg>

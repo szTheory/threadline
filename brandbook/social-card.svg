@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Threadline social preview card</title>
+  <desc id="desc">A social card for Threadline showing a connected audit timeline.</desc>
+  <defs>
+    <linearGradient id="card-thread" x1="122" y1="459" x2="1052" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset=".6" stop-color="#4EDFD1"/>
+      <stop offset="1" stop-color="#8A7CFF"/>
+    </linearGradient>
+    <linearGradient id="card-bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1020"/>
+      <stop offset="1" stop-color="#141B2D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#card-bg)"/>
+  <g opacity=".16" stroke="#D7DEEA" stroke-width="1">
+    <path d="M0 132H1200M0 264H1200M0 396H1200M0 528H1200"/>
+    <path d="M160 0V630M320 0V630M480 0V630M640 0V630M800 0V630M960 0V630"/>
+  </g>
+  <path d="M126 455C250 146 407 166 500 338C589 504 773 426 836 230C883 86 995 101 1074 174" fill="none" stroke="url(#card-thread)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#0B1020" stroke-width="5">
+    <circle cx="126" cy="455" r="15" stroke="#4F8CFF"/>
+    <circle cx="500" cy="338" r="15" stroke="#4EDFD1"/>
+    <circle cx="836" cy="230" r="15" stroke="#8A7CFF"/>
+    <circle cx="1074" cy="174" r="15" stroke="#D7DEEA"/>
+  </g>
+  <text x="96" y="162" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="78" font-weight="600">Threadline</text>
+  <text x="102" y="220" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="22" font-weight="500" letter-spacing="5">FOLLOW WHAT HAPPENED</text>
+  <text x="96" y="525" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="34" font-weight="500">Audit history for Phoenix, Ecto, and PostgreSQL.</text>
+  <text x="96" y="572" fill="#A3AFC2" font-family="Geist, Inter, system-ui, sans-serif" font-size="24">Capture changes. Connect context. Explain the timeline.</text>
+</svg>

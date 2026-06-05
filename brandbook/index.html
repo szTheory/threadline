@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Threadline Brandbook</title>
+  <meta name="description" content="Threadline brand system, pressure test, design tokens, logo assets, and UI guidance.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--tl-color-text);
+      background:
+        linear-gradient(90deg, rgba(215, 222, 234, 0.045) 1px, transparent 1px) 0 0 / 72px 72px,
+        linear-gradient(180deg, rgba(215, 222, 234, 0.035) 1px, transparent 1px) 0 0 / 72px 72px,
+        var(--tl-color-bg);
+      font-family: var(--tl-font-family);
+      font-size: var(--tl-font-size-body);
+      line-height: var(--tl-line-body);
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--tl-color-accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--tl-color-accent-strong);
+      text-decoration: underline;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: none;
+      box-shadow: var(--tl-focus-ring);
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    code,
+    pre,
+    .mono {
+      font-family: var(--tl-font-mono);
+    }
+
+    .skip-link {
+      position: absolute;
+      left: var(--tl-space-3);
+      top: -48px;
+      z-index: 10;
+      padding: var(--tl-space-2) var(--tl-space-3);
+      border-radius: var(--tl-radius-md);
+      color: var(--tl-color-on-accent);
+      background: var(--tl-color-accent);
+      font-weight: var(--tl-weight-strong);
+    }
+
+    .skip-link:focus {
+      top: var(--tl-space-3);
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: var(--tl-space-6);
+      border-right: 1px solid var(--tl-color-border);
+      background: rgba(11, 16, 32, 0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    .rail-logo {
+      width: 210px;
+      margin-bottom: var(--tl-space-8);
+    }
+
+    .rail-kicker {
+      margin: 0 0 var(--tl-space-2);
+      color: var(--tl-color-signal);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-xs);
+      font-weight: var(--tl-weight-medium);
+      letter-spacing: var(--tl-tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .rail-title {
+      margin: 0 0 var(--tl-space-6);
+      color: var(--tl-color-text);
+      font-size: var(--tl-font-size-heading);
+      line-height: var(--tl-line-heading);
+      font-weight: var(--tl-weight-strong);
+    }
+
+    .nav {
+      display: grid;
+      gap: var(--tl-space-1);
+      margin-bottom: var(--tl-space-8);
+    }
+
+    .nav a {
+      padding: var(--tl-space-2) var(--tl-space-3);
+      border-radius: var(--tl-radius-md);
+      color: var(--tl-color-text-muted);
+      font-size: var(--tl-font-size-sm);
+    }
+
+    .nav a:hover {
+      color: var(--tl-color-text);
+      background: var(--tl-color-surface-hover);
+      text-decoration: none;
+    }
+
+    .rail-note {
+      padding: var(--tl-space-4);
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      color: var(--tl-color-text-muted);
+      background: var(--tl-color-surface);
+      font-size: var(--tl-font-size-sm);
+    }
+
+    .content {
+      min-width: 0;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: grid;
+      align-items: center;
+      padding: var(--tl-space-20) clamp(var(--tl-space-6), 6vw, 104px) var(--tl-space-16);
+      overflow: hidden;
+      border-bottom: 1px solid var(--tl-color-border);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: auto -10vw 0 4vw;
+      height: 42vh;
+      min-height: 280px;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 13% 70%, var(--tl-color-thread-blue) 0 5px, transparent 6px),
+        radial-gradient(circle at 47% 56%, var(--tl-color-signal-cyan) 0 5px, transparent 6px),
+        radial-gradient(circle at 76% 36%, var(--tl-color-iris) 0 5px, transparent 6px),
+        linear-gradient(118deg, transparent 0 12%, rgba(79, 140, 255, 0.9) 12.2% 12.8%, transparent 13% 44%, rgba(78, 223, 209, 0.9) 44.2% 44.8%, transparent 45% 100%);
+      opacity: 0.58;
+      mask-image: linear-gradient(to top, #000 12%, transparent 100%);
+    }
+
+    .hero-inner {
+      position: relative;
+      width: min(980px, 100%);
+    }
+
+    .eyebrow {
+      margin: 0 0 var(--tl-space-4);
+      color: var(--tl-color-signal);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-sm);
+      font-weight: var(--tl-weight-medium);
+      letter-spacing: var(--tl-tracking-caps);
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: var(--tl-color-text);
+      line-height: var(--tl-line-heading);
+      font-weight: var(--tl-weight-strong);
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 820px;
+      font-size: clamp(44px, 7vw, 86px);
+      line-height: 1.02;
+    }
+
+    h2 {
+      font-size: clamp(30px, 4vw, 48px);
+    }
+
+    h3 {
+      font-size: var(--tl-font-size-heading);
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .hero-copy {
+      max-width: 720px;
+      margin-top: var(--tl-space-6);
+      color: var(--tl-color-text-muted);
+      font-size: clamp(18px, 2.2vw, 24px);
+      line-height: 1.42;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--tl-space-3);
+      margin-top: var(--tl-space-8);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 var(--tl-space-5);
+      border-radius: var(--tl-radius-md);
+      border: 1px solid transparent;
+      font-weight: var(--tl-weight-strong);
+      transition: background-color var(--tl-motion-fast) var(--tl-ease-standard), border-color var(--tl-motion-fast) var(--tl-ease-standard), transform var(--tl-motion-fast) var(--tl-ease-standard);
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+
+    .button-primary {
+      color: var(--tl-color-on-accent);
+      background: var(--tl-color-accent);
+    }
+
+    .button-secondary {
+      color: var(--tl-color-text);
+      background: var(--tl-color-surface);
+      border-color: var(--tl-color-border-strong);
+    }
+
+    .section {
+      padding: var(--tl-space-16) clamp(var(--tl-space-6), 6vw, 104px);
+      border-bottom: 1px solid var(--tl-color-border);
+    }
+
+    .section-light {
+      color: #0F1728;
+      background: #F7F9FC;
+      border-bottom-color: #C9D3E2;
+    }
+
+    .section-light h2,
+    .section-light h3 {
+      color: #0F1728;
+    }
+
+    .section-light .section-intro,
+    .section-light .muted {
+      color: #3B4762;
+    }
+
+    .section-head {
+      display: grid;
+      gap: var(--tl-space-4);
+      max-width: 900px;
+      margin-bottom: var(--tl-space-8);
+    }
+
+    .section-intro {
+      max-width: 820px;
+      color: var(--tl-color-text-muted);
+      font-size: 18px;
+      line-height: 1.58;
+    }
+
+    .grid {
+      display: grid;
+      gap: var(--tl-space-4);
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      background: var(--tl-color-surface);
+      box-shadow: var(--tl-shadow-subtle);
+    }
+
+    .panel-pad {
+      padding: var(--tl-space-5);
+    }
+
+    .section-light .panel {
+      border-color: #C9D3E2;
+      background: #FFFFFF;
+    }
+
+    .panel h3 {
+      margin-bottom: var(--tl-space-3);
+    }
+
+    .muted {
+      color: var(--tl-color-text-muted);
+    }
+
+    .meta {
+      color: var(--tl-color-text-soft);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-xs);
+      font-weight: var(--tl-weight-medium);
+      letter-spacing: var(--tl-tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+      gap: var(--tl-space-4);
+      align-items: stretch;
+    }
+
+    .verdict-main {
+      padding: var(--tl-space-6);
+      border-left: 4px solid var(--tl-color-signal);
+    }
+
+    .score {
+      display: flex;
+      align-items: baseline;
+      gap: var(--tl-space-2);
+      margin-bottom: var(--tl-space-3);
+    }
+
+    .score strong {
+      color: var(--tl-color-signal);
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .score span {
+      color: var(--tl-color-text-soft);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-xs);
+      letter-spacing: var(--tl-tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .list {
+      display: grid;
+      gap: var(--tl-space-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list li {
+      position: relative;
+      padding-left: var(--tl-space-5);
+      color: var(--tl-color-text-muted);
+    }
+
+    .list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .72em;
+      width: 8px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--tl-color-signal);
+    }
+
+    .section-light .list li {
+      color: #3B4762;
+    }
+
+    .section-light .list li::before {
+      background: #1F6EF2;
+    }
+
+    .dna-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      background: var(--tl-color-border);
+    }
+
+    .dna-cell {
+      min-height: 150px;
+      padding: var(--tl-space-5);
+      background: var(--tl-color-surface);
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--tl-space-4);
+    }
+
+    .score-card {
+      padding: var(--tl-space-5);
+      border-top: 3px solid var(--tl-color-accent);
+    }
+
+    .score-card[data-score="9"] {
+      border-top-color: var(--tl-color-signal);
+    }
+
+    .score-card[data-score="8"] {
+      border-top-color: var(--tl-color-accent);
+    }
+
+    .score-card[data-score="7"] {
+      border-top-color: var(--tl-color-warning-text);
+    }
+
+    .surface-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid #C9D3E2;
+      border-radius: var(--tl-radius-lg);
+      background: #C9D3E2;
+    }
+
+    .surface-item {
+      display: grid;
+      gap: var(--tl-space-2);
+      padding: var(--tl-space-4);
+      background: #FFFFFF;
+    }
+
+    .surface-item strong {
+      color: #0F1728;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--tl-space-2);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 var(--tl-space-3);
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-pill);
+      color: var(--tl-color-text-muted);
+      background: rgba(20, 27, 45, 0.72);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-xs);
+    }
+
+    .section-light .pill {
+      color: #3B4762;
+      background: #EEF3FA;
+      border-color: #C9D3E2;
+    }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--tl-space-4);
+    }
+
+    .asset {
+      overflow: hidden;
+    }
+
+    .asset-preview {
+      display: grid;
+      min-height: 240px;
+      place-items: center;
+      padding: var(--tl-space-5);
+      border-bottom: 1px solid var(--tl-color-border);
+      background: #0B1020;
+    }
+
+    .asset-preview.light {
+      background: #F7F9FC;
+      border-bottom-color: #C9D3E2;
+    }
+
+    .asset-body {
+      padding: var(--tl-space-4);
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--tl-space-3);
+    }
+
+    .swatch {
+      overflow: hidden;
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      background: var(--tl-color-surface);
+    }
+
+    .swatch-color {
+      height: 84px;
+    }
+
+    .swatch-body {
+      padding: var(--tl-space-3);
+    }
+
+    .swatch-body strong,
+    .swatch-body span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .swatch-body span {
+      margin-top: var(--tl-space-1);
+      color: var(--tl-color-text-soft);
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-xs);
+    }
+
+    .token-table,
+    .copy-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: var(--tl-radius-lg);
+      font-size: var(--tl-font-size-sm);
+    }
+
+    .token-table th,
+    .token-table td,
+    .copy-table th,
+    .copy-table td {
+      padding: var(--tl-space-3);
+      border: 1px solid var(--tl-color-border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .token-table th,
+    .copy-table th {
+      color: var(--tl-color-text);
+      background: var(--tl-color-surface-raised);
+      font-size: var(--tl-font-size-xs);
+      letter-spacing: var(--tl-tracking-caps);
+      text-transform: uppercase;
+    }
+
+    .token-table td,
+    .copy-table td {
+      color: var(--tl-color-text-muted);
+      background: var(--tl-color-surface);
+    }
+
+    .section-light .token-table th,
+    .section-light .copy-table th {
+      color: #0F1728;
+      background: #EEF3FA;
+      border-color: #C9D3E2;
+    }
+
+    .section-light .token-table td,
+    .section-light .copy-table td {
+      color: #3B4762;
+      background: #FFFFFF;
+      border-color: #C9D3E2;
+    }
+
+    .code-block {
+      overflow: auto;
+      margin: 0;
+      padding: var(--tl-space-5);
+      border: 1px solid var(--tl-code-border);
+      border-radius: var(--tl-radius-lg);
+      color: var(--tl-code-text);
+      background: var(--tl-code-bg);
+      font-size: var(--tl-font-size-sm);
+      line-height: 1.7;
+    }
+
+    .callout {
+      padding: var(--tl-space-4);
+      border: 1px solid var(--tl-callout-info-border);
+      border-radius: var(--tl-radius-lg);
+      color: var(--tl-color-text);
+      background: var(--tl-callout-info-bg);
+    }
+
+    .callout strong {
+      color: var(--tl-color-info-text);
+    }
+
+    .component-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--tl-space-4);
+      align-items: stretch;
+    }
+
+    .example-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--tl-space-4);
+    }
+
+    .example-strip img {
+      width: 100%;
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      background: var(--tl-color-surface);
+    }
+
+    .voice-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--tl-space-4);
+    }
+
+    .quote {
+      padding: var(--tl-space-5);
+      border-left: 4px solid var(--tl-color-signal);
+      border-radius: var(--tl-radius-md);
+      background: var(--tl-color-surface);
+      color: var(--tl-color-text);
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .section-light .quote {
+      color: #0F1728;
+      background: #FFFFFF;
+      border-left-color: #1F6EF2;
+    }
+
+    .blueprint {
+      counter-reset: blueprint;
+      display: grid;
+      gap: var(--tl-space-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .blueprint li {
+      counter-increment: blueprint;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: var(--tl-space-3);
+      align-items: start;
+      padding: var(--tl-space-4);
+      border: 1px solid #C9D3E2;
+      border-radius: var(--tl-radius-lg);
+      background: #FFFFFF;
+      color: #3B4762;
+    }
+
+    .blueprint li::before {
+      content: counter(blueprint);
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: var(--tl-radius-pill);
+      color: #FFFFFF;
+      background: #1F6EF2;
+      font-family: var(--tl-font-mono);
+      font-size: var(--tl-font-size-sm);
+      font-weight: var(--tl-weight-medium);
+    }
+
+    .quality-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--tl-space-3);
+    }
+
+    .check {
+      min-height: 112px;
+      padding: var(--tl-space-4);
+      border: 1px solid var(--tl-color-border);
+      border-radius: var(--tl-radius-lg);
+      background: var(--tl-color-surface);
+    }
+
+    .check strong {
+      display: block;
+      margin-bottom: var(--tl-space-2);
+      color: var(--tl-color-signal);
+    }
+
+    .footer {
+      padding: var(--tl-space-8) clamp(var(--tl-space-6), 6vw, 104px);
+      color: var(--tl-color-text-soft);
+      background: #080D1B;
+    }
+
+    @media (max-width: 1100px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--tl-color-border);
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .verdict,
+      .grid-2,
+      .grid-3,
+      .asset-grid,
+      .example-strip,
+      .voice-split {
+        grid-template-columns: 1fr;
+      }
+
+      .score-grid,
+      .component-strip,
+      .quality-grid,
+      .dna-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .rail {
+        padding: var(--tl-space-5);
+      }
+
+      .rail-logo {
+        width: 170px;
+        margin-bottom: var(--tl-space-5);
+      }
+
+      .rail-title {
+        margin-bottom: var(--tl-space-4);
+        font-size: 18px;
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 0;
+      }
+
+      .nav a {
+        padding: 6px var(--tl-space-2);
+        font-size: var(--tl-font-size-xs);
+      }
+
+      .rail-note {
+        display: none;
+      }
+
+      .hero,
+      .section {
+        padding-left: var(--tl-space-5);
+        padding-right: var(--tl-space-5);
+      }
+
+      .score-grid,
+      .component-strip,
+      .quality-grid,
+      .dna-grid,
+      .surface-list,
+      .swatches {
+        grid-template-columns: 1fr;
+      }
+
+      .asset-preview {
+        min-height: 180px;
+      }
+
+      .hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="tl-brand">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="shell">
+    <aside class="rail" aria-label="Brandbook navigation">
+      <img class="rail-logo" src="logo-primary.svg" alt="Threadline">
+      <p class="rail-kicker">Brand system</p>
+      <p class="rail-title">Source-control-ready identity for Threadline.</p>
+      <nav class="nav">
+        <a href="#judgment">Judgment</a>
+        <a href="#dna">Brand DNA</a>
+        <a href="#scorecard">Scorecard</a>
+        <a href="#stress-tests">Stress tests</a>
+        <a href="#tokens">Tokens</a>
+        <a href="#logos">Logos</a>
+        <a href="#examples">Examples</a>
+        <a href="#voice">Voice</a>
+        <a href="#blueprints">Blueprints</a>
+        <a href="#artifacts">Artifacts</a>
+        <a href="#quality">Quality gate</a>
+      </nav>
+      <div class="rail-note">
+        <strong>Maintainer rule:</strong> this folder is static collateral. Do not use it to rewrite production operator UI without a separate implementation pass.
+      </div>
+    </aside>
+
+    <main id="main" class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <p class="eyebrow">Threadline brandbook</p>
+          <h1>Follow what happened.</h1>
+          <p class="hero-copy">A pressure-tested brand system for an Elixir audit library: clear strategy, practical tokens, source SVG assets, UI guidance, and copy that stays credible with engineers.</p>
+          <div class="hero-actions" aria-label="Primary references">
+            <a class="button button-primary" href="brand-book.md">Brand book</a>
+            <a class="button button-secondary" href="pressure-test.md">Pressure test</a>
+            <a class="button button-secondary" href="tokens.json">Tokens JSON</a>
+          </div>
+        </div>
+      </header>
+
+      <section id="judgment" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 1</p>
+          <h2>Executive judgment</h2>
+          <p class="section-intro">The original brand work had the right strategic center. It needed fewer inspirational fragments and more buildable artifacts.</p>
+        </div>
+        <div class="verdict">
+          <div class="panel verdict-main">
+            <p class="meta">Direct assessment</p>
+            <h3>Strong enough to build from, but not finished until tokenized.</h3>
+            <p class="muted" style="margin-top: 12px;">Threadline already owns a good idea: connected audit history. The risk is not that the brand is weak. The risk is generic execution: abstract nodes, compliance cliches, security shields, and blue-purple glow with no domain meaning.</p>
+          </div>
+          <div class="panel panel-pad">
+            <div class="score"><strong>8</strong><span>overall</span></div>
+            <ul class="list">
+              <li>Distinctive when the line/history metaphor stays disciplined.</li>
+              <li>Credible because the voice names real technical surfaces.</li>
+              <li>Implementation-ready now that tokens, SVGs, and examples exist.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="dna" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 2</p>
+          <h2>Brand DNA</h2>
+          <p class="section-intro">The decision model is compact: if a design choice does not make audit history more followable, it probably does not belong.</p>
+        </div>
+        <div class="dna-grid">
+          <div class="dna-cell">
+            <p class="meta">Essence</p>
+            <h3>Connected audit history</h3>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Audience</p>
+            <p class="muted">Phoenix, Ecto, Postgres, platform, SRE, security, support, and OSS maintainers.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Tone</p>
+            <p class="muted">Calm, precise, grounded, serious without intimidation.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Promise</p>
+            <p class="muted">Connect changes to actor, action, request, transaction, and evidence context.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Metaphor</p>
+            <p class="muted">A continuous line connecting discrete events into an intelligible path.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Traits</p>
+            <p class="muted">Lucid, composed, technical, evidence-oriented, quietly confident.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Anti-traits</p>
+            <p class="muted">Flashy, cute, militaristic, cyberpunk, compliance-bureaucratic.</p>
+          </div>
+          <div class="dna-cell">
+            <p class="meta">Never</p>
+            <p class="muted">Do not use shields, locks, stock people, generic node graphs, or "trust platform" fluff.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="scorecard" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 3</p>
+          <h2>Pressure-test scorecard</h2>
+          <p class="section-intro">Scores are intentionally critical. The brand should earn execution confidence without creating redesign churn.</p>
+        </div>
+        <div class="score-grid">
+          <article class="panel score-card" data-score="8"><div class="score"><strong>8</strong><span>distinctive</span></div><p class="muted">The line metaphor fits audit history. Keep it away from generic node art.</p></article>
+          <article class="panel score-card" data-score="9"><div class="score"><strong>9</strong><span>credibility</span></div><p class="muted">Precise voice, real APIs, real workflows, low-BS OSS posture.</p></article>
+          <article class="panel score-card" data-score="9"><div class="score"><strong>9</strong><span>Elixir fit</span></div><p class="muted">Understated, stack-specific, and practical for Phoenix/Ecto teams.</p></article>
+          <article class="panel score-card" data-score="7"><div class="score"><strong>7</strong><span>visual</span></div><p class="muted">Coherent direction. Human wordmark polish can wait until launch stakes rise.</p></article>
+          <article class="panel score-card" data-score="8"><div class="score"><strong>8</strong><span>tokens</span></div><p class="muted">Raw and semantic roles now exist for dark and light surfaces.</p></article>
+          <article class="panel score-card" data-score="8"><div class="score"><strong>8</strong><span>maintainable</span></div><p class="muted">HTML, Markdown, JSON, CSS, and SVG keep the repo light.</p></article>
+        </div>
+      </section>
+
+      <section id="stress-tests" class="section section-light tl-theme-light">
+        <div class="section-head">
+          <p class="eyebrow">Section 4</p>
+          <h2>Stress tests</h2>
+          <p class="section-intro">The brand has to survive boring surfaces: README, Hex.pm, HexDocs, API references, terminal snippets, and small icons.</p>
+        </div>
+        <div class="surface-list">
+          <div class="surface-item"><strong>GitHub and README</strong><p>Use concise copy, standard badges, and the primary logo only where it helps. Avoid a heavy raster hero.</p></div>
+          <div class="surface-item"><strong>Hex.pm and HexDocs</strong><p>Lead with technical value. Let ExDoc conventions breathe; brand through type, logo, and code readability.</p></div>
+          <div class="surface-item"><strong>Landing page</strong><p>Use "Follow what happened" and a line-based audit path. Do not fake a dashboard unless it reflects real behavior.</p></div>
+          <div class="surface-item"><strong>Code and terminal</strong><p>Use real commands, copyable snippets, dark code blocks, and IBM Plex Mono for identifiers.</p></div>
+          <div class="surface-item"><strong>Favicon and mark</strong><p>Use the compact line mark. Test at 16px and in monochrome before public release.</p></div>
+          <div class="surface-item"><strong>Diagrams</strong><p>Label request, action, transaction, change, evidence, and export. Avoid unlabeled node webs.</p></div>
+          <div class="surface-item"><strong>States</strong><p>Error, empty, success, warning, selected, and disabled states need text or structure, not just color.</p></div>
+          <div class="surface-item"><strong>Print or sticker</strong><p>Use the monochrome mark or wordmark. This is secondary to docs and launch assets.</p></div>
+        </div>
+      </section>
+
+      <section id="gaps" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Sections 5 and 6</p>
+          <h2>Gaps, risks, and upgrades</h2>
+          <p class="section-intro">The right move is not a redesign. The right move is sharpening what was already strong into usable source artifacts.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="panel panel-pad"><p class="meta">Critical</p><ul class="list"><li>Logo direction needed source assets.</li><li>Tokens needed semantic roles.</li><li>Light surfaces needed explicit guidance.</li></ul></div>
+          <div class="panel panel-pad"><p class="meta">Important</p><ul class="list"><li>Copy blocks needed to be ready.</li><li>Components needed example states.</li><li>Artifact rules needed to prevent bloat.</li></ul></div>
+          <div class="panel panel-pad"><p class="meta">Do not churn</p><ul class="list"><li>Do not rename or retagline.</li><li>Do not add mascots.</li><li>Do not restyle runtime UI in this pass.</li></ul></div>
+        </div>
+      </section>
+
+      <section id="tokens" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 7</p>
+          <h2>Design tokens</h2>
+          <p class="section-intro">The token system is intentionally small. It gives docs and marketing enough structure without competing with the operator surface CSS.</p>
+        </div>
+        <div class="swatches" aria-label="Core palette">
+          <div class="swatch"><div class="swatch-color" style="background:#0B1020"></div><div class="swatch-body"><strong>Black</strong><span>#0B1020</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#141B2D"></div><div class="swatch-body"><strong>Graphite</strong><span>#141B2D</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#23304A"></div><div class="swatch-body"><strong>Slate Line</strong><span>#23304A</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#4F8CFF"></div><div class="swatch-body"><strong>Thread Blue</strong><span>#4F8CFF</span></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:#4EDFD1"></div><div class="swatch-body"><strong>Signal Cyan</strong><span>#4EDFD1</span></div></div>
+        </div>
+        <div style="margin-top: 24px; overflow-x: auto;">
+          <table class="token-table">
+            <thead><tr><th>Role</th><th>Dark token</th><th>Light token</th><th>Use</th></tr></thead>
+            <tbody>
+              <tr><td>Background</td><td><code>--tl-color-bg</code></td><td><code>.tl-theme-light --tl-color-bg</code></td><td>Page foundation.</td></tr>
+              <tr><td>Surface</td><td><code>--tl-color-surface</code></td><td><code>--tl-color-surface</code></td><td>Panels, cards, tables.</td></tr>
+              <tr><td>Accent</td><td><code>--tl-color-accent</code></td><td><code>--tl-color-accent</code></td><td>Links, primary CTA, selected path.</td></tr>
+              <tr><td>Signal</td><td><code>--tl-color-signal</code></td><td><code>--tl-color-signal</code></td><td>Correlation, trace, positive flow.</td></tr>
+              <tr><td>Focus</td><td><code>--tl-focus-ring</code></td><td><code>--tl-focus-ring</code></td><td>Keyboard-visible focus.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="logos" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 8</p>
+          <h2>Logo and mark system</h2>
+          <p class="section-intro">Threadline does not need a mascot or a complex abstract icon. A wordmark plus a simple line mark carries the concept.</p>
+        </div>
+        <div class="asset-grid">
+          <article class="panel asset">
+            <div class="asset-preview"><img src="logo-primary.svg" alt="Threadline primary logo" style="width: min(360px, 100%);"></div>
+            <div class="asset-body"><h3>Primary logo</h3><p class="muted">Use for README headers, landing pages, slides, and social collateral.</p></div>
+          </article>
+          <article class="panel asset">
+            <div class="asset-preview"><img src="logo-mark.svg" alt="Threadline line mark" style="width: 140px;"></div>
+            <div class="asset-body"><h3>Icon mark</h3><p class="muted">Use for favicon, avatar, docs sidebar, and compact surfaces.</p></div>
+          </article>
+          <article class="panel asset">
+            <div class="asset-preview light"><img src="logo-monochrome.svg" alt="Threadline monochrome logo" style="width: min(360px, 100%);"></div>
+            <div class="asset-body"><h3>Monochrome</h3><p class="muted">Use for print, stickers, constrained surfaces, and single-color reproduction.</p></div>
+          </article>
+          <article class="panel asset">
+            <div class="asset-preview"><img src="favicon.svg" alt="Threadline favicon" style="width: 96px;"></div>
+            <div class="asset-body"><h3>Favicon</h3><p class="muted">Test at 16px and 32px. Keep the mark recognizable without text.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="examples" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 9</p>
+          <h2>Visual examples</h2>
+          <p class="section-intro">These are implementation specimens, not decorative screenshots. Create raster exports only when a downstream platform requires them.</p>
+        </div>
+        <div class="example-strip">
+          <img src="examples/palette.svg" alt="Threadline palette specimen">
+          <img src="examples/components.svg" alt="Threadline component specimen">
+          <img src="examples/readme-header.svg" alt="Threadline README header specimen">
+          <img src="examples/docs-page.svg" alt="Threadline documentation page specimen">
+          <img src="examples/landing-hero.svg" alt="Threadline landing page hero specimen">
+          <img src="examples/terminal.svg" alt="Threadline terminal snippet specimen">
+        </div>
+      </section>
+
+      <section id="voice" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 10</p>
+          <h2>Brand voice and microcopy</h2>
+          <p class="section-intro">Threadline should sound like a calm senior engineer: exact, useful, and generous with context.</p>
+        </div>
+        <div class="voice-split">
+          <div class="panel panel-pad">
+            <p class="meta">Say this</p>
+            <p class="quote">Capture changes, connect them to context, and follow the full history.</p>
+          </div>
+          <div class="panel panel-pad">
+            <p class="meta">Not this</p>
+            <p class="quote">Revolutionary audit intelligence for modern teams.</p>
+          </div>
+        </div>
+        <div style="margin-top: 24px; overflow-x: auto;">
+          <table class="copy-table">
+            <thead><tr><th>Surface</th><th>Copy</th></tr></thead>
+            <tbody>
+              <tr><td>One-line description</td><td>Audit history for Phoenix, Ecto, and PostgreSQL.</td></tr>
+              <tr><td>GitHub description</td><td>Open-source audit history for Phoenix, Ecto, and PostgreSQL.</td></tr>
+              <tr><td>Hero headline</td><td>Follow what happened.</td></tr>
+              <tr><td>Error</td><td>Could not verify trigger coverage for <code>ticket_replies</code>. Rerun the trigger generator, migrate, then check coverage again.</td></tr>
+              <tr><td>Empty state</td><td>No audit changes match these filters. Clear the table filter or widen the time range.</td></tr>
+              <tr><td>Success</td><td>Export queued. Threadline will keep the filtered timeline and evidence bundle together.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="blueprints" class="section section-light tl-theme-light">
+        <div class="section-head">
+          <p class="eyebrow">Section 11</p>
+          <h2>Landing page and docs blueprint</h2>
+          <p class="section-intro">The brand works best when marketing and docs share the same technical spine: capture, semantics, exploration, operations.</p>
+        </div>
+        <div class="grid grid-2">
+          <div>
+            <h3>Landing page</h3>
+            <ol class="blueprint" style="margin-top: 16px;">
+              <li><span><strong>Hero.</strong> "Follow what happened" plus stack-specific subhead and docs/GitHub CTAs.</span></li>
+              <li><span><strong>Problem.</strong> Raw logs and row changes do not explain an incident.</span></li>
+              <li><span><strong>Solution.</strong> Capture plus semantic context plus operator exploration.</span></li>
+              <li><span><strong>Install and example.</strong> Show real Mix commands and `Threadline.Audit.transaction/3`.</span></li>
+              <li><span><strong>Compare.</strong> Explain logs, event sourcing, SIEM, DB auditing, and roll-your-own boundaries.</span></li>
+            </ol>
+          </div>
+          <div>
+            <h3>README and docs</h3>
+            <ol class="blueprint" style="margin-top: 16px;">
+              <li><span><strong>Opening promise.</strong> Tell engineers what Threadline gives them in the first paragraph.</span></li>
+              <li><span><strong>Quickstart.</strong> Dependency, config, install, migrate, first audited write.</span></li>
+              <li><span><strong>Concepts.</strong> Capture, semantics, exploration, operations.</span></li>
+              <li><span><strong>API overview.</strong> Name public APIs and common paths.</span></li>
+              <li><span><strong>Troubleshooting.</strong> Coverage, redaction drift, retention, export, and host auth boundaries.</span></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="artifacts" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 12 and 13</p>
+          <h2>Repo-ready artifact plan</h2>
+          <p class="section-intro">All killer, no filler: commit source assets, generate raster only when a real publishing surface requires it.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="panel panel-pad"><p class="meta">Commit</p><ul class="list"><li>HTML</li><li>Markdown</li><li>JSON tokens</li><li>CSS tokens</li><li>Editable SVG</li></ul></div>
+          <div class="panel panel-pad"><p class="meta">Generate on demand</p><ul class="list"><li>PNG social cards</li><li>PDF snapshots</li><li>Raster launch screenshots</li></ul></div>
+          <div class="panel panel-pad"><p class="meta">Do not commit</p><ul class="list"><li>Duplicate fonts</li><li>Large moodboards</li><li>Decorative image batches</li><li>Vendor files as only source</li></ul></div>
+        </div>
+        <pre class="code-block" style="margin-top: 24px;"><code>brandbook/
+  README.md
+  index.html
+  brand-book.md
+  pressure-test.md
+  tokens.json
+  tokens.css
+  logo-primary.svg
+  logo-mark.svg
+  logo-monochrome.svg
+  favicon.svg
+  social-card.svg
+  examples/*.svg</code></pre>
+      </section>
+
+      <section id="quality" class="section">
+        <div class="section-head">
+          <p class="eyebrow">Section 14</p>
+          <h2>Final quality gate</h2>
+          <p class="section-intro">The brand is ready only if it can guide real implementation without causing needless churn.</p>
+        </div>
+        <div class="quality-grid">
+          <div class="check"><strong>Designer?</strong><p class="muted">Yes. Concept, tokens, examples, and layout rules are concrete.</p></div>
+          <div class="check"><strong>Engineer?</strong><p class="muted">Yes. Tokens are JSON/CSS and assets are SVG.</p></div>
+          <div class="check"><strong>Maintainer?</strong><p class="muted">Yes, if runtime UI tokens and brandbook tokens stay in their lanes.</p></div>
+          <div class="check"><strong>Contributor?</strong><p class="muted">Yes. The folder has a README and source docs.</p></div>
+          <div class="check"><strong>Marketing?</strong><p class="muted">Yes, if proof stays ahead of vibe.</p></div>
+          <div class="check"><strong>Dark and light?</strong><p class="muted">Yes. Both themes have roles and examples.</p></div>
+          <div class="check"><strong>Small sizes?</strong><p class="muted">Mostly. Favicon still deserves human review at 16px.</p></div>
+          <div class="check"><strong>Specific?</strong><p class="muted">Yes. Connected audit history belongs to Threadline.</p></div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p class="mono">Threadline brandbook. Source assets only. No external dependencies. No binary bloat.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

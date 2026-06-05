@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" role="img" aria-labelledby="title desc">
+  <title id="title">Threadline primary logo</title>
+  <desc id="desc">Threadline wordmark with a continuous audit thread mark.</desc>
+  <defs>
+    <linearGradient id="threadline-primary-gradient" x1="16" y1="70" x2="82" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset="1" stop-color="#4EDFD1"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(12 14)">
+    <path d="M7 54C18 18 35 19 44 38C51 53 64 49 70 12" fill="none" stroke="url(#threadline-primary-gradient)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7 54H32M44 38H65" fill="none" stroke="#D7DEEA" stroke-opacity=".45" stroke-width="2.25" stroke-linecap="round"/>
+    <circle cx="7" cy="54" r="4.5" fill="#4F8CFF"/>
+    <circle cx="44" cy="38" r="4.5" fill="#4EDFD1"/>
+    <circle cx="70" cy="12" r="4.5" fill="#D7DEEA"/>
+  </g>
+  <text x="108" y="58" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="0">Threadline</text>
+  <text x="111" y="78" fill="#8F9DB5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="500" letter-spacing="2.4">FOLLOW WHAT HAPPENED</text>
+</svg>
