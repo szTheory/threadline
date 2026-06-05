@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.31
-milestone_name: "Operator Surface: Insane Polish"
-status: Awaiting next milestone
-last_updated: "2026-06-05T00:28:56.998Z"
-last_activity: 2026-06-05 — Milestone v1.31 completed and archived
+milestone: v1.32
+milestone_name: Brand System Foundation
+status: planning
+last_updated: "2026-06-05T21:21:55.905Z"
+last_activity: 2026-06-05
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 35
-  completed_plans: 35
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-05)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone
+**Current focus:** v1.32 Brand System Foundation
 
 ## Current Position
 
-Phase: Milestone v1.31 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-05 — Milestone v1.31 completed and archived
+Status: Requirements and roadmap defined
+Last activity: 2026-06-05 — Milestone v1.32 requirements and roadmap started
 
 ## Performance Metrics
 

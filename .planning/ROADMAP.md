@@ -11,10 +11,76 @@
 - ✅ **v1.29 First-Hour Parity** — Phases 128-130.1, shipped 2026-05-29. Archive: `.planning/milestones/v1.29-ROADMAP.md`
 - ✅ **v1.30 Adoption Evidence Automation** — Phases 131-133, shipped 2026-05-29. Archive: `.planning/milestones/v1.30-ROADMAP.md`
 - ✅ **v1.31 Operator Surface: Insane Polish** — Phases 134-144, shipped 2026-06-05. Archive: `.planning/milestones/v1.31-ROADMAP.md`
+- 🚧 **v1.32 Brand System Foundation** — Phases 145-149, active. Scope: source-control-ready brandbook artifacts only.
 
 ## Current State
 
-No active milestone is open. Start the next milestone with `$gsd-new-milestone` so fresh requirements are defined before new roadmap phases are added.
+v1.32 Brand System Foundation is active. It reverts the premature one-shot brandbook commit, then rebuilds a self-contained `brandbook/` system through GSD requirements, phase verification, and milestone audit.
+
+## Active Milestone: v1.32 Brand System Foundation
+
+**Goal:** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
+
+- [ ] Phase 145: Brand Audit & Milestone Baseline
+- [ ] Phase 146: Brand System Spec
+- [ ] Phase 147: Token & Asset Source System
+- [ ] Phase 148: Static HTML Brandbook
+- [ ] Phase 149: Verification, Review, and Closeout
+
+### Phase 145: Brand Audit & Milestone Baseline
+
+**Goal:** Establish objective baseline truth before asset generation.
+
+**Requirements:** BRAND-AUDIT-01
+
+**Deliverables:**
+- Critical audit of `prompts/Threadline Brand Book.txt`, prior research, README positioning, operator-surface tokens, font licensing, and the reverted brandbook spike.
+- Baseline artifact inventory and risk list.
+- Explicit keep/tighten/rework/add/remove judgment.
+
+### Phase 146: Brand System Spec
+
+**Goal:** Convert the audit into durable brand source guidance.
+
+**Requirements:** BRAND-DNA-01, BRAND-VOICE-01
+
+**Deliverables:**
+- Tightened `brandbook/brand-book.md`.
+- `brandbook/pressure-test.md` with scorecard, stress tests, gaps, and action plan.
+- Voice, microcopy, landing/docs blueprint, copy blocks, and artifact governance.
+
+### Phase 147: Token & Asset Source System
+
+**Goal:** Create source-controlled implementation primitives.
+
+**Requirements:** BRAND-TOKENS-01, BRAND-LOGO-01
+
+**Deliverables:**
+- `brandbook/tokens.json` and `brandbook/tokens.css`.
+- Editable SVG logo, mark, monochrome, favicon, and social-card assets.
+- Accessibility and small-surface constraints recorded.
+
+### Phase 148: Static HTML Brandbook
+
+**Goal:** Build the browsable repo artifact and practical visual specimens.
+
+**Requirements:** BRAND-HTML-01, BRAND-EXAMPLES-01, BRAND-REPO-01
+
+**Deliverables:**
+- `brandbook/index.html` that opens directly from disk.
+- Useful SVG specimens for palette, typography, component primitives, README header, docs page, landing hero, and terminal style.
+- `brandbook/README.md` documenting maintenance and repo hygiene rules.
+
+### Phase 149: Verification, Review, and Closeout
+
+**Goal:** Verify the brand system, update traceability, and close the milestone honestly.
+
+**Requirements:** BRAND-QA-01 plus final traceability for all v1.32 requirements
+
+**Deliverables:**
+- Phase verification report with command output and browser screenshot evidence.
+- Requirement ledger updates.
+- v1.32 milestone audit and archive-ready summary.
 
 ## Latest Shipped Milestone
 
@@ -41,4 +107,5 @@ Full archive: `.planning/milestones/v1.31-ROADMAP.md`
 
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
+| v1.32 Brand System Foundation | 145-149 | 0/5 | Active | — |
 | v1.31 Operator Surface: Insane Polish | 134-144 | 35/35 | Complete | 2026-06-05 |

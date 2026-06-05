@@ -10,7 +10,16 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-v1.31 is shipped and archived. No active milestone is open; the next milestone should start from fresh requirements via `$gsd-new-milestone`.
+v1.32 Brand System Foundation is active. This milestone corrects a premature one-shot brandbook artifact pass by reverting it first, then rebuilding Threadline's brand system through normal GSD requirements, phase verification, and closeout.
+
+## Current Milestone: v1.32 Brand System Foundation
+
+**Goal:** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
+
+**Target features:**
+- Critical audit and brand DNA extraction from the existing brand book, prior research, README, and operator-surface design-system context.
+- Self-contained `brandbook/` artifact set: static HTML, Markdown source docs, JSON/CSS tokens, and editable SVG source assets.
+- Verification evidence for source-control hygiene, accessibility contrast, browser rendering, small SVG asset validity, and milestone requirement traceability.
 
 ## Latest Milestone Shipped: v1.31 Operator Surface: Insane Polish (2026-06-05)
 
