@@ -346,6 +346,7 @@ Recommendation:
 Expected assets:
 
 - `logo-primary.svg`
+- `logo-primary-light.svg`
 - `logo-mark.svg`
 - `logo-monochrome.svg`
 - `favicon.svg`
@@ -480,6 +481,7 @@ Do now:
 
 - Commit `brandbook/` source artifacts.
 - Review favicon at 16px and 32px.
+- Use `logo-primary-light.svg` for README/GitHub/light documentation contexts; use `logo-primary.svg` on dark surfaces.
 - Use `brand-book.md` for future README and landing-page copy.
 
 Do next:

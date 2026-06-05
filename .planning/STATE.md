@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.32
-milestone_name: Brand System Foundation
-status: Awaiting next milestone
-last_updated: "2026-06-05T21:42:08Z"
+milestone: v1.33
+milestone_name: Brand Review + Direction Selection
+status: review
+last_updated: "2026-06-05T21:58:43.306Z"
 last_activity: 2026-06-05
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State: Threadline
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-05)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Awaiting next milestone
+**Current focus:** v1.33 brand review checkpoint
 
 ## Current Position
 
-Phase: Milestone v1.32 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-05 — Milestone v1.32 completed and archived
+Phase: 151 — Critical Review + Options
+Plan: `.planning/phases/151-critical-review-options/151-PLAN.md`
+Status: Awaiting human brand direction review
+Last activity: 2026-06-05 — Phase 150 review packet complete; Phase 151 options ready
 
 ## Performance Metrics
 
@@ -59,7 +59,8 @@ Last activity: 2026-06-05 — Milestone v1.32 completed and archived
 
 ### Pending Todos
 
-None.
+- Review `brandbook/index.html`, `brandbook/logo-primary-light.svg`, `brandbook/favicon.svg`, `brandbook/social-card.svg`, and `brandbook/examples/readme-header.svg`.
+- Choose Phase 151 direction: approve current direction, request targeted revisions, ask for alternate concepts, or defer public rollout.
 
 ### Roadmap Evolution
 
@@ -78,6 +79,7 @@ None.
 - **v1.31 closeout hygiene (2026-06-05):**
   - The pending "Capture direct demo and UI polish" todo is resolved: the Docker demo is documented in `examples/threadline_phoenix/README.md`, operator-surface polish was absorbed by v1.31, and release notes already cover the automated operator-surface/design-system gate.
   - Phase 135 and Phase 137 HUMAN-UAT records are terminal `status: complete`; their checks are automated by `operator-phase-135-uat.spec.ts` and `operator-prove-mobile.spec.ts` under `mix verify.example_browser`, so no human UAT remains.
+- **Milestone v1.33 opened (2026-06-05):** Brand Review + Direction Selection reviews the existing v1.32 `brandbook/` artifacts before public rollout. Phase 150 added `logo-primary-light.svg` after browser preview showed the dark primary logo was too pale on white README/GitHub surfaces.
 
 ### Decisions
 
@@ -103,6 +105,7 @@ None.
 - [Phase 144-03]: The v1.31 design-system freeze is source-first: style.ex and style_contract_test.exs govern the catalog.
 - [Phase 144-03]: Phase 144 documents the local .tl-* and --tl-* system without Tailwind, build tooling, light/system theme support, external dependencies, or a public component API.
 - [Phase 144-04]: POLISH-AUDIT and POLISH-DS are closed by Phase 144 verification while preserving Phase 134 and Phase 136 as the original roadmap owners.
+- [Phase 150]: README/GitHub is the deciding surface for brand readiness; use `logo-primary-light.svg` on light documentation/repo surfaces and keep `logo-primary.svg` for dark/high-signal surfaces.
 
 ### Blockers
 
@@ -112,10 +115,10 @@ None.
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Archived v1.32 milestone, requirements, audit, and phase directories (2026-06-05)
-- **Next Step**: Start the next milestone with `$gsd-new-milestone`
+- **Last Action**: Completed Phase 150 review packet and added the light-background primary logo variant (2026-06-05)
+- **Next Step**: Human review of Phase 151 options
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review `.planning/phases/151-critical-review-options/151-REVIEW-OPTIONS.md` and choose the brand direction.

@@ -7,7 +7,7 @@ Open `index.html` directly in a browser to review the visual brandbook. The Mark
 - `brand-book.md` is the tightened source-of-truth brand guide.
 - `pressure-test.md` is the critical audit and quality gate.
 - `tokens.json` and `tokens.css` are implementation tokens for docs, marketing, and static examples.
-- `logo-*.svg`, `favicon.svg`, `social-card.svg`, and `examples/*.svg` are editable vector assets.
+- `logo-*.svg`, `favicon.svg`, `social-card.svg`, and `examples/*.svg` are editable vector assets. Use `logo-primary.svg` on dark surfaces and `logo-primary-light.svg` on README/GitHub/light documentation surfaces.
 
 ## Maintenance Rules
 
@@ -21,7 +21,7 @@ Open `index.html` directly in a browser to review the visual brandbook. The Mark
 
 - Positioning: "Audit history for Phoenix, Ecto, and PostgreSQL."
 - Tagline: "Follow what happened."
-- Logo system: horizontal wordmark plus simple continuous-line mark.
+- Logo system: horizontal wordmark plus simple continuous-line mark, with separate dark-surface and light-surface primary lockups.
 - Visual metaphor: a connected evidence path, not a generic node graph.
 - Palette: dark infrastructure neutrals with Thread Blue and Signal Cyan used as functional signals.
 - Voice: calm senior engineer, exact about what Threadline does and does not do.

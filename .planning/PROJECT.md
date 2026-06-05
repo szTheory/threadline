@@ -8,9 +8,18 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.33 Brand Review + Direction Selection
+
+**Goal:** Make the v1.32 `brandbook/` artifacts visible, reviewable, and decision-complete before any public README/GitHub/HexDocs/marketing rollout starts.
+
+**Target features:**
+- Human review packet for the existing HTML brandbook, logo system, visual specimens, token files, and voice/copy guidance.
+- README/GitHub-centered brand-readiness judgment, including logo usability on light repo surfaces.
+- Targeted revisions only when review finds material issues; no broad redesign or rollout churn.
+
 ## Current State
 
-v1.32 is shipped and archived. No active milestone is open; the next milestone should start from fresh requirements via `$gsd-new-milestone`.
+v1.33 is open and paused at the human brand review checkpoint. v1.32 shipped the source brand system; v1.33 decides whether to approve it, target-fix it, or defer rollout before public surface work begins.
 
 ## Latest Milestone Shipped: v1.32 Brand System Foundation (2026-06-05)
 
@@ -422,7 +431,12 @@ v1.32 is shipped and archived. No active milestone is open; the next milestone s
 
 ### Active
 
-_(No active milestone — run `/gsd-new-milestone`. Default recommendation: **Hold** until sustained adopter signal.)_
+- [ ] **REVIEW-PACKET-01**: User can inspect the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance through a concise review packet before any public rollout is selected.
+- [ ] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts.
+- [ ] **README-FIT-01**: Review evaluates the brand direction against README/GitHub as the primary deciding surface rather than a generic marketing-site standard.
+- [ ] **LOGO-LIGHT-01**: The logo system includes a primary light-background lockup for README/GitHub/light docs so the dark-surface primary logo is not forced onto white backgrounds.
+- [ ] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility.
+- [ ] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change.
 
 ### Out of Scope
 
@@ -527,4 +541,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-05 after v1.31 milestone closeout*
+*Last updated: 2026-06-05 after v1.33 milestone start*

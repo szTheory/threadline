@@ -177,7 +177,8 @@ Avoid:
 
 Recommended system:
 
-- Primary: horizontal wordmark with a continuous-line mark.
+- Primary dark: horizontal wordmark with a continuous-line mark for dark infrastructure surfaces.
+- Primary light: horizontal wordmark with a continuous-line mark for README, GitHub, HexDocs, and light documentation surfaces.
 - Secondary: icon-only line mark.
 - Monochrome: one-color version for small print, engraving, and constrained surfaces.
 - Favicon: compact mark inside a dark rounded square.
@@ -197,7 +198,8 @@ Clearspace:
 
 Usage:
 
-- Use the full logo for README headers, landing pages, conference slides, and social previews.
+- Use `logo-primary.svg` on dark landing pages, slides, and social previews.
+- Use `logo-primary-light.svg` on README, GitHub, HexDocs, and light documentation surfaces.
 - Use the mark for favicon, avatar, docs sidebar, and small UI contexts.
 - Use monochrome for stickers, print, and single-color contexts.
 
