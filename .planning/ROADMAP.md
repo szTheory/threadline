@@ -23,7 +23,7 @@ v1.32 Brand System Foundation is active. It reverts the premature one-shot brand
 
 - [x] Phase 145: Brand Audit & Milestone Baseline
 - [x] Phase 146: Brand System Spec
-- [ ] Phase 147: Token & Asset Source System
+- [x] Phase 147: Token & Asset Source System
 - [ ] Phase 148: Static HTML Brandbook
 - [ ] Phase 149: Verification, Review, and Closeout
 

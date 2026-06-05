@@ -12,8 +12,8 @@
 
 ### Implementation-Ready Brand System
 
-- [ ] **BRAND-TOKENS-01**: Token artifacts define raw palette values and semantic roles for dark, light, interaction states, status states, code blocks, callouts, focus, typography, spacing, radius, borders, and modest elevation.
-- [ ] **BRAND-LOGO-01**: Logo and mark SVG assets are simple, editable, accessible, monochrome-capable, transparent-background-safe, and usable at small sizes.
+- [x] **BRAND-TOKENS-01**: Token artifacts define raw palette values and semantic roles for dark, light, interaction states, status states, code blocks, callouts, focus, typography, spacing, radius, borders, and modest elevation. Completed in Phase 147.
+- [x] **BRAND-LOGO-01**: Logo and mark SVG assets are simple, editable, accessible, monochrome-capable, transparent-background-safe, and usable at small sizes. Completed in Phase 147.
 - [ ] **BRAND-HTML-01**: The static HTML brandbook is complete, navigable, responsive, and usable directly from the repository without a build step or network dependency.
 - [ ] **BRAND-EXAMPLES-01**: The brandbook includes only useful source-controlled visual specimens: palette, typography, components, README header, docs page, landing hero, terminal style, and social preview.
 
@@ -39,8 +39,8 @@
 |-------------|-------|--------|
 | BRAND-AUDIT-01 | Phase 145 | Complete |
 | BRAND-DNA-01 | Phase 146 | Complete |
-| BRAND-TOKENS-01 | Phase 147 | Pending |
-| BRAND-LOGO-01 | Phase 147 | Pending |
+| BRAND-TOKENS-01 | Phase 147 | Complete |
+| BRAND-LOGO-01 | Phase 147 | Complete |
 | BRAND-HTML-01 | Phase 148 | Pending |
 | BRAND-EXAMPLES-01 | Phase 148 | Pending |
 | BRAND-VOICE-01 | Phase 146 | Complete |
