@@ -1,7 +1,7 @@
 ---
 phase: 153-verification-closeout
 verified: 2026-06-06
-status: pending
+status: passed
 requirements: [BRAND-QA-02]
 ---
 
@@ -129,3 +129,23 @@ Evidence label legend: `PASS` means verified current-tree behavior; `FAIL` would
 | Local-only navigation | Anchor targets are local hashes or committed local files: `#main`, section hashes, `brand-book.md`, `pressure-test.md`, and `tokens.json`; no external href/src URLs are present | PASS |
 | Evidence review labels | This verification record uses visible `PASS`, `FAIL`, and `deferred` text labels for evidence and scope status, not color-only state | PASS |
 
+## Requirement Coverage
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| BRAND-QA-02 | Complete | Current-tree JSON parse, SVG parse, HTML parser exit, direct-open browser title, desktop/mobile screenshots, historical-frame scan, binary exclusion, file inventory, and file size all passed in this verification record. |
+
+## Validation Cadence
+
+| Point | Command | Result |
+|---|---|---|
+| After Task 1 commit `5c01130` | `jq empty brandbook/tokens.json; find brandbook -name '*.svg' -print0 \| xargs -0 xmllint --noout` | PASS, `task1-post-commit-quick-check=pass latency=0s` |
+| After Task 2 commit `ed195e3` | `jq empty brandbook/tokens.json; find brandbook -name '*.svg' -print0 \| xargs -0 xmllint --noout` | PASS, `task2-post-commit-quick-check=pass latency=0s` |
+
+## Closeout Judgment
+
+Phase 153 passes. v1.33 approves the reviewed brandbook direction, the `logo-primary-light.svg` role for README/GitHub/light documentation surfaces, and the Phase 152 targeted copy cleanup.
+
+Deferred scope remains deferred: root README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review.
+
+The closeout does not claim public README, HexDocs, landing page, social PNG, runtime operator UI, registry, package, build pipeline, static-to-runtime token bridge, or legal/trademark rollout completion.

@@ -1,6 +1,6 @@
 # Roadmap: v1.33 Brand Review + Direction Selection
 
-**Status:** active - Phase 152 targeted revisions complete; Phase 153 pending
+**Status:** complete - v1.33 verified and archive-ready
 **Opened:** 2026-06-05
 
 ## Goal
@@ -26,13 +26,13 @@ README/GitHub is the primary readiness test. The brand can still support future 
 | 150 | Review Packet + Visibility | REVIEW-PACKET-01, README-FIT-01, LOGO-LIGHT-01 | Complete |
 | 151 | Critical Review + Options | REVIEW-DECISION-01 | Complete |
 | 152 | Targeted Revisions | REVISION-01 | Complete |
-| 153 | Verification + Closeout | BRAND-QA-02 | Planned |
+| 153 | Verification + Closeout | BRAND-QA-02 | Complete |
 
 **Execution order:**
 - [x] **Phase 150: Review Packet + Visibility** - Make the v1.32 brandbook artifacts visible for review and fix any immediate README/GitHub legibility blocker.
 - [x] **Phase 151: Critical Review + Options** - Select the brand direction path before rollout work starts.
 - [x] **Phase 152: Targeted Revisions** - Apply selected, scoped brandbook-facing revisions without expanding into public rollout or runtime UI work.
-- [ ] **Phase 153: Verification + Closeout** - Verify final brand artifacts and close v1.33.
+- [x] **Phase 153: Verification + Closeout** - Verify final brand artifacts and close v1.33.
 
 ## Phase Details
 
@@ -84,7 +84,9 @@ Phase 150 found one concrete README/GitHub issue: the dark-surface primary logo 
 
 Phase 151 selected targeted revisions after human review. Phase 152 applied a stand-alone truth cleanup so `brandbook/` presents the current Threadline brand system rather than refresh or audit backstory.
 
-Phase 153 remains the milestone-level verification and closeout lane.
+Phase 153 completed the milestone-level verification and closeout lane. v1.33 approves the reviewed brandbook direction, the light-surface primary logo role, and the Phase 152 targeted copy cleanup.
+
+Deferred rollout remains explicit: root README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review.
 
 ## Latest Shipped Milestone
 

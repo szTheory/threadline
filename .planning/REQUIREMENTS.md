@@ -8,7 +8,7 @@
 ### Human Brand Review
 
 - [x] **REVIEW-PACKET-01**: User can inspect the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance through a concise review packet before any public rollout is selected. Completed in Phase 150.
-- [ ] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts. In progress in Phase 151.
+- [x] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts. Completed in Phase 151; targeted revisions selected.
 
 ### README/GitHub Readiness
 
@@ -17,8 +17,8 @@
 
 ### Targeted Revisions And QA
 
-- [ ] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility. Pending Phase 152.
-- [ ] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change. Pending Phase 153.
+- [x] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility. Completed in Phase 152 through stand-alone brandbook truth cleanup.
+- [x] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change. Completed in Phase 153.
 
 ## Future Requirements
 
@@ -43,11 +43,11 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REVIEW-PACKET-01 | Phase 150 | Complete |
-| REVIEW-DECISION-01 | Phase 151 | In Progress |
+| REVIEW-DECISION-01 | Phase 151 | Complete |
 | README-FIT-01 | Phase 150 | Complete |
 | LOGO-LIGHT-01 | Phase 150 | Complete |
-| REVISION-01 | Phase 152 | Pending |
-| BRAND-QA-02 | Phase 153 | Pending |
+| REVISION-01 | Phase 152 | Complete |
+| BRAND-QA-02 | Phase 153 | Complete |
 
 **Coverage:**
 - v1.33 requirements: 6 total
@@ -56,4 +56,4 @@
 
 ---
 *Requirements defined: 2026-06-05*
-*Last updated: 2026-06-05 after Phase 150 review packet*
+*Last updated: 2026-06-06 after Phase 153 verification and closeout*

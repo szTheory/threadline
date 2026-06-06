@@ -19,7 +19,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-v1.33 is open and paused at the human brand review checkpoint. v1.32 shipped the source brand system; v1.33 decides whether to approve it, target-fix it, or defer rollout before public surface work begins.
+v1.33 is verified and archive-ready. v1.32 shipped the source brand system; v1.33 approved the reviewed brandbook direction, the light-surface primary logo role, and the Phase 152 targeted copy cleanup before any public surface rollout begins.
 
 ## Latest Milestone Shipped: v1.32 Brand System Foundation (2026-06-05)
 
@@ -431,12 +431,12 @@ v1.33 is open and paused at the human brand review checkpoint. v1.32 shipped the
 
 ### Active
 
-- [ ] **REVIEW-PACKET-01**: User can inspect the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance through a concise review packet before any public rollout is selected.
-- [ ] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts.
-- [ ] **README-FIT-01**: Review evaluates the brand direction against README/GitHub as the primary deciding surface rather than a generic marketing-site standard.
-- [ ] **LOGO-LIGHT-01**: The logo system includes a primary light-background lockup for README/GitHub/light docs so the dark-surface primary logo is not forced onto white backgrounds.
-- [ ] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility.
-- [ ] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change.
+- [x] **REVIEW-PACKET-01**: User can inspect the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance through a concise review packet before any public rollout is selected.
+- [x] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts.
+- [x] **README-FIT-01**: Review evaluates the brand direction against README/GitHub as the primary deciding surface rather than a generic marketing-site standard.
+- [x] **LOGO-LIGHT-01**: The logo system includes a primary light-background lockup for README/GitHub/light docs so the dark-surface primary logo is not forced onto white backgrounds.
+- [x] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility.
+- [x] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change.
 
 ### Out of Scope
 
@@ -541,4 +541,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-05 after v1.33 milestone start*
+*Last updated: 2026-06-06 after Phase 153 verification and closeout*
