@@ -94,3 +94,38 @@ PASS. The current size baseline remains source-control friendly:
    95512 total
 ```
 
+## Browser Evidence
+
+| Check | Evidence | Result |
+|---|---|---|
+| Direct-open URL | `file:///Users/jon/projects/threadline/brandbook/index.html` | PASS |
+| Page title | `Threadline Brandbook` | PASS |
+| Desktop screenshot | Viewport `1440x1000`; `/tmp/threadline-v133-brandbook-phase153-desktop.png`; file size `114129` bytes | PASS |
+| Mobile screenshot | Viewport `390x844`; `/tmp/threadline-v133-brandbook-phase153-mobile.png`; file size `51027` bytes | PASS |
+| Rendered text snapshot | Browser text includes `Follow what happened.`, `Brand QA`, `Source-ready, specific to Threadline, and governed by practical artifacts.`, and `Readiness scorecard` | PASS |
+| Local file assets | Browser DOM assertion returned `brokenImages: []`; favicon, SVG/image, CSS, and Markdown/link targets are local committed files | PASS |
+| External dependency scan | Browser DOM assertion returned `external: []`; source scan for `href="https?://` or `src="https?://` returned no output | PASS |
+
+Screenshots are temporary `/tmp` evidence only. They are not committed to `brandbook/`, and no raster export batch was added.
+
+## Screenshot Inspection
+
+| Viewport | Inspection | Result |
+|---|---|---|
+| Desktop `1440x1000` | Sidebar rail is visible, hero is visible and not occluded, the first viewport communicates `Follow what happened.`, and no text or UI overlap/clipping is visible | PASS |
+| Mobile `390x844` | Rail stacks above content, navigation remains scannable in two columns, hero content follows without overlap/clipping, and source assertion confirms hero CTA buttons are full-width on mobile | PASS |
+
+## UI-SPEC Interaction Evidence
+
+Evidence label legend: `PASS` means verified current-tree behavior; `FAIL` would block closeout; `deferred` means intentionally out of Phase 153 scope and must not be claimed complete. These labels are visible text and do not rely on color alone.
+
+| Interaction | Evidence | Result |
+|---|---|---|
+| Skip-link focus visibility | Real `Tab` press focused `Skip to content`; active class `skip-link`, href `#main`, computed `top: 12px`, and focus box shadow `rgba(127, 169, 255, 0.42) 0px 0px 0px 3px, rgb(127, 169, 255) 0px 0px 0px 1px` | PASS |
+| Keyboard reachability | DOM assertion found 15 native anchors, including sidebar anchors and hero `Brand book`, `Brand QA`, and `Tokens JSON` links reachable by Tab | PASS |
+| Focus ring | Source assertions found `--tl-focus-ring`, `a:focus-visible`, and `box-shadow: var(--tl-focus-ring)`; `outline: none` is paired with that replacement on focus-visible links | PASS |
+| Hover tokens | Source assertions found `a:hover` uses `--tl-color-accent-strong` and `.nav a:hover` uses `--tl-color-surface-hover` | PASS |
+| Touch targets | Source assertions found `.button` `min-height: 44px`; mobile DOM assertion at `390x844` returned button widths of `350px`, matching full available mobile content width | PASS |
+| Local-only navigation | Anchor targets are local hashes or committed local files: `#main`, section hashes, `brand-book.md`, `pressure-test.md`, and `tokens.json`; no external href/src URLs are present | PASS |
+| Evidence review labels | This verification record uses visible `PASS`, `FAIL`, and `deferred` text labels for evidence and scope status, not color-only state | PASS |
+
