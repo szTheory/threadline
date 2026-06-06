@@ -8,20 +8,26 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.33 Brand Review + Direction Selection
-
-**Goal:** Make the v1.32 `brandbook/` artifacts visible, reviewable, and decision-complete before any public README/GitHub/HexDocs/marketing rollout starts.
-
-**Target features:**
-- Human review packet for the existing HTML brandbook, logo system, visual specimens, token files, and voice/copy guidance.
-- README/GitHub-centered brand-readiness judgment, including logo usability on light repo surfaces.
-- Targeted revisions only when review finds material issues; no broad redesign or rollout churn.
-
 ## Current State
 
-v1.33 is verified and archive-ready. v1.32 shipped the source brand system; v1.33 approved the reviewed brandbook direction, the light-surface primary logo role, and the Phase 152 targeted copy cleanup before any public surface rollout begins.
+v1.33 is shipped and archived. Threadline has an approved source brandbook direction, a light-surface primary logo role for README/GitHub/light docs, and final verification evidence for the current brand artifacts before any public rollout begins.
 
-## Latest Milestone Shipped: v1.32 Brand System Foundation (2026-06-05)
+## Latest Milestone Shipped: v1.33 Brand Review + Direction Selection (2026-06-06)
+
+**Goal (achieved):** Make the v1.32 `brandbook/` artifacts visible, reviewable, and decision-complete before any public README/GitHub/HexDocs/marketing rollout starts.
+
+**Shipped:**
+- **Review packet** — Phase 150 inventoried the HTML brandbook, logo assets, visual specimens, tokens, and copy guidance for human review.
+- **Light-surface logo role** — `brandbook/logo-primary-light.svg` and usage guidance make README/GitHub/light documentation logo usage explicit.
+- **Direction decision** — Phase 151 recorded targeted revisions as the selected path; alternate concepts, public rollout, and runtime UI changes remained out of scope.
+- **Targeted cleanup** — Phase 152 rewrote brandbook-facing copy so the artifacts present current Threadline brand truth rather than process history.
+- **Verification** — Phase 153 passed JSON/SVG/HTML parsing, direct-open browser, desktop/mobile screenshot, historical scan, binary-exclusion, inventory, and file-size checks.
+
+**Archives:** `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`, `.planning/milestones/v1.33-MILESTONE-AUDIT.md`, `.planning/milestones/v1.33-phases/`
+
+**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements. Candidate follow-ups remain root README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review.
+
+## Prior shipped milestone: v1.32 Brand System Foundation (2026-06-05)
 
 **Goal (achieved):** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
 
@@ -520,6 +526,8 @@ v1.33 is verified and archive-ready. v1.32 shipped the source brand system; v1.3
 | v1.27 targets distribution + first-hour finish, not external pilot without signal | Post-v1.26 assessment ~90–93% done for stated scope; Hex 0.5/0.6 drift and `ecto_repos` getting-started gap are adopter-facing blockers; external pilot moves to v1.28 on re-engagement trigger. | ✓ Shipped (Phases 122-127, v1.27, 2026-05-28) |
 | Post-v1.27 path-to-done: hold default at ~92%; optional v1.29 hygiene; v1.28 signal-gated | Repo inspection confirms core lib shipped, Hex 0.6.0 aligned, getting-started spine complete; remaining footguns are README Quick Start `ecto_repos`, phx-gen-auth mount snippet, WALKTHROUGH cwd/URL — polish not engine. No adopter signal — do not open synthetic product milestones beyond optional thin v1.29. | ✓ Shipped (v1.29, 2026-05-29) |
 | v1.29 is the last optional synthetic hygiene pass before hold | First-hour doc parity + Nyquist 125 + WALKTHROUGH truth close adopter-facing footguns without pilot pretense or product expansion. | ✓ Shipped (Phases 128–130.1, v1.29, 2026-05-29) |
+| README/GitHub is the deciding surface for brand readiness | The brand can support future landing pages and HexDocs, but OSS adopter trust starts in the repository. Light-surface logo usability is therefore a real requirement, while public rollout remains separate work. | ✓ Shipped (v1.33, 2026-06-06) |
+| Brandbook artifacts should present current brand truth, not process history | Planning history belongs in `.planning/`; public-facing source artifacts should read as settled guidance unless a future milestone deliberately reopens the direction. | ✓ Shipped (v1.33, 2026-06-06) |
 
 ## Evolution
 
@@ -541,4 +549,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-06 after Phase 153 verification and closeout*
+*Last updated: 2026-06-06 after v1.33 milestone archive*

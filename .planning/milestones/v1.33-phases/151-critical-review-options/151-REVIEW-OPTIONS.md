@@ -68,4 +68,10 @@ Outcome:
 
 ## Decision Needed
 
-Choose Option A, B, C, or D. If B or C, name the specific artifact concerns so Phase 152 does not become open-ended redesign churn.
+Choose Option A, B, C, or D. If B or C, name the specific artifact concerns so Phase 152 does not become open-ended redesign.
+
+## Decision Outcome
+
+On 2026-06-06, the user selected Option B: targeted revisions.
+
+The selected target is a stand-alone truth cleanup for `brandbook/`: public brandbook-facing artifacts should read as the current Threadline brand system, not as a refresh, audit backstory, or comparison against earlier work. Phase 152 is limited to copy/source-artifact cleanup and planning records; logo concepts, visual redesign, README rollout, HexDocs rollout, and runtime operator UI changes remain out of scope.

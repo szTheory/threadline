@@ -873,4 +873,48 @@
 
 ---
 
+## Milestone: v1.33 — Brand Review + Direction Selection
+
+**Shipped:** 2026-06-06
+**Phases:** 4 | **Plans:** 3
+
+### What was built
+
+- Review packet and artifact inventory for the existing v1.32 `brandbook/` HTML, logo assets, visual specimens, tokens, and copy guidance.
+- Light-surface primary logo variant plus usage guidance for README/GitHub/light documentation contexts.
+- Human direction decision: targeted cleanup selected; alternate concepts, public rollout, and runtime UI changes rejected for this milestone.
+- Brandbook-facing copy cleanup so source artifacts present current Threadline brand truth without refresh/audit backstory.
+- Final verification evidence for JSON/SVG/HTML parsing, direct-open browser rendering, desktop/mobile screenshots, historical scan, binary exclusion, inventory, and file-size discipline.
+
+### What worked
+
+- Treating README/GitHub as the deciding surface kept the brand review grounded in the first OSS trust surface.
+- Separating direction approval from public rollout avoided mixing brand-source readiness with README/HexDocs/landing-page implementation.
+- The audit passed cleanly after Phase 153 because Phase 150-153 evidence matched the narrow requirements.
+
+### What was inefficient
+
+- `summary-extract` returned no usable one-liners for the milestone summaries, so `MILESTONES.md` needed manual editorial cleanup.
+- Phase 152 has summary and verification evidence but no separate plan file, which is acceptable for this closeout but makes plan-count reporting less tidy.
+
+### Patterns established
+
+- Brand artifacts should read as current source guidance; process history belongs in `.planning/`.
+- Light and dark logo roles need explicit source assets and usage guidance before README/GitHub rollout.
+
+### Key lessons
+
+1. A brand review milestone should approve direction before touching public surfaces.
+2. Public rollout candidates need fresh requirements even when the source brandbook is approved.
+
+### Cost observations
+
+- Timeline: 2 days (2026-06-05 -> 2026-06-06); 4 phases; 3 plans.
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends
+
+- Brand and UI milestones now need the same evidence discipline as backend milestones: source artifacts, direct-render checks, explicit deferred rollout boundaries, and archive-ready verification.
+- Public-surface rollout should start from fresh requirements even when source guidance is approved; approval is not implementation scope.

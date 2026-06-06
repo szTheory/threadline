@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.33
 milestone_name: Brand Review + Direction Selection
-status: complete
-last_updated: "2026-06-06T05:21:22Z"
-last_activity: 2026-06-06 -- Phase 153 verification and closeout complete
+status: Awaiting next milestone
+last_updated: "2026-06-06T05:30:38.193Z"
+last_activity: 2026-06-06 — Milestone v1.33 completed and archived
 progress:
-  total_phases: 9
-  completed_phases: 2
+  total_phases: 4
+  completed_phases: 4
   total_plans: 3
   completed_plans: 3
-  percent: 22
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -20,18 +20,18 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-06)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.33 brand review closeout complete
+**Current focus:** Awaiting fresh milestone requirements
 
 ## Current Position
 
-Phase: 153 — Verification + Closeout
-Plan: .planning/phases/153-verification-closeout/153-01-PLAN.md
-Status: Complete - v1.33 verified and archive-ready
-Last activity: 2026-06-06 -- Phase 153 verification and closeout complete
+Phase: Milestone v1.33 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-06 — Milestone v1.33 archived; phase history moved to `.planning/milestones/v1.33-phases/`
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.32 — Brand System Foundation (2026-06-05)
+- **Last Milestone Shipped**: v1.33 — Brand Review + Direction Selection (2026-06-06)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -59,7 +59,7 @@ Last activity: 2026-06-06 -- Phase 153 verification and closeout complete
 
 ### Pending Todos
 
-- Archive v1.33 or start the next milestone when ready.
+- Start the next milestone with `$gsd-new-milestone` when ready.
 
 ### Roadmap Evolution
 
@@ -82,6 +82,7 @@ Last activity: 2026-06-06 -- Phase 153 verification and closeout complete
 - **Phase 152 targeted revisions complete (2026-06-06):** Human review selected stand-alone brandbook truth cleanup. `brandbook/` now presents the current brand system without refresh/audit backstory framing.
 - **Phase 153 UI-SPEC approved (2026-06-06):** Verification closeout design contract created and checked across copywriting, visuals, color, typography, spacing, and registry safety.
 - **Phase 153 verification and closeout complete (2026-06-06):** Current-tree JSON/SVG/HTML parse, direct-open browser, desktop/mobile screenshots, historical-frame scan, binary exclusion, file inventory, and file-size evidence passed. v1.33 is archive-ready with public rollout and legal/trademark work deferred.
+- **Milestone v1.33 archived (2026-06-06):** Roadmap, requirements, audit, and phase history are archived under `.planning/milestones/`; fresh requirements are needed before public rollout work.
 
 ### Decisions
 
@@ -120,10 +121,10 @@ Last activity: 2026-06-06 -- Phase 153 verification and closeout complete
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed Phase 153 verification and closeout (2026-06-06)
-- **Next Step**: Archive v1.33 or start the next milestone
-- **Resume file**: `.planning/phases/153-verification-closeout/153-VERIFICATION.md`
+- **Last Action**: Archived v1.33 roadmap, requirements, audit, and phase history (2026-06-06)
+- **Next Step**: Start a fresh milestone with `$gsd-new-milestone`
+- **Resume file**: `.planning/milestones/v1.33-phases/153-verification-closeout/153-VERIFICATION.md`
 
 ## Operator Next Steps
 
-- Run `$gsd-complete-milestone` to archive v1.33 when ready, or `$gsd-new-milestone` to start the next milestone.
+- Start the next milestone with `$gsd-new-milestone`.

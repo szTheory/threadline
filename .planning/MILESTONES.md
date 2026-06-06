@@ -1,5 +1,36 @@
 # Project milestones: Threadline
 
+## v1.33 Brand Review + Direction Selection (Shipped: 2026-06-06)
+
+**Delivered:** Reviewed and approved the v1.32 brandbook direction for README/GitHub readiness, added the light-surface logo role, applied targeted brandbook truth cleanup, and verified the final source artifacts before public rollout.
+
+**Phases completed:** 4 phases (150-153), 3 plans. Requirements: 6/6 satisfied.
+
+**Key accomplishments:**
+
+- Made the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance visible through a concise review packet.
+- Added `brandbook/logo-primary-light.svg` and usage guidance so README/GitHub/light documentation surfaces no longer depend on the dark primary lockup.
+- Captured the human direction decision: targeted cleanup selected; alternate logo concepts, public rollout, and runtime UI changes stayed out of scope.
+- Rewrote brandbook-facing copy so the artifact set presents current Threadline brand truth instead of refresh/audit backstory.
+- Verified JSON, SVG, HTML parser, direct-open browser, desktop/mobile screenshot, historical-frame scan, binary-exclusion, inventory, and file-size evidence.
+
+**Stats:**
+
+- Timeline: 2 days (opened 2026-06-05, shipped 2026-06-06).
+- Git range: `v1.32` -> `8e5bd74`; 9 commits, 26 files changed, +1664 / -56 LOC through phase closeout.
+- Audit: `passed` - requirements 6/6, phases 4/4.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.33-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.33-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.33-MILESTONE-AUDIT.md`
+- Phase history: `.planning/milestones/v1.33-phases/`
+
+**What is next:** `$gsd-new-milestone` - define fresh requirements before public README, HexDocs, landing page, or social-card rollout work.
+
+---
+
 ## v1.32 Brand System Foundation (Shipped: 2026-06-05)
 
 **Phases completed:** 5 phases, 5 plans
