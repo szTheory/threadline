@@ -32,23 +32,19 @@ Source notes:
 
 ## Spacing Scale
 
-Declared values are existing `--tl-space-*` values and must remain multiples of 4:
+Active Phase 153 spacing uses only the approved 4/8 scale values below:
 
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Fine gaps, nav grid gaps, small separators |
 | sm | 8px | Compact element spacing, inline padding |
-| sm-plus | 12px | Brandbook nav links, table cells, compact stacks |
 | md | 16px | Default element spacing, small panels |
-| md-plus | 20px | Card and asset padding on dense surfaces |
 | lg | 24px | Section internals, sidebar padding, medium gaps |
 | xl | 32px | Layout gaps, hero actions, sidebar logo rhythm |
-| 2xl | 40px | Large local spacing where already present |
-| 3xl | 48px | Major section breaks |
-| 4xl | 64px | Page-level section padding |
-| 5xl | 80px | Existing hero/page top padding only |
+| 2xl | 48px | Major section breaks |
+| 3xl | 64px | Page-level section padding |
 
-Exceptions: interactive targets must keep at least 44px height; `999px` is allowed only for pill/counter radius, not layout spacing.
+Existing artifact exceptions only, do not use for new Phase 153 UI: committed brandbook tokens or CSS may retain `sm-plus: 12px`, `md-plus: 20px`, legacy `2xl: 40px`, and `5xl: 80px` where already present in `brandbook/` artifacts. Interactive targets must keep at least 44px height; `999px` is allowed only for pill/counter radius, not layout spacing.
 
 ---
 
