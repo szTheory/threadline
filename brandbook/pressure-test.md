@@ -1,28 +1,30 @@
-# Threadline Brand Book Pressure Test
+# Threadline Brand QA Guide
 
 ## Section 1 - Executive Judgment
 
-The current brand book is strategically strong and execution-incomplete.
+The Threadline brand system is ready for source-controlled use across static brand artifacts, documentation concepts, README/GitHub visuals, and future marketing surfaces.
 
-It has a clear center: Threadline makes system history followable. That idea is specific to audit history and strong enough to guide product UI, documentation, landing pages, diagrams, and logo work.
+Its center is clear:
 
-It is distinct enough if the team keeps the line/history/evidence metaphor disciplined. It will become generic if it drifts into abstract node graphs, blue-purple glow, shield/lock security tropes, or vague "trust platform" copy.
+> Threadline makes system history followable.
 
-It was under-specified for implementation. The original book had strong positioning, voice, color direction, and typography direction, but lacked semantic tokens, component guidance, logo artifacts, light-surface rules, concrete copy blocks, and repo artifact boundaries.
+That idea is specific to audit history and strong enough to guide product UI, documentation, landing pages, diagrams, and logo work.
 
-Highest-leverage improvement:
+The brand stays distinct when the line, history, and evidence metaphor remains disciplined. It becomes generic when it drifts into abstract node graphs, blue-purple glow, shield or lock security tropes, or vague "trust platform" copy.
 
-> Convert the brand from inspirational prose into committed, inspectable source artifacts: tokens, SVG logo files, static examples, microcopy, and usage rules.
+Highest-leverage rule:
 
-Do not change:
+> Treat the brand as committed, inspectable source artifacts: tokens, SVG logo files, static examples, microcopy, and usage rules.
+
+Protect:
 
 - "Follow what happened."
 - "Threadline makes system history followable."
 - The connected-line metaphor.
 - The calm, exact, low-BS voice.
-- The dark infrastructure palette as the operator/product foundation.
+- The dark infrastructure palette as the operator and product foundation.
 
-## Section 2 - Brand DNA Extraction
+## Section 2 - Brand DNA
 
 Brand essence:
 
@@ -68,22 +70,6 @@ Anti-traits:
 - compliance-bureaucratic
 - generic SaaS
 
-Design principles:
-
-- Use lines as structure, not decoration.
-- Show sequence and causality.
-- Keep UI dense but legible.
-- Use accents as state and signal.
-- Prefer inspectable vectors over raster mood.
-
-Voice principles:
-
-- Say what it does.
-- Name boundaries.
-- Prefer concrete technical nouns.
-- Avoid hype adjectives.
-- Make error and warning states actionable.
-
 This should feel like:
 
 - a clear line through an incident
@@ -97,212 +83,198 @@ This should never feel like:
 - a neon cyber product
 - a mascot-led OSS brand
 
-## Section 3 - Pressure-Test Scorecard
+## Section 3 - Brand Readiness Scorecard
 
-| Dimension | Score | Why | Risk | Recommended fix |
+| Dimension | Score | Current strength | Risk | Governance rule |
 |---|---:|---|---|---|
-| Distinctiveness | 8 | The connected-history metaphor is strong and relevant. | Can collapse into generic node/line visuals. | Keep the evidence path metaphor explicit and labeled. |
-| Developer credibility | 9 | Voice is plain, precise, and grounded in real APIs and workflows. | Marketing copy could overreach into compliance claims. | Keep claims tied to capture, context, health, exports, and evidence. |
-| Elixir ecosystem fit | 9 | Phoenix/Ecto/Postgres positioning is clear and understated. | Looking too SaaS-like would reduce OSS trust. | Prioritize README, HexDocs, examples, and code snippets over splashy collateral. |
-| Visual coherence | 7 | Palette, type, and line motif align well. | Original book lacked concrete execution examples. | Use SVG examples and token files as constraints. |
-| Logo readiness | 7 | Direction is good: line mark plus wordmark. | The mark is intentionally simple and may need human refinement before high-stakes public launch. | Use v1 source assets; review trademark and favicon legibility manually. |
-| Color-system readiness | 8 | Dark product palette is strong and already reflected in operator UI. | Light docs/marketing states were incomplete. | Use light semantic tokens for docs and print-like surfaces. |
-| Typography readiness | 8 | Geist and IBM Plex Mono are practical and already licensed in-repo. | Optional serif would create churn. | Defer serif until an actual editorial surface needs it. |
-| Design-token readiness | 8 | JSON and CSS define raw and semantic roles. | Runtime operator tokens may drift from static brand tokens. | Treat operator CSS as product contract and brandbook tokens as collateral/docs contract. |
-| UI component readiness | 7 | Button, callout, code, card, badge, terminal guidance exists. | Not a full component library. | Add only when a real docs/marketing build needs more. |
-| Docs/README usefulness | 8 | Copy blocks and README blueprint are concrete. | README should not change in this milestone. | Use copy selectively in a later docs rollout. |
-| Marketing usefulness | 8 | Landing architecture, hero copy, feature blurbs, and social card are ready. | Overuse of dark hero could feel heavy. | Pair dark hero with light docs and evidence sections. |
-| Voice/microcopy usefulness | 8 | Examples cover errors, empty states, warnings, releases, and CTAs. | More CLI examples may be needed later. | Add examples only as new CLI surfaces ship. |
-| Accessibility | 7 | Token choices favor high contrast and non-color-only states. | SVG and HTML still need visual inspection per surface. | Keep labels, text alternatives, focus rings, and contrast checks in QA. |
-| Repo/source-control readiness | 9 | Artifacts are HTML/Markdown/JSON/CSS/SVG only. | Future generated PNGs could bloat history. | Commit generated raster only for specific downstream needs. |
-| Long-term maintainability | 8 | Folder boundaries and artifact rules are clear. | Duplicate tokens could drift. | Document source of truth and avoid automatic runtime coupling. |
+| Distinctiveness | 8 | The connected-history metaphor is strong and relevant. | Can collapse into generic node or line visuals. | Keep the evidence path metaphor explicit and labeled. |
+| Developer credibility | 9 | Voice is plain, precise, and grounded in real APIs and workflows. | Marketing copy can overreach into compliance claims. | Keep claims tied to capture, context, health, exports, and evidence. |
+| Elixir ecosystem fit | 9 | Phoenix/Ecto/Postgres positioning is clear and understated. | Looking too SaaS-like reduces OSS trust. | Prioritize README, HexDocs, examples, and code snippets over splashy collateral. |
+| Visual coherence | 8 | Palette, type, and line motif align around audit history. | Repetition of lines can become decoration. | Use lines to show sequence, causality, or evidence flow. |
+| Logo readiness | 7 | The line mark and wordmark are simple and usable as source assets. | The mark may benefit from human refinement for high-stakes launch work. | Use the committed source assets; review trademark and favicon legibility manually. |
+| Color-system readiness | 8 | Dark product palette and light documentation roles are defined. | Static brand tokens can drift from runtime operator tokens. | Treat operator CSS as product contract and brandbook tokens as collateral/docs contract. |
+| Typography readiness | 8 | Geist and IBM Plex Mono are practical and already licensed in-repo. | Optional serif styling would add unnecessary complexity. | Use sans plus mono until an actual editorial surface requires more. |
+| Design-token readiness | 8 | JSON and CSS define raw and semantic roles. | Duplicate token definitions can diverge. | Keep this folder as static brand guidance, not automatic runtime coupling. |
+| UI component readiness | 7 | Button, callout, code, card, badge, and terminal guidance exists. | This is not a full component library. | Add component guidance only when a real docs or marketing build requires it. |
+| Docs/README usefulness | 8 | Copy blocks and README blueprint are concrete. | Public docs can become over-branded. | Use brand through clarity, logo fit, typography, and code readability. |
+| Marketing usefulness | 8 | Landing architecture, hero copy, feature blurbs, and social card are ready. | Overuse of dark hero surfaces can feel heavy. | Pair dark hero moments with light docs and evidence sections. |
+| Voice/microcopy usefulness | 8 | Examples cover errors, empty states, warnings, releases, and CTAs. | New CLI surfaces may require additional examples. | Add examples as public surfaces ship. |
+| Accessibility | 7 | Token choices favor contrast and non-color-only states. | Each final surface still needs inspection. | Keep labels, text alternatives, focus rings, and contrast checks in QA. |
+| Repo/source-control readiness | 9 | Artifacts are HTML, Markdown, JSON, CSS, and SVG only. | Future generated PNGs can bloat history. | Commit generated raster only for specific downstream needs. |
+| Long-term maintainability | 8 | Folder boundaries and artifact rules are clear. | Brand and product tokens can blur. | Document source of truth and keep token lanes explicit. |
 
-## Section 4 - Stress Tests
+## Section 4 - Surface Stress Tests
 
 GitHub repo header:
 
-- Enough guidance: yes.
-- Needs: use primary logo or simple README text header, short description, badges, and direct technical promise.
+- Use the primary logo or simple README text header.
+- Keep the short description stack-specific and technical.
+- Standard badges are acceptable.
 
 README hero section:
 
-- Enough guidance: yes.
-- Needs: keep lightweight. Avoid large raster hero. Use copy from `brand-book.md`.
+- Keep lightweight.
+- Use copy from `brand-book.md`.
+- Avoid a large raster hero.
 
 README badges:
 
-- Enough guidance: yes.
-- Needs: standard badges are acceptable. Do not custom-style every badge unless there is real value.
+- Use standard badges.
+- Do not custom-style every badge unless it creates real value.
 
 Hex.pm package page:
 
-- Enough guidance: mostly.
-- Needs: short package description and no marketing excess.
+- Use a short package description.
+- Keep marketing language restrained.
 
 HexDocs page:
 
-- Enough guidance: mostly.
-- Needs: docs-specific light mode and code block styles; avoid dark marketing splash inside API docs.
+- Favor docs-specific light mode and readable code blocks.
+- Avoid dark marketing splash sections inside API docs.
 
 Docs sidebar:
 
-- Enough guidance: yes.
-- Needs: mark/wordmark, restrained active state, high contrast.
+- Use the mark or wordmark.
+- Keep active state restrained and high contrast.
 
 Code block styling:
 
-- Enough guidance: yes.
-- Needs: dark default for marketing, light acceptable for docs.
+- Use dark snippets for marketing and README examples.
+- Light code blocks are acceptable for documentation pages.
 
 Terminal snippet:
 
-- Enough guidance: yes.
-- Needs: copyable, realistic commands, no fake terminal drama.
+- Use realistic commands.
+- Keep snippets copyable.
+- Avoid fake terminal drama.
 
 API reference page:
 
-- Enough guidance: partial.
-- Needs: prioritize standard ExDoc behavior; brand only through tokens, logo, and code readability.
+- Prioritize standard ExDoc behavior.
+- Brand only through tokens, logo fit, and code readability.
 
 Landing page hero:
 
-- Enough guidance: yes.
-- Needs: use the line path metaphor as the main visual, not a carded dashboard mock.
+- Use the line path metaphor as the main visual.
+- Avoid carded dashboard mockups as the hero center.
 
 Feature section:
 
-- Enough guidance: yes.
-- Needs: group by capture, semantics, exploration, operations.
+- Group by capture, semantics, exploration, and operations.
 
 Comparison section:
 
-- Enough guidance: partial.
-- Needs: compare against logs, event sourcing, SIEM, database auditing, and roll-your-own with precise caveats.
+- Compare against logs, event sourcing, SIEM, database auditing, and roll-your-own with precise caveats.
 
 Blog post header:
 
-- Enough guidance: yes.
-- Needs: use social card linework and short headline.
+- Use social card linework and a short headline.
 
 Release announcement:
 
-- Enough guidance: yes.
-- Needs: lead with adopter-visible changes and migration steps.
+- Lead with adopter-visible changes and migration steps.
 
 Social preview card:
 
-- Enough guidance: yes.
-- Needs: export PNG only when required by the platform.
+- Keep SVG as source.
+- Export PNG only when a platform requires it.
 
 Favicon:
 
-- Enough guidance: yes.
-- Needs: test at 16px and 32px.
+- Test at 16px and 32px.
 
 App icon:
 
-- Enough guidance: yes.
-- Needs: use favicon mark in larger dark rounded square.
+- Use the favicon mark in a larger dark rounded square.
 
 Small monochrome logo:
 
-- Enough guidance: yes.
-- Needs: use `logo-monochrome.svg`.
+- Use `logo-monochrome.svg`.
 
 Dark-mode page:
 
-- Enough guidance: yes.
-- Needs: product/hero/admin surfaces.
+- Best for product, hero, and admin surfaces.
 
 Light-mode page:
 
-- Enough guidance: now yes.
-- Needs: docs, diagrams, reference, print-like pages.
+- Best for docs, diagrams, reference, and print-like pages.
 
 Conference slide:
 
-- Enough guidance: yes.
-- Needs: one big line path, one claim, one code snippet.
+- Use one big line path, one claim, and one code snippet.
 
 Diagram or architecture illustration:
 
-- Enough guidance: yes.
-- Needs: label domain nouns, avoid decorative complexity.
+- Label domain nouns.
+- Avoid decorative complexity.
 
-Error/empty/success states:
+Error, empty, and success states:
 
-- Enough guidance: yes.
-- Needs: actionable copy and non-color indicators.
+- Use actionable copy.
+- Include non-color indicators.
 
 Example UI component library:
 
-- Enough guidance: partial.
-- Needs: current scope is primitives, not a full library.
+- Current scope is primitives, not a full library.
 
 Mobile landing page:
 
-- Enough guidance: yes.
-- Needs: line artwork must collapse without occluding text.
+- Collapse line artwork without occluding text.
 
 Printed sticker or small swag:
 
-- Enough guidance: optional.
-- Needs: use monochrome mark or primary logo only. Do not make this a priority before docs/README/landing assets.
+- Use monochrome mark or primary logo only.
+- Keep this lower priority than README, docs, and launch-critical assets.
 
-## Section 5 - Gaps And Risks
+## Section 5 - Current Risks
 
 Critical:
 
-- Logo had direction but no committed source assets.
-- Original tokens were mostly raw colors, not complete semantic roles.
-- Light docs/marketing surfaces were under-specified.
+- Logo changes require human review for trademark sensitivity and small-size legibility.
+- Static brand tokens and runtime operator tokens must stay in clear lanes.
+- Light documentation surfaces must preserve contrast and code readability.
 
 Important:
 
-- Marketing and README copy needed ready-to-use blocks.
-- UI components needed practical examples.
-- Accessibility guidance needed specific state and contrast expectations.
-- Repo artifact rules needed to prevent binary sprawl.
+- README and marketing copy should remain technical and stack-specific.
+- UI examples are primitives, not a complete component library.
+- Accessibility checks belong to each final surface, not only this folder.
+- Repo artifact rules should prevent binary sprawl.
 
 Nice-to-have:
 
 - Human refinement of the wordmark.
 - Optional PNG exports for social platforms.
 - A future ExDoc theme pass.
-- A future README refresh using the sharper copy.
+- A future README rollout using the sharper copy.
 
-## Section 6 - Recommended Brand Book Upgrades
+## Section 6 - Brand Governance Rules
 
 Keep:
 
 - Core idea, tagline, stack-specific positioning, palette, type choices, and voice.
 
-Tighten:
+Tighten only with a concrete surface:
 
-- Logo direction into a wordmark/mark system.
-- Color guidance into raw and semantic tokens.
-- Voice guidance into surface-specific examples.
-- Imagery guidance into diagram and screenshot rules.
+- Logo spacing or small-size legibility.
+- Color guidance when a real surface exposes a missing semantic role.
+- Voice guidance when a new public surface requires examples.
+- Diagram guidance when a real architecture graphic creates ambiguity.
 
-Rework:
+Avoid:
 
-- Any broad "audit platform" wording that implies a full compliance product.
-- Any gradient use that becomes decorative ambience rather than signal linework.
+- Broad "audit platform" wording that implies a full compliance product.
+- Gradient use that becomes decorative ambience rather than signal linework.
+- Mascots, shields, locks, chains, and stock-photo direction.
+- Redundant inspiration prose that does not guide implementation.
 
-Add:
+Add only with a concrete downstream use:
 
-- Token files.
-- SVG assets.
-- HTML visual brandbook.
-- Microcopy examples.
-- Landing/docs blueprints.
-- Repo artifact rules.
-- QA checklist.
-
-Remove:
-
-- Redundant inspiration prose if it does not guide implementation.
-- Any future mascot, shield, lock, or stock-photo direction.
+- New token roles.
+- Additional SVG assets.
+- More microcopy examples.
+- More component states.
+- New export formats.
 
 ## Section 7 - Design Token Specification
 
@@ -335,13 +307,20 @@ Defaults:
 
 ## Section 8 - Logo And Mark System
 
-Recommendation:
+Use:
 
-- Use a horizontal wordmark plus icon mark.
-- Use icon-only for favicon, social avatar, docs nav, and small UI.
-- Use monochrome for print and constrained contexts.
-- Do not create a mascot.
-- Do not use a complex abstract symbol.
+- Horizontal wordmark plus icon mark.
+- Icon-only mark for favicon, social avatar, docs nav, and small UI.
+- Monochrome mark for print and constrained contexts.
+- Primary dark logo on dark landing pages, slides, and social previews.
+- Primary light logo on README, GitHub, HexDocs, and light documentation surfaces.
+
+Do not use:
+
+- A mascot.
+- A complex abstract symbol.
+- Shields, locks, chains, or database cylinders as the mark.
+- Rotation, distortion, or glow that breaks monochrome recognition.
 
 Expected assets:
 
@@ -356,16 +335,16 @@ Usage rules:
 
 - Keep clearspace around the mark.
 - Do not rotate or distort.
-- Do not add shields, locks, chains, or databases.
-- Do not rely on gradient for meaning; the mark must remain recognizable in monochrome.
+- Do not rely on gradient for meaning.
+- Keep the mark recognizable in monochrome.
 
 ## Section 9 - Visual Examples And Screenshot Guidance
 
-Create only examples that help implementation:
+Use examples that help implementation:
 
 | Example | Purpose | Path | Export |
 |---|---|---|---|
-| Palette | Token inspection | `examples/palette.svg` | SVG source; PNG only for docs site if needed |
+| Palette | Token inspection | `examples/palette.svg` | SVG source; PNG only for docs site if required |
 | Typography | Type roles | `examples/typography.svg` | SVG |
 | Components | Primitive UI states | `examples/components.svg` | SVG |
 | README header | README visual direction | `examples/readme-header.svg` | SVG |
@@ -449,7 +428,7 @@ README/docs:
 - Contribution
 - License
 
-## Section 12 - Repo-Ready Artifact Plan
+## Section 12 - Repo-Ready Artifact Rules
 
 Commit:
 
@@ -479,9 +458,10 @@ Suggested checks:
 
 Do now:
 
-- Commit `brandbook/` source artifacts.
+- Keep `brandbook/` source artifacts committed and inspectable.
 - Review favicon at 16px and 32px.
-- Use `logo-primary-light.svg` for README/GitHub/light documentation contexts; use `logo-primary.svg` on dark surfaces.
+- Use `logo-primary-light.svg` for README, GitHub, and light documentation contexts.
+- Use `logo-primary.svg` on dark and high-signal surfaces.
 - Use `brand-book.md` for future README and landing-page copy.
 
 Do next:
@@ -500,20 +480,20 @@ Defer:
 Do not do:
 
 - Add a mascot.
-- Add shield/lock security imagery.
+- Add shield or lock security imagery.
 - Commit large raster moodboards.
-- Rebuild the operator UI solely for brand churn.
-- Make compliance claims without human/legal review.
+- Rebuild the operator UI solely for brand maintenance.
+- Make compliance claims without human or legal review.
 
 ## Section 14 - Final Quality Gate
 
 Could a designer build from this?
 
-- Yes, if the token and SVG artifacts pass Phase 147.
+- Yes. Concept, tokens, examples, layout rules, and logo usage are concrete.
 
 Could an engineer implement from this?
 
-- Yes, if Phase 148 produces direct-open static HTML and source assets.
+- Yes. Tokens are JSON/CSS and assets are SVG.
 
 Could a maintainer keep it consistent?
 
@@ -521,7 +501,7 @@ Could a maintainer keep it consistent?
 
 Could a contributor understand it?
 
-- Yes, if the folder has README/source docs and no hidden design-tool dependency.
+- Yes. The folder has a README, source docs, and no hidden design-tool dependency.
 
 Could it support marketing without becoming cheesy?
 
@@ -529,12 +509,12 @@ Could it support marketing without becoming cheesy?
 
 Could it survive dark mode, small sizes, docs pages, and social previews?
 
-- Mostly yes. Favicon and mark need manual small-size review.
+- Mostly yes. Favicon and mark still require manual small-size review.
 
 Does it feel specific to Threadline?
 
 - Yes. The connected audit-history idea belongs to this library.
 
-Does it avoid unnecessary brand thrash?
+Does it resist unnecessary redesign pressure?
 
-- Yes. It preserves the original strategy and adds implementation artifacts.
+- Yes. The system has a clear center, source artifacts, and practical governance rules.

@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Threadline.EvidenceShowExampleTest do
 
   test "mix threadline.evidence.show prints seeded retention_run row from example fiction" do
     Mix.Task.run("app.start")
+
     subject_ref = %{
       "run_id" => Manifest.evidence_run_id(:offboarded_retention),
       "org_slug" => Manifest.org_slug(:offboarded_co),

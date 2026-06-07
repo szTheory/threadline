@@ -79,13 +79,19 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
       assert {:ok, filters} = FilterParams.parse(%{"table" => "posts"})
       assert filters == [table: "posts"]
     end
+
+    test "table_schema is passed through verbatim" do
+      assert {:ok, filters} = FilterParams.parse(%{"table_schema" => "support"})
+      assert filters == [table_schema: "support"]
+    end
   end
 
   describe "filters_raw_from_params/1" do
-    test "returns the canonical six-key map even when some keys are absent" do
+    test "returns the canonical seven-key map even when some keys are absent" do
       assert FilterParams.filters_raw_from_params(%{"from" => "2026-05-06T12:00"}) == %{
                "from" => "2026-05-06T12:00",
                "to" => "",
+               "table_schema" => "",
                "table" => "",
                "actor_kind" => "",
                "actor_id" => "",

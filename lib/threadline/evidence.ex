@@ -10,6 +10,7 @@ defmodule Threadline.Evidence do
 
   alias Threadline.Evidence.Subject
   alias Threadline.Governance.EvidenceRecord
+  alias Threadline.StorageSchema
 
   @schema_version 1
   @allowed_history_filter_keys ~w(repo subject subject_ref from to limit)a
@@ -72,7 +73,7 @@ defmodule Threadline.Evidence do
     |> maybe_filter_to(Keyword.get(filters, :to))
     |> order_by([record], desc: record.recorded_at, desc: record.id)
     |> maybe_limit(Keyword.get(filters, :limit))
-    |> repo.all()
+    |> repo.all(StorageSchema.repo_opts(filters ++ opts))
   end
 
   @doc """
@@ -110,7 +111,7 @@ defmodule Threadline.Evidence do
     |> distinct([record], record.subject_ref)
     |> order_by([record], asc: record.subject_ref, desc: record.recorded_at, desc: record.id)
     |> maybe_limit(Keyword.get(filters, :limit))
-    |> repo.all()
+    |> repo.all(StorageSchema.repo_opts(filters ++ opts))
     |> Enum.sort_by(
       fn record -> {DateTime.to_unix(record.recorded_at, :microsecond), record.id} end,
       :desc
@@ -155,7 +156,7 @@ defmodule Threadline.Evidence do
     |> where([record], record.subject_ref == ^normalized_subject_ref)
     |> order_by([record], desc: record.recorded_at, desc: record.id)
     |> limit(1)
-    |> repo.one()
+    |> repo.one(StorageSchema.repo_opts(opts))
   end
 
   defp record_subject(subject, subject_ref, attrs, opts) do
@@ -169,7 +170,7 @@ defmodule Threadline.Evidence do
 
       %EvidenceRecord{}
       |> EvidenceRecord.changeset(attrs)
-      |> Keyword.fetch!(opts, :repo).insert()
+      |> Keyword.fetch!(opts, :repo).insert(StorageSchema.repo_opts(opts))
     end
   end
 

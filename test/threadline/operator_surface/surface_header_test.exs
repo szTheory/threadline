@@ -7,18 +7,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
 
-    test "renders locked Find Verify Prove IA and preserved header affordances" do
+    test "renders grouped rail IA and preserved header affordances" do
       html = render_header()
 
       assert html =~ ~s|href="/audit"|
       assert html =~ ~s|class="tl-topbar__brand"|
+      assert html =~ ~s|class="tl-topbar__brand-mark"|
+      assert html =~ ~s|aria-hidden="true"|
+      assert html =~ ~s|focusable="false"|
+      assert html =~ ~s|class="tl-topbar__brand-text">Threadline</span>|
+      refute html =~ ~s|role="img"|
       assert html =~ ~s|href="#tl-main"|
+      assert html =~ ~s|data-testid="operator-nav-shell"|
+      assert html =~ ~s|class="tl-shell-nav__toggle"|
       assert html =~ ~s|data-testid="operator-scope"|
       assert html =~ "Scoped view"
       assert html =~ "All tables captured"
 
       for label <- ["Find", "Verify", "Prove"] do
-        assert html =~ ">#{label}</span>"
+        assert html =~ ">#{label}</h2>"
       end
 
       for page <- [:timeline, :coverage, :evidence, :policy, :retention, :exports] do
@@ -33,7 +40,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert aria_current_count(html) == 1
         assert tag =~ ~s|aria-current="page"|
-        assert tag =~ "tl-topbar__nav-item--active"
+        assert tag =~ "tl-shell-nav__item--active"
       end
     end
 
@@ -44,14 +51,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert aria_current_count(html) == 0
 
       for page <- [:timeline, :coverage, :evidence, :policy, :retention, :exports] do
-        refute nav_tag!(html, page) =~ "tl-topbar__nav-item--active"
+        refute nav_tag!(html, page) =~ "tl-shell-nav__item--active"
       end
     end
 
-    test "marks Exports as the Prove handoff destination" do
+    test "keeps Exports as a normal Prove destination" do
       html = render_header()
 
-      assert html =~ ~s|class="tl-topbar__nav-handoff"|
+      refute html =~ ~s|class="tl-topbar__nav-handoff"|
       assert html =~ ~s|data-testid="operator-nav-exports"|
     end
 
@@ -60,8 +67,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute html =~ ~s|data-testid="operator-nav-coverage"|
       refute html =~ "All tables captured"
-      assert html =~ ">Find</span>"
-      assert html =~ ">Prove</span>"
+      assert html =~ ">Find</h2>"
+      assert html =~ ">Prove</h2>"
       assert html =~ ~s|data-testid="operator-nav-exports"|
       assert_preserved_affordances(html)
 

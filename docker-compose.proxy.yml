@@ -1,0 +1,16 @@
+services:
+  demo:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${THREADLINE_PROXY_NETWORK:-proxy}"
+      - "traefik.http.routers.${THREADLINE_PROXY_ROUTER:-threadline}.entrypoints=web"
+      - "traefik.http.routers.${THREADLINE_PROXY_ROUTER:-threadline}.rule=Host(`${THREADLINE_PROXY_HOST:-threadline.localhost}`)"
+      - "traefik.http.services.${THREADLINE_PROXY_ROUTER:-threadline}.loadbalancer.server.port=4000"
+    networks:
+      - default
+      - threadline_proxy
+
+networks:
+  threadline_proxy:
+    name: ${THREADLINE_PROXY_NETWORK:-proxy}
+    external: true

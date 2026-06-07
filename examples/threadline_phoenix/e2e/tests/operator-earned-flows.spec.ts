@@ -37,8 +37,12 @@ async function expectEarnedFlowTrace(locator: Locator, flow: string) {
 }
 
 async function discoverTicketReplyRecordId(page: Page) {
-  await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+  await page.goto(
+    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
+  );
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(
+    closeCorrelation,
+  );
   await page.getByTestId("transaction-link").first().click();
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
 
@@ -53,7 +57,10 @@ async function discoverTicketReplyRecordId(page: Page) {
   expect(href).not.toBeNull();
 
   const match = href!.match(new RegExp(`/history/${rowTable}/([^?#/]+)`));
-  expect(match, `expected ${rowTable} row-history href, got ${href}`).not.toBeNull();
+  expect(
+    match,
+    `expected ${rowTable} row-history href, got ${href}`,
+  ).not.toBeNull();
   return decodeURIComponent(match![1]);
 }
 
@@ -65,15 +72,21 @@ test.describe("operator earned-flow browser UAT", () => {
     ticketReplyRecordId = await discoverTicketReplyRecordId(page);
   });
 
-  test("EF1 Home record-first lookup reaches first-class row history", async ({ page }) => {
+  test("EF1 Home record-first lookup reaches first-class row history", async ({
+    page,
+  }) => {
     await page.goto("/audit");
 
     const earnedFlow = page.locator('[data-earned-flow="EF1"]');
     await expectEarnedFlow(earnedFlow, "EF1");
 
     const form = page.locator("#tl-record-lookup");
-    await form.locator('select[name="record_lookup[table]"]').selectOption(rowTable);
-    await form.locator('input[name="record_lookup[record_id]"]').fill(ticketReplyRecordId);
+    await form
+      .locator('select[name="record_lookup[table]"]')
+      .selectOption(rowTable);
+    await form
+      .locator('input[name="record_lookup[record_id]"]')
+      .fill(ticketReplyRecordId);
     await form.getByRole("button", { name: "Open row history" }).click();
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
@@ -106,24 +119,34 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectEarnedFlow(earnedFlow, "EF4");
 
     const form = page.locator("#tl-correlation-lookup");
-    await form.locator('input[name="correlation[correlation_id]"]').fill(closeCorrelation);
+    await form
+      .locator('input[name="correlation[correlation_id]"]')
+      .fill(closeCorrelation);
     await form.getByRole("button", { name: "Open Timeline" }).click();
 
     await expectPath(page, "/audit/timeline");
-    expect(new URL(page.url()).searchParams.get("correlation_id")).toBe(closeCorrelation);
-    await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+    expect(new URL(page.url()).searchParams.get("correlation_id")).toBe(
+      closeCorrelation,
+    );
+    await expect(page.locator("#filter-correlation-id")).toHaveValue(
+      closeCorrelation,
+    );
     await expect(page.getByTestId("timeline-row").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF3 filtered Timeline context carries into Exports", async ({ page }) => {
+  test("EF3 filtered Timeline context carries into Exports", async ({
+    page,
+  }) => {
     await page.goto(
       `/audit/timeline?table=${encodeURIComponent(rowTable)}&correlation_id=${encodeURIComponent(
         closeCorrelation,
       )}`,
     );
 
-    await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+    await expect(page.locator("#filter-correlation-id")).toHaveValue(
+      closeCorrelation,
+    );
     await expect(page.getByTestId("timeline-row").first()).toBeVisible();
 
     const carry = page
@@ -141,29 +164,35 @@ test.describe("operator earned-flow browser UAT", () => {
     const context = page.getByTestId("timeline-export-context");
     await expectEarnedFlow(context, "EF3");
     await expect(context.getByText("Timeline export context")).toBeVisible();
-    await expect(context.locator(".tl-param", { hasText: "table" })).toHaveAttribute(
-      "title",
-      `table: ${rowTable}`,
-    );
-    await expect(context.locator(".tl-param", { hasText: "correlation_id" })).toHaveAttribute(
-      "title",
-      `correlation_id: ${closeCorrelation}`,
-    );
-    await expect(context.locator(".tl-param__key", { hasText: "source" })).toHaveCount(0);
-    await expect(context.locator(".tl-param__key", { hasText: "subject_ref_json" })).toHaveCount(0);
+    await expect(
+      context.locator(".tl-param", { hasText: "table" }),
+    ).toHaveAttribute("title", `table: ${rowTable}`);
+    await expect(
+      context.locator(".tl-param", { hasText: "correlation_id" }),
+    ).toHaveAttribute("title", `correlation_id: ${closeCorrelation}`);
+    await expect(
+      context.locator(".tl-param__key", { hasText: "source" }),
+    ).toHaveCount(0);
+    await expect(
+      context.locator(".tl-param__key", { hasText: "subject_ref_json" }),
+    ).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF3 filtered Evidence proof context carries into Exports", async ({ page }) => {
+  test("EF3 filtered Evidence proof context carries into Exports", async ({
+    page,
+  }) => {
     await page.goto("/audit/evidence");
 
-    const proofHistory = page.getByRole("link", { name: "Open proof history" }).first();
+    const proofHistory = page
+      .getByRole("link", { name: "Open proof history" })
+      .first();
     await expect(proofHistory).toBeVisible();
-    await expect(proofHistory).toHaveAttribute("href", /\/audit\/evidence\?.*mode=history/);
-    await Promise.all([
-      page.waitForURL(/\/audit\/evidence\?.*mode=history/),
-      proofHistory.click(),
-    ]);
+    await expect(proofHistory).toHaveAttribute(
+      "href",
+      /\/audit\/evidence\?.*mode=history/,
+    );
+    await proofHistory.click();
     await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
 
     const carry = page
@@ -184,14 +213,12 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectEarnedFlow(context, "EF3");
     await expect(context.getByText("Evidence proof context")).toBeVisible();
     await expect(context.getByText("Proof handoff")).toBeVisible();
-    await expect(context.locator('.tl-param[title^="subject: "]')).toHaveAttribute(
-      "title",
-      /subject: .+/,
-    );
-    await expect(context.locator(".tl-param", { hasText: "mode" })).toHaveAttribute(
-      "title",
-      "mode: history",
-    );
+    await expect(
+      context.locator('.tl-param[title^="subject: "]'),
+    ).toHaveAttribute("title", /subject: .+/);
+    await expect(
+      context.locator(".tl-param", { hasText: "mode" }),
+    ).toHaveAttribute("title", "mode: history");
 
     const reopen = context.getByRole("link", { name: "Reopen Evidence proof" });
     await expect(reopen).toBeVisible();

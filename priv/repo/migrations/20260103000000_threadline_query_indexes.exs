@@ -7,11 +7,11 @@ defmodule ThreadlineQueryIndexes do
   def up do
     execute("""
     CREATE INDEX CONCURRENTLY IF NOT EXISTS audit_transactions_actor_ref_gin
-      ON audit_transactions USING GIN (actor_ref)
+      ON threadline.audit_transactions USING GIN (actor_ref)
     """)
   end
 
   def down do
-    execute("DROP INDEX CONCURRENTLY IF EXISTS audit_transactions_actor_ref_gin")
+    execute("DROP INDEX CONCURRENTLY IF EXISTS threadline.audit_transactions_actor_ref_gin")
   end
 end

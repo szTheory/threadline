@@ -10,18 +10,23 @@ defmodule Threadline.Capture.Migration do
   """
 
   alias Threadline.Capture.TriggerSQL
+  alias Threadline.StorageSchema
 
   @doc """
   Returns the full migration content as a string, ready to write to a `.exs` file.
   """
   def migration_content do
+    storage_schema = StorageSchema.get()
+
     """
     defmodule ThreadlineAuditSchema do
       use Ecto.Migration
 
       def up do
+        execute "CREATE SCHEMA IF NOT EXISTS #{storage_schema}"
+
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS audit_transactions (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.audit_transactions (
           id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           txid        bigint      NOT NULL UNIQUE,
           occurred_at timestamptz NOT NULL DEFAULT now(),
@@ -30,12 +35,12 @@ defmodule Threadline.Capture.Migration do
         )
         \"\"\"
 
-        execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON audit_transactions (txid)"
+        execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON #{storage_schema}.audit_transactions (txid)"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS audit_changes (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.audit_changes (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-          transaction_id uuid        NOT NULL REFERENCES audit_transactions(id) ON DELETE CASCADE,
+          transaction_id uuid        NOT NULL REFERENCES #{storage_schema}.audit_transactions(id) ON DELETE CASCADE,
           table_schema   text        NOT NULL,
           table_name     text        NOT NULL,
           table_pk       jsonb       NOT NULL,
@@ -47,17 +52,17 @@ defmodule Threadline.Capture.Migration do
         )
         \"\"\"
 
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON audit_changes (transaction_id)"
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON audit_changes (table_name)"
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON audit_changes (captured_at)"
+        execute "CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON #{storage_schema}.audit_changes (transaction_id)"
+        execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON #{storage_schema}.audit_changes (table_name)"
+        execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON #{storage_schema}.audit_changes (captured_at)"
 
         execute #{inspect(TriggerSQL.install_function([]))}
       end
 
       def down do
         execute #{inspect(TriggerSQL.drop_function())}
-        execute "DROP TABLE IF EXISTS audit_changes"
-        execute "DROP TABLE IF EXISTS audit_transactions"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.audit_changes"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.audit_transactions"
       end
     end
     """

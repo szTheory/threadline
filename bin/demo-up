@@ -1,0 +1,719 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+compose_args=()
+
+compose() {
+  docker compose "${compose_args[@]}" "$@"
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: bin/demo-up [options]
+
+Starts the Threadline Phoenix demo with conflict-resistant Compose defaults,
+then prints the resolved URLs and matching lifecycle commands.
+
+Options:
+  --name NAME              Compose project name (default: derived from path)
+  --demo-port PORT|auto    Host port for Phoenix (default: 4000, auto if busy)
+  --db-port PORT|auto      Host port for Postgres (default: 5433, auto if busy)
+  --pgbouncer-port PORT|auto
+                           Host port for PgBouncer if that profile is enabled
+  --host IP                Host bind address (default: 127.0.0.1)
+  --public-host HOST       Hostname to print from inside the demo container
+  --proxy                  Also publish through a shared local proxy
+  --proxy-host HOST        Proxy hostname (default: threadline.localhost)
+  --proxy-network NAME     External proxy network (default: proxy)
+  --build                 Force a demo image rebuild before starting
+  --attach                 Run Compose in the foreground after printing inputs
+  --down                   Stop the current demo stack
+  --fresh                  Remove volumes, rebuild, recreate, migrate, and reseed
+  --logs                   Follow demo logs for the current stack
+  --status                 Print project, containers, ports, and URLs
+  --list                   List running Threadline demo stacks
+  -h, --help               Show this help
+
+Environment overrides:
+  COMPOSE_PROJECT_NAME, THREADLINE_DEMO_PORT, THREADLINE_DB_PORT,
+  THREADLINE_PGBOUNCER_PORT, THREADLINE_DEMO_HOST, THREADLINE_DB_HOST,
+  THREADLINE_PGBOUNCER_HOST, THREADLINE_DEMO_PUBLIC_HOST,
+  THREADLINE_PROXY_HOST, THREADLINE_PROXY_NETWORK
+USAGE
+}
+
+sanitize_name() {
+  local raw="$1"
+  local cleaned
+
+  cleaned="$(printf '%s' "$raw" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9_-]+/-/g; s/^-+//; s/-+$//')"
+
+  if [[ -z "$cleaned" || ! "$cleaned" =~ ^[a-z0-9] ]]; then
+    cleaned="threadline-${cleaned}"
+  fi
+
+  printf '%s' "$cleaned"
+}
+
+default_project_name() {
+  local dir hash
+
+  dir="$(basename "$ROOT")"
+  hash="$(printf '%s' "$ROOT" | cksum | awk '{print $1}')"
+  sanitize_name "threadline-${dir}-${hash}"
+}
+
+default_public_host() {
+  local host="$1"
+
+  case "$host" in
+    127.0.0.1|0.0.0.0|::1|::|[::])
+      printf 'localhost'
+      ;;
+    *)
+      printf '%s' "$host"
+      ;;
+  esac
+}
+
+url_for_host_port() {
+  local host="$1"
+  local port="$2"
+
+  case "$host" in
+    0.0.0.0|::|[::])
+      host="127.0.0.1"
+      ;;
+  esac
+
+  printf 'http://%s:%s' "$host" "$port"
+}
+
+require_proxy_network() {
+  local network="$1"
+
+  if docker network inspect "$network" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  cat >&2 <<EOF
+Proxy mode needs an existing Docker network named "${network}".
+
+Start your shared local proxy first, or rerun without --proxy for the portable
+localhost-port demo path.
+EOF
+  exit 1
+}
+
+validate_port_or_auto() {
+  local label="$1"
+  local value="$2"
+
+  if [[ "$value" == "auto" || -z "$value" ]]; then
+    return
+  fi
+
+  if ! [[ "$value" =~ ^[0-9]+$ ]] || (( value < 1 || value > 65535 )); then
+    echo "${label} port must be a number from 1-65535 or auto; got ${value}." >&2
+    exit 1
+  fi
+}
+
+port_listening() {
+  local host="$1"
+  local port="$2"
+
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP@"${host}":"${port}" -sTCP:LISTEN >/dev/null 2>&1 && return 0
+    lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1 && return 0
+    return 1
+  fi
+
+  if command -v nc >/dev/null 2>&1; then
+    nc -z "$host" "$port" >/dev/null 2>&1
+    return $?
+  fi
+
+  (echo >/dev/tcp/"$host"/"$port") >/dev/null 2>&1
+}
+
+port_owner() {
+  local port="$1"
+
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN 2>/dev/null || true
+  fi
+}
+
+choose_port() {
+  local label="$1"
+  local host="$2"
+  local requested="$3"
+  local fallback="$4"
+  local range_start="$5"
+  local range_end="$6"
+  local candidate
+
+  if [[ "$requested" == "auto" || -z "$requested" ]]; then
+    requested="$fallback"
+  fi
+
+  if ! port_listening "$host" "$requested"; then
+    printf '%s' "$requested"
+    return
+  fi
+
+  if [[ "$requested" != "$fallback" ]]; then
+    echo "${label} port ${requested} is already in use." >&2
+    port_owner "$requested" >&2
+    echo "Choose another ${label} port or pass auto." >&2
+    exit 1
+  fi
+
+  for candidate in $(seq "$range_start" "$range_end"); do
+    if ! port_listening "$host" "$candidate"; then
+      printf '%s' "$candidate"
+      return
+    fi
+  done
+
+  echo "No free ${label} port found in ${range_start}-${range_end}." >&2
+  exit 1
+}
+
+compose_port_url() {
+  local service="$1"
+  local container_port="$2"
+  local fallback_host="$3"
+  local fallback_port="$4"
+  local mapping host port
+
+  mapping="$(compose port "$service" "$container_port" 2>/dev/null || true)"
+  if [[ -z "$mapping" ]]; then
+    url_for_host_port "$fallback_host" "$fallback_port"
+    return
+  fi
+
+  host="${mapping%:*}"
+  port="${mapping##*:}"
+  url_for_host_port "$host" "$port"
+}
+
+compose_port_mapping() {
+  local service="$1"
+  local container_port="$2"
+
+  compose port "$service" "$container_port" 2>/dev/null || true
+}
+
+demo_image_exists() {
+  local image_id
+
+  image_id="$(compose --profile demo images -q demo 2>/dev/null || true)"
+  if [[ -n "$image_id" ]]; then
+    return 0
+  fi
+
+  docker image inspect "${COMPOSE_PROJECT_NAME}-demo:latest" >/dev/null 2>&1
+}
+
+mapping_host() {
+  local mapping="$1"
+  local host="${mapping%:*}"
+
+  case "$host" in
+    0.0.0.0|::|[::])
+      host="127.0.0.1"
+      ;;
+  esac
+
+  printf '%s' "$host"
+}
+
+mapping_port() {
+  local mapping="$1"
+  printf '%s' "${mapping##*:}"
+}
+
+wait_for_url() {
+  local label="$1"
+  local url="$2"
+  local code i
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is not available; skipping ${label} readiness check."
+    return 0
+  fi
+
+  for i in $(seq 1 90); do
+    code="$(curl --max-time 2 -sS -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || true)"
+    case "$code" in
+      2*|3*|4*)
+        return 0
+        ;;
+    esac
+    if [[ "$code" =~ ^5 ]]; then
+      echo "${label} is reachable but returned HTTP ${code}; waiting..." >&2
+    fi
+    sleep 1
+  done
+
+  echo "Timed out waiting for ${label}: ${url}" >&2
+  return 1
+}
+
+wait_for_success_url() {
+  local label="$1"
+  local url="$2"
+  local code i
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is not available; skipping ${label} readiness check."
+    return 0
+  fi
+
+  for i in $(seq 1 90); do
+    code="$(curl --max-time 2 -sS -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || true)"
+    case "$code" in
+      2*|3*)
+        return 0
+        ;;
+    esac
+    sleep 1
+  done
+
+  echo "Timed out waiting for ${label}: ${url}" >&2
+  return 1
+}
+
+container_label() {
+  local container_id="$1"
+  local label="$2"
+
+  if [[ -z "$container_id" ]]; then
+    return
+  fi
+
+  docker inspect --format "{{ index .Config.Labels \"${label}\" }}" "$container_id" 2>/dev/null || true
+}
+
+helper_command() {
+  local helper_cmd="bin/demo-up --name ${COMPOSE_PROJECT_NAME}"
+
+  if [[ "${proxy_enabled}" -eq 1 ]]; then
+    helper_cmd="${helper_cmd} --proxy --proxy-host ${THREADLINE_PROXY_HOST} --proxy-network ${THREADLINE_PROXY_NETWORK}"
+  fi
+
+  printf '%s' "$helper_cmd"
+}
+
+print_list() {
+  local rows helper_cmd
+
+  rows="$(docker ps \
+    --filter label=dev.threadline.kind=demo \
+    --format '{{.Names}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "dev.threadline.url"}}\t{{.Label "dev.threadline.fallback-url"}}\t{{.Label "dev.threadline.root"}}\t{{.Label "dev.threadline.proxy-host"}}\t{{.Label "dev.threadline.proxy-network"}}' \
+    2>/dev/null || true)"
+
+  if [[ -z "$rows" ]]; then
+    echo "No running Threadline demo stacks found."
+    return
+  fi
+
+  echo "Running Threadline demo stacks:"
+  while IFS=$'\t' read -r name project url fallback_url root proxy_host_label proxy_network_label; do
+    helper_cmd="bin/demo-up --name ${project}"
+    if [[ -n "$proxy_host_label" ]]; then
+      helper_cmd="${helper_cmd} --proxy --proxy-host ${proxy_host_label} --proxy-network ${proxy_network_label:-proxy}"
+    fi
+
+    echo
+    echo "Project: ${project}"
+    echo "  Container: ${name}"
+    echo "  URL:       ${url:-unknown}"
+    if [[ -n "$fallback_url" && "$fallback_url" != "$url" ]]; then
+      echo "  Fallback:  ${fallback_url}"
+    fi
+    echo "  Checkout:  ${root:-unknown}"
+    echo "  Status:    ${helper_cmd} --status"
+    echo "  Stop:      bin/demo-up --name ${project} --down"
+  done <<< "$rows"
+}
+
+print_status() {
+  local demo_mapping db_mapping pgbouncer_mapping base_url fallback_url helper_cmd
+  local demo_container_id label_url label_proxy_host label_proxy_network
+
+  demo_mapping="$(compose_port_mapping demo 4000)"
+  db_mapping="$(compose_port_mapping postgres 5432)"
+  pgbouncer_mapping="$(compose_port_mapping pgbouncer 5432)"
+  demo_container_id="$(compose --profile demo ps -q demo 2>/dev/null || true)"
+  label_url="$(container_label "$demo_container_id" "dev.threadline.url")"
+  label_proxy_host="$(container_label "$demo_container_id" "dev.threadline.proxy-host")"
+  label_proxy_network="$(container_label "$demo_container_id" "dev.threadline.proxy-network")"
+
+  if [[ "$proxy_enabled" -eq 0 && -n "$label_proxy_host" ]]; then
+    helper_cmd="bin/demo-up --name ${COMPOSE_PROJECT_NAME} --proxy --proxy-host ${label_proxy_host} --proxy-network ${label_proxy_network:-proxy}"
+  else
+    helper_cmd="$(helper_command)"
+  fi
+
+  echo "Threadline demo Compose project: ${COMPOSE_PROJECT_NAME}"
+  echo
+  compose --profile demo ps
+
+  if [[ -n "$demo_mapping" ]]; then
+    fallback_url="$(compose_port_url demo 4000 "$THREADLINE_DEMO_HOST" "$THREADLINE_DEMO_PORT")"
+    base_url="${label_url:-$fallback_url}"
+    cat <<EOF
+
+URLs:
+  Home:     ${base_url}/
+  Sign in:  ${base_url}/users/log_in
+  Audit:    ${base_url}/audit
+EOF
+    if [[ "$fallback_url" != "$base_url" ]]; then
+      echo "  Fallback: ${fallback_url}/audit"
+    fi
+  else
+    echo
+    echo "Demo URL: not running"
+  fi
+
+  echo
+  echo "Ports:"
+  echo "  demo:     ${demo_mapping:-not published}"
+  echo "  postgres: ${db_mapping:-not published}"
+  echo "  pgbouncer: ${pgbouncer_mapping:-not published}"
+
+  cat <<EOF
+
+Lifecycle:
+  Refresh: ${helper_cmd}
+  Logs:    ${helper_cmd} --logs
+  Stop:    ${helper_cmd} --down
+  Rebuild: ${helper_cmd} --build
+  Fresh:   ${helper_cmd} --fresh
+EOF
+}
+
+print_ready() {
+  local base_url="$1"
+  local fallback_url="${2:-}"
+  local helper_cmd
+
+  helper_cmd="$(helper_command)"
+
+  cat <<EOF
+
+Threadline demo is ready.
+
+Project:
+  ${COMPOSE_PROJECT_NAME}
+
+Credentials:
+  admin@example.com / password123456
+
+URLs:
+  Home:        ${base_url}/
+  Sign in:     ${base_url}/users/log_in
+  Audit:       ${base_url}/audit
+  Timeline:    ${base_url}/audit/timeline?correlation_id=walk-acme-4521-close
+  Evidence:    ${base_url}/audit/evidence
+  Redaction:   ${base_url}/audit/policy/redaction
+  Coverage:    ${base_url}/audit/coverage
+EOF
+  if [[ -n "$fallback_url" && "$fallback_url" != "$base_url" ]]; then
+    cat <<EOF
+  Fallback:    ${fallback_url}/audit
+EOF
+  fi
+  cat <<EOF
+
+Next actions:
+  Refresh after code changes:  ${helper_cmd}
+  Follow logs:                 ${helper_cmd} --logs
+  Stop demo:                   ${helper_cmd} --down
+  Rebuild image:               ${helper_cmd} --build
+  Full reset + rebuild:         ${helper_cmd} --fresh
+
+For host Mix against this Postgres:
+  DB_HOST=${THREADLINE_DB_HOST} DB_PORT=${THREADLINE_DB_PORT} mix ci.all
+EOF
+}
+
+project_name="${COMPOSE_PROJECT_NAME:-$(default_project_name)}"
+demo_host="${THREADLINE_DEMO_HOST:-127.0.0.1}"
+db_host="${THREADLINE_DB_HOST:-127.0.0.1}"
+pgbouncer_host="${THREADLINE_PGBOUNCER_HOST:-127.0.0.1}"
+demo_port="${THREADLINE_DEMO_PORT:-4000}"
+db_port="${THREADLINE_DB_PORT:-5433}"
+pgbouncer_port="${THREADLINE_PGBOUNCER_PORT:-6432}"
+public_host="${THREADLINE_DEMO_PUBLIC_HOST:-}"
+proxy_host="${THREADLINE_PROXY_HOST:-threadline.localhost}"
+proxy_network="${THREADLINE_PROXY_NETWORK:-proxy}"
+proxy_router="${THREADLINE_PROXY_ROUTER:-}"
+public_host_explicit=0
+proxy_enabled=0
+attach=0
+action="start"
+fresh=0
+force_build=0
+
+if [[ -n "$public_host" ]]; then
+  public_host_explicit=1
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --name|--project-name)
+      project_name="$(sanitize_name "${2:?missing project name}")"
+      shift 2
+      ;;
+    --demo-port)
+      demo_port="${2:?missing demo port}"
+      shift 2
+      ;;
+    --db-port)
+      db_port="${2:?missing db port}"
+      shift 2
+      ;;
+    --pgbouncer-port)
+      pgbouncer_port="${2:?missing pgbouncer port}"
+      shift 2
+      ;;
+    --host)
+      demo_host="${2:?missing host}"
+      db_host="$demo_host"
+      pgbouncer_host="$demo_host"
+      shift 2
+      ;;
+    --public-host)
+      public_host="${2:?missing public host}"
+      public_host_explicit=1
+      shift 2
+      ;;
+    --proxy)
+      proxy_enabled=1
+      shift
+      ;;
+    --proxy-host)
+      proxy_host="${2:?missing proxy host}"
+      proxy_enabled=1
+      shift 2
+      ;;
+    --proxy-network)
+      proxy_network="${2:?missing proxy network}"
+      proxy_enabled=1
+      shift 2
+      ;;
+    --build)
+      force_build=1
+      shift
+      ;;
+    --attach)
+      attach=1
+      shift
+      ;;
+    --down)
+      action="down"
+      shift
+      ;;
+    --fresh)
+      fresh=1
+      shift
+      ;;
+    --logs)
+      action="logs"
+      shift
+      ;;
+    --status)
+      action="status"
+      shift
+      ;;
+    --list)
+      action="list"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+validate_port_or_auto demo "$demo_port"
+validate_port_or_auto postgres "$db_port"
+validate_port_or_auto pgbouncer "$pgbouncer_port"
+
+export COMPOSE_PROJECT_NAME="$project_name"
+export THREADLINE_DEMO_HOST="$demo_host"
+export THREADLINE_DB_HOST="$db_host"
+export THREADLINE_PGBOUNCER_HOST="$pgbouncer_host"
+export THREADLINE_CHECKOUT_ROOT="$ROOT"
+
+cd "$ROOT"
+
+if [[ "$action" == "list" ]]; then
+  print_list
+  exit 0
+fi
+
+compose_args=(-f docker-compose.yml)
+
+if [[ "$proxy_enabled" -eq 1 && "$action" == "start" ]]; then
+  require_proxy_network "$proxy_network"
+  compose_args+=(-f docker-compose.proxy.yml)
+fi
+
+export THREADLINE_DEMO_PORT="$demo_port"
+export THREADLINE_DB_PORT="$db_port"
+export THREADLINE_PGBOUNCER_PORT="$pgbouncer_port"
+export THREADLINE_PROXY_HOST="$proxy_host"
+export THREADLINE_PROXY_NETWORK="$proxy_network"
+
+if [[ -z "$proxy_router" ]]; then
+  proxy_router="$(sanitize_name "$project_name" | tr '_' '-')"
+fi
+export THREADLINE_PROXY_ROUTER="$proxy_router"
+
+if [[ "$action" == "down" ]]; then
+  echo "Stopping Threadline demo Compose project: ${COMPOSE_PROJECT_NAME}"
+  compose --profile demo --profile pgbouncer down --remove-orphans
+  exit 0
+fi
+
+if [[ "$action" == "logs" ]]; then
+  echo "Following Threadline demo logs for project: ${COMPOSE_PROJECT_NAME}"
+  exec docker compose "${compose_args[@]}" --profile demo logs -f demo
+fi
+
+if [[ "$action" == "status" ]]; then
+  print_status
+  exit 0
+fi
+
+if [[ "$fresh" -eq 1 ]]; then
+  echo "Resetting Threadline demo Compose project: ${COMPOSE_PROJECT_NAME}"
+  compose --profile demo --profile pgbouncer down --volumes --remove-orphans
+  force_build=1
+fi
+
+existing_demo_mapping="$(compose_port_mapping demo 4000)"
+existing_db_mapping="$(compose_port_mapping postgres 5432)"
+existing_pgbouncer_mapping="$(compose_port_mapping pgbouncer 5432)"
+
+if [[ -n "$existing_demo_mapping" ]]; then
+  demo_host="$(mapping_host "$existing_demo_mapping")"
+  demo_port="$(mapping_port "$existing_demo_mapping")"
+else
+  demo_port="$(choose_port demo "$demo_host" "$demo_port" 4000 4100 4199)"
+fi
+
+if [[ -n "$existing_db_mapping" ]]; then
+  db_host="$(mapping_host "$existing_db_mapping")"
+  db_port="$(mapping_port "$existing_db_mapping")"
+else
+  db_port="$(choose_port postgres "$db_host" "$db_port" 5433 5434 5499)"
+fi
+
+if [[ -n "$existing_pgbouncer_mapping" ]]; then
+  pgbouncer_host="$(mapping_host "$existing_pgbouncer_mapping")"
+  pgbouncer_port="$(mapping_port "$existing_pgbouncer_mapping")"
+fi
+
+if [[ "$public_host_explicit" -eq 0 ]]; then
+  if [[ "$proxy_enabled" -eq 1 ]]; then
+    public_host="$proxy_host"
+  else
+    public_host="$(default_public_host "$demo_host")"
+  fi
+fi
+
+fallback_url="$(url_for_host_port "$demo_host" "$demo_port")"
+if [[ "$proxy_enabled" -eq 1 ]]; then
+  public_url="http://${proxy_host}"
+else
+  public_url="$fallback_url"
+fi
+
+export THREADLINE_DEMO_HOST="$demo_host"
+export THREADLINE_DEMO_PORT="$demo_port"
+export THREADLINE_DB_HOST="$db_host"
+export THREADLINE_DB_PORT="$db_port"
+export THREADLINE_PGBOUNCER_HOST="$pgbouncer_host"
+export THREADLINE_PGBOUNCER_PORT="$pgbouncer_port"
+export THREADLINE_DEMO_PUBLIC_HOST="$public_host"
+export THREADLINE_DEMO_PUBLIC_URL="$public_url"
+export THREADLINE_DEMO_URL="$public_url"
+export THREADLINE_DEMO_FALLBACK_URL="$fallback_url"
+
+echo "Threadline demo Compose project: ${COMPOSE_PROJECT_NAME}"
+echo "Host ports: demo=${THREADLINE_DEMO_PORT} postgres=${THREADLINE_DB_PORT} pgbouncer=${THREADLINE_PGBOUNCER_PORT} (if profile enabled)"
+if [[ "$proxy_enabled" -eq 1 ]]; then
+  echo "Proxy URL: ${public_url} via Docker network ${THREADLINE_PROXY_NETWORK}"
+fi
+
+if [[ "$force_build" -eq 0 ]] && demo_image_exists; then
+  build_flag="--no-build"
+  echo "Using existing demo image. Pass --build or --fresh to rebuild it."
+else
+  build_flag="--build"
+  echo "Building demo image before start."
+fi
+
+if [[ -n "$existing_demo_mapping" ]]; then
+  echo "Refreshing existing demo on ${THREADLINE_DEMO_HOST}:${THREADLINE_DEMO_PORT}"
+else
+  echo "Starting demo on ${THREADLINE_DEMO_HOST}:${THREADLINE_DEMO_PORT}"
+fi
+
+if [[ "$attach" -eq 1 ]]; then
+  echo "Starting attached. When ready, open ${public_url}/audit"
+  exec docker compose "${compose_args[@]}" --profile demo up "$build_flag" --force-recreate demo
+fi
+
+if ! compose --profile demo up -d "$build_flag" --force-recreate demo; then
+  echo "Demo startup failed. Recent demo logs:" >&2
+  compose --profile demo logs --tail=80 demo >&2 || true
+  if [[ "$build_flag" == "--build" ]]; then
+    cat >&2 <<'EOF'
+
+If the failure happened while loading metadata for a base image, Docker could
+not reach Docker Hub. Retry when network/Docker Hub is healthy, or rerun an
+existing project image without --build.
+EOF
+  fi
+  exit 1
+fi
+
+fallback_url="$(compose_port_url demo 4000 "$THREADLINE_DEMO_HOST" "$THREADLINE_DEMO_PORT")"
+if [[ "$proxy_enabled" -eq 1 ]]; then
+  base_url="$public_url"
+else
+  base_url="$fallback_url"
+fi
+
+if ! wait_for_url "sign-in page" "${fallback_url}/users/log_in" || ! wait_for_url "audit surface" "${fallback_url}/audit"; then
+  echo "Demo did not become ready. Recent demo logs:" >&2
+  compose --profile demo logs --tail=80 demo >&2 || true
+  exit 1
+fi
+
+if [[ "$proxy_enabled" -eq 1 ]]; then
+  if ! wait_for_success_url "proxy sign-in page" "${base_url}/users/log_in"; then
+    echo "Proxy route did not become ready. Fallback URL is ${fallback_url}/audit." >&2
+    compose --profile demo logs --tail=80 demo >&2 || true
+    exit 1
+  fi
+fi
+
+print_ready "$base_url" "$fallback_url"

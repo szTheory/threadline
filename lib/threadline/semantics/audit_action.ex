@@ -31,6 +31,7 @@ defmodule Threadline.Semantics.AuditAction do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
+  @schema_prefix "threadline"
 
   schema "audit_actions" do
     field(:name, :string)

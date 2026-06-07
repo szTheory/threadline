@@ -26,6 +26,7 @@ config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
 if System.get_env("THREADLINE_E2E") == "1" do
   config :threadline_phoenix, Oban, plugins: false, queues: false, testing: :manual
   config :logger, level: :warning
+
   config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
     code_reloader: false,
     server: true

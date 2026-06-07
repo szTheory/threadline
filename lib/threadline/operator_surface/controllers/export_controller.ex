@@ -41,6 +41,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     alias Threadline.Export
     alias Threadline.OperatorSurface.Exports.Filename
     alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.StorageSchema
 
     @sync_threshold 5_000
     @max_rows 10_000
@@ -59,7 +60,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       case Ecto.UUID.cast(job_id) do
         {:ok, uuid} ->
-          job = repo.get(Threadline.Governance.ExportJob, uuid)
+          job = repo.get(Threadline.Governance.ExportJob, uuid, StorageSchema.repo_opts())
 
           if job && job.actor_ref == actor_ref do
             deliver_export(conn, job)

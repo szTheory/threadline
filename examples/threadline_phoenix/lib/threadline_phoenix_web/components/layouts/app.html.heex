@@ -1,42 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
+  <% conn = Map.get(assigns, :conn) %>
+  <% request_path = conn && conn.request_path %>
+  <% audit_surface? = is_binary(request_path) and (request_path == "/audit" or String.starts_with?(request_path, "/audit/")) %>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
-    <title>ThreadlinePhoenix</title>
+    <title>{if audit_surface?, do: "Threadline Admin", else: "RelayDesk Support Ops Demo"}</title>
     <style>
       :root {
-        font-family: system-ui, sans-serif;
+        --rd-ink: #13201d;
+        --rd-muted: #5d6b66;
+        --rd-paper: #fffdf6;
+        --rd-panel: #ffffff;
+        --rd-line: #dbe3dd;
+        --rd-teal: #08756f;
+        --rd-teal-dark: #04534e;
+        --rd-mint: #d8f3e7;
+        --rd-amber: #f2b84b;
+        --rd-coral: #d95f43;
+        --rd-shadow: 0 24px 70px rgba(19, 32, 29, 0.12);
+        font-family:
+          "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
         line-height: 1.5;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
       }
       body {
         margin: 0;
-        padding: 1.5rem;
-        background: #f8fafc;
-        color: #0f172a;
+        padding: 0;
+        background: var(--rd-paper);
+        color: var(--rd-ink);
+      }
+      .host-shell {
+        min-height: 100dvh;
+        background:
+          linear-gradient(135deg, rgba(8, 117, 111, 0.08), transparent 34rem),
+          radial-gradient(circle at 92% 8%, rgba(242, 184, 75, 0.22), transparent 19rem),
+          var(--rd-paper);
+      }
+      .rd-shell {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .rd-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem clamp(1rem, 3vw, 2.5rem);
+        border-bottom: 1px solid rgba(19, 32, 29, 0.1);
+        background: rgba(255, 253, 246, 0.86);
+        backdrop-filter: blur(14px);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      .rd-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--rd-ink);
+        text-decoration: none;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+      .rd-brand__mark {
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.45rem;
+        background: var(--rd-teal);
+        color: white;
+        box-shadow: inset 0 -0.35rem 0 rgba(0, 0, 0, 0.14);
+      }
+      .rd-brand__meta {
+        display: block;
+        color: var(--rd-muted);
+        font-size: 0.73rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .rd-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .rd-nav a,
+      .rd-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.35rem;
+        border-radius: 0.45rem;
+        padding: 0.55rem 0.85rem;
+        color: var(--rd-ink);
+        text-decoration: none;
+        font-weight: 750;
+      }
+      .rd-nav a:hover,
+      .rd-link-card:hover,
+      .rd-button:hover {
+        transform: translateY(-1px);
+      }
+      .rd-button--primary,
+      .rd-nav__primary {
+        background: var(--rd-teal);
+        color: white !important;
+        box-shadow: 0 12px 28px rgba(8, 117, 111, 0.22);
+      }
+      .rd-button--secondary {
+        border: 1px solid var(--rd-line);
+        background: rgba(255, 255, 255, 0.72);
+      }
+      .rd-content {
+        width: min(1180px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: clamp(1rem, 3vw, 2.5rem) 0 3rem;
+      }
+      .rd-home {
+        display: grid;
+        gap: 1.25rem;
+        min-width: 0;
+      }
+      .rd-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 0.55fr);
+        gap: 1rem;
+        align-items: stretch;
+      }
+      .rd-hero__copy,
+      .rd-hero__panel,
+      .rd-stat,
+      .rd-section,
+      .rd-link-card,
+      .rd-ticket,
+      .rd-auth__card {
+        border: 1px solid rgba(19, 32, 29, 0.11);
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: var(--rd-shadow);
+        min-width: 0;
+      }
+      .rd-hero__copy {
+        min-height: 25rem;
+        padding: clamp(1.4rem, 5vw, 4rem);
+        background:
+          linear-gradient(135deg, rgba(216, 243, 231, 0.92), rgba(255, 255, 255, 0.84)),
+          repeating-linear-gradient(90deg, transparent 0 18px, rgba(8, 117, 111, 0.06) 18px 19px);
+      }
+      .rd-kicker {
+        margin: 0 0 0.65rem;
+        color: var(--rd-teal-dark);
+        font-size: 0.78rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .rd-hero h1 {
+        margin: 0;
+        max-width: 12ch;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(3.8rem, 10vw, 8rem);
+        line-height: 0.88;
+        letter-spacing: 0;
+        overflow-wrap: anywhere;
+      }
+      .rd-hero__lede {
+        max-width: 42rem;
+        margin: 1.35rem 0 0;
+        color: #31413c;
+        font-size: clamp(1rem, 2.1vw, 1.28rem);
+      }
+      .rd-actions,
+      .rd-signed-in {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1.6rem;
+      }
+      .rd-signed-in {
+        width: fit-content;
+        padding: 0.65rem;
+        border: 1px solid rgba(8, 117, 111, 0.18);
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.68);
+      }
+      .rd-signed-in span {
+        color: var(--rd-muted);
+        font-size: 0.85rem;
+      }
+      .rd-hero__panel {
+        padding: 1.2rem;
+        background: #13201d;
+        color: #f9f4e8;
+      }
+      .rd-panel__label,
+      .rd-creds dt {
+        color: #a8d8ce;
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .rd-creds {
+        display: grid;
+        gap: 0.9rem;
+        margin: 1.1rem 0;
+      }
+      .rd-creds div {
+        margin: 0;
+        padding: 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 0.45rem;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .rd-creds dd {
+        margin: 0.25rem 0 0;
+        overflow-wrap: anywhere;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        color: white;
+      }
+      .rd-grid {
+        display: grid;
+        gap: 1rem;
+      }
+      .rd-grid--stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .rd-stat {
+        padding: 1.1rem;
+      }
+      .rd-stat span {
+        color: var(--rd-muted);
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .rd-stat strong {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 2.25rem;
+        line-height: 1;
+      }
+      .rd-stat p,
+      .rd-section p,
+      .rd-link-card span,
+      .rd-ticket span,
+      .rd-auth p {
+        color: var(--rd-muted);
+      }
+      .rd-section {
+        padding: clamp(1.1rem, 3vw, 1.65rem);
+      }
+      .rd-section h2,
+      .rd-auth h1 {
+        margin: 0;
+        font-size: clamp(1.65rem, 3vw, 2.25rem);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+      .rd-flow,
+      .rd-links,
+      .rd-ticket-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .rd-flow {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .rd-flow div {
+        padding: 1rem;
+        border-radius: 0.45rem;
+        background: rgba(216, 243, 231, 0.54);
+      }
+      .rd-flow span {
+        display: inline-grid;
+        place-items: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        margin-bottom: 0.7rem;
+        border-radius: 50%;
+        background: var(--rd-amber);
+        font-weight: 900;
+      }
+      .rd-links {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .rd-link-card {
+        padding: 1rem;
+        color: var(--rd-ink);
+        text-decoration: none;
+        transition: transform 150ms ease, border-color 150ms ease;
+      }
+      .rd-link-card strong,
+      .rd-link-card span {
+        display: block;
+      }
+      .rd-link-card span {
+        margin-top: 0.35rem;
+        font-size: 0.92rem;
+      }
+      .rd-section--split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.65fr) minmax(18rem, 1fr);
+        gap: 1rem;
+      }
+      .rd-ticket {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.8rem 0.95rem;
+        box-shadow: none;
+      }
+      .rd-ticket strong,
+      .rd-ticket span {
+        display: block;
+      }
+      .rd-ticket em {
+        border-radius: 999px;
+        padding: 0.25rem 0.55rem;
+        background: var(--rd-mint);
+        color: var(--rd-teal-dark);
+        font-style: normal;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+      .rd-auth {
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(20rem, 1.05fr);
+        gap: 1rem;
+        align-items: stretch;
+        margin: 0 auto;
+        width: min(920px, 100%);
+      }
+      .rd-auth__story,
+      .rd-auth__card {
+        padding: clamp(1.15rem, 3vw, 2rem);
+      }
+      .rd-auth__story {
+        border-radius: 0.5rem;
+        background: var(--rd-ink);
+        color: #fffaf0;
+      }
+      .rd-auth__story p,
+      .rd-auth__story li {
+        color: #d9e5dd;
+      }
+      .rd-auth__story code {
+        color: white;
+      }
+      .rd-auth__card {
+        box-shadow: var(--rd-shadow);
+      }
+      .rd-auth form {
+        display: grid;
+        gap: 0.8rem;
+      }
+      .rd-auth input[type="email"],
+      .rd-auth input[type="password"],
+      .rd-auth input[type="text"] {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 2.65rem;
+        border: 1px solid var(--rd-line);
+        border-radius: 0.4rem;
+        padding: 0.55rem 0.7rem;
+        font: inherit;
+      }
+      .rd-auth button {
+        width: 100%;
+        min-height: 2.7rem;
+        border: 0;
+        border-radius: 0.45rem;
+        background: var(--rd-teal);
+        color: white;
+        font: inherit;
+        font-weight: 850;
+        cursor: pointer;
+      }
+      .rd-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.1rem 0;
+        color: var(--rd-muted);
+        font-size: 0.88rem;
+      }
+      .rd-divider::before,
+      .rd-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: var(--rd-line);
+      }
+      .rd-flash-wrap {
+        width: min(1180px, calc(100% - 2rem));
+        margin: 0.85rem auto 0;
       }
       .flash {
         padding: 0.75rem 1rem;
-        border-radius: 0.375rem;
+        border-radius: 0.45rem;
         margin-bottom: 1rem;
       }
       .flash-info {
-        background: #dbeafe;
-        color: #1e3a8a;
+        background: var(--rd-mint);
+        color: var(--rd-teal-dark);
       }
       .flash-error {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #ffe3da;
+        color: #842c1e;
       }
       a {
-        color: #2563eb;
+        color: var(--rd-teal-dark);
+      }
+      code {
+        border-radius: 0.35rem;
+        padding: 0.1rem 0.3rem;
+        background: rgba(19, 32, 29, 0.08);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.92em;
+      }
+      @media (max-width: 860px) {
+        .rd-topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .rd-nav {
+          justify-content: flex-start;
+        }
+        .rd-hero,
+        .rd-grid--stats,
+        .rd-flow,
+        .rd-links,
+        .rd-section--split,
+        .rd-auth {
+          grid-template-columns: 1fr;
+        }
+        .rd-hero__copy {
+          min-height: auto;
+        }
+      }
+      @media (max-width: 520px) {
+        .rd-content,
+        .rd-flash-wrap {
+          width: min(100% - 1rem, 1180px);
+        }
+        .rd-brand {
+          align-items: flex-start;
+        }
+        .rd-nav a,
+        .rd-button {
+          width: 100%;
+        }
+        .rd-nav,
+        .rd-actions,
+        .rd-signed-in {
+          width: 100%;
+        }
+        .rd-hero h1 {
+          font-size: clamp(2.9rem, 14vw, 3.45rem);
+        }
+        .rd-ticket {
+          align-items: flex-start;
+          flex-direction: column;
+        }
       }
     </style>
   </head>
   <body>
-    <.flash_group flash={@flash} />
-    {@inner_content}
+    <%= if audit_surface? do %>
+      {@inner_content}
+    <% else %>
+      <main class="host-shell">
+        <div class="rd-shell">
+          <header class="rd-topbar">
+            <.link navigate="/" class="rd-brand">
+              <span class="rd-brand__mark">R</span>
+              <span>
+                RelayDesk
+                <span class="rd-brand__meta">Support ops demo</span>
+              </span>
+            </.link>
+            <nav class="rd-nav" aria-label="RelayDesk demo">
+              <.link navigate="/users/log_in">Log in</.link>
+              <.link navigate="/dev/mailbox">Mailbox</.link>
+              <.link navigate="/audit" class="rd-nav__primary">Threadline admin</.link>
+            </nav>
+          </header>
+          <div class="rd-flash-wrap">
+            <.flash_group flash={@flash} />
+          </div>
+          <div class="rd-content">
+            {@inner_content}
+          </div>
+        </div>
+      </main>
+    <% end %>
     <script type="module" src="/assets/app.js">
     </script>
   </body>

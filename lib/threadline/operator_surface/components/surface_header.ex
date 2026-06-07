@@ -33,30 +33,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         onclick="var target=document.getElementById('tl-main'); if (target) target.focus();"
       >Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
-        <a class="tl-topbar__brand" href={@base_path || "#"}>Threadline</a>
-        <nav class="tl-topbar__nav" aria-label="Operator surface">
-          <div class="tl-topbar__nav-group" aria-label="Find">
-            <span class="tl-topbar__nav-label">Find</span>
-            <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
-          </div>
-          <div :if={@coverage_enabled} class="tl-topbar__nav-group" aria-label="Verify">
-            <span class="tl-topbar__nav-label">Verify</span>
-            <.nav_link href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
-          </div>
-          <div
-            :if={@evidence_enabled or @policy_enabled or @exports_enabled}
-            class="tl-topbar__nav-group"
-            aria-label="Prove"
+        <a class="tl-topbar__brand" href={@base_path || "#"}>
+          <svg
+            class="tl-topbar__brand-mark"
+            viewBox="0 0 64 64"
+            aria-hidden="true"
+            focusable="false"
           >
-            <span class="tl-topbar__nav-label">Prove</span>
-            <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
-            <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
-            <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
-            <span :if={@exports_enabled} class="tl-topbar__nav-handoff">
-              <.nav_link href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
-            </span>
-          </div>
-        </nav>
+            <defs>
+              <linearGradient id="tl-operator-brand-gradient" x1="8" y1="50" x2="56" y2="14" gradientUnits="userSpaceOnUse">
+                <stop stop-color="var(--tl-color-accent)" />
+                <stop offset="1" stop-color="var(--tl-color-signal)" />
+              </linearGradient>
+            </defs>
+            <path d="M10 46C18 22 30 21 36 34C41 45 50 43 54 18" fill="none" stroke="url(#tl-operator-brand-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M10 46H27M36 34H50" fill="none" stroke="var(--tl-color-text)" stroke-opacity=".42" stroke-width="2" stroke-linecap="round" />
+            <circle cx="10" cy="46" r="4" fill="var(--tl-color-accent)" />
+            <circle cx="36" cy="34" r="4" fill="var(--tl-color-signal)" />
+            <circle cx="54" cy="18" r="4" fill="var(--tl-color-text)" />
+          </svg>
+          <span class="tl-topbar__brand-text">Threadline</span>
+        </a>
         <div class="tl-topbar__status">
         <span
           :if={@scoped}
@@ -78,6 +75,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% end %>
         </div>
       </header>
+      <input
+        id="tl-shell-nav-toggle"
+        class="tl-shell-nav__control"
+        type="checkbox"
+        aria-label="Toggle operator navigation"
+      />
+      <nav class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Operator surface">
+        <label class="tl-shell-nav__toggle" for="tl-shell-nav-toggle">Menu</label>
+        <div class="tl-shell-nav__panel">
+          <section class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-find">
+            <h2 id="tl-shell-nav-find" class="tl-shell-nav__label">Find</h2>
+            <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
+          </section>
+          <section :if={@coverage_enabled} class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-verify">
+            <h2 id="tl-shell-nav-verify" class="tl-shell-nav__label">Verify</h2>
+            <.nav_link href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
+          </section>
+          <section
+            :if={@evidence_enabled or @policy_enabled or @exports_enabled}
+            class="tl-shell-nav__group"
+            aria-labelledby="tl-shell-nav-prove"
+          >
+            <h2 id="tl-shell-nav-prove" class="tl-shell-nav__label">Prove</h2>
+            <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
+            <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
+            <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
+            <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
+          </section>
+        </div>
+      </nav>
       """
     end
 
@@ -90,7 +117,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <a
         href={@href || "#"}
-        class={["tl-topbar__nav-item", @current == @page && "tl-topbar__nav-item--active"]}
+        class={["tl-shell-nav__item", @current == @page && "tl-shell-nav__item--active"]}
         aria-current={if @current == @page, do: "page", else: nil}
         data-testid={"operator-nav-#{@page}"}
       >

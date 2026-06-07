@@ -2,8 +2,10 @@ defmodule ThreadlineAuditSchema do
   use Ecto.Migration
 
   def up do
+    execute "CREATE SCHEMA IF NOT EXISTS threadline"
+
     execute """
-    CREATE TABLE IF NOT EXISTS audit_transactions (
+    CREATE TABLE IF NOT EXISTS threadline.audit_transactions (
       id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
       txid        bigint      NOT NULL UNIQUE,
       occurred_at timestamptz NOT NULL DEFAULT now(),
@@ -12,12 +14,12 @@ defmodule ThreadlineAuditSchema do
     )
     """
 
-    execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON audit_transactions (txid)"
+    execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON threadline.audit_transactions (txid)"
 
     execute """
-    CREATE TABLE IF NOT EXISTS audit_changes (
+    CREATE TABLE IF NOT EXISTS threadline.audit_changes (
       id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-      transaction_id uuid        NOT NULL REFERENCES audit_transactions(id) ON DELETE CASCADE,
+      transaction_id uuid        NOT NULL REFERENCES threadline.audit_transactions(id) ON DELETE CASCADE,
       table_schema   text        NOT NULL,
       table_name     text        NOT NULL,
       table_pk       jsonb       NOT NULL,
@@ -28,12 +30,12 @@ defmodule ThreadlineAuditSchema do
     )
     """
 
-    execute "CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON audit_changes (transaction_id)"
-    execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON audit_changes (table_name)"
-    execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON audit_changes (captured_at)"
+    execute "CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON threadline.audit_changes (transaction_id)"
+    execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON threadline.audit_changes (table_name)"
+    execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON threadline.audit_changes (captured_at)"
 
     execute """
-    CREATE OR REPLACE FUNCTION threadline_capture_changes()
+    CREATE OR REPLACE FUNCTION threadline.threadline_capture_changes()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $threadline_trigger$
@@ -46,12 +48,12 @@ defmodule ThreadlineAuditSchema do
     BEGIN
       v_txid := txid_current();
 
-      INSERT INTO audit_transactions (id, txid, occurred_at)
+      INSERT INTO threadline.audit_transactions (id, txid, occurred_at)
       VALUES (gen_random_uuid(), v_txid, clock_timestamp())
       ON CONFLICT (txid) DO NOTHING;
 
       SELECT id INTO v_tx_id
-      FROM audit_transactions
+      FROM threadline.audit_transactions
       WHERE txid = v_txid;
 
       IF TG_OP = 'DELETE' THEN
@@ -75,7 +77,7 @@ defmodule ThreadlineAuditSchema do
         WHERE  n.value IS DISTINCT FROM o.value;
       END IF;
 
-      INSERT INTO audit_changes (
+      INSERT INTO threadline.audit_changes (
         id, transaction_id, table_schema, table_name,
         table_pk, op, data_after, changed_fields, captured_at
       ) VALUES (
@@ -93,8 +95,8 @@ defmodule ThreadlineAuditSchema do
   end
 
   def down do
-    execute "DROP FUNCTION IF EXISTS threadline_capture_changes()"
-    execute "DROP TABLE IF EXISTS audit_changes"
-    execute "DROP TABLE IF EXISTS audit_transactions"
+    execute "DROP FUNCTION IF EXISTS threadline.threadline_capture_changes()"
+    execute "DROP TABLE IF EXISTS threadline.audit_changes"
+    execute "DROP TABLE IF EXISTS threadline.audit_transactions"
   end
 end

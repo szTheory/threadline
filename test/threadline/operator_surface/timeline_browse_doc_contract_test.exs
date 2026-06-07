@@ -93,7 +93,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            """
 
     # Belt + braces: assert the explicit six raw form keys are present
-    for key <- ~w(from to table actor_kind actor_id correlation_id) do
+    for key <- ~w(from to table_schema table actor_kind actor_id correlation_id) do
       assert String.contains?(live_src, ~s|name="filter[#{key}]"|),
              "missing filter input name=\"filter[#{key}]\""
     end

@@ -5,6 +5,7 @@ defmodule Threadline.Export.Orchestrator do
 
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
+  alias Threadline.StorageSchema
 
   @default_retention_ttl_hours 24 * 7
 
@@ -78,14 +79,14 @@ defmodule Threadline.Export.Orchestrator do
   end
 
   defp fetch_and_mark_running(repo, job_id) do
-    job = repo.get!(ExportJob, job_id)
+    job = repo.get!(ExportJob, job_id, StorageSchema.repo_opts())
 
     Ecto.Changeset.change(job, %{
       status: "running",
       started_at: now(),
       error_message: nil
     })
-    |> repo.update()
+    |> repo.update(StorageSchema.repo_opts())
   end
 
   defp mark_completed(repo, job, file_path) do
@@ -95,7 +96,7 @@ defmodule Threadline.Export.Orchestrator do
       completed_at: now(),
       expires_at: terminal_expiry()
     })
-    |> repo.update!()
+    |> repo.update!(StorageSchema.repo_opts())
   end
 
   defp mark_failed(repo, job, error_message) do
@@ -104,7 +105,7 @@ defmodule Threadline.Export.Orchestrator do
       error_message: error_message,
       expires_at: terminal_expiry()
     })
-    |> repo.update!()
+    |> repo.update!(StorageSchema.repo_opts())
   end
 
   defp prepare_filters(query_params, repo) do

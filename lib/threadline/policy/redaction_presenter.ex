@@ -197,8 +197,8 @@ defmodule Threadline.Policy.RedactionPresenter do
 
   defp validate_threadline_shape(source) do
     required = [
-      "INSERT INTO audit_transactions",
-      "INSERT INTO audit_changes",
+      "audit_transactions",
+      "audit_changes",
       "threadline.actor_ref",
       "v_data_after",
       "TG_TABLE_NAME"

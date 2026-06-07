@@ -22,6 +22,11 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
 
+    assert html =~ "RelayDesk"
+    assert html =~ "Support operations demo app"
+    assert html =~ "Demo credentials"
+    assert html =~ "admin@example.com"
+    assert html =~ "Threadline admin"
     assert html =~ "Register"
     assert html =~ "Log in"
     refute html =~ "Signed in as"
@@ -41,8 +46,10 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     conn = get(conn, ~p"/")
 
     html = html_response(conn, 200)
+    assert html =~ "RelayDesk"
     assert html =~ "Signed in as"
     assert html =~ email
+    assert html =~ "Open Threadline admin"
 
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
@@ -60,7 +67,11 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
       |> login_via_sigra(user)
       |> get(~p"/audit/transactions/00000000-0000-0000-0000-000000000000")
 
-    assert html_response(conn, 200) =~ "Transaction Not Found"
+    html = html_response(conn, 200)
+    assert html =~ "Transaction Not Found"
+    refute html =~ ~s|class="rd-shell"|
+    refute html =~ ~s|class="rd-topbar"|
+    refute html =~ "RelayDesk Support Ops Demo"
   end
 
   test "agent without admin allowlist receives 403 on audit", %{conn: conn} do

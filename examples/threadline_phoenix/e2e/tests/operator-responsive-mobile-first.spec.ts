@@ -43,12 +43,113 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function expectComputedPx(
+  locator: Locator,
+  property: string,
+  expectedPx: number,
+) {
+  await expect(locator).toBeVisible();
+  const value = await locator.evaluate(
+    (element, cssProperty) =>
+      window.getComputedStyle(element).getPropertyValue(cssProperty),
+    property,
+  );
+  expect(Math.round(Number.parseFloat(value))).toBe(expectedPx);
+}
+
+async function expectReadableScale(page: Page) {
+  await expectComputedPx(
+    page.locator(".threadline-ui").first(),
+    "font-size",
+    16,
+  );
+  await expectComputedPx(
+    page.locator(".tl-page__lede, .tl-orientation__lede").first(),
+    "font-size",
+    15,
+  );
+  await expectComputedPx(page.locator(".tl-button").first(), "font-size", 14);
+  await expectComputedPx(page.locator(".tl-chip").first(), "font-size", 14);
+  await expectComputedPx(
+    page.locator(".tl-toolbar__field").first(),
+    "font-size",
+    14,
+  );
+}
+
+async function expectCompactTableDensity(page: Page) {
+  await expectComputedPx(
+    page.locator(".tl-table--compact td").first(),
+    "font-size",
+    13,
+  );
+}
+
+async function expectPageGutter(page: Page, expectedPx: number) {
+  const main = page.locator("#tl-main.tl-page");
+  await expect(main).toBeVisible();
+  await expectComputedPx(main, "padding-left", expectedPx);
+  await expectComputedPx(main, "padding-right", expectedPx);
+}
+
+async function expectTimelineIntroFlow(page: Page) {
+  const mainToolbar = page.locator("#tl-main > .tl-toolbar");
+  await expect(mainToolbar).toHaveCount(1);
+  await expect(page.locator("#tl-main #timeline-filters")).toHaveCount(1);
+
+  const gap = await page.evaluate(() => {
+    const orientation = document.querySelector(".tl-orientation");
+    const toolbar = document.querySelector(".tl-toolbar");
+    if (!orientation || !toolbar) {
+      throw new Error("Timeline orientation or toolbar missing");
+    }
+
+    return toolbar.getBoundingClientRect().top - orientation.getBoundingClientRect().bottom;
+  });
+
+  expect(gap).toBeGreaterThanOrEqual(-1);
+  expect(gap).toBeLessThanOrEqual(24);
+}
+
+async function expectAuditHostBody(page: Page) {
+  await expectComputedPx(page.locator("body"), "padding-left", 0);
+  await expectComputedPx(page.locator("body"), "padding-right", 0);
+  await expect(page.locator(".host-shell")).toHaveCount(0);
+}
+
+async function expectDemoHostShell(page: Page) {
+  await expectComputedPx(page.locator("body"), "padding-left", 0);
+  await expectComputedPx(page.locator("body"), "padding-right", 0);
+  await expectComputedPx(page.locator(".host-shell"), "padding-left", 24);
+  await expectComputedPx(page.locator(".host-shell"), "padding-right", 24);
+}
+
 async function expectReachable(locator: Locator) {
   await locator.scrollIntoViewIfNeeded();
   await expect(locator).toBeVisible();
 }
 
-async function expectBoxWithinViewport(locator: Locator, viewportWidth: number) {
+async function openOperatorNavIfNeeded(shell: Locator) {
+  const panel = shell.locator(".tl-shell-nav__panel");
+  if (!(await panel.isVisible())) {
+    await shell.locator(".tl-shell-nav__toggle").click();
+  }
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+async function closeOperatorNavIfNeeded(shell: Locator) {
+  const panel = shell.locator(".tl-shell-nav__panel");
+  if (await panel.isVisible()) {
+    await shell.locator(".tl-shell-nav__toggle").click();
+  }
+  await expect(panel).toBeHidden();
+}
+
+async function expectBoxWithinViewport(
+  locator: Locator,
+  viewportWidth: number,
+) {
   await expect(locator).toBeVisible();
   const rect = await locator.boundingBox();
   expect(rect).not.toBeNull();
@@ -60,13 +161,27 @@ async function expectOperatorChrome(page: Page) {
   await expect(page.locator("#tl-main")).toHaveCount(1);
   await expect(page.getByTestId("operator-header")).toBeVisible();
 
-  const nav = page.locator(".tl-topbar__nav");
+  const shell = page.getByTestId("operator-nav-shell");
+  await expect(shell).toBeVisible();
+  const viewportWidth = page.viewportSize()?.width ?? 1280;
+
+  if (viewportWidth < 768) {
+    await openOperatorNavIfNeeded(shell);
+  } else {
+    await expect(shell.locator(".tl-shell-nav__toggle")).toBeHidden();
+  }
+
+  const nav = shell.locator(".tl-shell-nav__panel");
   await expect(nav).toBeVisible();
 
   for (const destination of destinations) {
     const link = page.getByTestId(destination.testId);
     await expectReachable(link);
     await expect(link).toHaveAttribute("href", destination.path);
+  }
+
+  if (viewportWidth < 768) {
+    await closeOperatorNavIfNeeded(shell);
   }
 }
 
@@ -83,15 +198,24 @@ async function expectResponsiveTable(locator: Locator, viewportWidth: number) {
     expect(labelContent).not.toBe('""');
   } else {
     await expect(locator.locator(".tl-table--responsive thead")).toBeVisible();
-    await expect(locator.locator(".tl-table--responsive th").first()).toBeVisible();
+    await expect(
+      locator.locator(".tl-table--responsive th").first(),
+    ).toBeVisible();
   }
 }
 
 async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
-  await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+  await page.goto(
+    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
+  );
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(
+    closeCorrelation,
+  );
 
-  const transactionHref = await page.getByTestId("transaction-link").first().getAttribute("href");
+  const transactionHref = await page
+    .getByTestId("transaction-link")
+    .first()
+    .getAttribute("href");
   expect(transactionHref).not.toBeNull();
 
   await page.goto(transactionHref!);
@@ -106,14 +230,21 @@ async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
   expect(rowHistoryHref).not.toBeNull();
 
   const rowMatch = rowHistoryHref!.match(/\/history\/([^/?#]+)\/([^?#/]+)/);
-  expect(rowMatch, `expected row-history href, got ${rowHistoryHref}`).not.toBeNull();
+  expect(
+    rowMatch,
+    `expected row-history href, got ${rowHistoryHref}`,
+  ).not.toBeNull();
   const rowPath = `/audit/rows/${rowMatch![1]}/${rowMatch![2]}`;
 
   return [
     { name: "home", path: "/audit", assertRoute: assertHome },
     { name: "timeline", path: "/audit/timeline", assertRoute: assertTimeline },
     { name: "coverage", path: "/audit/coverage", assertRoute: assertCoverage },
-    { name: "transaction", path: transactionHref!, assertRoute: assertTransaction },
+    {
+      name: "transaction",
+      path: transactionHref!,
+      assertRoute: assertTransaction,
+    },
     { name: "row history", path: rowPath, assertRoute: assertRowHistory },
     {
       name: "actor",
@@ -121,33 +252,54 @@ async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
       assertRoute: assertActor,
     },
     { name: "evidence", path: "/audit/evidence", assertRoute: assertEvidence },
-    { name: "redaction", path: "/audit/policy/redaction", assertRoute: assertRedaction },
-    { name: "retention", path: "/audit/policy/retention", assertRoute: assertRetention },
+    {
+      name: "redaction",
+      path: "/audit/policy/redaction",
+      assertRoute: assertRedaction,
+    },
+    {
+      name: "retention",
+      path: "/audit/policy/retention",
+      assertRoute: assertRetention,
+    },
     { name: "exports", path: "/audit/exports", assertRoute: assertExports },
   ];
 }
 
 async function assertHome(page: Page) {
-  await expect(page.getByRole("heading", { name: "Follow what happened." })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Follow what happened." }),
+  ).toBeVisible();
   await expect(page.locator('[data-earned-flow="EF1"]')).toBeVisible();
 }
 
 async function assertTimeline(page: Page) {
   await expect(page.getByTestId("operator-timeline")).toBeVisible();
   await expect(page.locator(".tl-toolbar__form")).toBeVisible();
+  await expectTimelineIntroFlow(page);
   await page.locator("#filter-correlation-id").fill(closeCorrelation);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(
+    closeCorrelation,
+  );
 }
 
 async function assertCoverage(page: Page, viewportWidth: number) {
   await expect(page.getByRole("heading", { name: /Coverage/ })).toBeVisible();
-  await expectResponsiveTable(page.getByTestId("coverage-table"), viewportWidth);
+  await expectResponsiveTable(
+    page.getByTestId("coverage-table"),
+    viewportWidth,
+  );
   await expect(page.getByText("Add capture").first()).toBeVisible();
 }
 
 async function assertTransaction(page: Page, viewportWidth: number) {
-  await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
-  await expectBoxWithinViewport(page.locator(".tl-value, .tl-secondary-ref").first(), viewportWidth);
+  await expect(
+    page.getByTestId("transaction-change-row").first(),
+  ).toBeVisible();
+  await expectBoxWithinViewport(
+    page.locator(".tl-value, .tl-secondary-ref").first(),
+    viewportWidth,
+  );
   await expect(page.getByTestId("row-history-link").first()).toBeVisible();
 }
 
@@ -157,18 +309,27 @@ async function assertRowHistory(page: Page, viewportWidth: number) {
   await expect(drawer).toBeVisible();
   await expect(drawer.getByText("Row history:")).toBeVisible();
   await expectBoxWithinViewport(drawer, viewportWidth);
-  await expectBoxWithinViewport(drawer.locator(".tl-value, .tl-secondary-ref").first(), viewportWidth);
+  await expectBoxWithinViewport(
+    drawer.locator(".tl-value, .tl-secondary-ref").first(),
+    viewportWidth,
+  );
 }
 
 async function assertActor(page: Page) {
   await expect(page.locator(".tl-actor-summary").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open transaction" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open transaction" }).first(),
+  ).toBeVisible();
 }
 
 async function assertEvidence(page: Page) {
-  await expect(page.getByText("What can Threadline prove right now?")).toBeVisible();
+  await expect(
+    page.getByText("What can Threadline prove right now?"),
+  ).toBeVisible();
   await expect(page.getByTestId("evidence-table").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Open proof history" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open proof history" }).first(),
+  ).toBeVisible();
 }
 
 async function assertRedaction(page: Page) {
@@ -177,15 +338,24 @@ async function assertRedaction(page: Page) {
 }
 
 async function assertRetention(page: Page, viewportWidth: number) {
-  await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Run retention prune" }).last()).toBeVisible();
-  await expectResponsiveTable(page.getByTestId("retention-runs-table"), viewportWidth);
+  await expect(
+    page.getByText("What was purged, and did it succeed?"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Run retention prune" }).last(),
+  ).toBeVisible();
+  await expectResponsiveTable(
+    page.getByTestId("retention-runs-table"),
+    viewportWidth,
+  );
 }
 
 async function assertExports(page: Page) {
   await expect(page.getByText("What's ready to hand off?")).toBeVisible();
   await expect(page.getByTestId("export-jobs")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Download export" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Download export" }).first(),
+  ).toBeVisible();
 }
 
 for (const viewport of viewports) {
@@ -195,7 +365,9 @@ for (const viewport of viewports) {
       isMobile: viewport.isMobile,
     });
 
-    test("keeps every operator route usable without root horizontal overflow", async ({ page }) => {
+    test("keeps every operator route usable without root horizontal overflow", async ({
+      page,
+    }) => {
       await login(page);
       const routes = await discoverMatrixRoutes(page);
 
@@ -207,6 +379,58 @@ for (const viewport of viewports) {
           await expectNoHorizontalOverflow(page);
         });
       }
+    });
+
+    test("keeps readable typography and intentional page gutters", async ({
+      page,
+    }) => {
+      await login(page);
+      await page.goto(
+        `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
+      );
+      await expect(page.locator("#filter-correlation-id")).toHaveValue(
+        closeCorrelation,
+      );
+      await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+      await expectAuditHostBody(page);
+      await expectReadableScale(page);
+      await expectPageGutter(
+        page,
+        viewport.name === "phone" ? 8 : viewport.name === "tablet" ? 12 : 16,
+      );
+      await expectNoHorizontalOverflow(page);
+
+      const transactionHref = await page
+        .getByTestId("transaction-link")
+        .first()
+        .getAttribute("href");
+      expect(transactionHref).not.toBeNull();
+      await page.goto(transactionHref!);
+      await expect(
+        page.getByTestId("transaction-change-row").first(),
+      ).toBeVisible();
+      await expectComputedPx(
+        page.locator(".tl-value").first(),
+        "font-size",
+        14,
+      );
+      await expectNoHorizontalOverflow(page);
+
+      await page.goto("/audit/coverage");
+      await expect(page.getByTestId("coverage-table")).toBeVisible();
+      await expectCompactTableDensity(page);
+      await expectPageGutter(
+        page,
+        viewport.name === "phone" ? 8 : viewport.name === "tablet" ? 12 : 16,
+      );
+      await expectNoHorizontalOverflow(page);
+    });
+
+    test("keeps non-audit demo pages in the host shell", async ({ page }) => {
+      await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
+      await expect(page.locator("#login_form")).toBeVisible();
+      await expectDemoHostShell(page);
+      await expectNoHorizontalOverflow(page);
     });
   });
 }

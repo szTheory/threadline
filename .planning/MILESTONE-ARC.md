@@ -1,12 +1,14 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-05-29 (milestone v1.30 shipped)
-**Active milestone:** **Hold**
-**Next ranked candidate:** **Hold** after v1.30; **v1.28** when sustained real-adopter signal exists
+**Updated:** 2026-06-06 (milestone v1.34 opened)
+**Active milestone:** **v1.34 Local Docker Admin UI DX**
+**Next ranked candidate:** **Hold** after v1.34; **v1.28** when sustained real-adopter signal exists
 
 ## Strategic thesis
 
 With v1.29 shipped, first-hour parity and verify/planning hygiene wedge is closed (README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125, SUMMARY SSOT). The library is **~92–95% done** for its stated narrow audit-platform scope (band: near-done / diminishing returns).
+
+v1.34 is a local maintainer DX exception to the product hold posture: harden the Docker-backed `/audit` demo so multiple local admin UIs can run without port, cache, or cleanup friction. It does not reopen product scope, public brand rollout, compliance expansion, or external-pilot work.
 
 The v1.22 **real-adopter-first** rule re-engages on first sustained external signal (see PROJECT.md Key Decisions). **No adopter signal today** — do not open v1.28. Default: **hold**; stop building synthetic product milestones.
 
@@ -23,6 +25,7 @@ The v1.22 **real-adopter-first** rule re-engages on first sustained external sig
 | 13 | Hex 0.6.0 publish | **Shipped (v1.27)** | hex.pm 0.6.0 aligned with in-repo semver |
 | 14 | First-hour parity & verify hygiene | **Shipped (v1.29)** | README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125 — last synthetic pass before hold |
 | 15 | Adoption evidence automation | **In progress (v1.30)** | ConnCase §5, Track A golden path, Playwright gaps — automation debt on existing demo fiction |
+| 16 | Local Docker Admin UI DX | **Active (v1.34)** | Make the existing `/audit` demo easy to start, refresh, inspect, stop, and run beside other local Docker projects |
 
 ## Arc order
 
@@ -33,6 +36,7 @@ The v1.22 **real-adopter-first** rule re-engages on first sustained external sig
 | v1.28 | **queued (signal-gated)** | External Pilot | First sustained real-adopter signal. | Concrete host blockers; STG truth. | Synthetic walkthrough v2; compliance expansion. |
 | v1.29 | **shipped** | First-Hour Parity & Verify Hygiene | Last adopter-facing doc footguns post-v1.27. | README/quick-path parity; WALKTHROUGH truth; Nyquist 125. | New product surface; pilot pretense. |
 | v1.30 | **in progress** | Adoption Evidence Automation | Close WALKTHROUGH §5 + LiveView E2E gaps on existing demo. | Full §1–§5 CI proof; evaluator playbook. | Walkthrough v2; new domain; host STG pretense. |
+| v1.34 | **active** | Local Docker Admin UI DX | Multiple local Elixir library demos make port conflicts, stale containers, and rebuild costs painful. | One-command `/audit` demo; project-scoped stacks; printed routes; clearer cleanup. | Traefik default; product UI changes; public brand rollout. |
 
 ## Path to done
 

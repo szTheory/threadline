@@ -21,6 +21,8 @@ defmodule Mix.Tasks.Threadline.Install do
 
   @impl Mix.Task
   def run(_args) do
+    Mix.Task.run("app.config", [])
+
     path = migrations_path()
     File.mkdir_p!(path)
 

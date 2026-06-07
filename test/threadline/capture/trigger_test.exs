@@ -107,7 +107,7 @@ defmodule Threadline.Capture.TriggerTest do
     initial_count = Repo.aggregate(AuditChange, :count)
 
     Repo.query!("""
-    INSERT INTO audit_transactions (id, txid, occurred_at)
+    INSERT INTO threadline.audit_transactions (id, txid, occurred_at)
     VALUES (gen_random_uuid(), txid_current() + 9999999, now())
     """)
 

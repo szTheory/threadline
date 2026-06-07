@@ -9,6 +9,7 @@ defmodule Threadline do
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.Investigation
+  alias Threadline.StorageSchema
 
   @doc """
   Records a semantic audit action.
@@ -46,7 +47,7 @@ defmodule Threadline do
            {:ok, validated_ref} <- validate_actor(actor_ref) do
         attrs = build_attrs(name, validated_ref, opts)
         changeset = AuditAction.changeset(attrs)
-        repo.insert(changeset)
+        repo.insert(changeset, StorageSchema.repo_opts(opts))
       end
 
     case result do
@@ -112,12 +113,14 @@ defmodule Threadline do
   ## Options
 
   - `:table` — string or atom; filters by `table_name`
+  - `:table_schema` — string or atom; filters by captured host table schema
   - `:actor_ref` — `%ActorRef{}`; filters by actor via a JOIN to `audit_transactions`
   - `:from` — `DateTime`; inclusive lower bound on `captured_at`
   - `:to` — `DateTime`; inclusive upper bound on `captured_at`
   - `:correlation_id` — non-empty binary; only changes whose transaction is linked to an
     `audit_actions` row with that correlation id (strict semantics — see `Threadline.Query`).
   - `:repo` — required `Ecto.Repo` module
+  - `:storage_schema` — optional Threadline storage schema override
   """
   def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
 

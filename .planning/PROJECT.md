@@ -10,7 +10,16 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-v1.33 is shipped and archived. Threadline has an approved source brandbook direction, a light-surface primary logo role for README/GitHub/light docs, and final verification evidence for the current brand artifacts before any public rollout begins.
+v1.34 is open. Threadline is hardening the Docker-backed Phoenix operator demo so maintainers can start, refresh, inspect, stop, and run the admin UI alongside other local Docker projects without port or cache friction.
+
+## Current Milestone: v1.34 Local Docker Admin UI DX
+
+**Goal:** Make the Docker-backed Phoenix operator demo easy to start, refresh, inspect, stop, and run alongside other local Docker projects without port or cache pain.
+
+**Target features:**
+- Canonical `bin/demo-up` entrypoint for the seeded `/audit` demo.
+- Conflict-resistant Compose project names, localhost-bound ports, readiness checks, and lifecycle commands.
+- Reader-first Docker DX docs that explain routes, credentials, cleanup, cache behavior, and why subdomain proxying is deferred.
 
 ## Latest Milestone Shipped: v1.33 Brand Review + Direction Selection (2026-06-06)
 
@@ -25,7 +34,7 @@ v1.33 is shipped and archived. Threadline has an approved source brandbook direc
 
 **Archives:** `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`, `.planning/milestones/v1.33-MILESTONE-AUDIT.md`, `.planning/milestones/v1.33-phases/`
 
-**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements. Candidate follow-ups remain root README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review.
+**Next milestone goals:** Superseded by v1.34 Local Docker Admin UI DX. Public README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review remain deferred.
 
 ## Prior shipped milestone: v1.32 Brand System Foundation (2026-06-05)
 
@@ -437,12 +446,15 @@ v1.33 is shipped and archived. Threadline has an approved source brandbook direc
 
 ### Active
 
-- [x] **REVIEW-PACKET-01**: User can inspect the existing `brandbook/` HTML, logo assets, visual specimens, token files, and copy guidance through a concise review packet before any public rollout is selected.
-- [x] **REVIEW-DECISION-01**: User can choose whether the current brand direction is accepted, needs targeted revisions, needs alternate concepts, or should be deferred before rollout work starts.
-- [x] **README-FIT-01**: Review evaluates the brand direction against README/GitHub as the primary deciding surface rather than a generic marketing-site standard.
-- [x] **LOGO-LIGHT-01**: The logo system includes a primary light-background lockup for README/GitHub/light docs so the dark-surface primary logo is not forced onto white backgrounds.
-- [x] **REVISION-01**: Any approved changes are limited to material issues in logo legibility, favicon clarity, README/GitHub fit, social-card balance, copy specificity, token consistency, or accessibility.
-- [x] **BRAND-QA-02**: Final review or revision pass verifies JSON parsing, SVG parsing, direct-open HTML rendering, desktop/mobile screenshots, file-type boundaries, and file-size discipline after the last change.
+- [x] **DX-DEMO-01**: Maintainer can start the seeded Phoenix `/audit` demo with one command from the repository root.
+- [x] **DX-DEMO-02**: Demo startup prints the Compose project name, sign-in credentials, key admin UI URLs, and matching lifecycle commands.
+- [x] **DX-DEMO-03**: Re-running the helper refreshes the same stack instead of creating a duplicate or silently changing the browser URL.
+- [x] **DX-PORT-01**: The first demo uses friendly defaults, and occupied host ports are detected with safe alternate ports selected automatically.
+- [x] **DX-PORT-02**: Multiple Threadline checkouts or adjacent Docker projects can run without sharing containers, networks, volumes, or host ports accidentally.
+- [x] **DX-CLEAN-01**: Maintainers have explicit `status`, `logs`, `down`, and `fresh` flows that are Compose-profile aware.
+- [x] **DX-CACHE-01**: Dockerfile and Compose behavior preserve dependency/build caches for ordinary source/style edits where practical.
+- [x] **DX-DOC-01**: Local Docker docs explain the shortest successful path first, then the project-name/port model, cleanup, troubleshooting, and reader-specific workflows.
+- [x] **DX-PROXY-01**: Documentation records that Traefik/subdomain routing is deferred, rejects `.dev` for HTTP local demos, and names `.localhost` as the future-safe hostname family if proxy mode is later added.
 
 ### Out of Scope
 
@@ -528,6 +540,7 @@ v1.33 is shipped and archived. Threadline has an approved source brandbook direc
 | v1.29 is the last optional synthetic hygiene pass before hold | First-hour doc parity + Nyquist 125 + WALKTHROUGH truth close adopter-facing footguns without pilot pretense or product expansion. | ✓ Shipped (Phases 128–130.1, v1.29, 2026-05-29) |
 | README/GitHub is the deciding surface for brand readiness | The brand can support future landing pages and HexDocs, but OSS adopter trust starts in the repository. Light-surface logo usability is therefore a real requirement, while public rollout remains separate work. | ✓ Shipped (v1.33, 2026-06-06) |
 | Brandbook artifacts should present current brand truth, not process history | Planning history belongs in `.planning/`; public-facing source artifacts should read as settled guidance unless a future milestone deliberately reopens the direction. | ✓ Shipped (v1.33, 2026-06-06) |
+| v1.34 uses helper-first dynamic localhost ports, not Traefik, for local demo access | `bin/demo-up` gives the best one-command DX without a shared reverse-proxy dependency, Docker socket exposure, port 80/443 ownership, mkcert state, or cross-project naming policy. Traefik can be reconsidered later as an optional shared-proxy integration using `.localhost`, not `.dev`. | — Active (v1.34, 2026-06-06) |
 
 ## Evolution
 
@@ -549,4 +562,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-06 after v1.33 milestone archive*
+*Last updated: 2026-06-06 after v1.34 milestone open*

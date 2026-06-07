@@ -28,9 +28,16 @@
    DB_PORT=5433 mix ci.all
    ```
 
-   **Multiple Threadline worktrees or other Docker demos:** give each stack a
-   project name and unique host ports so containers, networks, volumes, and
-   published ports do not collide:
+   **Multiple Threadline worktrees or other Docker demos:** use the Phoenix demo
+   helper when you want the full UI stack. It derives a project name, searches
+   for free ports, and prints the URLs plus cleanup command:
+
+   ```bash
+   bin/demo-up
+   ```
+
+   For Postgres-only test stacks, give each stack a project name and unique host
+   port so containers, networks, volumes, and published ports do not collide:
 
    ```bash
    COMPOSE_PROJECT_NAME=threadline-ui-polish THREADLINE_DB_PORT=5434 docker compose up -d
@@ -38,9 +45,10 @@
    ```
 
    See [`.env.example`](.env.example) for the full set of local Docker
-   overrides. Normal cleanup is `docker compose down --remove-orphans`; use
-   `docker compose down --remove-orphans -v` only when you intentionally want to
-   delete Compose volumes.
+   overrides. Normal cleanup is `COMPOSE_PROJECT_NAME=<name> docker compose down
+   --remove-orphans`; use `docker compose down --remove-orphans -v` only when
+   you intentionally want to delete Compose volumes. For the full local Docker
+   mental model, read [`guides/local-docker-dx.md`](guides/local-docker-dx.md).
 
 4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, compile strict, tests, Threadline trigger coverage, doc contract tests) runs in the **test** environment and picks up `config/test.exs`.
 

@@ -24,7 +24,9 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       evidence_conn =
         admin_conn()
-        |> get(~p"/audit/evidence?#{%{subject: "retention_run", subject_ref_json: Jason.encode!(subject_ref)}}")
+        |> get(
+          ~p"/audit/evidence?#{%{subject: "retention_run", subject_ref_json: Jason.encode!(subject_ref)}}"
+        )
 
       html = html_response(evidence_conn, 200)
       assert html =~ "retention_run"
@@ -47,7 +49,9 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       evidence_conn =
         admin_conn()
-        |> get(~p"/audit/evidence?#{%{subject: "redaction_policy", subject_ref_json: Jason.encode!(policy_ref)}}")
+        |> get(
+          ~p"/audit/evidence?#{%{subject: "redaction_policy", subject_ref_json: Jason.encode!(policy_ref)}}"
+        )
 
       html = html_response(evidence_conn, 200)
       assert html =~ "redaction_policy"
@@ -80,7 +84,9 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       evidence_conn =
         admin_conn()
-        |> get(~p"/audit/evidence?#{%{subject: "trigger_coverage", subject_ref_json: Jason.encode!(snapshot_ref)}}")
+        |> get(
+          ~p"/audit/evidence?#{%{subject: "trigger_coverage", subject_ref_json: Jason.encode!(snapshot_ref)}}"
+        )
 
       evidence_html = html_response(evidence_conn, 200)
       assert evidence_html =~ "trigger_coverage"

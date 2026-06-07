@@ -18,6 +18,12 @@ You are a **maintainer** running the Phase 109 observe-only dry-run. Do not trea
 
 Optional: from the repository root, `docker compose up -d postgres` publishes Postgres on port **5433** by default. Set `DB_HOST` / `DB_PORT` to match your environment.
 
+For the full Docker demo, run `bin/demo-up` from the repository root. It prints
+the actual host/port and key `/audit` URLs; examples below use
+`http://localhost:4000` as the default when that port is free. For port
+conflicts, optional `threadline.localhost` proxy mode, and cleanup, use the
+[Local Docker DX guide](../../guides/local-docker-dx.md).
+
 ### Row history URLs
 
 Guide shorthand `/audit/rows/:table/:pk` describes the **operator question**; the **shipped route** is transaction-scoped: `/audit/transactions/:id/history/:table/:record_id` (slide-over via **History** on a change row).

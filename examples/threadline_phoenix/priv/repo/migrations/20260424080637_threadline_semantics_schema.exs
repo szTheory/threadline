@@ -2,8 +2,10 @@ defmodule ThreadlineSemanticsMigration do
   use Ecto.Migration
 
   def up do
+    execute("CREATE SCHEMA IF NOT EXISTS threadline")
+
     execute("""
-    CREATE TABLE IF NOT EXISTS audit_actions (
+    CREATE TABLE IF NOT EXISTS threadline.audit_actions (
       id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
       name           text        NOT NULL,
       actor_ref      jsonb       NOT NULL,
@@ -21,29 +23,29 @@ defmodule ThreadlineSemanticsMigration do
 
     execute("""
     CREATE INDEX IF NOT EXISTS audit_actions_actor_ref_idx
-      ON audit_actions USING GIN (actor_ref)
+      ON threadline.audit_actions USING GIN (actor_ref)
     """)
 
     execute("""
     CREATE INDEX IF NOT EXISTS audit_actions_inserted_at_idx
-      ON audit_actions (inserted_at)
+      ON threadline.audit_actions (inserted_at)
     """)
 
     execute("""
     CREATE INDEX IF NOT EXISTS audit_actions_name_idx
-      ON audit_actions (name)
+      ON threadline.audit_actions (name)
     """)
 
     execute("""
-    ALTER TABLE audit_transactions
+    ALTER TABLE threadline.audit_transactions
       ADD COLUMN IF NOT EXISTS actor_ref jsonb,
-      ADD COLUMN IF NOT EXISTS action_id uuid REFERENCES audit_actions(id) ON DELETE SET NULL
+      ADD COLUMN IF NOT EXISTS action_id uuid REFERENCES threadline.audit_actions(id) ON DELETE SET NULL
     """)
   end
 
   def down do
-    execute("ALTER TABLE audit_transactions DROP COLUMN IF EXISTS action_id")
-    execute("ALTER TABLE audit_transactions DROP COLUMN IF EXISTS actor_ref")
-    execute("DROP TABLE IF EXISTS audit_actions")
+    execute("ALTER TABLE threadline.audit_transactions DROP COLUMN IF EXISTS action_id")
+    execute("ALTER TABLE threadline.audit_transactions DROP COLUMN IF EXISTS actor_ref")
+    execute("DROP TABLE IF EXISTS threadline.audit_actions")
   end
 end

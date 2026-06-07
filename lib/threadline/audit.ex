@@ -61,6 +61,7 @@ defmodule Threadline.Audit do
 
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.{ActorRef, AuditAction, AuditContext}
+  alias Threadline.StorageSchema
 
   @type action_opt :: atom() | {atom(), keyword()}
 
@@ -224,7 +225,8 @@ defmodule Threadline.Audit do
     {count, _} =
       repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-        set: [meta: transaction_meta]
+        [set: [meta: transaction_meta]],
+        StorageSchema.repo_opts()
       )
 
     if count == 1, do: :ok, else: {:error, :missing_audit_transaction_for_link}
@@ -234,7 +236,8 @@ defmodule Threadline.Audit do
     {count, _} =
       repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-        set: [action_id: action_id, meta: transaction_meta]
+        [set: [action_id: action_id, meta: transaction_meta]],
+        StorageSchema.repo_opts()
       )
 
     if count == 1 do
@@ -245,12 +248,13 @@ defmodule Threadline.Audit do
   end
 
   defp fetch_audit_transaction_id(repo) do
-    case repo.one(
-           from(at in AuditTransaction,
-             where: at.txid == fragment("txid_current()"),
-             select: at.id
-           )
-         ) do
+    query =
+      from(at in AuditTransaction,
+        where: at.txid == fragment("txid_current()"),
+        select: at.id
+      )
+
+    case repo.one(query, StorageSchema.repo_opts()) do
       nil -> {:ok, nil}
       id -> {:ok, id}
     end

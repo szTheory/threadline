@@ -10,13 +10,13 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
 
   ## Allowed URL keys
 
-      from, to, table, actor_kind, actor_id, correlation_id
+      from, to, table_schema, table, actor_kind, actor_id, correlation_id
 
   Mapping to filter keys:
 
   - `from`/`to` — ISO-8601 datetime-local (16-char form `YYYY-MM-DDTHH:MM` is
     padded to `:00Z`; 19-char form `YYYY-MM-DDTHH:MM:SS` is padded to `Z`).
-  - `table` — passed through verbatim.
+  - `table_schema` / `table` — passed through verbatim.
   - `actor_kind` + `actor_id` — collapsed to a single `actor_ref:
     %Threadline.Semantics.ActorRef{}` keyword. `actor_kind=anonymous` strips
     `actor_id`. Other kinds require both fields.
@@ -45,6 +45,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
   @filter_key_atoms %{
     "from" => :from,
     "to" => :to,
+    "table_schema" => :table_schema,
     "table" => :table,
     "actor_kind" => :actor_kind,
     "actor_id" => :actor_id,
@@ -78,6 +79,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
     raw = %{
       "from" => params["from"] || "",
       "to" => params["to"] || "",
+      "table_schema" => params["table_schema"] || "",
       "table" => params["table"] || "",
       "actor_kind" => params["actor_kind"] || "",
       "actor_id" => params["actor_id"] || "",
@@ -93,7 +95,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
   # Canonical key order for query-string rendering. Shared by TimelineLive
   # (self-patches, saved-view apply) and StartLive (Home recent/saved fast-path)
   # so every surface produces byte-identical timeline URLs from a raw filter map.
-  @canonical_key_order ~w(from to table actor_kind actor_id correlation_id)
+  @canonical_key_order ~w(from to table_schema table actor_kind actor_id correlation_id)
 
   @doc """
   Builds the canonical, deterministically-ordered query string for a string-keyed

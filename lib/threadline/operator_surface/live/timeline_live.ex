@@ -8,6 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
+    alias Threadline.StorageSchema
 
     @page_size 50
     @default_window_hours 24
@@ -42,7 +43,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             from(v in Threadline.Governance.SavedView,
               where: v.actor_ref == ^actor_ref,
               order_by: [desc: v.inserted_at]
-            )
+            ),
+            StorageSchema.repo_opts()
           )
         else
           []
@@ -197,7 +199,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         changeset = Threadline.Governance.SavedView.changeset(attrs)
 
-        case socket.assigns.repo.insert(changeset) do
+        case socket.assigns.repo.insert(changeset, StorageSchema.repo_opts()) do
           {:ok, view} ->
             saved_views = [view | socket.assigns.saved_views]
             {:noreply, assign(socket, :saved_views, saved_views)}
@@ -227,7 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, socket}
 
         view ->
-          socket.assigns.repo.delete!(view)
+          socket.assigns.repo.delete!(view, StorageSchema.repo_opts())
           saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
           {:noreply, assign(socket, :saved_views, saved_views)}
       end
@@ -255,7 +257,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: socket.assigns[:threadline_actor_ref]
       }
 
-      job = repo.insert!(job)
+      job = repo.insert!(job, StorageSchema.repo_opts())
 
       adapter =
         Application.get_env(
@@ -283,7 +285,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             error_message: error_message,
             expires_at: terminal_export_expiry()
           })
-          |> repo.update!()
+          |> repo.update!(StorageSchema.repo_opts())
 
           {:noreply, put_flash(socket, :error, error_message)}
       end
@@ -368,9 +370,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
 
           </section>
-        </main>
 
-        <header class="tl-toolbar">
+          <header class="tl-toolbar">
           <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
             <label class="tl-toolbar__field">From
               <input type="datetime-local" name="filter[from]" id="filter-from"
@@ -380,14 +381,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <input type="datetime-local" name="filter[to]" id="filter-to"
                      aria-label="to" value={@filters_raw["to"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
             </label>
-            <label class="tl-toolbar__field">Table
-              <input type="text" list="audited-tables" name="filter[table]" id="filter-table"
-                     aria-label="table" value={@filters_raw["table"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
-              <datalist id="audited-tables">
-                <option :for={name <- @audited_tables} value={name}></option>
-              </datalist>
-            </label>
-            <label class="tl-toolbar__field">Actor kind
+             <label class="tl-toolbar__field">Table
+               <input type="text" list="audited-tables" name="filter[table]" id="filter-table"
+                      aria-label="table" value={@filters_raw["table"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
+               <datalist id="audited-tables">
+                 <option :for={name <- @audited_tables} value={name}></option>
+               </datalist>
+             </label>
+             <label class="tl-toolbar__field">Schema
+               <input type="text" name="filter[table_schema]" id="filter-table-schema"
+                      aria-label="table schema" value={@filters_raw["table_schema"] || ""} phx-debounce="blur" class="tl-toolbar__control" />
+             </label>
+             <label class="tl-toolbar__field">Actor kind
               <select name="filter[actor_kind]" id="filter-actor-kind" aria-label="actor kind" class="tl-toolbar__control">
                 <option value="">Any kind</option>
                 <option :for={k <- ~w(user admin service_account job system anonymous)}
@@ -541,6 +546,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <strong>PACKAGE</strong> queue or download the current export
           </p>
         </aside>
+        </main>
       </div>
       """
     end

@@ -31,14 +31,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           --tl-font-family: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           --tl-font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-          --tl-font-size-xs: 11px;
-          --tl-font-size-sm: 12px;
-          --tl-font-size-body: 14px;
-          --tl-font-size-label: 12px;
-          --tl-font-size-ui: 13px;
-          --tl-font-size-heading: 18px;
-          --tl-font-size-title: 22px;
-          --tl-font-size-display: 28px;
+          --tl-font-size-xs: 12px;
+          --tl-font-size-sm: 13px;
+          --tl-font-size-dense: 13px;
+          --tl-font-size-body: 16px;
+          --tl-font-size-label: 14px;
+          --tl-font-size-ui: 15px;
+          --tl-font-size-heading: 20px;
+          --tl-font-size-title: 24px;
+          --tl-font-size-display: 32px;
           --tl-line-body: 1.5;
           --tl-line-label: 1.4;
           --tl-line-heading: 1.2;
@@ -127,6 +128,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-z-toast: 60;
           --tl-header-height: 44px;
           --tl-header-height-mobile: 52px;
+          --tl-brand-mark-size: 24px;
+          --tl-brand-mark-size-desktop: 26px;
           --tl-control-height: 40px;
           --tl-control-height-compact: 32px;
           --tl-control-height-chip: 24px;
@@ -151,7 +154,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-gap-stack: var(--tl-space-4);
           --tl-pad-control: var(--tl-space-3);
           --tl-pad-panel: var(--tl-space-4);
-          --tl-pad-page: var(--tl-space-6);
+          --tl-pad-page: var(--tl-space-4);
           --tl-motion-fast: 120ms;
           --tl-motion-base: 180ms;
           --tl-motion-slow: 240ms;
@@ -256,10 +259,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           overflow-wrap: anywhere;
         }
 
+        .threadline-ui {
+          min-height: 100vh;
+        }
+
         .tl-topbar {
           position: sticky;
           top: 0;
-          z-index: var(--tl-z-header);
+          z-index: var(--tl-z-toast);
           min-height: var(--tl-header-height-mobile);
           display: flex;
           flex-wrap: wrap;
@@ -275,10 +282,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-topbar__brand {
           display: inline-flex;
           align-items: center;
+          flex: 0 0 auto;
+          gap: var(--tl-space-2);
           min-height: 32px;
           color: var(--tl-color-text);
           font-weight: var(--tl-weight-strong);
           letter-spacing: 0;
+          line-height: var(--tl-line-label);
           text-decoration: none;
           white-space: nowrap;
         }
@@ -288,85 +298,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-topbar__nav {
-          display: flex;
-          order: 2;
-          flex: 1 1 auto;
-          align-items: center;
-          gap: var(--tl-space-2);
-          min-width: 0;
-          overflow-x: auto;
-          scrollbar-width: none;
+        .tl-topbar__brand-mark {
+          display: block;
+          width: var(--tl-brand-mark-size);
+          height: var(--tl-brand-mark-size);
+          flex: 0 0 var(--tl-brand-mark-size);
         }
 
-        .tl-topbar__nav::-webkit-scrollbar {
-          display: none;
-        }
-
-        .tl-topbar__nav-group {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--tl-space-1);
-          min-width: max-content;
-        }
-
-        .tl-topbar__nav-group + .tl-topbar__nav-group {
-          padding-left: var(--tl-space-2);
-          border-left: 1px solid var(--tl-color-border);
-        }
-
-        .tl-topbar__nav-label {
-          display: inline-flex;
-          align-items: center;
-          padding: 0 var(--tl-space-1);
-          color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-strong);
-          text-transform: uppercase;
-          white-space: nowrap;
-        }
-
-        .tl-topbar__nav-handoff {
-          display: inline-flex;
-          align-items: center;
-          min-width: max-content;
-          margin-left: var(--tl-space-1);
-          padding-left: var(--tl-space-2);
-          border-left: 1px solid var(--tl-color-accent-border);
-        }
-
-        /* `.tl-topbar` prefix raises specificity above the scoped `.threadline-ui a`
-           link color so inactive nav items read as muted tabs, not active links. */
-        .tl-topbar .tl-topbar__nav-item {
-          display: inline-flex;
-          align-items: center;
-          min-height: var(--tl-hit-area);
-          padding: var(--tl-space-1) var(--tl-space-3);
-          border: 1px solid transparent;
-          border-radius: var(--tl-radius-md);
-          color: var(--tl-color-muted);
-          font-weight: var(--tl-weight-medium);
-          text-decoration: none;
-          white-space: nowrap;
-          transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast), border-color var(--tl-transition-fast), box-shadow var(--tl-transition-fast);
-        }
-
-        .tl-topbar .tl-topbar__nav-item:hover {
-          background: var(--tl-color-surface-hover);
-          border-color: var(--tl-color-border);
-          color: var(--tl-color-text);
-          text-decoration: none;
-        }
-
-        /* Selected state: ARIA attribute is the styling hook (single source of
-         * truth with accessibility); the --active class is a retained alias. */
-        .tl-topbar .tl-topbar__nav-item--active,
-        .tl-topbar .tl-topbar__nav-item[aria-current="page"] {
-          background: var(--tl-color-accent-soft);
-          color: var(--tl-color-accent-strong);
-          border-color: var(--tl-color-accent-border);
-          font-weight: var(--tl-weight-strong);
-          box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);
+        .tl-topbar__brand-text {
+          display: inline-block;
         }
 
         .tl-topbar__status .tl-chip {
@@ -378,10 +318,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-topbar__status {
           display: flex;
-          order: 3;
-          flex-basis: 100%;
+          flex: 1 1 auto;
           align-items: center;
+          justify-content: flex-end;
           gap: var(--tl-space-2);
+          min-width: 0;
           white-space: nowrap;
         }
 
@@ -389,6 +330,119 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-xs);
           font-variant-numeric: tabular-nums;
+        }
+
+        .tl-shell-nav__control {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          clip-path: inset(50%);
+          white-space: nowrap;
+        }
+
+        .tl-shell-nav {
+          position: sticky;
+          top: var(--tl-header-height-mobile);
+          z-index: calc(var(--tl-z-toast) - 1);
+          background: var(--tl-color-surface-tint);
+          border-bottom: 1px solid var(--tl-color-border);
+          font-size: var(--tl-font-size-label);
+        }
+
+        .tl-shell-nav__toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: var(--tl-hit-area);
+          padding: var(--tl-space-2) var(--tl-space-3);
+          color: var(--tl-color-text);
+          cursor: pointer;
+          font-weight: var(--tl-weight-strong);
+          list-style: none;
+        }
+
+        .tl-shell-nav__toggle::-webkit-details-marker {
+          display: none;
+        }
+
+        .tl-shell-nav__toggle::after {
+          content: "";
+          width: var(--tl-chevron-size);
+          height: var(--tl-chevron-size);
+          border-right: var(--tl-chevron-stroke) solid var(--tl-color-muted);
+          border-bottom: var(--tl-chevron-stroke) solid var(--tl-color-muted);
+          transform: rotate(45deg);
+          transition: transform var(--tl-transition-fast);
+        }
+
+        .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__toggle::after {
+          transform: rotate(225deg);
+        }
+
+        .tl-shell-nav__panel {
+          display: none;
+          gap: var(--tl-space-3);
+          padding: 0 var(--tl-space-3) var(--tl-space-3);
+          background: var(--tl-color-surface-tint);
+          border-top: 1px solid var(--tl-color-border);
+        }
+
+        .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel {
+          display: grid;
+        }
+
+        .tl-shell-nav__control:focus-visible + .tl-shell-nav .tl-shell-nav__toggle {
+          outline: 2px solid var(--tl-color-focus);
+          outline-offset: 2px;
+        }
+
+        .tl-shell-nav__group {
+          display: grid;
+          gap: var(--tl-space-1);
+          min-width: 0;
+        }
+
+        .tl-shell-nav__label {
+          margin: 0;
+          padding: var(--tl-space-2) var(--tl-space-1) var(--tl-space-1);
+          color: var(--tl-color-muted);
+          font-family: var(--tl-font-mono);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          letter-spacing: var(--tl-tracking-caps);
+          line-height: var(--tl-line-label);
+          text-transform: uppercase;
+        }
+
+        .threadline-ui .tl-shell-nav__item {
+          display: flex;
+          align-items: center;
+          min-height: var(--tl-hit-area);
+          padding: var(--tl-space-2) var(--tl-space-3);
+          border: 1px solid transparent;
+          border-radius: var(--tl-radius-md);
+          color: var(--tl-color-muted);
+          font-weight: var(--tl-weight-medium);
+          text-decoration: none;
+          transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast), border-color var(--tl-transition-fast), box-shadow var(--tl-transition-fast);
+        }
+
+        .threadline-ui .tl-shell-nav__item:hover {
+          background: var(--tl-color-surface-hover);
+          border-color: var(--tl-color-border);
+          color: var(--tl-color-text);
+          text-decoration: none;
+        }
+
+        .threadline-ui .tl-shell-nav__item--active,
+        .threadline-ui .tl-shell-nav__item[aria-current="page"] {
+          background: var(--tl-color-accent-soft);
+          border-color: var(--tl-color-accent-border);
+          box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);
+          color: var(--tl-color-accent-strong);
+          font-weight: var(--tl-weight-strong);
         }
 
         /* Phone-proof base: 375px acceptance viewport. Tablet and desktop layers
@@ -498,12 +552,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-home__card-kicker {
-          font-family: var(--tl-font-mono);
+          display: inline-flex;
+          align-items: center;
+          min-height: var(--tl-control-height-compact);
+          padding: 0 var(--tl-space-2);
+          border: 1px solid var(--tl-color-accent-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-accent-soft);
           font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-medium);
-          letter-spacing: var(--tl-tracking-caps);
-          text-transform: uppercase;
-          color: var(--tl-color-signal);
+          font-weight: var(--tl-weight-strong);
+          line-height: var(--tl-line-label);
+          color: var(--tl-color-accent-strong);
         }
 
         .tl-home__card-title {
@@ -1554,6 +1613,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-table--compact td {
           padding-top: var(--tl-row-padding-compact);
           padding-bottom: var(--tl-row-padding-compact);
+          font-size: var(--tl-font-size-dense);
         }
 
         .tl-table--sticky thead th {
@@ -1572,6 +1632,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           overflow-wrap: anywhere;
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-label);
+        }
+
+        .tl-table--compact .tl-table__code,
+        .tl-table--compact code {
+          font-size: var(--tl-font-size-dense);
         }
 
         .tl-table__date,
@@ -2621,15 +2686,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
         @media (min-width: 768px) {
+          .threadline-ui {
+            display: grid;
+            grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);
+            grid-template-rows: auto 1fr;
+          }
+
+          .tl-topbar {
+            grid-column: 1 / -1;
+          }
+
+          .tl-shell-nav {
+            grid-column: 1;
+            grid-row: 2;
+            top: var(--tl-header-height-mobile);
+            align-self: start;
+            height: calc(100vh - var(--tl-header-height-mobile));
+            overflow: auto;
+            border-right: 1px solid var(--tl-color-border);
+            border-bottom: 0;
+          }
+
+          .tl-shell-nav__toggle {
+            display: none;
+          }
+
+          .tl-shell-nav__panel,
+          .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel {
+            display: grid;
+            padding: var(--tl-space-4) var(--tl-space-3);
+            border-top: 0;
+          }
+
           .tl-page {
+            grid-column: 2;
+            grid-row: 2;
+            min-width: 0;
             padding: var(--tl-space-3);
+          }
+
+          .threadline-ui > :not(.tl-skip-link):not(.tl-topbar):not(.tl-shell-nav):not(.tl-shell-nav__control) {
+            grid-column: 2;
+            min-width: 0;
           }
 
           .tl-home__headline {
             font-size: var(--tl-font-size-display);
           }
 
-          .tl-topbar .tl-topbar__nav-item {
+          .threadline-ui .tl-shell-nav__item {
             min-height: var(--tl-control-height-compact);
           }
 
@@ -2726,17 +2831,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             padding: var(--tl-space-1) var(--tl-space-4);
           }
 
-          .tl-topbar__nav {
-            order: 0;
+          .tl-topbar__brand-mark {
+            width: var(--tl-brand-mark-size-desktop);
+            height: var(--tl-brand-mark-size-desktop);
+            flex-basis: var(--tl-brand-mark-size-desktop);
+          }
+
+          .tl-shell-nav {
+            top: var(--tl-header-height);
+            height: calc(100vh - var(--tl-header-height));
           }
 
           .tl-topbar__status {
-            order: 0;
             flex-basis: auto;
-          }
-
-          .tl-topbar__nav-label {
-            display: inline;
           }
 
           .tl-topbar__status .tl-chip {

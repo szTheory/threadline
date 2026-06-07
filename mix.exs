@@ -230,6 +230,7 @@ defmodule Threadline.MixProject do
         "guides/adoption-pilot-backlog.md",
         "guides/adoption-evidence-playbook.md",
         "guides/evaluating-threadline.md",
+        "guides/local-docker-dx.md",
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",
         "guides/integrations/phx-gen-auth.md",

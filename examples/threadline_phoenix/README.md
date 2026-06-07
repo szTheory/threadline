@@ -2,37 +2,66 @@
 
 Canonical **path-dependent** Phoenix reference app for the [`threadline`](https://github.com/szTheory/threadline) library. Treat the install, run, test, and reconstruction commands in this document as the runnable example contract.
 
-## 🚀 Quick Start (Zero-Friction Docker Demo)
+## Quick Start: Docker Demo
 
-Want to see the Operator Surface and click around realistic walkthrough data immediately? You can spin up the entire demo environment (app, PostgreSQL, and seeded data) with a single command from the **repository root**:
+Want to see the Operator Surface with realistic walkthrough data already loaded?
+Start here. From the **repository root**:
 
 ```bash
-# Run from the repository root (two levels up)
-docker compose --profile demo up demo --build
+bin/demo-up
 ```
 
-The app will be available at **http://localhost:4000**.
-Sign in with the seeded cross-org admin credentials:
+What happens:
+
+- Docker starts PostgreSQL and the Phoenix demo.
+- The app creates/migrates the database and loads walkthrough data.
+- The helper prints the exact browser URLs, project name, and lifecycle
+  commands.
+- If another local project already owns port `4000`, the helper picks another
+  port and prints that URL.
+- If this checkout's demo is already running, rerunning `bin/demo-up` refreshes
+  the same stack on the same port and waits until `/audit` is ready.
+- The demo does not need a shared local proxy or `.dev` hostname; use the
+  printed localhost URL.
+- If you already run the shared local Traefik proxy, `bin/demo-up --proxy`
+  also publishes `http://threadline.localhost` and prints a fallback port URL.
+
+Open the printed sign-in URL and use:
+
 - **Email:** `admin@example.com`
 - **Password:** `password123456`
 
-*(See [DEMO_USERS.md](DEMO_USERS.md) for other seeded roles like `closer@acme.example.com`)*.
+Then start at `/audit`. Other seeded roles, such as
+`closer@acme.example.com`, are listed in [DEMO_USERS.md](DEMO_USERS.md).
 
-Running multiple UI demos at once? Give each Compose stack a unique project
-name and host ports:
+When you change local code, rerun:
+
+```bash
+bin/demo-up
+```
+
+Then refresh the browser after the helper says the demo is ready. The normal
+refresh reuses the existing demo image; run `bin/demo-up --build` after
+Dockerfile or dependency-manifest changes.
+
+When you are done, stop the demo with:
+
+```bash
+bin/demo-up --down
+```
+
+Use `bin/demo-up --fresh` when you want a full volume reset, rebuild, migration,
+and reseed.
+
+For port conflicts, multiple checkouts, optional `threadline.localhost` proxy
+mode, foreground logs, PgBouncer, and Postgres-only test setup, read the root
+[Local Docker DX guide](../../guides/local-docker-dx.md).
+
+Manual Compose remains available when you want explicit ports:
 
 ```bash
 COMPOSE_PROJECT_NAME=threadline-demo-a THREADLINE_DEMO_PORT=4100 THREADLINE_DB_PORT=5434 \
   docker compose --profile demo up demo --build
-```
-
-Compose keeps service DNS stable inside the stack (`postgres:5432`), while the
-project name isolates containers, networks, and volumes. Local ports are bound
-to `127.0.0.1` by default; see the root [`.env.example`](../../.env.example) for
-all Docker overrides. Normal cleanup is:
-
-```bash
-docker compose down --remove-orphans
 ```
 
 ---
@@ -124,6 +153,10 @@ mix ecto.migrate
    mix ecto.migrate
    ```
 
+   The example uses Threadline's default dedicated storage schema:
+   Threadline-owned tables/functions live under `threadline.*`, while RelayDesk
+   host tables (`tickets`, `users`, `posts`, etc.) remain application-owned.
+
 5. Optional convenience bootstrap — create, migrate, and run neutral **`priv/repo/seeds.exs`** (two posts; not walkthrough fiction):
 
    ```bash
@@ -169,15 +202,17 @@ mix demo.seed
 mix phx.server
 ```
 
-Sign in as **`admin@example.com`** / **`password123456`**, then open:
+Sign in as **`admin@example.com`** / **`password123456`**, then open these paths
+on the host and port printed by `bin/demo-up` or your `mix phx.server` console.
+With the default port, the operator home is `http://localhost:4000/audit`.
 
 | Surface | URL |
 |---------|-----|
-| Operator home (start here) | `http://localhost:4000/audit` |
-| Timeline + correlation filter | `http://localhost:4000/audit/timeline?correlation_id=walk-acme-4521-close` |
-| Evidence plane | `http://localhost:4000/audit/evidence` |
-| Redaction policy drift | `http://localhost:4000/audit/policy/redaction` |
-| Trigger coverage | `http://localhost:4000/audit/coverage` |
+| Operator home (start here) | `/audit` |
+| Timeline + correlation filter | `/audit/timeline?correlation_id=walk-acme-4521-close` |
+| Evidence plane | `/audit/evidence` |
+| Redaction policy drift | `/audit/policy/redaction` |
+| Trigger coverage | `/audit/coverage` |
 
 Automated ConnCase proofs: `walkthrough_happy_path_test.exs`, `walkthrough_evidence_test.exs`, `track_a_golden_path_test.exs`. Optional browser suite: `mix verify.example_browser` from the repo root. See [`../../guides/adoption-evidence-playbook.md`](../../guides/adoption-evidence-playbook.md).
 

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.33
-milestone_name: Brand Review + Direction Selection
-status: Awaiting next milestone
-last_updated: "2026-06-06T05:30:38.193Z"
-last_activity: 2026-06-06 — Milestone v1.33 completed and archived
+milestone: v1.34
+milestone_name: Local Docker Admin UI DX
+status: implementation-complete
+last_updated: "2026-06-06T19:45:56.835Z"
+last_activity: 2026-06-06
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-06)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Awaiting fresh milestone requirements
+**Current focus:** v1.34 Local Docker Admin UI DX
 
 ## Current Position
 
-Phase: Milestone v1.33 complete
+Phase: 154 — Docker DX Audit + Contract
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-06 — Milestone v1.33 archived; phase history moved to `.planning/milestones/v1.33-phases/`
+Status: Implementation complete; awaiting milestone archive
+Last activity: 2026-06-06 — v1.34 Docker demo DX implemented and verified
 
 ## Performance Metrics
 
@@ -83,6 +83,8 @@ Last activity: 2026-06-06 — Milestone v1.33 archived; phase history moved to `
 - **Phase 153 UI-SPEC approved (2026-06-06):** Verification closeout design contract created and checked across copywriting, visuals, color, typography, spacing, and registry safety.
 - **Phase 153 verification and closeout complete (2026-06-06):** Current-tree JSON/SVG/HTML parse, direct-open browser, desktop/mobile screenshots, historical-frame scan, binary exclusion, file inventory, and file-size evidence passed. v1.33 is archive-ready with public rollout and legal/trademark work deferred.
 - **Milestone v1.33 archived (2026-06-06):** Roadmap, requirements, audit, and phase history are archived under `.planning/milestones/`; fresh requirements are needed before public rollout work.
+- **Milestone v1.34 opened (2026-06-06):** Local Docker Admin UI DX focuses on helper-first `bin/demo-up`, localhost-bound dynamic ports, Compose project isolation, cache-friendly Docker behavior, printed `/audit` URLs, lifecycle commands, and docs. Traefik/subdomain routing is deferred; `.localhost` is the future-safe hostname family if proxy support is later added.
+- **v1.34 implementation complete (2026-06-06):** `bin/demo-up` now supports project-aware lifecycle commands, `--build`, no-build refreshes when a project image exists, port validation, optional public host, and clearer failure guidance. Compose/Dockerfile now support an overridable demo base image, bundled Dockerfile frontend, `ca-certificates`, localhost-bound ports, project-scoped volumes, and pinned PgBouncer. Docs cover helper-first DX, multi-stack ports, cleanup, cache behavior, and deferred proxy/subdomain routing.
 
 ### Decisions
 
@@ -112,6 +114,9 @@ Last activity: 2026-06-06 — Milestone v1.33 archived; phase history moved to `
 - [Phase 151]: Targeted revisions selected; alternate logo concepts, public rollout, and runtime UI changes remain out of scope.
 - [Phase 152]: Brandbook-facing artifacts should present current brand truth; process history belongs in `.planning/`.
 - [Phase 153]: Verification closeout UI remains static brandbook evidence only; no runtime UI, registry, component library, build pipeline, or committed raster export batch.
+- [v1.34]: Helper-first dynamic localhost ports are canonical for local demo DX; Traefik is deferred and `.dev` hostnames are rejected for HTTP local demos.
+- [v1.34]: Normal `bin/demo-up` refresh skips image rebuilds when the project image exists; `--build` is explicit for Dockerfile/dependency/base-image changes, and `--fresh` remains the volume-reset path.
+- [v1.34]: Demo Dockerfile uses Docker/BuildKit's bundled frontend and installs `ca-certificates`; the base image is overridable via `THREADLINE_DEMO_BASE_IMAGE`.
 
 ### Blockers
 
@@ -121,10 +126,10 @@ Last activity: 2026-06-06 — Milestone v1.33 archived; phase history moved to `
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Archived v1.33 roadmap, requirements, audit, and phase history (2026-06-06)
-- **Next Step**: Start a fresh milestone with `$gsd-new-milestone`
-- **Resume file**: `.planning/milestones/v1.33-phases/153-verification-closeout/153-VERIFICATION.md`
+- **Last Action**: Implemented and verified v1.34 Local Docker Admin UI DX (2026-06-06)
+- **Next Step**: Archive/close v1.34 when ready
+- **Resume file**: `.planning/ROADMAP.md`
 
 ## Operator Next Steps
 
-- Start the next milestone with `$gsd-new-milestone`.
+- Archive/close v1.34 when ready; the implementation and verification work is complete.

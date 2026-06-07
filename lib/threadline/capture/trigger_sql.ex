@@ -33,13 +33,14 @@ defmodule Threadline.Capture.TriggerSQL do
   """
 
   alias Threadline.Capture.RedactionPolicy
+  alias Threadline.StorageSchema
 
   @doc """
   Returns SQL to create or replace the `threadline_capture_changes()` trigger function.
 
-  The function assumes `audit_transactions` and `audit_changes` tables are accessible
-  via the current `search_path`. `changed_from` is always written as NULL (use
-  `install_function_for_table/2` for opt-in prior values).
+  The function writes to Threadline-owned tables in the configured storage schema.
+  `changed_from` is always written as NULL (use `install_function_for_table/2` for
+  opt-in prior values).
 
   ## Options
 
@@ -57,10 +58,10 @@ defmodule Threadline.Capture.TriggerSQL do
     placeholder = Keyword.get(opts, :mask_placeholder, RedactionPolicy.default_placeholder())
 
     if exclude == [] and mask == [] do
-      global_install_function_sql_legacy()
+      global_install_function_sql_legacy(opts)
     else
       RedactionPolicy.validate!(exclude: exclude, mask: mask, mask_placeholder: placeholder)
-      global_capture_function_sql_redacted(exclude, mask, placeholder)
+      global_capture_function_sql_redacted(exclude, mask, placeholder, opts)
     end
   end
 
@@ -99,7 +100,7 @@ defmodule Threadline.Capture.TriggerSQL do
     placeholder = Keyword.get(opts, :mask_placeholder, RedactionPolicy.default_placeholder())
 
     if exclude == [] and mask == [] do
-      per_table_install_sql_legacy(table_name, except_columns)
+      per_table_install_sql_legacy(table_name, except_columns, opts)
     else
       per_table_install_sql_redacted(
         table_name,
@@ -107,19 +108,20 @@ defmodule Threadline.Capture.TriggerSQL do
         exclude,
         mask,
         placeholder,
-        store_changed_from
+        store_changed_from,
+        opts
       )
     end
   end
 
   @doc "Returns SQL to drop the global trigger function."
-  def drop_function do
-    "DROP FUNCTION IF EXISTS threadline_capture_changes()"
+  def drop_function(opts \\ []) do
+    "DROP FUNCTION IF EXISTS #{StorageSchema.function("threadline_capture_changes", opts)}()"
   end
 
   @doc "Returns SQL to drop a per-table capture function (use after dropping triggers, or with CASCADE)."
-  def drop_function_for_table(table_name) do
-    name = per_table_function_name(table_name)
+  def drop_function_for_table(table_name, opts \\ []) do
+    name = per_table_function_name(table_name, opts)
     "DROP FUNCTION IF EXISTS #{name}() CASCADE"
   end
 
@@ -129,36 +131,47 @@ defmodule Threadline.Capture.TriggerSQL do
   * `:default` — calls `threadline_capture_changes()` (default).
   * `:per_table` — calls `threadline_capture_changes_<table>()` from `install_function_for_table/2`.
   """
-  def create_trigger(table_name, mode \\ :default)
+  def create_trigger(table_name, mode \\ :default, opts \\ [])
 
-  def create_trigger(table_name, :default) do
-    create_trigger_sql(table_name, "threadline_capture_changes()")
+  def create_trigger(table_name, :default, opts) do
+    create_trigger_sql(
+      table_name,
+      "#{StorageSchema.function("threadline_capture_changes", opts)}()"
+    )
   end
 
-  def create_trigger(table_name, :per_table) do
-    fname = per_table_function_name(table_name) <> "()"
+  def create_trigger(table_name, :per_table, opts) do
+    fname = per_table_function_name(table_name, opts) <> "()"
     create_trigger_sql(table_name, fname)
   end
 
   defp create_trigger_sql(table_name, function_invocation) do
+    trigger_name = "threadline_audit_#{StorageSchema.host_table_suffix(table_name)}"
+    host_table = StorageSchema.qualified_host_table(table_name)
+
     """
-    CREATE TRIGGER threadline_audit_#{table_name}
-    AFTER INSERT OR UPDATE OR DELETE ON #{table_name}
+    CREATE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
+    AFTER INSERT OR UPDATE OR DELETE ON #{host_table}
     FOR EACH ROW EXECUTE FUNCTION #{function_invocation}
     """
   end
 
   @doc "Returns SQL to drop a trigger from the given table."
   def drop_trigger(table_name) do
-    "DROP TRIGGER IF EXISTS threadline_audit_#{table_name} ON #{table_name}"
+    trigger_name = "threadline_audit_#{StorageSchema.host_table_suffix(table_name)}"
+    host_table = StorageSchema.qualified_host_table(table_name)
+    "DROP TRIGGER IF EXISTS #{StorageSchema.quote_ident(trigger_name)} ON #{host_table}"
   end
 
-  defp per_table_function_name(table_name), do: "threadline_capture_changes_#{table_name}"
+  defp per_table_function_name(table_name, opts) do
+    function_name = "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
+    StorageSchema.function(function_name, opts)
+  end
 
   # Exact legacy SQL (legacy) when no redaction rules apply.
-  defp global_install_function_sql_legacy do
+  defp global_install_function_sql_legacy(opts) do
     """
-    CREATE OR REPLACE FUNCTION threadline_capture_changes()
+    CREATE OR REPLACE FUNCTION #{StorageSchema.function("threadline_capture_changes", opts)}()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $threadline_trigger$
@@ -169,7 +182,7 @@ defmodule Threadline.Capture.TriggerSQL do
       v_table_pk       jsonb;
       v_changed_fields text[];
     BEGIN
-    #{transaction_capture_begin_sql()}
+    #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
         v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
@@ -193,7 +206,7 @@ defmodule Threadline.Capture.TriggerSQL do
         WHERE  n.value IS DISTINCT FROM o.value;
       END IF;
 
-    #{audit_change_insert_sql_global()}
+    #{audit_change_insert_sql_global(opts)}
 
       IF TG_OP = 'DELETE' THEN
         RETURN OLD;
@@ -204,9 +217,9 @@ defmodule Threadline.Capture.TriggerSQL do
     """
   end
 
-  defp per_table_install_sql_legacy(table_name, except_columns) do
+  defp per_table_install_sql_legacy(table_name, except_columns, opts) do
     except_sql = except_array_sql_fragment(except_columns)
-    fn_name = per_table_function_name(table_name)
+    fn_name = per_table_function_name(table_name, opts)
 
     """
     CREATE OR REPLACE FUNCTION #{fn_name}()
@@ -223,7 +236,7 @@ defmodule Threadline.Capture.TriggerSQL do
     BEGIN
       v_txid := txid_current();
 
-      INSERT INTO audit_transactions (id, txid, occurred_at, actor_ref)
+      INSERT INTO #{StorageSchema.table("audit_transactions", opts)} (id, txid, occurred_at, actor_ref)
       VALUES (
         gen_random_uuid(),
         v_txid,
@@ -233,7 +246,7 @@ defmodule Threadline.Capture.TriggerSQL do
       ON CONFLICT (txid) DO NOTHING;
 
       SELECT id INTO v_tx_id
-      FROM audit_transactions
+      FROM #{StorageSchema.table("audit_transactions", opts)}
       WHERE txid = v_txid;
 
       IF TG_OP = 'DELETE' THEN
@@ -268,7 +281,7 @@ defmodule Threadline.Capture.TriggerSQL do
         END IF;
       END IF;
 
-      INSERT INTO audit_changes (
+      INSERT INTO #{StorageSchema.table("audit_changes", opts)} (
         id, transaction_id, table_schema, table_name,
         table_pk, op, data_after, changed_fields, changed_from, captured_at
       ) VALUES (
@@ -291,10 +304,11 @@ defmodule Threadline.Capture.TriggerSQL do
          exclude,
          mask,
          placeholder,
-         store_changed_from
+         store_changed_from,
+         opts
        ) do
     except_sql = changed_fields_except_array_sql(except_columns, exclude)
-    fn_name = per_table_function_name(table_name)
+    fn_name = per_table_function_name(table_name, opts)
     redact_after_new = data_after_redaction_statements("v_data_after", exclude, mask, placeholder)
     mask_array_sql = mask_array_sql_fragment(mask)
     placeholder_expr = mask_placeholder_sql_expr(placeholder)
@@ -325,7 +339,7 @@ defmodule Threadline.Capture.TriggerSQL do
       v_changed_fields text[];
       v_changed_from   jsonb;
     BEGIN
-    #{transaction_capture_begin_sql()}
+    #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
         v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
@@ -355,7 +369,7 @@ defmodule Threadline.Capture.TriggerSQL do
     #{changed_from_block}
       END IF;
 
-    #{audit_change_insert_sql()}
+    #{audit_change_insert_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
         RETURN OLD;
@@ -366,12 +380,12 @@ defmodule Threadline.Capture.TriggerSQL do
     """
   end
 
-  defp global_capture_function_sql_redacted(exclude, mask, placeholder) do
+  defp global_capture_function_sql_redacted(exclude, mask, placeholder, opts) do
     redact = data_after_redaction_statements("v_data_after", exclude, mask, placeholder)
     except_sql = changed_fields_except_array_sql([], exclude)
 
     """
-    CREATE OR REPLACE FUNCTION threadline_capture_changes()
+    CREATE OR REPLACE FUNCTION #{StorageSchema.function("threadline_capture_changes", opts)}()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $threadline_trigger$
@@ -382,7 +396,7 @@ defmodule Threadline.Capture.TriggerSQL do
       v_table_pk       jsonb;
       v_changed_fields text[];
     BEGIN
-    #{transaction_capture_begin_sql()}
+    #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
         v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
@@ -409,7 +423,7 @@ defmodule Threadline.Capture.TriggerSQL do
         AND NOT (n.key = ANY(#{except_sql}));
       END IF;
 
-    #{audit_change_insert_sql_global()}
+    #{audit_change_insert_sql_global(opts)}
 
       IF TG_OP = 'DELETE' THEN
         RETURN OLD;
@@ -420,7 +434,7 @@ defmodule Threadline.Capture.TriggerSQL do
     """
   end
 
-  defp transaction_capture_begin_sql do
+  defp transaction_capture_begin_sql(opts) do
     """
       v_txid := txid_current();
 
@@ -428,7 +442,7 @@ defmodule Threadline.Capture.TriggerSQL do
       -- ON CONFLICT DO NOTHING is idempotent: multiple writes in the same transaction
       -- reuse the existing row. This is PgBouncer-safe because txid_current() is
       -- transaction-scoped, not session-scoped.
-      INSERT INTO audit_transactions (id, txid, occurred_at, actor_ref)
+      INSERT INTO #{StorageSchema.table("audit_transactions", opts)} (id, txid, occurred_at, actor_ref)
       VALUES (
         gen_random_uuid(),
         v_txid,
@@ -438,14 +452,14 @@ defmodule Threadline.Capture.TriggerSQL do
       ON CONFLICT (txid) DO NOTHING;
 
       SELECT id INTO v_tx_id
-      FROM audit_transactions
+      FROM #{StorageSchema.table("audit_transactions", opts)}
       WHERE txid = v_txid;
     """
   end
 
-  defp audit_change_insert_sql_global do
+  defp audit_change_insert_sql_global(opts) do
     """
-      INSERT INTO audit_changes (
+      INSERT INTO #{StorageSchema.table("audit_changes", opts)} (
         id, transaction_id, table_schema, table_name,
         table_pk, op, data_after, changed_fields, changed_from, captured_at
       ) VALUES (
@@ -455,9 +469,9 @@ defmodule Threadline.Capture.TriggerSQL do
     """
   end
 
-  defp audit_change_insert_sql do
+  defp audit_change_insert_sql(opts) do
     """
-      INSERT INTO audit_changes (
+      INSERT INTO #{StorageSchema.table("audit_changes", opts)} (
         id, transaction_id, table_schema, table_name,
         table_pk, op, data_after, changed_fields, changed_from, captured_at
       ) VALUES (

@@ -11,7 +11,9 @@ config :threadline_phoenix,
   ecto_repos: [ThreadlinePhoenix.Repo],
   generators: [timestamp_type: :utc_datetime]
 
-config :threadline, ecto_repos: [ThreadlinePhoenix.Repo]
+config :threadline,
+  ecto_repos: [ThreadlinePhoenix.Repo],
+  storage_schema: "threadline"
 
 # Configure the endpoint
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,

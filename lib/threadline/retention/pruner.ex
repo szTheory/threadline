@@ -11,6 +11,7 @@ defmodule Threadline.Retention.Pruner do
   import Ecto.Query
 
   alias Threadline.Governance.RetentionRun
+  alias Threadline.StorageSchema
 
   @lock_key :erlang.phash2("threadline_retention_pruner")
   @default_interval_ms :timer.minutes(60)
@@ -60,11 +61,14 @@ defmodule Threadline.Retention.Pruner do
       where: r.status == "running" and r.started_at < ^cutoff
     )
     |> repo.update_all(
-      set: [
-        status: "failed",
-        error_message: "Abandoned",
-        updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
-      ]
+      [
+        set: [
+          status: "failed",
+          error_message: "Abandoned",
+          updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        ]
+      ],
+      StorageSchema.repo_opts()
     )
 
     schedule_next(interval_ms)

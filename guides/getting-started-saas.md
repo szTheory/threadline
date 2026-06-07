@@ -39,12 +39,20 @@ mix deps.get
 Threadline Mix tasks and operator-surface fallbacks resolve the Ecto repo from **`config :threadline, :ecto_repos`**, not from your host app's `:ecto_repos` alone. Add this to `config/config.exs` (use the repo that holds your audit tables):
 
 ```elixir
-config :threadline, ecto_repos: [MyApp.Repo]
+config :threadline,
+  ecto_repos: [MyApp.Repo],
+  storage_schema: "threadline"
 ```
 
 `mix threadline.install` (next section) still uses your host app's `config :my_app, ecto_repos` for migration paths — the two config keys serve different surfaces.
 
 If you host audit data on a dedicated database, put that repo **first** in the list. Threadline uses only the **first** entry (`List.first/1`), unlike Ecto Mix tasks which may run against every repo in the list. For mount and APIs you can still pass `repo: MyApp.Repo` explicitly (see `guides/operator-surface.md`).
+
+`storage_schema` defaults to `"threadline"`. That schema stores Threadline-owned
+tables and trigger functions (`audit_changes`, `audit_transactions`,
+`audit_actions`, governance/evidence tables), while your audited app tables can
+remain in `public` or another host schema. Use `storage_schema: "public"` only
+when you intentionally want the older public-schema footprint.
 
 For the full mix-task inventory and multi-database notes, see [`guides/production-checklist.md`](production-checklist.md#host-repo-wiring-prerequisite).
 
@@ -56,6 +64,9 @@ Generate Threadline's base migrations, then run them:
 mix threadline.install
 mix ecto.migrate
 ```
+
+The generated install migration creates the configured storage schema before it
+creates Threadline-owned objects.
 
 ## 4. Generate triggers for posts
 

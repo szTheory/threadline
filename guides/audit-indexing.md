@@ -4,7 +4,7 @@
 
 This guide is the **integrator-owned** place for PostgreSQL index strategy on Threadline’s audit tables. Threadline ships a **baseline** via migrations; optional indexes below are **not mandatory**—measure before you paste DDL into production.
 
-Shipped names and columns are defined in **`Threadline.Capture.Migration`** (`audit_transactions`, `audit_changes`) and **`Threadline.Semantics.Migration`** (`audit_actions`, `audit_transactions.action_id`). Diff those modules when upgrading across Hex releases.
+Shipped names and columns are defined in **`Threadline.Capture.Migration`** (`audit_transactions`, `audit_changes`) and **`Threadline.Semantics.Migration`** (`audit_actions`, `audit_transactions.action_id`). Threadline stores these relations in the configured `storage_schema` (`threadline` by default, explicit `public` for the historical footprint). Diff those modules when upgrading across Hex releases.
 
 ## Installed defaults
 

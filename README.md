@@ -21,6 +21,7 @@ Use it when you want the audit layer in your app, not a separate event system or
 - **Understanding the integration seams:** read [guides/integration-contracts.md](guides/integration-contracts.md).
 - **Checking the named support lanes:** read [guides/upgrade-path.md](guides/upgrade-path.md) for the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix.
 - **Phoenix auth (reference lanes, pick one):** [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md) — neither required; see [upgrade-path](guides/upgrade-path.md) for claim types.
+- **Trying the local demo:** read [guides/local-docker-dx.md](guides/local-docker-dx.md) for the Docker helper, local ports, and multi-stack cleanup.
 - **Contributing:** follow [`CONTRIBUTING.md`](CONTRIBUTING.md) and run `mix ci.all`.
 
 ## Evidence plane
@@ -64,8 +65,15 @@ read [guides/domain-reference.md](guides/domain-reference.md).
    Threadline Mix tasks resolve the repo from `config :threadline, ecto_repos` (not host `:ecto_repos` alone). Add this to `config/config.exs`:
 
    ```elixir
-   config :threadline, ecto_repos: [MyApp.Repo]
+   config :threadline,
+     ecto_repos: [MyApp.Repo],
+     storage_schema: "threadline"
    ```
+
+   `storage_schema` defaults to `"threadline"` and keeps Threadline-owned
+   tables/functions out of `public`. Set it to `"public"` explicitly if you want
+   the historical public-schema footprint, or to another PostgreSQL schema such
+   as `"audit"`.
 
    See [Getting started §2 — Configure Threadline](guides/getting-started-saas.md#configure-threadline) for dual-repo rationale.
 
@@ -166,6 +174,7 @@ compatibility from the README.
 - [How Threadline works](guides/how-threadline-works.md)
 - [Getting started with Phoenix SaaS](guides/getting-started-saas.md)
 - [Evaluating Threadline](guides/evaluating-threadline.md)
+- [Local Docker DX](guides/local-docker-dx.md)
 - [Integration contracts](guides/integration-contracts.md)
 - [Support lanes and upgrade path](guides/upgrade-path.md)
 - [phx.gen.auth integration](guides/integrations/phx-gen-auth.md)

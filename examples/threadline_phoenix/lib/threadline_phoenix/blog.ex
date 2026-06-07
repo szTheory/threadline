@@ -68,10 +68,10 @@ defmodule ThreadlinePhoenix.Blog do
 
           Threadline.Audit.transaction(
             Repo,
-            Keyword.merge(action_opts, [
+            Keyword.merge(action_opts,
               actor_ref: actor_ref,
               action: {:post_title_refreshed_from_queue, action_opts}
-            ]),
+            ),
             fn ->
               post = Repo.get!(Post, post_id)
 

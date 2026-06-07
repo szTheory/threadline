@@ -6,11 +6,31 @@ const adminEmail = "admin@example.com";
 test.use({ viewport: { width: 375, height: 812 }, isMobile: true });
 
 const destinations = [
-  { label: "Timeline", testId: "operator-nav-timeline", path: "/audit/timeline" },
-  { label: "Coverage", testId: "operator-nav-coverage", path: "/audit/coverage" },
-  { label: "Evidence", testId: "operator-nav-evidence", path: "/audit/evidence" },
-  { label: "Redaction", testId: "operator-nav-policy", path: "/audit/policy/redaction" },
-  { label: "Retention", testId: "operator-nav-retention", path: "/audit/policy/retention" },
+  {
+    label: "Timeline",
+    testId: "operator-nav-timeline",
+    path: "/audit/timeline",
+  },
+  {
+    label: "Coverage",
+    testId: "operator-nav-coverage",
+    path: "/audit/coverage",
+  },
+  {
+    label: "Evidence",
+    testId: "operator-nav-evidence",
+    path: "/audit/evidence",
+  },
+  {
+    label: "Redaction",
+    testId: "operator-nav-policy",
+    path: "/audit/policy/redaction",
+  },
+  {
+    label: "Retention",
+    testId: "operator-nav-retention",
+    path: "/audit/policy/retention",
+  },
   { label: "Exports", testId: "operator-nav-exports", path: "/audit/exports" },
 ];
 
@@ -60,11 +80,19 @@ async function expectReachable(locator: Locator) {
 }
 
 async function expectHeaderDestinationsReachable(page: Page) {
-  const nav = page.locator(".tl-topbar__nav");
+  const shell = page.getByTestId("operator-nav-shell");
+  await expect(shell).toBeVisible();
+  const toggle = shell.locator(".tl-shell-nav__toggle");
+  const nav = shell.locator(".tl-shell-nav__panel");
+  if ((await toggle.isVisible()) && !(await nav.isVisible())) {
+    await toggle.click();
+  }
   await expect(nav).toBeVisible();
 
   for (const group of ["Find", "Verify", "Prove"]) {
-    await expectReachable(nav.locator(`.tl-topbar__nav-group[aria-label="${group}"] .tl-topbar__nav-label`));
+    await expectReachable(
+      nav.locator(".tl-shell-nav__label", { hasText: group }),
+    );
   }
 
   for (const destination of destinations) {
@@ -89,41 +117,71 @@ test.describe("operator Home orientation mobile UAT", () => {
     await page.goto("/audit");
 
     const main = page.locator("#tl-main");
-    await expect(main.getByRole("heading", { name: "Follow what happened." })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Follow what happened." }),
+    ).toBeVisible();
 
     await expect(main.getByText("Find", { exact: true })).toBeVisible();
-    await expect(main.getByRole("heading", { name: "What changed?" })).toBeVisible();
-    await expect(main.getByRole("link", { name: "Open the timeline" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "What changed?" }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "Open the timeline" }),
+    ).toBeVisible();
 
     await expect(main.getByText("Verify", { exact: true })).toBeVisible();
-    await expect(main.getByRole("heading", { name: "Is everything captured?" })).toBeVisible();
-    await expect(main.getByRole("link", { name: "Check coverage" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Is everything captured?" }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "Check coverage" }),
+    ).toBeVisible();
 
     await expect(main.getByText("Prove", { exact: true })).toBeVisible();
-    await expect(main.getByRole("heading", { name: "Prove and export" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Prove and export" }),
+    ).toBeVisible();
     for (const action of ["Evidence", "Redaction", "Retention", "Exports"]) {
-      await expect(main.getByRole("link", { name: action, exact: true })).toBeVisible();
+      await expect(
+        main.getByRole("link", { name: action, exact: true }),
+      ).toBeVisible();
     }
 
     const health = main.getByRole("status", { name: "System health" });
     await expect(health).toBeVisible();
     await expect(health.getByText("System health")).toBeVisible();
 
-    await expect(main.getByRole("heading", { name: "Pick up where you left off" })).toBeVisible();
-    await expect(main.getByRole("link", { name: "Recent deletes" })).toBeVisible();
-    await expect(main.getByRole("link", { name: "Closed this week" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Pick up where you left off" }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "Recent deletes" }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "Closed this week" }),
+    ).toBeVisible();
 
     await expect(main.locator('[data-earned-flow="EF1"]')).toBeVisible();
-    await expect(main.locator("#tl-record-lookup").getByLabel("Table")).toBeVisible();
-    await expect(main.locator("#tl-record-lookup").getByLabel("Record id")).toBeVisible();
     await expect(
-      main.locator("#tl-record-lookup").getByRole("button", { name: "Open row history" }),
+      main.locator("#tl-record-lookup").getByLabel("Table"),
+    ).toBeVisible();
+    await expect(
+      main.locator("#tl-record-lookup").getByLabel("Record id"),
+    ).toBeVisible();
+    await expect(
+      main
+        .locator("#tl-record-lookup")
+        .getByRole("button", { name: "Open row history" }),
     ).toBeVisible();
 
     await expect(main.locator('[data-earned-flow="EF4"]')).toBeVisible();
-    await expect(main.locator("#tl-correlation-lookup").getByLabel("Correlation id")).toBeVisible();
     await expect(
-      main.locator("#tl-correlation-lookup").getByRole("button", { name: "Open Timeline" }),
+      main.locator("#tl-correlation-lookup").getByLabel("Correlation id"),
+    ).toBeVisible();
+    await expect(
+      main
+        .locator("#tl-correlation-lookup")
+        .getByRole("button", { name: "Open Timeline" }),
     ).toBeVisible();
 
     await expectMobileLayoutViewport(page);
@@ -142,11 +200,15 @@ test.describe("operator Home orientation mobile UAT", () => {
     }
   });
 
-  test("home header nav activates every enabled destination", async ({ page }) => {
+  test("home header nav activates every enabled destination", async ({
+    page,
+  }) => {
     for (const destination of destinations) {
       await page.goto("/audit");
       await expectPath(page, "/audit");
 
+      const shell = page.getByTestId("operator-nav-shell");
+      await shell.locator(".tl-shell-nav__toggle").click();
       const link = page.getByTestId(destination.testId);
       await expectReachable(link);
       await link.click();

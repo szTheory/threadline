@@ -16,18 +16,35 @@ defmodule ThreadlinePhoenixWeb.SessionHTML do
 
   def new(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
-      <.header>
-        Log in
-        <:subtitle>
-          Don't have an account?
-          <.link navigate={~p"/users/register"} class="font-semibold text-brand hover:underline">
-            Sign up
-          </.link>
-          for an account now.
-        </:subtitle>
-      </.header>
+    <section class="rd-auth" aria-labelledby="rd-login-title">
+      <div class="rd-auth__story">
+        <p class="rd-kicker">RelayDesk access</p>
+        <h1 id="rd-login-title">Log in to the support ops demo</h1>
+        <p>
+          Use the seeded admin to unlock the Threadline surfaces, or register a
+          new user to see how the host app provisions a local workspace.
+        </p>
+        <p>
+          Demo credentials:
+          <br /> <code>admin@example.com</code>
+          <br /> <code>password123456</code>
+        </p>
+        <p>
+          <.link navigate={~p"/"}>Return to RelayDesk home</.link>
+        </p>
+      </div>
 
+      <div class="rd-auth__card">
+        <.header>
+          Log in
+          <:subtitle>
+            Don't have an account?
+            <.link navigate={~p"/users/register"} class="font-semibold text-brand hover:underline">
+              Sign up
+            </.link>
+            for an account now.
+          </:subtitle>
+        </.header>
 
         <% # Magic link section %>
         <.form :let={f} for={@magic_link_form} id="magic_link_form" action={~p"/users/log_in"} method="post">
@@ -40,13 +57,8 @@ defmodule ThreadlinePhoenixWeb.SessionHTML do
         </.form>
 
         <% # Divider %>
-        <div class="relative my-6">
-          <div class="absolute inset-0 flex items-center">
-            <hr class="w-full" />
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="bg-white px-2 text-gray-500">or sign in with password</span>
-          </div>
+        <div class="rd-divider">
+          <span>or sign in with password</span>
         </div>
 
         <% # Password section %>
@@ -65,8 +77,8 @@ defmodule ThreadlinePhoenixWeb.SessionHTML do
             Log in <span aria-hidden="true">&rarr;</span>
           </.button>
         </.form>
-
-    </div>
+      </div>
+    </section>
     """
   end
 end

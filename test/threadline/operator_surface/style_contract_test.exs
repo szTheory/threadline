@@ -87,7 +87,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, ".tl-copy:hover")
   end
 
-  test "phase 139 header nav primitives stay mobile-reachable and token-backed" do
+  test "phase 139 shell navigation primitives stay mobile-reachable and token-backed" do
     src = File.read!(@style_path)
 
     topbar_section =
@@ -98,11 +98,14 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> List.first()
 
     for selector <- [
-          ".tl-topbar__nav",
-          ".tl-topbar__nav-group",
-          ".tl-topbar__nav-label",
-          ".tl-topbar__nav-handoff",
-          ~s|.tl-topbar .tl-topbar__nav-item[aria-current="page"]|
+          ".tl-topbar__brand-mark",
+          ".tl-topbar__brand-text",
+          ".tl-shell-nav",
+          ".tl-shell-nav__toggle",
+          ".tl-shell-nav__panel",
+          ".tl-shell-nav__group",
+          ".tl-shell-nav__label",
+          ~s|.threadline-ui .tl-shell-nav__item[aria-current="page"]|
         ] do
       assert String.contains?(topbar_section, selector)
     end
@@ -113,7 +116,24 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(topbar_section, "prefers-color-scheme")
     refute String.contains?(topbar_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, topbar_section)
-    refute Regex.match?(~r/\.tl-topbar__nav-label\s*\{[^}]*display:\s*none/s, topbar_section)
+    refute String.contains?(topbar_section, ".tl-topbar__nav-label")
+
+    assert_selector_contains(topbar_section, ".tl-topbar__brand", [
+      "display: inline-flex;",
+      "flex: 0 0 auto;",
+      "gap: var(--tl-space-2);",
+      "white-space: nowrap;"
+    ])
+
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-mark", [
+      "width: var(--tl-brand-mark-size);",
+      "height: var(--tl-brand-mark-size);",
+      "flex: 0 0 var(--tl-brand-mark-size);"
+    ])
+
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-text", [
+      "display: inline-block;"
+    ])
   end
 
   test "phase 139 home orientation primitives stay scoped token-backed and dark-only" do
@@ -270,7 +290,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".threadline-ui a",
-          ".tl-topbar .tl-topbar__nav-item",
+          ".threadline-ui .tl-shell-nav__item",
           ".tl-toolbar__control",
           ".tl-control",
           ".tl-button",
@@ -378,13 +398,21 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     src = File.read!(@style_path)
     base = base_responsive_section(src)
 
-    assert_selector_contains(base, ".tl-topbar__nav", [
-      "min-width: 0;",
-      "overflow-x: auto;"
+    assert_selector_contains(base, ".tl-shell-nav__panel", [
+      "display: none;",
+      "border-top: 1px solid var(--tl-color-border);"
     ])
 
-    refute Regex.match?(~r/\.tl-topbar__nav-label\s*\{[^}]*display:\s*none/s, base),
-           "mobile/base topbar nav labels must remain reachable"
+    assert_selector_contains(
+      base,
+      ".tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel",
+      ["display: grid;"]
+    )
+
+    assert_selector_contains(base, ".tl-shell-nav__toggle", [
+      "min-height: var(--tl-hit-area);",
+      "cursor: pointer;"
+    ])
 
     assert_selector_contains(base, ".tl-toolbar__form", [
       "flex-direction: column;",
@@ -393,6 +421,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-table-wrap .tl-table--responsive", ["min-width: 0;"])
     assert_selector_contains(base, ".tl-table--responsive thead", ["display: none;"])
+    assert_selector_contains(base, ".tl-page", ["padding: var(--tl-space-2);"])
 
     assert_selector_contains(base, ".tl-table--responsive td::before", [
       "content: attr(data-label);"
@@ -427,14 +456,23 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     tablet = media_section(src, "768px")
     desktop = media_section(src, "1280px")
 
+    assert_selector_contains(tablet, ".tl-page", ["padding: var(--tl-space-3);"])
+    assert_selector_contains(desktop, ".tl-page", ["padding: var(--tl-space-4);"])
+
     assert_selector_contains(tablet, ".tl-toolbar__form", [
       "flex-direction: row;",
       "flex-wrap: wrap;",
       "align-items: flex-end;"
     ])
 
-    assert_selector_contains(tablet, ".tl-topbar .tl-topbar__nav-item", [
+    assert_selector_contains(tablet, ".threadline-ui .tl-shell-nav__item", [
       "min-height: var(--tl-control-height-compact);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-topbar__brand-mark", [
+      "width: var(--tl-brand-mark-size-desktop);",
+      "height: var(--tl-brand-mark-size-desktop);",
+      "flex-basis: var(--tl-brand-mark-size-desktop);"
     ])
 
     refute String.contains?(tablet, ".tl-table--responsive thead"),
@@ -463,6 +501,52 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(desktop, ".tl-table--responsive td::before", [
       "display: none;"
     ])
+  end
+
+  test "operator typography defaults stay readable and dense text is opt-in" do
+    src = File.read!(@style_path)
+
+    for token <- [
+          "--tl-font-size-xs: 12px;",
+          "--tl-font-size-sm: 13px;",
+          "--tl-font-size-dense: 13px;",
+          "--tl-font-size-body: 16px;",
+          "--tl-font-size-label: 14px;",
+          "--tl-font-size-ui: 15px;",
+          "--tl-font-size-heading: 20px;",
+          "--tl-font-size-title: 24px;",
+          "--tl-font-size-display: 32px;"
+        ] do
+      assert String.contains?(src, token), "missing readable typography token #{token}"
+    end
+
+    assert String.contains?(src, "--tl-pad-page: var(--tl-space-4);")
+
+    refute String.contains?(src, "--tl-pad-page: var(--tl-space-6);"),
+           "page padding token must not imply a 24px body-like gutter"
+
+    assert_exact_selector_contains(src, ".threadline-ui", ["font-size: var(--tl-font-size-body);"])
+
+    assert_exact_selector_contains(src, ".tl-button", ["font-size: var(--tl-font-size-label);"])
+    assert_exact_selector_contains(src, ".tl-chip", ["font-size: var(--tl-font-size-label);"])
+
+    assert_exact_selector_contains(src, ".tl-toolbar__field", [
+      "font-size: var(--tl-font-size-label);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-value", ["font-size: var(--tl-font-size-label);"])
+
+    assert_selector_contains(src, ".tl-table--compact th,\n        .tl-table--compact td", [
+      "font-size: var(--tl-font-size-dense);"
+    ])
+
+    assert_selector_contains(
+      src,
+      ".tl-table--compact .tl-table__code,\n        .tl-table--compact code",
+      [
+        "font-size: var(--tl-font-size-dense);"
+      ]
+    )
   end
 
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do
@@ -543,7 +627,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-space-1: 4px;",
           "--tl-font-family:",
           "--tl-font-mono:",
-          "--tl-font-size-body: 14px;",
+          "--tl-font-size-body: 16px;",
+          "--tl-font-size-label: 14px;",
+          "--tl-font-size-dense: 13px;",
           "--tl-color-bg: #0B1020;",
           "--tl-color-surface: #141B2D;",
           "--tl-color-text: #D7DEEA;",
@@ -554,6 +640,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-radius-pill: 999px;",
           "--tl-shadow-border:",
           "--tl-z-subview: 50;",
+          "--tl-brand-mark-size: 24px;",
+          "--tl-brand-mark-size-desktop: 26px;",
           "--tl-control-height: 40px;",
           "--tl-control-height-chip: 24px;",
           "--tl-breakpoint-tablet: 768px;",
@@ -730,6 +818,21 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     for declaration <- declarations do
       assert String.contains?(block, declaration),
              "#{selector} is missing #{declaration}"
+    end
+  end
+
+  defp assert_exact_selector_contains(section, selector, declarations) do
+    pattern = ~r/(?:^|\n)\s*#{Regex.escape(selector)}\s*\{[^}]*\}/s
+
+    case Regex.run(pattern, section) do
+      [block] ->
+        for declaration <- declarations do
+          assert String.contains?(block, declaration),
+                 "#{selector} is missing #{declaration}"
+        end
+
+      _ ->
+        flunk("missing exact selector #{selector}")
     end
   end
 

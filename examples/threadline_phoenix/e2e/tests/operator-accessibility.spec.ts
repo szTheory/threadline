@@ -17,7 +17,9 @@ async function login(page: Page) {
 
 async function expectFocused(locator: Locator) {
   await expect(locator).toBeFocused();
-  const boxShadow = await locator.evaluate((element) => window.getComputedStyle(element).boxShadow);
+  const boxShadow = await locator.evaluate(
+    (element) => window.getComputedStyle(element).boxShadow,
+  );
   expect(boxShadow).not.toBe("none");
 }
 
@@ -31,10 +33,17 @@ async function expectNoHorizontalOverflow(page: Page) {
 }
 
 async function discoverTransactionAndRowHistory(page: Page) {
-  await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+  await page.goto(
+    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
+  );
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(
+    closeCorrelation,
+  );
 
-  const transactionHref = await page.getByTestId("transaction-link").first().getAttribute("href");
+  const transactionHref = await page
+    .getByTestId("transaction-link")
+    .first()
+    .getAttribute("href");
   expect(transactionHref).not.toBeNull();
 
   await page.goto(transactionHref!);
@@ -56,26 +65,52 @@ test.describe("operator accessibility baseline", () => {
     await login(page);
   });
 
-  test("exposes keyboard focus, skip link, nav state, and Home form names", async ({ page }) => {
+  test("exposes keyboard focus, skip link, nav state, and Home form names", async ({
+    page,
+  }) => {
     await page.goto("/audit");
 
     await page.keyboard.press("Tab");
     await expectFocused(page.locator(".tl-skip-link"));
-    await expect(page.locator(".tl-skip-link")).toHaveText("Skip to main content");
+    await expect(page.locator(".tl-skip-link")).toHaveText(
+      "Skip to main content",
+    );
 
     await page.keyboard.press("Enter");
     await expect(page.locator("#tl-main")).toBeFocused();
 
-    await expect(page.getByRole("navigation", { name: "Operator surface" })).toBeVisible();
-    await expect(page.getByRole("status", { name: "System health" })).toBeVisible();
+    await expect(
+      page.getByRole("navigation", { name: "Operator surface" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("status", { name: "System health" }),
+    ).toBeVisible();
 
-    await expect(page.locator("#tl-record-lookup").getByLabel("Table")).toBeVisible();
-    await expect(page.locator("#tl-record-lookup").getByLabel("Record id")).toBeVisible();
-    await expect(page.locator("#tl-record-lookup").getByRole("button", { name: "Open row history" })).toBeVisible();
-    await expect(page.locator("#tl-correlation-lookup").getByLabel("Correlation id")).toBeVisible();
-    await expect(page.locator("#tl-correlation-lookup").getByRole("button", { name: "Open Timeline" })).toBeVisible();
+    await expect(
+      page.locator("#tl-record-lookup").getByLabel("Table"),
+    ).toBeVisible();
+    await expect(
+      page.locator("#tl-record-lookup").getByLabel("Record id"),
+    ).toBeVisible();
+    await expect(
+      page
+        .locator("#tl-record-lookup")
+        .getByRole("button", { name: "Open row history" }),
+    ).toBeVisible();
+    await expect(
+      page.locator("#tl-correlation-lookup").getByLabel("Correlation id"),
+    ).toBeVisible();
+    await expect(
+      page
+        .locator("#tl-correlation-lookup")
+        .getByRole("button", { name: "Open Timeline" }),
+    ).toBeVisible();
 
     await page.goto("/audit/timeline");
+    const navToggle = page.locator(".tl-shell-nav__toggle");
+    if (await navToggle.isVisible()) {
+      await navToggle.click();
+    }
     const timelineNav = page.getByTestId("operator-nav-timeline");
     await expect(timelineNav).toHaveAttribute("aria-current", "page");
     await timelineNav.focus();
@@ -87,7 +122,14 @@ test.describe("operator accessibility baseline", () => {
   }) => {
     await page.goto("/audit/timeline");
 
-    for (const label of ["from", "to", "table", "actor kind", "actor id", "correlation id"]) {
+    for (const label of [
+      "from",
+      "to",
+      "table",
+      "actor kind",
+      "actor id",
+      "correlation id",
+    ]) {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
@@ -98,20 +140,30 @@ test.describe("operator accessibility baseline", () => {
     await page.getByRole("button", { name: "30d" }).click();
     const selectedWindow = page.getByRole("button", { pressed: true }).first();
     await expect(selectedWindow).toBeVisible();
-    await expect(page.getByRole("group", { name: "Actor activity window" })).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "Actor activity window" }),
+    ).toBeVisible();
 
     await page.goto("/audit/policy/retention");
-    const prune = page.getByRole("button", { name: "Run retention prune" }).last();
+    const prune = page
+      .getByRole("button", { name: "Run retention prune" })
+      .last();
     await expect(prune).toBeVisible();
-    await expect(prune).toHaveAttribute("data-confirm", /permanently deletes older audit records/);
+    await expect(prune).toHaveAttribute(
+      "data-confirm",
+      /permanently deletes older audit records/,
+    );
     await prune.focus();
     await expectFocused(prune);
 
     await expectNoHorizontalOverflow(page);
   });
 
-  test("keeps row-history drawer dialog semantics and visible focus", async ({ page }) => {
-    const { transactionHref, rowHistoryHref } = await discoverTransactionAndRowHistory(page);
+  test("keeps row-history drawer dialog semantics and visible focus", async ({
+    page,
+  }) => {
+    const { transactionHref, rowHistoryHref } =
+      await discoverTransactionAndRowHistory(page);
 
     await page.goto(transactionHref);
     const rowHistoryLink = page
@@ -129,7 +181,10 @@ test.describe("operator accessibility baseline", () => {
     await expect(drawer).toBeVisible();
     await expect(drawer).toHaveAttribute("role", "dialog");
     await expect(drawer).toHaveAttribute("aria-modal", "true");
-    await expect(drawer).toHaveAttribute("aria-labelledby", /row-history-title|row-history/);
+    await expect(drawer).toHaveAttribute(
+      "aria-labelledby",
+      /row-history-title|row-history/,
+    );
 
     const close = drawer.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
@@ -140,20 +195,35 @@ test.describe("operator accessibility baseline", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("renders status and verdict chips with text labels and non-color shape", async ({ page }) => {
+  test("renders status and verdict chips with text labels and non-color shape", async ({
+    page,
+  }) => {
     await page.goto("/audit/evidence");
-    const verdict = page.locator(".tl-chip").filter({ hasText: /Proven|Inferred|Unsupported/ }).first();
+    const verdict = page
+      .locator(".tl-chip")
+      .filter({ hasText: /Proven|Inferred|Unsupported/ })
+      .first();
     await expect(verdict).toBeVisible();
     const verdictStyle = await verdict.evaluate((element) => {
       const style = window.getComputedStyle(element);
-      return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle };
+      return {
+        borderWidth: style.borderTopWidth,
+        borderStyle: style.borderTopStyle,
+      };
     });
     expect(verdictStyle.borderWidth).not.toBe("0px");
     expect(verdictStyle.borderStyle).not.toBe("none");
 
     await page.goto("/audit/exports");
-    for (const label of ["Ready to hand off", "Preparing", "Needs attention", "Unavailable"]) {
-      await expect(page.getByRole("heading", { name: label, exact: true })).toBeVisible();
+    for (const label of [
+      "Ready to hand off",
+      "Preparing",
+      "Needs attention",
+      "Unavailable",
+    ]) {
+      await expect(
+        page.getByRole("heading", { name: label, exact: true }),
+      ).toBeVisible();
     }
 
     await expectNoHorizontalOverflow(page);

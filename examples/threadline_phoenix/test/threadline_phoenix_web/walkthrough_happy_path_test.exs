@@ -28,6 +28,10 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       conn = get(conn, ~p"/")
       html = html_response(conn, 200)
 
+      assert html =~ "RelayDesk"
+      assert html =~ "What to click first"
+      assert html =~ "walk-acme-4521-close"
+      assert html =~ "Threadline admin"
       assert html =~ "Register"
       assert html =~ "Log in"
       refute html =~ "Signed in as"

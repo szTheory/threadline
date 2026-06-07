@@ -56,8 +56,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   import Mix.Generator
 
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig, TriggerSQL}
-
-  @audit_tables ~w(audit_transactions audit_changes)
+  alias Threadline.StorageSchema
 
   @column_name ~r/^[A-Za-z0-9_]+$/
 
@@ -89,7 +88,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       Mix.raise("--tables is required. Example: mix threadline.gen.triggers --tables users,posts")
     end
 
-    forbidden = Enum.filter(tables, &(&1 in @audit_tables))
+    forbidden = Enum.filter(tables, &StorageSchema.threadline_table?/1)
 
     if forbidden != [] do
       Mix.raise(
@@ -132,7 +131,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       path = "priv/repo/migrations"
       File.mkdir_p!(path)
 
-      table_suffix = tables |> Enum.join("_")
+      table_suffix = tables |> Enum.map(&StorageSchema.host_table_suffix/1) |> Enum.join("_")
       file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
 
       create_file(file, migration_content(table_specs))
@@ -232,7 +231,9 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.join("\n\n")
 
     tables = Enum.map(table_specs, &elem(&1, 0))
-    module_name = "ThreadlineTriggers#{Enum.map_join(tables, "", &Macro.camelize/1)}"
+
+    module_name =
+      "ThreadlineTriggers#{Enum.map_join(tables, "", &(StorageSchema.host_table_suffix(&1) |> Macro.camelize()))}"
 
     up_body =
       [function_ups, trigger_ups]

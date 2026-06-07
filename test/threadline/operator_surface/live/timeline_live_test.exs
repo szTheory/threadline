@@ -382,9 +382,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert redirect_path =~ ~r{^/audit/timeline\?from=.+&to=.+$}
 
       assert {:ok, _lv, html} = live(conn, redirect_path)
-      # Form is present with all six filter keys
+      # Form is present with all seven filter keys
       assert html =~ ~s|name="filter[from]"|
       assert html =~ ~s|name="filter[to]"|
+      assert html =~ ~s|name="filter[table_schema]"|
       assert html =~ ~s|name="filter[table]"|
       assert html =~ ~s|name="filter[actor_kind]"|
       assert html =~ ~s|name="filter[actor_id]"|

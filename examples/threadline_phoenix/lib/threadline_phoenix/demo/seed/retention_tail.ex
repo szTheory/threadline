@@ -45,7 +45,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
 
     Repo.query!(
       """
-      UPDATE audit_transactions at
+      UPDATE threadline.audit_transactions at
       SET occurred_at = $1
       WHERE at.meta->>'organization_id' = $2
       """,
@@ -54,9 +54,9 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
 
     Repo.query!(
       """
-      UPDATE audit_changes ac
+      UPDATE threadline.audit_changes ac
       SET captured_at = $1
-      FROM audit_transactions at
+      FROM threadline.audit_transactions at
       WHERE ac.transaction_id = at.id
         AND at.meta->>'organization_id' = $2
       """,

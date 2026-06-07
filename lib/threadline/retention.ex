@@ -18,6 +18,7 @@ defmodule Threadline.Retention do
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention.Policy
+  alias Threadline.StorageSchema
 
   @typedoc "Accumulator returned by `purge/1` on success (counts are cumulative)."
   @type purge_result :: %{
@@ -83,7 +84,8 @@ defmodule Threadline.Retention do
         RetentionRun.changeset(%RetentionRun{}, %{
           status: "running",
           started_at: started_at
-        })
+        }),
+        StorageSchema.repo_opts()
       )
 
     result = purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms)
@@ -97,7 +99,8 @@ defmodule Threadline.Retention do
         deleted_count: result.deleted_changes + result.deleted_transactions,
         duration_ms: duration_ms,
         completed_at: completed_at
-      })
+      }),
+      StorageSchema.repo_opts()
     )
 
     result
@@ -116,19 +119,26 @@ defmodule Threadline.Retention do
 
   defp dry_run_result(repo, cutoff, policy) do
     eligible_changes =
-      repo.one(from(ac in AuditChange, where: ac.captured_at < ^cutoff, select: count(ac.id)))
+      repo.one(
+        from(ac in AuditChange, where: ac.captured_at < ^cutoff, select: count(ac.id)),
+        StorageSchema.repo_opts()
+      )
 
     eligible_txns =
       if policy.delete_empty_transactions do
         repo.one(
           from(at in AuditTransaction,
+            as: :audit_transaction,
             where:
-              fragment(
-                "NOT EXISTS (SELECT 1 FROM audit_changes c WHERE c.transaction_id = ?)",
-                at.id
+              not exists(
+                from(c in AuditChange,
+                  where: c.transaction_id == parent_as(:audit_transaction).id,
+                  select: 1
+                )
               ),
             select: count(at.id)
-          )
+          ),
+          StorageSchema.repo_opts()
         )
       else
         0
@@ -193,7 +203,8 @@ defmodule Threadline.Retention do
       repo.delete_all(
         from(ac in AuditChange,
           where: ac.id in subquery(subq)
-        )
+        ),
+        StorageSchema.repo_opts()
       )
 
     n
@@ -204,16 +215,22 @@ defmodule Threadline.Retention do
   defp drain_orphans(acc, repo, batch_size) do
     subq =
       from(at in AuditTransaction,
+        as: :audit_transaction,
         where:
-          fragment(
-            "NOT EXISTS (SELECT 1 FROM audit_changes c WHERE c.transaction_id = ?)",
-            at.id
+          not exists(
+            from(c in AuditChange,
+              where: c.transaction_id == parent_as(:audit_transaction).id,
+              select: 1
+            )
           ),
         select: at.id,
         limit: ^batch_size
       )
 
-    case repo.delete_all(from(at in AuditTransaction, where: at.id in subquery(subq))) do
+    case repo.delete_all(
+           from(at in AuditTransaction, where: at.id in subquery(subq)),
+           StorageSchema.repo_opts()
+         ) do
       {0, _} -> acc
       {n, _} -> drain_orphans(acc + n, repo, batch_size)
     end

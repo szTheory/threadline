@@ -18,6 +18,7 @@ repo_opts =
 config :threadline, Threadline.Test.Repo, repo_opts
 
 config :threadline, ecto_repos: [Threadline.Test.Repo]
+config :threadline, storage_schema: "threadline"
 config :threadline, :storage_adapter, Threadline.Storage.Local
 config :threadline, :export_queue_adapter, Threadline.ExportQueue.TaskAdapter
 config :threadline, Threadline.ExportQueue.Oban, oban_name: Oban, queue: :threadline_exports

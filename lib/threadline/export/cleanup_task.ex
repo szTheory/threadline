@@ -8,6 +8,7 @@ defmodule Threadline.Export.CleanupTask do
   import Ecto.Query
 
   alias Threadline.Governance.ExportJob
+  alias Threadline.StorageSchema
 
   @lock_key :erlang.phash2("threadline_export_cleanup")
   @default_interval_ms :timer.minutes(60)
@@ -80,7 +81,7 @@ defmodule Threadline.Export.CleanupTask do
         where: not is_nil(j.expires_at) and j.expires_at < ^cutoff
       )
 
-    expired_jobs = repo.all(query)
+    expired_jobs = repo.all(query, StorageSchema.repo_opts())
 
     for job <- expired_jobs do
       if job.file_path do
@@ -90,7 +91,7 @@ defmodule Threadline.Export.CleanupTask do
         storage_adapter.delete(job.file_path)
       end
 
-      repo.delete!(job)
+      repo.delete!(job, StorageSchema.repo_opts())
     end
   end
 
@@ -105,12 +106,15 @@ defmodule Threadline.Export.CleanupTask do
       where: j.status == "running" and j.started_at < ^cutoff
     )
     |> repo.update_all(
-      set: [
-        status: "failed",
-        error_message: "Abandoned",
-        expires_at: terminal_expiry(),
-        updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
-      ]
+      [
+        set: [
+          status: "failed",
+          error_message: "Abandoned",
+          expires_at: terminal_expiry(),
+          updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        ]
+      ],
+      StorageSchema.repo_opts()
     )
   end
 
@@ -140,7 +144,5 @@ defmodule Threadline.Export.CleanupTask do
     is_atom(repo) and is_pid(Process.whereis(repo))
   end
 
-  defp now do
-    DateTime.utc_now() |> DateTime.truncate(:microsecond)
-  end
+  defp now, do: DateTime.utc_now(:microsecond)
 end

@@ -21,6 +21,8 @@ services:
     build:
       context: .
       dockerfile: examples/threadline_phoenix/Dockerfile
+      args:
+        THREADLINE_DEMO_BASE_IMAGE: ${THREADLINE_DEMO_BASE_IMAGE:-elixir:1.18-otp-27-slim}
     ports:
       - "${THREADLINE_DEMO_HOST:-127.0.0.1}:${THREADLINE_DEMO_PORT:-4000}:4000"
     depends_on:
@@ -29,7 +31,20 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
+      - PORT=4000
       - PHX_SERVER=true
+      - THREADLINE_DEMO_PORT=${THREADLINE_DEMO_PORT:-4000}
+      - THREADLINE_DEMO_PUBLIC_HOST=${THREADLINE_DEMO_PUBLIC_HOST:-localhost}
+      - THREADLINE_DEMO_PUBLIC_URL=${THREADLINE_DEMO_PUBLIC_URL:-}
+    labels:
+      - "dev.threadline.kind=demo"
+      - "dev.threadline.managed-by=bin/demo-up"
+      - "dev.threadline.root=${THREADLINE_CHECKOUT_ROOT:-}"
+      - "dev.threadline.url=${THREADLINE_DEMO_URL:-}"
+      - "dev.threadline.fallback-url=${THREADLINE_DEMO_FALLBACK_URL:-}"
+      - "dev.threadline.proxy-host=${THREADLINE_PROXY_HOST:-}"
+      - "dev.threadline.proxy-network=${THREADLINE_PROXY_NETWORK:-}"
+      - "dev.threadline.version=v1.35"
     volumes:
       - .:/app
       - demo_example_deps:/app/examples/threadline_phoenix/deps
@@ -39,7 +54,7 @@ services:
 
   pgbouncer:
     profiles: ["pgbouncer"]
-    image: edoburu/pgbouncer:latest
+    image: edoburu/pgbouncer:v1.25.1-p0
     depends_on:
       postgres:
         condition: service_healthy

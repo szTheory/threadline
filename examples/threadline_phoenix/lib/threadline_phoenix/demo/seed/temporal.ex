@@ -14,12 +14,12 @@ defmodule ThreadlinePhoenix.Demo.Seed.Temporal do
       tx_bin = Ecto.UUID.dump!(transaction_id)
 
       Repo.query!(
-        "UPDATE audit_transactions SET occurred_at = $1 WHERE id = $2",
+        "UPDATE threadline.audit_transactions SET occurred_at = $1 WHERE id = $2",
         [occurred_at, tx_bin]
       )
 
       Repo.query!(
-        "UPDATE audit_changes SET captured_at = $1 WHERE transaction_id = $2",
+        "UPDATE threadline.audit_changes SET captured_at = $1 WHERE transaction_id = $2",
         [occurred_at, tx_bin]
       )
     end)

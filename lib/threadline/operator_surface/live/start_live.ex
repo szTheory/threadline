@@ -9,6 +9,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Governance.RetentionRun
     alias Threadline.Governance.SavedView
     alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.StorageSchema
 
     # ------------------------------------------------------------------
     # Operator Home — the orienting landing page (surface root).
@@ -349,7 +350,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         try do
           repo.aggregate(
             from(j in ExportJob, where: j.status == "failed" and j.actor_ref == ^actor_ref),
-            :count
+            :count,
+            :id,
+            StorageSchema.repo_opts()
           )
         rescue
           _ -> nil
@@ -362,7 +365,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       if repo do
         try do
-          case repo.one(from(r in RetentionRun, order_by: [desc: r.started_at], limit: 1)) do
+          case repo.one(
+                 from(r in RetentionRun, order_by: [desc: r.started_at], limit: 1),
+                 StorageSchema.repo_opts()
+               ) do
             %{status: "failed"} -> true
             _ -> false
           end
@@ -395,7 +401,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               where: v.actor_ref == ^actor_ref,
               order_by: [desc: v.inserted_at],
               limit: 6
-            )
+            ),
+            StorageSchema.repo_opts()
           )
         rescue
           _ -> []

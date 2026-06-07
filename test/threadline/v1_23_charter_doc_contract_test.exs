@@ -12,12 +12,17 @@ defmodule Threadline.V123CharterDocContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
-  test "PROJECT.md locks v1.29 milestone framing" do
+  test "PROJECT.md locks current milestone and latest shipped framing" do
     doc = read_rel!([".planning", "PROJECT.md"])
 
     assert String.contains?(
              doc,
-             "## Latest Milestone Shipped: v1.30 Adoption Evidence Automation"
+             "## Current Milestone: v1.34 Local Docker Admin UI DX"
+           )
+
+    assert String.contains?(
+             doc,
+             "## Latest Milestone Shipped: v1.33 Brand Review + Direction Selection"
            )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")
@@ -25,18 +30,20 @@ defmodule Threadline.V123CharterDocContractTest do
     assert String.contains?(doc, "AUTH-PROOF-01")
   end
 
-  test "MILESTONE-ARC.md locks v1.29 arc row and strategic thesis" do
+  test "MILESTONE-ARC.md locks product hold posture and local DX exception" do
     doc = read_rel!([".planning", "MILESTONE-ARC.md"])
 
     assert String.contains?(
              doc,
-             "**Active milestone:** **Hold**"
+             "**Active milestone:** **v1.34 Local Docker Admin UI DX**"
            )
 
+    assert String.contains?(doc, "local maintainer DX exception")
     assert String.contains?(doc, "first-hour parity and verify/planning hygiene wedge is closed")
     assert String.contains?(doc, "see PROJECT.md Key Decisions")
 
     assert String.contains?(doc, "| v1.29 | **shipped** | First-Hour Parity & Verify Hygiene |")
+    assert String.contains?(doc, "| v1.34 | **active** | Local Docker Admin UI DX |")
 
     assert String.contains?(doc, "0.6.0")
     refute String.contains?(doc, "still lists **0.5.0**")

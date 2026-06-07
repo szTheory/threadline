@@ -8,8 +8,9 @@ defmodule Threadline.Query do
   ## Timeline filters
 
   `timeline/2`, `timeline_query/1`, and `Threadline.Export` accept the same
-  filter keyword list. Only these keys are allowed: `:repo`, `:table`, `:actor_ref`,
-  `:from`, `:to`, `:correlation_id`. Unknown keys raise `ArgumentError` (breaking vs
+  filter keyword list. Only these keys are allowed: `:repo`, `:table_schema`,
+  `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`.
+  Unknown keys raise `ArgumentError` (breaking vs
   pre-1.0 callers that relied on silent ignores — see CHANGELOG when upgrading).
 
   When `:correlation_id` is set to a non-empty string (after trimming), results are
@@ -33,8 +34,9 @@ defmodule Threadline.Query do
   alias Threadline.OperatorSurface.Scope, as: OperatorScope
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
+  alias Threadline.StorageSchema
 
-  @allowed_timeline_filter_keys ~w(repo table actor_ref from to correlation_id)a
+  @allowed_timeline_filter_keys ~w(repo table table_schema actor_ref from to correlation_id)a
   @allowed_row_history_filter_keys ~w(repo from to)a
   @default_timeline_page_size 1000
 
@@ -68,7 +70,7 @@ defmodule Threadline.Query do
     schema_module
     |> row_history_query(id, filters)
     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
-    |> repo.all()
+    |> repo.all(storage_opts(filters, opts))
   end
 
   @doc """
@@ -91,7 +93,7 @@ defmodule Threadline.Query do
       |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
       |> maybe_after_timeline_cursor(cursor)
       |> limit(^page_size)
-      |> repo.all()
+      |> repo.all(storage_opts(filters, opts))
 
     %TimelinePage{
       entries: entries,
@@ -119,7 +121,7 @@ defmodule Threadline.Query do
       AuditTransaction
       |> where([at], at.id == ^uuid)
       |> maybe_apply_scope(transaction_scope_opts(transaction_id, opts))
-      |> repo.one()
+      |> repo.one(storage_opts([], opts))
 
     case Keyword.get(opts, :preload) do
       preloads when preloads in [nil, []] ->
@@ -137,7 +139,8 @@ defmodule Threadline.Query do
   @doc """
   Validates that `filters` contains only timeline filter keys.
 
-  Allowed keys: `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`.
+  Allowed keys: `:repo`, `:table_schema`, `:table`,
+  `:actor_ref`, `:from`, `:to`, `:correlation_id`.
 
   Returns `:ok` or raises `ArgumentError`.
   """
@@ -147,7 +150,7 @@ defmodule Threadline.Query do
       cond do
         key not in @allowed_timeline_filter_keys ->
           raise ArgumentError,
-                "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table, :actor_ref, :from, :to, :correlation_id. " <>
+                "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id. " <>
                   "See `Threadline.Query` and `Threadline.Export`."
 
         key == :correlation_id ->
@@ -323,7 +326,7 @@ defmodule Threadline.Query do
         _ -> select(q, [ac, _at, _aa], ac)
       end
 
-    entries = repo.all(q)
+    entries = repo.all(q, storage_opts(filters, opts))
 
     %TimelinePage{
       entries: entries,
@@ -334,6 +337,7 @@ defmodule Threadline.Query do
   defp timeline_base_query(filters) do
     AuditChange
     |> join(:inner, [ac], at in AuditTransaction, on: ac.transaction_id == at.id)
+    |> filter_by_table_schema(Keyword.get(filters, :table_schema))
     |> filter_by_table(Keyword.get(filters, :table))
     |> filter_by_actor(Keyword.get(filters, :actor_ref))
     |> filter_by_from(Keyword.get(filters, :from))
@@ -364,26 +368,30 @@ defmodule Threadline.Query do
   def history(schema_module, id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     table = schema_module.__schema__(:source)
+    table_schema = schema_module.__schema__(:prefix) || "public"
     [pk_field] = schema_module.__schema__(:primary_key)
     pk_map = %{to_string(pk_field) => id}
 
     AuditChange
+    |> where([ac], ac.table_schema == ^table_schema)
     |> where([ac], ac.table_name == ^table)
     |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> order_by([ac], desc: ac.captured_at)
-    |> repo.all()
+    |> repo.all(storage_opts([], opts))
   end
 
   @doc false
   @spec row_history_query(module(), term(), keyword()) :: Ecto.Query.t()
   def row_history_query(schema_module, id, filters \\ []) when is_list(filters) do
     table = schema_module.__schema__(:source)
+    table_schema = schema_module.__schema__(:prefix) || "public"
     [pk_field] = schema_module.__schema__(:primary_key)
     pk_map = %{to_string(pk_field) => id}
 
     filters
     |> timeline_base_query()
+    |> where([ac, _at], ac.table_schema == ^table_schema)
     |> where([ac, _at], ac.table_name == ^table)
     |> where([ac, _at], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
     |> timeline_order()
@@ -401,11 +409,13 @@ defmodule Threadline.Query do
   def as_of(schema_module, id, timestamp, opts) do
     repo = Keyword.fetch!(opts, :repo)
     table = schema_module.__schema__(:source)
+    table_schema = schema_module.__schema__(:prefix) || "public"
     [pk_field] = schema_module.__schema__(:primary_key)
     pk_map = %{to_string(pk_field) => id}
 
     snapshot =
       AuditChange
+      |> where([ac], ac.table_schema == ^table_schema)
       |> where([ac], ac.table_name == ^table)
       |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
       |> where([ac], ac.captured_at <= ^timestamp)
@@ -413,7 +423,7 @@ defmodule Threadline.Query do
       |> order_by([ac], desc: ac.captured_at)
       |> order_by([ac], desc: ac.id)
       |> limit(1)
-      |> repo.one()
+      |> repo.one(storage_opts([], opts))
 
     case snapshot do
       %AuditChange{op: "delete"} -> {:error, :deleted_record}
@@ -489,7 +499,7 @@ defmodule Threadline.Query do
     entries_raw =
       query
       |> limit(^(limit + 1))
-      |> repo.all()
+      |> repo.all(storage_opts([], opts))
 
     {entries, has_more?} =
       if length(entries_raw) > limit do
@@ -637,7 +647,7 @@ defmodule Threadline.Query do
       |> maybe_apply_scope(transaction_scope_opts(transaction_id, opts))
       |> timeline_order()
       |> select([ac, _at], ac)
-      |> repo.all()
+      |> repo.all(storage_opts([], opts))
 
     case Keyword.get(opts, :preload) do
       preloads when preloads in [nil, []] ->
@@ -670,11 +680,13 @@ defmodule Threadline.Query do
   ## Options
 
   - `:table` — string or atom; filters by `table_name`
+  - `:table_schema` — string or atom; filters by captured host table schema
   - `:actor_ref` — `%ActorRef{}`; filters by actor via joined `audit_transactions`
   - `:from` — `DateTime`; inclusive lower bound on `captured_at`
   - `:to` — `DateTime`; inclusive upper bound on `captured_at`
   - `:correlation_id` — binary; strict filter on linked `AuditAction.correlation_id` (see moduledoc / CHANGELOG)
   - `:repo` — required `Ecto.Repo` module (in `filters` or `opts`; see `Threadline.Export`)
+  - `:storage_schema` — optional Threadline storage schema override
 
   ## Example
 
@@ -700,12 +712,24 @@ defmodule Threadline.Query do
         _ -> select(q, [ac, at, _aa], ac)
       end
 
-    repo.all(q)
+    repo.all(q, storage_opts(filters, opts))
   end
 
   @doc false
   def maybe_apply_scope(query, opts) do
     OperatorScope.apply(query, opts)
+  end
+
+  @doc false
+  def storage_opts(filters \\ [], opts \\ []) do
+    StorageSchema.repo_opts(storage_schema_opts(filters, opts))
+  end
+
+  defp storage_schema_opts(_filters, opts) do
+    case Keyword.get(opts, :storage_schema) do
+      nil -> []
+      storage_schema -> [storage_schema: storage_schema]
+    end
   end
 
   defp actor_history_scope_opts(actor_ref, opts) do
@@ -814,6 +838,16 @@ defmodule Threadline.Query do
 
   defp filter_by_table(query, table) when is_binary(table) do
     where(query, [ac], ac.table_name == ^table)
+  end
+
+  defp filter_by_table_schema(query, nil), do: query
+
+  defp filter_by_table_schema(query, schema) when is_atom(schema) do
+    filter_by_table_schema(query, to_string(schema))
+  end
+
+  defp filter_by_table_schema(query, schema) when is_binary(schema) do
+    where(query, [ac], ac.table_schema == ^schema)
   end
 
   defp filter_by_actor(query, nil), do: query

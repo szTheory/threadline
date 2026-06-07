@@ -4,8 +4,8 @@ This directory contains the repo-ready Threadline brand system. It is intentiona
 
 Open `index.html` directly in a browser to review the visual brandbook. The Markdown files are the durable source text:
 
-- `brand-book.md` is the tightened source-of-truth brand guide.
-- `pressure-test.md` is the critical audit and quality gate.
+- `brand-book.md` is the source-of-truth brand guide.
+- `pressure-test.md` is the brand QA and readiness guide.
 - `tokens.json` and `tokens.css` are implementation tokens for docs, marketing, and static examples.
 - `logo-*.svg`, `favicon.svg`, `social-card.svg`, and `examples/*.svg` are editable vector assets. Use `logo-primary.svg` on dark surfaces and `logo-primary-light.svg` on README/GitHub/light documentation surfaces.
 

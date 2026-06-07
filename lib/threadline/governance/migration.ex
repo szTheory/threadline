@@ -11,13 +11,17 @@ defmodule Threadline.Governance.Migration do
   Returns the full migration content as a string, ready to write to a `.exs` file.
   """
   def migration_content do
+    storage_schema = Threadline.StorageSchema.get()
+
     """
     defmodule ThreadlineGovernanceSchema do
       use Ecto.Migration
 
       def up do
+        execute "CREATE SCHEMA IF NOT EXISTS #{storage_schema}"
+
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS threadline_export_jobs (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_export_jobs (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           query_params   jsonb       NOT NULL,
@@ -33,7 +37,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS threadline_retention_runs (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_retention_runs (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           deleted_count  integer,
@@ -47,7 +51,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS threadline_saved_views (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_saved_views (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           name           text        NOT NULL,
           actor_ref      jsonb       NOT NULL,
@@ -58,7 +62,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS threadline_evidence_records (
+        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_evidence_records (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           subject        text        NOT NULL,
           subject_ref    jsonb       NOT NULL,
@@ -74,29 +78,29 @@ defmodule Threadline.Governance.Migration do
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_idx
-          ON threadline_evidence_records (subject)
+          ON #{storage_schema}.threadline_evidence_records (subject)
         \"\"\"
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_recorded_at_idx
-          ON threadline_evidence_records (recorded_at)
+          ON #{storage_schema}.threadline_evidence_records (recorded_at)
         \"\"\"
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_ref_idx
-          ON threadline_evidence_records
+          ON #{storage_schema}.threadline_evidence_records
           USING gin (subject_ref)
         \"\"\"
       end
 
       def down do
-        execute "DROP INDEX IF EXISTS threadline_evidence_records_subject_ref_idx"
-        execute "DROP INDEX IF EXISTS threadline_evidence_records_recorded_at_idx"
-        execute "DROP INDEX IF EXISTS threadline_evidence_records_subject_idx"
-        execute "DROP TABLE IF EXISTS threadline_evidence_records"
-        execute "DROP TABLE IF EXISTS threadline_saved_views"
-        execute "DROP TABLE IF EXISTS threadline_retention_runs"
-        execute "DROP TABLE IF EXISTS threadline_export_jobs"
+        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_subject_ref_idx"
+        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_recorded_at_idx"
+        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_subject_idx"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_evidence_records"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_saved_views"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_retention_runs"
+        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_export_jobs"
       end
     end
     """

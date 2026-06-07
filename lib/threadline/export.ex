@@ -75,7 +75,12 @@ defmodule Threadline.Export do
     include_meta = Keyword.get(opts, :include_action_metadata, false)
     limit = max_rows + 1
 
-    rows = repo.all(Query.export_changes_query(filters, opts) |> limit(^limit))
+    rows =
+      repo.all(
+        Query.export_changes_query(filters, opts) |> limit(^limit),
+        Query.storage_opts(filters, opts)
+      )
+
     {truncated, rows} = split_truncated(rows, max_rows)
 
     header =
@@ -113,7 +118,12 @@ defmodule Threadline.Export do
     json_format = Keyword.get(opts, :json_format, :wrapped)
     limit = max_rows + 1
 
-    rows = repo.all(Query.export_changes_query(filters, opts) |> limit(^limit))
+    rows =
+      repo.all(
+        Query.export_changes_query(filters, opts) |> limit(^limit),
+        Query.storage_opts(filters, opts)
+      )
+
     {truncated, rows} = split_truncated(rows, max_rows)
     changes = Enum.map(rows, &change_map/1)
 
@@ -186,9 +196,9 @@ defmodule Threadline.Export do
         capped = base_query |> limit(^cap)
 
         from(sub in subquery(capped), select: count())
-        |> repo.one()
+        |> repo.one(Query.storage_opts(filters, opts))
       else
-        repo.aggregate(base_query, :count, :id)
+        repo.aggregate(base_query, :count, :id, Query.storage_opts(filters, opts))
       end
 
     {:ok, %{count: count}}
@@ -342,7 +352,7 @@ defmodule Threadline.Export do
             |> Query.maybe_after_timeline_cursor(cursor)
             |> limit(^page_size)
 
-          case repo.all(q) do
+          case repo.all(q, Query.storage_opts(filters, opts)) do
             [] ->
               {:halt, :done}
 

@@ -574,6 +574,17 @@ defmodule Threadline.QueryTest do
       assert Enum.all?(results, &(&1.table_name == "users"))
     end
 
+    test "filters by table schema when duplicate table names exist" do
+      txn = insert_transaction()
+      public_change = insert_change(txn, %{table_schema: "public", table_name: "tickets"})
+      support_change = insert_change(txn, %{table_schema: "support", table_name: "tickets"})
+
+      results = Threadline.timeline(table_schema: "support", table: "tickets", repo: @repo)
+
+      assert Enum.map(results, & &1.id) == [support_change.id]
+      refute public_change.id in Enum.map(results, & &1.id)
+    end
+
     test "filters by from (inclusive)" do
       txn = insert_transaction()
       past = DateTime.add(DateTime.utc_now(), -3600, :second)

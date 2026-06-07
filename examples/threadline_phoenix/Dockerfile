@@ -1,13 +1,18 @@
-# syntax=docker/dockerfile:1.7
-# Keep the demo image pinned so Docker builds are reproducible and current
-# optional deps can enforce their Elixir floor without warning.
-FROM hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250610-slim AS demo
+# Keep this Dockerfile on Docker/BuildKit's bundled frontend so the local demo
+# does not need to pull docker/dockerfile before the first build. The RUN cache
+# mounts below are still supported by current Docker Compose / BuildKit.
+#
+# The base image is overridable so a maintainer can use an already-cached
+# compatible Elixir/OTP image when Docker Hub metadata lookups are flaky.
+ARG THREADLINE_DEMO_BASE_IMAGE=elixir:1.18-otp-27-slim
+FROM ${THREADLINE_DEMO_BASE_IMAGE} AS demo
 
 # Install system dependencies.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    postgresql-client \
+    ca-certificates \
     inotify-tools \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Hex and Rebar.

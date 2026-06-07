@@ -49,7 +49,8 @@
       "assessment_thread_pattern": ".planning/threads/YYYY-MM-DD-milestone-next-step-*.md",
       "record_path_to_done_in_arc": true,
       "assessment_supersedes_prior_thread": true
-    }
+    },
+    "nyquist_validation": true
   },
   "model_profile": "balanced",
   "granularity": "coarse",

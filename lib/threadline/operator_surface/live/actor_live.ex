@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Capture.AuditChange
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.StorageSchema
 
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
       repo =
@@ -297,7 +298,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         AuditChange
         |> where([ac], ac.transaction_id in ^ids)
         |> order_by([ac], asc: ac.transaction_id, desc: ac.captured_at, desc: ac.table_name)
-        |> repo.all()
+        |> repo.all(StorageSchema.repo_opts())
         |> Enum.group_by(& &1.transaction_id)
         |> Map.new(fn {transaction_id, changes} ->
           {transaction_id,

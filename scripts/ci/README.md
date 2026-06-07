@@ -27,6 +27,18 @@ If **port 5432** is already taken by another PostgreSQL on the host, Compose def
 DB_PORT=5433 mix ci.all
 ```
 
+When running more than one checkout or Docker-backed demo at the same time,
+pair a unique Compose project name with a unique host database port:
+
+```bash
+COMPOSE_PROJECT_NAME=threadline-ci-a THREADLINE_DB_PORT=5434 docker compose up -d
+DB_PORT=5434 mix ci.all
+COMPOSE_PROJECT_NAME=threadline-ci-a docker compose down --remove-orphans
+```
+
+For the broader port/project-name model, see
+[`guides/local-docker-dx.md`](../../guides/local-docker-dx.md).
+
 No separate `createdb` step: `test/test_helper.exs` ensures the test database exists via `Ecto.Adapters.Postgres.storage_up/1`.
 
 ## Other jobs (`act`)

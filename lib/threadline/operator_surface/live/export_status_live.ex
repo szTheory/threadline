@@ -10,6 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.StorageSchema
 
     @default_limit 100
     @evidence_context_keys ~w(source subject subject_ref_json mode)
@@ -59,7 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               query_params: query_params,
               actor_ref: socket.assigns[:threadline_actor_ref]
             }
-            |> repo.insert!()
+            |> repo.insert!(StorageSchema.repo_opts())
 
           adapter =
             Application.get_env(
@@ -84,7 +85,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 error_message: error_message,
                 expires_at: terminal_export_expiry()
               })
-              |> repo.update!()
+              |> repo.update!(StorageSchema.repo_opts())
 
               {:noreply, put_flash(socket, :error, error_message)}
           end
@@ -358,7 +359,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             order_by: [desc: j.inserted_at],
             limit: @default_limit
           )
-          |> repo.all()
+          |> repo.all(StorageSchema.repo_opts())
         else
           []
         end

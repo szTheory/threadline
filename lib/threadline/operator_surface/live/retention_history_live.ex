@@ -8,6 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Governance.RetentionRun
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.StorageSchema
     alias Threadline.Retention.Pruner
 
     @default_limit 40
@@ -199,7 +200,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         repo = resolve_repo(socket)
 
         from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
-        |> repo.all()
+        |> repo.all(StorageSchema.repo_opts())
       end
     end
 
@@ -208,7 +209,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         false
       else
         repo = resolve_repo(socket)
-        repo.exists?(from(r in RetentionRun))
+        repo.exists?(from(r in RetentionRun), StorageSchema.repo_opts())
       end
     end
 

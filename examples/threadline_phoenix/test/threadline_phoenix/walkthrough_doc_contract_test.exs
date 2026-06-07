@@ -84,9 +84,7 @@ defmodule ThreadlinePhoenix.WalkthroughDocContractTest do
 
     test "shipped operator surface mounts transaction-scoped history route" do
       router =
-        File.read!(
-          Path.expand("../../../../lib/threadline/operator_surface/router.ex", __DIR__)
-        )
+        File.read!(Path.expand("../../../../lib/threadline/operator_surface/router.ex", __DIR__))
 
       assert String.contains?(
                router,

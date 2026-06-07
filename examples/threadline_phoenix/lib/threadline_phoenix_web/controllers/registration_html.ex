@@ -10,30 +10,47 @@ defmodule ThreadlinePhoenixWeb.RegistrationHTML do
 
   def new(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
-      <.header>
-        Register
-        <:subtitle>
-          Already registered?
-          <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
-            Log in
-          </.link>
-          to your account now.
-        </:subtitle>
-      </.header>
+    <section class="rd-auth" aria-labelledby="rd-register-title">
+      <div class="rd-auth__story">
+        <p class="rd-kicker">Create a workspace</p>
+        <h1 id="rd-register-title">Register for RelayDesk</h1>
+        <p>
+          Registration exercises the host application's normal auth path and provisions
+          a local support workspace, while Threadline remains the separate audit layer.
+        </p>
+        <ul>
+          <li>Use any email address for local testing.</li>
+          <li>Open the mailbox if the flow asks for confirmation.</li>
+          <li>Return here to launch Threadline after signing in.</li>
+        </ul>
+        <p>
+          <.link navigate={~p"/"}>Return to RelayDesk home</.link>
+        </p>
+      </div>
 
-      <.form :let={f} for={@form} id="registration_form" action={~p"/users/register"} method="post">
-        <% # Add custom fields here (e.g., :name, :company) %>
-        <.input field={f[:email]} type="email" label="Email" autocomplete="username" required />
-        <.input field={f[:password]} type="password" label="Password" autocomplete="new-password" required />
+      <div class="rd-auth__card">
+        <.header>
+          Register
+          <:subtitle>
+            Already registered?
+            <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
+              Log in
+            </.link>
+            to your account now.
+          </:subtitle>
+        </.header>
 
+        <.form :let={f} for={@form} id="registration_form" action={~p"/users/register"} method="post">
+          <% # Add custom fields here (e.g., :name, :company) %>
+          <.input field={f[:email]} type="email" label="Email" autocomplete="username" required />
+          <.input field={f[:password]} type="password" label="Password" autocomplete="new-password" required />
 
-
-        <.button class="btn btn-primary w-full">
-          Create an account <span aria-hidden="true">&rarr;</span>
-        </.button>
-      </.form>
-    </div>
+          <.button class="btn btn-primary w-full">
+            Create an account <span aria-hidden="true">&rarr;</span>
+          </.button>
+        </.form>
+      </div>
+    </section>
     """
   end
 end

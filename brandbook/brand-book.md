@@ -34,9 +34,9 @@ Audience:
 
 Emotional tone:
 
-- Calm under pressure.
+- Calm in tense moments.
 - Exact without being cold.
-- Useful before impressive.
+- Useful over impressive.
 - Trustworthy because it is inspectable.
 
 Technical promise:
@@ -140,7 +140,7 @@ Not this:
 
 Say this:
 
-> Understand what changed, who initiated it, and why.
+> Understand the change, who initiated it, and why.
 
 Not this:
 
@@ -291,7 +291,7 @@ Layout principles:
 
 - Strong grid.
 - Calm spacing.
-- Dense where needed, never cluttered.
+- Dense where useful, never cluttered.
 - Clear hierarchy between action, context, raw changes, and evidence.
 - Thin dividers and rails.
 - Rounded corners capped at 8px for most UI components.
@@ -371,7 +371,7 @@ Success states:
 
 Warning states:
 
-> Redaction drift detected. The configured redaction policy does not match the deployed trigger. Regenerate triggers before relying on this field.
+> Redaction drift detected. The configured redaction policy does not match the deployed trigger. Regenerate triggers, then rely on this field.
 
 Release notes:
 
@@ -472,7 +472,7 @@ Commit:
 - Editable SVG logos and examples.
 - Static HTML brandbook.
 
-Generate only when needed:
+Generate only on demand:
 
 - PNG social card exports.
 - PDF snapshots.
@@ -503,4 +503,4 @@ Before using the brand system publicly:
 - Can it support marketing without becoming cheesy?
 - Can it survive dark mode, light docs pages, small icons, and social previews?
 - Does it feel specific to Threadline?
-- Does it avoid unnecessary brand churn?
+- Does it resist unnecessary redesign pressure?
