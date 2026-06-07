@@ -75,6 +75,11 @@ function dynamicMasks(page: Page): Locator[] {
 }
 
 test.describe("operator screenshot regression guard", () => {
+  test.skip(
+    !!process.env.CI,
+    "visual screenshot baselines are platform-sensitive; run this guard locally before updating PNG snapshots",
+  );
+
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "chromium", "fixed guard runs on desktop/mobile projects");
 
