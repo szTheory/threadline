@@ -128,13 +128,13 @@ defmodule Threadline.OperatorSurface.PresentationTest do
       dt = ~U[2026-06-04 12:30:00Z]
 
       assert Presentation.value_token(dt) == %{
-               text: "Today, 12:30 PM UTC",
+               text: "Jun 4, 12:30 PM UTC",
                title: "2026-06-04T12:30:00Z",
                modifier: "tl-value--time"
              }
 
       assert Presentation.value_token("2026-06-04T12:30:00Z") == %{
-               text: "Today, 12:30 PM UTC",
+               text: "Jun 4, 12:30 PM UTC",
                title: "2026-06-04T12:30:00Z",
                modifier: "tl-value--time"
              }

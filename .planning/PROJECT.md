@@ -10,18 +10,24 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-v1.34 is open. Threadline is hardening the Docker-backed Phoenix operator demo so maintainers can start, refresh, inspect, stop, and run the admin UI alongside other local Docker projects without port or cache friction.
+Threadline is between milestones. v1.34 shipped the local Docker admin UI DX work; the next milestone should start with fresh requirements before implementation work resumes.
 
-## Current Milestone: v1.34 Local Docker Admin UI DX
+## Latest Milestone Shipped: v1.34 Local Docker Admin UI DX (2026-06-07)
 
-**Goal:** Make the Docker-backed Phoenix operator demo easy to start, refresh, inspect, stop, and run alongside other local Docker projects without port or cache pain.
+**Goal (achieved):** Make the Docker-backed Phoenix operator demo easy to start, refresh, inspect, stop, and run alongside other local Docker projects without port or cache pain.
 
-**Target features:**
-- Canonical `bin/demo-up` entrypoint for the seeded `/audit` demo.
-- Conflict-resistant Compose project names, localhost-bound ports, readiness checks, and lifecycle commands.
-- Reader-first Docker DX docs that explain routes, credentials, cleanup, cache behavior, and why subdomain proxying is deferred.
+**Shipped:**
+- **Canonical demo helper** — `bin/demo-up` is the helper-first entrypoint for the seeded `/audit` demo, with project name, credentials, URLs, lifecycle commands, readiness checks, and failure log guidance.
+- **Local isolation** — Compose/Dockerfile behavior keeps ports localhost-bound, resources project-scoped, dependencies cache-friendly, PgBouncer opt-in, and rebuilds explicit through `--build`.
+- **Lifecycle commands** — `--status`, `--logs`, `--down`, and `--fresh` operate against the same profile-aware Compose project.
+- **Reader-first docs** — contributor/example docs explain shortest path, refresh/stop/reset, project-name/port behavior, cleanup, stale-code troubleshooting, and why `.dev` hostnames are rejected.
+- **Opt-in friendly host** — shared-proxy mode supports `threadline.localhost` through the external `proxy` network while keeping `127.0.0.1:<port>` as the fallback.
 
-## Latest Milestone Shipped: v1.33 Brand Review + Direction Selection (2026-06-06)
+**Archives:** `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
+
+**Next milestone goals:** Hold until `$gsd-new-milestone` defines fresh requirements.
+
+## Prior shipped milestone: v1.33 Brand Review + Direction Selection (2026-06-06)
 
 **Goal (achieved):** Make the v1.32 `brandbook/` artifacts visible, reviewable, and decision-complete before any public README/GitHub/HexDocs/marketing rollout starts.
 

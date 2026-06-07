@@ -62,7 +62,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
     Repo.query!(TriggerSQL.create_trigger(@drift_table, :per_table))
 
     Repo.query!("""
-    CREATE OR REPLACE FUNCTION threadline_capture_changes_#{@introspect_table}()
+    CREATE OR REPLACE FUNCTION threadline.threadline_capture_changes_#{@introspect_table}()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS $threadline_trigger$

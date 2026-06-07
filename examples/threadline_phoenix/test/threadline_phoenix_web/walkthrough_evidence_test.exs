@@ -12,7 +12,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
   alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
   alias ThreadlinePhoenix.Repo
 
-  setup do
+  setup_all do
     seed_demo_fiction!()
     :ok
   end
@@ -60,7 +60,9 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       policy_conn = admin_conn() |> get(~p"/audit/policy/redaction")
       policy_html = html_response(policy_conn, 200)
-      assert policy_html =~ "Policy redaction drift"
+      assert policy_html =~ "Redaction assurance"
+      assert policy_html =~ "Compare configured redaction policy with deployed database trigger policy"
+      assert policy_html =~ "Drift detected"
 
       {tx_id, reply_pk} = hero_4521_close_reply_ids!()
 

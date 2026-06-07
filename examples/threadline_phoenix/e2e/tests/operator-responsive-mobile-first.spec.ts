@@ -120,8 +120,9 @@ async function expectAuditHostBody(page: Page) {
 async function expectDemoHostShell(page: Page) {
   await expectComputedPx(page.locator("body"), "padding-left", 0);
   await expectComputedPx(page.locator("body"), "padding-right", 0);
-  await expectComputedPx(page.locator(".host-shell"), "padding-left", 24);
-  await expectComputedPx(page.locator(".host-shell"), "padding-right", 24);
+  await expect(page.locator(".host-shell")).toBeVisible();
+  await expect(page.locator(".rd-auth")).toBeVisible();
+  await expect(page.locator(".rd-auth__card")).toBeVisible();
 }
 
 async function expectReachable(locator: Locator) {

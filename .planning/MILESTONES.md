@@ -1,5 +1,39 @@
 # Project milestones: Threadline
 
+## v1.34 Local Docker Admin UI DX (Shipped: 2026-06-07)
+
+**Delivered:** Hardened Threadline's local Docker demo workflow with a one-command seeded `/audit` entrypoint, project-aware lifecycle commands, localhost-bound dynamic ports, cache-friendly Compose/Dockerfile behavior, and an opt-in shared-proxy path for `threadline.localhost`.
+
+**Phases completed:** 5 phases (154-158), 5 plans. Requirements: 9/9 satisfied.
+
+**Key accomplishments:**
+
+- Made `bin/demo-up` the canonical helper-first local demo path, including printed project name, credentials, URLs, and lifecycle commands.
+- Added project-aware refresh/status/logs/down/fresh behavior so repeated runs reuse the intended stack and avoid duplicate local resources.
+- Hardened Compose/Dockerfile behavior around localhost-bound ports, project-scoped resources, reusable Docker volumes, pinned PgBouncer, `ca-certificates`, and explicit `--build` rebuilds.
+- Updated reader-first Docker docs for contributors and example-app users, including cleanup, cache behavior, multi-stack ports, and why `.dev` hostnames are rejected for HTTP local demos.
+- Added optional friendly-host proxy mode using the shared local Traefik network, while preserving the fallback `127.0.0.1:<port>` path.
+
+**Verification:**
+
+- `bash -n bin/demo-up`
+- `docker compose --profile demo config`
+- `bin/demo-up` reached `/users/log_in` and `/audit`, refreshed the same stack, and preserved the browser URL.
+- `mix test`
+- `mix verify.hex_evaluator`
+- `mix verify.example`
+- `mix verify.example_browser`
+- `git diff --check`
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.34-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.34-REQUIREMENTS.md`
+
+**What is next:** `$gsd-new-milestone` - define fresh requirements before opening new work.
+
+---
+
 ## v1.33 Brand Review + Direction Selection (Shipped: 2026-06-06)
 
 **Delivered:** Reviewed and approved the v1.32 brandbook direction for README/GitHub readiness, added the light-surface logo role, applied targeted brandbook truth cleanup, and verified the final source artifacts before public rollout.

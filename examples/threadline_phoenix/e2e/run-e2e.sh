@@ -143,4 +143,4 @@ sleep 2
 curl --max-time 60 -fsS "${BASE_URL}/users/log_in" >/dev/null
 
 cd "$E2E_DIR"
-npm test
+npm test -- "$@"

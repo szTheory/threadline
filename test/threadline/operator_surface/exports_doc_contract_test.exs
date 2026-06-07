@@ -242,7 +242,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
     test "TimelineLive uses cap: 10_001 in count_matching (matches controller cap; allows '10,000+' approximation)" do
       src = File.read!(@lv_path)
-      assert String.contains?(src, "cap: 10_001")
+      assert src =~ ~r/count_opts\(socket,\s*10_001\)/
     end
   end
 

@@ -141,7 +141,7 @@ defmodule Threadline.MixProject do
     end
   end
 
-  defp verify_example_browser(_args) do
+  defp verify_example_browser(args) do
     script = Path.expand("examples/threadline_phoenix/e2e/run-e2e.sh")
 
     env =
@@ -153,7 +153,7 @@ defmodule Threadline.MixProject do
         {"THREADLINE_E2E", "1"}
       ])
 
-    case System.cmd("bash", [script], env: env, into: IO.stream(:stdio, :line)) do
+    case System.cmd("bash", [script | args], env: env, into: IO.stream(:stdio, :line)) do
       {_output, 0} -> :ok
       {_output, status} -> Mix.raise("verify.example_browser failed (#{status})")
     end

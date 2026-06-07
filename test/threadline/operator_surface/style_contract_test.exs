@@ -3,7 +3,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   use ExUnit.Case, async: true
 
   @style_path "lib/threadline/operator_surface/style.ex"
-  @motion_inventory_path ".planning/phases/141-motion-micro-animation/141-MOTION-INVENTORY.md"
+  @motion_inventory_path ".planning/milestones/v1.31-phases/141-motion-micro-animation/141-MOTION-INVENTORY.md"
 
   test "operator surface stays dark-only and token-driven" do
     src = File.read!(@style_path)
@@ -576,7 +576,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
              "#{text_token} must meet AA contrast on #{background_token}"
     end
 
-    assert contrast_ratio(tokens["--tl-color-accent"], tokens["--tl-color-surface-raised"]) >= 4.5,
+    assert contrast_ratio(tokens["--tl-color-accent"], tokens["--tl-color-surface-raised"]) >=
+             4.5,
            "base accent links must meet AA contrast on raised surfaces"
   end
 

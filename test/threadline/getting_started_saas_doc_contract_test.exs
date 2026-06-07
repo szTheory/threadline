@@ -173,14 +173,16 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
 
   test "getting-started documents threadline ecto_repos before resolve_repo consumers" do
     doc = read_rel!(@guide_path)
-    literal = "config :threadline, ecto_repos: [MyApp.Repo]"
+
+    literal =
+      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "threadline"/
 
     assert String.contains?(doc, "### Configure Threadline")
 
     # ExDoc proxy: getting-started-saas.md#configure-threadline from locked heading (CFG-01 / D-11)
-    assert String.contains?(doc, literal)
+    assert doc =~ literal
 
-    {literal_idx, _} = :binary.match(doc, literal)
+    {literal_idx, _} = Regex.run(literal, doc, return: :index) |> hd()
     {section_7_idx, _} = :binary.match(doc, "## 7. Check trigger coverage")
     {section_3_idx, _} = :binary.match(doc, "## 3. Install the audit schema")
     {sigra_fence_idx, _} = :binary.match(doc, "getting-started-sigra-reference-fence")
