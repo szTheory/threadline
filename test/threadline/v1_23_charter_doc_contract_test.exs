@@ -12,17 +12,17 @@ defmodule Threadline.V123CharterDocContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
-  test "PROJECT.md locks current milestone and latest shipped framing" do
+  test "PROJECT.md locks hold posture and latest shipped framing" do
     doc = read_rel!([".planning", "PROJECT.md"])
 
     assert String.contains?(
              doc,
-             "## Current Milestone: v1.34 Local Docker Admin UI DX"
+             "Threadline is between milestones. v1.34 shipped the local Docker admin UI DX work"
            )
 
     assert String.contains?(
              doc,
-             "## Latest Milestone Shipped: v1.33 Brand Review + Direction Selection"
+             "## Latest Milestone Shipped: v1.34 Local Docker Admin UI DX"
            )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")
@@ -35,7 +35,7 @@ defmodule Threadline.V123CharterDocContractTest do
 
     assert String.contains?(
              doc,
-             "**Active milestone:** **v1.34 Local Docker Admin UI DX**"
+             "**Active milestone:** **Hold**"
            )
 
     assert String.contains?(doc, "local maintainer DX exception")
@@ -43,7 +43,7 @@ defmodule Threadline.V123CharterDocContractTest do
     assert String.contains?(doc, "see PROJECT.md Key Decisions")
 
     assert String.contains?(doc, "| v1.29 | **shipped** | First-Hour Parity & Verify Hygiene |")
-    assert String.contains?(doc, "| v1.34 | **active** | Local Docker Admin UI DX |")
+    assert String.contains?(doc, "| v1.34 | **shipped** | Local Docker Admin UI DX |")
 
     assert String.contains?(doc, "0.6.0")
     refute String.contains?(doc, "still lists **0.5.0**")
