@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.10.0](https://github.com/szTheory/threadline/compare/v0.9.0...v0.10.0) (2026-06-07)
+
+
+### Features
+
+* **135-01:** add named non-human actor literals to Manifest (D-06) ([37fd4de](https://github.com/szTheory/threadline/commit/37fd4de12f9bd758ef341cb29825584479b3282a))
+* **135-01:** fix D-05 — persona/setup rows get :admin actor + backdate 21d before epoch (GREEN) ([098e8a8](https://github.com/szTheory/threadline/commit/098e8a83cef39a4b03eac31c77ed8525502a096b))
+* **135-01:** generalize Support actor helpers to all ActorRef kinds (D-07) ([9fa676b](https://github.com/szTheory/threadline/commit/9fa676bbd9eddd19b21d65078d4e778e8253b095))
+* **135-03:** add seed_variety_pack/1 — in-window 5/4/2 op mix with multi-kind actors (D-10/11/12/14) + D-13 assertion ([878f5e9](https://github.com/szTheory/threadline/commit/878f5e9ac32dabb406d32ae816bfe53c1ee20e72))
+* **135-03:** seed SavedView rows for admin actor_ref (F-204 data) ([912919f](https://github.com/szTheory/threadline/commit/912919fe7b13d6bb069058ee1156857ccdcb9680))
+* **135-03:** shift filler corpus op-mix toward 55/35/10 via DELETE branch (D-11) ([1ffd0ae](https://github.com/szTheory/threadline/commit/1ffd0ae4b7b7a0188ef64eb68c26f93026311d15))
+* **137-01:** add prove presentation primitives ([7b9e034](https://github.com/szTheory/threadline/commit/7b9e034878462f3bef626ed226ec55f79842be6d))
+* **137-02:** group exports by readiness ([8e839d4](https://github.com/szTheory/threadline/commit/8e839d466476b6a6b74317cbc5d2ee5b44759781))
+* **137-03:** make retention prune context first ([7a4a513](https://github.com/szTheory/threadline/commit/7a4a51390258c6438cf6c49a3501a9f4ac0f77e7))
+* **137-04:** align evidence and redaction proof polish ([e123009](https://github.com/szTheory/threadline/commit/e1230096a417a0e12abf53b25ba635ed47ad36f3))
+* **138-01:** add find css primitives ([16bd29a](https://github.com/szTheory/threadline/commit/16bd29a8703830d464a817c5ffac7526840c1b5f))
+* **138-01:** implement find presentation helpers ([3ef67a8](https://github.com/szTheory/threadline/commit/3ef67a8be1f3414610c568065740955c7a303979))
+* **138-02:** render row history snapshots with value tokens ([fed7438](https://github.com/szTheory/threadline/commit/fed7438e979f7907af56c0c5a4f7b4aaa7d6132d))
+* **138-02:** render transaction diffs with semantic values ([1f02175](https://github.com/szTheory/threadline/commit/1f021754db778df4842441861e82091fe075cbb7))
+* **138-03:** polish Timeline dense and recovery states ([3e8eca6](https://github.com/szTheory/threadline/commit/3e8eca61727c4890a953748261b0ca7077e8d9a2))
+* **138-04:** add scope-safe actor row summaries ([9967025](https://github.com/szTheory/threadline/commit/9967025f83086a495cc4f94b0aa5f2ac2bf0cedb))
+* **138-04:** make coverage rows remediation first ([2a55372](https://github.com/szTheory/threadline/commit/2a55372d079594c1d7cd1e798209d3c56350f612))
+* **139-01:** add surface header nav handoff primitives ([84d7576](https://github.com/szTheory/threadline/commit/84d7576daf551c75d91b780b98deb74320d4da77))
+* **139-02:** polish home orientation hub ([1ce7184](https://github.com/szTheory/threadline/commit/1ce71845cc5f14983ecdebdd387a83fa448e68c5))
+* **140-01:** mount first-class row history ([457ee36](https://github.com/szTheory/threadline/commit/457ee366a46caac1174ba558af41c86a26e6c574))
+* **140-02:** add home earned-flow shortcuts ([11e2a09](https://github.com/szTheory/threadline/commit/11e2a09f4e6b8cd5ecab49a3bee8fbbfb6a5a8b5))
+* **140-03:** carry timeline filters into exports ([e4d84d6](https://github.com/szTheory/threadline/commit/e4d84d6c87dd8e6ac04827af992d2c012bc7ce3f))
+* **140-04:** carry evidence proof context into exports ([b56c065](https://github.com/szTheory/threadline/commit/b56c06562ff840200db76bb447e8a7602c7c14c7))
+* **142-01:** tokenize responsive breakpoint scale ([4f13cf0](https://github.com/szTheory/threadline/commit/4f13cf0a45f0da72fa3bf3a514f71127a02fdc9d))
+* **144-02:** add shared operation presentation helpers ([a8c6eec](https://github.com/szTheory/threadline/commit/a8c6eecdf961df5ece2aa6c7f57b1e8b2e16ccc9))
+* **144-03:** mark design-system token freeze source ([c232115](https://github.com/szTheory/threadline/commit/c2321151442c3b5f6c507450124ae5c970274351))
+* isolate Threadline storage schema ([a837aac](https://github.com/szTheory/threadline/commit/a837aaca8acbedeec925446b49a5f101df2bd945))
+
+
+### Bug Fixes
+
+* **135:** CR-01 extend idempotency to variety pack no-DML stories ([c24203d](https://github.com/szTheory/threadline/commit/c24203dfe4239d9970ceec2a9ea899f8a72dc820))
+* **135:** CR-01 guard seed_memberships against no-DML re-seed crash ([610361c](https://github.com/szTheory/threadline/commit/610361cf969d3f0c9076219fe140af278fd0a5b7))
+* **135:** CR-02 correct DEMO-MANIFEST membership operation descriptions ([708008e](https://github.com/szTheory/threadline/commit/708008e8cb97c19b79576f8354be0a1ecb0c9b13))
+* **135:** WR-01/WR-02 remove dead ref scaffolding and rename misleading variable ([28741a6](https://github.com/szTheory/threadline/commit/28741a6bbaa99fbceb713052e485c7feff79d36f))
+* **138:** constrain coverage remediation commands ([5791e1a](https://github.com/szTheory/threadline/commit/5791e1aa64e257ce6adc2cf1f77e852b3dbfa74d))
+* **139:** enforce mobile viewport for operator e2e ([f319ecc](https://github.com/szTheory/threadline/commit/f319ecc1cde123a9f865a7351f8d755f86861515))
+* **139:** preserve scoped home header state ([1786677](https://github.com/szTheory/threadline/commit/178667783e2e56aa1e24a838bac471df1553c751))
+* **139:** revise plans based on checker feedback ([7d7aa1b](https://github.com/szTheory/threadline/commit/7d7aa1bf3fd61b8d41f4fbb5cb415b82ecf2b175))
+* **140:** close earned-flow review findings ([e064898](https://github.com/szTheory/threadline/commit/e064898fa8f66fb15f87f248c37ccc739ef1d38b))
+* **140:** mark research questions resolved ([735e7eb](https://github.com/szTheory/threadline/commit/735e7ebc2c852ab8edd9bbdad4a2b65c3e9ac2e9))
+* **140:** resolve earned flow planning questions ([ab4d1b2](https://github.com/szTheory/threadline/commit/ab4d1b27b9fc8cc3deeb554732b825c71018ebed))
+* **140:** wire liveview assets for earned-flow e2e ([5cc0983](https://github.com/szTheory/threadline/commit/5cc09832b7e3f7e94a88e17a75827b896d48a71d))
+* **141-03:** enforce motion preference emulation in spec ([65eece2](https://github.com/szTheory/threadline/commit/65eece2d779b3aaf6eb1f86a6fecbeeb2b8d7c23))
+* **141:** use valid motion transition longhands ([8b8b913](https://github.com/szTheory/threadline/commit/8b8b913d286280a55b26bb4a9119e053eaea5cbb))
+* **143:** make screenshot snapshots portable ([f771160](https://github.com/szTheory/threadline/commit/f771160ed6313eaaea682c91b954378a4fc233b6))
+
 ## [0.9.0](https://github.com/szTheory/threadline/compare/v0.8.0...v0.9.0) (2026-06-03)
 
 
