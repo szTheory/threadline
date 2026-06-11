@@ -10,7 +10,20 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is between milestones. v1.34 shipped the local Docker admin UI DX work; the next milestone should start with fresh requirements before implementation work resumes.
+Threadline is working milestone v1.35 Unified Logo & Brand Book v2: replacing the icon-left-of-text logo with a unified, tournament-selected logo system and rebuilding `brandbook/index.html` as a standalone professional HTML brand book.
+
+## Current Milestone: v1.35 Unified Logo & Brand Book v2
+
+**Goal:** Replace the current icon-beside-plain-text logo with a unified, professionally crafted identity selected by the user through a feedback tournament, and elevate the brandbook into a standalone professional HTML brand book — all text/SVG, self-contained in `brandbook/`.
+
+**Target features:**
+- Senior-designer pressure-test audit of the existing brand book (14-section framework, KEEP/TIGHTEN/REWORK/ADD/REMOVE) plus devtools/OSS identity research synthesized into a design brief
+- Glyph-outline pipeline (fontkit, vendored Geist woff2) so every logo SVG is pure paths — no `<text>` elements, portable on GitHub's SVG sandbox
+- Logo tournament: 8 round-1 concepts across four archetypes (3 integrated typemarks, 3 unified lockups, 1 monogram, 1 wordmark-only), human checkpoint rounds, user always picks the winner
+- Brand book v2: winner graduated into the full `brandbook/` asset family and a rebuilt standalone `index.html` with misuse gallery
+- Optional product rollout phase (operator-surface logo component, example-app favicon, README header) — user opts in at the end with the winner in hand
+
+**Key context:** Hard logo constraints — no rectangular/rounded-rect background chips on marks; logotype optically close to the mark; primary lockup carries no subtitle (separate `-subtitle` variant allowed). Fonts/colors are a seed, not a contract: candidates may explore OFL-safe typefaces and palette shifts; tokens/product UI change only if the winner demands it. Operator surface (`style.ex`) stays frozen in all core phases. Approved plan: `~/.claude/plans/have-to-compare-it-lexical-shore.md`.
 
 ## Latest Milestone Shipped: v1.34 Local Docker Admin UI DX (2026-06-07)
 
@@ -568,4 +581,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-06 after v1.34 milestone open*
+*Last updated: 2026-06-11 after v1.35 milestone open*
