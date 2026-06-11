@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
-status: planning
-last_updated: "2026-06-11T21:32:34.277Z"
+status: ready-to-plan
+last_updated: "2026-06-11T21:35:19.000Z"
 last_activity: 2026-06-11
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-06)
+See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Awaiting next milestone
+**Current focus:** v1.35 Unified Logo & Brand Book v2 — phases 159–163 (163 optional, decision-gated)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 159 of 159–163 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-11 — Milestone v1.35 started
+Status: Ready to plan Phase 159
+Last activity: 2026-06-11 — v1.35 roadmap created (phases 159–163; 28/28 requirements mapped)
+
+Progress: [□□□□□] 0% (0/5 phases)
 
 ## Performance Metrics
 
@@ -59,7 +61,8 @@ Last activity: 2026-06-11 — Milestone v1.35 started
 
 ### Pending Todos
 
-- Start the next milestone with `$gsd-new-milestone` when ready.
+- Plan Phase 159 (`brand-audit-and-research`) with `/gsd-plan-phase 159`.
+- Phases 159 and 160 have no inter-dependency — they can be planned/executed in parallel.
 
 ### Roadmap Evolution
 
@@ -85,6 +88,7 @@ Last activity: 2026-06-11 — Milestone v1.35 started
 - **Milestone v1.33 archived (2026-06-06):** Roadmap, requirements, audit, and phase history are archived under `.planning/milestones/`; fresh requirements are needed before public rollout work.
 - **Milestone v1.34 opened (2026-06-06):** Local Docker Admin UI DX focuses on helper-first `bin/demo-up`, localhost-bound dynamic ports, Compose project isolation, cache-friendly Docker behavior, printed `/audit` URLs, lifecycle commands, and docs. Traefik/subdomain routing is deferred; `.localhost` is the future-safe hostname family if proxy support is later added.
 - **v1.34 implementation complete (2026-06-06):** `bin/demo-up` now supports project-aware lifecycle commands, `--build`, no-build refreshes when a project image exists, port validation, optional public host, and clearer failure guidance. Compose/Dockerfile now support an overridable demo base image, bundled Dockerfile frontend, `ca-certificates`, localhost-bound ports, project-scoped volumes, and pinned PgBouncer. Docs cover helper-first DX, multi-stack ports, cleanup, cache behavior, and deferred proxy/subdomain routing.
+- **Milestone v1.35 roadmap created (2026-06-11):** Unified Logo & Brand Book v2 — phases 159–163 per the approved plan `~/.claude/plans/have-to-compare-it-lexical-shore.md`. 159 (audit+research) ∥ 160 (glyph pipeline) → 161 (tournament, human checkpoint rounds, user picks winner) → 162 (brand book v2 + UAT) → 163 (optional product rollout, decision-gated). 28/28 requirements mapped; operator surface `style.ex` frozen in all core phases.
 
 ### Decisions
 
@@ -117,6 +121,10 @@ Last activity: 2026-06-11 — Milestone v1.35 started
 - [v1.34]: Helper-first dynamic localhost ports are canonical for local demo DX; Traefik is deferred and `.dev` hostnames are rejected for HTTP local demos.
 - [v1.34]: Normal `bin/demo-up` refresh skips image rebuilds when the project image exists; `--build` is explicit for Dockerfile/dependency/base-image changes, and `--fresh` remains the volume-reset path.
 - [v1.34]: Demo Dockerfile uses Docker/BuildKit's bundled frontend and installs `ca-certificates`; the base image is overridable via `THREADLINE_DEMO_BASE_IMAGE`.
+- [v1.35]: Rollout to product surfaces (logo.ex, example-app favicon, README header) is an optional final phase (163), decided at that checkpoint with the winner in hand.
+- [v1.35]: Seed drift is free exploration — round 1 may use OFL-safe typefaces and palette shifts; tokens/product UI change only if the winner demands it.
+- [v1.35]: Hard logo constraints — no background chips on marks, logotype optically close to the mark, no subtitle in the primary lockup (separate `-subtitle` variant), user always picks the winner (never auto-selected).
+- [v1.35]: All logo SVGs are pure paths (fontkit glyph-outline pipeline); zero `<text>` elements anywhere in candidates or final assets.
 
 ### Blockers
 
@@ -126,10 +134,10 @@ Last activity: 2026-06-11 — Milestone v1.35 started
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Implemented and verified v1.34 Local Docker Admin UI DX (2026-06-06)
-- **Next Step**: Archive/close v1.34 when ready
+- **Last Action**: Created v1.35 roadmap — phases 159–163, 28/28 requirements mapped, traceability updated (2026-06-11)
+- **Next Step**: Plan Phase 159 with `/gsd-plan-phase 159` (Phase 160 can be planned in parallel)
 - **Resume file**: `.planning/ROADMAP.md`
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 159 (`brand-audit-and-research`) with /gsd-plan-phase 159; Phase 160 (`glyph-outline-pipeline`) has no dependency on 159 and can run in parallel.

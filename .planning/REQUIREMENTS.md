@@ -86,40 +86,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUD-01 | — | Pending |
-| AUD-02 | — | Pending |
-| RES-01 | — | Pending |
-| RES-02 | — | Pending |
-| RES-03 | — | Pending |
-| RES-04 | — | Pending |
-| GLYPH-01 | — | Pending |
-| GLYPH-02 | — | Pending |
-| GLYPH-03 | — | Pending |
-| TOUR-01 | — | Pending |
-| TOUR-02 | — | Pending |
-| TOUR-03 | — | Pending |
-| TOUR-04 | — | Pending |
-| LOGO-01 | — | Pending |
-| LOGO-02 | — | Pending |
-| LOGO-03 | — | Pending |
-| LOGO-04 | — | Pending |
-| LOGO-05 | — | Pending |
-| BOOK-01 | — | Pending |
-| BOOK-02 | — | Pending |
-| BOOK-03 | — | Pending |
-| BOOK-04 | — | Pending |
-| BOOK-05 | — | Pending |
-| BOOK-06 | — | Pending |
-| BOOK-07 | — | Pending |
-| ROLL-01 | — | Pending (optional) |
-| ROLL-02 | — | Pending (optional) |
-| ROLL-03 | — | Pending (optional) |
+| AUD-01 | Phase 159 | Pending |
+| AUD-02 | Phase 159 | Pending |
+| RES-01 | Phase 159 | Pending |
+| RES-02 | Phase 159 | Pending |
+| RES-03 | Phase 159 | Pending |
+| RES-04 | Phase 159 | Pending |
+| GLYPH-01 | Phase 160 | Pending |
+| GLYPH-02 | Phase 160 | Pending |
+| GLYPH-03 | Phase 160 | Pending |
+| TOUR-01 | Phase 161 | Pending |
+| TOUR-02 | Phase 161 | Pending |
+| TOUR-03 | Phase 161 | Pending |
+| TOUR-04 | Phase 161 | Pending |
+| LOGO-01 | Phase 161 | Pending |
+| LOGO-02 | Phase 161 | Pending |
+| LOGO-03 | Phase 161 | Pending |
+| LOGO-04 | Phase 161 | Pending |
+| LOGO-05 | Phase 161 | Pending |
+| BOOK-01 | Phase 162 | Pending |
+| BOOK-02 | Phase 162 | Pending |
+| BOOK-03 | Phase 162 | Pending |
+| BOOK-04 | Phase 162 | Pending |
+| BOOK-05 | Phase 162 | Pending |
+| BOOK-06 | Phase 162 | Pending |
+| BOOK-07 | Phase 162 | Pending |
+| ROLL-01 | Phase 163 | Pending (optional) |
+| ROLL-02 | Phase 163 | Pending (optional) |
+| ROLL-03 | Phase 163 | Pending (optional) |
 
 **Coverage:**
 - v1.35 requirements: 28 total (25 core + 3 optional rollout)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 28 ⚠️ (expected before roadmap creation)
+- Mapped to phases: 28/28 ✓ (Phase 159: 6, Phase 160: 3, Phase 161: 9, Phase 162: 7, Phase 163: 3 optional)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-11*
-*Last updated: 2026-06-11 after initial definition*
+*Last updated: 2026-06-11 after v1.35 roadmap creation (phases 159–163 mapped)*
