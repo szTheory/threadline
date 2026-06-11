@@ -1,6 +1,6 @@
 # Roadmap: v1.35 Unified Logo & Brand Book v2
 
-**Status:** active — ready to plan Phase 159
+**Status:** active — Phase 159 planned, ready to execute
 **Opened:** 2026-06-11
 **Approved plan:** `~/.claude/plans/have-to-compare-it-lexical-shore.md`
 
@@ -22,7 +22,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 
 | Phase | Name | Requirements | Status |
 |---|---|---|---|
-| 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Not started |
+| 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Planned (3 plans) |
 | 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Not started |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Not started |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
@@ -47,7 +47,12 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
   3. User can read `RESEARCH.md` with ≥8 cited devtools/OSS identity case studies (including at least one failure case), an integrated-typemark technique catalog, and numeric 16px legibility and monochrome/gradient-dependence thresholds stated as testable constraints.
   4. User can read `DESIGN-BRIEF.md` stating the round-1 generation contract: motif rules, measurable hard constraints (no subtitle in primary, no container chips, must survive 16px and one color), degrees of freedom (OFL-safe typeface and palette exploration), and the four archetype lanes.
   5. Every REWORK/ADD audit item is routed to a downstream requirement or descoped with a recorded reason.
-**Plans**: TBD (2 parallel plans — audit + research — converging into DESIGN-BRIEF.md)
+**Plans**: 3 plans (waves: 01 ∥ 02 → 03)
+
+Plans:
+- [ ] 159-01-PLAN.md — Brandbook pressure-test audit: 14 sections + verdicts, 15-dimension scorecard, 8-surface stress-test matrix → `159-AUDIT.md` (wave 1)
+- [ ] 159-02-PLAN.md — External devtools/OSS identity research: ≥8 cited case studies, typemark technique menu, numeric 16px/monochrome thresholds, surface constraints, OFL typefaces → `159-RESEARCH.md` (wave 1, parallel)
+- [ ] 159-03-PLAN.md — Convergence: round-1 generation contract + REWORK/ADD traceability routing → `159-DESIGN-BRIEF.md` (wave 2)
 
 ### Phase 160: glyph-outline-pipeline
 **Goal**: A reproducible text-to-outline pipeline so every logo SVG is pure paths with real font-shaping kerning — portable everywhere, no font dependency.
