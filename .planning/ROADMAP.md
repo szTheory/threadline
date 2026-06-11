@@ -62,7 +62,10 @@ Plans:
   1. User can rerun a committed fontkit-based Node script that converts vendored `priv/fonts/geist-*.woff2` (500/600 at minimum) into per-glyph SVG path data for "Threadline" with shaped kerning applied — one `<path>` per glyph, coordinates rounded to 2 decimals.
   2. User can see overlay evidence that generated outlines match a live-font browser render at 2× zoom.
   3. Glyph-kit output contains zero `<text>` elements and renders letterform counters (e/a/d holes) correctly.
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 160-01-PLAN.md — fontkit text-to-paths pipeline, Geist 500/600 glyph kits with determinism proof, 2x overlay evidence, brandbook/tools regeneration copy (wave 1, autonomous)
 
 ### Phase 161: logo-tournament
 **Goal**: User selects the winning unified logo through feedback-driven elimination rounds — user picks, always; never auto-selected.
