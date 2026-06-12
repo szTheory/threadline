@@ -242,3 +242,197 @@ Prisma, Astro, Zig, Phoenix, Elixir, plus Mozilla "moz://a" as the failure case.
    minimum sizes, background rules, and misuse lists — numbers and prohibitions, not adjectives.
 8. **Concept-pun marks age badly** (moz://a): an integrated typemark must be carried by letterform
    craft, not by a decodable joke.
+
+---
+
+## 2. Integrated-typemark technique catalog (RES-02)
+
+A reusable menu for Phase 161 candidate generation. Each technique name below is intended to be
+used **verbatim** as a motif-strategy label. "Threadline" letterform inventory the techniques can
+hook into: the **Th** pair, the **double-l verticals** (ll), the **i dot**, the **e/a/d counters**,
+and the fact that the full lowercase run **threadline** is descender-free (one unbroken x-height
+band with ascenders only — t, h, d, l, l).
+
+### Technique: Negative space
+
+- **Definition:** A second image is formed by the *unprinted* space between or inside letterforms;
+  the viewer reads both the letters and the hidden figure.
+- **Canonical example:** The FedEx arrow — the counterform between the "E" and "x" forms a
+  forward arrow, designed by Lindon Leader (Landor, 1994); among the most-cited logos in identity
+  design precisely because the device costs zero added ink.
+  Source: https://en.wikipedia.org/wiki/FedEx
+- **When it works:** Requires adjacent glyphs whose counters or inter-letter gaps can be tuned
+  into a meaningful shape without distorting reading. In "Threadline": the **e/a/d counters**
+  could carry a thread-eye (needle-eye) shape; the gap between the **double-l verticals** is a
+  natural slot for a vertical thread channel; the **Th** junction could conceal a stitch.
+- **Small-size risk:** Negative-space figures need the surrounding positive mass to stay heavy at
+  16px; if the hidden shape needs a gap under ~1px at favicon size (see §2b), it vanishes first.
+
+### Technique: Pattern-through-letterforms
+
+- **Definition:** A repeating pattern (stripes, scanlines, stitches) is passed through the
+  letterforms, slicing them while leaving the word legible; the pattern itself becomes the brand
+  texture.
+- **Canonical example:** Paul Rand's IBM 8-bar logo — the letterforms sliced into eight horizontal
+  stripes, documented in IBM's own design language as the canonical form with strict usage rules.
+  Source: https://www.ibm.com/design/language/ibm-logos/8-bar/
+- **When it works:** Best on bold, simple letterforms with generous mass that can afford to lose
+  alternating slices. In "Threadline": exceptionally well-suited — the **descender-free lowercase
+  run** means a single horizontal *thread line* can pass through the entire word at one consistent
+  height (e.g., through the x-height band or along the baseline) without colliding with
+  descenders. This is the most literal "thread through the line of text" move available.
+- **Small-size risk:** Stripe patterns collapse at 16px (8 stripes in 16px = sub-pixel). The
+  pattern must be a *wordmark-scale* device with a separately designed favicon survivor — exactly
+  IBM's model (the 8-bar is specified for controlled sizes; small slots use simplified forms).
+
+### Technique: Continuous-line mark
+
+- **Definition:** The whole mark (or wordmark) is drawn as a single uninterrupted stroke; the
+  line's path *is* the identity.
+- **Canonical example:** The NASA "worm" logotype (Danne & Blackburn, 1975) — reduced to one
+  continuous-feeling stroke ribbon, with even the A crossbars deleted to keep the line pure;
+  retired 1992, revived 2020, still the reference for single-stroke letterform systems.
+  Source: https://en.wikipedia.org/wiki/NASA_logo
+- **When it works:** Names whose letters can chain without pen lifts, or marks abstracted to one
+  path. In "Threadline": the strongest conceptual fit in the catalog — a thread *is* a continuous
+  line. A single stroke that draws a mark (spool, stitch, timeline) and continues as/into the
+  letterforms makes the metaphor structural. The **t–h–r** opening and **l–i–n–e** closing runs
+  both chain naturally.
+- **Small-size risk:** Monoline strokes thin out at 16px; the continuous line must thicken (or be
+  cropped to a detail, e.g. one loop/stitch) for the favicon rather than shrinking whole.
+
+### Technique: Ligature wordmark
+
+- **Definition:** Two or more letters are fused into a single designed glyph (shared stem, merged
+  bowl, bridged crossbar), giving the wordmark a proprietary feature no off-the-shelf font has.
+- **Canonical examples:** The Met's 2016 identity by Wolff Olins — "THE MET" set with letter
+  pairs deliberately fused/overlapped into connected forms. Typographic basis: standard ligature
+  practice (fi, ffi, Th) as documented in Google Fonts' type glossary.
+  Source: https://www.wolffolins.com/case-study/the-met
+  Source: https://fonts.google.com/knowledge/glossary/ligature
+- **When it works:** Needs letter pairs with natural affinity. "Threadline" is rich in them: the
+  **Th** pair is the classic ligature in type history (the h can grow from the T's crossbar);
+  **dl** mid-word offers two adjacent ascenders that could bridge; the **double-l** could fuse
+  into a single doubled-stroke glyph (two parallel threads).
+- **Small-size risk:** Low for the wordmark itself (a fused pair reads as normal type at small
+  sizes), but a ligature is invisible at favicon scale — the fused glyph pair (e.g., the Th alone)
+  must be extractable as the monogram to carry 16px duty.
+
+### Technique: Stroke continuation
+
+- **Definition:** One stroke escapes its letterform and continues — underlining, connecting to
+  another letter, or extending into the mark — making the connection itself the device.
+- **Canonical example:** The Amazon smile — a single stroke that starts under the "a" and arrows
+  into the "z" (Turner Duckworth, 2000), simultaneously underline, smile, and a-to-z connector.
+  Source: https://en.wikipedia.org/wiki/Amazon_(company)
+- **When it works:** Names where a specific start/end stroke has meaning. In "Threadline": a
+  stroke leaving the **t crossbar** or the **e terminal** and running under/through the word is a
+  thread pulled through fabric; the **i dot** could be the needle/knot the thread emerges from;
+  the final **e** could unravel into a trailing thread. Distinct from pattern-through-letterforms:
+  here the line *belongs to a letter* and escapes, rather than being an external texture.
+- **Small-size risk:** The extended stroke is usually long and thin — at 16px it degrades to
+  noise. The favicon form must crop to the gesture's densest moment (e.g., the knot/loop), not
+  the full sweep.
+
+### Technique: Counter replacement
+
+- **Definition:** A letter's counter (enclosed space) or a whole letter part is replaced by a
+  pictorial element that still functions as the letter.
+- **Canonical example:** The Goodwill logo — "a stylized letter g, resembling a smiling face,
+  designed by Joseph Selame in 1968"; the same drawing is simultaneously a lowercase g and a
+  half-face. The i-dot swap (dot replaced by a pictogram) is this technique's lightest variant.
+  Source: https://en.wikipedia.org/wiki/Goodwill_Industries
+- **When it works:** Needs a letter whose counter shape tolerates the replacement without losing
+  identity. In "Threadline": the **e/a/d counters** could become a needle eye, spool cross-section
+  or timeline node; the **i dot** is the lowest-risk slot (a stitch-dot, node, or knot above the
+  stem) — though i-dot swaps are also the most commoditized move in tech branding, so the
+  replacement shape must be ownable, not a generic dot/circle.
+- **Small-size risk:** Counters are the first casualties at 16px (see §2b: counters under ~1px
+  fill in). A replaced counter must work *as a filled shape too*, or the favicon must promote the
+  replacement element alone.
+
+**Catalog-level note for Phase 161:** these six names — *Negative space*,
+*Pattern-through-letterforms*, *Continuous-line mark*, *Ligature wordmark*, *Stroke continuation*,
+*Counter replacement* — are the sanctioned motif-strategy vocabulary. Each tournament candidate
+should declare exactly which technique(s) it uses, and the moz://a avoid-rule (§1) applies to all
+of them: the device must assist reading, never fight it.
+
+---
+
+## 2b. Numeric legibility and reproduction constraints (RES-03)
+
+Every rule below carries a number or a binary procedure so Phases 161/162 can check candidates
+mechanically. Primary numeric source: GitHub's Primer/Octicons design guidelines — the most
+relevant authority here because Octicons are designed for exactly the surface (GitHub UI at 16px)
+Threadline's mark must survive.
+
+### 16px canvas rules
+
+- **Stroke weight: >= 1.5px at 16px canvas (target), >= 1.0px (absolute floor).**
+  Primer: "Use a consistent stroke width of 1.5px for both 16px and 24px icons." 1.5px on a 16px
+  canvas is a 3/32 (~0.094) canvas ratio. The commonly cited favicon floor of 1px at 16px (1/16 =
+  0.0625 canvas ratio) is the never-go-below line: any stroke below 1.0px cannot occupy a full
+  pixel and will anti-alias to gray mush. **Check: no stroke in the 16px favicon render measures
+  < 1.0px; primary strokes measure >= 1.5px.**
+  Source: https://primer.style/octicons/design-guidelines
+- **Gap / counter size: >= 1.0px at 16px canvas; >= 1.5px around modifier elements.**
+  Primer: "Use a 1px gap to separate overlapping objects" and "Use a 1.5px gap around modifier
+  elements, like lines and arrows." Counters (enclosed negative spaces) obey the same physics:
+  an aperture under 1px at 16px reads as filled. **Check: every counter/gap in the 16px render
+  measures >= 1.0px.**
+  Source: https://primer.style/octicons/design-guidelines
+- **Corner detail: 1px radius at 16px** unless a larger radius is itself the identifying feature
+  (Primer: "1px radius for corners unless a different radius makes the icon more recognizable").
+  Source: https://primer.style/octicons/design-guidelines
+- **Detail floor: <= 4 distinct strokes/elements at 16px.** Derived constraint (flagged as
+  derived, not quoted): with a 1.5px stroke and 1.0px minimum gaps, one 16px axis fits at most
+  floor((16+1)/(1.5+1)) = 6 stroke+gap pairs in theory, but edge padding (Primer designs on a
+  16px grid with keyline margins) and recognition in practice cap a mark at ~3–4 distinguishable
+  elements. Empirical corroboration: Deno deleted its rain background because it "often went
+  unnoticed ... too busy, especially at small sizes" (§1). **Check: count distinct strokes/shapes
+  in the favicon form; > 4 fails.**
+  Source: https://primer.style/octicons/design-guidelines (grid/keyline basis)
+  Source: https://deno.com/blog/v2.0 (empirical small-size failure of layered detail)
+- **Silhouette-first test (binary procedure):** fill every path of the candidate mark with one
+  solid color, render at literal 16px, and ask: is it still identifiable as this mark and no
+  other? Closed single-contour marks pass easily (Elixir drop, Prisma triangle, Deno circle —
+  §1 pattern 2). **Check: filled-black 16px render is identifiable; if recognition requires
+  interior detail or color, fail.**
+- **Design at 16px, then scale up — never design large and shrink.** Primer's process is
+  explicit: "Always design two versions of each icon: a 16px version and a 24px version" — i.e.,
+  small sizes get their own drawing, never an automatic downscale. Zig operationalizes the same
+  rule by shipping a purpose-made `zig-favicon.png` (§1). **Check: a dedicated 16px artifact
+  exists in the deliverable set; the favicon is not the wordmark scaled.**
+  Source: https://primer.style/octicons/design-guidelines
+  Source: https://github.com/ziglang/logo
+- **Favicon delivery format baseline:** a modern favicon set is small — an SVG favicon plus a
+  32x32 ICO fallback (which browsers also rasterize to 16px) covers current browsers; the ICO's
+  16px rendering is the binding legibility case.
+  Source: https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs
+
+### Monochrome / one-color reproduction rules
+
+- **Single flat color test (binary procedure):** replace every fill and stroke in the mark with
+  one flat color (e.g., #000) — no opacity tiers, no gradients, no overlap-as-tone (overlapping
+  translucent shapes that simulate a second tone collapse to one blob when flattened). **Check:
+  the flattened mark is identical in structure to the original and still identifiable.** Zig's
+  `neg-black`/`neg-white` variants ("where color reproduction is not possible") are this rule
+  shipped as assets; Supabase's "Do not use any other color for the wordmark" is its governance
+  twin.
+  Source: https://github.com/ziglang/logo
+  Source: https://supabase.com/brand-assets
+- **Gradient-dependence is a named antipattern.** A mark whose identity disappears when the
+  gradient is removed has no identity — the gradient was the identity, and gradients do not
+  survive monochrome printing, currentColor contexts, low-bit rendering, or embossing. The
+  evidence from §1: Astro ships solid non-gradient fallbacks for every gradient asset; Vite's
+  2025 redesign abandoned its gradient emblem for flat paths that *are* the identity. **Check:
+  run the single-flat-color test above; if the candidate's distinctiveness rests on a color
+  transition rather than geometry, fail.** (Parallel rule from the failure case: gimmick-
+  dependence, §1 moz://a — same logic, different crutch.)
+  Source: https://astro.build/press/ (solid fallbacks for all gradient variants)
+  Source: https://vite.dev/vite-dark.svg (flat path-only current identity)
+- **Dark/light flip test: the mark must survive on both #FFFFFF and near-black with either a
+  single adaptive asset or an explicit pair.** No candidate may assume one background. (Mechanics
+  of *how* to ship the pair are in §3.) **Check: render on white and on #0B0B0E (or brand dark);
+  both pass contrast and recognition.**
+  Source: https://deno.com/brand (background-driven variant guidance)
