@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
 status: verifying
-last_updated: "2026-06-12T16:44:01.074Z"
+last_updated: "2026-06-12T21:05:02.971Z"
 last_activity: 2026-06-12
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 80
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 11
+  completed_plans: 11
+  percent: 86
 ---
 
 # Project State: Threadline
@@ -20,12 +20,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 162 — brand-book-v2
+**Current focus:** Phase 164 — brand-book-imagery
 
 ## Current Position
 
-Phase: 162 (brand-book-v2) — EXECUTING
-Plan: 3 of 3
+Phase: 164 (brand-book-imagery) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-06-12
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 162 P01 | 17min | 3 tasks | 16 files |
 | Phase 162 P02 | 16min | 2 tasks | 5 files |
 | Phase 162 P03 | 16min | 3 tasks | 10 files |
+| Phase 164 P01 | 10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,7 @@ Progress: [██████████] 100%
 - [Phase ?]: 162-02: Stitch Blue #4781E6 added additively to tokens (raw stitch-blue + semantic logo-arc, both lanes); #4F8CFF stays the interface accent; operator-surface values untouched
 - [Phase ?]: 162-02: Misuse specimens live only as inline SVG in index.html; index.html inlines all 8 assets via shared pure-path defs; zero network under file://
 - [Phase ?]: 162-03 pressure-test rerun
+- [Phase 164]: Brand imagery specimens: pure-path linework with HTML labels over the SVG; Thread Blue carries the followable line, Signal Cyan the change ticks, Stitch Blue stays exclusive to the mark's arc
 
 ### Blockers
 
