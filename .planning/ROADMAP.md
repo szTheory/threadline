@@ -22,15 +22,15 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 
 | Phase | Name | Requirements | Status |
 |---|---|---|---|
-| 159 | 3/3 | Complete   | 2026-06-12 |
-| 160 | 1/1 | Complete   | 2026-06-12 |
+| 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Complete (2026-06-12) |
+| 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Complete (2026-06-12) |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Not started |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
 
 **Execution order:**
-- [ ] **Phase 159: brand-audit-and-research** - Pressure-test the existing brandbook and research devtools/OSS identities, converging into DESIGN-BRIEF.md (parallel with 160).
-- [ ] **Phase 160: glyph-outline-pipeline** - fontkit-based text-to-outline pipeline so every logo SVG is pure paths with real shaped kerning (parallel with 159).
+- [x] **Phase 159: brand-audit-and-research** - Pressure-test the existing brandbook and research devtools/OSS identities, converging into DESIGN-BRIEF.md (parallel with 160).
+- [x] **Phase 160: glyph-outline-pipeline** - fontkit-based text-to-outline pipeline so every logo SVG is pure paths with real shaped kerning (parallel with 159).
 - [ ] **Phase 161: logo-tournament** - 8 round-1 candidates across four archetypes; human checkpoint rounds until the user declares a winner.
 - [ ] **Phase 162: brand-book-v2** - Graduate the winner into the full `brandbook/` asset family and rebuild the standalone brand book.
 - [ ] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
