@@ -145,4 +145,128 @@ preserved exactly. Specific clearances verified:
 **Key design lesson for round 2:** C1's dark rendition is loved and reads decently; the LIGHT rendition is the legibility problem (thread/letter value collision reads as strikethrough on white); monochrome reads fine; the blue is appealing, especially on dark. Every round-2 candidate's light rendition must be explicitly designed, not recolored from dark.
 
 ---
-*Phase: 161-logo-tournament · Round 1 prepared by plan 161-01; checkpoint runs in plan 161-02.*
+
+## Round 2
+
+**Date:** 2026-06-12 · **Gallery:** `candidates/round-2/gallery.html` (open over `file://`)
+· **Gate:** `node tools/hc-gate.mjs candidates/round-2` → 19 files, 0 FAIL, 0 WARN
+(6 candidates × 3 forms + C12's dedicated light rendition). Gallery network audit:
+0 external requests (Playwright).
+
+**Composition (TOUR-04):** all six candidates are mutations of the two round-1 ADVANCEs —
+C1 (`c1-running-thread`) and C6 (`c6-topstitch`) — per the user's direction, verbatim:
+"so yeah think deeply on this do another round here explore both of those concepts and
+we'll tournament them". No wildcard was invited; none is included. IDs continue the global
+sequence: C9–C14.
+
+**The judged variable this round:** light-mode thread/letter value separation on white.
+Round-1 lesson, from the verbatim C1 feedback: "NO the dark version reads decently it's
+the light one that is harder to read" — every round-2 candidate's light rendition is
+explicitly designed, not recolored from dark, and the light panels were inspected in
+rendered form before shipping.
+
+### Roster
+
+| ID | Slug | Parent | Feedback line addressed (verbatim) | Strategy (technique · hook) | Typeface | HC gate |
+|----|------|--------|-------------------------------------|------------------------------|----------|---------|
+| C9 | `c9-gap-thread` | C1 | "somewhat the strikethrough effect … it's the light one that is harder to read" | Stroke continuation · descender-free lowercase run | Geist 500 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, designed gaps 1.25px, silhouette PASS |
+| C10 | `c10-baseline-run` | C1 | "perhaps a little hard to read? … explore variations that would be best of all worlds" | Pattern-through-letterforms · descender-free lowercase run | Geist 500 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, designed gaps 1.25px, silhouette PASS |
+| C11 | `c11-eye-to-eye` | C1 | "perhaps a little hard to read? i do like it a lot though" | Counter replacement · e/a/d counters | Geist 500 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, designed gaps 1.00px (floor), silhouette PASS |
+| C12 | `c12-dual-surface` | C1 | "NO the dark version reads decently it's the light one that is harder to read" | Stroke continuation · descender-free lowercase run | Geist 500 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, silhouette PASS (arc–bar wedge = round-1 adjudication) |
+| C13 | `c13-topstitch-geist` | C6 | "i also did like this one c6-topstitch that one too" | Stroke continuation · double-l verticals (d/l pair) | Geist 600 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, silhouette PASS (line/leg AA corner wedges adjudicated) |
+| C14 | `c14-stitchline` | C1 × C6 | "i just felt that the running thread concept was more striking … explore both of those concepts" | Stroke continuation · descender-free lowercase run + double-l verticals | Geist 500 (Phase 160 kit) | PASS · favicon strokes 1.70px @16, 2 elements, designed gaps 1.25px, silhouette PASS |
+
+**Ink-floor scan (HC-4, /tmp 16px render, 4× sampling):** all designed strokes and gaps
+≥ 1.0px (C9/C10/C14 gaps 1.25px; C11 1.00px at the floor). Two sub-1px readings
+adjudicated via silhouette renders as junction artifacts, not designed features: C12's
+0.25px run is the acute wedge where the e-arc terminus meets the bar (carried unchanged
+from round-1 C1, where it was adjudicated the same way); C13's 0.50px reading is
+anti-aliasing at the right-angle line/leg crossings of the stitch arch.
+
+### Design rationale
+
+- **C9 — gap-thread.** Answers the strikethrough diagnosis head-on: the thread keeps C1's
+  channel, weight, and blue, but surfaces only between letters — never inside a counter or
+  aperture — so no foreign line ever crosses a letterform. Both e crossbars are restored to
+  exact kit geometry and carried on the thread layer: the bars sit precisely where the eye
+  expects an e's bar, yet they ARE the thread (remove it and both e's break — MR-2 holds).
+  The weave stays continuous; the collisions are gone.
+- **C10 — baseline-run.** Relocates the thread to the one channel where value collision is
+  impossible: the baseline, which "threadline" leaves descender-free. The thread runs
+  through the word's feet in strict textile alternation — over T, under h's first leg, over
+  its second, under r, and so on through all thirteen baseline obstacles — and every
+  over-crossed stem is cut and completed by the thread itself, so the word literally stands
+  stitched to its own line. The most literal reading of the name: thread + line.
+- **C11 — eye-to-eye.** Keeps what the user called striking and cuts the noise: fourteen
+  surfacings become five. The thread enters the word through the first e's counter and
+  leaves through the last e's — the two eyes the word already owns — passing behind
+  everything between except one surfacing in the d–l gap. Both e bars stay intact; the
+  thread is topologically captive through the needle eyes rather than welded to the bars.
+- **C12 — dual-surface.** The conservative mutation: the dark rendition is byte-faithful to
+  round-1 C1, because it is loved and reads decently. Only the light surface is
+  re-engineered, in a dedicated light asset: thread tint lifted to #8FB3F0 so it sits a
+  value-layer behind the dark word, under-pass halos widened from 34 to 70 units, and the
+  five dashes that collapse at the wider halo dropped. Same identity, two correctly tuned
+  surfaces.
+- **C13 — topstitch-geist.** C6's stitch was liked but cut on Sora; this re-cuts it on the
+  incumbent Geist voice. The adjacent d/l ascenders are cut at y=444 — just above Geist's
+  x-height — and escape into one connecting arc whose stroke width equals the measured
+  Geist 600 stem (128), landing flush on the cut stems; the arc rises deeper than C6's
+  (319.5 vs 257 units above the cut). One stitch surfacing from the fabric of the word,
+  now in the family typeface.
+- **C14 — stitchline.** The hybrid the direction asked for: one continuous thread does both
+  concepts' jobs. It surfaces six times — lead-in, the first e's bar, the a–d gap, once
+  ABOVE the x-height as the d/l stitch arc (stroke 106 = the Geist 500 stem, ascenders cut
+  at y=430), the i–n gap, and the last e's bar running out. C1's woven horizontality and
+  C6's vertical escape, one line, no clutter. Restraint is the craft test.
+
+### Light-mode treatment notes (the judged variable)
+
+- **C9:** no foreign line crosses any letter; the only in-letter blue is the two e bars, at
+  the exact anatomical bar position. Light verified clean in the rendered gallery panel.
+- **C10:** thread sits entirely at the baseline, below the reading band; counters and
+  x-height untouched. Light is collision-free by construction.
+- **C11:** five surfacings; in-letter blue only inside the two e counters. Calm on white.
+- **C12:** the only candidate with a DIFFERENT light asset (`c12-dual-surface-light.svg`):
+  tint #8FB3F0 + 70-unit halos + 5 dashes dropped. The gallery's light panel and light
+  README strip render the light asset (panel captioned "dedicated light rendition").
+- **C13:** the stitch lives above the x-height; nothing crosses the reading band. Light
+  inherently clean.
+- **C14:** six surfacings, all in gaps / e bars / above the word; verified clean on white.
+
+### Optical kerning notes
+
+No per-glyph translate offsets were changed anywhere in round 2 — all letterforms reuse the
+kits' shaped kerning exactly; all surgeries are glyph-internal cuts or additive marks:
+
+- **C9:** e bar pieces are the kit bar geometry re-expressed on the mark layer (union with
+  the cut ring = the intact kit e to within path rounding); gap dashes reuse C1's measured
+  ±34-unit stem clearances.
+- **C10:** feet cut horizontally at y=965 on T / h-right / l / n-left; the l foot's curve
+  was split at its y=965 crossing (cut point x≈95 glyph-local). Thread band y 965–1045,
+  80 units thick (C1's weight), ±34 clearances at under-passed stems.
+- **C11:** thread thinned to 64 units (y 598–662) to ride the eye channel with clearance
+  (47 top / 28 bottom inside the counters); eye dashes extend under the bowl walls and the
+  letters print over them, so the thread tucks flush behind the ink.
+- **C12:** dark file geometry identical to C1 (diffable); light file changes the mark layer
+  only.
+- **C13:** d/l cut at y=444; arc legs coordinate-flush with the Geist 600 stems
+  (3100–3228 / 3361–3489); no sidebearing change (Geist's l has no flag, unlike Sora's).
+- **C14:** d/l cut at y=430; arc legs flush with the Geist 500 stems (3031–3137 /
+  3279–3385); e treatment identical to C1.
+
+### Feedback — Round 2
+
+*To be filled VERBATIM at the round-2 checkpoint (plan 161-02). Claude does not pre-fill
+verdicts. Per candidate: ADVANCE / KILL / MUTATE + reasons in the user's own words. A winner
+declaration ("CN is the winner") may happen here and ends the tournament.*
+
+- **C9:** verdict —, reasons —
+- **C10:** verdict —, reasons —
+- **C11:** verdict —, reasons —
+- **C12:** verdict —, reasons —
+- **C13:** verdict —, reasons —
+- **C14:** verdict —, reasons —
+
+---
+*Phase: 161-logo-tournament · Round 1 prepared by plan 161-01; rounds 2+ and all checkpoints run in plan 161-02.*
