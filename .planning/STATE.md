@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
 status: executing
-last_updated: "2026-06-12T01:01:29.240Z"
+last_updated: "2026-06-12T01:06:11.990Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 20
 ---
 
@@ -25,11 +25,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-11)
 ## Current Position
 
 Phase: 159 (brand-audit-and-research) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-12
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████░░░░░] 50%
 | Phase 144 P03 | 3m47s | 2 tasks | 4 files |
 | Phase 144 P04 | 15min | 3 tasks | 8 files |
 | Phase 160 P01 | 45min | 4 tasks | 10 files |
+| Phase 159 P02 | 35min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,8 @@ Progress: [█████░░░░░] 50%
 - [v1.35]: All logo SVGs are pure paths (fontkit glyph-outline pipeline); zero `<text>` elements anywhere in candidates or final assets.
 - [Phase 160]: Overlay baseline alignment via zero half-leading: line-height = (ascent-descent)*scale so live-text and SVG baselines coincide at ascent*scale
 - [Phase 160]: Phase scripts reuse existing installs via module.createRequire anchored at the owning dir (fontkit via NODE_PATH, Playwright via e2e dir)
+- [Phase 159]: 159-02: GitHub SVG sandbox verified empirically (default-src 'none'; style-src 'unsafe-inline'; sandbox) — pure-path SVGs are the only portable wordmark form; inline-CSS adaptive SVGs (Zig pattern) viable
+- [Phase 159]: 159-02: Six technique names locked as Phase 161 motif vocabulary; gradient-dependence and gimmick-dependence (moz://a) named as paired antipatterns
 
 ### Blockers
 
