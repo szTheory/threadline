@@ -130,18 +130,19 @@ preserved exactly. Specific clearances verified:
 
 ### Feedback — Round 1
 
-*To be filled verbatim at the round-1 checkpoint (plan 161-02). Claude does not pre-fill
-verdicts. "All fine" is not a verdict — each candidate gets ADVANCE, KILL, or MUTATE with
-reasons.*
+*Collected at the round-1 checkpoint, 2026-06-12. User quotes verbatim.*
 
-- **C1:** verdict — · reasons —
-- **C2:** verdict — · reasons —
-- **C3:** verdict — · reasons —
-- **C4:** verdict — · reasons —
-- **C5:** verdict — · reasons —
-- **C6:** verdict — · reasons —
-- **C7:** verdict — · reasons —
-- **C8:** verdict — · reasons —
+- **C1:** ADVANCE · reasons (verbatim): "c1-running-thread <--- this one is awesome it's just perhaps a little hard to read? i do like it a lot though explore variations that would be best of all worlds." Follow-up legibility diagnosis (verbatim): "somewhat the strikethrough effect, more on the dark version (which looks great visually though). , actually NO the dark version reads decently it's the light one that is harder to read. the monocrhome isn't a problem to read. i do find that blue very appealing especially on the dark BG. looks okay on the light to"
+- **C2:** KILL · reasons — not advanced; user directed round 2 exclusively at the C1 and C6 concepts ("explore both of those concepts and we'll tournament them")
+- **C3:** KILL · reasons — not advanced (same direction as C2)
+- **C4:** KILL · reasons — not advanced (same direction as C2)
+- **C5:** KILL · reasons — not advanced (same direction as C2)
+- **C6:** ADVANCE · reasons (verbatim): "i also did like this one c6-topstitch that one too. i just felt that the running thread concept was more striking ... so yeah think deeply on this do another round here explore both of those concepts and we'll tournament them"
+- **C7:** KILL · reasons — not advanced (same direction as C2)
+- **C8:** KILL · reasons — not advanced (same direction as C2)
+
+**Round-2 direction (user, verbatim):** "so yeah think deeply on this do another round here explore both of those concepts and we'll tournament them" — round 2 contains only C1/C6 mutations (TOUR-04); no wildcard invited.
+**Key design lesson for round 2:** C1's dark rendition is loved and reads decently; the LIGHT rendition is the legibility problem (thread/letter value collision reads as strikethrough on white); monochrome reads fine; the blue is appealing, especially on dark. Every round-2 candidate's light rendition must be explicitly designed, not recolored from dark.
 
 ---
 *Phase: 161-logo-tournament · Round 1 prepared by plan 161-01; checkpoint runs in plan 161-02.*
