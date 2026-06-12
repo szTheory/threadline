@@ -1,5 +1,58 @@
 # Project milestones: Threadline
 
+## v1.35 (Shipped: 2026-06-12)
+
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
+## --milestone Unified Logo & Brand Book v2 (Shipped: 2026-06-12)
+
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
+## v1.35 Unified Logo & Brand Book v2 (Shipped: 2026-06-12)
+
+**Delivered:** Replaced the icon-beside-plain-text logo with the tournament-selected C13 "topstitch-geist" identity (a single stitch arc rising from the word's cut d/l ascenders — pure-path SVG, portable in GitHub's font-less sandbox), rebuilt `brandbook/index.html` as a standalone professional brand book with a misuse gallery, imagery section, and dark/light/system preview toggle, rolled the new identity into the operator-surface header, example-app favicon, and README, and decided the light-mode strategy (decision [165-01], v1.36 seeded).
+
+**Phases completed:** 7 phases (159-165, incl. opted-in 163 rollout and UAT-extension 164/165), 14 plans. Requirements: 31/31 satisfied (audit passed; C13 chain verified drift-free 161→162→163).
+
+**Key accomplishments:**
+
+- Pressure-tested the old brand system (79/150 baseline; GitHub README + 16px favicon critical FAILs from the `<text>` font bug) and synthesized an 11-case-study research base into a binding design brief (MR-1..5 motif rules, HC-1..6 numeric hard constraints, four archetype lanes).
+- Built a deterministic fontkit text-to-outline pipeline (per-glyph paths, shaped kerning, stem-width metadata) so every logo SVG is pure paths — regenerable via `brandbook/tools/text-to-paths.mjs`.
+- Ran a two-round, user-judged logo tournament (8 archetype-quota candidates, six-context galleries, verbatim ADVANCE/KILL/MUTATE feedback in ROUNDS.md); winner declared by explicit user statement: C13 topstitch-geist.
+- Graduated the winner into the full 8-asset brandbook family (designed-not-recolored light primary, chipless self-flipping favicon, tagline isolated to the `-subtitle` variant) and rebuilt the brand book; pressure-test rerun scored 128/150 with no dimension below baseline; brandbook stays text/SVG at 236KB.
+- Closed both UAT gaps: a visual Imagery section (4 brand-language specimens + banned-imagery strip) and a Dark/Light/System preview toggle dogfooding the approved `data-tl-theme` mechanism.
+- Researched and decided the light-mode strategy: decision [165-01] supersedes [136-01] — dark stays the default/brand, `theme: :dark | :light | :system` host config approved, no runtime toggle in v1; implementation seeded as milestone v1.36 (SEED-004) with a 5-phase breakdown.
+- Rolled C13 into product surfaces with zero new test failures (operator-surface logo component on the `var(--tl-*)` contract with `style.ex` untouched; example-app favicon; README `<picture>` dark/light header).
+
+**Verification:**
+
+- `node .planning/milestones/v1.35-phases/162-brand-book-v2/tools/brand-gate.mjs brandbook` (0 FAIL / 0 WARN)
+- `mix compile --warnings-as-errors`; `mix verify.test` (886 tests, 0 new failures)
+- Audit: `.planning/milestones/v1.35-MILESTONE-AUDIT.md` (status: passed; 31/31)
+
+**Stats:** 73 commits (2026-06-11 → 2026-06-12); 149 files changed, +14,061 / -1,250.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.35-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.35-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.35-MILESTONE-AUDIT.md`
+- Phase execution tree: `.planning/milestones/v1.35-phases/`
+
+**What is next:** v1.36 Operator Surface Light Mode is seeded (SEED-004 + `v1.35-phases/165-light-mode-strategy/165-LIGHT-MODE-RECOMMENDATION.md`); deferred: SOCIAL-PNG-01, trademark human review, hidden wordmark compat node removal (after the nav-overhaul lane lands).
+
 ## v1.34 Local Docker Admin UI DX (Shipped: 2026-06-07)
 
 **Delivered:** Hardened Threadline's local Docker demo workflow with a one-command seeded `/audit` entrypoint, project-aware lifecycle commands, localhost-bound dynamic ports, cache-friendly Compose/Dockerfile behavior, and an opt-in shared-proxy path for `threadline.localhost`.

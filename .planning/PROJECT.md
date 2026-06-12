@@ -10,20 +10,21 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is working milestone v1.35 Unified Logo & Brand Book v2: replacing the icon-left-of-text logo with a unified, tournament-selected logo system and rebuilding `brandbook/index.html` as a standalone professional HTML brand book.
+Threadline is between milestones. v1.35 shipped the tournament-selected C13 "topstitch-geist" identity, the rebuilt standalone brand book (with imagery section and dark/light preview toggle), the product rollout, and the approved light-mode strategy. The next milestone is seeded: v1.36 Operator Surface Light Mode (SEED-004).
 
-## Current Milestone: v1.35 Unified Logo & Brand Book v2
+## Latest Milestone Shipped: v1.35 Unified Logo & Brand Book v2 (2026-06-12)
 
-**Goal:** Replace the current icon-beside-plain-text logo with a unified, professionally crafted identity selected by the user through a feedback tournament, and elevate the brandbook into a standalone professional HTML brand book — all text/SVG, self-contained in `brandbook/`.
+**Goal (achieved):** Replace the icon-beside-plain-text logo with a unified, tournament-selected identity and elevate the brandbook into a standalone professional HTML brand book — all text/SVG, self-contained.
 
-**Target features:**
-- Senior-designer pressure-test audit of the existing brand book (14-section framework, KEEP/TIGHTEN/REWORK/ADD/REMOVE) plus devtools/OSS identity research synthesized into a design brief
-- Glyph-outline pipeline (fontkit, vendored Geist woff2) so every logo SVG is pure paths — no `<text>` elements, portable on GitHub's SVG sandbox
-- Logo tournament: 8 round-1 concepts across four archetypes (3 integrated typemarks, 3 unified lockups, 1 monogram, 1 wordmark-only), human checkpoint rounds, user always picks the winner
-- Brand book v2: winner graduated into the full `brandbook/` asset family and a rebuilt standalone `index.html` with misuse gallery
-- Optional product rollout phase (operator-surface logo component, example-app favicon, README header) — user opts in at the end with the winner in hand
+**Shipped:**
+- **C13 "topstitch-geist" identity** — user-selected through a two-round logo tournament (verbatim feedback, mechanical HC gates); a single stitch arc rising from the word's cut d/l ascenders, pure paths, portable in GitHub's font-less SVG sandbox.
+- **Brand book v2** — full 8-asset family (designed light primary, chipless self-flipping favicon, tagline isolated to the `-subtitle` variant), standalone `brandbook/index.html` with misuse gallery, imagery section, and a Dark/Light/System preview toggle; pressure-test 128/150 vs the 79/150 baseline.
+- **Product rollout** — operator-surface logo component (on the `var(--tl-*)` contract, `style.ex` untouched), example-app favicon, README `<picture>` dark/light header; 886 tests, zero new failures.
+- **Light-mode strategy decided** — decision [165-01] supersedes [136-01]: dark stays default/brand-primary; `theme: :dark | :light | :system` host config approved; no runtime toggle in v1; v1.36 "Operator Surface Light Mode" seeded (SEED-004) with a 5-phase breakdown.
 
-**Key context:** Hard logo constraints — no rectangular/rounded-rect background chips on marks; logotype optically close to the mark; primary lockup carries no subtitle (separate `-subtitle` variant allowed). Fonts/colors are a seed, not a contract: candidates may explore OFL-safe typefaces and palette shifts; tokens/product UI change only if the winner demands it. Operator surface (`style.ex`) stays frozen in all core phases. Approved plan: `~/.claude/plans/have-to-compare-it-lexical-shore.md`.
+**Archives:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`, `.planning/milestones/v1.35-MILESTONE-AUDIT.md`, `.planning/milestones/v1.35-phases/`
+
+**Next milestone goals:** v1.36 Operator Surface Light Mode when chosen (seed: SEED-004); otherwise hold per the no-signal default.
 
 ## Latest Milestone Shipped: v1.34 Local Docker Admin UI DX (2026-06-07)
 
@@ -581,4 +582,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-11 after v1.35 milestone open*
+*Last updated: 2026-06-12 after v1.35 milestone close*
