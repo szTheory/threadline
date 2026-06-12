@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C14 favicon: the hybrid — one stitch arch rising from a sparsely surfacing thread
+       (dashes where C6's fabric line was continuous). Designed at 16px. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 5 13.6 V 7.5 A 3 3 0 0 1 11 7.5 V 13.6"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 10.9 H 3.1 M 6.9 10.9 H 9.1 M 12.9 10.9 H 15.2"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C13 favicon: one stitch through the fabric line — narrower and deeper than C6's,
+       matching the deeper display arc. Designed at 16px. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 5.2 13.6 V 6 A 2.8 2.8 0 0 1 10.8 6 V 13.6"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 10.9 H 15.2"/>
+</svg>
