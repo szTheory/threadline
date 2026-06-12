@@ -28,9 +28,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Logo Tournament
 
 - [x] **TOUR-01**: User sees exactly 8 round-1 concepts spanning the archetype quota (3 integrated typemarks, 3 unified mark+type lockups, 1 monogram/mark-led, 1 wordmark-only), each with a distinct named motif strategy.
-- [ ] **TOUR-02**: User can review every candidate in every round in a self-contained local gallery HTML (file://, zero network) showing six contexts: dark background, light background, monochrome, literal 16px favicon (+4× magnification), 32px, and a simulated GitHub README header.
-- [ ] **TOUR-03**: User's per-candidate feedback is recorded verbatim in `ROUNDS.md` with ADVANCE/KILL/MUTATE tags, and the winner is an explicit user statement captured as checkpoint evidence — never auto-selected.
-- [ ] **TOUR-04**: Each round after the first contains only variations/mutations of user-advanced candidates traceable to recorded feedback (max one user-invited wildcard per round), with a 4-round cap that triggers an explicit decision rather than silent continuation.
+- [x] **TOUR-02**: User can review every candidate in every round in a self-contained local gallery HTML (file://, zero network) showing six contexts: dark background, light background, monochrome, literal 16px favicon (+4× magnification), 32px, and a simulated GitHub README header.
+- [x] **TOUR-03**: User's per-candidate feedback is recorded verbatim in `ROUNDS.md` with ADVANCE/KILL/MUTATE tags, and the winner is an explicit user statement captured as checkpoint evidence — never auto-selected.
+- [x] **TOUR-04**: Each round after the first contains only variations/mutations of user-advanced candidates traceable to recorded feedback (max one user-invited wildcard per round), with a 4-round cap that triggers an explicit decision rather than silent continuation.
 
 ### Logo System Constraints
 
@@ -96,9 +96,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GLYPH-02 | Phase 160 | Complete |
 | GLYPH-03 | Phase 160 | Complete |
 | TOUR-01 | Phase 161 | Complete |
-| TOUR-02 | Phase 161 | Pending |
-| TOUR-03 | Phase 161 | Pending |
-| TOUR-04 | Phase 161 | Pending |
+| TOUR-02 | Phase 161 | Complete |
+| TOUR-03 | Phase 161 | Complete |
+| TOUR-04 | Phase 161 | Complete |
 | LOGO-01 | Phase 161 | Complete |
 | LOGO-02 | Phase 161 | Complete |
 | LOGO-03 | Phase 161 | Complete |
