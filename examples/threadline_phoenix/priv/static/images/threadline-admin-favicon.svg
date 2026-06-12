@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="Threadline">
+  <!-- Threadline favicon, designed at 16px: one stitch through the fabric line, no
+       container chip. Default ink suits light browser chrome; the internal style
+       flips to light ink in dark mode (the standalone equivalent of the mark's
+       currentColor behavior — favicons cannot inherit currentColor). -->
+  <style>@media (prefers-color-scheme: dark) { path { stroke: #D7DEEA; } }</style>
+  <path data-role="mark" fill="none" stroke="#0F1728" stroke-width="1.7" d="M 5.2 13.6 V 6 A 2.8 2.8 0 0 1 10.8 6 V 13.6"/>
+  <path data-role="mark" fill="none" stroke="#0F1728" stroke-width="1.7" d="M 0.8 10.9 H 15.2"/>
+</svg>
