@@ -1,15 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
-  <title id="title">Threadline mark</title>
-  <desc id="desc">A continuous signal line connecting audit points into a followable path.</desc>
-  <defs>
-    <linearGradient id="threadline-mark-gradient" x1="8" y1="50" x2="56" y2="14" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#4F8CFF"/>
-      <stop offset="1" stop-color="#4EDFD1"/>
-    </linearGradient>
-  </defs>
-  <path d="M10 46C18 22 30 21 36 34C41 45 50 43 54 18" fill="none" stroke="url(#threadline-mark-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M10 46H27M36 34H50" fill="none" stroke="#D7DEEA" stroke-opacity=".42" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="10" cy="46" r="4" fill="#4F8CFF"/>
-  <circle cx="36" cy="34" r="4" fill="#4EDFD1"/>
-  <circle cx="54" cy="18" r="4" fill="#D7DEEA"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Threadline mark">
+  <!-- The extractable stitch mark — the favicon idiom at display scale (4x the 16px
+       cut): one stitch rising out of the fabric line and diving back in. Stems and
+       fabric are currentColor; the surfaced arc carries Stitch Blue. The fabric
+       line paints last so the thread disappears behind it at the crossings. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="6.8" d="M 20.8 54.4 V 43.6 M 43.2 54.4 V 43.6"/>
+  <path data-role="mark" fill="none" stroke="#4781E6" stroke-width="6.8" d="M 20.8 43.6 V 24 A 11.2 11.2 0 0 1 43.2 24 V 43.6"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="6.8" d="M 3.2 43.6 H 60.8"/>
 </svg>
