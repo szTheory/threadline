@@ -1,31 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">Threadline social preview card</title>
-  <desc id="desc">A social card for Threadline showing a connected audit timeline.</desc>
-  <defs>
-    <linearGradient id="card-thread" x1="122" y1="459" x2="1052" y2="160" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#4F8CFF"/>
-      <stop offset=".6" stop-color="#4EDFD1"/>
-      <stop offset="1" stop-color="#8A7CFF"/>
-    </linearGradient>
-    <linearGradient id="card-bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0B1020"/>
-      <stop offset="1" stop-color="#141B2D"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#card-bg)"/>
-  <g opacity=".16" stroke="#D7DEEA" stroke-width="1">
-    <path d="M0 132H1200M0 264H1200M0 396H1200M0 528H1200"/>
-    <path d="M160 0V630M320 0V630M480 0V630M640 0V630M800 0V630M960 0V630"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Threadline — FOLLOW WHAT HAPPENED">
+  <!-- 1280x640 social card (og:image aspect): the dark canvas is the single
+       sanctioned background path; lockup + outlined tagline centered, pure paths. -->
+  <path data-role="background" fill="#0B1020" d="M 0 0 H 1280 V 640 H 0 Z"/>
+  <g transform="translate(258.32 211.01) scale(0.15252)">
+    <path data-glyph="T" fill="#D7DEEA" transform="translate(0 0)" d="M 227 1005 L 227 408 L 11 408 L 11 295 L 572 295 L 572 408 L 357 408 L 357 1005 Z"/>
+    <path data-glyph="h" fill="#D7DEEA" transform="translate(562 0)" d="M 70 1005 L 70 295 L 198 295 L 198 593 L 182 593 Q 190 547 214 517.5 Q 238 488 273 473.5 Q 308 459 350 459 Q 409 459 449.5 484.5 Q 490 510 510.5 556 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 693 Q 403 628 381 595.5 Q 359 563 312 563 Q 260 563 229 597 Q 198 631 198 696 L 198 1005 Z"/>
+    <path data-glyph="r" fill="#D7DEEA" transform="translate(1147 0)" d="M 70 1005 L 70 471 L 190 471 L 195 619 L 184 617 Q 196 540 229.5 505.5 Q 263 471 321 471 L 370 471 L 370 581 L 320 581 Q 279 581 252 593 Q 225 605 211.5 630.5 Q 198 656 198 697 L 198 1005 Z"/>
+    <path data-glyph="e" fill="#D7DEEA" transform="translate(1516 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+    <path data-glyph="a" fill="#D7DEEA" transform="translate(2105 0)" d="M 225 1017 Q 141 1017 90 978.5 Q 39 940 39 871 Q 39 802 82 763 Q 125 724 213 707 L 390 672 Q 390 615 364 586.5 Q 338 558 287 558 Q 241 558 214.5 579.5 Q 188 601 178 641 L 48 635 Q 64 550 126 504.5 Q 188 459 287 459 Q 401 459 459.5 516.5 Q 518 574 518 681 L 518 875 Q 518 896 525.5 904 Q 533 912 548 912 L 565 912 L 565 1005 Q 559 1007 545.5 1008 Q 532 1009 518 1009 Q 485 1009 459 998.5 Q 433 988 419 961.5 Q 405 935 405 889 L 416 897 Q 408 932 381.5 959.5 Q 355 987 315 1002 Q 275 1017 225 1017 Z M 251 924 Q 294 924 325 907 Q 356 890 373 860 Q 390 830 390 789 L 390 759 L 252 787 Q 209 796 190.5 813.5 Q 172 831 172 859 Q 172 890 192.5 907 Q 213 924 251 924 Z"/>
+    <path data-glyph="d" fill="#D7DEEA" transform="translate(2677 0)" d="M 260 1017 Q 192 1017 142.5 983 Q 93 949 66 886 Q 39 823 39 738 Q 39 653 66 590 Q 93 527 143 493 Q 193 459 260 459 Q 316 459 358.5 482 Q 401 505 423 547 L 423 444 L 551 444 L 551 1005 L 429 1005 L 426 926 Q 404 969 360 993 Q 316 1017 260 1017 Z M 299 913 Q 339 913 366.5 893 Q 394 873 408.5 833.5 Q 423 794 423 738 Q 423 681 408.5 642 Q 394 603 366.5 583 Q 339 563 299 563 Q 241 563 206.5 609.5 Q 172 656 172 738 Q 172 818 206.5 865.5 Q 241 913 299 913 Z"/>
+    <path data-glyph="l" fill="#D7DEEA" transform="translate(3291 0)" d="M 198 1005 Q 140 1005 105 975 Q 70 945 70 879 L 70 444 L 198 444 L 198 866 Q 198 886 208.5 896 Q 219 906 238 906 L 277 906 L 277 1005 Z"/>
+    <path data-role="mark" fill="none" stroke="#4781E6" stroke-width="128" d="M 3164 449 V 260 A 130.5 130.5 0 0 1 3425 260 V 449"/>
+    <path data-glyph="i" fill="#D7DEEA" transform="translate(3580 0)" d="M 70 1005 L 70 471 L 198 471 L 198 1005 Z M 68 400 L 68 286 L 201 286 L 201 400 Z"/>
+    <path data-glyph="n" fill="#D7DEEA" transform="translate(3855 0)" d="M 70 1005 L 70 471 L 186 471 L 191 621 L 176 615 Q 184 559 209 525 Q 234 491 270 475 Q 306 459 349 459 Q 408 459 448.5 485 Q 489 511 510 556.5 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 703 Q 403 658 394 627 Q 385 596 364.5 579.5 Q 344 563 310 563 Q 259 563 228.5 599 Q 198 635 198 703 L 198 1005 Z"/>
+    <path data-glyph="e" fill="#D7DEEA" transform="translate(4443 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+    <g data-role="tagline" transform="translate(-15.09 1050.81) scale(0.30334)">
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(0 0)" d="M 86 1025 L 86 327 L 535 327 L 535 421 L 198 421 L 198 624 L 504 624 L 504 718 L 198 718 L 198 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(840 0)" d="M 300 1037 Q 234 1037 185.5 1012.5 Q 137 988 105.5 942 Q 74 896 59 829 Q 44 762 44 676 Q 44 591 59 523.5 Q 74 456 105.5 410 Q 137 364 185.5 339.5 Q 234 315 300 315 Q 366 315 414.5 339.5 Q 463 364 494.5 410 Q 526 456 541 523.5 Q 556 591 556 676 Q 556 762 541 829 Q 526 896 494.5 942 Q 463 988 414.5 1012.5 Q 366 1037 300 1037 Z M 300 944 Q 375 944 406 887.5 Q 437 831 437 734 L 437 617 Q 437 521 406 464.5 Q 375 408 300 408 Q 225 408 194 464.5 Q 163 521 163 617 L 163 735 Q 163 831 194 887.5 Q 225 944 300 944 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(1680 0)" d="M 108 1025 L 108 327 L 220 327 L 220 931 L 538 931 L 538 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(2520 0)" d="M 108 1025 L 108 327 L 220 327 L 220 931 L 538 931 L 538 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(3360 0)" d="M 300 1037 Q 234 1037 185.5 1012.5 Q 137 988 105.5 942 Q 74 896 59 829 Q 44 762 44 676 Q 44 591 59 523.5 Q 74 456 105.5 410 Q 137 364 185.5 339.5 Q 234 315 300 315 Q 366 315 414.5 339.5 Q 463 364 494.5 410 Q 526 456 541 523.5 Q 556 591 556 676 Q 556 762 541 829 Q 526 896 494.5 942 Q 463 988 414.5 1012.5 Q 366 1037 300 1037 Z M 300 944 Q 375 944 406 887.5 Q 437 831 437 734 L 437 617 Q 437 521 406 464.5 Q 375 408 300 408 Q 225 408 194 464.5 Q 163 521 163 617 L 163 735 Q 163 831 194 887.5 Q 225 944 300 944 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(4200 0)" d="M 75 1025 L 25 327 L 123 327 L 148 733 L 159 912 L 167 912 L 246 496 L 357 496 L 436 912 L 444 912 L 455 733 L 481 327 L 575 327 L 525 1025 L 375 1025 L 304 621 L 296 621 L 225 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(5880 0)" d="M 75 1025 L 25 327 L 123 327 L 148 733 L 159 912 L 167 912 L 246 496 L 357 496 L 436 912 L 444 912 L 455 733 L 481 327 L 575 327 L 525 1025 L 375 1025 L 304 621 L 296 621 L 225 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(6720 0)" d="M 416 718 L 184 718 L 184 1025 L 72 1025 L 72 327 L 184 327 L 184 624 L 416 624 L 416 327 L 528 327 L 528 1025 L 416 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(7560 0)" d="M 462 1025 L 409 839 L 187 839 L 134 1025 L 20 1025 L 224 327 L 377 327 L 581 1025 Z M 302 440 L 294 440 L 208 746 L 388 746 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(8400 0)" d="M 356 421 L 356 1025 L 244 1025 L 244 421 L 25 421 L 25 327 L 575 327 L 575 421 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(10080 0)" d="M 416 718 L 184 718 L 184 1025 L 72 1025 L 72 327 L 184 327 L 184 624 L 416 624 L 416 327 L 528 327 L 528 1025 L 416 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(10920 0)" d="M 462 1025 L 409 839 L 187 839 L 134 1025 L 20 1025 L 224 327 L 377 327 L 581 1025 Z M 302 440 L 294 440 L 208 746 L 388 746 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(11760 0)" d="M 84 1025 L 84 327 L 345 327 Q 445 327 497.5 383 Q 550 439 550 537 Q 550 635 497.5 691 Q 445 747 345 747 L 196 747 L 196 1025 Z M 196 654 L 328 654 Q 432 654 432 558 L 432 515 Q 432 420 328 420 L 196 420 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(12600 0)" d="M 84 1025 L 84 327 L 345 327 Q 445 327 497.5 383 Q 550 439 550 537 Q 550 635 497.5 691 Q 445 747 345 747 L 196 747 L 196 1025 Z M 196 654 L 328 654 Q 432 654 432 558 L 432 515 Q 432 420 328 420 L 196 420 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(13440 0)" d="M 86 1025 L 86 327 L 523 327 L 523 421 L 198 421 L 198 624 L 511 624 L 511 718 L 198 718 L 198 931 L 523 931 L 523 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(14280 0)" d="M 179 488 L 170 488 L 170 1025 L 72 1025 L 72 327 L 216 327 L 421 864 L 430 864 L 430 327 L 528 327 L 528 1025 L 384 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(15120 0)" d="M 86 1025 L 86 327 L 523 327 L 523 421 L 198 421 L 198 624 L 511 624 L 511 718 L 198 718 L 198 931 L 523 931 L 523 1025 Z"/>
+      <path data-role="tagline" fill="#8F9DB5" transform="translate(15960 0)" d="M 82 327 L 290 327 Q 424 327 488.5 416 Q 553 505 553 676 Q 553 847 488.5 936 Q 424 1025 290 1025 L 82 1025 Z M 283 933 Q 360 933 397.5 881.5 Q 435 830 435 734 L 435 618 Q 435 522 397.5 470.5 Q 360 419 283 419 L 193 419 L 193 933 Z"/>
+    </g>
   </g>
-  <path d="M126 455C250 146 407 166 500 338C589 504 773 426 836 230C883 86 995 101 1074 174" fill="none" stroke="url(#card-thread)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#0B1020" stroke-width="5">
-    <circle cx="126" cy="455" r="15" stroke="#4F8CFF"/>
-    <circle cx="500" cy="338" r="15" stroke="#4EDFD1"/>
-    <circle cx="836" cy="230" r="15" stroke="#8A7CFF"/>
-    <circle cx="1074" cy="174" r="15" stroke="#D7DEEA"/>
-  </g>
-  <text x="96" y="162" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="78" font-weight="600">Threadline</text>
-  <text x="102" y="220" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="22" font-weight="500" letter-spacing="5">FOLLOW WHAT HAPPENED</text>
-  <text x="96" y="525" fill="#D7DEEA" font-family="Geist, Inter, system-ui, sans-serif" font-size="34" font-weight="500">Audit history for Phoenix, Ecto, and PostgreSQL.</text>
-  <text x="96" y="572" fill="#A3AFC2" font-family="Geist, Inter, system-ui, sans-serif" font-size="24">Capture changes. Connect context. Explain the timeline.</text>
 </svg>

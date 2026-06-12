@@ -1,25 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 760" role="img" aria-labelledby="title desc">
-  <title id="title">Docs page mock</title>
-  <desc id="desc">A documentation page layout for Threadline.</desc>
-  <rect width="1120" height="760" fill="#F7F9FC"/>
-  <rect x="0" y="0" width="264" height="760" fill="#FFFFFF"/>
-  <path d="M264 0V760" stroke="#C9D3E2"/>
-  <image href="../logo-monochrome.svg" x="32" y="30" width="190" height="56"/>
-  <g font-family="Geist, Inter, system-ui, sans-serif" font-size="15">
-    <text x="34" y="132" fill="#0F1728" font-weight="600">Start here</text>
-    <text x="34" y="174" fill="#3B4762">Getting started</text>
-    <text x="34" y="214" fill="#3B4762">How Threadline works</text>
-    <text x="34" y="254" fill="#1557C0">Operator surface</text>
-    <text x="34" y="294" fill="#3B4762">Integration contracts</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Threadline docs chrome specimen">
+  <!-- Docs chrome specimen, dark surface: the stitch mark inlined as paths in the
+       sidebar header, wireframe nav/content/code bars as stroke paths. No text,
+       no rects, no background plate — the canvas is transparent. -->
+  <g transform="translate(32 28) scale(0.625)">
+    <path data-role="mark" fill="none" stroke="#D7DEEA" stroke-width="6.8" d="M 20.8 54.4 V 43.6 M 43.2 54.4 V 43.6"/>
+    <path data-role="mark" fill="none" stroke="#4781E6" stroke-width="6.8" d="M 20.8 43.6 V 24 A 11.2 11.2 0 0 1 43.2 24 V 43.6"/>
+    <path data-role="mark" fill="none" stroke="#D7DEEA" stroke-width="6.8" d="M 3.2 43.6 H 60.8"/>
   </g>
-  <text x="328" y="106" fill="#0F1728" font-family="Geist, Inter, system-ui, sans-serif" font-size="42" font-weight="600">Operator surface</text>
-  <text x="328" y="150" fill="#3B4762" font-family="Geist, Inter, system-ui, sans-serif" font-size="18">Mount a fail-closed audit console inside your Phoenix app.</text>
-  <rect x="328" y="204" width="704" height="168" rx="8" fill="#0B1020"/>
-  <text x="360" y="250" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="14">scope "/audit", MyAppWeb do</text>
-  <text x="360" y="284" fill="#D7DEEA" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="14">  pipe_through [:browser, :require_authenticated_admin]</text>
-  <text x="360" y="318" fill="#D7DEEA" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="14">  threadline_operator_surface "/"</text>
-  <text x="360" y="352" fill="#4EDFD1" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="14">end</text>
-  <rect x="328" y="420" width="704" height="92" rx="8" fill="#EEF3FA" stroke="#C9D3E2"/>
-  <text x="352" y="458" fill="#1557C0" font-family="Geist, Inter, system-ui, sans-serif" font-size="16" font-weight="600">Host-owned authorization</text>
-  <text x="352" y="488" fill="#3B4762" font-family="Geist, Inter, system-ui, sans-serif" font-size="15">Threadline provides the surface. Your app decides who can see it.</text>
+  <path data-role="art" fill="none" stroke="#23304A" stroke-width="2" d="M 240 24 V 516"/>
+  <path data-role="art" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 124 H 150"/>
+  <path data-role="art" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 156 H 180"/>
+  <path data-role="art" fill="none" stroke="#4F8CFF" stroke-width="10" stroke-linecap="round" d="M 33 188 H 168"/>
+  <path data-role="art" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 220 H 130"/>
+  <path data-role="art" fill="none" stroke="#D7DEEA" stroke-width="18" stroke-linecap="round" d="M 289 84 H 560"/>
+  <path data-role="art" fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 126 H 700"/>
+  <path data-role="art" fill="none" stroke="#23304A" stroke-width="2" d="M 296 168 H 920 A 8 8 0 0 1 928 176 V 312 A 8 8 0 0 1 920 320 H 296 A 8 8 0 0 1 288 312 V 176 A 8 8 0 0 1 296 168 Z"/>
+  <path data-role="art" fill="none" stroke="#4EDFD1" stroke-width="8" stroke-linecap="round" d="M 314 200 H 520"/>
+  <path data-role="art" fill="none" stroke="#D7DEEA" stroke-width="8" stroke-linecap="round" d="M 314 228 H 680"/>
+  <path data-role="art" fill="none" stroke="#D7DEEA" stroke-width="8" stroke-linecap="round" d="M 314 256 H 610"/>
+  <path data-role="art" fill="none" stroke="#4EDFD1" stroke-width="8" stroke-linecap="round" d="M 314 284 H 420"/>
+  <path data-role="art" fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 360 H 880"/>
+  <path data-role="art" fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 392 H 820"/>
+  <path data-role="art" fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 424 H 560"/>
 </svg>
