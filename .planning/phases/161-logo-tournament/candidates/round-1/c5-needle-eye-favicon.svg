@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C5 favicon: the needle's eye — a solid node carrying its thread in negative space:
+       an unprinted channel enters from the left and ends in the eye. Designed at 16px. -->
+  <path data-role="mark" fill="currentColor" d="M 1.36 6.8 A 6.75 6.75 0 1 1 1.36 9.2 L 5.47 9.2 A 2.8 2.8 0 1 0 5.47 6.8 Z"/>
+</svg>

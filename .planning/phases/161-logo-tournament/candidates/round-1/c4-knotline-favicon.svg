@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C4 favicon: the loop on the line — one continuous stroke. Designed at 16px. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M 0.85 10.6 H 8 A 3.95 3.95 0 1 0 8 2.7 A 3.95 3.95 0 1 0 8 10.6 H 15.15"/>
+</svg>
