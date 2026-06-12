@@ -1,0 +1,185 @@
+<!doctype html>
+<!--
+  Phase 160 overlay specimen (GLYPH-02 / GLYPH-03 evidence).
+
+  Self-contained: opens over file:// with ZERO network requests.
+  - Live Geist render: @font-face with relative urls into priv/fonts/ (vendored, OFL).
+  - Generated outlines: the committed glyph-kit SVGs inlined below (path data is
+    byte-identical to glyph-kit-geist-{500,600}.svg; only root-tag presentation
+    attributes such as width/height/fill were added for display).
+
+  Baseline math (same metrics for both weights):
+    unitsPerEm = 1000, ascent = 1005, descent = -295  (from the kit JSON)
+    render size = 120px  ->  scale = 120 / 1000 = 0.12
+    line box    = (ascent - descent) * scale = 1300 * 0.12 = 156px
+    baseline    = ascent * scale = 120.6px from the top of the line box
+  The live text uses line-height: 156px (== font content height), so half-leading
+  is 0 and its baseline sits at 120.6px. The inline kit SVG is 156px tall with its
+  baseline drawn at y = ascent = 1005 font units, i.e. also 120.6px. Both layers
+  are absolutely positioned at top: 0 / left: 0, so the baselines coincide.
+
+  Reading the overlay: live text is MAGENTA at 50% opacity, generated outlines are
+  CYAN at 50% opacity. Where outlines match, the blend is uniform; misalignment
+  shows glyph-shaped magenta/cyan fringes.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phase 160 — Geist outline overlay specimen</title>
+<style>
+  @font-face {
+    font-family: "GeistSpecimen";
+    src: url("../../../priv/fonts/geist-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "GeistSpecimen";
+    src: url("../../../priv/fonts/geist-600.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  :root {
+    --render-px: 120px;   /* font-size for the live render */
+    --line-px: 156px;     /* (ascent - descent) * scale = 1300 * 0.12 */
+  }
+
+  body {
+    margin: 0;
+    padding: 24px 32px 48px;
+    background: #1b1b22;
+    color: #e8e8ee;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  h1 { font-size: 18px; font-weight: 600; }
+  h2 { font-size: 14px; font-weight: 600; margin: 32px 0 8px; color: #b8b8c8; }
+  p.legend { font-size: 12px; color: #9a9aa8; margin: 0 0 16px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
+
+  .overlay-stage {
+    position: relative;
+    height: var(--line-px);
+    margin-bottom: 8px;
+  }
+  .overlay-stage .live {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    font-family: "GeistSpecimen", sans-serif;
+    font-size: var(--render-px);
+    line-height: var(--line-px);
+    letter-spacing: 0;
+    font-kerning: normal;
+    font-synthesis: none;
+    white-space: pre;
+    color: #ff00ff;
+    opacity: 0.5;
+  }
+  .overlay-stage .live.w500 { font-weight: 500; }
+  .overlay-stage .live.w600 { font-weight: 600; }
+  .overlay-stage svg.kit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+  }
+
+  .counters-row { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .counters-card { padding: 16px 20px; border-radius: 8px; }
+  .counters-card.dark { background: #101014; }
+  .counters-card.light { background: #ffffff; }
+  .counters-card svg { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Phase 160 — generated outlines vs live Geist (file://, no network)</h1>
+<p class="legend">
+  <span class="swatch" style="background:#ff00ff"></span> live webfont text (magenta, 50% opacity)
+  &nbsp;&nbsp;
+  <span class="swatch" style="background:#00ffff"></span> generated glyph-kit outlines (cyan, 50% opacity)
+  &nbsp;&nbsp;— a uniform blend means the outlines match; magenta/cyan fringes mean misalignment.
+</p>
+
+<h2>Overlay — Geist 500 (Medium), 120px</h2>
+<div class="overlay-stage">
+  <p class="live w500">Threadline</p>
+  <svg class="kit" width="587.4" height="156" fill="#00ffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4895 1300">
+  <path id="g-0-T" transform="translate(0 0)" d="M 230 1005 L 230 394 L 12 394 L 12 295 L 556 295 L 556 394 L 338 394 L 338 1005 Z"/>
+  <path id="g-1-h" transform="translate(542 0)" d="M 75 1005 L 75 295 L 181 295 L 181 593 L 168 591 Q 177 546 201 517.5 Q 225 489 260 475 Q 295 461 337 461 Q 395 461 435 486.5 Q 475 512 495.5 558 Q 516 604 516 663 L 516 1005 L 410 1005 L 410 691 Q 410 619 385.5 584.5 Q 361 550 309 550 Q 251 550 216 586.5 Q 181 623 181 693 L 181 1005 Z"/>
+  <path id="g-2-r" transform="translate(1115 0)" d="M 75 1005 L 75 473 L 172 473 L 176 614 L 167 611 Q 178 539 211.5 506 Q 245 473 302 473 L 353 473 L 353 568 L 302 568 Q 262 568 235 581 Q 208 594 194.5 621 Q 181 648 181 691 L 181 1005 Z"/>
+  <path id="g-3-e" transform="translate(1469 0)" d="M 294 1017 Q 216 1017 159.5 983 Q 103 949 72.5 886 Q 42 823 42 739 Q 42 655 72.5 592.5 Q 103 530 159 495.5 Q 215 461 291 461 Q 363 461 418 494.5 Q 473 528 503.5 591 Q 534 654 534 743 L 534 770 L 152 770 Q 156 848 193.5 887 Q 231 926 295 926 Q 342 926 373 904 Q 404 882 416 845 L 526 852 Q 505 926 443.5 971.5 Q 382 1017 294 1017 Z M 152 690 L 422 690 Q 417 619 381.5 585 Q 346 551 291 551 Q 234 551 197.5 586.5 Q 161 622 152 690 Z"/>
+  <path id="g-4-a" transform="translate(2046 0)" d="M 224 1017 Q 141 1017 91.5 979 Q 42 941 42 872 Q 42 803 83.5 764.5 Q 125 726 212 709 L 395 674 Q 395 612 366 581.5 Q 337 551 280 551 Q 229 551 200 573.5 Q 171 596 160 640 L 51 633 Q 66 553 125.5 507 Q 185 461 280 461 Q 388 461 444.5 518.5 Q 501 576 501 680 L 501 887 Q 501 906 507.5 913.5 Q 514 921 529 921 L 548 921 L 548 1005 Q 543 1006 532 1007 Q 521 1008 509 1008 Q 475 1008 450.5 997 Q 426 986 414 960.5 Q 402 935 402 892 L 413 897 Q 405 932 378.5 959 Q 352 986 311.5 1001.5 Q 271 1017 224 1017 Z M 241 933 Q 289 933 323 914.5 Q 357 896 376 863 Q 395 830 395 788 L 395 754 L 239 784 Q 191 793 171.5 812.5 Q 152 832 152 862 Q 152 896 175.5 914.5 Q 199 933 241 933 Z"/>
+  <path id="g-5-d" transform="translate(2604 0)" d="M 264 1017 Q 196 1017 145.5 983 Q 95 949 68.5 886.5 Q 42 824 42 739 Q 42 654 69 591.5 Q 96 529 146 495 Q 196 461 264 461 Q 319 461 362 484 Q 405 507 427 548 L 427 295 L 533 295 L 533 1005 L 434 1005 L 431 925 Q 409 968 364.5 992.5 Q 320 1017 264 1017 Z M 292 925 Q 335 925 365 903 Q 395 881 411 839 Q 427 797 427 739 Q 427 679 411 637.5 Q 395 596 365 574.5 Q 335 553 292 553 Q 228 553 190 602.5 Q 152 652 152 739 Q 152 825 190 875 Q 228 925 292 925 Z"/>
+  <path id="g-6-l" transform="translate(3204 0)" d="M 191 1005 Q 139 1005 107 978 Q 75 951 75 892 L 75 295 L 181 295 L 181 882 Q 181 900 190.5 909 Q 200 918 218 918 L 260 918 L 260 1005 Z"/>
+  <path id="g-7-i" transform="translate(3478 0)" d="M 75 1005 L 75 473 L 181 473 L 181 1005 Z M 73 396 L 73 290 L 183 290 L 183 396 Z"/>
+  <path id="g-8-n" transform="translate(3740 0)" d="M 75 1005 L 75 473 L 172 473 L 176 615 L 163 608 Q 172 556 197 524 Q 222 492 258 476.5 Q 294 461 336 461 Q 396 461 435.5 487.5 Q 475 514 495.5 559.5 Q 516 605 516 663 L 516 1005 L 410 1005 L 410 695 Q 410 648 400 616 Q 390 584 367 567 Q 344 550 307 550 Q 251 550 216 587 Q 181 624 181 695 L 181 1005 Z"/>
+  <path id="g-9-e" transform="translate(4319 0)" d="M 294 1017 Q 216 1017 159.5 983 Q 103 949 72.5 886 Q 42 823 42 739 Q 42 655 72.5 592.5 Q 103 530 159 495.5 Q 215 461 291 461 Q 363 461 418 494.5 Q 473 528 503.5 591 Q 534 654 534 743 L 534 770 L 152 770 Q 156 848 193.5 887 Q 231 926 295 926 Q 342 926 373 904 Q 404 882 416 845 L 526 852 Q 505 926 443.5 971.5 Q 382 1017 294 1017 Z M 152 690 L 422 690 Q 417 619 381.5 585 Q 346 551 291 551 Q 234 551 197.5 586.5 Q 161 622 152 690 Z"/>
+</svg>
+</div>
+
+<h2>Overlay — Geist 600 (SemiBold), 120px</h2>
+<div class="overlay-stage">
+  <p class="live w600">Threadline</p>
+  <svg class="kit" width="604.08" height="156" fill="#00ffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5034 1300">
+  <path id="g-0-T" transform="translate(0 0)" d="M 227 1005 L 227 408 L 11 408 L 11 295 L 572 295 L 572 408 L 357 408 L 357 1005 Z"/>
+  <path id="g-1-h" transform="translate(562 0)" d="M 70 1005 L 70 295 L 198 295 L 198 593 L 182 593 Q 190 547 214 517.5 Q 238 488 273 473.5 Q 308 459 350 459 Q 409 459 449.5 484.5 Q 490 510 510.5 556 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 693 Q 403 628 381 595.5 Q 359 563 312 563 Q 260 563 229 597 Q 198 631 198 696 L 198 1005 Z"/>
+  <path id="g-2-r" transform="translate(1147 0)" d="M 70 1005 L 70 471 L 190 471 L 195 619 L 184 617 Q 196 540 229.5 505.5 Q 263 471 321 471 L 370 471 L 370 581 L 320 581 Q 279 581 252 593 Q 225 605 211.5 630.5 Q 198 656 198 697 L 198 1005 Z"/>
+  <path id="g-3-e" transform="translate(1516 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+  <path id="g-4-a" transform="translate(2105 0)" d="M 225 1017 Q 141 1017 90 978.5 Q 39 940 39 871 Q 39 802 82 763 Q 125 724 213 707 L 390 672 Q 390 615 364 586.5 Q 338 558 287 558 Q 241 558 214.5 579.5 Q 188 601 178 641 L 48 635 Q 64 550 126 504.5 Q 188 459 287 459 Q 401 459 459.5 516.5 Q 518 574 518 681 L 518 875 Q 518 896 525.5 904 Q 533 912 548 912 L 565 912 L 565 1005 Q 559 1007 545.5 1008 Q 532 1009 518 1009 Q 485 1009 459 998.5 Q 433 988 419 961.5 Q 405 935 405 889 L 416 897 Q 408 932 381.5 959.5 Q 355 987 315 1002 Q 275 1017 225 1017 Z M 251 924 Q 294 924 325 907 Q 356 890 373 860 Q 390 830 390 789 L 390 759 L 252 787 Q 209 796 190.5 813.5 Q 172 831 172 859 Q 172 890 192.5 907 Q 213 924 251 924 Z"/>
+  <path id="g-5-d" transform="translate(2677 0)" d="M 260 1017 Q 192 1017 142.5 983 Q 93 949 66 886 Q 39 823 39 738 Q 39 653 66 590 Q 93 527 143 493 Q 193 459 260 459 Q 316 459 358.5 482 Q 401 505 423 547 L 423 295 L 551 295 L 551 1005 L 429 1005 L 426 926 Q 404 969 360 993 Q 316 1017 260 1017 Z M 299 913 Q 339 913 366.5 893 Q 394 873 408.5 833.5 Q 423 794 423 738 Q 423 681 408.5 642 Q 394 603 366.5 583 Q 339 563 299 563 Q 241 563 206.5 609.5 Q 172 656 172 738 Q 172 818 206.5 865.5 Q 241 913 299 913 Z"/>
+  <path id="g-6-l" transform="translate(3291 0)" d="M 198 1005 Q 140 1005 105 975 Q 70 945 70 879 L 70 295 L 198 295 L 198 866 Q 198 886 208.5 896 Q 219 906 238 906 L 277 906 L 277 1005 Z"/>
+  <path id="g-7-i" transform="translate(3580 0)" d="M 70 1005 L 70 471 L 198 471 L 198 1005 Z M 68 400 L 68 286 L 201 286 L 201 400 Z"/>
+  <path id="g-8-n" transform="translate(3855 0)" d="M 70 1005 L 70 471 L 186 471 L 191 621 L 176 615 Q 184 559 209 525 Q 234 491 270 475 Q 306 459 349 459 Q 408 459 448.5 485 Q 489 511 510 556.5 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 703 Q 403 658 394 627 Q 385 596 364.5 579.5 Q 344 563 310 563 Q 259 563 228.5 599 Q 198 635 198 703 L 198 1005 Z"/>
+  <path id="g-9-e" transform="translate(4443 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+</svg>
+</div>
+
+<h2>Counters — generated outlines alone, solid fill (e/a/d holes must be visible)</h2>
+<p class="legend">Default nonzero fill rule, contour winding preserved exactly as fontkit emitted it. No fill-rule attribute anywhere in the kits.</p>
+
+<div class="counters-row">
+  <div class="counters-card dark">
+    <svg width="489.5" height="130" fill="#e8e8ee" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4895 1300"><use href="#cset-500"></use></svg>
+    <svg width="503.4" height="130" fill="#e8e8ee" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5034 1300"><use href="#cset-600"></use></svg>
+  </div>
+  <div class="counters-card light">
+    <svg width="489.5" height="130" fill="#101014" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4895 1300"><use href="#cset-500"></use></svg>
+    <svg width="503.4" height="130" fill="#101014" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5034 1300"><use href="#cset-600"></use></svg>
+  </div>
+</div>
+
+<!-- Shared defs for the counters section: same kit path data, referenced by <use>. -->
+<svg width="0" height="0" style="position:absolute" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <g id="cset-500">
+      <path transform="translate(0 0)" d="M 230 1005 L 230 394 L 12 394 L 12 295 L 556 295 L 556 394 L 338 394 L 338 1005 Z"/>
+      <path transform="translate(542 0)" d="M 75 1005 L 75 295 L 181 295 L 181 593 L 168 591 Q 177 546 201 517.5 Q 225 489 260 475 Q 295 461 337 461 Q 395 461 435 486.5 Q 475 512 495.5 558 Q 516 604 516 663 L 516 1005 L 410 1005 L 410 691 Q 410 619 385.5 584.5 Q 361 550 309 550 Q 251 550 216 586.5 Q 181 623 181 693 L 181 1005 Z"/>
+      <path transform="translate(1115 0)" d="M 75 1005 L 75 473 L 172 473 L 176 614 L 167 611 Q 178 539 211.5 506 Q 245 473 302 473 L 353 473 L 353 568 L 302 568 Q 262 568 235 581 Q 208 594 194.5 621 Q 181 648 181 691 L 181 1005 Z"/>
+      <path transform="translate(1469 0)" d="M 294 1017 Q 216 1017 159.5 983 Q 103 949 72.5 886 Q 42 823 42 739 Q 42 655 72.5 592.5 Q 103 530 159 495.5 Q 215 461 291 461 Q 363 461 418 494.5 Q 473 528 503.5 591 Q 534 654 534 743 L 534 770 L 152 770 Q 156 848 193.5 887 Q 231 926 295 926 Q 342 926 373 904 Q 404 882 416 845 L 526 852 Q 505 926 443.5 971.5 Q 382 1017 294 1017 Z M 152 690 L 422 690 Q 417 619 381.5 585 Q 346 551 291 551 Q 234 551 197.5 586.5 Q 161 622 152 690 Z"/>
+      <path transform="translate(2046 0)" d="M 224 1017 Q 141 1017 91.5 979 Q 42 941 42 872 Q 42 803 83.5 764.5 Q 125 726 212 709 L 395 674 Q 395 612 366 581.5 Q 337 551 280 551 Q 229 551 200 573.5 Q 171 596 160 640 L 51 633 Q 66 553 125.5 507 Q 185 461 280 461 Q 388 461 444.5 518.5 Q 501 576 501 680 L 501 887 Q 501 906 507.5 913.5 Q 514 921 529 921 L 548 921 L 548 1005 Q 543 1006 532 1007 Q 521 1008 509 1008 Q 475 1008 450.5 997 Q 426 986 414 960.5 Q 402 935 402 892 L 413 897 Q 405 932 378.5 959 Q 352 986 311.5 1001.5 Q 271 1017 224 1017 Z M 241 933 Q 289 933 323 914.5 Q 357 896 376 863 Q 395 830 395 788 L 395 754 L 239 784 Q 191 793 171.5 812.5 Q 152 832 152 862 Q 152 896 175.5 914.5 Q 199 933 241 933 Z"/>
+      <path transform="translate(2604 0)" d="M 264 1017 Q 196 1017 145.5 983 Q 95 949 68.5 886.5 Q 42 824 42 739 Q 42 654 69 591.5 Q 96 529 146 495 Q 196 461 264 461 Q 319 461 362 484 Q 405 507 427 548 L 427 295 L 533 295 L 533 1005 L 434 1005 L 431 925 Q 409 968 364.5 992.5 Q 320 1017 264 1017 Z M 292 925 Q 335 925 365 903 Q 395 881 411 839 Q 427 797 427 739 Q 427 679 411 637.5 Q 395 596 365 574.5 Q 335 553 292 553 Q 228 553 190 602.5 Q 152 652 152 739 Q 152 825 190 875 Q 228 925 292 925 Z"/>
+      <path transform="translate(3204 0)" d="M 191 1005 Q 139 1005 107 978 Q 75 951 75 892 L 75 295 L 181 295 L 181 882 Q 181 900 190.5 909 Q 200 918 218 918 L 260 918 L 260 1005 Z"/>
+      <path transform="translate(3478 0)" d="M 75 1005 L 75 473 L 181 473 L 181 1005 Z M 73 396 L 73 290 L 183 290 L 183 396 Z"/>
+      <path transform="translate(3740 0)" d="M 75 1005 L 75 473 L 172 473 L 176 615 L 163 608 Q 172 556 197 524 Q 222 492 258 476.5 Q 294 461 336 461 Q 396 461 435.5 487.5 Q 475 514 495.5 559.5 Q 516 605 516 663 L 516 1005 L 410 1005 L 410 695 Q 410 648 400 616 Q 390 584 367 567 Q 344 550 307 550 Q 251 550 216 587 Q 181 624 181 695 L 181 1005 Z"/>
+      <path transform="translate(4319 0)" d="M 294 1017 Q 216 1017 159.5 983 Q 103 949 72.5 886 Q 42 823 42 739 Q 42 655 72.5 592.5 Q 103 530 159 495.5 Q 215 461 291 461 Q 363 461 418 494.5 Q 473 528 503.5 591 Q 534 654 534 743 L 534 770 L 152 770 Q 156 848 193.5 887 Q 231 926 295 926 Q 342 926 373 904 Q 404 882 416 845 L 526 852 Q 505 926 443.5 971.5 Q 382 1017 294 1017 Z M 152 690 L 422 690 Q 417 619 381.5 585 Q 346 551 291 551 Q 234 551 197.5 586.5 Q 161 622 152 690 Z"/>
+    </g>
+    <g id="cset-600">
+      <path transform="translate(0 0)" d="M 227 1005 L 227 408 L 11 408 L 11 295 L 572 295 L 572 408 L 357 408 L 357 1005 Z"/>
+      <path transform="translate(562 0)" d="M 70 1005 L 70 295 L 198 295 L 198 593 L 182 593 Q 190 547 214 517.5 Q 238 488 273 473.5 Q 308 459 350 459 Q 409 459 449.5 484.5 Q 490 510 510.5 556 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 693 Q 403 628 381 595.5 Q 359 563 312 563 Q 260 563 229 597 Q 198 631 198 696 L 198 1005 Z"/>
+      <path transform="translate(1147 0)" d="M 70 1005 L 70 471 L 190 471 L 195 619 L 184 617 Q 196 540 229.5 505.5 Q 263 471 321 471 L 370 471 L 370 581 L 320 581 Q 279 581 252 593 Q 225 605 211.5 630.5 Q 198 656 198 697 L 198 1005 Z"/>
+      <path transform="translate(1516 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+      <path transform="translate(2105 0)" d="M 225 1017 Q 141 1017 90 978.5 Q 39 940 39 871 Q 39 802 82 763 Q 125 724 213 707 L 390 672 Q 390 615 364 586.5 Q 338 558 287 558 Q 241 558 214.5 579.5 Q 188 601 178 641 L 48 635 Q 64 550 126 504.5 Q 188 459 287 459 Q 401 459 459.5 516.5 Q 518 574 518 681 L 518 875 Q 518 896 525.5 904 Q 533 912 548 912 L 565 912 L 565 1005 Q 559 1007 545.5 1008 Q 532 1009 518 1009 Q 485 1009 459 998.5 Q 433 988 419 961.5 Q 405 935 405 889 L 416 897 Q 408 932 381.5 959.5 Q 355 987 315 1002 Q 275 1017 225 1017 Z M 251 924 Q 294 924 325 907 Q 356 890 373 860 Q 390 830 390 789 L 390 759 L 252 787 Q 209 796 190.5 813.5 Q 172 831 172 859 Q 172 890 192.5 907 Q 213 924 251 924 Z"/>
+      <path transform="translate(2677 0)" d="M 260 1017 Q 192 1017 142.5 983 Q 93 949 66 886 Q 39 823 39 738 Q 39 653 66 590 Q 93 527 143 493 Q 193 459 260 459 Q 316 459 358.5 482 Q 401 505 423 547 L 423 295 L 551 295 L 551 1005 L 429 1005 L 426 926 Q 404 969 360 993 Q 316 1017 260 1017 Z M 299 913 Q 339 913 366.5 893 Q 394 873 408.5 833.5 Q 423 794 423 738 Q 423 681 408.5 642 Q 394 603 366.5 583 Q 339 563 299 563 Q 241 563 206.5 609.5 Q 172 656 172 738 Q 172 818 206.5 865.5 Q 241 913 299 913 Z"/>
+      <path transform="translate(3291 0)" d="M 198 1005 Q 140 1005 105 975 Q 70 945 70 879 L 70 295 L 198 295 L 198 866 Q 198 886 208.5 896 Q 219 906 238 906 L 277 906 L 277 1005 Z"/>
+      <path transform="translate(3580 0)" d="M 70 1005 L 70 471 L 198 471 L 198 1005 Z M 68 400 L 68 286 L 201 286 L 201 400 Z"/>
+      <path transform="translate(3855 0)" d="M 70 1005 L 70 471 L 186 471 L 191 621 L 176 615 Q 184 559 209 525 Q 234 491 270 475 Q 306 459 349 459 Q 408 459 448.5 485 Q 489 511 510 556.5 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 703 Q 403 658 394 627 Q 385 596 364.5 579.5 Q 344 563 310 563 Q 259 563 228.5 599 Q 198 635 198 703 L 198 1005 Z"/>
+      <path transform="translate(4443 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+    </g>
+  </defs>
+</svg>
+
+</body>
+</html>
