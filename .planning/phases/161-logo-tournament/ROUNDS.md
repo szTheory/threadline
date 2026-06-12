@@ -257,16 +257,30 @@ kits' shaped kerning exactly; all surgeries are glyph-internal cuts or additive 
 
 ### Feedback — Round 2
 
-*To be filled VERBATIM at the round-2 checkpoint (plan 161-02). Claude does not pre-fill
-verdicts. Per candidate: ADVANCE / KILL / MUTATE + reasons in the user's own words. A winner
-declaration ("CN is the winner") may happen here and ends the tournament.*
+*Collected at the round-2 checkpoint, 2026-06-12. User quote verbatim.*
 
-- **C9:** verdict —, reasons —
-- **C10:** verdict —, reasons —
-- **C11:** verdict —, reasons —
-- **C12:** verdict —, reasons —
-- **C13:** verdict —, reasons —
-- **C14:** verdict —, reasons —
+- **C9:** KILL, reasons — not selected; user declared C13 the winner at this checkpoint
+- **C10:** KILL, reasons — not selected (same)
+- **C11:** KILL, reasons — not selected (same)
+- **C12:** KILL, reasons — not selected (same)
+- **C13:** WINNER (ADVANCE → declared), reasons (verbatim): "i really like this one let's run with it it's pretty elegantly good c13-topstitch-geist"
+- **C14:** KILL, reasons — not selected (same)
+
+## Winner
+
+**C13 topstitch-geist** — declared by explicit user statement at the round-2 checkpoint (2026-06-12):
+
+> "i really like this one let's run with it it's pretty elegantly good c13-topstitch-geist"
+
+Lineage: C6 topstitch (round 1, ADVANCE) → C13 re-cut on Geist 600 with arc stroke 128 (= measured stem width), legs flush on the d/l ascenders cut at y=444, deeper arc (rise 319.5). Technique: Stroke continuation · hook: d/l ascender pair (the "double-l verticals" hook honestly mapped).
+
+Winner files (this round dir is the graduation source for Phase 162):
+
+- `candidates/round-2/c13-topstitch-geist.svg` (primary lockup)
+- `candidates/round-2/c13-topstitch-geist-mono.svg` (monochrome)
+- `candidates/round-2/c13-topstitch-geist-favicon.svg` (16px-designed favicon form)
+
+Tournament closed after 2 of a capped 4 rounds. All losing candidates remain archived in this phase directory; only C13 graduates to `brandbook/` in Phase 162.
 
 ---
 *Phase: 161-logo-tournament · Round 1 prepared by plan 161-01; rounds 2+ and all checkpoints run in plan 161-02.*
