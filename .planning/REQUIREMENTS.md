@@ -61,9 +61,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Product Rollout (optional — user opts in at end-of-milestone checkpoint)
 
-- [ ] **ROLL-01**: If opted in: the operator-surface logo component (`lib/threadline/operator_surface/components/logo.ex`) renders the winning mark while preserving the `var(--tl-*)` theming contract, with `style.ex` untouched (recorded freeze exception).
-- [ ] **ROLL-02**: If opted in: the example-app admin favicon uses the new `favicon.svg`.
-- [ ] **ROLL-03**: If opted in: the root README header uses the new brand assets with dark/light handling that works in GitHub's SVG sandbox.
+- [x] **ROLL-01**: If opted in: the operator-surface logo component (`lib/threadline/operator_surface/components/logo.ex`) renders the winning mark while preserving the `var(--tl-*)` theming contract, with `style.ex` untouched (recorded freeze exception).
+- [x] **ROLL-02**: If opted in: the example-app admin favicon uses the new `favicon.svg`.
+- [x] **ROLL-03**: If opted in: the root README header uses the new brand assets with dark/light handling that works in GitHub's SVG sandbox.
 
 ## Future Requirements
 
@@ -120,9 +120,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOK-05 | Phase 162 | Complete |
 | BOOK-06 | Phase 162 | Complete |
 | BOOK-07 | Phase 162 | Complete |
-| ROLL-01 | Phase 163 | Pending (optional) |
-| ROLL-02 | Phase 163 | Pending (optional) |
-| ROLL-03 | Phase 163 | Pending (optional) |
+| ROLL-01 | Phase 163 | Complete |
+| ROLL-02 | Phase 163 | Complete |
+| ROLL-03 | Phase 163 | Complete |
 | IMG-01 | Phase 164 | Complete |
 | LIGHT-01 | Phase 165 | Complete |
 | LIGHT-02 | Phase 165 | Complete |

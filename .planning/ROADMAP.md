@@ -28,7 +28,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Complete (2026-06-12) — pending gsd-verify-work UAT |
 | 164 | 1/1 | Complete   | 2026-06-12 |
 | 165 | light-mode-strategy | LIGHT-01, LIGHT-02 | Complete (2026-06-12) — decision [165-01] approved, v1.36 seeded |
-| 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
+| 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Complete (2026-06-12) — user opted in ("Roll out now") |
 
 **Execution order:**
 - [x] **Phase 159: brand-audit-and-research** - Pressure-test the existing brandbook and research devtools/OSS identities, converging into DESIGN-BRIEF.md (parallel with 160).
@@ -37,7 +37,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 - [ ] **Phase 162: brand-book-v2** - Graduate the winner into the full `brandbook/` asset family and rebuild the standalone brand book.
 - [x] **Phase 164: brand-book-imagery** - Visualize the brand-book.md "Imagery And Diagrams" guidance inside index.html (UAT gap 2): inline-SVG acceptable-imagery specimens + a don't strip at the misuse-gallery craft bar; mini-UAT.
 - [x] **Phase 165: light-mode-strategy** - Research → one coherent light-mode recommendation (UAT gap 1): 3 parallel research lanes (Phoenix/LiveView ecosystem, cross-ecosystem lessons, Threadline change surface) → 165-LIGHT-MODE-RECOMMENDATION.md → user decision checkpoint. NO implementation (operator-surface light mode = candidate milestone v1.36; dark-only decision [136-01] unfrozen only by explicit choice).
-- [ ] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
+- [x] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
 
 ## Phase Details
 
@@ -135,7 +135,7 @@ Plans:
   2. If opted in: the operator-surface logo component (`lib/threadline/operator_surface/components/logo.ex`) renders the winning mark with the `var(--tl-*)` theming contract preserved and `style.ex` untouched (recorded freeze exception); `mix compile --warnings-as-errors` and `mix verify.test` stay green.
   3. If opted in: the example-app admin favicon uses the new `favicon.svg`, and the root README header uses the new brand assets with dark/light handling that works in GitHub's SVG sandbox.
   4. If declined: ROLL-01–03 are recorded as a seed for a future milestone — not failures.
-**Plans**: TBD (decision gate first)
+**Plans**: 1 plan (163-01, complete 2026-06-12)
 **UI hint**: yes
 
 ## Human Gates
