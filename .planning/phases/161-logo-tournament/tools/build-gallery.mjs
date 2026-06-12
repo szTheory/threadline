@@ -17,8 +17,11 @@ if (!dir || !fs.existsSync(dir)) {
 
 const files = fs.readdirSync(dir);
 const primaries = files
-  .filter((f) => /^c\d+-.*\.svg$/.test(f) && !/-mono\.svg$/.test(f) && !/-favicon\.svg$/.test(f))
+  .filter((f) => /^c\d+-.*\.svg$/.test(f) && !/-mono\.svg$/.test(f) && !/-favicon\.svg$/.test(f) && !/-light\.svg$/.test(f))
   .sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+// Round number derived from the directory name (e.g. candidates/round-2 -> 2).
+const roundNum = (path.basename(path.resolve(dir)).match(/round-(\d+)/) || [, "?"])[1];
 
 const attr = (s, n) => (s.match(new RegExp(`${n}\\s*=\\s*"([^"]*)"`)) || [])[1] || "";
 
@@ -26,7 +29,7 @@ function inline(file, extra = "") {
   let s = fs.readFileSync(path.join(dir, file), "utf8").trim();
   s = s.replace(/\s+xmlns(:xlink)?="[^"]*"/g, "");
   s = s.replace(/<!--[\s\S]*?-->/g, "");
-  s = s.replace(/\s+data-(lane|technique|hook)="[^"]*"/g, "");
+  s = s.replace(/\s+data-(lane|technique|hook|parent)="[^"]*"/g, "");
   if (extra) s = s.replace("<svg", `<svg ${extra}`);
   return s;
 }
@@ -41,10 +44,15 @@ for (const p of primaries) {
   const lane = attr(src, "data-lane");
   const technique = attr(src, "data-technique");
   const hook = attr(src, "data-hook");
+  const parent = attr(src, "data-parent");
   const mono = slug + "-mono.svg";
   const fav = slug + "-favicon.svg";
+  // Rounds > 1 may ship a dedicated light-surface rendition (<slug>-light.svg);
+  // when present it is what the light panels and the light README strip show.
+  const lightFile = files.includes(slug + "-light.svg") ? slug + "-light.svg" : p;
 
   const primaryFull = (w) => inline(p, `style="width:${w}"`);
+  const lightFull = (w) => inline(lightFile, `style="width:${w}"`);
   const monoFull = (w) => inline(mono, `style="width:${w}"`);
   const favAt = (px) => inline(fav, `width="${px}" height="${px}"`);
 
@@ -54,14 +62,15 @@ for (const p of primaries) {
       <span class="cid">${id}</span>
       <span class="slug">${slug}</span>
       <span class="lane">${lane}</span>
-      <span class="strategy">${technique} &middot; ${hook}</span>
+      <span class="strategy">${technique} &middot; ${hook}</span>${parent ? `
+      <span class="parent">parent: ${parent}</span>` : ""}
     </header>
     <div class="grid">
       <figure class="panel dark"><figcaption>1 &middot; Dark &middot; #0B1020</figcaption>
         <div class="stage on-dark">${primaryFull("92%")}</div>
       </figure>
-      <figure class="panel light"><figcaption>2 &middot; Light &middot; #FFFFFF</figcaption>
-        <div class="stage on-light">${primaryFull("92%")}</div>
+      <figure class="panel light"><figcaption>2 &middot; Light &middot; #FFFFFF${lightFile !== p ? " &middot; dedicated light rendition" : ""}</figcaption>
+        <div class="stage on-light">${lightFull("92%")}</div>
       </figure>
       <figure class="panel"><figcaption>3 &middot; Monochrome &middot; one flat color</figcaption>
         <div class="stage on-neutral">${monoFull("92%")}</div>
@@ -77,7 +86,7 @@ for (const p of primaries) {
       <figure class="panel"><figcaption>6 &middot; Simulated GitHub README header</figcaption>
         <div class="gh gh-light">
           <div class="gh-bar"><span class="gh-dot"></span><span class="gh-repo">threadline / README.md</span></div>
-          <div class="gh-body">${inline(p, 'style="height:40px"')}<p class="gh-text">An open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL.</p></div>
+          <div class="gh-body">${inline(lightFile, 'style="height:40px"')}<p class="gh-text">An open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL.</p></div>
         </div>
         <div class="gh gh-dark">
           <div class="gh-bar"><span class="gh-dot"></span><span class="gh-repo">threadline / README.md</span></div>
@@ -92,7 +101,7 @@ const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Threadline logo tournament — Round 1</title>
+<title>Threadline logo tournament — Round ${roundNum}</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -112,6 +121,7 @@ const html = `<!doctype html>
   .lane { font-size: 12px; color: #C9D2E4; border: 1px solid #2C3550; border-radius: 99px;
           padding: 2px 10px; }
   .strategy { font-size: 12.5px; color: #8A93A8; }
+  .parent { font-size: 12px; color: #8A93A8; border: 1px solid #232B40; border-radius: 99px; padding: 2px 10px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; }
   .panel { margin: 0; border: 0 solid #232B40; border-width: 0 1px 1px 0; padding: 0; min-width: 0; }
   .panel figcaption { font-size: 11px; color: #5C6680; padding: 8px 14px 6px;
@@ -135,8 +145,8 @@ const html = `<!doctype html>
 </head>
 <body>
 <div class="wrap">
-  <h1>Threadline logo tournament &mdash; Round 1</h1>
-  <p class="meta">${today} &middot; 8 candidates &middot; lanes: 3 integrated typemarks / 3 unified lockups / 1 monogram / 1 wordmark-only &middot; all 24 SVGs passed the mechanical HC-1..6 gate</p>
+  <h1>Threadline logo tournament &mdash; Round ${roundNum}</h1>
+  <p class="meta">${today} &middot; ${primaries.length} candidates${roundNum === "1" ? " &middot; lanes: 3 integrated typemarks / 3 unified lockups / 1 monogram / 1 wordmark-only" : " &middot; all mutations of round-1 ADVANCEd parents (C1, C6), traceable to recorded feedback"} &middot; all SVGs passed the mechanical HC-1..6 gate</p>
   <div class="protocol">
     Review each candidate in all six contexts, then give a per-candidate verdict:
     <b>ADVANCE</b> (keep for the next round), <b>KILL</b> (eliminate, with a reason), or
