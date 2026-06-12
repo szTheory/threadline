@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brandbook/logo-primary.svg">
+  <img alt="Threadline" src="brandbook/logo-primary-light.svg" width="420">
+</picture>
+
 # Threadline
 
 [![CI](https://github.com/szTheory/threadline/actions/workflows/ci.yml/badge.svg)](https://github.com/szTheory/threadline/actions/workflows/ci.yml)
