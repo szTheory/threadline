@@ -21,9 +21,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Glyph Outline Pipeline
 
-- [ ] **GLYPH-01**: User can rerun a committed Node script that converts vendored woff2 fonts (Geist 500/600 at minimum) into per-glyph SVG path data for "Threadline" with real font-shaping kerning applied — one `<path>` per glyph, coordinates rounded to 2 decimals.
-- [ ] **GLYPH-02**: User can see overlay evidence that generated outlines match a live-font browser render at 2× zoom.
-- [ ] **GLYPH-03**: Glyph-kit output contains zero `<text>` elements and renders letterform counters (e/a/d holes) correctly.
+- [x] **GLYPH-01**: User can rerun a committed Node script that converts vendored woff2 fonts (Geist 500/600 at minimum) into per-glyph SVG path data for "Threadline" with real font-shaping kerning applied — one `<path>` per glyph, coordinates rounded to 2 decimals.
+- [x] **GLYPH-02**: User can see overlay evidence that generated outlines match a live-font browser render at 2× zoom.
+- [x] **GLYPH-03**: Glyph-kit output contains zero `<text>` elements and renders letterform counters (e/a/d holes) correctly.
 
 ### Logo Tournament
 
@@ -92,9 +92,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RES-02 | Phase 159 | Pending |
 | RES-03 | Phase 159 | Pending |
 | RES-04 | Phase 159 | Pending |
-| GLYPH-01 | Phase 160 | Pending |
-| GLYPH-02 | Phase 160 | Pending |
-| GLYPH-03 | Phase 160 | Pending |
+| GLYPH-01 | Phase 160 | Complete |
+| GLYPH-02 | Phase 160 | Complete |
+| GLYPH-03 | Phase 160 | Complete |
 | TOUR-01 | Phase 161 | Pending |
 | TOUR-02 | Phase 161 | Pending |
 | TOUR-03 | Phase 161 | Pending |

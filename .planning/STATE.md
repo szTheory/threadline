@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
-status: ready-to-plan
-last_updated: "2026-06-11T21:35:19.000Z"
-last_activity: 2026-06-11
+status: executing
+last_updated: "2026-06-12T01:01:29.240Z"
+last_activity: 2026-06-12
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 2
+  percent: 20
 ---
 
 # Project State: Threadline
@@ -20,16 +20,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.35 Unified Logo & Brand Book v2 — phases 159–163 (163 optional, decision-gated)
+**Current focus:** Phase 159 — brand-audit-and-research
 
 ## Current Position
 
-Phase: 159 of 159–163 (not started)
-Plan: —
-Status: Ready to plan Phase 159
-Last activity: 2026-06-11 — v1.35 roadmap created (phases 159–163; 28/28 requirements mapped)
+Phase: 159 (brand-audit-and-research) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-12
 
-Progress: [□□□□□] 0% (0/5 phases)
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [□□□□□] 0% (0/5 phases)
 | Phase 144 P02 | 2m16s | 2 tasks | 5 files |
 | Phase 144 P03 | 3m47s | 2 tasks | 4 files |
 | Phase 144 P04 | 15min | 3 tasks | 8 files |
+| Phase 160 P01 | 45min | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,8 @@ Progress: [□□□□□] 0% (0/5 phases)
 - [v1.35]: Seed drift is free exploration — round 1 may use OFL-safe typefaces and palette shifts; tokens/product UI change only if the winner demands it.
 - [v1.35]: Hard logo constraints — no background chips on marks, logotype optically close to the mark, no subtitle in the primary lockup (separate `-subtitle` variant), user always picks the winner (never auto-selected).
 - [v1.35]: All logo SVGs are pure paths (fontkit glyph-outline pipeline); zero `<text>` elements anywhere in candidates or final assets.
+- [Phase 160]: Overlay baseline alignment via zero half-leading: line-height = (ascent-descent)*scale so live-text and SVG baselines coincide at ascent*scale
+- [Phase 160]: Phase scripts reuse existing installs via module.createRequire anchored at the owning dir (fontkit via NODE_PATH, Playwright via e2e dir)
 
 ### Blockers
 

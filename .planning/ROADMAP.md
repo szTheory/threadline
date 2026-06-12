@@ -23,7 +23,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 | Phase | Name | Requirements | Status |
 |---|---|---|---|
 | 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Planned (3 plans) |
-| 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Not started |
+| 160 | 1/1 | Complete   | 2026-06-12 |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Not started |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
@@ -65,7 +65,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 160-01-PLAN.md — fontkit text-to-paths pipeline, Geist 500/600 glyph kits with determinism proof, 2x overlay evidence, brandbook/tools regeneration copy (wave 1, autonomous)
+- [x] 160-01-PLAN.md — fontkit text-to-paths pipeline, Geist 500/600 glyph kits with determinism proof, 2x overlay evidence, brandbook/tools regeneration copy (wave 1, autonomous)
 
 ### Phase 161: logo-tournament
 **Goal**: User selects the winning unified logo through feedback-driven elimination rounds — user picks, always; never auto-selected.
