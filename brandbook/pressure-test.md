@@ -1,520 +1,276 @@
-# Threadline Brand QA Guide
+# Threadline Brand Pressure Test
 
-## Section 1 - Executive Judgment
+Adversarial QA for everything in `brandbook/`. Fifteen dimensions, each scored 1-10
+against a testable pass condition, for a total out of **150**. Self-assessment is
+banned: every score cites a mechanical output (a gate line, a grep result, a measured
+geometry) or a direct-open render. Rerun the suite whenever any brand asset changes;
+a score is only as current as its evidence.
 
-The Threadline brand system is ready for source-controlled use across static brand artifacts, documentation concepts, README/GitHub visuals, and future marketing surfaces.
+## The mechanical suite
 
-Its center is clear:
+Run from the repository root. Every command must come back clean before any score below
+is trusted.
 
-> Threadline makes system history followable.
+```sh
+# Hard-constraint gate (HC-1..6, tagging, hygiene, tagline isolation) — exit 0 required
+node .planning/phases/162-brand-book-v2/tools/brand-gate.mjs brandbook
 
-That idea is specific to audit history and strong enough to guide product UI, documentation, landing pages, diagrams, and logo work.
+# Zero live text in any SVG (GitHub's sandbox never loads fonts)
+grep -rln '<text' brandbook/ --include='*.svg'        # must return nothing
 
-The brand stays distinct when the line, history, and evidence metaphor remains disciplined. It becomes generic when it drifts into abstract node graphs, blue-purple glow, shield or lock security tropes, or vague "trust platform" copy.
+# Zero rect elements (container chips and plates are banned; the social-card
+# background is a tagged path, not a rect)
+grep -rln '<rect' brandbook/ --include='*.svg'        # must return nothing
 
-Highest-leverage rule:
+# Tagline isolation — exactly two sanctioned files
+grep -rln 'FOLLOW WHAT HAPPENED' brandbook/           # logo-primary-subtitle.svg + social-card.svg only
 
-> Treat the brand as committed, inspectable source artifacts: tokens, SVG logo files, static examples, microcopy, and usage rules.
+# No network reach from the book itself
+grep -nE 'src="http|href="http' brandbook/index.html  # must return nothing
 
-Protect:
+# Well-formed XML across every SVG
+for f in brandbook/*.svg brandbook/examples/*.svg; do xmllint --noout "$f" || echo "BAD $f"; done
 
-- "Follow what happened."
-- "Threadline makes system history followable."
-- The connected-line metaphor.
-- The calm, exact, low-BS voice.
-- The dark infrastructure palette as the operator and product foundation.
+# Size budget: 300KB for the whole directory
+find brandbook -type f ! -name '.DS_Store' -print0 | xargs -0 du -ck | tail -1
 
-## Section 2 - Brand DNA
+# Text-only formats, no binaries
+git ls-files brandbook/ | grep -vE '[.](svg|html|css|json|md|mjs)$'   # must return nothing
+```
 
-Brand essence:
+For the render checks (dimensions 1, 3, 5, 12, 15), open the file directly in a
+browser — `file://` is the honest surface; nothing may depend on a server or a
+network — or screenshot it headlessly:
 
-> Connected audit history.
+```sh
+npx playwright screenshot --viewport-size=1440,900 --full-page \
+  "file://$(pwd)/brandbook/index.html" /tmp/brandbook-desktop.png
+# Favicon: embed favicon.svg via <img> at 16/32/64px on white and on #0B1020,
+# capture once with --color-scheme=light and once with --color-scheme=dark.
+```
 
-Audience:
+## Scorecard
 
-- Phoenix/Ecto backend engineers.
-- Platform and SRE teams.
-- Security and compliance engineers.
-- Support and operations teams.
-- OSS maintainers and contributors.
-
-Emotional tone:
-
-- calm
-- precise
-- grounded
-- serious without intimidation
-
-Technical promise:
-
-> Threadline connects database changes to actor, action, request, transaction, and evidence context so teams can follow what happened.
-
-Visual metaphor:
-
-> A continuous line connecting discrete events into an intelligible path.
-
-Personality traits:
-
-- lucid
-- composed
-- technical
-- evidence-oriented
-- quietly confident
-
-Anti-traits:
-
-- flashy
-- cute
-- militaristic
-- cyberpunk
-- compliance-bureaucratic
-- generic SaaS
-
-This should feel like:
-
-- a clear line through an incident
-- an audit system built by people who operate software
-- a practical BEAM/Phoenix tool
-
-This should never feel like:
-
-- a generic security vendor
-- a compliance dashboard template
-- a neon cyber product
-- a mascot-led OSS brand
-
-## Section 3 - Brand Readiness Scorecard
-
-| Dimension | Score | Current strength | Risk | Governance rule |
-|---|---:|---|---|---|
-| Distinctiveness | 8 | The connected-history metaphor is strong and relevant. | Can collapse into generic node or line visuals. | Keep the evidence path metaphor explicit and labeled. |
-| Developer credibility | 9 | Voice is plain, precise, and grounded in real APIs and workflows. | Marketing copy can overreach into compliance claims. | Keep claims tied to capture, context, health, exports, and evidence. |
-| Elixir ecosystem fit | 9 | Phoenix/Ecto/Postgres positioning is clear and understated. | Looking too SaaS-like reduces OSS trust. | Prioritize README, HexDocs, examples, and code snippets over splashy collateral. |
-| Visual coherence | 8 | Palette, type, and line motif align around audit history. | Repetition of lines can become decoration. | Use lines to show sequence, causality, or evidence flow. |
-| Logo readiness | 7 | The line mark and wordmark are simple and usable as source assets. | The mark may benefit from human refinement for high-stakes launch work. | Use the committed source assets; review trademark and favicon legibility manually. |
-| Color-system readiness | 8 | Dark product palette and light documentation roles are defined. | Static brand tokens can drift from runtime operator tokens. | Treat operator CSS as product contract and brandbook tokens as collateral/docs contract. |
-| Typography readiness | 8 | Geist and IBM Plex Mono are practical and already licensed in-repo. | Optional serif styling would add unnecessary complexity. | Use sans plus mono until an actual editorial surface requires more. |
-| Design-token readiness | 8 | JSON and CSS define raw and semantic roles. | Duplicate token definitions can diverge. | Keep this folder as static brand guidance, not automatic runtime coupling. |
-| UI component readiness | 7 | Button, callout, code, card, badge, and terminal guidance exists. | This is not a full component library. | Add component guidance only when a real docs or marketing build requires it. |
-| Docs/README usefulness | 8 | Copy blocks and README blueprint are concrete. | Public docs can become over-branded. | Use brand through clarity, logo fit, typography, and code readability. |
-| Marketing usefulness | 8 | Landing architecture, hero copy, feature blurbs, and social card are ready. | Overuse of dark hero surfaces can feel heavy. | Pair dark hero moments with light docs and evidence sections. |
-| Voice/microcopy usefulness | 8 | Examples cover errors, empty states, warnings, releases, and CTAs. | New CLI surfaces may require additional examples. | Add examples as public surfaces ship. |
-| Accessibility | 7 | Token choices favor contrast and non-color-only states. | Each final surface still needs inspection. | Keep labels, text alternatives, focus rings, and contrast checks in QA. |
-| Repo/source-control readiness | 9 | Artifacts are HTML, Markdown, JSON, CSS, and SVG only. | Future generated PNGs can bloat history. | Commit generated raster only for specific downstream needs. |
-| Long-term maintainability | 8 | Folder boundaries and artifact rules are clear. | Brand and product tokens can blur. | Document source of truth and keep token lanes explicit. |
-
-## Section 4 - Surface Stress Tests
-
-GitHub repo header:
-
-- Use the primary logo or simple README text header.
-- Keep the short description stack-specific and technical.
-- Standard badges are acceptable.
-
-README hero section:
-
-- Keep lightweight.
-- Use copy from `brand-book.md`.
-- Avoid a large raster hero.
-
-README badges:
-
-- Use standard badges.
-- Do not custom-style every badge unless it creates real value.
-
-Hex.pm package page:
-
-- Use a short package description.
-- Keep marketing language restrained.
-
-HexDocs page:
-
-- Favor docs-specific light mode and readable code blocks.
-- Avoid dark marketing splash sections inside API docs.
-
-Docs sidebar:
-
-- Use the mark or wordmark.
-- Keep active state restrained and high contrast.
-
-Code block styling:
-
-- Use dark snippets for marketing and README examples.
-- Light code blocks are acceptable for documentation pages.
-
-Terminal snippet:
-
-- Use realistic commands.
-- Keep snippets copyable.
-- Avoid fake terminal drama.
-
-API reference page:
-
-- Prioritize standard ExDoc behavior.
-- Brand only through tokens, logo fit, and code readability.
-
-Landing page hero:
-
-- Use the line path metaphor as the main visual.
-- Avoid carded dashboard mockups as the hero center.
-
-Feature section:
-
-- Group by capture, semantics, exploration, and operations.
-
-Comparison section:
-
-- Compare against logs, event sourcing, SIEM, database auditing, and roll-your-own with precise caveats.
-
-Blog post header:
-
-- Use social card linework and a short headline.
-
-Release announcement:
-
-- Lead with adopter-visible changes and migration steps.
-
-Social preview card:
-
-- Keep SVG as source.
-- Export PNG only when a platform requires it.
-
-Favicon:
-
-- Test at 16px and 32px.
-
-App icon:
-
-- Use the favicon mark in a larger dark rounded square.
-
-Small monochrome logo:
-
-- Use `logo-monochrome.svg`.
-
-Dark-mode page:
-
-- Best for product, hero, and admin surfaces.
-
-Light-mode page:
-
-- Best for docs, diagrams, reference, and print-like pages.
-
-Conference slide:
-
-- Use one big line path, one claim, and one code snippet.
-
-Diagram or architecture illustration:
-
-- Label domain nouns.
-- Avoid decorative complexity.
-
-Error, empty, and success states:
-
-- Use actionable copy.
-- Include non-color indicators.
-
-Example UI component library:
-
-- Current scope is primitives, not a full library.
-
-Mobile landing page:
-
-- Collapse line artwork without occluding text.
-
-Printed sticker or small swag:
-
-- Use monochrome mark or primary logo only.
-- Keep this lower priority than README, docs, and launch-critical assets.
-
-## Section 5 - Current Risks
-
-Critical:
-
-- Logo changes require human review for trademark sensitivity and small-size legibility.
-- Static brand tokens and runtime operator tokens must stay in clear lanes.
-- Light documentation surfaces must preserve contrast and code readability.
-
-Important:
-
-- README and marketing copy should remain technical and stack-specific.
-- UI examples are primitives, not a complete component library.
-- Accessibility checks belong to each final surface, not only this folder.
-- Repo artifact rules should prevent binary sprawl.
-
-Nice-to-have:
-
-- Human refinement of the wordmark.
-- Optional PNG exports for social platforms.
-- A future ExDoc theme pass.
-- A future README rollout using the sharper copy.
-
-## Section 6 - Brand Governance Rules
-
-Keep:
-
-- Core idea, tagline, stack-specific positioning, palette, type choices, and voice.
-
-Tighten only with a concrete surface:
-
-- Logo spacing or small-size legibility.
-- Color guidance when a real surface exposes a missing semantic role.
-- Voice guidance when a new public surface requires examples.
-- Diagram guidance when a real architecture graphic creates ambiguity.
-
-Avoid:
-
-- Broad "audit platform" wording that implies a full compliance product.
-- Gradient use that becomes decorative ambience rather than signal linework.
-- Mascots, shields, locks, chains, and stock-photo direction.
-- Redundant inspiration prose that does not guide implementation.
-
-Add only with a concrete downstream use:
-
-- New token roles.
-- Additional SVG assets.
-- More microcopy examples.
-- More component states.
-- New export formats.
-
-## Section 7 - Design Token Specification
-
-Committed outputs:
-
-- `tokens.json`: structured raw and semantic tokens.
-- `tokens.css`: CSS custom properties for direct use in static pages.
-
-Token groups:
-
-- raw palette
-- dark semantic colors
-- light semantic colors
-- typography
-- spacing
-- radius
-- borders
-- shadows
-- focus rings
-- code blocks
-- callouts
-- states
-
-Defaults:
-
-- Dark is default for product UI and high-signal marketing surfaces.
-- Light is default for docs, diagrams, print, and long-form reading.
-- Focus rings must remain visible on both dark and light.
-- Disabled state must reduce emphasis but preserve label readability.
-
-## Section 8 - Logo And Mark System
-
-Use:
-
-- Horizontal wordmark plus icon mark.
-- Icon-only mark for favicon, social avatar, docs nav, and small UI.
-- Monochrome mark for print and constrained contexts.
-- Primary dark logo on dark landing pages, slides, and social previews.
-- Primary light logo on README, GitHub, HexDocs, and light documentation surfaces.
-
-Do not use:
-
-- A mascot.
-- A complex abstract symbol.
-- Shields, locks, chains, or database cylinders as the mark.
-- Rotation, distortion, or glow that breaks monochrome recognition.
-
-Expected assets:
-
-- `logo-primary.svg`
-- `logo-primary-light.svg`
-- `logo-mark.svg`
-- `logo-monochrome.svg`
-- `favicon.svg`
-- `social-card.svg`
-
-Usage rules:
-
-- Keep clearspace around the mark.
-- Do not rotate or distort.
-- Do not rely on gradient for meaning.
-- Keep the mark recognizable in monochrome.
-
-## Section 9 - Visual Examples And Screenshot Guidance
-
-Use examples that help implementation:
-
-| Example | Purpose | Path | Export |
+| # | Dimension | Score | Evidence in one line |
 |---|---|---|---|
-| Palette | Token inspection | `examples/palette.svg` | SVG source; PNG only for docs site if required |
-| Typography | Type roles | `examples/typography.svg` | SVG |
-| Components | Primitive UI states | `examples/components.svg` | SVG |
-| README header | README visual direction | `examples/readme-header.svg` | SVG |
-| Landing hero | Marketing hero direction | `examples/landing-hero.svg` | SVG |
-| Docs page | Docs layout direction | `examples/docs-page.svg` | SVG |
-| Terminal | Command screenshot style | `examples/terminal.svg` | SVG |
+| 1 | Distinctiveness | 8 / 10 | The stitch arc is load-bearing: deleting it leaves visibly cut d/l stems, so the construction cannot be mistaken for a generic wordmark-plus-ornament |
+| 2 | Mark/type integration | 9 / 10 | Arc stroke width (128 units) equals the measured stem width; both ascenders are cut at y=444 to receive it — mark and type share literal geometry |
+| 3 | 16px survival | 8 / 10 | `favicon.svg` is drawn at `viewBox="0 0 16 16"`: gate lines `HC-4-stroke 1.70px at 16px canvas` and `HC-4-count 2 painted elements (<= 4)` PASS; identifiable at a literal 16px render |
+| 4 | Monochrome survival | 9 / 10 | `logo-monochrome.svg` paint inventory is exactly `{currentColor, none}` — flatten-to-one-color is the identity operation; gate line `HC-5 single flat color: currentcolor` PASS |
+| 5 | Dark/light versatility | 9 / 10 | Designed light rendition (Ink #0F1728 glyphs), scheme-invariant #4781E6 arc (5.0:1 dark, 3.78:1 light), committed `<picture>` snippet + live demo, scheme-flip favicon, currentColor mark |
+| 6 | Portability (no font dependency) | 10 / 10 | `grep -rln '<text' brandbook/ --include='*.svg'` returns nothing; HC-6 PASS on all 10 SVGs — a fontless sandbox renders the identical letterforms by construction |
+| 7 | Scalability | 8 / 10 | Size-specific cuts exist (16px favicon, 64px mark idiom, documented per-asset minimums); no hairlines, no opacity tiers, no sub-floor strokes anywhere in the family |
+| 8 | Voice | 9 / 10 | Say-this/not-this pairs, a banned-vocabulary list, and testable writing rules in `brand-book.md`; every banned-word grep hit is the ban rule quoting itself or a not-this counter-example — none in real copy |
+| 9 | Palette | 8 / 10 | Night-infrastructure tokens with dark/light semantic lanes; the two blues carry documented, non-overlapping jobs (#4F8CFF interface accent, #4781E6 the arc's ink) |
+| 10 | Typography | 8 / 10 | Geist + IBM Plex Mono with OFL licensing in-repo, role table and tracking rules; deployed wordmarks are pure paths so the type system never depends on a viewer's fonts |
+| 11 | Token rigor | 8 / 10 | `tokens.json` parses; JSON and CSS lanes carry identical values; raw/semantic layering intact; product-UI contract (`lib/threadline/operator_surface/style.ex`) untouched |
+| 12 | Application coverage | 8 / 10 | Every committed specimen renders correctly on the surface it models (inlined geometry, zero `<image href>`, zero text); index.html covers component, palette, type, and terminal roles natively |
+| 13 | Misuse guidance | 9 / 10 | Six rendered Don't specimens + one Do reference in index.html, with numeric thresholds (1.5px target / 1.0px floor strokes at 16px, ≥1.0px gaps, ≤4 elements, design-at-16px) |
+| 14 | Consistency | 9 / 10 | No asset contradicts its own description: the monochrome is one color, the favicon has no chip, every minimum-size rule is satisfied by the asset it governs — enforced by the gate, not by promise |
+| 15 | Craft | 8 / 10 | Geometry is derived, not eyeballed: arc width from measured stems, shared cut height, favicon drawn at its native canvas; every painted path carries a data-glyph/data-role tag |
+| | **Total** | **128 / 150** | |
 
-Do not create fake product screenshots unless they represent real Threadline behavior.
+## The dimensions, with pass conditions
 
-## Section 10 - Brand Voice And Microcopy
+### 1. Distinctiveness
 
-Voice principles:
+**Pass condition:** remove the motif from the primary lockup; if what remains is a
+complete generic wordmark, the motif is decoration and the identity fails. The mark
+must be structural — something a competitor could not bolt onto their own type.
+**Check:** delete the `data-role="mark"` arc path from `logo-primary.svg` and render —
+the d and l ascenders end in flat cuts at y=444, visibly incomplete.
+**Score: 8/10.** The arc-through-the-word construction is ownable and the removal test
+fails loudly. Two points held back: distinctiveness against named competitors is a
+judgment only market exposure settles, and the base letterforms are an unmodified
+Geist 600 beneath the cut.
 
-- calm
-- exact
-- technical
-- useful
-- low ego
+### 2. Mark/type integration
 
-Vocabulary to use:
+**Pass condition:** mark and type share literal geometry — a stroke, counter, or grid
+both halves depend on. Eyeballed adjacency fails.
+**Check:** in `logo-primary.svg`, the arc stroke-width is 128 font units, equal to the
+measured stem width of the Geist 600 glyphs it joins; both ascender stems are cut at
+y=444 where the arc enters. The same numbers recur byte-identically in the light,
+monochrome, subtitle, and social-card files.
+**Score: 9/10.** Integration is arithmetical, not optical. The single held-back point:
+the arc touches two letters; the remaining eight glyphs participate only through
+shared metrics.
 
-- action
-- change
-- transaction
-- context
-- actor
-- subject
-- correlation
-- timeline
-- diff
-- snapshot
-- coverage
-- retention
-- redaction
-- export
-- evidence
+### 3. 16px survival
 
-Vocabulary to avoid unless technically necessary:
+**Pass condition:** a dedicated artifact drawn at a 16px canvas — never larger art
+shrunk — with strokes ≥1.5px (1.0px absolute floor), gaps ≥1.0px, ≤4 distinct
+elements, and a silhouette identifiable without interior detail or color.
+**Check:** `node .planning/phases/162-brand-book-v2/tools/brand-gate.mjs brandbook` —
+the favicon rows must read `HC-4-stroke 1.70px at 16px canvas` and
+`HC-4-count 2 painted elements (<= 4)`. Then render `favicon.svg` at a literal 16px
+`<img>` on white and on #0B1020 and look at it.
+**Score: 8/10.** Both gate lines PASS; the 16px render reads as one stitch through a
+fabric line in both schemes. Not higher because at 16px the form is minimal by
+necessity — it identifies, but the full lockup's character only returns at 24px+.
 
-- provenance
-- governance
-- event fabric
-- chain of custody
-- immutable ledger
-- cyber defense
-- forensic-grade
-- next-generation
-- seamless
+### 4. Monochrome survival
 
-Examples are maintained in `brand-book.md`.
+**Pass condition:** replace every fill and stroke with one flat color — no opacity
+tiers, no gradients, no overlap-as-tone. The flattened mark must be structurally
+identical to the original.
+**Check:** `grep -oE '(fill|stroke)="[^"]*"' brandbook/logo-monochrome.svg | sort -u`
+returns exactly `fill="currentColor"`, `fill="none"`, `stroke="currentColor"`; the
+gate row reads `HC-5 single flat color: currentcolor`.
+**Score: 9/10.** The master is already one color, so flattening changes nothing — the
+strongest possible position. One point held back: in one-color reproduction the arc
+loses its blue distinction from the stems and reads purely by shape, which works but
+carries less of the identity.
 
-## Section 11 - Landing Page And Docs Blueprint
+### 5. Dark/light versatility
 
-Landing page:
+**Pass condition:** every single-slot or auto-switching surface gets a working asset:
+an explicit designed pair for READMEs, an adaptive single asset for one-logo slots,
+and a documented switching mechanism a consumer can paste.
+**Check:** `logo-primary-light.svg` exists and passes HC-1 with Ink #0F1728 glyphs (a
+designed rendition, not a recolor); `logo-mark.svg` strokes are `currentColor`;
+`favicon.svg` carries an internal `prefers-color-scheme` flip; `index.html` commits the
+escaped `<picture>` snippet and a live demo of it.
+**Score: 9/10.** All four mechanisms are committed and render correctly under both
+color schemes via direct file open. One point held back: the #4781E6 arc sits at
+3.78:1 on white — above the 3:1 graphics floor and visually strong, but with less
+margin than its 5.0:1 dark-surface footing.
 
-- Hero
-- Problem
-- Solution
-- Install snippet
-- Minimal example
-- Core benefits
-- How it works
-- Use cases
-- Comparison
-- Documentation CTA
-- GitHub CTA
-- Contribution CTA
-- Footer
+### 6. Portability (no font dependency)
 
-README/docs:
+**Pass condition:** zero `<text>` elements anywhere in the SVG corpus; a sandbox that
+loads no fonts renders letterforms identical to a font-installed machine.
+**Check:** `grep -rln '<text' brandbook/ --include='*.svg'` returns nothing; the gate
+reports HC-6 PASS for all 10 SVGs.
+**Score: 10/10.** The condition is binary and met by construction: every glyph is an
+outlined path, so there is nothing a fontless environment can substitute. Accessible
+names travel in `aria-label`/`<desc>` metadata, which renders nowhere.
 
-- Opening promise
-- Installation
-- Quickstart
-- Example
-- Concepts
-- API overview
-- Recipes
-- Troubleshooting
-- Design rationale
-- Contribution
-- License
+### 7. Scalability
 
-## Section 12 - Repo-Ready Artifact Rules
+**Pass condition:** the family covers its size range with size-specific cuts and
+stated floors — no asset is asked to survive below the geometry it carries; nothing
+relies on hairlines or opacity that dies small.
+**Check:** `favicon.svg` (native 16px) and `logo-mark.svg` (the same idiom at 64px)
+are separate drawings; minimums are documented per asset (120px wordmark-bearing
+lockups, 180px subtitle lockup, 16px mark) in `brand-book.md` and `index.html`;
+`grep -i 'opacity' brandbook/*.svg` returns nothing.
+**Score: 8/10.** Every committed size has an artifact designed for it and the floors
+are numeric. Held back: the range is covered at two anchor sizes plus the lockups;
+intermediate marks (24/32px) reuse the 64px idiom rather than their own cuts — fine
+in practice, less than a full size ramp.
 
-Commit:
+### 8. Voice
 
-- HTML, Markdown, JSON, CSS, SVG.
+**Pass condition:** the voice is enforceable, not aspirational: say-this/not-this
+pairs, a banned-vocabulary list, and rules a reviewer can apply mechanically.
+**Check:** `brand-book.md` carries the pairs, the writing rules, and full microcopy
+patterns for error/empty/success/warning states;
+`grep -inE 'provenance|governance|chain of custody|forensic-grade|seamless|next-generation' brandbook/brand-book.md brandbook/index.html`
+returns only sanctioned mentions: the ban rule quoting the words it bans, and the
+"not this" counter-example blockquote. Any hit in real copy fails.
+**Score: 9/10.** Four matches, all inside the rule and its counter-example — none in
+live copy — and the microcopy patterns use real domain nouns and real mix tasks. The
+held-back point is permanent: prose quality beyond the mechanical rules still needs a
+human reader.
 
-Generate only on demand:
+### 9. Palette
 
-- PNG social-card export.
-- PDF snapshot.
-- Raster screenshots for launch posts.
+**Pass condition:** a disciplined token-backed palette with dark and light semantic
+lanes; every hex in any committed asset traces to a token or a documented decision;
+no two colors hold the same job.
+**Check:** every paint value in `brandbook/*.svg` is either `currentColor`, `none`, or
+a hex documented in `tokens.json` (the arc's #4781E6 is the raw `stitch-blue` /
+semantic `logo-arc` token); the two-blues rule is written down: #4F8CFF interface
+accent, #4781E6 the arc's ink.
+**Score: 8/10.** The lanes are intact and the one ambiguity a two-blue system invites
+is explicitly resolved in both `brand-book.md` and `index.html`. Not higher: the
+palette's breadth (five signature accents) is wider than current applications
+exercise.
 
-Do not commit:
+### 10. Typography
 
-- duplicated fonts
-- large binary moodboards
-- generated image batches
-- vendor-locked design files as the only source
+**Pass condition:** named faces with licenses in-repo, role assignments, tracking
+rules — and no deployed asset that depends on those faces being installed.
+**Check:** Geist and IBM Plex Mono (both OFL, in `priv/fonts/`) carry the roles;
+`brand-book.md` states the role table and tracking numbers; the wordmark and tagline
+ship as outlined paths (dimension 6's grep covers this mechanically).
+**Score: 8/10.** The system is complete and the portability trap is closed by
+construction. Held back: the type story rests on two faces' defaults — tracking and
+the subtitle pitch are tuned, but no custom letterform work exists outside the cut
+ascenders.
 
-Suggested checks:
+### 11. Token rigor
 
-- JSON parse check for `tokens.json`.
-- XML parse check for SVG and HTML.
-- File size check for `brandbook/`.
-- Optional contrast script if this becomes a CI surface.
+**Pass condition:** dual-format tokens (JSON + CSS) with raw/semantic layering and
+dark/light lanes that carry identical values; brand tokens never leak into the
+product-UI contract.
+**Check:** `node -e "JSON.parse(require('fs').readFileSync('brandbook/tokens.json'))"`
+exits 0; every custom property in `tokens.css` has a matching `tokens.json` entry;
+`lib/threadline/operator_surface/style.ex` contains no brandbook-driven change.
+**Score: 8/10.** Both formats parse, values match, and the product contract is
+untouched. The known debt holds the score: JSON and CSS are hand-duplicated with no
+generated sync check, so drift is prevented by review rather than tooling.
 
-## Section 13 - Prioritized Action Plan
+### 12. Application coverage
 
-Do now:
+**Pass condition:** every committed specimen renders correctly on the surface it
+models — a README specimen must survive GitHub's sandbox, a docs specimen must carry
+its own geometry. A specimen that breaks on its own surface is worse than no specimen.
+**Check:** `grep -rn '<image' brandbook/ --include='*.svg'` returns nothing (no
+external embeds); both `examples/*.svg` pass HC-6 and HYGIENE; `index.html` shows
+component, palette, terminal, and type applications natively in HTML/CSS plus the
+social card and both specimens.
+**Score: 8/10.** Coverage is honest: two SVG specimens that actually work, with the
+prose-heavy roles carried by the book itself where live text is correct. Held back:
+no committed specimen yet models Hex.pm or HexDocs chrome specifically — the adaptive
+mark covers the slot, but no rendered example shows it there.
 
-- Keep `brandbook/` source artifacts committed and inspectable.
-- Review favicon at 16px and 32px.
-- Use `logo-primary-light.svg` for README, GitHub, and light documentation contexts.
-- Use `logo-primary.svg` on dark and high-signal surfaces.
-- Use `brand-book.md` for future README and landing-page copy.
+### 13. Misuse guidance
 
-Do next:
+**Pass condition:** misuse is shown, not just told — rendered Don't specimens a
+contributor can compare against, plus numeric small-size thresholds that make
+"too small" checkable.
+**Check:** `index.html`'s Misuse section renders one Do reference and six Don'ts
+(container chip, icon bolted beside plain text, tagline as primary, gradient
+dependence, stretch/squash, off-palette recolor) as inline SVG only —
+`git ls-files brandbook/ | grep -i misuse` returns nothing, so no antipattern ships as
+a reusable file; the thresholds panel states the 16px numbers.
+**Score: 9/10.** Every killed pattern is visible and the thresholds are numeric. One
+point held back: the gallery covers the six known failure modes; misuse taxonomies
+grow with exposure, and the gallery must grow with them.
 
-- Apply the sharper README intro in a separate docs pass.
-- Export social-card PNG only when a platform requires it.
-- Consider an ExDoc theme pass after docs information architecture is stable.
+### 14. Consistency
 
-Defer:
+**Pass condition:** no asset contradicts its own description or the book's rules:
+the one-color asset is one color, stated minimums are satisfied by the assets they
+govern, banned patterns appear nowhere outside the misuse gallery.
+**Check:** the gate enforces this corpus-wide on every run — HC-1 (glyph inventory),
+HC-2 (no chips/rects), HC-5 (mono purity), HC-6 (no text), BOOK-02 (tagline
+isolation), TAGGING (every painted path classified). Current run:
+`10 files reported, 0 FAIL, 0 WARN`.
+**Score: 9/10.** Consistency is mechanically enforced rather than promised — the
+strongest property a brand system can have. Held back one point because `index.html`'s
+inline renders duplicate the asset geometry, and that duplication is kept honest by
+review, not by the gate.
 
-- Human wordmark refinement.
-- Serif editorial accent.
-- Printed swag.
-- Full component library.
+### 15. Craft
 
-Do not do:
+**Pass condition:** geometry is derived and reproducible — measured widths, shared
+cut heights, native-canvas drawing — with no eyeballed offsets or overdraw hacks; the
+book itself looks professional when opened directly.
+**Check:** the integration numbers (dimension 2) are arithmetic; the favicon is drawn
+at its deployment size; every painted path carries `data-glyph`/`data-role`; open
+`index.html` via `file://` at desktop and phone widths — no broken images, no
+overflow, no placeholder content.
+**Score: 8/10.** The construction is systematic end-to-end and the direct-open render
+holds up at 1440px and 390px. Two points held back: optical correction (overshoot,
+arc-to-stem junction tuning) is minimal beyond the measured geometry, and craft above
+"derived correctly" is exactly where a future revision can spend.
 
-- Add a mascot.
-- Add shield or lock security imagery.
-- Commit large raster moodboards.
-- Rebuild the operator UI solely for brand maintenance.
-- Make compliance claims without human or legal review.
+## Reading the total
 
-## Section 14 - Final Quality Gate
-
-Could a designer build from this?
-
-- Yes. Concept, tokens, examples, layout rules, and logo usage are concrete.
-
-Could an engineer implement from this?
-
-- Yes. Tokens are JSON/CSS and assets are SVG.
-
-Could a maintainer keep it consistent?
-
-- Yes, if runtime operator tokens and brandbook tokens stay in their lanes.
-
-Could a contributor understand it?
-
-- Yes. The folder has a README, source docs, and no hidden design-tool dependency.
-
-Could it support marketing without becoming cheesy?
-
-- Yes, as long as the brand keeps technical proof ahead of vibe.
-
-Could it survive dark mode, small sizes, docs pages, and social previews?
-
-- Mostly yes. Favicon and mark still require manual small-size review.
-
-Does it feel specific to Threadline?
-
-- Yes. The connected audit-history idea belongs to this library.
-
-Does it resist unnecessary redesign pressure?
-
-- Yes. The system has a clear center, source artifacts, and practical governance rules.
+**128 / 150.** The score stands only while the mechanical suite is green. Any FAIL
+from the gate, any non-empty grep, or any budget overrun invalidates the scorecard
+until the defect is fixed and the affected dimensions are re-scored against fresh
+evidence.
