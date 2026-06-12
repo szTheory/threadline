@@ -2,5 +2,5 @@
   <!-- C1 favicon: the threaded e — designed at 16px, not the wordmark scaled.
        An abstract e whose bar is the thread, running through and past the bowl. -->
   <path data-glyph="e" fill="none" stroke="currentColor" stroke-width="1.7" d="M 11.6 11.45 A 4.6 4.6 0 1 1 12.6 8.5"/>
-  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 8.5 H 2.2 M 4.6 8.5 H 15.2"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 5.3 8.5 H 15.2"/>
 </svg>
