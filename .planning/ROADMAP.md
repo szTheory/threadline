@@ -25,7 +25,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 | 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Complete (2026-06-12) |
 | 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Complete (2026-06-12) |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Complete (2026-06-12) |
-| 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
+| 162 | 1/3 | In Progress|  |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
 
 **Execution order:**
@@ -96,7 +96,7 @@ Plans:
 **Plans**: 3 plans (waves: 01 → 02 → 03; closes with gsd-verify-work UAT — second hard human gate)
 
 Plans:
-- [ ] 162-01-PLAN.md — Asset family: regenerate the full C13 topstitch family into brandbook/ (8 SVGs + examples refresh/prune) gated by a phase-dir brand-gate (wave 1)
+- [x] 162-01-PLAN.md — Asset family: regenerate the full C13 topstitch family into brandbook/ (8 SVGs + examples refresh/prune) gated by a phase-dir brand-gate (wave 1)
 - [ ] 162-02-PLAN.md — index.html rebuilt as a standalone professional brand book with inline misuse gallery; brand-book.md/README/tokens settled as truth (wave 2)
 - [ ] 162-03-PLAN.md — Audit backlog closure ledger, pressure-test.md rerun ≥ 79/150 row-for-row, evidence capture, requirements metadata (wave 3)
 
