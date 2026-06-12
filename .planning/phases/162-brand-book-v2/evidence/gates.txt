@@ -1,0 +1,102 @@
+# Phase 162 BOOK-06/BOOK-07 gate suite — captured 2026-06-12T16:40:27Z
+
+$ node .planning/phases/162-brand-book-v2/tools/brand-gate.mjs brandbook
+PASS  examples/docs-page.svg  HC-6
+PASS  examples/docs-page.svg  HYGIENE  (xmlns declarations allowed)
+PASS  examples/docs-page.svg  HC-2
+PASS  examples/docs-page.svg  TAGGING
+PASS  examples/readme-header.svg  HC-6
+PASS  examples/readme-header.svg  HYGIENE  (xmlns declarations allowed)
+PASS  examples/readme-header.svg  HC-2
+PASS  examples/readme-header.svg  TAGGING
+PASS  favicon.svg  HC-6
+PASS  favicon.svg  HYGIENE  (xmlns declarations allowed)
+PASS  favicon.svg  HC-2
+PASS  favicon.svg  TAGGING
+PASS  favicon.svg  HC-1  inventory subset of "Threadline" (mark-only)
+PASS  favicon.svg  HC-4-count  2 painted elements (<= 4)
+PASS  favicon.svg  HC-4-stroke  1.70px at 16px canvas
+PASS  favicon.svg  HC-4-stroke  1.70px at 16px canvas
+PASS  logo-mark.svg  HC-6
+PASS  logo-mark.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-mark.svg  HC-2
+PASS  logo-mark.svg  TAGGING
+PASS  logo-mark.svg  HC-1  inventory subset of "Threadline" (mark-only)
+PASS  logo-monochrome.svg  HC-6
+PASS  logo-monochrome.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-monochrome.svg  HC-2
+PASS  logo-monochrome.svg  TAGGING
+PASS  logo-monochrome.svg  HC-5  single flat color: currentcolor
+PASS  logo-primary-light.svg  HC-6
+PASS  logo-primary-light.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-primary-light.svg  HC-2
+PASS  logo-primary-light.svg  TAGGING
+PASS  logo-primary-light.svg  HC-1  inventory == letters of "Threadline" exactly
+PASS  logo-primary-subtitle.svg  HC-6
+PASS  logo-primary-subtitle.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-primary-subtitle.svg  HC-2
+PASS  logo-primary-subtitle.svg  TAGGING
+PASS  logo-primary-subtitle.svg  HC-1  full "Threadline" inventory present (extra tagged paths allowed)
+PASS  logo-primary-subtitle.svg  BOOK-02  tagline string present as metadata
+PASS  logo-primary.svg  HC-6
+PASS  logo-primary.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-primary.svg  HC-2
+PASS  logo-primary.svg  TAGGING
+PASS  logo-primary.svg  HC-1  inventory == letters of "Threadline" exactly
+PASS  logo-wordmark.svg  HC-6
+PASS  logo-wordmark.svg  HYGIENE  (xmlns declarations allowed)
+PASS  logo-wordmark.svg  HC-2
+PASS  logo-wordmark.svg  TAGGING
+PASS  logo-wordmark.svg  HC-1  inventory == letters of "Threadline" exactly
+PASS  social-card.svg  HC-6
+PASS  social-card.svg  HYGIENE  (xmlns declarations allowed)
+PASS  social-card.svg  HC-2  single sanctioned data-role="background" canvas (social card exemption)
+PASS  social-card.svg  TAGGING
+PASS  social-card.svg  HC-1  full "Threadline" inventory present (extra tagged paths allowed)
+PASS  social-card.svg  BOOK-02  tagline string present as metadata
+PASS  logo-primary-subtitle.svg  BOOK-02-corpus  carries the tagline as sanctioned
+PASS  social-card.svg  BOOK-02-corpus  carries the tagline as sanctioned
+
+10 files reported, 0 FAIL, 0 WARN
+exit=0
+
+$ grep -rln '<text' brandbook/ --include='*.svg'   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ grep -rln '<rect' brandbook/ --include='*.svg'   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ grep -rln 'FOLLOW WHAT HAPPENED' brandbook/   # exactly the two sanctioned files
+brandbook/social-card.svg
+brandbook/pressure-test.md
+brandbook/logo-primary-subtitle.svg
+
+$ grep -nE 'src="http|href="http' brandbook/index.html   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ grep -il opacity brandbook/*.svg brandbook/examples/*.svg   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ grep -il gradient brandbook/*.svg brandbook/examples/*.svg   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ xmllint --noout brandbook/*.svg brandbook/examples/*.svg
+OK brandbook/favicon.svg
+OK brandbook/logo-mark.svg
+OK brandbook/logo-monochrome.svg
+OK brandbook/logo-primary-light.svg
+OK brandbook/logo-primary-subtitle.svg
+OK brandbook/logo-primary.svg
+OK brandbook/logo-wordmark.svg
+OK brandbook/social-card.svg
+OK brandbook/examples/docs-page.svg
+OK brandbook/examples/readme-header.svg
+
+$ find brandbook -type f ! -name '.DS_Store' -print0 | xargs -0 du -ck | tail -1   # <= 300 (KB)
+212	total
+
+$ git ls-files brandbook/ | grep -vE '[.](svg|html|css|json|md|mjs)$'   # must be empty
+exit=1 (1 = no matches = PASS)
+
+$ node -e "JSON.parse(require('fs').readFileSync('brandbook/tokens.json'))" && echo JSON-OK
+JSON-OK

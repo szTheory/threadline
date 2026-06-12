@@ -98,7 +98,7 @@ Plans:
 Plans:
 - [x] 162-01-PLAN.md — Asset family: regenerate the full C13 topstitch family into brandbook/ (8 SVGs + examples refresh/prune) gated by a phase-dir brand-gate (wave 1)
 - [x] 162-02-PLAN.md — index.html rebuilt as a standalone professional brand book with inline misuse gallery; brand-book.md/README/tokens settled as truth (wave 2)
-- [ ] 162-03-PLAN.md — Audit backlog closure ledger, pressure-test.md rerun ≥ 79/150 row-for-row, evidence capture, requirements metadata (wave 3)
+- [x] 162-03-PLAN.md — Audit backlog closure ledger, pressure-test.md rerun ≥ 79/150 row-for-row, evidence capture, requirements metadata (wave 3)
 
 ### Phase 163: product-logo-rollout (OPTIONAL)
 **Goal**: If the user opts in at the end-of-milestone checkpoint with the winner in hand, the new identity rolls into product surfaces; if declined, the requirements seed a future milestone.

@@ -69,7 +69,7 @@ in `brandbook/pressure-test.md` ("The mechanical suite"). Key results at capture
 - `grep -il opacity brandbook/*.svg brandbook/examples/*.svg` → empty (no opacity tiers anywhere)
 - `grep -il gradient brandbook/*.svg brandbook/examples/*.svg` → empty (no gradients in committed SVGs)
 - `xmllint --noout` on all 10 SVGs → clean
-- `find brandbook -type f ! -name '.DS_Store' -print0 | xargs -0 du -ck | tail -1` → 208KB ≤ 300KB
+- `find brandbook -type f ! -name '.DS_Store' -print0 | xargs -0 du -ck | tail -1` → 212KB ≤ 300KB
 - `git ls-files brandbook/ | grep -vE '[.](svg|html|css|json|md|mjs)$'` → empty (text-only formats, no binaries)
 - All 10 SVG paint hexes (#0B1020, #0F1728, #8F9DB5, #D7DEEA, #23304A, #3B4762, #4EDFD1, #4F8CFF, #73819C, #4781E6) present in `tokens.json`
 
