@@ -58,27 +58,27 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-01 | — | Pending |
-| THEME-02 | — | Pending |
-| THEME-03 | — | Pending |
-| THEME-04 | — | Pending |
-| TOKEN-01 | — | Pending |
-| TOKEN-02 | — | Pending |
-| TOKEN-03 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| A11Y-01 | — | Pending |
-| A11Y-02 | — | Pending |
-| EVID-01 | — | Pending |
-| EVID-02 | — | Pending |
-| BRAND-01 | — | Pending |
-| BRAND-02 | — | Pending |
+| THEME-01 | Phase 166 | Pending |
+| THEME-02 | Phase 166 | Pending |
+| THEME-03 | Phase 166 | Pending |
+| THEME-04 | Phase 166 | Pending |
+| TOKEN-01 | Phase 166 | Pending |
+| TOKEN-02 | Phase 166 | Pending |
+| TOKEN-03 | Phase 166 | Pending |
+| COMP-01 | Phase 167 | Pending |
+| COMP-02 | Phase 167 | Pending |
+| A11Y-01 | Phase 168 | Pending |
+| A11Y-02 | Phase 168 | Pending |
+| EVID-01 | Phase 169 | Pending |
+| EVID-02 | Phase 169 | Pending |
+| BRAND-01 | Phase 170 | Pending |
+| BRAND-02 | Phase 170 | Pending |
 
 **Coverage:**
 - v1.36 requirements: 15 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 15 ⚠️ (expected before roadmap creation)
+- Mapped to phases: 15 ✓ (Phases 166–170 per `.planning/ROADMAP.md`)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-12*
-*Last updated: 2026-06-12 after initial definition*
+*Last updated: 2026-06-12 after v1.36 roadmap creation (traceability mapped to Phases 166–170)*

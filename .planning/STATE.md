@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
 status: planning
-last_updated: "2026-06-12T21:55:52.396Z"
+last_updated: "2026-06-12T21:59:06.000Z"
 last_activity: 2026-06-12
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,21 +17,22 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-11)
+See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 163 — product-logo-rollout (final v1.35 phase)
+**Current focus:** v1.36 Operator Surface Light Mode — ready to plan Phase 166 (`unfreeze-token-lane-mechanism`)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 166 of 166–170 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-12 — Milestone v1.36 started
+Status: Ready to plan Phase 166
+Progress: [░░░░░░░░░░] 0/5 phases
+Last activity: 2026-06-12 — v1.36 roadmap created (Phases 166–170; 15/15 requirements mapped)
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.34 — Local Docker Admin UI DX (2026-06-07)
+- **Last Milestone Shipped**: v1.35 — Unified Logo & Brand Book v2 (2026-06-12)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -68,8 +69,11 @@ Last activity: 2026-06-12 — Milestone v1.36 started
 
 ### Pending Todos
 
-- Plan Phase 159 (`brand-audit-and-research`) with `/gsd-plan-phase 159`.
-- Phases 159 and 160 have no inter-dependency — they can be planned/executed in parallel.
+- Plan Phase 166 (`unfreeze-token-lane-mechanism`) with `/gsd-plan-phase 166`.
+- **Human gate (after Phase 166, before Phase 167):** light-lane design review — user eyeballs the rendered light surface (status-tint keystone included) before retune effort is spent.
+- **Human gate (after Phase 170):** end-of-milestone UAT across dark/light/system modes before closeout.
+- **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
+- **Phase 166 atomicity:** `style.ex` and `style_contract_test.exs` must land in the SAME wave — the contract test reads `style.ex` directly, so the refute flips and the `color-scheme: light` introduction are inseparable (else `mix verify.test` is red between commits).
 
 ### Roadmap Evolution
 
@@ -96,10 +100,12 @@ Last activity: 2026-06-12 — Milestone v1.36 started
 - **Milestone v1.34 opened (2026-06-06):** Local Docker Admin UI DX focuses on helper-first `bin/demo-up`, localhost-bound dynamic ports, Compose project isolation, cache-friendly Docker behavior, printed `/audit` URLs, lifecycle commands, and docs. Traefik/subdomain routing is deferred; `.localhost` is the future-safe hostname family if proxy support is later added.
 - **v1.34 implementation complete (2026-06-06):** `bin/demo-up` now supports project-aware lifecycle commands, `--build`, no-build refreshes when a project image exists, port validation, optional public host, and clearer failure guidance. Compose/Dockerfile now support an overridable demo base image, bundled Dockerfile frontend, `ca-certificates`, localhost-bound ports, project-scoped volumes, and pinned PgBouncer. Docs cover helper-first DX, multi-stack ports, cleanup, cache behavior, and deferred proxy/subdomain routing.
 - **Milestone v1.35 roadmap created (2026-06-11):** Unified Logo & Brand Book v2 — phases 159–163 per the approved plan `~/.claude/plans/have-to-compare-it-lexical-shore.md`. 159 (audit+research) ∥ 160 (glyph pipeline) → 161 (tournament, human checkpoint rounds, user picks winner) → 162 (brand book v2 + UAT) → 163 (optional product rollout, decision-gated). 28/28 requirements mapped; operator surface `style.ex` frozen in all core phases.
+- **Milestone v1.35 shipped + archived (2026-06-12):** C13 topstitch-geist identity, brand book v2, product rollout, and light-mode strategy decision [165-01] (supersedes [136-01]; v1.36 seeded via SEED-004). Archives under `.planning/milestones/v1.35-*`.
+- **Milestone v1.36 roadmap created (2026-06-12):** Operator Surface Light Mode — phases 166–170 per the approved 165 recommendation's pre-decided breakdown: 166 (unfreeze + 45-token light lane + `data-tl-theme` mechanism, contract amended same-wave) → 167 (component retune, largest) → 168 (accessibility AA mirror) ∥ 169 (`__light__` screenshots + example + docs) → 170 (brand alignment + closeout). 15/15 requirements mapped. Human gates: light-lane design review after 166; end-of-milestone UAT after 170.
 
 ### Decisions
 
-- [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle.
+- [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle. *(To be superseded by [165-01] in Phase 166 per THEME-04 — the approved recommendation is the unfreeze; the ledger entry lands with the same-wave contract amendment.)*
 - [136-01]: Lift muted/status contrast and make hover/focus/disabled states explicit through shared `--tl-*` tokens before per-screen polish.
 - **130.1-02 (2026-05-29):** Nyquist waivers for doc-only phases 128–129; 130-VALIDATION superseded footnote; `mix ci.all` green at closeout.
 - **130-02 (2026-05-28):** SUMMARY SSOT at `conventions/summary-frontmatter.md`; GAP IDs for 125–127 only; single `mix ci.all` in 130-VERIFICATION.
@@ -160,10 +166,11 @@ Last activity: 2026-06-12 — Milestone v1.36 started
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed 159-03-PLAN.md — DESIGN-BRIEF.md round-1 generation contract + 30-row audit traceability; Phase 159 complete, RES-04 satisfied (2026-06-12)
-- **Next Step**: Verify Phase 159, then plan Phase 161 (`logo-tournament`) — both dependencies (159, 160) are complete
+- **Last Action**: v1.36 roadmap created — Phases 166–170 mapped to all 15 requirements; ROADMAP.md, REQUIREMENTS.md traceability, and STATE.md updated (2026-06-12)
+- **Next Step**: Plan Phase 166 with `/gsd-plan-phase 166` (atomic opening wave: unfreeze + token lane + mechanism + same-wave contract amendment)
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 166 with `/gsd-plan-phase 166`
+- Human gate after Phase 166: light-lane design review before Phase 167 retune effort
