@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C11 favicon: thread through the needle eye — the line dives behind both walls of the
+       ring and surfaces inside the eye and outside it. Designed at 16px. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 4.4 8.5 A 3.6 3.6 0 1 1 11.6 8.5 A 3.6 3.6 0 1 1 4.4 8.5 Z"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 8.5 H 2.5 M 6.3 8.5 H 9.7 M 13.5 8.5 H 15.2"/>
+</svg>

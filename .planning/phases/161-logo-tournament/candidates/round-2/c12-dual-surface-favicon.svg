@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C12 favicon: the threaded e, carried unchanged from round-1 C1 (the dark identity is
+       preserved; favicons render on chrome the user does not control, so the adaptive
+       currentColor form is the right dual-surface answer at 16px). -->
+  <path data-glyph="e" fill="none" stroke="currentColor" stroke-width="1.7" d="M 11.6 11.45 A 4.6 4.6 0 1 1 12.6 8.5"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 5.3 8.5 H 15.2"/>
+</svg>
