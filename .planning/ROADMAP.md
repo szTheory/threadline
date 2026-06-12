@@ -77,7 +77,11 @@ Plans:
   3. Per-candidate feedback is recorded verbatim in `ROUNDS.md` with ADVANCE/KILL/MUTATE tags; every round after the first contains only mutations of user-advanced candidates traceable to that feedback (max one user-invited wildcard per round), with a 4-round cap that triggers an explicit decision rather than silent continuation.
   4. Winner is an explicit recorded user statement captured as checkpoint evidence.
   5. No candidate has a background chip, a subtitle in its primary form, an icon-beside-plain-set-type structure, or a `<text>` element — and every candidate ships a monochrome rendition from round 1 onward.
-**Plans**: TBD (internal checkpoint loop: round-N-generate → round-N-checkpoint → finalize-winner)
+**Plans**: 2 plans (waves: 01 → 02; 02 is the human-checkpoint tournament loop)
+
+Plans:
+- [ ] 161-01-PLAN.md — Round 1 generation: 8 lane-quota candidates (primary/mono/favicon), mechanical HC-1..6 gate, six-context gallery, ROUNDS.md roster (wave 1, autonomous)
+- [ ] 161-02-PLAN.md — Tournament rounds + winner: orchestrator-run checkpoint loop (verbatim verdicts, feedback-traceable mutations, 4-round cap decision, recorded winner declaration) (wave 2, checkpoints)
 
 ### Phase 162: brand-book-v2
 **Goal**: The tournament winner graduated into the full `brandbook/` asset family and a rebuilt standalone professional HTML brand book, with the audit backlog executed.
