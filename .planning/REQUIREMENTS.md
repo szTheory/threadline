@@ -123,7 +123,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROLL-01 | Phase 163 | Pending (optional) |
 | ROLL-02 | Phase 163 | Pending (optional) |
 | ROLL-03 | Phase 163 | Pending (optional) |
-| IMG-01 | Phase 164 | Complete — pending mini-UAT |
+| IMG-01 | Phase 164 | Complete |
 | LIGHT-01 | Phase 165 | Complete |
 | LIGHT-02 | Phase 165 | Complete |
 

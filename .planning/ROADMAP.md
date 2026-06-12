@@ -35,7 +35,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 - [x] **Phase 160: glyph-outline-pipeline** - fontkit-based text-to-outline pipeline so every logo SVG is pure paths with real shaped kerning (parallel with 159).
 - [x] **Phase 161: logo-tournament** - 8 round-1 candidates across four archetypes; human checkpoint rounds until the user declares a winner.
 - [ ] **Phase 162: brand-book-v2** - Graduate the winner into the full `brandbook/` asset family and rebuild the standalone brand book.
-- [ ] **Phase 164: brand-book-imagery** - Visualize the brand-book.md "Imagery And Diagrams" guidance inside index.html (UAT gap 2): inline-SVG acceptable-imagery specimens + a don't strip at the misuse-gallery craft bar; mini-UAT.
+- [x] **Phase 164: brand-book-imagery** - Visualize the brand-book.md "Imagery And Diagrams" guidance inside index.html (UAT gap 2): inline-SVG acceptable-imagery specimens + a don't strip at the misuse-gallery craft bar; mini-UAT.
 - [x] **Phase 165: light-mode-strategy** - Research → one coherent light-mode recommendation (UAT gap 1): 3 parallel research lanes (Phoenix/LiveView ecosystem, cross-ecosystem lessons, Threadline change surface) → 165-LIGHT-MODE-RECOMMENDATION.md → user decision checkpoint. NO implementation (operator-surface light mode = candidate milestone v1.36; dark-only decision [136-01] unfrozen only by explicit choice).
 - [ ] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
 
