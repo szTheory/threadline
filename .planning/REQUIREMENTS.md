@@ -50,6 +50,15 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **BOOK-06**: `brandbook/` stays text/SVG/HTML/CSS/JSON-only at ≤ ~300KB total, with no committed binaries; tokens/`brand-book.md` updated only if the winner motivated palette/typography changes.
 - [x] **BOOK-07**: `pressure-test.md` is rerun against the new system and its scorecard meets or beats the AUD-01 baseline.
 
+### Brand Book Completeness (UAT extension, 2026-06-12)
+
+- [ ] **IMG-01**: User can see a visual Imagery section in `brandbook/index.html` demonstrating the brand-book.md "Imagery And Diagrams" guidance — 3-4 inline-SVG acceptable specimens with usage captions plus a banned-imagery "don't" strip — passing the brand-gate, zero-network, and size-budget gates.
+
+### Light Mode Strategy (UAT extension, 2026-06-12)
+
+- [ ] **LIGHT-01**: User can read a cited research packet covering Phoenix/LiveView ecosystem theming idioms, cross-ecosystem dark/light lessons (defaults, semantic tokens, footguns, accessibility), and Threadline's exact change surface (style.ex `--tl-*` seam, contract-test bans, brandbook light token lane, decision [136-01] unfreeze procedure).
+- [ ] **LIGHT-02**: User can read ONE coherent light-mode recommendation (default posture, mechanism, host API shape, token architecture, scope, v1.36 phase breakdown) and their explicit approve/adjust/defer decision is recorded at a checkpoint — no UI implementation in v1.35.
+
 ### Product Rollout (optional — user opts in at end-of-milestone checkpoint)
 
 - [ ] **ROLL-01**: If opted in: the operator-surface logo component (`lib/threadline/operator_surface/components/logo.ex`) renders the winning mark while preserving the `var(--tl-*)` theming contract, with `style.ex` untouched (recorded freeze exception).
@@ -114,9 +123,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROLL-01 | Phase 163 | Pending (optional) |
 | ROLL-02 | Phase 163 | Pending (optional) |
 | ROLL-03 | Phase 163 | Pending (optional) |
+| IMG-01 | Phase 164 | Pending |
+| LIGHT-01 | Phase 165 | Pending |
+| LIGHT-02 | Phase 165 | Pending |
 
 **Coverage:**
-- v1.35 requirements: 28 total (25 core + 3 optional rollout)
+- v1.35 requirements: 31 total (25 core + 3 UAT-extension + 3 optional rollout)
 - Mapped to phases: 28/28 ✓ (Phase 159: 6, Phase 160: 3, Phase 161: 9, Phase 162: 7, Phase 163: 3 optional)
 - Unmapped: 0
 

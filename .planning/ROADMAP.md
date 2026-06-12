@@ -26,6 +26,8 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 | 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Complete (2026-06-12) |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Complete (2026-06-12) |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Complete (2026-06-12) — pending gsd-verify-work UAT |
+| 164 | brand-book-imagery | IMG-01 | Not started |
+| 165 | light-mode-strategy | LIGHT-01, LIGHT-02 | Not started |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
 
 **Execution order:**
@@ -33,6 +35,8 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 - [x] **Phase 160: glyph-outline-pipeline** - fontkit-based text-to-outline pipeline so every logo SVG is pure paths with real shaped kerning (parallel with 159).
 - [x] **Phase 161: logo-tournament** - 8 round-1 candidates across four archetypes; human checkpoint rounds until the user declares a winner.
 - [ ] **Phase 162: brand-book-v2** - Graduate the winner into the full `brandbook/` asset family and rebuild the standalone brand book.
+- [ ] **Phase 164: brand-book-imagery** - Visualize the brand-book.md "Imagery And Diagrams" guidance inside index.html (UAT gap 2): inline-SVG acceptable-imagery specimens + a don't strip at the misuse-gallery craft bar; mini-UAT.
+- [ ] **Phase 165: light-mode-strategy** - Research → one coherent light-mode recommendation (UAT gap 1): 3 parallel research lanes (Phoenix/LiveView ecosystem, cross-ecosystem lessons, Threadline change surface) → 165-LIGHT-MODE-RECOMMENDATION.md → user decision checkpoint. NO implementation (operator-surface light mode = candidate milestone v1.36; dark-only decision [136-01] unfrozen only by explicit choice).
 - [ ] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
 
 ## Phase Details
@@ -100,6 +104,28 @@ Plans:
 - [x] 162-02-PLAN.md — index.html rebuilt as a standalone professional brand book with inline misuse gallery; brand-book.md/README/tokens settled as truth (wave 2)
 - [x] 162-03-PLAN.md — Audit backlog closure ledger, pressure-test.md rerun ≥ 79/150 row-for-row, evidence capture, requirements metadata (wave 3)
 
+### Phase 164: brand-book-imagery
+**Goal**: The brand book's existing imagery guidance becomes a visual, professional Imagery section in `brandbook/index.html` — closing UAT gap 2 ("doesnt have an acceptable imagery section").
+**Depends on**: Phase 162
+**Requirements**: IMG-01
+**Success Criteria** (what must be TRUE):
+  1. index.html contains an Imagery section with 3-4 inline-SVG acceptable-imagery specimens drawn in the brand language (line map / evidence path, timeline-with-depth rail, contour linework, labeled system-flow diagram using domain nouns), each captioned with when to use it.
+  2. A "don't" strip mirrors brand-book.md's banned imagery list at the misuse-gallery craft bar.
+  3. brand-gate, zero-network, and ≤300KB gates stay green; refreshed desktop/mobile screenshots in the phase dir.
+  4. User mini-UAT approves the section.
+**Plans**: 1 plan
+
+### Phase 165: light-mode-strategy
+**Goal**: One coherent, research-backed light-mode recommendation and an explicit user decision — closing UAT gap 1 without implementing UI changes in this milestone.
+**Depends on**: Phase 162 (independent of 164)
+**Requirements**: LIGHT-01, LIGHT-02
+**Success Criteria** (what must be TRUE):
+  1. Research packet with cited sources across three lanes: Phoenix/LiveView ecosystem theming idioms; cross-ecosystem dark/light lessons (defaults, semantic tokens, footguns, accessibility); Threadline-specific change surface (style.ex --tl-* seam, style_contract_test.exs bans, brandbook light token lane, decision [136-01] unfreeze procedure).
+  2. 165-LIGHT-MODE-RECOMMENDATION.md: single opinionated recommendation — default posture (dark primary expected), selection mechanism + host API shape, token architecture, scope, v1.36 phase breakdown, freeze-amendment procedure.
+  3. Explicit user decision recorded at an AskUserQuestion checkpoint (approve → seed v1.36; adjust; defer).
+  4. No product UI, style.ex, or contract-test changes in this phase.
+**Plans**: 1 plan (research dispatch + synthesis + checkpoint)
+
 ### Phase 163: product-logo-rollout (OPTIONAL)
 **Goal**: If the user opts in at the end-of-milestone checkpoint with the winner in hand, the new identity rolls into product surfaces; if declined, the requirements seed a future milestone.
 **Depends on**: Phase 162
@@ -118,6 +144,9 @@ Plans:
 - Winner declaration (explicit user statement, Phase 161).
 - Brand book UAT (gsd-verify-work, Phase 162).
 - Rollout opt-in decision (Phase 163 gate).
+- Imagery section mini-UAT (Phase 164).
+- Light-mode recommendation decision (Phase 165 checkpoint).
+- Phase 162 UAT outcome recorded 2026-06-12: "this looks AMAZING!" — approved with two gaps (dark/light posture, imagery section), closed by Phases 165 and 164 respectively.
 
 ## Latest Shipped Milestone
 
