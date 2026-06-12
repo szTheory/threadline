@@ -1,0 +1,63 @@
+# Phase 162 — Audit Backlog Closure Ledger (BOOK-04)
+
+Every ROUTED GAP/UP/AUDIT-S item from the `159-DESIGN-BRIEF.md` traceability table that
+touches BOOK-01/02/03/05/07, plus the upstream-closed (LOGO-*/TOUR-*) and DESCOPED items,
+resolved row-by-row. Resolution is exactly one of **RESOLVED** (file + mechanical check),
+**CLOSED-UPSTREAM** (Phase 161 tournament outcome, re-verified on the final assets by
+brand-gate), or **DESCOPED** (reason restated from the DESIGN-BRIEF, consistent with
+REQUIREMENTS.md Out of Scope / Future Requirements). Zero empty cells.
+
+Mechanical reference run (full output in `evidence/gates.txt`):
+`node .planning/phases/162-brand-book-v2/tools/brand-gate.mjs brandbook` →
+`10 files reported, 0 FAIL, 0 WARN`, exit 0 (2026-06-12, post-162-02 state).
+
+## Section-level verdicts (AUDIT-Snn)
+
+| Item | Audit finding (one line) | Resolution | Evidence |
+|---|---|---|---|
+| AUDIT-S03 | Prior pressure-test scorecard measured intent, not survival; superseded by the adversarial 15-dimension 79/150 baseline | RESOLVED | `brandbook/pressure-test.md` rebuilt on the 15 adversarial dimensions with testable pass conditions; rerun comparison committed in `162-EVIDENCE.md` — total 128/150 vs 79/150, no row below its baseline value |
+| AUDIT-S04 | Prior stress-test section was untested advice; replaced by the executed 8-surface matrix (1 PASS / 4 DEGRADED / 3 FAIL) | RESOLVED | The matrix's three FAIL roots are now mechanical gates rerun green: HC-6 zero-`<text>` (GitHub fonts), HC-4 16px geometry, HC-5 one-color — all PASS in `evidence/gates.txt`; visual proof in `evidence/index-desktop.png`, `evidence/favicon-contexts.png` |
+| AUDIT-S05 | Prior risk register missed every structural defect; replaced by the severity-ordered GAP-01..12 register | RESOLVED | This ledger walks GAP-01..12 item-by-item below — each row carries a checkable pointer; no row is empty |
+| AUDIT-S06 | The book had no routable upgrade backlog; UP-01..11 is new surface area to route or descope | RESOLVED | This ledger walks UP-01..11 item-by-item below — every UP item resolved with evidence, closed upstream and re-verified, or descoped with its recorded reason |
+| AUDIT-S08 | Every mark and lockup must be regenerated against the numeric constraints; only the asset-roster shape and misuse rules carry forward | CLOSED-UPSTREAM | Regenerated via the Phase 161 tournament (winner C13 topstitch-geist, user-selected); re-verified on the final committed family: brand-gate `10 files reported, 0 FAIL, 0 WARN` across HC-1/2/4/5/6 + TAGGING + HYGIENE (`evidence/gates.txt`) |
+| AUDIT-S13 | Prior action plan recommended shipping the defects this audit demonstrates; replaced by the severity-ordered v1.35 sequence | RESOLVED | The replacement sequence executed: 159 (audit/brief) → 161 (tournament) → 162 (this phase); this ledger records each item's resolution; the carried-forward do-not list lives in `brandbook/index.html` Misuse section + `brandbook/brand-book.md` (BOOK-05, see GAP-12 row) |
+
+## GAP items (audit section 5)
+
+| Item | Audit finding (one line) | Resolution | Evidence |
+|---|---|---|---|
+| GAP-01 | Primary lockup is icon-left-of-text with zero shared geometry — no integrated identity exists | CLOSED-UPSTREAM | Phase 161 winner is an integrated typemark: the stitch arc continues the d/l ascender stems (arc stroke 128 units = measured stem width, stems cut at y=444 in `brandbook/logo-primary.svg`); re-verified: brand-gate HC-1 `inventory == letters of "Threadline" exactly` PASS on logo-primary/-light/wordmark |
+| GAP-02 | "FOLLOW WHAT HAPPENED" subtitle baked into all three primary lockups, ~4.4px at the book's own 160px minimum | CLOSED-UPSTREAM | Subtitle removed from every primary in the Phase 161 design; re-verified on final assets: `grep -rln "FOLLOW WHAT HAPPENED" brandbook/` returns exactly `brandbook/social-card.svg` and `brandbook/logo-primary-subtitle.svg` (`evidence/gates.txt`); brand-gate BOOK-02-corpus PASS |
+| GAP-03 | 11 of 13 SVGs depend on `<text font-family="Geist…">` that GitHub's font-less sandbox cannot satisfy | CLOSED-UPSTREAM | Phase 160 glyph-outline pipeline + Phase 161 candidates were pure-path from round 1; re-verified on final assets: `grep -rln '<text' brandbook/ --include='*.svg'` returns nothing; brand-gate HC-6 PASS on all 10 files (`evidence/gates.txt`) |
+| GAP-04 | Favicon geometry (1.25px strokes, 2px dots at 16px) is below the legibility floor | RESOLVED | `brandbook/favicon.svg` is a dedicated 16px-designed cut (`viewBox="0 0 16 16"`, two paths at `stroke-width="1.7"`); brand-gate lines quoted: `PASS favicon.svg HC-4-stroke 1.70px at 16px canvas` (×2) and `PASS favicon.svg HC-4-count 2 painted elements (<= 4)`; identifiable at the literal 16px cell in `evidence/favicon-contexts.png` / `-dark.png` |
+| GAP-05 | The "monochrome" asset uses two inks plus a 45%-opacity tone — no asset survives literal one-color reproduction | RESOLVED | `brandbook/logo-monochrome.svg` paint inventory is exactly `{currentColor, none}` (`grep -oE '(fill\|stroke)="[^"]*"' \| sort -u`), zero opacity attributes, zero gradients; brand-gate line quoted: `PASS logo-monochrome.svg HC-5 single flat color: currentcolor` |
+| GAP-06 | No dark/light switching mechanism documented or committed — every single-slot surface breaks one mode | RESOLVED | `brandbook/index.html` Logo system section commits the HTML-escaped GitHub `<picture media="(prefers-color-scheme: dark)">` snippet plus a live same-directory `<picture>` demo (lines ~788/794); `brandbook/brand-book.md` Logo System documents the snippet and per-surface assignments; rendered in `evidence/index-desktop.png` |
+| GAP-07 | README/docs specimens embed the logo via external `<image href>` that GitHub's CSP blocks | RESOLVED | `brandbook/examples/readme-header.svg` + `brandbook/examples/docs-page.svg` re-cut with inlined pure-path geometry; `grep -rn '<image' brandbook/ --include='*.svg'` returns nothing; brand-gate HYGIENE + HC-6 PASS on both (`evidence/gates.txt`) |
+| GAP-08 | Icon mark's Fog dot/ticks vanish on white and no light icon variant exists — fails Hex.pm/HexDocs light slots | RESOLVED | `brandbook/logo-mark.svg` is currentColor-adaptive (stems/fabric `stroke="currentColor"`, arc #4781E6 — works on both schemes from one asset); `brandbook/logo-primary-light.svg` is a designed light rendition (Ink #0F1728 glyphs, brand-gate HC-1 PASS); light-surface render proven in `evidence/index-desktop.png` (Dark and light duo panel) |
+| GAP-09 | Social card exists only as SVG with no committed raster export pipeline while og:image consumers require PNG | DESCOPED | SOCIAL-PNG-01 (future): raster export is deferred until a downstream channel requires it — committed raster exports/binaries are REQUIREMENTS.md Out of Scope; the `social-card.svg` source itself was regenerated under BOOK-01 (brand-gate HC-1/HC-2/BOOK-02 PASS) |
+| GAP-10 | Favicon relies on a rounded-rect container chip — the exact forbidden container pattern | RESOLVED | `brandbook/favicon.svg` contains no `<rect>` and no path-drawn plate (`grep -rln '<rect' brandbook/ --include='*.svg'` returns nothing); brand-gate line quoted: `PASS favicon.svg HC-2`; the killed pattern is documented as Misuse specimen 1 in `brandbook/index.html` |
+| GAP-11 | The mark's blue→cyan meaning lives entirely in a gradient stroke — gradient-dependence as identity | CLOSED-UPSTREAM | HC-5's flatten test eliminated gradient-dependence in every Phase 161 round; re-verified on final assets: zero `<linearGradient>`/`<radialGradient>` in `brandbook/*.svg` committed sources (gradient strings exist only inside index.html's inline misuse specimen, which demonstrates the ban); brand-gate HC-5 PASS on the mono master |
+| GAP-12 | Misuse guidance is text-only with no visual misuse gallery and no numeric small-size thresholds | RESOLVED | `brandbook/index.html` Misuse section renders one Do reference + six inline-SVG Don'ts (chip, icon-beside-text, tagline-as-primary, gradient dependence, stretch, off-palette recolor) plus the numeric thresholds panel; thresholds also in `brandbook/brand-book.md` (1.5px target / 1.0px floor strokes at 16px, ≥1.0px gaps, ≤4 elements, design-at-16px); rendered in `evidence/index-desktop.png` and `evidence/index-mobile.png` |
+
+## UP items (audit section 6)
+
+| Item | Audit finding (one line) | Resolution | Evidence |
+|---|---|---|---|
+| UP-01 | Run the tournament across four archetype lanes with each candidate naming its motif strategy | CLOSED-UPSTREAM | Phase 161 ran the 4-lane / 8-candidate tournament per the brief's §5 quota; winner C13 topstitch-geist user-selected; re-verified: the graduated family passes brand-gate end-to-end (`evidence/gates.txt`) |
+| UP-02 | Ship every wordmark-bearing asset with letterforms converted to outlined vector paths | CLOSED-UPSTREAM | Phase 160 pipeline produced the outlines; re-verified on final assets: zero `<text>` corpus-wide (grep empty) and brand-gate HC-6 PASS on all 10 files (`evidence/gates.txt`) |
+| UP-03 | Remove the subtitle from all primary lockups; tagline only in surface copy | CLOSED-UPSTREAM | HC-1 enforced from round 1; re-verified: brand-gate HC-1 `inventory == letters of "Threadline" exactly` PASS on logo-primary/-light/wordmark; tagline grep confined to the two sanctioned files (see GAP-02 row) |
+| UP-04 | Design a size-specific favicon/mark cut with >=2px effective strokes at 16px, silhouette-first, no chip | RESOLVED | `brandbook/favicon.svg` designed at a 16px canvas: 1.7px strokes (≥1.5px Primer target restated by the brief's HC-4), 2 elements (≤4 floor), no chip (HC-2 PASS); gate lines quoted in GAP-04 row; silhouette identifiable at the literal 16px cell of `evidence/favicon-contexts.png` |
+| UP-05 | Produce a true one-color monochrome master verified by literal flatten-to-one-color test | RESOLVED | `brandbook/logo-monochrome.svg` already is one flat color — paint inventory exactly `{currentColor, none}`, so flattening is the identity operation; brand-gate line quoted: `PASS logo-monochrome.svg HC-5 single flat color: currentcolor` |
+| UP-06 | Commit a ready-to-paste GitHub README `<picture>` snippet plus per-surface asset assignments | RESOLVED | Snippet committed verbatim (escaped code block + live demo) in `brandbook/index.html`; per-surface assignments table in `brandbook/brand-book.md` Logo System (README/GitHub, HexDocs, browser tab, constrained print rows); see GAP-06 row |
+| UP-07 | Add a light-surface icon mark variant (or currentColor-driven adaptive mark) for Hex.pm/HexDocs slots | RESOLVED | The currentColor-driven adaptive option was taken: `brandbook/logo-mark.svg` stems/fabric inherit the host ink (`stroke="currentColor"`), arc #4781E6 holds 3.78:1 on white / 5.0:1 on Threadline Black — one asset serves ExDoc's single-logo slot in both themes; see GAP-08 row |
+| UP-08 | Commit an on-demand raster export script producing the og:image PNG deterministically | DESCOPED | SOCIAL-PNG-01 (future): no raster consumer exists in v1.35; committed raster exports and binaries are REQUIREMENTS.md Out of Scope — revisit when a channel requires PNG (same reason as GAP-09) |
+| UP-09 | Inline logo geometry into the example SVGs so specimens render on GitHub | RESOLVED | Both surviving specimens (`brandbook/examples/readme-header.svg`, `brandbook/examples/docs-page.svg`) carry inlined pure-path geometry; `grep -rn '<image' brandbook/ --include='*.svg'` empty; the five prose-heavy specimens were pruned with per-file reasons (162-01-SUMMARY keep/prune table) rather than re-cut dishonestly |
+| UP-10 | Add a visual misuse gallery and numeric small-size thresholds to the brand book | RESOLVED | Six rendered Don't specimens + Do reference + numeric thresholds panel in `brandbook/index.html`; thresholds restate the brief's HC-4 numbers in `brandbook/brand-book.md`; see GAP-12 row |
+| UP-11 | Rebuild pressure-test.md on this audit's 15 adversarial dimensions for a comparable Phase 162 rerun | RESOLVED | `brandbook/pressure-test.md` rebuilt: the 15 dimensions by their exact audit names, each with a testable pass condition, mechanical command where one exists, and an evidence-cited current score; row-for-row comparison vs the 79/150 baseline committed in `162-EVIDENCE.md` |
+
+## Closure tally
+
+- RESOLVED: 19 rows (GAP-04, GAP-05, GAP-06, GAP-07, GAP-08, GAP-10, GAP-12; UP-04, UP-05, UP-06, UP-07, UP-09, UP-10, UP-11; AUDIT-S03, AUDIT-S04, AUDIT-S05, AUDIT-S06, AUDIT-S13)
+- CLOSED-UPSTREAM (Phase 160/161, re-verified by brand-gate on the final assets): GAP-01, GAP-02, GAP-03, GAP-11, UP-01, UP-02, UP-03, AUDIT-S08 — 8 rows
+- DESCOPED (SOCIAL-PNG-01, future): GAP-09, UP-08 — 2 rows
+- Total rows: 29 (12 GAP + 11 UP + 6 AUDIT-S). Empty cells: 0.
