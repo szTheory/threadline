@@ -436,3 +436,236 @@ Threadline's mark must survive.
   of *how* to ship the pair are in §3.) **Check: render on white and on #0B0B0E (or brand dark);
   both pass contrast and recognition.**
   Source: https://deno.com/brand (background-driven variant guidance)
+
+---
+
+## 3. Rendering constraints of real surfaces
+
+### 3a. GitHub README SVG sandbox
+
+- **Images are proxied through Camo.** GitHub's docs: "To host your images, GitHub uses the
+  open-source project Camo. Camo generates an anonymous URL proxy for each file which hides your
+  browser details and related information from other users."
+  Source: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-anonymized-urls
+- **SVGs render under a restrictive Content-Security-Policy.** Verified empirically (2026-06-11)
+  by inspecting response headers:
+  - `raw.githubusercontent.com` serves SVG with
+    `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`
+    plus `X-Content-Type-Options: nosniff`.
+  - `camo.githubusercontent.com` responds with
+    `Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'`.
+  GitHub has sanitized/locked-down SVG rendering since enabling SVG viewing in 2014.
+  Source: https://github.blog/2014-02-04-svg-viewing-diffing/
+  Source: empirical header inspection of https://raw.githubusercontent.com/ziglang/logo/master/zig-mark.svg
+- **Consequences for logo SVGs in READMEs:**
+  1. `default-src 'none'` blocks **all external resources**: no `@font-face` fetches, no external
+     images, no scripts. An SVG `<text>` element therefore renders in the **viewer's default
+     font** — this corroborates the audit's bug finding on `brandbook/logo-primary.svg`: the
+     "Threadline" Geist wordmark silently falls back to a generic sans on GitHub.
+  2. **Pure-path SVGs are the only portable form** for wordmarks: convert all type to outlines.
+  3. `style-src 'unsafe-inline'` means **embedded `<style>` inside the SVG is allowed** — which
+     is exactly how Zig's `zig-logo-dynamic.svg` adapts its text color to unknown backgrounds in
+     rendered markdown (§1). A single adaptive SVG using internal CSS (including
+     `@media (prefers-color-scheme: dark)` rules inside the SVG) is viable on GitHub.
+     Source: https://github.com/ziglang/logo
+
+### 3b. Dark/light handling in READMEs
+
+- **Currently supported and documented: the `<picture>` element.** GitHub Docs ("Basic writing
+  and formatting syntax") states "The `<picture>` HTML element is supported", and the GitHub
+  Changelog (2022-05-19, GA follow-up) documents the pattern: "You can now specify whether to
+  display images for light or dark themes in Markdown, using the HTML `<picture>` element in
+  combination with the `prefers-color-scheme` media feature":
+  ```html
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo-dark-bg.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logo-light-bg.svg">
+    <img alt="Threadline" src="logo-light-bg.svg">
+  </picture>
+  ```
+  Vite's README uses exactly this today (§1).
+  Source: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
+  Source: https://github.blog/changelog/2022-05-19-specify-theme-context-for-images-in-markdown-beta/
+- **Legacy: `#gh-dark-mode-only` / `#gh-light-mode-only` URL fragments.** Introduced via
+  changelog 2021-11-24 ("Appending `#gh-dark-mode-only` or `#gh-light-mode-only` to the end of an
+  image url will define whether it's only shown to viewers using a light or a dark GitHub
+  theme"). **Support status:** the current GitHub writing docs no longer mention the fragment
+  approach at all (verified by text search of the page, 2026-06-11) — it is legacy/undocumented.
+  Use `<picture>`; do not build new assets around the fragment hack.
+  Source: https://github.blog/changelog/2021-11-24-specify-theme-context-for-images-in-markdown/
+- **Third option (single-asset):** Zig-style adaptive SVG with embedded CSS (3a above) — works on
+  GitHub and anywhere the SVG is rendered as a document, but **not** when rasterized or when the
+  SVG is placed via `<img>` by renderers that strip styles. Treat as enhancement, with `<picture>`
+  pair as the baseline.
+
+### 3c. Hex.pm and HexDocs logo slots
+
+- **Hex.pm package pages: no package-logo slot.** The hex.pm publishing docs define package
+  metadata (description, licenses, links, etc.) with **no logo/image field**, and package pages
+  render no per-package logo. Practical consequence: on hex.pm, Threadline's "logo" is whatever
+  the README renders inline — i.e., the GitHub-style `<picture>`/pure-path-SVG rules of 3a/3b
+  apply (subject to hex.pm's own markdown rendering). **Open question (flagged, not asserted):**
+  whether hex.pm's markdown sanitizer honors `<picture>` the way GitHub does — verify by
+  publishing or inspecting a package whose README uses it (e.g. any modern Vite-style README
+  mirrored to hex.pm) during Phase 162 visual verification.
+  Source: https://hex.pm/docs/publish
+- **HexDocs via ExDoc: `:logo` and `:favicon` options.** From ExDoc's option documentation:
+  - `:logo` — "Path to a logo image file for the project. Must be PNG, JPEG or SVG. When
+    specified, the image file will be placed in the output 'assets' directory, named
+    'logo.EXTENSION'. The image will be shown within a **48x48px area**. If using SVG, ensure
+    appropriate width, height and viewBox attributes are present in order to ensure predictable
+    sizing and cropping."
+  - `:favicon` — same format constraints (PNG/JPEG/SVG), emitted as `favicon.EXTENSION`, same
+    SVG `viewBox` caveat.
+  Practical consequences: the HexDocs logo slot is a **small square** — the mark-only form (not
+  the full wordmark lockup) belongs there; the 48x48 area is generous versus a favicon but the
+  sidebar renders it small, so the §2b 16px-survivor rules are the safe bar. ExDoc themes include
+  light and dark modes and use the **same single logo asset for both** — so the HexDocs logo must
+  individually pass the dark/light flip test (§2b), or use an SVG with internal
+  `prefers-color-scheme` CSS.
+  Source: https://github.com/elixir-lang/ex_doc/blob/main/lib/ex_doc.ex (option docs, quoted)
+  Source: https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html (`logo: "path/to/logo.png"` usage)
+
+---
+
+## 4. OSS brand book structure practices
+
+What credible OSS/devtools brand pages contain, synthesized from the strongest public examples:
+
+1. **Identity story / brand DNA** — why the mark looks the way it does, one screen, no filler
+   (Deno's "Why the new logo?" is the model for narrating a redesign).
+2. **Logo system** — primary, mark-only, wordmark-only; per-background variants; **clear-space
+   and minimum-size specs stated numerically** (Astro: "at least 24px tall in digital").
+3. **Misuse gallery ("don'ts")** — explicit prohibited uses with examples. Astro: "Don't include
+   the Astro logo in your own logo. Don't modify the Astro logo or change its colors. Don't sell
+   products featuring the Astro logo without permission." Mozilla's brand portal and Ubuntu's
+   brand pages carry the same convention at larger scale. **This is a named downstream
+   requirement (BOOK-05): Threadline's brand book v2 needs a misuse gallery, and §1-§2 of this
+   document supply its content** (no icon-left-of-text recreations, no subtitle in primary, no
+   gradient-only renderings, no container chips, no use below minimum size, no recoloring).
+4. **Color** — palette with roles/usage ratios, not just swatches; one-color fallbacks.
+5. **Typography** — typefaces, weights, and what each is for (display/UI/code).
+6. **Voice** — devtools brand books increasingly include microcopy/voice rules (Mozilla's portal
+   includes full voice sections).
+7. **Application examples** — README header, social card, docs header, sticker: the mark shown
+   on its real surfaces.
+8. **Downloadable assets + license/trademark line** — correct-use kits (SVG first), and a short
+   trademark note. (Trademark policy content itself: human review, out of scope.)
+
+Strong public examples consulted:
+- Source: https://mozilla.design/mozilla/ (full brand portal: logo system, type, color, voice)
+- Source: https://design.ubuntu.com/brand (brand values, logo rules, downloadable assets)
+- Source: https://astro.build/press/ (compact single-page system with misuse list and min-size)
+- Source: https://www.rust-lang.org/policies/media-guide (logo usage + trademark framing for an
+  OSS language project)
+
+---
+
+## 5. OFL-safe typeface candidates beyond Geist
+
+Per the v1.35 seed-drift decision: Geist (Vercel; **confirmed OFL-1.1** via the repo's license —
+Source: https://github.com/vercel/geist-font) stays the incumbent seed; the candidates below are
+exploration options for the free lanes, not replacements. All are SIL Open Font License 1.1
+(license verified against the repo's OFL/LICENSE file or Google Fonts license page). Letterform
+notes target the "Threadline" wordmark: T-h junction, double-l, i dot, e/a/d counters,
+descender-free run.
+
+1. **Inter** — OFL-1.1 (LICENSE.txt: "The Inter Project Authors"). Variable, 9 weights +
+   italics. Grotesque tuned for UI/screens; tall x-height keeps the descender-free run compact.
+   Ships alternates (single-story a, **l with tail** — directly useful to differentiate the
+   double-l). Extremely common in devtools, which cuts both ways: safe, but low distinctiveness.
+   Source: https://github.com/rsms/inter
+2. **Space Grotesk** — OFL-1.1 (OFL.txt: "The Space Grotesk Project Authors"). 5 weights.
+   Derived from Space Mono; retains mono-flavored quirks — distinctive **single-story a**, kinked
+   **l**, and idiosyncratic e/t terminals that give a wordmark ownable character for free.
+   Strongest "technical credibility with personality" candidate on this list.
+   Source: https://github.com/floriankarsten/space-grotesk
+3. **IBM Plex Sans** — OFL-1.1 (LICENSE.txt: "IBM Corp. with Reserved Font Name 'Plex'").
+   8 weights + italics, huge family (Sans/Mono/Serif/Condensed). Engineered grotesque with
+   subtle stroke-cut details; the matching **Plex Mono** solves the code-companion role inside
+   one license. Note: "Plex" is a reserved font name — renaming required for any modification.
+   Source: https://github.com/IBM/plex
+4. **Manrope** — OFL-1.1 (Google Fonts license page). Variable, ExtraLight–ExtraBold. Geometric-
+   grotesque hybrid with open counters (helpful for e/a at small sizes) and a distinctive
+   angle-cut **t** — relevant since "Threadline" begins with T/t forms.
+   Source: https://fonts.google.com/specimen/Manrope/license
+5. **Sora** — OFL-1.1 (Google Fonts license page). Variable, Thin–ExtraBold. Geometric sans
+   designed for a tech/blockchain consortium; wide, even rhythm and a flat-cut **l** that makes
+   the double-l read as deliberate twin strokes rather than a typo.
+   Source: https://fonts.google.com/specimen/Sora/license
+6. **Hanken Grotesk** — OFL-1.1 (Google Fonts license page). Variable, 9 weights + italics.
+   Warm grotesque in the Inter/Untitled-Sans space but less ubiquitous; round, generous e/a/d
+   counters that tolerate counter-replacement experiments (§2) better than tight geometric faces.
+   Source: https://fonts.google.com/specimen/Hanken+Grotesk/license
+7. **Archivo** — OFL-1.1 (Google Fonts license page). Variable with **width axis**
+   (Condensed–Expanded) plus full weight range — the only candidate offering wordmark-width
+   tuning inside one file; grotesque with squarish counters and strong vertical emphasis that
+   flatters the ll pair.
+   Source: https://fonts.google.com/specimen/Archivo/license
+8. **JetBrains Mono** — OFL-1.1 (OFL.txt: "The JetBrains Mono Project Authors"). 8 weights +
+   italics. Not a wordmark candidate — listed as the **mono companion** role (code samples,
+   "FOLLOW WHAT HAPPENED"-style technical microcopy if any survives the audit) with unimpeachable
+   dev credibility; tall x-height and rectangular-oval counters pair well with grotesque display.
+   Source: https://github.com/JetBrains/JetBrainsMono
+
+**Trademark note (one line, per scope):** typeface licensing above is OFL-verified, but logo
+trademark/legal clearance for any final mark is **not** researched here and is flagged for human
+review.
+
+---
+
+## 6. Source index
+
+| # | Source | Used for |
+|---|--------|----------|
+| 1 | https://vite.dev/vite-dark.svg | Vite current wordmark (pure paths, flat color) |
+| 2 | https://vite.dev/logo.svg | Vite flat mark variant |
+| 3 | https://raw.githubusercontent.com/vitejs/vite/main/README.md | `<picture>` dark/light swap in production |
+| 4 | https://bun.sh/logo.svg | Bun mascot mark |
+| 5 | https://github.com/oven-sh/bun | Bun README usage |
+| 6 | https://deno.com/blog/v2.0 | Deno 2024 logo simplification rationale (quoted) |
+| 7 | https://deno.com/brand | Deno variant/background guidance |
+| 8 | https://tailwindcss.com/brand | Tailwind mark/logotype split, usage agreement |
+| 9 | https://supabase.com/brand-assets | Supabase light/dark kit, wordmark color rule |
+| 10 | https://github.com/prisma/presskit | Prisma symbol-fallback rule, dark/light assets |
+| 11 | https://astro.build/press/ | Astro asset matrix, 24px min size, misuse list |
+| 12 | https://github.com/ziglang/logo | Zig integrated typemark, dynamic SVG, 16px favicon, neg variants |
+| 13 | https://www.phoenixframework.org/ | Phoenix mark/lockup as rendered |
+| 14 | https://elixir-lang.org/trademarks | Elixir official logo/trademark page |
+| 15 | https://www.johnsonbanks.co.uk/work/mozilla | moz://a designer case study |
+| 16 | https://blog.mozilla.org/opendesign/arrival/ | moz://a selection announcement (2017) |
+| 17 | https://underconsideration.com/brandnew/archives/new_logo_and_identity_for_mozilla_by_jones_knowles_ritchie.php | 2024 Mozilla replacement identity |
+| 18 | https://en.wikipedia.org/wiki/FedEx | Negative space canon (FedEx arrow) |
+| 19 | https://www.ibm.com/design/language/ibm-logos/8-bar/ | Pattern-through-letterforms canon (IBM 8-bar) |
+| 20 | https://en.wikipedia.org/wiki/NASA_logo | Continuous-line canon (NASA worm) |
+| 21 | https://www.wolffolins.com/case-study/the-met | Ligature wordmark canon (The Met) |
+| 22 | https://fonts.google.com/knowledge/glossary/ligature | Typographic ligature basis |
+| 23 | https://en.wikipedia.org/wiki/Amazon_(company) | Stroke continuation canon (Amazon smile) |
+| 24 | https://en.wikipedia.org/wiki/Goodwill_Industries | Counter replacement canon (Goodwill g, Selame 1968) |
+| 25 | https://primer.style/octicons/design-guidelines | Numeric 16px thresholds (1.5px stroke, 1px gaps, 1px radius, dual-grid process) |
+| 26 | https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs | Favicon delivery format baseline |
+| 27 | https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-anonymized-urls | Camo proxy (quoted) |
+| 28 | https://github.blog/2014-02-04-svg-viewing-diffing/ | GitHub sanitized SVG rendering since 2014 |
+| 29 | https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax | `<picture>` officially supported; fragment hack absent from current docs |
+| 30 | https://github.blog/changelog/2022-05-19-specify-theme-context-for-images-in-markdown-beta/ | `<picture>` + prefers-color-scheme changelog |
+| 31 | https://github.blog/changelog/2021-11-24-specify-theme-context-for-images-in-markdown/ | Legacy #gh-dark-mode-only fragment changelog |
+| 32 | https://hex.pm/docs/publish | Hex.pm package metadata (no logo field) |
+| 33 | https://github.com/elixir-lang/ex_doc/blob/main/lib/ex_doc.ex | ExDoc :logo/:favicon option docs (quoted) |
+| 34 | https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html | ExDoc logo usage in mix.exs |
+| 35 | https://mozilla.design/mozilla/ | OSS brand portal structure |
+| 36 | https://design.ubuntu.com/brand | OSS brand page structure |
+| 37 | https://www.rust-lang.org/policies/media-guide | OSS logo usage/trademark framing |
+| 38 | https://github.com/vercel/geist-font | Geist OFL-1.1 confirmation |
+| 39 | https://github.com/rsms/inter | Inter OFL-1.1 + alternates |
+| 40 | https://github.com/floriankarsten/space-grotesk | Space Grotesk OFL-1.1 |
+| 41 | https://github.com/IBM/plex | IBM Plex OFL-1.1 (reserved name) |
+| 42 | https://fonts.google.com/specimen/Manrope/license | Manrope OFL |
+| 43 | https://fonts.google.com/specimen/Sora/license | Sora OFL |
+| 44 | https://fonts.google.com/specimen/Hanken+Grotesk/license | Hanken Grotesk OFL |
+| 45 | https://fonts.google.com/specimen/Archivo/license | Archivo OFL |
+| 46 | https://github.com/JetBrains/JetBrainsMono | JetBrains Mono OFL-1.1 |
+
+*Empirical verifications performed 2026-06-11: HTTP CSP headers of raw.githubusercontent.com and
+camo.githubusercontent.com; SVG asset contents of vite.dev (`vite-dark.svg`, `logo.svg`) and
+bun.sh (`logo.svg`); absence of `gh-dark-mode-only` in current GitHub writing docs; GitHub
+license API for vercel/geist-font and rsms/inter (`spdx_id: OFL-1.1`).*
