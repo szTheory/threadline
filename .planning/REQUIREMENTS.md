@@ -44,9 +44,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **BOOK-01**: User can use a full asset family regenerated from the tournament winner in `brandbook/`: `logo-primary.svg`, `logo-primary-light.svg`, `logo-mark.svg`, `logo-monochrome.svg`, `favicon.svg`, `social-card.svg`, plus `logo-primary-subtitle.svg` (and `logo-wordmark.svg` if the winner has a separable wordmark) — all pure-path SVGs.
 - [x] **BOOK-02**: The primary lockup in `brandbook/` carries no subtitle; "FOLLOW WHAT HAPPENED" appears only in the `-subtitle` variant and social card.
-- [ ] **BOOK-03**: User can open `brandbook/index.html` directly from disk as a standalone professional brand book — identity story, logo system (clear-space, minimum size, misuse gallery), color, typography, voice/microcopy, application examples — with zero external network requests.
+- [x] **BOOK-03**: User can open `brandbook/index.html` directly from disk as a standalone professional brand book — identity story, logo system (clear-space, minimum size, misuse gallery), color, typography, voice/microcopy, application examples — with zero external network requests.
 - [ ] **BOOK-04**: Every REWORK/ADD item from AUD-01 is either resolved in the new brand book or explicitly descoped with a recorded reason.
-- [ ] **BOOK-05**: The misuse gallery documents the killed antipatterns: background chips, icon-bolted-beside-plain-text, and subtitle-in-primary.
+- [x] **BOOK-05**: The misuse gallery documents the killed antipatterns: background chips, icon-bolted-beside-plain-text, and subtitle-in-primary.
 - [ ] **BOOK-06**: `brandbook/` stays text/SVG/HTML/CSS/JSON-only at ≤ ~300KB total, with no committed binaries; tokens/`brand-book.md` updated only if the winner motivated palette/typography changes.
 - [ ] **BOOK-07**: `pressure-test.md` is rerun against the new system and its scorecard meets or beats the AUD-01 baseline.
 
@@ -106,9 +106,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOGO-05 | Phase 161 | Complete |
 | BOOK-01 | Phase 162 | Complete |
 | BOOK-02 | Phase 162 | Complete |
-| BOOK-03 | Phase 162 | Pending |
+| BOOK-03 | Phase 162 | Complete |
 | BOOK-04 | Phase 162 | Pending |
-| BOOK-05 | Phase 162 | Pending |
+| BOOK-05 | Phase 162 | Complete |
 | BOOK-06 | Phase 162 | Pending |
 | BOOK-07 | Phase 162 | Pending |
 | ROLL-01 | Phase 163 | Pending (optional) |

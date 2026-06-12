@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
 status: executing
-last_updated: "2026-06-12T16:00:06.204Z"
+last_updated: "2026-06-12T16:24:00.887Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 60
 ---
 
@@ -25,11 +25,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-11)
 ## Current Position
 
 Phase: 162 (brand-book-v2) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-12
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [████████░░] 78%
 | Phase 159 P03 | 9min | 2 tasks | 1 files |
 | Phase 161 P01 | 68min | 4 tasks | 29 files |
 | Phase 162 P01 | 17min | 3 tasks | 16 files |
+| Phase 162 P02 | 16min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,9 @@ Progress: [████████░░] 78%
 - [Phase ?]: 162-01: Stitch arc stays #4781E6 on dark and light; #4F8CFF remains UI accent; #4781E6 recorded as additive stitch-blue raw token in plan 02
 - [Phase ?]: 162-01: favicon uses Ink #0F1728 default strokes with internal prefers-color-scheme dark flip to Fog #D7DEEA (standalone equivalent of C13 currentColor design)
 - [Phase ?]: 162-01: tagline outlined at 0.24em (240-unit) tracking, justified to wordmark ink edges; examples pruned to readme-header + docs-page
+- [Phase ?]: 162-02: Brand book clear space = half cap height for lockups, quarter-size for mark/favicon; minimums 120px lockups / 180px subtitle / 16px mark+favicon (wordmark legibility governs)
+- [Phase ?]: 162-02: Stitch Blue #4781E6 added additively to tokens (raw stitch-blue + semantic logo-arc, both lanes); #4F8CFF stays the interface accent; operator-surface values untouched
+- [Phase ?]: 162-02: Misuse specimens live only as inline SVG in index.html; index.html inlines all 8 assets via shared pure-path defs; zero network under file://
 
 ### Blockers
 
