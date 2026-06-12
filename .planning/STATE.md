@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Unified Logo & Brand Book v2
-status: executing
-last_updated: "2026-06-12T01:06:11.990Z"
+status: verifying
+last_updated: "2026-06-12T01:14:41.178Z"
 last_activity: 2026-06-12
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 20
+  completed_plans: 4
+  percent: 40
 ---
 
 # Project State: Threadline
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 Phase: 159 (brand-audit-and-research) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-12
 
-Progress: [████████░░] 75%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 75%
 | Phase 144 P04 | 15min | 3 tasks | 8 files |
 | Phase 160 P01 | 45min | 4 tasks | 10 files |
 | Phase 159 P02 | 35min | 3 tasks | 1 files |
+| Phase 159 P03 | 9min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,8 @@ Progress: [████████░░] 75%
 - [Phase 160]: Phase scripts reuse existing installs via module.createRequire anchored at the owning dir (fontkit via NODE_PATH, Playwright via e2e dir)
 - [Phase 159]: 159-02: GitHub SVG sandbox verified empirically (default-src 'none'; style-src 'unsafe-inline'; sandbox) — pure-path SVGs are the only portable wordmark form; inline-CSS adaptive SVGs (Zig pattern) viable
 - [Phase 159]: 159-02: Six technique names locked as Phase 161 motif vocabulary; gradient-dependence and gimmick-dependence (moz://a) named as paired antipatterns
+- [Phase 159-03]: Motif distinctness defined at the (technique, letterform hook) pair level — 8 candidates need 8 distinct pairs; no technique repeats within a lane
+- [Phase 159-03]: GAP-09/UP-08 raster export descoped to SOCIAL-PNG-01 (future); trademark descoped to human review; all other audit items routed to LOGO-*/TOUR-*/BOOK-* requirements
 
 ### Blockers
 
@@ -140,10 +143,10 @@ Progress: [████████░░] 75%
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Created v1.35 roadmap — phases 159–163, 28/28 requirements mapped, traceability updated (2026-06-11)
-- **Next Step**: Plan Phase 159 with `/gsd-plan-phase 159` (Phase 160 can be planned in parallel)
-- **Resume file**: `.planning/ROADMAP.md`
+- **Last Action**: Completed 159-03-PLAN.md — DESIGN-BRIEF.md round-1 generation contract + 30-row audit traceability; Phase 159 complete, RES-04 satisfied (2026-06-12)
+- **Next Step**: Verify Phase 159, then plan Phase 161 (`logo-tournament`) — both dependencies (159, 160) are complete
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- Plan Phase 159 (`brand-audit-and-research`) with /gsd-plan-phase 159; Phase 160 (`glyph-outline-pipeline`) has no dependency on 159 and can run in parallel.
+- Phase 159 (`brand-audit-and-research`) execution complete (3/3 plans); run phase verification, then plan Phase 161 (`logo-tournament`) — Phases 159 and 160 are both done.

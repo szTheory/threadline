@@ -22,7 +22,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 
 | Phase | Name | Requirements | Status |
 |---|---|---|---|
-| 159 | 2/3 | In Progress|  |
+| 159 | 3/3 | Complete   | 2026-06-12 |
 | 160 | 1/1 | Complete   | 2026-06-12 |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Not started |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
@@ -52,7 +52,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 Plans:
 - [x] 159-01-PLAN.md — Brandbook pressure-test audit: 14 sections + verdicts, 15-dimension scorecard, 8-surface stress-test matrix → `159-AUDIT.md` (wave 1)
 - [x] 159-02-PLAN.md — External devtools/OSS identity research: ≥8 cited case studies, typemark technique menu, numeric 16px/monochrome thresholds, surface constraints, OFL typefaces → `159-RESEARCH.md` (wave 1, parallel)
-- [ ] 159-03-PLAN.md — Convergence: round-1 generation contract + REWORK/ADD traceability routing → `159-DESIGN-BRIEF.md` (wave 2)
+- [x] 159-03-PLAN.md — Convergence: round-1 generation contract + REWORK/ADD traceability routing → `159-DESIGN-BRIEF.md` (wave 2)
 
 ### Phase 160: glyph-outline-pipeline
 **Goal**: A reproducible text-to-outline pipeline so every logo SVG is pure paths with real font-shaping kerning — portable everywhere, no font dependency.

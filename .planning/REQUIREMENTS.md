@@ -17,7 +17,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **RES-01**: User can read ≥8 devtools/OSS identity case studies (with sources) covering mark/type relationship, favicon survival, and dark/light strategy — including at least one failure case.
 - [x] **RES-02**: User can read an integrated-typemark technique catalog (negative space, stroke continuation, counter replacement, ligature, continuous line) extracted as a reusable menu for candidate generation.
 - [x] **RES-03**: User can read numeric small-size legibility thresholds (16px favicon stroke/detail floors) and monochrome/gradient-dependence rules stated as testable constraints, not adjectives.
-- [ ] **RES-04**: User can read a `DESIGN-BRIEF.md` that synthesizes audit + research into the round-1 generation contract: motif rules, hard constraints (no subtitle in primary, no container chips, must survive 16px and one color), degrees of freedom (OFL-safe typeface and palette exploration), and the four archetype lanes.
+- [x] **RES-04**: User can read a `DESIGN-BRIEF.md` that synthesizes audit + research into the round-1 generation contract: motif rules, hard constraints (no subtitle in primary, no container chips, must survive 16px and one color), degrees of freedom (OFL-safe typeface and palette exploration), and the four archetype lanes.
 
 ### Glyph Outline Pipeline
 
@@ -91,7 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RES-01 | Phase 159 | Complete |
 | RES-02 | Phase 159 | Complete |
 | RES-03 | Phase 159 | Complete |
-| RES-04 | Phase 159 | Pending |
+| RES-04 | Phase 159 | Complete |
 | GLYPH-01 | Phase 160 | Complete |
 | GLYPH-02 | Phase 160 | Complete |
 | GLYPH-03 | Phase 160 | Complete |
