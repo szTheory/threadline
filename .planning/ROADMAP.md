@@ -93,7 +93,12 @@ Plans:
   3. User can open `brandbook/index.html` directly from disk as a standalone professional brand book — identity story, logo system with clear-space/minimum-size/misuse gallery, color, typography, voice/microcopy, application examples — with zero external network requests.
   4. The misuse gallery documents the killed antipatterns (background chips, icon-bolted-beside-plain-text, subtitle-in-primary), and every AUD-01 REWORK/ADD item is resolved or explicitly descoped with a recorded reason.
   5. `brandbook/` stays text/SVG/HTML/CSS/JSON-only at ≤ ~300KB with no committed binaries, and the rerun `pressure-test.md` scorecard meets or beats the Phase 159 baseline.
-**Plans**: TBD (closes with gsd-verify-work UAT — second hard human gate)
+**Plans**: 3 plans (waves: 01 → 02 → 03; closes with gsd-verify-work UAT — second hard human gate)
+
+Plans:
+- [ ] 162-01-PLAN.md — Asset family: regenerate the full C13 topstitch family into brandbook/ (8 SVGs + examples refresh/prune) gated by a phase-dir brand-gate (wave 1)
+- [ ] 162-02-PLAN.md — index.html rebuilt as a standalone professional brand book with inline misuse gallery; brand-book.md/README/tokens settled as truth (wave 2)
+- [ ] 162-03-PLAN.md — Audit backlog closure ledger, pressure-test.md rerun ≥ 79/150 row-for-row, evidence capture, requirements metadata (wave 3)
 
 ### Phase 163: product-logo-rollout (OPTIONAL)
 **Goal**: If the user opts in at the end-of-milestone checkpoint with the winner in hand, the new identity rolls into product surfaces; if declined, the requirements seed a future milestone.
