@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.35
-milestone_name: Unified Logo & Brand Book v2
-status: Awaiting next milestone
-last_updated: "2026-06-12T21:51:54.643Z"
-last_activity: 2026-06-12 — Milestone v1.35 completed and archived
+milestone: v1.36
+milestone_name: Operator Surface Light Mode
+status: planning
+last_updated: "2026-06-12T21:55:52.396Z"
+last_activity: 2026-06-12
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 ## Current Position
 
-Phase: Milestone v1.35 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-12 — Milestone v1.35 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-12 — Milestone v1.36 started
 
 ## Performance Metrics
 

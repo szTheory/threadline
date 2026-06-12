@@ -10,7 +10,20 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is between milestones. v1.35 shipped the tournament-selected C13 "topstitch-geist" identity, the rebuilt standalone brand book (with imagery section and dark/light preview toggle), the product rollout, and the approved light-mode strategy. The next milestone is seeded: v1.36 Operator Surface Light Mode (SEED-004).
+Threadline is working milestone v1.36 Operator Surface Light Mode: implementing the approved light-mode strategy (decision [165-01]) — dark stays the default and the brand; light/system become host-configurable via a pure-CSS token lane.
+
+## Current Milestone: v1.36 Operator Surface Light Mode
+
+**Goal:** Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :light | :system` host config on `threadline_operator_surface/2`, default `:dark`, rendered server-side as a `data-tl-theme` attribute driving a pure-CSS light token lane — zero JS, zero FOUC, CSP-proof, designed-not-recolored.
+
+**Target features:**
+- Theme mechanism + host API: compile-validated `theme:` mount option; `data-tl-theme` on the LiveView roots; scoped `color-scheme`; `:system` via scoped `prefers-color-scheme`
+- Light token lane: all 45 color-bearing `--tl-*` tokens (19 seeded from the brand light lane, 26 designed — status tints are the keystone decision); the stray hardcoded rgba (style.ex shell-nav inset) tokenized
+- Component retune: ~9 dark-effect families (glass chrome, drawer scrim/shadow, focus glow, home-card effects) + explicit light review of data-viz-adjacent surfaces (coverage/timeline/diff — the Grafana lesson)
+- Accessibility: AA contrast mirror test for the light lane (alpha-aware token parsing); focus-visible per mode
+- Verification + docs: `__light__` screenshot baseline lane (local-only), example app demonstrating `theme: :system`, operator-surface guide + adoption docs; brand book UI-theming posture note + tokens.json 45-token parity
+
+**Key context:** The opening wave MUST amend `style.ex` and `style_contract_test.exs` in the SAME wave (source-first convention) — the seven `prefers-color-scheme`/`color-scheme: light` test refutes become theme-aware assertions; the `theme-toggle` ban is RETAINED (no runtime toggle in v1; documented cookie-based upgrade path only). Seed: `.planning/seeds/SEED-004-operator-surface-light-mode.md`; full recommendation: `.planning/milestones/v1.35-phases/165-light-mode-strategy/165-LIGHT-MODE-RECOMMENDATION.md`; change-surface map with file:line citations: `165-RESEARCH-SURFACE.md` (same dir). The user's separate uncommitted nav-overhaul lane (~29 files under lib//examples//test/) must never be staged or touched.
 
 ## Latest Milestone Shipped: v1.35 Unified Logo & Brand Book v2 (2026-06-12)
 
@@ -582,4 +595,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-12 after v1.35 milestone close*
+*Last updated: 2026-06-12 after v1.36 milestone open*
