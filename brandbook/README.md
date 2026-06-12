@@ -7,7 +7,8 @@ Open `index.html` directly in a browser to review the visual brandbook. The Mark
 - `brand-book.md` is the source-of-truth brand guide.
 - `pressure-test.md` is the brand QA and readiness guide.
 - `tokens.json` and `tokens.css` are implementation tokens for docs, marketing, and static examples.
-- `logo-*.svg`, `favicon.svg`, `social-card.svg`, and `examples/*.svg` are editable vector assets. Use `logo-primary.svg` on dark surfaces and `logo-primary-light.svg` on README/GitHub/light documentation surfaces.
+- The logo family is eight pure-path SVGs (no live text, no font dependencies): `logo-primary.svg` (dark surfaces), `logo-primary-light.svg` (README/GitHub/light docs), `logo-wordmark.svg` (wordmark only, currentColor), `logo-monochrome.svg` (one paint value), `logo-mark.svg` (the extractable stitch), `favicon.svg` (designed at 16px, no container chip), `logo-primary-subtitle.svg` (the only tagline lockup), and `social-card.svg` (1280x640 link preview).
+- `examples/readme-header.svg` and `examples/docs-page.svg` are the application specimens.
 
 ## Maintenance Rules
 
@@ -21,7 +22,7 @@ Open `index.html` directly in a browser to review the visual brandbook. The Mark
 
 - Positioning: "Audit history for Phoenix, Ecto, and PostgreSQL."
 - Tagline: "Follow what happened."
-- Logo system: horizontal wordmark plus simple continuous-line mark, with separate dark-surface and light-surface primary lockups.
+- Logo system: an integrated typemark — the wordmark in Geist 600 outlines with the `d`/`l` ascenders cut at a fabric line and joined by a single stitch arc. The stitch alone is the mark and the favicon. Separate, individually designed dark-surface and light-surface primaries.
 - Visual metaphor: a connected evidence path, not a generic node graph.
-- Palette: dark infrastructure neutrals with Thread Blue and Signal Cyan used as functional signals.
+- Palette: dark infrastructure neutrals with Thread Blue and Signal Cyan used as functional signals; Stitch Blue `#4781E6` is reserved for the logo arc.
 - Voice: calm senior engineer, exact about what Threadline does and does not do.

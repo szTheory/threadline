@@ -175,26 +175,57 @@ Avoid:
 
 ## Logo System
 
-Recommended system:
+The identity is one drawing. The word "threadline" is set in Geist 600 and converted to pure vector paths; the adjacent `d` and `l` ascenders are cut at a shared fabric line, and a single stitch of thread — one arc whose stroke width equals the measured stem width — rises out of one stem and dives back into the other. One line connecting discrete points into an intelligible path. The stitch alone is the extractable mark and the favicon.
 
-- Primary dark: horizontal wordmark with a continuous-line mark for dark infrastructure surfaces.
-- Primary light: horizontal wordmark with a continuous-line mark for README, GitHub, HexDocs, and light documentation surfaces.
-- Secondary: icon-only line mark.
-- Monochrome: one-color version for small print, engraving, and constrained surfaces.
-- Favicon: compact mark inside a dark rounded square.
+Every asset is pure paths: zero live text, zero font dependencies. The mark renders identically on GitHub, HexDocs, and anywhere else SVG renders.
 
-Do not add a mascot. Do not create a complex abstract symbol. The concept is strong enough as a line-based mark.
+Family roster and surface assignments:
 
-Minimum size:
+- `logo-primary.svg`: the primary lockup for dark surfaces. Fog `#D7DEEA` glyphs, Stitch Blue `#4781E6` arc. Product, slides, social.
+- `logo-primary-light.svg`: the designed light rendition — Ink `#0F1728` glyphs from the light token lane, not a recolor of the dark asset; Stitch Blue arc. README, GitHub, HexDocs, light docs.
+- `logo-wordmark.svg`: the wordmark alone with intact ascenders and no arc; currentColor for inline adaptive use. Running text and constrained headers.
+- `logo-monochrome.svg`: the one-color master — exactly one paint value (currentColor), arc included. Print, engraving, single-color surfaces.
+- `logo-mark.svg`: the extractable stitch at a 64px canvas — blue arc, currentColor stems and fabric; the fabric line paints last so the thread disappears behind it at the crossings. Avatars, docs sidebars, small UI.
+- `favicon.svg`: designed at a 16px canvas — one stitch through the fabric line, two strokes, no container chip. An internal `prefers-color-scheme` style flips its ink between Ink and Fog with the browser chrome. Browser tabs.
+- `logo-primary-subtitle.svg`: the only lockup carrying the tagline, as outlined IBM Plex Mono 500 caps justified to the wordmark's ink edges. Large deliberate surfaces only.
+- `social-card.svg`: the 1280x640 link preview. Its dark canvas is the single sanctioned full-bleed background in the family.
 
-- Primary logo: 160px wide on screen.
-- Mark: 24px square on screen.
-- Favicon: 16px square minimum, but prefer 32px or larger.
+In prose the tagline is sentence case — "Follow what happened." The capitalized rendition exists only inside `logo-primary-subtitle.svg` and `social-card.svg`.
+
+Do not add a mascot. Do not create a complex abstract symbol. The stitch is the mark.
 
 Clearspace:
 
-- Keep at least one mark diameter around the logo.
+- Lockups: keep clear space equal to half the wordmark's cap height on every side — 31% of the rendered height for the primary (a 32px-tall render keeps 10px clear).
+- Mark and favicon: keep one quarter of the rendered size clear on every side (a 16px favicon context keeps 4px clear).
 - Do not place the mark directly inside dense copy or against busy imagery.
+
+Minimum sizes (wordmark legibility governs; the arc stroke renders at 11% of the lockup height and survives far smaller):
+
+- `logo-primary.svg`, `logo-primary-light.svg`, `logo-monochrome.svg`, `logo-wordmark.svg`: 120px wide on screen (≈26px tall). Below 120px, switch to the mark.
+- `logo-primary-subtitle.svg`: 180px wide (≈48px tall), where the tagline caps hold ≈7px. Below that, use the primary.
+- `logo-mark.svg`: 16px square minimum; prefer 24px or larger.
+- `favicon.svg`: designed at 16px and never rendered smaller.
+
+Small-size thresholds (testable numbers for the favicon, the mark, and any future small cut):
+
+- Stroke weight at a 16px canvas: at least 1.5px target; 1.0px absolute floor.
+- Gaps and counters: at least 1.0px at 16px; at least 1.5px around modifier elements.
+- At most 4 distinct strokes or elements at 16px; the silhouette must identify first.
+- Design at 16px; never shrink larger art down. `favicon.svg` is the 16px artifact.
+
+Dark/light strategy:
+
+- Every light-surface rendition is designed, never recolored from dark.
+- The stitch arc keeps Stitch Blue `#4781E6` on both surfaces: 5.0:1 against Threadline Black, 3.78:1 on white — above the 3:1 graphics floor.
+- On GitHub, serve both primaries with the `<picture>` element so each reader gets the asset designed for their theme:
+
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brandbook/logo-primary.svg">
+  <img alt="Threadline" src="brandbook/logo-primary-light.svg" width="420">
+</picture>
+```
 
 Usage:
 
@@ -203,12 +234,15 @@ Usage:
 - Use the mark for favicon, avatar, docs sidebar, and small UI contexts.
 - Use monochrome for stickers, print, and single-color contexts.
 
-Misuse:
+Misuse (each of these is rendered as a visual "don't" in `index.html`):
 
-- Do not rotate the mark.
-- Do not replace the line with a chain, rope, or cable.
-- Do not put the mark inside a shield.
-- Do not add glow unless the surface already uses the dark signal-line system.
+- Do not place the mark inside a container chip, plate, or badge. The stitch sits directly on the surface; the fabric line is its own ground.
+- Do not set the mark beside the name in plain type. The wordmark and stitch are one drawing — use `logo-primary.svg`.
+- Do not attach the tagline to the primary, and do not run the subtitle lockup below 180px wide. The tagline lives in `logo-primary-subtitle.svg` alone.
+- Do not make the mark depend on gradients or glows. It must survive flat one-color reproduction; `logo-monochrome.svg` is the proof.
+- Do not stretch, squash, or rotate. The lockup aspect is fixed at 4.56:1.
+- Do not recolor. Glyphs are Fog on dark or Ink on light; the arc is Stitch Blue `#4781E6` — or the entire mark is one color via the monochrome master.
+- Do not rotate the mark, replace the line with a chain, rope, or cable, or put the mark inside a shield.
 - Do not use gradients as soft blobs behind the logo.
 
 ## Color System
@@ -233,9 +267,12 @@ Core light colors:
 Signature accents:
 
 - Thread Blue `#4F8CFF`: primary links, active states, primary CTA, selected path.
+- Stitch Blue `#4781E6`: the logo arc's ink on every surface, dark and light. Tokens: `--tl-color-stitch-blue` (raw) and `--tl-color-logo-arc` (semantic, both lanes).
 - Signal Cyan `#4EDFD1`: correlation, live trace, connected flow, positive movement.
 - Iris `#8A7CFF`: sparing depth accent, charts, premium moments.
 - Ember `#FF8A5B`: warm contrast for emphasis and diff attention, not default warning text.
+
+Two blues, two jobs: Stitch Blue belongs to the mark and Thread Blue belongs to the interface. The stitch arc is `#4781E6` everywhere the logo appears (5.0:1 against Threadline Black, 3.78:1 on white — above the 3:1 graphics floor), while `#4F8CFF` carries links, focus, and selection in product UI. The operator-surface token values are unchanged; the stitch blue is an additive token. Neither blue substitutes for the other, in either direction.
 
 Semantic colors:
 

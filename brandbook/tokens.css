@@ -50,6 +50,7 @@
   --tl-color-ink: #0F1728;
   --tl-color-thread-blue: #4F8CFF;
   --tl-color-thread-blue-strong: #6FA1FF;
+  --tl-color-stitch-blue: #4781E6;
   --tl-color-signal-cyan: #4EDFD1;
   --tl-color-iris: #8A7CFF;
   --tl-color-ember: #FF8A5B;
@@ -93,6 +94,7 @@
   --tl-color-accent: #4F8CFF;
   --tl-color-accent-strong: #6FA1FF;
   --tl-color-on-accent: #08101F;
+  --tl-color-logo-arc: #4781E6;
   --tl-color-signal: #4EDFD1;
   --tl-color-success-text: #5AE0A2;
   --tl-color-warning-text: #FFD166;
@@ -127,6 +129,7 @@
   --tl-color-accent: #1557C0;
   --tl-color-accent-strong: #0E459B;
   --tl-color-on-accent: #FFFFFF;
+  --tl-color-logo-arc: #4781E6;
   --tl-color-signal: #0F8F85;
   --tl-color-success-text: #136C47;
   --tl-color-warning-text: #7A5400;
