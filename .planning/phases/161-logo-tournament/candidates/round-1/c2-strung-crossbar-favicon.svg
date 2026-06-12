@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C2 favicon: the Th ligature itself — T and h capped by one shared crossbar.
+       Designed at 16px. -->
+  <path data-glyph="Th" fill="none" stroke="currentColor" stroke-width="1.8" d="M 0.9 3 H 15.1 M 4.2 3 V 14.4 M 10.4 3 V 14.4 M 10.4 10.2 Q 13.7 7.4 13.7 10.9 V 14.4"/>
+</svg>

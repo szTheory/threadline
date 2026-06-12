@@ -128,9 +128,12 @@ for (const file of files) {
       if (!glyph && role !== "mark") untagged = true;
       const d = attr(p, "d");
       if (!d) continue;
+      // Stroke-only paths (fill="none") cannot be background plates; the plate
+      // heuristic applies to filled geometry. The literal <rect> ban above is absolute.
+      if (attr(p, "fill") === "none") continue;
       const bb = pathBBox(d);
       if (!bb) continue;
-      // Heuristic: a single path covering >=85% of BOTH viewBox dimensions is a plate.
+      // Heuristic: a single filled path covering >=85% of BOTH viewBox dimensions is a plate.
       if (vbW > 0 && vbH > 0 && (bb.maxX - bb.minX) >= 0.85 * vbW && (bb.maxY - bb.minY) >= 0.85 * vbH) {
         plate = true;
       }
