@@ -52,12 +52,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Brand Book Completeness (UAT extension, 2026-06-12)
 
-- [ ] **IMG-01**: User can see a visual Imagery section in `brandbook/index.html` demonstrating the brand-book.md "Imagery And Diagrams" guidance — 3-4 inline-SVG acceptable specimens with usage captions plus a banned-imagery "don't" strip — passing the brand-gate, zero-network, and size-budget gates.
+- [x] **IMG-01**: User can see a visual Imagery section in `brandbook/index.html` demonstrating the brand-book.md "Imagery And Diagrams" guidance — 3-4 inline-SVG acceptable specimens with usage captions plus a banned-imagery "don't" strip — passing the brand-gate, zero-network, and size-budget gates.
 
 ### Light Mode Strategy (UAT extension, 2026-06-12)
 
-- [ ] **LIGHT-01**: User can read a cited research packet covering Phoenix/LiveView ecosystem theming idioms, cross-ecosystem dark/light lessons (defaults, semantic tokens, footguns, accessibility), and Threadline's exact change surface (style.ex `--tl-*` seam, contract-test bans, brandbook light token lane, decision [136-01] unfreeze procedure).
-- [ ] **LIGHT-02**: User can read ONE coherent light-mode recommendation (default posture, mechanism, host API shape, token architecture, scope, v1.36 phase breakdown) and their explicit approve/adjust/defer decision is recorded at a checkpoint — no UI implementation in v1.35.
+- [x] **LIGHT-01**: User can read a cited research packet covering Phoenix/LiveView ecosystem theming idioms, cross-ecosystem dark/light lessons (defaults, semantic tokens, footguns, accessibility), and Threadline's exact change surface (style.ex `--tl-*` seam, contract-test bans, brandbook light token lane, decision [136-01] unfreeze procedure).
+- [x] **LIGHT-02**: User can read ONE coherent light-mode recommendation (default posture, mechanism, host API shape, token architecture, scope, v1.36 phase breakdown) and their explicit approve/adjust/defer decision is recorded at a checkpoint — no UI implementation in v1.35.
 
 ### Product Rollout (optional — user opts in at end-of-milestone checkpoint)
 
@@ -123,9 +123,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROLL-01 | Phase 163 | Pending (optional) |
 | ROLL-02 | Phase 163 | Pending (optional) |
 | ROLL-03 | Phase 163 | Pending (optional) |
-| IMG-01 | Phase 164 | Pending |
-| LIGHT-01 | Phase 165 | Pending |
-| LIGHT-02 | Phase 165 | Pending |
+| IMG-01 | Phase 164 | Complete — pending mini-UAT |
+| LIGHT-01 | Phase 165 | Complete |
+| LIGHT-02 | Phase 165 | Complete |
 
 **Coverage:**
 - v1.35 requirements: 31 total (25 core + 3 UAT-extension + 3 optional rollout)

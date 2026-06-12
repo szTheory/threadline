@@ -26,8 +26,8 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 | 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Complete (2026-06-12) |
 | 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Complete (2026-06-12) |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Complete (2026-06-12) — pending gsd-verify-work UAT |
-| 164 | brand-book-imagery | IMG-01 | Not started |
-| 165 | light-mode-strategy | LIGHT-01, LIGHT-02 | Not started |
+| 164 | 1/1 | Complete   | 2026-06-12 |
+| 165 | light-mode-strategy | LIGHT-01, LIGHT-02 | Complete (2026-06-12) — decision [165-01] approved, v1.36 seeded |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
 
 **Execution order:**
@@ -36,7 +36,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 - [x] **Phase 161: logo-tournament** - 8 round-1 candidates across four archetypes; human checkpoint rounds until the user declares a winner.
 - [ ] **Phase 162: brand-book-v2** - Graduate the winner into the full `brandbook/` asset family and rebuild the standalone brand book.
 - [ ] **Phase 164: brand-book-imagery** - Visualize the brand-book.md "Imagery And Diagrams" guidance inside index.html (UAT gap 2): inline-SVG acceptable-imagery specimens + a don't strip at the misuse-gallery craft bar; mini-UAT.
-- [ ] **Phase 165: light-mode-strategy** - Research → one coherent light-mode recommendation (UAT gap 1): 3 parallel research lanes (Phoenix/LiveView ecosystem, cross-ecosystem lessons, Threadline change surface) → 165-LIGHT-MODE-RECOMMENDATION.md → user decision checkpoint. NO implementation (operator-surface light mode = candidate milestone v1.36; dark-only decision [136-01] unfrozen only by explicit choice).
+- [x] **Phase 165: light-mode-strategy** - Research → one coherent light-mode recommendation (UAT gap 1): 3 parallel research lanes (Phoenix/LiveView ecosystem, cross-ecosystem lessons, Threadline change surface) → 165-LIGHT-MODE-RECOMMENDATION.md → user decision checkpoint. NO implementation (operator-surface light mode = candidate milestone v1.36; dark-only decision [136-01] unfrozen only by explicit choice).
 - [ ] **Phase 163: product-logo-rollout (OPTIONAL)** - User opts in at an end-of-milestone checkpoint with the winner in hand; declining records ROLL-* as a future-milestone seed, not failures.
 
 ## Phase Details
