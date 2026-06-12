@@ -1,0 +1,84 @@
+{
+  "round": 1,
+  "brief": ".planning/phases/159-brand-audit-and-research/159-DESIGN-BRIEF.md",
+  "lane_quota": { "typemark": 3, "lockup": 3, "monogram": 1, "wordmark": 1 },
+  "candidates": [
+    {
+      "id": "C1",
+      "slug": "c1-running-thread",
+      "lane": "typemark",
+      "technique": "Stroke continuation",
+      "hook": "descender-free lowercase run",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "The crossbars of both e's escape their letterforms and run as one thread through the entire word at e-bar height, surfacing as stitch dashes in every gap and counter and passing behind every stem. The e's are structurally pinned to the thread: their bars ARE the thread."
+    },
+    {
+      "id": "C2",
+      "slug": "c2-strung-crossbar",
+      "lane": "typemark",
+      "technique": "Ligature wordmark",
+      "hook": "Th pair",
+      "typeface": "Geist 600 (Phase 160 kit)",
+      "concept": "T and h fused into one glyph by a shared crossbar strung from the T stem to the h stem. The span between the two posts sags under its own weight — a thread strung between two points, drawn with the physics of a real line. The h's ascender terminates at the crossbar's underside; cut the ligature and the h is decapitated."
+    },
+    {
+      "id": "C3",
+      "slug": "c3-pinned-eye",
+      "lane": "typemark",
+      "technique": "Counter replacement",
+      "hook": "e/a/d counters",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "The first e's counter is replaced by a perfect circular eye holding a concentric node — a record pinned in the eye of the needle. The geometric counter against Geist's organic bowls makes the e the focal event of the word."
+    },
+    {
+      "id": "C4",
+      "slug": "c4-knotline",
+      "lane": "lockup",
+      "technique": "Continuous-line mark",
+      "hook": "T crossbar",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "A single uninterrupted thread enters from the left, ties one knot, and becomes the T's crossbar — the mark and the wordmark are literally the same stroke. The T's left arm is the thread's arrival; delete the mark and the T is broken. The knot is the extractable small-slot mark."
+    },
+    {
+      "id": "C5",
+      "slug": "c5-needle-eye",
+      "lane": "lockup",
+      "technique": "Negative space",
+      "hook": "i dot",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "The i's dot becomes the needle's eye: an enlarged node whose thread is drawn entirely in negative space — an unprinted channel enters from the left and terminates in the eye. The line is read in the absence of ink. The node is the extractable mark and the 16px survivor."
+    },
+    {
+      "id": "C6",
+      "slug": "c6-topstitch",
+      "lane": "lockup",
+      "technique": "Stroke continuation",
+      "hook": "double-l verticals (adjacent d/l ascender pair in 'threadline')",
+      "typeface": "Space Grotesk or Sora (OFL alternate, pipeline rerun)",
+      "concept": "The d and l ascenders — the word's twin verticals — are shortened and their strokes escape upward into a single connecting arc: one stitch rising out of the fabric of the word and diving back in. The stitch (two posts + arc) is the extractable mark."
+    },
+    {
+      "id": "C7",
+      "slug": "c7-th-monoline",
+      "lane": "monogram",
+      "technique": "Continuous-line mark",
+      "hook": "Th pair",
+      "typeface": "custom monoline mark + Geist 600 wordmark (Phase 160 kit)",
+      "concept": "A single uninterrupted monoline thread writes 'th' — crossbar, stem, baseline turn, rise, shoulder, post — one stroke with two loose ends. The mark leads; the wordmark accompanies on a shared baseline grid. The monogram is the designated 16px silhouette survivor."
+    },
+    {
+      "id": "C8",
+      "slug": "c8-needle-run",
+      "lane": "wordmark",
+      "technique": "Pattern-through-letterforms",
+      "hook": "descender-free lowercase run",
+      "typeface": "Space Grotesk Medium (OFL alternate, pipeline rerun, lowercase 'threadline')",
+      "concept": "A needle has passed through every vertical stem of the word at one consistent height, leaving a row of punch holes — a repeating pattern through the letterforms. The thread itself is never shown; you see the evidence of its path and follow it. Pure type, no mark."
+    }
+  ],
+  "distinctness": {
+    "pairs_distinct": true,
+    "techniques_twice": ["Stroke continuation (C1 run / C6 double-l)", "Continuous-line mark (C4 T crossbar / C7 Th pair)"],
+    "within_lane_unique": true
+  }
+}
