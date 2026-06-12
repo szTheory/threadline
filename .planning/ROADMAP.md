@@ -24,7 +24,7 @@ Replace the icon-beside-plain-text logo with a unified, tournament-selected logo
 |---|---|---|---|
 | 159 | brand-audit-and-research | AUD-01, AUD-02, RES-01, RES-02, RES-03, RES-04 | Complete (2026-06-12) |
 | 160 | glyph-outline-pipeline | GLYPH-01, GLYPH-02, GLYPH-03 | Complete (2026-06-12) |
-| 161 | logo-tournament | TOUR-01, TOUR-02, TOUR-03, TOUR-04, LOGO-01, LOGO-02, LOGO-03, LOGO-04, LOGO-05 | Not started |
+| 161 | 1/2 | In Progress|  |
 | 162 | brand-book-v2 | BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, BOOK-06, BOOK-07 | Not started |
 | 163 | product-logo-rollout (OPTIONAL) | ROLL-01, ROLL-02, ROLL-03 | Not started — decision-gated |
 
@@ -80,7 +80,7 @@ Plans:
 **Plans**: 2 plans (waves: 01 → 02; 02 is the human-checkpoint tournament loop)
 
 Plans:
-- [ ] 161-01-PLAN.md — Round 1 generation: 8 lane-quota candidates (primary/mono/favicon), mechanical HC-1..6 gate, six-context gallery, ROUNDS.md roster (wave 1, autonomous)
+- [x] 161-01-PLAN.md — Round 1 generation: 8 lane-quota candidates (primary/mono/favicon), mechanical HC-1..6 gate, six-context gallery, ROUNDS.md roster (wave 1, autonomous)
 - [ ] 161-02-PLAN.md — Tournament rounds + winner: orchestrator-run checkpoint loop (verbatim verdicts, feedback-traceable mutations, 4-round cap decision, recorded winner declaration) (wave 2, checkpoints)
 
 ### Phase 162: brand-book-v2

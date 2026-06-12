@@ -27,18 +27,18 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Logo Tournament
 
-- [ ] **TOUR-01**: User sees exactly 8 round-1 concepts spanning the archetype quota (3 integrated typemarks, 3 unified mark+type lockups, 1 monogram/mark-led, 1 wordmark-only), each with a distinct named motif strategy.
+- [x] **TOUR-01**: User sees exactly 8 round-1 concepts spanning the archetype quota (3 integrated typemarks, 3 unified mark+type lockups, 1 monogram/mark-led, 1 wordmark-only), each with a distinct named motif strategy.
 - [ ] **TOUR-02**: User can review every candidate in every round in a self-contained local gallery HTML (file://, zero network) showing six contexts: dark background, light background, monochrome, literal 16px favicon (+4× magnification), 32px, and a simulated GitHub README header.
 - [ ] **TOUR-03**: User's per-candidate feedback is recorded verbatim in `ROUNDS.md` with ADVANCE/KILL/MUTATE tags, and the winner is an explicit user statement captured as checkpoint evidence — never auto-selected.
 - [ ] **TOUR-04**: Each round after the first contains only variations/mutations of user-advanced candidates traceable to recorded feedback (max one user-invited wildcard per round), with a 4-round cap that triggers an explicit decision rather than silent continuation.
 
 ### Logo System Constraints
 
-- [ ] **LOGO-01**: No candidate uses an icon-beside-plain-set-type structure as its primary form — every candidate is an integrated typemark or a lockup where mark and type are demonstrably designed as one unit (shared geometry, tight optical spacing).
-- [ ] **LOGO-02**: No rectangular or rounded-rectangle background container appears behind any mark in any candidate or final asset — marks work directly on the canvas.
-- [ ] **LOGO-03**: The primary lockup contains no subtitle/tagline text; the tagline appears only in a separate `-subtitle` variant.
-- [ ] **LOGO-04**: Every candidate ships with a monochrome single-color rendition from round 1 onward, judged alongside the color version.
-- [ ] **LOGO-05**: Every candidate and final logo SVG is pure outlines/paths with zero `<text>` elements.
+- [x] **LOGO-01**: No candidate uses an icon-beside-plain-set-type structure as its primary form — every candidate is an integrated typemark or a lockup where mark and type are demonstrably designed as one unit (shared geometry, tight optical spacing).
+- [x] **LOGO-02**: No rectangular or rounded-rectangle background container appears behind any mark in any candidate or final asset — marks work directly on the canvas.
+- [x] **LOGO-03**: The primary lockup contains no subtitle/tagline text; the tagline appears only in a separate `-subtitle` variant.
+- [x] **LOGO-04**: Every candidate ships with a monochrome single-color rendition from round 1 onward, judged alongside the color version.
+- [x] **LOGO-05**: Every candidate and final logo SVG is pure outlines/paths with zero `<text>` elements.
 
 ### Brand Book v2
 
@@ -95,15 +95,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GLYPH-01 | Phase 160 | Complete |
 | GLYPH-02 | Phase 160 | Complete |
 | GLYPH-03 | Phase 160 | Complete |
-| TOUR-01 | Phase 161 | Pending |
+| TOUR-01 | Phase 161 | Complete |
 | TOUR-02 | Phase 161 | Pending |
 | TOUR-03 | Phase 161 | Pending |
 | TOUR-04 | Phase 161 | Pending |
-| LOGO-01 | Phase 161 | Pending |
-| LOGO-02 | Phase 161 | Pending |
-| LOGO-03 | Phase 161 | Pending |
-| LOGO-04 | Phase 161 | Pending |
-| LOGO-05 | Phase 161 | Pending |
+| LOGO-01 | Phase 161 | Complete |
+| LOGO-02 | Phase 161 | Complete |
+| LOGO-03 | Phase 161 | Complete |
+| LOGO-04 | Phase 161 | Complete |
+| LOGO-05 | Phase 161 | Complete |
 | BOOK-01 | Phase 162 | Pending |
 | BOOK-02 | Phase 162 | Pending |
 | BOOK-03 | Phase 162 | Pending |
