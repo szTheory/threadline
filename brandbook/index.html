@@ -336,6 +336,56 @@
   .thresholds li:first-child { border-top: 0; }
   .thresholds li .dim { color: var(--text-soft); }
 
+  /* --- imagery --------------------------------------------------------------- */
+  .imagery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(440px, 100%), 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .imagery .chip { min-height: 0; padding: 26px 24px; }
+  .imagery .chip svg { width: 100%; height: auto; }
+
+  .flow { position: relative; width: 100%; }
+  .flow .lbl {
+    position: absolute;
+    transform: translate(0, calc(-100% - 6px));
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--steel);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .banned {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 12px;
+    margin: 28px 0 0;
+  }
+  .banned .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .banned .cell svg { width: 52px; height: 52px; display: block; }
+  .banned .cell span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--danger-text);
+    text-align: center;
+    line-height: 1.5;
+  }
+
   /* --- color ---------------------------------------------------------------- */
   .swatch-group { margin: 36px 0 0; }
   .swatch-group h4 {
@@ -583,10 +633,11 @@
       <a href="#identity"><span class="n">01</span> Identity</a>
       <a href="#logo"><span class="n">02</span> Logo system</a>
       <a href="#misuse"><span class="n">03</span> Misuse</a>
-      <a href="#color"><span class="n">04</span> Color</a>
-      <a href="#typography"><span class="n">05</span> Typography</a>
-      <a href="#voice"><span class="n">06</span> Voice &amp; microcopy</a>
-      <a href="#applications"><span class="n">07</span> Applications</a>
+      <a href="#imagery"><span class="n">04</span> Imagery</a>
+      <a href="#color"><span class="n">05</span> Color</a>
+      <a href="#typography"><span class="n">06</span> Typography</a>
+      <a href="#voice"><span class="n">07</span> Voice &amp; microcopy</a>
+      <a href="#applications"><span class="n">08</span> Applications</a>
     </nav>
   </header>
 
@@ -926,8 +977,216 @@
     </section>
 
     <!-- ============================================================ 04 -->
+    <section id="imagery">
+      <p class="kicker"><span class="n">04</span>Imagery</p>
+      <h2>Lines, not lock icons.</h2>
+      <p class="lede">Imagery speaks the language of the mark: lines that connect points into a followable path. Line maps, timelines with depth, contour cross-sections, labeled architecture flows — macro linework in the spirit of stitching and signal traces. The four specimens below are reference drawings; copy them as starting points for real diagrams.</p>
+
+      <div class="imagery">
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg viewBox="0 0 960 380" role="img" aria-label="Evidence path specimen: scattered points with one line connecting five of them into a route">
+              <path d="M 140 84 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 320 64 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 540 104 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 724 64 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 876 120 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 96 196 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 212 330 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 444 322 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 668 300 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 884 304 h 0.01" fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round"/>
+              <path d="M 110 292 C 180 244 262 200 330 212 C 402 224 452 262 524 248 C 600 234 632 148 694 128 C 752 110 826 158 884 176" fill="none" stroke="#4F8CFF" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M 110 292 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 330 212 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 524 248 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 694 128 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 884 176 h 0.01" fill="none" stroke="#4EDFD1" stroke-width="13" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">Evidence path</p>
+            <p class="role">Scattered events, one followable route — the brand idea drawn literally. Use it when the story is finding the line through the noise.</p>
+            <p class="surface">docs hero, README art, social headers</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg viewBox="0 0 960 380" role="img" aria-label="Timeline with depth specimen: a main event rail over transaction and change rails, one event expanded downward through the layers">
+              <path d="M 290 117 V 206" fill="none" stroke="#3B4762" stroke-width="1.5"/>
+              <path d="M 570 117 V 348" fill="none" stroke="#4F8CFF" stroke-width="1.8"/>
+              <path d="M 60 104 H 900" fill="none" stroke="#D7DEEA" stroke-width="2.5"/>
+              <path d="M 60 212 H 900" fill="none" stroke="#3B4762" stroke-width="2"/>
+              <path d="M 60 312 H 900" fill="none" stroke="#23304A" stroke-width="2"/>
+              <path d="M 150 104 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+              <path d="M 290 104 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+              <path d="M 430 104 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+              <path d="M 570 104 h 0.01" fill="none" stroke="#4F8CFF" stroke-width="13" stroke-linecap="round"/>
+              <path d="M 710 104 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+              <path d="M 830 104 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+              <path d="M 290 212 h 0.01" fill="none" stroke="#3B4762" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 570 212 h 0.01" fill="none" stroke="#73819C" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 522 304 V 320" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+              <path d="M 570 304 V 320" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+              <path d="M 618 304 V 320" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">Timeline with depth</p>
+            <p class="role">A narrative rail with the layers beneath one moment — depth rails, not a gantt chart. Use it when the story is exploring what happened.</p>
+            <p class="surface">blog headers, feature pages, changelogs</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-light">
+            <svg viewBox="0 0 960 380" role="img" aria-label="Contour cross-section specimen on a light surface: five strata lines crossed by one vertical probe line with a dot at each intersection">
+              <path d="M 620 44 V 356" fill="none" stroke="#4F8CFF" stroke-width="3" stroke-linecap="round"/>
+              <path d="M 60 84 C 250 66 430 100 620 80 C 740 68 820 94 900 86" fill="none" stroke="#0F1728" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 60 144 C 250 158 430 126 620 150 C 740 164 820 138 900 146" fill="none" stroke="#73819C" stroke-width="2" stroke-linecap="round"/>
+              <path d="M 60 204 C 250 188 430 218 620 200 C 740 188 820 212 900 206" fill="none" stroke="#8F9DB5" stroke-width="2" stroke-linecap="round"/>
+              <path d="M 60 264 C 250 276 430 248 620 270 C 740 282 820 258 900 264" fill="none" stroke="#73819C" stroke-width="2" stroke-linecap="round"/>
+              <path d="M 60 324 C 250 310 430 336 620 320 C 740 308 820 330 900 326" fill="none" stroke="#8F9DB5" stroke-width="2" stroke-linecap="round"/>
+              <path d="M 620 80 h 0.01" fill="none" stroke="#0F1728" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 620 150 h 0.01" fill="none" stroke="#0F1728" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 620 200 h 0.01" fill="none" stroke="#0F1728" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 620 270 h 0.01" fill="none" stroke="#0F1728" stroke-width="9" stroke-linecap="round"/>
+              <path d="M 620 320 h 0.01" fill="none" stroke="#0F1728" stroke-width="9" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">Contour cross-section</p>
+            <p class="role">History as layers, read at one point in time — drawn on Paper because imagery ships into light docs surfaces too.</p>
+            <p class="surface">guides, as-of and retention explainers</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <div class="flow">
+              <svg viewBox="0 0 960 460" role="img" aria-label="System flow specimen: four labeled rails — request, action, transaction, change — with a request emitting an action whose transaction groups three changes">
+                <path d="M 40 80 H 920" fill="none" stroke="#23304A" stroke-width="2"/>
+                <path d="M 40 200 H 920" fill="none" stroke="#23304A" stroke-width="2"/>
+                <path d="M 40 320 H 920" fill="none" stroke="#23304A" stroke-width="2"/>
+                <path d="M 40 420 H 920" fill="none" stroke="#23304A" stroke-width="2"/>
+                <path d="M 380 96 V 180" fill="none" stroke="#73819C" stroke-width="2"/>
+                <path d="M 372 172 L 380 184 L 388 172" fill="none" stroke="#73819C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 380 216 V 300" fill="none" stroke="#73819C" stroke-width="2"/>
+                <path d="M 372 292 L 380 304 L 388 292" fill="none" stroke="#73819C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 380 320 H 820" fill="none" stroke="#D7DEEA" stroke-width="3.5"/>
+                <path d="M 380 310 V 330" fill="none" stroke="#D7DEEA" stroke-width="2.5"/>
+                <path d="M 820 310 V 330" fill="none" stroke="#D7DEEA" stroke-width="2.5"/>
+                <path d="M 480 328 V 410" fill="none" stroke="#3B4762" stroke-width="1.5"/>
+                <path d="M 620 328 V 410" fill="none" stroke="#3B4762" stroke-width="1.5"/>
+                <path d="M 760 328 V 410" fill="none" stroke="#3B4762" stroke-width="1.5"/>
+                <path d="M 480 412 V 428" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 620 412 V 428" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 760 412 V 428" fill="none" stroke="#4EDFD1" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 380 80 h 0.01" fill="none" stroke="#D7DEEA" stroke-width="11" stroke-linecap="round"/>
+                <path d="M 380 200 h 0.01" fill="none" stroke="#4F8CFF" stroke-width="13" stroke-linecap="round"/>
+              </svg>
+              <span class="lbl" style="left:4.2%; top:17.4%">request</span>
+              <span class="lbl" style="left:4.2%; top:43.5%">action</span>
+              <span class="lbl" style="left:4.2%; top:69.6%">transaction</span>
+              <span class="lbl" style="left:4.2%; top:91.3%">change</span>
+            </div>
+          </div>
+          <figcaption class="meta">
+            <p class="file">System flow</p>
+            <p class="role">Layered rails with domain nouns: a request emits an action; the action's transaction groups its changes. Two arrows total — use it to explain the architecture, not to decorate it.</p>
+            <p class="surface">architecture explainers, talks, deep dives</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Diagram rules</h3>
+      <div class="panel thresholds">
+        <p class="note" style="margin:0">Every diagram is built from the same kit. If a panel needs more than this, it is hiding the flow instead of showing it.</p>
+        <ul>
+          <li>Lines, points, labels, and layered rails — nothing else.</li>
+          <li>Domain nouns on the rails: <span class="dim">request, action, transaction, change, evidence, export.</span></li>
+          <li>Arrows are sparse — one per relationship that matters.</li>
+          <li>Actual flow over decorative complexity.</li>
+        </ul>
+      </div>
+
+      <h3>Banned imagery</h3>
+      <p class="note">The visual clichés of the audit and security category never appear — not in docs, not in slides, not in social art. Rendered small here so they are unambiguous.</p>
+      <div class="banned">
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 24 20 A 8 8 0 1 0 40 20 A 8 8 0 1 0 24 20" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 14 52 Q 14 38 32 38 Q 50 38 50 52" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>stock people</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 30 12 L 48 30" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 34 26 L 16 44" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 12 54 H 40" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>courtrooms</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 25 30 V 21 A 7 7 0 0 1 39 21 V 30" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 21 30 H 43 A 3 3 0 0 1 46 33 V 49 A 3 3 0 0 1 43 52 H 21 A 3 3 0 0 1 18 49 V 33 A 3 3 0 0 1 21 30 Z" fill="none" stroke="#73819C" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>locks</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 32 10 L 50 17 V 31 Q 50 47 32 55 Q 14 47 14 31 V 17 Z" fill="none" stroke="#73819C" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>shields</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 8 26 L 56 18" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 8 40 L 56 32" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 18 38 L 22 24" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 30 36 L 34 22" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 42 34 L 46 20" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>police tape</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 22 10 H 42 A 2 2 0 0 1 44 12 V 52 A 2 2 0 0 1 42 54 H 22 A 2 2 0 0 1 20 52 V 12 A 2 2 0 0 1 22 10 Z" fill="none" stroke="#73819C" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M 26 20 H 38" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 26 29 H 38" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 26 38 H 38" fill="none" stroke="#73819C" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 37 47 h 0.01" fill="none" stroke="#73819C" stroke-width="4" stroke-linecap="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>server racks</span>
+        </div>
+        <div class="cell">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M 16 18 L 34 30 M 46 14 L 34 30 M 34 30 L 54 42 M 34 30 L 28 50 M 16 18 L 28 50" fill="none" stroke="#73819C" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 16 18 h 0.01" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 46 14 h 0.01" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 54 42 h 0.01" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 28 50 h 0.01" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 34 30 h 0.01" fill="none" stroke="#73819C" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 12 52 L 52 12" fill="none" stroke="#FF8585" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+          <span>unlabelled graphs</span>
+        </div>
+      </div>
+      <p class="note" style="margin-top:18px">The last one matters most: an unlabelled node graph is the failure mode closest to home. The fix is the diagram rules above — put domain nouns on the rails and it becomes a system flow.</p>
+    </section>
+
+    <!-- ============================================================ 05 -->
     <section id="color">
-      <p class="kicker"><span class="n">04</span>Color</p>
+      <p class="kicker"><span class="n">05</span>Color</p>
       <h2>Night infrastructure with luminous signal lines.</h2>
       <p class="lede">Dark neutrals carry the product and high-signal moments; light surfaces carry docs and print-like material. Color is signal, not decoration — and never the only carrier of meaning.</p>
 
@@ -992,9 +1251,9 @@
       </div>
     </section>
 
-    <!-- ============================================================ 05 -->
+    <!-- ============================================================ 06 -->
     <section id="typography">
-      <p class="kicker"><span class="n">05</span>Typography</p>
+      <p class="kicker"><span class="n">06</span>Typography</p>
       <h2>Geist speaks. Plex Mono measures.</h2>
       <p class="lede">Geist carries prose, headings, and UI. IBM Plex Mono carries everything machine-flavored: code, IDs, table names, diffs, metadata labels. This page names both first in its font stacks and degrades gracefully to system type when they are not installed.</p>
 
@@ -1041,9 +1300,9 @@
       </div>
     </section>
 
-    <!-- ============================================================ 06 -->
+    <!-- ============================================================ 07 -->
     <section id="voice">
-      <p class="kicker"><span class="n">06</span>Voice &amp; microcopy</p>
+      <p class="kicker"><span class="n">07</span>Voice &amp; microcopy</p>
       <h2>A calm senior engineer with strong product taste.</h2>
       <p class="lede">Threadline speaks plainly about what it does. Precise over clever. Plainspoken over buzzwordy. Confident over swaggering. Thoughtful over promotional. Calm over urgent. Technical over salesy.</p>
 
@@ -1107,9 +1366,9 @@
       </div>
     </section>
 
-    <!-- ============================================================ 07 -->
+    <!-- ============================================================ 08 -->
     <section id="applications">
-      <p class="kicker"><span class="n">07</span>Applications</p>
+      <p class="kicker"><span class="n">08</span>Applications</p>
       <h2>The system at work.</h2>
       <p class="lede">Reference specimens for the surfaces that matter most. Each ships as a pure-path SVG alongside this page; the renders below use the same geometry.</p>
 
