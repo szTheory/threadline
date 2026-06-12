@@ -1,481 +1,1173 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Threadline Brandbook</title>
-  <meta name="description" content="Threadline brand system, brand QA guide, design tokens, logo assets, and UI guidance.">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="tokens.css">
-  <style>
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      color: var(--tl-color-text);
-      background:
-        linear-gradient(90deg, rgba(215, 222, 234, 0.045) 1px, transparent 1px) 0 0 / 72px 72px,
-        linear-gradient(180deg, rgba(215, 222, 234, 0.035) 1px, transparent 1px) 0 0 / 72px 72px,
-        var(--tl-color-bg);
-      font-family: var(--tl-font-family);
-      font-size: var(--tl-font-size-body);
-      line-height: var(--tl-line-body);
-      text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: var(--tl-color-accent); text-decoration: none; }
-    a:hover { color: var(--tl-color-accent-strong); text-decoration: underline; }
-    a:focus-visible { outline: none; box-shadow: var(--tl-focus-ring); }
-    img { display: block; max-width: 100%; }
-    code, pre, .mono { font-family: var(--tl-font-mono); }
-    .skip-link {
-      position: absolute;
-      left: var(--tl-space-3);
-      top: -48px;
-      z-index: 10;
-      padding: var(--tl-space-2) var(--tl-space-3);
-      border-radius: var(--tl-radius-md);
-      color: var(--tl-color-on-accent);
-      background: var(--tl-color-accent);
-      font-weight: var(--tl-weight-strong);
-    }
-    .skip-link:focus { top: var(--tl-space-3); }
-    .shell { min-height: 100vh; display: grid; grid-template-columns: 280px minmax(0, 1fr); }
-    .rail {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: auto;
-      padding: var(--tl-space-6);
-      border-right: 1px solid var(--tl-color-border);
-      background: rgba(11, 16, 32, 0.88);
-      backdrop-filter: blur(8px);
-    }
-    .rail-logo { width: 210px; margin-bottom: var(--tl-space-8); }
-    .kicker, .eyebrow {
-      margin: 0 0 var(--tl-space-3);
-      color: var(--tl-color-signal);
-      font-family: var(--tl-font-mono);
-      font-size: var(--tl-font-size-sm);
-      font-weight: var(--tl-weight-medium);
-      letter-spacing: var(--tl-tracking-caps);
-      text-transform: uppercase;
-    }
-    .rail-title {
-      margin: 0 0 var(--tl-space-6);
-      color: var(--tl-color-text);
-      font-size: var(--tl-font-size-heading);
-      line-height: var(--tl-line-heading);
-      font-weight: var(--tl-weight-strong);
-    }
-    .nav { display: grid; gap: var(--tl-space-1); margin-bottom: var(--tl-space-8); }
-    .nav a {
-      padding: var(--tl-space-2) var(--tl-space-3);
-      border-radius: var(--tl-radius-md);
-      color: var(--tl-color-text-muted);
-      font-size: var(--tl-font-size-sm);
-    }
-    .nav a:hover { color: var(--tl-color-text); background: var(--tl-color-surface-hover); text-decoration: none; }
-    .rail-note {
-      padding: var(--tl-space-4);
-      border: 1px solid var(--tl-color-border);
-      border-radius: var(--tl-radius-lg);
-      color: var(--tl-color-text-muted);
-      background: var(--tl-color-surface);
-      font-size: var(--tl-font-size-sm);
-    }
-    .content { min-width: 0; }
-    .hero {
-      position: relative;
-      min-height: 92vh;
-      display: grid;
-      align-items: center;
-      padding: var(--tl-space-20) clamp(var(--tl-space-6), 6vw, 104px) var(--tl-space-16);
-      overflow: hidden;
-      border-bottom: 1px solid var(--tl-color-border);
-    }
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: auto -10vw 0 4vw;
-      height: 42vh;
-      min-height: 280px;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 13% 70%, var(--tl-color-thread-blue) 0 5px, transparent 6px),
-        radial-gradient(circle at 47% 56%, var(--tl-color-signal-cyan) 0 5px, transparent 6px),
-        radial-gradient(circle at 76% 36%, var(--tl-color-iris) 0 5px, transparent 6px),
-        linear-gradient(118deg, transparent 0 12%, rgba(79, 140, 255, 0.9) 12.2% 12.8%, transparent 13% 44%, rgba(78, 223, 209, 0.9) 44.2% 44.8%, transparent 45% 100%);
-      opacity: 0.58;
-      mask-image: linear-gradient(to top, #000 12%, transparent 100%);
-    }
-    .hero-inner { position: relative; width: min(980px, 100%); }
-    h1, h2, h3 { margin: 0; color: var(--tl-color-text); line-height: var(--tl-line-heading); font-weight: var(--tl-weight-strong); letter-spacing: 0; }
-    h1 { max-width: 820px; font-size: clamp(44px, 7vw, 86px); line-height: 1.02; }
-    h2 { font-size: clamp(30px, 4vw, 48px); }
-    h3 { font-size: var(--tl-font-size-heading); }
-    p { margin: 0; }
-    .hero-copy { max-width: 720px; margin-top: var(--tl-space-6); color: var(--tl-color-text-muted); font-size: clamp(18px, 2.2vw, 24px); line-height: 1.42; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: var(--tl-space-3); margin-top: var(--tl-space-8); }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 0 var(--tl-space-5);
-      border-radius: var(--tl-radius-md);
-      border: 1px solid transparent;
-      font-weight: var(--tl-weight-strong);
-    }
-    .button:hover { text-decoration: none; }
-    .button-primary { color: var(--tl-color-on-accent); background: var(--tl-color-accent); }
-    .button-secondary { color: var(--tl-color-text); background: var(--tl-color-surface); border-color: var(--tl-color-border-strong); }
-    .section { padding: var(--tl-space-16) clamp(var(--tl-space-6), 6vw, 104px); border-bottom: 1px solid var(--tl-color-border); }
-    .section-light { color: #0F1728; background: #F7F9FC; border-bottom-color: #C9D3E2; }
-    .section-light h2, .section-light h3 { color: #0F1728; }
-    .section-light .section-intro, .section-light .muted { color: #3B4762; }
-    .section-head { display: grid; gap: var(--tl-space-4); max-width: 900px; margin-bottom: var(--tl-space-8); }
-    .section-intro { max-width: 820px; color: var(--tl-color-text-muted); font-size: 18px; line-height: 1.58; }
-    .grid { display: grid; gap: var(--tl-space-4); }
-    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .panel { border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-lg); background: var(--tl-color-surface); box-shadow: var(--tl-shadow-subtle); }
-    .panel-pad { padding: var(--tl-space-5); }
-    .section-light .panel { border-color: #C9D3E2; background: #FFFFFF; }
-    .panel h3 { margin-bottom: var(--tl-space-3); }
-    .muted { color: var(--tl-color-text-muted); }
-    .meta {
-      color: var(--tl-color-text-soft);
-      font-family: var(--tl-font-mono);
-      font-size: var(--tl-font-size-xs);
-      font-weight: var(--tl-weight-medium);
-      letter-spacing: var(--tl-tracking-caps);
-      text-transform: uppercase;
-    }
-    .verdict { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: var(--tl-space-4); align-items: stretch; }
-    .verdict-main { padding: var(--tl-space-6); border-left: 4px solid var(--tl-color-signal); }
-    .score { display: flex; align-items: baseline; gap: var(--tl-space-2); margin-bottom: var(--tl-space-3); }
-    .score strong { color: var(--tl-color-signal); font-size: 40px; line-height: 1; }
-    .score span { color: var(--tl-color-text-soft); font-family: var(--tl-font-mono); font-size: var(--tl-font-size-xs); letter-spacing: var(--tl-tracking-caps); text-transform: uppercase; }
-    .list { display: grid; gap: var(--tl-space-3); margin: 0; padding: 0; list-style: none; }
-    .list li { position: relative; padding-left: var(--tl-space-5); color: var(--tl-color-text-muted); }
-    .list li::before { content: ""; position: absolute; left: 0; top: .72em; width: 8px; height: 2px; border-radius: 2px; background: var(--tl-color-signal); }
-    .section-light .list li { color: #3B4762; }
-    .section-light .list li::before { background: #1557C0; }
-    .dna-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-lg); background: var(--tl-color-border); }
-    .dna-cell { min-height: 150px; padding: var(--tl-space-5); background: var(--tl-color-surface); }
-    .surface-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid #C9D3E2; border-radius: var(--tl-radius-lg); background: #C9D3E2; }
-    .surface-item { display: grid; gap: var(--tl-space-2); padding: var(--tl-space-4); background: #FFFFFF; }
-    .surface-item strong { color: #0F1728; }
-    .swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--tl-space-3); }
-    .swatch { overflow: hidden; border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-lg); background: var(--tl-color-surface); }
-    .swatch-color { height: 84px; }
-    .swatch-body { padding: var(--tl-space-3); }
-    .swatch-body strong, .swatch-body span { display: block; overflow-wrap: anywhere; }
-    .swatch-body span { margin-top: var(--tl-space-1); color: var(--tl-color-text-soft); font-family: var(--tl-font-mono); font-size: var(--tl-font-size-xs); }
-    .asset-grid, .example-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tl-space-4); }
-    .asset { overflow: hidden; }
-    .asset-preview { display: grid; min-height: 240px; place-items: center; padding: var(--tl-space-5); border-bottom: 1px solid var(--tl-color-border); background: #0B1020; }
-    .asset-preview.light { background: #F7F9FC; border-bottom-color: #C9D3E2; }
-    .asset-body { padding: var(--tl-space-4); }
-    .example-strip img { width: 100%; border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-lg); background: var(--tl-color-surface); }
-    .token-table, .copy-table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: var(--tl-radius-lg); font-size: var(--tl-font-size-sm); }
-    .token-table th, .token-table td, .copy-table th, .copy-table td { padding: var(--tl-space-3); border: 1px solid var(--tl-color-border); text-align: left; vertical-align: top; }
-    .token-table th, .copy-table th { color: var(--tl-color-text); background: var(--tl-color-surface-raised); font-size: var(--tl-font-size-xs); letter-spacing: var(--tl-tracking-caps); text-transform: uppercase; }
-    .token-table td, .copy-table td { color: var(--tl-color-text-muted); background: var(--tl-color-surface); }
-    .section-light .token-table th, .section-light .copy-table th { color: #0F1728; background: #EEF3FA; border-color: #C9D3E2; }
-    .section-light .token-table td, .section-light .copy-table td { color: #3B4762; background: #FFFFFF; border-color: #C9D3E2; }
-    .code-block { overflow: auto; margin: 0; padding: var(--tl-space-5); border: 1px solid var(--tl-code-border); border-radius: var(--tl-radius-lg); color: var(--tl-code-text); background: var(--tl-code-bg); font-size: var(--tl-font-size-sm); line-height: 1.7; }
-    .quote { padding: var(--tl-space-5); border-left: 4px solid var(--tl-color-signal); border-radius: var(--tl-radius-md); background: var(--tl-color-surface); color: var(--tl-color-text); font-size: 20px; line-height: 1.45; }
-    .section-light .quote { color: #0F1728; background: #FFFFFF; border-left-color: #1557C0; }
-    .blueprint { counter-reset: blueprint; display: grid; gap: var(--tl-space-3); margin: 0; padding: 0; list-style: none; }
-    .blueprint li { counter-increment: blueprint; display: grid; grid-template-columns: 42px 1fr; gap: var(--tl-space-3); align-items: start; padding: var(--tl-space-4); border: 1px solid #C9D3E2; border-radius: var(--tl-radius-lg); background: #FFFFFF; color: #3B4762; }
-    .blueprint li::before { content: counter(blueprint); display: grid; width: 32px; height: 32px; place-items: center; border-radius: var(--tl-radius-pill); color: #FFFFFF; background: #1557C0; font-family: var(--tl-font-mono); font-size: var(--tl-font-size-sm); font-weight: var(--tl-weight-medium); }
-    .footer { padding: var(--tl-space-8) clamp(var(--tl-space-6), 6vw, 104px); color: var(--tl-color-text-soft); background: #080D1B; }
-    @media (max-width: 1100px) {
-      .shell { grid-template-columns: 1fr; }
-      .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--tl-color-border); }
-      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .verdict, .grid-2, .grid-3, .asset-grid, .example-strip { grid-template-columns: 1fr; }
-      .grid-4, .dna-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 720px) {
-      .rail { padding: var(--tl-space-5); }
-      .rail-logo { width: 170px; margin-bottom: var(--tl-space-5); }
-      .rail-title { margin-bottom: var(--tl-space-4); font-size: 18px; }
-      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-bottom: 0; }
-      .nav a { padding: 6px var(--tl-space-2); font-size: var(--tl-font-size-xs); }
-      .rail-note { display: none; }
-      .hero, .section { padding-left: var(--tl-space-5); padding-right: var(--tl-space-5); }
-      .grid-4, .dna-grid, .surface-list, .swatches { grid-template-columns: 1fr; }
-      .asset-preview { min-height: 180px; }
-      .hero-actions { align-items: stretch; flex-direction: column; }
-      .button { width: 100%; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Threadline brand book — identity, logo system, color, typography, voice, and application guidance. Self-contained; opens from disk.">
+<title>Threadline Brand Book</title>
+<link rel="icon" href="favicon.svg">
+<style>
+  /* ------------------------------------------------------------------
+     Threadline brand book — self-contained.
+     Token values are copied from tokens.css; no external requests.
+     The page chrome uses system stacks with Geist and IBM Plex Mono
+     named first; every logo render below is pure paths and never
+     depends on a font.
+  ------------------------------------------------------------------ */
+  :root {
+    color-scheme: dark;
+
+    --bg: #0B1020;             /* Threadline Black */
+    --surface: #141B2D;        /* Graphite */
+    --surface-raised: #1B253A;
+    --border: #23304A;         /* Slate Line */
+    --border-strong: #2E3D5C;
+    --text: #D7DEEA;           /* Fog */
+    --text-muted: #A3AFC2;
+    --text-soft: #8F9DB5;
+    --steel: #73819C;
+    --storm: #3B4762;
+
+    --paper: #F7F9FC;
+    --mist: #E7ECF4;
+    --ink: #0F1728;
+
+    --accent: #4F8CFF;         /* Thread Blue — interface accent */
+    --accent-strong: #6FA1FF;
+    --stitch: #4781E6;         /* Stitch Blue — the arc's ink */
+    --signal: #4EDFD1;
+    --iris: #8A7CFF;
+    --ember: #FF8A5B;
+
+    --success-text: #5AE0A2;
+    --warning-text: #FFD166;
+    --danger-text: #FF8585;
+    --info-text: #9AB9FF;
+
+    --code-bg: #080D1B;
+
+    --sans: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-strong); text-decoration: underline; }
+
+  code, pre, .mono { font-family: var(--mono); }
+  code { font-size: 0.92em; color: var(--text); }
+
+  /* --- top bar ----------------------------------------------------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar .ident {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+  }
+  .topbar .ident svg { display: block; }
+  .topbar .label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+
+  /* --- hero --------------------------------------------------------- */
+  .hero { padding: 104px 0 72px; }
+  .hero .hero-lockup {
+    width: min(620px, 100%);
+    height: auto;
+    aspect-ratio: 5194 / 1140;
+    display: block;
+  }
+  .hero .tagline {
+    margin: 44px 0 0;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .hero .lede {
+    margin: 14px 0 0;
+    max-width: 62ch;
+    font-size: 17px;
+    color: var(--text-muted);
+  }
+
+  /* --- table of contents -------------------------------------------- */
+  .toc {
+    margin: 64px 0 0;
+    padding: 28px 0 8px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 4px 32px;
+  }
+  .toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 8px 0;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .toc a:hover { color: var(--accent-strong); text-decoration: none; }
+  .toc .n {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--steel);
+  }
+
+  /* --- sections ------------------------------------------------------ */
+  section { padding: 88px 0 24px; border-top: 1px solid var(--border); }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin: 0 0 14px;
+  }
+  .kicker .n { color: var(--stitch); margin-right: 10px; }
+  h2 {
+    margin: 0 0 16px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  h3 {
+    margin: 56px 0 12px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .lede { max-width: 68ch; color: var(--text-muted); font-size: 17px; }
+  p { max-width: 72ch; }
+  .note { color: var(--text-soft); font-size: 14px; max-width: 72ch; }
+
+  /* --- panels & chips ------------------------------------------------- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+  }
+  .chip {
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    min-height: 120px;
+  }
+  .chip-dark  { background: var(--bg); border: 1px solid var(--border); }
+  .chip-light { background: var(--paper); border: 1px solid var(--mist); }
+
+  /* --- logo family grid ----------------------------------------------- */
+  .family {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .asset {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .asset .chip { border-radius: 0; border: 0; border-bottom: 1px solid var(--border); flex: none; }
+  .asset .chip.chip-light { border-bottom: 1px solid var(--mist); }
+  .asset .meta { padding: 18px 20px 20px; }
+  .asset .file {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .asset .role { font-size: 14px; color: var(--text-muted); margin: 0 0 4px; }
+  .asset .surface {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--steel);
+    margin: 0;
+  }
+
+  /* shared render aspect helpers */
+  .r-lockup   { aspect-ratio: 5194 / 1140; height: auto; }
+  .r-subtitle { aspect-ratio: 5194 / 1390; height: auto; }
+  .r-wordmark { aspect-ratio: 5194 / 851;  height: auto; }
+  .r-sq       { aspect-ratio: 1 / 1; height: auto; }
+  .r-card     { aspect-ratio: 2 / 1; height: auto; }
+  svg { display: block; }
+
+  /* --- clear space / minimums ----------------------------------------- */
+  .figure { margin: 28px 0 0; }
+  .figure figcaption { margin-top: 18px; font-size: 14px; color: var(--text-soft); max-width: 72ch; }
+  .clearspace svg { width: min(680px, 100%); height: auto; margin: 0 auto; }
+
+  .minsizes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .minsizes .chip { min-height: 150px; }
+
+  /* --- dark / light demo ----------------------------------------------- */
+  .duo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .duo .chip { min-height: 150px; }
+
+  pre.snippet {
+    margin: 28px 0 0;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 24px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text);
+    overflow-x: auto;
+  }
+
+  /* The live <picture> demo panel follows the reader's color scheme so the
+     asset the browser selects always sits on its intended surface. */
+  .picture-demo {
+    margin: 20px 0 0;
+    border-radius: 8px;
+    border: 1px solid var(--mist);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 24px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .picture-demo { background: var(--bg); border-color: var(--border); }
+  }
+  .picture-demo img { display: block; max-width: 100%; height: auto; }
+
+  .favrow { display: flex; align-items: flex-end; gap: 28px; }
+  .favrow .cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .favrow .cell span { font-family: var(--mono); font-size: 11px; color: var(--steel); }
+
+  /* --- misuse gallery ---------------------------------------------------- */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .specimen {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .specimen .chip {
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    min-height: 158px;
+    flex: none;
+  }
+  .specimen .verdict {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 18px 20px 6px;
+  }
+  .specimen.dont .verdict { color: var(--danger-text); }
+  .specimen.dont .verdict::before { content: "\2715"; margin-right: 8px; }
+  .specimen.do .verdict { color: var(--success-text); }
+  .specimen.do .verdict::before { content: "\2713"; margin-right: 8px; }
+  .specimen .rule { font-size: 14px; color: var(--text-muted); margin: 0 20px 20px; }
+
+  .thresholds { margin: 28px 0 0; }
+  .thresholds ul { margin: 16px 0 0; padding: 0; list-style: none; }
+  .thresholds li {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text);
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+  }
+  .thresholds li:first-child { border-top: 0; }
+  .thresholds li .dim { color: var(--text-soft); }
+
+  /* --- color ---------------------------------------------------------------- */
+  .swatch-group { margin: 36px 0 0; }
+  .swatch-group h4 {
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--steel);
+  }
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+  }
+  .swatch .well {
+    height: 72px;
+    border-radius: 6px;
+    border: 1px solid rgba(215, 222, 234, 0.08);
+  }
+  .swatch .name { font-size: 13.5px; color: var(--text); margin: 10px 0 0; }
+  .swatch .hex {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-soft);
+    margin: 2px 0 0;
+  }
+
+  /* --- typography ------------------------------------------------------------- */
+  .typo-spec { margin: 28px 0 0; }
+  .typo-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 28px;
+    align-items: baseline;
+    padding: 22px 0;
+    border-top: 1px solid var(--border);
+  }
+  .typo-row:first-child { border-top: 0; padding-top: 0; }
+  .typo-row:last-child { padding-bottom: 0; }
+  .typo-row .use {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--steel);
+    letter-spacing: 0.04em;
+  }
+  .t-display { font-size: 32px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; }
+  .t-heading { font-size: 20px; font-weight: 600; }
+  .t-body    { font-size: 16px; color: var(--text-muted); max-width: 60ch; }
+  .t-label   { font-size: 14px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+  .t-mono    { font-family: var(--mono); font-size: 14px; color: var(--text); }
+  .t-mono .cm { color: var(--text-soft); }
+
+  /* --- voice ------------------------------------------------------------------- */
+  .pairs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 28px 0 0;
+  }
+  .pair {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 26px;
+  }
+  .pair .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    display: block;
+    margin: 0 0 10px;
+  }
+  .pair.say  .tag { color: var(--success-text); }
+  .pair.not  .tag { color: var(--danger-text); }
+  .pair blockquote { margin: 0; font-size: 16px; color: var(--text); }
+  .pair.not blockquote { color: var(--text-soft); }
+
+  .voice-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px 40px;
+    margin: 20px 0 0;
+  }
+  .voice-cols ul { margin: 12px 0 0; padding-left: 18px; color: var(--text-muted); }
+  .voice-cols li { margin: 6px 0; }
+  .voice-cols b { color: var(--text); font-weight: 500; }
+
+  .micro { margin: 28px 0 0; display: grid; gap: 16px; }
+  .micro .m {
+    border-left: 2px solid var(--border-strong);
+    padding: 4px 0 4px 22px;
+  }
+  .micro .m .k {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--steel);
+    display: block;
+    margin: 0 0 6px;
+  }
+  .micro .m.err { border-color: var(--danger-text); }
+  .micro .m.ok  { border-color: var(--success-text); }
+  .micro .m.warn{ border-color: var(--warning-text); }
+  .micro .m p { margin: 0; color: var(--text-muted); font-size: 15px; }
+  .micro .m code { font-size: 13px; color: var(--text); }
+
+  /* --- applications --------------------------------------------------------------- */
+  .app { margin: 36px 0 0; }
+  .app .chip { overflow: hidden; }
+  .app svg { width: 100%; height: auto; }
+  .app figcaption { margin-top: 12px; font-size: 14px; color: var(--text-soft); max-width: 80ch; }
+
+  footer {
+    margin-top: 96px;
+    border-top: 1px solid var(--border);
+    padding: 40px 0 64px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  footer .sig { display: flex; align-items: center; gap: 12px; color: var(--text-soft); font-size: 14px; }
+  footer .files {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--steel);
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 20px; }
+    .hero { padding: 72px 0 48px; }
+    h2 { font-size: 26px; }
+    .typo-row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
 </head>
-<body class="tl-brand">
-  <a class="skip-link" href="#main">Skip to content</a>
-  <div class="shell">
-    <aside class="rail" aria-label="Brandbook navigation">
-      <img class="rail-logo" src="logo-primary.svg" alt="Threadline">
-      <p class="kicker">Brand system</p>
-      <p class="rail-title">Source-control-ready identity for Threadline.</p>
-      <nav class="nav">
-        <a href="#judgment">Judgment</a>
-        <a href="#dna">Brand DNA</a>
-        <a href="#scorecard">Scorecard</a>
-        <a href="#stress-tests">Stress tests</a>
-        <a href="#tokens">Tokens</a>
-        <a href="#logos">Logos</a>
-        <a href="#examples">Examples</a>
-        <a href="#voice">Voice</a>
-        <a href="#blueprints">Blueprints</a>
-        <a href="#artifacts">Artifacts</a>
-        <a href="#quality">Quality gate</a>
-      </nav>
-      <div class="rail-note">
-        <strong>Maintainer rule:</strong> this folder is static collateral. Do not rewrite production operator UI from these files without a separate implementation phase.
-      </div>
-    </aside>
-    <main id="main" class="content">
-      <header class="hero">
-        <div class="hero-inner">
-          <p class="eyebrow">Threadline brandbook</p>
-          <h1>Follow what happened.</h1>
-          <p class="hero-copy">The source brand system for an Elixir audit library: clear strategy, practical tokens, source SVG assets, UI guidance, and copy that stays credible with engineers.</p>
-          <div class="hero-actions" aria-label="Primary references">
-            <a class="button button-primary" href="brand-book.md">Brand book</a>
-            <a class="button button-secondary" href="pressure-test.md">Brand QA</a>
-            <a class="button button-secondary" href="tokens.json">Tokens JSON</a>
-          </div>
-        </div>
-      </header>
-      <section id="judgment" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 1</p>
-          <h2>Executive judgment</h2>
-          <p class="section-intro">The brand system centers on connected audit history and keeps every artifact buildable, inspectable, and credible with engineers.</p>
-        </div>
-        <div class="verdict">
-          <div class="panel verdict-main">
-            <p class="meta">Direct assessment</p>
-            <h3>Source-ready, specific to Threadline, and governed by practical artifacts.</h3>
-            <p class="muted" style="margin-top: 12px;">Threadline owns a good idea: connected audit history. The main risk is generic implementation: abstract nodes, compliance cliches, security shields, and blue-purple glow with no domain meaning.</p>
-          </div>
-          <div class="panel panel-pad">
-            <div class="score"><strong>8</strong><span>overall</span></div>
-            <ul class="list">
-              <li>Distinctive when the line/history metaphor stays disciplined.</li>
-              <li>Credible because the voice names real technical surfaces.</li>
-              <li>Implementation-ready now that tokens, SVGs, and examples exist.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-      <section id="dna" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 2</p>
-          <h2>Brand DNA</h2>
-          <p class="section-intro">If a design choice does not make audit history more followable, it probably does not belong.</p>
-        </div>
-        <div class="dna-grid">
-          <div class="dna-cell"><p class="meta">Essence</p><h3>Connected audit history</h3></div>
-          <div class="dna-cell"><p class="meta">Audience</p><p class="muted">Phoenix, Ecto, Postgres, platform, SRE, security, support, and OSS maintainers.</p></div>
-          <div class="dna-cell"><p class="meta">Tone</p><p class="muted">Calm, precise, grounded, serious without intimidation.</p></div>
-          <div class="dna-cell"><p class="meta">Promise</p><p class="muted">Connect changes to actor, action, request, transaction, and evidence context.</p></div>
-          <div class="dna-cell"><p class="meta">Metaphor</p><p class="muted">A continuous line connecting discrete events into an intelligible path.</p></div>
-          <div class="dna-cell"><p class="meta">Traits</p><p class="muted">Lucid, composed, technical, evidence-oriented, quietly confident.</p></div>
-          <div class="dna-cell"><p class="meta">Anti-traits</p><p class="muted">Flashy, cute, militaristic, cyberpunk, compliance-bureaucratic.</p></div>
-          <div class="dna-cell"><p class="meta">Never</p><p class="muted">Do not use shields, locks, stock people, generic node graphs, or trust-platform fluff.</p></div>
-        </div>
-      </section>
-      <section id="scorecard" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 3</p>
-          <h2>Readiness scorecard</h2>
-          <p class="section-intro">Scores are intentionally strict. The brand should earn implementation confidence without encouraging unnecessary redesign.</p>
-        </div>
-        <div class="grid grid-3">
-          <article class="panel panel-pad"><div class="score"><strong>8</strong><span>distinctive</span></div><p class="muted">The line metaphor fits audit history. Keep it away from generic node art.</p></article>
-          <article class="panel panel-pad"><div class="score"><strong>9</strong><span>credibility</span></div><p class="muted">Precise voice, real APIs, real workflows, low-BS OSS posture.</p></article>
-          <article class="panel panel-pad"><div class="score"><strong>9</strong><span>Elixir fit</span></div><p class="muted">Understated, stack-specific, and practical for Phoenix/Ecto teams.</p></article>
-          <article class="panel panel-pad"><div class="score"><strong>7</strong><span>visual</span></div><p class="muted">Coherent direction. Human wordmark polish can wait until launch stakes rise.</p></article>
-          <article class="panel panel-pad"><div class="score"><strong>8</strong><span>tokens</span></div><p class="muted">Raw and semantic roles now exist for dark and light surfaces.</p></article>
-          <article class="panel panel-pad"><div class="score"><strong>8</strong><span>maintainable</span></div><p class="muted">HTML, Markdown, JSON, CSS, and SVG keep the repo light.</p></article>
-        </div>
-      </section>
-      <section id="stress-tests" class="section section-light tl-theme-light">
-        <div class="section-head">
-          <p class="eyebrow">Section 4</p>
-          <h2>Stress tests</h2>
-          <p class="section-intro">The brand has to survive boring surfaces: README, Hex.pm, HexDocs, API references, terminal snippets, and small icons.</p>
-        </div>
-        <div class="surface-list">
-          <div class="surface-item"><strong>GitHub and README</strong><p>Use concise copy, standard badges, and the primary logo only where it helps. Avoid a heavy raster hero.</p></div>
-          <div class="surface-item"><strong>Hex.pm and HexDocs</strong><p>Lead with technical value. Let ExDoc conventions breathe; brand through type, logo, and code readability.</p></div>
-          <div class="surface-item"><strong>Landing page</strong><p>Use "Follow what happened" and a line-based audit path. Do not fake a dashboard unless it reflects real behavior.</p></div>
-          <div class="surface-item"><strong>Code and terminal</strong><p>Use real commands, copyable snippets, dark code blocks, and IBM Plex Mono for identifiers.</p></div>
-          <div class="surface-item"><strong>Favicon and mark</strong><p>Use the compact line mark. Test at 16px and in monochrome for public release.</p></div>
-          <div class="surface-item"><strong>Diagrams</strong><p>Label request, action, transaction, change, evidence, and export. Avoid unlabeled node webs.</p></div>
-        </div>
-      </section>
-      <section id="tokens" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 7</p>
-          <h2>Design tokens</h2>
-          <p class="section-intro">The token system is intentionally small. It gives docs and marketing enough structure without competing with the operator surface CSS.</p>
-        </div>
-        <div class="swatches" aria-label="Core palette">
-          <div class="swatch"><div class="swatch-color" style="background:#0B1020"></div><div class="swatch-body"><strong>Black</strong><span>#0B1020</span></div></div>
-          <div class="swatch"><div class="swatch-color" style="background:#141B2D"></div><div class="swatch-body"><strong>Graphite</strong><span>#141B2D</span></div></div>
-          <div class="swatch"><div class="swatch-color" style="background:#23304A"></div><div class="swatch-body"><strong>Slate Line</strong><span>#23304A</span></div></div>
-          <div class="swatch"><div class="swatch-color" style="background:#4F8CFF"></div><div class="swatch-body"><strong>Thread Blue</strong><span>#4F8CFF</span></div></div>
-          <div class="swatch"><div class="swatch-color" style="background:#4EDFD1"></div><div class="swatch-body"><strong>Signal Cyan</strong><span>#4EDFD1</span></div></div>
-        </div>
-        <div style="margin-top: 24px; overflow-x: auto;">
-          <table class="token-table">
-            <thead><tr><th>Role</th><th>Dark token</th><th>Light token</th><th>Use</th></tr></thead>
-            <tbody>
-              <tr><td>Background</td><td><code>--tl-color-bg</code></td><td><code>.tl-theme-light --tl-color-bg</code></td><td>Page foundation.</td></tr>
-              <tr><td>Surface</td><td><code>--tl-color-surface</code></td><td><code>--tl-color-surface</code></td><td>Panels, cards, tables.</td></tr>
-              <tr><td>Accent</td><td><code>--tl-color-accent</code></td><td><code>--tl-color-accent</code></td><td>Links, primary CTA, selected path.</td></tr>
-              <tr><td>Signal</td><td><code>--tl-color-signal</code></td><td><code>--tl-color-signal</code></td><td>Correlation, trace, positive flow.</td></tr>
-              <tr><td>Focus</td><td><code>--tl-focus-ring</code></td><td><code>--tl-focus-ring</code></td><td>Keyboard-visible focus.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section id="logos" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 8</p>
-          <h2>Logo and mark system</h2>
-          <p class="section-intro">Threadline does not need a mascot or a complex abstract icon. A wordmark plus a simple line mark carries the concept.</p>
-        </div>
-        <div class="asset-grid">
-          <article class="panel asset"><div class="asset-preview"><img src="logo-primary.svg" alt="Threadline primary logo for dark backgrounds" style="width: min(360px, 100%);"></div><div class="asset-body"><h3>Primary dark</h3><p class="muted">Use on dark landing pages, slides, social collateral, and high-signal brand surfaces.</p></div></article>
-          <article class="panel asset"><div class="asset-preview light"><img src="logo-primary-light.svg" alt="Threadline primary logo for light backgrounds" style="width: min(360px, 100%);"></div><div class="asset-body"><h3>Primary light</h3><p class="muted">Use on README, GitHub, HexDocs, and other light documentation surfaces.</p></div></article>
-          <article class="panel asset"><div class="asset-preview"><img src="logo-mark.svg" alt="Threadline line mark" style="width: 140px;"></div><div class="asset-body"><h3>Icon mark</h3><p class="muted">Use for favicon, avatar, docs sidebar, and compact surfaces.</p></div></article>
-          <article class="panel asset"><div class="asset-preview light"><img src="logo-monochrome.svg" alt="Threadline monochrome logo" style="width: min(360px, 100%);"></div><div class="asset-body"><h3>Monochrome</h3><p class="muted">Use for print, stickers, constrained surfaces, and single-color reproduction.</p></div></article>
-          <article class="panel asset"><div class="asset-preview"><img src="favicon.svg" alt="Threadline favicon" style="width: 96px;"></div><div class="asset-body"><h3>Favicon</h3><p class="muted">Test at 16px and 32px. Keep the mark recognizable without text.</p></div></article>
-        </div>
-      </section>
-      <section id="examples" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 9</p>
-          <h2>Visual examples</h2>
-          <p class="section-intro">These are implementation specimens, not decorative screenshots. Create raster exports only when a downstream platform requires them.</p>
-        </div>
-        <div class="example-strip">
-          <img src="examples/palette.svg" alt="Threadline palette specimen">
-          <img src="examples/components.svg" alt="Threadline component specimen">
-          <img src="examples/readme-header.svg" alt="Threadline README header specimen">
-          <img src="examples/docs-page.svg" alt="Threadline documentation page specimen">
-          <img src="examples/landing-hero.svg" alt="Threadline landing page hero specimen">
-          <img src="examples/terminal.svg" alt="Threadline terminal snippet specimen">
-        </div>
-      </section>
-      <section id="voice" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 10</p>
-          <h2>Brand voice and microcopy</h2>
-          <p class="section-intro">Threadline should sound like a calm senior engineer: exact, useful, and generous with context.</p>
-        </div>
-        <div class="grid grid-2">
-          <div class="panel panel-pad"><p class="meta">Say this</p><p class="quote">Capture changes, connect them to context, and follow the full history.</p></div>
-          <div class="panel panel-pad"><p class="meta">Not this</p><p class="quote">Revolutionary audit intelligence for modern teams.</p></div>
-        </div>
-        <div style="margin-top: 24px; overflow-x: auto;">
-          <table class="copy-table">
-            <thead><tr><th>Surface</th><th>Copy</th></tr></thead>
-            <tbody>
-              <tr><td>One-line description</td><td>Audit history for Phoenix, Ecto, and PostgreSQL.</td></tr>
-              <tr><td>GitHub description</td><td>Open-source audit history for Phoenix, Ecto, and PostgreSQL.</td></tr>
-              <tr><td>Hero headline</td><td>Follow what happened.</td></tr>
-              <tr><td>Error</td><td>Could not verify trigger coverage for <code>ticket_replies</code>. Rerun the trigger generator, migrate, then check coverage again.</td></tr>
-              <tr><td>Empty state</td><td>No audit changes match these filters. Clear the table filter or widen the time range.</td></tr>
-              <tr><td>Success</td><td>Export queued. Threadline will keep the filtered timeline and evidence bundle together.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section id="blueprints" class="section section-light tl-theme-light">
-        <div class="section-head">
-          <p class="eyebrow">Section 11</p>
-          <h2>Landing page and docs blueprint</h2>
-          <p class="section-intro">The brand works best when marketing and docs share the same technical spine: capture, semantics, exploration, operations.</p>
-        </div>
-        <div class="grid grid-2">
-          <div>
-            <h3>Landing page</h3>
-            <ol class="blueprint" style="margin-top: 16px;">
-              <li><span><strong>Hero.</strong> "Follow what happened" plus stack-specific subhead and docs/GitHub CTAs.</span></li>
-              <li><span><strong>Problem.</strong> Raw logs and row changes do not explain an incident.</span></li>
-              <li><span><strong>Solution.</strong> Capture plus semantic context plus operator exploration.</span></li>
-              <li><span><strong>Install and example.</strong> Show real Mix commands and `Threadline.Audit.transaction/3`.</span></li>
-              <li><span><strong>Compare.</strong> Explain logs, event sourcing, SIEM, DB auditing, and roll-your-own boundaries.</span></li>
-            </ol>
-          </div>
-          <div>
-            <h3>README and docs</h3>
-            <ol class="blueprint" style="margin-top: 16px;">
-              <li><span><strong>Opening promise.</strong> Tell engineers what Threadline gives them in the first paragraph.</span></li>
-              <li><span><strong>Quickstart.</strong> Dependency, config, install, migrate, first audited write.</span></li>
-              <li><span><strong>Concepts.</strong> Capture, semantics, exploration, operations.</span></li>
-              <li><span><strong>API overview.</strong> Name public APIs and common paths.</span></li>
-              <li><span><strong>Troubleshooting.</strong> Coverage, redaction drift, retention, export, and host auth boundaries.</span></li>
-            </ol>
-          </div>
-        </div>
-      </section>
-      <section id="artifacts" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Sections 12 and 13</p>
-          <h2>Repo-ready artifact plan</h2>
-          <p class="section-intro">All killer, no filler: commit source assets, generate raster only when a real publishing surface requires it.</p>
-        </div>
-        <div class="grid grid-3">
-          <div class="panel panel-pad"><p class="meta">Commit</p><ul class="list"><li>HTML</li><li>Markdown</li><li>JSON tokens</li><li>CSS tokens</li><li>Editable SVG</li></ul></div>
-          <div class="panel panel-pad"><p class="meta">Generate on demand</p><ul class="list"><li>PNG social cards</li><li>PDF snapshots</li><li>Raster launch screenshots</li></ul></div>
-          <div class="panel panel-pad"><p class="meta">Do not commit</p><ul class="list"><li>Duplicate fonts</li><li>Large moodboards</li><li>Decorative image batches</li><li>Vendor files as only source</li></ul></div>
-        </div>
-        <pre class="code-block" style="margin-top: 24px;"><code>brandbook/
-  README.md
-  index.html
-  brand-book.md
-  pressure-test.md
-  tokens.json
-  tokens.css
-  logo-primary.svg
-  logo-primary-light.svg
-  logo-mark.svg
-  logo-monochrome.svg
-  favicon.svg
-  social-card.svg
-  examples/*.svg</code></pre>
-      </section>
-      <section id="quality" class="section">
-        <div class="section-head">
-          <p class="eyebrow">Section 14</p>
-          <h2>Final quality gate</h2>
-          <p class="section-intro">The brand is ready only if it can guide real implementation without causing unnecessary redesign pressure.</p>
-        </div>
-        <div class="grid grid-4">
-          <div class="panel panel-pad"><h3>Designer?</h3><p class="muted">Yes. Concept, tokens, examples, and layout rules are concrete.</p></div>
-          <div class="panel panel-pad"><h3>Engineer?</h3><p class="muted">Yes. Tokens are JSON/CSS and assets are SVG.</p></div>
-          <div class="panel panel-pad"><h3>Maintainer?</h3><p class="muted">Yes, if runtime UI tokens and brandbook tokens stay in their lanes.</p></div>
-          <div class="panel panel-pad"><h3>Contributor?</h3><p class="muted">Yes. The folder has a README and source docs.</p></div>
-          <div class="panel panel-pad"><h3>Marketing?</h3><p class="muted">Yes, if proof stays ahead of vibe.</p></div>
-          <div class="panel panel-pad"><h3>Dark and light?</h3><p class="muted">Yes. Both themes have roles and examples.</p></div>
-          <div class="panel panel-pad"><h3>Small sizes?</h3><p class="muted">Mostly. Favicon still deserves human review at 16px.</p></div>
-          <div class="panel panel-pad"><h3>Specific?</h3><p class="muted">Yes. Connected audit history belongs to Threadline.</p></div>
-        </div>
-      </section>
-      <footer class="footer">
-        <p class="mono">Threadline brandbook. Source assets only. No external dependencies. No binary bloat.</p>
-      </footer>
-    </main>
+<body>
+
+<!-- ====================================================================
+     Shared geometry. Every logo render on this page references these
+     pure-path definitions; nothing below depends on a font or a file.
+     Glyphs fill currentColor; the stitch arc strokes var(- - arc).
+===================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Wordmark glyphs with the d/l ascenders cut at the fabric line (y=444) -->
+    <g id="tlGlyphsCut">
+      <path fill="currentColor" transform="translate(0 0)" d="M 227 1005 L 227 408 L 11 408 L 11 295 L 572 295 L 572 408 L 357 408 L 357 1005 Z"/>
+      <path fill="currentColor" transform="translate(562 0)" d="M 70 1005 L 70 295 L 198 295 L 198 593 L 182 593 Q 190 547 214 517.5 Q 238 488 273 473.5 Q 308 459 350 459 Q 409 459 449.5 484.5 Q 490 510 510.5 556 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 693 Q 403 628 381 595.5 Q 359 563 312 563 Q 260 563 229 597 Q 198 631 198 696 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(1147 0)" d="M 70 1005 L 70 471 L 190 471 L 195 619 L 184 617 Q 196 540 229.5 505.5 Q 263 471 321 471 L 370 471 L 370 581 L 320 581 Q 279 581 252 593 Q 225 605 211.5 630.5 Q 198 656 198 697 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(1516 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+      <path fill="currentColor" transform="translate(2105 0)" d="M 225 1017 Q 141 1017 90 978.5 Q 39 940 39 871 Q 39 802 82 763 Q 125 724 213 707 L 390 672 Q 390 615 364 586.5 Q 338 558 287 558 Q 241 558 214.5 579.5 Q 188 601 178 641 L 48 635 Q 64 550 126 504.5 Q 188 459 287 459 Q 401 459 459.5 516.5 Q 518 574 518 681 L 518 875 Q 518 896 525.5 904 Q 533 912 548 912 L 565 912 L 565 1005 Q 559 1007 545.5 1008 Q 532 1009 518 1009 Q 485 1009 459 998.5 Q 433 988 419 961.5 Q 405 935 405 889 L 416 897 Q 408 932 381.5 959.5 Q 355 987 315 1002 Q 275 1017 225 1017 Z M 251 924 Q 294 924 325 907 Q 356 890 373 860 Q 390 830 390 789 L 390 759 L 252 787 Q 209 796 190.5 813.5 Q 172 831 172 859 Q 172 890 192.5 907 Q 213 924 251 924 Z"/>
+      <path fill="currentColor" transform="translate(2677 0)" d="M 260 1017 Q 192 1017 142.5 983 Q 93 949 66 886 Q 39 823 39 738 Q 39 653 66 590 Q 93 527 143 493 Q 193 459 260 459 Q 316 459 358.5 482 Q 401 505 423 547 L 423 444 L 551 444 L 551 1005 L 429 1005 L 426 926 Q 404 969 360 993 Q 316 1017 260 1017 Z M 299 913 Q 339 913 366.5 893 Q 394 873 408.5 833.5 Q 423 794 423 738 Q 423 681 408.5 642 Q 394 603 366.5 583 Q 339 563 299 563 Q 241 563 206.5 609.5 Q 172 656 172 738 Q 172 818 206.5 865.5 Q 241 913 299 913 Z"/>
+      <path fill="currentColor" transform="translate(3291 0)" d="M 198 1005 Q 140 1005 105 975 Q 70 945 70 879 L 70 444 L 198 444 L 198 866 Q 198 886 208.5 896 Q 219 906 238 906 L 277 906 L 277 1005 Z"/>
+      <path fill="currentColor" transform="translate(3580 0)" d="M 70 1005 L 70 471 L 198 471 L 198 1005 Z M 68 400 L 68 286 L 201 286 L 201 400 Z"/>
+      <path fill="currentColor" transform="translate(3855 0)" d="M 70 1005 L 70 471 L 186 471 L 191 621 L 176 615 Q 184 559 209 525 Q 234 491 270 475 Q 306 459 349 459 Q 408 459 448.5 485 Q 489 511 510 556.5 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 703 Q 403 658 394 627 Q 385 596 364.5 579.5 Q 344 563 310 563 Q 259 563 228.5 599 Q 198 635 198 703 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(4443 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+    </g>
+
+    <!-- The stitch arc: stroke 128 = the measured stem width -->
+    <path id="tlArc" fill="none" stroke="var(--arc, currentColor)" stroke-width="128" d="M 3164 449 V 260 A 130.5 130.5 0 0 1 3425 260 V 449"/>
+
+    <!-- Primary lockup = cut glyphs + arc -->
+    <g id="tlLockup">
+      <use href="#tlGlyphsCut"/>
+      <use href="#tlArc"/>
+    </g>
+
+    <!-- Wordmark with intact (uncut) d/l ascenders, no arc -->
+    <g id="tlWordmark">
+      <path fill="currentColor" transform="translate(0 0)" d="M 227 1005 L 227 408 L 11 408 L 11 295 L 572 295 L 572 408 L 357 408 L 357 1005 Z"/>
+      <path fill="currentColor" transform="translate(562 0)" d="M 70 1005 L 70 295 L 198 295 L 198 593 L 182 593 Q 190 547 214 517.5 Q 238 488 273 473.5 Q 308 459 350 459 Q 409 459 449.5 484.5 Q 490 510 510.5 556 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 693 Q 403 628 381 595.5 Q 359 563 312 563 Q 260 563 229 597 Q 198 631 198 696 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(1147 0)" d="M 70 1005 L 70 471 L 190 471 L 195 619 L 184 617 Q 196 540 229.5 505.5 Q 263 471 321 471 L 370 471 L 370 581 L 320 581 Q 279 581 252 593 Q 225 605 211.5 630.5 Q 198 656 198 697 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(1516 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+      <path fill="currentColor" transform="translate(2105 0)" d="M 225 1017 Q 141 1017 90 978.5 Q 39 940 39 871 Q 39 802 82 763 Q 125 724 213 707 L 390 672 Q 390 615 364 586.5 Q 338 558 287 558 Q 241 558 214.5 579.5 Q 188 601 178 641 L 48 635 Q 64 550 126 504.5 Q 188 459 287 459 Q 401 459 459.5 516.5 Q 518 574 518 681 L 518 875 Q 518 896 525.5 904 Q 533 912 548 912 L 565 912 L 565 1005 Q 559 1007 545.5 1008 Q 532 1009 518 1009 Q 485 1009 459 998.5 Q 433 988 419 961.5 Q 405 935 405 889 L 416 897 Q 408 932 381.5 959.5 Q 355 987 315 1002 Q 275 1017 225 1017 Z M 251 924 Q 294 924 325 907 Q 356 890 373 860 Q 390 830 390 789 L 390 759 L 252 787 Q 209 796 190.5 813.5 Q 172 831 172 859 Q 172 890 192.5 907 Q 213 924 251 924 Z"/>
+      <path fill="currentColor" transform="translate(2677 0)" d="M 260 1017 Q 192 1017 142.5 983 Q 93 949 66 886 Q 39 823 39 738 Q 39 653 66 590 Q 93 527 143 493 Q 193 459 260 459 Q 316 459 358.5 482 Q 401 505 423 547 L 423 295 L 551 295 L 551 1005 L 429 1005 L 426 926 Q 404 969 360 993 Q 316 1017 260 1017 Z M 299 913 Q 339 913 366.5 893 Q 394 873 408.5 833.5 Q 423 794 423 738 Q 423 681 408.5 642 Q 394 603 366.5 583 Q 339 563 299 563 Q 241 563 206.5 609.5 Q 172 656 172 738 Q 172 818 206.5 865.5 Q 241 913 299 913 Z"/>
+      <path fill="currentColor" transform="translate(3291 0)" d="M 198 1005 Q 140 1005 105 975 Q 70 945 70 879 L 70 295 L 198 295 L 198 866 Q 198 886 208.5 896 Q 219 906 238 906 L 277 906 L 277 1005 Z"/>
+      <path fill="currentColor" transform="translate(3580 0)" d="M 70 1005 L 70 471 L 198 471 L 198 1005 Z M 68 400 L 68 286 L 201 286 L 201 400 Z"/>
+      <path fill="currentColor" transform="translate(3855 0)" d="M 70 1005 L 70 471 L 186 471 L 191 621 L 176 615 Q 184 559 209 525 Q 234 491 270 475 Q 306 459 349 459 Q 408 459 448.5 485 Q 489 511 510 556.5 Q 531 602 531 662 L 531 1005 L 403 1005 L 403 703 Q 403 658 394 627 Q 385 596 364.5 579.5 Q 344 563 310 563 Q 259 563 228.5 599 Q 198 635 198 703 L 198 1005 Z"/>
+      <path fill="currentColor" transform="translate(4443 0)" d="M 301 1017 Q 221 1017 162 982.5 Q 103 948 71 885 Q 39 822 39 738 Q 39 654 71 591.5 Q 103 529 161.5 494 Q 220 459 298 459 Q 374 459 431.5 493 Q 489 527 520 591 Q 551 655 551 745 L 551 774 L 172 774 Q 176 844 210.5 879.5 Q 245 915 302 915 Q 345 915 373.5 895.5 Q 402 876 413 841 L 544 849 Q 522 927 457.5 972 Q 393 1017 301 1017 Z M 172 688 L 419 688 Q 415 623 382 591.5 Q 349 560 298 560 Q 247 560 213.5 593 Q 180 626 172 688 Z"/>
+    </g>
+
+    <!-- Outlined IBM Plex Mono 500 tagline (paths, not text), justified to the
+         wordmark ink edges. Fill follows var(- - tagline). -->
+    <g id="tlTagline" transform="translate(-15.09 1050.81) scale(0.30334)" fill="var(--tagline, #8F9DB5)">
+      <path transform="translate(0 0)" d="M 86 1025 L 86 327 L 535 327 L 535 421 L 198 421 L 198 624 L 504 624 L 504 718 L 198 718 L 198 1025 Z"/>
+      <path transform="translate(840 0)" d="M 300 1037 Q 234 1037 185.5 1012.5 Q 137 988 105.5 942 Q 74 896 59 829 Q 44 762 44 676 Q 44 591 59 523.5 Q 74 456 105.5 410 Q 137 364 185.5 339.5 Q 234 315 300 315 Q 366 315 414.5 339.5 Q 463 364 494.5 410 Q 526 456 541 523.5 Q 556 591 556 676 Q 556 762 541 829 Q 526 896 494.5 942 Q 463 988 414.5 1012.5 Q 366 1037 300 1037 Z M 300 944 Q 375 944 406 887.5 Q 437 831 437 734 L 437 617 Q 437 521 406 464.5 Q 375 408 300 408 Q 225 408 194 464.5 Q 163 521 163 617 L 163 735 Q 163 831 194 887.5 Q 225 944 300 944 Z"/>
+      <path transform="translate(1680 0)" d="M 108 1025 L 108 327 L 220 327 L 220 931 L 538 931 L 538 1025 Z"/>
+      <path transform="translate(2520 0)" d="M 108 1025 L 108 327 L 220 327 L 220 931 L 538 931 L 538 1025 Z"/>
+      <path transform="translate(3360 0)" d="M 300 1037 Q 234 1037 185.5 1012.5 Q 137 988 105.5 942 Q 74 896 59 829 Q 44 762 44 676 Q 44 591 59 523.5 Q 74 456 105.5 410 Q 137 364 185.5 339.5 Q 234 315 300 315 Q 366 315 414.5 339.5 Q 463 364 494.5 410 Q 526 456 541 523.5 Q 556 591 556 676 Q 556 762 541 829 Q 526 896 494.5 942 Q 463 988 414.5 1012.5 Q 366 1037 300 1037 Z M 300 944 Q 375 944 406 887.5 Q 437 831 437 734 L 437 617 Q 437 521 406 464.5 Q 375 408 300 408 Q 225 408 194 464.5 Q 163 521 163 617 L 163 735 Q 163 831 194 887.5 Q 225 944 300 944 Z"/>
+      <path transform="translate(4200 0)" d="M 75 1025 L 25 327 L 123 327 L 148 733 L 159 912 L 167 912 L 246 496 L 357 496 L 436 912 L 444 912 L 455 733 L 481 327 L 575 327 L 525 1025 L 375 1025 L 304 621 L 296 621 L 225 1025 Z"/>
+      <path transform="translate(5880 0)" d="M 75 1025 L 25 327 L 123 327 L 148 733 L 159 912 L 167 912 L 246 496 L 357 496 L 436 912 L 444 912 L 455 733 L 481 327 L 575 327 L 525 1025 L 375 1025 L 304 621 L 296 621 L 225 1025 Z"/>
+      <path transform="translate(6720 0)" d="M 416 718 L 184 718 L 184 1025 L 72 1025 L 72 327 L 184 327 L 184 624 L 416 624 L 416 327 L 528 327 L 528 1025 L 416 1025 Z"/>
+      <path transform="translate(7560 0)" d="M 462 1025 L 409 839 L 187 839 L 134 1025 L 20 1025 L 224 327 L 377 327 L 581 1025 Z M 302 440 L 294 440 L 208 746 L 388 746 Z"/>
+      <path transform="translate(8400 0)" d="M 356 421 L 356 1025 L 244 1025 L 244 421 L 25 421 L 25 327 L 575 327 L 575 421 Z"/>
+      <path transform="translate(10080 0)" d="M 416 718 L 184 718 L 184 1025 L 72 1025 L 72 327 L 184 327 L 184 624 L 416 624 L 416 327 L 528 327 L 528 1025 L 416 1025 Z"/>
+      <path transform="translate(10920 0)" d="M 462 1025 L 409 839 L 187 839 L 134 1025 L 20 1025 L 224 327 L 377 327 L 581 1025 Z M 302 440 L 294 440 L 208 746 L 388 746 Z"/>
+      <path transform="translate(11760 0)" d="M 84 1025 L 84 327 L 345 327 Q 445 327 497.5 383 Q 550 439 550 537 Q 550 635 497.5 691 Q 445 747 345 747 L 196 747 L 196 1025 Z M 196 654 L 328 654 Q 432 654 432 558 L 432 515 Q 432 420 328 420 L 196 420 Z"/>
+      <path transform="translate(12600 0)" d="M 84 1025 L 84 327 L 345 327 Q 445 327 497.5 383 Q 550 439 550 537 Q 550 635 497.5 691 Q 445 747 345 747 L 196 747 L 196 1025 Z M 196 654 L 328 654 Q 432 654 432 558 L 432 515 Q 432 420 328 420 L 196 420 Z"/>
+      <path transform="translate(13440 0)" d="M 86 1025 L 86 327 L 523 327 L 523 421 L 198 421 L 198 624 L 511 624 L 511 718 L 198 718 L 198 931 L 523 931 L 523 1025 Z"/>
+      <path transform="translate(14280 0)" d="M 179 488 L 170 488 L 170 1025 L 72 1025 L 72 327 L 216 327 L 421 864 L 430 864 L 430 327 L 528 327 L 528 1025 L 384 1025 Z"/>
+      <path transform="translate(15120 0)" d="M 86 1025 L 86 327 L 523 327 L 523 421 L 198 421 L 198 624 L 511 624 L 511 718 L 198 718 L 198 931 L 523 931 L 523 1025 Z"/>
+      <path transform="translate(15960 0)" d="M 82 327 L 290 327 Q 424 327 488.5 416 Q 553 505 553 676 Q 553 847 488.5 936 Q 424 1025 290 1025 L 82 1025 Z M 283 933 Q 360 933 397.5 881.5 Q 435 830 435 734 L 435 618 Q 435 522 397.5 470.5 Q 360 419 283 419 L 193 419 L 193 933 Z"/>
+    </g>
+
+    <!-- The extractable stitch mark (the favicon idiom at 4x). Fabric paints
+         last so the thread disappears behind it at the crossings. -->
+    <g id="tlMark">
+      <path fill="none" stroke="currentColor" stroke-width="6.8" d="M 20.8 54.4 V 43.6 M 43.2 54.4 V 43.6"/>
+      <path fill="none" stroke="var(--arc, #4781E6)" stroke-width="6.8" d="M 20.8 43.6 V 24 A 11.2 11.2 0 0 1 43.2 24 V 43.6"/>
+      <path fill="none" stroke="currentColor" stroke-width="6.8" d="M 3.2 43.6 H 60.8"/>
+    </g>
+
+    <!-- The 16px favicon cut: two strokes, no chip -->
+    <g id="tlFavicon">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" d="M 5.2 13.6 V 6 A 2.8 2.8 0 0 1 10.8 6 V 13.6"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 10.9 H 15.2"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ident">
+      <svg width="22" height="22" viewBox="0 0 64 64" style="color:#D7DEEA; --arc:#4781E6" aria-hidden="true"><use href="#tlMark"/></svg>
+      <span class="label">Threadline</span>
+    </div>
+    <span class="label">Brand book</span>
   </div>
+
+  <header class="hero">
+    <svg class="hero-lockup" viewBox="-80 60 5194 1140" style="color:#D7DEEA; --arc:#4781E6" role="img" aria-label="Threadline">
+      <use href="#tlLockup"/>
+    </svg>
+    <p class="tagline">Follow what happened.</p>
+    <p class="lede">Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. This book is the brand system: the mark, the palette, the type, the voice, and the rules that keep them consistent. It is self-contained — open it from disk, no network required.</p>
+
+    <nav class="toc" aria-label="Contents">
+      <a href="#identity"><span class="n">01</span> Identity</a>
+      <a href="#logo"><span class="n">02</span> Logo system</a>
+      <a href="#misuse"><span class="n">03</span> Misuse</a>
+      <a href="#color"><span class="n">04</span> Color</a>
+      <a href="#typography"><span class="n">05</span> Typography</a>
+      <a href="#voice"><span class="n">06</span> Voice &amp; microcopy</a>
+      <a href="#applications"><span class="n">07</span> Applications</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============================================================ 01 -->
+    <section id="identity">
+      <p class="kicker"><span class="n">01</span>Identity</p>
+      <h2>Threadline makes system history followable.</h2>
+      <p class="lede">The visual center of the brand is a single idea: <em>a line that connects discrete points into an intelligible path.</em> Audit history is exactly that — scattered row changes, actions, and requests that only make sense once something traces the route between them.</p>
+
+      <p>The wordmark draws this idea instead of decorating around it. The word <strong>threadline</strong> is set in Geist; at the adjacent <code>d</code> and <code>l</code>, the two ascenders are cut at a shared line — the fabric — and a single stitch of thread rises out of one stem, arcs over, and dives back into the other. The letterforms are the material; the thread passes through them. One line, two points, a followable path. Nothing else is added: no badge, no container, no abstract symbol.</p>
+
+      <h3>What it should feel like</h3>
+      <div class="voice-cols">
+        <div>
+          <b>This should feel like</b>
+          <ul>
+            <li>a clear line through a confusing incident</li>
+            <li>an engineer-friendly audit timeline</li>
+            <li>a map of system change that can be inspected</li>
+            <li>a serious OSS project with practical taste</li>
+          </ul>
+        </div>
+        <div>
+          <b>This should never feel like</b>
+          <ul>
+            <li>a security vendor landing page</li>
+            <li>a lock or shield compliance badge</li>
+            <li>abstract nodes with no domain meaning</li>
+            <li>consumer-app gradients</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Anti-traits</h3>
+      <p class="note">Not flashy. Not cute. Not cyberpunk. Not militarized. Not compliance-bureaucratic. Not generic SaaS. Not fake-futurist.</p>
+    </section>
+
+    <!-- ============================================================ 02 -->
+    <section id="logo">
+      <p class="kicker"><span class="n">02</span>Logo system</p>
+      <h2>One drawing, eight cuts.</h2>
+      <p class="lede">Every asset is pure vector paths — the letterforms are outlines, not live text, so the mark renders identically on every surface with zero font dependencies. The family below ships in this directory; each file has one job.</p>
+
+      <div class="family">
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:88%; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1140" role="img" aria-label="Threadline"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-primary.svg</p>
+            <p class="role">The primary lockup. Fog glyphs, Stitch Blue arc.</p>
+            <p class="surface">dark surfaces — product, slides, social</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-light">
+            <svg class="r-lockup" style="width:88%; color:#0F1728; --arc:#4781E6" viewBox="-80 60 5194 1140" role="img" aria-label="Threadline"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-primary-light.svg</p>
+            <p class="role">A designed light rendition — Ink glyphs, not a recolor of the dark asset.</p>
+            <p class="surface">README, GitHub, HexDocs, light docs</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-wordmark" style="width:88%; color:#D7DEEA" viewBox="-80 226 5194 851" role="img" aria-label="Threadline"><use href="#tlWordmark"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-wordmark.svg</p>
+            <p class="role">The wordmark alone — intact ascenders, no arc. currentColor for inline adaptive use.</p>
+            <p class="surface">running text, constrained headers</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:88%; color:#73819C; --arc:currentColor" viewBox="-80 60 5194 1140" role="img" aria-label="Threadline"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-monochrome.svg</p>
+            <p class="role">The one-color master — exactly one paint value (currentColor), arc included.</p>
+            <p class="surface">print, engraving, single-color contexts</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-sq" style="width:72px; color:#D7DEEA; --arc:#4781E6" viewBox="0 0 64 64" role="img" aria-label="Threadline mark"><use href="#tlMark"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-mark.svg</p>
+            <p class="role">The extractable stitch: one thread through the fabric line. The thread disappears behind the fabric at the crossings.</p>
+            <p class="surface">avatars, sidebars, small UI</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-light">
+            <svg class="r-sq" style="width:48px; color:#0F1728" viewBox="0 0 16 16" role="img" aria-label="Threadline favicon"><use href="#tlFavicon"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">favicon.svg</p>
+            <p class="role">Designed at 16px — two strokes, no container chip. Flips ink with the browser's color scheme.</p>
+            <p class="surface">browser tabs, pinned tabs</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-subtitle" style="width:88%; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1390" role="img" aria-label="Threadline — Follow what happened"><use href="#tlLockup"/><use href="#tlTagline"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-primary-subtitle.svg</p>
+            <p class="role">The only lockup carrying the tagline — outlined IBM Plex Mono caps, justified to the wordmark's ink edges.</p>
+            <p class="surface">large deliberate surfaces only</p>
+          </figcaption>
+        </figure>
+
+        <figure class="asset">
+          <div class="chip chip-dark" style="padding:16px">
+            <svg class="r-card" style="width:100%" viewBox="0 0 1280 640" role="img" aria-label="Threadline social card — Follow what happened">
+              <path fill="#0B1020" d="M 0 0 H 1280 V 640 H 0 Z"/>
+              <g transform="translate(258.32 211.01) scale(0.15252)" style="color:#D7DEEA; --arc:#4781E6"><use href="#tlLockup"/><use href="#tlTagline"/></g>
+            </svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">social-card.svg</p>
+            <p class="role">1280×640 link preview. The dark canvas is the single sanctioned full-bleed background in the family.</p>
+            <p class="surface">og:image, link previews</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Clear space</h3>
+      <figure class="figure panel clearspace">
+        <svg viewBox="-435 -295 5904 1850" role="img" aria-label="Clear space diagram: the lockup with a dashed boundary one half cap height away on all sides">
+          <rect x="-435" y="-295" width="5904" height="1850" fill="none" stroke="#3B4762" stroke-width="6" stroke-dasharray="36 28"/>
+          <g style="color:#D7DEEA; --arc:#4781E6"><use href="#tlLockup"/></g>
+          <path fill="none" stroke="#4EDFD1" stroke-width="10" d="M -257 295 V 650 M -297 295 H -217 M -297 650 H -217"/>
+        </svg>
+        <figcaption>Clear space on every side equals <strong>half the cap height</strong> of the wordmark — the cyan bracket. For the primary lockup that is 31% of the rendered height: a 32px-tall render keeps 10px clear. Nothing enters this zone — no type, no rules, no art, no page edge.</figcaption>
+      </figure>
+      <p class="note">For the mark and favicon, keep one quarter of the rendered size clear on every side — a 16px favicon context keeps 4px clear.</p>
+
+      <h3>Minimum sizes</h3>
+      <p>The numbers are derived from the geometry, not taste. The arc stroke renders at 11% of the lockup's height, so it stays solid long after the letterforms give out — <strong>wordmark legibility governs the minimums</strong>, except for the favicon, which is its own 16px design.</p>
+      <div class="minsizes">
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:120px; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1140" aria-hidden="true"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">primary / light / monochrome / wordmark</p>
+            <p class="role">Minimum width <strong>120px</strong> (≈26px tall). At that size the lowercase forms hold ≈13px and the arc stroke ≈3px. Below 120px, switch to the mark.</p>
+          </figcaption>
+        </figure>
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <svg class="r-subtitle" style="width:180px; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1390" aria-hidden="true"><use href="#tlLockup"/><use href="#tlTagline"/></svg>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-primary-subtitle</p>
+            <p class="role">Minimum width <strong>180px</strong> (≈48px tall), where the tagline caps hold ≈7px. Below that the tagline is noise — use the primary instead.</p>
+          </figcaption>
+        </figure>
+        <figure class="asset">
+          <div class="chip chip-dark">
+            <div class="favrow">
+              <div class="cell"><svg style="width:16px;height:16px; color:#D7DEEA" viewBox="0 0 64 64" aria-hidden="true"><use href="#tlMark"/></svg><span>16</span></div>
+              <div class="cell"><svg style="width:24px;height:24px; color:#D7DEEA" viewBox="0 0 64 64" aria-hidden="true"><use href="#tlMark"/></svg><span>24</span></div>
+              <div class="cell"><svg style="width:40px;height:40px; color:#D7DEEA" viewBox="0 0 64 64" aria-hidden="true"><use href="#tlMark"/></svg><span>40</span></div>
+            </div>
+          </div>
+          <figcaption class="meta">
+            <p class="file">logo-mark / favicon</p>
+            <p class="role">Mark minimum <strong>16px</strong> square, prefer 24px and up. The favicon is <em>designed at</em> 16px — its strokes are 1.7px there, above the 1.5px small-size floor — and is never rendered smaller.</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Dark and light</h3>
+      <p>Every light-surface rendition is designed, never recolored from dark: the light primary uses Ink <code>#0F1728</code> glyphs from the light token lane. The stitch arc keeps Stitch Blue <code>#4781E6</code> on both surfaces — 5.0:1 against Threadline Black, 3.78:1 on white, above the 3:1 graphics floor.</p>
+      <div class="duo">
+        <div class="chip chip-dark">
+          <svg class="r-lockup" style="width:78%; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1140" role="img" aria-label="Threadline on a dark surface"><use href="#tlLockup"/></svg>
+        </div>
+        <div class="chip chip-light">
+          <svg class="r-lockup" style="width:78%; color:#0F1728; --arc:#4781E6" viewBox="-80 60 5194 1140" role="img" aria-label="Threadline on a light surface"><use href="#tlLockup"/></svg>
+        </div>
+      </div>
+
+      <p style="margin-top:40px">GitHub renders READMEs in both schemes. Use the <code>&lt;picture&gt;</code> element so each reader gets the asset designed for their theme — copy this into the root README as-is:</p>
+      <pre class="snippet"><code>&lt;picture&gt;
+  &lt;source media="(prefers-color-scheme: dark)" srcset="brandbook/logo-primary.svg"&gt;
+  &lt;img alt="Threadline" src="brandbook/logo-primary-light.svg" width="420"&gt;
+&lt;/picture&gt;</code></pre>
+      <p class="note" style="margin-top:14px">Live demonstration — this panel uses the same mechanism with the files beside this page, and follows your system's color scheme:</p>
+      <div class="picture-demo">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="logo-primary.svg">
+          <img alt="Threadline" src="logo-primary-light.svg" width="320">
+        </picture>
+      </div>
+
+      <h3>The favicon story</h3>
+      <p>The favicon is not the lockup shrunk down — it is its own artifact, drawn at a 16px canvas: one stitch through the fabric line, two strokes total, no container chip. Because favicons cannot inherit a page's text color, the file carries an internal <code>prefers-color-scheme</code> style that flips its ink between Ink and Fog with the browser chrome. Scale it up freely; never design downward from larger art.</p>
+      <div class="duo">
+        <div class="chip chip-light">
+          <div class="favrow">
+            <div class="cell"><svg style="width:16px;height:16px; color:#0F1728" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>16</span></div>
+            <div class="cell"><svg style="width:32px;height:32px; color:#0F1728" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>32</span></div>
+            <div class="cell"><svg style="width:64px;height:64px; color:#0F1728" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>64</span></div>
+          </div>
+        </div>
+        <div class="chip chip-dark">
+          <div class="favrow">
+            <div class="cell"><svg style="width:16px;height:16px; color:#D7DEEA" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>16</span></div>
+            <div class="cell"><svg style="width:32px;height:32px; color:#D7DEEA" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>32</span></div>
+            <div class="cell"><svg style="width:64px;height:64px; color:#D7DEEA" viewBox="0 0 16 16" aria-hidden="true"><use href="#tlFavicon"/></svg><span>64</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 03 -->
+    <section id="misuse">
+      <p class="kicker"><span class="n">03</span>Misuse</p>
+      <h2>What not to do.</h2>
+      <p class="lede">These abuses are rendered here so they are unambiguous — and rendered <em>only</em> here. The repository ships no antipattern assets. One correct reference first, then the gallery.</p>
+
+      <div class="gallery">
+        <figure class="specimen do">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:82%; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1140" aria-hidden="true"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Do</p>
+            <p class="rule">The primary lockup, as shipped, on its surface, inside its clear space. This is the reference.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <svg class="r-sq" style="width:96px" viewBox="0 0 96 96" aria-hidden="true">
+              <rect x="8" y="8" width="80" height="80" rx="18" fill="#1B253A" stroke="#2E3D5C" stroke-width="2"/>
+              <g transform="translate(20 20) scale(0.875)" style="color:#D7DEEA; --arc:#4781E6"><use href="#tlMark"/></g>
+            </svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — background chip</p>
+            <p class="rule">Never place the mark inside a container chip, plate, or badge. The stitch sits directly on the surface; the fabric line is its own ground.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <div style="display:flex; align-items:center; gap:14px">
+              <svg style="width:30px;height:30px; color:#D7DEEA; --arc:#4781E6" viewBox="0 0 64 64" aria-hidden="true"><use href="#tlMark"/></svg>
+              <span style="font-size:23px; font-weight:600; letter-spacing:-0.01em">Threadline</span>
+            </div>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — icon beside plain text</p>
+            <p class="rule">Never bolt the mark next to the name set in plain type. The wordmark and stitch are one drawing — use logo-primary.svg.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <svg class="r-subtitle" style="width:128px; color:#D7DEEA; --arc:#4781E6" viewBox="-80 60 5194 1390" aria-hidden="true"><use href="#tlLockup"/><use href="#tlTagline"/></svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — tagline as primary</p>
+            <p class="rule">Never treat the tagline as part of the primary, and never run the subtitle lockup below 180px — its caps fall under 7px and collapse into noise. The tagline lives in logo-primary-subtitle.svg alone.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:82%" viewBox="-80 60 5194 1140" aria-hidden="true">
+              <defs>
+                <linearGradient id="abuseArc" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#8A7CFF"/><stop offset="1" stop-color="#4EDFD1"/>
+                </linearGradient>
+                <radialGradient id="abuseBlob" cx="0.5" cy="0.5" r="0.5">
+                  <stop offset="0" stop-color="#8A7CFF" stop-opacity="0.55"/><stop offset="1" stop-color="#8A7CFF" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <ellipse cx="2517" cy="630" rx="2900" ry="640" fill="url(#abuseBlob)"/>
+              <g style="color:#D7DEEA; --arc:url(#abuseArc)"><use href="#tlLockup"/></g>
+            </svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — gradient dependence</p>
+            <p class="rule">Never make the mark depend on gradients or glows. It must survive flat, one-color reproduction — logo-monochrome.svg is the proof.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <svg style="width:230px; height:104px" viewBox="-80 60 5194 1140" preserveAspectRatio="none" aria-hidden="true">
+              <g style="color:#D7DEEA; --arc:#4781E6"><use href="#tlLockup"/></g>
+            </svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — stretch or squash</p>
+            <p class="rule">Never distort the lockup. Its aspect is fixed at 4.56:1 — scale uniformly or not at all, and never rotate.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="specimen dont">
+          <div class="chip chip-dark">
+            <svg class="r-lockup" style="width:82%; color:#D946B5; --arc:#FFD23E" viewBox="-80 60 5194 1140" aria-hidden="true"><use href="#tlLockup"/></svg>
+          </div>
+          <figcaption>
+            <p class="verdict">Don't — off-palette recolor</p>
+            <p class="rule">Never recolor. Glyphs are Fog on dark or Ink on light; the arc is Stitch Blue #4781E6 — or the entire mark is one color via the monochrome master.</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>The small-size rules</h3>
+      <div class="panel thresholds">
+        <p class="note" style="margin:0">These thresholds are testable numbers, not vibes. They govern the favicon, the mark, and any future small cut.</p>
+        <ul>
+          <li>Stroke weight <span class="dim">≥</span> 1.5px at a 16px canvas <span class="dim">(target)</span>; 1.0px is the absolute floor.</li>
+          <li>Gaps and counters <span class="dim">≥</span> 1.0px at 16px; <span class="dim">≥</span> 1.5px around modifier elements.</li>
+          <li><span class="dim">≤</span> 4 distinct strokes or elements at 16px — the silhouette must identify first.</li>
+          <li>Design at 16px; never shrink larger art down. <span class="dim">favicon.svg IS the 16px artifact.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================ 04 -->
+    <section id="color">
+      <p class="kicker"><span class="n">04</span>Color</p>
+      <h2>Night infrastructure with luminous signal lines.</h2>
+      <p class="lede">Dark neutrals carry the product and high-signal moments; light surfaces carry docs and print-like material. Color is signal, not decoration — and never the only carrier of meaning.</p>
+
+      <div class="swatch-group">
+        <h4>Dark neutrals</h4>
+        <div class="swatches">
+          <div class="swatch"><div class="well" style="background:#0B1020"></div><p class="name">Threadline Black</p><p class="hex">#0B1020</p></div>
+          <div class="swatch"><div class="well" style="background:#141B2D"></div><p class="name">Graphite</p><p class="hex">#141B2D</p></div>
+          <div class="swatch"><div class="well" style="background:#23304A"></div><p class="name">Slate Line</p><p class="hex">#23304A</p></div>
+          <div class="swatch"><div class="well" style="background:#D7DEEA"></div><p class="name">Fog</p><p class="hex">#D7DEEA</p></div>
+        </div>
+      </div>
+
+      <div class="swatch-group">
+        <h4>Light surfaces</h4>
+        <div class="swatches">
+          <div class="swatch"><div class="well" style="background:#F7F9FC"></div><p class="name">Paper</p><p class="hex">#F7F9FC</p></div>
+          <div class="swatch"><div class="well" style="background:#E7ECF4"></div><p class="name">Mist</p><p class="hex">#E7ECF4</p></div>
+          <div class="swatch"><div class="well" style="background:#0F1728"></div><p class="name">Ink</p><p class="hex">#0F1728</p></div>
+        </div>
+      </div>
+
+      <div class="swatch-group">
+        <h4>Signature accents</h4>
+        <div class="swatches">
+          <div class="swatch"><div class="well" style="background:#4F8CFF"></div><p class="name">Thread Blue</p><p class="hex">#4F8CFF · interface accent</p></div>
+          <div class="swatch"><div class="well" style="background:#4781E6"></div><p class="name">Stitch Blue</p><p class="hex">#4781E6 · the arc's ink</p></div>
+          <div class="swatch"><div class="well" style="background:#4EDFD1"></div><p class="name">Signal Cyan</p><p class="hex">#4EDFD1</p></div>
+          <div class="swatch"><div class="well" style="background:#8A7CFF"></div><p class="name">Iris</p><p class="hex">#8A7CFF</p></div>
+          <div class="swatch"><div class="well" style="background:#FF8A5B"></div><p class="name">Ember</p><p class="hex">#FF8A5B</p></div>
+        </div>
+      </div>
+
+      <div class="swatch-group">
+        <h4>Semantic</h4>
+        <div class="swatches">
+          <div class="swatch"><div class="well" style="background:#3FD08F"></div><p class="name">Success</p><p class="hex">#3FD08F</p></div>
+          <div class="swatch"><div class="well" style="background:#F3B94C"></div><p class="name">Warning</p><p class="hex">#F3B94C</p></div>
+          <div class="swatch"><div class="well" style="background:#F06A6A"></div><p class="name">Error</p><p class="hex">#F06A6A</p></div>
+          <div class="swatch"><div class="well" style="background:#9AB9FF"></div><p class="name">Info (dark text)</p><p class="hex">#9AB9FF</p></div>
+        </div>
+      </div>
+
+      <h3>Two blues, two jobs</h3>
+      <p>The stitch arc is <strong>Stitch Blue <code>#4781E6</code></strong> on every surface, dark and light alike. <strong>Thread Blue <code>#4F8CFF</code></strong> is the interface accent — links, focus, selection, primary actions — and stays untouched everywhere the product already uses it. The two blues are siblings with separate jobs: one belongs to the mark, one to the UI. Stitch Blue ships as its own token (<code>--tl-color-stitch-blue</code>, aliased as <code>--tl-color-logo-arc</code>) and never substitutes for the interface accent, in either direction.</p>
+
+      <h3>Rules</h3>
+      <div class="voice-cols">
+        <div>
+          <ul>
+            <li>Use dark neutrals for product UI and high-signal marketing moments.</li>
+            <li>Use light surfaces for docs, diagrams, reference content, and print-like material.</li>
+            <li>Use color as signal, not decoration.</li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li>Do not rely on color alone for operation type, severity, or state.</li>
+            <li>Use gradients only as thin line treatments. Never use large gradient blobs.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 05 -->
+    <section id="typography">
+      <p class="kicker"><span class="n">05</span>Typography</p>
+      <h2>Geist speaks. Plex Mono measures.</h2>
+      <p class="lede">Geist carries prose, headings, and UI. IBM Plex Mono carries everything machine-flavored: code, IDs, table names, diffs, metadata labels. This page names both first in its font stacks and degrades gracefully to system type when they are not installed.</p>
+
+      <div class="panel typo-spec">
+        <div class="typo-row">
+          <span class="use">display · Geist 600</span>
+          <span class="t-display">Follow what happened.</span>
+        </div>
+        <div class="typo-row">
+          <span class="use">heading · Geist 600</span>
+          <span class="t-heading">Coverage, retention, and redaction</span>
+        </div>
+        <div class="typo-row">
+          <span class="use">body · Geist 400</span>
+          <span class="t-body">Threadline captures row-level changes, connects them to actors and request context, and makes the resulting history readable.</span>
+        </div>
+        <div class="typo-row">
+          <span class="use">label · 0.12em caps</span>
+          <span class="t-label">Audit transaction</span>
+        </div>
+        <div class="typo-row">
+          <span class="use">code · IBM Plex Mono</span>
+          <span class="t-mono">mix threadline.gen.triggers --tables ticket_replies <span class="cm"># IDs, diffs, table names</span></span>
+        </div>
+      </div>
+
+      <h3>Why the wordmark is paths, not type</h3>
+      <p>The logo's letterforms are Geist 600 converted to outlines. No surface that renders the mark — GitHub, HexDocs, a terminal preview, this page — ever needs the font, requests a file, or substitutes a fallback. The drawing is portable because it carries its own geometry; the cut ascenders and the stitch arc stay exactly where they were drawn, everywhere.</p>
+
+      <h3>Rules</h3>
+      <div class="voice-cols">
+        <div>
+          <ul>
+            <li>Letter spacing is 0 for normal text.</li>
+            <li>Uppercase metadata labels may use 0.12em tracking.</li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li>Do not use mono for long prose.</li>
+            <li>Do not add an editorial serif until a real marketing page needs it.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 06 -->
+    <section id="voice">
+      <p class="kicker"><span class="n">06</span>Voice &amp; microcopy</p>
+      <h2>A calm senior engineer with strong product taste.</h2>
+      <p class="lede">Threadline speaks plainly about what it does. Precise over clever. Plainspoken over buzzwordy. Confident over swaggering. Thoughtful over promotional. Calm over urgent. Technical over salesy.</p>
+
+      <h3>Writing rules</h3>
+      <div class="voice-cols">
+        <div>
+          <ul>
+            <li>Say what it does plainly.</li>
+            <li>Use active voice.</li>
+            <li>Keep sentences short.</li>
+            <li>Make boundaries explicit.</li>
+          </ul>
+        </div>
+        <div>
+          <ul>
+            <li>Distinguish actions from changes, requests from transactions, and audit history from database activity auditing.</li>
+            <li>Do not use exclamation marks in product copy.</li>
+            <li>Do not hide technical value behind vague words like "powerful", "seamless", "next-generation", or "robust".</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pairs">
+        <div class="pair say">
+          <span class="tag">Say this</span>
+          <blockquote>Capture changes, connect them to context, and follow the full history.</blockquote>
+        </div>
+        <div class="pair not">
+          <span class="tag">Not this</span>
+          <blockquote>Revolutionary audit intelligence for modern teams.</blockquote>
+        </div>
+        <div class="pair say">
+          <span class="tag">Say this</span>
+          <blockquote>Understand the change, who initiated it, and why.</blockquote>
+        </div>
+        <div class="pair not">
+          <span class="tag">Not this</span>
+          <blockquote>Enterprise-grade observability for governance workflows.</blockquote>
+        </div>
+      </div>
+
+      <h3>Microcopy in the product</h3>
+      <p class="note">Errors state what failed, why if known, and the next action — without blame.</p>
+      <div class="micro">
+        <div class="m err">
+          <span class="k">Error</span>
+          <p>Could not verify trigger coverage for <code>ticket_replies</code>. Threadline could not introspect the deployed trigger SQL. Rerun <code>mix threadline.gen.triggers --tables ticket_replies</code>, migrate, then check coverage again.</p>
+        </div>
+        <div class="m">
+          <span class="k">Empty state</span>
+          <p>No audit changes match these filters. Clear the table filter or widen the time range.</p>
+        </div>
+        <div class="m ok">
+          <span class="k">Success</span>
+          <p>Export queued. Threadline will keep the filtered timeline and evidence bundle together.</p>
+        </div>
+        <div class="m warn">
+          <span class="k">Warning</span>
+          <p>Redaction drift detected. The configured redaction policy does not match the deployed trigger. Regenerate triggers, then rely on this field.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ 07 -->
+    <section id="applications">
+      <p class="kicker"><span class="n">07</span>Applications</p>
+      <h2>The system at work.</h2>
+      <p class="lede">Reference specimens for the surfaces that matter most. Each ships as a pure-path SVG alongside this page; the renders below use the same geometry.</p>
+
+      <figure class="app">
+        <div class="chip chip-dark">
+          <svg viewBox="0 0 960 220" role="img" aria-label="README header specimen">
+            <g transform="translate(47.07 45.3) scale(0.08428)" style="color:#D7DEEA; --arc:#4781E6"><use href="#tlLockup"/></g>
+            <path fill="none" stroke="#23304A" stroke-width="2" d="M 48 176 H 912"/>
+          </svg>
+        </div>
+        <figcaption><code>examples/readme-header.svg</code> — the GitHub README header: the lockup over a hairline rule, transparent canvas, dark surfaces. The light scheme swaps in logo-primary-light.svg via the <code>&lt;picture&gt;</code> element documented above.</figcaption>
+      </figure>
+
+      <figure class="app">
+        <div class="chip chip-dark">
+          <svg viewBox="0 0 960 540" role="img" aria-label="Docs page chrome specimen">
+            <g transform="translate(32 28) scale(0.625)" style="color:#D7DEEA; --arc:#4781E6"><use href="#tlMark"/></g>
+            <path fill="none" stroke="#23304A" stroke-width="2" d="M 240 24 V 516"/>
+            <path fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 124 H 150"/>
+            <path fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 156 H 180"/>
+            <path fill="none" stroke="#4F8CFF" stroke-width="10" stroke-linecap="round" d="M 33 188 H 168"/>
+            <path fill="none" stroke="#3B4762" stroke-width="10" stroke-linecap="round" d="M 33 220 H 130"/>
+            <path fill="none" stroke="#D7DEEA" stroke-width="18" stroke-linecap="round" d="M 289 84 H 560"/>
+            <path fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 126 H 700"/>
+            <path fill="none" stroke="#23304A" stroke-width="2" d="M 296 168 H 920 A 8 8 0 0 1 928 176 V 312 A 8 8 0 0 1 920 320 H 296 A 8 8 0 0 1 288 312 V 176 A 8 8 0 0 1 296 168 Z"/>
+            <path fill="none" stroke="#4EDFD1" stroke-width="8" stroke-linecap="round" d="M 314 200 H 520"/>
+            <path fill="none" stroke="#D7DEEA" stroke-width="8" stroke-linecap="round" d="M 314 228 H 680"/>
+            <path fill="none" stroke="#D7DEEA" stroke-width="8" stroke-linecap="round" d="M 314 256 H 610"/>
+            <path fill="none" stroke="#4EDFD1" stroke-width="8" stroke-linecap="round" d="M 314 284 H 420"/>
+            <path fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 360 H 880"/>
+            <path fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 392 H 820"/>
+            <path fill="none" stroke="#73819C" stroke-width="10" stroke-linecap="round" d="M 289 424 H 560"/>
+          </svg>
+        </div>
+        <figcaption><code>examples/docs-page.svg</code> — docs chrome: the stitch mark anchors the sidebar; content is wireframed as stroke paths. The mark, not the lockup, carries identity in dense chrome.</figcaption>
+      </figure>
+
+      <figure class="app">
+        <div class="chip chip-dark" style="padding:0">
+          <svg viewBox="0 0 1280 640" role="img" aria-label="Threadline social card — Follow what happened">
+            <path fill="#0B1020" d="M 0 0 H 1280 V 640 H 0 Z"/>
+            <g transform="translate(258.32 211.01) scale(0.15252)" style="color:#D7DEEA; --arc:#4781E6"><use href="#tlLockup"/><use href="#tlTagline"/></g>
+          </svg>
+        </div>
+        <figcaption><code>social-card.svg</code> — the 1280×640 link preview. Lockup and tagline, centered, nothing else. In prose, the tagline is sentence case: "Follow what happened." The capitalized form belongs to the two tagline-bearing assets only.</figcaption>
+      </figure>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="sig">
+      <svg width="18" height="18" viewBox="0 0 64 64" style="color:#8F9DB5; --arc:#4781E6" aria-hidden="true"><use href="#tlMark"/></svg>
+      <span>Threadline — Follow what happened.</span>
+    </div>
+    <span class="files">brand-book.md · tokens.json · tokens.css · logo-*.svg · favicon.svg · social-card.svg · examples/</span>
+  </footer>
+
+</div>
 </body>
 </html>
