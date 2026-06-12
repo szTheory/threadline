@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- C10 favicon: the baseline weave — one post standing ON the thread (over),
+       one post piercing THROUGH it (under). Designed at 16px. -->
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 5 3 V 10.65 M 11 3 V 14.2"/>
+  <path data-role="mark" fill="none" stroke="currentColor" stroke-width="1.7" d="M 0.8 11.5 H 9.1 M 12.9 11.5 H 15.2"/>
+</svg>

@@ -1,0 +1,78 @@
+{
+  "round": 2,
+  "brief": ".planning/phases/159-brand-audit-and-research/159-DESIGN-BRIEF.md",
+  "parents": {
+    "C1": "ADVANCE — \"this one is awesome it's just perhaps a little hard to read? ... it's the light one that is harder to read\"",
+    "C6": "ADVANCE — \"i also did like this one c6-topstitch ... i just felt that the running thread concept was more striking\""
+  },
+  "direction": "User, verbatim: \"so yeah think deeply on this do another round here explore both of those concepts and we'll tournament them\" — all six candidates are C1/C6 mutations; no wildcard invited.",
+  "judged_variable": "Light-mode thread/letter value separation on white (round-1 lesson: C1's light rendition read as strikethrough; dark is loved).",
+  "candidates": [
+    {
+      "id": "C9",
+      "slug": "c9-gap-thread",
+      "parent": "C1",
+      "lane": "typemark",
+      "technique": "Stroke continuation",
+      "hook": "descender-free lowercase run",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "Thread surfaces ONLY in inter-letter gaps — never inside any counter or aperture. Both e crossbars restored to exact kit geometry, carried on the thread layer so the e's stay pinned (MR-2). Same blue, same y 690-770 channel.",
+      "answers": "C1 light-mode strikethrough: the dashes that crossed h/d/n interiors are removed; no foreign line crosses a letter."
+    },
+    {
+      "id": "C10",
+      "slug": "c10-baseline-run",
+      "parent": "C1",
+      "lane": "typemark",
+      "technique": "Pattern-through-letterforms",
+      "hook": "descender-free lowercase run",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "Thread runs along the baseline (y 965-1045 band centered on the y=1005 baseline) in strict over/under alternation across all 13 baseline obstacles; over-crossed stems (T, h-right, l, n-left) have their feet cut and completed by the thread. Literalizes thread + line.",
+      "answers": "C1 legibility: the x-height band and every counter are untouched — strikethrough is impossible by construction."
+    },
+    {
+      "id": "C11",
+      "slug": "c11-eye-to-eye",
+      "parent": "C1",
+      "lane": "typemark",
+      "technique": "Counter replacement",
+      "hook": "e/a/d counters",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "Five surfacings only: lead-in, through the FIRST e's counter, one gap dash between d and l, through the LAST e's counter, lead-out. Both e bars intact — the thread passes through the eyes like needle eyes (64-unit thread, y 598-662 eye channel).",
+      "answers": "C1 'a little hard to read': strikingness kept, segment noise cut from 14 surfacings to 5."
+    },
+    {
+      "id": "C12",
+      "slug": "c12-dual-surface",
+      "parent": "C1",
+      "lane": "typemark",
+      "technique": "Stroke continuation",
+      "hook": "descender-free lowercase run",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "Dark rendition byte-faithful to round-1 C1 geometry (loved — unchanged). Light rendition re-engineered in a separate -light asset: thread tint lifted to #8FB3F0 and under-pass halos widened 34 -> 70 units (dashes that collapse below ~30 units are dropped), so on white the thread reads as a layer behind the word.",
+      "answers": "Verbatim: 'NO the dark version reads decently it's the light one that is harder to read' — only the light surface changes."
+    },
+    {
+      "id": "C13",
+      "slug": "c13-topstitch-geist",
+      "parent": "C6",
+      "lane": "lockup",
+      "technique": "Stroke continuation",
+      "hook": "double-l verticals (adjacent d/l ascender pair)",
+      "typeface": "Geist 600 (Phase 160 kit)",
+      "concept": "C6's escape-arc stitch re-cut on Geist 600: d/l ascenders cut at y=444 (just above Geist's x-height top at 471), arc stroke width 128 = the measured Geist 600 stem width, legs landing flush on the cut stems, arc slightly deeper than C6 (rise 319.5 vs 257 units).",
+      "answers": "C6 ADVANCE 'i also did like this one' + tournament direction: same stitch concept unified with the incumbent Geist voice."
+    },
+    {
+      "id": "C14",
+      "slug": "c14-stitchline",
+      "parent": "C1 x C6",
+      "lane": "lockup",
+      "technique": "Stroke continuation",
+      "hook": "descender-free lowercase run + double-l verticals",
+      "typeface": "Geist 500 (Phase 160 kit)",
+      "concept": "One continuous thread, six surfacings total: lead-in, first e-bar run, a-d gap dash, the d/l stitch arc above the x-height (stroke 106 = Geist 500 stem, ascenders cut at y=430), i-n gap dash, last e-bar run + tail. One thread doing both jobs; restraint is the craft test.",
+      "answers": "'explore both of those concepts' — the hybrid; plus C1's legibility note via sparse surfacing."
+    }
+  ]
+}
