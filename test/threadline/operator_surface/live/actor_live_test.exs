@@ -161,6 +161,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Invalid Actor Reference"
     end
 
+    test "ActorLive source never creates atoms from URL actor kind" do
+      source = File.read!("lib/threadline/operator_surface/live/actor_live.ex")
+
+      assert source =~ "String.to_existing_atom(kind)"
+      refute source =~ ~r/String\.to_atom\b/
+    end
+
     test "Case 2: Renders distinct empty state if actor has NEVER recorded an event", %{
       conn: conn
     } do

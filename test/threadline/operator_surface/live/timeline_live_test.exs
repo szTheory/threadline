@@ -160,7 +160,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def auth(_socket), do: {:ok, %{access: :support_read_only, organization_id: "org_123"}}
-    def export_auth(_mirror), do: {:error, :unauthorized}
+
+    def export_auth(_mirror) do
+      case Application.get_env(:threadline, :test_support_export_auth, {:error, :unauthorized}) do
+        :raise -> raise "export auth failed"
+        result -> result
+      end
+    end
 
     def scope_operator_query(query, %{organization_id: org_id}, %{surface: :timeline}) do
       where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
@@ -1218,6 +1224,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
+      Application.delete_env(:threadline, :test_support_export_auth)
+      on_exit(fn -> Application.delete_env(:threadline, :test_support_export_auth) end)
+
       Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
@@ -1245,6 +1254,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob) == []
+    end
+
+    test "support-scoped mounts fail closed when export auth raises", %{conn: conn} do
+      Application.put_env(:threadline, :test_support_export_auth, :raise)
+
+      {:ok, lv, html} =
+        case live(conn, "/audit_support/timeline?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      refute html =~ "Queue export"
+      refute html =~ "Carry to Exports"
 
       render_click(lv, "request_background_export", %{})
 

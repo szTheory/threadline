@@ -204,7 +204,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         _ -> false
       end
     rescue
-      _ -> true
+      _ -> false
     end
 
     defp assign_coverage_enabled(socket, opts) do

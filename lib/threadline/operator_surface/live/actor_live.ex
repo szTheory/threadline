@@ -11,14 +11,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      type =
-        try do
-          String.to_existing_atom(kind)
-        rescue
-          ArgumentError -> String.to_atom(kind)
-        end
-
-      case Threadline.Semantics.ActorRef.new(type, id) do
+      case actor_ref_from_params(kind, id) do
         {:ok, actor_ref} ->
           from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
@@ -66,7 +59,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
            |> stream(:transactions, page.entries)}
 
-        {:error, _} ->
+        :error ->
           {:ok, assign(socket, :not_found, true)}
       end
     end
@@ -284,6 +277,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp pressed_state(current, value) when current == value, do: "true"
     defp pressed_state(_current, _value), do: "false"
+
+    defp actor_ref_from_params(kind, id) when is_binary(kind) do
+      with {:ok, type} <- actor_type_from_string(kind),
+           {:ok, actor_ref} <- Threadline.Semantics.ActorRef.new(type, id) do
+        {:ok, actor_ref}
+      else
+        _ -> :error
+      end
+    end
+
+    defp actor_ref_from_params(_kind, _id), do: :error
+
+    defp actor_type_from_string(kind) do
+      {:ok, String.to_existing_atom(kind)}
+    rescue
+      ArgumentError -> :error
+    end
 
     defp actor_summaries(_transactions, _repo, scope)
          when not is_nil(scope),
