@@ -322,14 +322,14 @@ end
 
 **All other claims are [VERIFIED: source read] or [CITED: 167-UI-SPEC.md / 166-CONTEXT.md / STATE.md].**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact LIGHT-REVIEW.md schema.**
+1. **Exact LIGHT-REVIEW.md schema.** — RESOLVED: table with explicit `pass | override-needed` cells (parseable format optional). Adopted by Plan 167-01 Task 1.
    - What we know: must record per-family disposition (9) + per-data-viz-surface named-criteria outcome (3); lives in phase dir (D-08, Claude's discretion).
    - What's unclear: table vs checklist format; whether it should be machine-parseable like the motion inventory (which `style_contract_test.exs` parses).
    - Recommendation: Use a table with explicit `pass | override-needed` cells so the reviewer's judgment is unambiguous; a parseable format is optional (the data-viz review is human judgment, not a test).
 
-2. **Should D-07(a) assert dual-branch presence, or single-lane?**
+2. **Should D-07(a) assert dual-branch presence, or single-lane?** — RESOLVED: assert both branches (strictly stronger; catches the mirror-omission bug). Adopted by Plan 167-02 frontmatter + Task 2.
    - What we know: D-07(a) says "each authored light override selector is present in the light lane."
    - What's unclear: literal reading = light lane only; safety = both branches (Pitfall 2).
    - Recommendation: Assert both branches (strictly stronger, catches the mirror-omission bug). Within Claude's discretion on assertion form (CONTEXT).
