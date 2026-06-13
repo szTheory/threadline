@@ -49,6 +49,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     - `:evidence_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
       optional) — explicitly gates the mounted evidence surface. Defaults to
       fail closed.
+    - `:theme` (`:dark | :light | :system`, default `:dark`) — host-selected
+      operator-surface token lane. `:system` follows the user's OS preference
+      through scoped CSS only; no JavaScript, cookie, or runtime toggle is
+      injected by Threadline.
     """
 
     defmacro threadline_operator_surface(path, opts \\ []) do
@@ -56,8 +60,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
       has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated, false)
       exports_enabled? = Keyword.get(opts, :exports, true)
+      theme = Keyword.get(opts, :theme, :dark)
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line
+
+      unless theme in [:dark, :light, :system] do
+        raise CompileError,
+          file: caller_file,
+          line: caller_line,
+          description:
+            "Threadline Operator Surface theme must be one of :dark | :light | :system"
+      end
 
       quote do
         _scopes = @phoenix_top_scopes || %{pipes: []}
