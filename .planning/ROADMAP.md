@@ -20,7 +20,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 
 ## Phases
 
-- [ ] **Phase 166: unfreeze-token-lane-mechanism** - Atomic opening wave: superseding decision recorded, 45-token light lane (status tints decided here), `data-tl-theme` on the 10 LiveView roots, compile-validated `theme:` router option, contract tests amended same-wave
+- [x] **Phase 166: unfreeze-token-lane-mechanism** - Atomic opening wave: superseding decision recorded, 45-token light lane (status tints decided here), `data-tl-theme` on the 10 LiveView roots, compile-validated `theme:` router option, contract tests amended same-wave (completed 2026-06-13)
 - [ ] **Phase 167: component-retune** - ~9 dark-effect families individually retuned, verification pass over the ~20 tint-riders, explicit light design review of coverage/timeline/diff (the Grafana lesson)
 - [ ] **Phase 168: accessibility-verification** - AA mirror test for the light lane with alpha-aware token parsing; focus-visible + interaction states verified per mode
 - [ ] **Phase 169: screenshots-example-docs** - `__light__` baseline lane (local-only), example app demonstrates `theme: :system`, guides + doc-contract coverage of the new option
@@ -32,7 +32,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 
 | Phase | Size | Depends on | Requirements |
 |---|---|---|---|
-| 166. unfreeze-token-lane-mechanism | M-L (design-heavy) | Nothing | THEME-01, THEME-02, THEME-03, THEME-04, TOKEN-01, TOKEN-02, TOKEN-03 |
+| 166. unfreeze-token-lane-mechanism | 1/1 | Complete   | 2026-06-13 |
 | 167. component-retune | L (largest) | 166 | COMP-01, COMP-02 |
 | 168. accessibility-verification | S-M | 167 | A11Y-01, A11Y-02 |
 | 169. screenshots-example-docs | S-M | 167 (can overlap 168) | EVID-01, EVID-02 |

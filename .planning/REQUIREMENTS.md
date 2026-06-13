@@ -8,16 +8,16 @@
 
 ### Theme Mechanism
 
-- [ ] **THEME-01**: Host can mount with `theme: :dark | :light | :system` on `threadline_operator_surface/2`; default `:dark` (zero behavior change for existing adopters); invalid values raise at compile time naming the allowed triad.
-- [ ] **THEME-02**: The configured theme renders server-side as a `data-tl-theme` attribute on every operator-surface LiveView root — first paint is correct on the dead render (zero FOUC), with no JavaScript, no localStorage, and no `<head>` injection.
-- [ ] **THEME-03**: `:system` follows the OS via scoped `@media (prefers-color-scheme: light)` CSS only, and `color-scheme` flips scoped within `.threadline-ui` so native controls/scrollbars match the active mode.
-- [ ] **THEME-04**: `style.ex` and `style_contract_test.exs` are amended in the SAME wave (source-first): the seven `prefers-color-scheme`/`color-scheme: light` refutes become theme-aware assertions; the `theme-toggle` ban is RETAINED verbatim; the superseding decision [165-01] over [136-01] is recorded in STATE.
+- [x] **THEME-01**: Host can mount with `theme: :dark | :light | :system` on `threadline_operator_surface/2`; default `:dark` (zero behavior change for existing adopters); invalid values raise at compile time naming the allowed triad.
+- [x] **THEME-02**: The configured theme renders server-side as a `data-tl-theme` attribute on every operator-surface LiveView root — first paint is correct on the dead render (zero FOUC), with no JavaScript, no localStorage, and no `<head>` injection.
+- [x] **THEME-03**: `:system` follows the OS via scoped `@media (prefers-color-scheme: light)` CSS only, and `color-scheme` flips scoped within `.threadline-ui` so native controls/scrollbars match the active mode.
+- [x] **THEME-04**: `style.ex` and `style_contract_test.exs` are amended in the SAME wave (source-first): the seven `prefers-color-scheme`/`color-scheme: light` refutes become theme-aware assertions; the `theme-toggle` ban is RETAINED verbatim; the superseding decision [165-01] over [136-01] is recorded in STATE.
 
 ### Light Token Lane
 
-- [ ] **TOKEN-01**: All 45 color-bearing `--tl-*` tokens have light-lane values — 19 seeded from `brandbook/tokens.json` `semantic.light`, 26 designed (never recolored): status tints, glass surfaces, shadows, focus ring/border, accent tints, brand-rail.
-- [ ] **TOKEN-02**: The status-tint system is redesigned for light as one coherent decision (tinted backgrounds + darkened text), and the ~20 tint-riding component families (chips, alerts, op badges, redaction rows, policy drift, job errors) render correctly from it without per-component overrides.
-- [ ] **TOKEN-03**: The stray hardcoded color outside the token block (`style.ex` shell-nav active inset rgba) is moved behind a `--tl-*` token with values in both lanes.
+- [x] **TOKEN-01**: All 45 color-bearing `--tl-*` tokens have light-lane values — 19 seeded from `brandbook/tokens.json` `semantic.light`, 26 designed (never recolored): status tints, glass surfaces, shadows, focus ring/border, accent tints, brand-rail.
+- [x] **TOKEN-02**: The status-tint system is redesigned for light as one coherent decision (tinted backgrounds + darkened text), and the ~20 tint-riding component families (chips, alerts, op badges, redaction rows, policy drift, job errors) render correctly from it without per-component overrides.
+- [x] **TOKEN-03**: The stray hardcoded color outside the token block (`style.ex` shell-nav active inset rgba) is moved behind a `--tl-*` token with values in both lanes.
 
 ### Component Retune
 
@@ -58,13 +58,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-01 | Phase 166 | Pending |
-| THEME-02 | Phase 166 | Pending |
-| THEME-03 | Phase 166 | Pending |
-| THEME-04 | Phase 166 | Pending |
-| TOKEN-01 | Phase 166 | Pending |
-| TOKEN-02 | Phase 166 | Pending |
-| TOKEN-03 | Phase 166 | Pending |
+| THEME-01 | Phase 166 | Complete |
+| THEME-02 | Phase 166 | Complete |
+| THEME-03 | Phase 166 | Complete |
+| THEME-04 | Phase 166 | Complete |
+| TOKEN-01 | Phase 166 | Complete |
+| TOKEN-02 | Phase 166 | Complete |
+| TOKEN-03 | Phase 166 | Complete |
 | COMP-01 | Phase 167 | Pending |
 | COMP-02 | Phase 167 | Pending |
 | A11Y-01 | Phase 168 | Pending |
