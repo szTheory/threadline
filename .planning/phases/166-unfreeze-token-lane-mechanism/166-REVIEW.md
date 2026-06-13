@@ -37,7 +37,7 @@ status: clean
 
 ## Summary
 
-Reviewed the current branch's Phase 166 implementation diff from `5d923ad..5692161`, excluding planning artifacts. The protected uncommitted nav-overhaul lane was not included in review scope.
+Reviewed the current branch's Phase 166 implementation diff from `5d923ad..a95111a`, excluding planning artifacts. The protected uncommitted nav-overhaul lane was not included in review scope.
 
 The router macro validates `theme:` at compile time against the required literal atom triad and reports the required error text. `Auth.on_mount/4` normalizes the already-validated option to a stable HTML attribute value before any LiveView renders. All ten operator roots consume the assigned theme through `data-tl-theme={@threadline_theme}` without adding JavaScript, localStorage, cookies, head scripts, or runtime toggle state.
 

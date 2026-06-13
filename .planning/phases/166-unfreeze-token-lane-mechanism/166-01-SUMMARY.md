@@ -35,6 +35,7 @@ The source contract was amended in the same implementation wave as the CSS lane.
 - `a72488b` - Task 2: render operator surface theme attributes.
 - `4715dac` - Tasks 3 and 4: add light/system token lanes and amend source contract.
 - `1c32dab` - Task 5: record [165-01] decision in STATE.
+- `a95111a` - Format fix: formatter-only wrap correction in theme validation.
 
 ## What Changed
 
@@ -60,6 +61,7 @@ The source contract was amended in the same implementation wave as the CSS lane.
 - `mix test test/threadline/operator_surface/style_contract_test.exs` - passed, 23 tests, 0 failures.
 - `mix compile --warnings-as-errors` - passed; compiled 13 files and generated the `threadline` app.
 - `mix test test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/live/start_live_test.exs` - passed, 46 tests, 0 failures.
+- `mix format --check-formatted lib/threadline/operator_surface/router.ex lib/threadline/operator_surface/auth.ex test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/live/start_live_test.exs` - passed after the formatter-only router correction in `a95111a`.
 - `rg -n 'theme-toggle' lib/threadline/operator_surface/style.ex` - no matches.
 - `rg -n '<div class="threadline-ui">' lib/threadline/operator_surface/live` - no matches.
 - `rg -n 'data-tl-theme=\{@threadline_theme\}' lib/threadline/operator_surface/live` - 10 matches, one per operator LiveView root.
