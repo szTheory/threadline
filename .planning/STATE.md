@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
 status: executing
-last_updated: "2026-06-13T06:21:09.138Z"
-last_activity: 2026-06-13 -- Phase 167 planning complete
+last_updated: "2026-06-13T06:26:07.722Z"
+last_activity: 2026-06-13 -- Phase 167 execution started
 progress:
   total_phases: 5
   completed_phases: 1
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 167 — component retune (awaiting post-166 light-lane design review)
+**Current focus:** Phase 167 — component-retune
 
 ## Current Position
 
-Phase: 167
-Plan: Not started
-Status: Ready to execute
+Phase: 167 (component-retune) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 167
 Progress: [██████████] 100%
-Last activity: 2026-06-13 -- Phase 167 planning complete
+Last activity: 2026-06-13 -- Phase 167 execution started
 
 ## Performance Metrics
 

@@ -33,7 +33,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 | Phase | Size | Depends on | Requirements |
 |---|---|---|---|
 | 166. unfreeze-token-lane-mechanism | 1/1 | Complete    | 2026-06-13 |
-| 167. component-retune | L (largest) | 166 | COMP-01, COMP-02 |
+| 167. component-retune | 1/2 | In Progress|  |
 | 168. accessibility-verification | S-M | 167 | A11Y-01, A11Y-02 |
 | 169. screenshots-example-docs | S-M | 167 (can overlap 168) | EVID-01, EVID-02 |
 | 170. brand-alignment-closeout | S | 168, 169 | BRAND-01, BRAND-02 |
@@ -86,7 +86,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 Plans:
 **Wave 1**
 
-- [ ] 167-01-PLAN.md — Review-first gate: live 3-mode (:dark/:light/:system) render review producing LIGHT-REVIEW.md disposition fail-list (COMP-01 confirm + COMP-02 data-viz)
+- [x] 167-01-PLAN.md — Review-first gate: live 3-mode (:dark/:light/:system) render review producing LIGHT-REVIEW.md disposition fail-list (COMP-01 confirm + COMP-02 data-viz)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
