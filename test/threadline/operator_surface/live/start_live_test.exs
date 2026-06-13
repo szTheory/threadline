@@ -72,6 +72,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.SystemThemeRouter do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_system",
+        repo: Threadline.Test.Repo,
+        schemas: %{
+          "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
+          "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
+        },
+        theme: :system,
+        coverage_authorize_fn:
+          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
+        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
+        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+      )
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StartLiveTest.ScopedRouter do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -140,6 +174,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Threadline.OperatorSurface.StartLiveTest.ScopedRouter)
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_start_system_key",
+      signing_salt: "start-system"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.StartLiveTest.SystemThemeRouter)
+  end
+
   defmodule Threadline.OperatorSurface.Live.StartLiveTest do
     use Threadline.DataCase, async: false
     import Phoenix.ConnTest
@@ -205,6 +256,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "renders Home as an orientation hub with existing destinations", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/audit")
 
+      assert html =~ ~s|data-tl-theme="dark"|
       assert html =~ "Follow what happened."
       refute html =~ ~s|class="tl-home__eyebrow">Threadline</p>|
 
@@ -522,6 +574,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(view, ~s|[data-testid="operator-scope"]|, "Scoped view")
       assert has_element?(view, ~s|a[href="/audit_scoped/timeline"]|, "Timeline")
       assert has_element?(view, ~s|a[href="/audit_scoped/coverage"]|)
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.StartLiveSystemThemeTest do
+    use Threadline.DataCase, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    alias Threadline.Semantics.ActorRef
+
+    @endpoint Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint,
+        secret_key_base: "y" |> String.duplicate(64),
+        live_view: [signing_salt: "y" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
+
+      conn =
+        build_conn()
+        |> Plug.Test.init_test_session(
+          threadline_actor_ref: Jason.encode!(ActorRef.to_map(actor_ref))
+        )
+
+      {:ok, conn: conn}
+    end
+
+    test "renders system theme on the initial Home HTML", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit_system")
+
+      assert html =~ ~s|data-tl-theme="system"|
     end
   end
 end

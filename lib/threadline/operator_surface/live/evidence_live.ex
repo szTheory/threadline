@@ -51,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui">
+      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
         <Threadline.OperatorSurface.Style.css />
         <%= if @base_path do %>
           <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
