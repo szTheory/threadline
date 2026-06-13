@@ -1,6 +1,6 @@
 # Roadmap: Threadline v1.36 Operator Surface Light Mode
 
-**Status:** Phase 166 planned — ready to execute
+**Status:** Phase 166 complete — light-lane design review before Phase 167
 **Milestone:** v1.36 Operator Surface Light Mode (Phases 166–170)
 **Opened:** 2026-06-12
 **Last shipped:** v1.35 Unified Logo & Brand Book v2 (2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
@@ -32,7 +32,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 
 | Phase | Size | Depends on | Requirements |
 |---|---|---|---|
-| 166. unfreeze-token-lane-mechanism | 1/1 | Complete   | 2026-06-13 |
+| 166. unfreeze-token-lane-mechanism | 1/1 | Complete    | 2026-06-13 |
 | 167. component-retune | L (largest) | 166 | COMP-01, COMP-02 |
 | 168. accessibility-verification | S-M | 167 | A11Y-01, A11Y-02 |
 | 169. screenshots-example-docs | S-M | 167 (can overlap 168) | EVID-01, EVID-02 |

@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: verifying
-last_updated: "2026-06-13T02:16:31.516Z"
+status: ready_to_plan
+last_updated: 2026-06-13T02:20:52.806Z
 last_activity: 2026-06-13
 progress:
   total_phases: 5
@@ -11,6 +11,7 @@ progress:
   total_plans: 1
   completed_plans: 1
   percent: 20
+stopped_at: Phase 166 complete (1/1) — human light-lane design review required before Phase 167
 ---
 
 # Project State: Threadline
@@ -20,13 +21,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 166 — unfreeze-token-lane-mechanism
+**Current focus:** Phase 167 — component retune (awaiting post-166 light-lane design review)
 
 ## Current Position
 
-Phase: 166 (unfreeze-token-lane-mechanism) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
+Phase: 167
+Plan: Not started
+Status: Ready for human light-lane design review before Phase 167 planning
 Progress: [██████████] 100%
 Last activity: 2026-06-13
 
@@ -70,11 +71,9 @@ Last activity: 2026-06-13
 
 ### Pending Todos
 
-- Execute Phase 166 (`unfreeze-token-lane-mechanism`) with `/gsd-execute-phase 166`.
 - **Human gate (after Phase 166, before Phase 167):** light-lane design review — user eyeballs the rendered light surface (status-tint keystone included) before retune effort is spent.
 - **Human gate (after Phase 170):** end-of-milestone UAT across dark/light/system modes before closeout.
 - **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
-- **Phase 166 atomicity:** `style.ex` and `style_contract_test.exs` must land in the SAME wave — the contract test reads `style.ex` directly, so the refute flips and the `color-scheme: light` introduction are inseparable (else `mix verify.test` is red between commits).
 
 ### Roadmap Evolution
 
