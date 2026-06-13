@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
 status: executing
-last_updated: "2026-06-13T01:05:49.009Z"
-last_activity: 2026-06-13 -- Phase 166 planning complete
+last_updated: "2026-06-13T02:00:16.446Z"
+last_activity: 2026-06-13 -- Phase 166 execution started
 progress:
   total_phases: 5
   completed_phases: 0
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.36 Operator Surface Light Mode — Phase 166 (`unfreeze-token-lane-mechanism`) planned and ready to execute
+**Current focus:** Phase 166 — unfreeze-token-lane-mechanism
 
 ## Current Position
 
-Phase: 166 of 166–170 (planned)
-Plan: 1 of 1 ready
-Status: Ready to execute
+Phase: 166 (unfreeze-token-lane-mechanism) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 166
 Progress: [░░░░░░░░░░] 0/5 phases
-Last activity: 2026-06-13 -- Phase 166 planning complete
+Last activity: 2026-06-13 -- Phase 166 execution started
 
 ## Performance Metrics
 
@@ -105,7 +105,8 @@ Last activity: 2026-06-13 -- Phase 166 planning complete
 
 ### Decisions
 
-- [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle. *(To be superseded by [165-01] in Phase 166 per THEME-04 — the approved recommendation is the unfreeze; the ledger entry lands with the same-wave contract amendment.)*
+- [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle. *(Superseded by [165-01] in Phase 166 per THEME-04.)*
+- [165-01] supersedes [136-01]: dark remains default and brand-primary; light/system are supported via host `theme:` config; no runtime theme toggle in v1; the `theme-toggle` ban remains.
 - [136-01]: Lift muted/status contrast and make hover/focus/disabled states explicit through shared `--tl-*` tokens before per-screen polish.
 - **130.1-02 (2026-05-29):** Nyquist waivers for doc-only phases 128–129; 130-VALIDATION superseded footnote; `mix ci.all` green at closeout.
 - **130-02 (2026-05-28):** SUMMARY SSOT at `conventions/summary-frontmatter.md`; GAP IDs for 125–127 only; single `mix ci.all` in 130-VERIFICATION.
