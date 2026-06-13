@@ -11,11 +11,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       scope_query_fn = Keyword.get(opts, :scope_query_fn)
       repo = Keyword.get(opts, :repo)
       schemas = Keyword.get(opts, :schemas, %{})
+      theme = Keyword.get(opts, :theme, :dark) |> normalize_theme()
 
       socket =
         socket
         |> maybe_assign_session_user(session)
         |> maybe_assign_session_actor(session)
+        |> Phoenix.Component.assign(:threadline_theme, theme)
         |> Phoenix.Component.assign(:threadline_repo, repo)
         |> Phoenix.Component.assign(:threadline_schemas, schemas)
         |> Phoenix.Component.assign(:threadline_scope_query_fn, scope_query_fn)
@@ -171,6 +173,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp session_user(_session), do: nil
+
+    defp normalize_theme(:light), do: "light"
+    defp normalize_theme(:system), do: "system"
+    defp normalize_theme(_theme), do: "dark"
 
     defp assign_exports_enabled(socket, opts) do
       exports_enabled = Keyword.get(opts, :exports, true)

@@ -114,7 +114,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       ~H"""
-      <div class="threadline-ui">
+      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
         <Threadline.OperatorSurface.Style.css />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={@threadline_coverage}
