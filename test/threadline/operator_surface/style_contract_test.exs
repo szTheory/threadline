@@ -5,12 +5,23 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   @style_path "lib/threadline/operator_surface/style.ex"
   @motion_inventory_path ".planning/milestones/v1.31-phases/141-motion-micro-animation/141-MOTION-INVENTORY.md"
 
-  test "operator surface stays dark-only and token-driven" do
+  test "operator surface stays dark-default with governed light and system token lanes" do
     src = File.read!(@style_path)
 
     assert String.contains?(src, "color-scheme: dark;")
-    refute String.contains?(src, "prefers-color-scheme")
-    refute String.contains?(src, "color-scheme: light")
+    assert String.contains?(src, ~s|.threadline-ui[data-tl-theme="light"]|)
+    assert String.contains?(src, ~s|.threadline-ui[data-tl-theme="system"]|)
+    assert String.contains?(src, "@media (prefers-color-scheme: light)")
+    assert length(Regex.scan(~r/color-scheme: light;/, src)) == 2
+    assert String.contains?(src, "--tl-color-accent-inset:")
+
+    assert Regex.match?(
+             ~r/\.threadline-ui \.tl-shell-nav__item--active,\s*\.threadline-ui \.tl-shell-nav__item\[aria-current="page"\]\s*\{[^}]*box-shadow: inset 0 0 0 1px var\(--tl-color-accent-inset\);/s,
+             src
+           )
+
+    assert length(Regex.scan(~r/rgba\(127, 169, 255, 0\.16\)/, src)) == 1
+    refute String.contains?(src, "theme-toggle")
   end
 
   test "dark interaction tokens cover readable hover and focus states" do
@@ -552,7 +563,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do
     src = File.read!(@style_path)
 
-    tokens = color_tokens(src)
+    tokens =
+      src
+      |> selector_block!(".threadline-ui")
+      |> color_tokens()
 
     backgrounds = [
       "--tl-color-bg",
@@ -677,8 +691,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for anti_pattern <- [
           "@tailwind",
-          "prefers-color-scheme",
-          "color-scheme: light",
           "theme-toggle",
           "shadcn",
           "daisyui",
