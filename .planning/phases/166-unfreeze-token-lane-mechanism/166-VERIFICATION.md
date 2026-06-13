@@ -1,19 +1,22 @@
 ---
 phase: 166-unfreeze-token-lane-mechanism
-verified: 2026-06-13T02:19:56Z
-status: passed
+verified: 2026-06-13T05:43:15Z
+updated: 2026-06-13T05:43:15Z
+status: complete
+verification_mode: automated
+manual_uat: not_required
 score: 7/7 must-haves verified
 overrides_applied: 0
-re_verification: false
+re_verification: true
 ---
 
 # Phase 166: unfreeze-token-lane-mechanism Verification Report
 
 **Phase Goal:** Add the dark-default host theme mechanism, server-render it on every operator LiveView root, introduce additive light/system CSS token lanes, amend the source contract in the same wave, and record [165-01] as superseding [136-01].
 **Requirements:** THEME-01, THEME-02, THEME-03, THEME-04, TOKEN-01, TOKEN-02, TOKEN-03
-**Verified:** 2026-06-13T02:19:56Z
-**Status:** passed
-**Re-verification:** No - initial verification
+**Verified:** 2026-06-13T05:43:15Z
+**Status:** complete
+**Re-verification:** Yes - automated re-run against the current workspace
 
 ## Goal Achievement
 
@@ -48,9 +51,9 @@ re_verification: false
 
 | Check | Command | Result | Status |
 |---|---|---|---|
-| Compile gate | `mix compile --warnings-as-errors` | Passed; compiled 1 file after the formatter correction and generated the `threadline` app. | PASS |
+| Compile gate | `mix compile --warnings-as-errors` | Passed with warnings-as-errors enabled. | PASS |
 | Focused Phase 166 suite | `mix test test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/live/start_live_test.exs` | Passed; 46 tests, 0 failures. | PASS |
-| Format gate for changed Elixir files | `mix format --check-formatted lib/threadline/operator_surface/router.ex lib/threadline/operator_surface/auth.ex test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/live/start_live_test.exs` | Passed after formatter-only commit `a95111a`. | PASS |
+| Format gate for changed Elixir files | `mix format --check-formatted lib/threadline/operator_surface/router.ex lib/threadline/operator_surface/auth.ex test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/live/start_live_test.exs` | Passed. | PASS |
 | Theme-toggle absence | `rg -n 'theme-toggle' lib/threadline/operator_surface/style.ex` | No matches. | PASS |
 | Bare root absence | `rg -n '<div class="threadline-ui">' lib/threadline/operator_surface/live` | No matches. | PASS |
 | Themed root count | `rg -n 'data-tl-theme=\{@threadline_theme\}' lib/threadline/operator_surface/live` | Ten matches, one per operator LiveView root. | PASS |
@@ -81,5 +84,5 @@ Recommended human check: mount the operator surface with `theme: :light` or `the
 No Phase 166 blocking gaps found. Deferred work matches the roadmap: component-specific visual retune in Phase 167, light AA mirror in Phase 168, screenshots/example/docs in Phase 169, and brandbook token parity in Phase 170.
 
 ---
-_Verified: 2026-06-13T02:19:56Z_
+_Verified: 2026-06-13T05:43:15Z_
 _Verifier: Codex local verifier_
