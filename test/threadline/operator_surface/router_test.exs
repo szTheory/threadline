@@ -130,6 +130,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           :code.purge(module)
         end
       end
+
+      test "Case 6: compiles successfully with system theme" do
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.SystemThemeMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                pipeline :browser do
+                  plug(:accepts, ["html"])
+                end
+
+                scope "/" do
+                  pipe_through(:browser)
+
+                  Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline",
+                    theme: :system
+                  )
+                end
+              end
+            end
+          )
+
+        for {module, _} <- modules do
+          :code.delete(module)
+          :code.purge(module)
+        end
+      end
+
+      test "Case 7: raises CompileError for invalid theme literal" do
+        assert_raise CompileError,
+                     ~r/Threadline Operator Surface theme must be one of :dark \| :light \| :system/,
+                     fn ->
+                       Code.compile_quoted(
+                         quote do
+                           defmodule Threadline.OperatorSurface.RouterTest.InvalidThemeMount do
+                             use Phoenix.Router
+                             require Threadline.OperatorSurface.Router
+
+                             pipeline :browser do
+                               plug(:accepts, ["html"])
+                             end
+
+                             scope "/" do
+                               pipe_through(:browser)
+
+                               Threadline.OperatorSurface.Router.threadline_operator_surface(
+                                 "/threadline",
+                                 theme: :sepia
+                               )
+                             end
+                           end
+                         end
+                       )
+                     end
+      end
     end
   end
 end
