@@ -68,8 +68,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         raise CompileError,
           file: caller_file,
           line: caller_line,
-          description:
-            "Threadline Operator Surface theme must be one of :dark | :light | :system"
+          description: "Threadline Operator Surface theme must be one of :dark | :light | :system"
       end
 
       quote do

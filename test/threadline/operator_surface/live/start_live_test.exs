@@ -587,7 +587,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint,
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.StartLiveTest.SystemThemeEndpoint,
         secret_key_base: "y" |> String.duplicate(64),
         live_view: [signing_salt: "y" |> String.duplicate(8)],
         render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
