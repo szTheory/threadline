@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: planning
-last_updated: "2026-06-12T21:59:06.000Z"
-last_activity: 2026-06-12
+status: executing
+last_updated: "2026-06-13T01:05:49.009Z"
+last_activity: 2026-06-13 -- Phase 166 planning complete
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.36 Operator Surface Light Mode — ready to plan Phase 166 (`unfreeze-token-lane-mechanism`)
+**Current focus:** v1.36 Operator Surface Light Mode — Phase 166 (`unfreeze-token-lane-mechanism`) planned and ready to execute
 
 ## Current Position
 
-Phase: 166 of 166–170 (not started)
-Plan: —
-Status: Ready to plan Phase 166
+Phase: 166 of 166–170 (planned)
+Plan: 1 of 1 ready
+Status: Ready to execute
 Progress: [░░░░░░░░░░] 0/5 phases
-Last activity: 2026-06-12 — v1.36 roadmap created (Phases 166–170; 15/15 requirements mapped)
+Last activity: 2026-06-13 -- Phase 166 planning complete
 
 ## Performance Metrics
 
@@ -69,7 +69,7 @@ Last activity: 2026-06-12 — v1.36 roadmap created (Phases 166–170; 15/15 req
 
 ### Pending Todos
 
-- Plan Phase 166 (`unfreeze-token-lane-mechanism`) with `/gsd-plan-phase 166`.
+- Execute Phase 166 (`unfreeze-token-lane-mechanism`) with `/gsd-execute-phase 166`.
 - **Human gate (after Phase 166, before Phase 167):** light-lane design review — user eyeballs the rendered light surface (status-tint keystone included) before retune effort is spent.
 - **Human gate (after Phase 170):** end-of-milestone UAT across dark/light/system modes before closeout.
 - **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
@@ -166,11 +166,11 @@ Last activity: 2026-06-12 — v1.36 roadmap created (Phases 166–170; 15/15 req
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: v1.36 roadmap created — Phases 166–170 mapped to all 15 requirements; ROADMAP.md, REQUIREMENTS.md traceability, and STATE.md updated (2026-06-12)
-- **Next Step**: Plan Phase 166 with `/gsd-plan-phase 166` (atomic opening wave: unfreeze + token lane + mechanism + same-wave contract amendment)
+- **Last Action**: Phase 166 planning artifacts created — CONTEXT, UI-SPEC, RESEARCH, PATTERNS, VALIDATION, and 166-01-PLAN are ready (2026-06-12 local / 2026-06-13 UTC)
+- **Next Step**: Execute Phase 166 with `/gsd-execute-phase 166` (atomic opening wave: unfreeze + token lane + mechanism + same-wave contract amendment)
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Plan Phase 166 with `/gsd-plan-phase 166`
+- Execute Phase 166 with `/gsd-execute-phase 166`
 - Human gate after Phase 166: light-lane design review before Phase 167 retune effort

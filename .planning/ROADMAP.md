@@ -1,6 +1,6 @@
 # Roadmap: Threadline v1.36 Operator Surface Light Mode
 
-**Status:** Roadmap created — ready to plan Phase 166
+**Status:** Phase 166 planned — ready to execute
 **Milestone:** v1.36 Operator Surface Light Mode (Phases 166–170)
 **Opened:** 2026-06-12
 **Last shipped:** v1.35 Unified Logo & Brand Book v2 (2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
@@ -57,7 +57,8 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
   4. Existing adopters see zero behavior change: default `:dark`, dark stays the canonical base token block, and the frozen dark-hex catalog assertions pass untouched.
   5. `mix test` is green with the amended contract in the same wave — theme-aware assertions replace the seven refutes, the `theme-toggle` ban is retained, and decision [165-01] superseding [136-01] is recorded in STATE.
 
-**Plans**: TBD
+**Plans**:
+- `166-01-PLAN.md` — Atomic unfreeze: compile-validated `theme:` host option, server-rendered `data-tl-theme`, additive light/system token lanes, tokenized active-nav inset, same-wave source contract amendment, and [165-01] decision ledger update.
 **UI hint**: yes
 
 ### Phase 167: component-retune
@@ -137,7 +138,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
-| 166. unfreeze-token-lane-mechanism | v1.36 | 0/TBD | Not started | - |
+| 166. unfreeze-token-lane-mechanism | v1.36 | 0/1 | Planned | - |
 | 167. component-retune | v1.36 | 0/TBD | Not started | - |
 | 168. accessibility-verification | v1.36 | 0/TBD | Not started | - |
 | 169. screenshots-example-docs | v1.36 | 0/TBD | Not started | - |
