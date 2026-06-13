@@ -5,12 +5,27 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   @style_path "lib/threadline/operator_surface/style.ex"
   @motion_inventory_path ".planning/milestones/v1.31-phases/141-motion-micro-animation/141-MOTION-INVENTORY.md"
 
-  test "operator surface stays dark-only and token-driven" do
+  test "operator surface is dark-primary with governed light and system token lanes" do
     src = File.read!(@style_path)
 
     assert String.contains?(src, "color-scheme: dark;")
-    refute String.contains?(src, "prefers-color-scheme")
-    refute String.contains?(src, "color-scheme: light")
+    assert String.contains?(src, ~s|.threadline-ui[data-tl-theme="light"]|)
+    assert String.contains?(src, ~s|.threadline-ui[data-tl-theme="system"]|)
+    assert String.contains?(src, "@media (prefers-color-scheme: light)")
+    assert String.contains?(src, "color-scheme: light;")
+    assert String.contains?(src, "--tl-color-accent-inset: rgba(127, 169, 255, 0.16);")
+    assert String.contains?(src, "--tl-color-accent-inset: rgba(21, 87, 192, 0.16);")
+    assert String.contains?(
+             src,
+             "box-shadow: inset 0 0 0 1px var(--tl-color-accent-inset);"
+           )
+
+    refute String.contains?(
+             src,
+             "box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);"
+           )
+
+    refute String.contains?(src, "theme-toggle")
   end
 
   test "dark interaction tokens cover readable hover and focus states" do
@@ -49,7 +64,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "border-color: var(--tl-color-border)")
   end
 
-  test "phase 138 find primitives stay token-backed and dark-only" do
+  test "phase 138 find primitives stay token-backed" do
     src = File.read!(@style_path)
 
     for class <- [
@@ -79,8 +94,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> List.first()
 
     assert String.contains?(find_section, "var(--tl-")
-    refute String.contains?(find_section, "prefers-color-scheme")
-    refute String.contains?(find_section, "color-scheme: light")
     refute String.contains?(find_section, "@tailwind")
     refute String.contains?(find_section, "from shadcn")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, find_section)
@@ -113,10 +126,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(topbar_section, "var(--tl-")
     refute String.contains?(topbar_section, "@tailwind")
     refute String.contains?(topbar_section, "from shadcn")
-    refute String.contains?(topbar_section, "prefers-color-scheme")
-    refute String.contains?(topbar_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, topbar_section)
     refute String.contains?(topbar_section, ".tl-topbar__nav-label")
+    assert String.contains?(topbar_section, "var(--tl-color-accent-inset)")
 
     assert_selector_contains(topbar_section, ".tl-topbar__brand", [
       "display: inline-flex;",
@@ -136,7 +148,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
   end
 
-  test "phase 139 home orientation primitives stay scoped token-backed and dark-only" do
+  test "phase 139 home orientation primitives stay scoped token-backed" do
     src = File.read!(@style_path)
 
     home_section =
@@ -159,12 +171,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(home_section, "var(--tl-")
     refute String.contains?(home_section, "@tailwind")
     refute String.contains?(home_section, "from shadcn")
-    refute String.contains?(home_section, "prefers-color-scheme")
-    refute String.contains?(home_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
-  test "phase 140 home earned-flow controls stay scoped token-backed and dark-only" do
+  test "phase 140 home earned-flow controls stay scoped token-backed" do
     src = File.read!(@style_path)
 
     home_section =
@@ -187,8 +197,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(home_section, "var(--tl-")
     refute String.contains?(home_section, "@tailwind")
     refute String.contains?(home_section, "from shadcn")
-    refute String.contains?(home_section, "prefers-color-scheme")
-    refute String.contains?(home_section, "color-scheme: light")
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
@@ -552,7 +560,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do
     src = File.read!(@style_path)
 
-    tokens = color_tokens(src)
+    tokens =
+      src
+      |> selector_block!(".threadline-ui")
+      |> color_tokens()
 
     backgrounds = [
       "--tl-color-bg",
@@ -677,8 +688,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for anti_pattern <- [
           "@tailwind",
-          "prefers-color-scheme",
-          "color-scheme: light",
           "theme-toggle",
           "shadcn",
           "daisyui",

@@ -78,6 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-accent-soft: rgba(79, 140, 255, 0.18);
           --tl-color-accent-wash: rgba(79, 140, 255, 0.09);
           --tl-color-accent-border: rgba(127, 169, 255, 0.48);
+          --tl-color-accent-inset: rgba(127, 169, 255, 0.16);
           /* Faint accent veil for raised front-door surfaces */
           --tl-color-on-accent: #08101F;
           /* Dark ink for AA contrast on luminous accents */
@@ -178,6 +179,108 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-bg);
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
+        }
+
+        .threadline-ui[data-tl-theme="light"] {
+          color-scheme: light;
+          --tl-color-bg: #F7F9FC;
+          --tl-color-surface: #FFFFFF;
+          --tl-color-surface-raised: #EEF3FA;
+          --tl-color-surface-hover: #E7ECF4;
+          --tl-color-surface-selected: #DDE8FF;
+          --tl-color-surface-tint: rgba(255, 255, 255, 0.92);
+          --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
+          --tl-color-backdrop: rgba(15, 23, 40, 0.42);
+          --tl-color-border: #C9D3E2;
+          --tl-color-border-strong: #A7B4C8;
+          --tl-color-border-focus: #1557C0;
+          --tl-color-text: #0F1728;
+          --tl-color-muted: #3B4762;
+          --tl-color-muted-soft: #73819C;
+          --tl-color-accent: #1557C0;
+          --tl-color-accent-strong: #0E459B;
+          --tl-color-accent-soft: rgba(21, 87, 192, 0.12);
+          --tl-color-accent-wash: rgba(21, 87, 192, 0.06);
+          --tl-color-accent-border: rgba(21, 87, 192, 0.28);
+          --tl-color-accent-inset: rgba(21, 87, 192, 0.16);
+          --tl-color-on-accent: #FFFFFF;
+          --tl-color-signal: #0F8F85;
+          --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
+          --tl-color-signal-border: rgba(15, 143, 133, 0.30);
+          --tl-color-ink: #0F1728;
+          --tl-color-paper: #F7F9FC;
+          --tl-color-danger: #A33434;
+          --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
+          --tl-color-danger-border: rgba(163, 52, 52, 0.28);
+          --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
+          --tl-color-warning-text: #7A5400;
+          --tl-color-warning-border: rgba(122, 84, 0, 0.30);
+          --tl-color-success-bg: rgba(19, 108, 71, 0.12);
+          --tl-color-success-text: #136C47;
+          --tl-color-success-border: rgba(19, 108, 71, 0.30);
+          --tl-color-info-bg: rgba(21, 87, 192, 0.10);
+          --tl-color-info-text: #1557C0;
+          --tl-color-info-border: rgba(21, 87, 192, 0.28);
+          --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
+          --tl-color-neutral-text: #3B4762;
+          --tl-color-neutral-border: #C9D3E2;
+          --tl-color-brand-rail: #0F1728;
+          --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
+          --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
+          --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
+          --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+        }
+
+        @media (prefers-color-scheme: light) {
+          .threadline-ui[data-tl-theme="system"] {
+            color-scheme: light;
+            --tl-color-bg: #F7F9FC;
+            --tl-color-surface: #FFFFFF;
+            --tl-color-surface-raised: #EEF3FA;
+            --tl-color-surface-hover: #E7ECF4;
+            --tl-color-surface-selected: #DDE8FF;
+            --tl-color-surface-tint: rgba(255, 255, 255, 0.92);
+            --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
+            --tl-color-backdrop: rgba(15, 23, 40, 0.42);
+            --tl-color-border: #C9D3E2;
+            --tl-color-border-strong: #A7B4C8;
+            --tl-color-border-focus: #1557C0;
+            --tl-color-text: #0F1728;
+            --tl-color-muted: #3B4762;
+            --tl-color-muted-soft: #73819C;
+            --tl-color-accent: #1557C0;
+            --tl-color-accent-strong: #0E459B;
+            --tl-color-accent-soft: rgba(21, 87, 192, 0.12);
+            --tl-color-accent-wash: rgba(21, 87, 192, 0.06);
+            --tl-color-accent-border: rgba(21, 87, 192, 0.28);
+            --tl-color-accent-inset: rgba(21, 87, 192, 0.16);
+            --tl-color-on-accent: #FFFFFF;
+            --tl-color-signal: #0F8F85;
+            --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
+            --tl-color-signal-border: rgba(15, 143, 133, 0.30);
+            --tl-color-ink: #0F1728;
+            --tl-color-paper: #F7F9FC;
+            --tl-color-danger: #A33434;
+            --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
+            --tl-color-danger-border: rgba(163, 52, 52, 0.28);
+            --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
+            --tl-color-warning-text: #7A5400;
+            --tl-color-warning-border: rgba(122, 84, 0, 0.30);
+            --tl-color-success-bg: rgba(19, 108, 71, 0.12);
+            --tl-color-success-text: #136C47;
+            --tl-color-success-border: rgba(19, 108, 71, 0.30);
+            --tl-color-info-bg: rgba(21, 87, 192, 0.10);
+            --tl-color-info-text: #1557C0;
+            --tl-color-info-border: rgba(21, 87, 192, 0.28);
+            --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
+            --tl-color-neutral-text: #3B4762;
+            --tl-color-neutral-border: #C9D3E2;
+            --tl-color-brand-rail: #0F1728;
+            --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
+            --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
+            --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
+            --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+          }
         }
 
         .threadline-ui *,
@@ -440,7 +543,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .threadline-ui .tl-shell-nav__item[aria-current="page"] {
           background: var(--tl-color-accent-soft);
           border-color: var(--tl-color-accent-border);
-          box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);
+          box-shadow: inset 0 0 0 1px var(--tl-color-accent-inset);
           color: var(--tl-color-accent-strong);
           font-weight: var(--tl-weight-strong);
         }
