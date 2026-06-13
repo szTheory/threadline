@@ -77,7 +77,11 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
   3. Coverage, timeline, and diff views pass an explicit light-mode design review — no dark-tuned content ships unreviewed into light (the Grafana lesson).
   4. Dark mode is visually unchanged: light remains an additive override lane, never a rewrite of the base block.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 167-01-PLAN.md — Review-first gate: live 3-mode (:dark/:light/:system) render review producing LIGHT-REVIEW.md disposition fail-list (COMP-01 confirm + COMP-02 data-viz)
+- [ ] 167-02-PLAN.md — Additive dual-branch light overrides for proven-fail families (confirm-strict) + style_contract_test.exs D-07(a)/(b) guard (same wave)
 **UI hint**: yes
 
 ### Phase 168: accessibility-verification
