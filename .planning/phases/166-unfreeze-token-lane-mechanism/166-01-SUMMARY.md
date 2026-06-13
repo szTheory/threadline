@@ -34,7 +34,9 @@ key-files:
     - lib/threadline/operator_surface/live/actor_live.ex
     - test/threadline/operator_surface/router_test.exs
     - test/threadline/operator_surface/style_contract_test.exs
+    - test/threadline/operator_surface/live/actor_live_test.exs
     - test/threadline/operator_surface/live/start_live_test.exs
+    - test/threadline/operator_surface/live/timeline_live_test.exs
     - .planning/STATE.md
 key-decisions:
   - "[165-01] supersedes [136-01]: dark remains default and brand-primary; light/system are supported via host `theme:` config; no runtime theme toggle in v1; the `theme-toggle` ban remains."
@@ -42,7 +44,7 @@ patterns-established:
   - "Theme values are literal atoms validated in the router macro and normalized once in Auth.on_mount/4."
   - "System mode uses only scoped CSS under @media (prefers-color-scheme: light)."
 requirements-completed: [THEME-01, THEME-02, THEME-03, THEME-04, TOKEN-01, TOKEN-02, TOKEN-03]
-duration: 12 min
+duration: 22 min
 completed: 2026-06-13
 ---
 
@@ -52,11 +54,11 @@ completed: 2026-06-13
 
 ## Performance
 
-- **Duration:** 12 min
+- **Duration:** 22 min
 - **Started:** 2026-06-13T01:16:44Z
-- **Completed:** 2026-06-13T01:28:11Z
+- **Completed:** 2026-06-13T01:39:15Z
 - **Tasks:** 5
-- **Files modified:** 17
+- **Files modified:** 19
 
 ## Accomplishments
 
@@ -65,6 +67,7 @@ completed: 2026-06-13
 - Added the Phase 166 light lane plus scoped `:system` media lane in `style.ex`, including light status tints, glass/shadow/focus values, and `--tl-color-accent-inset`.
 - Amended `style_contract_test.exs` so dark remains the base lane, light/system are governed assertions, and `theme-toggle` remains banned.
 - Recorded `[165-01]` in `STATE.md` as superseding `[136-01]`.
+- Closed the required code-review critical findings by making export authorization callback exceptions fail closed and removing ActorLive atom creation from URL actor kinds.
 
 ## Task Commits
 
@@ -76,16 +79,21 @@ Each task was committed atomically:
 4. **Task 4: Amend source contracts in the same wave** - `b5533c1` (`test`)
 5. **Task 5: Record [165-01] and run focused verification** - `0cfd98a` (`docs`)
 
+**Code review remediation:** `76a7f51` (`fix`) closed CR-01 and CR-02 from the required code review gate.
+
 ## Verification
 
 - `mix compile --warnings-as-errors` - PASS.
 - `mix test test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/live/start_live_test.exs` - PASS, 44 tests, 0 failures.
+- `mix test test/threadline/operator_surface/live/actor_live_test.exs` - PASS, 10 tests, 0 failures.
+- `mix test test/threadline/operator_surface/live/timeline_live_test.exs` - PASS, 35 tests, 0 failures.
 - `mix test test/threadline/operator_surface/router_test.exs` - PASS, 7 tests, 0 failures.
 - `mix test test/threadline/operator_surface/live/start_live_test.exs` - PASS, 15 tests, 0 failures.
 - `mix test test/threadline/operator_surface/style_contract_test.exs` - PASS, 22 tests, 0 failures.
 - `rg -n 'theme-toggle' lib/threadline/operator_surface/style.ex` - PASS, no matches.
 - `rg -n '<div class="threadline-ui">' lib/threadline/operator_surface/live` - PASS, no matches.
 - `rg -n 'data-tl-theme=\{@threadline_theme\}' lib/threadline/operator_surface/live` - PASS, 10 root occurrences.
+- `rg -n 'String\.to_atom\b' lib/threadline/operator_surface/live/actor_live.ex` - PASS, no matches.
 - `rg -n '\[165-01\] supersedes \[136-01\]' .planning/STATE.md` - PASS.
 
 ## Files Created/Modified
@@ -95,7 +103,9 @@ Each task was committed atomically:
 - `lib/threadline/operator_surface/live/*.ex` - Renders `data-tl-theme={@threadline_theme}` on all ten root surfaces.
 - `lib/threadline/operator_surface/style.ex` - Adds light/system token lanes and tokenizes the active shell-nav inset.
 - `test/threadline/operator_surface/router_test.exs` - Covers valid `:system` and invalid `:sepia` compile behavior.
+- `test/threadline/operator_surface/live/actor_live_test.exs` - Covers ActorLive atom-safety source contract.
 - `test/threadline/operator_surface/live/start_live_test.exs` - Covers default dark and configured system first HTML.
+- `test/threadline/operator_surface/live/timeline_live_test.exs` - Covers export authorization exception fail-closed behavior.
 - `test/threadline/operator_surface/style_contract_test.exs` - Replaces dark-only refutes with theme-aware source assertions.
 - `.planning/STATE.md` - Records `[165-01]` and phase execution state.
 
@@ -105,7 +115,30 @@ Each task was committed atomically:
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+The implementation tasks executed exactly as planned. The required code review gate then found two pre-existing critical issues in files Phase 166 had touched; both were fixed as follow-up remediation in `76a7f51`.
+
+### Auto-fixed Issues
+
+**1. [Rule 1 - Security] Export authorization callback exceptions failed open**
+- **Found during:** Code review gate after Task 5
+- **Issue:** `exports_enabled_for_socket?/3` returned `true` when `export_authorize_fn` raised, enabling export affordances after host authorization failed unexpectedly.
+- **Fix:** Changed the rescue path to return `false`.
+- **Files modified:** `lib/threadline/operator_surface/auth.ex`, `test/threadline/operator_surface/live/timeline_live_test.exs`
+- **Verification:** `mix test test/threadline/operator_surface/live/timeline_live_test.exs`
+- **Committed in:** `76a7f51`
+
+**2. [Rule 1 - Security] ActorLive created atoms from untrusted route input**
+- **Found during:** Code review gate after Task 5
+- **Issue:** Unknown `/actors/:kind/:id` values fell back to `String.to_atom/1`, permanently growing the BEAM atom table.
+- **Fix:** Route kind parsing now uses `String.to_existing_atom/1` only and maps unknown kinds to the existing invalid-actor branch.
+- **Files modified:** `lib/threadline/operator_surface/live/actor_live.ex`, `test/threadline/operator_surface/live/actor_live_test.exs`
+- **Verification:** `mix test test/threadline/operator_surface/live/actor_live_test.exs`; `rg -n 'String\.to_atom\b' lib/threadline/operator_surface/live/actor_live.ex`
+- **Committed in:** `76a7f51`
+
+---
+
+**Total deviations:** 2 auto-fixed security issues.
+**Impact on plan:** Both fixes were in Phase 166-touched files and reduced risk without changing the public theme mechanism.
 
 ## Issues Encountered
 
