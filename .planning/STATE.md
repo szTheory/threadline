@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: verifying
-last_updated: "2026-06-13T01:29:30.061Z"
+status: human_gate
+last_updated: 2026-06-13T01:45:04.743Z
 last_activity: 2026-06-13
 progress:
   total_phases: 5
@@ -11,6 +11,7 @@ progress:
   total_plans: 1
   completed_plans: 1
   percent: 20
+stopped_at: Phase 166 complete (1/1) — light-lane design review and security pass required before Phase 167
 ---
 
 # Project State: Threadline
@@ -20,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 166 — unfreeze-token-lane-mechanism
+**Current focus:** Phase 166 complete — human light-lane design review before Phase 167 component retune
 
 ## Current Position
 
-Phase: 166 (unfreeze-token-lane-mechanism) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Progress: [██████████] 100%
+Phase: 166 complete; next phase is 167 (component-retune)
+Plan: Phase 166 plan 1 of 1 complete
+Status: Human gate pending before Phase 167
+Progress: [██░░░░░░░░] 1/5 phases
 Last activity: 2026-06-13
 
 ## Performance Metrics
