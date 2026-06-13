@@ -51,6 +51,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 **Scope notes**: Superseding decision [165-01] over [136-01] recorded in STATE; light lane for all 45 color-bearing tokens (19 seeded from the brand light lane, 26 designed — the status-tint system is decided HERE as the keystone: tinted backgrounds + darkened text); `data-tl-theme` rendered server-side on the 10 LiveView roots (shared helper, no 10-way drift); router `theme:` option compile-validated naming the allowed triad; the stray `style.ex` shell-nav inset rgba tokenized in both lanes; `style.ex` + `style_contract_test.exs` amended in the SAME wave — the seven `prefers-color-scheme`/`color-scheme: light` refutes become theme-aware assertions, the `theme-toggle` ban retained verbatim.
 
 **Success Criteria** (what must be TRUE):
+
   1. A host mounting with `theme: :system` gets `data-tl-theme="system"` on the dead render of every operator-surface root — first paint correct with zero JS, no localStorage, no `<head>` injection; invalid theme values raise at compile time naming `:dark | :light | :system`.
   2. All 45 color-bearing `--tl-*` tokens render light-lane values (19 seeded from `brandbook/tokens.json` `semantic.light`, 26 designed as one coherent system), and the `style.ex` shell-nav active inset rgba sits behind a `--tl-*` token with values in both lanes.
   3. `:system` follows the OS via scoped `@media (prefers-color-scheme: light)` CSS only, and `color-scheme` flips scoped within `.threadline-ui` so native controls/scrollbars match the active mode.
@@ -58,7 +59,9 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
   5. `mix test` is green with the amended contract in the same wave — theme-aware assertions replace the seven refutes, the `theme-toggle` ban is retained, and decision [165-01] superseding [136-01] is recorded in STATE.
 
 **Plans**:
+
 - `166-01-PLAN.md` — Atomic unfreeze: compile-validated `theme:` host option, server-rendered `data-tl-theme`, additive light/system token lanes, tokenized active-nav inset, same-wave source contract amendment, and [165-01] decision ledger update.
+
 **UI hint**: yes
 
 ### Phase 167: component-retune
@@ -72,6 +75,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 **Scope notes**: The ~9 dark-effect families individually retuned (glass chrome ×4: topbar / shell-nav / toolbar / coverage-command + subview header, drawer scrim + shadow, focus glow, home-card signature effects, shell-nav active inset) plus a verification pass over the ~20 tint-riding families that resolve through the Phase 166 status-tint decision. Largest phase by visual iteration.
 
 **Success Criteria** (what must be TRUE):
+
   1. The ~9 dark-effect component families (glass chrome ×4, drawer scrim + shadow, focus glow, home-card effects, shell-nav inset) render correctly on light with explicitly designed treatments — no near-invisible dark-tuned alphas washing out on white.
   2. The ~20 tint-riding families (chips, alerts, op badges, redaction rows, policy drift, job errors) render correctly from the shared status-tint system without per-component overrides.
   3. Coverage, timeline, and diff views pass an explicit light-mode design review — no dark-tuned content ships unreviewed into light (the Grafana lesson).
@@ -80,8 +84,14 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 167-01-PLAN.md — Review-first gate: live 3-mode (:dark/:light/:system) render review producing LIGHT-REVIEW.md disposition fail-list (COMP-01 confirm + COMP-02 data-viz)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 167-02-PLAN.md — Additive dual-branch light overrides for proven-fail families (confirm-strict) + style_contract_test.exs D-07(a)/(b) guard (same wave)
+
 **UI hint**: yes
 
 ### Phase 168: accessibility-verification
@@ -93,6 +103,7 @@ Plans:
 **Requirements**: A11Y-01, A11Y-02
 
 **Success Criteria** (what must be TRUE):
+
   1. The style contract carries a light-lane AA contrast mirror test with alpha-aware token parsing in `color_tokens/1`; no text-bearing token falls below WCAG AA in either mode, and `mix test` proves it.
   2. The focus ring meets non-text contrast on both backgrounds, with focus-visible verified per mode.
   3. Hover/active/disabled/selected interaction states are verified per mode (including the accessibility e2e affordance checks re-run under the light lane).
@@ -109,6 +120,7 @@ Plans:
 **Requirements**: EVID-01, EVID-02
 
 **Success Criteria** (what must be TRUE):
+
   1. Screenshot baselines gain a `__light__` lane alongside dark covering the operator-surface screen set in both modes — local-only (the visual guard stays CI-skipped per cf0e8e2).
   2. The example app mounts the operator surface with `theme: :system` and runs end-to-end.
   3. `guides/operator-surface.md` and adopter-facing docs document the `theme:` option with the daytime-use recommendation, and doc-contract coverage locks the new option literal.
@@ -124,6 +136,7 @@ Plans:
 **Requirements**: BRAND-01, BRAND-02
 
 **Success Criteria** (what must be TRUE):
+
   1. `brandbook/tokens.json` and `tokens.css` reach full parity with the shipped 45-token UI lane.
   2. The brand book carries the settled-truth "UI theming posture" note: dark-primary, light supported via host config (stated only now that it is true — the v1.33 lesson).
   3. `pressure-test.md` carries a dual-mode addendum verifying brand assets and UI tokens stay consistent across both lanes.
