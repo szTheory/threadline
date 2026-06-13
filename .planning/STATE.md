@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: ready_to_plan
-last_updated: 2026-06-13T02:20:52.806Z
+status: planning
+last_updated: "2026-06-13T06:02:03.635Z"
 last_activity: 2026-06-13
 progress:
   total_phases: 5
@@ -11,7 +11,6 @@ progress:
   total_plans: 1
   completed_plans: 1
   percent: 20
-stopped_at: Phase 166 complete (1/1) — human light-lane design review required before Phase 167
 ---
 
 # Project State: Threadline
