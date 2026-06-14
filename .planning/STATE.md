@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: executing
-last_updated: "2026-06-14T15:53:23.038Z"
+status: verifying
+last_updated: "2026-06-14T15:57:50.440Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 170 (brand-alignment-closeout) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Progress: [█████████░] 89%
+Phase: 170 (brand-alignment-closeout) — COMPLETE
+Plan: 2 of 2 (both executed)
+Status: Phase complete — milestone audit-ready; pending End-of-milestone UAT human gate before closeout
+Progress: [██████████] 100%
 Last activity: 2026-06-14
 
 ## Performance Metrics
@@ -67,6 +67,7 @@ Last activity: 2026-06-14
 | Phase 166 P01 | 65min | 5 tasks | 17 files |
 | Phase 168 P01 | 25min | 3 tasks | 1 files |
 | Phase 170 P01 | 18m | 3 tasks | 5 files |
+| Phase 170 P02 | ~9m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,8 @@ Last activity: 2026-06-14
 - [Phase 164]: Brand imagery specimens: pure-path linework with HTML labels over the SVG; Thread Blue carries the followable line, Signal Cyan the change ticks, Stitch Blue stays exclusive to the mark's arc
 - [Phase ?]: [170-01]: full token parity = curated-subset parity (name + value equal in dark + light); brandbook corrected to style.ex, never the reverse
 - [Phase ?]: [170-01]: brandbook<->style.ex drift now caught by brandbook_token_parity_test in both directions; pressure-test dim #11 bumped 8->9 (total 128->129)
+- [Phase ?]: [170-02]: v1.36 audit doc authored; COMP-01/02 built+verified-live source-uncommitted; closeout pending-uat
+- [Phase ?]: [170-02]: REQUIREMENTS COMP-01/02 token 'Verified (source pending)' (table + checkboxes); BRAND-01/02 Complete; archival+version bump -> /gsd-complete-milestone post-UAT
 
 ### Blockers
 
@@ -170,8 +173,8 @@ Last activity: 2026-06-14
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed 170-01-PLAN.md — brandbook token parity reconciled to style.ex, keystone parity test added, UI-theming-posture note + pressure-test dual-mode addendum landed (2026-06-14)
-- **Next Step**: Execute Phase 170 Plan 02 (milestone audit doc + REQUIREMENTS traceability) with `/gsd-execute-phase 170`
+- **Last Action**: Completed 170-02-PLAN.md — authored `v1.36-MILESTONE-AUDIT.md` (v1.35 template, 15/15 reqs, COMP-01/02 honest as built+verified-live-source-uncommitted) and aligned REQUIREMENTS.md traceability (BRAND-01/02 Complete; COMP-01/02 `Verified (source pending)`); milestone is audit-ready, closeout_readiness pending-uat (2026-06-14)
+- **Next Step**: Run the End-of-milestone UAT (user walks operator surface in dark/light/system), then `/gsd-complete-milestone` (archival + version bump happen there, post-UAT)
 - **Resume file**: None
 
 ## Operator Next Steps

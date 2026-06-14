@@ -24,7 +24,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 - [ ] **Phase 167: component-retune** - ~9 dark-effect families individually retuned, verification pass over the ~20 tint-riders, explicit light design review of coverage/timeline/diff (the Grafana lesson)
 - [x] **Phase 168: accessibility-verification** - AA mirror test for the light lane with alpha-aware token parsing; focus-visible + interaction states verified per mode (completed 2026-06-14)
 - [x] **Phase 169: screenshots-example-docs** - `__light__` baseline lane (local-only), example app demonstrates `theme: :system`, guides + doc-contract coverage of the new option (completed 2026-06-14)
-- [ ] **Phase 170: brand-alignment-closeout** - tokens.json/css 45-token parity, brand book UI-theming posture note, pressure-test dual-mode addendum, milestone audit prep
+- [x] **Phase 170: brand-alignment-closeout** - tokens.json/css 45-token parity, brand book UI-theming posture note, pressure-test dual-mode addendum, milestone audit prep (completed 2026-06-14)
 
 ## Execution Order
 
@@ -36,7 +36,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 | 167. component-retune | 1/2 | In Progress|  |
 | 168. accessibility-verification | 2/2 | Complete    | 2026-06-14 |
 | 169. screenshots-example-docs | 2/2 | Complete    | 2026-06-14 |
-| 170. brand-alignment-closeout | 1/2 | In Progress|  |
+| 170. brand-alignment-closeout | 2/2 | Complete   | 2026-06-14 |
 
 ## Phase Details
 
@@ -154,7 +154,7 @@ Plans:
 Plans:
 **Wave 1** *(parallel — disjoint file sets)*
 - [x] 170-01-PLAN.md — Token parity reconciliation (tokens.json/css to style.ex), keystone parity test, UI-theming-posture note, pressure-test dual-mode addendum (BRAND-01, BRAND-02)
-- [ ] 170-02-PLAN.md — v1.36 milestone audit doc + REQUIREMENTS traceability (success criterion 4; closeout pending End-of-milestone UAT)
+- [x] 170-02-PLAN.md — v1.36 milestone audit doc + REQUIREMENTS traceability (success criterion 4; closeout pending End-of-milestone UAT)
 
 ## Human Gates
 
