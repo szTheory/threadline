@@ -470,6 +470,22 @@
     },
     {
       "category": "page",
+      "current_score": 62,
+      "fixture_key": "page.home.happy",
+      "id": "page.home.happy",
+      "kind": "page",
+      "notes": "Fixture-backed Phase 171 baseline for Home page happy path.",
+      "owner_phase": 171,
+      "ratchet_score": 62,
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "status": "baseline",
+      "story_id": "page.home.happy",
+      "stress_path": "/audit/__stress?story=page.home.happy",
+      "target_score": 90
+    },
+    {
+      "category": "page",
       "current_score": 35,
       "fixture_key": "page.home.reserved",
       "id": "page.home.reserved",
@@ -551,6 +567,22 @@
       "status": "reserved",
       "story_id": "page.shell.reserved",
       "stress_path": "/audit/__stress?story=page.shell.reserved",
+      "target_score": 90
+    },
+    {
+      "category": "page",
+      "current_score": 62,
+      "fixture_key": "page.timeline.empty",
+      "id": "page.timeline.empty",
+      "kind": "page",
+      "notes": "Fixture-backed Phase 171 baseline for Timeline page empty state.",
+      "owner_phase": 171,
+      "ratchet_score": 62,
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "status": "baseline",
+      "story_id": "page.timeline.empty",
+      "stress_path": "/audit/__stress?story=page.timeline.empty",
       "target_score": 90
     },
     {
@@ -830,11 +862,13 @@
       "page.coverage.reserved",
       "page.evidence.reserved",
       "page.exports.reserved",
+      "page.home.happy",
       "page.home.reserved",
       "page.redaction.reserved",
       "page.retention.reserved",
       "page.row-history.reserved",
       "page.shell.reserved",
+      "page.timeline.empty",
       "page.timeline.reserved",
       "page.transaction.reserved",
       "primitive.icon.reserved",
@@ -899,7 +933,9 @@
       "foundation.motion": 62,
       "page.timeline.reserved": 35,
       "primitive.logo.reserved": 35,
-      "page.actor.reserved": 35
+      "page.actor.reserved": 35,
+      "page.home.happy": 62,
+      "page.timeline.empty": 62
     },
     "resets": []
   },

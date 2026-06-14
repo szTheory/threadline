@@ -68,11 +68,13 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 | `page.coverage.reserved` | reserved | 35 | 90 | page | `page.coverage.reserved` | `page.coverage.reserved` | 178 |
 | `page.evidence.reserved` | reserved | 35 | 90 | page | `page.evidence.reserved` | `page.evidence.reserved` | 178 |
 | `page.exports.reserved` | reserved | 35 | 90 | page | `page.exports.reserved` | `page.exports.reserved` | 178 |
+| `page.home.happy` | baseline | 62 | 90 | page | `page.home.happy` | `page.home.happy` | 171 |
 | `page.home.reserved` | reserved | 35 | 90 | page | `page.home.reserved` | `page.home.reserved` | 178 |
 | `page.redaction.reserved` | reserved | 35 | 90 | page | `page.redaction.reserved` | `page.redaction.reserved` | 178 |
 | `page.retention.reserved` | reserved | 35 | 90 | page | `page.retention.reserved` | `page.retention.reserved` | 178 |
 | `page.row-history.reserved` | reserved | 35 | 90 | page | `page.row-history.reserved` | `page.row_history.reserved` | 178 |
 | `page.shell.reserved` | reserved | 35 | 90 | page | `page.shell.reserved` | `page.shell.reserved` | 178 |
+| `page.timeline.empty` | baseline | 62 | 90 | page | `page.timeline.empty` | `page.timeline.empty` | 171 |
 | `page.timeline.reserved` | reserved | 35 | 90 | page | `page.timeline.reserved` | `page.timeline.reserved` | 178 |
 | `page.transaction.reserved` | reserved | 35 | 90 | page | `page.transaction.reserved` | `page.transaction.reserved` | 178 |
 

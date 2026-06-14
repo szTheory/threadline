@@ -89,6 +89,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Transaction page reserved baseline"}
   ]
 
+  @current_page_stories [
+    {"page.home.happy", "page.home.happy", "Home page happy path", ["one", "mixed_severity"]},
+    {"page.timeline.empty", "page.timeline.empty", "Timeline page empty state",
+     ["empty", "zero_count"]}
+  ]
+
   @state_stories [
     {"state.empty", "state.empty", "Empty audit result", ["empty", "zero_count"]},
     {"state.many", "state.many", "Dense audit result list", ["many", "high_count"]},
@@ -209,6 +215,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       reserved_story_maps(@primitive_stories, "primitive", 171),
       reserved_story_maps(@form_control_stories, "form_control", 174),
       reserved_story_maps(@group_stories, "group", 177),
+      current_page_story_maps(),
       reserved_story_maps(@page_stories, "page", 178),
       state_story_maps(),
       permission_denied_story(),
@@ -271,6 +278,21 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         cases: cases,
         status: "baseline",
         data: state_data(id, cases)
+      })
+    end)
+  end
+
+  defp current_page_story_maps do
+    Enum.map(@current_page_stories, fn {id, fixture_key, scenario, cases} ->
+      story(%{
+        id: id,
+        kind: "page",
+        category: "page",
+        scenario: scenario,
+        fixture_key: fixture_key,
+        cases: cases,
+        status: "baseline",
+        data: page_data(id, cases)
       })
     end)
   end
@@ -468,6 +490,23 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       id: id,
       cases: cases,
       summary: "Synthetic state fixture."
+    }
+  end
+
+  defp page_data("page.home.happy", cases) do
+    %{
+      id: "page.home.happy",
+      cases: cases,
+      summary: "Home page happy path with synthetic lookup launchers and coverage status."
+    }
+  end
+
+  defp page_data("page.timeline.empty", cases) do
+    %{
+      id: "page.timeline.empty",
+      cases: cases,
+      rows: [],
+      summary: "Timeline empty state with no captured changes matching this synthetic window."
     }
   end
 

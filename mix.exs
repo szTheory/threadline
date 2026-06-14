@@ -86,6 +86,7 @@ defmodule Threadline.MixProject do
       "verify.example": &verify_example/1,
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
+      "verify.operator_stress": &verify_operator_stress/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
@@ -184,6 +185,10 @@ defmodule Threadline.MixProject do
       {_output, status} -> Mix.raise("verify.example_browser_light failed (#{status})")
     end
   end
+
+  # Source contract: defp verify_operator_stress(args), do: verify_example_browser(["operator-stress.spec.ts" | args])
+  defp verify_operator_stress(args),
+    do: verify_example_browser(["operator-stress.spec.ts" | args])
 
   defp verify_hex_evaluator(_args) do
     cmd =
