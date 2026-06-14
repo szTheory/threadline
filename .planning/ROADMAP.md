@@ -36,7 +36,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 | 167. component-retune | 1/2 | In Progress|  |
 | 168. accessibility-verification | 2/2 | Complete    | 2026-06-14 |
 | 169. screenshots-example-docs | 2/2 | Complete    | 2026-06-14 |
-| 170. brand-alignment-closeout | 2/2 | Complete   | 2026-06-14 |
+| 170. brand-alignment-closeout | 2/2 | Complete    | 2026-06-14 |
 
 ## Phase Details
 
