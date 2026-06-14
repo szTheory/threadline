@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is working milestone v1.36 Operator Surface Light Mode: implementing the approved light-mode strategy (decision [165-01]) — dark stays the default and the brand; light/system become host-configurable via a pure-CSS token lane.
+Threadline is working milestone v1.36 Operator Surface Light Mode: implementing the approved light-mode strategy (decision [165-01]) — dark stays the default and the brand; light/system become host-configurable via a pure-CSS token lane. Phases 166–168 are complete (token lane + `data-tl-theme` mechanism, component retune, and the accessibility AA mirror with a light-lane e2e affordance proof); phases 169–170 remain (screenshots/example/docs, then brand alignment + closeout).
 
 ## Current Milestone: v1.36 Operator Surface Light Mode
 
@@ -595,4 +595,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-12 after v1.36 milestone open*
+*Last updated: 2026-06-14 after Phase 168 (accessibility-verification) complete*
