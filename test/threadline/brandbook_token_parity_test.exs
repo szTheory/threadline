@@ -58,7 +58,12 @@ defmodule Threadline.BrandbookTokenParityTest do
   # Dark base block: everything before the first `[data-tl-theme` selector
   # (the dark values live in the unscoped `.threadline-ui { ... }` base block).
   defp style_dark_tokens do
-    [dark_section | _] = String.split(style_source(), "[data-tl-theme")
+    src = style_source()
+
+    assert String.contains?(src, "[data-tl-theme"),
+           "style.ex no longer carries a [data-tl-theme selector — the dark base block can no longer be delimited; the dark parity anchor was renamed or removed"
+
+    [dark_section | _] = String.split(src, "[data-tl-theme")
     scan_tl_color(dark_section)
   end
 
@@ -70,7 +75,12 @@ defmodule Threadline.BrandbookTokenParityTest do
   # `--tl-color-*` overrides this block holds, so capturing the first segment
   # up to `@media` is the canonical light color lane.
   defp style_light_tokens do
-    [_, after_light | _] = String.split(style_source(), ~s([data-tl-theme="light"] {))
+    src = style_source()
+
+    assert String.contains?(src, ~s([data-tl-theme="light"] {)),
+           ~s(style.ex no longer carries the [data-tl-theme="light"] { block — the light parity anchor was renamed or removed)
+
+    [_, after_light | _] = String.split(src, ~s([data-tl-theme="light"] {))
     [light_section | _] = String.split(after_light, "@media")
     scan_tl_color(light_section)
   end
@@ -84,7 +94,12 @@ defmodule Threadline.BrandbookTokenParityTest do
   defp tokens_json, do: @tokens_json_path |> File.read!() |> Jason.decode!()
 
   defp css_block_tokens(selector) do
-    [_, after_sel | _] = String.split(File.read!(@tokens_css_path), selector)
+    css = File.read!(@tokens_css_path)
+
+    assert String.contains?(css, selector),
+           "tokens.css no longer carries the #{inspect(selector)} selector — the CSS cross-check anchor was renamed or removed"
+
+    [_, after_sel | _] = String.split(css, selector)
     [block | _] = String.split(after_sel, "}")
     scan_tl_color(block)
   end
