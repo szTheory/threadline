@@ -729,6 +729,89 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert contrast_ratio("#A33434", over_white) >= 4.5
   end
 
+  test "phase 168 light and system lanes meet AA contrast incl. composited tints" do
+    src = File.read!(@style_path)
+
+    light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
+    system = src |> system_lane_block!() |> color_tokens()
+
+    # Both maps are non-empty and byte-identical in token values today.
+    assert map_size(light) > 0
+    assert map_size(system) > 0
+    assert light["--tl-color-surface"] == "#FFFFFF"
+    assert system["--tl-color-surface"] == "#FFFFFF"
+
+    backgrounds = [
+      "--tl-color-bg",
+      "--tl-color-surface",
+      "--tl-color-surface-raised",
+      "--tl-color-surface-hover"
+    ]
+
+    # Per-mode plain-surface AA rows (text token over each chrome layer it paints on).
+    plain_rows = [
+      {"--tl-color-text", backgrounds},
+      {"--tl-color-muted", backgrounds},
+      {"--tl-color-info-text", ["--tl-color-surface", "--tl-color-surface-raised"]},
+      {"--tl-color-warning-text", ["--tl-color-surface", "--tl-color-surface-raised"]},
+      {"--tl-color-success-text", ["--tl-color-surface", "--tl-color-surface-raised"]},
+      {"--tl-color-danger", ["--tl-color-surface", "--tl-color-surface-raised"]},
+      {"--tl-color-accent-strong",
+       ["--tl-color-surface", "--tl-color-surface-raised", "--tl-color-surface-hover"]},
+      {"--tl-color-accent", ["--tl-color-surface-raised"]}
+    ]
+
+    # Composited status-text-on-its-own-tint rows — the rows the hex-only parser
+    # could not see. *-bg status tints composite over surface (#FFFFFF); accent-soft
+    # composites over surface-raised (#EEF3FA). The base is named per mode.
+    composited_rows = fn map ->
+      [
+        {"--tl-color-info-text", composite(map["--tl-color-info-bg"], map["--tl-color-surface"]),
+         "info-text on info-bg composited over surface"},
+        {"--tl-color-warning-text",
+         composite(map["--tl-color-warning-bg"], map["--tl-color-surface"]),
+         "warning-text on warning-bg composited over surface"},
+        {"--tl-color-success-text",
+         composite(map["--tl-color-success-bg"], map["--tl-color-surface"]),
+         "success-text on success-bg composited over surface"},
+        {"--tl-color-danger", composite(map["--tl-color-danger-bg"], map["--tl-color-surface"]),
+         "danger on danger-bg composited over surface"},
+        {"--tl-color-accent",
+         composite(map["--tl-color-accent-soft"], map["--tl-color-surface-raised"]),
+         "accent on accent-soft composited over surface-raised"}
+      ]
+    end
+
+    for {mode, map} <- [{"light", light}, {"system", system}] do
+      for {text_token, bg_tokens} <- plain_rows, bg_token <- bg_tokens do
+        assert contrast_ratio(map[text_token], map[bg_token]) >= 4.5,
+               "#{mode}: #{text_token} must meet AA 4.5:1 on #{bg_token}"
+      end
+
+      for {text_token, bg_hex, label} <- composited_rows.(map) do
+        assert contrast_ratio(map[text_token], bg_hex) >= 4.5,
+               "#{mode}: #{label} must meet AA 4.5:1 (composited bg=#{bg_hex})"
+      end
+
+      # D-04 — disabled-text (muted-soft) contrast.
+      #
+      # WCAG 2.1 SC 1.4.3 exempts INACTIVE (disabled) controls from the 4.5:1
+      # minimum. Threadline holds disabled text legible-by-default, so we still
+      # MEASURE muted-soft on surface and surface-raised, but no uniform lane-root
+      # darkening reaches 4.5:1 on surface-raised (#EEF3FA) without collapsing the
+      # disabled/active read: the value needed (~#636F85) is perceptually adjacent
+      # to --tl-color-muted (#3B4762, the ACTIVE secondary text), which would break
+      # the "disabled looks disabled" affordance. Per D-04 the disabled rows ONLY
+      # are downgraded to "exempt — documented" at a non-text legibility floor
+      # (>= 3.0), citing WCAG 1.4.3 inactive controls. No other contrast row is
+      # exemptable, and no token value is changed (muted-soft stays #73819C).
+      for bg_token <- ["--tl-color-surface", "--tl-color-surface-raised"] do
+        assert contrast_ratio(map["--tl-color-muted-soft"], map[bg_token]) >= 3.0,
+               "#{mode}: muted-soft (disabled, WCAG 1.4.3 exempt) must stay legible on #{bg_token}"
+      end
+    end
+  end
+
   test "phase 143 focus-visible and non-color status contracts stay locked" do
     src = File.read!(@style_path)
 
@@ -1093,6 +1176,19 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       [block] -> block
       _ -> flunk("missing selector #{selector}")
     end
+  end
+
+  # Phase 168: the system lane lives inside an @media (prefers-color-scheme: light)
+  # wrapper, so a bare selector_block! (non-nested [^}]* matcher, Pitfall 2) would
+  # mis-extract. Mirror the media_section/2 precedent: slice on the media wrapper
+  # first, then selector_block! the inner [data-tl-theme="system"] block. Take the
+  # FIRST slice after the wrapper (the token block precedes the later coverage-hover
+  # override that reuses the same @media wrapper).
+  defp system_lane_block!(src) do
+    src
+    |> String.split("@media (prefers-color-scheme: light) {")
+    |> Enum.at(1)
+    |> selector_block!(~s|.threadline-ui[data-tl-theme="system"]|)
   end
 
   defp selector_block_pattern(selector, declaration_pattern \\ ~r/[^}]*/) do
