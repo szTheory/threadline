@@ -12,10 +12,10 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Design-System Harness & Foundations (DS)
 
-- [ ] **DS-01**: A dev/test-only `/audit/__stress` route renders every component, component-group, and page-fixture across the full state × theme × viewport matrix; it is prod-gated and never adds an unauthenticated or extra surface in production.
-- [ ] **DS-02**: A living `DESIGN-SYSTEM.md` v2 inventories every foundation token, primitive, form control, group/meta-component, and page, each with current status.
-- [ ] **DS-03**: An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores) backed by test/screenshot guards that fail CI on regression.
-- [ ] **DS-04**: A reusable ugly-data fixture library covers the stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, error/warning/mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
+- [x] **DS-01**: A dev/test-only `/audit/__stress` route renders every component, component-group, and page-fixture across the full state × theme × viewport matrix; it is prod-gated and never adds an unauthenticated or extra surface in production.
+- [x] **DS-02**: A living `DESIGN-SYSTEM.md` v2 inventories every foundation token, primitive, form control, group/meta-component, and page, each with current status.
+- [x] **DS-03**: An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores) backed by test/screenshot guards that fail CI on regression.
+- [x] **DS-04**: A reusable ugly-data fixture library covers the stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, error/warning/mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
 - [ ] **DS-05**: Foundations (color, typography, spacing, radius, shadow, z-index, density, motion tokens) are audited against the brand book; off-brand / contrast / scale gaps are fixed; any new token lands in `brandbook/tokens.{json,css}` first and keeps the parity test green.
 - [ ] **DS-06**: Each significant foundation decision is captured as a compact decision brief (problem / users-JTBD / options / tradeoffs / idiomatic-for-LiveView / recommendation / rejected alternatives / tests to lock it).
 
@@ -101,10 +101,10 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DS-01 | Phase 171 | Pending |
-| DS-02 | Phase 171 | Pending |
-| DS-03 | Phase 171 | Pending |
-| DS-04 | Phase 171 | Pending |
+| DS-01 | Phase 171 | Complete |
+| DS-02 | Phase 171 | Complete |
+| DS-03 | Phase 171 | Complete |
+| DS-04 | Phase 171 | Complete |
 | DS-05 | Phase 172 | Pending |
 | DS-06 | Phase 172 | Pending |
 | COMP-01 | Phase 173 | Pending |
