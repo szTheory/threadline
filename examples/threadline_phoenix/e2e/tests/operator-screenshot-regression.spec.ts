@@ -91,6 +91,11 @@ test.describe("operator screenshot regression guard", () => {
       await page.setViewportSize({ width: 375, height: 812 });
     }
 
+    // desktop-chromium-light inherits its 1280x900 viewport + colorScheme:light
+    // from the Playwright project config, so no explicit setViewportSize branch is
+    // needed — it is admitted to the guard and produces auto-namespaced baselines
+    // via the {projectName} snapshotPathTemplate token. CI-skip above keeps it local-only.
+
     await login(page);
   });
 
