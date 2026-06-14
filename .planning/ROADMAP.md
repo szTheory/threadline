@@ -39,7 +39,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 171-02-PLAN.md — JSON ledger, DESIGN-SYSTEM.md projection, and ratchet contracts
+- [x] 171-02-PLAN.md — JSON ledger, DESIGN-SYSTEM.md projection, and ratchet contracts
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -203,7 +203,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
-| 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 1/4 | In Progress|  |
+| 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 2/4 | In Progress|  |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 0/TBD | Not started | - |
 | 173. Primitive components | v1.37 | 0/TBD | Not started | - |
 | 174. Form components | v1.37 | 0/TBD | Not started | - |
