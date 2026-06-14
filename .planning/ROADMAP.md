@@ -149,7 +149,12 @@ Plans:
   3. `pressure-test.md` carries a dual-mode addendum verifying brand assets and UI tokens stay consistent across both lanes.
   4. All 15 v1.36 requirements are traceable to verified phases and the milestone audit prep is complete.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+**Wave 1** *(parallel — disjoint file sets)*
+- [ ] 170-01-PLAN.md — Token parity reconciliation (tokens.json/css to style.ex), keystone parity test, UI-theming-posture note, pressure-test dual-mode addendum (BRAND-01, BRAND-02)
+- [ ] 170-02-PLAN.md — v1.36 milestone audit doc + REQUIREMENTS traceability (success criterion 4; closeout pending End-of-milestone UAT)
 
 ## Human Gates
 
@@ -166,7 +171,7 @@ Plans:
 | 167. component-retune | v1.36 | 0/TBD | Not started | - |
 | 168. accessibility-verification | v1.36 | 0/TBD | Not started | - |
 | 169. screenshots-example-docs | v1.36 | 0/TBD | Not started | - |
-| 170. brand-alignment-closeout | v1.36 | 0/TBD | Not started | - |
+| 170. brand-alignment-closeout | v1.36 | 0/2 | Planned | - |
 
 ## Prior Milestones
 
