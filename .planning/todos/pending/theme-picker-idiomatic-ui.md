@@ -2,6 +2,7 @@
 created: 2026-06-13T00:00:00Z
 title: Dark/light/system theme picker with idiomatic UI controls (THEME-TOGGLE-01 demand signal)
 area: operator-surface
+resolves_phase: 175
 origin: Phase 167 light-mode review (user request)
 related_requirement: THEME-TOGGLE-01
 related_decision: [165-01]

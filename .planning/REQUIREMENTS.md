@@ -142,4 +142,4 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-14 after initial definition (milestone v1.37 opened)*
+*Last updated: 2026-06-14 — traceability confirmed by gsd-roadmapper (ROADMAP.md created, phases 171-180, 33/33 mapped 1:1)*

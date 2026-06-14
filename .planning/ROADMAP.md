@@ -2,13 +2,136 @@
 
 ## Milestones
 
+- 🚧 **v1.37 Operator Surface Design-System Stress Test & Component System** — Phases 171-180 (in progress)
 - ✅ **v1.36 Operator Surface Light Mode** — Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
 - ✅ **v1.35 Unified Logo & Brand Book v2** — Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
 - ✅ **v1.34 Local Docker Admin UI DX** — Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
 - ✅ **v1.33 Brand Review + Direction Selection** — Phases 150-153 (shipped 2026-06-06). Archive: `.planning/milestones/v1.33-ROADMAP.md`
 - ✅ **v1.32 Brand System Foundation** — Phases 145-149 (shipped 2026-06-05). Archive: `.planning/milestones/v1.32-ROADMAP.md`
 
-_Between milestones — define the next with `/gsd:new-milestone`._
+## 🚧 v1.37 Operator Surface Design-System Stress Test & Component System (In Progress)
+
+**Milestone Goal:** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system — award-winning quality, on-brand across dark/light/system, mobile-first responsive, WCAG 2.2 AA accessible, with meaningful motion and on-brand microcopy — verified fractally (foundations → primitives → groups → pages → flows) and locked **idempotently** so every rerun only ratchets quality up, never regresses.
+
+**Sequence:** Largely linear fractal order. Harness first (171); foundations before components (172 → 173/174); components before data-display and groups (→ 176/177); groups before per-page stress (177 → 178); page stress before copy and accessibility (178 → 179/180); adversarial closeout last (180).
+
+**Invariants (every phase):** no public component API; zero new runtime dependencies; inline assets only (no Tailwind, asset pipeline, animation libs, or PhoenixStorybook); `brandbook_token_parity_test` stays green (new tokens land in `brandbook/tokens.{json,css}` first); capture & semantics layers untouched; fail-closed auth (stress route dev/test-gated, never an unauthenticated prod surface); enforced brand voice + banned vocabulary + domain language.
+
+**Plan of record:** `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`
+
+### Phase 171: Audit baseline, stress-lab harness & idempotency ledger
+**Goal**: Stand up the idempotency harness that every later phase ratchets against — the canonical render surface, the living inventory, the scored ledger, and the ugly-data fixtures.
+**Depends on**: Nothing (first phase of milestone; builds on the frozen v1.36 token/contract foundation)
+**Requirements**: DS-01, DS-02, DS-03, DS-04
+**Success Criteria** (what must be TRUE):
+  1. A dev/test-only `/audit/__stress` route renders every component, group, and page-fixture across the state × theme × viewport matrix, and is prod-gated so it never adds an unauthenticated or extra surface in production (verified by a router gate test).
+  2. `DESIGN-SYSTEM.md` v2 exists and inventories every foundation token, primitive, form control, group/meta-component, and page, each with a current status.
+  3. An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores), backed by test/screenshot guards that fail CI on a regression.
+  4. A reusable ugly-data fixture library covers the full stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 172: Foundations audit & hardening (tokens)
+**Goal**: Audit the design foundations against the brand book and fix off-brand / contrast / scale gaps, adding tokens only when the audit demands and only parity-first.
+**Depends on**: Phase 171 (audits and scores are recorded in the ledger / inventory)
+**Requirements**: DS-05, DS-06
+**Success Criteria** (what must be TRUE):
+  1. Color, typography, spacing, radius, shadow, z-index, density, and motion tokens are audited against the brand book and any off-brand / contrast / scale gaps are fixed.
+  2. Any new token lands in `brandbook/tokens.{json,css}` first and the `brandbook_token_parity_test` stays green (no drift in either direction).
+  3. Each significant foundation decision is captured as a compact decision brief (problem / users-JTBD / options / tradeoffs / idiomatic-for-LiveView / recommendation / rejected alternatives / tests to lock it).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 173: Primitive components (extract + audit each in isolation)
+**Goal**: Extract the class-soup primitive and overlay/disclosure set into internal private function components, each audited in isolation with a full interaction-state matrix and correct a11y semantics.
+**Depends on**: Phase 172 (components consume the hardened tokens) and Phase 171 (each primitive gets a stress-lab story)
+**Requirements**: COMP-01, COMP-02, COMP-03
+**Success Criteria** (what must be TRUE):
+  1. Internal private function components exist for the primitive set (button, icon-button, link, badge/chip/tag/pill, alert/banner/callout, card/panel, stat tile, divider, empty state, error state, spinner/progress/skeleton, code/log/JSON, avatar) with documented attrs/slots and no public/host-facing API.
+  2. Overlay & disclosure primitives (modal/dialog, drawer/sheet, toast/flash, tooltip, popover, dropdown/menu, tabs, segmented control, accordion/disclosure) are internal components with correct keyboard, focus-trap/restore, escape, and scrim semantics.
+  3. Every primitive renders correctly in all interaction states (default/hover/focus-visible/active/pressed/disabled/loading/selected/current) across dark/light/system, and non-interactive elements expose no misleading affordances — visible on the stress route.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 174: Form components
+**Goal**: Build the internal form-component set and adopt it across the operator pages so inline class-soup is replaced and template duplication is materially reduced.
+**Depends on**: Phase 173 (forms compose primitives like button, field, error/help slots)
+**Requirements**: COMP-04, COMP-05, COMP-06
+**Success Criteria** (what must be TRUE):
+  1. Internal form components exist (text/textarea/select/combobox/checkbox/radio/switch/search/number-date/filter controls/field group/error summary/help/required-optional/disabled-readonly) with visible associated labels, programmatically connected help + errors, non-color validation, and focus preserved across LiveView patches.
+  2. The 11 operator-surface LiveView pages consume the components (inline class-soup replaced) and template duplication is materially reduced.
+  3. Per-component contract tests lock attrs/slots/states/a11y so a component regression fails CI.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 175: Navigation, app shell & runtime theme picker
+**Goal**: Bring the app shell and navigation to a consistent on-brand structure and ship the in-product dark/light/system theme picker (THEME-TOGGLE-01).
+**Depends on**: Phase 174 (shell/nav built on the component system; theme picker uses form/control components)
+**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04
+**Success Criteria** (what must be TRUE):
+  1. The app shell + navigation (topbar/sidebar/breadcrumbs/page titles/section tabs/toolbar/back-cancel/mobile nav) present a consistent on-brand structure where the operator always knows where they are; active/current state is unmistakable in dark and light.
+  2. Pagination is clear when present and de-emphasizes or hides itself with one page or zero results; search/filter affordances are clear and space-efficient.
+  3. An in-product theme picker lets each operator choose dark/light/system (system default), implemented as cookie + plug with zero JavaScript and no FOUC; the `theme-toggle` ban is lifted in the style contract and the choice persists per operator (resolves `theme-picker-idiomatic-ui`).
+  4. Mobile navigation works without nested-scroll traps, and sticky elements never cover content.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 176: Data display & operator patterns
+**Goal**: Make tables/lists/timeline/KV/charts/status/actions read clearly under real (ugly) data, distinguish all empty/loading/error/stale/permission states, and flatten accidental nesting / table overuse system-wide.
+**Depends on**: Phase 175 (data surfaces live inside the finalized shell/nav and component system)
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05
+**Success Criteria** (what must be TRUE):
+  1. Tables/data-grids stay readable under real data (long IDs/paths/atoms/emails/URLs/timestamps middle-truncate with copy + title), important columns never squish unreadably, and card/list layout is used where tables don't fit (mobile / non-tabular data).
+  2. KV/metadata, timeline/event log, detail views, status summaries, and metrics/charts read clearly, never rely on color alone, and present time as relative + absolute with timezone made clear.
+  3. Empty/zero, loading, error, and stale states are visually distinct and explain the next action; permission-denied is distinguished from no-data and from unavailable-data.
+  4. Row actions and bulk actions are discoverable but not accidentally triggerable; destructive actions are separated and confirmed by naming the object and consequence.
+  5. The coverage "schema" section card-in-card nesting is flattened (resolves `coverage-schema-card-declutter`), and accidental nesting / table-overuse is removed system-wide.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 177: Component groups / meta-components
+**Goal**: Audit the recurring component configurations as cohesive units with intentional spacing/hierarchy and aligned states, holding together across narrow and wide layouts.
+**Depends on**: Phase 176 (groups assemble the audited primitives, forms, and data-display patterns)
+**Requirements**: GROUP-01, GROUP-02
+**Success Criteria** (what must be TRUE):
+  1. Recurring configurations (page-header+actions+breadcrumbs; toolbar+search+filters+sort; table+empty+loading+pagination; stat-cards+chart+table; detail-header+metadata+actions; modal-confirm+destructive; drawer+form; toast+state-update; tabs+subviews; empty+CTA; permission-denied; reconnect/offline-banner+disabled-actions) are audited as units with intentional spacing and hierarchy.
+  2. Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions — verifiable on the stress route at multiple viewports.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 178: Per-page & flow stress pass (all 11 pages)
+**Goal**: Stress every operator page across all paths, themes, viewports, keyboard, reduced-motion, and reconnect; eliminate the named footgun classes and fix the desktop centering bug.
+**Depends on**: Phase 177 (pages are now assembled from audited components and groups; per-page stress is the integration pass)
+**Requirements**: PAGE-01, PAGE-02, PAGE-03
+**Success Criteria** (what must be TRUE):
+  1. Each of the 11 pages (Home, Timeline, Transaction, Row history, Actor, Coverage, Evidence, Redaction, Retention, Exports, plus shell) is audited against happy/empty/loading/error/permission-denied/boundary/advanced paths × dark/light/system × 320/375/768/1024/1440 × keyboard-only × reduced-motion × LiveView reconnect, with findings recorded in the ledger.
+  2. The named footgun classes are eliminated: scroll traps, modal/drawer hidden behind scrim or floating wrong, focus not entering/restoring from overlays, escape/click-outside inconsistency, hover/focus on non-interactive elements, misalignment / chopped padding / inconsistent spacing, disabled-looks-enabled (and enabled-looks-disabled), missing tab active-state, weird pagination, unreadable dark/light text, and same-color text-on-background.
+  3. The transaction page centers correctly at desktop widths (resolves `transaction-page-left-push-desktop`).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 179: Microcopy & information-architecture sweep
+**Goal**: Sweep all UI copy and information architecture to brand voice, banned-vocabulary, and domain-language standards with a GOV.UK least-surprise / progressive-disclosure lens that preserves power-user efficiency.
+**Depends on**: Phase 178 (copy and IA are finalized once page structure and flows are stable)
+**Requirements**: COPY-01, COPY-02, COPY-03
+**Success Criteria** (what must be TRUE):
+  1. All UI copy follows the brand voice and avoids banned vocabulary; error/empty/success/warning/destructive copy follows the documented patterns (say what happened + how to fix; name the object + consequence; no blame).
+  2. Domain language is used consistently across headings/tabs/filters/buttons/alerts (AuditTransaction, AuditChange, AuditAction, ActorRef, Correlation; covered/uncovered, drift detected, redaction policy, retention window, evidence, incident drill-down, actor window, row history / as-of).
+  3. Information architecture follows least-surprise and progressive disclosure (GOV.UK lens) while preserving power-user efficiency (keyboard support, dense views, stable URLs, copyable IDs, direct links).
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 180: Accessibility verification, guardrails & adversarial closeout
+**Goal**: Verify WCAG 2.2 AA across rendered states, confirm motion compliance, ensure all idempotency guardrails are green, and sign off the adversarial regression review that closes the milestone.
+**Depends on**: Phase 179 (final accessibility, motion, and adversarial verification run against the completed surface)
+**Requirements**: A11Y-01, A11Y-02, MOTION-01, MOTION-02
+**Success Criteria** (what must be TRUE):
+  1. The surface meets WCAG 2.2 AA, verified by automated scans on rendered states including opened dialogs/menus/popovers AND manual keyboard + screen-reader checks; every flow is keyboard-operable with visible, non-obscured, restored focus.
+  2. Custom widgets follow WAI-ARIA APG patterns (dialog, tabs, menu, combobox, disclosure, tooltip, table/grid, alert, nav); color is never the only signal; touch target sizes are comfortable.
+  3. Motion communicates state/continuity/feedback only, uses compositor-friendly properties, is origin-aware where applicable, avoids animating from `scale(0)`, gives responsive press feedback, respects `prefers-reduced-motion`, and stays within the motion-token contract.
+  4. Idempotency guardrails are in place and green (expanded Playwright matrix + stress-route screenshot regression, per-component + style contract tests, brand-token parity), and an adversarial regression review is signed off (aesthetics-vs-usability, dependency/architecture weight, host-integration friction, inaccessible custom behavior, generic-template drift, screenshot-only quality).
+**Plans**: TBD
+**UI hint**: yes
 
 ## Phases
 
@@ -29,8 +152,20 @@ _Between milestones — define the next with `/gsd:new-milestone`._
 
 ## Progress
 
+**Execution Order (v1.37):** Phases execute in numeric order: 171 → 172 → 173 → 174 → 175 → 176 → 177 → 178 → 179 → 180.
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
+| 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 0/TBD | Not started | - |
+| 172. Foundations audit & hardening (tokens) | v1.37 | 0/TBD | Not started | - |
+| 173. Primitive components | v1.37 | 0/TBD | Not started | - |
+| 174. Form components | v1.37 | 0/TBD | Not started | - |
+| 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
+| 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
+| 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
+| 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
+| 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |
+| 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 0/TBD | Not started | - |
 | 166. unfreeze-token-lane-mechanism | v1.36 | 1/1 | Complete | 2026-06-13 |
 | 167. component-retune | v1.36 | 2/2 | Complete | 2026-06-14 |
 | 168. accessibility-verification | v1.36 | 2/2 | Complete | 2026-06-14 |

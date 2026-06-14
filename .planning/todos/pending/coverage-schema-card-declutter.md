@@ -2,6 +2,7 @@
 created: 2026-06-13T00:00:00Z
 title: Coverage "schema: public" card de-clutter (reduce nested border/padding blocks)
 area: operator-surface
+resolves_phase: 176
 origin: Phase 167 light-mode review (item C, structural part)
 files:
   - lib/threadline/operator_surface/style.ex

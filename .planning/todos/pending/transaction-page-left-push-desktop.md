@@ -2,6 +2,7 @@
 created: 2026-06-13T00:00:00Z
 title: Transaction page content left-pushed at desktop widths (theme-independent layout bug)
 area: operator-surface
+resolves_phase: 178
 origin: Phase 167 light-mode review (item E)
 files:
   - lib/threadline/operator_surface/style.ex
