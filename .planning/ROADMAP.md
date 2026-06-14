@@ -130,7 +130,9 @@ Plans:
   2. The example app mounts the operator surface with `theme: :system` and runs end-to-end.
   3. `guides/operator-surface.md` and adopter-facing docs document the `theme:` option with the daytime-use recommendation, and doc-contract coverage locks the new option literal.
 
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 169-01-PLAN.md — `__light__` durable screenshot lane + 5-screen light regression mirror (EVID-01, local-only)
+- [ ] 169-02-PLAN.md — guide Theme subsection + README `:system` pointer + new doc-contract lock (EVID-02)
 
 ### Phase 170: brand-alignment-closeout
 
