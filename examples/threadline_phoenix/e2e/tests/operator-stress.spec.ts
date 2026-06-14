@@ -175,17 +175,6 @@ test("light/system Playwright lane includes the stress route spec", () => {
   );
 });
 
-test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
-  const ci = ledger().screenshot_allowlist.ci;
-
-  expect(ci).toEqual(expectedCiScreenshots);
-
-  for (const item of ci) {
-    expect(item.baseline_ref).toBeTruthy();
-    expect(existsSync(desktopSnapshotPath(item.baseline_ref))).toBe(true);
-  }
-});
-
 test.describe("ledger-owned stress screenshots", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
@@ -215,5 +204,16 @@ test.describe("ledger-owned stress screenshots", () => {
         mask: dynamicMasks(page),
       });
     });
+  }
+});
+
+test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
+  const ci = ledger().screenshot_allowlist.ci;
+
+  expect(ci).toEqual(expectedCiScreenshots);
+
+  for (const item of ci) {
+    expect(item.baseline_ref).toBeTruthy();
+    expect(existsSync(desktopSnapshotPath(item.baseline_ref))).toBe(true);
   }
 });

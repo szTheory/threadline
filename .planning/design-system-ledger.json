@@ -27,7 +27,9 @@
       "owner_phase": 178,
       "ratchet_score": 25,
       "reserved_for_phase": 178,
-      "screenshot_baseline_refs": [],
+      "screenshot_baseline_refs": [
+        "stress-footgun-transaction-desktop-centering-dark-1024.png"
+      ],
       "source": "Threadline.OperatorSurface.StressFixtures",
       "status": "reserved",
       "story_id": "footgun.transaction-page-left-push-desktop",
@@ -477,7 +479,9 @@
       "notes": "Fixture-backed Phase 171 baseline for Home page happy path.",
       "owner_phase": 171,
       "ratchet_score": 62,
-      "screenshot_baseline_refs": [],
+      "screenshot_baseline_refs": [
+        "stress-page-home-happy-dark-1024.png"
+      ],
       "source": "Threadline.OperatorSurface.StressFixtures",
       "status": "baseline",
       "story_id": "page.home.happy",
@@ -578,7 +582,9 @@
       "notes": "Fixture-backed Phase 171 baseline for Timeline page empty state.",
       "owner_phase": 171,
       "ratchet_score": 62,
-      "screenshot_baseline_refs": [],
+      "screenshot_baseline_refs": [
+        "stress-page-timeline-empty-dark-1024.png"
+      ],
       "source": "Threadline.OperatorSurface.StressFixtures",
       "status": "baseline",
       "story_id": "page.timeline.empty",
@@ -996,46 +1002,46 @@
   "screenshot_allowlist": {
     "ci": [
       {
-        "baseline_ref": "stress/foundation.color-dark-1024.png",
-        "ledger_id": "foundation.color",
-        "story_id": "foundation.color",
+        "baseline_ref": "stress-page-home-happy-dark-1024.png",
+        "ledger_id": "page.home.happy",
+        "story_id": "page.home.happy",
         "theme": "dark",
         "viewport": 1024
       },
       {
-        "baseline_ref": "stress/primitive.surface-header.current-dark-1024.png",
-        "ledger_id": "primitive.surface-header.current",
-        "story_id": "primitive.surface-header.current",
+        "baseline_ref": "stress-page-timeline-empty-dark-1024.png",
+        "ledger_id": "page.timeline.empty",
+        "story_id": "page.timeline.empty",
         "theme": "dark",
         "viewport": 1024
       },
       {
-        "baseline_ref": "stress/state.permission-denied-dark-1024.png",
-        "ledger_id": "state.permission-denied",
-        "story_id": "state.permission-denied",
+        "baseline_ref": "stress-footgun-transaction-desktop-centering-dark-1024.png",
+        "ledger_id": "footgun.transaction-page-left-push-desktop",
+        "story_id": "footgun.transaction-page-left-push-desktop",
         "theme": "dark",
         "viewport": 1024
       }
     ],
     "local_review": [
       {
-        "baseline_ref": "stress/foundation.color-dark-1024.png",
-        "ledger_id": "foundation.color",
-        "story_id": "foundation.color",
+        "baseline_ref": "stress-page-home-happy-dark-1024.png",
+        "ledger_id": "page.home.happy",
+        "story_id": "page.home.happy",
         "theme": "dark",
         "viewport": 1024
       },
       {
-        "baseline_ref": "stress/primitive.surface-header.current-dark-1024.png",
-        "ledger_id": "primitive.surface-header.current",
-        "story_id": "primitive.surface-header.current",
+        "baseline_ref": "stress-page-timeline-empty-dark-1024.png",
+        "ledger_id": "page.timeline.empty",
+        "story_id": "page.timeline.empty",
         "theme": "dark",
         "viewport": 1024
       },
       {
-        "baseline_ref": "stress/state.permission-denied-dark-1024.png",
-        "ledger_id": "state.permission-denied",
-        "story_id": "state.permission-denied",
+        "baseline_ref": "stress-footgun-transaction-desktop-centering-dark-1024.png",
+        "ledger_id": "footgun.transaction-page-left-push-desktop",
+        "story_id": "footgun.transaction-page-left-push-desktop",
         "theme": "dark",
         "viewport": 1024
       }
