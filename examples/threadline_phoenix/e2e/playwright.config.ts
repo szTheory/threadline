@@ -23,5 +23,14 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
     { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
+    // Light-lane affordance re-run (Phase 168, A11Y-02 part 2): colorScheme "light"
+    // emulates prefers-color-scheme: light so the served operator surface resolves
+    // the [data-tl-theme="system"] light branch. Pair with THREADLINE_E2E_THEME=system
+    // (run-e2e.sh) so the mount is served :system; this project re-runs the SAME
+    // affordance spec verbatim — proving the affordances are mode-independent.
+    {
+      name: "desktop-chromium-light",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 }, colorScheme: "light" },
+    },
   ],
 });

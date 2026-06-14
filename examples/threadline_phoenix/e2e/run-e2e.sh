@@ -90,6 +90,12 @@ cleanup_exports
 
 cd "$EXAMPLE"
 mix deps.get --only test
+# Force the operator-surface router to recompile so the compile-time
+# THREADLINE_E2E_THEME theme gate reflects THIS invocation's env. System.get_env
+# at compile time is not tracked as a recompilation trigger, so without this a
+# switch between the default (:dark) and light (:system) lanes would otherwise
+# reuse a stale compiled router. (Phase 168, A11Y-02 part 2.)
+touch lib/threadline_phoenix_web/router.ex
 mix compile
 mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
 mix ecto.migrate --quiet
