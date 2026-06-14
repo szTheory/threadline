@@ -137,6 +137,11 @@ surface dependencies declared in `mix.exs`. The Threadline UI currently ships as
 an optional in-tree dependency. For details on this architecture decision and
 support guarantees, see the [Upgrade Path](guides/upgrade-path.md).
 
+Daytime and bright-environment teams can mount with `theme: :system` to
+auto-follow each operator's OS light/dark preference (pure CSS, no JS); see the
+[Operator Surface guide](guides/operator-surface.md#theme) for the full
+`:dark | :light | :system` triad.
+
 **1-Minute Mount**
 
 ```elixir

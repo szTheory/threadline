@@ -54,6 +54,42 @@ end
 
 Keys in `schemas:` are PostgreSQL `table_name` values from capture; the map is required for row-history and as-of reification in transaction drill-down.
 
+### Theme
+
+The operator surface renders in one of three host-selected lanes via the
+optional `theme:` mount option, validated at compile time to one of
+`:dark | :light | :system` (default `:dark`):
+
+- `:dark` (default) — the brand-primary surface. Omit `theme:` entirely to get
+  it; the canonical mount above stays dark with no extra configuration.
+- `:light` — forces the light token lane regardless of the visitor's OS
+  setting.
+- `:system` — auto-follows the visitor's OS preference through scoped CSS only
+  (a `@media (prefers-color-scheme: light)` lane keyed on the rendered
+  `data-tl-theme` attribute). It is correct on the first paint / dead render —
+  there is no JavaScript, no `localStorage`, and no runtime theme toggle, so
+  there is no flash of the wrong theme.
+
+Dark stays the default and the brand; `:system` is the documented daytime-use
+recommendation. The light lane is a readability and accessibility choice for
+teams whose operators work in bright, sunlit rooms and who scan small, dense
+audit text — a high-legibility need that a dense audit table on a dark surface
+can work against (a meaningful share of readers, including those with
+astigmatism, simply read dark-on-light text more comfortably). Choose the lane
+that fits where your operators actually work:
+
+```elixir
+threadline_operator_surface "/",
+  actor_fn: &MyApp.Audit.current_actor/1,
+  authorize_fn: &MyApp.Audit.authorize_operator/1,
+  schemas: %{"posts" => MyApp.Post, "users" => MyApp.Accounts.User},
+  repo: MyApp.Repo,
+  theme: :system
+```
+
+There is no runtime per-operator toggle in this version; the theme is a
+host-owned mount decision rendered server-side.
+
 Admin-first recipe:
 
 - Keep `/audit` behind `pipe_through [:browser, :admin_auth]`.
