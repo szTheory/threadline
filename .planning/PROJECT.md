@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is working milestone v1.36 Operator Surface Light Mode: implementing the approved light-mode strategy (decision [165-01]) — dark stays the default and the brand; light/system become host-configurable via a pure-CSS token lane. Phases 166–169 are complete (token lane + `data-tl-theme` mechanism, component retune, the accessibility AA mirror with a light-lane e2e affordance proof, and the `__light__` screenshot lane + truthful `theme:` docs locked by a doc-contract); phase 170 remains (brand alignment + closeout).
+Threadline has completed all phases of milestone v1.36 Operator Surface Light Mode: the approved light-mode strategy (decision [165-01]) is built — dark stays the default and the brand; light/system are host-configurable via a pure-CSS token lane. Phases 166–170 are complete (token lane + `data-tl-theme` mechanism, component retune, the accessibility AA mirror with a light-lane e2e affordance proof, the `__light__` screenshot lane + truthful `theme:` docs locked by a doc-contract, and brand-SSOT token parity + dual-mode pressure-test + milestone audit prep). The remaining gate before v1.36 archival is the End-of-milestone UAT (walk the operator surface live in dark/light/system), tracked in `170-HUMAN-UAT.md`; note COMP-01/COMP-02 are live-verified but their `style.ex` source is entangled-uncommitted in the separate nav-overhaul lane (audit Finding F1).
 
 ## Current Milestone: v1.36 Operator Surface Light Mode
 
@@ -595,4 +595,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-14 after Phase 169 (screenshots-example-docs) complete*
+*Last updated: 2026-06-14 after Phase 170 (brand-alignment-closeout) complete — all v1.36 phases done; End-of-milestone UAT pending before archival*
