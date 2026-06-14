@@ -12,17 +12,14 @@ defmodule Threadline.V123CharterDocContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
-  test "PROJECT.md locks current milestone and latest shipped framing" do
+  test "PROJECT.md locks between-milestones posture and latest shipped framing" do
     doc = read_rel!([".planning", "PROJECT.md"])
 
-    assert String.contains?(
-             doc,
-             "## Current Milestone: v1.36 Operator Surface Light Mode"
-           )
+    assert String.contains?(doc, "is now between milestones")
 
     assert String.contains?(
              doc,
-             "## Latest Milestone Shipped: v1.35 Unified Logo & Brand Book v2"
+             "## Latest Milestone Shipped: v1.36 Operator Surface Light Mode"
            )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")

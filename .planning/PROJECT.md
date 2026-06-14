@@ -10,22 +10,24 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline has completed all phases of milestone v1.36 Operator Surface Light Mode: the approved light-mode strategy (decision [165-01]) is built — dark stays the default and the brand; light/system are host-configurable via a pure-CSS token lane. Phases 166–170 are complete (token lane + `data-tl-theme` mechanism, component retune, the accessibility AA mirror with a light-lane e2e affordance proof, the `__light__` screenshot lane + truthful `theme:` docs locked by a doc-contract, and brand-SSOT token parity + dual-mode pressure-test + milestone audit prep). The remaining gate before v1.36 archival is the End-of-milestone UAT (walk the operator surface live in dark/light/system), tracked in `170-HUMAN-UAT.md`; note COMP-01/COMP-02 are live-verified but their `style.ex` source is entangled-uncommitted in the separate nav-overhaul lane (audit Finding F1).
+Threadline shipped milestone **v1.36 Operator Surface Light Mode** (2026-06-14) and is now between milestones, awaiting the next milestone definition. The operator surface has a first-class light mode: hosts mount with `theme: :dark | :light | :system` (default `:dark`, zero behavior change for existing adopters), rendered server-side as a `data-tl-theme` attribute over a pure-CSS 45-token light lane — no JS, no FOUC, CSP-proof. All 15 v1.36 requirements are satisfied (audit passed; the previously-entangled `style.ex` light source was committed at close, resolving audit Finding F1, with the suite green at 912 tests). Deferred at close: the end-of-milestone human UAT (live dark/light/system walk, `169`/`170-HUMAN-UAT.md`), `170-VERIFICATION.md` (human-needed), and 3 operator-surface backlog todos — see `STATE.md` Deferred Items.
 
-## Current Milestone: v1.36 Operator Surface Light Mode
+## Latest Milestone Shipped: v1.36 Operator Surface Light Mode (2026-06-14)
 
-**Goal:** Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :light | :system` host config on `threadline_operator_surface/2`, default `:dark`, rendered server-side as a `data-tl-theme` attribute driving a pure-CSS light token lane — zero JS, zero FOUC, CSP-proof, designed-not-recolored.
+**Goal (achieved):** Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :light | :system` host config on `threadline_operator_surface/2`, default `:dark`, rendered server-side as a `data-tl-theme` attribute driving a pure-CSS light token lane — zero JS, zero FOUC, CSP-proof, designed-not-recolored.
 
-**Target features:**
-- Theme mechanism + host API: compile-validated `theme:` mount option; `data-tl-theme` on the LiveView roots; scoped `color-scheme`; `:system` via scoped `prefers-color-scheme`
-- Light token lane: all 45 color-bearing `--tl-*` tokens (19 seeded from the brand light lane, 26 designed — status tints are the keystone decision); the stray hardcoded rgba (style.ex shell-nav inset) tokenized
-- Component retune: ~9 dark-effect families (glass chrome, drawer scrim/shadow, focus glow, home-card effects) + explicit light review of data-viz-adjacent surfaces (coverage/timeline/diff — the Grafana lesson)
-- Accessibility: AA contrast mirror test for the light lane (alpha-aware token parsing); focus-visible per mode
-- Verification + docs: `__light__` screenshot baseline lane (local-only), example app demonstrating `theme: :system`, operator-surface guide + adoption docs; brand book UI-theming posture note + tokens.json 45-token parity
+**Shipped:**
+- **Theme mechanism + host API** — compile-validated `theme:` mount option; `data-tl-theme` on the LiveView roots; scoped `color-scheme`; `:system` via scoped `prefers-color-scheme`; `style.ex` + `style_contract_test.exs` amended source-first (seven light refutes → theme-aware assertions; runtime `theme-toggle` ban retained).
+- **45-token light lane** — all 45 color-bearing `--tl-*` tokens (19 seeded from the brand light lane, 26 designed; status tints the keystone decision); the stray shell-nav-inset rgba tokenized.
+- **Component retune** — ~9 dark-effect families (glass chrome, drawer scrim/shadow, focus glow, home-card effects, shell-nav inset) + explicit light review of coverage/timeline/diff data-viz surfaces (the Grafana lesson), user-approved live in both modes.
+- **Accessibility** — light/system AA contrast mirror with an alpha-aware compositing parser; per-mode focus-ring 3:1 and interaction-state contracts; dark phase-143 contract byte-stable.
+- **Verification + docs + brand** — `__light__` screenshot lane (local-only), example app demonstrating `theme: :system`, `theme:` documented under doc-contract; `brandbook/tokens.{json,css}` at full 45-token parity (bidirectional parity test) + dual-mode pressure-test + UI-theming-posture note.
 
-**Key context:** The opening wave MUST amend `style.ex` and `style_contract_test.exs` in the SAME wave (source-first convention) — the seven `prefers-color-scheme`/`color-scheme: light` test refutes become theme-aware assertions; the `theme-toggle` ban is RETAINED (no runtime toggle in v1; documented cookie-based upgrade path only). Seed: `.planning/seeds/SEED-004-operator-surface-light-mode.md`; full recommendation: `.planning/milestones/v1.35-phases/165-light-mode-strategy/165-LIGHT-MODE-RECOMMENDATION.md`; change-surface map with file:line citations: `165-RESEARCH-SURFACE.md` (same dir). The user's separate uncommitted nav-overhaul lane (~29 files under lib//examples//test/) must never be staged or touched.
+**Archives:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`, `.planning/milestones/v1.36-MILESTONE-AUDIT.md`
 
-## Latest Milestone Shipped: v1.35 Unified Logo & Brand Book v2 (2026-06-12)
+**Next milestone goals:** Define fresh requirements via `/gsd:new-milestone`; otherwise hold per the no-signal default. Candidate carry-forwards: THEME-TOGGLE-01 (runtime theme picker, on adopter demand), the transaction-page desktop layout bug, and operator-surface polish todos.
+
+## Prior shipped milestone: v1.35 Unified Logo & Brand Book v2 (2026-06-12)
 
 **Goal (achieved):** Replace the icon-beside-plain-text logo with a unified, tournament-selected identity and elevate the brandbook into a standalone professional HTML brand book — all text/SVG, self-contained.
 
@@ -39,7 +41,7 @@ Threadline has completed all phases of milestone v1.36 Operator Surface Light Mo
 
 **Next milestone goals:** v1.36 Operator Surface Light Mode when chosen (seed: SEED-004); otherwise hold per the no-signal default.
 
-## Latest Milestone Shipped: v1.34 Local Docker Admin UI DX (2026-06-07)
+## Prior shipped milestone: v1.34 Local Docker Admin UI DX (2026-06-07)
 
 **Goal (achieved):** Make the Docker-backed Phoenix operator demo easy to start, refresh, inspect, stop, and run alongside other local Docker projects without port or cache pain.
 
@@ -406,6 +408,7 @@ Threadline has completed all phases of milestone v1.36 Operator Surface Light Mo
 
 ### Validated
 
+- ✓ **Operator surface light mode (Phases 166–170)** — `theme: :dark | :light | :system` host config rendered server-side as `data-tl-theme` over a pure-CSS 45-token light lane (no JS/FOUC, CSP-proof); component retune of the ~9 dark-effect families + data-viz surfaces; light/system WCAG-AA contrast mirror with alpha-aware compositing; `__light__` screenshot lane + `theme:` docs; brand token parity + dual-mode pressure-test. 15/15 requirements (THEME-01–04, TOKEN-01–03, COMP-01/02, A11Y-01/02, EVID-01/02, BRAND-01/02). Validated in v1.36 (2026-06-14).
 - [x] **Capture layer (Phase 1)** — Custom `Threadline.Capture` trigger SQL, `mix threadline.install` / `mix threadline.gen.triggers`, integration tests on PostgreSQL, GitHub Actions CI, CONTRIBUTING. Validated in Phase 1: Capture Foundation (2026-04-23).
 - [x] **Semantics layer (Phase 2)** — `ActorRef`, `audit_actions` / nullable `audit_transactions.actor_ref`, `record_action/2`, `Threadline.Plug`, `Threadline.Job`, transaction-local GUC bridge for trigger-populated `actor_ref`. Validated in Phase 2: Semantics Layer (2026-04-23).
 - [x] **Query + observability (Phase 3)** — `Threadline.Query`, delegators on `Threadline`, health coverage checks, telemetry hooks. Validated in Phase 3: Query & Observability (2026-04-23).
@@ -479,15 +482,14 @@ Threadline has completed all phases of milestone v1.36 Operator Surface Light Mo
 
 ### Active
 
-- [x] **DX-DEMO-01**: Maintainer can start the seeded Phoenix `/audit` demo with one command from the repository root.
-- [x] **DX-DEMO-02**: Demo startup prints the Compose project name, sign-in credentials, key admin UI URLs, and matching lifecycle commands.
-- [x] **DX-DEMO-03**: Re-running the helper refreshes the same stack instead of creating a duplicate or silently changing the browser URL.
-- [x] **DX-PORT-01**: The first demo uses friendly defaults, and occupied host ports are detected with safe alternate ports selected automatically.
-- [x] **DX-PORT-02**: Multiple Threadline checkouts or adjacent Docker projects can run without sharing containers, networks, volumes, or host ports accidentally.
-- [x] **DX-CLEAN-01**: Maintainers have explicit `status`, `logs`, `down`, and `fresh` flows that are Compose-profile aware.
-- [x] **DX-CACHE-01**: Dockerfile and Compose behavior preserve dependency/build caches for ordinary source/style edits where practical.
-- [x] **DX-DOC-01**: Local Docker docs explain the shortest successful path first, then the project-name/port model, cleanup, troubleshooting, and reader-specific workflows.
-- [x] **DX-PROXY-01**: Documentation records that Traefik/subdomain routing is deferred, rejects `.dev` for HTTP local demos, and names `.localhost` as the future-safe hostname family if proxy mode is later added.
+_Between milestones (post-v1.36). No active milestone — define fresh requirements with `/gsd:new-milestone`, or hold per the no-signal default. (v1.34 DX-DEMO/DX-PORT/DX-CLEAN/DX-CACHE/DX-DOC/DX-PROXY requirements shipped and are archived under `.planning/milestones/v1.34-*`.)_
+
+**Carry-forward candidates (deferred at v1.36 close — see STATE.md Deferred Items):**
+
+- [ ] **THEME-TOGGLE-01**: Per-operator runtime theme switching (Backpex-style cookie + plug, zero-JS form) — only on real adopter demand; localStorage remains rejected; out of v1 scope per [165-01].
+- [ ] **Transaction-page desktop layout bug**: content left-pushed at desktop widths (theme-independent) — `transaction-page-left-push-desktop` todo.
+- [ ] **Operator-surface polish**: coverage "schema: public" card de-clutter; data-viz refinements — `coverage-schema-card-declutter` todo.
+- [ ] **End-of-milestone human UAT**: live dark/light/system walk of the operator surface (`169`/`170-HUMAN-UAT.md`) + `170-VERIFICATION.md` — acknowledged-deferred at close.
 
 ### Out of Scope
 
@@ -574,6 +576,11 @@ Threadline has completed all phases of milestone v1.36 Operator Surface Light Mo
 | README/GitHub is the deciding surface for brand readiness | The brand can support future landing pages and HexDocs, but OSS adopter trust starts in the repository. Light-surface logo usability is therefore a real requirement, while public rollout remains separate work. | ✓ Shipped (v1.33, 2026-06-06) |
 | Brandbook artifacts should present current brand truth, not process history | Planning history belongs in `.planning/`; public-facing source artifacts should read as settled guidance unless a future milestone deliberately reopens the direction. | ✓ Shipped (v1.33, 2026-06-06) |
 | v1.34 uses helper-first dynamic localhost ports, not Traefik, for local demo access | `bin/demo-up` gives the best one-command DX without a shared reverse-proxy dependency, Docker socket exposure, port 80/443 ownership, mkcert state, or cross-project naming policy. Traefik can be reconsidered later as an optional shared-proxy integration using `.localhost`, not `.dev`. | — Active (v1.34, 2026-06-06) |
+| [165-01] supersedes dark-only [136-01]: dark default, light/system via host `theme:` config, no runtime toggle in v1 | Dark stays the brand and the default (zero adopter behavior change); light/system are real needs met by host configuration, not a runtime UI. The `theme-toggle` ban is retained; a cookie-based upgrade path is documented, not built. | ✓ Validated (v1.36, 2026-06-14) |
+| Light theme renders server-side as `data-tl-theme`, pure CSS — no JS, no localStorage, no `<head>` injection | A mounted library must be correct on the dead render (zero FOUC) and survive CSP; localStorage/`<head>`-script theming is structurally wrong for this surface (rejected in 165 research). | ✓ Good (v1.36) |
+| Light tokens designed, not recolored; status tints redesigned as one coherent decision | Mechanically inverting dark values produces the "Grafana lesson" — dark-tuned content shipped unreviewed into light. Data-viz-adjacent surfaces got an explicit light review. | ✓ Good (v1.36) |
+| Source-first contract: `style.ex` + `style_contract_test.exs` amended in the same wave | The style contract reads `style.ex` directly; amending both together keeps the seven light refutes → theme-aware assertions atomic and the dark phase-143 contract byte-stable. | ✓ Good (v1.36) |
+| Entangled `style.ex` light source committed at v1.36 close (resolves audit Finding F1) | COMP-01/02 were built and verified live but their source sat uncommitted in a broader operator-surface working tree; committing it at close (commit `b9f8fc1`, suite green at 912 tests) made the parity gate green on a clean checkout. | ✓ Resolved (v1.36, 2026-06-14) |
 
 ## Evolution
 
@@ -595,4 +602,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-14 after Phase 170 (brand-alignment-closeout) complete — all v1.36 phases done; End-of-milestone UAT pending before archival*
+*Last updated: 2026-06-14 after v1.36 Operator Surface Light Mode shipped and archived — between milestones; human UAT + 3 operator-surface todos deferred (see STATE.md Deferred Items)*

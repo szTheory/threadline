@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: milestone_complete
-last_updated: 2026-06-14T16:09:29.699Z
-last_activity: 2026-06-14
+status: Awaiting next milestone
+last_updated: "2026-06-14T16:43:55.190Z"
+last_activity: 2026-06-14 — Milestone v1.36 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 9
   completed_plans: 9
   percent: 100
-stopped_at: Milestone complete (Phase 170 was final phase)
 ---
 
 # Project State: Threadline
@@ -25,11 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 170
-Plan: Not started
-Status: Milestone complete
-Progress: [██████████] 100%
-Last activity: 2026-06-14
+Phase: Milestone v1.36 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-14 — Milestone v1.36 completed and archived
 
 ## Performance Metrics
 
@@ -69,6 +67,12 @@ Last activity: 2026-06-14
 | Phase 168 P01 | 25min | 3 tasks | 1 files |
 | Phase 170 P01 | 18m | 3 tasks | 5 files |
 | Phase 170 P02 | ~9m | 2 tasks | 2 files |
+| uat_gap (v1.36 close 2026-06-14) | 169-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
+| uat_gap (v1.36 close 2026-06-14) | 170-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
+| verification_gap (v1.36 close 2026-06-14) | 170-VERIFICATION.md | human_needed — acknowledged & deferred |
+| todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | pending — carried to backlog |
+| todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
+| todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
 
 ## Accumulated Context
 
@@ -180,5 +184,4 @@ Last activity: 2026-06-14
 
 ## Operator Next Steps
 
-- Execute Phase 166 with `/gsd-execute-phase 166`
-- Human gate after Phase 166: light-lane design review before Phase 167 retune effort
+- Start the next milestone with /gsd-new-milestone

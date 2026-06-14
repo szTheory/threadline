@@ -1,5 +1,26 @@
 # Project milestones: Threadline
 
+## v1.36 Operator Surface Light Mode (Shipped: 2026-06-14)
+
+**Delivered:** Gave the operator surface a first-class light mode without touching the dark default. Hosts now mount with `theme: :dark | :light | :system` and the chosen theme renders server-side as a `data-tl-theme` attribute — correct on first paint, zero JavaScript, zero localStorage, zero FOUC. All 45 color-bearing `--tl-*` tokens gained a designed light lane, the ~9 dark-effect component families and data-viz surfaces were explicitly retuned for light, and a light/system WCAG-AA contrast mirror (with an alpha-aware compositing parser) guards every text-bearing token in both modes. Brand artifacts reached full token parity with the shipped UI and the brand book records the settled "dark-primary, light-supported" theming posture.
+
+**Phases completed:** 5 phases (166-170), 9 plans. Requirements: 15/15 satisfied (audit passed; Finding F1 — entangled uncommitted `style.ex` — resolved at close by committing the source, suite green at 912 tests).
+
+**Stats:** 86 commits, 113 files changed (3,353+/504- in source), 3 days (2026-06-12 → 2026-06-14). Git range: `v1.35`..`v1.36`.
+
+**Key accomplishments:**
+
+- **Theme mechanism (166)** — `theme:` host config with compile-time triad validation, server-rendered `data-tl-theme`, scoped `@media (prefers-color-scheme)` + `color-scheme` for `:system`; `style.ex` and `style_contract_test.exs` amended in the same wave (the seven light-mode refutes became theme-aware assertions; the runtime `theme-toggle` ban retained).
+- **45-token light lane (166)** — 19 tokens seeded from `brandbook/tokens.json` `semantic.light`, 26 designed (not recolored), with a coherent light status-tint system feeding ~20 tint-riding component families.
+- **Component retune (167)** — the ~9 dark-effect families (glass chrome, drawer scrim/shadow, focus glow, home-card effects, shell-nav inset) plus coverage/timeline/diff data-viz surfaces explicitly designed for light and user-approved live in both modes (the "Grafana lesson" review).
+- **Accessibility AA mirror (168)** — alpha-aware compositing parser + light/system contrast mirror (incl. composited status-text-on-tint rows) + per-mode focus-ring 3:1 and interaction-state contracts, all proven by `style_contract_test.exs` reading `style.ex` directly, dark phase-143 contract byte-stable.
+- **Verification surfaces + docs (169)** — `__light__` screenshot lane alongside dark, example app demonstrates `theme: :system`, adopter docs document the `theme:` option with the daytime-use recommendation under doc-contract lock.
+- **Brand alignment + closeout (170)** — `brandbook/tokens.{json,css}` reach full parity with the shipped 45-token UI lane under a bidirectional parity test, dual-mode pressure-test addendum, and a passing milestone audit.
+
+**Known deferred items at close:** 6 (see STATE.md Deferred Items) — 2 partial human-UAT (169/170), 1 human-needed verification (170), and 3 operator-surface todos carried to backlog (incl. THEME-TOGGLE-01, out of v1 scope per [165-01]).
+
+---
+
 ## v1.35 (Shipped: 2026-06-12)
 
 **Phases completed:** 0 phases, 0 plans, 0 tasks
