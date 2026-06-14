@@ -21,8 +21,8 @@
 
 ### Component Retune
 
-- [ ] **COMP-01**: The ~9 dark-effect component families (glass chrome ×4, drawer scrim + shadow, focus glow, home-card signature effects, shell-nav inset) render correctly on light with explicitly designed treatments.
-- [ ] **COMP-02**: Data-viz-adjacent surfaces (coverage, timeline, diff views) pass an explicit light-mode design review — no dark-tuned content shipped unreviewed into light (the Grafana lesson).
+- [~] **COMP-01**: The ~9 dark-effect component families (glass chrome ×4, drawer scrim + shadow, focus glow, home-card signature effects, shell-nav inset) render correctly on light with explicitly designed treatments. *(Verified (source pending): built + user-approved live both modes; `style.ex` source uncommitted, ships with the nav-overhaul lane — see `v1.36-MILESTONE-AUDIT.md` F1 + `167-02-SUMMARY.md`.)*
+- [~] **COMP-02**: Data-viz-adjacent surfaces (coverage, timeline, diff views) pass an explicit light-mode design review — no dark-tuned content shipped unreviewed into light (the Grafana lesson). *(Verified (source pending): coverage row hover-polarity fix + data-viz light review done and user-approved live; `style.ex` source uncommitted — see `v1.36-MILESTONE-AUDIT.md` F1 + `167-02-SUMMARY.md`.)*
 
 ### Accessibility
 
@@ -65,8 +65,8 @@
 | TOKEN-01 | Phase 166 | Complete |
 | TOKEN-02 | Phase 166 | Complete |
 | TOKEN-03 | Phase 166 | Complete |
-| COMP-01 | Phase 167 | Pending |
-| COMP-02 | Phase 167 | Pending |
+| COMP-01 | Phase 167 | Verified (source pending) |
+| COMP-02 | Phase 167 | Verified (source pending) |
 | A11Y-01 | Phase 168 | Complete |
 | A11Y-02 | Phase 168 | Complete |
 | EVID-01 | Phase 169 | Complete |
@@ -81,4 +81,4 @@
 
 ---
 *Requirements defined: 2026-06-12*
-*Last updated: 2026-06-12 after v1.36 roadmap creation (traceability mapped to Phases 166–170)*
+*Last updated: 2026-06-14 — Phase 170 closeout (BRAND-01/02 Complete; COMP-01/02 Verified (source pending), agreeing with `v1.36-MILESTONE-AUDIT.md`)*
