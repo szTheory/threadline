@@ -28,7 +28,12 @@
   2. `DESIGN-SYSTEM.md` v2 exists and inventories every foundation token, primitive, form control, group/meta-component, and page, each with a current status.
   3. An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores), backed by test/screenshot guards that fail CI on a regression.
   4. A reusable ugly-data fixture library covers the full stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 171-01-PLAN.md — Static stress fixture registry and DS-04 adapter contracts
+- [ ] 171-02-PLAN.md — JSON ledger, DESIGN-SYSTEM.md projection, and ratchet contracts
+- [ ] 171-03-PLAN.md — Internal `/audit/__stress` router, LiveView shell, auth/prod gates
+- [ ] 171-04-PLAN.md — Playwright semantic guards and ledger-owned screenshot allowlist
 **UI hint**: yes
 
 ### Phase 172: Foundations audit & hardening (tokens)
