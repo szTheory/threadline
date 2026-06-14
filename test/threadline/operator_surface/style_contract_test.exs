@@ -864,10 +864,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   test "phase 168 focus ring clears non-text 3:1 per mode with halo reported only" do
     src = File.read!(@style_path)
 
-    light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
-    system = src |> system_lane_block!() |> color_tokens()
+    light_block = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
+    system_block = system_lane_block!(src)
 
-    for {mode, map} <- [{"light", light}, {"system", system}] do
+    for {mode, block} <- [{"light", light_block}, {"system", system_block}] do
+      map = color_tokens(block)
+
       # WCAG 2.1 SC 1.4.11 — non-text contrast 3:1 (NOT 4.5). The load-bearing
       # affordance is the OPAQUE 1px border-focus edge; controls sit on both
       # surface and surface-raised.
@@ -878,8 +880,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
       # The 3px translucent halo (rgba first shadow layer) is composited and
       # REPORTED, never carrying the pass — a low-alpha halo (here ~1.4:1) would
-      # otherwise mask a focus failure (Anti-Pattern: halo masking).
-      halo_over_surface = composite({21, 87, 192, 0.22}, map["--tl-color-surface"])
+      # otherwise mask a focus failure (Anti-Pattern: halo masking). The halo alpha
+      # is parsed from the ACTUAL --tl-focus-ring source in this lane (not a
+      # hardcoded literal) so the assertion tracks source and cannot silently rot.
+      halo_over_surface = composite(focus_ring_halo!(block), map["--tl-color-surface"])
       halo_ratio = contrast_ratio(halo_over_surface, map["--tl-color-surface"])
 
       assert is_float(halo_ratio),
@@ -888,6 +892,38 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       refute halo_ratio >= 3.0,
              "#{mode}: the translucent halo alone must NOT reach 3:1 — the opaque edge carries the pass"
     end
+  end
+
+  test "phase 168 no --tl-color-* token escapes the alpha-aware parser (silent-drop guard)" do
+    src = File.read!(@style_path)
+
+    # Every --tl-color-* declaration in source must use a value format the parser
+    # accepts (#RRGGBB or rgba(...)). A future #RRGGBBAA, #RGB, or hsl() value
+    # would reintroduce the silent-drop blind spot this phase set out to close —
+    # fail loudly here rather than relying on the absence of such tokens today.
+    declared =
+      ~r/(--tl-color-[a-z0-9-]+)\s*:\s*([^;]+);/
+      |> Regex.scan(src)
+      |> Enum.map(fn [_m, token, value] -> {token, String.trim(value)} end)
+
+    unparsed =
+      Enum.reject(declared, fn {_token, value} ->
+        # var(...) aliases are indirection resolved at CSS runtime, not a static
+        # color literal the contrast math consumes.
+        String.starts_with?(value, "var(") or
+          Regex.match?(~r/^#[0-9a-fA-F]{6}$/, value) or
+          Regex.match?(~r/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)$/, value)
+      end)
+
+    assert unparsed == [],
+           "these --tl-color-* declarations use a value format color_tokens/1 silently drops: #{inspect(unparsed)}"
+  end
+
+  test "phase 168 normalize_alpha handles leading-dot and bare-integer alpha" do
+    # Exercises the parser branches no current source token hits, so they are not
+    # silently dead if such an alpha is later authored.
+    assert parse_color_value("rgba(1, 2, 3, .5)") == {1, 2, 3, 0.5}
+    assert parse_color_value("rgba(4, 5, 6, 1)") == {4, 5, 6, 1.0}
   end
 
   test "phase 168 interaction states resolve to a perceptible per-mode delta" do
@@ -1313,9 +1349,27 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # hex-only regex used to silently drop — parse to an {r, g, b, a} tuple to be
   # composited over a caller-named per-mode opaque base before luminance math.
   defp color_tokens(src) do
-    ~r/(--tl-color-[a-z-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\));/
+    # Name class includes digits ([a-z0-9-]+) so a future `--tl-color-accent-2`
+    # is not silently dropped. The accepted value formats (#RRGGBB | rgba(...))
+    # are enforced repo-wide by the "no --tl-color-* token escapes the parser"
+    # guard test, which fails if any declaration uses a format this parser drops.
+    ~r/(--tl-color-[a-z0-9-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\));/
     |> Regex.scan(src)
     |> Map.new(fn [_match, token, value] -> {token, parse_color_value(value)} end)
+  end
+
+  # Parse the first rgba(...) layer (the translucent halo) out of the
+  # `--tl-focus-ring` box-shadow declaration in a lane block. Used so the focus
+  # halo assertion derives from source rather than a duplicated literal.
+  defp focus_ring_halo!(block) do
+    [_match, r, g, b, a] =
+      Regex.run(
+        ~r/--tl-focus-ring:[^;]*?rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/,
+        block
+      )
+
+    {String.to_integer(r), String.to_integer(g), String.to_integer(b),
+     String.to_float(normalize_alpha(a))}
   end
 
   defp parse_color_value("#" <> _ = hex), do: hex
@@ -1343,13 +1397,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     {br, bg, bb} = hex_to_rgb(base_hex)
     blend = fn s, base -> round(s * a + base * (1 - a)) end
 
-    "#" <>
-      Enum.map_join([{r, br}, {g, bg}, {b, bb}], "", fn {s, base} ->
-        blend.(s, base) |> Integer.to_string(16) |> String.pad_leading(2, "0")
-      end)
+    # Output casing is uppercase BY CONTRACT (e.g. "#F6EBEB") so callers can
+    # string-compare composite output without per-call defensive casing.
+    ("#" <>
+       Enum.map_join([{r, br}, {g, bg}, {b, bb}], "", fn {s, base} ->
+         blend.(s, base) |> Integer.to_string(16) |> String.pad_leading(2, "0")
+       end))
+    |> String.upcase()
   end
 
-  defp hex_to_rgb("#" <> hex) do
+  defp hex_to_rgb("#" <> hex) when byte_size(hex) == 6 do
     [r, g, b] =
       hex
       |> String.graphemes()
@@ -1358,6 +1415,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     {r, g, b}
   end
+
+  defp hex_to_rgb(other),
+    do: flunk(~s|hex_to_rgb/1 expected an opaque "#RRGGBB" base, got: #{inspect(other)}|)
 
   defp contrast_ratio(foreground, background) do
     fg = relative_luminance(foreground)

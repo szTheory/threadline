@@ -149,4 +149,11 @@ sleep 2
 curl --max-time 60 -fsS "${BASE_URL}/users/log_in" >/dev/null
 
 cd "$E2E_DIR"
-npm test -- "$@"
+if [ "${THREADLINE_E2E_THEME:-}" = "system" ]; then
+  # Light lane: only the light project should run — the dark projects would
+  # otherwise hit the :system mount. It is scoped to the affordance spec via
+  # testMatch in playwright.config.ts. (Phase 168, A11Y-02 part 2.)
+  npm test -- --project=desktop-chromium-light "$@"
+else
+  npm test -- "$@"
+fi

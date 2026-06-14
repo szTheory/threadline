@@ -85,6 +85,7 @@ defmodule Threadline.MixProject do
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
       "verify.example_browser": &verify_example_browser/1,
+      "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
@@ -156,6 +157,31 @@ defmodule Threadline.MixProject do
     case System.cmd("bash", [script | args], env: env, into: IO.stream(:stdio, :line)) do
       {_output, 0} -> :ok
       {_output, status} -> Mix.raise("verify.example_browser failed (#{status})")
+    end
+  end
+
+  # Light-lane affordance proof (Phase 168, A11Y-02 part 2). Sets
+  # THREADLINE_E2E_THEME=system so run-e2e.sh recompiles the example operator
+  # mount to the :system lane and runs ONLY the colorScheme:"light" project
+  # (scoped to operator-accessibility.spec.ts) — proving the affordances are
+  # mode-independent under the light branch. The default (dark) browser lane
+  # stays `verify.example_browser`.
+  defp verify_example_browser_light(args) do
+    script = Path.expand("examples/threadline_phoenix/e2e/run-e2e.sh")
+
+    env =
+      System.get_env()
+      |> Enum.map(fn {k, v} -> {k, v} end)
+      |> Kernel.++([
+        {"DB_HOST", System.get_env("DB_HOST") || "localhost"},
+        {"DB_PORT", System.get_env("DB_PORT") || "5432"},
+        {"THREADLINE_E2E", "1"},
+        {"THREADLINE_E2E_THEME", "system"}
+      ])
+
+    case System.cmd("bash", [script | args], env: env, into: IO.stream(:stdio, :line)) do
+      {_output, 0} -> :ok
+      {_output, status} -> Mix.raise("verify.example_browser_light failed (#{status})")
     end
   end
 

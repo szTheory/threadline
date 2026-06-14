@@ -2,6 +2,35 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:4002";
 
+// Light-lane affordance re-run (Phase 168, A11Y-02 part 2). The light project is
+// registered ONLY when the example app is compiled to serve the :system lane
+// (THREADLINE_E2E_THEME=system) and is scoped to the affordance spec, so:
+//   - a default (dark) run never executes a misnamed "light" project against the
+//     dark mount (no false-confidence pass), and
+//   - the dark projects are never dragged onto a :system mount.
+// run-e2e.sh sets the env and targets --project=desktop-chromium-light for this
+// lane (use `mix verify.example_browser_light`).
+const lightLane = process.env.THREADLINE_E2E_THEME === "system";
+
+const projects = [
+  { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+  { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
+  { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
+  ...(lightLane
+    ? [
+        {
+          name: "desktop-chromium-light",
+          testMatch: /operator-accessibility\.spec\.ts/,
+          use: {
+            ...devices["Desktop Chrome"],
+            viewport: { width: 1280, height: 900 },
+            colorScheme: "light" as const,
+          },
+        },
+      ]
+    : []),
+];
+
 export default defineConfig({
   testDir: "./tests",
   timeout: 120_000,
@@ -19,18 +48,5 @@ export default defineConfig({
     // risk for a non-pixel-diff suite.
     reducedMotion: "reduce",
   },
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
-    { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
-    // Light-lane affordance re-run (Phase 168, A11Y-02 part 2): colorScheme "light"
-    // emulates prefers-color-scheme: light so the served operator surface resolves
-    // the [data-tl-theme="system"] light branch. Pair with THREADLINE_E2E_THEME=system
-    // (run-e2e.sh) so the mount is served :system; this project re-runs the SAME
-    // affordance spec verbatim — proving the affordances are mode-independent.
-    {
-      name: "desktop-chromium-light",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 }, colorScheme: "light" },
-    },
-  ],
+  projects,
 });
