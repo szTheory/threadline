@@ -108,7 +108,12 @@ Plans:
   2. The focus ring meets non-text contrast on both backgrounds, with focus-visible verified per mode.
   3. Hover/active/disabled/selected interaction states are verified per mode (including the accessibility e2e affordance checks re-run under the light lane).
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 168-01-PLAN.md — Alpha-aware contrast parser + light/system AA mirror + focus-ring 3:1 + per-mode interaction-state source assertions (A11Y-01, A11Y-02 p1)
+- [ ] 168-02-PLAN.md — Light-lane Playwright re-run of the affordance suite via colorScheme:light + env-gated :system mount (A11Y-02 p2)
+
 **UI hint**: yes
 
 ### Phase 169: screenshots-example-docs
