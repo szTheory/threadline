@@ -31,8 +31,8 @@
 
 ### Verification Surfaces & Docs
 
-- [ ] **EVID-01**: Screenshot baselines gain a `__light__` lane alongside dark (local-only — the visual guard stays CI-skipped per cf0e8e2), covering the operator-surface screen set in both modes.
-- [ ] **EVID-02**: The example app demonstrates `theme: :system`; `guides/operator-surface.md` and adopter-facing docs document the `theme:` option with the daytime-use recommendation; doc-contract coverage for the new option literal.
+- [x] **EVID-01**: Screenshot baselines gain a `__light__` lane alongside dark (local-only — the visual guard stays CI-skipped per cf0e8e2), covering the operator-surface screen set in both modes.
+- [x] **EVID-02**: The example app demonstrates `theme: :system`; `guides/operator-surface.md` and adopter-facing docs document the `theme:` option with the daytime-use recommendation; doc-contract coverage for the new option literal.
 
 ### Brand Alignment
 
@@ -69,8 +69,8 @@
 | COMP-02 | Phase 167 | Pending |
 | A11Y-01 | Phase 168 | Complete |
 | A11Y-02 | Phase 168 | Complete |
-| EVID-01 | Phase 169 | Pending |
-| EVID-02 | Phase 169 | Pending |
+| EVID-01 | Phase 169 | Complete |
+| EVID-02 | Phase 169 | Complete |
 | BRAND-01 | Phase 170 | Pending |
 | BRAND-02 | Phase 170 | Pending |
 
