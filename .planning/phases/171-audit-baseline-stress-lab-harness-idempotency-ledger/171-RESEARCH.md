@@ -423,17 +423,15 @@ await expect(page.getByTestId("stress-preview")).toHaveScreenshot("stress-page-t
 | A4 | Fixture drift can be caught by rendering representative components/LiveViews directly in ExUnit. | Common Pitfalls | Some page-level LiveViews may require adapter seams before isolated render tests are ergonomic. |
 | A5 | Snapshot churn warning signs imply insufficient masking/environment pinning. | Common Pitfalls | A legitimate UI change can also require snapshot updates; ledger rationale should distinguish those. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Where should the JSON ledger live?**
+1. **Where should the JSON ledger live?** RESOLVED
    - What we know: JSON is the canonical ratchet source, markdown is projection, and repo-local deterministic diffs are required. [VERIFIED: .planning/phases/171-audit-baseline-stress-lab-harness-idempotency-ledger/171-CONTEXT.md]
-   - What's unclear: The exact path is not locked. [VERIFIED: .planning/phases/171-audit-baseline-stress-lab-harness-idempotency-ledger/171-CONTEXT.md]
-   - Recommendation: Use `.planning/design-system-ledger.json` or `.planning/design-system/ledger.json` if the planner wants planning artifacts grouped; keep `DESIGN-SYSTEM.md` at repo root for discoverability. [ASSUMED]
+   - Resolution: Use `.planning/design-system-ledger.json` as the canonical machine-readable ratchet source and keep `DESIGN-SYSTEM.md` at repo root as the generated human projection. This matches Plans 171-02, 171-03, and 171-04. [RESOLVED: 2026-06-14]
 
-2. **How hard should the first CI screenshot lane be?**
+2. **How hard should the first CI screenshot lane be?** RESOLVED
    - What we know: Full matrix pixels are out; a narrow high-signal allowlist is in. [VERIFIED: .planning/phases/171-audit-baseline-stress-lab-harness-idempotency-ledger/171-CONTEXT.md]
-   - What's unclear: The exact first allowlist size is not specified. [VERIFIED: .planning/phases/171-audit-baseline-stress-lab-harness-idempotency-ledger/171-CONTEXT.md]
-   - Recommendation: Start with 2-4 cells: shell/home happy state, timeline empty/ugly long IDs, permission-denied, and one future reserved footgun; require ledger entries for each. [ASSUMED]
+   - Resolution: Start with exactly three ledger-owned CI screenshot cells, all dark/1024 desktop: `page.home.happy`, `page.timeline.empty`, and `footgun.transaction-page-left-push-desktop`. This matches Plan 171-04 and keeps the first pixel lane bounded while covering a happy page, an empty/fixture-stress page, and one future-owned folded footgun. [RESOLVED: 2026-06-14]
 
 ## Environment Availability
 
@@ -553,4 +551,3 @@ await expect(page.getByTestId("stress-preview")).toHaveScreenshot("stress-page-t
 
 **Research date:** 2026-06-14 [VERIFIED: local date context]  
 **Valid until:** 2026-07-14 for architecture and project constraints; re-check Playwright/Phoenix docs if dependency versions change. [ASSUMED]
-
