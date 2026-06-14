@@ -47,7 +47,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 171-04-PLAN.md — Playwright semantic guards and ledger-owned screenshot allowlist
+- [x] 171-04-PLAN.md — Playwright semantic guards and ledger-owned screenshot allowlist
 
 **UI hint**: yes
 
@@ -203,7 +203,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
-| 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 3/4 | In Progress|  |
+| 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete   | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 0/TBD | Not started | - |
 | 173. Primitive components | v1.37 | 0/TBD | Not started | - |
 | 174. Form components | v1.37 | 0/TBD | Not started | - |
