@@ -245,6 +245,14 @@ Misuse (each of these is rendered as a visual "don't" in `index.html`):
 - Do not rotate the mark, replace the line with a chain, rope, or cable, or put the mark inside a shield.
 - Do not use gradients as soft blobs behind the logo.
 
+### UI theming posture
+
+The operator surface is dark-primary: Threadline Black is the canonical brand background and the shipped default. Light mode is fully shipped and supported as of v1.36 — it is enabled via host configuration (`theme: :system | :light | :dark`) with no extra packages, no JavaScript, and no flash of unstyled content. The `:system` value follows the operator's OS color-scheme preference via scoped CSS.
+
+Per-operator runtime theme toggling is deferred to real adopter demand (`THEME-TOGGLE-01`); localStorage remains permanently rejected (FOUC on dead render, CSP-incompatible). The documented upgrade path to cookie-based toggling stands if demand emerges.
+
+State this only because it is true now: the v1.33 lesson held that dark-primary was settled truth while light-supported claims waited until light actually shipped. With v1.36 it has shipped, so this posture is now settled, not aspirational.
+
 ## Color System
 
 Color philosophy:

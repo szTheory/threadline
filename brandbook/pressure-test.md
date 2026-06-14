@@ -36,6 +36,9 @@ find brandbook -type f ! -name '.DS_Store' -print0 | xargs -0 du -ck | tail -1
 
 # Text-only formats, no binaries
 git ls-files brandbook/ | grep -vE '[.](svg|html|css|json|md|mjs)$'   # must return nothing
+
+# Token parity: brandbook semantic tokens match the shipped UI lane in both modes
+mix test test/threadline/brandbook_token_parity_test.exs   # must exit 0
 ```
 
 For the render checks (dimensions 1, 3, 5, 12, 15), open the file directly in a
@@ -63,12 +66,12 @@ npx playwright screenshot --viewport-size=1440,900 --full-page \
 | 8 | Voice | 9 / 10 | Say-this/not-this pairs, a banned-vocabulary list, and testable writing rules in `brand-book.md`; every banned-word grep hit is the ban rule quoting itself or a not-this counter-example — none in real copy |
 | 9 | Palette | 8 / 10 | Night-infrastructure tokens with dark/light semantic lanes; the two blues carry documented, non-overlapping jobs (#4F8CFF interface accent, #4781E6 the arc's ink) |
 | 10 | Typography | 8 / 10 | Geist + IBM Plex Mono with OFL licensing in-repo, role table and tracking rules; deployed wordmarks are pure paths so the type system never depends on a viewer's fonts |
-| 11 | Token rigor | 8 / 10 | `tokens.json` parses; JSON and CSS lanes carry identical values; raw/semantic layering intact; product-UI contract (`lib/threadline/operator_surface/style.ex`) untouched |
+| 11 | Token rigor | 9 / 10 | `tokens.json` parses; JSON and CSS lanes carry identical values; raw/semantic layering intact; product-UI contract (`lib/threadline/operator_surface/style.ex`) untouched; `brandbook_token_parity_test` enforces curated dark+light value-equality, so drift is automated not review-based |
 | 12 | Application coverage | 8 / 10 | Every committed specimen renders correctly on the surface it models (inlined geometry, zero `<image href>`, zero text); index.html covers component, palette, type, and terminal roles natively |
 | 13 | Misuse guidance | 9 / 10 | Six rendered Don't specimens + one Do reference in index.html, with numeric thresholds (1.5px target / 1.0px floor strokes at 16px, ≥1.0px gaps, ≤4 elements, design-at-16px) |
 | 14 | Consistency | 9 / 10 | No asset contradicts its own description: the monochrome is one color, the favicon has no chip, every minimum-size rule is satisfied by the asset it governs — enforced by the gate, not by promise |
 | 15 | Craft | 8 / 10 | Geometry is derived, not eyeballed: arc width from measured stems, shared cut height, favicon drawn at its native canvas; every painted path carries a data-glyph/data-role tag |
-| | **Total** | **128 / 150** | |
+| | **Total** | **129 / 150** | |
 
 ## The dimensions, with pass conditions
 
@@ -207,10 +210,20 @@ dark/light lanes that carry identical values; brand tokens never leak into the
 product-UI contract.
 **Check:** `node -e "JSON.parse(require('fs').readFileSync('brandbook/tokens.json'))"`
 exits 0; every custom property in `tokens.css` has a matching `tokens.json` entry;
-`lib/threadline/operator_surface/style.ex` contains no brandbook-driven change.
-**Score: 8/10.** Both formats parse, values match, and the product contract is
-untouched. The known debt holds the score: JSON and CSS are hand-duplicated with no
-generated sync check, so drift is prevented by review rather than tooling.
+`lib/threadline/operator_surface/style.ex` contains no brandbook-driven change;
+`mix test test/threadline/brandbook_token_parity_test.exs` exits 0.
+**Score: 9/10.** Both formats parse, values match, and the product contract is
+untouched. The former known debt — JSON and CSS hand-duplicated with no generated
+sync check — is now closed by tooling: drift is caught automatically, not by review.
+
+**Dual-mode addendum (v1.36):** The brand token lane now carries parity-verified dark
+and light semantic values aligned to the shipped operator-surface token contract. The
+pass condition extends to value-equality on the curated intersection of named brand
+tokens across BOTH dark AND light lanes, enforced by
+`mix test test/threadline/brandbook_token_parity_test.exs` (exit 0 = no drift, in
+either direction — brandbook adding an unmirrored token, or `style.ex` changing a
+mirrored value). See also dimension #5 (Dark/light versatility) for the asset-layer
+dual-mode proof; this dimension governs the UI token lane dual-mode.
 
 ### 12. Application coverage
 
@@ -270,7 +283,7 @@ arc-to-stem junction tuning) is minimal beyond the measured geometry, and craft 
 
 ## Reading the total
 
-**128 / 150.** The score stands only while the mechanical suite is green. Any FAIL
+**129 / 150.** The score stands only while the mechanical suite is green. Any FAIL
 from the gate, any non-empty grep, or any budget overrun invalidates the scorecard
 until the defect is fixed and the affected dimensions are re-scored against fresh
 evidence.
