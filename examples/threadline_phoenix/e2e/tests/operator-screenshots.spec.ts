@@ -42,8 +42,12 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
   const viewport = screenshotViewport(testInfo);
   if (outputDir && viewport && durableScreenshotNames.has(name)) {
     mkdirSync(outputDir, { recursive: true });
+    // Lane suffix: the light project (desktop-chromium-light) emits __light__
+    // baselines; every dark project keeps emitting __default__ (D-02: no rename).
+    const laneInfix =
+      testInfo.project.name === "desktop-chromium-light" ? "__light__" : "__default__";
     await page.screenshot({
-      path: join(outputDir, `${name}__default__${viewport}.png`),
+      path: join(outputDir, `${name}${laneInfix}${viewport}.png`),
       fullPage: true,
       scale: "css",
     });
@@ -53,6 +57,8 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
 function screenshotViewport(testInfo: TestInfo) {
   switch (testInfo.project.name) {
     case "desktop-chromium":
+      return "1280";
+    case "desktop-chromium-light":
       return "1280";
     case "mobile-chromium":
       return "375";
