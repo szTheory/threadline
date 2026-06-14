@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
-status: ready_to_plan
-last_updated: 2026-06-14T15:06:58.153Z
-last_activity: 2026-06-14 -- Phase 169 execution started
+status: planning
+last_updated: "2026-06-14T15:15:30.155Z"
+last_activity: 2026-06-14
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
   completed_plans: 7
-  percent: 60
-stopped_at: Phase 169 complete (2/2) — ready to discuss Phase 170
+  percent: 80
 ---
 
 # Project State: Threadline
@@ -27,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 Phase: 170
 Plan: Not started
-Status: Ready to plan
-Progress: [██████░░░░] 60%
-Last activity: 2026-06-14
+Status: Context gathered — ready to plan
+Progress: [████████░░] 80%
+Last activity: 2026-06-14 — Phase 170 context gathered (170-CONTEXT.md)
 
 ## Performance Metrics
 
