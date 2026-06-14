@@ -34,7 +34,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 |---|---|---|---|
 | 166. unfreeze-token-lane-mechanism | 1/1 | Complete    | 2026-06-13 |
 | 167. component-retune | 1/2 | In Progress|  |
-| 168. accessibility-verification | S-M | 167 | A11Y-01, A11Y-02 |
+| 168. accessibility-verification | 0/2 | Planned    |  |
 | 169. screenshots-example-docs | S-M | 167 (can overlap 168) | EVID-01, EVID-02 |
 | 170. brand-alignment-closeout | S | 168, 169 | BRAND-01, BRAND-02 |
 

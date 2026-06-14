@@ -26,8 +26,8 @@
 
 ### Accessibility
 
-- [ ] **A11Y-01**: The style contract gains a light-lane AA contrast mirror test (with alpha-aware token parsing in `color_tokens/1`); no text-bearing token falls below WCAG AA in either mode.
-- [ ] **A11Y-02**: Focus-visible and interaction states (hover/active/disabled/selected) are verified per mode — focus ring meets non-text contrast on both backgrounds.
+- [x] **A11Y-01**: The style contract gains a light-lane AA contrast mirror test (with alpha-aware token parsing in `color_tokens/1`); no text-bearing token falls below WCAG AA in either mode.
+- [x] **A11Y-02**: Focus-visible and interaction states (hover/active/disabled/selected) are verified per mode — focus ring meets non-text contrast on both backgrounds.
 
 ### Verification Surfaces & Docs
 
@@ -67,8 +67,8 @@
 | TOKEN-03 | Phase 166 | Complete |
 | COMP-01 | Phase 167 | Pending |
 | COMP-02 | Phase 167 | Pending |
-| A11Y-01 | Phase 168 | Pending |
-| A11Y-02 | Phase 168 | Pending |
+| A11Y-01 | Phase 168 | Complete |
+| A11Y-02 | Phase 168 | Complete |
 | EVID-01 | Phase 169 | Pending |
 | EVID-02 | Phase 169 | Pending |
 | BRAND-01 | Phase 170 | Pending |
