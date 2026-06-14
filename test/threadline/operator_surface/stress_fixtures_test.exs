@@ -162,12 +162,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       refute source =~ "npmjs.com", "stress fixture source must not reference package registries"
-      refute source =~ "hex.pm/packages", "stress fixture source must not reference package registries"
+
+      refute source =~ "hex.pm/packages",
+             "stress fixture source must not reference package registries"
+
       refute source =~ "pypi.org", "stress fixture source must not reference package registries"
     end
 
     test "representative adapters render existing component shapes" do
-      assert {:ok, header_assigns} = StressFixtures.assigns_for("primitive.surface-header.current")
+      assert {:ok, header_assigns} =
+               StressFixtures.assigns_for("primitive.surface-header.current")
 
       header_html = render_component(&SurfaceHeader.surface_header/1, header_assigns)
 
