@@ -286,7 +286,7 @@ Semantic colors:
 
 - Success: `#3FD08F`, with dark-surface text `#5AE0A2`.
 - Info: Thread Blue, with dark-surface text `#9AB9FF`.
-- Warning: `#F3B94C`, with dark-surface text `#FFD166`.
+- Warning: `#F3B94C`, with dark-surface text `#F6C86B`.
 - Error: `#F06A6A`, with dark-surface text `#FF8585`.
 
 Rules:
