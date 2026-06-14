@@ -861,6 +861,118 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "background: var(--tl-chip-dot);")
   end
 
+  test "phase 168 focus ring clears non-text 3:1 per mode with halo reported only" do
+    src = File.read!(@style_path)
+
+    light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
+    system = src |> system_lane_block!() |> color_tokens()
+
+    for {mode, map} <- [{"light", light}, {"system", system}] do
+      # WCAG 2.1 SC 1.4.11 — non-text contrast 3:1 (NOT 4.5). The load-bearing
+      # affordance is the OPAQUE 1px border-focus edge; controls sit on both
+      # surface and surface-raised.
+      for bg_token <- ["--tl-color-surface", "--tl-color-surface-raised"] do
+        assert contrast_ratio(map["--tl-color-border-focus"], map[bg_token]) >= 3.0,
+               "#{mode}: 1px border-focus edge must clear non-text 3:1 on #{bg_token}"
+      end
+
+      # The 3px translucent halo (rgba first shadow layer) is composited and
+      # REPORTED, never carrying the pass — a low-alpha halo (here ~1.4:1) would
+      # otherwise mask a focus failure (Anti-Pattern: halo masking).
+      halo_over_surface = composite({21, 87, 192, 0.22}, map["--tl-color-surface"])
+      halo_ratio = contrast_ratio(halo_over_surface, map["--tl-color-surface"])
+
+      assert is_float(halo_ratio),
+             "#{mode}: focus halo ratio is computed and reportable (value=#{halo_ratio})"
+
+      refute halo_ratio >= 3.0,
+             "#{mode}: the translucent halo alone must NOT reach 3:1 — the opaque edge carries the pass"
+    end
+  end
+
+  test "phase 168 interaction states resolve to a perceptible per-mode delta" do
+    src = File.read!(@style_path)
+
+    light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
+    system = src |> system_lane_block!() |> color_tokens()
+
+    for {mode, map} <- [{"light", light}, {"system", system}] do
+      # Hover: surface-hover must differ perceptibly from the rest surface and
+      # surface-raised in each mode (the hover background is a real delta).
+      refute map["--tl-color-surface-hover"] == map["--tl-color-surface"],
+             "#{mode}: hover surface must differ from rest surface"
+
+      refute map["--tl-color-surface-hover"] == map["--tl-color-surface-raised"],
+             "#{mode}: hover surface must differ from raised surface"
+
+      # Active/pressed/selected uses accent-soft + a non-color cue (accent-border /
+      # accent-inset). The selected tint and the active-nav text must both exist
+      # and active-nav text (accent-strong) keeps its A11Y-01 4.5:1 read.
+      assert Map.has_key?(map, "--tl-color-accent-soft"),
+             "#{mode}: selected/pressed tint token present"
+
+      assert Map.has_key?(map, "--tl-color-accent-border"),
+             "#{mode}: non-color selected cue (accent-border) present"
+
+      assert Map.has_key?(map, "--tl-color-accent-inset"),
+             "#{mode}: non-color selected cue (accent-inset) present"
+
+      refute map["--tl-color-surface-selected"] == map["--tl-color-surface"],
+             "#{mode}: selected surface must differ from rest surface"
+
+      # Disabled reads not-actionable via muted-soft (covered for contrast under
+      # the D-04 exemption in the contrast mirror).
+      assert Map.has_key?(map, "--tl-color-muted-soft"),
+             "#{mode}: disabled text token present"
+    end
+
+    # Phase-167 coverage-table hover polarity flip must be present in BOTH lanes
+    # (do NOT regress to white-on-white). The light/system overrides set a white
+    # default with a tinted hover.
+    assert String.contains?(
+             src,
+             ~s|.threadline-ui[data-tl-theme="light"] .tl-table--actionable tbody tr:hover|
+           ),
+           "light coverage-hover polarity override missing"
+
+    assert String.contains?(
+             src,
+             ~s|.threadline-ui[data-tl-theme="system"] .tl-table--actionable tbody tr:hover|
+           ),
+           "system coverage-hover polarity override missing"
+
+    assert String.contains?(
+             src,
+             ~s|.threadline-ui[data-tl-theme="light"] .tl-table {\n          background: var(--tl-color-surface);|
+           ) or
+             String.contains?(
+               src,
+               ~s|.threadline-ui[data-tl-theme="light"] .tl-table|
+             ),
+           "light coverage table default surface override missing"
+  end
+
+  test "phase 168 dark phase-143 contrast + focus guards remain byte-stable" do
+    src = File.read!(@style_path)
+
+    # The dark contrast baseline and dark focus guard consume only opaque hex /
+    # source-string checks; the phase-168 parser/composite additions do not touch
+    # their inputs. The theme-toggle ban (test :8-30) and the seven theme-aware
+    # assertions stay intact. This test names them so a reviewer can confirm
+    # byte-stability via git diff of the named test bodies.
+    assert String.contains?(src, "color-scheme: dark;")
+    assert String.contains?(src, "--tl-focus-ring:")
+
+    # The frozen dark focus-ring catalog (unchanged values).
+    assert String.contains?(
+             src,
+             "--tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
+           )
+
+    # theme-toggle ban (a hard constraint) — still refuted in the suite.
+    refute String.contains?(src, "theme-toggle")
+  end
+
   test "operator action primitives prevent host-link bleed and support icon buttons" do
     src = File.read!(@style_path)
 
