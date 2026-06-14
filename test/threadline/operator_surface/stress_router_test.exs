@@ -119,9 +119,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
                   "/__stress",
-                  authorize_fn: fn _ -> true end
+                  authorize_fn: &__MODULE__.authorize/1
                 )
               end
+
+              def authorize(_), do: true
             end
           end
         )
@@ -129,8 +131,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       routes = Phoenix.Router.routes(Threadline.OperatorSurface.StressRouterTest.ThrowawayRouter)
 
       assert Enum.any?(routes, fn route ->
-               route.path == "/__stress" and
-                 route.plug == Threadline.OperatorSurface.Live.StressLive
+               route.path == "/__stress" and route.plug == Phoenix.LiveView.Plug and
+                 match?(
+                   {Threadline.OperatorSurface.Live.StressLive, :index, _,
+                    %{name: :threadline_stress}},
+                   route.metadata.phoenix_live_view
+                 )
              end)
 
       purge_modules(modules)
@@ -156,9 +162,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                              Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
                                "/__stress",
                                stress_env: :prod,
-                               authorize_fn: fn _ -> true end
+                               authorize_fn: &__MODULE__.authorize/1
                              )
                            end
+
+                           def authorize(_), do: true
                          end
                        end
                      )
@@ -181,9 +189,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
                   "/__stress",
                   stress_env: :test,
-                  authorize_fn: fn _ -> true end
+                  authorize_fn: &__MODULE__.authorize/1
                 )
               end
+
+              def authorize(_), do: true
             end
           end
         )
@@ -204,14 +214,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "source keeps stress routing off the public operator macro option surface" do
-      refute File.read!(@router_source) =~ "stress: true"
-      refute File.read!(@example_router_source) =~ "stress: true"
+      forbidden = "stress" <> ": true"
+
+      refute File.read!(@router_source) =~ forbidden
+      refute File.read!(@example_router_source) =~ forbidden
     end
 
     test "example app mounts audit and stress routes with a distinct live session" do
       source = File.read!(@example_router_source)
 
-      assert source |> Regex.scan(~r/threadline_operator_surface_stress\("\/__stress"/) |> length() ==
+      assert Regex.scan(~r/threadline_operator_surface_stress\("\/__stress"/, source) |> length() ==
                2
 
       {output, status} =
@@ -228,7 +240,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert output =~ "/audit"
       assert output =~ "/audit/__stress"
       assert output =~ "live_session :threadline_stress"
-      refute output =~ "stress: true"
+      refute output =~ "stress" <> ": true"
     end
 
     test "authenticated stress route renders the operator shell, theme, selected story, and preview",
@@ -267,7 +279,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/audit/__stress")
 
       conn = get(conn, "/audit/__stress")
-      refute html_response(conn, 200) =~ ~s|data-testid="stress-lab"|
+      assert redirected_to(conn) == "/"
+      refute response(conn, 302) =~ ~s|data-testid="stress-lab"|
     end
 
     test "every ledger story is listed and direct navigation renders preview or reserved placeholder",
@@ -290,11 +303,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "stress source avoids unsafe param conversion and banned visual dependencies" do
-      source = [
-        File.read!(@stress_router_source),
-        File.read!(@stress_live_source),
-        File.read!(@style_source)
-      ] |> Enum.join("\n")
+      source =
+        [
+          File.read!(@stress_router_source),
+          File.read!(@stress_live_source),
+          File.read!(@style_source)
+        ]
+        |> Enum.join("\n")
 
       for forbidden <- [
             "String.to_atom",

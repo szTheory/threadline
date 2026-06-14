@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenixWeb.Router do
   import ThreadlinePhoenixWeb.UserAuth
   import Ecto.Query, only: [where: 3]
   import Threadline.OperatorSurface.Router
+  import Threadline.OperatorSurface.StressRouter
   alias Threadline.Semantics.ActorRef
 
   pipeline :browser do
@@ -193,6 +194,19 @@ defmodule ThreadlinePhoenixWeb.Router do
         repo: ThreadlinePhoenix.Repo,
         theme: :system
       )
+
+      threadline_operator_surface_stress("/__stress",
+        stress_env: if(Mix.env() == :prod, do: :omit, else: Mix.env()),
+        authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+        coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
+        scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+        schemas: %{
+          "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+          "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+        },
+        repo: ThreadlinePhoenix.Repo,
+        theme: :system
+      )
     end
   else
     # doc: start: operator-surface-mount
@@ -206,6 +220,18 @@ defmodule ThreadlinePhoenixWeb.Router do
         evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
         coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
         policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
+        scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+        schemas: %{
+          "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+          "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+        },
+        repo: ThreadlinePhoenix.Repo
+      )
+
+      threadline_operator_surface_stress("/__stress",
+        stress_env: if(Mix.env() == :prod, do: :omit, else: Mix.env()),
+        authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+        coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
         scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
         schemas: %{
           "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
