@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Milestone complete
+**Current focus:** Between milestones — planning next (`/gsd:new-milestone`)
 
 ## Current Position
 
@@ -178,8 +178,9 @@ Last activity: 2026-06-14 — Milestone v1.36 completed and archived
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Completed 170-02-PLAN.md — authored `v1.36-MILESTONE-AUDIT.md` (v1.35 template, 15/15 reqs, COMP-01/02 honest as built+verified-live-source-uncommitted) and aligned REQUIREMENTS.md traceability (BRAND-01/02 Complete; COMP-01/02 `Verified (source pending)`); milestone is audit-ready, closeout_readiness pending-uat (2026-06-14)
-- **Next Step**: Run the End-of-milestone UAT (user walks operator surface in dark/light/system), then `/gsd-complete-milestone` (archival + version bump happen there, post-UAT)
+- **Milestone closeout (2026-06-14):** v1.36 Operator Surface Light Mode archived (ROADMAP + REQUIREMENTS + AUDIT under `milestones/v1.36-*`), PROJECT.md evolved, tag `v1.36`, REQUIREMENTS.md removed for fresh next milestone. Finding F1 resolved — entangled `style.ex` light source committed (`b9f8fc1`); suite green at 912 tests. 6 items acknowledged-deferred (see Deferred Items).
+- **Last Action**: Completed `/gsd-complete-milestone` for v1.36 — archived, evolved docs, tagged, retrospective updated (2026-06-14).
+- **Next Step**: `/gsd:new-milestone` to define the next milestone, or hold per the no-signal default. Outstanding human UAT (`169`/`170-HUMAN-UAT.md`) + `170-VERIFICATION.md` remain deferred if a confident close-walk is wanted later.
 - **Resume file**: None
 
 ## Operator Next Steps
