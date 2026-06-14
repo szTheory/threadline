@@ -16,6 +16,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok,
        socket
        |> assign(:base_path, "/audit")
+       |> assign(:stress_path, "/audit/__stress")
        |> assign(:status_allowlist, @status_allowlist)
        |> assign(:ledger_error, nil)
        |> assign(:ledger_entries, [])
@@ -52,6 +53,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply,
        socket
        |> assign(:base_path, base_path(uri))
+       |> assign(:stress_path, stress_path(uri))
        |> assign(:status_allowlist, @status_allowlist)
        |> assign(:ledger_error, ledger_error)
        |> assign(:ledger_entries, ledger_entries)
@@ -68,7 +70,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
+      <div class="threadline-ui" data-tl-theme={@selected_theme}>
         <Threadline.OperatorSurface.Style.css />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
           coverage={@threadline_coverage}
@@ -91,7 +93,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 Fixture-backed stories, ledger scores, and screenshot status for the current audit baseline.
               </p>
             </div>
-            <a class="tl-button tl-button--secondary tl-button--compact" href={clear_path()}>
+            <a class="tl-button tl-button--secondary tl-button--compact" href={clear_path(@stress_path)}>
               Clear filters
             </a>
           </header>
@@ -122,13 +124,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <div class="tl-stress__layout">
             <aside class="tl-stress__sidebar" aria-label="Stress filters and stories">
               <nav class="tl-stress__category-nav" data-testid="stress-category-nav" aria-label="Stress categories">
-                <a class={category_link_class(nil, @filter_category)} href={filter_path(nil, @filter_status)}>
+                <a class={category_link_class(nil, @filter_category)} href={filter_path(@stress_path, nil, @filter_status)}>
                   All
                 </a>
                 <a
                   :for={category <- @categories}
                   class={category_link_class(category, @filter_category)}
-                  href={filter_path(category, @filter_status)}
+                  href={filter_path(@stress_path, category, @filter_status)}
                   aria-current={if @filter_category == category, do: "page", else: nil}
                 >
                   <%= category %>
@@ -139,11 +141,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a
                   :for={status <- @status_allowlist}
                   class={status_link_class(status, @filter_status)}
-                  href={filter_path(@filter_category, status)}
+                  href={filter_path(@stress_path, @filter_category, status)}
                 >
                   <%= status %>
                 </a>
-                <a class="tl-button tl-button--ghost tl-button--compact" data-testid="stress-clear-filters" href={clear_path()}>
+                <a class="tl-button tl-button--ghost tl-button--compact" data-testid="stress-clear-filters" href={clear_path(@stress_path)}>
                   Clear filters
                 </a>
               </div>
@@ -163,7 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a
                   :for={story <- @stories}
                   class={story_link_class(story, @selected_story)}
-                  href={story_path(story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
+                  href={story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
                 >
                   <span class="tl-stress__story-id"><%= story.id %></span>
                   <span class="tl-stress__story-meta"><%= story.category %> / <%= story.status %></span>
@@ -257,12 +259,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.sort_by(& &1.id)
     end
 
-    defp selected_story(story_id, stories, visible_stories) do
-      with story_id when is_binary(story_id) <- allow(story_id, Enum.map(stories, & &1.id)),
+    defp selected_story(story_id, _stories, visible_stories) do
+      with story_id when is_binary(story_id) <-
+             allow(story_id, Enum.map(visible_stories, & &1.id)),
            {:ok, story} <- StressFixtures.by_id(story_id) do
         story
       else
-        _ -> List.first(visible_stories) || List.first(stories)
+        _ -> List.first(visible_stories)
       end
     end
 
@@ -296,19 +299,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp clear_path, do: "/audit/__stress"
+    defp stress_path(uri) do
+      uri
+      |> URI.parse()
+      |> Map.get(:path)
+      |> case do
+        path when is_binary(path) -> path
+        _ -> "/audit/__stress"
+      end
+    end
 
-    defp filter_path(category, status) do
+    defp clear_path(stress_path), do: stress_path
+
+    defp filter_path(stress_path, category, status) do
       query =
         %{}
         |> maybe_put("category", category)
         |> maybe_put("status", status)
         |> URI.encode_query()
 
-      if query == "", do: clear_path(), else: "#{clear_path()}?#{query}"
+      if query == "", do: clear_path(stress_path), else: "#{stress_path}?#{query}"
     end
 
-    defp story_path(story, category, status, theme, viewport) do
+    defp story_path(stress_path, story, category, status, theme, viewport) do
       query =
         %{"story" => story.id}
         |> maybe_put("category", category)
@@ -317,7 +330,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> maybe_put("viewport", viewport)
         |> URI.encode_query()
 
-      "#{clear_path()}?#{query}"
+      "#{stress_path}?#{query}"
     end
 
     defp maybe_put(map, _key, nil), do: map

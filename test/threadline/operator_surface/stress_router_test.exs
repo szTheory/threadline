@@ -61,6 +61,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Threadline.OperatorSurface.StressRouterTest.Router)
   end
 
+  defmodule Threadline.OperatorSurface.StressRouterTest.AlternateRouter do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.StressRouter
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.StressRouterTest.Layouts, :root}
+      )
+    end
+
+    scope "/ops" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+        authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
+        coverage_authorize_fn:
+          &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
+        theme: :dark
+      )
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.StressRouterTest.AlternateEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_stress_router_alt_key",
+      signing_salt: "stress-router-alt"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.StressRouterTest.AlternateRouter)
+  end
+
   defmodule Threadline.OperatorSurface.StressRouterTest do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
@@ -259,6 +303,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="stress-screenshot-status"|
     end
 
+    test "selected theme query drives the stress root theme instead of mount default",
+         %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit/__stress?theme=light")
+
+      assert html =~ ~s|data-tl-theme="light"|
+      assert html =~ "light / 1024px"
+    end
+
+    test "direct story params must remain inside the active category filter", %{conn: conn} do
+      {:ok, _view, html} =
+        live(conn, "/audit/__stress?category=foundation&story=page.timeline.empty")
+
+      assert html =~ ~s|aria-current="page"|
+      refute html =~ ~s|data-testid="stress-story-id">page.timeline.empty|
+      assert html =~ "foundation"
+    end
+
     test "unknown route params are allowlist-normalized and never crash", %{conn: conn} do
       {:ok, _view, html} =
         live(
@@ -361,6 +422,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         :code.delete(module)
         :code.purge(module)
       end
+    end
+
+    defp restore_env(key, nil), do: Application.delete_env(:threadline, key)
+    defp restore_env(key, value), do: Application.put_env(:threadline, key, value)
+  end
+
+  defmodule Threadline.OperatorSurface.StressRouterAlternatePathTest do
+    use ExUnit.Case, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.StressRouterTest.AlternateEndpoint
+
+    setup_all do
+      Application.put_env(
+        :threadline,
+        Threadline.OperatorSurface.StressRouterTest.AlternateEndpoint,
+        secret_key_base: String.duplicate("a", 64),
+        live_view: [signing_salt: String.duplicate("a", 8)],
+        render_errors: [view: Threadline.OperatorSurface.StressRouterTest.Layouts]
+      )
+
+      original_authorized = Application.get_env(:threadline, :stress_router_authorized)
+      original_interval = Application.get_env(:threadline, :coverage_poll_ms)
+      Application.put_env(:threadline, :stress_router_authorized, true)
+      Application.put_env(:threadline, :coverage_poll_ms, 5_000)
+
+      on_exit(fn ->
+        restore_env(:stress_router_authorized, original_authorized)
+        restore_env(:coverage_poll_ms, original_interval)
+      end)
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      Application.put_env(:threadline, :stress_router_authorized, true)
+      {:ok, conn: build_conn()}
+    end
+
+    test "stress navigation preserves a non-audit mount path", %{conn: conn} do
+      {:ok, _view, html} =
+        live(conn, "/ops/__stress?story=page.timeline.empty&category=page&theme=light")
+
+      assert html =~ ~s|data-tl-theme="light"|
+      assert html =~ ~s|href="/ops/__stress"|
+      assert html =~ ~s|href="/ops/__stress?category=foundation"|
+      assert html =~ ~s|/ops/__stress?category=page&amp;story=page.home.happy&amp;theme=light|
+      refute html =~ ~s|href="/audit/__stress|
     end
 
     defp restore_env(key, nil), do: Application.delete_env(:threadline, key)

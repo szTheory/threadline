@@ -195,6 +195,10 @@ test.describe("ledger-owned stress screenshots", () => {
       );
       const preview = page.getByTestId("stress-preview");
       await expect(preview).toBeVisible();
+      await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
+        "data-tl-theme",
+        item.theme,
+      );
       await expect(page.getByTestId("stress-story-id")).toHaveText(
         item.story_id,
       );
