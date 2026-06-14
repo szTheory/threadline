@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Operator Surface Light Mode
 status: executing
-last_updated: "2026-06-14T15:45:11.715Z"
-last_activity: 2026-06-14 -- Phase 170 planning complete
+last_updated: "2026-06-14T15:53:23.038Z"
+last_activity: 2026-06-14
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State: Threadline
@@ -20,15 +20,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 170 — brand alignment closeout
+**Current focus:** Phase 170 — brand-alignment-closeout
 
 ## Current Position
 
-Phase: 170
-Plan: Not started
+Phase: 170 (brand-alignment-closeout) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Progress: [████████░░] 80%
-Last activity: 2026-06-14 -- Phase 170 planning complete
+Progress: [█████████░] 89%
+Last activity: 2026-06-14
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Last activity: 2026-06-14 -- Phase 170 planning complete
 | Phase 163 P01 | 25min | 5 tasks | 6 files |
 | Phase 166 P01 | 65min | 5 tasks | 17 files |
 | Phase 168 P01 | 25min | 3 tasks | 1 files |
+| Phase 170 P01 | 18m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Last activity: 2026-06-14 -- Phase 170 planning complete
 - [Phase ?]: 162-02: Misuse specimens live only as inline SVG in index.html; index.html inlines all 8 assets via shared pure-path defs; zero network under file://
 - [Phase ?]: 162-03 pressure-test rerun
 - [Phase 164]: Brand imagery specimens: pure-path linework with HTML labels over the SVG; Thread Blue carries the followable line, Signal Cyan the change ticks, Stitch Blue stays exclusive to the mark's arc
+- [Phase ?]: [170-01]: full token parity = curated-subset parity (name + value equal in dark + light); brandbook corrected to style.ex, never the reverse
+- [Phase ?]: [170-01]: brandbook<->style.ex drift now caught by brandbook_token_parity_test in both directions; pressure-test dim #11 bumped 8->9 (total 128->129)
 
 ### Blockers
 
@@ -167,8 +170,8 @@ Last activity: 2026-06-14 -- Phase 170 planning complete
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
-- **Last Action**: Phase 166 planning artifacts created — CONTEXT, UI-SPEC, RESEARCH, PATTERNS, VALIDATION, and 166-01-PLAN are ready (2026-06-12 local / 2026-06-13 UTC)
-- **Next Step**: Execute Phase 166 with `/gsd-execute-phase 166` (atomic opening wave: unfreeze + token lane + mechanism + same-wave contract amendment)
+- **Last Action**: Completed 170-01-PLAN.md — brandbook token parity reconciled to style.ex, keystone parity test added, UI-theming-posture note + pressure-test dual-mode addendum landed (2026-06-14)
+- **Next Step**: Execute Phase 170 Plan 02 (milestone audit doc + REQUIREMENTS traceability) with `/gsd-execute-phase 170`
 - **Resume file**: None
 
 ## Operator Next Steps

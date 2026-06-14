@@ -36,7 +36,7 @@ Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :li
 | 167. component-retune | 1/2 | In Progress|  |
 | 168. accessibility-verification | 2/2 | Complete    | 2026-06-14 |
 | 169. screenshots-example-docs | 2/2 | Complete    | 2026-06-14 |
-| 170. brand-alignment-closeout | S | 168, 169 | BRAND-01, BRAND-02 |
+| 170. brand-alignment-closeout | 1/2 | In Progress|  |
 
 ## Phase Details
 
@@ -153,7 +153,7 @@ Plans:
 
 Plans:
 **Wave 1** *(parallel — disjoint file sets)*
-- [ ] 170-01-PLAN.md — Token parity reconciliation (tokens.json/css to style.ex), keystone parity test, UI-theming-posture note, pressure-test dual-mode addendum (BRAND-01, BRAND-02)
+- [x] 170-01-PLAN.md — Token parity reconciliation (tokens.json/css to style.ex), keystone parity test, UI-theming-posture note, pressure-test dual-mode addendum (BRAND-01, BRAND-02)
 - [ ] 170-02-PLAN.md — v1.36 milestone audit doc + REQUIREMENTS traceability (success criterion 4; closeout pending End-of-milestone UAT)
 
 ## Human Gates

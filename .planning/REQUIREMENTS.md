@@ -36,8 +36,8 @@
 
 ### Brand Alignment
 
-- [ ] **BRAND-01**: `brandbook/tokens.json`/`tokens.css` reach full parity with the shipped 45-token UI lane, and the brand book gains the settled-truth "UI theming posture" note (dark-primary, light supported via host config).
-- [ ] **BRAND-02**: `pressure-test.md` gains a dual-mode addendum verifying brand assets and UI tokens stay consistent across both lanes.
+- [x] **BRAND-01**: `brandbook/tokens.json`/`tokens.css` reach full parity with the shipped 45-token UI lane, and the brand book gains the settled-truth "UI theming posture" note (dark-primary, light supported via host config).
+- [x] **BRAND-02**: `pressure-test.md` gains a dual-mode addendum verifying brand assets and UI tokens stay consistent across both lanes.
 
 ## Future Requirements
 
@@ -71,8 +71,8 @@
 | A11Y-02 | Phase 168 | Complete |
 | EVID-01 | Phase 169 | Complete |
 | EVID-02 | Phase 169 | Complete |
-| BRAND-01 | Phase 170 | Pending |
-| BRAND-02 | Phase 170 | Pending |
+| BRAND-01 | Phase 170 | Complete |
+| BRAND-02 | Phase 170 | Complete |
 
 **Coverage:**
 - v1.36 requirements: 15 total
