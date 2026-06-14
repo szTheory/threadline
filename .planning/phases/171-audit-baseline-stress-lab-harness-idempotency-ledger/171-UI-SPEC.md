@@ -1,7 +1,7 @@
 ---
 phase: 171
 slug: audit-baseline-stress-lab-harness-idempotency-ledger
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-14
@@ -26,6 +26,8 @@ created: 2026-06-14
 Source: `REQUIREMENTS.md` locks zero new runtime dependencies, no Tailwind, no PhoenixStorybook, no public component API, and inline assets only. `style.ex`, `brandbook/tokens.json`, and `brandbook/brand-book.md` are the current visual authorities.
 
 Phase 171 must make `/audit/__stress` feel like a precise internal operator lab, not a marketing page, demo gallery, or generic Storybook clone. Use the real operator shell, dark/light/system theme path, auth path, fonts, tokens, navigation density, and existing `.threadline-ui` scope. The stress surface may expose harness metadata, story IDs, fixture IDs, score states, and screenshot coverage, but it must not introduce a separate visual language.
+
+The primary focal point on `/audit/__stress` is the selected stress story: its preview, current ledger score, target score, coverage state, and screenshot baseline status must read before filters, category navigation, or secondary metadata.
 
 ---
 
@@ -160,4 +162,4 @@ Do not fix the folded todos in this phase. Represent `theme-picker-idiomatic-ui`
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
