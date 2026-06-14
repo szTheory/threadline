@@ -238,7 +238,7 @@ defp tokens_json, do: @tokens_json_path |> File.read!() |> Jason.decode!()
 **Custom failure-message style** (lines 117-125, 138-146):
 ```elixir
 assert style_val != nil,
-       "dark --tl-color-#{name} missing from style.ex — @parity_intersection is stale"
+       "dark --tl-color-#{name} missing from style.ex - @parity_intersection is stale"
 
 assert style_val == brand_val,
        "dark --tl-color-#{name}: style.ex=#{inspect(style_val)}, brandbook=#{inspect(brand_val)}"
