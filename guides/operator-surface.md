@@ -70,8 +70,8 @@ optional `theme:` mount option, validated at compile time to one of
   there is no JavaScript, no `localStorage`, and no runtime theme toggle, so
   there is no flash of the wrong theme.
 
-Dark stays the default and the brand; `:system` is the documented daytime-use
-recommendation. The light lane is a readability and accessibility choice for
+Dark stays the default and the brand; `:system` is the documented
+daytime-use recommendation. The light lane is a readability and accessibility choice for
 teams whose operators work in bright, sunlit rooms and who scan small, dense
 audit text — a high-legibility need that a dense audit table on a dark surface
 can work against (a meaningful share of readers, including those with
