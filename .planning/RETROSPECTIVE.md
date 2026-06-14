@@ -914,7 +914,46 @@
 
 ---
 
+## Milestone: v1.36 — Operator Surface Light Mode
+
+**Shipped:** 2026-06-14
+**Phases:** 5 (166-170) | **Plans:** 9
+
+### What was built
+
+First-class light mode for the operator surface without disturbing the dark default: `theme: :dark | :light | :system` host config rendered server-side as a `data-tl-theme` attribute over a pure-CSS 45-token light lane (zero JS, zero FOUC, CSP-proof). Component retune of the ~9 dark-effect families and data-viz surfaces, a light/system WCAG-AA contrast mirror with an alpha-aware compositing parser, a `__light__` screenshot lane, `theme:` docs under doc-contract, and full brand-token parity with a bidirectional drift test.
+
+### What worked
+
+- **Source-first contract amendment.** Amending `style.ex` and `style_contract_test.exs` in the same wave (the seven light refutes → theme-aware assertions) kept the contract honest and the dark baseline byte-stable — no window where the test and the source disagreed.
+- **Designed-not-recolored discipline.** Treating the light status-tint system as one keystone decision in Phase 166, then retuning against it, avoided the "Grafana lesson" of dark-tuned content washing out on white.
+- **Server-rendered theming.** Choosing `data-tl-theme` over localStorage/JS meant first paint was correct on the dead render and the whole feature survives CSP — the right call for a mounted library.
+
+### What was inefficient
+
+- **Entangled uncommitted source (Finding F1).** The light `style.ex` changes lived uncommitted in a broader operator-surface working tree across most of the milestone, so COMP-01/02 shipped as "verified-live, source-pending" and the parity gate was only green against the working tree — not a clean checkout. It took a dedicated commit at close to resolve, and a doc-contract test (`exports_doc_contract_test.exs`) had drifted from the uncommitted markup unnoticed.
+- **Doc-contract drift discovered late.** Two sibling doc-contract tests diverged (one updated, one missed) because the markup evolved in an uncommitted tree the tests couldn't see until the source was committed.
+
+### Patterns established
+
+- **Commit source in the same wave it's verified.** "Verified live but uncommitted" is a debt that hides test drift and makes gates lie about a clean checkout. Don't let a milestone's keystone source sit uncommitted across phases.
+- **Theme-aware contract mirroring.** A single style contract that reads the source directly can assert per-mode (dark + light/system) invariants — including alpha-composited contrast — without a browser.
+
+### Key lessons
+
+- A passing gate that depends on an uncommitted working tree is not a passing gate. Make "green on a clean checkout" the bar.
+- When markup evolves, grep for *all* sibling doc-contract tests, not just the obvious one — brittle string/regex contracts drift silently.
+
+### Cost observations
+
+- Timeline: 3 days (2026-06-12 → 2026-06-14); 5 phases; 9 plans; 86 commits.
+- Closed with 6 acknowledged-deferred items (2 human-UAT, 1 human verification, 3 operator-surface todos).
+- Not instrumented in-repo for model mix.
+
+---
+
 ## Cross-Milestone Trends
 
+- **Commit keystone source in the wave it's verified.** v1.36's Finding F1 (entangled uncommitted `style.ex`) echoes the recurring "verified-live but source-pending" hazard — it hides doc-contract drift and makes quality gates green only against a dirty tree. Treat a clean-checkout green as the bar.
 - Brand and UI milestones now need the same evidence discipline as backend milestones: source artifacts, direct-render checks, explicit deferred rollout boundaries, and archive-ready verification.
 - Public-surface rollout should start from fresh requirements even when source guidance is approved; approval is not implementation scope.
