@@ -228,6 +228,9 @@ defmodule ThreadlinePhoenixWeb.Router do
         repo: ThreadlinePhoenix.Repo
       )
 
+      # doc: end: operator-surface-mount
+
+      # Internal dev/test stress route. Keep it outside the public mount snippet.
       threadline_operator_surface_stress("/__stress",
         stress_env: if(Mix.env() == :prod, do: :omit, else: Mix.env()),
         authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
@@ -240,8 +243,6 @@ defmodule ThreadlinePhoenixWeb.Router do
         repo: ThreadlinePhoenix.Repo
       )
     end
-
-    # doc: end: operator-surface-mount
   end
 
   # Sigra authentication
