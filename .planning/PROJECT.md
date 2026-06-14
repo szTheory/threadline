@@ -10,7 +10,23 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped milestone **v1.36 Operator Surface Light Mode** (2026-06-14) and is now between milestones, awaiting the next milestone definition. The operator surface has a first-class light mode: hosts mount with `theme: :dark | :light | :system` (default `:dark`, zero behavior change for existing adopters), rendered server-side as a `data-tl-theme` attribute over a pure-CSS 45-token light lane — no JS, no FOUC, CSP-proof. All 15 v1.36 requirements are satisfied (audit passed; the previously-entangled `style.ex` light source was committed at close, resolving audit Finding F1, with the suite green at 912 tests). Deferred at close: the end-of-milestone human UAT (live dark/light/system walk, `169`/`170-HUMAN-UAT.md`), `170-VERIFICATION.md` (human-needed), and 3 operator-surface backlog todos — see `STATE.md` Deferred Items.
+Threadline shipped milestone **v1.36 Operator Surface Light Mode** (2026-06-14) and has now opened milestone **v1.37 Operator Surface Design-System Stress Test & Component System** (2026-06-14). The operator surface has a first-class light mode: hosts mount with `theme: :dark | :light | :system` (default `:dark`, zero behavior change for existing adopters), rendered server-side as a `data-tl-theme` attribute over a pure-CSS 45-token light lane — no JS, no FOUC, CSP-proof. All 15 v1.36 requirements are satisfied (audit passed; the previously-entangled `style.ex` light source was committed at close, resolving audit Finding F1, with the suite green at 912 tests). Deferred at close: the end-of-milestone human UAT (live dark/light/system walk, `169`/`170-HUMAN-UAT.md`), `170-VERIFICATION.md` (human-needed), and 3 operator-surface backlog todos — see `STATE.md` Deferred Items.
+
+## Current Milestone: v1.37 Operator Surface Design-System Stress Test & Component System
+
+**Goal:** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system — award-winning quality, on-brand across dark/light/system, mobile-first responsive, WCAG 2.2 AA accessible, with meaningful motion and on-brand microcopy — verified fractally (foundations → primitives → groups → pages → flows) and locked idempotently so every rerun only ratchets quality up, never regresses.
+
+**Target features:**
+- **Stress-lab harness + idempotency ledger** — a zero-dependency, dev/test-only `/audit/__stress` route rendering every component × state × theme × viewport; a living `DESIGN-SYSTEM.md` v2 inventory; screenshot baselines + a scored audit ledger whose ratchet rule forbids regressions; an ugly-data fixture matrix.
+- **Foundations audit & hardening** — research-led decision briefs on color/typography/spacing/radius/shadow/motion/z-index/density; off-brand/contrast/scale fixes; token additions gated by brand-book parity.
+- **Internal component system** — private function components (primitives + forms) with documented attrs/slots, the full interaction-state matrix, a11y semantics, motion, and stress-lab stories. No public/host-facing API (v1.31 freeze intent preserved).
+- **Navigation, app shell & runtime theme picker** — shell/nav/toolbar/pagination/active-state audit plus the in-product dark/light/system picker (THEME-TOGGLE-01: cookie + plug, zero-JS, `:system` default; lifts the `theme-toggle` ban).
+- **Data display & meta-components** — tables/lists/timeline/KV/charts/status/actions and the repeatable component-group configurations, audited as units across narrow + wide.
+- **Per-page & flow stress** — all 11 pages across happy/empty/loading/error/permission-denied/boundary/advanced paths × dark/light/system × 320–1440 × keyboard × reduced-motion × LiveView reconnect; kill the footgun classes.
+- **Microcopy & IA sweep** — UX writing against brand voice + banned vocabulary + domain language; GOV.UK-style information architecture.
+- **Accessibility verification & adversarial closeout** — WCAG 2.2 AA (axe + manual keyboard/SR), expanded Playwright + screenshot guards, per-component contract tests, adversarial regression review.
+
+**Key context:** The token/motion/a11y *foundation* (`style.ex`, contract tests, brand parity at 129/150) is already mature and frozen; the gap is the *application* layer (~600 inline class blocks, only 4 reusable components). Invariants held throughout: no public component API, zero new runtime deps, inline assets (no Tailwind/Storybook/anim libs), brand-book token parity green, capture/semantics layers untouched, fail-closed auth. Per-phase research-on (Emil Kowalski for motion, GOV.UK for IA, WCAG/WAI-ARIA APG for a11y, Carbon/Polaris/Atlassian + LiveView ecosystem for idioms). Plan: `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`. Phases 171–180 (continued numbering).
 
 ## Latest Milestone Shipped: v1.36 Operator Surface Light Mode (2026-06-14)
 
@@ -482,14 +498,15 @@ Threadline shipped milestone **v1.36 Operator Surface Light Mode** (2026-06-14) 
 
 ### Active
 
-_Between milestones (post-v1.36). No active milestone — define fresh requirements with `/gsd:new-milestone`, or hold per the no-signal default. (v1.34 DX-DEMO/DX-PORT/DX-CLEAN/DX-CACHE/DX-DOC/DX-PROXY requirements shipped and are archived under `.planning/milestones/v1.34-*`.)_
+**Milestone v1.37 Operator Surface Design-System Stress Test & Component System** — requirements defined in `.planning/REQUIREMENTS.md`; phased in `.planning/ROADMAP.md` (phases 171–180). Categories: DS- (design-system harness + foundations), COMP- (internal component system), NAV- (shell + runtime theme picker, absorbs THEME-TOGGLE-01), DATA- (data display), GROUP- (meta-components), PAGE- (per-page/flow stress, absorbs the transaction-layout bug + coverage de-clutter), COPY- (microcopy + IA), A11Y- and MOTION- (verification). Plan of record: `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`.
 
-**Carry-forward candidates (deferred at v1.36 close — see STATE.md Deferred Items):**
+**Now in scope (promoted from v1.36 carry-forwards):**
+- **THEME-TOGGLE-01** — runtime dark/light/system picker → Phase 175 (NAV-).
+- **Transaction-page desktop layout bug** (`transaction-page-left-push-desktop`) → Phase 178 (PAGE-).
+- **Coverage card de-clutter** (`coverage-schema-card-declutter`) → Phase 176 (DATA-).
 
-- [ ] **THEME-TOGGLE-01**: Per-operator runtime theme switching (Backpex-style cookie + plug, zero-JS form) — only on real adopter demand; localStorage remains rejected; out of v1 scope per [165-01].
-- [ ] **Transaction-page desktop layout bug**: content left-pushed at desktop widths (theme-independent) — `transaction-page-left-push-desktop` todo.
-- [ ] **Operator-surface polish**: coverage "schema: public" card de-clutter; data-viz refinements — `coverage-schema-card-declutter` todo.
-- [ ] **End-of-milestone human UAT**: live dark/light/system walk of the operator surface (`169`/`170-HUMAN-UAT.md`) + `170-VERIFICATION.md` — acknowledged-deferred at close.
+**Still deferred (not v1.37 scope):**
+- [ ] **End-of-milestone human UAT**: live dark/light/system walk of the operator surface (`169`/`170-HUMAN-UAT.md`) + `170-VERIFICATION.md` — acknowledged-deferred at v1.36 close (the v1.37 stress-lab matrix supersedes much of this).
 
 ### Out of Scope
 
@@ -602,4 +619,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-14 after v1.36 Operator Surface Light Mode shipped and archived — between milestones; human UAT + 3 operator-surface todos deferred (see STATE.md Deferred Items)*
+*Last updated: 2026-06-14 — opened milestone v1.37 Operator Surface Design-System Stress Test & Component System (phases 171–180); THEME-TOGGLE-01 + 2 operator-surface todos promoted into scope*

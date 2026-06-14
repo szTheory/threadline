@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.36
-milestone_name: Operator Surface Light Mode
-status: Awaiting next milestone
-last_updated: "2026-06-14T16:43:55.190Z"
-last_activity: 2026-06-14 — Milestone v1.36 completed and archived
+milestone: v1.37
+milestone_name: Operator Surface Design-System Stress Test & Component System
+status: planning
+last_updated: "2026-06-14T18:50:10.910Z"
+last_activity: 2026-06-14
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: Milestone v1.36 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-14 — Milestone v1.36 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-14 — Milestone v1.37 started
 
 ## Performance Metrics
 
