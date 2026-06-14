@@ -114,6 +114,12 @@ defmodule Threadline.BrandbookTokenParityTest do
       style_val = Map.get(style_dark, name)
       brand_val = Map.get(brand_dark, name)
 
+      assert style_val != nil,
+             "dark --tl-color-#{name} missing from style.ex — @parity_intersection is stale (a coordinated rename or a name typo would otherwise let nil == nil pass vacuously)"
+
+      assert brand_val != nil,
+             "dark #{name} missing from brandbook semantic.dark — @parity_intersection is stale (a coordinated rename or a name typo would otherwise let nil == nil pass vacuously)"
+
       assert style_val == brand_val,
              "dark --tl-color-#{name}: style.ex=#{inspect(style_val)}, brandbook=#{inspect(brand_val)} (style.ex is the source of truth — correct the brandbook)"
     end
@@ -128,6 +134,12 @@ defmodule Threadline.BrandbookTokenParityTest do
     for name <- @parity_intersection do
       style_val = Map.get(style_light, name)
       brand_val = Map.get(brand_light, name)
+
+      assert style_val != nil,
+             "light --tl-color-#{name} missing from style.ex — @parity_intersection is stale (a coordinated rename or a name typo would otherwise let nil == nil pass vacuously)"
+
+      assert brand_val != nil,
+             "light #{name} missing from brandbook semantic.light — @parity_intersection is stale (a coordinated rename or a name typo would otherwise let nil == nil pass vacuously)"
 
       assert style_val == brand_val,
              "light --tl-color-#{name}: style.ex=#{inspect(style_val)}, brandbook=#{inspect(brand_val)} (style.ex is the source of truth — correct the brandbook)"
