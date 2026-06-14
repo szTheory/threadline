@@ -730,7 +730,10 @@ claims were settled; light-supported claims wait until light actually ships.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Both resolved during planning: Q1 (COMP-01/02 status) via 170-02's interfaces block sourced from `167-02-SUMMARY.md` (`built-verified-uncommitted`); Q2 (tokens.css secondary assertion) adopted in 170-01 Task 3 behavior.
+
 
 1. **COMP-01/COMP-02 completeness for the audit**
    - What we know: ROADMAP.md shows Phase 167 `component-retune` with 167-01-PLAN done (design review) and 167-02-PLAN NOT done (actual retune). The ROADMAP phase table shows Phase 167 as "In Progress."
