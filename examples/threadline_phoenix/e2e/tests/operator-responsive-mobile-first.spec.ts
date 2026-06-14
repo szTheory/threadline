@@ -11,6 +11,7 @@ const viewports = [
 ];
 
 const destinations = [
+  { testId: "operator-nav-overview", path: "/audit" },
   { testId: "operator-nav-timeline", path: "/audit/timeline" },
   { testId: "operator-nav-coverage", path: "/audit/coverage" },
   { testId: "operator-nav-evidence", path: "/audit/evidence" },
@@ -64,7 +65,9 @@ async function expectReadableScale(page: Page) {
     16,
   );
   await expectComputedPx(
-    page.locator(".tl-page__lede, .tl-orientation__lede").first(),
+    page
+      .locator(".tl-page__lede, .tl-orientation__lede, .tl-timeline-command__lede")
+      .first(),
     "font-size",
     15,
   );
@@ -96,19 +99,52 @@ async function expectTimelineIntroFlow(page: Page) {
   const mainToolbar = page.locator("#tl-main > .tl-toolbar");
   await expect(mainToolbar).toHaveCount(1);
   await expect(page.locator("#tl-main #timeline-filters")).toHaveCount(1);
+  await expect(page.locator("#tl-main > .tl-timeline-command")).toHaveCount(1);
 
   const gap = await page.evaluate(() => {
-    const orientation = document.querySelector(".tl-orientation");
+    const command = document.querySelector(".tl-timeline-command");
     const toolbar = document.querySelector(".tl-toolbar");
-    if (!orientation || !toolbar) {
-      throw new Error("Timeline orientation or toolbar missing");
+    if (!command || !toolbar) {
+      throw new Error("Timeline command surface or toolbar missing");
     }
 
-    return toolbar.getBoundingClientRect().top - orientation.getBoundingClientRect().bottom;
+    return toolbar.getBoundingClientRect().top - command.getBoundingClientRect().top;
   });
 
-  expect(gap).toBeGreaterThanOrEqual(-1);
-  expect(gap).toBeLessThanOrEqual(24);
+  expect(gap).toBeGreaterThanOrEqual(0);
+  expect(gap).toBeLessThanOrEqual(1);
+}
+
+async function expectTrustRailGap(page: Page, expectedPx: number) {
+  const gap = await page.evaluate(() => {
+    const rail = document.querySelector("#tl-main > .tl-trust-rail");
+    const next = rail?.nextElementSibling;
+    if (!rail || !next) {
+      throw new Error("Standalone trust rail or following section missing");
+    }
+
+    return Math.round(
+      next.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
+    );
+  });
+
+  expect(gap).toBeGreaterThanOrEqual(expectedPx);
+}
+
+async function expectCoverageCommandGap(page: Page, expectedPx: number) {
+  const gap = await page.evaluate(() => {
+    const rail = document.querySelector(".tl-coverage-command .tl-trust-rail");
+    const metrics = document.querySelector(".tl-coverage-command__metrics");
+    if (!rail || !metrics) {
+      throw new Error("Coverage command rail or metrics missing");
+    }
+
+    return Math.round(
+      metrics.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
+    );
+  });
+
+  expect(gap).toBeGreaterThanOrEqual(expectedPx);
 }
 
 async function expectAuditHostBody(page: Page) {
@@ -125,8 +161,11 @@ async function expectDemoHostShell(page: Page) {
   await expect(page.locator(".rd-auth__card")).toBeVisible();
 }
 
-async function expectReachable(locator: Locator) {
-  await locator.scrollIntoViewIfNeeded();
+async function expectReachable(locator: Locator, options?: { scroll?: boolean }) {
+  if (options?.scroll !== false) {
+    await locator.scrollIntoViewIfNeeded();
+  }
+
   await expect(locator).toBeVisible();
 }
 
@@ -147,6 +186,13 @@ async function closeOperatorNavIfNeeded(shell: Locator) {
   await expect(panel).toBeHidden();
 }
 
+async function expectLiveViewConnected(page: Page) {
+  const liveRoot = page.locator("[data-phx-main]").first();
+  if ((await liveRoot.count()) > 0) {
+    await expect(liveRoot).toHaveClass(/phx-connected/);
+  }
+}
+
 async function expectBoxWithinViewport(
   locator: Locator,
   viewportWidth: number,
@@ -160,6 +206,7 @@ async function expectBoxWithinViewport(
 
 async function expectOperatorChrome(page: Page) {
   await expect(page.locator("#tl-main")).toHaveCount(1);
+  await expectLiveViewConnected(page);
   await expect(page.getByTestId("operator-header")).toBeVisible();
 
   const shell = page.getByTestId("operator-nav-shell");
@@ -176,8 +223,12 @@ async function expectOperatorChrome(page: Page) {
   await expect(nav).toBeVisible();
 
   for (const destination of destinations) {
-    const link = page.getByTestId(destination.testId);
-    await expectReachable(link);
+    if (viewportWidth < 768 && !(await nav.isVisible())) {
+      await openOperatorNavIfNeeded(shell);
+    }
+
+    const link = nav.getByTestId(destination.testId);
+    await expectReachable(link, { scroll: false });
     await expect(link).toHaveAttribute("href", destination.path);
   }
 
@@ -203,6 +254,43 @@ async function expectResponsiveTable(locator: Locator, viewportWidth: number) {
       locator.locator(".tl-table--responsive th").first(),
     ).toBeVisible();
   }
+}
+
+async function expectCoverageCaptureDisclosure(page: Page, viewportWidth: number) {
+  const firstUncoveredRow = page.locator(".tl-table__row--uncovered").first();
+  await expect(firstUncoveredRow).toBeVisible();
+
+  if (viewportWidth >= 1280) {
+    const tableCell = firstUncoveredRow.locator('td[data-label="TABLE"]');
+    const tableBox = await tableCell.boundingBox();
+    expect(tableBox).not.toBeNull();
+    expect(tableBox!.width).toBeGreaterThanOrEqual(150);
+  }
+
+  const action = firstUncoveredRow.locator(".tl-row-action").first();
+  const summary = action.locator(".tl-row-action__summary");
+  await expect(summary).toBeVisible();
+  await expect(summary).toContainText("Add capture");
+  await summary.click();
+
+  const command = action.locator(".tl-remediation__command");
+  const copy = action.locator(".tl-copy--command");
+  await expect(command).toBeVisible();
+  await expect(copy).toBeVisible();
+
+  const commandBox = await command.boundingBox();
+  const copyBox = await copy.boundingBox();
+  expect(commandBox).not.toBeNull();
+  expect(copyBox).not.toBeNull();
+
+  const overlaps = !(
+    commandBox!.x + commandBox!.width <= copyBox!.x ||
+    copyBox!.x + copyBox!.width <= commandBox!.x ||
+    commandBox!.y + commandBox!.height <= copyBox!.y ||
+    copyBox!.y + copyBox!.height <= commandBox!.y
+  );
+
+  expect(overlaps).toBe(false);
 }
 
 async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
@@ -268,6 +356,10 @@ async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
 }
 
 async function assertHome(page: Page) {
+  await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   await expect(
     page.getByRole("heading", { name: "Follow what happened." }),
   ).toBeVisible();
@@ -286,11 +378,12 @@ async function assertTimeline(page: Page) {
 
 async function assertCoverage(page: Page, viewportWidth: number) {
   await expect(page.getByRole("heading", { name: /Coverage/ })).toBeVisible();
+  await expectCoverageCommandGap(page, 12);
   await expectResponsiveTable(
     page.getByTestId("coverage-table"),
     viewportWidth,
   );
-  await expect(page.getByText("Add capture").first()).toBeVisible();
+  await expectCoverageCaptureDisclosure(page, viewportWidth);
 }
 
 async function assertTransaction(page: Page, viewportWidth: number) {
@@ -335,6 +428,7 @@ async function assertEvidence(page: Page) {
 
 async function assertRedaction(page: Page) {
   await expect(page.getByText("Redaction assurance").first()).toBeVisible();
+  await expectTrustRailGap(page, 16);
   await expect(page.getByTestId("policy-section").first()).toBeVisible();
 }
 
@@ -342,6 +436,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
   await expect(
     page.getByText("What was purged, and did it succeed?"),
   ).toBeVisible();
+  await expectTrustRailGap(page, 16);
   await expect(
     page.getByRole("button", { name: "Run retention prune" }).last(),
   ).toBeVisible();

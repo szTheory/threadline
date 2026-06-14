@@ -22,7 +22,13 @@ defmodule ThreadlinePhoenixWeb.PageHTML do
           <div class="rd-signed-in" :if={@current_scope && @current_scope.user}>
             <span>Signed in as</span>
             <strong>{@current_scope.user.email}</strong>
-            <.link navigate={~p"/audit"} class="rd-button rd-button--primary">Open Threadline admin</.link>
+            <.link
+              :if={@operator_access?}
+              navigate={~p"/audit"}
+              class="rd-button rd-button--primary"
+            >
+              Open Threadline admin
+            </.link>
           </div>
         </div>
 
@@ -96,6 +102,10 @@ defmodule ThreadlinePhoenixWeb.PageHTML do
         <div>
           <p class="rd-kicker">Quick links</p>
           <h2 id="rd-links-title">Navigate the demo</h2>
+          <p :if={!@operator_access?}>
+            Threadline's operator surface is mounted at <code>/audit</code>, but RelayDesk only
+            exposes those links after an operator signs in.
+          </p>
         </div>
         <div class="rd-links">
           <.link :for={link <- @quick_links} navigate={link.path} class="rd-link-card">

@@ -26,10 +26,13 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     assert html =~ "Support operations demo app"
     assert html =~ "Demo credentials"
     assert html =~ "admin@example.com"
-    assert html =~ "Threadline admin"
     assert html =~ "Register"
     assert html =~ "Log in"
+    assert html =~ "operator surface is mounted"
+    assert html =~ ~s|href="/favicon.ico"|
+    refute html =~ "threadline-admin-favicon.svg"
     refute html =~ "Signed in as"
+    refute html =~ ~s|href="/audit"|
   end
 
   test "register creates account, provisions workspace, and keeps session on reload" do
@@ -49,12 +52,50 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     assert html =~ "RelayDesk"
     assert html =~ "Signed in as"
     assert html =~ email
-    assert html =~ "Open Threadline admin"
+    refute html =~ "Open Threadline admin"
+    refute html =~ ~s|href="/audit"|
 
     conn = get(conn, ~p"/")
     html = html_response(conn, 200)
     assert html =~ "Signed in as"
     assert html =~ email
+  end
+
+  test "admin home exposes full operator links", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    conn =
+      conn
+      |> login_via_sigra(user)
+      |> get(~p"/")
+
+    html = html_response(conn, 200)
+    assert html =~ "Open Threadline admin"
+    assert html =~ ~s|href="/audit"|
+    assert html =~ ~s|href="/audit/evidence"|
+    assert html =~ ~s|href="/audit/policy/redaction"|
+    assert html =~ ~s|href="/audit/coverage"|
+  end
+
+  test "support home exposes scoped operator links only", %{conn: conn} do
+    user = user_fixture(email: "support-flow-#{System.unique_integer()}@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "support")
+
+    conn =
+      conn
+      |> login_via_sigra(user)
+      |> get(~p"/")
+
+    html = html_response(conn, 200)
+    assert html =~ "Open Threadline admin"
+    assert html =~ ~s|href="/audit"|
+    assert html =~ ~s|href="/audit/timeline?|
+    refute html =~ ~s|href="/audit/evidence"|
+    refute html =~ ~s|href="/audit/policy/redaction"|
+    refute html =~ ~s|href="/audit/coverage"|
   end
 
   test "admin allowlist email reaches operator audit surface", %{conn: conn} do
@@ -69,6 +110,9 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
 
     html = html_response(conn, 200)
     assert html =~ "Transaction Not Found"
+    assert html =~ ~s|type="image/svg+xml"|
+    assert html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    refute html =~ ~s|href="/favicon.ico"|
     refute html =~ ~s|class="rd-shell"|
     refute html =~ ~s|class="rd-topbar"|
     refute html =~ "RelayDesk Support Ops Demo"
@@ -84,7 +128,10 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
       |> login_via_sigra(user)
       |> get(~p"/audit")
 
-    assert response(conn, 403) == "Forbidden"
+    html = html_response(conn, 403)
+    assert html =~ "Operator access required"
+    assert html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    refute html == "Forbidden"
   end
 
   test "logout clears session and blocks audit access", %{conn: conn} do
@@ -103,6 +150,9 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     conn =
       get(conn, ~p"/audit/transactions/00000000-0000-0000-0000-000000000000")
 
-    assert response(conn, 403) == "Forbidden"
+    assert redirected_to(conn) == ~p"/users/log_in"
+
+    assert get_session(conn, :user_return_to) ==
+             "/audit/transactions/00000000-0000-0000-0000-000000000000"
   end
 end

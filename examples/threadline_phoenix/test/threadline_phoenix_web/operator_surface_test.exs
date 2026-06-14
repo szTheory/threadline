@@ -14,7 +14,15 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
 
   test "anonymous request is rejected", %{conn: conn} do
     conn = get(conn, "/audit/transactions/123")
-    assert response(conn, 403) == "Forbidden"
+    assert redirected_to(conn) == "/users/log_in"
+    assert get_session(conn, :user_return_to) == "/audit/transactions/123"
+  end
+
+  test "threadline admin favicon asset is served", %{conn: conn} do
+    conn = get(conn, "/images/threadline-admin-favicon.svg")
+
+    assert response(conn, 200) =~ "<svg"
+    assert get_resp_header(conn, "content-type") == ["image/svg+xml"]
   end
 
   test "authenticated admin request reaches the surface", %{conn: conn} do
@@ -145,7 +153,9 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> login_via_sigra(user)
       |> get("/audit")
 
-    assert response(conn, 403) == "Forbidden"
+    html = html_response(conn, 403)
+    assert html =~ "Operator access required"
+    refute html == "Forbidden"
   end
 
   defp create_post_for_org(org_id, slug) do

@@ -30,30 +30,40 @@ defmodule ThreadlinePhoenixWeb.Router do
     plug(:require_authenticated_operator)
   end
 
-  def require_authenticated_admin(conn, _opts) do
-    if conn.assigns[:current_user] && conn.assigns[:current_user].is_admin do
-      Plug.Conn.put_session(conn, :threadline_current_user, conn.assigns[:current_user])
-    else
-      conn
-      |> Plug.Conn.put_status(403)
-      |> Phoenix.Controller.text("Forbidden")
-      |> Plug.Conn.halt()
+  def require_authenticated_operator(conn, _opts) do
+    cond do
+      is_nil(conn.assigns[:current_scope]) ->
+        require_authenticated_user(conn, [])
+
+      match?(%{is_admin: true}, conn.assigns[:current_user]) ->
+        Plug.Conn.put_session(conn, :threadline_current_user, conn.assigns.current_user)
+
+      match?(
+        %{role: :support, organization_id: org_id} when is_binary(org_id) and org_id != "",
+        conn.assigns[:current_user]
+      ) ->
+        Plug.Conn.put_session(conn, :threadline_current_user, conn.assigns.current_user)
+
+      true ->
+        render_operator_forbidden(conn)
     end
   end
 
-  def require_authenticated_operator(conn, _opts) do
+  defp render_operator_forbidden(conn) do
+    conn
+    |> Plug.Conn.put_status(:forbidden)
+    |> Phoenix.Controller.put_view(html: ThreadlinePhoenixWeb.ErrorHTML)
+    |> Phoenix.Controller.render(:"403")
+    |> Plug.Conn.halt()
+  end
+
+  def require_authenticated_admin(conn, _opts) do
     case conn.assigns[:current_user] do
       %{is_admin: true} = user ->
         Plug.Conn.put_session(conn, :threadline_current_user, user)
 
-      %{role: :support, organization_id: org_id} = user when is_binary(org_id) and org_id != "" ->
-        Plug.Conn.put_session(conn, :threadline_current_user, user)
-
       _ ->
-        conn
-        |> Plug.Conn.put_status(403)
-        |> Phoenix.Controller.text("Forbidden")
-        |> Plug.Conn.halt()
+        render_operator_forbidden(conn)
     end
   end
 

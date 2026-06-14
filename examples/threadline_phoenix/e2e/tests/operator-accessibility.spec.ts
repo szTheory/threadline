@@ -32,6 +32,20 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function openTimelineAdvancedFilters(page: Page) {
+  const disclosure = page.locator(".tl-filter-disclosure");
+  if ((await disclosure.count()) === 0) {
+    return;
+  }
+
+  const open = await disclosure.evaluate((element) =>
+    element.hasAttribute("open"),
+  );
+  if (!open) {
+    await disclosure.locator("summary").click();
+  }
+}
+
 async function discoverTransactionAndRowHistory(page: Page) {
   await page.goto(
     `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
@@ -82,6 +96,10 @@ test.describe("operator accessibility baseline", () => {
     await expect(
       page.getByRole("navigation", { name: "Operator surface" }),
     ).toBeVisible();
+    await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     await expect(
       page.getByRole("status", { name: "System health" }),
     ).toBeVisible();
@@ -122,14 +140,12 @@ test.describe("operator accessibility baseline", () => {
   }) => {
     await page.goto("/audit/timeline");
 
-    for (const label of [
-      "from",
-      "to",
-      "table",
-      "actor kind",
-      "actor id",
-      "correlation id",
-    ]) {
+    for (const label of ["from", "to", "table", "correlation id"]) {
+      await expect(page.getByLabel(label, { exact: true })).toBeVisible();
+    }
+
+    await openTimelineAdvancedFilters(page);
+    for (const label of ["actor kind", "actor id"]) {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 

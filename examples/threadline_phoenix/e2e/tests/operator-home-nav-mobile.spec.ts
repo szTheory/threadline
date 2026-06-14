@@ -7,6 +7,11 @@ test.use({ viewport: { width: 375, height: 812 }, isMobile: true });
 
 const destinations = [
   {
+    label: "Overview",
+    testId: "operator-nav-overview",
+    path: "/audit",
+  },
+  {
     label: "Timeline",
     testId: "operator-nav-timeline",
     path: "/audit/timeline",
@@ -79,7 +84,15 @@ async function expectReachable(locator: Locator) {
   await expect(locator).toBeVisible();
 }
 
+async function expectLiveViewConnected(page: Page) {
+  const liveRoot = page.locator("[data-phx-main]").first();
+  if ((await liveRoot.count()) > 0) {
+    await expect(liveRoot).toHaveClass(/phx-connected/);
+  }
+}
+
 async function expectHeaderDestinationsReachable(page: Page) {
+  await expectLiveViewConnected(page);
   const shell = page.getByTestId("operator-nav-shell");
   await expect(shell).toBeVisible();
   const toggle = shell.locator(".tl-shell-nav__toggle");
@@ -88,6 +101,10 @@ async function expectHeaderDestinationsReachable(page: Page) {
     await toggle.click();
   }
   await expect(nav).toBeVisible();
+
+  const overview = page.getByTestId("operator-nav-overview");
+  await expectReachable(overview);
+  await expect(overview).toHaveAttribute("href", "/audit");
 
   for (const group of ["Find", "Verify", "Prove"]) {
     await expectReachable(
@@ -115,6 +132,11 @@ test.describe("operator Home orientation mobile UAT", () => {
     page,
   }) => {
     await page.goto("/audit");
+    await expectLiveViewConnected(page);
+    await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
 
     const main = page.locator("#tl-main");
     await expect(
@@ -194,6 +216,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     for (const screen of representativeScreens) {
       await page.goto(screen);
       await expectPath(page, screen);
+      await expectLiveViewConnected(page);
       await expectMobileLayoutViewport(page);
       await expectHeaderDestinationsReachable(page);
       await expectNoHorizontalOverflow(page);
@@ -206,6 +229,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     for (const destination of destinations) {
       await page.goto("/audit");
       await expectPath(page, "/audit");
+      await expectLiveViewConnected(page);
 
       const shell = page.getByTestId("operator-nav-shell");
       await shell.locator(".tl-shell-nav__toggle").click();

@@ -31,10 +31,11 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
       assert html =~ "RelayDesk"
       assert html =~ "What to click first"
       assert html =~ "walk-acme-4521-close"
-      assert html =~ "Threadline admin"
+      assert html =~ "operator surface is mounted"
       assert html =~ "Register"
       assert html =~ "Log in"
       refute html =~ "Signed in as"
+      refute html =~ ~s|href="/audit"|
     end
   end
 
