@@ -1,10 +1,60 @@
 import { expect, Page, test } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const viewportWidths = [320, 375, 768, 1024, 1440];
+const ledgerPath = resolve(
+  process.cwd(),
+  "../../..",
+  ".planning/design-system-ledger.json",
+);
+const expectedCiScreenshots = [
+  {
+    baseline_ref: "stress-page-home-happy-dark-1024.png",
+    ledger_id: "page.home.happy",
+    story_id: "page.home.happy",
+    theme: "dark",
+    viewport: 1024,
+  },
+  {
+    baseline_ref: "stress-page-timeline-empty-dark-1024.png",
+    ledger_id: "page.timeline.empty",
+    story_id: "page.timeline.empty",
+    theme: "dark",
+    viewport: 1024,
+  },
+  {
+    baseline_ref: "stress-footgun-transaction-desktop-centering-dark-1024.png",
+    ledger_id: "footgun.transaction-page-left-push-desktop",
+    story_id: "footgun.transaction-page-left-push-desktop",
+    theme: "dark",
+    viewport: 1024,
+  },
+];
+
+function ledger() {
+  return JSON.parse(readFileSync(ledgerPath, "utf8"));
+}
+
+function desktopSnapshotPath(baselineRef: string) {
+  const snapshotName = baselineRef.replace(/\.png$/, "-desktop-chromium.png");
+
+  return resolve(
+    process.cwd(),
+    "tests/operator-stress.spec.ts-snapshots",
+    snapshotName,
+  );
+}
+
+function dynamicMasks(page: Page) {
+  return [
+    page.locator("time"),
+    page.locator('[data-dynamic="true"]'),
+    page.getByTestId("stress-run-id"),
+  ];
+}
 
 async function login(page: Page) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
@@ -123,4 +173,47 @@ test("light/system Playwright lane includes the stress route spec", () => {
   expect(config).toContain(
     "operator-(accessibility|screenshots|screenshot-regression|stress)",
   );
+});
+
+test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
+  const ci = ledger().screenshot_allowlist.ci;
+
+  expect(ci).toEqual(expectedCiScreenshots);
+
+  for (const item of ci) {
+    expect(item.baseline_ref).toBeTruthy();
+    expect(existsSync(desktopSnapshotPath(item.baseline_ref))).toBe(true);
+  }
+});
+
+test.describe("ledger-owned stress screenshots", () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chromium",
+      "stress screenshot ratchet runs only on desktop-chromium",
+    );
+
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await login(page);
+  });
+
+  for (const item of expectedCiScreenshots) {
+    test(`${item.story_id} ${item.theme} ${item.viewport}px matches its ledger baseline`, async ({
+      page,
+    }) => {
+      await page.goto(
+        `/audit/__stress?story=${item.story_id}&theme=${item.theme}&viewport=${item.viewport}`,
+      );
+      const preview = page.getByTestId("stress-preview");
+      await expect(preview).toBeVisible();
+      await expect(page.getByTestId("stress-story-id")).toHaveText(
+        item.story_id,
+      );
+
+      await expect(preview).toHaveScreenshot(item.baseline_ref, {
+        maxDiffPixelRatio: 0.01,
+        mask: dynamicMasks(page),
+      });
+    });
+  }
 });
