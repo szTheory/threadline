@@ -99,13 +99,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           current={:timeline}
           scoped={not is_nil(assigns[:threadline_scope])}
         />
-        <main id="tl-main" tabindex="-1">
+        <main id="tl-main" class="tl-page" tabindex="-1">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Invalid Actor Reference</h3>
             <p class="tl-empty__body">This actor kind and id cannot be parsed as a Threadline actor reference.</p>
             <div class="tl-empty__actions">
-              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">← Timeline</.link>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                Timeline
+              </.link>
             </div>
           </div>
         <% else %>
@@ -140,8 +143,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h3 class="tl-empty__title">No events in this window</h3>
                 <p class="tl-empty__body">No events found in the selected time window.<%= if @last_activity do %> This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %></p>
                 <div class="tl-empty__actions">
-                  <button :if={@time_window_hours != 720} type="button" phx-click="set-window" phx-value-hours="720" class="tl-button tl-button--secondary">Widen to 30 days</button>
-                  <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--ghost">Open in timeline</a>
+                  <button :if={@time_window_hours != 720} type="button" phx-click="set-window" phx-value-hours="720" class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                    Widen to 30 days
+                  </button>
+                  <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--ghost">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                    Open in timeline
+                  </a>
                 </div>
               </div>
             <% else %>
@@ -166,7 +175,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
                     </div>
                     <div class="tl-change__actions">
-                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">Open transaction</a>
+                      <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
+                        <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                        Open transaction
+                      </a>
                     </div>
                   </div>
                 </div>

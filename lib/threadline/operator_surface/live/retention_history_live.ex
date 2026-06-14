@@ -96,8 +96,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <section class="tl-trust-rail" aria-label="Retention context">
               <span class="tl-trust-rail__label">Retention assurance</span>
               <span class="tl-chip tl-chip--warning">Permanent deletion</span>
-              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Review evidence</.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
+              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                Review evidence
+              </.link>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                Open timeline
+              </.link>
             </section>
 
             <%= if not @has_runs do %>
@@ -105,7 +111,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h3 class="tl-empty__title">No retention runs yet</h3>
                 <p class="tl-empty__body">Configure retention, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
                 <div class="tl-empty__actions">
-                  <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">Run retention prune</button>
+                  <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
+                    Run retention prune
+                  </button>
                 </div>
               </div>
             <% else %>
@@ -146,7 +155,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
               <div class="tl-page__actions">
                 <span class="tl-hint">Permanent delete action</span>
-                <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">Run retention prune</button>
+                <button class="tl-button tl-button--secondary tl-button--danger" phx-click="prune_now" data-confirm="Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
+                  Run retention prune
+                </button>
               </div>
 
               <div class="tl-table-wrap" data-testid="retention-runs-table">
@@ -175,7 +187,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% end %>
                       </td>
                       <td data-label="Actions" class="tl-table__actions">
-                        <.link :if={@threadline_evidence_enabled} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">Review evidence</.link>
+                        <.link :if={@threadline_evidence_enabled} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">
+                          <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                          Review evidence
+                        </.link>
                       </td>
                     </tr>
                   </tbody>

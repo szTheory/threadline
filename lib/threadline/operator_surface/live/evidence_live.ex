@@ -85,16 +85,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-trust-rail__label">Proof chain</span>
               <span class="tl-chip tl-chip--success">Append-only history</span>
               <span class="tl-chip tl-chip--info">Latest projection</span>
-              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</.link>
-              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">Check redaction</.link>
-              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">Review retention</.link>
-              <.link :if={@threadline_exports_enabled and @base_path} navigate={"#{@base_path}/exports"} class="tl-button tl-button--compact tl-button--secondary">Open exports</.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
+              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
+                Check coverage
+              </.link>
+              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
+                Check redaction
+              </.link>
+              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                Review retention
+              </.link>
+              <.link :if={@threadline_exports_enabled and @base_path} navigate={"#{@base_path}/exports"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
+                Open exports
+              </.link>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                Open timeline
+              </.link>
             </section>
 
             <nav class="tl-nav" aria-label="Evidence navigation">
-              <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">Overview</.link>
+              <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                Overview
+              </.link>
               <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
                 Back to latest for <%= @request.subject %>
               </.link>
               <.link
@@ -105,6 +124,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 data-persona="P3"
                 data-jtbd="J6"
               >
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                 Carry to Exports
               </.link>
             </nav>
@@ -152,6 +172,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           patch={history_path(@base_path, row.subject, row.subject_ref_json)}
                           class="tl-button tl-button--compact tl-button--secondary"
                         >
+                          <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                           Open proof history
                         </.link>
                         <.link
@@ -159,10 +180,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           patch={subject_path(@base_path, row.subject)}
                           class="tl-button tl-button--compact tl-button--secondary"
                         >
+                          <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                           Filter to subject
                         </.link>
                         <%= if action = support_action(@base_path, row.subject) do %>
-                          <a href={action.path} class="tl-button tl-button--compact tl-button--ghost"><%= action.label %></a>
+                          <a href={action.path} class="tl-button tl-button--compact tl-button--ghost">
+                            <Threadline.OperatorSurface.Components.Icon.icon name={support_action_icon(row.subject)} class="tl-button__icon" />
+                            <%= action.label %>
+                          </a>
                         <% end %>
                       </div>
                     </article>
@@ -329,6 +354,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       do: %{path: "#{base_path}/exports", label: "Open exports"}
 
     defp support_action(_base_path, _subject), do: nil
+
+    defp support_action_icon("retention_run"), do: :history
+    defp support_action_icon("redaction_policy"), do: :shield
+    defp support_action_icon("trigger_coverage"), do: :shield
+    defp support_action_icon("export_job"), do: :archive
+    defp support_action_icon("export_delivery"), do: :archive
+    defp support_action_icon(_subject), do: :arrow_right
 
     defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"

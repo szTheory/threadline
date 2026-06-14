@@ -67,9 +67,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <section class="tl-trust-rail" aria-label="Redaction workflow">
               <span class="tl-trust-rail__label">Redaction assurance</span>
               <span class="tl-chip tl-chip--warning">Drift blocks trust</span>
-              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">Check coverage</.link>
-              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=redaction_policy"} class="tl-button tl-button--compact tl-button--secondary">Review evidence</.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
+              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
+                Check coverage
+              </.link>
+              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=redaction_policy"} class="tl-button tl-button--compact tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                Review evidence
+              </.link>
+              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                Open timeline
+              </.link>
             </section>
 
             <section class="tl-summary-grid" aria-label="Redaction drift summary">
@@ -113,8 +122,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             <p class="tl-policy__warning"><%= row.warning %></p>
                           <% end %>
                           <div class="tl-policy__summary-actions">
-                            <.link navigate={timeline_table_path(@base_path, row.table)} class="tl-button tl-button--compact tl-button--secondary">View activity</.link>
-                            <.link navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">Check coverage</.link>
+                            <.link navigate={timeline_table_path(@base_path, row.table)} class="tl-button tl-button--compact tl-button--secondary">
+                              <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                              View activity
+                            </.link>
+                            <.link navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">
+                              <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
+                              Check coverage
+                            </.link>
                           </div>
                         </summary>
 

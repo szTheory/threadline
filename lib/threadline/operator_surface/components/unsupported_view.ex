@@ -37,6 +37,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
         </p>
         <div :if={@base_path} class="tl-empty__actions">
           <.link href={@base_path} class="tl-button tl-button--secondary">
+            <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
             Back to Timeline
           </.link>
         </div>

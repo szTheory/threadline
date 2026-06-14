@@ -160,6 +160,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 transaction and row history to see exactly who did it and why.
               </p>
               <a href={"#{@base_path}/timeline"} class="tl-button tl-button--primary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                 Open the timeline
               </a>
             </li>
@@ -172,6 +173,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 trust the timeline to be complete.
               </p>
               <a href={"#{@base_path}/coverage"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
                 Check coverage
               </a>
             </li>
@@ -185,13 +187,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </p>
               <div class="tl-home__card-links">
                 <div class="tl-home__prove-controls">
-                  <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">Evidence</a>
-                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">Redaction</a>
-                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">Retention</a>
+                  <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                    Evidence
+                  </a>
+                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
+                    Redaction
+                  </a>
+                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                    Retention
+                  </a>
                 </div>
                 <div :if={@threadline_exports_enabled} class="tl-home__prove-handoff" aria-label="Deliverable handoff">
                   <span class="tl-home__handoff-label">Handoff</span>
-                  <a href={"#{@base_path}/exports"} class="tl-button tl-button--secondary tl-button--compact">Exports</a>
+                  <a href={"#{@base_path}/exports"} class="tl-button tl-button--secondary tl-button--compact">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
+                    Exports
+                  </a>
                 </div>
               </div>
             </li>
@@ -228,7 +242,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     autocomplete="off"
                   />
                 </label>
-                <button class="tl-button tl-button--secondary" type="submit">Open row history</button>
+                <button class="tl-button tl-button--secondary" type="submit">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                  Open row history
+                </button>
               </form>
               <div :if={@record_lookup_error} class="tl-alert tl-alert--error" role="alert">
                 <%= @record_lookup_error %>
@@ -258,7 +275,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     autocomplete="off"
                   />
                 </label>
-                <button class="tl-button tl-button--secondary" type="submit">Open Timeline</button>
+                <button class="tl-button tl-button--secondary" type="submit">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                  Open Timeline
+                </button>
               </form>
               <div :if={@correlation_lookup_error} class="tl-alert tl-alert--error" role="alert">
                 <%= @correlation_lookup_error %>

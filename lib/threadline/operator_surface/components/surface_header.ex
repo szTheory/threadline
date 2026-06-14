@@ -33,26 +33,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         onclick="var target=document.getElementById('tl-main'); if (target) target.focus();"
       >Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
-        <a class="tl-topbar__brand" href={@base_path || "#"}>
-          <svg
-            class="tl-topbar__brand-mark"
-            viewBox="0 0 64 64"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <defs>
-              <linearGradient id="tl-operator-brand-gradient" x1="8" y1="50" x2="56" y2="14" gradientUnits="userSpaceOnUse">
-                <stop stop-color="var(--tl-color-accent)" />
-                <stop offset="1" stop-color="var(--tl-color-signal)" />
-              </linearGradient>
-            </defs>
-            <path d="M10 46C18 22 30 21 36 34C41 45 50 43 54 18" fill="none" stroke="url(#tl-operator-brand-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M10 46H27M36 34H50" fill="none" stroke="var(--tl-color-text)" stroke-opacity=".42" stroke-width="2" stroke-linecap="round" />
-            <circle cx="10" cy="46" r="4" fill="var(--tl-color-accent)" />
-            <circle cx="36" cy="34" r="4" fill="var(--tl-color-signal)" />
-            <circle cx="54" cy="18" r="4" fill="var(--tl-color-text)" />
-          </svg>
-          <span class="tl-topbar__brand-text">Threadline</span>
+        <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline operator home">
+          <Threadline.OperatorSurface.Components.Logo.compact />
         </a>
         <div class="tl-topbar__status">
         <span
@@ -79,11 +61,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         id="tl-shell-nav-toggle"
         class="tl-shell-nav__control"
         type="checkbox"
-        aria-label="Toggle operator navigation"
+        tabindex="-1"
+        aria-hidden="true"
       />
       <nav class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Operator surface">
-        <label class="tl-shell-nav__toggle" for="tl-shell-nav-toggle">Menu</label>
-        <div class="tl-shell-nav__panel">
+        <button
+          type="button"
+          class="tl-shell-nav__toggle"
+          aria-controls="tl-shell-nav-panel"
+          aria-expanded="false"
+          onclick="var nav=this.closest('.tl-shell-nav'); var input=document.getElementById('tl-shell-nav-toggle'); var open=nav ? !nav.classList.contains('tl-shell-nav--open') : !(input && input.checked); if (nav) { nav.classList.toggle('tl-shell-nav--open', open); } if (input) { input.checked = open; } this.setAttribute('aria-expanded', open ? 'true' : 'false');"
+        >Menu</button>
+        <div id="tl-shell-nav-panel" class="tl-shell-nav__panel">
+          <div class="tl-shell-nav__overview">
+            <.nav_link
+              href={home_path(@base_path)}
+              current={@current}
+              page={:start}
+              test_id="operator-nav-overview"
+            >Overview</.nav_link>
+          </div>
           <section class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-find">
             <h2 id="tl-shell-nav-find" class="tl-shell-nav__label">Find</h2>
             <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
@@ -111,6 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:href, :string, required: true)
     attr(:current, :atom, default: nil)
     attr(:page, :atom, required: true)
+    attr(:test_id, :string, default: nil)
     slot(:inner_block, required: true)
 
     defp nav_link(assigns) do
@@ -119,12 +117,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         href={@href || "#"}
         class={["tl-shell-nav__item", @current == @page && "tl-shell-nav__item--active"]}
         aria-current={if @current == @page, do: "page", else: nil}
-        data-testid={"operator-nav-#{@page}"}
+        data-testid={@test_id || "operator-nav-#{@page}"}
       >
         <%= render_slot(@inner_block) %>
       </a>
       """
     end
+
+    defp home_path(base_path) when is_binary(base_path), do: base_path
+    defp home_path(_), do: "#"
 
     defp timeline_path(base_path) when is_binary(base_path), do: "#{base_path}/timeline"
     defp timeline_path(_), do: "#"

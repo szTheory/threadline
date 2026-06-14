@@ -702,9 +702,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         live(conn, "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=posts")
 
       # All three compact labels present (D-22, Plan 04 doc-contract pinned)
-      assert html =~ ">CSV<"
-      assert html =~ ">JSON<"
-      assert html =~ ">NDJSON<"
+      assert html =~ "CSV"
+      assert html =~ "JSON"
+      assert html =~ "NDJSON"
 
       # All three hrefs include the canonical filter querystring; HEEx
       # escapes & to &amp; in attribute values, so match the prefix only.
@@ -717,10 +717,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "table=posts"
 
       # `download` attribute present on each anchor (PR #2611 — keeps LV
-      # socket alive on click). Match label content (handles whitespace
-      # between attributes).
+      # socket alive on click).
       download_anchors =
-        Regex.scan(~r{<a [^>]*\bdownload\b[^>]*>\s*(CSV|JSON|NDJSON)\s*</a>}s, html)
+        Regex.scan(
+          ~r{<a [^>]*href="/audit/exports/changes\.(csv|json|ndjson)\?[^"]*"[^>]*\bdownload\b[^>]*>}s,
+          html
+        )
 
       assert length(download_anchors) == 3
     end
@@ -745,10 +747,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -------------------------------------------------------------------
-    # Case 16 — match-count status line renders (EXPO-04 / D-17)
+    # Case 16 — command status renders (EXPO-04 / D-17)
     # -------------------------------------------------------------------
 
-    test "Case 16: Match-count status line renders with the visible/total count format",
+    test "Case 16: Command status renders with visible/total count and exact window",
          %{conn: conn} do
       table = "posts_count_status_#{System.unique_integer([:positive])}"
       for _ <- 1..7, do: seed_change!(table: table)
@@ -756,10 +758,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _lv, html} =
         live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
-      # The status line uses the compact operator format.
-      assert html =~ ~r/\d+ shown · 7 matches · current filter window/
-      # Wrapper class is present for the doc-contract test
+      assert html =~ "tl-timeline-command"
       assert html =~ "tl-status"
+      assert html =~ "7 matching changes"
+      assert html =~ "2020-01-01 00:00 UTC to 2099-01-01 00:00 UTC"
+      refute html =~ "current filter window"
+      refute html =~ "Current window"
+      refute html =~ "24h window"
+    end
+
+    test "Timeline command shows 24h windows exactly and keeps advanced filters collapsed",
+         %{conn: conn} do
+      {:ok, _lv, html} =
+        live(conn, "/audit/timeline?from=2026-06-06T20:07&to=2026-06-07T20:07")
+
+      assert html =~ ~s|class="tl-toolbar tl-timeline-command"|
+      assert html =~ "Window: 24h"
+      assert html =~ "2026-06-06 20:07 UTC to 2026-06-07 20:07 UTC"
+      assert html =~ "Reset to last 24h"
+      refute Regex.match?(~r/<details class="tl-filter-disclosure" open/, html)
+    end
+
+    test "Timeline command opens advanced filters when URL contains advanced state",
+         %{conn: conn} do
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit/timeline?from=2026-06-06T20:07&to=2026-06-07T20:07&table_schema=public&actor_kind=user&actor_id=42"
+        )
+
+      assert Regex.match?(~r/<details class="tl-filter-disclosure" open/, html)
+      assert html =~ "3 active"
+      assert html =~ "schema: public"
+      assert html =~ "actor kind: user"
+      assert html =~ "actor id: 42"
     end
 
     # -------------------------------------------------------------------
@@ -987,7 +1019,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "default actor_fn mount path exposes actor-owned saved views", %{conn: conn} do
       {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
-      assert render(lv) =~ "Save View"
+      assert render(lv) =~ "Save view"
 
       lv
       |> form("#save-view-form", %{name: "Actor View"})

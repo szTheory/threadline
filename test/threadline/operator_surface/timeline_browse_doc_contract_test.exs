@@ -170,12 +170,10 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            "expected #{@actor_lv_path} to contain inline back-link literal '← Timeline' per CONTEXT.md D-02"
   end
 
-  test "ActorLive not_found branch also contains ← Timeline back-link (D-02 escape hatch)" do
+  test "ActorLive not_found branch contains Timeline button escape hatch" do
     src = File.read!(@actor_lv_path)
 
-    occurrences = src |> String.split("← Timeline") |> length() |> Kernel.-(1)
-
-    assert occurrences >= 2,
-           "expected #{@actor_lv_path} to contain '← Timeline' at least twice (once in :not_found, once in actor-header per D-02), found #{occurrences}"
+    assert String.contains?(src, ~S|navigate={"#{@base_path}/timeline"}|)
+    assert String.contains?(src, ~s|name={:arrow_left} class="tl-button__icon"|)
   end
 end

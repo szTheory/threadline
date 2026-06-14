@@ -132,14 +132,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "baseline"
       end
 
-      test "uncovered rows render Add capture command and verify follow-up without repeated consequence copy",
+      test "uncovered rows render Add capture disclosure with command and verify follow-up",
            %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
         assert html =~ "Add capture"
+        assert html =~ ~s|<details class="tl-row-action tl-row-action--capture">|
+        assert html =~ ~s|<summary class="tl-row-action__summary">|
+        assert html =~ ~s|class="tl-command-copy"|
         assert html =~ "mix threadline.gen.triggers --tables"
         assert html =~ "Run mix threadline.verify_coverage after applying the migration."
         assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
+        refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
         assert html =~ "Timeline may be incomplete"
 
@@ -161,6 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert expected_row =~ "Expected gap"
         assert expected_row =~ "tl-chip--warning"
         refute expected_row =~ "Add capture"
+        refute expected_row =~ "tl-row-action--capture"
         refute expected_row =~ "mix threadline.gen.triggers --tables"
       end
 

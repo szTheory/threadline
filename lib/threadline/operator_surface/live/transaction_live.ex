@@ -95,13 +95,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           current={:timeline}
         />
-        <main id="tl-main" tabindex="-1">
+        <main id="tl-main" class="tl-page" tabindex="-1">
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Transaction not found</h3>
             <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
             <div class="tl-empty__actions">
-              <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">← Timeline</.link>
+              <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                Timeline
+              </.link>
             </div>
           </div>
         <% else %>
@@ -115,7 +118,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <% transaction_ref = Presentation.secondary_ref(@bundle.transaction.id, 30) %>
                 <h1 class="tl-transaction__title" title={transaction_ref.title}>
                   Transaction <code><%= transaction_ref.visible %></code>
-                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">Copy</button>
+                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+                    Copy
+                  </button>
                 </h1>
                 <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
               </div>
@@ -137,7 +143,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <a href={timeline_correlation_path(surface_root(@base_path), correlation_ref.title)} class="tl-link tl-link--deep" title={correlation_ref.title}>
                       <%= correlation_ref.visible %>
                     </a>
-                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={correlation_ref.title} aria-label="Copy correlation id">Copy</button>
+                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={correlation_ref.title} aria-label="Copy correlation id">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+                      Copy
+                    </button>
                   </span>
                 </span>
               </div>
@@ -170,6 +179,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                   <div class="tl-change__actions">
                     <.link patch={change_history_path(@base_path, change)} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                       Open row history
                     </.link>
                   </div>

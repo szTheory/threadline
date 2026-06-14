@@ -134,14 +134,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Download completed Timeline packets, or reopen the source search when an export needs another pass.
                 </p>
               </div>
-              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">Open timeline</.link>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                Open timeline
+              </.link>
             </header>
 
             <section class="tl-trust-rail" aria-label="Export workflow">
               <span class="tl-trust-rail__label">Export workflow</span>
               <span class="tl-chip tl-chip--info">Actor-owned jobs</span>
               <span class="tl-chip tl-chip--neutral">Filtered timeline packets</span>
-              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
+              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                Open timeline
+              </.link>
             </section>
 
             <%= if @timeline_export_context do %>
@@ -167,6 +173,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       phx-click="queue_timeline_export_context"
                       class="tl-button tl-button--primary tl-button--compact"
                     >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
                       Queue Timeline export
                     </button>
                   </div>
@@ -212,6 +219,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       navigate={@evidence_export_context.evidence_path}
                       class="tl-button tl-button--compact tl-button--secondary"
                     >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
                       Reopen Evidence proof
                     </.link>
                   </div>
@@ -240,7 +248,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h3 class="tl-empty__title">No export jobs queued</h3>
                 <p class="tl-empty__body">Queue an export from Timeline, then return here to download the completed packet or reopen the source search.</p>
                 <div class="tl-empty__actions">
-                  <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">Open timeline</.link>
+                  <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                    Open timeline
+                  </.link>
                 </div>
               </div>
             <% else %>
@@ -280,6 +291,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <div class="tl-job__actions">
                           <%= if Presentation.export_downloadable?(job) do %>
                             <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-button tl-button--primary tl-button--compact">
+                              <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
                               Download export
                             </.link>
                           <% else %>
@@ -319,6 +331,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <div :if={Presentation.query_pairs(job.query_params) != []} class="tl-job__source">
                         <span class="tl-hint">Source Timeline search</span>
                         <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
+                          <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                           Reopen source search
                         </a>
                       </div>

@@ -84,7 +84,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>
               </h3>
             </div>
-            <.link patch={@close_path} class="tl-button tl-button--secondary">Close</.link>
+            <.link patch={@close_path} class="tl-button tl-button--secondary">
+              <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+              Close
+            </.link>
           </div>
 
           <%= if @error do %>

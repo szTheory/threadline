@@ -15,19 +15,27 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   describe "button labels (D-22, D-26)" do
     test "TimelineLive renders the three compact download button labels verbatim" do
       src = File.read!(@lv_path)
-      assert String.contains?(src, ">CSV<")
-      assert String.contains?(src, ">JSON<")
-      assert String.contains?(src, ">NDJSON<")
+      # The compact download buttons render an icon followed by the verbatim
+      # format label as the anchor's text content (v1.36 component-retune added
+      # the leading download icon), so the label is no longer the bare `>CSV<`
+      # shape — assert it appears as the trimmed text content of a `<.link>`
+      # closing tag instead.
+      for label <- ["CSV", "JSON", "NDJSON"] do
+        assert src =~ ~r/\/>\s*#{label}\s*<\/\.link>/,
+               "expected compact download button labelled #{label} (icon + verbatim label) in #{@lv_path}"
+      end
     end
 
     test "TimelineLive download anchors include the HTML `download` attribute (PR #2611 / Pitfall 9)" do
       src = File.read!(@lv_path)
       # Each of the three anchors must have `download` as a bare HTML attribute
-      # on a <.link href={...}> tag. The href value uses Elixir string
+      # on a <.link href={...}> tag. The tag is now multi-line (attributes on
+      # their own lines), so allow whitespace/newlines between `<.link` and
+      # `href` and before `download`. The href value uses Elixir string
       # interpolation (`#{@base_path}` etc.), so `}` characters appear inside
-      # the brace-block; match the entire anchor-line up to a bare `download`
-      # token rather than walking through the brace-block.
-      download_anchors = Regex.scan(~r/<\.link href=\{.+?\}\s+download[\s>]/, src)
+      # the brace-block; the non-greedy `.+?` walks to the attribute-closing
+      # brace that is actually followed by the bare `download` token.
+      download_anchors = Regex.scan(~r/<\.link\s+href=\{.+?\}\s+download[\s>]/, src)
 
       assert length(download_anchors) >= 3,
              "expected at least 3 anchors with `download` attribute in #{@lv_path}, got #{length(download_anchors)}"

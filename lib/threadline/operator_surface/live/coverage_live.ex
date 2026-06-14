@@ -106,32 +106,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_coverage_enabled do %>
-            <header class="tl-page__header">
-              <div>
-                <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
-                <p class="tl-page__lede">
-                  Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
-                </p>
-                <p class="tl-page__meta">
-                  <%= if @coverage_for_schema.last_checked_at do %>
-                    <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
-                  <% end %>
-                </p>
-              </div>
-              <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">Refresh</button>
-            </header>
-
-            <section :if={is_nil(@form_error) and not all_empty?(@coverage_for_schema)} class="tl-trust-rail" aria-label="Audit readiness">
-              <span class="tl-trust-rail__label">Audit readiness</span>
-              <%= if @coverage_for_schema.uncovered_count > 0 do %>
-                <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
-              <% else %>
-                <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
-              <% end %>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">Open timeline</.link>
-            </section>
-
             <%= if @form_error do %>
+              <header class="tl-page__header">
+                <div>
+                  <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
+                  <p class="tl-page__lede">
+                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                  </p>
+                </div>
+                <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                  Refresh
+                </button>
+              </header>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @threadline_coverage_error do %>
@@ -141,6 +128,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
+                <header class="tl-page__header">
+                  <div>
+                    <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
+                    <p class="tl-page__lede">
+                      Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                    </p>
+                  </div>
+                  <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                    Refresh
+                  </button>
+                </header>
                 <div class="tl-empty">
                   <h3 class="tl-empty__title">No audited tables found</h3>
                   <p class="tl-empty__body">
@@ -148,19 +147,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </p>
                 </div>
               <% else %>
-                <section class="tl-summary-grid" aria-label="Coverage summary">
-                  <div class="tl-card--metric" data-status="success">
-                    <span class="tl-card__metric-label">Captured</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
+                <section class="tl-coverage-command" aria-labelledby="coverage-command-title">
+                  <div class="tl-coverage-command__header">
+                    <div class="tl-coverage-command__heading">
+                      <h1 id="coverage-command-title" class="tl-page__title">
+                        Coverage — schema: <%= @schema_param %>
+                      </h1>
+                      <p class="tl-page__lede">
+                        Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                      </p>
+                      <p class="tl-page__meta">
+                        <%= if @coverage_for_schema.last_checked_at do %>
+                          <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                        <% end %>
+                      </p>
+                    </div>
+                    <div class="tl-coverage-command__actions">
+                      <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                        <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                        Refresh
+                      </button>
+                    </div>
                   </div>
-                  <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
-                    <span class="tl-card__metric-label">Needs capture</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
-                  </div>
-                  <div class="tl-card--metric">
-                    <span class="tl-card__metric-label">Expected gaps</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
-                  </div>
+
+                  <section class="tl-trust-rail" aria-label="Audit readiness">
+                    <span class="tl-trust-rail__label">Audit readiness</span>
+                    <%= if @coverage_for_schema.uncovered_count > 0 do %>
+                      <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
+                    <% else %>
+                      <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
+                    <% end %>
+                    <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                      Open timeline
+                    </.link>
+                  </section>
+
+                  <section class="tl-summary-grid tl-coverage-command__metrics" aria-label="Coverage summary">
+                    <div class="tl-card--metric" data-status="success">
+                      <span class="tl-card__metric-label">Captured</span>
+                      <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
+                    </div>
+                    <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
+                      <span class="tl-card__metric-label">Needs capture</span>
+                      <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
+                    </div>
+                    <div class="tl-card--metric">
+                      <span class="tl-card__metric-label">Expected gaps</span>
+                      <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
+                    </div>
+                  </section>
                 </section>
 
                 <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
@@ -186,10 +222,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Needs capture</span></td>
                           <td data-label="SOURCE">missing trigger</td>
                           <td data-label="Actions" class="tl-table__actions">
-                            <span class="tl-remediation__action"><%= remediation.label %></span>
-                            <code :if={remediation.command} class="tl-remediation__command"><%= remediation.command %></code>
-                            <button :if={remediation.command && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>Copy</button>
-                            <span class="tl-hint"><%= remediation.follow_up %></span>
+                            <div class="tl-coverage-actions">
+                              <details class="tl-row-action tl-row-action--capture">
+                                <summary class="tl-row-action__summary">
+                                  <Threadline.OperatorSurface.Components.Icon.icon name={:warning} class="tl-button__icon" />
+                                  <span><%= remediation.label %></span>
+                                </summary>
+                                <div class="tl-row-action__body">
+                                  <div :if={remediation.command} class="tl-command-copy">
+                                    <code class="tl-remediation__command"><%= remediation.command %></code>
+                                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-copy--command" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>
+                                      Copy
+                                    </button>
+                                  </div>
+                                  <span class="tl-hint tl-row-action__hint"><%= remediation.follow_up %></span>
+                                </div>
+                              </details>
+                            </div>
                           </td>
                         </tr>
                       <% end %>
@@ -198,7 +247,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="TABLE"><code><%= table %></code></td>
                           <td data-label="STATUS"><span class="tl-chip tl-chip--warning">Expected gap</span></td>
                           <td data-label="SOURCE"><%= source_for(table) %></td>
-                          <td data-label="Actions" class="tl-table__actions"><span class="tl-hint">Excluded from readiness</span></td>
+                          <td data-label="Actions" class="tl-table__actions">
+                            <div class="tl-coverage-actions">
+                              <span class="tl-hint">Excluded from readiness</span>
+                            </div>
+                          </td>
                         </tr>
                       <% end %>
                       <%= for table <- @coverage_for_schema.tables[:covered] do %>
@@ -207,7 +260,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="STATUS"><span class="tl-chip tl-chip--success">Captured</span></td>
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
-                            <.link navigate={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">View activity</.link>
+                            <div class="tl-coverage-actions">
+                              <.link navigate={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">
+                                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                                View activity
+                              </.link>
+                            </div>
                           </td>
                         </tr>
                       <% end %>

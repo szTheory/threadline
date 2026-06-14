@@ -91,9 +91,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-danger: #FF8585;
           --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
           --tl-color-danger-border: rgba(255, 133, 133, 0.48);
-          --tl-color-warning-bg: rgba(243, 185, 76, 0.16);
-          --tl-color-warning-text: #FFD166;
-          --tl-color-warning-border: rgba(255, 209, 102, 0.50);
+          --tl-color-warning-bg: rgba(255, 209, 102, 0.10);
+          --tl-color-warning-text: #F6C86B;
+          --tl-color-warning-dot: #F6C86B;
+          --tl-color-warning-border: rgba(246, 200, 107, 0.56);
           --tl-color-success-bg: rgba(63, 208, 143, 0.16);
           --tl-color-success-text: #5AE0A2;
           --tl-color-success-border: rgba(90, 224, 162, 0.44);
@@ -129,8 +130,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-z-toast: 60;
           --tl-header-height: 44px;
           --tl-header-height-mobile: 52px;
-          --tl-brand-mark-size: 24px;
-          --tl-brand-mark-size-desktop: 26px;
+          --tl-brand-logo-width: 132px;
+          --tl-brand-logo-height: 32px;
+          --tl-brand-logo-width-desktop: 148px;
+          --tl-brand-logo-height-desktop: 36px;
           --tl-control-height: 40px;
           --tl-control-height-compact: 32px;
           --tl-control-height-chip: 24px;
@@ -141,6 +144,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-row-padding: var(--tl-space-3);
           --tl-table-min-width: 720px;
           --tl-drawer-width: 760px;
+          --tl-shell-gutter: var(--tl-space-4);
           --tl-viewport-max-height: 600px;
           /* Phase 142 breakpoint tokens document the accepted phone/tablet/desktop scale.
              CSS custom properties are not valid inside @media conditions, so media
@@ -213,7 +217,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
           --tl-color-danger-border: rgba(163, 52, 52, 0.28);
           --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
-          --tl-color-warning-text: #7A5400;
+          --tl-color-warning-text: #8A5512;
+          --tl-color-warning-dot: #CA8A04;
           --tl-color-warning-border: rgba(122, 84, 0, 0.30);
           --tl-color-success-bg: rgba(19, 108, 71, 0.12);
           --tl-color-success-text: #136C47;
@@ -264,7 +269,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
             --tl-color-danger-border: rgba(163, 52, 52, 0.28);
             --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
-            --tl-color-warning-text: #7A5400;
+            --tl-color-warning-text: #8A5512;
+            --tl-color-warning-dot: #CA8A04;
             --tl-color-warning-border: rgba(122, 84, 0, 0.30);
             --tl-color-success-bg: rgba(19, 108, 71, 0.12);
             --tl-color-success-text: #136C47;
@@ -280,6 +286,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
             --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
             --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+          }
+        }
+
+        /* Phase 167 (B): coverage table row hover polarity on light surfaces.
+           The dark base keeps surface-raised default / surface hover (correct on
+           dark, where raised is lighter than surface). On white that reads inverted
+           (tinted default -> white hover), so the light and system lanes flip to a
+           white default with a tinted hover. Additive only; the dark base rule and
+           tokens are untouched. Row-to-row separation is preserved by the per-cell
+           border-bottom (.tl-table td). */
+        .threadline-ui[data-tl-theme="light"] .tl-table {
+          background: var(--tl-color-surface);
+        }
+
+        .threadline-ui[data-tl-theme="light"] .tl-table--actionable tbody tr:hover {
+          background: var(--tl-color-surface-hover);
+        }
+
+        @media (prefers-color-scheme: light) {
+          .threadline-ui[data-tl-theme="system"] .tl-table {
+            background: var(--tl-color-surface);
+          }
+
+          .threadline-ui[data-tl-theme="system"] .tl-table--actionable tbody tr:hover {
+            background: var(--tl-color-surface-hover);
           }
         }
 
@@ -344,6 +375,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           top: var(--tl-space-2);
         }
 
+        .tl-sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
         .threadline-ui code,
         .threadline-ui pre,
         .tl-code {
@@ -386,14 +429,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: inline-flex;
           align-items: center;
           flex: 0 0 auto;
-          gap: var(--tl-space-2);
-          min-height: 32px;
+          min-height: var(--tl-brand-logo-height);
           color: var(--tl-color-text);
-          font-weight: var(--tl-weight-strong);
           letter-spacing: 0;
           line-height: var(--tl-line-label);
           text-decoration: none;
           white-space: nowrap;
+        }
+
+        .threadline-ui a.tl-topbar__brand,
+        .threadline-ui a.tl-topbar__brand:hover,
+        .threadline-ui a.tl-topbar__brand:focus-visible {
+          color: var(--tl-color-text);
+          text-decoration: none;
         }
 
         .tl-topbar__brand:hover {
@@ -401,15 +449,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-topbar__brand-mark {
+        .tl-topbar__brand-logo {
           display: block;
-          width: var(--tl-brand-mark-size);
-          height: var(--tl-brand-mark-size);
-          flex: 0 0 var(--tl-brand-mark-size);
+          width: var(--tl-brand-logo-width);
+          height: var(--tl-brand-logo-height);
+          flex: 0 0 var(--tl-brand-logo-width);
+          overflow: visible;
         }
 
-        .tl-topbar__brand-text {
-          display: inline-block;
+        .tl-topbar__brand-wordmark {
+          font-family: var(--tl-font-family);
+          font-weight: var(--tl-weight-strong);
         }
 
         .tl-topbar__status .tl-chip {
@@ -458,10 +508,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: flex;
           align-items: center;
           justify-content: space-between;
+          width: 100%;
           min-height: var(--tl-hit-area);
           padding: var(--tl-space-2) var(--tl-space-3);
+          border: 0;
+          background: transparent;
           color: var(--tl-color-text);
           cursor: pointer;
+          font: inherit;
           font-weight: var(--tl-weight-strong);
           list-style: none;
         }
@@ -484,6 +538,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transform: rotate(225deg);
         }
 
+        .tl-shell-nav.tl-shell-nav--open .tl-shell-nav__toggle::after {
+          transform: rotate(225deg);
+        }
+
         .tl-shell-nav__panel {
           display: none;
           gap: var(--tl-space-3);
@@ -496,7 +554,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
         }
 
+        .tl-shell-nav.tl-shell-nav--open .tl-shell-nav__panel {
+          display: grid;
+        }
+
         .tl-shell-nav__control:focus-visible + .tl-shell-nav .tl-shell-nav__toggle {
+          outline: 2px solid var(--tl-color-focus);
+          outline-offset: 2px;
+        }
+
+        .tl-shell-nav__toggle:focus-visible {
           outline: 2px solid var(--tl-color-focus);
           outline-offset: 2px;
         }
@@ -505,6 +572,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
           gap: var(--tl-space-1);
           min-width: 0;
+        }
+
+        .tl-shell-nav__overview {
+          display: grid;
+          min-width: 0;
+          padding-bottom: var(--tl-space-2);
+          border-bottom: 1px solid var(--tl-color-border);
         }
 
         .tl-shell-nav__label {
@@ -921,18 +995,138 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           position: static;
           top: var(--tl-header-height);
           z-index: var(--tl-z-toolbar);
+          display: grid;
+          gap: var(--tl-space-3);
           padding: var(--tl-space-3);
           background: var(--tl-color-surface-tint-strong);
-          border-bottom: 1px solid var(--tl-color-border);
-          box-shadow: 0 1px 0 rgba(2, 4, 10, 0.30);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
           backdrop-filter: blur(var(--tl-blur-panel));
         }
 
-        .tl-toolbar__form {
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
+        .tl-timeline-command {
+          margin-bottom: var(--tl-space-4);
+        }
+
+        .tl-timeline-command__summary {
+          display: grid;
           gap: var(--tl-space-3);
+          align-items: start;
+        }
+
+        .tl-timeline-command__heading {
+          display: grid;
+          gap: var(--tl-space-1);
+          min-width: 0;
+        }
+
+        .tl-timeline-command__title {
+          margin: 0;
+          color: var(--tl-color-text);
+          font-size: var(--tl-font-size-heading);
+          font-weight: var(--tl-weight-strong);
+          line-height: var(--tl-line-heading);
+          letter-spacing: 0;
+          text-wrap: balance;
+        }
+
+        .tl-timeline-command__lede {
+          max-width: 68ch;
+          margin: 0;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-ui);
+          line-height: var(--tl-line-body);
+          text-wrap: pretty;
+        }
+
+        .tl-timeline-command__facts {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: var(--tl-space-2);
+          min-width: 0;
+        }
+
+        .tl-timeline-fact {
+          display: grid;
+          gap: 2px;
+          min-width: 0;
+          padding: var(--tl-space-2) var(--tl-space-3);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-surface-raised);
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-border-strong), var(--tl-shadow-border);
+        }
+
+        .tl-timeline-fact[data-status="info"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-info-text), var(--tl-shadow-border);
+        }
+
+        .tl-timeline-fact[data-status="warning"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-warning-border), var(--tl-shadow-border);
+        }
+
+        .tl-timeline-fact[data-status="success"] {
+          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text), var(--tl-shadow-border);
+        }
+
+        .tl-timeline-fact__label {
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          line-height: var(--tl-line-label);
+          text-transform: uppercase;
+          letter-spacing: var(--tl-tracking-caps);
+        }
+
+        .tl-timeline-fact__value {
+          min-width: 0;
+          color: var(--tl-color-text);
+          font-size: var(--tl-font-size-ui);
+          font-weight: var(--tl-weight-strong);
+          line-height: var(--tl-line-label);
+          overflow-wrap: anywhere;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .tl-timeline-fact__detail {
+          min-width: 0;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-xs);
+          line-height: var(--tl-line-label);
+          overflow-wrap: anywhere;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .tl-toolbar__form {
+          display: grid;
+          gap: var(--tl-space-3);
+        }
+
+        .tl-filter-group {
+          display: grid;
+          min-width: 0;
+          margin: 0;
+          padding: 0;
+          border: 0;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-filter-group__legend {
+          padding: 0;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          line-height: var(--tl-line-label);
+          text-transform: uppercase;
+          letter-spacing: var(--tl-tracking-caps);
+        }
+
+        .tl-filter-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: var(--tl-space-3);
+          align-items: start;
+          min-width: 0;
         }
 
         .tl-toolbar__field {
@@ -952,7 +1146,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-toolbar__field--wide {
           min-width: min(280px, 100%);
-          flex: 1 1 240px;
         }
 
         .tl-toolbar__control,
@@ -1006,12 +1199,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-toolbar__actions {
           display: flex;
-          flex: 1 1 320px;
           flex-wrap: wrap;
-          align-items: center;
+          align-items: flex-end;
           justify-content: flex-start;
           gap: var(--tl-space-2);
-          margin-left: auto;
+          min-width: 0;
+        }
+
+        .tl-filter-actions {
+          align-self: end;
+          padding-top: calc(var(--tl-font-size-label) * var(--tl-line-label) + var(--tl-space-1));
         }
 
         .tl-action-group {
@@ -1024,6 +1221,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-action-group--secondary {
           padding-left: 0;
           border-left: 0;
+        }
+
+        .tl-filter-disclosure {
+          display: grid;
+          gap: var(--tl-space-3);
+          min-width: 0;
+          padding-top: var(--tl-space-3);
+          border-top: 1px solid var(--tl-color-border);
+        }
+
+        .tl-filter-disclosure__summary {
+          min-height: var(--tl-control-height-compact);
+          display: inline-flex;
+          width: fit-content;
+          align-items: center;
+          gap: var(--tl-space-2);
+          color: var(--tl-color-text);
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-medium);
+          line-height: var(--tl-line-label);
+          cursor: pointer;
+          list-style: none;
+        }
+
+        .tl-filter-disclosure__summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .tl-filter-disclosure__summary::before {
+          content: "";
+          width: var(--tl-chevron-size);
+          height: var(--tl-chevron-size);
+          border-right: var(--tl-chevron-stroke) solid currentColor;
+          border-bottom: var(--tl-chevron-stroke) solid currentColor;
+          transform: rotate(-45deg);
+          transition-property: transform;
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
+        }
+
+        .tl-filter-disclosure[open] > .tl-filter-disclosure__summary::before {
+          transform: rotate(45deg);
         }
 
         .tl-toolbar__saved-views {
@@ -1052,12 +1291,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           gap: var(--tl-space-1);
         }
 
+        .tl-timeline-command__status {
+          border-top: 1px solid var(--tl-color-border);
+        }
+
+        .tl-timeline-command__utilities {
+          display: grid;
+          gap: var(--tl-space-3);
+          padding-top: var(--tl-space-3);
+          border-top: 1px solid var(--tl-color-border);
+        }
+
+        .tl-utility-group {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          min-width: 0;
+        }
+
+        .tl-utility-group__label {
+          flex: 0 0 100%;
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-medium);
+          line-height: var(--tl-line-label);
+          text-transform: uppercase;
+          letter-spacing: var(--tl-tracking-caps);
+        }
+
+        .tl-saved-view-form {
+          display: flex;
+          flex: 1 1 320px;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          min-width: 0;
+        }
+
+        .tl-saved-view-form .tl-control {
+          flex: 1 1 180px;
+          min-width: min(220px, 100%);
+        }
+
         .tl-button {
           min-height: var(--tl-hit-area);
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: var(--tl-space-1);
+          gap: var(--tl-space-2);
           padding: var(--tl-space-2) var(--tl-space-3);
           border: 1px solid transparent;
           border-radius: var(--tl-radius-md);
@@ -1073,6 +1355,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transition-timing-function: var(--tl-ease-standard);
         }
 
+        .threadline-ui a.tl-button,
+        .threadline-ui a.tl-button:hover,
+        .threadline-ui a.tl-button:focus-visible,
+        .threadline-ui a.tl-chip,
+        .threadline-ui a.tl-chip:hover,
+        .threadline-ui a.tl-chip:focus-visible {
+          text-decoration: none;
+        }
+
         .tl-button:hover {
           border-color: var(--tl-color-border-strong);
           background: var(--tl-color-surface-hover);
@@ -1082,7 +1373,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-button:active {
-          transform: translateY(1px);
+          transform: scale(0.96);
         }
 
         .tl-button:disabled,
@@ -1121,6 +1412,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-accent-strong);
         }
 
+        .threadline-ui a.tl-button--quiet-primary,
+        .threadline-ui a.tl-button--quiet-primary:hover {
+          color: var(--tl-color-accent-strong);
+        }
+
         .tl-button--quiet-primary:hover {
           border-color: var(--tl-color-accent-border);
           background: var(--tl-color-accent-soft);
@@ -1133,7 +1429,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-on-accent);
         }
 
-        .threadline-ui a.tl-button--primary {
+        .threadline-ui a.tl-button--primary,
+        .threadline-ui a.tl-button--primary:hover {
           color: var(--tl-color-on-accent);
         }
 
@@ -1148,6 +1445,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-text);
         }
 
+        .threadline-ui a.tl-button--secondary,
+        .threadline-ui a.tl-button--secondary:hover {
+          color: var(--tl-color-text);
+        }
+
         .tl-button--secondary:hover {
           border-color: var(--tl-color-border-focus);
         }
@@ -1158,6 +1460,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-muted);
         }
 
+        .threadline-ui a.tl-button--ghost {
+          color: var(--tl-color-muted);
+        }
+
+        .threadline-ui a.tl-button--ghost:hover {
+          color: var(--tl-color-text);
+        }
+
         .tl-button--ghost:hover {
           border-color: var(--tl-color-border);
           background: var(--tl-color-neutral-bg);
@@ -1165,6 +1475,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-button--danger {
+          color: var(--tl-color-danger);
+        }
+
+        .threadline-ui a.tl-button--danger,
+        .threadline-ui a.tl-button--danger:hover {
           color: var(--tl-color-danger);
         }
 
@@ -1186,6 +1501,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-size: 16px;
         }
 
+        .tl-icon {
+          display: inline-block;
+          width: 1em;
+          height: 1em;
+          flex: 0 0 auto;
+          color: currentColor;
+          fill: none;
+          stroke: currentColor;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-width: 2;
+        }
+
+        .tl-button__icon {
+          width: 16px;
+          height: 16px;
+        }
+
         .tl-link {
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
@@ -1200,9 +1533,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           color: var(--tl-color-accent);
         }
 
+        .threadline-ui .tl-link:hover {
+          text-decoration: underline;
+        }
+
         .tl-chip {
           display: inline-flex;
           align-items: center;
+          gap: var(--tl-space-1);
           min-height: var(--tl-control-height-chip);
           padding: var(--tl-space-1) var(--tl-space-2);
           border: 1px solid var(--tl-color-border);
@@ -1216,16 +1554,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-variant-numeric: tabular-nums;
         }
 
+        /* Phase 167 — status chips: "signal node" treatment (cross-mode redesign).
+           The status color lives in a single dot (--tl-chip-dot) plus a faint fill;
+           the label text is neutral and readable. Replaces the prior tone-on-tone
+           (status-colored text on a same-hue tint), which read muddy on white. Authored
+           in the shared base rules so :dark and :light share one designed treatment —
+           this intentionally retires the chip from the dark byte-stable freeze (167 D-09). */
+        .tl-chip--info::before,
+        .tl-chip--warning::before,
+        .tl-chip--danger::before,
+        .tl-chip--success::before {
+          content: "";
+          width: 6px;
+          height: 6px;
+          flex: 0 0 6px;
+          border-radius: var(--tl-radius-pill);
+          background: var(--tl-chip-dot);
+        }
+
         .tl-chip--accent {
-          border-color: var(--tl-color-info-border);
-          background: var(--tl-color-info-bg);
-          color: var(--tl-color-info-text);
+          color: var(--tl-color-text);
+          --tl-chip-dot: var(--tl-color-info-text);
         }
 
         .tl-chip--info {
-          border-color: var(--tl-color-info-border);
-          background: var(--tl-color-info-bg);
-          color: var(--tl-color-info-text);
+          color: var(--tl-color-text);
+          --tl-chip-dot: var(--tl-color-info-text);
         }
 
         .tl-chip--muted,
@@ -1236,21 +1590,65 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-chip--warning {
-          border-color: var(--tl-color-warning-border);
-          background: var(--tl-color-warning-bg);
-          color: var(--tl-color-warning-text);
+          color: var(--tl-color-text);
+          --tl-chip-dot: var(--tl-color-warning-dot);
+        }
+
+        .threadline-ui a.tl-chip--warning,
+        .threadline-ui a.tl-chip--warning:hover,
+        .threadline-ui a.tl-chip--warning:focus-visible {
+          color: var(--tl-color-text);
+        }
+
+        .threadline-ui a.tl-chip--info,
+        .threadline-ui a.tl-chip--info:hover,
+        .threadline-ui a.tl-chip--info:focus-visible {
+          color: var(--tl-color-text);
+        }
+
+        .threadline-ui a.tl-chip--accent,
+        .threadline-ui a.tl-chip--accent:hover,
+        .threadline-ui a.tl-chip--accent:focus-visible {
+          color: var(--tl-color-text);
+        }
+
+        .threadline-ui a.tl-chip--muted,
+        .threadline-ui a.tl-chip--muted:hover,
+        .threadline-ui a.tl-chip--muted:focus-visible,
+        .threadline-ui a.tl-chip--neutral,
+        .threadline-ui a.tl-chip--neutral:hover,
+        .threadline-ui a.tl-chip--neutral:focus-visible {
+          color: var(--tl-color-muted);
+        }
+
+        .threadline-ui a.tl-chip--danger,
+        .threadline-ui a.tl-chip--danger:hover,
+        .threadline-ui a.tl-chip--danger:focus-visible {
+          color: var(--tl-color-text);
+        }
+
+        .threadline-ui a.tl-chip--success,
+        .threadline-ui a.tl-chip--success:hover,
+        .threadline-ui a.tl-chip--success:focus-visible {
+          color: var(--tl-color-text);
+        }
+
+        .threadline-ui a.tl-chip--accent:hover,
+        .threadline-ui a.tl-chip--info:hover,
+        .threadline-ui a.tl-chip--warning:hover,
+        .threadline-ui a.tl-chip--danger:hover,
+        .threadline-ui a.tl-chip--success:hover {
+          text-decoration: underline;
         }
 
         .tl-chip--danger {
-          border-color: var(--tl-color-danger-border);
-          background: var(--tl-color-danger-bg);
-          color: var(--tl-color-danger);
+          color: var(--tl-color-text);
+          --tl-chip-dot: var(--tl-color-danger);
         }
 
         .tl-chip--success {
-          border-color: var(--tl-color-success-border);
-          background: var(--tl-color-success-bg);
-          color: var(--tl-color-success-text);
+          color: var(--tl-color-text);
+          --tl-chip-dot: var(--tl-color-success-text);
         }
 
         .tl-alert {
@@ -1337,12 +1735,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-status {
-          padding: var(--tl-space-2) var(--tl-space-4);
-          border-bottom: 1px solid var(--tl-color-border);
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          padding: var(--tl-space-2) 0 0;
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
           font-variant-numeric: tabular-nums;
+        }
+
+        .tl-status strong {
+          color: var(--tl-color-text);
+          font-weight: var(--tl-weight-medium);
         }
 
         .tl-summary-grid {
@@ -1916,13 +2322,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           flex-wrap: wrap;
           align-items: center;
           gap: var(--tl-space-2);
-          padding: var(--tl-space-2) var(--tl-space-3);
-          border: 1px solid var(--tl-color-border);
-          border-radius: var(--tl-radius-md);
-          background: var(--tl-color-surface);
+          padding-top: var(--tl-space-3);
+          border-top: 1px solid var(--tl-color-border);
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
+        }
+
+        .tl-filter-summary > strong {
+          color: var(--tl-color-text);
+          font-weight: var(--tl-weight-medium);
+        }
+
+        .tl-filter-summary__window {
+          min-width: 0;
+          overflow-wrap: anywhere;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .tl-filter-summary__empty {
+          color: var(--tl-color-muted);
         }
 
         .tl-journey--legend {
@@ -1973,6 +2392,93 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
           font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-coverage-actions {
+          display: grid;
+          gap: var(--tl-space-2);
+          justify-items: start;
+          min-width: 0;
+          max-width: 100%;
+          white-space: normal;
+        }
+
+        .tl-row-action {
+          display: grid;
+          gap: var(--tl-space-2);
+          min-width: 0;
+          max-width: 100%;
+        }
+
+        .tl-row-action__summary {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--tl-space-2);
+          min-height: var(--tl-hit-area);
+          width: fit-content;
+          padding: var(--tl-space-1) var(--tl-space-3);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-surface);
+          color: var(--tl-color-accent-strong);
+          cursor: pointer;
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          font-weight: var(--tl-weight-strong);
+          list-style: none;
+          transition-property: color, background-color, border-color, box-shadow;
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
+        }
+
+        .tl-row-action__summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .tl-row-action__summary::marker {
+          content: "";
+        }
+
+        .tl-row-action__summary:hover {
+          border-color: var(--tl-color-border-focus);
+          background: var(--tl-color-surface-hover);
+          color: var(--tl-color-text);
+        }
+
+        .tl-row-action[open] > .tl-row-action__summary {
+          border-color: var(--tl-color-warning-border);
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
+        }
+
+        .tl-row-action__body {
+          display: grid;
+          gap: var(--tl-space-2);
+          min-width: 0;
+          max-width: 100%;
+          padding: var(--tl-space-2);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+          background: var(--tl-color-surface);
+        }
+
+        .tl-command-copy {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: start;
+          gap: var(--tl-space-2);
+          min-width: 0;
+          max-width: 100%;
+        }
+
+        .tl-row-action__hint {
+          min-width: 0;
+          overflow-wrap: anywhere;
+          white-space: normal;
+        }
+
+        .tl-copy--command {
+          min-height: var(--tl-control-height-compact);
         }
 
         .tl-short-content {
@@ -2559,11 +3065,64 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface);
         }
 
+        #tl-main > .tl-trust-rail {
+          margin-bottom: var(--tl-space-4);
+        }
+
+        .tl-coverage-command .tl-trust-rail {
+          margin-bottom: 0;
+        }
+
         .tl-trust-rail__label {
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
           font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-coverage-command {
+          display: grid;
+          gap: var(--tl-space-3);
+          margin-bottom: var(--tl-space-4);
+          padding: var(--tl-space-3);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-lg);
+          background: var(--tl-color-surface-tint-strong);
+          box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
+        }
+
+        .tl-coverage-command__header {
+          display: grid;
+          gap: var(--tl-space-3);
+          align-items: start;
+          min-width: 0;
+        }
+
+        .tl-coverage-command__heading {
+          min-width: 0;
+        }
+
+        .tl-coverage-command__actions {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: flex-start;
+          gap: var(--tl-space-2);
+          min-width: 0;
+        }
+
+        .tl-coverage-command__metrics {
+          margin-bottom: 0;
+        }
+
+        .tl-table--coverage .tl-table__actions {
+          white-space: normal;
+        }
+
+        .tl-table--coverage td[data-label="TABLE"] code {
+          display: inline-block;
+          max-width: 100%;
+          min-width: 0;
         }
 
         .tl-record-list {
@@ -2793,6 +3352,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             display: grid;
             grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);
             grid-template-rows: auto 1fr;
+            column-gap: var(--tl-shell-gutter);
           }
 
           .tl-topbar {
@@ -2841,15 +3401,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             min-height: var(--tl-control-height-compact);
           }
 
-          .tl-toolbar__field,
-          .tl-toolbar__control {
-            width: auto;
+          .tl-timeline-command__facts {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
           }
 
-          .tl-toolbar__form {
-            flex-direction: row;
-            flex-wrap: wrap;
-            align-items: flex-end;
+          .tl-filter-grid--primary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .tl-filter-grid--advanced {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+
+          .tl-coverage-command__header {
+            grid-template-columns: minmax(0, 1fr) auto;
+          }
+
+          .tl-coverage-command__actions {
+            justify-content: flex-end;
           }
         }
 
@@ -2888,8 +3457,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             padding: var(--tl-space-4);
           }
 
+          .tl-timeline-command__summary {
+            grid-template-columns: minmax(0, 1.15fr) minmax(520px, .85fr);
+            align-items: start;
+          }
+
+          .tl-filter-grid--primary {
+            grid-template-columns: minmax(178px, .8fr) minmax(178px, .8fr) minmax(180px, 1fr) minmax(240px, 1.3fr);
+          }
+
           .tl-toolbar__actions {
+            grid-column: 1 / -1;
             justify-content: flex-end;
+          }
+
+          .tl-timeline-command__utilities {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .tl-utility-group__label {
+            flex-basis: auto;
+            min-width: 52px;
           }
 
           .tl-page__header {
@@ -2934,10 +3522,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             padding: var(--tl-space-1) var(--tl-space-4);
           }
 
-          .tl-topbar__brand-mark {
-            width: var(--tl-brand-mark-size-desktop);
-            height: var(--tl-brand-mark-size-desktop);
-            flex-basis: var(--tl-brand-mark-size-desktop);
+          .tl-topbar__brand-logo {
+            width: var(--tl-brand-logo-width-desktop);
+            height: var(--tl-brand-logo-height-desktop);
+            flex-basis: var(--tl-brand-logo-width-desktop);
           }
 
           .tl-shell-nav {
@@ -2998,6 +3586,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             width: 100%;
           }
 
+          .tl-table--coverage {
+            table-layout: fixed;
+          }
+
+          .tl-table--coverage th:nth-child(1),
+          .tl-table--coverage td:nth-child(1) {
+            width: 22%;
+          }
+
+          .tl-table--coverage th:nth-child(2),
+          .tl-table--coverage td:nth-child(2) {
+            width: 16%;
+          }
+
+          .tl-table--coverage th:nth-child(3),
+          .tl-table--coverage td:nth-child(3) {
+            width: 14%;
+          }
+
+          .tl-table--coverage th:nth-child(4),
+          .tl-table--coverage td:nth-child(4) {
+            width: 48%;
+          }
+
           .tl-table--responsive tbody {
             display: table-row-group;
             width: auto;
@@ -3044,6 +3656,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           .tl-button:active {
             transform: none;
+          }
+
+          .tl-subview {
+            animation: none !important;
+            transform: none !important;
           }
         }
       </style>
