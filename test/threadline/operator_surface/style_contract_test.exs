@@ -15,6 +15,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "color-scheme: light;")
     assert String.contains?(src, "--tl-color-accent-inset: rgba(127, 169, 255, 0.16);")
     assert String.contains?(src, "--tl-color-accent-inset: rgba(21, 87, 192, 0.16);")
+
     assert String.contains?(
              src,
              "box-shadow: inset 0 0 0 1px var(--tl-color-accent-inset);"
@@ -81,6 +82,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           ".tl-actor-summary",
           ".tl-remediation__command",
           ".tl-remediation__action",
+          ".tl-coverage-actions",
+          ".tl-row-action",
+          ".tl-row-action__summary",
+          ".tl-command-copy",
           ".tl-short-content"
         ] do
       assert String.contains?(src, class)
@@ -111,11 +116,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> List.first()
 
     for selector <- [
-          ".tl-topbar__brand-mark",
-          ".tl-topbar__brand-text",
+          ".tl-topbar__brand-logo",
+          ".tl-topbar__brand-wordmark",
           ".tl-shell-nav",
           ".tl-shell-nav__toggle",
           ".tl-shell-nav__panel",
+          ".tl-shell-nav__overview",
           ".tl-shell-nav__group",
           ".tl-shell-nav__label",
           ~s|.threadline-ui .tl-shell-nav__item[aria-current="page"]|
@@ -133,18 +139,19 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(topbar_section, ".tl-topbar__brand", [
       "display: inline-flex;",
       "flex: 0 0 auto;",
-      "gap: var(--tl-space-2);",
+      "min-height: var(--tl-brand-logo-height);",
       "white-space: nowrap;"
     ])
 
-    assert_selector_contains(topbar_section, ".tl-topbar__brand-mark", [
-      "width: var(--tl-brand-mark-size);",
-      "height: var(--tl-brand-mark-size);",
-      "flex: 0 0 var(--tl-brand-mark-size);"
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-logo", [
+      "width: var(--tl-brand-logo-width);",
+      "height: var(--tl-brand-logo-height);",
+      "flex: 0 0 var(--tl-brand-logo-width);"
     ])
 
-    assert_selector_contains(topbar_section, ".tl-topbar__brand-text", [
-      "display: inline-block;"
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-wordmark", [
+      "font-family: var(--tl-font-family);",
+      "font-weight: var(--tl-weight-strong);"
     ])
   end
 
@@ -356,6 +363,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "animation-iteration-count: 1 !important;",
           "scroll-behavior: auto !important;",
           ".tl-button:active",
+          ".tl-subview",
+          "animation: none !important;",
           "transform: none;"
         ] do
       assert String.contains?(reduced_motion, required),
@@ -417,14 +426,63 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       ["display: grid;"]
     )
 
+    assert_selector_contains(base, ".tl-shell-nav.tl-shell-nav--open .tl-shell-nav__panel", [
+      "display: grid;"
+    ])
+
     assert_selector_contains(base, ".tl-shell-nav__toggle", [
       "min-height: var(--tl-hit-area);",
       "cursor: pointer;"
     ])
 
+    assert_selector_contains(base, ".tl-shell-nav__overview", [
+      "display: grid;",
+      "padding-bottom: var(--tl-space-2);",
+      "border-bottom: 1px solid var(--tl-color-border);"
+    ])
+
     assert_selector_contains(base, ".tl-toolbar__form", [
-      "flex-direction: column;",
-      "align-items: stretch;"
+      "display: grid;",
+      "gap: var(--tl-space-3);"
+    ])
+
+    assert_selector_contains(base, ".tl-filter-grid", [
+      "display: grid;",
+      "grid-template-columns: 1fr;",
+      "align-items: start;"
+    ])
+
+    assert_selector_contains(base, ".tl-filter-disclosure", [
+      "display: grid;",
+      "border-top: 1px solid var(--tl-color-border);"
+    ])
+
+    assert_selector_contains(base, "#tl-main > .tl-trust-rail", [
+      "margin-bottom: var(--tl-space-4);"
+    ])
+
+    assert_selector_contains(base, ".tl-coverage-command .tl-trust-rail", [
+      "margin-bottom: 0;"
+    ])
+
+    assert_selector_contains(base, ".tl-coverage-command", [
+      "display: grid;",
+      "gap: var(--tl-space-3);",
+      "margin-bottom: var(--tl-space-4);"
+    ])
+
+    assert_selector_contains(base, ".tl-table--coverage .tl-table__actions", [
+      "white-space: normal;"
+    ])
+
+    assert_selector_contains(base, ".tl-row-action__summary", [
+      "min-height: var(--tl-hit-area);",
+      "cursor: pointer;"
+    ])
+
+    assert_selector_contains(base, ".tl-command-copy", [
+      "grid-template-columns: minmax(0, 1fr) auto;",
+      "min-width: 0;"
     ])
 
     assert_selector_contains(base, ".tl-table-wrap .tl-table--responsive", ["min-width: 0;"])
@@ -467,20 +525,43 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(tablet, ".tl-page", ["padding: var(--tl-space-3);"])
     assert_selector_contains(desktop, ".tl-page", ["padding: var(--tl-space-4);"])
 
-    assert_selector_contains(tablet, ".tl-toolbar__form", [
-      "flex-direction: row;",
-      "flex-wrap: wrap;",
-      "align-items: flex-end;"
+    assert_selector_contains(tablet, ".tl-timeline-command__facts", [
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+    ])
+
+    assert_selector_contains(tablet, ".tl-filter-grid--primary", [
+      "grid-template-columns: repeat(2, minmax(0, 1fr));"
+    ])
+
+    assert_selector_contains(tablet, ".tl-filter-grid--advanced", [
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+    ])
+
+    assert_selector_contains(tablet, ".tl-coverage-command__header", [
+      "grid-template-columns: minmax(0, 1fr) auto;"
     ])
 
     assert_selector_contains(tablet, ".threadline-ui .tl-shell-nav__item", [
       "min-height: var(--tl-control-height-compact);"
     ])
 
-    assert_selector_contains(desktop, ".tl-topbar__brand-mark", [
-      "width: var(--tl-brand-mark-size-desktop);",
-      "height: var(--tl-brand-mark-size-desktop);",
-      "flex-basis: var(--tl-brand-mark-size-desktop);"
+    assert_selector_contains(desktop, ".tl-topbar__brand-logo", [
+      "width: var(--tl-brand-logo-width-desktop);",
+      "height: var(--tl-brand-logo-height-desktop);",
+      "flex-basis: var(--tl-brand-logo-width-desktop);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-filter-grid--primary", [
+      "grid-template-columns: minmax(178px, .8fr) minmax(178px, .8fr) minmax(180px, 1fr) minmax(240px, 1.3fr);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-toolbar__actions", [
+      "grid-column: 1 / -1;",
+      "justify-content: flex-end;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-timeline-command__utilities", [
+      "grid-template-columns: repeat(2, minmax(0, 1fr));"
     ])
 
     refute String.contains?(tablet, ".tl-table--responsive thead"),
@@ -496,6 +577,18 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(desktop, ".tl-table--responsive thead", [
       "display: table-header-group;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--coverage", [
+      "table-layout: fixed;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--coverage td:nth-child(1)", [
+      "width: 22%;"
+    ])
+
+    assert_selector_contains(desktop, ".tl-table--coverage td:nth-child(4)", [
+      "width: 48%;"
     ])
 
     assert_selector_contains(desktop, ".tl-table--responsive tr", [
@@ -592,6 +685,50 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "base accent links must meet AA contrast on raised surfaces"
   end
 
+  test "phase 168 alpha-aware color_tokens parses rgba and opaque hex" do
+    src = """
+    .threadline-ui[data-tl-theme="light"] {
+      --tl-color-danger: #A33434;
+      --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
+      --tl-color-accent-soft: rgba(21, 87, 192, 0.12);
+    }
+    """
+
+    tokens = color_tokens(src)
+
+    # Opaque hex passes through unchanged (straight into contrast_ratio/2).
+    assert tokens["--tl-color-danger"] == "#A33434"
+
+    # rgba(...) tokens are no longer silently dropped — they parse to {r,g,b,a}.
+    assert tokens["--tl-color-danger-bg"] == {163, 52, 52, 0.10}
+    assert tokens["--tl-color-accent-soft"] == {21, 87, 192, 0.12}
+  end
+
+  test "phase 168 composite blends translucent tokens over a per-mode opaque base" do
+    # round(src*a + base*(1-a)) per channel, returning a "#RRGGBB" feedable to
+    # relative_luminance/1 without change.
+    danger_bg = {163, 52, 52, 0.10}
+
+    over_white = composite(danger_bg, "#FFFFFF")
+    over_dark = composite(danger_bg, "#141B2D")
+
+    # 7-char opaque hex out.
+    assert String.match?(over_white, ~r/^#[0-9A-Fa-f]{6}$/)
+    assert String.match?(over_dark, ~r/^#[0-9A-Fa-f]{6}$/)
+
+    # round(163*0.1 + 255*0.9) = round(245.8) = 246 = F6, etc.
+    assert String.upcase(over_white) == "#F6EBEB"
+
+    # The base is caller-named per mode: different base => different result.
+    refute over_white == over_dark
+
+    # An opaque hex passed through the composite path is unchanged (no double-composite).
+    assert composite("#A33434", "#FFFFFF") == "#A33434"
+
+    # Composite output feeds the existing WCAG pipeline verbatim.
+    assert contrast_ratio("#A33434", over_white) >= 4.5
+  end
+
   test "phase 143 focus-visible and non-color status contracts stay locked" do
     src = File.read!(@style_path)
 
@@ -626,7 +763,57 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           ".tl-chip--danger",
           ".tl-chip--success"
         ] do
-      assert_selector_contains(src, selector, ["border-color:", "background:", "color:"])
+      assert_selector_contains(src, selector, ["color:", "--tl-chip-dot:"])
+    end
+
+    for selector <- [
+          ".tl-chip--info::before",
+          ".tl-chip--warning::before",
+          ".tl-chip--danger::before",
+          ".tl-chip--success::before"
+        ] do
+      assert String.contains?(src, selector), "missing non-color status marker #{selector}"
+    end
+
+    assert String.contains?(src, "background: var(--tl-chip-dot);")
+  end
+
+  test "operator action primitives prevent host-link bleed and support icon buttons" do
+    src = File.read!(@style_path)
+
+    assert String.contains?(src, "--tl-shell-gutter: var(--tl-space-4);")
+    assert String.contains?(src, "column-gap: var(--tl-shell-gutter);")
+
+    assert String.contains?(src, ".threadline-ui a.tl-button,")
+    assert String.contains?(src, ".threadline-ui a.tl-button:hover,")
+    assert String.contains?(src, ".threadline-ui a.tl-chip,")
+    assert String.contains?(src, ".threadline-ui a.tl-chip:hover,")
+    assert String.contains?(src, ".threadline-ui a.tl-topbar__brand,")
+    assert String.contains?(src, ".threadline-ui a.tl-topbar__brand:hover,")
+    assert String.contains?(src, "text-decoration: none;")
+
+    assert_selector_contains(src, ".tl-button:active", ["transform: scale(0.96);"])
+
+    assert_selector_contains(src, ".tl-icon", [
+      "width: 1em;",
+      "height: 1em;",
+      "stroke: currentColor;"
+    ])
+
+    assert_selector_contains(src, ".tl-button__icon", [
+      "width: 16px;",
+      "height: 16px;"
+    ])
+
+    for selector <- [
+          ".threadline-ui a.tl-button--primary",
+          ".threadline-ui a.tl-button--secondary",
+          ".threadline-ui a.tl-button--ghost",
+          ".threadline-ui a.tl-chip--accent",
+          ".threadline-ui a.tl-chip--warning",
+          ".threadline-ui a.tl-chip--success"
+        ] do
+      assert String.contains?(src, selector), "missing anchored color override #{selector}"
     end
   end
 
@@ -652,10 +839,13 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-radius-pill: 999px;",
           "--tl-shadow-border:",
           "--tl-z-subview: 50;",
-          "--tl-brand-mark-size: 24px;",
-          "--tl-brand-mark-size-desktop: 26px;",
+          "--tl-brand-logo-width: 132px;",
+          "--tl-brand-logo-height: 32px;",
+          "--tl-brand-logo-width-desktop: 148px;",
+          "--tl-brand-logo-height-desktop: 36px;",
           "--tl-control-height: 40px;",
           "--tl-control-height-chip: 24px;",
+          "--tl-shell-gutter: var(--tl-space-4);",
           "--tl-breakpoint-tablet: 768px;",
           "--tl-breakpoint-desktop: 1280px;",
           "--tl-motion-fast: 120ms;",
@@ -669,6 +859,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".tl-button",
+          ".tl-icon",
           ".tl-chip",
           ".tl-card",
           ".tl-alert",
@@ -701,15 +892,23 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     src = File.read!(@style_path)
 
     for selector <- [
-          ".tl-chip--info",
-          ".tl-chip--warning",
-          ".tl-chip--danger",
-          ".tl-chip--success",
           ".tl-alert--error",
           ".tl-alert--warning",
           ".tl-alert--success"
         ] do
       assert_selector_contains(src, selector, ["border-color:", "background:", "color:"])
+      assert String.contains?(selector_block!(src, selector), "var(--tl-")
+    end
+
+    # Phase 167 (D-09): status chips carry status via a colored dot (--tl-chip-dot) on neutral
+    # chrome inherited from base .tl-chip — they set color + --tl-chip-dot, not their own fill/border.
+    for selector <- [
+          ".tl-chip--info",
+          ".tl-chip--warning",
+          ".tl-chip--danger",
+          ".tl-chip--success"
+        ] do
+      assert_selector_contains(src, selector, ["color:", "--tl-chip-dot:"])
       assert String.contains?(selector_block!(src, selector), "var(--tl-")
     end
 
@@ -731,6 +930,47 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-color-op-delete-text: var(--tl-color-danger);"
         ] do
       assert String.contains?(src, token), "missing phase 144 operation token #{token}"
+    end
+  end
+
+  test "phase 167 light overrides are authored in both the light lane and the system branch (D-07a)" do
+    src = File.read!(@style_path)
+
+    # 167 fix-list (LIGHT-REVIEW.md): A = status-chip "signal dot" redesign (D-09), B = coverage row hover.
+
+    # A (D-09) — status chip "signal dot": the dot paints from --tl-chip-dot, and the dedicated
+    # warning dot token is authored per-theme (dark base + light lane + system branch).
+    assert String.contains?(src, "background: var(--tl-chip-dot);"),
+           "chip status dot must paint from --tl-chip-dot"
+
+    warn_dot_count = src |> String.split("--tl-color-warning-dot:") |> length() |> Kernel.-(1)
+
+    assert warn_dot_count >= 3,
+           "expected --tl-color-warning-dot in dark base + light lane + system branch (found #{warn_dot_count})"
+
+    # B — coverage table hover-polarity override, authored in both lanes.
+    for selector <- [
+          ~s|.threadline-ui[data-tl-theme="light"] .tl-table {|,
+          ~s|.threadline-ui[data-tl-theme="system"] .tl-table {|,
+          ~s|.threadline-ui[data-tl-theme="light"] .tl-table--actionable tbody tr:hover|,
+          ~s|.threadline-ui[data-tl-theme="system"] .tl-table--actionable tbody tr:hover|
+        ] do
+      assert String.contains?(src, selector),
+             "phase 167 coverage row-hover override missing dual-branch selector: #{selector}"
+    end
+  end
+
+  test "phase 167 keeps status-tint a shared-token decision — no per-rider light override (D-07b / TOKEN-02)" do
+    src = File.read!(@style_path)
+
+    # The status-tint fix (A) adjusts shared light-lane TOKENS, never a per-component rider selector.
+    # For each tint-rider class, refute a [data-tl-theme="light"] selector QUALIFIED by that class
+    # (NOT bare absence — the lane root .threadline-ui[data-tl-theme="light"] legitimately occurs once).
+    for klass <- ~w(tl-chip tl-alert tl-timeline-fact tl-change__op tl-redaction tl-policy tl-job) do
+      pattern = ~r/\.#{klass}[A-Za-z0-9_-]*[^{]*\[data-tl-theme="light"\]/
+
+      refute Regex.match?(pattern, src),
+             ~s|#{klass} must not carry a per-component [data-tl-theme="light"] override (TOKEN-02); status-tint stays a shared-token decision|
     end
   end
 
@@ -859,10 +1099,56 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ~r/#{Regex.escape(selector)}\s*\{[^}]*#{Regex.source(declaration_pattern)}[^}]*\}/s
   end
 
+  # Phase 168: alpha-aware token parser. Opaque `#RRGGBB` tokens stay as hex
+  # strings (feed straight into contrast_ratio/2); translucent `rgba(r, g, b, a)`
+  # tokens — every status `*-bg` tint, accent wash, and focus-ring layer the
+  # hex-only regex used to silently drop — parse to an {r, g, b, a} tuple to be
+  # composited over a caller-named per-mode opaque base before luminance math.
   defp color_tokens(src) do
-    ~r/(--tl-color-[a-z-]+):\s*(#[0-9a-fA-F]{6});/
+    ~r/(--tl-color-[a-z-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\));/
     |> Regex.scan(src)
-    |> Map.new(fn [_match, token, hex] -> {token, hex} end)
+    |> Map.new(fn [_match, token, value] -> {token, parse_color_value(value)} end)
+  end
+
+  defp parse_color_value("#" <> _ = hex), do: hex
+
+  defp parse_color_value("rgba(" <> _ = rgba) do
+    [_match, r, g, b, a] =
+      Regex.run(~r/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/, rgba)
+
+    {String.to_integer(r), String.to_integer(g), String.to_integer(b),
+     String.to_float(normalize_alpha(a))}
+  end
+
+  defp normalize_alpha("." <> _ = a), do: "0" <> a
+  defp normalize_alpha(a), do: if(String.contains?(a, "."), do: a, else: a <> ".0")
+
+  # Composite a translucent {r, g, b, a} token over an opaque base hex, returning
+  # an opaque "#RRGGBB" string that relative_luminance/1 pattern-matches without
+  # change. effective = round(src*a + base*(1 - a)) per channel. The base is
+  # caller-named PER MODE (#FFFFFF / #EEF3FA / #F7F9FC light vs #141B2D / #1B253A /
+  # #0B1020 dark) — never assumed single. Opaque hex passes through unchanged so
+  # the same code path is safe for both kinds of token (no double-composite).
+  defp composite("#" <> _ = hex, _base), do: hex
+
+  defp composite({r, g, b, a}, base_hex) do
+    {br, bg, bb} = hex_to_rgb(base_hex)
+    blend = fn s, base -> round(s * a + base * (1 - a)) end
+
+    "#" <>
+      Enum.map_join([{r, br}, {g, bg}, {b, bb}], "", fn {s, base} ->
+        blend.(s, base) |> Integer.to_string(16) |> String.pad_leading(2, "0")
+      end)
+  end
+
+  defp hex_to_rgb("#" <> hex) do
+    [r, g, b] =
+      hex
+      |> String.graphemes()
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn pair -> pair |> Enum.join() |> String.to_integer(16) end)
+
+    {r, g, b}
   end
 
   defp contrast_ratio(foreground, background) do
