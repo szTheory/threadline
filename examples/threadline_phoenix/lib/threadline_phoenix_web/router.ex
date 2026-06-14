@@ -157,27 +157,56 @@ defmodule ThreadlinePhoenixWeb.Router do
     get("/audit_transactions/:id/changes", AuditTransactionController, :changes)
   end
 
-  # doc: start: operator-surface-mount
-  scope "/audit" do
-    pipe_through([:browser, :operator_browser, :operator_auth])
+  # E2E light-lane proof (Phase 168, A11Y-02 part 2): the operator-surface mount
+  # macro requires a literal `:theme` atom and exactly one mount per router, so the
+  # env selects the lane at COMPILE time. Default (no env) stays `:dark` — existing
+  # dark e2e/demo behavior is unchanged. `THREADLINE_E2E_THEME=system` serves the
+  # `:system` lane so Playwright `colorScheme: "light"` resolves the
+  # `[data-tl-theme="system"]` light branch (run-e2e.sh forces a recompile so the
+  # compile-time gate reflects the current invocation).
+  if System.get_env("THREADLINE_E2E_THEME") == "system" do
+    scope "/audit" do
+      pipe_through([:browser, :operator_browser, :operator_auth])
 
-    threadline_operator_surface("/",
-      actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
-      authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
-      export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
-      evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
-      coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
-      policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
-      scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
-      schemas: %{
-        "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
-        "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
-      },
-      repo: ThreadlinePhoenix.Repo
-    )
+      threadline_operator_surface("/",
+        actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+        authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+        export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+        evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
+        coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
+        policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
+        scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+        schemas: %{
+          "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+          "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+        },
+        repo: ThreadlinePhoenix.Repo,
+        theme: :system
+      )
+    end
+  else
+    # doc: start: operator-surface-mount
+    scope "/audit" do
+      pipe_through([:browser, :operator_browser, :operator_auth])
+
+      threadline_operator_surface("/",
+        actor_fn: &ThreadlinePhoenixWeb.Router.my_actor_fn/1,
+        authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
+        export_authorize_fn: &ThreadlinePhoenixWeb.Router.my_export_authorize_fn/1,
+        evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1,
+        coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
+        policy_authorize_fn: &ThreadlinePhoenixWeb.Router.my_policy_authorize_fn/1,
+        scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
+        schemas: %{
+          "tickets" => ThreadlinePhoenix.HelpDesk.Ticket,
+          "ticket_replies" => ThreadlinePhoenix.HelpDesk.TicketReply
+        },
+        repo: ThreadlinePhoenix.Repo
+      )
+    end
+
+    # doc: end: operator-surface-mount
   end
-
-  # doc: end: operator-surface-mount
 
   # Sigra authentication
 
