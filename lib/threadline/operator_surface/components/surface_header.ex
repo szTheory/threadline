@@ -24,6 +24,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:exports_enabled, :boolean, default: false)
     attr(:current, :atom, default: nil)
     attr(:scoped, :boolean, default: false)
+    attr(:theme, :string, default: "dark")
 
     def surface_header(assigns) do
       ~H"""
@@ -99,6 +100,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
+          </section>
+          <section class="tl-shell-nav__group tl-theme-picker" aria-labelledby="tl-shell-nav-theme">
+            <h2 id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</h2>
+            <form action={"#{@base_path}/theme"} method="post" class="tl-theme-picker__form">
+              <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+              <div class="tl-segmented">
+                <label class={["tl-segmented__item", @theme == "system" && "tl-segmented__item--active"]}>
+                  <input type="radio" name="theme" value="system" class="tl-sr-only" checked={@theme == "system"} onchange="this.form.submit()" />
+                  System
+                </label>
+                <label class={["tl-segmented__item", @theme == "light" && "tl-segmented__item--active"]}>
+                  <input type="radio" name="theme" value="light" class="tl-sr-only" checked={@theme == "light"} onchange="this.form.submit()" />
+                  Light
+                </label>
+                <label class={["tl-segmented__item", @theme == "dark" && "tl-segmented__item--active"]}>
+                  <input type="radio" name="theme" value="dark" class="tl-sr-only" checked={@theme == "dark"} onchange="this.form.submit()" />
+                  Dark
+                </label>
+              </div>
+              <noscript>
+                <button type="submit" class="tl-button tl-button--compact tl-button--secondary">Save</button>
+              </noscript>
+            </form>
           </section>
         </div>
       </nav>

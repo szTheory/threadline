@@ -34,6 +34,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <Threadline.OperatorSurface.Style.css />
         <Threadline.OperatorSurface.Script.js />
         <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+          theme={@threadline_theme}
           coverage={@threadline_coverage}
           base_path={@base_path}
           error={@threadline_coverage_error}

@@ -591,6 +591,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           min-width: 0;
         }
 
+        .tl-theme-picker__form {
+          display: flex;
+          align-items: center;
+          gap: var(--tl-space-2);
+          padding: 0 var(--tl-space-1);
+        }
+
         .tl-shell-nav__overview {
           display: grid;
           min-width: 0;
