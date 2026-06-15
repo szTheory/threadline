@@ -204,7 +204,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
-| 172. Foundations audit & hardening (tokens) | v1.37 | 0/TBD | Not started | - |
+| 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 0/TBD | Not started | - |
 | 174. Form components | v1.37 | 0/TBD | Not started | - |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |

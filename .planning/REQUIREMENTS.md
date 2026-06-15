@@ -16,8 +16,8 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 - [x] **DS-02**: A living `DESIGN-SYSTEM.md` v2 inventories every foundation token, primitive, form control, group/meta-component, and page, each with current status.
 - [x] **DS-03**: An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores) backed by test/screenshot guards that fail CI on regression.
 - [x] **DS-04**: A reusable ugly-data fixture library covers the stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, error/warning/mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
-- [ ] **DS-05**: Foundations (color, typography, spacing, radius, shadow, z-index, density, motion tokens) are audited against the brand book; off-brand / contrast / scale gaps are fixed; any new token lands in `brandbook/tokens.{json,css}` first and keeps the parity test green.
-- [ ] **DS-06**: Each significant foundation decision is captured as a compact decision brief (problem / users-JTBD / options / tradeoffs / idiomatic-for-LiveView / recommendation / rejected alternatives / tests to lock it).
+- [x] **DS-05**: Foundations (color, typography, spacing, radius, shadow, z-index, density, motion tokens) are audited against the brand book; off-brand / contrast / scale gaps are fixed; any new token lands in `brandbook/tokens.{json,css}` first and keeps the parity test green.
+- [x] **DS-06**: Each significant foundation decision is captured as a compact decision brief (problem / users-JTBD / options / tradeoffs / idiomatic-for-LiveView / recommendation / rejected alternatives / tests to lock it).
 
 ### Internal Component System (COMP)
 
@@ -105,8 +105,8 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | DS-02 | Phase 171 | Complete |
 | DS-03 | Phase 171 | Complete |
 | DS-04 | Phase 171 | Complete |
-| DS-05 | Phase 172 | Pending |
-| DS-06 | Phase 172 | Pending |
+| DS-05 | Phase 172 | Complete |
+| DS-06 | Phase 172 | Complete |
 | COMP-01 | Phase 173 | Pending |
 | COMP-02 | Phase 173 | Pending |
 | COMP-03 | Phase 173 | Pending |

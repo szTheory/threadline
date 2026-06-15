@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: executing
-last_updated: "2026-06-15T20:52:40.014Z"
+status: ready_to_plan
+last_updated: 2026-06-15T22:10:55.076Z
 last_activity: 2026-06-15 -- Phase 172 planning complete
 progress:
   total_phases: 15
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 6
   percent: 7
+stopped_at: Phase 172 complete (2/2) — ready to discuss Phase 173
 ---
 
 # Project State: Threadline
@@ -20,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 172 — foundations audit & hardening (tokens)
+**Current focus:** Phase 173 — primitive components (extract + audit each in isolation)
 
 ## Current Position
 
-Phase: 172
+Phase: 173
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-15 -- Phase 172 planning complete
+Status: Ready to plan
+Last activity: 2026-06-15
 
 ## Performance Metrics
 
