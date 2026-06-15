@@ -648,6 +648,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         /* Phone-proof base: 375px acceptance viewport. Tablet and desktop layers
            progressively enhance below the keyframes. */
+        .tl-container {
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+
         .tl-page {
           padding: var(--tl-space-2);
         }
