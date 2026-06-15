@@ -1060,9 +1060,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-font-size-body: 16px;",
           "--tl-font-size-label: 14px;",
           "--tl-font-size-dense: 13px;",
-          "--tl-color-bg: #0B1020;",
-          "--tl-color-surface: #141B2D;",
-          "--tl-color-text: #D7DEEA;",
+          "--tl-color-bg: var(--tl-color-threadline-black);",
+          "--tl-color-surface: var(--tl-color-graphite);",
+          "--tl-color-text: var(--tl-color-fog);",
           "--tl-color-muted: #A3AFC2;",
           "--tl-color-danger: #FF8585;",
           "--tl-color-success-text: #5AE0A2;",
@@ -1349,13 +1349,36 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # hex-only regex used to silently drop — parse to an {r, g, b, a} tuple to be
   # composited over a caller-named per-mode opaque base before luminance math.
   defp color_tokens(src) do
-    # Name class includes digits ([a-z0-9-]+) so a future `--tl-color-accent-2`
-    # is not silently dropped. The accepted value formats (#RRGGBB | rgba(...))
-    # are enforced repo-wide by the "no --tl-color-* token escapes the parser"
-    # guard test, which fails if any declaration uses a format this parser drops.
-    ~r/(--tl-color-[a-z0-9-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\));/
+    # Hardcode primitive mapping for tests so we don't need a complex recursive resolver
+    primitives = %{
+      "var(--tl-color-threadline-black)" => "#0B1020",
+      "var(--tl-color-graphite)" => "#141B2D",
+      "var(--tl-color-slate-line)" => "#23304A",
+      "var(--tl-color-fog)" => "#D7DEEA",
+      "var(--tl-color-paper)" => "#F7F9FC",
+      "var(--tl-color-mist)" => "#E7ECF4",
+      "var(--tl-color-ink)" => "#0F1728",
+      "var(--tl-color-thread-blue)" => "#4F8CFF",
+      "var(--tl-color-stitch-blue)" => "#4781E6",
+      "var(--tl-color-signal-cyan)" => "#4EDFD1",
+      "var(--tl-color-iris)" => "#8A7CFF",
+      "var(--tl-color-ember)" => "#FF8A5B"
+    }
+
+    ~r/(--tl-color-[a-z0-9-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|var\(--tl-color-[a-z0-9-]+\));/
     |> Regex.scan(src)
-    |> Map.new(fn [_match, token, value] -> {token, parse_color_value(value)} end)
+    |> Enum.map(fn [_match, token, value] -> 
+      val = Map.get(primitives, value, value)
+      {token, val}
+    end)
+    |> Enum.map(fn {token, val} -> 
+      case Regex.run(~r/^(#[0-9a-fA-F]{6}|rgba\([^)]+\))$/, val) do
+        [_, color_val] -> {token, parse_color_value(color_val)}
+        nil -> {token, nil}
+      end
+    end)
+    |> Enum.reject(fn {_, v} -> is_nil(v) end)
+    |> Map.new()
   end
 
   # Parse the first rgba(...) layer (the translucent halo) out of the

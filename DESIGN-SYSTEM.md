@@ -90,3 +90,11 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 | ID | Status | Current Score | Target Score | Kind | Story ID | Fixture Key | Owner Phase |
 |---|---:|---:|---:|---|---|---|---:|
 | `future.theme-picker-idiomatic-ui` | reserved | 20 | 90 | future_reserved | `future.theme-picker-idiomatic-ui` | `future.theme_picker.idiomatic_ui` | 175 |
+
+## Semantic Token Mapping
+
+Keep `brandbook/tokens.json` strict to primitive brand tokens. Map primitives to functional UI tokens in `style.ex`. This separation of concerns allows the brand to own the core primitive color palette, while the UI system defines semantics like `--tl-color-surface` and maps them appropriately.
+
+## Motion Reductions
+
+For `prefers-reduced-motion: reduce`, do not use universal 0ms. Zero out positional transitions but preserve opacity fades (`120ms ease`). This explicitly respects user accessibility preferences without jarring UI cuts.

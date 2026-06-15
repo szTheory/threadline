@@ -52,10 +52,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-tracking-caps-wide: 0.16em;
           --tl-tracking-tight: 0;
 
+
+          /* Primitives */
+          --tl-color-threadline-black: #0B1020;
+          --tl-color-graphite: #141B2D;
+          --tl-color-slate-line: #23304A;
+          --tl-color-fog: #D7DEEA;
+          --tl-color-paper: var(--tl-color-paper);
+          --tl-color-mist: #E7ECF4;
+          --tl-color-ink: var(--tl-color-ink);
+          --tl-color-thread-blue: #4F8CFF;
+          --tl-color-stitch-blue: #4781E6;
+          --tl-color-signal-cyan: #4EDFD1;
+          --tl-color-iris: #8A7CFF;
+          --tl-color-ember: #FF8A5B;
+
+          /* See DESIGN-SYSTEM.md § "Semantic Token Mapping" */
+          /* Semantic UI Tokens */
           /* Brand: "night infrastructure with luminous signal lines" (Brand Book §10). */
-          --tl-color-bg: #0B1020;
+          --tl-color-bg: var(--tl-color-threadline-black);
           /* Threadline Black */
-          --tl-color-surface: #141B2D;
+          --tl-color-surface: var(--tl-color-graphite);
           /* Graphite */
           --tl-color-surface-raised: #1B253A;
           --tl-color-surface-hover: #202B42;
@@ -63,16 +80,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-surface-tint: rgba(20, 27, 45, 0.94);
           --tl-color-surface-tint-strong: rgba(11, 16, 32, 0.96);
           --tl-color-backdrop: rgba(2, 4, 10, 0.62);
-          --tl-color-border: #23304A;
+          --tl-color-border: var(--tl-color-slate-line);
           /* Slate Line */
           --tl-color-border-strong: #2E3D5C;
           --tl-color-border-focus: #7FA9FF;
-          --tl-color-text: #D7DEEA;
+          --tl-color-text: var(--tl-color-fog);
           /* Fog */
           --tl-color-muted: #A3AFC2;
           /* Steel, lifted for AA on dark */
           --tl-color-muted-soft: #8F9DB5;
-          --tl-color-accent: #4F8CFF;
+          --tl-color-accent: var(--tl-color-thread-blue);
           /* Thread Blue */
           --tl-color-accent-strong: #6FA1FF;
           --tl-color-accent-soft: rgba(79, 140, 255, 0.18);
@@ -82,12 +99,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           /* Faint accent veil for raised front-door surfaces */
           --tl-color-on-accent: #08101F;
           /* Dark ink for AA contrast on luminous accents */
-          --tl-color-signal: #4EDFD1;
+          --tl-color-signal: var(--tl-color-signal-cyan);
           /* Signal Cyan — correlation, live traces, positive system flow */
           --tl-color-signal-bg: rgba(78, 223, 209, 0.12);
           --tl-color-signal-border: rgba(78, 223, 209, 0.30);
-          --tl-color-ink: #0F1728;
-          --tl-color-paper: #F7F9FC;
+          --tl-color-ink: var(--tl-color-ink);
+          --tl-color-paper: var(--tl-color-paper);
           --tl-color-danger: #FF8585;
           --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
           --tl-color-danger-border: rgba(255, 133, 133, 0.48);
@@ -211,8 +228,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-color-signal: #0F8F85;
           --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
           --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-          --tl-color-ink: #0F1728;
-          --tl-color-paper: #F7F9FC;
+          --tl-color-ink: var(--tl-color-ink);
+          --tl-color-paper: var(--tl-color-paper);
           --tl-color-danger: #A33434;
           --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
           --tl-color-danger-border: rgba(163, 52, 52, 0.28);
@@ -263,8 +280,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             --tl-color-signal: #0F8F85;
             --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
             --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-            --tl-color-ink: #0F1728;
-            --tl-color-paper: #F7F9FC;
+            --tl-color-ink: var(--tl-color-ink);
+            --tl-color-paper: var(--tl-color-paper);
             --tl-color-danger: #A33434;
             --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
             --tl-color-danger-border: rgba(163, 52, 52, 0.28);
