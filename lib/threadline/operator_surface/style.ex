@@ -3273,11 +3273,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
           gap: var(--tl-space-3);
           margin-bottom: var(--tl-space-4);
-          padding: var(--tl-space-3);
-          border: 1px solid var(--tl-color-border);
-          border-radius: var(--tl-radius-lg);
-          background: var(--tl-color-surface-tint-strong);
-          box-shadow: var(--tl-shadow-border), var(--tl-shadow-subtle);
         }
 
         .tl-coverage-command__header {
