@@ -122,6 +122,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end
         end
 
+        if Code.ensure_loaded?(Phoenix.Controller) do
+          scope unquote(path), as: false do
+            post("/theme", Threadline.OperatorSurface.Controllers.ThemeController, :update)
+          end
+        end
+
         if unquote(exports_enabled?) and Code.ensure_loaded?(Phoenix.Controller) do
           # Phoenix.Router does not allow `plug` directly inside `scope` — it
           # must live inside a `pipeline`. The pipeline name `:threadline_exports`

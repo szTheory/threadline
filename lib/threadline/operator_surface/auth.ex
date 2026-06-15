@@ -11,7 +11,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       scope_query_fn = Keyword.get(opts, :scope_query_fn)
       repo = Keyword.get(opts, :repo)
       schemas = Keyword.get(opts, :schemas, %{})
-      theme = Keyword.get(opts, :theme, :dark) |> normalize_theme()
+      session_theme = session["tl_theme"] || session[:tl_theme]
+      theme_config = Keyword.get(opts, :theme, :dark)
+      theme = (session_theme || theme_config) |> normalize_theme()
 
       socket =
         socket
