@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveComponent
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
 
     def update(assigns, socket) do
       schemas = assigns[:threadline_schemas] || %{}
@@ -97,9 +98,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-subview__panel">
                 <h4 class="tl-subview__panel-title">Row timeline</h4>
                 <form phx-change="update-as-of" phx-target={@myself}>
-                  <label class="tl-toolbar__field">View snapshot at
-                    <input type="datetime-local" name="as_of" value={format_dt(@as_of_dt)} class="tl-control" />
-                  </label>
+                  <UI.field
+                    id={"#{@id}-as-of"}
+                    type="datetime-local"
+                    name="as_of"
+                    label="View snapshot at"
+                    value={format_dt(@as_of_dt)}
+                    class="tl-toolbar__field"
+                  />
                 </form>
                 <ul class="tl-subview__timeline">
                   <%= for change <- @history do %>

@@ -41,13 +41,13 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 
 | ID | Status | Current Score | Target Score | Kind | Story ID | Fixture Key | Owner Phase |
 |---|---:|---:|---:|---|---|---|---:|
-| `form-control.checkbox.reserved` | reserved | 35 | 90 | form_control | `form-control.checkbox.reserved` | `form.checkbox.reserved` | 174 |
-| `form-control.date-range.reserved` | reserved | 35 | 90 | form_control | `form-control.date-range.reserved` | `form.date_range.reserved` | 174 |
-| `form-control.input.reserved` | reserved | 35 | 90 | form_control | `form-control.input.reserved` | `form.input.reserved` | 174 |
-| `form-control.radio.reserved` | reserved | 35 | 90 | form_control | `form-control.radio.reserved` | `form.radio.reserved` | 174 |
-| `form-control.search.reserved` | reserved | 35 | 90 | form_control | `form-control.search.reserved` | `form.search.reserved` | 174 |
-| `form-control.select.reserved` | reserved | 35 | 90 | form_control | `form-control.select.reserved` | `form.select.reserved` | 174 |
-| `form-control.textarea.reserved` | reserved | 35 | 90 | form_control | `form-control.textarea.reserved` | `form.textarea.reserved` | 174 |
+| `form-control.checkbox.current` | current | 35 | 90 | form_control | `form-control.checkbox.current` | `form.checkbox.current` | 174 |
+| `form-control.date-range.current` | current | 35 | 90 | form_control | `form-control.date-range.current` | `form.date_range.reserved` | 174 |
+| `form-control.input.current` | current | 35 | 90 | form_control | `form-control.input.current` | `form.input.current` | 174 |
+| `form-control.radio.current` | current | 35 | 90 | form_control | `form-control.radio.current` | `form.radio.current` | 174 |
+| `form-control.search.current` | current | 35 | 90 | form_control | `form-control.search.current` | `form.search.current` | 174 |
+| `form-control.select.current` | current | 35 | 90 | form_control | `form-control.select.current` | `form.select.current` | 174 |
+| `form-control.textarea.current` | current | 35 | 90 | form_control | `form-control.textarea.current` | `form.textarea.current` | 174 |
 
 ## Groups
 

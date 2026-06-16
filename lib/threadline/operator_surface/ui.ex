@@ -597,6 +597,7 @@ defmodule Threadline.OperatorSurface.UI do
   attr :type, :string, default: "text"
   attr :class, :any, default: nil
   attr :options, :list, default: []
+  attr :checked, :boolean, default: false
   attr :rest, :global
 
   def input(%{type: "checkbox"} = assigns) do
@@ -651,7 +652,7 @@ defmodule Threadline.OperatorSurface.UI do
   attr :help_text, :string, default: nil
   attr :class, :any, default: nil
   attr :options, :list, default: []
-  attr :rest, :global, include: ~w(autocomplete disabled readonly required placeholder phx-debounce step min max)
+  attr :rest, :global, include: ~w(autocomplete disabled readonly required placeholder phx-debounce step min max checked list maxlength)
 
   def field(assigns) do
     assigns =

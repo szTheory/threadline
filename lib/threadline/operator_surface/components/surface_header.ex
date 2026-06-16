@@ -107,15 +107,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
               <div class="tl-segmented">
                 <label class={["tl-segmented__item", @theme == "system" && "tl-segmented__item--active"]}>
-                  <input type="radio" name="theme" value="system" class="tl-sr-only" checked={@theme == "system"} onchange="this.form.submit()" />
+                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-system" name="theme" value="system" class="tl-sr-only" checked={@theme == "system"} onchange="this.form.submit()" />
                   System
                 </label>
                 <label class={["tl-segmented__item", @theme == "light" && "tl-segmented__item--active"]}>
-                  <input type="radio" name="theme" value="light" class="tl-sr-only" checked={@theme == "light"} onchange="this.form.submit()" />
+                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-light" name="theme" value="light" class="tl-sr-only" checked={@theme == "light"} onchange="this.form.submit()" />
                   Light
                 </label>
                 <label class={["tl-segmented__item", @theme == "dark" && "tl-segmented__item--active"]}>
-                  <input type="radio" name="theme" value="dark" class="tl-sr-only" checked={@theme == "dark"} onchange="this.form.submit()" />
+                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-dark" name="theme" value="dark" class="tl-sr-only" checked={@theme == "dark"} onchange="this.form.submit()" />
                   Dark
                 </label>
               </div>

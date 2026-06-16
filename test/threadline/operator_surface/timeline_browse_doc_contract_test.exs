@@ -33,23 +33,24 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
     live_src = File.read!(@lv_path)
 
     # Each label asserted individually so CI output pinpoints which label regressed
-    assert String.contains?(live_src, ~s|aria-label="from"|),
-           "missing ARIA label for filter input 'from'"
+    # Replaced naked aria-label asserts with label attribute assertions since UI.field renders native `<label>` wrapping.
+    assert String.contains?(live_src, ~s|label="From"|),
+           "missing label for filter input 'from'"
 
-    assert String.contains?(live_src, ~s|aria-label="to"|),
-           "missing ARIA label for filter input 'to'"
+    assert String.contains?(live_src, ~s|label="To"|),
+           "missing label for filter input 'to'"
 
-    assert String.contains?(live_src, ~s|aria-label="table"|),
-           "missing ARIA label for filter input 'table'"
+    assert String.contains?(live_src, ~s|label="Table"|),
+           "missing label for filter input 'table'"
 
-    assert String.contains?(live_src, ~s|aria-label="actor kind"|),
-           "missing ARIA label for filter input 'actor kind'"
+    assert String.contains?(live_src, ~s|label="Actor kind"|),
+           "missing label for filter input 'actor kind'"
 
-    assert String.contains?(live_src, ~s|aria-label="actor id"|),
-           "missing ARIA label for filter input 'actor id'"
+    assert String.contains?(live_src, ~s|label="Actor id"|),
+           "missing label for filter input 'actor id'"
 
-    assert String.contains?(live_src, ~s|aria-label="correlation id"|),
-           "missing ARIA label for filter input 'correlation id'"
+    assert String.contains?(live_src, ~s|label="Correlation id"|),
+           "missing label for filter input 'correlation id'"
   end
 
   # --- BROWSE-04: filter-key parity (LOAD-BEARING) ---
@@ -118,7 +119,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            "expected LV to use native <input type=\"datetime-local\"> per D-09 / BROWSE-03 (no custom date pickers)"
 
     assert String.contains?(live_src, ~s|name="filter[actor_kind]"|) and
-             String.contains?(live_src, "<select"),
+             String.contains?(live_src, ~s|type="select"|),
            "expected LV to use native <select> for actor_kind per D-09 / BROWSE-03 (no custom dropdown widgets)"
   end
 

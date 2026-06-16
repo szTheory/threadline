@@ -10,6 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Governance.SavedView
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.StorageSchema
+    alias Threadline.OperatorSurface.UI
 
     # ------------------------------------------------------------------
     # Operator Home — the orienting landing page (surface root).
@@ -227,22 +228,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </p>
               </div>
               <form id="tl-record-lookup" class="tl-home__earned-form" phx-submit="open-row-history">
-                <label class="tl-toolbar__field">
-                  Table
-                  <select name="record_lookup[table]" class="tl-control">
-                    <option value="">Choose table</option>
-                    <option :for={table <- @record_table_options} value={table}><%= table %></option>
-                  </select>
-                </label>
-                <label class="tl-toolbar__field tl-toolbar__field--wide">
-                  Record id
-                  <input
-                    class="tl-control"
-                    type="text"
-                    name="record_lookup[record_id]"
-                    autocomplete="off"
-                  />
-                </label>
+                <UI.field
+                  id="record-lookup-table"
+                  type="select"
+                  name="record_lookup[table]"
+                  label="Table"
+                  class="tl-toolbar__field"
+                  options={[{"Choose table", ""} | Enum.map(@record_table_options, &{&1, &1})]}
+                />
+                <UI.field
+                  id="record-lookup-id"
+                  type="text"
+                  name="record_lookup[record_id]"
+                  label="Record id"
+                  class="tl-toolbar__field tl-toolbar__field--wide"
+                  autocomplete="off"
+                />
                 <button class="tl-button tl-button--secondary" type="submit">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                   Open row history

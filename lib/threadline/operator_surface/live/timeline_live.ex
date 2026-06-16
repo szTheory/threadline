@@ -9,6 +9,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
     alias Threadline.StorageSchema
+    alias Threadline.OperatorSurface.UI
 
     @page_size 50
     @default_window_hours 24
@@ -488,59 +489,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <fieldset class="tl-filter-group tl-filter-group--primary">
             <legend class="tl-filter-group__legend">Search</legend>
             <div class="tl-filter-grid tl-filter-grid--primary">
-              <label class="tl-toolbar__field">From
-                <input
-                  type="datetime-local"
-                  name="filter[from]"
-                  id="filter-from"
-                  aria-label="from"
-                  value={@filters_raw["from"] || ""}
-                  phx-debounce="blur"
-                  class="tl-toolbar__control"
-                />
-              </label>
-              <label class="tl-toolbar__field">To
-                <input
-                  type="datetime-local"
-                  name="filter[to]"
-                  id="filter-to"
-                  aria-label="to"
-                  value={@filters_raw["to"] || ""}
-                  phx-debounce="blur"
-                  class="tl-toolbar__control"
-                />
-              </label>
-              <label class="tl-toolbar__field">Table
-                <input
-                  type="text"
-                  list="audited-tables"
-                  name="filter[table]"
-                  id="filter-table"
-                  aria-label="table"
-                  value={@filters_raw["table"] || ""}
-                  phx-debounce="blur"
-                  class="tl-toolbar__control"
-                />
-                <datalist id="audited-tables">
-                  <option :for={name <- @audited_tables} value={name}></option>
-                </datalist>
-              </label>
-              <label class="tl-toolbar__field tl-toolbar__field--wide">Correlation id
-                <input
-                  type="text"
-                  name="filter[correlation_id]"
-                  id="filter-correlation-id"
-                  aria-label="correlation id"
-                  aria-describedby="filter-correlation-id-hint"
-                  value={@filters_raw["correlation_id"] || ""}
-                  maxlength="256"
-                  phx-debounce="300"
-                  class="tl-toolbar__control"
-                />
-                <small id="filter-correlation-id-hint" class="tl-sr-only">
-                  request_id, job_id, or integration token. Up to 256 chars.
-                </small>
-              </label>
+              <UI.field
+                id="filter-from"
+                type="datetime-local"
+                name="filter[from]"
+                label="From"
+                value={@filters_raw["from"] || ""}
+                class="tl-toolbar__field"
+                phx-debounce="blur"
+              />
+              <UI.field
+                id="filter-to"
+                type="datetime-local"
+                name="filter[to]"
+                label="To"
+                value={@filters_raw["to"] || ""}
+                class="tl-toolbar__field"
+                phx-debounce="blur"
+              />
+              <UI.field
+                id="filter-table"
+                type="text"
+                name="filter[table]"
+                label="Table"
+                value={@filters_raw["table"] || ""}
+                class="tl-toolbar__field"
+                phx-debounce="blur"
+                list="audited-tables"
+              />
+              <datalist id="audited-tables">
+                <option :for={name <- @audited_tables} value={name}></option>
+              </datalist>
+              <UI.field
+                id="filter-correlation-id"
+                type="text"
+                name="filter[correlation_id]"
+                label="Correlation id"
+                value={@filters_raw["correlation_id"] || ""}
+                class="tl-toolbar__field tl-toolbar__field--wide"
+                maxlength="256"
+                phx-debounce="300"
+                help_text="request_id, job_id, or integration token. Up to 256 chars."
+              />
               <div class="tl-toolbar__actions tl-filter-actions">
                 <.link patch={@timeline_path} class="tl-button tl-button--ghost">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
@@ -564,50 +554,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <fieldset class="tl-filter-group tl-filter-group--advanced">
               <legend class="tl-filter-group__legend">Advanced filters</legend>
               <div class="tl-filter-grid tl-filter-grid--advanced">
-                <label class="tl-toolbar__field">Schema
-                  <input
-                    type="text"
-                    name="filter[table_schema]"
-                    id="filter-table-schema"
-                    aria-label="table schema"
-                    value={@filters_raw["table_schema"] || ""}
-                    phx-debounce="blur"
-                    class="tl-toolbar__control"
-                  />
-                </label>
-                <label class="tl-toolbar__field">Actor kind
-                  <select
-                    name="filter[actor_kind]"
-                    id="filter-actor-kind"
-                    aria-label="actor kind"
-                    class="tl-toolbar__control"
-                  >
-                    <option value="">Any kind</option>
-                    <option
-                      :for={k <- ~w(user admin service_account job system anonymous)}
-                      value={k}
-                      selected={@filters_raw["actor_kind"] == k}
-                    ><%= k %></option>
-                  </select>
-                </label>
-                <label class="tl-toolbar__field">Actor id
-                  <input
-                    type="text"
-                    name="filter[actor_id]"
-                    id="filter-actor-id"
-                    aria-label="actor id"
-                    aria-describedby={if @filters_raw["actor_kind"] == "anonymous", do: "filter-actor-id-hint"}
-                    value={@filters_raw["actor_id"] || ""}
-                    disabled={@filters_raw["actor_kind"] == "anonymous"}
-                    phx-debounce="blur"
-                    class="tl-toolbar__control"
-                  />
-                  <small
-                    :if={@filters_raw["actor_kind"] == "anonymous"}
-                    id="filter-actor-id-hint"
-                    class="tl-toolbar__hint"
-                  >n/a for anonymous</small>
-                </label>
+                <UI.field
+                  id="filter-table-schema"
+                  type="text"
+                  name="filter[table_schema]"
+                  label="Schema"
+                  value={@filters_raw["table_schema"] || ""}
+                  class="tl-toolbar__field"
+                  phx-debounce="blur"
+                />
+                <UI.field
+                  id="filter-actor-kind"
+                  type="select"
+                  name="filter[actor_kind]"
+                  label="Actor kind"
+                  options={[{"Any kind", ""} | Enum.map(~w(user admin service_account job system anonymous), &{&1, &1})]}
+                  value={@filters_raw["actor_kind"] || ""}
+                  class="tl-toolbar__field"
+                />
+                <UI.field
+                  id="filter-actor-id"
+                  type="text"
+                  name="filter[actor_id]"
+                  label="Actor id"
+                  value={@filters_raw["actor_id"] || ""}
+                  class="tl-toolbar__field"
+                  disabled={@filters_raw["actor_kind"] == "anonymous"}
+                  phx-debounce="blur"
+                  help_text={if @filters_raw["actor_kind"] == "anonymous", do: "n/a for anonymous", else: nil}
+                />
               </div>
             </fieldset>
           </details>
