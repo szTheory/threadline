@@ -88,7 +88,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 173-03-PLAN.md — JS-Driven Overlays & Disclosures
+- [x] 173-03-PLAN.md — JS-Driven Overlays & Disclosures
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -221,7 +221,7 @@ Plans:
 |---|---|---:|---|---|
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
-| 173. Primitive components | v1.37 | 2/4 | In Progress|  |
+| 173. Primitive components | v1.37 | 3/4 | In Progress|  |
 | 174. Form components | v1.37 | 0/TBD | Not started | - |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
