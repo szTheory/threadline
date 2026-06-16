@@ -178,4 +178,52 @@ defmodule Threadline.OperatorSurface.UI do
     </div>
     """
   end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :variant, :string, default: nil, values: [nil, "error", "never", "unsupported"]
+  attr :rest, :global
+  slot :title
+  slot :actions
+  slot :inner_block, required: true
+
+  def empty_state(assigns) do
+    ~H"""
+    <div class={["tl-empty", @variant && "tl-empty--#{@variant}", @class]} {@rest}>
+      <h3 :if={@title != []} class="tl-empty__title"><%= render_slot(@title) %></h3>
+      <div class="tl-empty__body">
+        <%= render_slot(@inner_block) %>
+      </div>
+      <div :if={@actions != []} class="tl-empty__actions"><%= render_slot(@actions) %></div>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :title
+  slot :actions
+  slot :inner_block, required: true
+
+  def error_state(assigns) do
+    ~H"""
+    <.empty_state variant="error" class={@class} {@rest}>
+      <:title :if={@title != []}><%= render_slot(@title) %></:title>
+      <%= render_slot(@inner_block) %>
+      <:actions :if={@actions != []}><%= render_slot(@actions) %></:actions>
+    </.empty_state>
+    """
+  end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def code_block(assigns) do
+    ~H"""
+    <pre class={["tl-code", @class]} {@rest}><code><%= render_slot(@inner_block) %></code></pre>
+    """
+  end
 end

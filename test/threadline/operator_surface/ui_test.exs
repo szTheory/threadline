@@ -151,4 +151,56 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "1,234"
     end
   end
+
+  describe "empty_state" do
+    test "renders empty_state properly" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.empty_state variant="unsupported">
+        <:title>No items</:title>
+        Nothing here
+        <:actions><button>Add</button></:actions>
+      </UI.empty_state>
+      """)
+      assert html =~ "tl-empty"
+      assert html =~ "tl-empty--unsupported"
+      assert html =~ "tl-empty__title"
+      assert html =~ "No items"
+      assert html =~ "tl-empty__body"
+      assert html =~ "Nothing here"
+      assert html =~ "tl-empty__actions"
+      assert html =~ "<button>Add</button>"
+    end
+  end
+
+  describe "error_state" do
+    test "renders error_state wrapping empty_state properly" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.error_state>
+        <:title>Error Occurred</:title>
+        Server failed
+      </UI.error_state>
+      """)
+      assert html =~ "tl-empty"
+      assert html =~ "tl-empty--error"
+      assert html =~ "tl-empty__title"
+      assert html =~ "Error Occurred"
+      assert html =~ "tl-empty__body"
+      assert html =~ "Server failed"
+    end
+  end
+
+  describe "code_block" do
+    test "renders code block safely" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.code_block>{"{\"key\": \"value\"}"}</UI.code_block>
+      """)
+      assert html =~ "<pre"
+      assert html =~ "<code"
+      assert html =~ "tl-code"
+      assert html =~ "{&quot;key&quot;: &quot;value&quot;}"
+    end
+  end
 end
