@@ -66,11 +66,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 174-01-PLAN.md — Form Primitives & Field Component
+- [x] 174-01-PLAN.md — Form Primitives & Field Component
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 174-02-PLAN.md — Operator Page Adoption
+- [x] 174-02-PLAN.md — Operator Page Adoption
 
 **UI hint**: yes
 
@@ -231,7 +231,7 @@ Plans:
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
-| 174. Form components | v1.37 | 0/TBD | Not started | - |
+| 174. Form components | v1.37 | 3/4 | In Progress|  |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
