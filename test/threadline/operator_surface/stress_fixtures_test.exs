@@ -32,13 +32,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @required_inventory_story_ids ~w(
       footgun.coverage-schema-card-declutter
       footgun.transaction-page-left-push-desktop
-      form-control.checkbox.reserved
-      form-control.date-range.reserved
-      form-control.input.reserved
-      form-control.radio.reserved
-      form-control.search.reserved
-      form-control.select.reserved
-      form-control.textarea.reserved
+      form-control.checkbox.current
+      form-control.date-range.current
+      form-control.input.current
+      form-control.radio.current
+      form-control.search.current
+      form-control.select.current
+      form-control.textarea.current
       foundation.color
       foundation.density
       foundation.motion

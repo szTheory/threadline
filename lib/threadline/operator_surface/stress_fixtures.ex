@@ -45,17 +45,14 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Unsupported view primitive reserved baseline"}
   ]
 
-  @form_control_stories [
-    {"form-control.checkbox.reserved", "form.checkbox.reserved",
-     "Checkbox control reserved baseline"},
-    {"form-control.date-range.reserved", "form.date_range.reserved",
-     "Date range control reserved baseline"},
-    {"form-control.input.reserved", "form.input.reserved", "Input control reserved baseline"},
-    {"form-control.radio.reserved", "form.radio.reserved", "Radio control reserved baseline"},
-    {"form-control.search.reserved", "form.search.reserved", "Search control reserved baseline"},
-    {"form-control.select.reserved", "form.select.reserved", "Select control reserved baseline"},
-    {"form-control.textarea.reserved", "form.textarea.reserved",
-     "Textarea control reserved baseline"}
+  @current_form_control_stories [
+    {"form-control.checkbox.current", "form.checkbox.current", "Checkbox control current baseline", ["one", "disabled", "error"]},
+    {"form-control.date-range.current", "form.date_range.current", "Date range control current baseline", ["one", "disabled", "error"]},
+    {"form-control.input.current", "form.input.current", "Input control current baseline", ["one", "disabled", "error"]},
+    {"form-control.radio.current", "form.radio.current", "Radio control current baseline", ["one", "disabled", "error"]},
+    {"form-control.search.current", "form.search.current", "Search control current baseline", ["one", "disabled", "error"]},
+    {"form-control.select.current", "form.select.current", "Select control current baseline", ["one", "disabled", "error"]},
+    {"form-control.textarea.current", "form.textarea.current", "Textarea control current baseline", ["one", "disabled", "error"]}
   ]
 
   @group_stories [
@@ -213,7 +210,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       foundation_story_maps(),
       current_primitive_story(),
       reserved_story_maps(@primitive_stories, "primitive", 171),
-      reserved_story_maps(@form_control_stories, "form_control", 174),
+      form_control_story_maps(),
       reserved_story_maps(@group_stories, "group", 177),
       current_page_story_maps(),
       reserved_story_maps(@page_stories, "page", 178),
@@ -265,6 +262,23 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       },
       metadata: %{component: "SurfaceHeader.surface_header/1"}
     })
+  end
+
+  defp form_control_story_maps do
+    Enum.map(@current_form_control_stories, fn {id, fixture_key, scenario, cases} ->
+      story(%{
+        id: id,
+        kind: "form_control",
+        category: "form_control",
+        scenario: scenario,
+        fixture_key: fixture_key,
+        cases: cases,
+        status: "current",
+        data: %{
+          summary: "Synthetic #{scenario} pressure fixture."
+        }
+      })
+    end)
   end
 
   defp state_story_maps do
