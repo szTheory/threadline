@@ -350,15 +350,18 @@ defmodule Threadline.OperatorSurface.UITest do
       
       assert html =~ "tl-field"
       assert html =~ "tl-field--error"
-      assert html =~ ~r/<label[^>]*for="user-email"[^>]*>Email<\/label>/
-      assert html =~ ~r/<input[^>]*id="user-email"[^>]*name="email"[^>]*type="email"[^>]*value="test@example"[^>]*>/
+      assert html =~ ~r/<label[^>]*for="user-email"[^>]*>\s*Email\s*<\/label>/
+      assert html =~ ~r/<input[^>]*id="user-email"[^>]*>/
+      assert html =~ ~r/<input[^>]*name="email"[^>]*>/
+      assert html =~ ~r/<input[^>]*type="email"[^>]*>/
+      assert html =~ ~r/<input[^>]*value="test@example"[^>]*>/
       
       # Check aria-describedby binding
       assert html =~ ~r/aria-describedby="[^"]*user-email-help[^"]*"/
       assert html =~ ~r/aria-describedby="[^"]*user-email-error[^"]*"/
       
       # Check help text and error text presence with correct IDs
-      assert html =~ ~r/<p[^>]*id="user-email-help"[^>]*>Enter your email<\/p>/
+      assert html =~ ~r/<p[^>]*id="user-email-help"[^>]*>\s*Enter your email\s*<\/p>/
       assert html =~ ~r/<p[^>]*id="user-email-error"[^>]*>.*Invalid format.*<\/p>/s
       
       # Test non-color validation applies to errors (e.g., error icon prefix)

@@ -542,6 +542,147 @@ defmodule Threadline.OperatorSurface.UI do
     </div>
     """
   end
+
+  @doc false
+  attr :for, :string, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def label(assigns) do
+    ~H"""
+    <label for={@for} class={["tl-label", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </label>
+    """
+  end
+
+  @doc false
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def error(assigns) do
+    ~H"""
+    <p id={@id} class={["tl-error", @class]} {@rest}>
+      <svg class="tl-error-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <%= render_slot(@inner_block) %>
+    </p>
+    """
+  end
+
+  @doc false
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def help(assigns) do
+    ~H"""
+    <p id={@id} class={["tl-help", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </p>
+    """
+  end
+
+  @doc false
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :any, default: nil
+  attr :type, :string, default: "text"
+  attr :class, :any, default: nil
+  attr :options, :list, default: []
+  attr :rest, :global
+
+  def input(%{type: "checkbox"} = assigns) do
+    assigns = assign(assigns, :checked, assigns.value == true || assigns.value == "true")
+    ~H"""
+    <input
+      type="checkbox"
+      id={@id}
+      name={@name}
+      value="true"
+      checked={@checked}
+      class={["tl-checkbox", @class]}
+      {@rest}
+    />
+    """
+  end
+
+  def input(%{type: "select"} = assigns) do
+    ~H"""
+    <select id={@id} name={@name} class={["tl-control", "tl-control--select", @class]} {@rest}>
+      <option :for={{label, value} <- @options} value={value} selected={to_string(value) == to_string(@value)}><%= label %></option>
+    </select>
+    """
+  end
+
+  def input(%{type: "textarea"} = assigns) do
+    ~H"""
+    <textarea id={@id} name={@name} class={["tl-control", "tl-control--textarea", @class]} {@rest}><%= @value %></textarea>
+    """
+  end
+
+  def input(assigns) do
+    ~H"""
+    <input
+      type={@type}
+      id={@id}
+      name={@name}
+      value={@value}
+      class={["tl-control", @class]}
+      {@rest}
+    />
+    """
+  end
+
+  @doc false
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :any, default: nil
+  attr :type, :string, default: "text"
+  attr :label, :string, required: true
+  attr :errors, :list, default: []
+  attr :help_text, :string, default: nil
+  attr :class, :any, default: nil
+  attr :options, :list, default: []
+  attr :rest, :global, include: ~w(autocomplete disabled readonly required placeholder phx-debounce step min max)
+
+  def field(assigns) do
+    assigns =
+      assigns
+      |> assign(:error_id, "#{assigns.id}-error")
+      |> assign(:help_id, "#{assigns.id}-help")
+
+    ~H"""
+    <div class={["tl-field", @errors != [] && "tl-field--error", @class]}>
+      <.label for={@id}><%= @label %></.label>
+      
+      <% aria_describedby = [
+        @help_text && @help_id,
+        @errors != [] && @error_id
+      ] |> Enum.reject(&is_nil/1) |> Enum.join(" ") %>
+      
+      <.input
+        id={@id}
+        name={@name}
+        value={@value}
+        type={@type}
+        options={@options}
+        aria-describedby={if aria_describedby != "", do: aria_describedby, else: nil}
+        {@rest}
+      />
+      
+      <.error :for={msg <- @errors} id={@error_id}><%= msg %></.error>
+      <.help :if={@help_text} id={@help_id}><%= @help_text %></.help>
+    </div>
+    """
+  end
 end
 
 
