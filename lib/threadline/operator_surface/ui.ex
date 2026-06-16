@@ -138,4 +138,44 @@ defmodule Threadline.OperatorSurface.UI do
     <img src={@src} alt={@alt} class={["tl-avatar", @class]} {@rest} />
     """
   end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :variant, :string, default: nil, values: [nil, "danger", "warning", "success", "info", "signal"]
+  attr :rest, :global
+  slot :title
+  slot :meta
+  slot :actions
+  slot :inner_block, required: true
+
+  def card(assigns) do
+    ~H"""
+    <div class={["tl-card", @variant && "tl-card--#{@variant}", @class]} {@rest}>
+      <div :if={@title != [] || @meta != []} class="tl-card__header">
+        <h3 :if={@title != []} class="tl-card__title"><%= render_slot(@title) %></h3>
+        <div :if={@meta != []} class="tl-card__meta"><%= render_slot(@meta) %></div>
+      </div>
+      <div class="tl-card__body">
+        <%= render_slot(@inner_block) %>
+      </div>
+      <div :if={@actions != []} class="tl-card__actions"><%= render_slot(@actions) %></div>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :status, :string, default: nil, values: [nil, "danger", "warning", "success", "info", "signal"]
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :rest, :global
+
+  def stat_tile(assigns) do
+    ~H"""
+    <div class={["tl-card--metric", @class]} data-status={@status} {@rest}>
+      <div class="tl-card__metric-label"><%= @label %></div>
+      <div class="tl-card__metric"><%= @value %></div>
+    </div>
+    """
+  end
 end

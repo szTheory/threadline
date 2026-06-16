@@ -101,4 +101,54 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "<img"
     end
   end
+  describe "card" do
+    test "renders card component properly" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.card variant="danger">
+        <:title>Card Title</:title>
+        <:meta>Card Meta</:meta>
+        Card Body
+        <:actions><button>Action</button></:actions>
+      </UI.card>
+      """)
+      assert html =~ "tl-card"
+      assert html =~ "tl-card--danger"
+      assert html =~ "tl-card__header"
+      assert html =~ "tl-card__title"
+      assert html =~ "Card Title"
+      assert html =~ "tl-card__meta"
+      assert html =~ "Card Meta"
+      assert html =~ "tl-card__body"
+      assert html =~ "Card Body"
+      assert html =~ "tl-card__actions"
+      assert html =~ "<button>Action</button>"
+    end
+
+    test "renders card without optional slots" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.card>Body Only</UI.card>
+      """)
+      assert html =~ "tl-card"
+      assert html =~ "Body Only"
+      refute html =~ "tl-card__header"
+      refute html =~ "tl-card__actions"
+    end
+  end
+
+  describe "stat_tile" do
+    test "renders stat_tile component properly" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.stat_tile status="success" label="Total" value="1,234" />
+      """)
+      assert html =~ "tl-card--metric"
+      assert html =~ "data-status=\"success\""
+      assert html =~ "tl-card__metric-label"
+      assert html =~ "Total"
+      assert html =~ "tl-card__metric"
+      assert html =~ "1,234"
+    end
+  end
 end
