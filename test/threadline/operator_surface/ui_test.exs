@@ -340,4 +340,69 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "Accordion content"
     end
   end
+
+  describe "form components" do
+    test "renders field with label, input, and connected aria-describedby for errors and help" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
+      """)
+      
+      assert html =~ "tl-field"
+      assert html =~ "tl-field--error"
+      assert html =~ ~r/<label[^>]*for="user-email"[^>]*>Email<\/label>/
+      assert html =~ ~r/<input[^>]*id="user-email"[^>]*name="email"[^>]*type="email"[^>]*value="test@example"[^>]*>/
+      
+      # Check aria-describedby binding
+      assert html =~ ~r/aria-describedby="[^"]*user-email-help[^"]*"/
+      assert html =~ ~r/aria-describedby="[^"]*user-email-error[^"]*"/
+      
+      # Check help text and error text presence with correct IDs
+      assert html =~ ~r/<p[^>]*id="user-email-help"[^>]*>Enter your email<\/p>/
+      assert html =~ ~r/<p[^>]*id="user-email-error"[^>]*>.*Invalid format.*<\/p>/s
+      
+      # Test non-color validation applies to errors (e.g., error icon prefix)
+      assert html =~ "<svg" # Assuming an SVG icon is used for non-color validation
+    end
+
+    test "standard inputs render correct HTML5 markup with BEM classes" do
+      assigns = %{}
+      
+      # Text
+      html = rendered_to_string(~H"""
+      <UI.input id="t1" name="t1" value="text" type="text" />
+      """)
+      assert html =~ "tl-control"
+      assert html =~ ~s(type="text")
+      
+      # Textarea
+      html = rendered_to_string(~H"""
+      <UI.input id="t2" name="t2" value="text" type="textarea" />
+      """)
+      assert html =~ "tl-control"
+      assert html =~ ~s(<textarea)
+      
+      # Select
+      html = rendered_to_string(~H"""
+      <UI.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
+      """)
+      assert html =~ "tl-control"
+      assert html =~ ~s(<select)
+      assert html =~ ~s(<option value="1")
+      
+      # Checkbox
+      html = rendered_to_string(~H"""
+      <UI.input id="t4" name="t4" value="true" type="checkbox" />
+      """)
+      assert html =~ "tl-checkbox"
+      assert html =~ ~s(type="checkbox")
+      
+      # Date
+      html = rendered_to_string(~H"""
+      <UI.input id="t5" name="t5" value="2024-01-01" type="date" />
+      """)
+      assert html =~ "tl-control"
+      assert html =~ ~s(type="date")
+    end
+  end
 end
