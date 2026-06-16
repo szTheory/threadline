@@ -76,7 +76,23 @@ Plans:
   2. Overlay & disclosure primitives (modal/dialog, drawer/sheet, toast/flash, tooltip, popover, dropdown/menu, tabs, segmented control, accordion/disclosure) are internal components with correct keyboard, focus-trap/restore, escape, and scrim semantics.
   3. Every primitive renders correctly in all interaction states (default/hover/focus-visible/active/pressed/disabled/loading/selected/current) across dark/light/system, and non-interactive elements expose no misleading affordances — visible on the stress route.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 173-01-PLAN.md — Core UI Foundation & Atoms
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 173-02-PLAN.md — Container & Layout Primitives
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 173-03-PLAN.md — JS-Driven Overlays & Disclosures
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 173-04-PLAN.md — Full Interaction-State Matrix & Stress Audit
 **UI hint**: yes
 
 ### Phase 174: Form components
@@ -205,7 +221,7 @@ Plans:
 |---|---|---:|---|---|
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
-| 173. Primitive components | v1.37 | 0/TBD | Not started | - |
+| 173. Primitive components | v1.37 | 0/4 | Not started | - |
 | 174. Form components | v1.37 | 0/TBD | Not started | - |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
