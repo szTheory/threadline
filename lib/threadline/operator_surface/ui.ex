@@ -2,6 +2,7 @@ defmodule Threadline.OperatorSurface.UI do
   @moduledoc false
   use Phoenix.Component
   import Phoenix.Component, except: [link: 1]
+  alias Phoenix.LiveView.JS
 
   @doc false
   attr :type, :string, default: "button"
@@ -225,5 +226,183 @@ defmodule Threadline.OperatorSurface.UI do
     ~H"""
     <pre class={["tl-code", @class]} {@rest}><code><%= render_slot(@inner_block) %></code></pre>
     """
-  end
-end
+    end
+
+    @doc false
+    attr :id, :string, required: true
+    attr :show, :boolean, default: false
+    attr :on_cancel, JS, default: %JS{}
+    attr :class, :any, default: nil
+    attr :rest, :global
+    slot :inner_block, required: true
+
+    def modal(assigns) do
+    ~H"""
+    <div
+    id={@id}
+    phx-mounted={@show && show_modal(@id)}
+    phx-remove={hide_modal(@id)}
+    class={["tl-modal-container", if(!@show, do: "hidden")]}
+    {@rest}
+    >
+    <div id={"#{@id}-bg"} class="tl-modal-scrim" aria-hidden="true" />
+    <div
+      class="tl-modal-wrapper"
+      aria-labelledby={"#{@id}-title"}
+      aria-describedby={"#{@id}-description"}
+      role="dialog"
+      aria-modal="true"
+      tabindex="0"
+    >
+      <div
+        id={"#{@id}-content"}
+        class={["tl-modal", @class]}
+        phx-click-away={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
+        phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
+        phx-key="escape"
+      >
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    </div>
+    """
+    end
+
+    @doc false
+    def show_modal(js \\ %JS{}, id) do
+    js
+    |> JS.show(
+    to: "##{id}",
+    transition: {"tl-fade-in", "opacity-0", "opacity-100"}
+    )
+    |> JS.show(
+    to: "##{id}-content",
+    transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
+    )
+    |> JS.add_class("overflow-hidden", to: "body")
+    |> JS.focus_first(to: "##{id}-content")
+    end
+
+    @doc false
+    def hide_modal(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+    to: "##{id}-content",
+    transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"}
+    )
+    |> JS.hide(
+    to: "##{id}",
+    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+    )
+    |> JS.remove_class("overflow-hidden", to: "body")
+    |> JS.pop_focus()
+    end
+
+    @doc false
+    attr :id, :string, required: true
+    attr :show, :boolean, default: false
+    attr :on_cancel, JS, default: %JS{}
+    attr :class, :any, default: nil
+    attr :rest, :global
+    slot :inner_block, required: true
+
+    def drawer(assigns) do
+    ~H"""
+    <div
+    id={@id}
+    phx-mounted={@show && show_drawer(@id)}
+    phx-remove={hide_drawer(@id)}
+    class={["tl-drawer-container", if(!@show, do: "hidden")]}
+    {@rest}
+    >
+    <div id={"#{@id}-bg"} class="tl-drawer-scrim" aria-hidden="true" />
+    <div
+      class="tl-drawer-wrapper"
+      role="dialog"
+      aria-modal="true"
+      tabindex="0"
+    >
+      <div
+        id={"#{@id}-content"}
+        class={["tl-drawer", @class]}
+        phx-click-away={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
+        phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
+        phx-key="escape"
+      >
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    </div>
+    """
+    end
+
+    @doc false
+    def show_drawer(js \\ %JS{}, id) do
+    js
+    |> JS.show(
+    to: "##{id}",
+    transition: {"tl-fade-in", "opacity-0", "opacity-100"}
+    )
+    |> JS.show(
+    to: "##{id}-content",
+    transition: {"tl-slide-in-right", "translate-x-full", "translate-x-0"}
+    )
+    |> JS.add_class("overflow-hidden", to: "body")
+    |> JS.focus_first(to: "##{id}-content")
+    end
+
+    @doc false
+    def hide_drawer(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+    to: "##{id}-content",
+    transition: {"tl-slide-out-right", "translate-x-0", "translate-x-full"}
+    )
+    |> JS.hide(
+    to: "##{id}",
+    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+    )
+    |> JS.remove_class("overflow-hidden", to: "body")
+    |> JS.pop_focus()
+    end
+
+    @doc false
+    attr :id, :string, required: true
+    attr :kind, :string, default: "info", values: ~w(info success warning error)
+    attr :title, :string, default: nil
+    attr :class, :any, default: nil
+    attr :rest, :global
+    slot :inner_block, required: true
+
+    def toast(assigns) do
+    ~H"""
+    <div
+    id={@id}
+    class={["tl-toast", "tl-toast--#{@kind}", @class]}
+    role="alert"
+    phx-click-away={hide_toast(@id)}
+    phx-window-keydown={hide_toast(@id)}
+    phx-key="escape"
+    {@rest}
+    >
+    <div :if={@title} class="tl-toast__title"><%= @title %></div>
+    <div class="tl-toast__body">
+      <%= render_slot(@inner_block) %>
+    </div>
+    <button type="button" class="tl-toast__close" aria-label="Close" phx-click={hide_toast(@id)}>
+      <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    """
+    end
+
+    @doc false
+    def hide_toast(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+    to: "##{id}",
+    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+    )
+    end
+    end
+

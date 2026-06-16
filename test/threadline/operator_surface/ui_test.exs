@@ -203,4 +203,46 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "{&quot;key&quot;: &quot;value&quot;}"
     end
   end
+
+  describe "modal" do
+    test "renders modal with role dialog and aria-modal" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.modal id="test-modal">
+        Modal Content
+      </UI.modal>
+      """)
+      assert html =~ "role=\"dialog\""
+      assert html =~ "aria-modal=\"true\""
+      assert html =~ "Modal Content"
+      assert html =~ "phx-window-keydown"
+    end
+  end
+
+  describe "drawer" do
+    test "renders drawer with JS macros" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.drawer id="test-drawer">
+        Drawer Content
+      </UI.drawer>
+      """)
+      assert html =~ "id=\"test-drawer\""
+      assert html =~ "Drawer Content"
+      assert html =~ "phx-window-keydown"
+    end
+  end
+
+  describe "toast" do
+    test "renders toast with phx-click-away and dismiss mechanisms" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.toast id="test-toast" kind="info" title="Info">
+        Toast Message
+      </UI.toast>
+      """)
+      assert html =~ "phx-click-away"
+      assert html =~ "Toast Message"
+    end
+  end
 end
