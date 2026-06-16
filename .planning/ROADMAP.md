@@ -62,7 +62,16 @@ Plans:
   2. Any new token lands in `brandbook/tokens.{json,css}` first and the `brandbook_token_parity_test` stays green (no drift in either direction).
   3. Each significant foundation decision is captured as a compact decision brief (problem / users-JTBD / options / tradeoffs / idiomatic-for-LiveView / recommendation / rejected alternatives / tests to lock it).
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 174-01-PLAN.md — Form Primitives & Field Component
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 174-02-PLAN.md — Operator Page Adoption
+
 **UI hint**: yes
 
 ### Phase 173: Primitive components (extract + audit each in isolation)
