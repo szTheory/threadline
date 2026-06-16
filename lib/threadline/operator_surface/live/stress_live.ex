@@ -207,6 +207,158 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div class="tl-stress__fixture-preview">
                   <%= preview_copy(@selected_story, @selected_assigns) %>
                 </div>
+
+                <div class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
+                  <h3>Phase 173 Primitives Matrix</h3>
+                  
+                  <div class="tl-space-y-4">
+                    <h4>Buttons</h4>
+                    <div class="tl-flex tl-gap-4 tl-flex-wrap">
+                      <Threadline.OperatorSurface.UI.button>Default</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button variant="primary">Primary</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button variant="quiet-primary">Quiet Primary</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button variant="danger">Danger</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button variant="ghost">Ghost</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.icon_button>X</Threadline.OperatorSurface.UI.icon_button>
+                      
+                      <!-- Interaction matrix -->
+                      <Threadline.OperatorSurface.UI.button class="hover">Hover</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button class="active">Active/Pressed</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button disabled>Disabled</Threadline.OperatorSurface.UI.button>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Links</h4>
+                    <div class="tl-flex tl-gap-4 tl-flex-wrap">
+                      <Threadline.OperatorSurface.UI.link href="#">Deep Link</Threadline.OperatorSurface.UI.link>
+                      <Threadline.OperatorSurface.UI.link variant="back" href="#">Back Link</Threadline.OperatorSurface.UI.link>
+                      <!-- Interaction matrix -->
+                      <Threadline.OperatorSurface.UI.link href="#" class="hover">Hover</Threadline.OperatorSurface.UI.link>
+                      <Threadline.OperatorSurface.UI.link href="#" class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.link>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Badges</h4>
+                    <div class="tl-flex tl-gap-4 tl-flex-wrap">
+                      <Threadline.OperatorSurface.UI.badge variant="neutral">Neutral</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="info">Info</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="success">Success</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="warning">Warning</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="danger">Danger</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="accent">Accent</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.badge variant="muted">Muted</Threadline.OperatorSurface.UI.badge>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Alerts</h4>
+                    <div class="tl-flex tl-flex-col tl-gap-4">
+                      <Threadline.OperatorSurface.UI.alert variant="info">Info alert</Threadline.OperatorSurface.UI.alert>
+                      <Threadline.OperatorSurface.UI.alert variant="success">Success alert</Threadline.OperatorSurface.UI.alert>
+                      <Threadline.OperatorSurface.UI.alert variant="warning">Warning alert</Threadline.OperatorSurface.UI.alert>
+                      <Threadline.OperatorSurface.UI.alert variant="error">Error alert</Threadline.OperatorSurface.UI.alert>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Misc Atoms</h4>
+                    <div class="tl-flex tl-gap-4 tl-items-center">
+                      <Threadline.OperatorSurface.UI.spinner />
+                      <Threadline.OperatorSurface.UI.avatar src="" alt="Avatar" />
+                    </div>
+                    <Threadline.OperatorSurface.UI.divider />
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Cards & Tiles</h4>
+                    <div class="tl-grid tl-grid-cols-2 tl-gap-4">
+                      <Threadline.OperatorSurface.UI.card>
+                        <:title>Card Title</:title>
+                        <:meta>Meta info</:meta>
+                        Card body content
+                        <:actions>
+                          <Threadline.OperatorSurface.UI.button>Action</Threadline.OperatorSurface.UI.button>
+                        </:actions>
+                      </Threadline.OperatorSurface.UI.card>
+                      
+                      <Threadline.OperatorSurface.UI.stat_tile label="Total Users" value="1,234" />
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Empty & Error States</h4>
+                    <div class="tl-grid tl-grid-cols-2 tl-gap-4">
+                      <Threadline.OperatorSurface.UI.empty_state>
+                        <:title>No data</:title>
+                        Try adjusting filters.
+                      </Threadline.OperatorSurface.UI.empty_state>
+                      <Threadline.OperatorSurface.UI.error_state>
+                        <:title>Loading failed</:title>
+                        Could not reach database.
+                      </Threadline.OperatorSurface.UI.error_state>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Overlays & Disclosures</h4>
+                    <div class="tl-flex tl-gap-4 tl-flex-wrap">
+                      <Threadline.OperatorSurface.UI.tooltip id="stress-tooltip">
+                        <:trigger>
+                          <Threadline.OperatorSurface.UI.button>Hover Tooltip</Threadline.OperatorSurface.UI.button>
+                        </:trigger>
+                        Tooltip content
+                      </Threadline.OperatorSurface.UI.tooltip>
+
+                      <Threadline.OperatorSurface.UI.popover id="stress-popover">
+                        <:trigger>
+                          <Threadline.OperatorSurface.UI.button>Click Popover</Threadline.OperatorSurface.UI.button>
+                        </:trigger>
+                        Popover content
+                      </Threadline.OperatorSurface.UI.popover>
+
+                      <Threadline.OperatorSurface.UI.dropdown id="stress-dropdown">
+                        <:trigger>
+                          <Threadline.OperatorSurface.UI.button>Dropdown Menu</Threadline.OperatorSurface.UI.button>
+                        </:trigger>
+                        Dropdown content
+                      </Threadline.OperatorSurface.UI.dropdown>
+                    </div>
+                    
+                    <Threadline.OperatorSurface.UI.accordion id="stress-accordion" title="Accordion Section">
+                      Accordion inner content
+                    </Threadline.OperatorSurface.UI.accordion>
+                    
+                    <Threadline.OperatorSurface.UI.tabs>
+                      <:tab active>Tab 1</:tab>
+                      <:tab>Tab 2</:tab>
+                    </Threadline.OperatorSurface.UI.tabs>
+
+                    <Threadline.OperatorSurface.UI.segmented_control>
+                      <:segment active>Seg 1</:segment>
+                      <:segment>Seg 2</:segment>
+                    </Threadline.OperatorSurface.UI.segmented_control>
+
+                    <div class="tl-flex tl-gap-4">
+                      <Threadline.OperatorSurface.UI.button phx-click={Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button phx-click={Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.button>
+                      
+                      <Threadline.OperatorSurface.UI.modal id="stress-modal">
+                        Modal Content
+                      </Threadline.OperatorSurface.UI.modal>
+                      
+                      <Threadline.OperatorSurface.UI.drawer id="stress-drawer">
+                        Drawer Content
+                      </Threadline.OperatorSurface.UI.drawer>
+                      
+                      <Threadline.OperatorSurface.UI.toast id="stress-toast" kind="info" title="Toast Title">
+                        Toast message body
+                      </Threadline.OperatorSurface.UI.toast>
+                    </div>
+                  </div>
+                </div>
               <% else %>
                 <div class="tl-empty tl-empty--unsupported" data-testid="stress-empty-state" role="status">
                   <h2 class="tl-empty__title">No stress stories registered</h2>
