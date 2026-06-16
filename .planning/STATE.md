@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 ## Current Position
 
 Phase: 174
-Plan: 01
+Plan: 03
 Status: In progress
 Last activity: 2026-06-16
 
@@ -113,6 +113,7 @@ Last activity: 2026-06-16
 
 ### Decisions
 
+- [Phase 174-02]: Extended `<.field>` properties with global attribute pass-through (e.g. `list`, `maxlength`) rather than rigid structs, accommodating existing advanced filter functionality natively.
 - [Phase 174-01]: Form components use explicit `name`, `value`, and `errors` rather than requiring `Phoenix.HTML.Form` structs to maintain isolation and independence from Ecto.
 - [Phase 174-01]: Form primitives rely entirely on native HTML5 controls rather than custom JS elements for maximum browser compatibility and accessibility.
 - [136-01]: Dark-only remains intentional; no `prefers-color-scheme`, no light mode, no theme toggle. *(Superseded by [165-01] in Phase 166 per THEME-04.)*
