@@ -245,4 +245,99 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "Toast Message"
     end
   end
+
+  describe "tooltip" do
+    test "renders tooltip with correct classes" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.tooltip id="test-tooltip">
+        <:trigger>Hover me</:trigger>
+        Tooltip text
+      </UI.tooltip>
+      """)
+      assert html =~ "tl-tooltip"
+      assert html =~ "Hover me"
+      assert html =~ "Tooltip text"
+    end
+  end
+
+  describe "popover" do
+    test "renders popover with aria-expanded toggles" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.popover id="test-popover">
+        <:trigger>Click me</:trigger>
+        Popover content
+      </UI.popover>
+      """)
+      assert html =~ "aria-expanded=\"false\""
+      assert html =~ "phx-click-away"
+      assert html =~ "Popover content"
+    end
+  end
+
+  describe "dropdown" do
+    test "renders dropdown with ARIA bindings" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.dropdown id="test-dropdown">
+        <:trigger>Menu</:trigger>
+        Dropdown item
+      </UI.dropdown>
+      """)
+      assert html =~ "aria-haspopup=\"true\""
+      assert html =~ "aria-expanded=\"false\""
+      assert html =~ "Dropdown item"
+      assert html =~ "role=\"menu\""
+    end
+  end
+
+  describe "tabs" do
+    test "renders tabs with role tablist and tab" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.tabs>
+        <:tab active>Tab 1</:tab>
+        <:tab>Tab 2</:tab>
+      </UI.tabs>
+      """)
+      assert html =~ "role=\"tablist\""
+      assert html =~ "role=\"tab\""
+      assert html =~ "aria-selected=\"true\""
+      assert html =~ "aria-selected=\"false\""
+      assert html =~ "Tab 1"
+      assert html =~ "Tab 2"
+    end
+  end
+
+  describe "segmented_control" do
+    test "renders segmented control with group role" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.segmented_control>
+        <:segment active>Seg 1</:segment>
+        <:segment>Seg 2</:segment>
+      </UI.segmented_control>
+      """)
+      assert html =~ "role=\"group\""
+      assert html =~ "aria-pressed=\"true\""
+      assert html =~ "aria-pressed=\"false\""
+      assert html =~ "Seg 1"
+    end
+  end
+
+  describe "accordion" do
+    test "renders accordion disclosure with aria-expanded" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.accordion id="test-accordion" title="Section 1">
+        Accordion content
+      </UI.accordion>
+      """)
+      assert html =~ "aria-expanded=\"false\""
+      assert html =~ "aria-controls=\"test-accordion-content\""
+      assert html =~ "Section 1"
+      assert html =~ "Accordion content"
+    end
+  end
 end
