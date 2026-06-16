@@ -2,7 +2,6 @@ defmodule Threadline.OperatorSurface.UI do
   @moduledoc false
   use Phoenix.Component
   import Phoenix.Component, except: [link: 1]
-  alias Phoenix.LiveView.JS
 
   @doc false
   attr :type, :string, default: "button"
@@ -74,6 +73,69 @@ defmodule Threadline.OperatorSurface.UI do
     >
       <%= render_slot(@inner_block) %>
     </Phoenix.Component.link>
+    """
+  end
+
+  @doc false
+  attr :variant, :string, default: "neutral", values: ~w(info warning danger success accent muted neutral)
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    ~H"""
+    <span class={["tl-chip", "tl-chip--#{@variant}", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  @doc false
+  attr :variant, :string, default: "info", values: ~w(info warning success error)
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def alert(assigns) do
+    ~H"""
+    <div class={["tl-alert", "tl-alert--#{@variant}", @class]} role="alert" {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def divider(assigns) do
+    ~H"""
+    <hr class={["tl-divider", @class]} {@rest} />
+    """
+  end
+
+  @doc false
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def spinner(assigns) do
+    ~H"""
+    <svg class={["tl-spinner", @class]} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" {@rest}>
+      <circle cx="12" cy="12" r="10" stroke-opacity="0.25" />
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+    </svg>
+    """
+  end
+
+  @doc false
+  attr :src, :string, required: true
+  attr :alt, :string, default: ""
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def avatar(assigns) do
+    ~H"""
+    <img src={@src} alt={@alt} class={["tl-avatar", @class]} {@rest} />
     """
   end
 end
