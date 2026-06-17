@@ -149,7 +149,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 175-01-PLAN.md — Wave 0 test scaffolds (CSP guard, page_header, breadcrumb, pager, skip-link)
+- [x] 175-01-PLAN.md — Wave 0 test scaffolds (CSP guard, page_header, breadcrumb, pager, skip-link)
 
 **Wave 2** *(blocked on 175-01)*
 
@@ -264,7 +264,7 @@ Plans:
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
-| 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
+| 175. Navigation, app shell & runtime theme picker | v1.37 | 1/4 | In Progress|  |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |

@@ -30,10 +30,10 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Navigation, App Shell & Runtime Theme Picker (NAV)
 
-- [ ] **NAV-01**: The app shell + navigation (topbar/sidebar/breadcrumbs/page titles/section tabs/toolbar/back-cancel/mobile nav) present a consistent on-brand structure where the operator always knows where they are; active/current state is unmistakable in dark and light.
-- [ ] **NAV-02**: Pagination is clear when present and de-emphasizes or hides itself when there is one page or zero results; search/filter affordances are clear and space-efficient.
-- [ ] **NAV-03** (THEME-TOGGLE-01): An in-product theme picker lets each operator choose dark/light/system (system default), implemented as cookie + plug with zero JavaScript and no FOUC; the `theme-toggle` ban is lifted in the style contract and the choice persists per operator.
-- [ ] **NAV-04**: Mobile navigation works without nested-scroll traps, and sticky elements never cover content.
+- [x] **NAV-01**: The app shell + navigation (topbar/sidebar/breadcrumbs/page titles/section tabs/toolbar/back-cancel/mobile nav) present a consistent on-brand structure where the operator always knows where they are; active/current state is unmistakable in dark and light.
+- [x] **NAV-02**: Pagination is clear when present and de-emphasizes or hides itself when there is one page or zero results; search/filter affordances are clear and space-efficient.
+- [x] **NAV-03** (THEME-TOGGLE-01): An in-product theme picker lets each operator choose dark/light/system (system default), implemented as cookie + plug with zero JavaScript and no FOUC; the `theme-toggle` ban is lifted in the style contract and the choice persists per operator.
+- [x] **NAV-04**: Mobile navigation works without nested-scroll traps, and sticky elements never cover content.
 
 ### Data Display & Operator Patterns (DATA)
 
@@ -113,10 +113,10 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | COMP-04 | Phase 174 | Complete |
 | COMP-05 | Phase 174 | Complete |
 | COMP-06 | Phase 174 | Complete |
-| NAV-01 | Phase 175 | Pending |
-| NAV-02 | Phase 175 | Pending |
-| NAV-03 | Phase 175 | Pending |
-| NAV-04 | Phase 175 | Pending |
+| NAV-01 | Phase 175 | Complete |
+| NAV-02 | Phase 175 | Complete |
+| NAV-03 | Phase 175 | Complete |
+| NAV-04 | Phase 175 | Complete |
 | DATA-01 | Phase 176 | Pending |
 | DATA-02 | Phase 176 | Pending |
 | DATA-03 | Phase 176 | Pending |

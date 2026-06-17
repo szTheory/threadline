@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-17T18:47:48.712Z"
-last_activity: 2026-06-17 -- Phase 175 planning complete
+last_updated: "2026-06-17T18:57:10.025Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 15
   completed_phases: 4
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 27
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 175 — navigation, app shell & runtime theme picker
+**Current focus:** Phase 175 — navigation-app-shell-runtime-theme-picker
 
 ## Current Position
 
-Phase: 175
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 175 planning complete
+Phase: 175 (navigation-app-shell-runtime-theme-picker) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute (175-01 complete — Wave 0 NAV test scaffolds landed)
+Last activity: 2026-06-17 -- Completed 175-01-PLAN.md (5 Wave 0 NAV test scaffolds)
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Last activity: 2026-06-17 -- Phase 175 planning complete
 | todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
 | Phase 174 P06 | 6min | 2 tasks | 2 files |
+| Phase 175 P01 | 14min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Last activity: 2026-06-17 -- Phase 175 planning complete
 - [Phase 174-05]: combobox confines JS to ARIA state via Phoenix.LiveView.JS (popover/dropdown precedent) — CSP-safe, degrades to free-text input, no Alpine, no new runtime deps.
 - [Phase 174]: [Phase 174-06]: field_group renders the base tl-filter-group class + legend; timeline call sites pass only the --primary/--advanced modifier and drop the duplicated raw legend.
 - [Phase 174]: [Phase 174-06]: formless guard scans each page's own source (not surface_header), excluding the legitimate hidden _csrf_token and theme-picker form without an explicit allowlist.
+- [Phase ?]: [175-01]: CSP guard combines specific onclick/onchange refutes + explicit handler list + broad on*= regex (mitigates T-175-01); breadcrumb_test drives the live actor drill-down with a legacy-landmark fallback; skip_link_test follows the Timeline mount live_redirect.
 
 ### Blockers
 
