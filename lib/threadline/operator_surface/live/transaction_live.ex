@@ -95,7 +95,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
-          current={nil}
+          current={:timeline}
         />
         <main id="tl-main" class="tl-page tl-container" tabindex="-1">
         <%= if @not_found do %>

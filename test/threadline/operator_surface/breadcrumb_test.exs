@@ -142,8 +142,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp aria_current_count(html) do
-      ~r/aria-current="page"/
-      |> Regex.scan(html)
+      # The page embeds the full operator stylesheet inline via <Style.css />, and that
+      # CSS contains the literal selector text `[aria-current="page"]`. Strip the
+      # <style> block first so we only count real DOM attributes, not stylesheet text
+      # (WR-02): otherwise the count is satisfied even when no nav link is current.
+      html
+      |> String.replace(~r/<style.*?<\/style>/s, "")
+      |> then(&Regex.scan(~r/aria-current="page"/, &1))
       |> length()
     end
 

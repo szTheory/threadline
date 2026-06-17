@@ -99,7 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
-          current={nil}
+          current={:timeline}
           scoped={not is_nil(assigns[:threadline_scope])}
         />
         <main id="tl-main" class="tl-page" tabindex="-1">
