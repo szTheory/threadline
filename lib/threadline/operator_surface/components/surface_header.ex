@@ -28,11 +28,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def surface_header(assigns) do
       ~H"""
-      <a
-        class="tl-skip-link"
-        href="#tl-main"
-        onclick="var target=document.getElementById('tl-main'); if (target) target.focus();"
-      >Skip to main content</a>
+      <a class="tl-skip-link" href="#tl-main">Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
         <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline operator home">
           <Threadline.OperatorSurface.Components.Logo.compact />
@@ -58,21 +54,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% end %>
         </div>
       </header>
-      <input
-        id="tl-shell-nav-toggle"
-        class="tl-shell-nav__control"
-        type="checkbox"
-        tabindex="-1"
-        aria-hidden="true"
-      />
-      <nav class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Operator surface">
-        <button
-          type="button"
-          class="tl-shell-nav__toggle"
-          aria-controls="tl-shell-nav-panel"
-          aria-expanded="false"
-          onclick="var nav=this.closest('.tl-shell-nav'); var input=document.getElementById('tl-shell-nav-toggle'); var open=nav ? !nav.classList.contains('tl-shell-nav--open') : !(input && input.checked); if (nav) { nav.classList.toggle('tl-shell-nav--open', open); } if (input) { input.checked = open; } this.setAttribute('aria-expanded', open ? 'true' : 'false');"
-        >Menu</button>
+      <details class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Operator surface">
+        <summary class="tl-shell-nav__toggle" aria-controls="tl-shell-nav-panel">Menu</summary>
         <div id="tl-shell-nav-panel" class="tl-shell-nav__panel">
           <div class="tl-shell-nav__overview">
             <.nav_link
@@ -102,30 +85,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
           </section>
           <section class="tl-shell-nav__group tl-theme-picker" aria-labelledby="tl-shell-nav-theme">
-            <h2 id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</h2>
             <form action={"#{@base_path}/theme"} method="post" class="tl-theme-picker__form">
               <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
-              <div class="tl-segmented">
-                <label class={["tl-segmented__item", @theme == "system" && "tl-segmented__item--active"]}>
-                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-system" name="theme" value="system" class="tl-sr-only" checked={@theme == "system"} onchange="this.form.submit()" />
+              <fieldset class="tl-theme-picker__options">
+                <legend id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>
+                <label class="tl-theme-picker__option" for="theme-system">
+                  <input type="radio" id="theme-system" name="theme" value="system" checked={@theme == "system"} />
                   System
                 </label>
-                <label class={["tl-segmented__item", @theme == "light" && "tl-segmented__item--active"]}>
-                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-light" name="theme" value="light" class="tl-sr-only" checked={@theme == "light"} onchange="this.form.submit()" />
+                <label class="tl-theme-picker__option" for="theme-light">
+                  <input type="radio" id="theme-light" name="theme" value="light" checked={@theme == "light"} />
                   Light
                 </label>
-                <label class={["tl-segmented__item", @theme == "dark" && "tl-segmented__item--active"]}>
-                  <Threadline.OperatorSurface.UI.input type="radio" id="theme-dark" name="theme" value="dark" class="tl-sr-only" checked={@theme == "dark"} onchange="this.form.submit()" />
+                <label class="tl-theme-picker__option" for="theme-dark">
+                  <input type="radio" id="theme-dark" name="theme" value="dark" checked={@theme == "dark"} />
                   Dark
                 </label>
-              </div>
-              <noscript>
-                <button type="submit" class="tl-button tl-button--compact tl-button--secondary">Save</button>
-              </noscript>
+              </fieldset>
+              <button type="submit" class="tl-button tl-button--primary">Apply theme</button>
             </form>
           </section>
         </div>
-      </nav>
+      </details>
       """
     end
 
