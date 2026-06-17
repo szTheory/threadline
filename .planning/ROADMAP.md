@@ -124,7 +124,7 @@ Plans:
 - [x] 174-02-PLAN.md — Adopt components in core pages (start, timeline, row_history, surface_header)
 - [x] 174-03-PLAN.md — Adopt components in detail LiveViews (actor, transaction, coverage, evidence)
 - [x] 174-04-PLAN.md — Final sweep + stress_live form matrices; confirm auxiliary pages formless
-- [ ] 174-05-PLAN.md — Add missing components (error_summary, combobox, field_group, radio, switch, search/date/number) + contract tests (COMP-04, COMP-06)
+- [x] 174-05-PLAN.md — Add missing components (error_summary, combobox, field_group, radio, switch, search/date/number) + contract tests (COMP-04, COMP-06)
 
 **Wave 2** *(blocked on 174-05)*
 
@@ -245,7 +245,7 @@ Plans:
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
-| 174. Form components | v1.37 | 4/4 | Complete   | 2026-06-16 |
+| 174. Form components | v1.37 | 5/6 | In Progress|  |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |

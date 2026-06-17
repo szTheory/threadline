@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-16T21:47:31.388Z"
-last_activity: 2026-06-16
+last_updated: "2026-06-17T17:08:43.547Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 15
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 13
+  total_plans: 16
+  completed_plans: 15
   percent: 20
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 174 — form components
+**Current focus:** Phase 174 — form-components
 
 ## Current Position
 
-Phase: 174
-Plan: 03
-Status: In progress
-Last activity: 2026-06-16
+Phase: 174 (form-components) — EXECUTING
+Plan: 2 of 6
+Status: Completed 174-05-PLAN.md (gap closure: form components + contract tests)
+Last activity: 2026-06-17 -- 174-05 complete (error_summary, field_group, radio, switch, combobox; COMP-04/COMP-06)
 
 ## Performance Metrics
 
@@ -173,6 +173,9 @@ Last activity: 2026-06-16
 - [Phase ?]: [170-01]: brandbook<->style.ex drift now caught by brandbook_token_parity_test in both directions; pressure-test dim #11 bumped 8->9 (total 128->129)
 - [Phase ?]: [170-02]: v1.36 audit doc authored; COMP-01/02 built+verified-live source-uncommitted; closeout pending-uat
 - [Phase ?]: [170-02]: REQUIREMENTS COMP-01/02 token 'Verified (source pending)' (table + checkboxes); BRAND-01/02 Complete; archival+version bump -> /gsd-complete-milestone post-UAT
+- [Phase 174-05]: search/date/number need no dedicated input clause — the generic input(assigns) default already emits type={@type} + tl-control; documented as passthrough and proven by contract tests.
+- [Phase 174-05]: New form components compose existing classes/BEM modifiers (tl-error-summary__*, tl-radio__*, tl-switch, tl-combobox__*) rather than add any new --tl-* token, keeping style.ex untouched and brand-parity green.
+- [Phase 174-05]: combobox confines JS to ARIA state via Phoenix.LiveView.JS (popover/dropdown precedent) — CSP-safe, degrades to free-text input, no Alpine, no new runtime deps.
 
 ### Blockers
 

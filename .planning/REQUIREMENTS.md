@@ -24,9 +24,9 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 - [x] **COMP-01**: Internal private function components exist for the primitive set (button, icon-button, link, badge/chip/tag/pill, alert/banner/callout, card/panel, stat tile, divider, empty state, error state, spinner/progress/skeleton, code/log/JSON, avatar) with documented attrs/slots — no public/host-facing API.
 - [x] **COMP-02**: Overlay & disclosure primitives (modal/dialog, drawer/sheet, toast/flash, tooltip, popover, dropdown/menu, tabs, segmented control, accordion/disclosure) are internal components with correct keyboard, focus-trap/restore, escape, and scrim semantics.
 - [x] **COMP-03**: Every primitive renders correctly in all interaction states (default/hover/focus-visible/active/pressed/disabled/loading/selected/current) across dark/light/system; non-interactive elements expose no misleading affordances.
-- [ ] **COMP-04**: Internal form components exist (text/textarea/select/combobox/checkbox/radio/switch/search/number-date/filter controls/field group/error summary/help/required-optional/disabled-readonly) with visible associated labels, programmatically connected help + errors, non-color validation, and focus preserved across LiveView patches.
+- [x] **COMP-04**: Internal form components exist (text/textarea/select/combobox/checkbox/radio/switch/search/number-date/filter controls/field group/error summary/help/required-optional/disabled-readonly) with visible associated labels, programmatically connected help + errors, non-color validation, and focus preserved across LiveView patches.
 - [x] **COMP-05**: The 11 operator-surface LiveView pages consume the components (inline class-soup replaced) and template duplication is materially reduced.
-- [ ] **COMP-06**: Per-component contract tests lock attrs/slots/states/a11y so a component regression fails CI.
+- [x] **COMP-06**: Per-component contract tests lock attrs/slots/states/a11y so a component regression fails CI.
 
 ### Navigation, App Shell & Runtime Theme Picker (NAV)
 
@@ -110,9 +110,9 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | COMP-01 | Phase 173 | Complete |
 | COMP-02 | Phase 173 | Complete |
 | COMP-03 | Phase 173 | Complete |
-| COMP-04 | Phase 174 | Pending |
+| COMP-04 | Phase 174 | Complete |
 | COMP-05 | Phase 174 | Complete |
-| COMP-06 | Phase 174 | Pending |
+| COMP-06 | Phase 174 | Complete |
 | NAV-01 | Phase 175 | Pending |
 | NAV-02 | Phase 175 | Pending |
 | NAV-03 | Phase 175 | Pending |
