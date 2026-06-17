@@ -730,6 +730,104 @@ defmodule Threadline.OperatorSurface.UI do
     </fieldset>
     """
   end
+
+  @doc false
+  # Native radio group: every option shares @name; the option whose value equals
+  # @value is checked; each input has a distinct id and an associated <label>.
+  attr :name, :string, required: true
+  attr :value, :any, default: nil
+  attr :options, :list, default: []
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def radio(assigns) do
+    ~H"""
+    <div class={["tl-radio-group", @class]} role="group" {@rest}>
+      <div :for={{label, value} <- @options} class="tl-radio">
+        <input
+          type="radio"
+          id={"#{@name}-#{value}"}
+          name={@name}
+          value={value}
+          checked={to_string(value) == to_string(@value)}
+          class="tl-radio__input"
+        />
+        <label for={"#{@name}-#{value}"} class="tl-radio__label"><%= label %></label>
+      </div>
+    </div>
+    """
+  end
+
+  @doc false
+  # Native checkbox styled as a switch. Submits without JS; role/aria-checked
+  # carry switch semantics for assistive tech.
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :any, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def switch(assigns) do
+    assigns = assign(assigns, :checked, assigns.value == true || assigns.value == "true")
+
+    ~H"""
+    <input
+      type="checkbox"
+      role="switch"
+      id={@id}
+      name={@name}
+      value="true"
+      checked={@checked}
+      aria-checked={if @checked, do: "true", else: "false"}
+      class={["tl-checkbox", "tl-switch", @class]}
+      {@rest}
+    />
+    """
+  end
+
+  @doc false
+  # Combobox: a free-text input (role="combobox") paired with a hidden listbox.
+  # Open/close is driven purely by Phoenix.LiveView.JS (ARIA state only, no data
+  # fetch, no third-party JS runtime). With JS disabled the input still accepts
+  # free text, so the control degrades gracefully and submits like any text field.
+  attr :id, :string, required: true
+  attr :name, :string, default: nil
+  attr :value, :any, default: nil
+  attr :options, :list, default: []
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def combobox(assigns) do
+    ~H"""
+    <div class={["tl-combobox", @class]} {@rest}>
+      <input
+        type="text"
+        id={@id}
+        name={@name}
+        value={@value}
+        role="combobox"
+        aria-expanded="false"
+        aria-controls={"#{@id}-listbox"}
+        aria-autocomplete="list"
+        autocomplete="off"
+        class="tl-control"
+        phx-click={
+          JS.toggle(to: "##{@id}-listbox")
+          |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}")
+        }
+        phx-click-away={
+          JS.hide(to: "##{@id}-listbox")
+          |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}")
+        }
+      />
+      <ul id={"#{@id}-listbox"} class="hidden tl-combobox__listbox" role="listbox" aria-label={@name}>
+        <li :for={{label, value} <- @options} role="option" data-value={value} class="tl-combobox__option">
+          <%= label %>
+        </li>
+      </ul>
+    </div>
+    """
+  end
 end
 
 
