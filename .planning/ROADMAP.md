@@ -128,7 +128,7 @@ Plans:
 
 **Wave 2** *(blocked on 174-05)*
 
-- [ ] 174-06-PLAN.md — Migrate timeline raw <fieldset> to field_group + lock 8 formless pages (COMP-05)
+- [x] 174-06-PLAN.md — Migrate timeline raw <fieldset> to field_group + lock 8 formless pages (COMP-05)
 
 **UI hint**: yes
 
@@ -245,7 +245,7 @@ Plans:
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
-| 174. Form components | v1.37 | 5/6 | In Progress|  |
+| 174. Form components | v1.37 | 6/6 | Complete   | 2026-06-17 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |

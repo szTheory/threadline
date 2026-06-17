@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-17T17:08:43.547Z"
+last_updated: "2026-06-17T17:13:19.729Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 15
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 15
-  percent: 20
+  completed_plans: 16
+  percent: 27
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 ## Current Position
 
 Phase: 174 (form-components) — EXECUTING
-Plan: 2 of 6
-Status: Completed 174-05-PLAN.md (gap closure: form components + contract tests)
-Last activity: 2026-06-17 -- 174-05 complete (error_summary, field_group, radio, switch, combobox; COMP-04/COMP-06)
+Plan: 6 of 6 (all plans complete)
+Status: Completed 174-06-PLAN.md (gap closure: timeline field_group migration + formless-page guard; COMP-05)
+Last activity: 2026-06-17 -- 174-06 complete (timeline filter groups → UI.field_group; FormlessPagesTest locks the 8 display-only pages)
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Last activity: 2026-06-17 -- 174-05 complete (error_summary, field_group, radio,
 | todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
+| Phase 174 P06 | 6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,8 @@ Last activity: 2026-06-17 -- 174-05 complete (error_summary, field_group, radio,
 - [Phase 174-05]: search/date/number need no dedicated input clause — the generic input(assigns) default already emits type={@type} + tl-control; documented as passthrough and proven by contract tests.
 - [Phase 174-05]: New form components compose existing classes/BEM modifiers (tl-error-summary__*, tl-radio__*, tl-switch, tl-combobox__*) rather than add any new --tl-* token, keeping style.ex untouched and brand-parity green.
 - [Phase 174-05]: combobox confines JS to ARIA state via Phoenix.LiveView.JS (popover/dropdown precedent) — CSP-safe, degrades to free-text input, no Alpine, no new runtime deps.
+- [Phase 174]: [Phase 174-06]: field_group renders the base tl-filter-group class + legend; timeline call sites pass only the --primary/--advanced modifier and drop the duplicated raw legend.
+- [Phase 174]: [Phase 174-06]: formless guard scans each page's own source (not surface_header), excluding the legitimate hidden _csrf_token and theme-picker form without an explicit allowlist.
 
 ### Blockers
 
