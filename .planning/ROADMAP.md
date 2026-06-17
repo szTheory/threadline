@@ -178,7 +178,25 @@ Plans:
   4. Row actions and bulk actions are discoverable but not accidentally triggerable; destructive actions are separated and confirmed by naming the object and consequence.
   5. The coverage "schema" section card-in-card nesting is flattened (resolves `coverage-schema-card-declutter`), and accidental nesting / table-overuse is removed system-wide.
 
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+
+**Wave 1**
+
+- [ ] 176-01-PLAN.md — Wave-0 test scaffolds + Presentation.ref/2 core + tail-safe truncation + missing icons
+
+**Wave 2** *(blocked on 176-01)*
+
+- [ ] 176-02-PLAN.md — UI components: ref/1, kv/1, data_table/1, loading_state/1, stale_banner/1 + empty_state variants + stress stories
+
+**Wave 3** *(blocked on 176-02)*
+
+- [ ] 176-03-PLAN.md — DATA-01/03 consumer migration (copy-footgun fix, kv/diff cells, CSS double-trunc kill, data-state taxonomy)
+
+**Wave 4** *(blocked on 176-03 / 176-02)*
+
+- [ ] 176-04-PLAN.md — DATA-05 coverage flatten + system-wide card-nesting sweep + regression test
+- [ ] 176-05-PLAN.md — DATA-04 destructive actions: T3 server-enforced prune (security core) + kebab + redaction collapse fix (redact gated by checkpoint)
 **UI hint**: yes
 
 ### Phase 177: Component groups / meta-components
