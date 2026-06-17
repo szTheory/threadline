@@ -64,6 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            |> assign(:last_activity, last_activity)
            |> assign(:next_cursor, page.next_cursor)
            |> assign(:prev_cursor, page.prev_cursor)
+           |> assign(:shown_count, length(page.entries))
            |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
            |> stream(:transactions, page.entries)}
 
@@ -183,8 +184,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </div>
               <UI.pager
-                shown={length(@streams.transactions.inserts)}
-                match_count={length(@streams.transactions.inserts)}
+                shown={@shown_count}
+                match_count={nil}
                 has_older={@next_cursor != nil}
                 has_newer={@prev_cursor != nil}
                 older_event="next-page"
@@ -222,6 +223,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:actor_summaries, actor_summaries)
        |> assign(:next_cursor, page.next_cursor)
        |> assign(:prev_cursor, page.prev_cursor)
+       |> assign(:shown_count, length(page.entries))
        |> stream(:transactions, page.entries, reset: true)}
     end
 
@@ -252,6 +254,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          socket
          |> assign(:actor_summaries, actor_summaries)
          |> assign(:next_cursor, page.next_cursor)
+         |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:transactions, page.entries, at: -1)}
       else
         {:noreply, socket}
@@ -285,6 +288,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          socket
          |> assign(:actor_summaries, actor_summaries)
          |> assign(:prev_cursor, page.prev_cursor)
+         |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:transactions, page.entries, at: 0)}
       else
         {:noreply, socket}

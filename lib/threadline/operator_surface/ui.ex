@@ -250,7 +250,13 @@ defmodule Threadline.OperatorSurface.UI do
   #   * deep-total cap (D-17): match_count >= 10_001 renders "10,000+", never an exact
   #     deep total (mirrors timeline_live format_count/1).
   attr(:shown, :integer, required: true, doc: "Count currently rendered on the page")
-  attr(:match_count, :integer, required: true, doc: "Total matching count (capped at 10,000+)")
+
+  attr(:match_count, :any,
+    default: nil,
+    doc:
+      "Total matching count (integer, capped at 10,000+). nil renders an honest count-free caption for surfaces (e.g. the actor sliding window) that have no cheap real total."
+  )
+
   attr(:has_older, :boolean, default: false, doc: "Whether an older keyset page exists")
   attr(:has_newer, :boolean, default: false, doc: "Whether a newer keyset page exists")
 
@@ -270,7 +276,7 @@ defmodule Threadline.OperatorSurface.UI do
   def pager(assigns) do
     ~H"""
     <nav
-      :if={@match_count > 0}
+      :if={is_nil(@match_count) or @match_count > 0}
       class={["tl-pager", @class]}
       aria-label="Timeline pagination"
       {@rest}
@@ -285,7 +291,11 @@ defmodule Threadline.OperatorSurface.UI do
         Newer
       </button>
       <span class="tl-pager__range" role="status" aria-live="polite">
-        Showing <%= @shown %> of <%= pager_total(@match_count) %> matching changes
+        <%= if is_nil(@match_count) do %>
+          Showing <%= @shown %> matching changes
+        <% else %>
+          Showing <%= @shown %> of <%= pager_total(@match_count) %> matching changes
+        <% end %>
       </span>
       <button
         :if={@older_event}

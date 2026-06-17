@@ -78,5 +78,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "50,000"
       refute html =~ "50000"
     end
+
+    test "integer match_count renders the of-N caption (timeline branch, CR-01/WR-01)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.pager shown={150} match_count={2_431} has_older={true} has_newer={false} />
+        """)
+
+      # The true total is reported; the cumulative shown count is honest.
+      assert html =~ "Showing 150 of 2,431 matching changes"
+    end
+
+    test "nil match_count renders an honest count-free caption (actor sliding window, CR-01)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.pager shown={75} match_count={nil} has_older={true} has_newer={true} />
+        """)
+
+      # No fabricated total: drop the "of N" clause entirely, keep the domain wording
+      # and the polite live region.
+      assert html =~ ~s|role="status"|
+      assert html =~ ~s|aria-live="polite"|
+      assert html =~ "Showing 75 matching changes"
+      refute html =~ "Showing 75 of"
+      # The pager is still rendered (no hide-at-zero) when the total is unknown.
+      assert html =~ "tl-pager"
+    end
   end
 end
