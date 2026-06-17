@@ -342,22 +342,19 @@ execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_id_idx " <>
 
 **Note:** All other claims in this research are `[VERIFIED: codebase]` via direct file reads cited inline. No external/registry assumptions were made (zero-dep phase).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **The composite index `audit_changes (captured_at DESC, id DESC)` does not exist (D-15).**
+1. **The composite index `audit_changes (captured_at DESC, id DESC)` does not exist (D-15).** — **RESOLVED 2026-06-17: defer as capture-layer perf debt.**
    - What we know: Only `audit_changes_captured_at_idx ON audit_changes (captured_at)` exists (`lib/threadline/capture/migration.ex:57`). `id` is a random-UUID PK, so the keyset tiebreaker is not index-backed.
-   - What's unclear: Whether to (a) add the composite index (a deliberate **capture-layer migration** change that brushes the "capture layer untouched" invariant), or (b) accept the single-column index and document `id`-tie rarity.
-   - Recommendation: **Escalate to the user before planning.** This is the single substantive deviation from CONTEXT.md. If added, use `CREATE INDEX CONCURRENTLY` for existing-data adopters and a plain `CREATE INDEX IF NOT EXISTS` in the migration. Do NOT plan D-15 as zero-work "read-only verify".
+   - **Resolution (user):** Keep the capture layer untouched in Phase 175. Do NOT add a migration/index and do NOT plan an index-existence test. Document the unbacked `(captured_at, id)` tiebreaker (ties on `captured_at` are rare given timestamp + random UUID) in `query.ex` and file the composite index as deferred capture-layer perf debt. D-15 is reframed from "read-only verify it exists" to this documentation note.
 
-2. **Does any page lack `<main tabindex="-1">`? (D-26)**
-   - What we know: present on timeline_live (340) and row_history_live (50).
-   - What's unclear: the other 9 pages' `<main>` attributes.
-   - Recommendation: Planner adds a per-page audit task + a contract test asserting every page's `<main id="tl-main">` has `tabindex="-1"`.
+2. **Does any page lack `<main tabindex="-1">`? (D-26)** — **RESOLVED: all 11 pages already carry it.**
+   - What we know: present on timeline_live (340) and row_history_live (50); plan-time grounding confirmed all 11 `<main id="tl-main">` already have `tabindex="-1"`.
+   - **Resolution:** The skip-link fix is purely the inline `onclick` removal; `skip_link_test.exs` is a GREEN regression lock asserting every page's `<main id="tl-main">` has `tabindex="-1"`.
 
-3. **Should the `tl_theme` cookie gain a `max_age` for true per-operator persistence?**
-   - What we know: It's currently a session cookie (no `max_age`); D-09 says backend is correct.
-   - What's unclear: Whether NAV-03 "persists per operator" implies durable persistence across browser sessions.
-   - Recommendation: Out of scope per D-09; flag only. Do not change without escalation.
+3. **Should the `tl_theme` cookie gain a `max_age` for true per-operator persistence?** — **RESOLVED: out of scope (D-09).**
+   - What we know: It's currently a session cookie (no `max_age`); D-09 says the backend is correct.
+   - **Resolution:** Out of scope per D-09 (backend untouched); flagged only. Not changed in Phase 175.
 
 ## Environment Availability
 
