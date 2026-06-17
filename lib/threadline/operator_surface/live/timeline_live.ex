@@ -68,6 +68,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:base_path, nil)
         |> assign(:timeline_path, nil)
         |> assign(:match_count, 0)
+        |> assign(:shown_count, 0)
         |> assign(:filter_query, "")
 
       {:ok, socket}
@@ -113,6 +114,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               |> assign(:cursor, nil)
               |> assign(:future_window_empty, false)
               |> assign(:match_count, 0)
+              |> assign(:shown_count, 0)
               |> assign(:filter_query, "")
               |> stream(:changes, [], reset: true)
 
@@ -128,6 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> assign(:cursor, nil)
                   |> assign(:future_window_empty, false)
                   |> assign(:match_count, 0)
+                  |> assign(:shown_count, 0)
                   |> assign(:filter_query, "")
                   |> stream(:changes, [], reset: true)
 
@@ -176,6 +179,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> assign(:unknown_table_attempted, unknown_table_attempted)
                   |> assign(:future_window_empty, future_window_empty)
                   |> assign(:match_count, count)
+                  |> assign(:shown_count, length(page.entries))
                   |> assign(:filter_query, filter_query)
                   |> stream(:changes, page.entries, reset: true)
                   |> assign(:cursor, page.next_cursor)
@@ -309,6 +313,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply,
          socket
          |> assign(:cursor, page.next_cursor)
+         |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:changes, page.entries, at: -1)}
       else
         {:noreply, socket}
@@ -341,7 +346,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <.timeline_command
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
-            shown_count={length(@streams.changes.inserts)}
+            shown_count={@shown_count}
             match_count={@match_count}
             coverage={assigns[:threadline_coverage]}
             coverage_enabled={@threadline_coverage_enabled}
@@ -419,7 +424,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         </section>
         <UI.pager
-          shown={length(@streams.changes.inserts)}
+          shown={@shown_count}
           match_count={@match_count}
           has_older={@cursor != nil}
           has_newer={false}
