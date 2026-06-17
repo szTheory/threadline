@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: executing
-last_updated: "2026-06-17T19:18:30.671Z"
+status: verifying
+last_updated: "2026-06-17T19:26:48.842Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 15
   completed_phases: 4
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
   percent: 95
 ---
 
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 Phase: 175 (navigation-app-shell-runtime-theme-picker) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute (175-03 complete — page_header + drill-down breadcrumbs; both NAV-01 Wave-0 RED targets GREEN)
-Last activity: 2026-06-17 -- Completed 175-03-PLAN.md (page_header/1 + breadcrumb relabel)
+Status: All 4 plans complete — ready for verification (175-04 done: UI.pager + honest cap captions; all NAV-02 Wave-0 RED targets GREEN)
+Last activity: 2026-06-17 -- Completed 175-04-PLAN.md (UI.pager + Timeline/Actor adoption + cap captions + D-15 doc note)
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Last activity: 2026-06-17 -- Completed 175-03-PLAN.md (page_header/1 + breadcrum
 | Phase 175 P01 | 14min | 2 tasks | 5 files |
 | Phase 175 P02 | ~15min | 2 tasks | 4 files |
 | Phase 175 P03 | ~30min | 2 tasks | 11 files |
+| Phase 175 P04 | ~12min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -184,6 +185,7 @@ Last activity: 2026-06-17 -- Completed 175-03-PLAN.md (page_header/1 + breadcrum
 - [Phase 174]: [Phase 174-06]: formless guard scans each page's own source (not surface_header), excluding the legitimate hidden _csrf_token and theme-picker form without an explicit allowlist.
 - [Phase ?]: [175-01]: CSP guard combines specific onclick/onchange refutes + explicit handler list + broad on*= regex (mitigates T-175-01); breadcrumb_test drives the live actor drill-down with a legacy-landmark fallback; skip_link_test follows the Timeline mount live_redirect.
 - [175-03]: One internal `UI.page_header/1` (single `<h1>`, `:heading`/`:lede`/`:actions`/`:inner_block` slots, ordered `breadcrumbs`) adopted across the operator pages; reuses existing CSS only (no style.ex change, no new `--tl-*` token, no public API). Drill-down pages (Transaction/Actor/standalone Row history) carry location-based breadcrumbs under `<nav aria-label="Breadcrumb">` rooted at "Timeline" and pass `current={nil}` so the single `aria-current="page"` lives only on a shell nav link (the inlined CSS `[aria-current="page"]` selector pinned by style_contract counts page-wide, so nav must mark nothing current on drill-downs). Timeline command toolbar + Coverage command-center state kept bespoke single-`<h1>` (specialized command structures pinned by timeline_live_test / aria-labelledby). D-02 doc-contract back-link assertions re-pointed to the D-13 breadcrumb root (Rule 3). Both NAV-01 Wave-0 RED targets GREEN; transaction_live/skip_link/CSP locks + brand-token parity green. Commits `025e9d3`, `3e4b1c7`.
+- [175-04]: One internal `UI.pager/1` (de-emphasized Older/Newer time-axis controls + a `role="status" aria-live="polite"` range caption) over the EXISTING keyset engine — hide-at-zero (D-16), disable-not-hide on boundaries (D-18), capped "10,000+" deep total (D-17); controls emit the host page's existing next-page/prev-page events (no engine change). Adopted next-only on Timeline (cursor stays in socket assign, D-19) and bidirectionally on Actor; Exports/Retention get honest "Showing latest N" cap captions (D-20), Coverage/Redaction none. `pager_test.exs` (the binding RED target) drove the signature (`shown`/`match_count`/`has_older`/`has_newer`), with optional `older_event`/`newer_event` phx-click attrs for adoption (`newer_event` is `:any` so Timeline passes nil). query.ex documents the `(captured_at, id)` keyset tiebreaker as DEFERRED capture-layer perf debt (D-15/Q1, T-175-10 accepted) — doc note only, no migration, capture layer byte-for-byte untouched. Zero new `--tl-*` token (brand-parity green). All 4 NAV-02 Wave-0 RED targets GREEN; verify.test 1008/0; credo clean. Commits `1a230bd`, `ac6f762`.
 - [175-02]: Shell is CSP-proof — all three inline handlers removed (theme onchange, nav onclick, skip-link onclick); theme picker rebuilt as visible native radios + explicit "Apply theme" button + pure-CSS `.tl-theme-picker__option:has(:checked)` non-color cue (zero new tokens); mobile nav is native `<details>` keyed on `[open]`; scroll-padding-top reconciled to the per-row scroll-margin-top token + overscroll-behavior:contain + 100svh; router macro doc corrected; theme-toggle ban lifted in style_contract_test for a positive CSP guard; backend untouched (D-09).
 
 ### Blockers
@@ -197,8 +199,9 @@ Last activity: 2026-06-17 -- Completed 175-03-PLAN.md (page_header/1 + breadcrum
 - **Milestone closeout (2026-06-14):** v1.36 Operator Surface Light Mode archived (ROADMAP + REQUIREMENTS + AUDIT under `milestones/v1.36-*`), PROJECT.md evolved, tag `v1.36`, REQUIREMENTS.md removed for fresh next milestone. Finding F1 resolved — entangled `style.ex` light source committed (`b9f8fc1`); suite green at 912 tests. 6 items acknowledged-deferred (see Deferred Items).
 - **175-02 (2026-06-17):** CSP-proof operator shell + runtime theme picker. Removed all 3 inline handlers; rebuilt picker as native radios + Apply button + `:has(:checked)` cue; native `<details>[open]` nav; scroll-padding-top/overscroll/100svh hardening; router doc corrected; theme-toggle ban lifted for a positive CSP guard. Plan-01 CSP RED target now GREEN (9 RED -> 8 RED Wave-0 targets remaining for Plans 03/04). Commits `b0a8c9c`, `25a582d`. Backend untouched (D-09); brand-token parity green.
 - **175-03 (2026-06-17):** Internal `UI.page_header/1` + drill-down breadcrumbs. Built the one-`<h1>` page header (reusing existing CSS, zero new token, no public API), adopted it across the operator pages, threaded `[Timeline > …]` location breadcrumbs under `<nav aria-label="Breadcrumb">` into the 3 drill-down pages, relabeled away the bespoke "Investigation path" landmark, and set drill-down `current={nil}` so the single `aria-current="page"` stays on a nav link only. Re-pointed the D-02 doc-contract back-link assertions to the new D-13 breadcrumb root. Both NAV-01 Wave-0 RED targets GREEN; only the 4 Plan-04 PagerTest RED targets remain. Commits `025e9d3`, `3e4b1c7`. style.ex + capture/semantics untouched; brand-token parity green.
-- **Last Action**: Completed `175-03-PLAN.md` (2026-06-17).
-- **Next Step**: Execute `175-04-PLAN.md` (UI.pager — turns the NAV-02 Wave-0 RED targets GREEN).
+- **175-04 (2026-06-17):** Internal `UI.pager/1` + honest cap captions. Built the de-emphasized Older/Newer pager (hide-at-zero, disable-not-hide, capped "10,000+", role=status caption) over the existing keyset engine, adopted it next-only on Timeline (cursor in assign, D-19) and bidirectionally on Actor, added "Showing latest N" cap captions on Exports/Retention (D-20, none on Coverage/Redaction), and documented the `(captured_at, id)` keyset tiebreaker as deferred capture-layer perf debt in query.ex (D-15/Q1; no migration, capture layer untouched). All 4 NAV-02 Wave-0 PagerTest RED targets GREEN; verify.test 1008/0; brand-token parity green; zero new token. Commits `1a230bd`, `ac6f762`.
+- **Last Action**: Completed `175-04-PLAN.md` (2026-06-17) — phase 175 all 4 plans done.
+- **Next Step**: Verify phase 175 (`/gsd:verify-work` — incl. Playwright `verify.example_browser`).
 - **Resume file**: None
 
 ## Operator Next Steps
