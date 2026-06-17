@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-17T18:57:10.025Z"
+last_updated: "2026-06-17T19:30:00.000Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 15
   completed_phases: 4
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 27
 ---
 
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 ## Current Position
 
 Phase: 175 (navigation-app-shell-runtime-theme-picker) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute (175-01 complete — Wave 0 NAV test scaffolds landed)
-Last activity: 2026-06-17 -- Completed 175-01-PLAN.md (5 Wave 0 NAV test scaffolds)
+Plan: 3 of 4
+Status: Ready to execute (175-02 complete — shell is CSP-proof; runtime theme picker rebuilt)
+Last activity: 2026-06-17 -- Completed 175-02-PLAN.md (CSP-proof shell + native theme picker)
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Last activity: 2026-06-17 -- Completed 175-01-PLAN.md (5 Wave 0 NAV test scaffol
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
 | Phase 174 P06 | 6min | 2 tasks | 2 files |
 | Phase 175 P01 | 14min | 2 tasks | 5 files |
+| Phase 175 P02 | ~15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -181,6 +182,7 @@ Last activity: 2026-06-17 -- Completed 175-01-PLAN.md (5 Wave 0 NAV test scaffol
 - [Phase 174]: [Phase 174-06]: field_group renders the base tl-filter-group class + legend; timeline call sites pass only the --primary/--advanced modifier and drop the duplicated raw legend.
 - [Phase 174]: [Phase 174-06]: formless guard scans each page's own source (not surface_header), excluding the legitimate hidden _csrf_token and theme-picker form without an explicit allowlist.
 - [Phase ?]: [175-01]: CSP guard combines specific onclick/onchange refutes + explicit handler list + broad on*= regex (mitigates T-175-01); breadcrumb_test drives the live actor drill-down with a legacy-landmark fallback; skip_link_test follows the Timeline mount live_redirect.
+- [175-02]: Shell is CSP-proof — all three inline handlers removed (theme onchange, nav onclick, skip-link onclick); theme picker rebuilt as visible native radios + explicit "Apply theme" button + pure-CSS `.tl-theme-picker__option:has(:checked)` non-color cue (zero new tokens); mobile nav is native `<details>` keyed on `[open]`; scroll-padding-top reconciled to the per-row scroll-margin-top token + overscroll-behavior:contain + 100svh; router macro doc corrected; theme-toggle ban lifted in style_contract_test for a positive CSP guard; backend untouched (D-09).
 
 ### Blockers
 
@@ -191,8 +193,9 @@ Last activity: 2026-06-17 -- Completed 175-01-PLAN.md (5 Wave 0 NAV test scaffol
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
 - **Milestone closeout (2026-06-14):** v1.36 Operator Surface Light Mode archived (ROADMAP + REQUIREMENTS + AUDIT under `milestones/v1.36-*`), PROJECT.md evolved, tag `v1.36`, REQUIREMENTS.md removed for fresh next milestone. Finding F1 resolved — entangled `style.ex` light source committed (`b9f8fc1`); suite green at 912 tests. 6 items acknowledged-deferred (see Deferred Items).
-- **Last Action**: Completed `/gsd-complete-milestone` for v1.36 — archived, evolved docs, tagged, retrospective updated (2026-06-14).
-- **Next Step**: `/gsd:new-milestone` to define the next milestone, or hold per the no-signal default. Outstanding human UAT (`169`/`170-HUMAN-UAT.md`) + `170-VERIFICATION.md` remain deferred if a confident close-walk is wanted later.
+- **175-02 (2026-06-17):** CSP-proof operator shell + runtime theme picker. Removed all 3 inline handlers; rebuilt picker as native radios + Apply button + `:has(:checked)` cue; native `<details>[open]` nav; scroll-padding-top/overscroll/100svh hardening; router doc corrected; theme-toggle ban lifted for a positive CSP guard. Plan-01 CSP RED target now GREEN (9 RED -> 8 RED Wave-0 targets remaining for Plans 03/04). Commits `b0a8c9c`, `25a582d`. Backend untouched (D-09); brand-token parity green.
+- **Last Action**: Completed `175-02-PLAN.md` (2026-06-17).
+- **Next Step**: Execute `175-03-PLAN.md` (page_header + breadcrumb relabel — turns the NAV-01 Wave-0 RED targets GREEN).
 - **Resume file**: None
 
 ## Operator Next Steps
