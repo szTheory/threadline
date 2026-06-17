@@ -144,7 +144,25 @@ Plans:
   3. An in-product theme picker lets each operator choose dark/light/system (system default), implemented as cookie + plug with zero JavaScript and no FOUC; the `theme-toggle` ban is lifted in the style contract and the choice persists per operator (resolves `theme-picker-idiomatic-ui`).
   4. Mobile navigation works without nested-scroll traps, and sticky elements never cover content.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+
+**Wave 1**
+
+- [ ] 175-01-PLAN.md — Wave 0 test scaffolds (CSP guard, page_header, breadcrumb, pager, skip-link)
+
+**Wave 2** *(blocked on 175-01)*
+
+- [ ] 175-02-PLAN.md — Theme picker fix + CSP hardening + native <details> nav + sticky/scroll + ban lift
+
+**Wave 3** *(blocked on 175-01)*
+
+- [ ] 175-03-PLAN.md — Internal page_header + breadcrumb component, adopted across all 11 pages
+
+**Wave 4** *(blocked on 175-01, 175-02, 175-03)*
+
+- [ ] 175-04-PLAN.md — Accessible pager over the existing keyset engine + cap captions + keyset perf-debt note
+
 **UI hint**: yes
 
 ### Phase 176: Data display & operator patterns
