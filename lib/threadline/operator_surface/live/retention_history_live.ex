@@ -64,6 +64,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end)
           |> assign(:runs_summary, summarize_runs(runs))
           |> assign(:has_runs, length(runs) > 0)
+          |> assign(:runs_count, length(runs))
+          |> assign(:default_limit, @default_limit)
 
         {:noreply, socket}
       end
@@ -160,9 +162,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </button>
               </div>
 
-              <%!-- Honest cap caption (D-20): Retention is recent-only / low-volume, not a keyset pager. N = @default_limit (40). --%>
+              <%!-- Honest cap caption (D-20, WR-04/WR-05): Retention is recent-only /
+                    low-volume, not a keyset pager. Report the actual rendered count
+                    (never over-claim against a short table) and, when the cap is hit,
+                    interpolate the real @default_limit rather than a hardcoded literal. --%>
               <p class="tl-status" role="status" aria-live="polite">
-                Showing latest 40 retention runs (most recent first).
+                <%= if @runs_count >= @default_limit do %>
+                  Showing the most recent <%= @default_limit %> retention runs (newest first).
+                <% else %>
+                  Showing the most recent <%= @runs_count %> <%= if @runs_count == 1, do: "retention run", else: "retention runs" %> (newest first).
+                <% end %>
               </p>
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
@@ -248,6 +257,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket
       |> stream(:runs, runs)
       |> assign(:runs_summary, summarize_runs(runs))
+      |> assign(:runs_count, length(runs))
+      |> assign(:default_limit, @default_limit)
     end
 
     defp summarize_runs([run | _] = runs) do

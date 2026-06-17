@@ -257,9 +257,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
-                <%!-- Honest cap caption (D-20): Exports is recent-only / low-volume, not a keyset pager. N = @default_limit (100). --%>
+                <%!-- Honest cap caption (D-20, WR-04/WR-05): Exports is recent-only /
+                      low-volume, not a keyset pager. Report the actual rendered count
+                      (never over-claim against a short table) and, when the cap is hit,
+                      interpolate the real @default_limit rather than a hardcoded literal. --%>
                 <p class="tl-status" role="status" aria-live="polite">
-                  Showing latest 100 export jobs (most recent first).
+                  <%= if @jobs_count >= @default_limit do %>
+                    Showing the most recent <%= @default_limit %> export jobs (newest first).
+                  <% else %>
+                    Showing the most recent <%= @jobs_count %> <%= if @jobs_count == 1, do: "export job", else: "export jobs" %> (newest first).
+                  <% end %>
                 </p>
                 <section :for={group <- @job_groups} class="tl-job-group" data-testid="export-readiness-group">
                   <header class="tl-job-group__header">
@@ -398,10 +405,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp assign_jobs(socket, jobs) do
+      count = length(jobs)
+
       socket
       |> assign(:jobs, jobs)
       |> assign(:job_groups, group_jobs(jobs))
-      |> assign(:has_jobs, length(jobs) > 0)
+      |> assign(:has_jobs, count > 0)
+      |> assign(:jobs_count, count)
+      |> assign(:default_limit, @default_limit)
     end
 
     defp group_jobs(jobs) do
