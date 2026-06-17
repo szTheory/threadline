@@ -91,6 +91,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Showing 150 of 2,431 matching changes"
     end
 
+    test "landmark label defaults to Timeline pagination but is overridable (WR-06)" do
+      assigns = %{}
+
+      default_html =
+        rendered_to_string(~H"""
+        <UI.pager shown={25} match_count={250} has_older={true} has_newer={true} />
+        """)
+
+      assert default_html =~ ~s|aria-label="Timeline pagination"|
+
+      labelled_html =
+        rendered_to_string(~H"""
+        <UI.pager
+          shown={25}
+          match_count={nil}
+          label="Actor activity pagination"
+          has_older={true}
+          has_newer={true}
+        />
+        """)
+
+      assert labelled_html =~ ~s|aria-label="Actor activity pagination"|
+      refute labelled_html =~ ~s|aria-label="Timeline pagination"|
+    end
+
     test "nil match_count renders an honest count-free caption (actor sliding window, CR-01)" do
       assigns = %{}
 

@@ -186,6 +186,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <UI.pager
                 shown={@shown_count}
                 match_count={nil}
+                label="Actor activity pagination"
                 has_older={@next_cursor != nil}
                 has_newer={@prev_cursor != nil}
                 older_event="next-page"

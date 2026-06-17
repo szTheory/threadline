@@ -270,6 +270,12 @@ defmodule Threadline.OperatorSurface.UI do
     doc: "phx-click event for the Newer control; nil omits the control entirely (next-only pages)"
   )
 
+  attr(:label, :string,
+    default: "Timeline pagination",
+    doc:
+      "aria-label for the pager <nav> landmark; callers on non-timeline surfaces (e.g. the actor page) should pass an accurate label."
+  )
+
   attr(:class, :any, default: nil)
   attr(:rest, :global)
 
@@ -278,7 +284,7 @@ defmodule Threadline.OperatorSurface.UI do
     <nav
       :if={is_nil(@match_count) or @match_count > 0}
       class={["tl-pager", @class]}
-      aria-label="Timeline pagination"
+      aria-label={@label}
       {@rest}
     >
       <button
