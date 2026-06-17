@@ -182,6 +182,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                 </div>
               </div>
+              <UI.pager
+                shown={length(@streams.transactions.inserts)}
+                match_count={length(@streams.transactions.inserts)}
+                has_older={@next_cursor != nil}
+                has_newer={@prev_cursor != nil}
+                older_event="next-page"
+                newer_event="prev-page"
+              />
             <% end %>
           <% end %>
         <% end %>

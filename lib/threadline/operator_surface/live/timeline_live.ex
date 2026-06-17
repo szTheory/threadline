@@ -418,6 +418,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
           </div>
         </section>
+        <UI.pager
+          shown={length(@streams.changes.inserts)}
+          match_count={@match_count}
+          has_older={@cursor != nil}
+          has_newer={false}
+          older_event="next-page"
+          newer_event={nil}
+        />
         <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
              class="tl-empty">
           <h3 class="tl-empty__title"><%= empty_title(@future_window_empty) %></h3>

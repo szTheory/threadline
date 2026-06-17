@@ -259,7 +259,7 @@ defmodule Threadline.OperatorSurface.UI do
     doc: "phx-click event for the Older control (older = further back in time = next page)"
   )
 
-  attr(:newer_event, :string,
+  attr(:newer_event, :any,
     default: "prev-page",
     doc: "phx-click event for the Newer control; nil omits the control entirely (next-only pages)"
   )

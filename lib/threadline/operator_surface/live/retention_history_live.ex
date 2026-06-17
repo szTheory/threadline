@@ -160,6 +160,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </button>
               </div>
 
+              <%!-- Honest cap caption (D-20): Retention is recent-only / low-volume, not a keyset pager. N = @default_limit (40). --%>
+              <p class="tl-status" role="status" aria-live="polite">
+                Showing latest 40 retention runs (most recent first).
+              </p>
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <table class="tl-table tl-table--retention tl-table--compact tl-table--sticky tl-table--responsive">
                   <thead>

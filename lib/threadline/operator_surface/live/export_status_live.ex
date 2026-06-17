@@ -257,6 +257,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
+                <%!-- Honest cap caption (D-20): Exports is recent-only / low-volume, not a keyset pager. N = @default_limit (100). --%>
+                <p class="tl-status" role="status" aria-live="polite">
+                  Showing latest 100 export jobs (most recent first).
+                </p>
                 <section :for={group <- @job_groups} class="tl-job-group" data-testid="export-readiness-group">
                   <header class="tl-job-group__header">
                     <h2 class="tl-job-group__title"><%= group.title %></h2>

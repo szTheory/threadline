@@ -344,6 +344,18 @@ defmodule Threadline.Query do
     |> filter_by_to(Keyword.get(filters, :to))
   end
 
+  # Keyset order: (captured_at DESC, id DESC). The `id` is a stable tiebreaker so the
+  # cursor never skips/duplicates rows when two changes share a `captured_at`.
+  #
+  # PERF DEBT (D-15, deferred per Q1): this `ORDER BY captured_at, id` is currently backed
+  # only by the single-column `audit_changes (captured_at)` index
+  # (lib/threadline/capture/migration.ex). A composite `(captured_at, id)` index would back
+  # the tiebreaker and avoid a latent perf cliff on very deep timelines, but it lives in the
+  # CAPTURE LAYER, which is intentionally left untouched this milestone. The risk is low:
+  # ties on `captured_at` are rare (microsecond timestamps + a random UUID primary key), so
+  # the single-column index satisfies the leading sort key and Postgres only sorts within a
+  # (typically singleton) `captured_at` group. Backlog: add the composite capture-layer index
+  # when capture-layer perf work is scheduled. See threat register T-175-10 (accepted).
   defp timeline_order(query) do
     query
     |> order_by([ac], desc: ac.captured_at)
