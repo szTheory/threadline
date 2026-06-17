@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
 
     def mount(%{"id" => id}, _session, socket) do
       repo =
@@ -94,7 +95,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
+          current={nil}
         />
         <main id="tl-main" class="tl-page tl-container" tabindex="-1">
         <%= if @not_found do %>
@@ -110,22 +111,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% else %>
           <div class="tl-transaction tl-short-content">
-            <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
-              <a href={"#{surface_root(@base_path)}/timeline"} class="tl-link tl-link--back">← Timeline</a>
-              <span>Transaction</span>
-            </nav>
-            <div class="tl-page__header">
-              <div>
-                <% transaction_ref = Presentation.secondary_ref(@bundle.transaction.id, 30) %>
-                <h1 class="tl-transaction__title" title={transaction_ref.title}>
-                  Transaction <code><%= transaction_ref.visible %></code>
-                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
-                    Copy
-                  </button>
-                </h1>
-                <p class="tl-page__lede">Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</p>
-              </div>
+            <% transaction_ref = Presentation.secondary_ref(@bundle.transaction.id, 30) %>
+            <UI.page_header breadcrumbs={[
+              %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+              %{label: "Transaction #{transaction_ref.visible}"}
+            ]}>
+              <:heading>
+                Transaction <code title={transaction_ref.title}><%= transaction_ref.visible %></code>
+                <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+                  Copy
+                </button>
+              </:heading>
+              <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
               <div class="tl-param-list" aria-label="Transaction context">
                 <span class="tl-param">
                   <span class="tl-param__key">Actor</span>
@@ -151,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </span>
                 </span>
               </div>
-            </div>
+            </UI.page_header>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
             <div class="tl-empty">

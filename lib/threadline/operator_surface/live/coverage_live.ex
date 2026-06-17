@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Coverage.Snapshot
+    alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
 
     @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
@@ -108,18 +109,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_coverage_enabled do %>
             <%= if @form_error do %>
-              <header class="tl-page__header">
-                <div>
-                  <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
-                  <p class="tl-page__lede">
-                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
-                  </p>
-                </div>
-                <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                  Refresh
-                </button>
-              </header>
+              <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+                <:lede>
+                  Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                </:lede>
+                <:actions>
+                  <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                    Refresh
+                  </button>
+                </:actions>
+              </UI.page_header>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @threadline_coverage_error do %>
@@ -129,18 +129,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
-                <header class="tl-page__header">
-                  <div>
-                    <h1 class="tl-page__title">Coverage — schema: <%= @schema_param %></h1>
-                    <p class="tl-page__lede">
-                      Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
-                    </p>
-                  </div>
-                  <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                    Refresh
-                  </button>
-                </header>
+                <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+                  <:lede>
+                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                  </:lede>
+                  <:actions>
+                    <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                      Refresh
+                    </button>
+                  </:actions>
+                </UI.page_header>
                 <div class="tl-empty">
                   <h3 class="tl-empty__title">No audited tables found</h3>
                   <p class="tl-empty__body">

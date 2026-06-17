@@ -190,6 +190,11 @@ defmodule Threadline.OperatorSurface.UI do
 
   attr(:class, :any, default: nil)
   attr(:rest, :global)
+
+  slot(:heading,
+    doc: "Rich heading content rendered inside the single <h1> (overrides title attr)"
+  )
+
   slot(:lede)
   slot(:actions)
   slot(:inner_block)
@@ -200,7 +205,7 @@ defmodule Threadline.OperatorSurface.UI do
       <.breadcrumb_trail :if={@breadcrumbs != []} crumbs={@breadcrumbs} />
       <div>
         <h1 id={@id} class={if @variant == "display", do: "tl-home__headline", else: "tl-page__title"}>
-          <%= @title %>
+          <%= if @heading != [], do: render_slot(@heading), else: @title %>
         </h1>
         <p :if={@lede != []} class={if @variant == "display", do: "tl-home__lede", else: "tl-page__lede"}>
           <%= render_slot(@lede) %>

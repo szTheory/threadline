@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Policy.RedactionPresenter
 
@@ -58,12 +59,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_policy_enabled do %>
-            <header class="tl-page__header">
-              <div>
-              <h1 class="tl-page__title">Redaction assurance</h1>
-              <p class="tl-page__lede">Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</p>
-              </div>
-            </header>
+            <UI.page_header title="Redaction assurance">
+              <:lede>Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</:lede>
+            </UI.page_header>
 
             <section class="tl-trust-rail" aria-label="Redaction workflow">
               <span class="tl-trust-rail__label">Redaction assurance</span>

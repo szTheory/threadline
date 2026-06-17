@@ -7,6 +7,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Governance.RetentionRun
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.StorageSchema
     alias Threadline.Retention.Pruner
@@ -87,12 +88,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_policy_enabled do %>
-            <header class="tl-page__header">
-              <div>
-                <h1 class="tl-page__title">What was purged, and did it succeed?</h1>
-                <p class="tl-page__lede">Review the latest completed purge, failures, and evidence before triggering another destructive retention pass.</p>
-              </div>
-            </header>
+            <UI.page_header title="What was purged, and did it succeed?">
+              <:lede>Review the latest completed purge, failures, and evidence before triggering another destructive retention pass.</:lede>
+            </UI.page_header>
 
             <section class="tl-trust-rail" aria-label="Retention context">
               <span class="tl-trust-rail__label">Retention assurance</span>

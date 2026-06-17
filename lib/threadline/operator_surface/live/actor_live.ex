@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Capture.AuditChange
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
     alias Threadline.StorageSchema
 
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
@@ -97,7 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
+          current={nil}
           scoped={not is_nil(assigns[:threadline_scope])}
         />
         <main id="tl-main" class="tl-page" tabindex="-1">
@@ -114,23 +115,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% else %>
           <div class="tl-transaction">
-            <nav class="tl-transaction__breadcrumbs" aria-label="Investigation path">
-              <a href={"#{@base_path}/timeline"} class="tl-link tl-link--back">← Timeline</a>
-              <span>Actor</span>
-            </nav>
-            <div class="tl-page__header">
-              <div>
-                <h1 class="tl-transaction__title">Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></h1>
-                <p class="tl-page__lede">Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</p>
-                <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
-              </div>
+            <UI.page_header breadcrumbs={[
+              %{label: "Timeline", href: "#{@base_path}/timeline"},
+              %{label: "Actor · #{@actor_ref.type}/#{@actor_ref.id}"}
+            ]}>
+              <:heading>Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></:heading>
+              <:lede>Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
+              <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
                 <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={pressed_state(@time_window_hours, 1)} class="tl-segmented__item">1h</button>
                 <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={pressed_state(@time_window_hours, 24)} class="tl-segmented__item">24h</button>
                 <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={pressed_state(@time_window_hours, 168)} class="tl-segmented__item">7d</button>
                 <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={pressed_state(@time_window_hours, 720)} class="tl-segmented__item">30d</button>
               </div>
-            </div>
+            </UI.page_header>
           </div>
 
           <%= if not @has_ever_acted do %>

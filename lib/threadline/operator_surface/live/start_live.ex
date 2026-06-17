@@ -131,12 +131,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
 
         <main id="tl-main" class="tl-page tl-home" tabindex="-1">
-          <header class="tl-home__hero">
-            <h1 class="tl-home__headline">Follow what happened.</h1>
-            <p class="tl-home__lede">
+          <UI.page_header variant="display" title="Follow what happened.">
+            <:lede>
               Every change is connected to the action, context, and story around it.
               Pick where you want to start.
-            </p>
+            </:lede>
             <div :if={@health_enabled} class="tl-home__health" role="status" aria-label="System health">
               <span class="tl-home__health-label">System health</span>
               <%= if @health == [] do %>
@@ -151,7 +150,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </a>
               <% end %>
             </div>
-          </header>
+          </UI.page_header>
 
           <ul class="tl-home__cards">
             <li class="tl-home__card tl-home__card--primary">

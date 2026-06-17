@@ -3,6 +3,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.UI
+
     def mount(_params, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
@@ -42,7 +44,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           policy_enabled={@threadline_policy_enabled}
           evidence_enabled={@threadline_evidence_enabled}
           exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
+          current={nil}
         />
         <main
           id="tl-main"
@@ -52,6 +54,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data-persona="P1"
           data-jtbd="J2"
         >
+          <UI.page_header
+            title={"Row history · #{@table}"}
+            breadcrumbs={[
+              %{label: "Timeline", href: "#{@base_path}/timeline"},
+              %{label: "Row history · #{@table}"}
+            ]}
+          >
+            <:lede>Inspect the captured state of one row over time, then jump back to the timeline.</:lede>
+          </UI.page_header>
           <.live_component
             module={Threadline.OperatorSurface.Live.RowHistoryComponent}
             id="row-history"

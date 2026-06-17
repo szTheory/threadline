@@ -155,20 +155,29 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            """
   end
 
-  # --- D-02: Timeline back-link present on sibling LVs ---
+  # --- D-02/D-13: Timeline back-link present on sibling LVs ---
+  #
+  # Phase 175-03 (NAV-01/D-13) replaced the bespoke "← Timeline" back-link inside the
+  # "Investigation path" landmark with a location-based breadcrumb whose root link is
+  # labelled "Timeline" (no arrow glyph) and rendered through UI.page_header. The
+  # contract intent — a Timeline escape hatch rooted in the page header — is unchanged;
+  # the literal is now the breadcrumb root crumb threaded into page_header.
 
-  test "TransactionLive header contains Timeline back-link" do
+  test "TransactionLive header contains Timeline breadcrumb root link" do
     src = File.read!(@transaction_lv_path)
 
-    assert String.contains?(src, ">← Timeline</a>"),
-           "expected #{@transaction_lv_path} to contain inline back-link literal '← Timeline'"
+    assert String.contains?(
+             src,
+             ~S|%{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"}|
+           ),
+           "expected #{@transaction_lv_path} to root its page_header breadcrumb at Timeline (D-13)"
   end
 
-  test "ActorLive header contains ← Timeline back-link" do
+  test "ActorLive header contains Timeline breadcrumb root link" do
     src = File.read!(@actor_lv_path)
 
-    assert String.contains?(src, "← Timeline"),
-           "expected #{@actor_lv_path} to contain inline back-link literal '← Timeline' per CONTEXT.md D-02"
+    assert String.contains?(src, ~S|%{label: "Timeline", href: "#{@base_path}/timeline"}|),
+           "expected #{@actor_lv_path} to root its page_header breadcrumb at Timeline (D-13)"
   end
 
   test "ActorLive not_found branch contains Timeline button escape hatch" do

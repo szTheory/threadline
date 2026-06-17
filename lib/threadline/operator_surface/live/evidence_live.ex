@@ -8,6 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Evidence.Proof
     alias Threadline.Evidence.Subject
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
 
     @evidence_source_query "source=evidence"
@@ -69,18 +70,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <main id="tl-main" class="tl-page" tabindex="-1">
           <%= if @threadline_evidence_enabled do %>
-            <header class="tl-page__header">
-              <div>
-                <h1 class="tl-page__title">What can Threadline prove right now?</h1>
-                <p class="tl-page__lede">
+            <UI.page_header title="What can Threadline prove right now?">
+              <:lede>
                 <%= if @request.mode == :history do %>
                   Viewing append-only history for one evidence subject reference.
                 <% else %>
                   Latest is a projection over append-only evidence history, not a mutable state record.
                 <% end %>
-                </p>
-              </div>
-            </header>
+              </:lede>
+            </UI.page_header>
 
             <section class="tl-trust-rail" aria-label="Evidence proof flow">
               <span class="tl-trust-rail__label">Proof chain</span>
