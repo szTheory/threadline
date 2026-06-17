@@ -684,6 +684,52 @@ defmodule Threadline.OperatorSurface.UI do
     </div>
     """
   end
+
+  @doc false
+  # errors is a list of {field_id, message} tuples. Each message links to the
+  # offending field's error id ("#\#{field_id}-error"). Renders nothing when empty.
+  attr :id, :string, required: true
+  attr :errors, :list, default: []
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :title
+
+  def error_summary(assigns) do
+    ~H"""
+    <div
+      :if={@errors != []}
+      id={@id}
+      role="alert"
+      aria-labelledby={"#{@id}-title"}
+      class={["tl-error", "tl-error-summary", @class]}
+      {@rest}
+    >
+      <h2 id={"#{@id}-title"} class="tl-error-summary__title">
+        <%= if @title != [], do: render_slot(@title), else: "There is a problem" %>
+      </h2>
+      <ul class="tl-error-summary__list">
+        <li :for={{field_id, message} <- @errors}>
+          <a href={"##{field_id}-error"}><%= message %></a>
+        </li>
+      </ul>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :legend, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def field_group(assigns) do
+    ~H"""
+    <fieldset class={["tl-filter-group", @class]} {@rest}>
+      <legend class="tl-filter-group__legend"><%= @legend %></legend>
+      <%= render_slot(@inner_block) %>
+    </fieldset>
+    """
+  end
 end
 
 
