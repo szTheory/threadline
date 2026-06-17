@@ -491,4 +491,89 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ ~s(data-testid="grp")
     end
   end
+
+  describe "radio" do
+    test "renders a radio group sharing one name with distinct ids and a checked selection" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
+      """)
+
+      # both inputs share the same name
+      assert html =~ ~s(name="mode")
+      # exactly one name= group: both options reference mode
+      assert length(Regex.scan(~r/name="mode"/, html)) == 2
+      # distinct ids per option
+      assert html =~ ~s(id="mode-a")
+      assert html =~ ~s(id="mode-b")
+      assert html =~ ~s(type="radio")
+      # selected value is checked
+      assert html =~ ~r/<input[^>]*id="mode-b"[^>]*checked/
+      # each input has an associated visible label
+      assert html =~ ~s(for="mode-a")
+      assert html =~ ~s(for="mode-b")
+      assert html =~ "Option A"
+      assert html =~ "Option B"
+    end
+  end
+
+  describe "switch" do
+    test "renders a native checkbox styled as a switch with role and aria-checked" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.switch id="notify" name="notify" value={true} />
+      """)
+
+      assert html =~ ~s(role="switch")
+      assert html =~ ~s(aria-checked="true")
+      assert html =~ ~s(type="checkbox")
+      assert html =~ ~s(id="notify")
+      assert html =~ ~s(name="notify")
+    end
+
+    test "reflects unchecked state in aria-checked" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.switch id="notify" name="notify" value={false} />
+      """)
+
+      assert html =~ ~s(aria-checked="false")
+      assert html =~ ~s(type="checkbox")
+    end
+  end
+
+  describe "search" do
+    test "renders a native search input carrying the control class" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.input id="q" name="q" value="" type="search" />
+      """)
+
+      assert html =~ ~s(type="search")
+      assert html =~ "tl-control"
+    end
+  end
+
+  describe "combobox" do
+    test "renders a combobox input plus listbox with ARIA state and JS toggling only" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
+      """)
+
+      assert html =~ ~s(role="combobox")
+      assert html =~ ~s(aria-expanded="false")
+      assert html =~ ~s(aria-controls="city-listbox")
+      assert html =~ ~s(role="listbox")
+      assert html =~ ~s(id="city-listbox")
+      assert html =~ ~s(role="option")
+      assert html =~ "Berlin"
+      assert html =~ "Paris"
+      # toggling uses Phoenix.LiveView.JS (phx-click present), not Alpine
+      assert html =~ "phx-click"
+      refute html =~ "x-data"
+      # underlying input is a usable free-text field (degrades gracefully)
+      assert html =~ ~s(name="city")
+    end
+  end
 end
