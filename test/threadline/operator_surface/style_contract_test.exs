@@ -25,8 +25,39 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
              src,
              "box-shadow: inset 0 0 0 1px rgba(127, 169, 255, 0.16);"
            )
+  end
 
-    refute String.contains?(src, "theme-toggle")
+  test "operator shell is CSP-proof: native [open] nav + pure-CSS picker cue + hardened scroll (NAV-03/NAV-04)" do
+    src = File.read!(@style_path)
+
+    # Mobile nav reveals its panel on the native <details> [open] attribute,
+    # never on a JS-toggled checkbox/.--open class.
+    assert String.contains?(src, ".tl-shell-nav[open]"),
+           "mobile nav must key off the native <details> [open] attribute"
+
+    refute String.contains?(src, ".tl-shell-nav__control:checked"),
+           "the JS-driven hidden-checkbox nav toggle must be gone (CSP-proof shell)"
+
+    refute String.contains?(src, "tl-shell-nav--open"),
+           "the JS-toggled .--open class must be gone (CSP-proof shell)"
+
+    # The selected theme radio gets a pure-CSS non-color cue via :has(:checked).
+    assert String.contains?(src, ":has(:checked)"),
+           "theme picker active cue must be driven by :has(:checked), not a markup --active class"
+
+    refute String.contains?(src, "tl-segmented__item--active"),
+           "the dead tl-segmented__item--active rule/markup hook must be gone"
+
+    # Sticky/scroll hardening: anchored content is never covered, no nested-scroll trap.
+    assert String.contains?(src, "scroll-padding-top"),
+           "scroll container must reserve the sticky-header offset (no covered anchors)"
+
+    assert String.contains?(src, "overscroll-behavior: contain") or
+             String.contains?(src, "overscroll-behavior:contain"),
+           "scrollable panel/rail must contain overscroll (no scroll-chain trap)"
+
+    assert String.contains?(src, "100svh"),
+           "shell must use the small viewport unit (mobile browser chrome safe)"
   end
 
   test "dark interaction tokens cover readable hover and focus states" do
@@ -422,13 +453,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(
       base,
-      ".tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel",
+      ".tl-shell-nav[open] .tl-shell-nav__panel",
       ["display: grid;"]
     )
-
-    assert_selector_contains(base, ".tl-shell-nav.tl-shell-nav--open .tl-shell-nav__panel", [
-      "display: grid;"
-    ])
 
     assert_selector_contains(base, ".tl-shell-nav__toggle", [
       "min-height: var(--tl-hit-area);",
@@ -993,9 +1020,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     # The dark contrast baseline and dark focus guard consume only opaque hex /
     # source-string checks; the phase-168 parser/composite additions do not touch
-    # their inputs. The theme-toggle ban (test :8-30) and the seven theme-aware
-    # assertions stay intact. This test names them so a reviewer can confirm
-    # byte-stability via git diff of the named test bodies.
+    # their inputs. The seven theme-aware assertions stay intact. This test names
+    # them so a reviewer can confirm byte-stability via git diff of the named test
+    # bodies.
     assert String.contains?(src, "color-scheme: dark;")
     assert String.contains?(src, "--tl-focus-ring:")
 
@@ -1004,9 +1031,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
              src,
              "--tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
            )
-
-    # theme-toggle ban (a hard constraint) — still refuted in the suite.
-    refute String.contains?(src, "theme-toggle")
   end
 
   test "operator action primitives prevent host-link bleed and support icon buttons" do
@@ -1110,7 +1134,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for anti_pattern <- [
           "@tailwind",
-          "theme-toggle",
           "shadcn",
           "daisyui",
           "heroicons"
@@ -1367,11 +1390,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     ~r/(--tl-color-[a-z0-9-]+):\s*(#[0-9a-fA-F]{6}|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|var\(--tl-color-[a-z0-9-]+\));/
     |> Regex.scan(src)
-    |> Enum.map(fn [_match, token, value] -> 
+    |> Enum.map(fn [_match, token, value] ->
       val = Map.get(primitives, value, value)
       {token, val}
     end)
-    |> Enum.map(fn {token, val} -> 
+    |> Enum.map(fn {token, val} ->
       case Regex.run(~r/^(#[0-9a-fA-F]{6}|rgba\([^)]+\))$/, val) do
         [_, color_val] -> {token, parse_color_value(color_val)}
         nil -> {token, nil}

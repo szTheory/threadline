@@ -424,6 +424,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .threadline-ui {
           min-height: 100vh;
+          /* svh keeps the shell exactly one viewport tall under mobile browser
+             chrome; the 100vh line above is the fallback for older engines. */
+          min-height: 100svh;
+          /* Reconciled to the SAME token as .tl-target-row scroll-margin-top so a
+             sticky topbar never covers an anchored row (offset isn't double-counted). */
+          scroll-padding-top: calc(var(--tl-header-height-mobile) + var(--tl-space-4));
+          /* Mobile nav/page is one scroll surface — keep scroll chaining out of it. */
+          overscroll-behavior: contain;
         }
 
         .tl-topbar {
@@ -502,16 +510,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-variant-numeric: tabular-nums;
         }
 
-        .tl-shell-nav__control {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          overflow: hidden;
-          clip: rect(0 0 0 0);
-          clip-path: inset(50%);
-          white-space: nowrap;
-        }
-
         .tl-shell-nav {
           position: sticky;
           top: var(--tl-header-height-mobile);
@@ -551,11 +549,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transition: transform var(--tl-transition-fast);
         }
 
-        .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__toggle::after {
-          transform: rotate(225deg);
-        }
-
-        .tl-shell-nav.tl-shell-nav--open .tl-shell-nav__toggle::after {
+        .tl-shell-nav[open] .tl-shell-nav__toggle::after {
           transform: rotate(225deg);
         }
 
@@ -567,17 +561,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-top: 1px solid var(--tl-color-border);
         }
 
-        .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel {
+        .tl-shell-nav[open] .tl-shell-nav__panel {
           display: grid;
-        }
-
-        .tl-shell-nav.tl-shell-nav--open .tl-shell-nav__panel {
-          display: grid;
-        }
-
-        .tl-shell-nav__control:focus-visible + .tl-shell-nav .tl-shell-nav__toggle {
-          outline: 2px solid var(--tl-color-focus);
-          outline-offset: 2px;
         }
 
         .tl-shell-nav__toggle:focus-visible {
@@ -592,10 +577,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-theme-picker__form {
+          display: grid;
+          gap: var(--tl-space-2);
+          padding: 0 var(--tl-space-1);
+        }
+
+        .tl-theme-picker__options {
+          display: grid;
+          gap: var(--tl-space-1);
+          margin: 0;
+          padding: 0;
+          border: 0;
+        }
+
+        .tl-theme-picker__option {
           display: flex;
           align-items: center;
           gap: var(--tl-space-2);
-          padding: 0 var(--tl-space-1);
+          min-height: var(--tl-hit-area);
+          padding: var(--tl-space-2) var(--tl-space-3);
+          border: 1px solid transparent;
+          border-radius: var(--tl-radius-md);
+          color: var(--tl-color-muted);
+          cursor: pointer;
+          font-weight: var(--tl-weight-medium);
+        }
+
+        .tl-theme-picker__option:hover {
+          background: var(--tl-color-surface-hover);
+          border-color: var(--tl-color-border);
+          color: var(--tl-color-text);
+        }
+
+        .tl-theme-picker__option:has(:checked) {
+          background: var(--tl-color-accent-soft);
+          box-shadow: inset 2px 0 0 var(--tl-color-accent-border);
+          color: var(--tl-color-accent-strong);
+          font-weight: var(--tl-weight-medium);
+        }
+
+        .tl-theme-picker__option:has(:focus-visible) {
+          outline: 2px solid var(--tl-color-focus);
+          outline-offset: 2px;
         }
 
         .tl-shell-nav__overview {
@@ -2971,8 +2994,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           bottom: 0;
           z-index: var(--tl-z-subview);
           width: 100vw;
+          min-height: 100vh;
           min-height: 100dvh;
           overflow: auto;
+          overscroll-behavior: contain;
           background: var(--tl-color-bg);
           box-shadow: var(--tl-shadow-raised);
           animation: tl-drawer-in var(--tl-motion-base) var(--tl-ease-standard);
@@ -3549,6 +3574,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);
             grid-template-rows: auto 1fr;
             column-gap: var(--tl-shell-gutter);
+            /* Desktop has no collapsed nav summary above content — topbar only. */
+            scroll-padding-top: calc(var(--tl-header-height) + var(--tl-space-4));
           }
 
           .tl-topbar {
@@ -3571,7 +3598,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
 
           .tl-shell-nav__panel,
-          .tl-shell-nav__control:checked + .tl-shell-nav .tl-shell-nav__panel {
+          .tl-shell-nav[open] .tl-shell-nav__panel {
             display: grid;
             padding: var(--tl-space-4) var(--tl-space-3);
             border-top: 0;
@@ -3584,7 +3611,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             padding: var(--tl-space-3);
           }
 
-          .threadline-ui > :not(.tl-skip-link):not(.tl-topbar):not(.tl-shell-nav):not(.tl-shell-nav__control) {
+          .threadline-ui > :not(.tl-skip-link):not(.tl-topbar):not(.tl-shell-nav) {
             grid-column: 2;
             min-width: 0;
           }

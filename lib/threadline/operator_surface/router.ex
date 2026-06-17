@@ -50,9 +50,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       optional) — explicitly gates the mounted evidence surface. Defaults to
       fail closed.
     - `:theme` (`:dark | :light | :system`, default `:dark`) — selects the
-      server-rendered operator-surface theme lane. `:system` follows the
-      visitor's OS preference through scoped CSS only; Threadline does not add
-      JavaScript, local storage, or a runtime theme toggle.
+      default server-rendered operator-surface theme lane. `:system` follows the
+      visitor's OS preference through scoped CSS only. A runtime dark/light/system
+      theme picker is available in the shell (cookie + plug, resolved
+      server-side); Threadline adds no JavaScript and no local storage.
     """
 
     defmacro threadline_operator_surface(path, opts \\ []) do
