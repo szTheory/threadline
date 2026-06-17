@@ -5,12 +5,17 @@ defmodule Threadline.OperatorSurface.UI do
   alias Phoenix.LiveView.JS
 
   @doc false
-  attr :type, :string, default: "button"
-  attr :class, :any, default: nil
-  attr :variant, :string, default: "secondary", values: ~w(primary secondary quiet-primary danger ghost icon)
-  attr :compact, :boolean, default: false
-  attr :rest, :global, include: ~w(disabled form name value phx-disable-with)
-  slot :inner_block, required: true
+  attr(:type, :string, default: "button")
+  attr(:class, :any, default: nil)
+
+  attr(:variant, :string,
+    default: "secondary",
+    values: ~w(primary secondary quiet-primary danger ghost icon)
+  )
+
+  attr(:compact, :boolean, default: false)
+  attr(:rest, :global, include: ~w(disabled form name value phx-disable-with))
+  slot(:inner_block, required: true)
 
   def button(assigns) do
     ~H"""
@@ -30,9 +35,9 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global, include: ~w(disabled form name value phx-disable-with)
-  slot :inner_block, required: true
+  attr(:class, :any, default: nil)
+  attr(:rest, :global, include: ~w(disabled form name value phx-disable-with))
+  slot(:inner_block, required: true)
 
   def icon_button(assigns) do
     ~H"""
@@ -51,13 +56,13 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :navigate, :string, default: nil
-  attr :patch, :string, default: nil
-  attr :href, :string, default: nil
-  attr :class, :any, default: nil
-  attr :variant, :string, default: "deep", values: ~w(back deep)
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:navigate, :string, default: nil)
+  attr(:patch, :string, default: nil)
+  attr(:href, :string, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:variant, :string, default: "deep", values: ~w(back deep))
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def link(assigns) do
     ~H"""
@@ -78,10 +83,14 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :variant, :string, default: "neutral", values: ~w(info warning danger success accent muted neutral)
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:variant, :string,
+    default: "neutral",
+    values: ~w(info warning danger success accent muted neutral)
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def badge(assigns) do
     ~H"""
@@ -92,10 +101,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :variant, :string, default: "info", values: ~w(info warning success error)
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:variant, :string, default: "info", values: ~w(info warning success error))
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def alert(assigns) do
     ~H"""
@@ -106,8 +115,8 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def divider(assigns) do
     ~H"""
@@ -116,8 +125,8 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def spinner(assigns) do
     ~H"""
@@ -129,10 +138,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :src, :string, required: true
-  attr :alt, :string, default: ""
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:src, :string, required: true)
+  attr(:alt, :string, default: "")
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def avatar(assigns) do
     ~H"""
@@ -141,13 +150,18 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :variant, :string, default: nil, values: [nil, "danger", "warning", "success", "info", "signal"]
-  attr :rest, :global
-  slot :title
-  slot :meta
-  slot :actions
-  slot :inner_block, required: true
+  attr(:class, :any, default: nil)
+
+  attr(:variant, :string,
+    default: nil,
+    values: [nil, "danger", "warning", "success", "info", "signal"]
+  )
+
+  attr(:rest, :global)
+  slot(:title)
+  slot(:meta)
+  slot(:actions)
+  slot(:inner_block, required: true)
 
   def card(assigns) do
     ~H"""
@@ -165,11 +179,67 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :status, :string, default: nil, values: [nil, "danger", "warning", "success", "info", "signal"]
-  attr :label, :string, required: true
-  attr :value, :string, required: true
-  attr :rest, :global
+  attr(:title, :string, default: nil)
+  attr(:id, :string, default: nil)
+  attr(:variant, :string, default: "heading", values: ~w(heading display))
+
+  attr(:breadcrumbs, :list,
+    default: [],
+    doc: "Ordered location trail; each item is a map %{label: ..., href: nil | binary}"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:lede)
+  slot(:actions)
+  slot(:inner_block)
+
+  def page_header(assigns) do
+    ~H"""
+    <header class={["tl-page__header"] ++ if(@variant == "display", do: ["tl-home__hero"], else: []) ++ List.wrap(@class)} {@rest}>
+      <.breadcrumb_trail :if={@breadcrumbs != []} crumbs={@breadcrumbs} />
+      <div>
+        <h1 id={@id} class={if @variant == "display", do: "tl-home__headline", else: "tl-page__title"}>
+          <%= @title %>
+        </h1>
+        <p :if={@lede != []} class={if @variant == "display", do: "tl-home__lede", else: "tl-page__lede"}>
+          <%= render_slot(@lede) %>
+        </p>
+        <%= render_slot(@inner_block) %>
+      </div>
+      <div :if={@actions != []} class="tl-page__actions"><%= render_slot(@actions) %></div>
+    </header>
+    """
+  end
+
+  @doc false
+  attr(:crumbs, :list, required: true)
+
+  defp breadcrumb_trail(assigns) do
+    ~H"""
+    <nav aria-label="Breadcrumb" class="tl-transaction__breadcrumbs">
+      <%= for crumb <- @crumbs do %>
+        <%= if crumb[:href] do %>
+          <a href={crumb[:href]} class="tl-link tl-link--back"><%= crumb[:label] %></a>
+        <% else %>
+          <span><%= crumb[:label] %></span>
+        <% end %>
+      <% end %>
+    </nav>
+    """
+  end
+
+  @doc false
+  attr(:class, :any, default: nil)
+
+  attr(:status, :string,
+    default: nil,
+    values: [nil, "danger", "warning", "success", "info", "signal"]
+  )
+
+  attr(:label, :string, required: true)
+  attr(:value, :string, required: true)
+  attr(:rest, :global)
 
   def stat_tile(assigns) do
     ~H"""
@@ -181,12 +251,12 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :variant, :string, default: nil, values: [nil, "error", "never", "unsupported"]
-  attr :rest, :global
-  slot :title
-  slot :actions
-  slot :inner_block, required: true
+  attr(:class, :any, default: nil)
+  attr(:variant, :string, default: nil, values: [nil, "error", "never", "unsupported"])
+  attr(:rest, :global)
+  slot(:title)
+  slot(:actions)
+  slot(:inner_block, required: true)
 
   def empty_state(assigns) do
     ~H"""
@@ -201,11 +271,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :title
-  slot :actions
-  slot :inner_block, required: true
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:title)
+  slot(:actions)
+  slot(:inner_block, required: true)
 
   def error_state(assigns) do
     ~H"""
@@ -218,25 +288,25 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def code_block(assigns) do
     ~H"""
     <pre class={["tl-code", @class]} {@rest}><code><%= render_slot(@inner_block) %></code></pre>
     """
-    end
+  end
 
-    @doc false
-    attr :id, :string, required: true
-    attr :show, :boolean, default: false
-    attr :on_cancel, JS, default: %JS{}
-    attr :class, :any, default: nil
-    attr :rest, :global
-    slot :inner_block, required: true
+  @doc false
+  attr(:id, :string, required: true)
+  attr(:show, :boolean, default: false)
+  attr(:on_cancel, JS, default: %JS{})
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
-    def modal(assigns) do
+  def modal(assigns) do
     ~H"""
     <div
     id={@id}
@@ -266,47 +336,47 @@ defmodule Threadline.OperatorSurface.UI do
     </div>
     </div>
     """
-    end
+  end
 
-    @doc false
-    def show_modal(js \\ %JS{}, id) do
+  @doc false
+  def show_modal(js \\ %JS{}, id) do
     js
     |> JS.show(
-    to: "##{id}",
-    transition: {"tl-fade-in", "opacity-0", "opacity-100"}
+      to: "##{id}",
+      transition: {"tl-fade-in", "opacity-0", "opacity-100"}
     )
     |> JS.show(
-    to: "##{id}-content",
-    transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
+      to: "##{id}-content",
+      transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
-    end
+  end
 
-    @doc false
-    def hide_modal(js \\ %JS{}, id) do
+  @doc false
+  def hide_modal(js \\ %JS{}, id) do
     js
     |> JS.hide(
-    to: "##{id}-content",
-    transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"}
+      to: "##{id}-content",
+      transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"}
     )
     |> JS.hide(
-    to: "##{id}",
-    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+      to: "##{id}",
+      transition: {"tl-fade-out", "opacity-100", "opacity-0"}
     )
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
-    end
+  end
 
-    @doc false
-    attr :id, :string, required: true
-    attr :show, :boolean, default: false
-    attr :on_cancel, JS, default: %JS{}
-    attr :class, :any, default: nil
-    attr :rest, :global
-    slot :inner_block, required: true
+  @doc false
+  attr(:id, :string, required: true)
+  attr(:show, :boolean, default: false)
+  attr(:on_cancel, JS, default: %JS{})
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
-    def drawer(assigns) do
+  def drawer(assigns) do
     ~H"""
     <div
     id={@id}
@@ -334,47 +404,47 @@ defmodule Threadline.OperatorSurface.UI do
     </div>
     </div>
     """
-    end
+  end
 
-    @doc false
-    def show_drawer(js \\ %JS{}, id) do
+  @doc false
+  def show_drawer(js \\ %JS{}, id) do
     js
     |> JS.show(
-    to: "##{id}",
-    transition: {"tl-fade-in", "opacity-0", "opacity-100"}
+      to: "##{id}",
+      transition: {"tl-fade-in", "opacity-0", "opacity-100"}
     )
     |> JS.show(
-    to: "##{id}-content",
-    transition: {"tl-slide-in-right", "translate-x-full", "translate-x-0"}
+      to: "##{id}-content",
+      transition: {"tl-slide-in-right", "translate-x-full", "translate-x-0"}
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
-    end
+  end
 
-    @doc false
-    def hide_drawer(js \\ %JS{}, id) do
+  @doc false
+  def hide_drawer(js \\ %JS{}, id) do
     js
     |> JS.hide(
-    to: "##{id}-content",
-    transition: {"tl-slide-out-right", "translate-x-0", "translate-x-full"}
+      to: "##{id}-content",
+      transition: {"tl-slide-out-right", "translate-x-0", "translate-x-full"}
     )
     |> JS.hide(
-    to: "##{id}",
-    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+      to: "##{id}",
+      transition: {"tl-fade-out", "opacity-100", "opacity-0"}
     )
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
-    end
+  end
 
-    @doc false
-    attr :id, :string, required: true
-    attr :kind, :string, default: "info", values: ~w(info success warning error)
-    attr :title, :string, default: nil
-    attr :class, :any, default: nil
-    attr :rest, :global
-    slot :inner_block, required: true
+  @doc false
+  attr(:id, :string, required: true)
+  attr(:kind, :string, default: "info", values: ~w(info success warning error))
+  attr(:title, :string, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
-    def toast(assigns) do
+  def toast(assigns) do
     ~H"""
     <div
     id={@id}
@@ -394,23 +464,23 @@ defmodule Threadline.OperatorSurface.UI do
     </button>
     </div>
     """
-    end
-
-    @doc false
-    def hide_toast(js \\ %JS{}, id) do
-    js
-    |> JS.hide(
-    to: "##{id}",
-    transition: {"tl-fade-out", "opacity-100", "opacity-0"}
-    )
-    end
+  end
 
   @doc false
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :trigger, required: true
-  slot :inner_block, required: true
+  def hide_toast(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+      to: "##{id}",
+      transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+    )
+  end
+
+  @doc false
+  attr(:id, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:trigger, required: true)
+  slot(:inner_block, required: true)
 
   def tooltip(assigns) do
     ~H"""
@@ -426,11 +496,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :trigger, required: true
-  slot :inner_block, required: true
+  attr(:id, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:trigger, required: true)
+  slot(:inner_block, required: true)
 
   def popover(assigns) do
     ~H"""
@@ -453,11 +523,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :trigger, required: true
-  slot :inner_block, required: true
+  attr(:id, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:trigger, required: true)
+  slot(:inner_block, required: true)
 
   def dropdown(assigns) do
     ~H"""
@@ -480,10 +550,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
   slot :tab, required: true do
-    attr :active, :boolean
+    attr(:active, :boolean)
   end
 
   def tabs(assigns) do
@@ -497,10 +568,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
   slot :segment, required: true do
-    attr :active, :boolean
+    attr(:active, :boolean)
   end
 
   def segmented_control(assigns) do
@@ -514,11 +586,11 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :title, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:id, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def accordion(assigns) do
     ~H"""
@@ -544,10 +616,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :for, :string, default: nil
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:for, :string, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def label(assigns) do
     ~H"""
@@ -558,10 +630,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:id, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def error(assigns) do
     ~H"""
@@ -577,10 +649,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:id, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def help(assigns) do
     ~H"""
@@ -591,17 +663,18 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :name, :string, required: true
-  attr :value, :any, default: nil
-  attr :type, :string, default: "text"
-  attr :class, :any, default: nil
-  attr :options, :list, default: []
-  attr :checked, :boolean, default: false
-  attr :rest, :global
+  attr(:id, :string, required: true)
+  attr(:name, :string, required: true)
+  attr(:value, :any, default: nil)
+  attr(:type, :string, default: "text")
+  attr(:class, :any, default: nil)
+  attr(:options, :list, default: [])
+  attr(:checked, :boolean, default: false)
+  attr(:rest, :global)
 
   def input(%{type: "checkbox"} = assigns) do
     assigns = assign(assigns, :checked, assigns.value == true || assigns.value == "true")
+
     ~H"""
     <input
       type="checkbox"
@@ -643,16 +716,20 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :id, :string, required: true
-  attr :name, :string, required: true
-  attr :value, :any, default: nil
-  attr :type, :string, default: "text"
-  attr :label, :string, required: true
-  attr :errors, :list, default: []
-  attr :help_text, :string, default: nil
-  attr :class, :any, default: nil
-  attr :options, :list, default: []
-  attr :rest, :global, include: ~w(autocomplete disabled readonly required placeholder phx-debounce step min max checked list maxlength)
+  attr(:id, :string, required: true)
+  attr(:name, :string, required: true)
+  attr(:value, :any, default: nil)
+  attr(:type, :string, default: "text")
+  attr(:label, :string, required: true)
+  attr(:errors, :list, default: [])
+  attr(:help_text, :string, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:options, :list, default: [])
+
+  attr(:rest, :global,
+    include:
+      ~w(autocomplete disabled readonly required placeholder phx-debounce step min max checked list maxlength)
+  )
 
   def field(assigns) do
     assigns =
@@ -688,11 +765,11 @@ defmodule Threadline.OperatorSurface.UI do
   @doc false
   # errors is a list of {field_id, message} tuples. Each message links to the
   # offending field's error id ("#\#{field_id}-error"). Renders nothing when empty.
-  attr :id, :string, required: true
-  attr :errors, :list, default: []
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :title
+  attr(:id, :string, required: true)
+  attr(:errors, :list, default: [])
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:title)
 
   def error_summary(assigns) do
     ~H"""
@@ -717,10 +794,10 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  attr :legend, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global
-  slot :inner_block, required: true
+  attr(:legend, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
 
   def field_group(assigns) do
     ~H"""
@@ -734,11 +811,11 @@ defmodule Threadline.OperatorSurface.UI do
   @doc false
   # Native radio group: every option shares @name; the option whose value equals
   # @value is checked; each input has a distinct id and an associated <label>.
-  attr :name, :string, required: true
-  attr :value, :any, default: nil
-  attr :options, :list, default: []
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:name, :string, required: true)
+  attr(:value, :any, default: nil)
+  attr(:options, :list, default: [])
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def radio(assigns) do
     ~H"""
@@ -761,11 +838,11 @@ defmodule Threadline.OperatorSurface.UI do
   @doc false
   # Native checkbox styled as a switch. Submits without JS; role/aria-checked
   # carry switch semantics for assistive tech.
-  attr :id, :string, required: true
-  attr :name, :string, required: true
-  attr :value, :any, default: nil
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:id, :string, required: true)
+  attr(:name, :string, required: true)
+  attr(:value, :any, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def switch(assigns) do
     assigns = assign(assigns, :checked, assigns.value == true || assigns.value == "true")
@@ -790,12 +867,12 @@ defmodule Threadline.OperatorSurface.UI do
   # Open/close is driven purely by Phoenix.LiveView.JS (ARIA state only, no data
   # fetch, no third-party JS runtime). With JS disabled the input still accepts
   # free text, so the control degrades gracefully and submits like any text field.
-  attr :id, :string, required: true
-  attr :name, :string, default: nil
-  attr :value, :any, default: nil
-  attr :options, :list, default: []
-  attr :class, :any, default: nil
-  attr :rest, :global
+  attr(:id, :string, required: true)
+  attr(:name, :string, default: nil)
+  attr(:value, :any, default: nil)
+  attr(:options, :list, default: [])
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
 
   def combobox(assigns) do
     ~H"""
@@ -829,5 +906,3 @@ defmodule Threadline.OperatorSurface.UI do
     """
   end
 end
-
-
