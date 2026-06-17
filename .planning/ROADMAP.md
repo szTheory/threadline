@@ -157,7 +157,7 @@ Plans:
 
 **Wave 3** *(blocked on 175-01)*
 
-- [ ] 175-03-PLAN.md — Internal page_header + breadcrumb component, adopted across all 11 pages
+- [x] 175-03-PLAN.md — Internal page_header + breadcrumb component, adopted across all 11 pages
 
 **Wave 4** *(blocked on 175-01, 175-02, 175-03)*
 
@@ -264,7 +264,7 @@ Plans:
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
-| 175. Navigation, app shell & runtime theme picker | v1.37 | 2/4 | In Progress|  |
+| 175. Navigation, app shell & runtime theme picker | v1.37 | 3/4 | In Progress|  |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
