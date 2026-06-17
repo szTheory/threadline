@@ -235,6 +235,82 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # De-emphasized, accessible pager over the EXISTING keyset engine (NAV-02 / D-16/17/18).
+  # Infinite scroll stays the primary interaction; this gives keyboard/SR users explicit
+  # "Older"/"Newer" (time-axis) controls plus an honest end-of-stream signal. No engine
+  # change — the controls emit the host page's existing next-page/prev-page events.
+  #
+  # Contract (locked by pager_test.exs):
+  #   * hide-at-zero (D-16): renders NOTHING when match_count == 0 (no tl-pager markup).
+  #   * disable-not-hide (D-18): a boundary control stays in the DOM but `disabled`,
+  #     never dropped (a Newer/Older control is only omitted when its event is nil,
+  #     e.g. Timeline is next-only).
+  #   * range caption is a role="status" aria-live="polite" "Showing N of … matching
+  #     changes" live region.
+  #   * deep-total cap (D-17): match_count >= 10_001 renders "10,000+", never an exact
+  #     deep total (mirrors timeline_live format_count/1).
+  attr(:shown, :integer, required: true, doc: "Count currently rendered on the page")
+  attr(:match_count, :integer, required: true, doc: "Total matching count (capped at 10,000+)")
+  attr(:has_older, :boolean, default: false, doc: "Whether an older keyset page exists")
+  attr(:has_newer, :boolean, default: false, doc: "Whether a newer keyset page exists")
+
+  attr(:older_event, :string,
+    default: "next-page",
+    doc: "phx-click event for the Older control (older = further back in time = next page)"
+  )
+
+  attr(:newer_event, :string,
+    default: "prev-page",
+    doc: "phx-click event for the Newer control; nil omits the control entirely (next-only pages)"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  def pager(assigns) do
+    ~H"""
+    <nav
+      :if={@match_count > 0}
+      class={["tl-pager", @class]}
+      aria-label="Timeline pagination"
+      {@rest}
+    >
+      <button
+        :if={@newer_event}
+        type="button"
+        phx-click={@newer_event}
+        disabled={!@has_newer}
+        class="tl-button tl-button--secondary tl-button--compact tl-pager__control"
+      >
+        Newer
+      </button>
+      <span class="tl-pager__range" role="status" aria-live="polite">
+        Showing <%= @shown %> of <%= pager_total(@match_count) %> matching changes
+      </span>
+      <button
+        :if={@older_event}
+        type="button"
+        phx-click={@older_event}
+        disabled={!@has_older}
+        class="tl-button tl-button--secondary tl-button--compact tl-pager__control"
+      >
+        Older
+      </button>
+    </nav>
+    """
+  end
+
+  # Honest range total: at/above the keyset cap (10_001) show "10,000+" (never an exact
+  # deep total — mitigates T-175-09); below the cap show the exact integer with separators.
+  defp pager_total(count) when is_integer(count) and count >= 10_001, do: "10,000+"
+
+  defp pager_total(count) when is_integer(count) do
+    count
+    |> Integer.to_string()
+    |> String.replace(~r/\B(?=(\d{3})+(?!\d))/, ",")
+  end
+
+  @doc false
   attr(:class, :any, default: nil)
 
   attr(:status, :string,

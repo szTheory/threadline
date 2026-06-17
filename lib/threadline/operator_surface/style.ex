@@ -1975,6 +1975,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-weight: var(--tl-weight-medium);
         }
 
+        /* De-emphasized pager (NAV-02): explicit Older/Newer controls + an honest
+           role=status range caption over the existing keyset engine. Infinite scroll
+           stays primary, so this sits quiet (secondary/compact buttons). Boundary
+           controls are disabled, not hidden (D-18), so they read as visibly inactive
+           (muted text, reduced opacity) rather than "disabled-looks-enabled". */
+        .tl-pager {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+          padding: var(--tl-space-3) 0 0;
+        }
+
+        .tl-pager__range {
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          line-height: var(--tl-line-label);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .tl-pager__control[disabled],
+        .threadline-ui button.tl-pager__control[disabled] {
+          color: var(--tl-color-muted);
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
         .tl-summary-grid {
           display: grid;
           grid-template-columns: 1fr;
