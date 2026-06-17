@@ -486,8 +486,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
 
         <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
-          <fieldset class="tl-filter-group tl-filter-group--primary">
-            <legend class="tl-filter-group__legend">Search</legend>
+          <UI.field_group legend="Search" class="tl-filter-group--primary">
             <div class="tl-filter-grid tl-filter-grid--primary">
               <UI.field
                 id="filter-from"
@@ -542,7 +541,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </button>
               </div>
             </div>
-          </fieldset>
+          </UI.field_group>
 
           <details class="tl-filter-disclosure" open={@advanced_filters_active?}>
             <summary class="tl-filter-disclosure__summary">
@@ -551,8 +550,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <%= @advanced_filter_count %> active
               </span>
             </summary>
-            <fieldset class="tl-filter-group tl-filter-group--advanced">
-              <legend class="tl-filter-group__legend">Advanced filters</legend>
+            <UI.field_group legend="Advanced filters" class="tl-filter-group--advanced">
               <div class="tl-filter-grid tl-filter-grid--advanced">
                 <UI.field
                   id="filter-table-schema"
@@ -584,7 +582,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   help_text={if @filters_raw["actor_kind"] == "anonymous", do: "n/a for anonymous", else: nil}
                 />
               </div>
-            </fieldset>
+            </UI.field_group>
           </details>
         </form>
 
