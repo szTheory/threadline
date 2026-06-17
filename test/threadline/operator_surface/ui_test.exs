@@ -408,4 +408,87 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ ~s(type="date")
     end
   end
+
+  describe "error_summary" do
+    test "renders an alert region with each message linked to its field" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
+      """)
+
+      assert html =~ ~s(role="alert")
+      assert html =~ ~s(id="form-errors")
+      # aria-labelledby points at the heading id
+      assert html =~ ~r/aria-labelledby="form-errors-title"/
+      assert html =~ ~r/id="form-errors-title"/
+      # each message is an anchor whose href targets the field error id
+      assert html =~ ~s(href="#email-error")
+      assert html =~ ~s(href="#name-error")
+      assert html =~ "Email is invalid"
+      assert html =~ "Name is required"
+      assert html =~ "<ul"
+    end
+
+    test "renders a heading from the title slot when provided" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
+        <:title>Please fix the following</:title>
+      </UI.error_summary>
+      """)
+
+      assert html =~ "Please fix the following"
+      assert html =~ ~s(href="#email-error")
+    end
+
+    test "renders a default heading when no title slot is supplied" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
+      """)
+
+      assert html =~ "There is a problem"
+    end
+
+    test "renders nothing when there are no errors" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.error_summary id="form-errors" errors={[]} />
+      """)
+
+      refute html =~ ~s(role="alert")
+      refute html =~ "<ul"
+    end
+  end
+
+  describe "field_group" do
+    test "renders a fieldset and legend wrapping the inner content" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.field_group legend="Date range">
+        <span>inner field</span>
+      </UI.field_group>
+      """)
+
+      assert html =~ "<fieldset"
+      assert html =~ "<legend"
+      assert html =~ "tl-filter-group"
+      assert html =~ "tl-filter-group__legend"
+      assert html =~ "Date range"
+      assert html =~ "inner field"
+    end
+
+    test "passes through an extra class and global attributes" do
+      assigns = %{}
+      html = rendered_to_string(~H"""
+      <UI.field_group legend="Filters" class="extra-class" data-testid="grp">
+        <span>content</span>
+      </UI.field_group>
+      """)
+
+      assert html =~ "tl-filter-group"
+      assert html =~ "extra-class"
+      assert html =~ ~s(data-testid="grp")
+    end
+  end
 end
