@@ -1,10 +1,11 @@
 ---
 phase: 175
 slug: navigation-app-shell-runtime-theme-picker
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-17
+reviewed_at: 2026-06-17
 ---
 
 # Phase 175 — UI Design Contract
@@ -170,11 +171,11 @@ This phase **lifts the `theme-toggle` ban** and replaces it with a positive CSP 
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS (n/a — internal components, zero registries)
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (note: weight 500 reserved exclusively for active-state emphasis per D-05/WCAG 1.4.1, never decorative)
+- [x] Dimension 5 Spacing: PASS (note: `--tl-space-*` frozen token contract is the source of truth, not the generic 4/8/16/24/32/48/64 set; zero new tokens)
+- [x] Dimension 6 Registry Safety: PASS (n/a — internal components, zero registries)
 
-**Approval:** pending
+**Approval:** approved 2026-06-17
