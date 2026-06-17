@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: executing
-last_updated: "2026-06-17T17:13:19.729Z"
+status: ready_to_plan
+last_updated: 2026-06-17T17:21:48.132Z
 last_activity: 2026-06-17
 progress:
   total_phases: 15
@@ -11,6 +11,7 @@ progress:
   total_plans: 16
   completed_plans: 16
   percent: 27
+stopped_at: Phase 174 complete (6/6) — ready to discuss Phase 175
 ---
 
 # Project State: Threadline
@@ -20,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 174 — form-components
+**Current focus:** Phase 175 — navigation, app shell & runtime theme picker
 
 ## Current Position
 
-Phase: 174 (form-components) — EXECUTING
-Plan: 6 of 6 (all plans complete)
-Status: Completed 174-06-PLAN.md (gap closure: timeline field_group migration + formless-page guard; COMP-05)
-Last activity: 2026-06-17 -- 174-06 complete (timeline filter groups → UI.field_group; FormlessPagesTest locks the 8 display-only pages)
+Phase: 175
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-17
 
 ## Performance Metrics
 
