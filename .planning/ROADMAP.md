@@ -2,18 +2,18 @@
 
 ## Milestones
 
-- 🚧 **v1.37 Operator Surface Design-System Stress Test & Component System** — Phases 171-180 (in progress)
-- ✅ **v1.36 Operator Surface Light Mode** — Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
-- ✅ **v1.35 Unified Logo & Brand Book v2** — Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
-- ✅ **v1.34 Local Docker Admin UI DX** — Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
-- ✅ **v1.33 Brand Review + Direction Selection** — Phases 150-153 (shipped 2026-06-06). Archive: `.planning/milestones/v1.33-ROADMAP.md`
-- ✅ **v1.32 Brand System Foundation** — Phases 145-149 (shipped 2026-06-05). Archive: `.planning/milestones/v1.32-ROADMAP.md`
+- ð§ **v1.37 Operator Surface Design-System Stress Test & Component System** â Phases 171-180 (in progress)
+- â **v1.36 Operator Surface Light Mode** â Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
+- â **v1.35 Unified Logo & Brand Book v2** â Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
+- â **v1.34 Local Docker Admin UI DX** â Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
+- â **v1.33 Brand Review + Direction Selection** â Phases 150-153 (shipped 2026-06-06). Archive: `.planning/milestones/v1.33-ROADMAP.md`
+- â **v1.32 Brand System Foundation** â Phases 145-149 (shipped 2026-06-05). Archive: `.planning/milestones/v1.32-ROADMAP.md`
 
-## 🚧 v1.37 Operator Surface Design-System Stress Test & Component System (In Progress)
+## ð§ v1.37 Operator Surface Design-System Stress Test & Component System (In Progress)
 
-**Milestone Goal:** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system — award-winning quality, on-brand across dark/light/system, mobile-first responsive, WCAG 2.2 AA accessible, with meaningful motion and on-brand microcopy — verified fractally (foundations → primitives → groups → pages → flows) and locked **idempotently** so every rerun only ratchets quality up, never regresses.
+**Milestone Goal:** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system â award-winning quality, on-brand across dark/light/system, mobile-first responsive, WCAG 2.2 AA accessible, with meaningful motion and on-brand microcopy â verified fractally (foundations â primitives â groups â pages â flows) and locked **idempotently** so every rerun only ratchets quality up, never regresses.
 
-**Sequence:** Largely linear fractal order. Harness first (171); foundations before components (172 → 173/174); components before data-display and groups (→ 176/177); groups before per-page stress (177 → 178); page stress before copy and accessibility (178 → 179/180); adversarial closeout last (180).
+**Sequence:** Largely linear fractal order. Harness first (171); foundations before components (172 â 173/174); components before data-display and groups (â 176/177); groups before per-page stress (177 â 178); page stress before copy and accessibility (178 â 179/180); adversarial closeout last (180).
 
 **Invariants (every phase):** no public component API; zero new runtime dependencies; inline assets only (no Tailwind, asset pipeline, animation libs, or PhoenixStorybook); `brandbook_token_parity_test` stays green (new tokens land in `brandbook/tokens.{json,css}` first); capture & semantics layers untouched; fail-closed auth (stress route dev/test-gated, never an unauthenticated prod surface); enforced brand voice + banned vocabulary + domain language.
 
@@ -21,12 +21,12 @@
 
 ### Phase 171: Audit baseline, stress-lab harness & idempotency ledger
 
-**Goal**: Stand up the idempotency harness that every later phase ratchets against — the canonical render surface, the living inventory, the scored ledger, and the ugly-data fixtures.
+**Goal**: Stand up the idempotency harness that every later phase ratchets against â the canonical render surface, the living inventory, the scored ledger, and the ugly-data fixtures.
 **Depends on**: Nothing (first phase of milestone; builds on the frozen v1.36 token/contract foundation)
 **Requirements**: DS-01, DS-02, DS-03, DS-04
 **Success Criteria** (what must be TRUE):
 
-  1. A dev/test-only `/audit/__stress` route renders every component, group, and page-fixture across the state × theme × viewport matrix, and is prod-gated so it never adds an unauthenticated or extra surface in production (verified by a router gate test).
+  1. A dev/test-only `/audit/__stress` route renders every component, group, and page-fixture across the state Ã theme Ã viewport matrix, and is prod-gated so it never adds an unauthenticated or extra surface in production (verified by a router gate test).
   2. `DESIGN-SYSTEM.md` v2 exists and inventories every foundation token, primitive, form control, group/meta-component, and page, each with a current status.
   3. An idempotent audit ledger records a per-item quality score with a documented ratchet rule (reruns may only raise scores), backed by test/screenshot guards that fail CI on a regression.
   4. A reusable ugly-data fixture library covers the full stress matrix (empty, one, many, long IDs/strings, non-ASCII, high/zero counts, null fields, mixed severity, permission-denied, stale, reconnecting, timezone + pagination boundaries).
@@ -35,19 +35,19 @@
 Plans:
 **Wave 1**
 
-- [x] 171-01-PLAN.md — Static stress fixture registry and DS-04 adapter contracts
+- [x] 171-01-PLAN.md â Static stress fixture registry and DS-04 adapter contracts
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 171-02-PLAN.md — JSON ledger, DESIGN-SYSTEM.md projection, and ratchet contracts
+- [x] 171-02-PLAN.md â JSON ledger, DESIGN-SYSTEM.md projection, and ratchet contracts
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 171-03-PLAN.md — Internal `/audit/__stress` router, LiveView shell, auth/prod gates
+- [x] 171-03-PLAN.md â Internal `/audit/__stress` router, LiveView shell, auth/prod gates
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [x] 171-04-PLAN.md — Playwright semantic guards and ledger-owned screenshot allowlist
+- [x] 171-04-PLAN.md â Playwright semantic guards and ledger-owned screenshot allowlist
 
 **UI hint**: yes
 
@@ -66,11 +66,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [x] 174-01-PLAN.md — Form Primitives & Field Component
+- [x] 174-01-PLAN.md â Form Primitives & Field Component
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 174-02-PLAN.md — Operator Page Adoption
+- [x] 174-02-PLAN.md â Operator Page Adoption
 
 **UI hint**: yes
 
@@ -83,25 +83,25 @@ Plans:
 
   1. Internal private function components exist for the primitive set (button, icon-button, link, badge/chip/tag/pill, alert/banner/callout, card/panel, stat tile, divider, empty state, error state, spinner/progress/skeleton, code/log/JSON, avatar) with documented attrs/slots and no public/host-facing API.
   2. Overlay & disclosure primitives (modal/dialog, drawer/sheet, toast/flash, tooltip, popover, dropdown/menu, tabs, segmented control, accordion/disclosure) are internal components with correct keyboard, focus-trap/restore, escape, and scrim semantics.
-  3. Every primitive renders correctly in all interaction states (default/hover/focus-visible/active/pressed/disabled/loading/selected/current) across dark/light/system, and non-interactive elements expose no misleading affordances — visible on the stress route.
+  3. Every primitive renders correctly in all interaction states (default/hover/focus-visible/active/pressed/disabled/loading/selected/current) across dark/light/system, and non-interactive elements expose no misleading affordances â visible on the stress route.
 
 **Plans**: 4 plans
 Plans:
 **Wave 1**
 
-- [x] 173-01-PLAN.md — Core UI Foundation & Atoms
+- [x] 173-01-PLAN.md â Core UI Foundation & Atoms
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 173-02-PLAN.md — Container & Layout Primitives
+- [x] 173-02-PLAN.md â Container & Layout Primitives
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 173-03-PLAN.md — JS-Driven Overlays & Disclosures
+- [x] 173-03-PLAN.md â JS-Driven Overlays & Disclosures
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [x] 173-04-PLAN.md — Full Interaction-State Matrix & Stress Audit
+- [x] 173-04-PLAN.md â Full Interaction-State Matrix & Stress Audit
 **UI hint**: yes
 
 ### Phase 174: Form components
@@ -115,7 +115,21 @@ Plans:
   2. The 11 operator-surface LiveView pages consume the components (inline class-soup replaced) and template duplication is materially reduced.
   3. Per-component contract tests lock attrs/slots/states/a11y so a component regression fails CI.
 
-**Plans**: TBD
+**Plans**: 6 plans (174-01..04 shipped; 174-05..06 gap closure)
+Plans:
+
+**Wave 1**
+
+- [x] 174-01-PLAN.md — Internal <.field>/<.input>/<.label>/<.error>/<.help> form components
+- [x] 174-02-PLAN.md — Adopt components in core pages (start, timeline, row_history, surface_header)
+- [x] 174-03-PLAN.md — Adopt components in detail LiveViews (actor, transaction, coverage, evidence)
+- [x] 174-04-PLAN.md — Final sweep + stress_live form matrices; confirm auxiliary pages formless
+- [ ] 174-05-PLAN.md — Add missing components (error_summary, combobox, field_group, radio, switch, search/date/number) + contract tests (COMP-04, COMP-06)
+
+**Wave 2** *(blocked on 174-05)*
+
+- [ ] 174-06-PLAN.md — Migrate timeline raw <fieldset> to field_group + lock 8 formless pages (COMP-05)
+
 **UI hint**: yes
 
 ### Phase 175: Navigation, app shell & runtime theme picker
@@ -157,7 +171,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Recurring configurations (page-header+actions+breadcrumbs; toolbar+search+filters+sort; table+empty+loading+pagination; stat-cards+chart+table; detail-header+metadata+actions; modal-confirm+destructive; drawer+form; toast+state-update; tabs+subviews; empty+CTA; permission-denied; reconnect/offline-banner+disabled-actions) are audited as units with intentional spacing and hierarchy.
-  2. Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions — verifiable on the stress route at multiple viewports.
+  2. Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions â verifiable on the stress route at multiple viewports.
 
 **Plans**: TBD
 **UI hint**: yes
@@ -169,7 +183,7 @@ Plans:
 **Requirements**: PAGE-01, PAGE-02, PAGE-03
 **Success Criteria** (what must be TRUE):
 
-  1. Each of the 11 pages (Home, Timeline, Transaction, Row history, Actor, Coverage, Evidence, Redaction, Retention, Exports, plus shell) is audited against happy/empty/loading/error/permission-denied/boundary/advanced paths × dark/light/system × 320/375/768/1024/1440 × keyboard-only × reduced-motion × LiveView reconnect, with findings recorded in the ledger.
+  1. Each of the 11 pages (Home, Timeline, Transaction, Row history, Actor, Coverage, Evidence, Redaction, Retention, Exports, plus shell) is audited against happy/empty/loading/error/permission-denied/boundary/advanced paths Ã dark/light/system Ã 320/375/768/1024/1440 Ã keyboard-only Ã reduced-motion Ã LiveView reconnect, with findings recorded in the ledger.
   2. The named footgun classes are eliminated: scroll traps, modal/drawer hidden behind scrim or floating wrong, focus not entering/restoring from overlays, escape/click-outside inconsistency, hover/focus on non-interactive elements, misalignment / chopped padding / inconsistent spacing, disabled-looks-enabled (and enabled-looks-disabled), missing tab active-state, weird pagination, unreadable dark/light text, and same-color text-on-background.
   3. The transaction page centers correctly at desktop widths (resolves `transaction-page-left-push-desktop`).
 
@@ -208,30 +222,30 @@ Plans:
 ## Phases
 
 <details>
-<summary>✅ v1.36 Operator Surface Light Mode (Phases 166-170) — SHIPPED 2026-06-14</summary>
+<summary>â v1.36 Operator Surface Light Mode (Phases 166-170) â SHIPPED 2026-06-14</summary>
 
 `theme: :dark | :light | :system` host config rendered server-side as `data-tl-theme` over a pure-CSS 45-token light lane (no JS/FOUC, CSP-proof). Dark stays the default and the brand; `:system` is the documented daytime-use recommendation. 15/15 requirements; audit passed.
 
-- [x] Phase 166: unfreeze-token-lane-mechanism (1/1 plans) — completed 2026-06-13 — 45-token light lane, `data-tl-theme` mechanism, compile-validated `theme:` option, source-first contract amendment
-- [x] Phase 167: component-retune (2/2 plans) — completed 2026-06-14 — ~9 dark-effect families + data-viz surfaces explicitly retuned for light (the Grafana lesson)
-- [x] Phase 168: accessibility-verification (2/2 plans) — completed 2026-06-14 — light/system AA contrast mirror (alpha-aware parser) + per-mode focus/interaction contracts
-- [x] Phase 169: screenshots-example-docs (2/2 plans) — completed 2026-06-14 — `__light__` screenshot lane, example app `theme: :system`, `theme:` docs under doc-contract
-- [x] Phase 170: brand-alignment-closeout (2/2 plans) — completed 2026-06-14 — tokens.json/css 45-token parity, dual-mode pressure-test, milestone audit
+- [x] Phase 166: unfreeze-token-lane-mechanism (1/1 plans) â completed 2026-06-13 â 45-token light lane, `data-tl-theme` mechanism, compile-validated `theme:` option, source-first contract amendment
+- [x] Phase 167: component-retune (2/2 plans) â completed 2026-06-14 â ~9 dark-effect families + data-viz surfaces explicitly retuned for light (the Grafana lesson)
+- [x] Phase 168: accessibility-verification (2/2 plans) â completed 2026-06-14 â light/system AA contrast mirror (alpha-aware parser) + per-mode focus/interaction contracts
+- [x] Phase 169: screenshots-example-docs (2/2 plans) â completed 2026-06-14 â `__light__` screenshot lane, example app `theme: :system`, `theme:` docs under doc-contract
+- [x] Phase 170: brand-alignment-closeout (2/2 plans) â completed 2026-06-14 â tokens.json/css 45-token parity, dual-mode pressure-test, milestone audit
 
-**Deferred at close:** end-of-milestone human UAT (`169`/`170-HUMAN-UAT.md`), `170-VERIFICATION.md` (human-needed), and 3 operator-surface todos — see STATE.md Deferred Items.
+**Deferred at close:** end-of-milestone human UAT (`169`/`170-HUMAN-UAT.md`), `170-VERIFICATION.md` (human-needed), and 3 operator-surface todos â see STATE.md Deferred Items.
 
 </details>
 
 ## Progress
 
-**Execution Order (v1.37):** Phases execute in numeric order: 171 → 172 → 173 → 174 → 175 → 176 → 177 → 178 → 179 → 180.
+**Execution Order (v1.37):** Phases execute in numeric order: 171 â 172 â 173 â 174 â 175 â 176 â 177 â 178 â 179 â 180.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |---|---|---:|---|---|
 | 171. Audit baseline, stress-lab harness & idempotency ledger | v1.37 | 4/4 | Complete    | 2026-06-14 |
 | 172. Foundations audit & hardening (tokens) | v1.37 | 2/2 | Complete    | 2026-06-15 |
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
-| 174. Form components | v1.37 | 3/4 | In Progress|  |
+| 174. Form components | v1.37 | 4/4 | Complete   | 2026-06-16 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 0/TBD | Not started | - |
 | 176. Data display & operator patterns | v1.37 | 0/TBD | Not started | - |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
@@ -246,7 +260,7 @@ Plans:
 
 ## Prior Milestones
 
-- ✅ **v1.35 Unified Logo & Brand Book v2** — Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
-- ✅ **v1.34 Local Docker Admin UI DX** — Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
-- ✅ **v1.33 Brand Review + Direction Selection** — Phases 150-153 (shipped 2026-06-06). Archive: `.planning/milestones/v1.33-ROADMAP.md`
-- ✅ **v1.32 Brand System Foundation** — Phases 145-149 (shipped 2026-06-05). Archive: `.planning/milestones/v1.32-ROADMAP.md`
+- â **v1.35 Unified Logo & Brand Book v2** â Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
+- â **v1.34 Local Docker Admin UI DX** â Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
+- â **v1.33 Brand Review + Direction Selection** â Phases 150-153 (shipped 2026-06-06). Archive: `.planning/milestones/v1.33-ROADMAP.md`
+- â **v1.32 Brand System Foundation** â Phases 145-149 (shipped 2026-06-05). Archive: `.planning/milestones/v1.32-ROADMAP.md`
