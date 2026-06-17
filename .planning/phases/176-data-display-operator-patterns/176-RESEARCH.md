@@ -345,22 +345,25 @@ end
 | A4 | `style_contract_test.exs` / `brandbook_token_parity_test.exs` assert against literal `style.ex` source strings, so CSS deletions break them unless updated | Pitfall 2 / Validation | Low — verified by reading `style_contract_test.exs` (reads file, asserts `String.contains?`). |
 | A5 | Icons `eye-off`, `plug`/`cloud-off` may be missing from the registry | Standard Stack | Low — D-15/CONTEXT flag "add only if missing"; planner verifies against `icon.ex`. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`assign_async` adoption vs. synchronous load.**
    - What we know: D-17 specifies `assign_async`/`<.async_result>` dispatch; LV 1.1.30 supports it; **no `assign_async` exists in the surface today** (verified — zero matches). All 11 LiveViews load synchronously in `mount`.
    - What's unclear: whether the phase budget covers converting each consuming page to async, or whether some pages keep sync load + explicit state branching (which still satisfies DATA-03's *taxonomy* requirement).
    - Recommendation: Plan the **state taxonomy components** (`loading_state`/`stale_banner`/variants) as the hard requirement; treat `assign_async` conversion as a per-page choice. Convert pages where data is genuinely slow/fallible (coverage introspection, evidence); keep fast in-DB reads synchronous if budget is tight. Make this an explicit planning decision, not an accident.
+   - **RESOLVED:** The DATA-03 state-taxonomy components are the hard requirement (built in Plan 02); `assign_async`/`<.async_result>` conversion is treated as per-page planner discretion in the consumer plans (convert genuinely slow/fallible pages, keep fast in-DB reads synchronous with explicit state branching). The taxonomy — not async conversion — is what every plan must deliver.
 
 2. **T3-redact backend existence (BLOCKING for the redact flow).**
    - What we know: `Pruner.trigger/0` backs "prune now" (real). Redaction is codegen-time (`capture/redaction_policy.ex`, `capture/trigger_sql.ex`); `policy_redaction_live.ex` is a read-only Configured-vs-Deployed diff with **no redact `handle_event`**.
    - What's unclear: whether a runtime "redact an already-captured value" operation is intended to be built this phase, targets an existing operation I didn't locate, or is deferred.
    - Recommendation: Insert a `checkpoint:human-verify` early. If no runtime redaction backend exists and building one is out of scope, ship the **T3 pattern via "prune now" only** this phase and defer redact's destructive flow, OR scope redact to a confirmed runtime operation. Do not plan a redact handler against a non-existent backend.
+   - **RESOLVED:** A blocking `checkpoint:human-verify` is planned in Plan 05 Task 1 to confirm whether a runtime redact backend exists; the default disposition is to ship the T3 pattern via "prune now" only this phase and defer redact's destructive flow unless the checkpoint confirms a runtime redaction operation to scope against. No redact handler is planned against a non-existent backend.
 
 3. **Stress-route registration of the new components.**
    - What we know: every new/extended unit must render in isolation on `/audit/__stress` (DS-01) across the matrix; `stress_fixtures.ex` already has `long_id`, `permission_denied`, `stale`, `non_ascii`, etc.; `stress_ledger_test.exs` + `stress_router_test.exs` enforce coverage.
    - What's unclear: exact registration shape for `ref`/`kv`/`data_table`/state components in `stress_live.ex` (the file currently registers stories via `stress_fixtures` `assigns_for/1`).
    - Recommendation: Plan a task to add a story per new component + each data-state (loading/stale/no_data/permission/unavailable/unavailable-down/redacted/pruned), reusing existing ugly-data fixtures; update `stress_ledger_test` expectations.
+   - **RESOLVED:** Plan 02 Task 3 registers a `/audit/__stress` story per new component (`ref`/`kv`/`data_table`) and each data-state, reusing existing ugly-data fixtures and updating `stress_ledger_test.exs`/`stress_router_test.exs` expectations in the same task so ledger↔registry parity stays green.
 
 ## Environment Availability
 
