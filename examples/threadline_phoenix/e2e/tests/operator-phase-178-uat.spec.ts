@@ -31,11 +31,10 @@ import { expect, Locator, Page, test } from "@playwright/test";
 //       Pitfall 4: measure within the content column, NOT raw viewport/2).
 //   (b) the footgun sweep iterating /audit/* — within-viewport (#6) + the #1
 //       scroll-trap / sticky-occlusion cell.
-//   (c) the real socket-drop (SEED-005 / D-13) — a genuinely dropped websocket is
-//       detected client-side (phoenix lifecycle classes flip on the LiveView
-//       container) and clears on reconnect. Replaces the 177 inject-probe. See the
-//       in-cell FINDING: phoenix attaches phx-* to [data-phx-main] (an ancestor of
-//       .threadline-ui), so the D-11 banner-reveal anchor needs a follow-up.
+//   (c) the real socket-drop (SEED-005 / D-13) — a genuinely dropped websocket
+//       flips lifecycle classes on [data-phx-main], reveals the reconnect banner,
+//       dims [data-tl-mutating] controls, and restores both on reconnect. Replaces
+//       the 177 inject-probe.
 //   (d) the overlay footgun sample — overlay-above-scrim hit-test (#2), focus
 //       enters on open + Esc dismiss + scrim click-outside dismiss (#3/#4),
 //       disabled affordance + cursor (#5/#7), nav active-state distinct (#8),
@@ -270,18 +269,11 @@ test.describe("Phase 178 SEED-005 — real socket-drop is detected client-side",
   // observe deterministically. We BLOCK the websocket route (routeWebSocket) so the
   // dropped state holds; lifting the block lets the client reconnect for real.
   //
-  // FINDING (real-engine, Plan 05): phoenix_live_view attaches its lifecycle classes
-  // (phx-loading / phx-error / phx-client-error) to the LiveView CONTAINER element
-  // ([data-phx-main]) — which in this app is a PARENT of the operator render root
-  // `.threadline-ui`, NOT `.threadline-ui` itself. So we assert the dropped socket on
-  // the element that genuinely carries the class (the honest, observable contract),
-  // and on reconnect that it clears (phx-connected). The reconnect-banner reveal CSS
-  // is keyed on `.threadline-ui.phx-*` (D-11) and therefore does not fire against this
-  // ancestor — captured as a follow-up in 178-05-SUMMARY (the D-11 anchor needs to
-  // target the class-bearing container). This cell intentionally does NOT assert the
-  // banner's computed visibility, so it stays honest and green while the anchor gap is
-  // tracked rather than masked by a manual class injection (the 177 probe's weakness).
-  test("a real dropped live socket is detected (lifecycle classes flip) and clears on reconnect (D-13)", async ({
+  // D-11 corrected: phoenix_live_view attaches its lifecycle classes (phx-loading /
+  // phx-error / phx-client-error) to [data-phx-main]. The Threadline shell is the
+  // descendant that contains the banner and mutating controls, so this cell proves
+  // the full positive behavior instead of only detecting the dropped socket.
+  test("a real dropped live socket reveals the banner and dims mutating controls (D-13)", async ({
     page,
   }) => {
     // Block the LiveView websocket so a connection drop stays dropped (no instant
@@ -298,17 +290,15 @@ test.describe("Phase 178 SEED-005 — real socket-drop is detected client-side",
     await page.goto("/audit/policy/retention");
 
     // Open the prune modal so the real destructive prune control is on the page.
-    const prune = page
-      .getByRole("button", { name: "Run retention prune" })
-      .last();
-    await expect(prune).toBeVisible();
-    await prune.click();
+    await openPruneModal(page);
 
-    const mutating = page.locator("[data-tl-mutating]").first();
+    const banner = page.locator(".tl-reconnect-banner").first();
+    const mutating = page.locator(`${PRUNE_CONTENT} [data-tl-mutating]`).first();
+    await expect(banner).toBeHidden();
     await expect(mutating).toBeVisible();
 
-    // The class-bearing LiveView container (an ancestor of .threadline-ui). Connected
-    // today, it must flip to a disconnected lifecycle class when the socket drops.
+    // The class-bearing LiveView container must flip to a disconnected lifecycle
+    // class when the socket drops.
     const lvRoot = page.locator("[data-phx-main]").first();
     await expect(lvRoot).toHaveClass(/phx-connected/);
 
@@ -319,12 +309,18 @@ test.describe("Phase 178 SEED-005 — real socket-drop is detected client-side",
     // The drop is genuinely detected: the container carries a disconnected class
     // (phx-loading and/or phx-error/phx-client-error). Auto-retry, never a fixed wait.
     await expect(lvRoot).toHaveClass(/phx-(loading|error|client-error)/);
+    await expect(banner).toBeVisible();
+    await expect(mutating).toHaveCSS("opacity", "0.55");
+    await expect(mutating).toHaveCSS("pointer-events", "none");
 
     // Lift the block and reconnect for real — the container returns to connected.
     blockSocket = false;
     await page.evaluate(() => (window as any).liveSocket.connect());
     await expect(lvRoot).toHaveClass(/phx-connected/);
     await expect(lvRoot).not.toHaveClass(/phx-client-error/);
+    await expect(banner).toBeHidden();
+    await expect(mutating).not.toHaveCSS("opacity", "0.55");
+    await expect(mutating).not.toHaveCSS("pointer-events", "none");
   });
 });
 
