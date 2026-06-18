@@ -48,6 +48,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp paths(:funnel), do: ["M4 5h16l-6 7v6l-4 2v-8L4 5Z"]
     defp paths(:history), do: ["M3 12a9 9 0 1 0 3-6.7", "M3 4v5h5", "M12 7v6l4 2"]
 
+    defp paths(:kebab),
+      do: ["M12 5h.01", "M12 12h.01", "M12 19h.01"]
+
     defp paths(:lock),
       do: ["M6 11h12v9H6z", "M9 11V8a3 3 0 0 1 6 0v3", "M12 15v2"]
 

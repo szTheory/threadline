@@ -154,8 +154,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Run retention prune"
         assert html =~ "tl-button--secondary tl-button--danger"
 
-        assert html =~
-                 "Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first."
+        # The destructive prune is now a server-enforced T3 type-to-confirm flow
+        # (D-21): the client-only data-confirm is gone, replaced by a
+        # <form phx-submit="prune_now"> that types the policy name.
+        refute html =~ "data-confirm"
+        assert html =~ "phx-submit=\"prune_now\""
       end
 
       test "displays existing retention runs in a table", %{conn: conn} do
@@ -220,17 +223,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "Run retention prune CTA triggers the supervised runtime path", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/policy/retention")
 
-        # Click the button
+        # The CTA opens the T3 confirm modal; the actual prune is the type-to-confirm
+        # form submission (server-enforced, D-21).
         assert html =~ "Run retention prune"
 
         # ensure no active runs initially
         assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0
         assert Pruner.started?()
 
-        # simulate click
-        view
-        |> element("button", "Run retention prune")
-        |> render_click()
+        # Type the canonical policy name and submit the server-enforced form.
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
 
         assert_eventually(fn ->
           Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
