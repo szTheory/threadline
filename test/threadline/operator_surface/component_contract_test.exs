@@ -279,20 +279,42 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert html =~ "tl-alert__icon"
     end
 
-    test "stylesheet reveals the banner + disables [data-tl-mutating] under phx-loading/phx-error" do
-      src = File.read!(@style_path)
+    test "stylesheet anchors reconnect affordances on [data-phx-main] and scopes through .threadline-ui" do
+      block =
+        @style_path
+        |> File.read!()
+        |> reconnect_css_block!()
 
-      # Hidden by default; revealed purely in CSS on the LiveView client classes.
-      assert src =~ ".tl-reconnect-banner {"
-      assert src =~ ".threadline-ui.phx-loading .tl-reconnect-banner,"
-      assert src =~ ".threadline-ui.phx-error .tl-reconnect-banner {"
-      assert src =~ "background: var(--tl-color-warning-bg);"
+      # Hidden by default; revealed purely in CSS on the class-bearing
+      # [data-phx-main] LiveView container, then scoped into the Threadline shell.
+      assert block =~ ".tl-reconnect-banner {"
+
+      for state <- ~w(loading error client-error) do
+        assert block =~
+                 "[data-phx-main].phx-#{state} .threadline-ui .tl-reconnect-banner",
+               "reconnect banner selector must anchor on [data-phx-main].phx-#{state} and then descend through .threadline-ui"
+      end
+
+      assert block =~ "background: var(--tl-color-warning-bg);"
 
       # Mutating controls dim + go pointer-events:none while disconnected.
-      assert src =~ ".threadline-ui.phx-loading [data-tl-mutating],"
-      assert src =~ ".threadline-ui.phx-error [data-tl-mutating] {"
-      assert src =~ "pointer-events: none;"
-      assert src =~ "opacity: 0.55;"
+      for state <- ~w(loading error client-error) do
+        assert block =~
+                 "[data-phx-main].phx-#{state} .threadline-ui [data-tl-mutating]",
+               "[data-tl-mutating] selector must anchor on [data-phx-main].phx-#{state} and then descend through .threadline-ui"
+      end
+
+      assert block =~ "pointer-events: none;"
+      assert block =~ "opacity: 0.55;"
+
+      refute Regex.match?(~r/\.threadline-ui\.phx-(loading|error|client-error)/, block),
+             "reconnect CSS must not put LiveView lifecycle classes on .threadline-ui itself"
+
+      refute String.contains?(block, "body.phx-"),
+             "reconnect CSS must not use document-body lifecycle anchors"
+
+      refute String.contains?(block, ".phx-disconnected"),
+             "reconnect CSS must not use the legacy disconnected-class anchor"
     end
   end
 
@@ -313,8 +335,8 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #
   # Parser-agnostic by design (RESEARCH Pitfall 2): we scan SOURCE (no DB, no
   # socket) and assert via substring + byte-offset ordering — never Floki/LazyHTML
-  # tree traversal. NEVER references <body> or the legacy .phx-disconnected
-  # (D-11) — those are forbidden anchors.
+  # tree traversal. NEVER uses document-body lifecycle selectors or the legacy
+  # disconnected-class anchor (D-11) — those are forbidden anchors.
   @page_live_views ~w(
     actor_live.ex
     coverage_live.ex
@@ -380,10 +402,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
         src = File.read!(file)
 
         refute String.contains?(src, ".phx-disconnected"),
-               "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on .threadline-ui.phx-loading/.phx-error (D-11)"
+               "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on [data-phx-main] with .threadline-ui descendant scoping (D-11)"
 
         refute String.contains?(src, "body.phx-"),
-               "#{file}: connection classes attach to the LiveView root .threadline-ui, never <body> (D-11)"
+               "#{file}: connection classes attach to [data-phx-main], never the document body (D-11)"
       end
     end
   end
@@ -507,5 +529,16 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       {at, _len} -> at
       :nomatch -> flunk("expected to find #{inspect(needle)} in rendered HTML:\n#{haystack}")
     end
+  end
+
+  defp reconnect_css_block!(src) do
+    start_at = index_of!(src, ".tl-reconnect-banner {")
+    marker_at = index_of!(src, "Motion — purposeful")
+
+    if start_at >= marker_at do
+      flunk("could not isolate the active reconnect CSS block in style.ex")
+    end
+
+    binary_part(src, start_at, marker_at - start_at)
   end
 end

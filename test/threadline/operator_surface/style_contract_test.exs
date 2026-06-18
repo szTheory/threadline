@@ -1245,35 +1245,34 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
-  # --- Phase 177 (GROUP-02 / D-08, corrected per RESEARCH Pitfall 1): offline group anchor ---
+  # --- Phase 178 (D-11 corrected): offline group anchor ----------------------
   #
-  # RED Wave-0 scaffold. The reconnect/offline-banner + disabled-actions group (D-08)
-  # rides LiveView's built-in connection classes. RESEARCH (verified against
-  # phoenix_live_view v1.1.x source) corrects CONTEXT/UI-SPEC's literal wording on
-  # TWO counts:
-  #   (a) the classes attach to the LiveView ROOT element, which in this app is the
-  #       `.threadline-ui` wrapper (confirmed: 11/11 audit LiveViews render it as
-  #       their render root) — NOT `<body>`.
-  #   (b) `.phx-disconnected` does NOT exist in LiveView 1.x; the dropped-socket
-  #       state re-applies `.phx-loading` (plus `.phx-error`/`.phx-client-error`).
+  # The reconnect/offline-banner + disabled-actions group rides LiveView's built-in
+  # connection classes. Phase 178 real-engine verification corrected the earlier
+  # premise: the classes attach to the `[data-phx-main]` container in this app, and
+  # `.threadline-ui` is the scoped descendant shell that contains the banner and
+  # mutating controls. The legacy disconnected class still does not exist in
+  # LiveView 1.x, and document-body anchors still match nothing useful.
   #
-  # So the offline CSS (Plan 04) MUST key off `.threadline-ui.phx-loading` /
-  # `.threadline-ui.phx-error`, and MUST NOT use `.phx-disconnected` or `body.phx-`.
-  # This block is RED until Plan 04 adds the connection-lifecycle CSS.
-  test "phase 177 offline group keys off the LiveView root (.threadline-ui.phx-loading/.phx-error), never body/.phx-disconnected" do
+  # So the offline CSS MUST key off `[data-phx-main].phx-* .threadline-ui`, and
+  # MUST NOT use the old same-element shell anchor, legacy disconnected class, or
+  # document-body lifecycle selectors.
+  test "offline group keys off [data-phx-main] with .threadline-ui descendant scoping" do
     src = File.read!(@style_path)
 
-    assert String.contains?(src, ".threadline-ui.phx-loading"),
-           "offline group must anchor on the LiveView root .threadline-ui.phx-loading (D-08, RESEARCH Pitfall 1)"
+    for state <- ~w(loading error client-error) do
+      assert String.contains?(src, "[data-phx-main].phx-#{state} .threadline-ui"),
+             "offline group must anchor on [data-phx-main].phx-#{state} and scope into .threadline-ui (D-11)"
+    end
 
-    assert String.contains?(src, ".threadline-ui.phx-error"),
-           "offline group must anchor on the LiveView root .threadline-ui.phx-error (D-08, RESEARCH Pitfall 1)"
+    refute Regex.match?(~r/\.threadline-ui\.phx-(loading|error|client-error)/, src),
+           "offline group must not put LiveView lifecycle classes on .threadline-ui itself (D-11)"
 
     refute String.contains?(src, ".phx-disconnected"),
-           ".phx-disconnected does not exist in LiveView 1.x — use .phx-loading (RESEARCH Pitfall 1)"
+           ".phx-disconnected does not exist in LiveView 1.x — use current LiveView lifecycle classes"
 
     refute String.contains?(src, "body.phx-"),
-           "connection classes attach to the LiveView root, not <body> — a body.phx-* selector matches nothing (RESEARCH Pitfall 1)"
+           "connection classes attach to [data-phx-main], not the document body"
   end
 
   # --- Phase 177 (GROUP-02 / D-10.1, RESEARCH Pitfall 2): overlay JS-transition utilities ---
