@@ -4,14 +4,14 @@ milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 current_phase: 178
 current_phase_name: per-page-flow-stress-pass-all-11-pages
-status: gaps_found
-stopped_at: Phase 178 — all 5 plans executed; verification gaps_found (1/12 must-have failed: reconnect anchor). Gap-closure required.
-last_updated: "2026-06-18T17:51:11.290Z"
-last_activity: 2026-06-18 -- Phase 178 executed; verification found 1 gap
+status: planned
+stopped_at: Phase 178 gap-closure plan ready — execute 178-06 to close reconnect anchor gap.
+last_updated: "2026-06-18T20:20:37.275Z"
+last_activity: 2026-06-18 -- Phase 178 planning complete
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 35
+  total_plans: 36
   completed_plans: 35
   percent: 70
 ---
@@ -27,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 178 (per-page-flow-stress-pass-all-11-pages) — EXECUTED, verification gaps_found
-Plan: 5 of 5 executed (Plans 01–05 all have SUMMARYs)
-Status: Gaps found — 11/12 must-haves verified; reconnect-banner anchor gap (D-11 wrong: phoenix attaches phx-* to [data-phx-main], not .threadline-ui). Run /gsd-plan-phase 178 --gaps to close.
-Last activity: 2026-06-18 -- Phase 178 executed; verification found 1 gap
+Phase: 178 (per-page-flow-stress-pass-all-11-pages) — PLANNED, gap-closure ready
+Plan: 5 of 6 executed (Plans 01–05 have SUMMARYs; Plan 06 is ready)
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 178 planning complete
 
 ## Performance Metrics
 

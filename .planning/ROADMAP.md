@@ -234,12 +234,13 @@ Plans:
   2. The named footgun classes are eliminated: scroll traps, modal/drawer hidden behind scrim or floating wrong, focus not entering/restoring from overlays, escape/click-outside inconsistency, hover/focus on non-interactive elements, misalignment / chopped padding / inconsistent spacing, disabled-looks-enabled (and enabled-looks-disabled), missing tab active-state, weird pagination, unreadable dark/light text, and same-color text-on-background.
   3. The transaction page centers correctly at desktop widths (resolves `transaction-page-left-push-desktop`).
 
-**Plans**: 5 plans
+**Plans**: 6 plans
 - [x] 178-01-PLAN.md — Wave 1: guard-first RED detectors (11 footguns + centering + Home twin + reconnect-mount + page-story conversion) + Tier B spec scaffold
 - [x] 178-02-PLAN.md — Wave 2 (SEED-005): extract shared shell, mount reconnect_banner once, wire data-tl-mutating on real state-changers
 - [x] 178-03-PLAN.md — Wave 3 (PAGE-03): justify-self:center on .tl-container + latent-twin .tl-home; Tier B centering geometry
 - [x] 178-04-PLAN.md — Wave 3 (PAGE-01): 11 reserved page entries → fixture-backed 7-path stories, ledger ratchet, DESIGN-SYSTEM.md projection
 - [x] 178-05-PLAN.md — Wave 4 (PAGE-02): fix all 11 footgun classes to green (Tier A + Tier B) + representative ~66-cell sample
+- [ ] 178-06-PLAN.md — Wave 5 (gap closure): re-anchor reconnect selectors to [data-phx-main], strengthen Tier A guard, prove real socket-drop banner/dimming behavior
 **UI hint**: yes
 
 ### Phase 179: Microcopy & information-architecture sweep
