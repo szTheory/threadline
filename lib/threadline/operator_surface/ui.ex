@@ -683,6 +683,80 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # State-coordinating shell (D-03 / D-06 / D-06c). data_panel COMPOSES the existing
+  # named state family (D-176-13) — it does NOT reinvent the taxonomy or the focus
+  # logic. The page author still branches the typed server reason (D-06d); the shell
+  # only decides which region shows and where the pager/stale-banner sit.
+  #
+  # Coordination rules (locked):
+  #   * :ok            -> render the :data slot; pager rendered.
+  #   * :loading       -> loading_state (role=status); :data + pager suppressed.
+  #   * :empty         -> empty_state (first-run); :data + pager suppressed.
+  #   * :no_data       -> data_state(:no_data) (filters active); suppressed.
+  #   * :error         -> error_state (focus rescue heading); suppressed.
+  #   * :permission /
+  #     :unavailable   -> data_state(@reason) COLLAPSES the body to one message,
+  #                       preserving the distinct icon shape + heading + focus rescue
+  #                       (D-176-16, ASVS V4). NEVER converted to a generic empty.
+  #   * as_of present  -> stale_banner rendered ABOVE the region regardless of state
+  #                       (coexists with :ok data; never replaces it, D-176-14). Stale
+  #                       is NOT a clause in the region cond.
+  # Focus-move on error/permission/unavailable is delegated to the state family (the
+  # rendered tabindex=-1 heading / phx-mounted JS.focus the family already emits).
+  attr(:state, :atom,
+    default: :ok,
+    doc: "ok | loading | empty | no_data | error | permission | unavailable"
+  )
+
+  attr(:reason, :atom,
+    default: nil,
+    doc: "typed reason passed straight to data_state/1 for permission/unavailable/no_data"
+  )
+
+  attr(:as_of, :string,
+    default: nil,
+    doc: "stale timestamp; presence renders stale_banner ABOVE the region (D-176-14)"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:data, required: true, doc: "the data_table — only rendered in :ok")
+  slot(:pager)
+
+  def data_panel(assigns) do
+    ~H"""
+    <section class={["tl-data-panel", @class]} {@rest}>
+      <.stale_banner :if={@as_of} as_of={@as_of} />
+      <div class="tl-data-panel__region" data-state={@state}>
+        <%= cond do %>
+          <% @state == :ok -> %>
+            <%= render_slot(@data) %>
+          <% @state in [:permission, :unavailable] -> %>
+            <.data_state reason={@reason} as_of={@as_of} />
+          <% @state == :error -> %>
+            <.error_state>
+              <:title>Could not load this data</:title>
+              Retry, then check logs.
+            </.error_state>
+          <% @state == :empty -> %>
+            <.empty_state role="status">
+              <:title>Nothing here yet</:title>
+              No audit changes have been recorded.
+            </.empty_state>
+          <% @state == :no_data -> %>
+            <.data_state reason={:no_data} />
+          <% true -> %>
+            <.loading_state />
+        <% end %>
+      </div>
+      <div :if={@pager != [] and @state == :ok} class="tl-data-panel__pager">
+        <%= render_slot(@pager) %>
+      </div>
+    </section>
+    """
+  end
+
+  @doc false
   attr(:class, :any, default: nil)
   attr(:rest, :global)
   slot(:inner_block, required: true)

@@ -2132,6 +2132,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
+         * data_panel — the state-coordinating shell (D-03 / D-06). Flat page-stack
+         * section: ONE card boundary per logical unit (D-176-11), so the panel itself
+         * is NOT wrapped in a card. Inner rhythm uses the semantic gap tokens.
+         */
+        .tl-data-panel {
+          display: flex;
+          flex-direction: column;
+          gap: var(--tl-gap-stack);
+          min-width: 0;
+        }
+
+        /*
+         * The data region cross-fades on a state swap (happy <-> loading <-> empty <->
+         * error), opacity-only so it degrades cleanly. Container-level only — never the
+         * streamed <tr> children (D-11). The reduced-motion blanket collapses this to
+         * ~1ms automatically (D-12); no per-component handling.
+         */
+        .tl-data-panel__region {
+          transition: opacity var(--tl-motion-fast) var(--tl-ease-standard);
+          min-width: 0;
+        }
+
+        .tl-data-panel__pager {
+          min-width: 0;
+        }
+
+        /*
          * Metric card — the compact "label + big number" summary tile.
          * Canonical density variant of the card; status via [data-status]
          * (the shared stripe contract). Self-sufficient: used standalone as
