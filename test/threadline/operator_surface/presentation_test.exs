@@ -127,7 +127,8 @@ defmodule Threadline.OperatorSurface.PresentationTest do
       # The keyword/3rd-arg extension must NOT alter the no-:tail_min path.
       value = "00000000-1111-2222-3333-444444444444"
 
-      assert Presentation.truncate_middle(value, 28) == Presentation.truncate_middle(value, 28, [])
+      assert Presentation.truncate_middle(value, 28) ==
+               Presentation.truncate_middle(value, 28, [])
     end
 
     test "does not truncate values within max_length" do

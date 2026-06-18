@@ -56,14 +56,117 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   @spec truncate_middle(term(), pos_integer()) :: String.t()
-  def truncate_middle(value, max_length \\ 34) do
+  @spec truncate_middle(term(), pos_integer(), keyword()) :: String.t()
+  def truncate_middle(value, max_length \\ 34, opts \\ []) do
     value = to_string(value || "")
 
     if String.length(value) <= max_length do
       value
     else
-      keep = max(div(max_length - 3, 2), 4)
-      String.slice(value, 0, keep) <> "..." <> String.slice(value, -keep, keep)
+      # Backward-compatible default split (unchanged when :tail_min is absent).
+      default_keep = max(div(max_length - 3, 2), 4)
+      tail_min = Keyword.get(opts, :tail_min)
+
+      # When :tail_min is requested, guarantee at least that many trailing chars
+      # of the ORIGINAL value survive verbatim (the forensic discriminating tail).
+      tail = if tail_min, do: max(default_keep, tail_min), else: default_keep
+      head = default_keep
+
+      String.slice(value, 0, head) <> "..." <> String.slice(value, -tail, tail)
+    end
+  end
+
+  @spec ref(term(), keyword()) :: %{visible: String.t(), title: String.t(), full: String.t()}
+  def ref(value, opts \\ []) do
+    full = secondary_ref_value(value)
+
+    %{
+      visible: truncate_for(full, opts),
+      title: full,
+      full: full
+    }
+  end
+
+  # Per-kind truncation (DATA-01, D-03). All rules guarantee the discriminating
+  # tail survives; :timestamp is never truncated.
+  defp truncate_for(full, opts) do
+    case Keyword.get(opts, :kind) do
+      :timestamp ->
+        full
+
+      :hash ->
+        truncate_middle(full, 24, tail_min: 8)
+
+      :path ->
+        truncate_tail(full, 42)
+
+      :email ->
+        truncate_email(full, 42)
+
+      :url ->
+        truncate_url(full)
+
+      kind when kind in [:arn, :actor] ->
+        truncate_middle(full, 34, tail_min: 12)
+
+      _ ->
+        # uuid / correlation / default
+        truncate_middle(full, 34, tail_min: 8)
+    end
+  end
+
+  # Keep the trailing `max` characters (filename / last-segment tail).
+  defp truncate_tail(value, max) do
+    value = to_string(value || "")
+
+    if String.length(value) <= max do
+      value
+    else
+      "..." <> String.slice(value, -max, max)
+    end
+  end
+
+  # Truncate the localpart but keep the full domain verbatim.
+  defp truncate_email(value, max) do
+    value = to_string(value || "")
+
+    case String.split(value, "@", parts: 2) do
+      [local, domain] ->
+        if String.length(value) <= max do
+          value
+        else
+          budget = max(max - String.length(domain) - 4, 4)
+          head = String.slice(local, 0, budget)
+          head <> "...@" <> domain
+        end
+
+      _ ->
+        truncate_middle(value, max, tail_min: 8)
+    end
+  end
+
+  # Keep scheme+host head and the last path segment tail.
+  defp truncate_url(value) do
+    value = to_string(value || "")
+
+    case URI.parse(value) do
+      %URI{scheme: scheme, host: host} when is_binary(scheme) and is_binary(host) ->
+        head = "#{scheme}://#{host}"
+        last_segment = value |> String.split("/") |> List.last() |> to_string()
+
+        cond do
+          String.length(value) <= 56 ->
+            value
+
+          last_segment == "" ->
+            truncate_middle(value, 56, tail_min: 8)
+
+          true ->
+            head <> "/..." <> last_segment
+        end
+
+      _ ->
+        truncate_middle(value, 56, tail_min: 8)
     end
   end
 
@@ -260,7 +363,7 @@ defmodule Threadline.OperatorSurface.Presentation do
         value_token(timestamp)
 
       true ->
-        %{text: value, modifier: "tl-value--string"}
+        value_token_string(value, "tl-value--string")
     end
   end
 
@@ -269,10 +372,25 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   def value_token(value) when is_map(value) or is_list(value) do
-    %{text: deterministic_json(value), modifier: "tl-value--json"}
+    value_token_string(deterministic_json(value), "tl-value--json")
   end
 
-  def value_token(value), do: %{text: to_string(value), modifier: "tl-value--string"}
+  def value_token(value), do: value_token_string(to_string(value), "tl-value--string")
+
+  # DATA-04: truncate long machine values at ~56 chars (tail-safe), keeping the
+  # complete value in :title so the rendered copy affordance can recover it.
+  @value_token_max 56
+  defp value_token_string(value, modifier) do
+    if String.length(value) <= @value_token_max do
+      %{text: value, modifier: modifier}
+    else
+      %{
+        text: truncate_middle(value, @value_token_max, tail_min: 8),
+        title: value,
+        modifier: modifier
+      }
+    end
+  end
 
   @spec change_value_token(map(), String.t() | atom()) :: %{
           required(:text) => String.t(),
