@@ -2,10 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: executing
-stopped_at: Completed 178-07-PLAN.md
-last_updated: "2026-06-18T23:35:08.553Z"
-last_activity: 2026-06-18
+current_phase: 179
+current_phase_name: microcopy-information-architecture-sweep
+status: ready
+stopped_at: Phase 178 complete and verified; ready for Phase 179.
+last_updated: "2026-06-18T23:39:50Z"
+last_activity: 2026-06-18 -- Phase 178 complete and verified
 progress:
   total_phases: 10
   completed_phases: 8
@@ -21,14 +23,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 178 — per-page-flow-stress-pass-all-11-pages
+**Current focus:** Phase 179 — microcopy-information-architecture-sweep
 
 ## Current Position
 
-Phase: 178 (per-page-flow-stress-pass-all-11-pages) — GAP CLOSURE PLANNED, ready to execute
-Plan: 7 of 7 executed (Plans 01–06 have SUMMARYs; Plan 07 closes the remaining D-13 default Chromium socket-drop blocker)
-Status: Ready to execute
-Last activity: 2026-06-18
+Phase: 179 (microcopy-information-architecture-sweep) — ready to discuss/plan
+Plan: 0 of TBD executed
+Status: Ready for Phase 179
+Last activity: 2026-06-18 -- Phase 178 complete and verified
 
 ## Performance Metrics
 
@@ -71,7 +73,7 @@ Last activity: 2026-06-18
 | uat_gap (v1.36 close 2026-06-14) | 169-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
 | uat_gap (v1.36 close 2026-06-14) | 170-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
 | verification_gap (v1.36 close 2026-06-14) | 170-VERIFICATION.md | human_needed — acknowledged & deferred |
-| todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | pending — carried to backlog |
+| todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | resolved by Phase 178 |
 | todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
 | deferred [176-05] | T3 redact destructive flow — no runtime redaction backend (codegen-time only); building one would touch the capture layer (v1.37 invariant). Revisit only if a runtime "redact a stored value" op is explicitly scoped without editing capture. | deferred per Task-1 checkpoint (option 1) |

@@ -1,8 +1,8 @@
 ---
 phase: 178-per-page-flow-stress-pass-all-11-pages
-verified: 2026-06-18T20:44:32Z
-status: gaps_found
-score: 11/12 must-haves verified
+verified: 2026-06-18T23:36:00Z
+status: passed
+score: 12/12 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -12,37 +12,18 @@ re_verification:
     - "The old reconnect CSS anchor gap is closed in source: active selectors now use [data-phx-main].phx-* .threadline-ui for both .tl-reconnect-banner and [data-tl-mutating]."
     - "D-11 is corrected in 178-CONTEXT.md and no body-level or legacy .phx-disconnected anchor was introduced."
     - "Tier A selector guards now assert the [data-phx-main] ancestor shape and refute .threadline-ui.phx-*."
-  gaps_remaining:
-    - "The documented Tier B command for the real socket-drop proof is not green: default Chromium failed before the socket-drop assertions because #prune-confirm-content stayed hidden after clicking Run retention prune."
+    - "The final D-13 blocker is closed: the documented real socket-drop command now passes 3/3 Playwright projects, including default chromium."
+  gaps_remaining: []
   regressions: []
-gaps:
-  - truth: "D-13 real-engine proof is positive across the documented targeted command: the real socket-drop spec passes 3/3 and proves banner visibility plus [data-tl-mutating] dimming/restoration."
-    status: failed
-    reason: >
-      A fresh verifier run of `./examples/threadline_phoenix/e2e/run-e2e.sh
-      e2e/tests/operator-phase-178-uat.spec.ts -g "real dropped live socket"`
-      exited 1. The desktop-chromium and mobile-chromium projects passed, but
-      the default chromium project failed before the disconnect assertions:
-      `#prune-confirm-content` remained hidden after clicking the real "Run
-      retention prune" button. Because PAGE-01's reconnect dimension is
-      behavior-dependent, the phase cannot pass while the official positive
-      Tier B proof is non-green.
-    artifacts:
-      - path: "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts"
-        issue: "The socket-drop cell depends on openPruneModal(), whose default Chromium lane currently leaves #prune-confirm-content hidden and prevents the documented 3/3 proof from completing."
-      - path: "examples/threadline_phoenix/e2e/test-results/operator-phase-178-uat-Pha-a7793-ims-mutating-controls-D-13--chromium/error-context.md"
-        issue: "Failure artifact records expect(locator('#prune-confirm-content')).toBeVisible() timing out with the modal content hidden."
-    missing:
-      - "Make the real socket-drop e2e setup deterministic in the default chromium project, then rerun the documented targeted command to a clean 3/3 pass."
-      - "Keep the existing positive assertions for [data-phx-main] lifecycle flip, visible .tl-reconnect-banner, opacity:0.55, pointer-events:none, and reconnect restoration."
+gaps: []
 ---
 
 # Phase 178: Per-page & Flow Stress Pass Verification Report
 
 **Phase Goal:** Stress every operator page across all paths, themes, viewports, keyboard, reduced-motion, and reconnect; eliminate the named footgun classes and fix the desktop centering bug.
-**Verified:** 2026-06-18T20:44:32Z
-**Status:** gaps_found
-**Re-verification:** Yes - after 178-06 gap closure
+**Verified:** 2026-06-18T23:36:00Z
+**Status:** passed
+**Re-verification:** Yes - after 178-07 final gap closure
 
 ## Goal Achievement
 
@@ -50,7 +31,7 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | PAGE-01 page matrix/ledger work remains present and requirement status is closed | VERIFIED | REQUIREMENTS.md marks PAGE-01 complete with 178-04 ledger parity, 178-05 Tier B sample, and 178-06 reconnect proof note; ROADMAP lists all six Phase 178 plans complete. |
+| 1 | PAGE-01 page matrix/ledger work remains present and requirement status is closed | VERIFIED | REQUIREMENTS.md marks PAGE-01 complete with 178-04 ledger parity, 178-05 Tier B sample, and 178-07 final reconnect proof note; ROADMAP lists all seven Phase 178 plans complete. |
 | 2 | The old reconnect CSS anchor is corrected to `[data-phx-main].phx-* .threadline-ui ...` | VERIFIED | `style.ex:3411-3427` contains all three `[data-phx-main].phx-loading|error|client-error` banner selectors and matching `[data-tl-mutating]` selectors. |
 | 3 | No body-level or legacy reconnect anchor was introduced | VERIFIED | `rg "\\.threadline-ui\\.phx-(loading|error|client-error)|body\\.phx-|\\.phx-disconnected" ...` returned no matches for style/ui/live files. |
 | 4 | D-11 is corrected in context | VERIFIED | `178-CONTEXT.md:40` states `[data-phx-main]` is the lifecycle class-bearing container and `.threadline-ui` is the scoped descendant. |
@@ -61,9 +42,9 @@ gaps:
 | 9 | PAGE-02 named footgun guards remain green | VERIFIED | `mix test test/threadline/operator_surface/` passed `591 tests, 0 failures`, covering the footgun source/DOM guards and style contracts. |
 | 10 | PAGE-03 transaction centering remains green | VERIFIED | `style.ex:675-678` keeps `.tl-container { max-width:1000px; margin:0 auto; justify-self:center; }`; `.tl-home` keeps the latent twin fix at `style.ex:689-693`; operator-surface suite passed. |
 | 11 | Requirements closeout is coherent for PAGE-01/PAGE-02/PAGE-03 | VERIFIED | REQUIREMENTS.md lines 53-55 and 127-129 mark all three complete and name the 178-06 reconnect closure evidence. |
-| 12 | D-13 real socket-drop proof passes the documented targeted command 3/3 | FAILED | Fresh run exited 1: default Chromium failed in `openPruneModal()` because `#prune-confirm-content` stayed hidden; desktop and mobile projects passed. |
+| 12 | D-13 real socket-drop proof passes the documented targeted command 3/3 | VERIFIED | Fresh run passed 3/3: default `chromium`, `desktop-chromium`, and `mobile-chromium` all reached the positive reconnect assertions. |
 
-**Score:** 11/12 truths verified (0 present-but-behavior-unverified; 1 failed).
+**Score:** 12/12 truths verified (0 present-but-behavior-unverified; 0 failed).
 
 ### Required Artifacts
 
@@ -73,7 +54,7 @@ gaps:
 | `lib/threadline/operator_surface/ui.ex` | Shared shell comments and one reconnect banner mount | VERIFIED | Comments name `[data-phx-main]`; shell mounts banner once above `#tl-main`. |
 | `test/threadline/operator_surface/component_contract_test.exs` | Tier A selector-correctness guard | VERIFIED | Active CSS block extraction plus positive and negative selector assertions. |
 | `test/threadline/operator_surface/style_contract_test.exs` | PAGE-02/PAGE-03 and offline-anchor style guards | VERIFIED | Included in `mix test test/threadline/operator_surface/` 591/0. |
-| `examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts` | Positive real socket-drop proof | PARTIAL | Assertions are substantive, but the documented targeted command currently fails in default Chromium before reaching them. |
+| `examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts` | Positive real socket-drop proof | VERIFIED | `openPruneModal()` now waits for `[data-phx-main].phx-connected`, clicks the exact real button, waits for real modal content, and the documented targeted command passes 3/3. |
 | `.planning/phases/178-per-page-flow-stress-pass-all-11-pages/178-CONTEXT.md` | Corrected D-11 | VERIFIED | D-11 explicitly supersedes the old `.threadline-ui` lifecycle-anchor premise. |
 | `.planning/REQUIREMENTS.md` | PAGE-01/PAGE-02/PAGE-03 closeout | VERIFIED | Statuses marked complete with Phase 178 traceability. |
 
@@ -84,15 +65,15 @@ gaps:
 | `style.ex` | LiveView lifecycle root | `[data-phx-main].phx-* .threadline-ui` selector family | WIRED | Positive source scan found all banner and mutating-control selectors. |
 | `component_contract_test.exs` | `style.ex` | active reconnect CSS block assertions | WIRED | Guards would fail on the old `.threadline-ui.phx-*` anchor. |
 | `ui.ex` shell | operator LiveViews | shared `UI.shell` route and single banner mount | WIRED | Component contract suite passed; per-page wrapper duplication is refuted. |
-| `operator-phase-178-uat.spec.ts` | real Chromium LiveView drop | `routeWebSocket`, `liveSocket.disconnect()`, computed-style assertions | PARTIAL | Desktop and mobile lanes passed; default Chromium setup failed before disconnect proof. |
+| `operator-phase-178-uat.spec.ts` | real Chromium LiveView drop | `routeWebSocket`, `liveSocket.disconnect()`, computed-style assertions | WIRED | All three lanes passed, including default Chromium; assertions still prove banner visibility and mutating-control dimming/restoration. |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|--------------------|--------|
 | `UI.shell/1` | `@inner_block`, `@main_class`, header assigns | LiveView callers route through `UI.shell`; tests scan all 11 page modules | Yes | VERIFIED |
-| `retention_history_live.ex` prune modal | `@prune_modal_open` | `handle_event("open_prune_modal")` / `handle_event("close_prune_modal")` | Yes | PARTIAL - production wiring exists, but the default Chromium e2e lane did not observe the modal opening. |
-| reconnect CSS affordance | lifecycle classes on `[data-phx-main]` | Phoenix LiveView client classes | Yes in two browser lanes | PARTIAL - official 3-project command is non-green. |
+| `retention_history_live.ex` prune modal | `@prune_modal_open` | `handle_event("open_prune_modal")` / `handle_event("close_prune_modal")` | Yes | VERIFIED - the helper waits for a connected LiveView before clicking and observes the real modal in all three projects. |
+| reconnect CSS affordance | lifecycle classes on `[data-phx-main]` | Phoenix LiveView client classes | Yes in all three browser lanes | VERIFIED - official 3-project command is green. |
 
 ### Behavioral Spot-Checks
 
@@ -102,7 +83,7 @@ gaps:
 | Correct reconnect selectors present | `rg -n "\\[data-phx-main\\]\\.phx-(loading|error|client-error).*\\.threadline-ui .*tl-reconnect-banner|\\[data-phx-main\\]\\.phx-(loading|error|client-error).*\\[data-tl-mutating\\]" lib/threadline/operator_surface/style.ex lib/threadline/operator_surface/ui.ex` | Expected selector family found | PASS |
 | Old/forbidden anchors absent | `rg -n "\\.threadline-ui\\.phx-(loading|error|client-error)|body\\.phx-|\\.phx-disconnected" lib/threadline/operator_surface/style.ex lib/threadline/operator_surface/ui.ex lib/threadline/operator_surface/live || true` | No matches | PASS |
 | Capture/semantics untouched | `git diff --name-only 7425a32..HEAD -- lib/threadline/audit lib/threadline/capture lib/threadline/semantics` | No files | PASS |
-| Real socket-drop proof | `./examples/threadline_phoenix/e2e/run-e2e.sh e2e/tests/operator-phase-178-uat.spec.ts -g "real dropped live socket"` | 2 passed, 1 failed; default Chromium timed out waiting for visible `#prune-confirm-content` | FAIL |
+| Real socket-drop proof | `./examples/threadline_phoenix/e2e/run-e2e.sh e2e/tests/operator-phase-178-uat.spec.ts -g "real dropped live socket"` | 3 passed across `chromium`, `desktop-chromium`, and `mobile-chromium` | PASS |
 
 ### Probe Execution
 
@@ -112,7 +93,7 @@ No separate `scripts/*/tests/probe-*.sh` probes are declared for this phase. The
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| PAGE-01 | 178-01, 178-04, 178-05, 178-06 | 11-page stress matrix including reconnect, with findings recorded in ledger | FAILED | Static/ledger and selector closure are present, but the official real socket-drop proof is not green. |
+| PAGE-01 | 178-01, 178-04, 178-05, 178-06, 178-07 | 11-page stress matrix including reconnect, with findings recorded in ledger | SATISFIED | Static/ledger work, selector closure, and the official real socket-drop proof are all green. |
 | PAGE-02 | 178-01, 178-05, 178-06 | Named footgun classes eliminated | SATISFIED | Operator-surface suite passed 591/0; no old reconnect/legacy anchors found. |
 | PAGE-03 | 178-01, 178-03, 178-06 | Transaction page centers at desktop widths | SATISFIED | Source centering fix remains and operator-surface suite passed. |
 
@@ -122,7 +103,6 @@ No orphaned Phase 178 requirements were found in REQUIREMENTS.md; PAGE-01/PAGE-0
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts` | 337-343 | E2E setup helper is not deterministic in the default Chromium project | BLOCKER | The load-bearing real socket-drop proof exits non-zero before it can prove the reconnect behavior. |
 | `lib/threadline/operator_surface/ui.ex` | 1423 | `placeholder` appears in allowed global attrs | INFO | Attribute allow-list, not a UI stub. |
 | `test/threadline/operator_surface/style_contract_test.exs` | 287 | `TBD` appears inside a refuting assertion | INFO | Test assertion text, not unresolved debt. |
 
@@ -130,15 +110,15 @@ No unreferenced `FIXME`, `XXX`, or `TBD` debt markers were found in the phase-mo
 
 ### Human Verification Required
 
-None. The remaining blocker is an automated Tier B failure, not an ambiguous human-judgment item.
+None. All Phase 178 verification is automated and passed.
 
 ### Gaps Summary
 
 The prior CSS-anchor gap is substantively closed in source and Tier A: the active reconnect CSS now anchors on `[data-phx-main].phx-loading`, `[data-phx-main].phx-error`, and `[data-phx-main].phx-client-error`, descends into `.threadline-ui`, and applies both banner visibility and `[data-tl-mutating]` dimming. The old `.threadline-ui.phx-*` same-element anchor, body-level anchor, and legacy `.phx-disconnected` anchor are absent. D-11 is corrected in context, D-10 shell mounting remains intact, D-12 controls and server prune enforcement remain intact, and the operator-surface suite is green.
 
-The phase still cannot pass because the behavior-dependent D-13 proof is not currently green under the documented command. A fresh verifier run failed in the default Chromium project before the disconnect assertions, with `#prune-confirm-content` staying hidden after clicking "Run retention prune." Since PAGE-01 explicitly includes the reconnect dimension, and the verification contract requires a passing real-engine proof for this state transition, the phase remains `gaps_found` until that targeted e2e command passes cleanly.
+The final D-13 blocker is also closed: `openPruneModal()` now waits for `[data-phx-main].phx-connected`, clicks the exact real "Run retention prune" button, waits for the real `UI.modal` container/content/focusable path, and preserves the positive reconnect assertions. The documented targeted command passes default `chromium`, `desktop-chromium`, and `mobile-chromium`.
 
 ---
 
-_Verified: 2026-06-18T20:44:32Z_
+_Verified: 2026-06-18T23:36:00Z_
 _Verifier: the agent (gsd-verifier)_
