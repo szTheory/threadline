@@ -3245,6 +3245,143 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
+         * Overlay JS-transition utility classes (D-10.1, RESEARCH Pitfall 2).
+         * modal/drawer/toast (ui.ex) drive enter/exit via Phoenix.LiveView.JS
+         * show/hide `transition:` tuples {transition_classes, from, to}. The
+         * transition class sets the tokenized transition-property; the from/to
+         * classes set the start/end opacity/transform. These are CLASS SELECTORS
+         * (NOT the same-named @keyframes, which drive CSS `animation:` mount
+         * reveals) — defining them here makes the overlay motion real instead of
+         * an instant snap. GPU-only (opacity/transform); the reduced-motion
+         * blanket below collapses the transition near-instantly (D-12), so no
+         * per-component prefers-reduced-motion handling is needed. Every JS.show/
+         * hide passes an explicit time matching --tl-motion-base so the token
+         * stays the single source of truth (D-11, Pitfall 3).
+         */
+        .tl-fade-in,
+        .tl-fade-out {
+          transition: opacity var(--tl-motion-base) var(--tl-ease-standard);
+        }
+
+        .tl-rise-in,
+        .tl-rise-out {
+          transition:
+            opacity var(--tl-motion-base) var(--tl-ease-standard),
+            transform var(--tl-motion-base) var(--tl-ease-standard);
+        }
+
+        .tl-slide-in-right,
+        .tl-slide-out-right {
+          transition: transform var(--tl-motion-base) var(--tl-ease-standard);
+        }
+
+        .opacity-0 {
+          opacity: 0;
+        }
+
+        .opacity-100 {
+          opacity: 1;
+        }
+
+        .translate-y-0 {
+          transform: translateY(0);
+        }
+
+        .translate-y-4 {
+          transform: translateY(var(--tl-motion-distance-md));
+        }
+
+        .translate-x-0 {
+          transform: translateX(0);
+        }
+
+        .translate-x-full {
+          transform: translateX(100%);
+        }
+
+        /* `.hidden` backs the modal/drawer `if(!@show, do: "hidden")` toggle. */
+        .hidden {
+          display: none;
+        }
+
+        /*
+         * Overlay shells. The *-container is the full-viewport positioning layer
+         * the JS show/hide targets (#id); the scrim is the dimmed backdrop and the
+         * wrapper centers/edges the dialog. Opacity/transform stay on the JS
+         * utility classes above so the container itself only owns layout + stacking.
+         */
+        .tl-modal-container,
+        .tl-drawer-container {
+          position: fixed;
+          inset: 0;
+          z-index: var(--tl-z-subview);
+        }
+
+        .tl-modal-scrim,
+        .tl-drawer-scrim {
+          position: absolute;
+          inset: 0;
+          background: var(--tl-color-scrim, rgba(7, 11, 20, 0.62));
+        }
+
+        .tl-modal-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100%;
+          padding: var(--tl-space-4);
+        }
+
+        .tl-modal {
+          position: relative;
+          width: min(var(--tl-modal-width, 560px), 100%);
+          max-height: calc(100% - var(--tl-space-8));
+          overflow: auto;
+          padding: var(--tl-space-5);
+          background: var(--tl-color-surface-raised);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+        }
+
+        .tl-drawer-wrapper {
+          position: absolute;
+          inset: 0 0 0 auto;
+          display: flex;
+        }
+
+        .tl-drawer {
+          position: relative;
+          width: min(var(--tl-drawer-width), 100vw);
+          height: 100%;
+          overflow: auto;
+          padding: var(--tl-space-5);
+          background: var(--tl-color-surface-raised);
+          border-left: 1px solid var(--tl-color-border);
+        }
+
+        /*
+         * toast — fade-up entrance (Open Question 3) via a phx-mounted JS.show
+         * using the same .tl-fade-in/.opacity-* utilities + explicit time. Manual/
+         * phx-click dismiss only (auto-dismiss is out of scope). Warning/info/etc.
+         * tinting rides the per-kind --tl-color-* tokens already in the catalog.
+         */
+        .tl-toast {
+          position: fixed;
+          right: var(--tl-space-4);
+          bottom: var(--tl-space-4);
+          z-index: var(--tl-z-subview);
+          display: flex;
+          flex-direction: column;
+          gap: var(--tl-space-1);
+          max-width: min(360px, calc(100vw - var(--tl-space-8)));
+          padding: var(--tl-space-4);
+          background: var(--tl-color-surface-raised);
+          border: 1px solid var(--tl-color-border);
+          border-radius: var(--tl-radius-md);
+        }
+
+        /*
          * Motion — purposeful, brand-coherent micro-interactions.
          * Pure CSS, GPU-only (transform/opacity), reusing the motion tokens.
          * Each fires on element mount; LiveView streams replay them only for

@@ -876,10 +876,12 @@ defmodule Threadline.OperatorSurface.UI do
     js
     |> JS.show(
       to: "##{id}",
+      time: 180,
       transition: {"tl-fade-in", "opacity-0", "opacity-100"}
     )
     |> JS.show(
       to: "##{id}-content",
+      time: 180,
       transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
     )
     |> JS.add_class("overflow-hidden", to: "body")
@@ -891,10 +893,12 @@ defmodule Threadline.OperatorSurface.UI do
     js
     |> JS.hide(
       to: "##{id}-content",
+      time: 180,
       transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"}
     )
     |> JS.hide(
       to: "##{id}",
+      time: 180,
       transition: {"tl-fade-out", "opacity-100", "opacity-0"}
     )
     |> JS.remove_class("overflow-hidden", to: "body")
@@ -944,10 +948,12 @@ defmodule Threadline.OperatorSurface.UI do
     js
     |> JS.show(
       to: "##{id}",
+      time: 180,
       transition: {"tl-fade-in", "opacity-0", "opacity-100"}
     )
     |> JS.show(
       to: "##{id}-content",
+      time: 180,
       transition: {"tl-slide-in-right", "translate-x-full", "translate-x-0"}
     )
     |> JS.add_class("overflow-hidden", to: "body")
@@ -959,10 +965,12 @@ defmodule Threadline.OperatorSurface.UI do
     js
     |> JS.hide(
       to: "##{id}-content",
+      time: 180,
       transition: {"tl-slide-out-right", "translate-x-0", "translate-x-full"}
     )
     |> JS.hide(
       to: "##{id}",
+      time: 180,
       transition: {"tl-fade-out", "opacity-100", "opacity-0"}
     )
     |> JS.remove_class("overflow-hidden", to: "body")
@@ -983,6 +991,7 @@ defmodule Threadline.OperatorSurface.UI do
     id={@id}
     class={["tl-toast", "tl-toast--#{@kind}", @class]}
     role="alert"
+    phx-mounted={show_toast(@id)}
     phx-click-away={hide_toast(@id)}
     phx-window-keydown={hide_toast(@id)}
     phx-key="escape"
@@ -1000,10 +1009,24 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # Toast fade-up entrance (Open Question 3): the same rise utility classes the
+  # modal uses, token-synced via explicit time:. Manual/phx-click dismiss only —
+  # no auto-dismiss (out of scope).
+  def show_toast(js \\ %JS{}, id) do
+    js
+    |> JS.show(
+      to: "##{id}",
+      time: 180,
+      transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
+    )
+  end
+
+  @doc false
   def hide_toast(js \\ %JS{}, id) do
     js
     |> JS.hide(
       to: "##{id}",
+      time: 180,
       transition: {"tl-fade-out", "opacity-100", "opacity-0"}
     )
   end
