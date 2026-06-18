@@ -228,7 +228,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, lv, html} = live(conn, "/audit/rows/users/row-path-1")
       assert html =~ ~s|href="/audit/timeline"|
 
-      render_change(element(lv, "form[phx-change='update-as-of']"), %{"as_of" => "2026-10-03T12:00"})
+      render_change(element(lv, "form[phx-change='update-as-of']"), %{
+        "as_of" => "2026-10-03T12:00"
+      })
 
       assert_patch(lv, "/audit/rows/users/row-path-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
@@ -249,7 +251,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Segment Value"
       assert html =~ ~s|href="/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12:00:00|
 
-      render_change(element(lv, "form[phx-change='update-as-of']"), %{"as_of" => "2026-10-03T12:00"})
+      render_change(element(lv, "form[phx-change='update-as-of']"), %{
+        "as_of" => "2026-10-03T12:00"
+      })
 
       assert_patch(lv, "/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
