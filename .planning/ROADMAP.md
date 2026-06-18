@@ -241,7 +241,7 @@ Plans:
 - [x] 178-04-PLAN.md — Wave 3 (PAGE-01): 11 reserved page entries → fixture-backed 7-path stories, ledger ratchet, DESIGN-SYSTEM.md projection
 - [x] 178-05-PLAN.md — Wave 4 (PAGE-02): fix all 11 footgun classes to green (Tier A + Tier B) + representative ~66-cell sample
 - [x] 178-06-PLAN.md — Wave 5 (gap closure): re-anchor reconnect selectors to [data-phx-main], strengthen Tier A guard, prove real socket-drop banner/dimming behavior
-- [ ] 178-07-PLAN.md — Wave 6 (gap closure): make default Chromium prune-modal setup deterministic and prove real socket-drop 3/3
+- [x] 178-07-PLAN.md — Wave 6 (gap closure): make default Chromium prune-modal setup deterministic and prove real socket-drop 3/3
 **UI hint**: yes
 
 ### Phase 179: Microcopy & information-architecture sweep
@@ -303,7 +303,7 @@ Plans:
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 4/4 | Complete    | 2026-06-17 |
 | 176. Data display & operator patterns | v1.37 | 5/5 | Complete    | 2026-06-18 |
 | 177. Component groups / meta-components | v1.37 | 5/5 | Complete   | 2026-06-18 |
-| 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 6/6 | Complete   | 2026-06-18 |
+| 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 7/7 | Complete   | 2026-06-18 |
 | 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |
 | 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 0/TBD | Not started | - |
 | 166. unfreeze-token-lane-mechanism | v1.36 | 1/1 | Complete | 2026-06-13 |
