@@ -326,23 +326,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Script.js />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
-          base_path={@base_path}
-          error={assigns[:threadline_coverage_error]}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
-          scoped={not is_nil(assigns[:threadline_scope])}
-        />
-
-        <main id="tl-main" class="tl-page tl-page--intro" tabindex="-1">
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
+        base_path={@base_path}
+        error={assigns[:threadline_coverage_error]}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:timeline}
+        scoped={not is_nil(assigns[:threadline_scope])}
+        script
+        main_class="tl-page tl-page--intro"
+      >
           <.timeline_command
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
@@ -454,8 +451,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <strong>PACKAGE</strong> queue or download the current export
           </p>
         </aside>
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 

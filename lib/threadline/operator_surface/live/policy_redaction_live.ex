@@ -41,23 +41,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <%= if @base_path do %>
-          <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-            coverage={@threadline_coverage || %{uncovered_count: 0}}
-            base_path={@base_path}
-            error={@threadline_coverage_error}
-            coverage_enabled={@threadline_coverage_enabled}
-            policy_enabled={@threadline_policy_enabled}
-            evidence_enabled={@threadline_evidence_enabled}
-            exports_enabled={@threadline_exports_enabled}
-            current={:policy}
-          />
-        <% end %>
-
-        <main id="tl-main" class="tl-page" tabindex="-1">
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={@threadline_coverage || %{uncovered_count: 0}}
+        base_path={@base_path}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:policy}
+        main_class="tl-page"
+      >
           <%= if @threadline_policy_enabled do %>
             <UI.page_header title="Redaction assurance">
               <:lede>Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</:lede>
@@ -174,8 +169,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 

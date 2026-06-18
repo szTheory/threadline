@@ -87,22 +87,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Script.js />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={@threadline_coverage}
-          base_path={@base_path}
-          error={@threadline_coverage_error}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
-          scoped={not is_nil(assigns[:threadline_scope])}
-        />
-        <main id="tl-main" class="tl-page" tabindex="-1">
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={@threadline_coverage}
+        base_path={@base_path}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:timeline}
+        scoped={not is_nil(assigns[:threadline_scope])}
+        script
+        main_class="tl-page"
+      >
         <%= if @not_found do %>
           <UI.error_state>
             <:title>Invalid Actor Reference</:title>
@@ -199,8 +197,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
           <% end %>
         <% end %>
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 

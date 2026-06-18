@@ -1084,25 +1084,38 @@ defmodule Threadline.OperatorSurface.UI do
   @doc false
   # SEED-005 / D-10: the single shared shell/chrome for ALL 11 operator
   # LiveViews. Before this component existed, every LiveView hand-duplicated
-  # `<div class="threadline-ui">…<Style.css/>…<surface_header/>…<main id="tl-main">`,
-  # which is exactly why `reconnect_banner/1` had no home and nothing mounted it
-  # (the 177 follow-up). Routing all 11 pages through `shell/1` gives the
-  # reconnect banner a single mount point — rendered ONCE, directly above
-  # `#tl-main` and inside `.threadline-ui` — and kills the 11-way drift.
+  # the threadline-ui root + the inner #tl-main wrapper, which is exactly why
+  # the reconnect strip had no home and nothing mounted it (the 177 follow-up).
+  # Routing all 11 pages through `shell/1` gives that strip a single mount
+  # point — rendered exactly ONCE by the banner component below, directly
+  # above the #tl-main element and inside the threadline-ui root — and kills
+  # the 11-way drift.
   #
-  # Connection lifecycle (D-11): the LiveView render-root IS `.threadline-ui`, so
-  # phoenix_live_view applies `.phx-loading`/`.phx-error` directly on it. The
-  # banner + `[data-tl-mutating]` dimming is pure CSS keyed off those classes
-  # (style.ex:3405-3424) — NEVER `<body>`, NEVER the legacy `.phx-disconnected`.
+  # Connection lifecycle (D-11): the LiveView render-root IS the threadline-ui
+  # element, so phoenix_live_view applies `.phx-loading`/`.phx-error` directly
+  # on it. The strip + `[data-tl-mutating]` dimming is pure CSS keyed off those
+  # classes (style.ex:3405-3424) — never the document body, never the legacy
+  # pre-1.0 disconnected class.
   #
   # Stays `@doc false` / private — no public, host-facing component API (v1.31
   # freeze). Pages keep their own `<main>` class via `:main_class` so the
   # per-page centering wrappers (e.g. `tl-container`, `tl-home`) survive, and any
   # page-specific `<main>` attributes ride the `:main_rest` global.
+  # `:base_path` is nilable: four LiveViews (evidence, policy_redaction,
+  # retention_history, export_status) only render `surface_header` when a
+  # `base_path` is present — when nil the chrome nav is suppressed but the
+  # shell, reconnect banner, and `#tl-main` body still render. Gating the
+  # header on `@base_path` here preserves that per-page behavior byte-for-byte
+  # while still mounting the banner exactly once.
+  # `:header_theme` lets the stress lab preview a `:theme`-driven root
+  # (`data-tl-theme`) while keeping the chrome nav on the host's own theme —
+  # the one place where the root and nav themes intentionally diverge. It
+  # defaults to `:theme` so the other 10 pages render identically.
   attr(:theme, :string, default: "dark")
+  attr(:header_theme, :string, default: nil)
   attr(:current, :atom, default: nil)
-  attr(:coverage, :map, required: true)
-  attr(:base_path, :string, required: true)
+  attr(:coverage, :map, default: %{uncovered_count: 0})
+  attr(:base_path, :string, default: nil)
   attr(:error, :string, default: nil)
   attr(:coverage_enabled, :boolean, default: false)
   attr(:policy_enabled, :boolean, default: false)
@@ -1115,12 +1128,15 @@ defmodule Threadline.OperatorSurface.UI do
   slot(:inner_block, required: true)
 
   def shell(assigns) do
+    assigns = assign_new(assigns, :header_theme, fn -> assigns[:theme] end)
+
     ~H"""
     <div class="threadline-ui" data-tl-theme={@theme}>
       <Threadline.OperatorSurface.Style.css />
       <Script.js :if={@script} />
       <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-        theme={@theme}
+        :if={@base_path}
+        theme={@header_theme || @theme}
         coverage={@coverage}
         base_path={@base_path}
         error={@error}

@@ -70,22 +70,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@selected_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={@threadline_coverage}
-          base_path={@base_path}
-          error={@threadline_coverage_error}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:stress}
-          scoped={not is_nil(assigns[:threadline_scope])}
-        />
-
-        <main id="tl-main" class="tl-page tl-stress" tabindex="-1" data-testid="stress-lab">
+      <Threadline.OperatorSurface.UI.shell
+        theme={@selected_theme}
+        header_theme={@threadline_theme}
+        coverage={@threadline_coverage}
+        base_path={@base_path}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:stress}
+        scoped={not is_nil(assigns[:threadline_scope])}
+        main_class="tl-page tl-stress"
+        data-testid="stress-lab"
+      >
           <header class="tl-page__header tl-stress__header">
             <div>
               <p class="tl-page__meta">Internal stress lab</p>
@@ -426,8 +425,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
             </section>
           </div>
-        </main>
-      </div>
+      </Threadline.OperatorSurface.UI.shell>
       """
     end
 

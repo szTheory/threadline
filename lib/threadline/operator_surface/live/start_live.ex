@@ -115,22 +115,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={@threadline_coverage}
-          base_path={@base_path}
-          error={@threadline_coverage_error}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:start}
-          scoped={not is_nil(assigns[:threadline_scope])}
-        />
-
-        <main id="tl-main" class="tl-page tl-home" tabindex="-1">
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={@threadline_coverage}
+        base_path={@base_path}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:start}
+        scoped={not is_nil(assigns[:threadline_scope])}
+        main_class="tl-page tl-home"
+      >
           <UI.page_header variant="display" title="Follow what happened.">
             <:lede>
               Every change is connected to the action, context, and story around it.
@@ -301,8 +298,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </li>
             </ul>
           </section>
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 

@@ -83,21 +83,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Script.js />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={@threadline_coverage}
-          base_path={surface_root(@base_path)}
-          error={@threadline_coverage_error}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
-        />
-        <main id="tl-main" class="tl-page tl-container" tabindex="-1">
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={@threadline_coverage}
+        base_path={surface_root(@base_path)}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:timeline}
+        script
+        main_class="tl-page tl-container"
+      >
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Transaction not found</h3>
@@ -224,8 +222,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope_query_fn={@threadline_scope_query_fn}
           />
         <% end %>
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 

@@ -32,28 +32,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="threadline-ui" data-tl-theme={@threadline_theme}>
-        <Threadline.OperatorSurface.Style.css />
-        <Threadline.OperatorSurface.Script.js />
-        <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
-          theme={@threadline_theme}
-          coverage={@threadline_coverage}
-          base_path={@base_path}
-          error={@threadline_coverage_error}
-          coverage_enabled={@threadline_coverage_enabled}
-          policy_enabled={@threadline_policy_enabled}
-          evidence_enabled={@threadline_evidence_enabled}
-          exports_enabled={@threadline_exports_enabled}
-          current={:timeline}
-        />
-        <main
-          id="tl-main"
-          class="tl-page"
-          tabindex="-1"
-          data-earned-flow="EF2"
-          data-persona="P1"
-          data-jtbd="J2"
-        >
+      <UI.shell
+        theme={@threadline_theme}
+        coverage={@threadline_coverage}
+        base_path={@base_path}
+        error={@threadline_coverage_error}
+        coverage_enabled={@threadline_coverage_enabled}
+        policy_enabled={@threadline_policy_enabled}
+        evidence_enabled={@threadline_evidence_enabled}
+        exports_enabled={@threadline_exports_enabled}
+        current={:timeline}
+        script
+        main_class="tl-page"
+        data-earned-flow="EF2"
+        data-persona="P1"
+        data-jtbd="J2"
+      >
           <UI.page_header
             title={"Row history · #{@table}"}
             breadcrumbs={[
@@ -77,8 +71,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope={@threadline_scope}
             scope_query_fn={@threadline_scope_query_fn}
           />
-        </main>
-      </div>
+      </UI.shell>
       """
     end
 
