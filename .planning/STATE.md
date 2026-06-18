@@ -2,16 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: verifying
-stopped_at: Completed 178-06-PLAN.md
+current_phase: 178
+current_phase_name: per-page-flow-stress-pass-all-11-pages
+status: gaps_found
+stopped_at: Phase 178 verification gaps_found after 178-06: D-13 real socket-drop Tier B command fails in default Chromium before modal content is visible. Run /gsd-plan-phase 178 --gaps.
 last_updated: "2026-06-18T20:38:39.184Z"
-last_activity: 2026-06-18
+last_activity: 2026-06-18 -- Phase 178 verification found 1 remaining gap
 progress:
   total_phases: 10
-  completed_phases: 8
+  completed_phases: 7
   total_plans: 36
   completed_plans: 36
-  percent: 80
+  percent: 70
 ---
 
 # Project State: Threadline
@@ -25,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 178 (per-page-flow-stress-pass-all-11-pages) — EXECUTING
-Plan: 6 of 6 (gap-closure plan)
-Status: Phase complete — ready for verification
-Last activity: 2026-06-18
+Phase: 178 (per-page-flow-stress-pass-all-11-pages) — EXECUTED, verification gaps_found
+Plan: 6 of 6 executed (Plans 01–06 all have SUMMARYs)
+Status: Gaps found — 11/12 must-haves verified; D-13 real socket-drop Tier B command fails in default Chromium before modal content is visible. Run /gsd-plan-phase 178 --gaps.
+Last activity: 2026-06-18 -- Phase 178 verification found 1 remaining gap
 
 ## Performance Metrics
 
