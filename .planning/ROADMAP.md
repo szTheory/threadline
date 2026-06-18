@@ -191,7 +191,7 @@ Plans:
 
 **Wave 3** *(blocked on 176-02)*
 
-- [ ] 176-03-PLAN.md — DATA-01/03 consumer migration (copy-footgun fix, kv/diff cells, CSS double-trunc kill, data-state taxonomy)
+- [x] 176-03-PLAN.md — DATA-01/03 consumer migration (copy-footgun fix, kv/diff cells, CSS double-trunc kill, data-state taxonomy)
 
 **Wave 4** *(blocked on 176-03 / 176-02)*
 

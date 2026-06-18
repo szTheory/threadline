@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-18T01:30:00.000Z"
-last_activity: 2026-06-18 -- Phase 176 plan 02 complete (UI data-display + data-state components)
+last_updated: "2026-06-18T02:45:00.000Z"
+last_activity: 2026-06-18 -- Phase 176 plan 03 complete (display-page consumer migration: ref/kv + data-state)
 progress:
   total_phases: 15
   completed_phases: 5
   total_plans: 25
-  completed_plans: 21
-  percent: 33
+  completed_plans: 22
+  percent: 35
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 ## Current Position
 
 Phase: 176 (data-display-operator-patterns) — EXECUTING
-Plan: 3 of 5
-Status: Executing Phase 176 (176-01, 176-02 complete)
-Last activity: 2026-06-18 -- Phase 176 plan 02 complete (UI data-display + data-state component set)
+Plan: 4 of 5
+Status: Executing Phase 176 (176-01, 176-02, 176-03 complete)
+Last activity: 2026-06-18 -- Phase 176 plan 03 complete (display-page consumer migration: ref/kv + data-state)
 
 ## Performance Metrics
 
@@ -78,6 +78,9 @@ Last activity: 2026-06-18 -- Phase 176 plan 02 complete (UI data-display + data-
 | Phase 175 P02 | ~15min | 2 tasks | 4 files |
 | Phase 175 P03 | ~30min | 2 tasks | 11 files |
 | Phase 175 P04 | ~12min | 2 tasks | 7 files |
+| Phase 176 P01 | ~30min | 3 tasks | 9 files |
+| Phase 176 P02 | ~40min | 3 tasks | 7 files |
+| Phase 176 P03 | ~75min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -189,6 +192,7 @@ Last activity: 2026-06-18 -- Phase 176 plan 02 complete (UI data-display + data-
 - [175-02]: Shell is CSP-proof — all three inline handlers removed (theme onchange, nav onclick, skip-link onclick); theme picker rebuilt as visible native radios + explicit "Apply theme" button + pure-CSS `.tl-theme-picker__option:has(:checked)` non-color cue (zero new tokens); mobile nav is native `<details>` keyed on `[open]`; scroll-padding-top reconciled to the per-row scroll-margin-top token + overscroll-behavior:contain + 100svh; router macro doc corrected; theme-toggle ban lifted in style_contract_test for a positive CSP guard; backend untouched (D-09).
 - [176-02]: Built the internal `OperatorSurface.UI` data-display + data-state family: `ref/1` (binds `data-tl-copy={full}` on `<code>` + gated button, never `.title`/`.visible` D-02; zero-JS renders full D-06; `copy_label` required no-default D-07), `kv/1` (tl-kv `<dl>` + required `:item key` slot D-08), `data_table/1` (`:col label` feeds `<th>` + every `<td data-label>` from one source, rows|stream `phx-update=stream`, row_id, row_status `data-status` stripe, `:action` kebab, no ARIA table roles D-09), `loading_state/1` (role=status + aria-busy + spinner + text node D-13), `stale_banner/1` (role=status `tl-alert--warning` strip above data with `as_of` + Retry D-14), `empty_state` variants `no_data`/`permission`/`unavailable` + `role`/`icon`/`focus_heading` (D-15 focus rescue = generated heading id + `tabindex=-1` + `phx-mounted={JS.focus}`, CSP-clean), and `data_state/1` typed-reason dispatcher (distinct role+icon SHAPE+heading per reason; unavailable sub-cases state "not a permissions issue" D-16). `data_state/1` was a Rule-2 add — the Plan-01 `data_state_mapping` wave-0 test calls it; it is now GREEN. `copy_label` required-attr enforcement is a compile WARNING (Phoenix attr semantics), asserted via CaptureIO. 10 stress stories (ref/kv/data_table + 7 data-states) registered with matching `.planning/design-system-ledger.json` + `DESIGN-SYSTEM.md` rows (Rule-3 coupling — ledger test requires registry↔ledger↔projection parity). Zero new `--tl-*` token; brand-parity + style_contract green; no style.ex change. No page migrated (plans 03/04/05). 6 cross-plan Wave-0 scaffolds remain RED by design (1 card-nesting→03, 5 retention T3+ref-copy→05). Commits `d3273d3`, `617eb47`, `8c880a6`, `93a8027`, `9e17e86`. Capture/semantics untouched.
 - [176-01]: `Presentation.ref/2` → `%{visible, title, full}` reuses `secondary_ref_value/1` for `full` (no value-extraction rebuild, D-01); `title == full`. `truncate_middle/3` gains additive `:tail_min` (≥N tail chars survive verbatim; no-`:tail_min` path byte-for-byte unchanged so `export_summary/1` is unaffected, D-03). `value_token/1` truncates at 56 keeping full in `:title`. Per-kind `truncate_for/2` (uuid/correlation/arn/actor/hash/path/email/url/timestamp; `:timestamp` never truncates). Source-down glyph is `:cloud_off` (not `:plug`); `archive` reused for pruned. The four MISSING Wave-0 tests use a self-contained tokenizer/regex (no Floki — not a project dep, v1.37 zero-new-dep invariant); `RefCopyContract` lives in `test/support` (only `test/support` is on the compile path). card-nesting regression treats the synthetic `tl-coverage-command` shell as a card-family surface so it is genuinely RED on coverage today (literal card>card alone would false-green). 9 new assertions RED (3 data-state + 1 card-nesting + 5 retention/ref-copy), all turning GREEN in Plans 02/03/05. Commits `989f03c`, `45a788d`, `a4a13fa`, `3503fdc`. Capture/semantics untouched. Pre-existing `ui_test.exs` format drift logged to deferred-items (out of scope).
+- [176-03]: Migrated the display/read-only operator pages onto the Plan-02 components (non-destructive consumer migration; coverage/retention/redaction are plans 04/05 and were NOT touched). Transaction copy footgun closed — transaction id + correlation id + diff before/after cells all bind `data-tl-copy={full}` via `UI.ref/1` (never `.title`/`.visible`/`.text`, D-02); transaction metadata → `UI.kv`; diff cells truncate via `value_token` (max 56) + gated per-cell copy bound to the full value (`diff_full/1`, D-04); timestamps in semantic `<time datetime=exact_time>` UTC (D-22). actor/timeline/evidence/export migrated to `UI.ref` (copy=full) + `UI.kv` (export per-job + both export-context `tl-param-list` retired). Per-page data-state: actor + timeline branch ok-empty into `empty_state variant=never` (first-run, history) vs `no_data` (narrowing filter active, funnel) — distinct icon SHAPE (D-17); evidence `no_data`; export `never`; invalid-actor-ref → `error_state`. **Rule-1 bug:** `UI.ref` used `String.to_existing_atom(kind)` which raised for `:correlation`/`:arn`/`:actor`/`:email` (atoms not interned) — added `Presentation.kinds/0` + `kind_from_string/1` (literal `@ref_kinds`, compile-time interned) and switched `UI.ref` to the safe resolver. **Rule-3:** `UI.ref` can't nest in an `<a>` (button-in-anchor) — copyable ref renders standalone, deep-link demoted to sibling Timeline/Actor affordance. `.tl-secondary-ref` CSS double-truncation removed (`text-overflow:ellipsis` gone, `overflow-wrap:anywhere` kept, D-05) with the paired `style_contract_test` assertion (refute ellipsis + assert wrap) updated in the SAME commit. Zero new `--tl-*` token; brand-parity + style_contract green. 213 targeted tests green; the 6 remaining operator_surface failures are the documented cross-plan Wave-0 RED scaffolds owned by plans 04/05 (1 card-nesting + 5 retention T3/ref-copy). Commits `e1650c8`, `32b0977`, `a798147`. Capture/semantics untouched.
 
 ### Blockers
 

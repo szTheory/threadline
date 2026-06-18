@@ -117,9 +117,9 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | NAV-02 | Phase 175 | Complete |
 | NAV-03 | Phase 175 | Complete |
 | NAV-04 | Phase 175 | Complete |
-| DATA-01 | Phase 176 | Pending |
-| DATA-02 | Phase 176 | Pending |
-| DATA-03 | Phase 176 | Pending |
+| DATA-01 | Phase 176 | In progress (176-03: display pages middle-truncate+copy; coverage/responsive in 176-04) |
+| DATA-02 | Phase 176 | In progress (176-03: KV/detail/timeline + semantic <time> UTC; charts/metrics remainder later) |
+| DATA-03 | Phase 176 | In progress (176-03: display-page empty/no_data/error distinct; retention states in 176-05) |
 | DATA-04 | Phase 176 | Pending |
 | DATA-05 | Phase 176 | Pending |
 | GROUP-01 | Phase 177 | Pending |
