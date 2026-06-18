@@ -886,12 +886,12 @@ defmodule Threadline.OperatorSurface.UITest do
     end
 
     test "permission and unavailable are accepted variant values" do
-      assigns = %{}
-
       for variant <- ["permission", "unavailable"] do
+        assigns = %{variant: variant}
+
         html =
           rendered_to_string(~H"""
-          <UI.empty_state variant={variant}>
+          <UI.empty_state variant={@variant}>
             <:title>Heading</:title>
             Body
           </UI.empty_state>

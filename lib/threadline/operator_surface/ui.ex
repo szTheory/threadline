@@ -460,16 +460,46 @@ defmodule Threadline.OperatorSurface.UI do
 
   @doc false
   attr(:class, :any, default: nil)
-  attr(:variant, :string, default: nil, values: [nil, "error", "never", "unsupported"])
+
+  attr(:variant, :string,
+    default: nil,
+    values: [nil, "error", "never", "unsupported", "no_data", "permission", "unavailable"]
+  )
+
+  attr(:role, :string, default: nil, doc: "ARIA live role: status (default) or alert")
+  attr(:icon, :atom, default: nil, doc: "Distinct glyph shape (no color alone, D-16)")
+
+  attr(:focus_heading, :boolean,
+    default: false,
+    doc: "D-15 focus rescue: render the heading as a tabindex=-1 target and move focus on mount"
+  )
+
+  attr(:heading_id, :string, default: nil)
   attr(:rest, :global)
   slot(:title)
   slot(:actions)
   slot(:inner_block, required: true)
 
   def empty_state(assigns) do
+    assigns =
+      assign_new(assigns, :resolved_heading_id, fn ->
+        if assigns.focus_heading do
+          assigns.heading_id || "tl-empty-heading-#{System.unique_integer([:positive])}"
+        end
+      end)
+
     ~H"""
-    <div class={["tl-empty", @variant && "tl-empty--#{@variant}", @class]} {@rest}>
-      <h3 :if={@title != []} class="tl-empty__title"><%= render_slot(@title) %></h3>
+    <div class={["tl-empty", @variant && "tl-empty--#{@variant}", @class]} role={@role} {@rest}>
+      <Icon.icon :if={@icon} name={@icon} class="tl-empty__icon" />
+      <h3
+        :if={@title != []}
+        id={@resolved_heading_id}
+        class="tl-empty__title"
+        tabindex={@focus_heading && "-1"}
+        phx-mounted={@focus_heading && JS.focus(to: "##{@resolved_heading_id}")}
+      >
+        <%= render_slot(@title) %>
+      </h3>
       <div class="tl-empty__body">
         <%= render_slot(@inner_block) %>
       </div>
@@ -479,6 +509,8 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # Thin variant="error" wrapper (D-15): role=alert, distinct alert glyph, and a
+  # tabindex=-1 heading that takes focus on mount (focus rescue).
   attr(:class, :any, default: nil)
   attr(:rest, :global)
   slot(:title)
@@ -487,11 +519,132 @@ defmodule Threadline.OperatorSurface.UI do
 
   def error_state(assigns) do
     ~H"""
-    <.empty_state variant="error" class={@class} {@rest}>
+    <.empty_state
+      variant="error"
+      role="alert"
+      icon={:warning}
+      focus_heading
+      class={@class}
+      {@rest}
+    >
       <:title :if={@title != []}><%= render_slot(@title) %></:title>
       <%= render_slot(@inner_block) %>
       <:actions :if={@actions != []}><%= render_slot(@actions) %></:actions>
     </.empty_state>
+    """
+  end
+
+  @doc false
+  # Loading state (D-13): a structurally distinct named sibling (NOT an empty_state
+  # variant). role=status + aria-busy so SR users hear progress; renders the spinner
+  # plus a text node that callers may override. Must always resolve to a terminal state.
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block)
+
+  def loading_state(assigns) do
+    ~H"""
+    <div class={["tl-empty", "tl-empty--loading", @class]} role="status" aria-busy="true" {@rest}>
+      <.spinner class="tl-empty__spinner" />
+      <p class="tl-empty__body">
+        <%= if @inner_block != [], do: render_slot(@inner_block), else: "Loading audit changes…" %>
+      </p>
+    </div>
+    """
+  end
+
+  @doc false
+  # Stale banner (D-13/D-14): a role=status strip rendered ABOVE still-visible last-good
+  # data — it PRECEDES, never replaces, and is NOT a clause in any async switch. Reuses
+  # the tl-alert--warning shell with a refresh glyph and an as_of timestamp.
+  attr(:as_of, :string, default: nil, doc: "Timestamp of the last known good data")
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  def stale_banner(assigns) do
+    ~H"""
+    <div class={["tl-alert", "tl-alert--warning", @class]} role="status" {@rest}>
+      <Icon.icon name={:refresh} class="tl-alert__icon" />
+      Couldn't refresh — showing last known data from <%= @as_of %>. Retry.
+    </div>
+    """
+  end
+
+  @doc false
+  # Typed-reason data-state dispatcher (DATA-03, D-13..D-16). Preserves the server's
+  # typed reason all the way to the view and maps it to a DISTINCT role + icon SHAPE +
+  # heading — the three load-bearing forensic distinctions (permission ≠ no-data ≠
+  # unavailable) never collapse to a generic "something went wrong". Each unavailable
+  # sub-case states it is NOT a permissions issue.
+  attr(:reason, :atom, required: true)
+  attr(:as_of, :string, default: nil, doc: "Timestamp for the pruned (retention) sub-case")
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  def data_state(%{reason: :loading} = assigns) do
+    ~H"""
+    <.loading_state class={@class} {@rest} />
+    """
+  end
+
+  def data_state(%{reason: :no_data} = assigns) do
+    ~H"""
+    <.empty_state variant="no_data" role="status" icon={:funnel} class={@class} {@rest}>
+      <:title>No changes match these filters</:title>
+      Clear the filter or widen the time range.
+    </.empty_state>
+    """
+  end
+
+  def data_state(%{reason: :unauthorized} = assigns) do
+    ~H"""
+    <.empty_state
+      variant="permission"
+      role="alert"
+      icon={:lock}
+      focus_heading
+      class={@class}
+      {@rest}
+    >
+      <:title>You don't have access to this audit data</:title>
+      This data exists — your account needs <code>audit:read</code>.
+    </.empty_state>
+    """
+  end
+
+  def data_state(%{reason: :source_down} = assigns) do
+    ~H"""
+    <.empty_state variant="unavailable" role="alert" icon={:cloud_off} class={@class} {@rest}>
+      <:title>Audit data is temporarily unavailable</:title>
+      This is not a permissions issue. Retry shortly.
+    </.empty_state>
+    """
+  end
+
+  def data_state(%{reason: :redacted} = assigns) do
+    ~H"""
+    <.empty_state variant="unavailable" role="status" icon={:eye_off} class={@class} {@rest}>
+      <:title>This value is withheld by policy</:title>
+      This is not a permissions issue. The record exists.
+    </.empty_state>
+    """
+  end
+
+  def data_state(%{reason: :pruned} = assigns) do
+    ~H"""
+    <.empty_state variant="unavailable" role="status" icon={:archive} class={@class} {@rest}>
+      <:title>Removed under retention<%= if @as_of, do: " on #{@as_of}" %></:title>
+      This is not a permissions issue. It was pruned by policy.
+    </.empty_state>
+    """
+  end
+
+  def data_state(assigns) do
+    ~H"""
+    <.error_state class={@class} {@rest}>
+      <:title>Could not load this timeline</:title>
+      Retry, then check logs.
+    </.error_state>
     """
   end
 
