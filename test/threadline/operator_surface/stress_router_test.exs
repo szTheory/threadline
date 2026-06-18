@@ -363,6 +363,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @group_story_ids ~w(
+      group.data-panel.current
+      group.detail-header.current
+      group.drawer-form.reference
+      group.empty-cta.current
+      group.modal-destructive.current
+      group.offline.current
+      group.page-header.current
+      group.permission-denied.current
+      group.stats-chart-table.current
+      group.tabs-subviews.reference
+      group.toast-update.current
+      group.toolbar.current
+    )
+
+    test "all 12 GROUP-01 group stories render without error across the matrix", %{conn: conn} do
+      assert length(@group_story_ids) == 12
+
+      for story_id <- @group_story_ids do
+        assert {:ok, _story} = StressFixtures.by_id(story_id),
+               "#{story_id} must resolve in StressFixtures"
+
+        for theme <- StressFixtures.theme_modes(),
+            viewport <- StressFixtures.viewports() do
+          {:ok, _view, html} =
+            live(
+              conn,
+              "/audit/__stress?story=#{URI.encode(story_id)}&category=group&theme=#{theme}&viewport=#{viewport}"
+            )
+
+          assert html =~ ~s|data-testid="stress-preview"|,
+                 "#{story_id} failed to render at #{theme}/#{viewport}"
+
+          assert html =~ ~s|data-testid="stress-story-id">#{story_id}|,
+                 "#{story_id} was not the selected story at #{theme}/#{viewport}"
+
+          assert html =~ ~s|data-tl-theme="#{theme}"|
+        end
+      end
+    end
+
     test "stress source avoids unsafe param conversion and banned visual dependencies" do
       source =
         [
