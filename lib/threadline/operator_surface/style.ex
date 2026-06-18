@@ -3389,12 +3389,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * Reconnect / offline group (D-08, corrected per RESEARCH Pitfall 1).
-         * Rides phoenix_live_view's CLIENT-applied connection classes on the
-         * LiveView ROOT element — which in this app is `.threadline-ui` (confirmed
-         * 11/11 audit LiveViews render it as their render root). NOT `<body>`, and
-         * NEVER the legacy disconnected class (which does not exist in LiveView
-         * 1.x — a dropped socket re-applies `.phx-loading`). Zero new JS/deps,
+         * Reconnect / offline group (D-11 corrected by real-engine verification).
+         * Phoenix LiveView applies connection lifecycle classes to the
+         * `[data-phx-main]` container in this app. `.threadline-ui` is the scoped
+         * Threadline shell inside that container, so selectors anchor on
+         * `[data-phx-main].phx-*` and then descend into the shell. Never anchor on
+         * the document body or the legacy disconnected class. Zero new JS/deps,
          * CSP-clean — it catches a dropped socket mid-session, unlike a mount-time
          * connected?/1 assign.
          *
@@ -3408,8 +3408,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: none;
         }
 
-        .threadline-ui.phx-loading .tl-reconnect-banner,
-        .threadline-ui.phx-error .tl-reconnect-banner {
+        [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner,
+        [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner,
+        [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner {
           display: flex;
           align-items: center;
           gap: var(--tl-gap-inline);
@@ -3419,8 +3420,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-bottom: 1px solid var(--tl-color-warning-border);
         }
 
-        .threadline-ui.phx-loading [data-tl-mutating],
-        .threadline-ui.phx-error [data-tl-mutating] {
+        [data-phx-main].phx-loading .threadline-ui [data-tl-mutating],
+        [data-phx-main].phx-error .threadline-ui [data-tl-mutating],
+        [data-phx-main].phx-client-error .threadline-ui [data-tl-mutating] {
           pointer-events: none;
           opacity: 0.55;
         }

@@ -1062,13 +1062,14 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
-  # Reconnect / offline banner (D-08, corrected per RESEARCH Pitfall 1). A calm,
-  # transient `role="status"` strip rendered at the shell level. It is hidden by
-  # default and revealed PURELY in CSS while the LiveView root carries `.phx-loading`
-  # or `.phx-error` (see style.ex `.threadline-ui.phx-loading .tl-reconnect-banner`).
-  # Zero new JS, zero new deps, CSP-clean — it rides phoenix_live_view's own
-  # client-applied connection classes, so it catches a dropped socket mid-session
-  # (unlike a mount-time `connected?/1` assign).
+  # Reconnect / offline banner (D-11 corrected by real-engine verification). A
+  # calm, transient `role="status"` strip rendered at the shell level. It is
+  # hidden by default and revealed PURELY in CSS while the `[data-phx-main]`
+  # container carries LiveView lifecycle classes; `.threadline-ui` is the scoped
+  # descendant shell the selector enters. Zero new JS, zero new deps, CSP-clean —
+  # it rides phoenix_live_view's own client-applied connection classes, so it
+  # catches a dropped socket mid-session (unlike a mount-time `connected?/1`
+  # assign).
   #
   # Mutating controls elsewhere in the shell carry `data-tl-mutating` so the paired
   # CSS disables them (pointer-events + dimming) while disconnected. Because
@@ -1101,11 +1102,12 @@ defmodule Threadline.OperatorSurface.UI do
   # above the #tl-main element and inside the threadline-ui root — and kills
   # the 11-way drift.
   #
-  # Connection lifecycle (D-11): the LiveView render-root IS the threadline-ui
-  # element, so phoenix_live_view applies `.phx-loading`/`.phx-error` directly
-  # on it. The strip + `[data-tl-mutating]` dimming is pure CSS keyed off those
-  # classes (style.ex:3405-3424) — never the document body, never the legacy
-  # pre-1.0 disconnected class.
+  # Connection lifecycle (D-11): phoenix_live_view applies `.phx-loading`,
+  # `.phx-error`, and `.phx-client-error` to the `[data-phx-main]` container in
+  # this app; the threadline-ui element is the scoped descendant shell. The strip
+  # + `[data-tl-mutating]` dimming is pure CSS keyed off that ancestor/container
+  # relationship — never the document body, never the legacy pre-1.0 disconnected
+  # class.
   #
   # Stays `@doc false` / private — no public, host-facing component API (v1.31
   # freeze). Pages keep their own `<main>` class via `:main_class` so the
