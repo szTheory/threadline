@@ -296,6 +296,182 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
   end
 
+  # --- Phase 178 (SEED-005 / D-10, D-11): reconnect banner mounted once --------
+  #
+  # RED Wave-0 scaffold. Today there is NO shared shell: all 11 operator LiveViews
+  # duplicate `<div class="threadline-ui">…<surface_header/>…<main id="tl-main">` and
+  # NONE mounts reconnect_banner (grep-verified: zero `reconnect_banner` references in
+  # lib/.../live/). SEED-005 (D-10) extracts one shared shell that mounts the banner
+  # ONCE, above #tl-main and inside .threadline-ui. This guard requires every page
+  # LiveView's render template to carry exactly one `tl-reconnect-banner` marker,
+  # positioned after the `.threadline-ui` open and before `id="tl-main"`. RED today.
+  #
+  # Parser-agnostic by design (RESEARCH Pitfall 2): we scan the LiveView render
+  # template SOURCE (no DB, no socket) and assert via substring + byte-offset
+  # ordering — never Floki/LazyHTML tree traversal. NEVER references <body> or the
+  # legacy .phx-disconnected (D-11) — those are forbidden anchors.
+  @page_live_views ~w(
+    actor_live.ex
+    coverage_live.ex
+    evidence_live.ex
+    export_status_live.ex
+    policy_redaction_live.ex
+    retention_history_live.ex
+    row_history_live.ex
+    start_live.ex
+    stress_live.ex
+    timeline_live.ex
+    transaction_live.ex
+  )
+
+  describe "reconnect banner mounted once in shared shell (SEED-005 / D-10, D-11)" do
+    test "every operator page mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
+      for file <- @page_live_views do
+        src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
+
+        banner_count =
+          src
+          |> String.split("tl-reconnect-banner")
+          |> length()
+          |> Kernel.-(1)
+
+        assert banner_count == 1,
+               "#{file}: reconnect_banner must be mounted EXACTLY once via the shared shell (D-10), found #{banner_count} (RED today — no shared shell mounts it)"
+
+        shell_at = index_of!(src, ~s(class="threadline-ui"))
+        banner_at = index_of!(src, "tl-reconnect-banner")
+        main_at = index_of!(src, ~s(id="tl-main"))
+
+        assert shell_at < banner_at and banner_at < main_at,
+               "#{file}: the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"
+      end
+    end
+
+    test "operator pages never anchor reconnect on <body> or the legacy .phx-disconnected (D-11)" do
+      for file <- @page_live_views do
+        src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
+
+        refute String.contains?(src, ".phx-disconnected"),
+               "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on .threadline-ui.phx-loading/.phx-error (D-11)"
+
+        refute String.contains?(src, "body.phx-"),
+               "#{file}: connection classes attach to the LiveView root .threadline-ui, never <body> (D-11)"
+      end
+    end
+  end
+
+  # --- Phase 178 (PAGE-02 #4, D-06): Esc + click-outside dismiss markers -------
+  #
+  # RED Wave-0 scaffold. Footgun #4 (Esc / click-outside dismiss). This is #4's OWN
+  # structural detector, asserted INDEPENDENTLY of #3's focus-entry hooks
+  # (JS.focus_first/phx-mounted) — the two are distinct halves, so 178-05's "#4 →
+  # green" ratchets against a real failing detector and cannot piggyback on #3.
+  #
+  # Each overlay (modal, drawer) must carry BOTH:
+  #   (a) an Escape-key dismiss binding (phx-key="escape" + phx-window-keydown) — present today, and
+  #   (b) a CLICK-OUTSIDE/scrim dismiss marker: the SCRIM element itself carrying a
+  #       phx-click dismiss. Today the scrim is inert (`aria-hidden="true"`, no
+  #       phx-click) and dismissal rides phx-click-away on the CONTENT element — a
+  #       different mechanism. A genuine click-outside affordance puts the dismiss on
+  #       the scrim. RED today (scrim has no phx-click dismiss).
+  @ui_source_path "lib/threadline/operator_surface/ui.ex"
+
+  describe "overlay Esc + click-outside dismiss markers (PAGE-02 #4, D-06)" do
+    test "modal and drawer scrims carry a click-outside (phx-click) dismiss marker, independent of #3 focus hooks" do
+      src = File.read!(@ui_source_path)
+
+      for {component, scrim_class} <- [
+            {"modal", "tl-modal-scrim"},
+            {"drawer", "tl-drawer-scrim"}
+          ] do
+        # (a) Escape dismiss binding — present today (GREEN-confirming half of #4).
+        assert Regex.match?(~r/def #{component}\(assigns\).*?phx-key="escape"/s, src),
+               "#{component} must bind an Escape-key dismiss (phx-key=\"escape\")"
+
+        # (b) Click-outside: the SCRIM element itself must carry a phx-click dismiss.
+        # Extract the scrim element tag and require a phx-click on it. RED today —
+        # the scrim is `aria-hidden="true"` with no phx-click; dismissal currently
+        # rides phx-click-away on the content (a distinct mechanism, not a clickable
+        # scrim). This is the binding #4 click-outside half Plan 05 turns green.
+        scrim_tag =
+          case Regex.run(~r/<div[^>]*class="#{scrim_class}"[^>]*\/?>/s, src) do
+            [tag] -> tag
+            _ -> flunk("#{component}: missing #{scrim_class} element")
+          end
+
+        assert String.contains?(scrim_tag, "phx-click"),
+               "#{component} scrim (.#{scrim_class}) must carry a phx-click click-outside dismiss marker (PAGE-02 #4, RED today — the scrim is inert; phx-click-away on the content is the #3-adjacent mechanism, not #4's own clickable scrim)"
+      end
+    end
+  end
+
+  # --- Phase 178 (PAGE-02 #5/#7/#8/#9, D-06/D-07): footgun structural guards ---
+  #
+  # Permanent structural guards for the remaining footgun classes whose structural
+  # half is Tier-A-assertable. These EXTEND the existing z-order/reconnect/pager
+  # idioms (D-07, do not reinvent). Each becomes a permanent CI assertion; the ones
+  # that already pass today are GREEN-confirming (documented in the SUMMARY), the
+  # Tier B computed-style/real-engine halves live in operator-phase-178-uat.spec.ts.
+  describe "footgun structural guards #5/#7/#8/#9 (PAGE-02, D-07)" do
+    test "#8 nav active-state carries aria-current + a non-color cue (not color alone)" do
+      src = File.read!(@style_path)
+
+      active_block =
+        case Regex.run(
+               ~r/\.threadline-ui \.tl-shell-nav__item\[aria-current="page"\]\s*\{[^}]*\}/s,
+               src
+             ) do
+          [block] -> block
+          _ -> flunk("missing nav active-state selector keyed on aria-current=\"page\"")
+        end
+
+      # Non-color cue: a border/box-shadow shape change, never background color alone.
+      assert String.contains?(active_block, "box-shadow:") or
+               String.contains?(active_block, "border-color:"),
+             "#8: active nav must carry a non-color cue (border/box-shadow), not background color alone (footgun #8)"
+    end
+
+    test "#9 pager disables at the edges and hides at zero matches (UI.pager contract)" do
+      src = File.read!(@ui_source_path)
+
+      pager_def =
+        case Regex.run(~r/def pager\(assigns\) do.*?~H"""(.*?)"""/s, src) do
+          [_, template] -> template
+          _ -> flunk("missing UI.pager/1 definition")
+        end
+
+      # Disabled-at-edge: both controls bind disabled to the has_newer/has_older edge.
+      assert String.contains?(pager_def, "disabled={!@has_newer}"),
+             "#9: Newer control must disable at the newest-edge"
+
+      assert String.contains?(pager_def, "disabled={!@has_older}"),
+             "#9: Older control must disable at the oldest-edge"
+
+      # Hide-at-zero: the pager nav is conditionally rendered when there are matches.
+      assert String.contains?(pager_def, "is_nil(@match_count) or @match_count > 0"),
+             "#9: the pager must hide entirely when match_count is 0 (no orphaned controls)"
+    end
+
+    test "#5/#7 disabled affordance: toolbar marks aria-disabled + is-disabled (not enabled-looking)" do
+      assigns = %{}
+
+      disabled =
+        rendered_to_string(~H"""
+        <UI.toolbar disabled={true}><span>filters</span></UI.toolbar>
+        """)
+
+      # #7 disabled-looks-enabled: the disabled toolbar must carry BOTH the real
+      # aria-disabled state and the is-disabled affordance class (the paired CSS sets
+      # pointer-events:none + dimming). #5 hover-on-non-interactive is covered by the
+      # is-disabled pointer-events:none affordance + the Tier B cursor check.
+      assert disabled =~ ~s(aria-disabled="true"),
+             "#7: a disabled control must expose aria-disabled=\"true\" (not just look dimmed)"
+
+      assert disabled =~ "is-disabled",
+             "#7: a disabled control must carry the is-disabled affordance class (pointer-events:none + dimming)"
+    end
+  end
+
   # Byte offset of `needle` in `haystack`, used to assert DOM ordering
   # (e.g. the stale banner precedes the data region).
   defp index_of!(haystack, needle) do
