@@ -62,19 +62,38 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Textarea control current baseline", ["one", "disabled", "error"]}
   ]
 
+  # GROUP-01: the 12 recurring component configurations audited as cohesive units on
+  # /audit/__stress. The 6 prior reserved baselines (action-bar, filter-bar, kv-list,
+  # pagination, status-strip, timeline-list) are remapped/absorbed into these 12 — see
+  # the per-story `absorbs` notes below. Each carries a `surface` tag (`:live` |
+  # `:reference`) so Phase 178 (page-stress) knows which groups ship on a real page (D-07).
+  # Reference-only configs (drawer+form, tabs+subviews) have no live page consumer this
+  # phase — the stress story IS the canonical reference assembly (D-06b / Deferred Ideas).
   @group_stories [
-    {"group.action-bar.reserved", "group.action_bar.reserved",
-     "Action bar group reserved baseline"},
-    {"group.filter-bar.reserved", "group.filter_bar.reserved",
-     "Filter bar group reserved baseline"},
-    {"group.kv-list.reserved", "group.kv_list.reserved",
-     "Key-value list group reserved baseline"},
-    {"group.pagination.reserved", "group.pagination.reserved",
-     "Pagination group reserved baseline"},
-    {"group.status-strip.reserved", "group.status_strip.reserved",
-     "Status strip group reserved baseline"},
-    {"group.timeline-list.reserved", "group.timeline_list.reserved",
-     "Timeline list group reserved baseline"}
+    {"group.page-header.current", "group.page_header.current",
+     "Page header + actions + breadcrumbs", :live},
+    {"group.toolbar.current", "group.toolbar.current",
+     "Toolbar + search + filters + sort (absorbs filter-bar)", :live},
+    {"group.data-panel.current", "group.data_panel.current",
+     "Table + empty + loading + pagination (absorbs pagination, timeline-list)", :live},
+    {"group.stats-chart-table.current", "group.stats_chart_table.current",
+     "Stat cards + chart + table (absorbs status-strip)", :live},
+    {"group.detail-header.current", "group.detail_header.current",
+     "Detail header + metadata + actions (absorbs kv-list)", :live},
+    {"group.modal-destructive.current", "group.modal_destructive.current",
+     "Modal confirm + destructive action", :live},
+    {"group.drawer-form.reference", "group.drawer_form.reference",
+     "Drawer + form (reference-only — no live page, D-07)", :reference},
+    {"group.toast-update.current", "group.toast_update.current",
+     "Toast + state update", :live},
+    {"group.tabs-subviews.reference", "group.tabs_subviews.reference",
+     "Tabs + subviews (reference-only — no live page, D-07)", :reference},
+    {"group.empty-cta.current", "group.empty_cta.current",
+     "Empty + CTA (absorbs action-bar action-cluster semantics)", :live},
+    {"group.permission-denied.current", "group.permission_denied.current",
+     "Permission denied group", :live},
+    {"group.offline.current", "group.offline.current",
+     "Reconnect / offline banner + disabled actions", :live}
   ]
 
   @page_stories [
@@ -240,7 +259,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       current_primitive_story(),
       reserved_story_maps(@primitive_stories, "primitive", 171),
       form_control_story_maps(),
-      reserved_story_maps(@group_stories, "group", 177),
+      group_story_maps(),
       current_page_story_maps(),
       reserved_story_maps(@page_stories, "page", 178),
       state_story_maps(),
@@ -310,6 +329,43 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       })
     end)
   end
+
+  defp group_story_maps do
+    Enum.map(@group_stories, fn {id, fixture_key, scenario, surface} ->
+      group_story(id, fixture_key, scenario, surface)
+    end)
+  end
+
+  defp group_story(id, fixture_key, scenario, surface) when surface in [:live, :reference] do
+    story(%{
+      id: id,
+      kind: "group",
+      category: "group",
+      scenario: scenario,
+      fixture_key: fixture_key,
+      cases: group_cases(id),
+      status: "current",
+      owner_phase: 177,
+      data: %{
+        surface: surface,
+        summary: "Phase 177 #{scenario} audited as a unit on /audit/__stress."
+      },
+      metadata: %{owner_phase: 177, surface: surface}
+    })
+  end
+
+  defp group_cases("group.data-panel.current"), do: ["empty", "stale", "error"]
+  defp group_cases("group.toolbar.current"), do: ["error"]
+  defp group_cases("group.stats-chart-table.current"), do: ["mixed_severity"]
+  defp group_cases("group.detail-header.current"), do: ["null_fields"]
+  defp group_cases("group.modal-destructive.current"), do: ["warning"]
+  defp group_cases("group.toast-update.current"), do: ["one"]
+  defp group_cases("group.empty-cta.current"), do: ["empty", "zero_count"]
+  defp group_cases("group.permission-denied.current"), do: ["permission_denied"]
+  defp group_cases("group.offline.current"), do: ["reconnecting", "stale"]
+  defp group_cases("group.tabs-subviews.reference"), do: ["one"]
+  defp group_cases("group.drawer-form.reference"), do: ["one"]
+  defp group_cases(_id), do: ["one"]
 
   defp state_story_maps do
     Enum.map(@state_stories, fn {id, fixture_key, scenario, cases} ->

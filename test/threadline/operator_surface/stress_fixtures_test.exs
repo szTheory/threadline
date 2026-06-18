@@ -48,12 +48,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       foundation.typography
       foundation.z-index
       future.theme-picker-idiomatic-ui
-      group.action-bar.reserved
-      group.filter-bar.reserved
-      group.kv-list.reserved
-      group.pagination.reserved
-      group.status-strip.reserved
-      group.timeline-list.reserved
+      group.data-panel.current
+      group.detail-header.current
+      group.drawer-form.reference
+      group.empty-cta.current
+      group.modal-destructive.current
+      group.offline.current
+      group.page-header.current
+      group.permission-denied.current
+      group.stats-chart-table.current
+      group.tabs-subviews.reference
+      group.toast-update.current
+      group.toolbar.current
       page.actor.reserved
       page.coverage.reserved
       page.evidence.reserved
@@ -195,6 +201,57 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert MapSet.member?(story_ids, story_id),
                "missing planned ledger inventory stress story: #{story_id}"
       end
+    end
+
+    @live_group_story_ids ~w(
+      group.data-panel.current
+      group.detail-header.current
+      group.empty-cta.current
+      group.modal-destructive.current
+      group.offline.current
+      group.page-header.current
+      group.permission-denied.current
+      group.stats-chart-table.current
+      group.toast-update.current
+      group.toolbar.current
+    )
+
+    @reference_group_story_ids ~w(
+      group.drawer-form.reference
+      group.tabs-subviews.reference
+    )
+
+    test "GROUP-01 maps the 12 configurations to current group stories with a surface tag" do
+      group_stories =
+        StressFixtures.all()
+        |> Enum.filter(&(&1.category == "group"))
+
+      assert length(group_stories) == 12,
+             "GROUP-01 requires exactly 12 group configurations, got #{length(group_stories)}"
+
+      for story <- group_stories do
+        assert story.status == "current", "#{story.id} group story must be status current"
+        assert story.owner_phase == 177, "#{story.id} group story must be owned by Phase 177"
+
+        assert story.data.surface in [:live, :reference],
+               "#{story.id} must carry a surface tag in [:live, :reference]"
+
+        assert story.metadata.surface == story.data.surface,
+               "#{story.id} surface tag must match between data and metadata"
+      end
+
+      refute Enum.any?(group_stories, &String.ends_with?(&1.id, ".reserved")),
+             "no orphaned reserved group ids may remain after the GROUP-01 remap"
+    end
+
+    test "the live/reference split matches the GROUP-01 mapping" do
+      by_surface =
+        StressFixtures.all()
+        |> Enum.filter(&(&1.category == "group"))
+        |> Enum.group_by(& &1.data.surface, & &1.id)
+
+      assert Enum.sort(by_surface[:live]) == Enum.sort(@live_group_story_ids)
+      assert Enum.sort(by_surface[:reference]) == Enum.sort(@reference_group_story_ids)
     end
 
     defp assert_reserved_story!(story_id, phase) do
