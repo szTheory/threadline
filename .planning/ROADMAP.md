@@ -196,7 +196,7 @@ Plans:
 **Wave 4** *(blocked on 176-03 / 176-02)*
 
 - [x] 176-04-PLAN.md — DATA-05 coverage flatten + system-wide card-nesting sweep + regression test
-- [ ] 176-05-PLAN.md — DATA-04 destructive actions: T3 server-enforced prune (security core) + kebab + redaction collapse fix (redact gated by checkpoint)
+- [x] 176-05-PLAN.md — DATA-04 destructive actions: T3 server-enforced prune (security core) + kebab + redaction collapse fix (redact gated by checkpoint)
 **UI hint**: yes
 
 ### Phase 177: Component groups / meta-components

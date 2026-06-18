@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-18T03:30:00.000Z"
-last_activity: 2026-06-18 -- Phase 176 plan 04 complete (coverage flatten + card-nesting regression GREEN)
+last_updated: "2026-06-18T05:00:00.000Z"
+last_activity: 2026-06-18 -- Phase 176 plan 05 complete (DATA-04 T3 server-enforced prune; security core closed) — Phase 176 COMPLETE
 progress:
   total_phases: 15
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 25
-  completed_plans: 23
-  percent: 37
+  completed_plans: 24
+  percent: 38
 ---
 
 # Project State: Threadline
@@ -24,10 +24,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 176 (data-display-operator-patterns) — EXECUTING
-Plan: 5 of 5
-Status: Executing Phase 176 (176-01, 176-02, 176-03, 176-04 complete)
-Last activity: 2026-06-18 -- Phase 176 plan 04 complete (coverage flatten + card-nesting regression GREEN)
+Phase: 176 (data-display-operator-patterns) — COMPLETE
+Plan: 5 of 5 (all plans complete)
+Status: Phase 176 complete (176-01..05 done); DATA-01..05 delivered
+Last activity: 2026-06-18 -- Phase 176 plan 05 complete (DATA-04 T3 server-enforced prune; security core closed)
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Last activity: 2026-06-18 -- Phase 176 plan 04 complete (coverage flatten + card
 | todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
+| deferred [176-05] | T3 redact destructive flow — no runtime redaction backend (codegen-time only); building one would touch the capture layer (v1.37 invariant). Revisit only if a runtime "redact a stored value" op is explicitly scoped without editing capture. | deferred per Task-1 checkpoint (option 1) |
 | Phase 174 P06 | 6min | 2 tasks | 2 files |
 | Phase 175 P01 | 14min | 2 tasks | 5 files |
 | Phase 175 P02 | ~15min | 2 tasks | 4 files |
@@ -122,6 +123,7 @@ Last activity: 2026-06-18 -- Phase 176 plan 04 complete (coverage flatten + card
 
 ### Decisions
 
+- [176-05] (checkpoint, human-approved option 1): T3 destructive pattern ships via "prune now" ONLY this phase; the redact destructive flow is DEFERRED. Redact has no runtime backend (codegen-time only); building one would touch the capture layer (v1.37 invariant violation). Prune is enforced server-side: secure_compare(typed, server-canonical policy name) + authz re-check + scope fail-closed + audit-the-action; client-only `data-confirm` deleted.
 - [Phase 174-02]: Extended `<.field>` properties with global attribute pass-through (e.g. `list`, `maxlength`) rather than rigid structs, accommodating existing advanced filter functionality natively.
 - [Phase 174-01]: Form components use explicit `name`, `value`, and `errors` rather than requiring `Phoenix.HTML.Form` structs to maintain isolation and independence from Ecto.
 - [Phase 174-01]: Form primitives rely entirely on native HTML5 controls rather than custom JS elements for maximum browser compatibility and accessibility.
