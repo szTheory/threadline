@@ -95,27 +95,52 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Reconnect / offline banner + disabled actions", :live}
   ]
 
-  @page_stories [
-    {"page.actor.reserved", "page.actor.reserved", "Actor page reserved baseline"},
-    {"page.coverage.reserved", "page.coverage.reserved", "Coverage page reserved baseline"},
-    {"page.evidence.reserved", "page.evidence.reserved", "Evidence page reserved baseline"},
-    {"page.exports.reserved", "page.exports.reserved", "Exports page reserved baseline"},
-    {"page.home.reserved", "page.home.reserved", "Home page reserved baseline"},
-    {"page.redaction.reserved", "page.redaction.reserved", "Redaction page reserved baseline"},
-    {"page.retention.reserved", "page.retention.reserved", "Retention page reserved baseline"},
-    {"page.row-history.reserved", "page.row_history.reserved",
-     "Row history page reserved baseline"},
-    {"page.shell.reserved", "page.shell.reserved", "Operator shell reserved baseline"},
-    {"page.timeline.reserved", "page.timeline.reserved", "Timeline page reserved baseline"},
-    {"page.transaction.reserved", "page.transaction.reserved",
-     "Transaction page reserved baseline"}
+  # PAGE-01 / D-04: each of the 11 operator pages is audited across the 7 audit
+  # paths (happy/empty/loading/error/permission/boundary/advanced) via deterministic
+  # DB-free static fixtures on /audit/__stress. The 11 prior `page.<x>.reserved`
+  # baselines are CONVERTED here (no orphaned reserved id — the 177-05 group
+  # precedent): each page subject becomes 7 fixture-backed CURRENT path stories, and
+  # the two pre-existing baselines (page.home.happy, page.timeline.empty) are
+  # absorbed as the home/happy and timeline/empty cells.
+  #
+  # Honesty contract (D-01/D-03): this Tier A cartesian proves the FULL structural
+  # matrix (page × path × theme × viewport renders, carries data-state, no
+  # loud-fail). The genuinely-live loading/reconnect flows are proven by the
+  # real-LiveView Tier B specs (Plans 01/05), NOT these static fixtures.
+  @page_subjects ~w(
+    actor
+    coverage
+    evidence
+    exports
+    home
+    redaction
+    retention
+    row-history
+    shell
+    timeline
+    transaction
+  )
+
+  # The 7 audit paths each page is fixture-backed across, mapped onto the
+  # @required_cases ugly-data vocabulary. Each path's cases satisfy the page-story
+  # conversion contract (stress_fixtures_test PAGE-01 @page_path_cases).
+  @page_paths [
+    {"happy", ["one", "many", "mixed_severity"]},
+    {"empty", ["empty", "zero_count"]},
+    {"loading", ["reconnecting", "stale"]},
+    {"error", ["error"]},
+    {"permission", ["permission_denied"]},
+    {"boundary", ["pagination_boundary", "timezone_boundary"]},
+    {"advanced", ["non_ascii", "null_fields"]}
   ]
 
-  @current_page_stories [
-    {"page.home.happy", "page.home.happy", "Home page happy path", ["one", "mixed_severity"]},
-    {"page.timeline.empty", "page.timeline.empty", "Timeline page empty state",
-     ["empty", "zero_count"]}
-  ]
+  # The two pre-existing fixture-backed baselines (Phase 171, score 62). Their
+  # ledger ids/fixture_keys are reused verbatim as the home/happy and
+  # timeline/empty cells so no id is orphaned.
+  @page_baseline_cells %{
+    {"home", "happy"} => "page.home.happy",
+    {"timeline", "empty"} => "page.timeline.empty"
+  }
 
   @state_stories [
     {"state.empty", "state.empty", "Empty audit result", ["empty", "zero_count"]},
@@ -259,8 +284,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       reserved_story_maps(@primitive_stories, "primitive", 171),
       form_control_story_maps(),
       group_story_maps(),
-      current_page_story_maps(),
-      reserved_story_maps(@page_stories, "page", 178),
+      page_story_maps(),
       state_story_maps(),
       data_display_story_maps(),
       permission_denied_story(),
@@ -402,19 +426,50 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     end)
   end
 
-  defp current_page_story_maps do
-    Enum.map(@current_page_stories, fn {id, fixture_key, scenario, cases} ->
+  defp page_story_maps do
+    for subject <- @page_subjects, {path, cases} <- @page_paths do
+      {id, fixture_key, status, owner_phase} = page_cell_identity(subject, path)
+
       story(%{
         id: id,
         kind: "page",
         category: "page",
-        scenario: scenario,
+        scenario: page_scenario(subject, path),
         fixture_key: fixture_key,
         cases: cases,
-        status: "baseline",
-        data: page_data(id, cases)
+        status: status,
+        owner_phase: owner_phase,
+        data: page_data(id, cases),
+        metadata: %{page_subject: subject, page_path: path}
       })
-    end)
+    end
+  end
+
+  # The two Phase 171 baselines keep their exact ids/fixture_keys and `baseline`
+  # status; every other cell is a Phase 178 fixture-backed `current` page story.
+  defp page_cell_identity(subject, path) do
+    case Map.get(@page_baseline_cells, {subject, path}) do
+      nil ->
+        {"page.#{subject}.#{path}", "page.#{page_fixture_subject(subject)}.#{path}", "current",
+         178}
+
+      baseline_id ->
+        {baseline_id, baseline_id, "baseline", 171}
+    end
+  end
+
+  # Fixture keys use underscores for multi-word subjects (row-history -> row_history).
+  defp page_fixture_subject(subject), do: String.replace(subject, "-", "_")
+
+  defp page_scenario(subject, path) do
+    "#{page_subject_label(subject)} page #{path} path"
+  end
+
+  defp page_subject_label("row-history"), do: "Row history"
+  defp page_subject_label("shell"), do: "Operator shell"
+
+  defp page_subject_label(subject) do
+    subject |> String.replace("-", " ") |> String.capitalize()
   end
 
   defp permission_denied_story do
@@ -627,6 +682,14 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       cases: cases,
       rows: [],
       summary: "Timeline empty state with no captured changes matching this synthetic window."
+    }
+  end
+
+  defp page_data(id, cases) do
+    %{
+      id: id,
+      cases: cases,
+      summary: "Synthetic per-page path fixture for #{id} (PAGE-01 Tier A structural cell)."
     }
   end
 
