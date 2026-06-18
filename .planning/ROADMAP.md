@@ -209,7 +209,15 @@ Plans:
   1. Recurring configurations (page-header+actions+breadcrumbs; toolbar+search+filters+sort; table+empty+loading+pagination; stat-cards+chart+table; detail-header+metadata+actions; modal-confirm+destructive; drawer+form; toast+state-update; tabs+subviews; empty+CTA; permission-denied; reconnect/offline-banner+disabled-actions) are audited as units with intentional spacing and hierarchy.
   2. Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions â verifiable on the stress route at multiple viewports.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 177-01-PLAN.md — Wave 0: resolve the two locked-decision conflicts (LiveView-root offline anchor; breadcrumbs attr-keep) + RED scaffolds (tokens/components/offline/overlay)
+- [ ] 177-02-PLAN.md — Semantic gap tokens + UI.stack/1 + UI.cluster/1 layout primitives
+- [ ] 177-03-PLAN.md — UI.data_panel/1 + UI.toolbar/1 + UI.detail_header/1 + page_header breadcrumb truncation
+- [ ] 177-04-PLAN.md — Overlay JS-transition CSS completion + time-sync + reconnect/offline group on `.threadline-ui.phx-*`
+- [ ] 177-05-PLAN.md — Map 12 group configs to stress stories (live/reference tag) + ledger/DESIGN-SYSTEM parity + audit
+
 **UI hint**: yes
 
 ### Phase 178: Per-page & flow stress pass (all 11 pages)

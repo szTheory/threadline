@@ -38,7 +38,19 @@ created: 2026-06-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| _populated by planner_ | | | GROUP-01 / GROUP-02 | | | | | | ⬜ pending |
+| 01-T1 | 01 | 1 | GROUP-01/02 | T-177-01 | bind offline-anchor + breadcrumbs decisions | investigation | `grep -c 'class="threadline-ui"' …coverage_live.ex …timeline_live.ex` | ✅ (live views) | ⬜ pending |
+| 01-T2 | 01 | 1 | GROUP-01/02 | T-177-01 | RED gap-parity + offline-anchor + overlay-utility source asserts | source (RED) | `mix test …/brandbook_token_parity_test.exs …/style_contract_test.exs` | ✅ extend | ⬜ pending |
+| 01-T3 | 01 | 1 | GROUP-01/02 | — | RED render asserts for 5 components + breadcrumbs | unit (RED) | `mix test …/ui_test.exs` | ✅ extend | ⬜ pending |
+| 02-T1 | 02 | 2 | GROUP-01 | T-177-03 | gap tokens parity across 3 sources | unit | `mix test …/brandbook_token_parity_test.exs` | ✅ | ⬜ pending |
+| 02-T2 | 02 | 2 | GROUP-01 | T-177-02 | stack/cluster render + gap-class, no raw margins | unit | `mix test …/ui_test.exs` | ✅ | ⬜ pending |
+| 03-T1 | 03 | 3 | GROUP-02 | T-177-04 | data_panel state coordination + delegated focus | unit | `mix test …/ui_test.exs` | ✅ | ⬜ pending |
+| 03-T2 | 03 | 3 | GROUP-02 | T-177-05/06 | toolbar disabled-coord + detail_header h2 | unit | `mix test …/ui_test.exs` | ✅ | ⬜ pending |
+| 03-T3 | 03 | 3 | GROUP-01 | — | breadcrumbs attr kept + narrow truncation | unit | `mix test …/ui_test.exs …/page_header_test.exs` | ✅ | ⬜ pending |
+| 04-T1 | 04 | 4 | GROUP-02 | T-177-07/09 | overlay JS-transition utilities defined + time-synced | source | `mix test …/style_contract_test.exs` | ✅ | ⬜ pending |
+| 04-T2 | 04 | 4 | GROUP-01/02 | T-177-08 | offline group on `.threadline-ui.phx-*` (not body/disconnected) | source | `mix test …/style_contract_test.exs` | ✅ | ⬜ pending |
+| 05-T1 | 05 | 5 | GROUP-01 | T-177-10 | 12 group stories + live/reference tag | unit | `mix test …/stress_fixtures_test.exs` | ✅ | ⬜ pending |
+| 05-T2 | 05 | 5 | GROUP-01 | T-177-10/11 | ledger↔fixtures↔projection parity | unit | `mix test …/stress_ledger_test.exs` | ✅ | ⬜ pending |
+| 05-T3 | 05 | 5 | GROUP-01/02 | — | all 12 stories render across matrix + full gate | integration | `mix ci.all` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,8 +60,9 @@ created: 2026-06-18
 
 ## Wave 0 Requirements
 
-- [ ] Confirm `test/threadline/operator_surface` test path exists or stub a `ui_test.exs` / `stress_fixtures_test.exs`
-- [ ] Resolve the two locked-decision-vs-reality conflicts from RESEARCH.md before building (LiveView root vs body `.phx-*` classes; `page_header` breadcrumbs attr-vs-slot)
+- [x] Confirm `test/threadline/operator_surface` test path exists — confirmed (ui_test.exs, stress_fixtures_test.exs, stress_ledger_test.exs, style_contract_test.exs, page_header_test.exs all present)
+- [ ] (Plan 01) Resolve the two locked-decision-vs-reality conflicts from RESEARCH.md before building: LiveView root anchor is `.threadline-ui` (NOT body, NEVER `.phx-disconnected`) — all 11 audit live views verified to use it; keep `page_header` breadcrumbs list attr (D-14), do NOT add a slot
+- [ ] (Plan 01) Lay down RED scaffolds: gap-token parity, offline-anchor source assert, overlay-utility-class source assert, 5 component render asserts (turned GREEN by Plans 02-04)
 
 *If none: "Existing infrastructure covers all phase requirements."*
 
