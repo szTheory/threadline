@@ -2,18 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-current_phase: 178
-current_phase_name: per-page-flow-stress-pass-all-11-pages
-status: executing
-stopped_at: Phase 178 executing gap-closure plan 178-06.
-last_updated: "2026-06-18T20:23:30.054Z"
-last_activity: 2026-06-18 -- Phase 178 execution started
+status: verifying
+stopped_at: Completed 178-06-PLAN.md
+last_updated: "2026-06-18T20:38:39.184Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 36
-  completed_plans: 35
-  percent: 70
+  completed_plans: 36
+  percent: 80
 ---
 
 # Project State: Threadline
@@ -29,8 +27,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 Phase: 178 (per-page-flow-stress-pass-all-11-pages) — EXECUTING
 Plan: 6 of 6 (gap-closure plan)
-Status: Executing Phase 178
-Last activity: 2026-06-18 -- Phase 178 execution started
+Status: Phase complete — ready for verification
+Last activity: 2026-06-18
 
 ## Performance Metrics
 
@@ -89,6 +87,7 @@ Last activity: 2026-06-18 -- Phase 178 execution started
 | Phase 177 P03 | ~5min | 3 tasks | 2 files |
 | Phase 177 P04 | ~12min | 2 tasks | 2 files |
 | Phase 177 P05 | ~17min | 3 tasks | 7 files |
+| Phase 178 P06 | 10m 23s | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -207,6 +206,8 @@ Last activity: 2026-06-18 -- Phase 178 execution started
 - [177-01]: Wave-0 conflict resolution + RED test scaffolds (zero production code). **Conflict 1 (offline anchor):** confirmed by grep that all 11 audit LiveViews render `<div class="threadline-ui">` as their render root, so the offline-group CSS (Plan 04) keys off `.threadline-ui.phx-loading`/`.threadline-ui.phx-error` (the LiveView ROOT), NOT `<body>`, and NEVER `.phx-disconnected` (which doesn't exist in LiveView 1.x — the dropped-socket state re-applies `.phx-loading`). Corrects the literal wording of D-08/UI-SPEC per RESEARCH Pitfall 1; resolves Open Q1 / A2. **Conflict 2 (breadcrumbs):** keep `page_header/1`'s existing `attr(:breadcrumbs, :list)`; do NOT add a same-named `:breadcrumbs` slot (Phoenix forbids attr+slot name collision → compile error). Deliberate deviation from D-04's literal "slot" wording, justified by D-14 discretion (breadcrumbs are location DATA, not arbitrary markup) + RESEARCH Pitfall 4; Plan 03 adds narrow-viewport truncation only. **Token decision:** `--tl-gap-section`→`--tl-space-8` (32px), `--tl-gap-inline`→`--tl-space-2` (8px), `--tl-gap-stack`→`--tl-space-4` (16px) (D-09 / RESEARCH A1). Laid 12 RED scaffolds (3 source/parity in brandbook_token_parity_test + style_contract_test; 9 component renders in ui_test for stack/cluster/data_panel×4/toolbar×2/detail_header) + 1 GREEN breadcrumbs-trail test. Full suite 1071/12 — every failure is a new expected RED scaffold; no pre-existing regression. RED is the deliverable (Plans 02–05 turn green). Zero new dep (v1.37 invariant). Commits `bede897`, `4b7e304`.
 - [176-03]: Migrated the display/read-only operator pages onto the Plan-02 components (non-destructive consumer migration; coverage/retention/redaction are plans 04/05 and were NOT touched). Transaction copy footgun closed — transaction id + correlation id + diff before/after cells all bind `data-tl-copy={full}` via `UI.ref/1` (never `.title`/`.visible`/`.text`, D-02); transaction metadata → `UI.kv`; diff cells truncate via `value_token` (max 56) + gated per-cell copy bound to the full value (`diff_full/1`, D-04); timestamps in semantic `<time datetime=exact_time>` UTC (D-22). actor/timeline/evidence/export migrated to `UI.ref` (copy=full) + `UI.kv` (export per-job + both export-context `tl-param-list` retired). Per-page data-state: actor + timeline branch ok-empty into `empty_state variant=never` (first-run, history) vs `no_data` (narrowing filter active, funnel) — distinct icon SHAPE (D-17); evidence `no_data`; export `never`; invalid-actor-ref → `error_state`. **Rule-1 bug:** `UI.ref` used `String.to_existing_atom(kind)` which raised for `:correlation`/`:arn`/`:actor`/`:email` (atoms not interned) — added `Presentation.kinds/0` + `kind_from_string/1` (literal `@ref_kinds`, compile-time interned) and switched `UI.ref` to the safe resolver. **Rule-3:** `UI.ref` can't nest in an `<a>` (button-in-anchor) — copyable ref renders standalone, deep-link demoted to sibling Timeline/Actor affordance. `.tl-secondary-ref` CSS double-truncation removed (`text-overflow:ellipsis` gone, `overflow-wrap:anywhere` kept, D-05) with the paired `style_contract_test` assertion (refute ellipsis + assert wrap) updated in the SAME commit. Zero new `--tl-*` token; brand-parity + style_contract green. 213 targeted tests green; the 6 remaining operator_surface failures are the documented cross-plan Wave-0 RED scaffolds owned by plans 04/05 (1 card-nesting + 5 retention T3/ref-copy). Commits `e1650c8`, `32b0977`, `a798147`. Capture/semantics untouched.
 - [Phase ?]: [177-04]: Completed the motion + connection-lifecycle layer — overlay JS-transition utility CLASS selectors + modal/drawer/toast shells (overlay motion now real), every overlay JS.show/hide synced to time: 180 (=--tl-motion-base), toast fade-up via show_toast/2; reconnect/offline group keyed off the LiveView ROOT .threadline-ui.phx-loading/.phx-error (NOT body, NEVER the legacy disconnected class — Pitfall 1) with a warning-tinted role=status banner + [data-tl-mutating] disable + UI.reconnect_banner/1 documenting the mutating-link aria-disabled/tabindex=-1 contract (Pitfall 6). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean; zero new keyframes/tokens/deps; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits da4a36d, f1695a1.
+- [Phase 178]: [178-06] D-11 corrected: LiveView lifecycle classes attach to [data-phx-main]; reconnect CSS scopes into .threadline-ui. — Real-engine socket-drop verification proved the prior .threadline-ui lifecycle-anchor premise false.
+- [Phase 178]: [178-06] Real socket-drop proof must assert visible banner and computed mutating-control dimming/restoration, not lifecycle-class detection alone. — The closure bug was masked by tests that observed class flips without asserting visible/computed behavior.
 
 ### Blockers
 
@@ -214,9 +215,9 @@ Last activity: 2026-06-18 -- Phase 178 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-18T16:58:29.765Z
-**Stopped at:** Phase 178 UI-SPEC approved
-**Resume file:** .planning/phases/178-per-page-flow-stress-pass-all-11-pages/178-UI-SPEC.md
+**Last session:** 2026-06-18T20:38:39.180Z
+**Stopped at:** Completed 178-06-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
