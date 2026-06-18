@@ -174,6 +174,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
           --tl-gap-inline: var(--tl-space-2);
           --tl-gap-stack: var(--tl-space-4);
+          --tl-gap-section: var(--tl-space-8);
           --tl-pad-control: var(--tl-space-3);
           --tl-pad-panel: var(--tl-space-4);
           --tl-pad-page: var(--tl-space-4);
