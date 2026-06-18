@@ -2561,6 +2561,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           min-width: 0;
         }
 
+        .tl-diff__cell {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--tl-space-2);
+          min-width: 0;
+          flex-wrap: wrap;
+        }
+
         .tl-diff__arrow {
           color: var(--tl-color-muted);
           font-family: var(--tl-font-mono);

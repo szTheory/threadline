@@ -433,12 +433,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      txn_visible = Threadline.OperatorSurface.Presentation.secondary_ref(txn.id, 30).visible
 
-      correlation_visible =
-        Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 42).visible
+      alias Threadline.OperatorSurface.Presentation
+
+      txn_visible = Presentation.ref(txn.id, kind: :uuid).visible
+      correlation_visible = Presentation.ref(correlation_id, kind: :correlation).visible
 
       assert html =~ "tl-short-content"
+      # UI.ref binds the FULL value to BOTH the <code> title/data-tl-copy and the
+      # gated copy button — never the truncated/visible/title face (D-02 footgun fix).
       assert html =~ ~s|title="#{txn.id}"|
       assert html =~ txn_visible
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
@@ -448,6 +451,104 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
       refute html =~ String.slice(txn.id, 0, 14) <> "</code>"
       refute html =~ "tl-copy tl-button--disabled"
+    end
+
+    test "transaction copy targets bind the FULL value, never the truncated visible (D-02)", %{
+      conn: conn
+    } do
+      import Threadline.OperatorSurface.RefCopyContract
+
+      repo = Threadline.Test.Repo
+      # A long (>40-char) correlation id whose visible truncation != full value.
+      correlation_id = "req_" <> String.duplicate("abcdef0123456789", 4)
+
+      action =
+        repo.insert!(
+          Threadline.Semantics.AuditAction.changeset(%{
+            name: "support.reply",
+            actor_ref: %{"type" => "user", "id" => "agent-1"},
+            status: :ok,
+            correlation_id: correlation_id,
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            action_id: action.id
+          })
+        )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      alias Threadline.OperatorSurface.Presentation
+
+      # The transaction id and correlation id both copy the EXACT full value.
+      assert_copy_equals_full(html, full: txn.id)
+      assert_copy_equals_full(html, full: correlation_id)
+      refute_copy_truncated(html, full: correlation_id)
+
+      # The visible (truncated) face is NOT what gets copied.
+      correlation_visible = Presentation.ref(correlation_id, kind: :correlation).visible
+      assert correlation_visible != correlation_id
+      refute html =~ ~s|data-tl-copy="#{correlation_visible}"|
+
+      # Metadata renders as a description list (kv), not the retired tl-param-list.
+      assert html =~ ~s|class="tl-kv|
+      refute html =~ ~s|class="tl-param-list"|
+    end
+
+    test "diff cells truncate long values and expose a gated copy bound to the full value (D-04)",
+         %{conn: conn} do
+      import Threadline.OperatorSurface.RefCopyContract
+
+      repo = Threadline.Test.Repo
+      # A long machine value (>56 chars) that value_token/1 must middle-truncate.
+      long_before = "token_" <> String.duplicate("abcdef0123456789", 5)
+      long_after = "token_" <> String.duplicate("fedcba9876543210", 5)
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          })
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "user-diff-1"},
+          op: "update",
+          data_after: %{"id" => "user-diff-1", "token" => long_after},
+          changed_fields: ["token"],
+          changed_from: %{"token" => long_before},
+          captured_at: DateTime.utc_now()
+        })
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      alias Threadline.OperatorSurface.Presentation
+
+      # Visible diff text is truncated (max ~56), but the full value is recoverable.
+      before_token = Presentation.value_token(long_before)
+      after_token = Presentation.value_token(long_after)
+
+      assert before_token.text != long_before
+      assert html =~ before_token.text
+      assert html =~ after_token.text
+
+      # The diff cell exposes a gated copy affordance bound to the FULL value.
+      assert_copy_equals_full(html, full: long_before)
+      assert_copy_equals_full(html, full: long_after)
+      assert html =~ ~s|aria-label="Copy token before value"|
+      assert html =~ ~s|aria-label="Copy token after value"|
     end
 
     describe "surface header (Phase 66)" do

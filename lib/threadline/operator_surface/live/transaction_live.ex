@@ -117,38 +117,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               %{label: "Transaction #{transaction_ref.visible}"}
             ]}>
               <:heading>
-                Transaction <code title={transaction_ref.title}><%= transaction_ref.visible %></code>
-                <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={transaction_ref.title} aria-label="Copy transaction id">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
-                  Copy
-                </button>
+                Transaction <UI.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
               </:heading>
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-              <div class="tl-param-list" aria-label="Transaction context">
-                <span class="tl-param">
-                  <span class="tl-param__key">Actor</span>
-                  <span class="tl-param__value">
-                    <%= if path = transaction_actor_path(surface_root(@base_path), @bundle.transaction) do %>
-                      <a href={path} class="tl-link tl-link--deep"><%= transaction_actor_label(@bundle.transaction) %></a>
-                    <% else %>
-                      <%= transaction_actor_label(@bundle.transaction) %>
-                    <% end %>
-                  </span>
-                </span>
-                <span :if={transaction_correlation_id(@bundle.transaction)} class="tl-param">
-                  <span class="tl-param__key">Correlation</span>
-                  <span class="tl-param__value">
-                    <% correlation_ref = transaction_correlation_ref(@bundle.transaction) %>
-                    <a href={timeline_correlation_path(surface_root(@base_path), correlation_ref.title)} class="tl-link tl-link--deep" title={correlation_ref.title}>
-                      <%= correlation_ref.visible %>
-                    </a>
-                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={correlation_ref.title} aria-label="Copy correlation id">
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
-                      Copy
-                    </button>
-                  </span>
-                </span>
-              </div>
+              <UI.kv aria-label="Transaction context">
+                <:item key="Actor">
+                  <%= if path = transaction_actor_path(surface_root(@base_path), @bundle.transaction) do %>
+                    <a href={path} class="tl-link tl-link--deep"><%= transaction_actor_label(@bundle.transaction) %></a>
+                  <% else %>
+                    <%= transaction_actor_label(@bundle.transaction) %>
+                  <% end %>
+                </:item>
+                <:item :if={transaction_correlation_id(@bundle.transaction)} key="Correlation">
+                  <% correlation_id = transaction_correlation_value(@bundle.transaction) %>
+                  <UI.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
+                  <a href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                    Timeline
+                  </a>
+                </:item>
+              </UI.kv>
             </UI.page_header>
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
@@ -169,7 +157,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-change__meta">
                     <span class={["tl-change__op", Presentation.operation_modifier(change.change_diff["op"])]}><%= Presentation.operation_label(change.change_diff["op"]) %></span>
                     <span class="tl-change__table"><%= change.change_diff["table_name"] %></span>
-                    <time class="tl-change__time" datetime={change.change_diff["captured_at"]} title={change.change_diff["captured_at"]}>
+                    <time class="tl-change__time" datetime={change_datetime(change.change_diff["captured_at"])} title={change_datetime(change.change_diff["captured_at"])}>
                       <%= change_time(change.change_diff["captured_at"]) %>
                     </time>
                   </div>
@@ -195,11 +183,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <span class="tl-change__field-name"><%= field["name"] %></span>
                         <%= if has_before_axis?(field) do %>
                           <% before = Presentation.change_value_token(field, :before) %>
-                          <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
+                          <span class="tl-diff__cell">
+                            <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
+                            <button :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(before)} aria-label={"Copy #{field["name"]} before value"}>
+                              <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+                              Copy
+                            </button>
+                          </span>
                           <span class="tl-diff__arrow">-&gt;</span>
                         <% end %>
                         <% after_token = Presentation.change_value_token(field, :after) %>
-                        <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
+                        <span class="tl-diff__cell">
+                          <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
+                          <button :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(after_token)} aria-label={"Copy #{field["name"]} after value"}>
+                            <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+                            Copy
+                          </button>
+                        </span>
                       </div>
                     <% end %>
                   <% end %>
@@ -287,11 +287,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp transaction_correlation_id(_), do: nil
 
-    defp transaction_correlation_ref(%{action: %{correlation_id: correlation_id}})
+    # The EXACT full correlation id (never truncated) — UI.ref/1 handles the
+    # per-kind visible truncation while binding this full value to data-tl-copy.
+    defp transaction_correlation_value(%{action: %{correlation_id: correlation_id}})
          when is_binary(correlation_id) and correlation_id != "",
-         do: Presentation.secondary_ref(correlation_id, 42)
+         do: correlation_id
 
-    defp transaction_correlation_ref(_), do: nil
+    defp transaction_correlation_value(_), do: nil
+
+    # The full diff value for the gated copy affordance: value_token/1 keeps the
+    # complete value in :title when it truncates; when it does not truncate the
+    # rendered text IS the full value. Sentinel placeholders (omitted/absent/null)
+    # have no copyable value.
+    defp diff_full(%{title: title}) when is_binary(title), do: title
+
+    defp diff_full(%{text: text, modifier: modifier}) do
+      if modifier in ["tl-value--omitted", "tl-value--absent", "tl-value--null"] do
+        nil
+      else
+        text
+      end
+    end
+
+    defp diff_full(_), do: nil
 
     defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
       "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
@@ -322,6 +340,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp change_time(%DateTime{} = value), do: Presentation.human_time(value)
     defp change_time(value), do: inspect(value)
+
+    # UTC-explicit ISO timestamp for the semantic <time datetime=…> attribute (D-22).
+    defp change_datetime(value) when is_binary(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, dt, _offset} -> Presentation.exact_time(dt)
+        _ -> value
+      end
+    end
+
+    defp change_datetime(%DateTime{} = value), do: Presentation.exact_time(value)
+    defp change_datetime(value), do: to_string(value)
 
     defp normalized_fields(%{change_diff: %{} = diff}), do: normalized_fields(diff)
 
