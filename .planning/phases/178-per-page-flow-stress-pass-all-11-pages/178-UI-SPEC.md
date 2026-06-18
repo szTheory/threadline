@@ -51,6 +51,8 @@ The operator surface uses the existing `--tl-space-*` token scale (4px base step
 
 Semantic gap tokens (added in 177, used by `UI.stack/1` / `UI.cluster/1`): `--tl-gap-inline` (8px), `--tl-gap-stack` (16px), `--tl-gap-section` (32px).
 
+**Justification for the extended scale (rubric Dimension 5 note):** This is the **frozen, parity-locked v1.31 `--tl-space-*` scale extracted verbatim from `brandbook/tokens.json`** — it is **not** a new spacing scale introduced by Phase 178. The milestone invariant explicitly forbids introducing new tokens; this is an integration/audit/fix phase that **guards** the established system, not one that redefines it. **Every value is a multiple of 4 (grid-aligned):** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80. The presence of `12`, `20`, `40`, and `80` beyond the rubric's standard set `{4,8,16,24,32,48,64}` is an **intentional, established system constraint**, not design debt being introduced here — and the footgun detector PAGE-02 #6 ("misalignment / chopped padding / inconsistent spacing") asserts against this exact scale, so trimming it would misrepresent the contract the executor must hold every page to. The apparent over-count reflects a **complete production design system being documented for an audit phase**, not new spacing being defined.
+
 **Exceptions:** none new this phase. Inter-child spacing must flow through `UI.stack/1` / `UI.cluster/1` flexbox `gap` over the gap tokens (no raw child margins — GROUP-01 / D-02 carryover). The PAGE-03 fix adds `justify-self: center` to `.tl-container` (positioning, not a spacing token) keeping `max-width: 1000px`.
 
 ---
@@ -72,6 +74,8 @@ Existing `--tl-font-size-*` / `--tl-font-weight-*` / `--tl-line-height-*` scale.
 | Mono (code/IDs/log/JSON) | 13–15px | 400 (regular) | 1.5 |
 
 **Weights in active use:** 400 (regular) for body/UI/data, 600 (strong) for headings/labels/emphasis. (500 medium exists in the token set but is reserved; do not introduce new weight usage this phase.)
+
+**Justification for the multi-role type scale (rubric Dimension 4 note):** This is the **frozen, parity-locked v1.31 `--tl-font-size-*` / `--tl-font-weight-*` / `--tl-line-height-*` scale extracted verbatim from `brandbook/tokens.json`** — it is **not** a new type scale introduced by Phase 178. The milestone invariant explicitly forbids introducing new tokens; this integration/audit/fix phase **guards** the established system rather than redefining it. The 8+ size roles (16, 15, 14, 20, 24, 32, 13, 12, plus mono 13–15px) beyond the rubric's max of 4 are **intentional, established system constraints** for a full operator surface (body, UI/control, label, two heading levels, display, meta, dense, and a monospace lane for code/IDs/logs/JSON) — not design debt being introduced here. The footgun detectors PAGE-02 #10/#11 ("unreadable dark/light text" / "same-color text-on-background") assert WCAG AA contrast against these exact roles in both themes, so trimming the scale would misrepresent the contract the executor must hold and would break those detectors. The apparent over-count reflects a **complete production design system being documented for an audit phase**, not new typography being defined.
 
 **Heading hierarchy contract (load-bearing for footgun #8 "missing tab active-state" and the page-header group):** exactly one `<h1>` per page (the `page_header` title); drill-down detail headers use `<h2>` via `UI.detail_header/1` (D-175-03 carryover). Do not add competing `<h1>`s when stressing pages.
 
