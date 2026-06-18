@@ -149,12 +149,14 @@ GPU-only (transform/opacity), motion tokens only, mount-fired, via `Phoenix.Live
 
 ## Reconnect / Offline Group Contract (D-08)
 
-Rides Phoenix LiveView's built-in connection body classes — **zero new JS, zero deps, CSP-clean**. Catches a *dropped* socket mid-session (unlike a mount-time `connected?/1` assign).
+Rides Phoenix LiveView's built-in connection classes — **zero new JS, zero deps, CSP-clean**. Catches a *dropped* socket mid-session (unlike a mount-time `connected?/1` assign).
 
-- Driver classes: `.phx-loading`, `.phx-disconnected`, `.phx-error` / `.phx-client-error` / `.phx-server-error`.
+> **Correction (see 177-RESEARCH.md Pitfall 1):** these classes attach to the **LiveView root element** (`.threadline-ui` in this app), NOT `<body>`, and **`.phx-disconnected` does not exist** in phoenix_live_view v1.1.0. A `body.phx-*` or `.phx-disconnected` selector matches nothing. CSS must key off `.threadline-ui.phx-loading` / `.threadline-ui.phx-error` (a dropped socket re-applies `phx-loading`).
+
+- Driver classes (on the LiveView root): `.phx-connected`, `.phx-loading`, `.phx-error` / `.phx-client-error` / `.phx-server-error`.
 - Reconnect banner: `role="status"` strip, warning-tinted, icon + text (not color alone).
 - Disabled actions: mutating controls disabled purely in CSS via descendant `pointer-events` / `opacity` / `aria-disabled` while disconnected.
-- New CSS lives in `style.ex` keyed off the `.phx-*` classes; reuses motion + reduced-motion blanket.
+- New CSS lives in `style.ex` keyed off `.threadline-ui.phx-*` (root element); reuses motion + reduced-motion blanket.
 
 ---
 
