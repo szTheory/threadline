@@ -46,13 +46,20 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   ]
 
   @current_form_control_stories [
-    {"form-control.checkbox.current", "form.checkbox.current", "Checkbox control current baseline", ["one", "disabled", "error"]},
-    {"form-control.date-range.current", "form.date_range.current", "Date range control current baseline", ["one", "disabled", "error"]},
-    {"form-control.input.current", "form.input.current", "Input control current baseline", ["one", "disabled", "error"]},
-    {"form-control.radio.current", "form.radio.current", "Radio control current baseline", ["one", "disabled", "error"]},
-    {"form-control.search.current", "form.search.current", "Search control current baseline", ["one", "disabled", "error"]},
-    {"form-control.select.current", "form.select.current", "Select control current baseline", ["one", "disabled", "error"]},
-    {"form-control.textarea.current", "form.textarea.current", "Textarea control current baseline", ["one", "disabled", "error"]}
+    {"form-control.checkbox.current", "form.checkbox.current",
+     "Checkbox control current baseline", ["one", "disabled", "error"]},
+    {"form-control.date-range.current", "form.date_range.current",
+     "Date range control current baseline", ["one", "disabled", "error"]},
+    {"form-control.input.current", "form.input.current", "Input control current baseline",
+     ["one", "disabled", "error"]},
+    {"form-control.radio.current", "form.radio.current", "Radio control current baseline",
+     ["one", "disabled", "error"]},
+    {"form-control.search.current", "form.search.current", "Search control current baseline",
+     ["one", "disabled", "error"]},
+    {"form-control.select.current", "form.select.current", "Select control current baseline",
+     ["one", "disabled", "error"]},
+    {"form-control.textarea.current", "form.textarea.current",
+     "Textarea control current baseline", ["one", "disabled", "error"]}
   ]
 
   @group_stories [
@@ -104,6 +111,28 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"state.stale-reconnecting", "state.stale_reconnecting", "Stale and reconnecting state",
      ["stale", "reconnecting"]},
     {"state.timezone-boundary", "state.timezone_boundary", "Timezone boundary state",
+     ["timezone_boundary"]}
+  ]
+
+  # Phase 176 data-display components + DATA-03 data-state taxonomy. Each new UI unit
+  # (ref/kv/data_table) and each typed data-state is audited in isolation on /audit/__stress
+  # (the 173/174/175 pattern) before any page adopts it.
+  @data_display_stories [
+    {"state.ref.current", "state.ref.current", "Forensic ref copy affordance",
+     ["long_id", "non_ascii"]},
+    {"state.kv.current", "state.kv.current", "Single-record key/value display", ["one"]},
+    {"state.data-table.current", "state.data_table.current", "Responsive data table",
+     ["many", "mixed_severity"]},
+    {"state.loading", "state.loading", "Loading data-state", ["one"]},
+    {"state.stale", "state.stale", "Stale banner above last-good data", ["stale"]},
+    {"state.no-data", "state.no_data", "No-data (filter excluded) data-state", ["empty"]},
+    {"state.permission", "state.permission", "Permission-denied data-state",
+     ["permission_denied"]},
+    {"state.unavailable-down", "state.unavailable_down", "Unavailable — source down data-state",
+     ["error"]},
+    {"state.unavailable-redacted", "state.unavailable_redacted",
+     "Unavailable — redacted data-state", ["non_ascii"]},
+    {"state.unavailable-pruned", "state.unavailable_pruned", "Unavailable — pruned data-state",
      ["timezone_boundary"]}
   ]
 
@@ -215,6 +244,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       current_page_story_maps(),
       reserved_story_maps(@page_stories, "page", 178),
       state_story_maps(),
+      data_display_story_maps(),
       permission_denied_story(),
       folded_todo_stories()
     ]
@@ -292,6 +322,27 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         cases: cases,
         status: "baseline",
         data: state_data(id, cases)
+      })
+    end)
+  end
+
+  defp data_display_story_maps do
+    Enum.map(@data_display_stories, fn {id, fixture_key, scenario, cases} ->
+      story(%{
+        id: id,
+        kind: "state",
+        category: "state",
+        scenario: scenario,
+        fixture_key: fixture_key,
+        cases: cases,
+        status: "current",
+        owner_phase: 176,
+        data: %{
+          id: id,
+          cases: cases,
+          summary: "Phase 176 #{scenario} audited in isolation on /audit/__stress."
+        },
+        metadata: %{owner_phase: 176}
       })
     end)
   end

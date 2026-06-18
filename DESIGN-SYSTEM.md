@@ -27,15 +27,25 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 | `primitive.logo.reserved` | reserved | 35 | 90 | primitive | `primitive.logo.reserved` | `primitive.logo.reserved` | 171 |
 | `primitive.surface-header.current` | current | 72 | 90 | primitive | `primitive.surface-header.current` | `primitive.surface_header.current` | 171 |
 | `primitive.unsupported-view.reserved` | reserved | 35 | 90 | primitive | `primitive.unsupported-view.reserved` | `primitive.unsupported-view.reserved` | 171 |
+| `state.data-table.current` | current | 62 | 90 | state | `state.data-table.current` | `state.data_table.current` | 176 |
 | `state.empty` | baseline | 62 | 90 | state | `state.empty` | `state.empty` | 171 |
+| `state.kv.current` | current | 62 | 90 | state | `state.kv.current` | `state.kv.current` | 176 |
+| `state.loading` | current | 62 | 90 | state | `state.loading` | `state.loading` | 176 |
 | `state.many` | baseline | 62 | 90 | state | `state.many` | `state.many` | 171 |
 | `state.mixed-severity` | baseline | 62 | 90 | state | `state.mixed-severity` | `state.mixed_severity` | 171 |
+| `state.no-data` | current | 62 | 90 | state | `state.no-data` | `state.no_data` | 176 |
 | `state.null-fields` | baseline | 62 | 90 | state | `state.null-fields` | `state.null_fields` | 171 |
 | `state.one` | baseline | 62 | 90 | state | `state.one` | `state.one` | 171 |
 | `state.pagination-boundary` | baseline | 62 | 90 | state | `state.pagination-boundary` | `state.pagination_boundary` | 171 |
+| `state.permission` | current | 62 | 90 | state | `state.permission` | `state.permission` | 176 |
 | `state.permission-denied` | baseline | 62 | 90 | state | `state.permission-denied` | `state.permission_denied` | 171 |
+| `state.ref.current` | current | 62 | 90 | state | `state.ref.current` | `state.ref.current` | 176 |
+| `state.stale` | current | 62 | 90 | state | `state.stale` | `state.stale` | 176 |
 | `state.stale-reconnecting` | baseline | 62 | 90 | state | `state.stale-reconnecting` | `state.stale_reconnecting` | 171 |
 | `state.timezone-boundary` | baseline | 62 | 90 | state | `state.timezone-boundary` | `state.timezone_boundary` | 171 |
+| `state.unavailable-down` | current | 62 | 90 | state | `state.unavailable-down` | `state.unavailable_down` | 176 |
+| `state.unavailable-pruned` | current | 62 | 90 | state | `state.unavailable-pruned` | `state.unavailable_pruned` | 176 |
+| `state.unavailable-redacted` | current | 62 | 90 | state | `state.unavailable-redacted` | `state.unavailable_redacted` | 176 |
 
 ## Form Controls
 

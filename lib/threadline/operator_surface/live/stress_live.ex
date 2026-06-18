@@ -303,6 +303,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
 
                   <div class="tl-space-y-4">
+                    <h4>Phase 176 Data Display</h4>
+                    <div class="tl-space-y-4">
+                      <Threadline.OperatorSurface.UI.ref
+                        value="chg_00000000-0000-4000-8000-000000000176/correlation/abcdef0123456789"
+                        kind="correlation"
+                        copy_label="Copy correlation id"
+                      />
+
+                      <Threadline.OperatorSurface.UI.kv>
+                        <:item key="Correlation">corr-176</:item>
+                        <:item key="Actor">operator@example.invalid</:item>
+                      </Threadline.OperatorSurface.UI.kv>
+
+                      <Threadline.OperatorSurface.UI.data_table
+                        rows={[
+                          %{status: "completed", rows: "1,234", at: "2026-06-16T12:00:00Z"},
+                          %{status: "failed", rows: "0", at: "2026-06-16T13:00:00Z"}
+                        ]}
+                        row_status={fn r -> r.status end}
+                      >
+                        <:col :let={r} label="Status"><%= r.status %></:col>
+                        <:col :let={r} label="Deleted rows"><%= r.rows %></:col>
+                        <:col :let={r} label="Date"><%= r.at %></:col>
+                        <:action>Actions</:action>
+                      </Threadline.OperatorSurface.UI.data_table>
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Phase 176 Data States (DATA-03 taxonomy)</h4>
+                    <div class="tl-space-y-4">
+                      <Threadline.OperatorSurface.UI.stale_banner as_of="2026-06-16 23:59 UTC" />
+                      <Threadline.OperatorSurface.UI.loading_state />
+                      <Threadline.OperatorSurface.UI.data_state reason={:no_data} />
+                      <Threadline.OperatorSurface.UI.data_state reason={:unauthorized} />
+                      <Threadline.OperatorSurface.UI.data_state reason={:source_down} />
+                      <Threadline.OperatorSurface.UI.data_state reason={:redacted} />
+                      <Threadline.OperatorSurface.UI.data_state reason={:pruned} as_of="2026-05-01" />
+                    </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
                     <h4>Forms</h4>
                     <div class="tl-flex tl-flex-col tl-gap-4">
                       <Threadline.OperatorSurface.UI.field id="stress-text" name="text_field" label="Text Field" type="text" value="Sample text" />
