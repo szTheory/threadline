@@ -5,16 +5,24 @@ defmodule Threadline.OperatorSurface.FormlessPagesTest do
 
   Phase 174 gap analysis confirmed the form components are already adopted
   everywhere a `<form>` legitimately exists (start_live, timeline_live,
-  row_history_component, surface_header). The eight pages below render data and
+  row_history_component, surface_header). The pages below render data and
   must NOT grow a `<form>`, `<input>`, `<select>`, or `<textarea>` — any such
   control belongs behind the `UI.field` / `UI.field_group` components and a real
   form page, not bolted onto a viewer.
 
   Scanning each page module's OWN source naturally excludes the shared
   `surface_header` component (defined in a separate module), whose hidden
-  `<input type="hidden" name="_csrf_token">` and theme-picker `<form>` are the
-  ONE legitimate exception. We deliberately do not read surface_header.ex here,
+  `<input type="hidden" name="_csrf_token">` and theme-picker `<form>` are a
+  legitimate exception. We deliberately do not read surface_header.ex here,
   so its raw markup never trips this guard.
+
+  `retention_history_live` is intentionally NOT in this list as of Phase 176
+  (DATA-04 / D-20): the destructive "Prune now" action is a server-enforced
+  type-to-confirm flow whose modal hosts a single `<form phx-submit="prune_now">`
+  + text `<input>` (the operator types the policy name to confirm). That form is
+  the ONE legitimate, security-mandated exception on that page — the page is no
+  longer display-only. `policy_redaction_live` stays formless (read-only diff
+  table, redact deferred per the Phase 176 checkpoint).
   """
 
   use ExUnit.Case, async: true
@@ -27,14 +35,15 @@ defmodule Threadline.OperatorSurface.FormlessPagesTest do
               "live"
             ])
 
-  # The 8 display-only pages confirmed formless by grep (0 form controls each).
+  # The display-only pages confirmed formless by grep (0 form controls each).
+  # retention_history_live is excluded as of Phase 176 — it now hosts the
+  # security-mandated T3 prune-confirmation form (see @moduledoc).
   @formless_pages ~w(
     actor_live
     coverage_live
     evidence_live
     export_status_live
     policy_redaction_live
-    retention_history_live
     row_history_live
     transaction_live
   )
