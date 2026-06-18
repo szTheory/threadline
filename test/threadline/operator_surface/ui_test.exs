@@ -998,4 +998,229 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "phx-mounted"
     end
   end
+
+  # ===========================================================================
+  # Phase 177 (GROUP-01 / GROUP-02) — RED Wave-0 component scaffolds.
+  #
+  # These pin the render + coordination contract for the five new meta-components
+  # BEFORE any production code exists (Nyquist: tests precede code). They fail
+  # today because UI.stack/cluster/data_panel/toolbar/detail_header are undefined,
+  # and turn GREEN in Plans 02 (stack/cluster/data_panel/toolbar) and 03
+  # (detail_header + breadcrumb truncation). Do NOT add production code here.
+  # ===========================================================================
+
+  describe "stack/1 (D-02) [RED — Plan 02]" do
+    test "owns vertical rhythm via gap classes and never raw child margins" do
+      assigns = %{}
+
+      section =
+        rendered_to_string(~H"""
+        <UI.stack gap="section">
+          <div>row a</div>
+          <div>row b</div>
+        </UI.stack>
+        """)
+
+      assert section =~ "tl-stack"
+      assert section =~ "tl-stack--section"
+      assert section =~ "row a"
+
+      default =
+        rendered_to_string(~H"""
+        <UI.stack>
+          <div>only</div>
+        </UI.stack>
+        """)
+
+      # Default gap is the stack rhythm.
+      assert default =~ "tl-stack--stack"
+
+      # The stack owns gap via flex — it must NOT push spacing through an inline
+      # margin style on the element (that's the per-call-site class-soup D-02 kills).
+      refute Regex.match?(~r/<div[^>]*style="[^"]*margin/, default)
+    end
+  end
+
+  describe "cluster/1 (D-02) [RED — Plan 02]" do
+    test "wraps horizontally and exposes a justify modifier" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.cluster justify="between">
+          <button>search</button>
+          <button>filter</button>
+        </UI.cluster>
+        """)
+
+      assert html =~ "tl-cluster"
+      assert html =~ "tl-cluster--between"
+      assert html =~ "search"
+    end
+  end
+
+  describe "data_panel/1 (D-03 / D-06 / D-06c) [RED — Plan 02]" do
+    test ":ok renders the data slot and a pager slot only when ok" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_panel state={:ok}>
+          <:data><div id="the-data-table">rows</div></:data>
+          <:pager><div id="the-pager">pager</div></:pager>
+        </UI.data_panel>
+        """)
+
+      assert html =~ "tl-data-panel"
+      assert html =~ "the-data-table"
+      # Pager renders in the :ok state.
+      assert html =~ "the-pager"
+    end
+
+    test ":loading suppresses the data slot and shows the loading region" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_panel state={:loading}>
+          <:data><div id="the-data-table">rows</div></:data>
+          <:pager><div id="the-pager">pager</div></:pager>
+        </UI.data_panel>
+        """)
+
+      # The data slot is NOT rendered while loading (toolbar-disable is the page's job).
+      refute html =~ "the-data-table"
+      # A status loading region appears instead.
+      assert html =~ ~s(role="status")
+      # Pager is hidden when not :ok.
+      refute html =~ "the-pager"
+    end
+
+    test ":permission collapses the body to one message and suppresses the data slot" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_panel state={:permission} reason={:unauthorized}>
+          <:data><div id="the-data-table">rows</div></:data>
+        </UI.data_panel>
+        """)
+
+      refute html =~ "the-data-table"
+      assert html =~ "don't have access"
+      # Focus-move on permission is delegated to the existing state family (D-06c):
+      # the rendered output carries the focus-rescue heading, not a reinvention.
+      assert html =~ ~s(tabindex="-1")
+      assert html =~ "phx-mounted"
+    end
+
+    test "as_of renders a stale banner ABOVE the region regardless of state" do
+      assigns = %{as_of: "2026-06-14 23:59 UTC"}
+
+      for state <- [:ok, :loading] do
+        assigns = Map.put(assigns, :state, state)
+
+        html =
+          rendered_to_string(~H"""
+          <UI.data_panel state={@state} as_of={@as_of}>
+            <:data><div id="the-data-table">rows</div></:data>
+          </UI.data_panel>
+          """)
+
+        assert html =~ "tl-alert--warning", "stale banner must render for state #{inspect(state)}"
+        assert html =~ "2026-06-14 23:59 UTC"
+
+        # The stale banner sits ABOVE the data region container, never replacing it (D-176-14).
+        banner_idx = :binary.match(html, "tl-alert--warning") |> elem(0)
+        region_idx = :binary.match(html, "tl-data-panel__region") |> elem(0)
+
+        assert banner_idx < region_idx,
+               "stale banner must precede the data region (#{inspect(state)})"
+      end
+    end
+  end
+
+  describe "toolbar/1 (D-06 / RESEARCH Pitfall 6) [RED — Plan 02]" do
+    test "disabled emits aria-disabled + is-disabled and the controls carry HTML disabled" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.toolbar disabled={true}>
+          <button disabled>Filter</button>
+        </UI.toolbar>
+        """)
+
+      assert html =~ "tl-toolbar"
+      assert html =~ ~s(aria-disabled="true")
+      assert html =~ "is-disabled"
+      # pointer-events:none is the affordance; the HTML `disabled` attr is the
+      # enforcement (the page sets it on controls from the same state assign).
+      assert html =~ ~r/<button[^>]*\bdisabled/
+    end
+
+    test "enabled toolbar renders without the disabled coordination signals" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.toolbar disabled={false}>
+          <button>Filter</button>
+        </UI.toolbar>
+        """)
+
+      assert html =~ "tl-toolbar"
+      refute html =~ "is-disabled"
+    end
+  end
+
+  describe "detail_header/1 (D-03) [RED — Plan 03]" do
+    test "renders an <h2> title (not <h1>), a kv metadata block, and an actions cluster" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.detail_header title="tx_0192">
+          <:metadata key="Actor">alice</:metadata>
+          <:metadata key="When">just now</:metadata>
+          <:actions><button>Export</button></:actions>
+        </UI.detail_header>
+        """)
+
+      assert html =~ "tl-detail-header"
+      # page_header owns the single <h1>; the detail header is an <h2> (D-175-03).
+      assert html =~ ~r/<h2[^>]*>\s*tx_0192\s*<\/h2>/
+      refute html =~ "<h1"
+      # Metadata is a kv block.
+      assert html =~ "tl-kv"
+      assert html =~ "Actor"
+      assert html =~ "alice"
+      # Actions render in a cluster.
+      assert html =~ "tl-cluster"
+      assert html =~ "Export"
+    end
+  end
+
+  describe "page_header breadcrumbs (D-04 reconciled to D-14: keep list attr) [RED-ish — extends existing attr]" do
+    test "renders the breadcrumb trail with the last crumb non-linked" do
+      assigns = %{
+        breadcrumbs: [
+          %{label: "Timeline", href: "/audit/timeline"},
+          %{label: "tx_0192"}
+        ]
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <UI.page_header title="Transaction" breadcrumbs={@breadcrumbs} />
+        """)
+
+      assert html =~ ~s(<nav aria-label="Breadcrumb")
+      # Ancestor crumb is a link.
+      assert html =~ ~s(href="/audit/timeline")
+      assert html =~ "Timeline"
+      # Last crumb is the current location — rendered as plain text, not a link.
+      assert html =~ ~r/<span[^>]*>\s*tx_0192\s*<\/span>/
+    end
+  end
 end
