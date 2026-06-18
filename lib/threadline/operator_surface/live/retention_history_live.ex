@@ -57,8 +57,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     #      scope grant so a forged scope fails closed);
     #   3. `Plug.Crypto.secure_compare/2` the typed value against the canonical
     #      token (constant-time — never a hand-rolled `==`);
-    #   4. trigger the real backend (`Pruner.trigger/0`);
-    #   5. audit the destructive action itself as an `AuditAction` (§9.3.4);
+    #   4. audit the destructive action itself as an `AuditAction` (§9.3.4)
+    #      BEFORE triggering — an audit-insert failure must abort the prune so
+    #      there is never an unaudited deletion (D-21.3); audit runs only after
+    #      a valid `secure_compare`, so a forged token still records nothing;
+    #   5. trigger the real backend (`Pruner.trigger/0`) once the action is on
+    #      the audit trail;
     #   6. fail closed — the default path on ANY mismatch is refusal, no prune.
     def handle_event("prune_now", params, socket) do
       typed = confirm_param(params)
@@ -66,8 +70,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       with :ok <- authorize_prune(socket),
            canonical <- @canonical_policy_name,
            true <- Plug.Crypto.secure_compare(typed, canonical),
-           :ok <- Pruner.trigger(),
-           {:ok, _action} <- audit_prune(socket, canonical) do
+           {:ok, _action} <- audit_prune(socket, canonical),
+           :ok <- Pruner.trigger() do
         # Schedule a quick refresh to see the new run pop up.
         Process.send_after(self(), :refresh, 500)
 
