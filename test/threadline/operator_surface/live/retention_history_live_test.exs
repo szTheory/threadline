@@ -62,8 +62,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    import Threadline.OperatorSurface.RefCopyContract
+
     alias Threadline.Governance.RetentionRun
     alias Threadline.Retention.Pruner
+    alias Threadline.Semantics.AuditAction
 
     @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
@@ -276,6 +279,131 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "tl-target-row"
         assert html =~ "No rows deleted"
         assert html =~ "No duration yet"
+      end
+    end
+
+    # -----------------------------------------------------------------------
+    # Wave-0 RED until Plan 05 (DATA-04 / D-20/D-21). The destructive prune is
+    # the only real destructive backend in the surface. Today it is gated by a
+    # CLIENT-ONLY `data-confirm` with ZERO server enforcement: no type-to-confirm
+    # `secure_compare`, no event-time authz re-check, no scope-filtered query,
+    # and no `AuditAction` recording the destructive action itself. These tests
+    # assert the load-bearing T3 fail-closed contract and turn GREEN in Plan 05.
+    # -----------------------------------------------------------------------
+    describe "T3 destructive prune — server-side fail-closed enforcement (Wave-0 RED)" do
+      defp count_audit_actions do
+        Threadline.Test.Repo.aggregate(AuditAction, :count, :id)
+      end
+
+      test "the canonical confirmation token is never shipped to the client", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        # The client-only data-confirm string is the footgun this plan removes:
+        # a real T3 modal types the policy NAME and the canonical token stays
+        # server-side (re-fetched at action time, never embedded in the DOM).
+        refute html =~ "data-confirm",
+               "client-only data-confirm must be replaced by a server-enforced type-to-confirm modal (D-21)"
+
+        assert html =~ "phx-submit",
+               "T3 prune must be a <form phx-submit> type-to-confirm, not a bare phx-click"
+      end
+
+      test "a forged confirmation token fails closed and performs no prune", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+
+        before = count_audit_actions()
+
+        # An attacker-supplied wrong token must be rejected server-side
+        # (secure_compare against the DB-canonical policy name).
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "not-the-policy-name"})
+
+        assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0,
+               "a forged token must not trigger a prune"
+
+        assert count_audit_actions() == before,
+               "a forged token must not produce a prune nor an audited destructive action"
+      end
+
+      test "a forged phx-value scope fails closed", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+
+        # phx-value-id is an untrusted client claim; a forged scope must be
+        # re-checked + scope-filtered server-side and fail closed.
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{
+          confirm: "forged",
+          id: "00000000-0000-0000-0000-000000000000"
+        })
+
+        assert Threadline.Test.Repo.aggregate(RetentionRun, :count) == 0,
+               "a forged scope must fail closed"
+      end
+
+      test "prune is refused when policy authorization is absent", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_policy, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
+
+        # With authz absent the page renders the unsupported view and exposes no
+        # prune affordance at all — the default path is refusal (fail closed).
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        refute html =~ "phx-submit=\"prune_now\""
+        refute html =~ "Run retention prune"
+      end
+
+      test "a valid type-to-confirm prune records an AuditAction for the destructive action",
+           %{conn: conn} do
+        {:ok, view, html} = live(conn, "/audit/policy/retention")
+
+        before = count_audit_actions()
+
+        # The canonical policy name the operator must type (D-21). The handler
+        # re-fetches this server-side; the test discovers it from the rendered
+        # confirmation prompt rather than hardcoding a constant.
+        policy_name = canonical_policy_name(html)
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+
+        assert_eventually(fn -> Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0 end)
+
+        assert count_audit_actions() > before,
+               "a successful destructive prune must record an AuditAction (domain §9.3.4)"
+      end
+
+      defp canonical_policy_name(html) do
+        case Regex.run(~r/type the policy name [`"]?([a-z0-9_-]+)[`"]?/i, html) do
+          [_, name] -> name
+          _ -> "default"
+        end
+      end
+    end
+
+    # -----------------------------------------------------------------------
+    # Wave-0 RED until Plan 05 (DATA-01 / D-02, Pitfall 4). Cross-page copy
+    # contract: the rendered copy target must carry the EXACT full value, never
+    # the truncated visible text. Retention currently renders no `ref/1` copy
+    # affordance for its run identifiers, so this is RED until the page adopts
+    # `UI.ref/1` (which binds `data-tl-copy={ref.full}`).
+    # -----------------------------------------------------------------------
+    describe "ref copy-equals-full contract (Wave-0 RED)" do
+      test "rendered run reference copies the full value, not the truncated text", %{conn: conn} do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        run =
+          %RetentionRun{}
+          |> RetentionRun.changeset(%{
+            status: "completed",
+            deleted_count: 7,
+            duration_ms: 100,
+            started_at: DateTime.add(now, -5, :second),
+            completed_at: now
+          })
+          |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        full = "retention_run/#{run.id}"
+
+        assert_copy_equals_full(html, full: full)
+        refute_copy_truncated(html, full: full)
       end
     end
   end
