@@ -506,13 +506,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "margin-bottom: var(--tl-space-4);"
     ])
 
-    assert_selector_contains(base, ".tl-coverage-command .tl-trust-rail", [
-      "margin-bottom: 0;"
-    ])
+    # DATA-05 / D-12: the synthetic `tl-coverage-command` command-shell is flattened
+    # away — the coverage success branch now uses UI.page_header with its children
+    # (trust-rail, tl-summary-grid metric tiles, remediation, table) as direct
+    # page-stack siblings. The dead `tl-coverage-command__*` CSS must be GONE so it
+    # can't silently regress (paired-deletion contract). The metric-grid keeps its
+    # generic `.tl-summary-grid` spacing.
+    refute String.contains?(src, "tl-coverage-command"),
+           ".tl-coverage-command* CSS must be deleted (D-12 flatten); the command shell is retired"
 
-    assert_selector_contains(base, ".tl-coverage-command", [
-      "display: grid;",
-      "gap: var(--tl-space-3);",
+    assert_selector_contains(base, ".tl-summary-grid", [
       "margin-bottom: var(--tl-space-4);"
     ])
 
@@ -580,10 +583,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(tablet, ".tl-filter-grid--advanced", [
       "grid-template-columns: repeat(3, minmax(0, 1fr));"
-    ])
-
-    assert_selector_contains(tablet, ".tl-coverage-command__header", [
-      "grid-template-columns: minmax(0, 1fr) auto;"
     ])
 
     assert_selector_contains(tablet, ".threadline-ui .tl-shell-nav__item", [

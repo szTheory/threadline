@@ -183,6 +183,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|phx-click="refresh"|
       end
 
+      test "success branch renders the header via UI.page_header and drops the command shell (D-12)",
+           %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        # The hand-rolled synthetic command shell is gone — both the markup class
+        # and the dead BEM children must not appear anywhere in the rendered page.
+        refute html =~ "tl-coverage-command"
+
+        # page_header emits the canonical page chrome: a single <h1 class="tl-page__title">
+        # with the title, the lede, the last-checked meta line, and the Refresh action.
+        assert html =~ ~s|<header class="tl-page__header">|
+        assert html =~ ~s|class="tl-page__title"|
+        assert html =~ "Coverage — schema: public"
+        assert html =~ ~s|class="tl-page__lede"|
+        assert html =~ ~s|class="tl-page__meta"|
+
+        # Exactly one <h1> on the page (no hand-rolled second heading).
+        assert html |> String.split("<h1") |> length() == 2
+
+        # The legit repeated-item metric tiles survive the flatten.
+        assert html =~ ~s|class="tl-card--metric"|
+        assert html =~ ">Captured<"
+        assert html =~ ">Needs capture<"
+        assert html =~ ">Expected gaps<"
+
+        # The metric grid keeps its generic summary-grid boundary (not the removed
+        # tl-coverage-command__metrics modifier).
+        assert html =~ ~s|class="tl-summary-grid"|
+      end
+
+      test "form-error branch renders the header via UI.page_header", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage?schema=Public")
+
+        refute html =~ "tl-coverage-command"
+        assert html =~ ~s|<header class="tl-page__header">|
+        assert html =~ ~s|class="tl-page__title"|
+        assert html =~ "Coverage — schema: Public"
+        assert html |> String.split("<h1") |> length() == 2
+      end
+
       test "renders the surface header above the page content", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 

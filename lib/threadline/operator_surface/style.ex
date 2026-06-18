@@ -3329,45 +3329,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           margin-bottom: var(--tl-space-4);
         }
 
-        .tl-coverage-command .tl-trust-rail {
-          margin-bottom: 0;
-        }
-
         .tl-trust-rail__label {
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
           font-weight: var(--tl-weight-strong);
-        }
-
-        .tl-coverage-command {
-          display: grid;
-          gap: var(--tl-space-3);
-          margin-bottom: var(--tl-space-4);
-        }
-
-        .tl-coverage-command__header {
-          display: grid;
-          gap: var(--tl-space-3);
-          align-items: start;
-          min-width: 0;
-        }
-
-        .tl-coverage-command__heading {
-          min-width: 0;
-        }
-
-        .tl-coverage-command__actions {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: flex-start;
-          gap: var(--tl-space-2);
-          min-width: 0;
-        }
-
-        .tl-coverage-command__metrics {
-          margin-bottom: 0;
         }
 
         .tl-table--coverage .tl-table__actions {
@@ -3668,14 +3634,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           .tl-filter-grid--advanced {
             grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-
-          .tl-coverage-command__header {
-            grid-template-columns: minmax(0, 1fr) auto;
-          }
-
-          .tl-coverage-command__actions {
-            justify-content: flex-end;
           }
         }
 

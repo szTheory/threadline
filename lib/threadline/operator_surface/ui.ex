@@ -199,6 +199,11 @@ defmodule Threadline.OperatorSurface.UI do
   )
 
   slot(:lede)
+
+  slot(:meta,
+    doc: "Optional supporting meta line rendered under the lede (e.g. last-checked time)"
+  )
+
   slot(:actions)
   slot(:inner_block)
 
@@ -213,6 +218,7 @@ defmodule Threadline.OperatorSurface.UI do
         <p :if={@lede != []} class={if @variant == "display", do: "tl-home__lede", else: "tl-page__lede"}>
           <%= render_slot(@lede) %>
         </p>
+        <p :if={@meta != []} class="tl-page__meta"><%= render_slot(@meta) %></p>
         <%= render_slot(@inner_block) %>
       </div>
       <div :if={@actions != []} class="tl-page__actions"><%= render_slot(@actions) %></div>

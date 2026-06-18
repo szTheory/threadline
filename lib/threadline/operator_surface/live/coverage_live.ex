@@ -147,56 +147,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </p>
                 </div>
               <% else %>
-                <section class="tl-coverage-command" aria-labelledby="coverage-command-title">
-                  <div class="tl-coverage-command__header">
-                    <div class="tl-coverage-command__heading">
-                      <h1 id="coverage-command-title" class="tl-page__title">
-                        Coverage — schema: <%= @schema_param %>
-                      </h1>
-                      <p class="tl-page__lede">
-                        Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
-                      </p>
-                      <p class="tl-page__meta">
-                        <%= if @coverage_for_schema.last_checked_at do %>
-                          <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
-                        <% end %>
-                      </p>
-                    </div>
-                    <div class="tl-coverage-command__actions">
-                      <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                        <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                        Refresh
-                      </button>
-                    </div>
+                <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+                  <:lede>
+                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                  </:lede>
+                  <:meta :if={@coverage_for_schema.last_checked_at}>
+                    <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                  </:meta>
+                  <:actions>
+                    <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                      Refresh
+                    </button>
+                  </:actions>
+                </UI.page_header>
+
+                <section class="tl-trust-rail" aria-label="Audit readiness">
+                  <span class="tl-trust-rail__label">Audit readiness</span>
+                  <%= if @coverage_for_schema.uncovered_count > 0 do %>
+                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
+                  <% else %>
+                    <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
+                  <% end %>
+                  <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                    Open timeline
+                  </.link>
+                </section>
+
+                <section class="tl-summary-grid" aria-label="Coverage summary">
+                  <div class="tl-card--metric" data-status="success">
+                    <span class="tl-card__metric-label">Captured</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
                   </div>
-
-                  <section class="tl-trust-rail" aria-label="Audit readiness">
-                    <span class="tl-trust-rail__label">Audit readiness</span>
-                    <%= if @coverage_for_schema.uncovered_count > 0 do %>
-                      <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
-                    <% else %>
-                      <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
-                    <% end %>
-                    <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                      Open timeline
-                    </.link>
-                  </section>
-
-                  <section class="tl-summary-grid tl-coverage-command__metrics" aria-label="Coverage summary">
-                    <div class="tl-card--metric" data-status="success">
-                      <span class="tl-card__metric-label">Captured</span>
-                      <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
-                    </div>
-                    <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
-                      <span class="tl-card__metric-label">Needs capture</span>
-                      <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
-                    </div>
-                    <div class="tl-card--metric">
-                      <span class="tl-card__metric-label">Expected gaps</span>
-                      <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
-                    </div>
-                  </section>
+                  <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
+                    <span class="tl-card__metric-label">Needs capture</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
+                  </div>
+                  <div class="tl-card--metric">
+                    <span class="tl-card__metric-label">Expected gaps</span>
+                    <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
+                  </div>
                 </section>
 
                 <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
