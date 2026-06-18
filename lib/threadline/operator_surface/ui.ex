@@ -868,7 +868,12 @@ defmodule Threadline.OperatorSurface.UI do
     class={["tl-modal-container", if(!@show, do: "hidden")]}
     {@rest}
     >
-    <div id={"#{@id}-bg"} class="tl-modal-scrim" aria-hidden="true" />
+    <div
+      id={"#{@id}-bg"}
+      class="tl-modal-scrim"
+      aria-hidden="true"
+      phx-click={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
+    />
     <div
       class="tl-modal-wrapper"
       aria-labelledby={"#{@id}-title"}
@@ -942,7 +947,12 @@ defmodule Threadline.OperatorSurface.UI do
     class={["tl-drawer-container", if(!@show, do: "hidden")]}
     {@rest}
     >
-    <div id={"#{@id}-bg"} class="tl-drawer-scrim" aria-hidden="true" />
+    <div
+      id={"#{@id}-bg"}
+      class="tl-drawer-scrim"
+      aria-hidden="true"
+      phx-click={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
+    />
     <div
       class="tl-drawer-wrapper"
       role="dialog"
