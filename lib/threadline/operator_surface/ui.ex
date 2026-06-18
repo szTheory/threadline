@@ -258,13 +258,15 @@ defmodule Threadline.OperatorSurface.UI do
   attr(:crumbs, :list, required: true)
 
   defp breadcrumb_trail(assigns) do
+    assigns = assign(assigns, :last_index, length(assigns.crumbs) - 1)
+
     ~H"""
     <nav aria-label="Breadcrumb" class="tl-transaction__breadcrumbs">
-      <%= for crumb <- @crumbs do %>
+      <%= for {crumb, idx} <- Enum.with_index(@crumbs) do %>
         <%= if crumb[:href] do %>
           <a href={crumb[:href]} class="tl-link tl-link--back"><%= crumb[:label] %></a>
         <% else %>
-          <span><%= crumb[:label] %></span>
+          <span class={idx == @last_index && "tl-transaction__breadcrumbs-current"}><%= crumb[:label] %></span>
         <% end %>
       <% end %>
     </nav>

@@ -2146,8 +2146,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         /*
          * The data region cross-fades on a state swap (happy <-> loading <-> empty <->
          * error), opacity-only so it degrades cleanly. Container-level only — never the
-         * streamed <tr> children (D-11). The reduced-motion blanket collapses this to
-         * ~1ms automatically (D-12); no per-component handling.
+         * streamed <tr> children (D-11). The reduced-motion blanket collapses this
+         * near-instantly (D-12); no per-component handling.
          */
         .tl-data-panel__region {
           transition: opacity var(--tl-motion-fast) var(--tl-ease-standard);
@@ -2450,6 +2450,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           content: "/";
           margin-right: var(--tl-space-2);
           color: var(--tl-color-border-strong);
+        }
+
+        /*
+         * Narrow-viewport truncation (D-13, Pitfall 5): the current/last crumb (the
+         * location label, which can be a long table/correlation name) ellipsis-clips so
+         * the header never forces horizontal scroll at 320px. Ancestor crumbs stay
+         * links and wrap via the trail's flex-wrap.
+         */
+        .tl-transaction__breadcrumbs-current {
+          display: inline-block;
+          max-width: clamp(12ch, 50vw, 40ch);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          vertical-align: bottom;
         }
 
         .tl-transaction__title {
