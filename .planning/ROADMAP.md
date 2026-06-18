@@ -283,7 +283,7 @@ Plans:
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 4/4 | Complete    | 2026-06-17 |
-| 176. Data display & operator patterns | v1.37 | 4/5 | In progress | 176-04 |
+| 176. Data display & operator patterns | v1.37 | 5/5 | Complete    | 2026-06-18 |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
 | 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |

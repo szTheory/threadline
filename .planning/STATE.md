@@ -9,8 +9,8 @@ progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 25
-  completed_plans: 24
-  percent: 38
+  completed_plans: 25
+  percent: 40
 ---
 
 # Project State: Threadline
