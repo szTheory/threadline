@@ -1245,6 +1245,87 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  # --- Phase 177 (GROUP-02 / D-08, corrected per RESEARCH Pitfall 1): offline group anchor ---
+  #
+  # RED Wave-0 scaffold. The reconnect/offline-banner + disabled-actions group (D-08)
+  # rides LiveView's built-in connection classes. RESEARCH (verified against
+  # phoenix_live_view v1.1.x source) corrects CONTEXT/UI-SPEC's literal wording on
+  # TWO counts:
+  #   (a) the classes attach to the LiveView ROOT element, which in this app is the
+  #       `.threadline-ui` wrapper (confirmed: 11/11 audit LiveViews render it as
+  #       their render root) — NOT `<body>`.
+  #   (b) `.phx-disconnected` does NOT exist in LiveView 1.x; the dropped-socket
+  #       state re-applies `.phx-loading` (plus `.phx-error`/`.phx-client-error`).
+  #
+  # So the offline CSS (Plan 04) MUST key off `.threadline-ui.phx-loading` /
+  # `.threadline-ui.phx-error`, and MUST NOT use `.phx-disconnected` or `body.phx-`.
+  # This block is RED until Plan 04 adds the connection-lifecycle CSS.
+  test "phase 177 offline group keys off the LiveView root (.threadline-ui.phx-loading/.phx-error), never body/.phx-disconnected" do
+    src = File.read!(@style_path)
+
+    assert String.contains?(src, ".threadline-ui.phx-loading"),
+           "offline group must anchor on the LiveView root .threadline-ui.phx-loading (D-08, RESEARCH Pitfall 1)"
+
+    assert String.contains?(src, ".threadline-ui.phx-error"),
+           "offline group must anchor on the LiveView root .threadline-ui.phx-error (D-08, RESEARCH Pitfall 1)"
+
+    refute String.contains?(src, ".phx-disconnected"),
+           ".phx-disconnected does not exist in LiveView 1.x — use .phx-loading (RESEARCH Pitfall 1)"
+
+    refute String.contains?(src, "body.phx-"),
+           "connection classes attach to the LiveView root, not <body> — a body.phx-* selector matches nothing (RESEARCH Pitfall 1)"
+  end
+
+  # --- Phase 177 (GROUP-02 / D-10.1, RESEARCH Pitfall 2): overlay JS-transition utilities ---
+  #
+  # RED Wave-0 scaffold. modal/drawer/toast show_*/hide_* (ui.ex) reference a set of
+  # JS-transition utility CLASSES that are NOT defined in style.ex today (grep-verified:
+  # only the `@keyframes tl-fade-in`/`tl-rise-in` exist, which drive CSS `animation:`
+  # mount reveals — NOT the JS `transition:` tuples the overlays use). The group-motion
+  # work (Plan 04) must DEFINE these as real class selectors with token-backed
+  # transitions. Each assertion is keyed to the class-SELECTOR form (`.x {` or `.x,`)
+  # so the existing `@keyframes tl-fade-in`/`tl-rise-in` cannot false-green it.
+  # This block is RED until Plan 04 defines the overlay utility classes + shells.
+  test "phase 177 overlay JS-transition utility classes are defined as class selectors (not just keyframes)" do
+    src = File.read!(@style_path)
+
+    overlay_classes = [
+      "tl-fade-in",
+      "tl-fade-out",
+      "tl-rise-in",
+      "tl-rise-out",
+      "tl-slide-in-right",
+      "tl-slide-out-right",
+      "opacity-0",
+      "opacity-100",
+      "translate-y-0",
+      "translate-y-4",
+      "translate-x-0",
+      "translate-x-full",
+      "tl-modal-container",
+      "tl-drawer-container"
+    ]
+
+    for klass <- overlay_classes do
+      # Class-selector form only: `.klass {` (own block) or `.klass,` (grouped) or
+      # `.klass.` / `.klass ` (compound/descendant). Crucially NOT `@keyframes klass`.
+      assert Regex.match?(~r/\.#{Regex.escape(klass)}\s*[\{,]/, src) or
+               Regex.match?(~r/\.#{Regex.escape(klass)}[.\s:]/, src),
+             "overlay utility .#{klass} must be defined as a CSS class selector in style.ex (D-10.1; keyframes don't count — RESEARCH Pitfall 2)"
+    end
+
+    # The data-region cross-fade (D-10.2): the region container carries an opacity
+    # transition on the fast motion token so a state swap reads as intentional.
+    assert Regex.match?(
+             selector_block_pattern(
+               ".tl-data-panel__region",
+               ~r/transition:\s*opacity\s+var\(--tl-motion-fast\)/
+             ),
+             src
+           ),
+           ".tl-data-panel__region must cross-fade opacity on var(--tl-motion-fast) for the state-swap motion (D-10.2)"
+  end
+
   defp motion_inventory_rows(inventory) do
     inventory
     |> String.split("\n")

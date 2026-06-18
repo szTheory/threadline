@@ -22,6 +22,8 @@ defmodule Threadline.BrandbookTokenParityTest do
   @style_path "lib/threadline/operator_surface/style.ex"
   @brand_book_path "brandbook/brand-book.md"
   @pressure_test_path "brandbook/pressure-test.md"
+  @tokens_css_path "brandbook/tokens.css"
+  @tokens_json_path "brandbook/tokens.json"
 
   # Curated parity intersection: the 18 semantic tokens the brandbook claims to mirror.
   # Names use style.ex conventions (muted, not text-muted; danger, not error-text;
@@ -75,5 +77,50 @@ defmodule Threadline.BrandbookTokenParityTest do
 
     assert String.contains?(pressure, "dimension #5"),
            "the dual-mode addendum should cross-reference dimension #5 (Dark/light versatility)"
+  end
+
+  # --- Phase 177 (GROUP-01 / D-02 / D-09): semantic --tl-gap-* parity ---
+  #
+  # RED Wave-0 scaffold. The stack/cluster layout primitives (D-02) own the group
+  # spacing rhythm via three SEMANTIC gap tokens layered over the numeric
+  # --tl-space-* scale (D-09):
+  #
+  #   --tl-gap-inline  -> --tl-space-2 (8px)   horizontal gap in a cluster
+  #   --tl-gap-stack   -> --tl-space-4 (16px)  vertical rhythm in a stack
+  #   --tl-gap-section -> --tl-space-8 (32px)  section break between page-stack sections
+  #
+  # Today --tl-gap-inline / --tl-gap-stack exist ONLY in style.ex (L175-176);
+  # --tl-gap-section exists nowhere; NONE exist in tokens.css / tokens.json. The
+  # brand SSOT parity rule (this file's whole reason for being) demands all three
+  # land in tokens.css + tokens.json + style.ex, value-aligned. This block is RED
+  # until Plans 02/04 add them. It turns GREEN when the three sources agree.
+  test "semantic gap tokens are value-aligned across tokens.css, tokens.json, and style.ex (Phase 177)" do
+    css = File.read!(@tokens_css_path)
+    json = File.read!(@tokens_json_path)
+    style = style_source()
+
+    # The three semantic gap tokens and the numeric --tl-space-* step each aliases.
+    gap_aliases = [
+      {"--tl-gap-inline", "--tl-space-2"},
+      {"--tl-gap-stack", "--tl-space-4"},
+      {"--tl-gap-section", "--tl-space-8"}
+    ]
+
+    for {gap, space} <- gap_aliases do
+      # tokens.css: literal CSS custom-property declaration aliasing the numeric step.
+      assert String.contains?(css, "#{gap}: var(#{space});"),
+             "#{@tokens_css_path} must declare #{gap}: var(#{space}); — the brand SSOT must mirror the gap rhythm"
+
+      # style.ex: same literal aliasing declaration (the shipped operator-surface lane).
+      assert String.contains?(style, "#{gap}: var(#{space});"),
+             "#{@style_path} must declare #{gap}: var(#{space}); so the operator surface consumes the semantic gap token"
+    end
+
+    # tokens.json: a dedicated "gap" block keyed by the semantic name -> px value,
+    # value-aligned with the --tl-space-* step each gap aliases (8/16/32px).
+    for {key, value} <- [{"inline", "8px"}, {"stack", "16px"}, {"section", "32px"}] do
+      assert String.contains?(json, ~s|"#{key}": "#{value}"|),
+             ~s|#{@tokens_json_path} must carry a "gap" entry "#{key}": "#{value}" mirroring the semantic gap token|
+    end
   end
 end
