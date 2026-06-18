@@ -37,19 +37,19 @@ created: 2026-06-18
 
 The numeric scale is the **already-shipped** `--tl-space-*` ladder (`tokens.css` L6–16). All values are multiples of 4. Groups consume it; they do not invent per-call-site spacing.
 
+> **Inherited / pre-locked primitive (documented exception).** The `--tl-space-*` ladder is the existing `brandbook/tokens.css` truth — settled and shipped (parity-tested by `brandbook_token_parity_test`), **not** new per-phase spacing introduced by Phase 177 (which is compose-and-audit, not new spacing design — see CONTEXT D-09 / D-14). Every step is a multiple of 4 (the spacing sub-rule passes). Some steps fall *outside* the enumerated standard set {4, 8, 16, 24, 32, 48, 64}: `--tl-space-3` (12px) and `--tl-space-5` (20px) are **in active use** by groups (12px = toolbar control gap + `kv` row gap; 20px in use), so they are kept as inherited truth and recorded as a **justified exception** rather than a new declaration. The unused reserved off-set steps `--tl-space-10` (40px) and `--tl-space-20` (80px) are **dropped from this phase's declared group scale** to shrink the surface — they remain in `tokens.css` but no group consumes them.
+
 | Token | Value | Group usage |
 |-------|-------|-------------|
 | `--tl-space-1` | 4px | Icon↔label gaps, inline chip padding |
 | `--tl-space-2` | 8px | Compact control spacing inside a cluster |
-| `--tl-space-3` | 12px | Toolbar control gap; metadata `kv` row gap |
+| `--tl-space-3` | 12px | Toolbar control gap; metadata `kv` row gap (inherited off-set step, in active use — see exception note) |
 | `--tl-space-4` | 16px | Default element gap; data_panel inner padding |
-| `--tl-space-5` | 20px | — |
+| `--tl-space-5` | 20px | In use (inherited off-set step — see exception note) |
 | `--tl-space-6` | 24px | Detail-header title↔metadata block gap |
 | `--tl-space-8` | 32px | Section break between page-stack siblings |
-| `--tl-space-10` | 40px | — |
 | `--tl-space-12` | 48px | Major page-section break |
 | `--tl-space-16` | 64px | Page-level top/bottom rhythm |
-| `--tl-space-20` | 80px | Reserved (rare) |
 
 ### Semantic gap tokens (D-09 — ADDITIVE, the only new tokens this phase)
 
@@ -68,6 +68,8 @@ Exceptions: touch targets follow A11Y comfort sizing (built-to here, formally au
 ## Typography
 
 Type scale is the **already-shipped** `--tl-font-size-*` / `--tl-line-*` / `--tl-weight-*` ladder. Groups do not introduce new sizes or weights — they assign hierarchy from this set. The four roles a group actually uses:
+
+> **Inherited / pre-locked primitive (documented exception).** Three font-weight tokens are referenced — `--tl-weight-regular` (400), `--tl-weight-medium` (500), `--tl-weight-strong` (600). These are **inherited, pre-locked `--tl-weight-*` primitive tokens settled in phases 172/173** (parity-tested by `brandbook_token_parity_test`), **not** introduced or redesigned by Phase 177, which is compose-and-audit, not new type design (see CONTEXT D-14 — exact tokens match the existing `ui.ex` `--tl-*` idioms). All three are kept because they are shipped truth, not new declarations; the standard 2-weight cap is therefore recorded as a **justified exception** for these inherited primitives rather than a new typographic decision.
 
 | Role | Token (size) | Weight | Line height |
 |------|--------------|--------|-------------|
