@@ -683,6 +683,68 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # Filter/search/sort toolbar (D-06 / RESEARCH Pitfall 6). A `cluster`-style row that
+  # carries the cross-child DISABLED coordination: when the data region is loading or
+  # in a hard error, the page derives `disabled` from the SAME state assign
+  # (`state in [:loading, :error]`, D-06) and passes it here. The container then gets
+  # `aria-disabled` + the `is-disabled` class (pointer-events:none + dimming — affordance
+  # only). The page MUST ALSO set the HTML `disabled` attribute on the actual controls
+  # from that same assign: `pointer-events:none` alone leaves controls keyboard-focusable
+  # and SR-activatable (Pitfall 6 — affordance is not enforcement).
+  attr(:disabled, :boolean,
+    default: false,
+    doc: "true while the data region is loading or in a hard error (D-06)"
+  )
+
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
+
+  def toolbar(assigns) do
+    ~H"""
+    <div
+      class={["tl-toolbar", "tl-cluster", @disabled && "is-disabled", @class]}
+      role="search"
+      aria-disabled={to_string(@disabled)}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc false
+  # Detail-page header (D-03). Title + metadata kv + actions cluster, recurring on the
+  # transaction / actor / row-history pages. Renders an <h2> (NOT <h1>) — page_header
+  # owns the single <h1> per page (D-175-03). Composes the existing kv/1 + cluster
+  # rather than re-rolling layout.
+  attr(:title, :string, required: true)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  slot :metadata, doc: "kv rows: <:metadata key=\"...\">value</:metadata>" do
+    attr(:key, :string, required: true)
+  end
+
+  slot(:actions)
+
+  def detail_header(assigns) do
+    ~H"""
+    <header class={["tl-detail-header", @class]} {@rest}>
+      <div class="tl-detail-header__top">
+        <h2 class="tl-detail-header__title"><%= @title %></h2>
+        <.cluster :if={@actions != []} justify="end" class="tl-detail-header__actions">
+          <%= render_slot(@actions) %>
+        </.cluster>
+      </div>
+      <.kv :if={@metadata != []} class="tl-detail-header__meta">
+        <:item :for={m <- @metadata} key={m.key}><%= render_slot(m) %></:item>
+      </.kv>
+    </header>
+    """
+  end
+
+  @doc false
   # State-coordinating shell (D-03 / D-06 / D-06c). data_panel COMPOSES the existing
   # named state family (D-176-13) — it does NOT reinvent the taxonomy or the focus
   # logic. The page author still branches the typed server reason (D-06d); the shell

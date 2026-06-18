@@ -2159,6 +2159,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
+         * toolbar — search/filter/sort row (D-06). Built on the cluster mechanism so it
+         * wraps at narrow widths (D-13). `is-disabled` is the AFFORDANCE (pointer-events
+         * off + dimming); the page also sets the HTML `disabled` attr on the real
+         * controls for enforcement (Pitfall 6). The reduced-motion blanket needs no
+         * special handling here (no motion).
+         */
+        .tl-toolbar {
+          gap: var(--tl-gap-inline);
+        }
+
+        .tl-toolbar.is-disabled {
+          pointer-events: none;
+          opacity: 0.55;
+        }
+
+        /*
+         * detail_header — title + metadata kv + actions (D-03). Rhythm: <h2> title,
+         * actions clustered to the trailing edge on the same top row, kv metadata a
+         * --tl-space-6 break below.
+         */
+        .tl-detail-header {
+          display: flex;
+          flex-direction: column;
+          gap: var(--tl-space-6);
+          min-width: 0;
+        }
+
+        .tl-detail-header__top {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: var(--tl-gap-inline);
+          min-width: 0;
+        }
+
+        .tl-detail-header__title {
+          margin: 0;
+          font-size: var(--tl-font-size-title);
+          line-height: var(--tl-line-heading);
+          font-weight: var(--tl-weight-strong);
+          text-wrap: balance;
+          min-width: 0;
+        }
+
+        .tl-detail-header__actions {
+          flex: 0 0 auto;
+        }
+
+        /*
          * Metric card — the compact "label + big number" summary tile.
          * Canonical density variant of the card; status via [data-status]
          * (the shared stripe contract). Self-sufficient: used standalone as
