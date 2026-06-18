@@ -51,7 +51,7 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 ### Per-Page & Flow Stress (PAGE)
 
 - [ ] **PAGE-01**: Each of the 11 pages (Home, Timeline, Transaction, Row history, Actor, Coverage, Evidence, Redaction, Retention, Exports, plus shell) is audited against happy/empty/loading/error/permission-denied/boundary/advanced paths × dark/light/system × 320/375/768/1024/1440 × keyboard-only × reduced-motion × LiveView reconnect, with findings recorded in the ledger.
-- [ ] **PAGE-02**: The named footgun classes are eliminated: scroll traps, modal/drawer hidden behind scrim or floating wrong, focus not entering/restoring from overlays, escape/click-outside inconsistency, hover/focus on non-interactive elements, misalignment / chopped padding / inconsistent spacing, disabled-looks-enabled (and enabled-looks-disabled), missing tab active-state, weird pagination, unreadable dark/light text, and same-color text-on-background.
+- [x] **PAGE-02**: The named footgun classes are eliminated: scroll traps, modal/drawer hidden behind scrim or floating wrong, focus not entering/restoring from overlays, escape/click-outside inconsistency, hover/focus on non-interactive elements, misalignment / chopped padding / inconsistent spacing, disabled-looks-enabled (and enabled-looks-disabled), missing tab active-state, weird pagination, unreadable dark/light text, and same-color text-on-background.
 - [ ] **PAGE-03**: The transaction page centers correctly at desktop widths (resolves `transaction-page-left-push-desktop`).
 
 ### Microcopy & Information Architecture (COPY)
@@ -125,7 +125,7 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | GROUP-01 | Phase 177 | Complete (177-05: 12 configs as group stress stories tagged live/reference, ledger↔fixtures↔projection parity, render across 320–1440 × dark/light/system) |
 | GROUP-02 | Phase 177 | Complete (177-02 layout primitives, 177-03 data_panel/toolbar/detail_header + cross-child state coordination, 177-04 group motion + reconnect/offline) |
 | PAGE-01 | Phase 178 | Pending |
-| PAGE-02 | Phase 178 | Pending |
+| PAGE-02 | Phase 178 | Complete |
 | PAGE-03 | Phase 178 | Pending |
 | COPY-01 | Phase 179 | Pending |
 | COPY-02 | Phase 179 | Pending |
