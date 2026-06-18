@@ -298,18 +298,23 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   # --- Phase 178 (SEED-005 / D-10, D-11): reconnect banner mounted once --------
   #
-  # RED Wave-0 scaffold. Today there is NO shared shell: all 11 operator LiveViews
-  # duplicate `<div class="threadline-ui">…<surface_header/>…<main id="tl-main">` and
-  # NONE mounts reconnect_banner (grep-verified: zero `reconnect_banner` references in
-  # lib/.../live/). SEED-005 (D-10) extracts one shared shell that mounts the banner
-  # ONCE, above #tl-main and inside .threadline-ui. This guard requires every page
-  # LiveView's render template to carry exactly one `tl-reconnect-banner` marker,
-  # positioned after the `.threadline-ui` open and before `id="tl-main"`. RED today.
+  # SEED-005 (D-10) extracted the previously-11-way-duplicated
+  # `<div class="threadline-ui">…<Style.css/>…<surface_header/>…<main id="tl-main">`
+  # wrapper into ONE shared `@doc false` `UI.shell/1` chrome component. That shell
+  # is the single mount point for `reconnect_banner/1`: rendered exactly once,
+  # directly above `#tl-main` and inside `.threadline-ui`. All 11 operator
+  # LiveViews route their chrome through `UI.shell` instead of hand-rolling the
+  # wrapper, which is what gives the banner one structural home and kills drift.
   #
-  # Parser-agnostic by design (RESEARCH Pitfall 2): we scan the LiveView render
-  # template SOURCE (no DB, no socket) and assert via substring + byte-offset
-  # ordering — never Floki/LazyHTML tree traversal. NEVER references <body> or the
-  # legacy .phx-disconnected (D-11) — those are forbidden anchors.
+  # The guard therefore has two halves:
+  #   (1) the shell in ui.ex carries the banner exactly once, in the right order;
+  #   (2) every page LiveView routes through `UI.shell` (no per-page
+  #       `class="threadline-ui"` / `id="tl-main"` duplication left behind).
+  #
+  # Parser-agnostic by design (RESEARCH Pitfall 2): we scan SOURCE (no DB, no
+  # socket) and assert via substring + byte-offset ordering — never Floki/LazyHTML
+  # tree traversal. NEVER references <body> or the legacy .phx-disconnected
+  # (D-11) — those are forbidden anchors.
   @page_live_views ~w(
     actor_live.ex
     coverage_live.ex
@@ -324,32 +329,55 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     transaction_live.ex
   )
 
+  @ui_module "lib/threadline/operator_surface/ui.ex"
+
   describe "reconnect banner mounted once in shared shell (SEED-005 / D-10, D-11)" do
-    test "every operator page mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
+    test "the shared UI.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
+      src = File.read!(@ui_module)
+
+      assert src =~ "def shell(assigns)",
+             "ui.ex must define the shared @doc false shell/1 chrome component (D-10)"
+
+      banner_count =
+        src
+        |> String.split("reconnect_banner")
+        |> length()
+        |> Kernel.-(1)
+        # def reconnect_banner + the single <.reconnect_banner /> mount in shell/1
+        |> Kernel.-(1)
+
+      assert banner_count == 1,
+             "ui.ex shell must mount reconnect_banner EXACTLY once (D-10), found #{banner_count} mount references"
+
+      shell_at = index_of!(src, ~s(class="threadline-ui"))
+      banner_at = index_of!(src, "<.reconnect_banner")
+      main_at = index_of!(src, ~s(id="tl-main"))
+
+      assert shell_at < banner_at and banner_at < main_at,
+             "the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"
+    end
+
+    test "every operator page routes its chrome through the shared UI.shell (no per-page wrapper duplication)" do
       for file <- @page_live_views do
         src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
 
-        banner_count =
-          src
-          |> String.split("tl-reconnect-banner")
-          |> length()
-          |> Kernel.-(1)
+        assert src =~ "UI.shell" or src =~ "<.shell",
+               "#{file}: must render its chrome via the shared shell component (D-10), not a hand-rolled <div class=\"threadline-ui\"> wrapper"
 
-        assert banner_count == 1,
-               "#{file}: reconnect_banner must be mounted EXACTLY once via the shared shell (D-10), found #{banner_count} (RED today — no shared shell mounts it)"
+        refute String.contains?(src, ~s(class="threadline-ui")),
+               "#{file}: the `.threadline-ui` wrapper now lives in UI.shell — no per-page duplication (D-10)"
 
-        shell_at = index_of!(src, ~s(class="threadline-ui"))
-        banner_at = index_of!(src, "tl-reconnect-banner")
-        main_at = index_of!(src, ~s(id="tl-main"))
-
-        assert shell_at < banner_at and banner_at < main_at,
-               "#{file}: the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"
+        refute String.contains?(src, ~s(id="tl-main")),
+               "#{file}: the `#tl-main` element now lives in UI.shell — no per-page duplication (D-10)"
       end
     end
 
-    test "operator pages never anchor reconnect on <body> or the legacy .phx-disconnected (D-11)" do
-      for file <- @page_live_views do
-        src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
+    test "neither the shell nor any page anchors reconnect on <body> or the legacy .phx-disconnected (D-11)" do
+      for file <- [
+            @ui_module
+            | Enum.map(@page_live_views, &Path.join("lib/threadline/operator_surface/live", &1))
+          ] do
+        src = File.read!(file)
 
         refute String.contains?(src, ".phx-disconnected"),
                "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on .threadline-ui.phx-loading/.phx-error (D-11)"

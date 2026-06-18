@@ -1082,6 +1082,64 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # SEED-005 / D-10: the single shared shell/chrome for ALL 11 operator
+  # LiveViews. Before this component existed, every LiveView hand-duplicated
+  # `<div class="threadline-ui">…<Style.css/>…<surface_header/>…<main id="tl-main">`,
+  # which is exactly why `reconnect_banner/1` had no home and nothing mounted it
+  # (the 177 follow-up). Routing all 11 pages through `shell/1` gives the
+  # reconnect banner a single mount point — rendered ONCE, directly above
+  # `#tl-main` and inside `.threadline-ui` — and kills the 11-way drift.
+  #
+  # Connection lifecycle (D-11): the LiveView render-root IS `.threadline-ui`, so
+  # phoenix_live_view applies `.phx-loading`/`.phx-error` directly on it. The
+  # banner + `[data-tl-mutating]` dimming is pure CSS keyed off those classes
+  # (style.ex:3405-3424) — NEVER `<body>`, NEVER the legacy `.phx-disconnected`.
+  #
+  # Stays `@doc false` / private — no public, host-facing component API (v1.31
+  # freeze). Pages keep their own `<main>` class via `:main_class` so the
+  # per-page centering wrappers (e.g. `tl-container`, `tl-home`) survive, and any
+  # page-specific `<main>` attributes ride the `:main_rest` global.
+  attr(:theme, :string, default: "dark")
+  attr(:current, :atom, default: nil)
+  attr(:coverage, :map, required: true)
+  attr(:base_path, :string, required: true)
+  attr(:error, :string, default: nil)
+  attr(:coverage_enabled, :boolean, default: false)
+  attr(:policy_enabled, :boolean, default: false)
+  attr(:evidence_enabled, :boolean, default: false)
+  attr(:exports_enabled, :boolean, default: false)
+  attr(:scoped, :boolean, default: false)
+  attr(:script, :boolean, default: false)
+  attr(:main_class, :any, default: "tl-page")
+  attr(:main_rest, :global, include: ~w(data-testid))
+  slot(:inner_block, required: true)
+
+  def shell(assigns) do
+    ~H"""
+    <div class="threadline-ui" data-tl-theme={@theme}>
+      <Threadline.OperatorSurface.Style.css />
+      <Script.js :if={@script} />
+      <Threadline.OperatorSurface.Components.SurfaceHeader.surface_header
+        theme={@theme}
+        coverage={@coverage}
+        base_path={@base_path}
+        error={@error}
+        coverage_enabled={@coverage_enabled}
+        policy_enabled={@policy_enabled}
+        evidence_enabled={@evidence_enabled}
+        exports_enabled={@exports_enabled}
+        current={@current}
+        scoped={@scoped}
+      />
+      <.reconnect_banner />
+      <main id="tl-main" class={@main_class} tabindex="-1" {@main_rest}>
+        <%= render_slot(@inner_block) %>
+      </main>
+    </div>
+    """
+  end
+
+  @doc false
   attr(:id, :string, required: true)
   attr(:class, :any, default: nil)
   attr(:rest, :global)
