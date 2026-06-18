@@ -63,12 +63,18 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 
 | ID | Status | Current Score | Target Score | Kind | Story ID | Fixture Key | Owner Phase |
 |---|---:|---:|---:|---|---|---|---:|
-| `group.action-bar.reserved` | reserved | 35 | 90 | group | `group.action-bar.reserved` | `group.action_bar.reserved` | 177 |
-| `group.filter-bar.reserved` | reserved | 35 | 90 | group | `group.filter-bar.reserved` | `group.filter_bar.reserved` | 177 |
-| `group.kv-list.reserved` | reserved | 35 | 90 | group | `group.kv-list.reserved` | `group.kv_list.reserved` | 177 |
-| `group.pagination.reserved` | reserved | 35 | 90 | group | `group.pagination.reserved` | `group.pagination.reserved` | 177 |
-| `group.status-strip.reserved` | reserved | 35 | 90 | group | `group.status-strip.reserved` | `group.status_strip.reserved` | 177 |
-| `group.timeline-list.reserved` | reserved | 35 | 90 | group | `group.timeline-list.reserved` | `group.timeline_list.reserved` | 177 |
+| `group.data-panel.current` | current | 62 | 90 | group | `group.data-panel.current` | `group.data_panel.current` | 177 |
+| `group.detail-header.current` | current | 62 | 90 | group | `group.detail-header.current` | `group.detail_header.current` | 177 |
+| `group.drawer-form.reference` | current | 62 | 90 | group | `group.drawer-form.reference` | `group.drawer_form.reference` | 177 |
+| `group.empty-cta.current` | current | 62 | 90 | group | `group.empty-cta.current` | `group.empty_cta.current` | 177 |
+| `group.modal-destructive.current` | current | 62 | 90 | group | `group.modal-destructive.current` | `group.modal_destructive.current` | 177 |
+| `group.offline.current` | current | 62 | 90 | group | `group.offline.current` | `group.offline.current` | 177 |
+| `group.page-header.current` | current | 62 | 90 | group | `group.page-header.current` | `group.page_header.current` | 177 |
+| `group.permission-denied.current` | current | 62 | 90 | group | `group.permission-denied.current` | `group.permission_denied.current` | 177 |
+| `group.stats-chart-table.current` | current | 62 | 90 | group | `group.stats-chart-table.current` | `group.stats_chart_table.current` | 177 |
+| `group.tabs-subviews.reference` | current | 62 | 90 | group | `group.tabs-subviews.reference` | `group.tabs_subviews.reference` | 177 |
+| `group.toast-update.current` | current | 62 | 90 | group | `group.toast-update.current` | `group.toast_update.current` | 177 |
+| `group.toolbar.current` | current | 62 | 90 | group | `group.toolbar.current` | `group.toolbar.current` | 177 |
 
 ## Pages
 
