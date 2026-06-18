@@ -219,7 +219,7 @@ Plans:
 - [x] 177-02-PLAN.md — Semantic gap tokens + UI.stack/1 + UI.cluster/1 layout primitives
 - [x] 177-03-PLAN.md — UI.data_panel/1 + UI.toolbar/1 + UI.detail_header/1 + page_header breadcrumb truncation
 - [x] 177-04-PLAN.md — Overlay JS-transition CSS completion + time-sync + reconnect/offline group on `.threadline-ui.phx-*`
-- [ ] 177-05-PLAN.md — Map 12 group configs to stress stories (live/reference tag) + ledger/DESIGN-SYSTEM parity + audit
+- [x] 177-05-PLAN.md — Map 12 group configs to stress stories (live/reference tag) + ledger/DESIGN-SYSTEM parity + audit
 
 **UI hint**: yes
 
@@ -295,7 +295,7 @@ Plans:
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 4/4 | Complete    | 2026-06-17 |
 | 176. Data display & operator patterns | v1.37 | 5/5 | Complete    | 2026-06-18 |
-| 177. Component groups / meta-components | v1.37 | 4/5 | In Progress|  |
+| 177. Component groups / meta-components | v1.37 | 5/5 | Complete   | 2026-06-18 |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
 | 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |
 | 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 0/TBD | Not started | - |

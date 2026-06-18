@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-status: executing
-last_updated: "2026-06-18T07:29:35.111Z"
+status: ready_for_verification
+last_updated: "2026-06-18T07:51:31.011Z"
 last_activity: 2026-06-18
 progress:
-  total_phases: 10
-  completed_phases: 6
-  total_plans: 34
-  completed_plans: 30
-  percent: 64
+  total_phases: 15
+  completed_phases: 7
+  total_plans: 31
+  completed_plans: 31
+  percent: 48
 ---
 
 # Project State: Threadline
@@ -24,9 +24,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 177 (component-groups-meta-components) — EXECUTING
-Plan: 5 of 5 (Plans 01–04 complete)
-Status: Ready to execute
+Phase: 177 (component-groups-meta-components) — COMPLETE (all 5 plans executed)
+Plan: 5 of 5 (Plans 01–05 complete)
+Status: Phase complete — ready for verification
 Last activity: 2026-06-18
 
 ## Performance Metrics
@@ -85,6 +85,7 @@ Last activity: 2026-06-18
 | Phase 176 P04 | ~25min | 2 tasks | 5 files |
 | Phase 177 P03 | ~5min | 3 tasks | 2 files |
 | Phase 177 P04 | ~12min | 2 tasks | 2 files |
+| Phase 177 P05 | ~17min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -223,8 +224,9 @@ Last activity: 2026-06-18
 - **177-02 (2026-06-18):** Layout primitives + semantic gap tokens. Added the three `--tl-gap-*` tokens parity-first across tokens.css/tokens.json/style.ex, then shipped `UI.stack/1` + `UI.cluster/1` (`@doc false`, card/1 idiom) with `.tl-stack`/`.tl-cluster` flexbox-gap CSS owning the spacing rhythm. Turned the Plan-01 gap-parity + stack/cluster RED scaffolds GREEN (gap-parity 4/0; combined gap+ui 66/7 where the 7 are out-of-scope Plan-03 data_panel/toolbar/detail_header scaffolds). Zero new dep; no public API; format + credo clean; capture/semantics untouched. Commits `8d701e8`, `38005a3`.
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
-- **Last Action**: Completed `177-04-PLAN.md` (2026-06-18) — Wave-4 of phase 177.
-- **Next Step**: Execute `177-05-PLAN.md` (stress stories + 12-config group ledger; closes GROUP-01/GROUP-02).
+- **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
+- **Last Action**: Completed `177-05-PLAN.md` (2026-06-18) — Wave-5, FINAL plan of phase 177; GROUP-01/GROUP-02 delivered.
+- **Next Step**: Verify phase 177 (`/gsd-verify-work` — 12-story visual audit across viewport × theme × state × motion × reconnect).
 - **Resume file**: None
 
 ## Operator Next Steps
