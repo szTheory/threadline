@@ -182,6 +182,34 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  attr(:gap, :string, default: "stack", values: ~w(stack section inline tight))
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
+
+  def stack(assigns) do
+    ~H"""
+    <div class={["tl-stack", "tl-stack--#{@gap}", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc false
+  attr(:justify, :string, default: "start", values: ~w(start between end))
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+  slot(:inner_block, required: true)
+
+  def cluster(assigns) do
+    ~H"""
+    <div class={["tl-cluster", "tl-cluster--#{@justify}", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc false
   attr(:title, :string, default: nil)
   attr(:id, :string, default: nil)
   attr(:variant, :string, default: "heading", values: ~w(heading display))

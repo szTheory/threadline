@@ -2085,6 +2085,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
+         * Layout primitives (GROUP-01 / D-02) — stack/cluster own the group
+         * spacing rhythm via flexbox `gap` over the semantic --tl-gap-* tokens.
+         * No raw child margins: gap is the single source of inter-child spacing.
+         */
+        .tl-stack {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .tl-stack--tight {
+          gap: var(--tl-space-1);
+        }
+
+        .tl-stack--inline {
+          gap: var(--tl-gap-inline);
+        }
+
+        .tl-stack--stack {
+          gap: var(--tl-gap-stack);
+        }
+
+        .tl-stack--section {
+          gap: var(--tl-gap-section);
+        }
+
+        .tl-cluster {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-gap-inline);
+          min-width: 0;
+        }
+
+        .tl-cluster--start {
+          justify-content: flex-start;
+        }
+
+        .tl-cluster--between {
+          justify-content: space-between;
+        }
+
+        .tl-cluster--end {
+          justify-content: flex-end;
+        }
+
+        /*
          * Metric card — the compact "label + big number" summary tile.
          * Canonical density variant of the card; status via [data-status]
          * (the shared stripe contract). Self-sufficient: used standalone as
