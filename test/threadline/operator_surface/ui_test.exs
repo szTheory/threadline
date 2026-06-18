@@ -1138,6 +1138,36 @@ defmodule Threadline.OperatorSurface.UITest do
                "stale banner must precede the data region (#{inspect(state)})"
       end
     end
+
+    test ":permission/:unavailable without a typed reason fails loudly (never silently generic, D-176-16)" do
+      assigns = %{}
+
+      for state <- [:permission, :unavailable] do
+        assigns = Map.put(assigns, :state, state)
+
+        assert_raise ArgumentError, ~r/requires a typed :reason/, fn ->
+          rendered_to_string(~H"""
+          <UI.data_panel state={@state}>
+            <:data><div id="the-data-table">rows</div></:data>
+          </UI.data_panel>
+          """)
+        end
+      end
+    end
+
+    test "an id state-keys the region so an in-place state swap replays the cross-fade (D-10.2)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_panel id="txns" state={:loading}>
+          <:data><div id="the-data-table">rows</div></:data>
+        </UI.data_panel>
+        """)
+
+      # The region id carries the state suffix so LiveView replaces it on a state swap.
+      assert html =~ ~s(id="txns-region-loading")
+    end
   end
 
   describe "toolbar/1 (D-06 / RESEARCH Pitfall 6) [RED — Plan 02]" do

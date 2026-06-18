@@ -782,16 +782,36 @@ defmodule Threadline.OperatorSurface.UI do
     doc: "stale timestamp; presence renders stale_banner ABOVE the region (D-176-14)"
   )
 
+  attr(:id, :string,
+    default: nil,
+    doc:
+      "optional base id; when set the region is state-keyed (`{id}-region-{state}`) so an " <>
+        "in-place state swap replays the cross-fade (D-10.2)"
+  )
+
   attr(:class, :any, default: nil)
   attr(:rest, :global)
   slot(:data, required: true, doc: "the data_table — only rendered in :ok")
   slot(:pager)
 
   def data_panel(assigns) do
+    if assigns.state in [:permission, :unavailable] and is_nil(assigns.reason) do
+      # Fail loudly: a missing reason would otherwise fall through data_state/1 to the
+      # generic error, silently erasing the permission/unavailable forensic distinction
+      # this shell promises to NEVER collapse (D-176-16, ASVS V4).
+      raise ArgumentError,
+            "data_panel state=#{inspect(assigns.state)} requires a typed :reason " <>
+              "(e.g. :unauthorized, :source_down, :redacted, :pruned)"
+    end
+
     ~H"""
     <section class={["tl-data-panel", @class]} {@rest}>
       <.stale_banner :if={@as_of} as_of={@as_of} />
-      <div class="tl-data-panel__region" data-state={@state}>
+      <div
+        class="tl-data-panel__region"
+        id={@id && "#{@id}-region-#{@state}"}
+        data-state={@state}
+      >
         <%= cond do %>
           <% @state == :ok -> %>
             <%= render_slot(@data) %>

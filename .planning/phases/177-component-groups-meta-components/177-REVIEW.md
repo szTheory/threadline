@@ -22,7 +22,9 @@ findings:
   warning: 3
   info: 3
   total: 6
-status: issues_found
+status: resolved
+warnings_resolved: 3
+resolution: "WR-01/WR-02/WR-03 fixed post-review (toast z-index → --tl-z-toast; data_panel raises on permission/unavailable without a typed reason; region cross-fade rewired from inert transition to a state-keyed tl-fade-in animation, D-10.2 contract lock updated in the same commit). Info items IN-01/02/03 left as documented (pre-existing / latent / doc-note)."
 ---
 
 # Phase 177: Code Review Report

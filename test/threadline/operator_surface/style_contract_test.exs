@@ -1314,16 +1314,19 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
              "overlay utility .#{klass} must be defined as a CSS class selector in style.ex (D-10.1; keyframes don't count — RESEARCH Pitfall 2)"
     end
 
-    # The data-region cross-fade (D-10.2): the region container carries an opacity
-    # transition on the fast motion token so a state swap reads as intentional.
+    # The data-region cross-fade (D-10.2): the region container fades in on the fast
+    # motion token so a state swap reads as intentional. A `transition` can't fire here
+    # (state swaps render different child markup, never toggle the region's own opacity),
+    # so the mechanism is an opacity-in `animation` keyed to the state-suffixed region id;
+    # see the .tl-data-panel__region comment in style.ex.
     assert Regex.match?(
              selector_block_pattern(
                ".tl-data-panel__region",
-               ~r/transition:\s*opacity\s+var\(--tl-motion-fast\)/
+               ~r/animation:\s*tl-fade-in\s+var\(--tl-motion-fast\)/
              ),
              src
            ),
-           ".tl-data-panel__region must cross-fade opacity on var(--tl-motion-fast) for the state-swap motion (D-10.2)"
+           ".tl-data-panel__region must fade in via animation: tl-fade-in var(--tl-motion-fast) for the state-swap motion (D-10.2)"
   end
 
   defp motion_inventory_rows(inventory) do

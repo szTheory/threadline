@@ -2145,12 +2145,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         /*
          * The data region cross-fades on a state swap (happy <-> loading <-> empty <->
-         * error), opacity-only so it degrades cleanly. Container-level only — never the
-         * streamed <tr> children (D-11). The reduced-motion blanket collapses this
-         * near-instantly (D-12); no per-component handling.
+         * error). A `transition` can't fire here — data_panel swaps states by rendering
+         * different child markup, never by toggling the region's own opacity, so the
+         * value never changes. We use an opacity-in `animation` instead: when the caller
+         * supplies an id, the region's id is state-keyed (`{id}-region-{state}`), so a
+         * state swap makes LiveView replace the element and the fade replays; within :ok
+         * the id is stable so streamed <tr> updates do NOT re-trigger it (D-11). Opacity-
+         * only so it degrades cleanly; the reduced-motion blanket collapses it near-
+         * instantly (D-12), no per-component handling.
          */
         .tl-data-panel__region {
-          transition: opacity var(--tl-motion-fast) var(--tl-ease-standard);
+          animation: tl-fade-in var(--tl-motion-fast) var(--tl-ease-standard);
           min-width: 0;
         }
 
@@ -3370,7 +3375,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           position: fixed;
           right: var(--tl-space-4);
           bottom: var(--tl-space-4);
-          z-index: var(--tl-z-subview);
+          z-index: var(--tl-z-toast);
           display: flex;
           flex-direction: column;
           gap: var(--tl-space-1);
