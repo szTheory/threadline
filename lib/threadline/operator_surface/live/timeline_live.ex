@@ -663,6 +663,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               href={"#{@base_path}/exports/changes.csv?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
+              data-tl-mutating
+              aria-disabled="true"
+              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               CSV
@@ -671,6 +674,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               href={"#{@base_path}/exports/changes.json?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
+              data-tl-mutating
+              aria-disabled="true"
+              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               JSON
@@ -679,6 +685,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
+              data-tl-mutating
+              aria-disabled="true"
+              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               NDJSON
@@ -696,7 +705,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 required
                 class="tl-control"
               />
-              <button type="submit" class="tl-button tl-button--secondary">
+              <button type="submit" class="tl-button tl-button--secondary" data-tl-mutating>
                 <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
                 Save view
               </button>
@@ -718,6 +727,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   type="button"
                   class="tl-button tl-button--ghost tl-button--danger tl-button--icon"
                   aria-label={"Delete " <> view.name}
+                  data-tl-mutating
                 >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:trash} />
                 </button>

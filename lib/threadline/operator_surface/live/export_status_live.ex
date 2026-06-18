@@ -288,7 +288,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                         <div class="tl-job__actions">
                           <%= if Presentation.export_downloadable?(job) do %>
-                            <.link href={"#{@base_path}/exports/download/#{job.id}"} class="tl-button tl-button--primary tl-button--compact">
+                            <.link
+                              href={"#{@base_path}/exports/download/#{job.id}"}
+                              class="tl-button tl-button--primary tl-button--compact"
+                              data-tl-mutating
+                              aria-disabled="true"
+                              tabindex="-1"
+                            >
                               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
                               Download export
                             </.link>

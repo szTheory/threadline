@@ -291,7 +291,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <button type="button" class="tl-button tl-button--secondary" phx-click={JS.push("close_prune_modal")}>
                     Cancel
                   </button>
-                  <button type="submit" class="tl-button tl-button--danger">
+                  <button type="submit" class="tl-button tl-button--danger" data-tl-mutating>
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                     Prune now — removes matching records permanently
                   </button>
