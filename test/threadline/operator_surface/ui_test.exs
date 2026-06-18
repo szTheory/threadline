@@ -8,9 +8,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "button" do
     test "renders button with correct tl-button class" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.button>Click Me</UI.button>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.button>Click Me</UI.button>
+        """)
+
       assert html =~ "tl-button"
       assert html =~ "Click Me"
     end
@@ -19,9 +22,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "icon_button" do
     test "renders icon_button" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.icon_button>X</UI.icon_button>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.icon_button>X</UI.icon_button>
+        """)
+
       assert html =~ "tl-button"
       assert html =~ "tl-button--icon"
       assert html =~ "X"
@@ -31,9 +37,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "link" do
     test "renders link with correct interactive classes" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.link href="/">Home</UI.link>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.link href="/">Home</UI.link>
+        """)
+
       assert html =~ "tl-link"
       assert html =~ "tl-link--deep"
       assert html =~ ~s(href="/")
@@ -44,9 +53,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "badge" do
     test "renders badge with static classes and no misleading affordances" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.badge variant="success">Active</UI.badge>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.badge variant="success">Active</UI.badge>
+        """)
+
       assert html =~ "tl-chip"
       assert html =~ "tl-chip--success"
       assert html =~ "Active"
@@ -57,9 +69,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "alert" do
     test "renders alert with appropriate state variants" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.alert variant="warning">Watch out</UI.alert>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.alert variant="warning">Watch out</UI.alert>
+        """)
+
       assert html =~ "tl-alert"
       assert html =~ "tl-alert--warning"
       assert html =~ "Watch out"
@@ -70,9 +85,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "divider" do
     test "renders divider component properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.divider />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.divider />
+        """)
+
       assert html =~ "tl-divider"
       assert html =~ "<hr"
     end
@@ -81,9 +99,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "spinner" do
     test "renders spinner component properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.spinner />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.spinner />
+        """)
+
       assert html =~ "tl-spinner"
       assert html =~ "<svg"
     end
@@ -92,26 +113,33 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "avatar" do
     test "renders avatar component properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.avatar src="user.png" alt="User" />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.avatar src="user.png" alt="User" />
+        """)
+
       assert html =~ "tl-avatar"
       assert html =~ "src=\"user.png\""
       assert html =~ "alt=\"User\""
       assert html =~ "<img"
     end
   end
+
   describe "card" do
     test "renders card component properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.card variant="danger">
-        <:title>Card Title</:title>
-        <:meta>Card Meta</:meta>
-        Card Body
-        <:actions><button>Action</button></:actions>
-      </UI.card>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.card variant="danger">
+          <:title>Card Title</:title>
+          <:meta>Card Meta</:meta>
+          Card Body
+          <:actions><button>Action</button></:actions>
+        </UI.card>
+        """)
+
       assert html =~ "tl-card"
       assert html =~ "tl-card--danger"
       assert html =~ "tl-card__header"
@@ -127,9 +155,12 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "renders card without optional slots" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.card>Body Only</UI.card>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.card>Body Only</UI.card>
+        """)
+
       assert html =~ "tl-card"
       assert html =~ "Body Only"
       refute html =~ "tl-card__header"
@@ -140,9 +171,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "stat_tile" do
     test "renders stat_tile component properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.stat_tile status="success" label="Total" value="1,234" />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.stat_tile status="success" label="Total" value="1,234" />
+        """)
+
       assert html =~ "tl-card--metric"
       assert html =~ "data-status=\"success\""
       assert html =~ "tl-card__metric-label"
@@ -155,13 +189,16 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "empty_state" do
     test "renders empty_state properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.empty_state variant="unsupported">
-        <:title>No items</:title>
-        Nothing here
-        <:actions><button>Add</button></:actions>
-      </UI.empty_state>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.empty_state variant="unsupported">
+          <:title>No items</:title>
+          Nothing here
+          <:actions><button>Add</button></:actions>
+        </UI.empty_state>
+        """)
+
       assert html =~ "tl-empty"
       assert html =~ "tl-empty--unsupported"
       assert html =~ "tl-empty__title"
@@ -176,12 +213,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "error_state" do
     test "renders error_state wrapping empty_state properly" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.error_state>
-        <:title>Error Occurred</:title>
-        Server failed
-      </UI.error_state>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_state>
+          <:title>Error Occurred</:title>
+          Server failed
+        </UI.error_state>
+        """)
+
       assert html =~ "tl-empty"
       assert html =~ "tl-empty--error"
       assert html =~ "tl-empty__title"
@@ -194,9 +234,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "code_block" do
     test "renders code block safely" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.code_block>{"{\"key\": \"value\"}"}</UI.code_block>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.code_block>{"{\"key\": \"value\"}"}</UI.code_block>
+        """)
+
       assert html =~ "<pre"
       assert html =~ "<code"
       assert html =~ "tl-code"
@@ -207,11 +250,14 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "modal" do
     test "renders modal with role dialog and aria-modal" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.modal id="test-modal">
-        Modal Content
-      </UI.modal>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.modal id="test-modal">
+          Modal Content
+        </UI.modal>
+        """)
+
       assert html =~ "role=\"dialog\""
       assert html =~ "aria-modal=\"true\""
       assert html =~ "Modal Content"
@@ -222,11 +268,14 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "drawer" do
     test "renders drawer with JS macros" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.drawer id="test-drawer">
-        Drawer Content
-      </UI.drawer>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.drawer id="test-drawer">
+          Drawer Content
+        </UI.drawer>
+        """)
+
       assert html =~ "id=\"test-drawer\""
       assert html =~ "Drawer Content"
       assert html =~ "phx-window-keydown"
@@ -236,11 +285,14 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "toast" do
     test "renders toast with phx-click-away and dismiss mechanisms" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.toast id="test-toast" kind="info" title="Info">
-        Toast Message
-      </UI.toast>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.toast id="test-toast" kind="info" title="Info">
+          Toast Message
+        </UI.toast>
+        """)
+
       assert html =~ "phx-click-away"
       assert html =~ "Toast Message"
     end
@@ -249,12 +301,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "tooltip" do
     test "renders tooltip with correct classes" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.tooltip id="test-tooltip">
-        <:trigger>Hover me</:trigger>
-        Tooltip text
-      </UI.tooltip>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.tooltip id="test-tooltip">
+          <:trigger>Hover me</:trigger>
+          Tooltip text
+        </UI.tooltip>
+        """)
+
       assert html =~ "tl-tooltip"
       assert html =~ "Hover me"
       assert html =~ "Tooltip text"
@@ -264,12 +319,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "popover" do
     test "renders popover with aria-expanded toggles" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.popover id="test-popover">
-        <:trigger>Click me</:trigger>
-        Popover content
-      </UI.popover>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.popover id="test-popover">
+          <:trigger>Click me</:trigger>
+          Popover content
+        </UI.popover>
+        """)
+
       assert html =~ "aria-expanded=\"false\""
       assert html =~ "phx-click-away"
       assert html =~ "Popover content"
@@ -279,12 +337,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "dropdown" do
     test "renders dropdown with ARIA bindings" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.dropdown id="test-dropdown">
-        <:trigger>Menu</:trigger>
-        Dropdown item
-      </UI.dropdown>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.dropdown id="test-dropdown">
+          <:trigger>Menu</:trigger>
+          Dropdown item
+        </UI.dropdown>
+        """)
+
       assert html =~ "aria-haspopup=\"true\""
       assert html =~ "aria-expanded=\"false\""
       assert html =~ "Dropdown item"
@@ -295,12 +356,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "tabs" do
     test "renders tabs with role tablist and tab" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.tabs>
-        <:tab active>Tab 1</:tab>
-        <:tab>Tab 2</:tab>
-      </UI.tabs>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.tabs>
+          <:tab active>Tab 1</:tab>
+          <:tab>Tab 2</:tab>
+        </UI.tabs>
+        """)
+
       assert html =~ "role=\"tablist\""
       assert html =~ "role=\"tab\""
       assert html =~ "aria-selected=\"true\""
@@ -313,12 +377,15 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "segmented_control" do
     test "renders segmented control with group role" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.segmented_control>
-        <:segment active>Seg 1</:segment>
-        <:segment>Seg 2</:segment>
-      </UI.segmented_control>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.segmented_control>
+          <:segment active>Seg 1</:segment>
+          <:segment>Seg 2</:segment>
+        </UI.segmented_control>
+        """)
+
       assert html =~ "role=\"group\""
       assert html =~ "aria-pressed=\"true\""
       assert html =~ "aria-pressed=\"false\""
@@ -329,11 +396,14 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "accordion" do
     test "renders accordion disclosure with aria-expanded" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.accordion id="test-accordion" title="Section 1">
-        Accordion content
-      </UI.accordion>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.accordion id="test-accordion" title="Section 1">
+          Accordion content
+        </UI.accordion>
+        """)
+
       assert html =~ "aria-expanded=\"false\""
       assert html =~ "aria-controls=\"test-accordion-content\""
       assert html =~ "Section 1"
@@ -344,10 +414,12 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "form components" do
     test "renders field with label, input, and connected aria-describedby for errors and help" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
-      """)
-      
+
+      html =
+        rendered_to_string(~H"""
+        <UI.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
+        """)
+
       assert html =~ "tl-field"
       assert html =~ "tl-field--error"
       assert html =~ ~r/<label[^>]*for="user-email"[^>]*>\s*Email\s*<\/label>/
@@ -355,55 +427,66 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ ~r/<input[^>]*name="email"[^>]*>/
       assert html =~ ~r/<input[^>]*type="email"[^>]*>/
       assert html =~ ~r/<input[^>]*value="test@example"[^>]*>/
-      
+
       # Check aria-describedby binding
       assert html =~ ~r/aria-describedby="[^"]*user-email-help[^"]*"/
       assert html =~ ~r/aria-describedby="[^"]*user-email-error[^"]*"/
-      
+
       # Check help text and error text presence with correct IDs
       assert html =~ ~r/<p[^>]*id="user-email-help"[^>]*>\s*Enter your email\s*<\/p>/
       assert html =~ ~r/<p[^>]*id="user-email-error"[^>]*>.*Invalid format.*<\/p>/s
-      
+
       # Test non-color validation applies to errors (e.g., error icon prefix)
-      assert html =~ "<svg" # Assuming an SVG icon is used for non-color validation
+      # Assuming an SVG icon is used for non-color validation
+      assert html =~ "<svg"
     end
 
     test "standard inputs render correct HTML5 markup with BEM classes" do
       assigns = %{}
-      
+
       # Text
-      html = rendered_to_string(~H"""
-      <UI.input id="t1" name="t1" value="text" type="text" />
-      """)
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="t1" name="t1" value="text" type="text" />
+        """)
+
       assert html =~ "tl-control"
       assert html =~ ~s(type="text")
-      
+
       # Textarea
-      html = rendered_to_string(~H"""
-      <UI.input id="t2" name="t2" value="text" type="textarea" />
-      """)
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="t2" name="t2" value="text" type="textarea" />
+        """)
+
       assert html =~ "tl-control"
       assert html =~ ~s(<textarea)
-      
+
       # Select
-      html = rendered_to_string(~H"""
-      <UI.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
-      """)
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
+        """)
+
       assert html =~ "tl-control"
       assert html =~ ~s(<select)
       assert html =~ ~s(<option value="1")
-      
+
       # Checkbox
-      html = rendered_to_string(~H"""
-      <UI.input id="t4" name="t4" value="true" type="checkbox" />
-      """)
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="t4" name="t4" value="true" type="checkbox" />
+        """)
+
       assert html =~ "tl-checkbox"
       assert html =~ ~s(type="checkbox")
-      
+
       # Date
-      html = rendered_to_string(~H"""
-      <UI.input id="t5" name="t5" value="2024-01-01" type="date" />
-      """)
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="t5" name="t5" value="2024-01-01" type="date" />
+        """)
+
       assert html =~ "tl-control"
       assert html =~ ~s(type="date")
     end
@@ -412,9 +495,11 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "error_summary" do
     test "renders an alert region with each message linked to its field" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
+        """)
 
       assert html =~ ~s(role="alert")
       assert html =~ ~s(id="form-errors")
@@ -431,11 +516,13 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "renders a heading from the title slot when provided" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
-        <:title>Please fix the following</:title>
-      </UI.error_summary>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
+          <:title>Please fix the following</:title>
+        </UI.error_summary>
+        """)
 
       assert html =~ "Please fix the following"
       assert html =~ ~s(href="#email-error")
@@ -443,18 +530,22 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "renders a default heading when no title slot is supplied" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
+        """)
 
       assert html =~ "There is a problem"
     end
 
     test "renders nothing when there are no errors" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.error_summary id="form-errors" errors={[]} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_summary id="form-errors" errors={[]} />
+        """)
 
       refute html =~ ~s(role="alert")
       refute html =~ "<ul"
@@ -464,11 +555,13 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "field_group" do
     test "renders a fieldset and legend wrapping the inner content" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.field_group legend="Date range">
-        <span>inner field</span>
-      </UI.field_group>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.field_group legend="Date range">
+          <span>inner field</span>
+        </UI.field_group>
+        """)
 
       assert html =~ "<fieldset"
       assert html =~ "<legend"
@@ -480,11 +573,13 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "passes through an extra class and global attributes" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.field_group legend="Filters" class="extra-class" data-testid="grp">
-        <span>content</span>
-      </UI.field_group>
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.field_group legend="Filters" class="extra-class" data-testid="grp">
+          <span>content</span>
+        </UI.field_group>
+        """)
 
       assert html =~ "tl-filter-group"
       assert html =~ "extra-class"
@@ -495,9 +590,11 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "radio" do
     test "renders a radio group sharing one name with distinct ids and a checked selection" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
+        """)
 
       # both inputs share the same name
       assert html =~ ~s(name="mode")
@@ -520,9 +617,11 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "switch" do
     test "renders a native checkbox styled as a switch with role and aria-checked" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.switch id="notify" name="notify" value={true} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.switch id="notify" name="notify" value={true} />
+        """)
 
       assert html =~ ~s(role="switch")
       assert html =~ ~s(aria-checked="true")
@@ -533,9 +632,11 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "reflects unchecked state in aria-checked" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.switch id="notify" name="notify" value={false} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.switch id="notify" name="notify" value={false} />
+        """)
 
       assert html =~ ~s(aria-checked="false")
       assert html =~ ~s(type="checkbox")
@@ -545,9 +646,11 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "search" do
     test "renders a native search input carrying the control class" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.input id="q" name="q" value="" type="search" />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.input id="q" name="q" value="" type="search" />
+        """)
 
       assert html =~ ~s(type="search")
       assert html =~ "tl-control"
@@ -557,9 +660,11 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "combobox" do
     test "renders a combobox input plus listbox with ARIA state and JS toggling only" do
       assigns = %{}
-      html = rendered_to_string(~H"""
-      <UI.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
-      """)
+
+      html =
+        rendered_to_string(~H"""
+        <UI.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
+        """)
 
       assert html =~ ~s(role="combobox")
       assert html =~ ~s(aria-expanded="false")
@@ -574,6 +679,143 @@ defmodule Threadline.OperatorSurface.UITest do
       refute html =~ "x-data"
       # underlying input is a usable free-text field (degrades gracefully)
       assert html =~ ~s(name="city")
+    end
+  end
+
+  describe "ref/1" do
+    # A >40-char correlation id so the visible (truncated) face differs from the full value.
+    @long_ref "chg_00000000-0000-4000-8000-000000000171/correlation/abcdef0123456789"
+
+    defp copy_targets(html) do
+      Regex.scan(~r/data-tl-copy="([^"]*)"/, html) |> Enum.map(fn [_, v] -> v end)
+    end
+
+    test "binds data-tl-copy to the full value (== full, != visible) on a long ref" do
+      assigns = %{value: @long_ref}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
+        """)
+
+      # The mono code element carries the full value as the copy target and title.
+      assert html =~ "tl-secondary-ref"
+      assert html =~ ~s(data-tl-copy="#{@long_ref}")
+      assert html =~ ~s(title="#{@long_ref}")
+
+      # Every data-tl-copy binding equals the full value — never the truncated visible text.
+      targets = copy_targets(html)
+      assert targets != []
+
+      assert Enum.all?(targets, &(&1 == @long_ref)),
+             "every data-tl-copy must equal the full value"
+
+      # The visible (truncated) face is shown but is NOT what gets copied (forensic D-02).
+      visible = Threadline.OperatorSurface.Presentation.ref(@long_ref, kind: :correlation).visible
+      assert visible != @long_ref, "fixture must actually truncate so the test is meaningful"
+      assert html =~ visible
+      refute Enum.member?(targets, visible)
+    end
+
+    test "copy_label is required (omitting it raises a compile-time error)" do
+      assert_raise ArgumentError, ~r/copy_label/, fn ->
+        defmodule RefMissingLabel do
+          use Phoenix.Component
+          alias Threadline.OperatorSurface.UI
+
+          def render(assigns) do
+            ~H"""
+            <UI.ref value="x" />
+            """
+          end
+        end
+      end
+    end
+  end
+
+  describe "kv/1" do
+    test "renders a tl-kv dl with dt from the required key attr and dd from the slot body" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.kv>
+          <:item key="Correlation">corr-123</:item>
+          <:item key="Actor">alice</:item>
+        </UI.kv>
+        """)
+
+      assert html =~ ~s(<dl class="tl-kv")
+      assert html =~ "tl-kv__row"
+      assert html =~ ~r/<dt[^>]*>\s*Correlation\s*<\/dt>/
+      assert html =~ ~r/<dd[^>]*>.*corr-123.*<\/dd>/s
+      assert html =~ ~r/<dt[^>]*>\s*Actor\s*<\/dt>/
+      assert html =~ "alice"
+    end
+  end
+
+  describe "data_table/1" do
+    test "the :col label feeds both the <th> and every <td data-label> from one source" do
+      assigns = %{rows: [%{a: "1", b: "2"}, %{a: "3", b: "4"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_table rows={@rows}>
+          <:col :let={r} label="Status"><%= r.a %></:col>
+          <:col :let={r} label="Count"><%= r.b %></:col>
+        </UI.data_table>
+        """)
+
+      assert html =~ "tl-table"
+      assert html =~ "tl-table--responsive"
+      # Header labels.
+      assert html =~ ~r/<th[^>]*>\s*Status\s*<\/th>/
+      assert html =~ ~r/<th[^>]*>\s*Count\s*<\/th>/
+      # Each <td> carries data-label matching its column header.
+      assert html =~ ~s(data-label="Status")
+      assert html =~ ~s(data-label="Count")
+      # No ARIA table roles (D-09).
+      refute html =~ ~s(role="table")
+      refute html =~ ~s(role="row")
+      refute html =~ ~s(role="cell")
+    end
+
+    test "stream toggles phx-update=stream on the tbody; rows mode does not" do
+      assigns = %{rows: [%{a: "1"}], stream: [{"runs-1", %{a: "1"}}]}
+
+      rows_html =
+        rendered_to_string(~H"""
+        <UI.data_table rows={@rows}>
+          <:col :let={r} label="A"><%= r.a %></:col>
+        </UI.data_table>
+        """)
+
+      refute rows_html =~ ~s(phx-update="stream")
+
+      stream_html =
+        rendered_to_string(~H"""
+        <UI.data_table stream={@stream} row_id={fn {dom_id, _} -> dom_id end}>
+          <:col :let={{_dom, r}} label="A"><%= r.a %></:col>
+        </UI.data_table>
+        """)
+
+      assert stream_html =~ ~s(phx-update="stream")
+      assert stream_html =~ ~s(id="runs-1")
+    end
+
+    test "row_status emits a data-status stripe and :action slot hosts the kebab" do
+      assigns = %{rows: [%{a: "1", status: "failed"}]}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.data_table rows={@rows} row_status={fn r -> r.status end}>
+          <:col :let={r} label="A"><%= r.a %></:col>
+          <:action>menu</:action>
+        </UI.data_table>
+        """)
+
+      assert html =~ ~s(data-status="failed")
+      assert html =~ "menu"
     end
   end
 end
