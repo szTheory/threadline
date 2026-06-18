@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-18T07:18:08.422Z"
+last_updated: "2026-06-18T07:29:35.111Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 10
   completed_phases: 6
-  total_plans: 30
-  completed_plans: 29
-  percent: 63
+  total_plans: 34
+  completed_plans: 30
+  percent: 64
 ---
 
 # Project State: Threadline
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 ## Current Position
 
 Phase: 177 (component-groups-meta-components) — EXECUTING
-Plan: 4 of 5 (Plans 01–03 complete)
+Plan: 5 of 5 (Plans 01–04 complete)
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -84,6 +84,7 @@ Last activity: 2026-06-18
 | Phase 176 P03 | ~75min | 3 tasks | 12 files |
 | Phase 176 P04 | ~25min | 2 tasks | 5 files |
 | Phase 177 P03 | ~5min | 3 tasks | 2 files |
+| Phase 177 P04 | ~12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -201,6 +202,7 @@ Last activity: 2026-06-18
 - [177-02]: Wave-2 layout primitives + semantic gap tokens. Added `--tl-gap-inline`/`--tl-gap-stack`/`--tl-gap-section` to all three sources (tokens.css/tokens.json/style.ex) in ONE task so brandbook_token_parity_test never drifted (8/16/32px → --tl-space-2/4/8). Shipped `@doc false` `UI.stack/1` (gap: stack|section|inline|tight, default stack; tight→--tl-space-1/4px) and `UI.cluster/1` (justify: start|between|end, default start) following the card/1 class-list idiom, with `.tl-stack`/`.tl-cluster` CSS owning inter-child spacing via flexbox `gap` over --tl-gap-* tokens (no raw child margins, GROUP-01/D-02). Turned the Plan-01 gap-parity + stack/cluster render RED scaffolds GREEN. data_panel/toolbar/detail_header scaffolds left RED by design (Plan 03 owns them per task scope + verification_note, despite some test-name tags reading "[RED — Plan 02]"). Zero new dep; no public API; capture/semantics untouched; format + credo clean. Commits `8d701e8`, `38005a3`.
 - [177-01]: Wave-0 conflict resolution + RED test scaffolds (zero production code). **Conflict 1 (offline anchor):** confirmed by grep that all 11 audit LiveViews render `<div class="threadline-ui">` as their render root, so the offline-group CSS (Plan 04) keys off `.threadline-ui.phx-loading`/`.threadline-ui.phx-error` (the LiveView ROOT), NOT `<body>`, and NEVER `.phx-disconnected` (which doesn't exist in LiveView 1.x — the dropped-socket state re-applies `.phx-loading`). Corrects the literal wording of D-08/UI-SPEC per RESEARCH Pitfall 1; resolves Open Q1 / A2. **Conflict 2 (breadcrumbs):** keep `page_header/1`'s existing `attr(:breadcrumbs, :list)`; do NOT add a same-named `:breadcrumbs` slot (Phoenix forbids attr+slot name collision → compile error). Deliberate deviation from D-04's literal "slot" wording, justified by D-14 discretion (breadcrumbs are location DATA, not arbitrary markup) + RESEARCH Pitfall 4; Plan 03 adds narrow-viewport truncation only. **Token decision:** `--tl-gap-section`→`--tl-space-8` (32px), `--tl-gap-inline`→`--tl-space-2` (8px), `--tl-gap-stack`→`--tl-space-4` (16px) (D-09 / RESEARCH A1). Laid 12 RED scaffolds (3 source/parity in brandbook_token_parity_test + style_contract_test; 9 component renders in ui_test for stack/cluster/data_panel×4/toolbar×2/detail_header) + 1 GREEN breadcrumbs-trail test. Full suite 1071/12 — every failure is a new expected RED scaffold; no pre-existing regression. RED is the deliverable (Plans 02–05 turn green). Zero new dep (v1.37 invariant). Commits `bede897`, `4b7e304`.
 - [176-03]: Migrated the display/read-only operator pages onto the Plan-02 components (non-destructive consumer migration; coverage/retention/redaction are plans 04/05 and were NOT touched). Transaction copy footgun closed — transaction id + correlation id + diff before/after cells all bind `data-tl-copy={full}` via `UI.ref/1` (never `.title`/`.visible`/`.text`, D-02); transaction metadata → `UI.kv`; diff cells truncate via `value_token` (max 56) + gated per-cell copy bound to the full value (`diff_full/1`, D-04); timestamps in semantic `<time datetime=exact_time>` UTC (D-22). actor/timeline/evidence/export migrated to `UI.ref` (copy=full) + `UI.kv` (export per-job + both export-context `tl-param-list` retired). Per-page data-state: actor + timeline branch ok-empty into `empty_state variant=never` (first-run, history) vs `no_data` (narrowing filter active, funnel) — distinct icon SHAPE (D-17); evidence `no_data`; export `never`; invalid-actor-ref → `error_state`. **Rule-1 bug:** `UI.ref` used `String.to_existing_atom(kind)` which raised for `:correlation`/`:arn`/`:actor`/`:email` (atoms not interned) — added `Presentation.kinds/0` + `kind_from_string/1` (literal `@ref_kinds`, compile-time interned) and switched `UI.ref` to the safe resolver. **Rule-3:** `UI.ref` can't nest in an `<a>` (button-in-anchor) — copyable ref renders standalone, deep-link demoted to sibling Timeline/Actor affordance. `.tl-secondary-ref` CSS double-truncation removed (`text-overflow:ellipsis` gone, `overflow-wrap:anywhere` kept, D-05) with the paired `style_contract_test` assertion (refute ellipsis + assert wrap) updated in the SAME commit. Zero new `--tl-*` token; brand-parity + style_contract green. 213 targeted tests green; the 6 remaining operator_surface failures are the documented cross-plan Wave-0 RED scaffolds owned by plans 04/05 (1 card-nesting + 5 retention T3/ref-copy). Commits `e1650c8`, `32b0977`, `a798147`. Capture/semantics untouched.
+- [Phase ?]: [177-04]: Completed the motion + connection-lifecycle layer — overlay JS-transition utility CLASS selectors + modal/drawer/toast shells (overlay motion now real), every overlay JS.show/hide synced to time: 180 (=--tl-motion-base), toast fade-up via show_toast/2; reconnect/offline group keyed off the LiveView ROOT .threadline-ui.phx-loading/.phx-error (NOT body, NEVER the legacy disconnected class — Pitfall 1) with a warning-tinted role=status banner + [data-tl-mutating] disable + UI.reconnect_banner/1 documenting the mutating-link aria-disabled/tabindex=-1 contract (Pitfall 6). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean; zero new keyframes/tokens/deps; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits da4a36d, f1695a1.
 
 ### Blockers
 
@@ -220,8 +222,9 @@ Last activity: 2026-06-18
 - **177-01 (2026-06-18):** Wave-0 conflict resolution + RED test scaffolds. Bound both locked-decision-vs-reality conflicts in writing (offline anchor = `.threadline-ui` LiveView root, NOT body/`.phx-disconnected`; keep the breadcrumbs list attr, no slot) and laid 12 RED scaffolds (3 source/parity + 9 component renders) + 1 GREEN breadcrumbs-trail test across the three test files. Full suite 1071/12 — all 12 failures are the new expected RED scaffolds; no pre-existing regression; format clean. Zero production code, zero new dep. Commits `bede897`, `4b7e304`.
 - **177-02 (2026-06-18):** Layout primitives + semantic gap tokens. Added the three `--tl-gap-*` tokens parity-first across tokens.css/tokens.json/style.ex, then shipped `UI.stack/1` + `UI.cluster/1` (`@doc false`, card/1 idiom) with `.tl-stack`/`.tl-cluster` flexbox-gap CSS owning the spacing rhythm. Turned the Plan-01 gap-parity + stack/cluster RED scaffolds GREEN (gap-parity 4/0; combined gap+ui 66/7 where the 7 are out-of-scope Plan-03 data_panel/toolbar/detail_header scaffolds). Zero new dep; no public API; format + credo clean; capture/semantics untouched. Commits `8d701e8`, `38005a3`.
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
-- **Last Action**: Completed `177-03-PLAN.md` (2026-06-18) — Wave-3 of phase 177.
-- **Next Step**: Execute `177-04-PLAN.md` (offline/overlay motion CSS — turns the 2 remaining style_contract RED scaffolds GREEN).
+- **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
+- **Last Action**: Completed `177-04-PLAN.md` (2026-06-18) — Wave-4 of phase 177.
+- **Next Step**: Execute `177-05-PLAN.md` (stress stories + 12-config group ledger; closes GROUP-01/GROUP-02).
 - **Resume file**: None
 
 ## Operator Next Steps
