@@ -45,8 +45,8 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Component Groups / Meta-Components (GROUP)
 
-- [ ] **GROUP-01**: Recurring configurations (page-header+actions+breadcrumbs; toolbar+search+filters+sort; table+empty+loading+pagination; stat-cards+chart+table; detail-header+metadata+actions; modal-confirm+destructive; drawer+form; toast+state-update; tabs+subviews; empty+CTA; permission-denied; reconnect/offline-banner+disabled-actions) are audited as units with intentional spacing and hierarchy.
-- [ ] **GROUP-02**: Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions.
+- [x] **GROUP-01**: Recurring configurations (page-header+actions+breadcrumbs; toolbar+search+filters+sort; table+empty+loading+pagination; stat-cards+chart+table; detail-header+metadata+actions; modal-confirm+destructive; drawer+form; toast+state-update; tabs+subviews; empty+CTA; permission-denied; reconnect/offline-banner+disabled-actions) are audited as units with intentional spacing and hierarchy.
+- [x] **GROUP-02**: Each group holds together across narrow and wide layouts, with states aligned across its children, and motion clarifies state transitions.
 
 ### Per-Page & Flow Stress (PAGE)
 
@@ -122,8 +122,8 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | DATA-03 | Phase 176 | In progress (176-03: display-page empty/no_data/error distinct; retention states in 176-05) |
 | DATA-04 | Phase 176 | Complete (176-05: T3 server-enforced prune — secure_compare + authz re-check + audit-the-action + fail-closed; kebab w/ destructive-last; no bulk multi-select; redact deferred per checkpoint) |
 | DATA-05 | Phase 176 | Complete (176-04) |
-| GROUP-01 | Phase 177 | In Progress |
-| GROUP-02 | Phase 177 | Pending |
+| GROUP-01 | Phase 177 | Complete (177-05: 12 configs as group stress stories tagged live/reference, ledger↔fixtures↔projection parity, render across 320–1440 × dark/light/system) |
+| GROUP-02 | Phase 177 | Complete (177-02 layout primitives, 177-03 data_panel/toolbar/detail_header + cross-child state coordination, 177-04 group motion + reconnect/offline) |
 | PAGE-01 | Phase 178 | Pending |
 | PAGE-02 | Phase 178 | Pending |
 | PAGE-03 | Phase 178 | Pending |
