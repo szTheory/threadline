@@ -254,6 +254,88 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Enum.sort(by_surface[:reference]) == Enum.sort(@reference_group_story_ids)
     end
 
+    # --- Phase 178 (PAGE-01 / D-04): page-story reserved -> current conversion --
+    #
+    # RED Wave-0 scaffold. The 11 `page.<x>.reserved` entries (status "reserved",
+    # cases ["warning"]) are PAGE-01's worklist. D-04 converts each into a real
+    # fixture-backed CURRENT path story carrying the 7 audit paths
+    # (happy/empty/loading/error/permission/boundary/advanced). This assertion is the
+    # binding RED target Plan 04 turns green: today every page subject still resolves
+    # to a `.reserved` baseline (status "reserved"), so it FAILS. Written against the
+    # eventual shape (a non-reserved story whose cases cover the 7 paths) so it cannot
+    # silently pass until Plan 04 actually does the conversion. Does NOT mutate
+    # stress_fixtures.ex or the ledger here (Wave 0 authors the detector only).
+    @page_subjects ~w(
+      actor
+      coverage
+      evidence
+      exports
+      home
+      redaction
+      retention
+      row-history
+      shell
+      timeline
+      transaction
+    )
+
+    # The 7 audit paths each page must eventually be fixture-backed across (D-04).
+    # The cases vocabulary maps onto this taxonomy; a converted page story must carry
+    # cases covering each path's representative fixture case.
+    @page_path_cases %{
+      "happy" => ~w(one many mixed_severity),
+      "empty" => ~w(empty zero_count),
+      "loading" => ~w(reconnecting stale),
+      "error" => ~w(error),
+      "permission" => ~w(permission_denied),
+      "boundary" => ~w(pagination_boundary timezone_boundary long_id long_string high_count),
+      "advanced" => ~w(non_ascii null_fields mixed_severity)
+    }
+
+    test "PAGE-01 (D-04): each of the 11 page subjects is a fixture-backed CURRENT 7-path story (RED until Plan 04)" do
+      stories = StressFixtures.all()
+
+      page_stories_by_subject =
+        stories
+        |> Enum.filter(&(&1.category == "page"))
+        |> Enum.group_by(fn story ->
+          # "page.actor.reserved" / "page.timeline.empty" -> subject "actor"/"timeline"
+          case String.split(story.id, ".") do
+            ["page", subject | _] -> subject
+            _ -> nil
+          end
+        end)
+
+      for subject <- @page_subjects do
+        subject_stories = Map.get(page_stories_by_subject, subject, [])
+
+        refute subject_stories == [],
+               "PAGE-01: page subject #{subject} must have at least one page story (D-04)"
+
+        # D-04: the page must be CONVERTED off the reserved baseline. A subject that
+        # still only carries `.reserved` (status "reserved") stories has not been
+        # converted — RED today for all 11.
+        converted =
+          Enum.filter(subject_stories, fn story -> story.status != "reserved" end)
+
+        refute converted == [],
+               "PAGE-01: page subject #{subject} is still a RESERVED baseline — Plan 04 must convert it to a fixture-backed current/baseline path story (D-04, RED today)"
+
+        # The converted page story/stories must cover all 7 audit paths via their
+        # fixture cases. RED today (the only non-reserved page stories — home.happy,
+        # timeline.empty — cover a single path each, not all 7).
+        covered_cases =
+          converted
+          |> Enum.flat_map(& &1.cases)
+          |> MapSet.new()
+
+        for {path, representative_cases} <- @page_path_cases do
+          assert Enum.any?(representative_cases, &MapSet.member?(covered_cases, &1)),
+                 "PAGE-01: page subject #{subject} must be fixture-backed for the '#{path}' path (one of #{inspect(representative_cases)}); got cases #{inspect(MapSet.to_list(covered_cases))} (D-04, RED until Plan 04 converts the 7-path page stories)"
+        end
+      end
+    end
+
     defp assert_reserved_story!(story_id, phase) do
       assert {:ok, story} = StressFixtures.by_id(story_id)
       assert story.status == "reserved", "#{story_id} must remain a reserved Phase 171 baseline"

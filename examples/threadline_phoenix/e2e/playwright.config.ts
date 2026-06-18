@@ -23,6 +23,7 @@ const projects = [
           testMatch: [
             /operator-(accessibility|screenshots|screenshot-regression|stress)\.spec\.ts/,
             /operator-phase-177-uat\.spec\.ts/,
+            /operator-phase-178-uat\.spec\.ts/,
           ],
           use: {
             ...devices["Desktop Chrome"],
