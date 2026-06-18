@@ -332,15 +332,89 @@ test.describe("Phase 178 SEED-005 — real socket-drop is detected client-side",
 // has a real target and Esc/scrim-click exercise the production dismiss path. These
 // cells are the real-engine half of the structural Tier A guards in
 // component_contract_test.exs (which scan the source markers).
+const LIVE_ROOT = "[data-phx-main]";
+const PRUNE_MODAL = "#prune-confirm";
 const PRUNE_CONTENT = "#prune-confirm-content";
+
+async function pruneModalState(page: Page) {
+  return page.evaluate(() => {
+    const describe = (selector: string) => {
+      const el = document.querySelector(selector) as HTMLElement | null;
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+
+      return {
+        className: el.className,
+        display: style.display,
+        height: rect.height,
+        opacity: style.opacity,
+        visibility: style.visibility,
+        width: rect.width,
+      };
+    };
+
+    const content = document.querySelector(
+      "#prune-confirm-content",
+    ) as HTMLElement | null;
+    const focusable = content?.querySelector(
+      "a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])",
+    ) as HTMLElement | null;
+    const liveRoot = document.querySelector("[data-phx-main]");
+
+    return {
+      content: describe("#prune-confirm-content"),
+      focusable:
+        focusable instanceof HTMLElement
+          ? {
+              className: focusable.className,
+              display: getComputedStyle(focusable).display,
+              text: focusable.textContent?.trim() ?? "",
+              visibility: getComputedStyle(focusable).visibility,
+            }
+          : null,
+      liveRootClass: liveRoot?.className ?? null,
+      modal: describe("#prune-confirm"),
+    };
+  });
+}
+
+async function expectVisibleWithPruneState(locator: Locator, page: Page) {
+  try {
+    await expect(locator).toBeVisible({ timeout: 15_000 });
+  } catch (error) {
+    throw new Error(
+      `Expected prune modal path to be visible after connected phx-click. State: ${JSON.stringify(
+        await pruneModalState(page),
+      )}\n${error}`,
+    );
+  }
+}
 
 async function openPruneModal(page: Page) {
   await page.goto("/audit/policy/retention");
-  await page
-    .getByRole("button", { name: "Run retention prune" })
-    .first()
-    .click();
-  await expect(page.locator(PRUNE_CONTENT)).toBeVisible();
+
+  const liveRoot = page.locator(LIVE_ROOT).first();
+  await expect(liveRoot).toHaveClass(/phx-connected/);
+
+  const pruneButton = page
+    .getByRole("button", { name: /^Run retention prune$/ })
+    .first();
+  await expect(pruneButton).toBeVisible();
+  await expect(pruneButton).toBeEnabled();
+  await pruneButton.click();
+
+  await expectVisibleWithPruneState(page.locator(PRUNE_MODAL), page);
+  const content = page.locator(PRUNE_CONTENT);
+  await expectVisibleWithPruneState(content, page);
+  await expectVisibleWithPruneState(
+    content
+      .locator(
+        "a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])",
+      )
+      .first(),
+    page,
+  );
 }
 
 test.describe("Phase 178 overlay footgun sample (#2/#3/#4)", () => {
