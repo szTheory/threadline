@@ -3382,6 +3382,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
+         * Reconnect / offline group (D-08, corrected per RESEARCH Pitfall 1).
+         * Rides phoenix_live_view's CLIENT-applied connection classes on the
+         * LiveView ROOT element — which in this app is `.threadline-ui` (confirmed
+         * 11/11 audit LiveViews render it as their render root). NOT `<body>`, and
+         * NEVER the legacy disconnected class (which does not exist in LiveView
+         * 1.x — a dropped socket re-applies `.phx-loading`). Zero new JS/deps,
+         * CSP-clean — it catches a dropped socket mid-session, unlike a mount-time
+         * connected?/1 assign.
+         *
+         * The reconnect banner is hidden by default and revealed only while the
+         * socket is loading/erroring. Mutating controls marked `data-tl-mutating`
+         * are disabled (affordance: pointer-events + dimming); the markup also
+         * carries aria-disabled + tabindex=-1 for links so the affordance is also
+         * announced/keyboard-safe (Pitfall 6 — affordance is not enforcement).
+         */
+        .tl-reconnect-banner {
+          display: none;
+        }
+
+        .threadline-ui.phx-loading .tl-reconnect-banner,
+        .threadline-ui.phx-error .tl-reconnect-banner {
+          display: flex;
+          align-items: center;
+          gap: var(--tl-gap-inline);
+          padding: var(--tl-space-2) var(--tl-space-4);
+          color: var(--tl-color-warning-text);
+          background: var(--tl-color-warning-bg);
+          border-bottom: 1px solid var(--tl-color-warning-border);
+        }
+
+        .threadline-ui.phx-loading [data-tl-mutating],
+        .threadline-ui.phx-error [data-tl-mutating] {
+          pointer-events: none;
+          opacity: 0.55;
+        }
+
+        /*
          * Motion — purposeful, brand-coherent micro-interactions.
          * Pure CSS, GPU-only (transform/opacity), reusing the motion tokens.
          * Each fires on element mount; LiveView streams replay them only for

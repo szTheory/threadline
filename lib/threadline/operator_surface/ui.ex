@@ -1032,6 +1032,36 @@ defmodule Threadline.OperatorSurface.UI do
   end
 
   @doc false
+  # Reconnect / offline banner (D-08, corrected per RESEARCH Pitfall 1). A calm,
+  # transient `role="status"` strip rendered at the shell level. It is hidden by
+  # default and revealed PURELY in CSS while the LiveView root carries `.phx-loading`
+  # or `.phx-error` (see style.ex `.threadline-ui.phx-loading .tl-reconnect-banner`).
+  # Zero new JS, zero new deps, CSP-clean — it rides phoenix_live_view's own
+  # client-applied connection classes, so it catches a dropped socket mid-session
+  # (unlike a mount-time `connected?/1` assign).
+  #
+  # Mutating controls elsewhere in the shell carry `data-tl-mutating` so the paired
+  # CSS disables them (pointer-events + dimming) while disconnected. Because
+  # `pointer-events:none` is an AFFORDANCE, not enforcement (Pitfall 6), mutating
+  # LINKS (which cannot take HTML `disabled`) must ALSO set `aria-disabled="true"`
+  # and `tabindex="-1"` so keyboard/SR users are not stranded on a dead control,
+  # e.g.:
+  #
+  #     <.button data-tl-mutating>Prune now</.button>
+  #     <a href={~p"/..."} data-tl-mutating aria-disabled="true" tabindex="-1">Re-run</a>
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  def reconnect_banner(assigns) do
+    ~H"""
+    <div class={["tl-reconnect-banner", @class]} role="status" {@rest}>
+      <Icon.icon name={:refresh} class="tl-alert__icon" />
+      <span>Reconnecting…</span>
+    </div>
+    """
+  end
+
+  @doc false
   attr(:id, :string, required: true)
   attr(:class, :any, default: nil)
   attr(:rest, :global)
