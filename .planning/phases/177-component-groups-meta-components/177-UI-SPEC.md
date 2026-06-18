@@ -1,10 +1,11 @@
 ---
 phase: 177
 slug: component-groups-meta-components
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-18
+reviewed_at: 2026-06-18
 ---
 
 # Phase 177 — UI Design Contract
@@ -195,11 +196,11 @@ All 12 group configurations are mapped onto stress stories in `stress_fixtures.e
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS (3 inherited `--tl-weight-*` primitives — documented exception)
+- [x] Dimension 5 Spacing: PASS (off-set 12/20px inherited tokens in active use — documented exception)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-18 (revision 1)
