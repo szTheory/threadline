@@ -144,17 +144,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               </thead>
                               <tbody>
                                 <tr>
-                                  <th>exclude</th>
+                                  <th scope="row" data-label="Field">exclude</th>
                                   <td data-label="Configured" class={diff_cell_class(row, :config, :exclude)}><%= columns_label(row.configured.exclude) %></td>
                                   <td data-label="Deployed" class={diff_cell_class(row, :deployed, :exclude)}><%= deployed_columns_label(row.deployed, :exclude) %></td>
                                 </tr>
                                 <tr>
-                                  <th>mask</th>
+                                  <th scope="row" data-label="Field">mask</th>
                                   <td data-label="Configured" class={diff_cell_class(row, :config, :mask)}><%= columns_label(row.configured.mask) %></td>
                                   <td data-label="Deployed" class={diff_cell_class(row, :deployed, :mask)}><%= deployed_columns_label(row.deployed, :mask) %></td>
                                 </tr>
                                 <tr>
-                                  <th>mask placeholder</th>
+                                  <th scope="row" data-label="Field">mask placeholder</th>
                                   <td data-label="Configured" class={diff_cell_class(row, :config, :placeholder)}><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
                                   <td data-label="Deployed" class={diff_cell_class(row, :deployed, :placeholder)}><%= deployed_placeholder_label(row.deployed) %></td>
                                 </tr>

@@ -203,7 +203,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "<th>Configured</th>"
         assert html =~ "<th>Deployed</th>"
-        assert html =~ "<th>mask placeholder</th>"
+        assert html =~ ~s(<th scope="row" data-label="Field">mask placeholder</th>)
         assert html =~ "[MASKED]"
         assert html =~ "[DEPLOYED]"
         assert html =~ "password_hash"
@@ -234,6 +234,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         refute html =~ "alice@example.com"
         refute html =~ "super-secret"
+      end
+    end
+
+    # -----------------------------------------------------------------------
+    # DATA-01 / D-10: the redaction page stays a 2-col Configured-vs-Deployed
+    # diff table (NOT converted to kv — that would destroy the comparison). The
+    # field <th> rows gain scope="row" so the field name is announced as the row
+    # header AND renders when the table stacks at <=480px (data-label). D-19: no
+    # bulk multi-select / select-all-over-destructive control exists.
+    # -----------------------------------------------------------------------
+    describe "diff-table collapse + no bulk multi-select (D-10/D-19)" do
+      test "field header cells carry scope=row and a stacking label", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction")
+
+        # Three field rows (exclude / mask / mask placeholder) each get scope="row".
+        scope_row_count =
+          Regex.scan(~r/<th scope="row"/, html) |> length()
+
+        assert scope_row_count >= 3,
+               "each of the three field <th> rows must carry scope=\"row\" (got #{scope_row_count})"
+
+        # The field name must render when the table stacks (data-label drives the
+        # responsive ::before label), and the table stays the 2-col diff table.
+        assert html =~ ~s(<th scope="row" data-label="Field">exclude</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">mask</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">mask placeholder</th>)
+        assert html =~ "tl-table--policy"
+      end
+
+      test "no bulk multi-select / select-all-over-destructive control exists", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction")
+
+        refute html =~ ~s(type="checkbox"),
+               "no per-row/select-all checkbox over destructive actions (D-19)"
+
+        refute html =~ "select-all"
+        refute html =~ "select_all"
       end
     end
 

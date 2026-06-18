@@ -239,6 +239,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
       end
 
+      test "no bulk multi-select / select-all-over-destructive control exists (D-19)", %{
+        conn: conn
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "completed",
+          deleted_count: 3,
+          duration_ms: 80,
+          started_at: DateTime.add(now, -5, :second),
+          completed_at: now
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        refute html =~ ~s(type="checkbox"),
+               "no per-row/select-all checkbox over the destructive prune (D-19)"
+
+        refute html =~ "select-all"
+        refute html =~ "select_all"
+      end
+
       test "page auto-refreshes periodically", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
 
