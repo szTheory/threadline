@@ -528,8 +528,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "tl-secondary-ref"
         assert html =~ long_correlation
 
-        assert html =~
-                 ~s(title="correlation_id: #{long_correlation}")
+        # Export filters now render as a kv <dl>: the key is the <dt> and the full
+        # value is recoverable via UI.ref (title + data-tl-copy bind the FULL value).
+        assert html =~ ~s(class="tl-kv)
+        assert html =~ ~s(correlation_id</dt>)
+        assert html =~ ~s(title="#{long_correlation}")
+        assert html =~ ~s(data-tl-copy="#{long_correlation}")
 
         assert String.contains?(html, "Ready to hand off") and
                  String.contains?(html, "Preparing") and

@@ -76,6 +76,22 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
+  # The valid per-kind truncation kinds (D-03). Listed as literal atoms so they are
+  # interned at compile time — UI.ref/1 resolves a kind STRING against this list
+  # instead of String.to_existing_atom/1, which would raise for a kind whose atom
+  # had not yet been referenced at runtime (e.g. :correlation, :arn, :actor, :email).
+  @ref_kinds [:uuid, :correlation, :arn, :actor, :hash, :path, :email, :url, :timestamp]
+
+  @spec kinds() :: [atom()]
+  def kinds, do: @ref_kinds
+
+  @spec kind_from_string(String.t() | nil) :: atom() | nil
+  def kind_from_string(nil), do: nil
+
+  def kind_from_string(kind) when is_binary(kind) do
+    Enum.find(@ref_kinds, fn k -> Atom.to_string(k) == kind end)
+  end
+
   @spec ref(term(), keyword()) :: %{visible: String.t(), title: String.t(), full: String.t()}
   def ref(value, opts \\ []) do
     full = secondary_ref_value(value)

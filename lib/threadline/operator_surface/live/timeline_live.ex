@@ -408,10 +408,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </span>
                 <span :if={correlation_id(change)}>
                   Correlation
-                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep" title={correlation_ref(change).title}>
-                    <code class="tl-secondary-ref"><%= correlation_ref(change).visible %></code>
+                  <UI.ref value={correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
+                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                    Timeline
                   </a>
-                  <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={correlation_id(change)} aria-label="Copy correlation id">Copy</button>
                 </span>
               </div>
               <div class="tl-change__actions">
@@ -431,17 +432,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           older_event="next-page"
           newer_event={nil}
         />
-        <div :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
-             class="tl-empty">
-          <h3 class="tl-empty__title"><%= empty_title(@future_window_empty) %></h3>
-          <p class="tl-empty__body"><%= empty_body(@future_window_empty) %></p>
-          <div class="tl-empty__actions">
+        <UI.empty_state
+          :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
+          variant={timeline_empty_variant(@filters_raw)}
+          role="status"
+          icon={timeline_empty_icon(@filters_raw)}
+        >
+          <:title><%= empty_title(@future_window_empty) %></:title>
+          <%= empty_body(@future_window_empty) %>
+          <:actions>
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">
               <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
               Clear filters
             </.link>
-          </div>
-        </div>
+          </:actions>
+        </UI.empty_state>
         <aside class="tl-journey--legend" aria-label="Investigation journey">
           <p>
             <strong>FIND</strong> filter the timeline ·
@@ -802,8 +807,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
     defp table_ref(_change), do: Presentation.secondary_ref("", 30)
 
-    defp correlation_ref(change), do: Presentation.secondary_ref(correlation_id(change), 34)
-
     # Renders the match count for the status line:
     # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
     # - Below the cap → exact integer with thousands separators
@@ -960,6 +963,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp invalid_filter_message(message) do
       "Timeline filters could not be applied. Fix the highlighted value, then apply filters again. #{message}"
     end
+
+    # Distinguish the two ok-empty states (D-17): a first-run empty (no narrowing
+    # filter beyond the time window) is `never` (history icon); a filtered-but-empty
+    # result is `no_data` (funnel icon). AsyncResult/empty cannot make this call —
+    # the page author branches it from whether a narrowing filter is active.
+    @timeline_narrowing_filters ~w(table table_schema actor_kind actor_id correlation_id)
+
+    defp timeline_filters_active?(%{} = raw) do
+      Enum.any?(@timeline_narrowing_filters, fn key ->
+        value = Map.get(raw, key)
+        is_binary(value) and String.trim(value) != ""
+      end)
+    end
+
+    defp timeline_filters_active?(_), do: false
+
+    defp timeline_empty_variant(raw),
+      do: if(timeline_filters_active?(raw), do: "no_data", else: "never")
+
+    defp timeline_empty_icon(raw),
+      do: if(timeline_filters_active?(raw), do: :funnel, else: :history)
 
     defp empty_title(true), do: "No captured changes in this time window"
     defp empty_title(false), do: "No captured changes match this window"

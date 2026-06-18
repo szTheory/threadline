@@ -132,15 +132,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @groups == [] do %>
-                <div class="tl-empty">
-                  <h3 class="tl-empty__title">No evidence records yet</h3>
-                  <p class="tl-empty__body">
-                    Threadline has not recorded evidence for this selection yet. Use
-                    <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
-                    API to confirm the current proof state, then narrow by subject or date if
-                    needed.
-                  </p>
-                </div>
+                <UI.empty_state variant="no_data" role="status" icon={:funnel}>
+                  <:title>No evidence records yet</:title>
+                  Threadline has not recorded evidence for this selection yet. Use
+                  <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
+                  API to confirm the current proof state, then narrow by subject or date if
+                  needed.
+                </UI.empty_state>
               <% else %>
                 <section :for={group <- @groups} class="tl-section">
                   <header class="tl-section__header">
@@ -158,8 +156,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </h4>
                         <div class="tl-record-card__meta">
                           <span class="tl-evidence__meta"><%= row.subject %></span>
-                          <% ref = Presentation.secondary_ref(row.subject_ref, 56) %>
-                          <span class="tl-secondary-ref" title={ref.title}><%= ref.visible %></span>
+                          <UI.ref value={row.subject_ref} copy_label="Copy subject ref" />
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                             <%= Presentation.human_time(row.recorded_at) %>
                           </time>

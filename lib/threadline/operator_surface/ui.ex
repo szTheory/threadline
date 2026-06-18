@@ -368,7 +368,7 @@ defmodule Threadline.OperatorSurface.UI do
   attr(:rest, :global)
 
   def ref(assigns) do
-    kind = assigns.kind && String.to_existing_atom(assigns.kind)
+    kind = Presentation.kind_from_string(assigns.kind)
     r = Presentation.ref(assigns.value, kind: kind)
     assigns = assign(assigns, :r, r)
 

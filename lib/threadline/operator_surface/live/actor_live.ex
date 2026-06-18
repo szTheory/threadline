@@ -104,16 +104,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
         <main id="tl-main" class="tl-page" tabindex="-1">
         <%= if @not_found do %>
-          <div class="tl-empty tl-empty--error">
-            <h3 class="tl-empty__title">Invalid Actor Reference</h3>
-            <p class="tl-empty__body">This actor kind and id cannot be parsed as a Threadline actor reference.</p>
-            <div class="tl-empty__actions">
+          <UI.error_state>
+            <:title>Invalid Actor Reference</:title>
+            This actor kind and id cannot be parsed as a Threadline actor reference.
+            <:actions>
               <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
                 Timeline
               </.link>
-            </div>
-          </div>
+            </:actions>
+          </UI.error_state>
         <% else %>
           <div class="tl-transaction">
             <UI.page_header breadcrumbs={[
@@ -122,6 +122,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             ]}>
               <:heading>Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></:heading>
               <:lede>Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
+              <UI.kv aria-label="Actor detail">
+                <:item key="Kind"><%= @actor_ref.type %></:item>
+                <:item key="Id">
+                  <UI.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
+                </:item>
+              </UI.kv>
               <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
               <div class="tl-segmented" role="group" aria-label="Actor activity window">
                 <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={pressed_state(@time_window_hours, 1)} class="tl-segmented__item">1h</button>
@@ -133,16 +139,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
 
           <%= if not @has_ever_acted do %>
-            <div class="tl-empty tl-empty--never">
-              <h3 class="tl-empty__title">No actor activity recorded</h3>
-              <p class="tl-empty__body">This actor has never recorded any events.</p>
-            </div>
+            <UI.empty_state variant="never" role="status" icon={:history}>
+              <:title>No actor activity recorded</:title>
+              This actor has never recorded any events.
+            </UI.empty_state>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
-              <div class="tl-empty">
-                <h3 class="tl-empty__title">No events in this window</h3>
-                <p class="tl-empty__body">No events found in the selected time window.<%= if @last_activity do %> This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %></p>
-                <div class="tl-empty__actions">
+              <UI.empty_state variant="no_data" role="status" icon={:funnel}>
+                <:title>No events in this window</:title>
+                No events found in the selected time window.<%= if @last_activity do %> This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %>
+                <:actions>
                   <button :if={@time_window_hours != 720} type="button" phx-click="set-window" phx-value-hours="720" class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                     Widen to 30 days
@@ -151,8 +157,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                     Open in timeline
                   </a>
-                </div>
-              </div>
+                </:actions>
+              </UI.empty_state>
             <% else %>
               <div
                 id="transactions-list"
@@ -170,9 +176,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       </time>
                     </div>
                     <div class="tl-meta">
-                      <% tx_ref = Presentation.secondary_ref(tx.id, 24) %>
-                      <span>Transaction <code class="tl-secondary-ref" title={tx_ref.title}><%= tx_ref.visible %></code></span>
-                      <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy" data-tl-copy={tx.id} aria-label="Copy transaction id">Copy</button>
+                      <span>Transaction <UI.ref value={tx.id} kind="uuid" copy_label="Copy transaction id" /></span>
                     </div>
                     <div class="tl-change__actions">
                       <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">

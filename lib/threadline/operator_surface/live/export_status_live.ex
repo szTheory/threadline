@@ -180,15 +180,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                 </div>
 
-                <div :if={@timeline_export_context.status == :valid} class="tl-param-list" aria-label="Timeline export filters">
-                  <%= for {key, value} <- @timeline_export_context.pairs do %>
-                    <% ref = Presentation.secondary_ref(value, 42) %>
-                    <span class="tl-param" title={"#{key}: #{ref.title}"}>
-                      <span class="tl-param__key"><%= key %></span>
-                      <span class="tl-param__value tl-secondary-ref"><%= ref.visible %></span>
-                    </span>
-                  <% end %>
-                </div>
+                <UI.kv :if={@timeline_export_context.status == :valid} aria-label="Timeline export filters">
+                  <:item :for={{key, value} <- @timeline_export_context.pairs} key={key}>
+                    <UI.ref value={value} copy_label={"Copy #{key} filter"} />
+                  </:item>
+                </UI.kv>
 
                 <div :if={@timeline_export_context.status == :invalid} class="tl-alert tl-alert--error" role="alert">
                   <strong>Timeline export context could not be applied.</strong>
@@ -226,15 +222,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                 </div>
 
-                <div :if={@evidence_export_context.status == :valid} class="tl-param-list" aria-label="Evidence proof filters">
-                  <%= for {key, value} <- @evidence_export_context.pairs do %>
-                    <% ref = Presentation.secondary_ref(value, 42) %>
-                    <span class="tl-param" title={"#{key}: #{ref.title}"}>
-                      <span class="tl-param__key"><%= key %></span>
-                      <span class="tl-param__value tl-secondary-ref"><%= ref.visible %></span>
-                    </span>
-                  <% end %>
-                </div>
+                <UI.kv :if={@evidence_export_context.status == :valid} aria-label="Evidence proof filters">
+                  <:item :for={{key, value} <- @evidence_export_context.pairs} key={key}>
+                    <UI.ref value={value} copy_label={"Copy #{key} filter"} />
+                  </:item>
+                </UI.kv>
 
                 <div :if={@evidence_export_context.status == :invalid} class="tl-alert tl-alert--error" role="alert">
                   <strong>Evidence proof context could not be applied.</strong>
@@ -245,16 +237,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
 
             <%= if not @has_jobs do %>
-              <div class="tl-empty">
-                <h3 class="tl-empty__title">No export jobs queued</h3>
-                <p class="tl-empty__body">Queue an export from Timeline, then return here to download the completed packet or reopen the source search.</p>
-                <div class="tl-empty__actions">
+              <UI.empty_state variant="never" role="status" icon={:history}>
+                <:title>No export jobs queued</:title>
+                Queue an export from Timeline, then return here to download the completed packet or reopen the source search.
+                <:actions>
                   <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                     Open timeline
                   </.link>
-                </div>
-              </div>
+                </:actions>
+              </UI.empty_state>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
                 <%!-- Honest cap caption (D-20, WR-04/WR-05): Exports is recent-only /
@@ -288,14 +280,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           </span>
                           <div class="tl-job__title">
                             <strong><%= Presentation.export_summary(job.query_params) %></strong>
-                            <% actor = Presentation.secondary_ref(job.actor_ref, 34) %>
                             <span>
                               requested by
-                              <%= if path = actor_path(@base_path, job.actor_ref) do %>
-                                <a href={path} class="tl-link tl-link--deep tl-secondary-ref" title={actor.title}><%= actor.visible %></a>
-                              <% else %>
-                                <code class="tl-secondary-ref" title={actor.title}><%= actor.visible %></code>
-                              <% end %>
+                              <UI.ref value={job.actor_ref} kind="actor" copy_label="Copy actor ref" />
+                              <a :if={path = actor_path(@base_path, job.actor_ref)} href={path} class="tl-link tl-link--deep" title="Open actor activity">
+                                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                                Actor
+                              </a>
                             </span>
                           </div>
                         </div>
@@ -327,18 +318,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </div>
                       </dl>
 
-                      <div class="tl-param-list" aria-label="Export filters">
-                        <%= for {key, value} <- Presentation.query_pairs(job.query_params) do %>
-                          <% ref = Presentation.secondary_ref(value, 42) %>
-                          <span class="tl-param" title={"#{key}: #{ref.title}"}>
-                            <span class="tl-param__key"><%= key %></span>
-                            <span class="tl-param__value tl-secondary-ref"><%= ref.visible %></span>
-                          </span>
-                        <% end %>
-                        <span :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
-                          No filters
-                        </span>
-                      </div>
+                      <UI.kv :if={Presentation.query_pairs(job.query_params) != []} aria-label="Export filters">
+                        <:item :for={{key, value} <- Presentation.query_pairs(job.query_params)} key={key}>
+                          <UI.ref value={value} copy_label={"Copy #{key} filter"} />
+                        </:item>
+                      </UI.kv>
+                      <p :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
+                        No filters
+                      </p>
 
                       <div :if={Presentation.query_pairs(job.query_params) != []} class="tl-job__source">
                         <span class="tl-hint">Source Timeline search</span>
