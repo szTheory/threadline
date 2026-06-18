@@ -675,6 +675,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-container {
           max-width: 1000px;
           margin: 0 auto;
+          justify-self: center;
         }
 
         .tl-page {
@@ -689,6 +690,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-home {
           max-width: 1000px;
           margin: 0 auto;
+          justify-self: center;
         }
 
         .tl-home__hero {
