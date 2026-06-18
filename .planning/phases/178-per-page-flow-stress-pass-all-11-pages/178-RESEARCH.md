@@ -309,17 +309,19 @@ assert html =~ "tl-reconnect-banner"  # + role=status + refresh glyph
 
 **Note:** All other claims are `[VERIFIED]` against live source this session — every CONTEXT code peg was checked.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the D-09 fix extend to `.tl-home`?**
    - What we know: `.tl-home` has identical capping CSS on a grid-item `<main>`; the same root cause applies.
    - What's unclear: Whether PAGE-03 acceptance is scoped strictly to `tl-container`/transactions, or whether the planner folds in the cheap one-line `.tl-home` fix.
    - Recommendation: Add `justify-self: center` to `.tl-home` too (same line, same risk profile) and add a Home centering Tier B cell — this is well within "fix opportunistically when the same footgun class is found" and avoids shipping a known latent bug. Flag explicitly so it's a conscious planner decision, not an accidental scope creep.
+   - **RESOLVED:** Fold in. Backed by D-09 + Pitfall 1. Plan 178-01 authors the `.tl-home` `justify-self: center` Tier A RED guard + Home centering Tier B cell; Plan 178-03 Task 1 applies the one-line fix to `.tl-home` (style.ex:689) alongside `.tl-container`, as an explicit, visibly-noted deliverable (neither silently dropped nor silently expanded).
 
 2. **Centering tolerance and the nav-column offset (D-14 discretion).**
    - What we know: At ≥768px content lives in grid column 2, offset right of true viewport center by the nav column width.
    - What's unclear: Whether the Tier B centering assertion measures within column 2 or against full viewport.
    - Recommendation: Measure symmetric gutters of `.tl-container` within its column (or assert against column-2 center), not raw `viewport/2` — see Pitfall 4. Planner picks the tolerance.
+   - **RESOLVED:** Measure within grid column 2 (not raw `viewport/2`), per Pitfall 4. Locked to D-14 planner/executor discretion; Plan 178-03 Task 2 selects the concrete tolerance.
 
 ## Environment Availability
 
