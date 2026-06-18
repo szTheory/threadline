@@ -41,7 +41,7 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 - [ ] **DATA-02**: KV/metadata, timeline/event log, detail views, status summaries, and metrics/charts read clearly, never rely on color alone, and present time as relative + absolute with timezone made clear.
 - [ ] **DATA-03**: Empty/zero, loading, error, and stale states are visually distinct and explain the next action; permission-denied is distinguished from no-data and from unavailable-data.
 - [ ] **DATA-04**: Row actions and bulk actions are discoverable but not accidentally triggerable; destructive actions are separated and confirmed by naming the object and consequence.
-- [ ] **DATA-05**: The coverage "schema" section card-in-card nesting is flattened (resolves `coverage-schema-card-declutter`), and accidental nesting / table-overuse is removed system-wide.
+- [x] **DATA-05**: The coverage "schema" section card-in-card nesting is flattened (resolves `coverage-schema-card-declutter`), and accidental nesting / table-overuse is removed system-wide.
 
 ### Component Groups / Meta-Components (GROUP)
 
@@ -121,7 +121,7 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | DATA-02 | Phase 176 | In progress (176-03: KV/detail/timeline + semantic <time> UTC; charts/metrics remainder later) |
 | DATA-03 | Phase 176 | In progress (176-03: display-page empty/no_data/error distinct; retention states in 176-05) |
 | DATA-04 | Phase 176 | Pending |
-| DATA-05 | Phase 176 | Pending |
+| DATA-05 | Phase 176 | Complete (176-04) |
 | GROUP-01 | Phase 177 | Pending |
 | GROUP-02 | Phase 177 | Pending |
 | PAGE-01 | Phase 178 | Pending |

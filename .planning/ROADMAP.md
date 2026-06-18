@@ -195,7 +195,7 @@ Plans:
 
 **Wave 4** *(blocked on 176-03 / 176-02)*
 
-- [ ] 176-04-PLAN.md — DATA-05 coverage flatten + system-wide card-nesting sweep + regression test
+- [x] 176-04-PLAN.md — DATA-05 coverage flatten + system-wide card-nesting sweep + regression test
 - [ ] 176-05-PLAN.md — DATA-04 destructive actions: T3 server-enforced prune (security core) + kebab + redaction collapse fix (redact gated by checkpoint)
 **UI hint**: yes
 
@@ -283,7 +283,7 @@ Plans:
 | 173. Primitive components | v1.37 | 4/4 | Complete    | 2026-06-16 |
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 4/4 | Complete    | 2026-06-17 |
-| 176. Data display & operator patterns | v1.37 | 2/5 | In progress | 176-02 |
+| 176. Data display & operator patterns | v1.37 | 4/5 | In progress | 176-04 |
 | 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
 | 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |
