@@ -2495,7 +2495,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
-          text-overflow: ellipsis;
           overflow-wrap: anywhere;
         }
 

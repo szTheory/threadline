@@ -88,6 +88,24 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, ".tl-job-group")
     assert String.contains?(src, ".tl-job-group__header")
     assert String.contains?(src, ".tl-secondary-ref")
+
+    # DATA-01 / D-05: the CSS double-truncation is removed. Server middle-truncation
+    # is the ONLY truncator; the .tl-secondary-ref rule must NOT re-introduce
+    # text-overflow: ellipsis (a latent tail-clipper at 320px) and MUST wrap via
+    # overflow-wrap: anywhere so the preserved tail is always reachable on mobile.
+    # This assertion LOCKS the deletion against silent regression.
+    refute Regex.match?(
+             selector_block_pattern(".tl-secondary-ref", ~r/text-overflow:\s*ellipsis;/),
+             src
+           ),
+           ".tl-secondary-ref must NOT re-introduce text-overflow: ellipsis (D-05 double-truncation)"
+
+    assert Regex.match?(
+             selector_block_pattern(".tl-secondary-ref", ~r/overflow-wrap:\s*anywhere;/),
+             src
+           ),
+           ".tl-secondary-ref must keep overflow-wrap: anywhere so the truncated tail wraps (never clips)"
+
     assert String.contains?(src, ".tl-target-row")
     assert String.contains?(src, ".tl-target-row:target")
     assert String.contains?(src, "scroll-margin-top: calc(var(--tl-header-height-mobile)")
