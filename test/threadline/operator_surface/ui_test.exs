@@ -717,19 +717,23 @@ defmodule Threadline.OperatorSurface.UITest do
       refute Enum.member?(targets, visible)
     end
 
-    test "copy_label is required (omitting it raises a compile-time error)" do
-      assert_raise ArgumentError, ~r/copy_label/, fn ->
-        defmodule RefMissingLabel do
-          use Phoenix.Component
-          alias Threadline.OperatorSurface.UI
+    test "copy_label is a required attr (omitting it warns at compile time — D-07)" do
+      warnings =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          Code.compile_string("""
+          defmodule Threadline.OperatorSurface.UITest.RefMissingLabel#{System.unique_integer([:positive])} do
+            use Phoenix.Component
+            alias Threadline.OperatorSurface.UI
 
-          def render(assigns) do
-            ~H"""
-            <UI.ref value="x" />
-            """
+            def render(assigns) do
+              ~H"<UI.ref value=\\"x\\" />"
+            end
           end
-        end
-      end
+          """)
+        end)
+
+      assert warnings =~ "copy_label",
+             "omitting the required copy_label attr must emit a compile-time warning"
     end
   end
 
@@ -745,7 +749,7 @@ defmodule Threadline.OperatorSurface.UITest do
         </UI.kv>
         """)
 
-      assert html =~ ~s(<dl class="tl-kv")
+      assert html =~ ~r/<dl class="tl-kv\s*"/
       assert html =~ "tl-kv__row"
       assert html =~ ~r/<dt[^>]*>\s*Correlation\s*<\/dt>/
       assert html =~ ~r/<dd[^>]*>.*corr-123.*<\/dd>/s

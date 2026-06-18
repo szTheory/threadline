@@ -3,6 +3,9 @@ defmodule Threadline.OperatorSurface.UI do
   use Phoenix.Component
   import Phoenix.Component, except: [link: 1]
   alias Phoenix.LiveView.JS
+  alias Threadline.OperatorSurface.Components.Icon
+  alias Threadline.OperatorSurface.Presentation
+  alias Threadline.OperatorSurface.Script
 
   @doc false
   attr(:type, :string, default: "button")
@@ -344,6 +347,114 @@ defmodule Threadline.OperatorSurface.UI do
       <div class="tl-card__metric-label"><%= @label %></div>
       <div class="tl-card__metric"><%= @value %></div>
     </div>
+    """
+  end
+
+  @doc false
+  # Forensic copy affordance (DATA-01, D-02/D-06/D-07). The single call-site API that
+  # retires the ad-hoc inline copy wirings: renders the truncated value while binding
+  # the EXACT complete value to data-tl-copy on BOTH the <code> and the gated copy
+  # button — never .title, never .visible. When the delegated copy script is disabled
+  # (CSP-strict), the <code> renders the full value for zero-JS select-all.
+  attr(:value, :any, required: true)
+
+  attr(:kind, :string,
+    default: nil,
+    doc: "uuid|correlation|arn|actor|hash|path|email|url|timestamp — drives per-kind truncation"
+  )
+
+  attr(:copy_label, :string, required: true, doc: "aria-label specificity (D-07, no default)")
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  def ref(assigns) do
+    kind = assigns.kind && String.to_existing_atom(assigns.kind)
+    r = Presentation.ref(assigns.value, kind: kind)
+    assigns = assign(assigns, :r, r)
+
+    ~H"""
+    <span class={["tl-ref", @class]} {@rest}>
+      <code class="tl-secondary-ref" title={@r.full} data-tl-copy={@r.full}><%= if Script.enabled?(), do: @r.visible, else: @r.full %></code>
+      <button
+        :if={Script.enabled?()}
+        type="button"
+        class="tl-copy tl-button tl-button--compact tl-button--secondary"
+        data-tl-copy={@r.full}
+        aria-label={@copy_label}
+      >
+        <Icon.icon name={:copy} class="tl-button__icon" />
+        Copy
+      </button>
+    </span>
+    """
+  end
+
+  @doc false
+  # Single-record key/value display (D-08). Lifts the canonical tl-kv <dl> body; the
+  # :item slot carries a REQUIRED key attr so callers drop a ref/1 or value span inside
+  # the <dd> (path of least resistance for "single record -> <dl>").
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  slot :item, required: true do
+    attr(:key, :string, required: true)
+  end
+
+  def kv(assigns) do
+    ~H"""
+    <dl class={["tl-kv", @class]} {@rest}>
+      <div :for={item <- @item} class="tl-kv__row">
+        <dt class="tl-kv__key"><%= item.key %></dt>
+        <dd class="tl-kv__value"><%= render_slot(item) %></dd>
+      </div>
+    </dl>
+    """
+  end
+
+  @doc false
+  # Responsive data table (D-08/D-09). The :col slot's required label feeds BOTH the
+  # <th> AND every <td data-label> from one source (structurally guarantees mobile
+  # labels match the header). Supports `rows` OR `stream` (truthy -> phx-update="stream"
+  # on <tbody>); row_id sets <tr id=...>; row_status emits the data-status stripe (zero
+  # new CSS). NO ARIA role="table"/"row"/"cell" (D-09) — the responsive layout is the
+  # accessibility surface, not synthetic table roles.
+  attr(:rows, :list, default: nil)
+  attr(:stream, :any, default: nil)
+  attr(:row_id, :any, default: nil, doc: "Fn returning a DOM id for the <tr>")
+
+  attr(:row_status, :any,
+    default: nil,
+    doc: "Fn returning a status string for the data-status stripe"
+  )
+
+  attr(:tbody_id, :string, default: nil)
+  attr(:class, :any, default: nil)
+  attr(:rest, :global)
+
+  slot :col, required: true do
+    attr(:label, :string, required: true)
+  end
+
+  slot(:action)
+
+  def data_table(assigns) do
+    assigns = assign_new(assigns, :data_rows, fn -> assigns.stream || assigns.rows || [] end)
+
+    ~H"""
+    <table class={["tl-table", "tl-table--responsive", @class]} {@rest}>
+      <thead>
+        <tr>
+          <th :for={col <- @col}><%= col.label %></th>
+          <th :if={@action != []} class="tl-table__actions"></th>
+        </tr>
+      </thead>
+      <tbody id={@tbody_id} phx-update={@stream && "stream"}>
+        <tr :for={row <- @data_rows} id={@row_id && @row_id.(row)} data-status={@row_status && @row_status.(row)}>
+          <td :for={col <- @col} data-label={col.label}><%= render_slot(col, row) %></td>
+          <td :if={@action != []} class="tl-table__actions"><%= render_slot(@action, row) %></td>
+        </tr>
+      </tbody>
+    </table>
     """
   end
 
