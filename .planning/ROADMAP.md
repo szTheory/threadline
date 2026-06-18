@@ -212,7 +212,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 177-01-PLAN.md — Wave 0: resolve the two locked-decision conflicts (LiveView-root offline anchor; breadcrumbs attr-keep) + RED scaffolds (tokens/components/offline/overlay)
+- [x] 177-01-PLAN.md — Wave 0: resolve the two locked-decision conflicts (LiveView-root offline anchor; breadcrumbs attr-keep) + RED scaffolds (tokens/components/offline/overlay)
 - [ ] 177-02-PLAN.md — Semantic gap tokens + UI.stack/1 + UI.cluster/1 layout primitives
 - [ ] 177-03-PLAN.md — UI.data_panel/1 + UI.toolbar/1 + UI.detail_header/1 + page_header breadcrumb truncation
 - [ ] 177-04-PLAN.md — Overlay JS-transition CSS completion + time-sync + reconnect/offline group on `.threadline-ui.phx-*`
@@ -292,7 +292,7 @@ Plans:
 | 174. Form components | v1.37 | 6/6 | Complete    | 2026-06-17 |
 | 175. Navigation, app shell & runtime theme picker | v1.37 | 4/4 | Complete    | 2026-06-17 |
 | 176. Data display & operator patterns | v1.37 | 5/5 | Complete    | 2026-06-18 |
-| 177. Component groups / meta-components | v1.37 | 0/TBD | Not started | - |
+| 177. Component groups / meta-components | v1.37 | 1/5 | In progress | - |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 0/TBD | Not started | - |
 | 179. Microcopy & information-architecture sweep | v1.37 | 0/TBD | Not started | - |
 | 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 0/TBD | Not started | - |
