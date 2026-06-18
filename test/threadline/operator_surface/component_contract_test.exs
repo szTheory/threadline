@@ -237,6 +237,30 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
   end
 
+  # --- Phase 173 UAT #2 (stacking): overlay z-index layer order ---------------
+
+  describe "overlay z-index stacking order (Phase 173 UAT #2)" do
+    test "z-layer tokens are defined in strict ascending order so overlays stack correctly" do
+      src = File.read!(@style_path)
+
+      layers = ~w(base toolbar header popover subview toast)
+
+      values =
+        Enum.map(layers, fn name ->
+          case Regex.run(~r/--tl-z-#{name}:\s*(\d+);/, src) do
+            [_, v] -> String.to_integer(v)
+            _ -> flunk("missing --tl-z-#{name} token in style.ex")
+          end
+        end)
+
+      # Each layer must sit strictly above the previous one: base < toolbar < header
+      # < popover < subview (modal/drawer) < toast. This is the contract that keeps
+      # tooltips/popovers/modals stacking above page chrome instead of behind it.
+      assert values == Enum.sort(values) and length(Enum.uniq(values)) == length(values),
+             "z-layer tokens must be strictly ascending, got: #{inspect(Enum.zip(layers, values))}"
+    end
+  end
+
   # --- UAT #4 (structural half): reconnect banner + mutating-control contract --
 
   describe "reconnect / offline contract (UAT #4)" do

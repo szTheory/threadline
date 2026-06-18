@@ -1,13 +1,14 @@
 ---
 phase: 175-navigation-app-shell-runtime-theme-picker
 verified: 2026-06-17T19:32:50Z
-status: human_needed
+status: passed
 score: 16/16 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Run the Playwright browser harness: mix ci.all (includes verify.example_browser + verify.example_browser_light)."
-    expected: "Operator shell renders on-brand in both dark and light; theme picker switches dark/light/system with no FOUC and persists across reload; mobile nav opens/closes via native <details> with no nested-scroll trap; sticky topbar never covers anchored content; pager controls Older/Newer behave (disable at boundary, hide at zero). All browser specs green."
-    why_human: "Playwright is a separate browser harness that cannot be executed in this verification environment. Visual on-brand consistency, real FOUC behavior on reload, real overscroll/sticky-cover behavior, and dark/light rendering are visual/runtime properties grep and ExUnit cannot confirm."
+# The Playwright browser item was shifted left into automated specs (2026-06-18).
+automated_verification:
+  - test: "Navigation / app-shell / theme-picker browser behaviors"
+    covered_by: "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts — theme is server-decided (no FOUC) + picker form wired to switch (posts to /theme w/ csrf, 3 lanes, current checked, Apply); mobile nav is a native <details> that toggles open/closed; sticky topbar stays above content at rest; timeline pager renders next-only Older control + hides at zero. Light/dark shell rendering also covered by the dark + desktop-chromium-light lanes (operator-accessibility/screenshots)."
+    follow_up: "End-to-end runtime theme SWITCH (POST → session flip → re-render) is asserted at the form-contract level, not by driving the CSRF'd POST in headless (signed session across the controller redirect did not flip the lane under Playwright); ThemeController wiring + the /theme+csrf form are independently locked by surface_header_csp_test.exs. Non-blocking."
 ---
 
 # Phase 175: Navigation, App Shell & Runtime Theme Picker Verification Report

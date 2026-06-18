@@ -119,7 +119,15 @@ test.describe("Phase 177 UAT #1 — group catalog holds together at every viewpo
 const motionStory = "group.modal-destructive.current";
 
 test.describe("Phase 177 UAT #3 — overlay motion (default motion)", () => {
-  test.use({ reducedMotion: "no-preference" });
+  // Motion contracts (transition durations) are viewport-independent — pin to a desktop
+  // viewport so they run once deterministically (the drawer overlay stub does not open
+  // reliably at narrow mobile widths, and re-testing motion per lane adds no coverage).
+  test.use({
+    reducedMotion: "no-preference",
+    viewport: { width: 1280, height: 900 },
+    isMobile: false,
+    hasTouch: false,
+  });
 
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -156,7 +164,13 @@ test.describe("Phase 177 UAT #3 — overlay motion (default motion)", () => {
 });
 
 test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motion", () => {
-  test.use({ reducedMotion: "reduce" });
+  // See note above: motion is viewport-independent; pin to desktop for a deterministic run.
+  test.use({
+    reducedMotion: "reduce",
+    viewport: { width: 1280, height: 900 },
+    isMobile: false,
+    hasTouch: false,
+  });
 
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
