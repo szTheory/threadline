@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
-last_updated: "2026-06-17T22:16:39.714Z"
-last_activity: 2026-06-17 -- Phase 176 planning complete
+last_updated: "2026-06-18T00:23:51.866Z"
+last_activity: 2026-06-18 -- Phase 176 execution started
 progress:
   total_phases: 15
   completed_phases: 5
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 176 — data display & operator patterns
+**Current focus:** Phase 176 — data-display-operator-patterns
 
 ## Current Position
 
-Phase: 176
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 176 planning complete
+Phase: 176 (data-display-operator-patterns) — EXECUTING
+Plan: 2 of 5
+Status: Executing Phase 176 (176-01 complete)
+Last activity: 2026-06-18 -- Phase 176 plan 01 complete (Presentation core + icons + Wave-0 RED scaffolds)
 
 ## Performance Metrics
 
@@ -187,6 +187,7 @@ Last activity: 2026-06-17 -- Phase 176 planning complete
 - [175-03]: One internal `UI.page_header/1` (single `<h1>`, `:heading`/`:lede`/`:actions`/`:inner_block` slots, ordered `breadcrumbs`) adopted across the operator pages; reuses existing CSS only (no style.ex change, no new `--tl-*` token, no public API). Drill-down pages (Transaction/Actor/standalone Row history) carry location-based breadcrumbs under `<nav aria-label="Breadcrumb">` rooted at "Timeline" and pass `current={nil}` so the single `aria-current="page"` lives only on a shell nav link (the inlined CSS `[aria-current="page"]` selector pinned by style_contract counts page-wide, so nav must mark nothing current on drill-downs). Timeline command toolbar + Coverage command-center state kept bespoke single-`<h1>` (specialized command structures pinned by timeline_live_test / aria-labelledby). D-02 doc-contract back-link assertions re-pointed to the D-13 breadcrumb root (Rule 3). Both NAV-01 Wave-0 RED targets GREEN; transaction_live/skip_link/CSP locks + brand-token parity green. Commits `025e9d3`, `3e4b1c7`.
 - [175-04]: One internal `UI.pager/1` (de-emphasized Older/Newer time-axis controls + a `role="status" aria-live="polite"` range caption) over the EXISTING keyset engine — hide-at-zero (D-16), disable-not-hide on boundaries (D-18), capped "10,000+" deep total (D-17); controls emit the host page's existing next-page/prev-page events (no engine change). Adopted next-only on Timeline (cursor stays in socket assign, D-19) and bidirectionally on Actor; Exports/Retention get honest "Showing latest N" cap captions (D-20), Coverage/Redaction none. `pager_test.exs` (the binding RED target) drove the signature (`shown`/`match_count`/`has_older`/`has_newer`), with optional `older_event`/`newer_event` phx-click attrs for adoption (`newer_event` is `:any` so Timeline passes nil). query.ex documents the `(captured_at, id)` keyset tiebreaker as DEFERRED capture-layer perf debt (D-15/Q1, T-175-10 accepted) — doc note only, no migration, capture layer byte-for-byte untouched. Zero new `--tl-*` token (brand-parity green). All 4 NAV-02 Wave-0 RED targets GREEN; verify.test 1008/0; credo clean. Commits `1a230bd`, `ac6f762`.
 - [175-02]: Shell is CSP-proof — all three inline handlers removed (theme onchange, nav onclick, skip-link onclick); theme picker rebuilt as visible native radios + explicit "Apply theme" button + pure-CSS `.tl-theme-picker__option:has(:checked)` non-color cue (zero new tokens); mobile nav is native `<details>` keyed on `[open]`; scroll-padding-top reconciled to the per-row scroll-margin-top token + overscroll-behavior:contain + 100svh; router macro doc corrected; theme-toggle ban lifted in style_contract_test for a positive CSP guard; backend untouched (D-09).
+- [176-01]: `Presentation.ref/2` → `%{visible, title, full}` reuses `secondary_ref_value/1` for `full` (no value-extraction rebuild, D-01); `title == full`. `truncate_middle/3` gains additive `:tail_min` (≥N tail chars survive verbatim; no-`:tail_min` path byte-for-byte unchanged so `export_summary/1` is unaffected, D-03). `value_token/1` truncates at 56 keeping full in `:title`. Per-kind `truncate_for/2` (uuid/correlation/arn/actor/hash/path/email/url/timestamp; `:timestamp` never truncates). Source-down glyph is `:cloud_off` (not `:plug`); `archive` reused for pruned. The four MISSING Wave-0 tests use a self-contained tokenizer/regex (no Floki — not a project dep, v1.37 zero-new-dep invariant); `RefCopyContract` lives in `test/support` (only `test/support` is on the compile path). card-nesting regression treats the synthetic `tl-coverage-command` shell as a card-family surface so it is genuinely RED on coverage today (literal card>card alone would false-green). 9 new assertions RED (3 data-state + 1 card-nesting + 5 retention/ref-copy), all turning GREEN in Plans 02/03/05. Commits `989f03c`, `45a788d`, `a4a13fa`, `3503fdc`. Capture/semantics untouched. Pre-existing `ui_test.exs` format drift logged to deferred-items (out of scope).
 
 ### Blockers
 
@@ -200,8 +201,9 @@ Last activity: 2026-06-17 -- Phase 176 planning complete
 - **175-02 (2026-06-17):** CSP-proof operator shell + runtime theme picker. Removed all 3 inline handlers; rebuilt picker as native radios + Apply button + `:has(:checked)` cue; native `<details>[open]` nav; scroll-padding-top/overscroll/100svh hardening; router doc corrected; theme-toggle ban lifted for a positive CSP guard. Plan-01 CSP RED target now GREEN (9 RED -> 8 RED Wave-0 targets remaining for Plans 03/04). Commits `b0a8c9c`, `25a582d`. Backend untouched (D-09); brand-token parity green.
 - **175-03 (2026-06-17):** Internal `UI.page_header/1` + drill-down breadcrumbs. Built the one-`<h1>` page header (reusing existing CSS, zero new token, no public API), adopted it across the operator pages, threaded `[Timeline > …]` location breadcrumbs under `<nav aria-label="Breadcrumb">` into the 3 drill-down pages, relabeled away the bespoke "Investigation path" landmark, and set drill-down `current={nil}` so the single `aria-current="page"` stays on a nav link only. Re-pointed the D-02 doc-contract back-link assertions to the new D-13 breadcrumb root. Both NAV-01 Wave-0 RED targets GREEN; only the 4 Plan-04 PagerTest RED targets remain. Commits `025e9d3`, `3e4b1c7`. style.ex + capture/semantics untouched; brand-token parity green.
 - **175-04 (2026-06-17):** Internal `UI.pager/1` + honest cap captions. Built the de-emphasized Older/Newer pager (hide-at-zero, disable-not-hide, capped "10,000+", role=status caption) over the existing keyset engine, adopted it next-only on Timeline (cursor in assign, D-19) and bidirectionally on Actor, added "Showing latest N" cap captions on Exports/Retention (D-20, none on Coverage/Redaction), and documented the `(captured_at, id)` keyset tiebreaker as deferred capture-layer perf debt in query.ex (D-15/Q1; no migration, capture layer untouched). All 4 NAV-02 Wave-0 PagerTest RED targets GREEN; verify.test 1008/0; brand-token parity green; zero new token. Commits `1a230bd`, `ac6f762`.
-- **Last Action**: Completed `175-04-PLAN.md` (2026-06-17) — phase 175 all 4 plans done.
-- **Next Step**: Verify phase 175 (`/gsd:verify-work` — incl. Playwright `verify.example_browser`).
+- **176-01 (2026-06-18):** Presentation core + icon contracts + Wave-0 RED scaffolds. Built `ref/2` (3-face, full == complete value), `truncate_middle/3` `:tail_min` (≥8 tail, default unchanged), per-kind `truncate_for/2`, `value_token/1` truncation (56, full in title); added `eye_off`/`funnel`/`lock`/`cloud_off` glyphs; authored the four MISSING Wave-0 tests (card-nesting D-12, typed-reason→state D-16, T3 fail-closed+audit D-21, ref-copy-equals-full Pitfall 4) all RED against current code with zero new deps. Commits `989f03c`, `45a788d`, `a4a13fa`, `3503fdc`, docs `5c18abf`.
+- **Last Action**: Completed `176-01-PLAN.md` (2026-06-18) — Wave-1 of phase 176.
+- **Next Step**: Execute `176-02-PLAN.md` (UI components: ref/1, kv/1, data_table/1, loading_state/1, stale_banner/1 + empty_state variants + stress stories).
 - **Resume file**: None
 
 ## Operator Next Steps
