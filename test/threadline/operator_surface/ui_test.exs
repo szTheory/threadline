@@ -822,4 +822,180 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "menu"
     end
   end
+
+  describe "loading_state/1" do
+    test "renders a role=status aria-busy block with a spinner and default text node" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.loading_state />
+        """)
+
+      assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-busy="true")
+      assert html =~ "tl-spinner"
+      assert html =~ "Loading audit changes"
+    end
+
+    test "accepts an inner_block override of the default text" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.loading_state>Loading retention runs…</UI.loading_state>
+        """)
+
+      assert html =~ "Loading retention runs"
+    end
+  end
+
+  describe "stale_banner/1" do
+    test "renders a role=status warning strip above data with a refresh icon and as_of timestamp" do
+      assigns = %{as_of: "2026-06-14 23:59 UTC"}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.stale_banner as_of={@as_of} />
+        """)
+
+      assert html =~ "tl-alert"
+      assert html =~ "tl-alert--warning"
+      assert html =~ ~s(role="status")
+      assert html =~ "tl-icon"
+      assert html =~ "Couldn't refresh"
+      assert html =~ "2026-06-14 23:59 UTC"
+      assert html =~ "Retry"
+    end
+  end
+
+  describe "empty_state variant extension (no_data / permission / unavailable)" do
+    test "no_data renders role=status with a funnel icon and the filter heading" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.empty_state variant="no_data">
+          <:title>No changes match these filters</:title>
+          Clear the filter or widen the time range.
+        </UI.empty_state>
+        """)
+
+      assert html =~ "tl-empty--no_data"
+      assert html =~ "No changes match these filters"
+    end
+
+    test "permission and unavailable are accepted variant values" do
+      assigns = %{}
+
+      for variant <- ["permission", "unavailable"] do
+        html =
+          rendered_to_string(~H"""
+          <UI.empty_state variant={variant}>
+            <:title>Heading</:title>
+            Body
+          </UI.empty_state>
+          """)
+
+        assert html =~ "tl-empty--#{variant}"
+      end
+    end
+  end
+
+  describe "data_state/1 — typed reason dispatch (DATA-03, D-13..D-16)" do
+    @reason_cases [
+      {:unauthorized, "alert", "don't have access", "lock"},
+      {:no_data, "status", "No changes match", "funnel"},
+      {:source_down, "alert", "temporarily unavailable", "cloud_off"},
+      {:redacted, "status", "withheld by policy", "eye_off"},
+      {:pruned, "status", "Removed under retention", "archive"},
+      {:loading, "status", "Loading audit changes", "spinner"},
+      {:boom, "alert", "Could not load", "warning"}
+    ]
+
+    defp data_state_html(reason) do
+      assigns = %{reason: reason}
+
+      rendered_to_string(~H"""
+      <UI.data_state reason={@reason} />
+      """)
+    end
+
+    test "each typed reason renders its locked role + heading" do
+      for {reason, role, heading, _icon} <- @reason_cases do
+        html = data_state_html(reason)
+
+        assert html =~ ~s(role="#{role}"),
+               "reason #{inspect(reason)} should carry role=#{role}"
+
+        assert html =~ heading,
+               "reason #{inspect(reason)} should render heading fragment #{inspect(heading)}"
+      end
+    end
+
+    test "the content-replacing states each use a distinct icon shape (D-16, no color alone)" do
+      icon_paths = %{
+        lock: "M6 11h12v9H6z",
+        funnel: "M4 5h16l-6 7v6l-4 2v-8L4 5Z",
+        cloud_off: "M3 3l18 18",
+        eye_off: "M10.6 10.6a2 2 0 0 0 2.8 2.8",
+        archive: "M9 11h6"
+      }
+
+      signatures =
+        for reason <- [:unauthorized, :no_data, :source_down, :redacted, :pruned] do
+          html = data_state_html(reason)
+          assert html =~ "tl-icon"
+          html
+        end
+
+      # Each state's expected glyph path is present.
+      assert data_state_html(:unauthorized) =~ icon_paths.lock
+      assert data_state_html(:no_data) =~ icon_paths.funnel
+      assert data_state_html(:source_down) =~ icon_paths.cloud_off
+      assert data_state_html(:redacted) =~ icon_paths.eye_off
+      assert data_state_html(:pruned) =~ icon_paths.archive
+
+      # No two content-replacing states share their whole rendered glyph set.
+      first_paths =
+        Enum.map(signatures, fn html ->
+          Regex.scan(~r/<path[^>]*\bd="([^"]*)"/, html)
+          |> Enum.map(fn [_, d] -> d end)
+          |> Enum.join("|")
+        end)
+
+      assert length(Enum.uniq(first_paths)) == length(first_paths)
+    end
+
+    test "the three unavailable sub-cases state they are NOT a permissions issue" do
+      for reason <- [:source_down, :redacted, :pruned] do
+        assert data_state_html(reason) =~ "not a permissions issue",
+               "unavailable reason #{inspect(reason)} must say it is not a permissions issue"
+      end
+    end
+  end
+
+  describe "focus rescue (D-15) — error_state and permission heading" do
+    test "error_state renders a tabindex=-1 heading and moves focus to it on mount" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.error_state>
+          <:title>Could not load this timeline</:title>
+          Retry, then check logs.
+        </UI.error_state>
+        """)
+
+      assert html =~ ~s(tabindex="-1")
+      assert html =~ "phx-mounted"
+    end
+
+    test "the permission data-state renders a tabindex=-1 heading with focus moved on mount" do
+      html = data_state_html(:unauthorized)
+
+      assert html =~ ~s(tabindex="-1")
+      assert html =~ "phx-mounted"
+    end
+  end
 end
