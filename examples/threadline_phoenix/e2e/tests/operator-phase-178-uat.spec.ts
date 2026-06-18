@@ -68,28 +68,55 @@ async function expectBoxWithinViewport(locator: Locator, viewportWidth: number) 
   expect(rect!.x + rect!.width).toBeLessThanOrEqual(viewportWidth + 1);
 }
 
-// RESEARCH Pitfall 4: assert the content box is centered WITHIN its grid column
-// (symmetric gutters between the content box and the column edges), not against the
-// raw viewport center. `columnLocator` is the grid column 2 region the content sits
-// in (#tl-main's grid cell); `contentLocator` is the capped .tl-container / .tl-home.
-async function expectCenteredWithinColumn(
-  contentLocator: Locator,
-  columnLocator: Locator,
-) {
+// RESEARCH Pitfall 4: assert the content box is centered WITHIN grid column 2, NOT
+// against the raw viewport center. The catch (CONTEXT D-08): the capped `<main>`
+// (`#tl-main`, class `tl-page tl-container` / `tl-page tl-home`) IS itself the grid
+// item placed at `grid-column: 2` — so measuring `.tl-container` against `#tl-main`
+// would compare an element to itself (gutters always 0, a false pass). Instead we
+// derive column 2's geometry from the GRID CONTAINER (`.threadline-ui`): at >=768px
+// the template is `minmax(196px,232px) <gutter> minmax(0,1fr)`, so column 2 is the
+// LAST track, running from (container content-left + col1 + columnGap) for `col2`
+// width. We read those from the live computed grid metrics, then assert the `<main>`
+// box sits with symmetric gutters inside that track.
+async function expectCenteredWithinColumn(contentLocator: Locator) {
   await expect(contentLocator).toBeVisible();
   const content = await contentLocator.boundingBox();
-  const column = await columnLocator.boundingBox();
   expect(content).not.toBeNull();
-  expect(column).not.toBeNull();
 
-  const leftGutter = content!.x - column!.x;
-  const rightGutter = column!.x + column!.width - (content!.x + content!.width);
+  // Resolve the live column-2 track from the grid container's computed template.
+  const track = await contentLocator.evaluate((mainEl) => {
+    const shell = (mainEl as HTMLElement).closest(
+      ".threadline-ui",
+    ) as HTMLElement | null;
+    if (!shell) return null;
+    const shellRect = shell.getBoundingClientRect();
+    const cs = getComputedStyle(shell);
+    // grid-template-columns resolves to concrete px, e.g. "232px 24px 984px".
+    const cols = cs.gridTemplateColumns
+      .split(" ")
+      .map((v) => parseFloat(v))
+      .filter((n) => !Number.isNaN(n));
+    if (cols.length < 2) return null; // not the >=768px grid shell
+    const padLeft = parseFloat(cs.paddingLeft) || 0;
+    const colGap = parseFloat(cs.columnGap) || 0;
+    const col1 = cols[0];
+    const col2 = cols[cols.length - 1]; // content column = LAST track
+    const left = shellRect.left + padLeft + col1 + colGap;
+    return { left, width: col2 };
+  });
+  expect(
+    track,
+    "could not resolve the .threadline-ui grid column-2 track (is the desktop grid shell mounted at >=768px?)",
+  ).not.toBeNull();
+
+  const leftGutter = content!.x - track!.left;
+  const rightGutter = track!.left + track!.width - (content!.x + content!.width);
 
   // Symmetric gutters => the capped content is centered in its column (not anchored
   // left by the grid-item `justify-self: stretch` + max-width "left push").
   expect(
     Math.abs(leftGutter - rightGutter),
-    `content must center within its grid column (left gutter ${leftGutter}px vs right ${rightGutter}px)`,
+    `content must center within grid column 2 (left gutter ${leftGutter}px vs right ${rightGutter}px, track width ${track!.width}px)`,
   ).toBeLessThanOrEqual(CENTERING_TOLERANCE_PX);
 }
 
@@ -101,9 +128,10 @@ test.describe("Phase 178 PAGE-03 — transaction page centers within grid column
   });
 
   for (const width of DESKTOP_CENTERING_WIDTHS) {
-    // RED until Plan 03 adds `justify-self: center` to .tl-container (D-09): today
-    // the max-width-capped main is a grid item anchored to the column start (left).
-    test.fixme(
+    // GREEN as of Plan 03 Task 1: `.tl-container` now carries `justify-self: center`
+    // (style.ex:678), so the max-width-capped grid-item main centers within column 2
+    // instead of anchoring to the column start (the old "left push").
+    test(
       `transaction .tl-container is centered within column 2 at ${width}px (D-09)`,
       async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
@@ -116,25 +144,23 @@ test.describe("Phase 178 PAGE-03 — transaction page centers within grid column
         await expect(page).toHaveURL(/\/audit\/transactions\//);
 
         const container = page.locator(".tl-container").first();
-        const column = page.locator("#tl-main").first();
-        await expectCenteredWithinColumn(container, column);
+        await expectCenteredWithinColumn(container);
         await expectNoHorizontalOverflow(page);
       },
     );
   }
 
   for (const width of DESKTOP_CENTERING_WIDTHS) {
-    // Home latent twin (RESEARCH Pitfall 1, RESOLVED: fold in). RED until Plan 03
-    // adds `justify-self: center` to .tl-home (style.ex:689).
-    test.fixme(
+    // Home latent twin (RESEARCH Pitfall 1, RESOLVED: fold in). GREEN as of Plan 03
+    // Task 1: `.tl-home` now carries `justify-self: center` (style.ex:693).
+    test(
       `Home .tl-home is centered within column 2 at ${width}px (latent twin)`,
       async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto("/audit");
 
         const home = page.locator(".tl-home").first();
-        const column = page.locator("#tl-main").first();
-        await expectCenteredWithinColumn(home, column);
+        await expectCenteredWithinColumn(home);
         await expectNoHorizontalOverflow(page);
       },
     );
