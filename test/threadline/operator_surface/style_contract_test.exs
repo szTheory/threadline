@@ -1329,6 +1329,154 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            ".tl-data-panel__region must fade in via animation: tl-fade-in var(--tl-motion-fast) for the state-swap motion (D-10.2)"
   end
 
+  # --- Phase 178 (PAGE-03 / D-09, RESEARCH Pitfall 1): grid-item centering ---
+  #
+  # RED Wave-0 scaffold. `margin: 0 auto` does NOT center a CSS-grid item: at
+  # >=768px both `.tl-container` (style.ex:675-678) and `.tl-home` (style.ex:689-692)
+  # are grid items (grid-column: 2 via the `.threadline-ui > :not(...)` catch-all),
+  # and under the default `justify-self: stretch` a max-width cap anchors them to the
+  # column START (left) — the "left push." The grid-native fix is `justify-self:
+  # center` (D-09), kept alongside max-width. This guard locks the fix so a silent
+  # revert to bare `margin: 0 auto` on a grid item is impossible.
+  #
+  # `.tl-home` is the latent twin (RESEARCH Pitfall 1 / Open Q1 — RESOLVED: fold in):
+  # it carries the identical capping CSS on a grid-item <main>, so it left-pushes
+  # exactly like the transaction page. Both assertions are RED today (no
+  # `justify-self` anywhere in style.ex). Plan 178-03 Task 1 applies the one-line fix
+  # to BOTH selectors.
+  test "phase 178 PAGE-03 .tl-container centers as a grid item via justify-self: center (D-09)" do
+    src = File.read!(@style_path)
+
+    container = selector_block!(src, ".tl-container")
+
+    assert String.contains?(container, "max-width: 1000px;"),
+           ".tl-container must keep its max-width cap"
+
+    assert String.contains?(container, "justify-self: center;"),
+           ".tl-container must carry justify-self: center so the max-width cap centers within grid column 2 (D-09); margin: 0 auto does NOT center a grid item"
+  end
+
+  test "phase 178 PAGE-03 latent twin .tl-home centers as a grid item via justify-self: center (RESEARCH Pitfall 1)" do
+    src = File.read!(@style_path)
+
+    home = selector_block!(src, ".tl-home")
+
+    assert String.contains?(home, "max-width: 1000px;"),
+           ".tl-home must keep its max-width cap"
+
+    assert String.contains?(home, "justify-self: center;"),
+           ".tl-home is the PAGE-03 latent twin (identical capping CSS on a grid-item <main>) and must ALSO carry justify-self: center (RESEARCH Pitfall 1, RESOLVED: fold in)"
+  end
+
+  # --- Phase 178 (PAGE-02 #10/#11): per-role contrast coverage extension ------
+  #
+  # Footgun #10 (unreadable contrast) / #11 (same-color text-on-bg). The dark
+  # baseline (phase 143) and the light/system composited lanes (phase 168) already
+  # assert the primary text/status roles. Phase 178 EXTENDS coverage to every
+  # operator-surface secondary text role named in 178-UI-SPEC § Color that paints on
+  # a chrome surface, so a future role/token edit that drops a pairing below AA fails
+  # loudly. Reuses the existing contrast_ratio/2 + composite/2 engine (D-07; do NOT
+  # build a new calculator). If all current pairings already pass this is
+  # GREEN-confirming (the guard still becomes permanent) — documented in the SUMMARY.
+  test "phase 178 PAGE-02 #10/#11 secondary text roles meet AA on every chrome surface (dark + light + system)" do
+    src = File.read!(@style_path)
+
+    dark = src |> selector_block!(".threadline-ui") |> color_tokens()
+    light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
+    system = src |> system_lane_block!() |> color_tokens()
+
+    backgrounds = [
+      "--tl-color-bg",
+      "--tl-color-surface",
+      "--tl-color-surface-raised",
+      "--tl-color-surface-hover"
+    ]
+
+    # Secondary/meta/label text roles that paint directly on chrome surfaces. These
+    # extend the phase-143/168 primary-role rows with the muted-family secondary text
+    # the operator pages lean on for meta/labels. (muted-soft is the WCAG 1.4.3
+    # disabled-exempt role and is asserted at its >= 3.0 floor in the phase-168 mirror,
+    # so it is deliberately excluded here.)
+    secondary_text_roles = [
+      "--tl-color-text",
+      "--tl-color-muted"
+    ]
+
+    for {mode, map} <- [{"dark", dark}, {"light", light}, {"system", system}],
+        text_token <- secondary_text_roles,
+        background_token <- backgrounds,
+        Map.has_key?(map, text_token) and Map.has_key?(map, background_token) do
+      assert contrast_ratio(map[text_token], map[background_token]) >= 4.5,
+             "#{mode}: #{text_token} must meet AA 4.5:1 on #{background_token} (footgun #10/#11)"
+    end
+  end
+
+  # --- Phase 178 (PAGE-02 #1, D-06): surface-wide scroll-trap source scan ------
+  #
+  # RED Wave-0 scaffold. Footgun #1 (scroll traps / sticky occlusion). The mobile
+  # base already reconciles scroll-padding-top to the .tl-target-row scroll-margin-top
+  # (both `calc(var(--tl-header-height-mobile) + var(--tl-space-4))`), carries
+  # overscroll-behavior: contain, and uses 100svh (phase 177 hardening). BUT at the
+  # desktop grid shell (>=768px) the scroll container's reserved offset switches to
+  # the DESKTOP header token (`calc(var(--tl-header-height) + var(--tl-space-4))`,
+  # style.ex:3897) while `.tl-target-row` scroll-margin-top stays pinned to the
+  # MOBILE token (style.ex:2647) with no desktop override — so a sticky desktop topbar
+  # over-/under-shoots an anchored target. This guard requires the desktop offsets to
+  # reconcile (a `.tl-target-row` rule carrying scroll-margin-top with the DESKTOP
+  # `--tl-header-height` token, matching the desktop scroll-padding-top). RED today.
+  # This is the surface-wide Tier A half D-06 mandates for #1; the Tier B sticky-
+  # occlusion sweep half lives in operator-phase-178-uat.spec.ts.
+  test "phase 178 PAGE-02 #1 desktop scroll offset reconciles scroll-padding-top to scroll-margin-top (D-06)" do
+    src = File.read!(@style_path)
+
+    # Desktop scroll container reserves the desktop header offset.
+    assert src =~ "scroll-padding-top: calc(var(--tl-header-height) + var(--tl-space-4));",
+           "desktop scroll container must reserve the desktop sticky-header offset (--tl-header-height)"
+
+    # The anchored target's scroll-margin-top must reconcile to the SAME desktop
+    # token at >=768px so a sticky desktop topbar never occludes an anchored row.
+    # Mobile base alone (--tl-header-height-mobile) is not enough — extract the
+    # desktop media layer and require a .tl-target-row scroll-margin-top using the
+    # desktop --tl-header-height token there.
+    desktop = media_section(src, "768px")
+
+    assert Regex.match?(
+             selector_block_pattern(
+               ".tl-target-row",
+               ~r/scroll-margin-top:\s*calc\(var\(--tl-header-height\)\s*\+\s*var\(--tl-space-4\)\)/
+             ),
+             desktop
+           ),
+           ".tl-target-row scroll-margin-top must reconcile to the DESKTOP --tl-header-height offset at >=768px (style.ex:2647 currently stays pinned to --tl-header-height-mobile — a sticky desktop topbar occludes the anchored target). #1 scroll-trap reconciliation, RED today (D-06)"
+  end
+
+  # --- Phase 178 (PAGE-02 #6, D-06): spacing-token source scan ----------------
+  #
+  # RED Wave-0 scaffold. Footgun #6 (misalignment / chopped-padding / spacing). The
+  # cheap per-PR surface-wide source half of #6: stressed-page child spacing must
+  # resolve through the --tl-space-* / token scale (or 0), never a raw px/rem/em
+  # literal that drifts off the rhythm. `.tl-timeline-fact` (a timeline-page child)
+  # carries a raw `gap: 2px` (style.ex:1105) that does NOT resolve through the space
+  # scale — RED today. The boundingBox / within-viewport half of #6 lives in
+  # operator-phase-178-uat.spec.ts. Scope the scan to the selector block via
+  # selector_block! so a sibling rule cannot false-pass.
+  test "phase 178 PAGE-02 #6 stressed-page child spacing resolves through the --tl-space-* token scale (no raw gap/margin literal) (D-06)" do
+    src = File.read!(@style_path)
+
+    # `.tl-timeline-fact` is a timeline-page child. Its gap must resolve through the
+    # space scale (var(--tl-space-*)) — a raw `gap: 2px` is the off-rhythm offender.
+    timeline_fact = selector_block!(src, ".tl-timeline-fact")
+
+    gap_decl =
+      case Regex.run(~r/gap:\s*([^;]+);/, timeline_fact) do
+        [_, value] -> String.trim(value)
+        _ -> flunk(".tl-timeline-fact must declare a gap")
+      end
+
+    assert String.contains?(gap_decl, "var(--tl-space-"),
+           ".tl-timeline-fact gap must resolve through the --tl-space-* scale, got raw `#{gap_decl}` (footgun #6 spacing drift, RED today; Plan 04 retokenizes it)"
+  end
+
   defp motion_inventory_rows(inventory) do
     inventory
     |> String.split("\n")
