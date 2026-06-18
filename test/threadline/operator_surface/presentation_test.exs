@@ -110,6 +110,123 @@ defmodule Threadline.OperatorSurface.PresentationTest do
     end
   end
 
+  describe "truncate_middle tail_min guarantee (DATA-01)" do
+    test "preserves at least :tail_min trailing chars verbatim for a long value" do
+      # 40-char value, max 34, tail_min 8 → last 8 chars must survive verbatim.
+      value = "abcdefghijklmnopqrstuvwxyz0123456789ABCD"
+      assert String.length(value) == 40
+
+      result = Presentation.truncate_middle(value, 34, tail_min: 8)
+
+      assert String.length(result) < String.length(value)
+      assert String.ends_with?(result, String.slice(value, -8, 8))
+      assert String.ends_with?(result, "6789ABCD")
+    end
+
+    test "default behavior is byte-for-byte unchanged (export_summary backward-compat)" do
+      # The keyword/3rd-arg extension must NOT alter the no-:tail_min path.
+      value = "00000000-1111-2222-3333-444444444444"
+
+      assert Presentation.truncate_middle(value, 28) == Presentation.truncate_middle(value, 28, [])
+    end
+
+    test "does not truncate values within max_length" do
+      assert Presentation.truncate_middle("short", 34, tail_min: 8) == "short"
+    end
+  end
+
+  describe "ref/2 three faces (DATA-01)" do
+    test "returns visible, title, and full with full == the exact complete value" do
+      value = "actor/user-01-abcdefghijklmnopqrstuvwxyz-0123456789"
+
+      ref = Presentation.ref(value, kind: :actor)
+
+      assert ref.full == value
+      assert ref.title == ref.full
+      assert ref.visible != value
+      assert String.ends_with?(ref.full, "0123456789")
+    end
+
+    test "reuses secondary_ref_value extraction for ActorRef and JSON maps" do
+      actor = Presentation.ref(%Threadline.Semantics.ActorRef{type: :user, id: "alice"})
+      assert actor.full == "user/alice"
+      assert actor.title == "user/alice"
+      assert actor.visible == "user/alice"
+
+      json = Presentation.ref(%{"account_id" => "acct_123", "invoice_id" => "inv_456"})
+      assert json.full =~ ~s("account_id":"acct_123")
+      assert json.title == json.full
+    end
+
+    test "short value: visible == full (no truncation)" do
+      ref = Presentation.ref("user/alice", kind: :actor)
+      assert ref.visible == ref.full
+    end
+
+    test "timestamp kind is never truncated (visible == full)" do
+      long_iso = "2026-06-04T12:30:00.123456789012345678901234567890Z"
+      ref = Presentation.ref(long_iso, kind: :timestamp)
+      assert ref.visible == ref.full
+      assert ref.full == long_iso
+    end
+
+    test "uuid kind middle-truncates while preserving the discriminating tail" do
+      uuid = "00000000-1111-2222-3333-444444444444-EXTRA-PADDING-TO-OVERFLOW"
+      ref = Presentation.ref(uuid, kind: :uuid)
+      assert ref.full == uuid
+      assert ref.visible != uuid
+      assert String.ends_with?(ref.visible, String.slice(uuid, -8, 8))
+    end
+
+    test "hash kind truncates around 24 chars keeping the tail" do
+      hash = String.duplicate("a", 30) <> "DEADBEEF"
+      ref = Presentation.ref(hash, kind: :hash)
+      assert ref.full == hash
+      assert ref.visible != hash
+      assert String.ends_with?(ref.visible, "DEADBEEF")
+    end
+
+    test "path kind keeps the filename tail" do
+      path = "/very/long/nested/directory/structure/that/overflows/the/limit/report-final.csv"
+      ref = Presentation.ref(path, kind: :path)
+      assert ref.full == path
+      assert String.ends_with?(ref.visible, "report-final.csv")
+    end
+
+    test "email kind keeps the full domain" do
+      email = "a-very-long-local-part-that-overflows-the-budget@example-domain.example.com"
+      ref = Presentation.ref(email, kind: :email)
+      assert ref.full == email
+      assert String.ends_with?(ref.visible, "@example-domain.example.com")
+    end
+
+    test "url kind keeps host head and last segment tail" do
+      url = "https://operator.example.com/audit/very/deep/path/segment/final-resource-id"
+      ref = Presentation.ref(url, kind: :url)
+      assert ref.full == url
+      assert String.starts_with?(ref.visible, "https://operator.example.com")
+      assert String.ends_with?(ref.visible, "final-resource-id")
+    end
+  end
+
+  describe "value_token truncation (DATA-04)" do
+    test "truncates a long string while keeping the full value in title" do
+      long = String.duplicate("x", 80) <> "TAILMARK"
+      token = Presentation.value_token(long)
+
+      assert Map.has_key?(token, :text)
+      assert Map.has_key?(token, :modifier)
+      assert Map.has_key?(token, :title)
+      assert token.title == long
+      assert String.length(token.text) < String.length(long)
+      assert String.ends_with?(token.text, "TAILMARK")
+    end
+
+    test "short strings are untouched and carry no truncation artifacts" do
+      assert Presentation.value_token("open") == %{text: "open", modifier: "tl-value--string"}
+    end
+  end
+
   describe "find value tokens" do
     test "renders nil, redacted strings, and ordinary primitives as escaped text data" do
       assert Presentation.value_token(nil) == %{text: "null", modifier: "tl-value--null"}
