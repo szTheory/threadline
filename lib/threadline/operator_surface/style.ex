@@ -1104,7 +1104,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-timeline-fact {
           display: grid;
-          gap: 2px;
+          gap: var(--tl-space-1);
           min-width: 0;
           padding: var(--tl-space-2) var(--tl-space-3);
           border-radius: var(--tl-radius-md);
@@ -3930,6 +3930,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             grid-row: 2;
             min-width: 0;
             padding: var(--tl-space-3);
+          }
+
+          /* Reconcile the anchored-target offset to the DESKTOP sticky-topbar
+             height so a deep-linked row clears the topbar instead of hiding
+             beneath it. Matches the desktop scroll-padding-top above; the base
+             rule keeps the mobile offset for phone-width sticky headers. */
+          .tl-target-row {
+            scroll-margin-top: calc(var(--tl-header-height) + var(--tl-space-4));
           }
 
           .threadline-ui > :not(.tl-skip-link):not(.tl-topbar):not(.tl-shell-nav) {
