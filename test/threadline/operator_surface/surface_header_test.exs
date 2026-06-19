@@ -31,9 +31,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "All tables captured"
       assert_before(html, ~s|data-testid="operator-nav-overview"|, ~s|id="tl-shell-nav-find"|)
 
-      for label <- ["Find", "Verify", "Prove"] do
-        assert html =~ ">#{label}</h2>"
+      for {id, label} <- [
+            {"tl-shell-nav-find", "Investigate"},
+            {"tl-shell-nav-verify", "Audit readiness"},
+            {"tl-shell-nav-prove", "Evidence & exports"}
+          ] do
+        assert html =~ ~s|id="#{id}"|
+        assert html =~ ">#{html_label(label)}</h2>"
       end
+
+      for old_label <- ["Find", "Verify", "Prove"] do
+        refute html =~ ">#{old_label}</h2>"
+      end
+
+      assert_nav_href(html, :start, "/audit")
+      assert_nav_href(html, :timeline, "/audit/timeline")
+      assert_nav_href(html, :coverage, "/audit/coverage")
+      assert_nav_href(html, :evidence, "/audit/evidence")
+      assert_nav_href(html, :policy, "/audit/policy/redaction")
+      assert_nav_href(html, :retention, "/audit/policy/retention")
+      assert_nav_href(html, :exports, "/audit/exports")
 
       for page <- [:timeline, :coverage, :evidence, :policy, :retention, :exports] do
         assert html =~ ~s|data-testid="operator-nav-#{page}"|
@@ -65,11 +82,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    test "keeps Exports as a normal Prove destination" do
+    test "keeps Exports as a normal Evidence & exports destination" do
       html = render_header()
 
       refute html =~ ~s|class="tl-topbar__nav-handoff"|
       assert html =~ ~s|data-testid="operator-nav-exports"|
+      assert_nav_href(html, :exports, "/audit/exports")
     end
 
     test "feature flags remove only governed destinations and preserve header affordances" do
@@ -78,8 +96,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ~s|data-testid="operator-nav-coverage"|
       refute html =~ "All tables captured"
       assert html =~ ~s|data-testid="operator-nav-overview"|
-      assert html =~ ">Find</h2>"
-      assert html =~ ">Prove</h2>"
+      assert html =~ ">Investigate</h2>"
+      assert html =~ ">Evidence &amp; exports</h2>"
       assert html =~ ~s|data-testid="operator-nav-exports"|
       assert_preserved_affordances(html)
 
@@ -151,6 +169,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~r/aria-current="page"/
       |> Regex.scan(html)
       |> length()
+    end
+
+    defp assert_nav_href(html, page, href) do
+      assert nav_tag!(html, page) =~ ~s|href="#{href}"|
+    end
+
+    defp html_label(label) do
+      String.replace(label, "&", "&amp;")
     end
 
     defp assert_preserved_affordances(html) do
