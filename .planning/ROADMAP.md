@@ -304,7 +304,7 @@ Plans:
 | 176. Data display & operator patterns | v1.37 | 5/5 | Complete    | 2026-06-18 |
 | 177. Component groups / meta-components | v1.37 | 5/5 | Complete   | 2026-06-18 |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 7/7 | Complete   | 2026-06-18 |
-| 179. Microcopy & information-architecture sweep | v1.37 | 1/6 | In Progress|  |
+| 179. Microcopy & information-architecture sweep | v1.37 | 2/6 | In Progress|  |
 | 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 0/TBD | Not started | - |
 | 166. unfreeze-token-lane-mechanism | v1.36 | 1/1 | Complete | 2026-06-13 |
 | 167. component-retune | v1.36 | 2/2 | Complete | 2026-06-14 |
