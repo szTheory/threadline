@@ -99,7 +99,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <%= if @not_found do %>
           <div class="tl-empty tl-empty--error">
             <h3 class="tl-empty__title">Transaction not found</h3>
-            <p class="tl-empty__body">Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy.</p>
+            <p class="tl-empty__body">
+              This database transaction may not exist, or it may have been pruned by the retention policy.
+              Return to Timeline and check the transaction id.
+            </p>
             <div class="tl-empty__actions">
               <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
@@ -139,8 +142,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
           <%= if Enum.empty?(@bundle.changes) do %>
             <div class="tl-empty">
-              <h3 class="tl-empty__title">No row-level changes recorded</h3>
-              <p class="tl-empty__body">Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline.</p>
+              <h3 class="tl-empty__title">No row-level changes captured</h3>
+              <p class="tl-empty__body">
+                A database transaction was found, but row-level changes were not captured.
+                Check audit readiness for this table, then return to Timeline.
+              </p>
             </div>
           <% else %>
             <div
@@ -172,8 +178,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div class="tl-change__fields tl-diff">
                   <%= if normalized_fields(change) == [] do %>
                     <div class="tl-empty">
-                      <h3 class="tl-empty__title">No row-level changes recorded</h3>
-                      <p class="tl-empty__body">Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline.</p>
+                      <h3 class="tl-empty__title">No row-level changes captured</h3>
+                      <p class="tl-empty__body">
+                        A database transaction was found, but row-level changes were not captured.
+                        Check audit readiness for this table, then return to Timeline.
+                      </p>
                     </div>
                   <% else %>
                     <%= for field <- normalized_fields(change) do %>

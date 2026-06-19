@@ -371,7 +371,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/actors/user/scoped_actor")
-      assert html =~ "This actor has never recorded any events."
+      assert html =~ "No transactions or actions are linked to this actor yet."
       refute html =~ "View Incident"
     end
 

@@ -103,8 +103,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       >
         <%= if @not_found do %>
           <UI.error_state>
-            <:title>Invalid Actor Reference</:title>
-            This actor kind and id cannot be parsed as a Threadline actor reference.
+            <:title>Invalid actor reference</:title>
+            This actor kind and id could not be parsed as a Threadline actor reference.
+            Return to Timeline and check the actor reference.
             <:actions>
               <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
@@ -139,13 +140,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if not @has_ever_acted do %>
             <UI.empty_state variant="never" role="status" icon={:history}>
               <:title>No actor activity recorded</:title>
-              This actor has never recorded any events.
+              No transactions or actions are linked to this actor yet.
+              Run an audited transaction or record a semantic action for this actor, then return here.
             </UI.empty_state>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
               <UI.empty_state variant="no_data" role="status" icon={:funnel}>
-                <:title>No events in this window</:title>
-                No events found in the selected time window.<%= if @last_activity do %> This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %>
+                <:title>No actor activity in this window</:title>
+                No transactions or actions are linked to this actor in the selected time window.
+                <%= if @last_activity do %>This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %>
+                Widen the time window or open Timeline to adjust actor filters.
                 <:actions>
                   <button :if={@time_window_hours != 720} type="button" phx-click="set-window" phx-value-hours="720" class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />

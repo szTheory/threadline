@@ -78,11 +78,11 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
   end
 
   describe "three badge state literals on CoverageLive (D-32d, D-35 #5)" do
-    test "coverage_live.ex renders the literal \"Captured\" badge state" do
+    test "coverage_live.ex renders the literal \"Covered\" badge state" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, ">Captured<"),
-             "expected literal `Captured` badge in #{@coverage_lv_path}"
+      assert String.contains?(src, ">Covered<"),
+             "expected literal `Covered` badge in #{@coverage_lv_path}"
     end
 
     test "coverage_live.ex renders the literal \"Needs capture\" badge state" do

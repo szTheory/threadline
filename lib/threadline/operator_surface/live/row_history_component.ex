@@ -187,7 +187,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp snapshot_result(%{result: {:error, :deleted_record}} = assigns) do
       ~H"""
       <div class="tl-empty tl-empty--never">
-        <p class="tl-empty__body">Record was deleted at this time.</p>
+        <p class="tl-empty__body">
+          This row snapshot was deleted at the selected time.
+          Choose an earlier point in row history.
+        </p>
       </div>
       """
     end
@@ -195,7 +198,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp snapshot_result(%{result: {:error, :before_audit_horizon}} = assigns) do
       ~H"""
       <div class="tl-empty tl-empty--never">
-        <p class="tl-empty__body">Record did not exist at this time.</p>
+        <p class="tl-empty__body">
+          This row snapshot did not exist at the selected time.
+          Choose a later point in row history.
+        </p>
       </div>
       """
     end
@@ -203,7 +209,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp snapshot_result(assigns) do
       ~H"""
       <div class="tl-empty tl-empty--error">
-        <p class="tl-empty__body">Unable to render this snapshot.</p>
+        <p class="tl-empty__body">
+          Could not render this row snapshot.
+          Choose another point in row history, then retry.
+        </p>
       </div>
       """
     end

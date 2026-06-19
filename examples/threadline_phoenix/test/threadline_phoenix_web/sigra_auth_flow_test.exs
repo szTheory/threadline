@@ -109,7 +109,7 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
       |> get(~p"/audit/transactions/00000000-0000-0000-0000-000000000000")
 
     html = html_response(conn, 200)
-    assert html =~ "Transaction Not Found"
+    assert html =~ "Transaction not found"
     assert html =~ ~s|type="image/svg+xml"|
     assert html =~ ~s|href="/images/threadline-admin-favicon.svg"|
     refute html =~ ~s|href="/favicon.ico"|

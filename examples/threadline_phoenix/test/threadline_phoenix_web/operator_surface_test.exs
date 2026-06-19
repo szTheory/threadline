@@ -35,7 +35,7 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> login_via_sigra(user)
       |> get("/audit/transactions/00000000-0000-0000-0000-000000000000")
 
-    assert html_response(conn, 200) =~ "Transaction Not Found"
+    assert html_response(conn, 200) =~ "Transaction not found"
   end
 
   test "support user only sees transactions scoped to their organization", %{conn: conn} do
@@ -51,11 +51,11 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
 
     visible_conn = get(conn, "/audit/transactions/#{visible_tx}")
     visible_html = html_response(visible_conn, 200)
-    refute visible_html =~ "Transaction Not Found"
+    refute visible_html =~ "Transaction not found"
     assert visible_html =~ "posts"
 
     hidden_conn = get(conn, "/audit/transactions/#{hidden_tx}")
-    assert html_response(hidden_conn, 200) =~ "Transaction Not Found"
+    assert html_response(hidden_conn, 200) =~ "Transaction not found"
   end
 
   test "admin user can reach evidence surface", %{conn: conn} do

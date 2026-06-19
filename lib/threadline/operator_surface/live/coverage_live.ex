@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if @form_error do %>
               <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
                 <:lede>
-                  Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                  Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                 </:lede>
                 <:actions>
                   <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
@@ -121,14 +121,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% else %>
               <%= if @threadline_coverage_error do %>
                 <div class="tl-alert tl-alert--warning" role="status">
-                  Coverage check failed at <%= now_label() %> — showing last successful result from <%= last_label(@coverage_for_schema.last_checked_at) %>.
+                  Could not refresh - showing last known coverage results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
+                  Retry.
                 </div>
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
                 <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
                   <:lede>
-                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                    Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                   </:lede>
                   <:actions>
                     <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
@@ -140,13 +141,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div class="tl-empty">
                   <h3 class="tl-empty__title">No audited tables found</h3>
                   <p class="tl-empty__body">
-                    No audited tables were found for schema '<%= @schema_param %>'. Run <code>mix threadline.gen.triggers</code> to set up capture.
+                    No audited tables were found for schema '<%= @schema_param %>'. Run <code>mix threadline.gen.triggers</code> to set up capture, then refresh audit readiness.
                   </p>
                 </div>
               <% else %>
                 <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
                   <:lede>
-                    Audit readiness by table: fix "Needs capture" before relying on complete timeline answers.
+                    Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                   </:lede>
                   <:meta :if={@coverage_for_schema.last_checked_at}>
                     <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
@@ -164,7 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= if @coverage_for_schema.uncovered_count > 0 do %>
                     <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
                   <% else %>
-                    <span class="tl-chip tl-chip--success">All tables captured — capture is complete</span>
+                    <span class="tl-chip tl-chip--success">All tracked tables covered</span>
                   <% end %>
                   <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -174,7 +175,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 <section class="tl-summary-grid" aria-label="Coverage summary">
                   <div class="tl-card--metric" data-status="success">
-                    <span class="tl-card__metric-label">Captured</span>
+                    <span class="tl-card__metric-label">Covered</span>
                     <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
                   </div>
                   <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
@@ -189,11 +190,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
                   <header class="tl-remediation__header">
-                    <h3 class="tl-remediation__title">Needs capture before complete timeline answers</h3>
+                    <h3 class="tl-remediation__title">Needs capture before relying on timeline results</h3>
                     <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables</span>
                   </header>
                   <div class="tl-remediation__body">
-                    Timeline may be incomplete for these tables. Add capture before treating investigation results as exhaustive, then return to Timeline and rerun the search.
+                    Timeline results may be incomplete for these tables.
+                    Add capture, verify coverage, then rerun the timeline search.
                   </div>
                 </section>
 
@@ -245,7 +247,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <%= for table <- @coverage_for_schema.tables[:covered] do %>
                         <tr class="tl-table__row--covered">
                           <td data-label="TABLE"><code><%= table %></code></td>
-                          <td data-label="STATUS"><span class="tl-chip tl-chip--success">Captured</span></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--success">Covered</span></td>
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
                             <div class="tl-coverage-actions">
@@ -262,7 +264,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <p class="tl-hint">
-                  Coverage: <%= @coverage_for_schema.covered_count %> captured, <%= @coverage_for_schema.uncovered_count %> need capture, <%= Presentation.expected_gap_count_label(@coverage_for_schema.expected_uncovered_count) %>
+                  Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> need capture, <%= Presentation.expected_gap_count_label(@coverage_for_schema.expected_uncovered_count) %>
                 </p>
               <% end %>
             <% end %>
@@ -316,7 +318,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
 
-    defp now_label, do: DateTime.utc_now() |> Presentation.human_time()
     defp last_label(%DateTime{} = ts), do: Presentation.human_time(ts)
     defp last_label(_), do: "never"
 

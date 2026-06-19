@@ -212,7 +212,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # The legit repeated-item metric tiles survive the flatten.
         assert html =~ ~s|class="tl-card--metric"|
-        assert html =~ ">Captured<"
+        assert html =~ ">Covered<"
         assert html =~ ">Needs capture<"
         assert html =~ ">Expected gaps<"
 
