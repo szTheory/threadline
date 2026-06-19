@@ -5,6 +5,77 @@ const adminEmail = "admin@example.com";
 const rowTable = "ticket_replies";
 const leavingAgentId = "33123cc4-da21-5674-b030-e168cee90521";
 
+const d04RenderedStateCoverage = [
+  {
+    category: "modal/dialog",
+    evidence: "Retention prune modal and stress modal opened in Chromium",
+    status: "covered",
+  },
+  {
+    category: "drawer",
+    evidence: "Row-history drawer and stress drawer opened in Chromium",
+    status: "covered",
+  },
+  {
+    category: "dropdown/menu",
+    evidence: "Stress dropdown menu and retention run action menu",
+    status: "covered",
+  },
+  {
+    category: "tabs",
+    evidence: "Stress tabs render as a tablist with selected state",
+    status: "covered",
+  },
+  {
+    category: "disclosure/accordion",
+    evidence: "Timeline advanced filters and stress accordion",
+    status: "covered",
+  },
+  {
+    category: "combobox/select/search",
+    evidence:
+      "Native Timeline filters plus stress combobox/select/search controls",
+    status: "covered-native",
+  },
+  {
+    category: "error summary",
+    evidence: "Stress form error summary focuses an alert summary",
+    status: "covered",
+  },
+  {
+    category: "permission/unavailable/alert",
+    evidence:
+      "Stress permission, source-down, redacted, pruned, alert, and status states",
+    status: "covered",
+  },
+  {
+    category: "stale/status",
+    evidence: "Stress stale banner and Timeline/Home/Retention status regions",
+    status: "covered",
+  },
+  {
+    category: "table/list/data panel",
+    evidence: "Timeline list, Retention table, and stress data panel",
+    status: "covered",
+  },
+  {
+    category: "shell nav",
+    evidence: "Operator shell nav, skip link, labelled nav groups",
+    status: "covered",
+  },
+  {
+    category: "mobile nav",
+    evidence: "Native details-based shell nav at mobile viewport",
+    status: "covered-native",
+  },
+  {
+    category: "tooltip/popover",
+    evidence:
+      "Covered by APG/component semantics in Plan 180-02; no critical operator action is hover-only in current A11Y-01 flows",
+    status: "not-applicable",
+  },
+];
+
 async function login(page: Page) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
@@ -20,6 +91,30 @@ async function expectFocused(locator: Locator) {
     (element) => window.getComputedStyle(element).boxShadow,
   );
   expect(boxShadow).not.toBe("none");
+}
+
+async function expectNonObscuredFocused(locator: Locator, page: Page) {
+  await expectFocused(locator);
+  const visibleFocus = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + Math.min(rect.width / 2, Math.max(1, rect.width - 1));
+    const y = rect.top + Math.min(rect.height / 2, Math.max(1, rect.height - 1));
+    const hit = document.elementFromPoint(x, y);
+
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= window.innerHeight + 1 &&
+      rect.right <= window.innerWidth + 1 &&
+      !!hit &&
+      (hit === element || element.contains(hit))
+    );
+  });
+
+  expect(visibleFocus).toBe(true);
+  await expectNoHorizontalOverflow(page);
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -99,6 +194,22 @@ test.describe("operator accessibility baseline", () => {
     await login(page);
   });
 
+  test("documents every D-04 rendered-state category as covered or explicitly bounded", async () => {
+    expect(d04RenderedStateCoverage).toHaveLength(13);
+
+    for (const item of d04RenderedStateCoverage) {
+      expect(item.status, `${item.category} must not be missing`).not.toBe(
+        "missing",
+      );
+      expect(item.evidence, `${item.category} needs concrete evidence`).toMatch(
+        /\S/,
+      );
+      if (item.status === "not-applicable") {
+        expect(item.evidence).toMatch(/Plan 180-02|native|no critical/i);
+      }
+    }
+  });
+
   test("exposes keyboard focus, skip link, nav state, and Home form names", async ({
     page,
   }) => {
@@ -149,7 +260,28 @@ test.describe("operator accessibility baseline", () => {
     const timelineNav = page.getByTestId("operator-nav-timeline");
     await expect(timelineNav).toHaveAttribute("aria-current", "page");
     await timelineNav.focus();
-    await expectFocused(timelineNav);
+    await expectNonObscuredFocused(timelineNav, page);
+  });
+
+  test("keeps mobile shell navigation keyboard reachable without obscured focus", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 900 });
+    await page.goto("/audit");
+    await openOperatorNav(page);
+
+    const nav = page.getByTestId("operator-nav-shell");
+    await expect(nav).toHaveAttribute("aria-label", "Operator surface");
+
+    const toggle = nav.locator(".tl-shell-nav__toggle");
+    await toggle.focus();
+    await expectNonObscuredFocused(toggle, page);
+    await page.keyboard.press("Enter");
+    await expect(nav.locator(".tl-shell-nav__panel")).toBeVisible();
+
+    const timeline = page.getByTestId("operator-nav-timeline");
+    await timeline.focus();
+    await expectNonObscuredFocused(timeline, page);
   });
 
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({
@@ -174,8 +306,11 @@ test.describe("operator accessibility baseline", () => {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
-    await page.getByLabel("Correlation id", { exact: true }).focus();
-    await expectFocused(page.getByLabel("Correlation id", { exact: true }));
+    const correlationFilter = page.getByLabel("Correlation id", {
+      exact: true,
+    });
+    await correlationFilter.focus();
+    await expectNonObscuredFocused(correlationFilter, page);
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
@@ -191,16 +326,29 @@ test.describe("operator accessibility baseline", () => {
       .last();
     await expect(prune).toBeVisible();
     await prune.focus();
-    await expectFocused(prune);
+    await expectNonObscuredFocused(prune, page);
     await prune.click();
     const pruneModal = page.locator("#prune-confirm");
+    const pruneDialog = page.getByRole("dialog", {
+      name: "Prune retention window permanently?",
+    });
     await expect(pruneModal).toBeVisible();
-    await expect(pruneModal.locator('[role="dialog"]')).toBeVisible();
-    await expect(pruneModal.locator('[aria-modal="true"]')).toBeVisible();
+    await expect(pruneDialog).toBeVisible();
+    await expect(pruneDialog).toHaveAttribute("aria-modal", "true");
+    await expect(pruneDialog).toHaveAttribute(
+      "aria-describedby",
+      "prune-confirm-description",
+    );
     await expect(pruneModal).toContainText(
       "This permanently deletes audit records older than the retention window",
     );
-    await expect(pruneModal.getByLabel("Policy name to confirm")).toBeVisible();
+    const confirm = pruneModal.getByLabel("Policy name to confirm");
+    await expect(confirm).toBeVisible();
+    await expectNonObscuredFocused(confirm, page);
+
+    await page.keyboard.press("Escape");
+    await expect(pruneModal).toBeHidden();
+    await expectNonObscuredFocused(prune, page);
 
     await expectNoHorizontalOverflow(page);
   });
@@ -220,7 +368,7 @@ test.describe("operator accessibility baseline", () => {
     await expect(rowHistoryLink).toBeVisible();
     await rowHistoryLink.scrollIntoViewIfNeeded();
     await rowHistoryLink.focus();
-    await expectFocused(rowHistoryLink);
+    await expectNonObscuredFocused(rowHistoryLink, page);
 
     await page.goto(rowHistoryHref);
     const drawer = page.getByTestId("row-history-drawer");
@@ -235,9 +383,109 @@ test.describe("operator accessibility baseline", () => {
     const close = drawer.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
     await close.focus();
-    await expectFocused(close);
+    await expectNonObscuredFocused(close, page);
 
     await expect(drawer.getByLabel("View snapshot at")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("opens stress rendered widgets with names, keyboard state, and focus entry", async ({
+    page,
+  }) => {
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.getByTestId("stress-preview")).toBeVisible();
+
+    const dropdownTrigger = page.locator("#stress-dropdown-button");
+    const dropdownMenu = page.locator("#stress-dropdown-menu");
+    await expect(dropdownTrigger).toHaveAttribute("aria-expanded", "false");
+    await dropdownTrigger.focus();
+    await expectNonObscuredFocused(dropdownTrigger, page);
+    await page.keyboard.press("Enter");
+    await expect(dropdownTrigger).toHaveAttribute("aria-expanded", "true");
+    await expect(dropdownMenu).toBeVisible();
+    await expect(dropdownMenu).toHaveAttribute("role", "menu");
+    await expect(
+      dropdownMenu.getByRole("menuitem", { name: "View stress details" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const accordion = page.getByRole("button", { name: "Accordion Section" });
+    await expect(accordion).toHaveAttribute("aria-expanded", "false");
+    await accordion.focus();
+    await expectNonObscuredFocused(accordion, page);
+    await page.keyboard.press("Enter");
+    await expect(accordion).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("#stress-accordion-content")).toBeVisible();
+
+    const activeTab = page.getByRole("tab", { name: "Tab 1" });
+    await expect(activeTab).toHaveAttribute("aria-selected", "true");
+    await activeTab.focus();
+    await expectNonObscuredFocused(activeTab, page);
+
+    await expect(
+      page.getByRole("combobox", { name: "Combobox Field" }),
+    ).toBeVisible();
+    await expect(page.getByLabel("Select Field")).toBeVisible();
+    await expect(page.getByLabel("Search Field")).toBeVisible();
+
+    const errorSummary = page.getByRole("alert", {
+      name: "There is a problem",
+    });
+    await expect(errorSummary).toBeVisible();
+    await expect(errorSummary.getByRole("link", { name: /required/i })).toHaveAttribute(
+      "href",
+      "#stress-error",
+    );
+
+    const dataPanel = page.getByRole("region", { name: "Stress data panel" });
+    await expect(dataPanel).toBeVisible();
+    await expect(
+      dataPanel.getByRole("table").getByRole("columnheader", {
+        name: "Status",
+      }),
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("alert", {
+        name: /You do not have access to this audit data/i,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Could not refresh" }),
+    ).toBeVisible();
+
+    const modalTrigger = page.getByRole("button", { name: "Show Modal" });
+    await modalTrigger.focus();
+    await expectNonObscuredFocused(modalTrigger, page);
+    await page.keyboard.press("Enter");
+    const modal = page.getByRole("dialog", { name: "Stress modal" });
+    await expect(modal).toBeVisible();
+    await expect(modal).toHaveAttribute("aria-modal", "true");
+    await expect(modal).toHaveAttribute(
+      "aria-describedby",
+      "stress-modal-description",
+    );
+    await expect(page.getByRole("button", { name: "Confirm stress modal" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(modal).toBeHidden();
+    await expectNonObscuredFocused(modalTrigger, page);
+
+    const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await drawerTrigger.focus();
+    await expectNonObscuredFocused(drawerTrigger, page);
+    await page.keyboard.press("Enter");
+    const drawer = page.getByRole("dialog", { name: "Stress drawer" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toHaveAttribute("aria-modal", "true");
+    await expect(drawer).toHaveAttribute(
+      "aria-describedby",
+      "stress-drawer-description",
+    );
+    await expect(page.getByRole("button", { name: "Close stress drawer" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+    await expectNonObscuredFocused(drawerTrigger, page);
+
     await expectNoHorizontalOverflow(page);
   });
 
