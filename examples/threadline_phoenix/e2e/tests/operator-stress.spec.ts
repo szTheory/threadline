@@ -163,6 +163,84 @@ test.describe("operator stress route semantics", () => {
         await expect(page.getByText(copy)).toBeVisible();
       }
     });
+
+    test("renders Phase 179 copy-state evidence on existing stress stories", async ({
+      page,
+    }) => {
+      const copyStates = [
+        {
+          story: "state.permission-denied",
+          copy: [
+            "You do not have access to this audit object.",
+            "The audit object exists; your account needs `audit.read`.",
+          ],
+        },
+        {
+          story: "state.unavailable-down",
+          copy: [
+            "Audit source is temporarily unavailable.",
+            "This is not a permissions issue.",
+            "Retry, then check operator logs.",
+          ],
+        },
+        {
+          story: "state.unavailable-redacted",
+          copy: [
+            "This field was redacted by the redaction policy.",
+            "This is not a permissions issue.",
+          ],
+        },
+        {
+          story: "state.unavailable-pruned",
+          copy: [
+            "This audit history was permanently pruned by the retention window.",
+            "This is not a permissions issue.",
+          ],
+        },
+        {
+          story: "state.stale",
+          copy: ["Could not refresh - showing last known audit data", "Retry."],
+        },
+        {
+          story: "page.evidence.happy",
+          copy: [
+            "Evidence shows the current audit posture.",
+            "Open proof history only for append-only evidence detail.",
+          ],
+        },
+        {
+          story: "page.retention.happy",
+          copy: [
+            "Retention window status names the permanent pruning consequence",
+            "review before running another prune",
+          ],
+        },
+        {
+          story: "group.modal-destructive.current",
+          copy: [
+            "Prune retention window permanently?",
+            "This permanently deletes audit records older than the retention window.",
+            "Type `default` to confirm.",
+          ],
+        },
+      ];
+
+      for (const { story, copy } of copyStates) {
+        await page.goto(`/audit/__stress?story=${story}`);
+        const preview = page.getByTestId("stress-preview");
+        await expect(page.getByTestId("stress-story-id")).toHaveText(story);
+
+        for (const text of copy) {
+          await expect(preview).toContainText(text);
+        }
+      }
+
+      await page.goto("/audit/__stress?story=page.evidence.happy");
+      const evidenceText = await page.getByTestId("stress-preview").innerText();
+      expect(evidenceText.replace(/proof history/gi, "")).not.toMatch(
+        /\bproofs?\b/i,
+      );
+    });
   });
 });
 

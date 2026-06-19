@@ -257,6 +257,72 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert denied_html =~ "restricted data"
     end
 
+    test "Phase 179 copy-state evidence uses final state grammar without story churn" do
+      expectations = [
+        {"state.permission-denied",
+         [
+           "You do not have access to this audit object.",
+           "The audit object exists; your account needs `audit.read`."
+         ]},
+        {"state.unavailable-down",
+         [
+           "Audit source is temporarily unavailable.",
+           "This is not a permissions issue.",
+           "Retry, then check operator logs."
+         ]},
+        {"state.unavailable-redacted",
+         [
+           "This field was redacted by the redaction policy.",
+           "This is not a permissions issue."
+         ]},
+        {"state.unavailable-pruned",
+         [
+           "This audit history was permanently pruned by the retention window.",
+           "This is not a permissions issue."
+         ]},
+        {"state.stale",
+         [
+           "Could not refresh - showing last known audit data",
+           "Retry."
+         ]},
+        {"page.evidence.happy",
+         [
+           "Evidence shows the current audit posture.",
+           "Open proof history only for append-only evidence detail."
+         ]},
+        {"page.retention.happy",
+         [
+           "Retention window status names the permanent pruning consequence",
+           "review before running another prune"
+         ]},
+        {"group.modal-destructive.current",
+         [
+           "Prune retention window permanently?",
+           "This permanently deletes audit records older than the retention window.",
+           "Type `default` to confirm."
+         ]}
+      ]
+
+      for {story_id, required_copy} <- expectations do
+        assert {:ok, story} = StressFixtures.by_id(story_id)
+        copy = fixture_copy(story)
+
+        for expected <- required_copy do
+          assert copy =~ expected,
+                 "#{story_id} must render Phase 179 copy #{inspect(expected)}; got #{inspect(copy)}"
+        end
+      end
+
+      assert {:ok, evidence_story} = StressFixtures.by_id("page.evidence.happy")
+
+      evidence_copy =
+        evidence_story
+        |> fixture_copy()
+        |> String.replace("proof history", "")
+
+      refute evidence_copy =~ ~r/\bproofs?\b/i
+    end
+
     test "fixture registry exposes every planned ledger inventory story" do
       story_ids =
         StressFixtures.all()
@@ -408,6 +474,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert story.owner_phase == phase, "#{story_id} must be owned by Phase #{phase}"
       assert story.metadata.reserved_for_phase == phase
       assert story.data.reserved_for_phase == phase
+    end
+
+    defp fixture_copy(story) do
+      assign_copy =
+        case StressFixtures.assigns_for(story) do
+          {:ok, assigns} -> [assigns[:title], assigns[:body]]
+          {:error, _reason} -> []
+        end
+
+      data_copy = [story.scenario, story.data[:summary], story.data[:message]]
+
+      (assign_copy ++ data_copy)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&to_string/1)
+      |> Enum.join("\n")
     end
 
     defp string_list?(values), do: is_list(values) and Enum.all?(values, &is_binary/1)
