@@ -411,22 +411,22 @@ All substantive recommendations in this research are based on local project file
 |---|-------|---------|---------------|
 | — | No assumed claims logged. | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should source scans include comments and test descriptions?**
    - What we know: Comments/tests currently contain retired terms such as `Find`, `Verify`, `Prove`, and test names like "operator Prove cluster". [VERIFIED: codebase grep]
-   - What's unclear: Whether the final copy-contract should ban these terms only in rendered UI or also in source comments/test names. [VERIFIED: codebase grep]
-   - Recommendation: Rendered UI must be strict; source scans should either exclude comments/tests or explicitly update historical labels in touched files to avoid noisy failures. [VERIFIED: local test patterns]
+   - Resolution: The blocking contract is scoped to rendered operator UI and narrowly scoped source assertions for files that intentionally own visible labels. Source scans must exclude comments and test descriptions unless a touched test name or fixture label itself becomes user-visible. This implements D-16 without creating noisy failures from historical comments, CSP-proof language, or non-UI technical vocabulary. [VERIFIED: local test patterns]
+   - Plan linkage: `179-01` creates the rendered/scoped copy-contract guard; later plans update touched tests only when their visible assertions change.
 
 2. **Should `Proof` remain in CSS/test vocabulary unrelated to Evidence history?**
    - What we know: The codebase contains `phone-proof`, CSP-proof, and motion rationale uses of proof outside user-visible Evidence copy. [VERIFIED: codebase grep]
-   - What's unclear: Whether Phase 179 copy-contract should flag only rendered operator UI or all source text. [VERIFIED: codebase grep]
-   - Recommendation: Ban broad proof language in rendered IA/overview/handoff copy, but allow non-UI technical phrases and `Open proof history`. [VERIFIED: `179-CONTEXT.md`]
+   - Resolution: Broad proof language is banned from rendered primary IA, Home, overview, export handoff, and governance page copy. `Proof` may remain in non-UI technical phrases and in the explicit append-only evidence history affordance, such as `Open proof history`, because D-02 and D-05 reserve proof-history language for evidence verdict/history contexts. [VERIFIED: `179-CONTEXT.md`]
+   - Plan linkage: `179-01` allowlists non-UI technical proof phrases in the copy-contract guard; `179-05` normalizes Evidence and Exports copy so rendered broad proof wording appears only in allowed evidence history/verdict contexts.
 
 3. **Should `UI.error_summary/1` focus behavior be added in this phase?**
    - What we know: The component renders linked error summaries, and D-09 says validation summaries should receive focus when validation spans fields. [VERIFIED: `ui.ex`] [VERIFIED: `179-CONTEXT.md`]
-   - What's unclear: Whether current forms already focus summaries through external JS or LiveView hooks. [VERIFIED: codebase grep]
-   - Recommendation: Planner should include a small verification task for linked/focused multi-field validation summaries if existing behavior is absent. [CITED: https://design-system.service.gov.uk/patterns/validation/]
+   - Resolution: Phase 179 must verify `UI.error_summary/1` for linked, focusable multi-field validation summaries. If existing behavior is absent, the shared-state plan adds the smallest helper-level change needed while preserving public assigns and current form wiring. This keeps D-09 in scope without moving Phase 180's broader accessibility closeout into this phase. [CITED: https://design-system.service.gov.uk/patterns/validation/]
+   - Plan linkage: `179-02` owns the `UI.error_summary/1` focus verification and helper update; the validation map tracks it as a concrete automated check rather than an open research question.
 
 ## Environment Availability
 
