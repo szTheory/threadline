@@ -5,12 +5,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
     use Phoenix.Component
 
     attr(:descriptor, :map, default: nil)
-    attr(:title, :string, default: "Unsupported View")
+    attr(:title, :string, default: "View unavailable")
 
     attr(
       :body,
       :string,
-      default: "This support-lane view is not available for the current transport or access tier."
+      default:
+        "This support-lane view is unavailable. This is not a permissions issue. Use the fallback command when provided."
     )
 
     attr(:fallback_label, :string, default: nil)
@@ -28,7 +29,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
         |> assign(:fallback_value, Map.get(descriptor, :fallback_value, assigns[:fallback_value]))
 
       ~H"""
-      <div class="tl-empty tl-empty--unsupported" role="status">
+      <div class="tl-empty tl-empty--unsupported" role="alert">
         <h3 class="tl-empty__title"><%= @title %></h3>
         <p class="tl-empty__body"><%= @body %></p>
         <p :if={@fallback_value} class="tl-hint">

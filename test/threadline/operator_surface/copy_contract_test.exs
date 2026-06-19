@@ -223,10 +223,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "shared unsupported descriptors use sentence-case unavailable and permission copy" do
       descriptor_expectations = [
-        {:coverage_unavailable, "Coverage unavailable", "Coverage is unavailable in this support lane"},
+        {:coverage_unavailable, "Coverage unavailable",
+         "Coverage is unavailable in this support lane"},
         {:policy_redaction_unavailable, "Redaction policy unavailable",
          "Redaction policy status is unavailable in this support lane"},
-        {:evidence_unavailable, "Evidence unavailable", "Evidence is unavailable in this support lane"},
+        {:evidence_unavailable, "Evidence unavailable",
+         "Evidence is unavailable in this support lane"},
         {:retention_unavailable, "Retention history unavailable",
          "Retention history is unavailable in this support lane"}
       ]

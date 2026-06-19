@@ -594,6 +594,7 @@ defmodule Threadline.OperatorSurface.UI do
   # data — it PRECEDES, never replaces, and is NOT a clause in any async switch. Reuses
   # the tl-alert--warning shell with a refresh glyph and an as_of timestamp.
   attr(:as_of, :string, default: nil, doc: "Timestamp of the last known good data")
+  attr(:object_label, :string, default: "audit data", doc: "Object shown from last-good data")
   attr(:class, :any, default: nil)
   attr(:rest, :global)
 
@@ -601,7 +602,7 @@ defmodule Threadline.OperatorSurface.UI do
     ~H"""
     <div class={["tl-alert", "tl-alert--warning", @class]} role="status" {@rest}>
       <Icon.icon name={:refresh} class="tl-alert__icon" />
-      Couldn't refresh — showing last known data from <%= @as_of %>. Retry.
+      Could not refresh - showing last known <%= @object_label %> from <%= @as_of || "the last successful refresh" %>. Retry.
     </div>
     """
   end
@@ -614,6 +615,17 @@ defmodule Threadline.OperatorSurface.UI do
   # sub-case states it is NOT a permissions issue.
   attr(:reason, :atom, required: true)
   attr(:as_of, :string, default: nil, doc: "Timestamp for the pruned (retention) sub-case")
+
+  attr(:capability, :string,
+    default: "audit:read",
+    doc: "Required capability for permission states"
+  )
+
+  attr(:logs_label, :string,
+    default: "operator logs",
+    doc: "Where operators should check after retrying unavailable data"
+  )
+
   attr(:class, :any, default: nil)
   attr(:rest, :global)
 
@@ -626,8 +638,8 @@ defmodule Threadline.OperatorSurface.UI do
   def data_state(%{reason: :no_data} = assigns) do
     ~H"""
     <.empty_state variant="no_data" role="status" icon={:funnel} class={@class} {@rest}>
-      <:title>No changes match these filters</:title>
-      Clear the filter or widen the time range.
+      <:title>No audit changes match these filters</:title>
+      Clear a filter or widen the time range.
     </.empty_state>
     """
   end
@@ -642,8 +654,8 @@ defmodule Threadline.OperatorSurface.UI do
       class={@class}
       {@rest}
     >
-      <:title>You don't have access to this audit data</:title>
-      This data exists — your account needs <code>audit:read</code>.
+      <:title>You do not have access to this audit data</:title>
+      The audit data exists; your account needs <code><%= @capability %></code>.
     </.empty_state>
     """
   end
@@ -652,7 +664,7 @@ defmodule Threadline.OperatorSurface.UI do
     ~H"""
     <.empty_state variant="unavailable" role="alert" icon={:cloud_off} class={@class} {@rest}>
       <:title>Audit data is temporarily unavailable</:title>
-      This is not a permissions issue. Retry shortly.
+      This is not a permissions issue. Retry, then check <%= @logs_label %>.
     </.empty_state>
     """
   end
@@ -660,8 +672,8 @@ defmodule Threadline.OperatorSurface.UI do
   def data_state(%{reason: :redacted} = assigns) do
     ~H"""
     <.empty_state variant="unavailable" role="status" icon={:eye_off} class={@class} {@rest}>
-      <:title>This value is withheld by policy</:title>
-      This is not a permissions issue. The record exists.
+      <:title>Value redacted by policy</:title>
+      This value exists but is withheld. This is not a permissions issue. Check the redaction policy before relying on this view.
     </.empty_state>
     """
   end
@@ -669,8 +681,8 @@ defmodule Threadline.OperatorSurface.UI do
   def data_state(%{reason: :pruned} = assigns) do
     ~H"""
     <.empty_state variant="unavailable" role="status" icon={:archive} class={@class} {@rest}>
-      <:title>Removed under retention<%= if @as_of, do: " on #{@as_of}" %></:title>
-      This is not a permissions issue. It was pruned by policy.
+      <:title>Audit data pruned under retention<%= if @as_of, do: " on #{@as_of}" %></:title>
+      This audit data was permanently deleted under retention. This is not a permissions issue. Check the retention window before relying on this view.
     </.empty_state>
     """
   end
@@ -678,7 +690,7 @@ defmodule Threadline.OperatorSurface.UI do
   def data_state(assigns) do
     ~H"""
     <.error_state class={@class} {@rest}>
-      <:title>Could not load this timeline</:title>
+      <:title>Could not load audit data</:title>
       Retry, then check logs.
     </.error_state>
     """
@@ -819,13 +831,13 @@ defmodule Threadline.OperatorSurface.UI do
             <.data_state reason={@reason} as_of={@as_of} />
           <% @state == :error -> %>
             <.error_state>
-              <:title>Could not load this data</:title>
+              <:title>Could not load audit data</:title>
               Retry, then check logs.
             </.error_state>
           <% @state == :empty -> %>
             <.empty_state role="status">
-              <:title>Nothing here yet</:title>
-              No audit changes have been recorded.
+              <:title>No audit changes yet</:title>
+              Audit changes appear after captured database transactions.
             </.empty_state>
           <% @state == :no_data -> %>
             <.data_state reason={:no_data} />
@@ -1470,6 +1482,8 @@ defmodule Threadline.OperatorSurface.UI do
       id={@id}
       role="alert"
       aria-labelledby={"#{@id}-title"}
+      tabindex="-1"
+      phx-mounted={JS.focus(to: "##{@id}")}
       class={["tl-error", "tl-error-summary", @class]}
       {@rest}
     >
@@ -1478,7 +1492,7 @@ defmodule Threadline.OperatorSurface.UI do
       </h2>
       <ul class="tl-error-summary__list">
         <li :for={{field_id, message} <- @errors}>
-          <a href={"##{field_id}-error"}><%= message %></a>
+          <a href={"##{field_id}"}><%= message %></a>
         </li>
       </ul>
     </div>

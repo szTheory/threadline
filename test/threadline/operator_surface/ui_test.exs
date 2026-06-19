@@ -878,7 +878,8 @@ defmodule Threadline.OperatorSurface.UITest do
         <UI.stale_banner as_of={@as_of} object_label="coverage status" />
         """)
 
-      assert html =~ "Could not refresh - showing last known coverage status from 2026-06-14 23:59 UTC. Retry."
+      assert html =~
+               "Could not refresh - showing last known coverage status from 2026-06-14 23:59 UTC. Retry."
     end
   end
 
@@ -993,7 +994,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       assert data_state_html(:no_data) =~ "Clear a filter or widen the time range."
       assert data_state_html(:source_down) =~ "Retry, then check operator logs."
-      assert data_state_html(:redacted) =~ "Check the redaction policy before relying on this view."
+
+      assert data_state_html(:redacted) =~
+               "Check the redaction policy before relying on this view."
+
       assert data_state_html(:pruned) =~ "Check the retention window before relying on this view."
       assert data_state_html(:boom) =~ "Retry, then check logs."
     end
@@ -1125,10 +1129,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:permission} reason={:unauthorized}>
-          <:data><div id="the-data-table">rows</div></:data>
-        </UI.data_panel>
-      """)
+          <UI.data_panel state={:permission} reason={:unauthorized}>
+            <:data><div id="the-data-table">rows</div></:data>
+          </UI.data_panel>
+        """)
 
       refute html =~ "the-data-table"
       assert html =~ "You do not have access to this audit data"

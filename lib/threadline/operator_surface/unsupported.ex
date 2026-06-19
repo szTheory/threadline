@@ -1,35 +1,37 @@
 defmodule Threadline.OperatorSurface.Unsupported do
   @moduledoc false
 
-  @unsupported_view "Unsupported View"
   @generic_export_fallback "mix threadline.export --dry-run"
 
   @descriptors %{
     coverage_unavailable: %{
-      title: @unsupported_view,
-      body: "Coverage inspection is not available for the current support lane or transport.",
+      title: "Coverage unavailable",
+      body:
+        "Coverage is unavailable in this support lane. This is not a permissions issue. Run the coverage check from the host app.",
       fallback_label: "Try instead",
       fallback_value: "mix threadline.health.coverage",
       fallback_kind: :generic
     },
     policy_redaction_unavailable: %{
-      title: @unsupported_view,
-      body: "Policy redaction drift is not available for the current support lane or transport.",
+      title: "Redaction policy unavailable",
+      body:
+        "Redaction policy status is unavailable in this support lane. This is not a permissions issue. Run the policy command from the host app.",
       fallback_label: "Try instead",
       fallback_value: "mix threadline.policy.show",
       fallback_kind: :generic
     },
     evidence_unavailable: %{
-      title: @unsupported_view,
+      title: "Evidence unavailable",
       body:
-        "Evidence view unavailable. This mounted proof surface is not available for the current support lane or transport. Use mix threadline.evidence.show or the Threadline.Evidence API instead.",
+        "Evidence is unavailable in this support lane. This is not a permissions issue. Use mix threadline.evidence.show or the Threadline.Evidence API instead.",
       fallback_label: "Try instead",
       fallback_value: "mix threadline.evidence.show",
       fallback_kind: :generic
     },
     retention_unavailable: %{
-      title: @unsupported_view,
-      body: "Retention history is not available for the current support lane or transport.",
+      title: "Retention history unavailable",
+      body:
+        "Retention history is unavailable in this support lane. This is not a permissions issue. Run the retention command from the host app.",
       fallback_label: "Try instead",
       fallback_value: "mix threadline.retention.purge --dry-run",
       fallback_kind: :operational
@@ -45,8 +47,9 @@ defmodule Threadline.OperatorSurface.Unsupported do
     exact_filters = exact_export_filters(params)
 
     %{
-      title: "Action Denied",
-      body: "Support-scoped operators require explicit host authorization for exports.",
+      title: "Export access needed",
+      body:
+        "You do not have access to exports. The export surface exists; your account needs `export_authorize_fn` approval.",
       fallback_label: "Try instead",
       fallback_value: export_fallback_command(exact_filters),
       fallback_kind: if(exact_filters == :generic, do: :generic, else: :exact)

@@ -72,7 +72,8 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert html =~ ~s(data-state="empty")
       assert html =~ "tl-empty"
       assert html =~ ~s(role="status")
-      assert html =~ "Nothing here yet"
+      assert html =~ "No audit changes yet"
+      assert html =~ "Audit changes appear after captured database transactions."
       refute html =~ "tl-empty--permission"
       refute html =~ "tl-empty--unavailable"
     end
@@ -166,7 +167,8 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
         """)
 
       assert redacted =~ "tl-empty--unavailable"
-      assert redacted =~ "withheld by policy"
+      assert redacted =~ "Value redacted by policy"
+      assert redacted =~ "Check the redaction policy before relying on this view."
 
       assert pruned =~ "tl-empty--unavailable"
       # archive glyph — the pruned-by-retention distinction
@@ -200,7 +202,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       # stale banner coexists with :ok data, never replaces it
       assert html =~ "tl-alert--warning"
-      assert html =~ "showing last known data"
+      assert html =~ "showing last known audit data"
       assert html =~ "last known good rows"
 
       banner_at = index_of!(html, "tl-alert--warning")
