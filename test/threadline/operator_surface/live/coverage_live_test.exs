@@ -106,8 +106,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.put_env(:threadline, :test_allow_coverage, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_coverage, true) end)
         {:ok, _view, html} = live(conn, "/audit/coverage")
-        assert html =~ "Unsupported View"
-        assert html =~ "Coverage inspection is not available"
+        assert html =~ "Coverage unavailable"
+        assert html =~ "Coverage is unavailable in this support lane"
+        assert html =~ "This is not a permissions issue."
         assert html =~ "mix threadline.health.coverage"
       end
 

@@ -493,7 +493,7 @@ defmodule Threadline.OperatorSurface.UITest do
   end
 
   describe "error_summary" do
-    test "renders an alert region with each message linked to its field" do
+    test "renders a focusable alert region with each message linked to its field" do
       assigns = %{}
 
       html =
@@ -506,9 +506,11 @@ defmodule Threadline.OperatorSurface.UITest do
       # aria-labelledby points at the heading id
       assert html =~ ~r/aria-labelledby="form-errors-title"/
       assert html =~ ~r/id="form-errors-title"/
-      # each message is an anchor whose href targets the field error id
-      assert html =~ ~s(href="#email-error")
-      assert html =~ ~s(href="#name-error")
+      # the summary itself is the focus target and each message links to the invalid field
+      assert html =~ ~s(tabindex="-1")
+      assert html =~ "phx-mounted"
+      assert html =~ ~s(href="#email")
+      assert html =~ ~s(href="#name")
       assert html =~ "Email is invalid"
       assert html =~ "Name is required"
       assert html =~ "<ul"
@@ -525,7 +527,7 @@ defmodule Threadline.OperatorSurface.UITest do
         """)
 
       assert html =~ "Please fix the following"
-      assert html =~ ~s(href="#email-error")
+      assert html =~ ~s(href="#email")
     end
 
     test "renders a default heading when no title slot is supplied" do
@@ -863,9 +865,20 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "tl-alert--warning"
       assert html =~ ~s(role="status")
       assert html =~ "tl-icon"
-      assert html =~ "Couldn't refresh"
+      assert html =~ "Could not refresh - showing last known audit data"
       assert html =~ "2026-06-14 23:59 UTC"
       assert html =~ "Retry"
+    end
+
+    test "names a custom object label in stale copy" do
+      assigns = %{as_of: "2026-06-14 23:59 UTC"}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.stale_banner as_of={@as_of} object_label="coverage status" />
+        """)
+
+      assert html =~ "Could not refresh - showing last known coverage status from 2026-06-14 23:59 UTC. Retry."
     end
   end
 
@@ -904,13 +917,13 @@ defmodule Threadline.OperatorSurface.UITest do
 
   describe "data_state/1 — typed reason dispatch (DATA-03, D-13..D-16)" do
     @reason_cases [
-      {:unauthorized, "alert", "don't have access", "lock"},
-      {:no_data, "status", "No changes match", "funnel"},
+      {:unauthorized, "alert", "You do not have access to this audit data", "lock"},
+      {:no_data, "status", "No audit changes match these filters", "funnel"},
       {:source_down, "alert", "temporarily unavailable", "cloud_off"},
-      {:redacted, "status", "withheld by policy", "eye_off"},
-      {:pruned, "status", "Removed under retention", "archive"},
+      {:redacted, "status", "Value redacted by policy", "eye_off"},
+      {:pruned, "status", "Audit data pruned under retention", "archive"},
       {:loading, "status", "Loading audit changes", "spinner"},
-      {:boom, "alert", "Could not load", "warning"}
+      {:boom, "alert", "Could not load audit data", "warning"}
     ]
 
     defp data_state_html(reason) do
@@ -972,6 +985,17 @@ defmodule Threadline.OperatorSurface.UITest do
         assert data_state_html(reason) =~ "not a permissions issue",
                "unavailable reason #{inspect(reason)} must say it is not a permissions issue"
       end
+    end
+
+    test "state bodies state the cause and next action without blame" do
+      assert data_state_html(:unauthorized) =~
+               "The audit data exists; your account needs <code>audit:read</code>."
+
+      assert data_state_html(:no_data) =~ "Clear a filter or widen the time range."
+      assert data_state_html(:source_down) =~ "Retry, then check operator logs."
+      assert data_state_html(:redacted) =~ "Check the redaction policy before relying on this view."
+      assert data_state_html(:pruned) =~ "Check the retention window before relying on this view."
+      assert data_state_html(:boom) =~ "Retry, then check logs."
     end
   end
 
@@ -1104,10 +1128,10 @@ defmodule Threadline.OperatorSurface.UITest do
         <UI.data_panel state={:permission} reason={:unauthorized}>
           <:data><div id="the-data-table">rows</div></:data>
         </UI.data_panel>
-        """)
+      """)
 
       refute html =~ "the-data-table"
-      assert html =~ "don't have access"
+      assert html =~ "You do not have access to this audit data"
       # Focus-move on permission is delegated to the existing state family (D-06c):
       # the rendered output carries the focus-rescue heading, not a reinvention.
       assert html =~ ~s(tabindex="-1")

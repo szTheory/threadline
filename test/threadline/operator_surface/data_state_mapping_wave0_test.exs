@@ -28,12 +28,12 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
   # {reason, role, heading_fragment} — locked from UI-SPEC §"Data-State Taxonomy"
   # and §"Copywriting Contract".
   @cases [
-    {:unauthorized, "alert", "don't have access"},
+    {:unauthorized, "alert", "You do not have access to this audit data"},
     {:source_down, "alert", "temporarily unavailable"},
-    {:redacted, "status", "withheld by policy"},
-    {:pruned, "status", "Removed under retention"},
-    {:no_data, "status", "No changes match"},
-    {:boom, "alert", "Could not load"}
+    {:redacted, "status", "Value redacted by policy"},
+    {:pruned, "status", "Audit data pruned under retention"},
+    {:no_data, "status", "No audit changes match these filters"},
+    {:boom, "alert", "Could not load audit data"}
   ]
 
   defp render_state(reason) do

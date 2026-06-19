@@ -91,6 +91,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Governance.{ExportJob, RetentionRun, SavedView}
     alias Threadline.OperatorSurface.Components.SurfaceHeader
+    alias Threadline.OperatorSurface.Components.UnsupportedView
+    alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.Semantics.ActorRef
 
@@ -216,6 +219,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert copy_targets != []
       assert Enum.all?(copy_targets, &(&1 == @long_correlation_id))
       refute Enum.member?(copy_targets, visible)
+    end
+
+    test "shared unsupported descriptors use sentence-case unavailable and permission copy" do
+      descriptor_expectations = [
+        {:coverage_unavailable, "Coverage unavailable", "Coverage is unavailable in this support lane"},
+        {:policy_redaction_unavailable, "Redaction policy unavailable",
+         "Redaction policy status is unavailable in this support lane"},
+        {:evidence_unavailable, "Evidence unavailable", "Evidence is unavailable in this support lane"},
+        {:retention_unavailable, "Retention history unavailable",
+         "Retention history is unavailable in this support lane"}
+      ]
+
+      for {key, title, body} <- descriptor_expectations do
+        descriptor = Unsupported.descriptor(key)
+        html = render_component(&UnsupportedView.unsupported_view/1, %{descriptor: descriptor})
+
+        assert descriptor.title == title
+        assert html =~ title
+        assert html =~ body
+        assert html =~ "This is not a permissions issue."
+        refute html =~ "Unsupported View"
+      end
+
+      denied = Unsupported.export_denied_descriptor()
+      denied_html = render_component(&UnsupportedView.unsupported_view/1, %{descriptor: denied})
+
+      assert denied.title == "Export access needed"
+      assert denied_html =~ "You do not have access to exports."
+      assert denied_html =~ "export_authorize_fn"
+      refute denied_html =~ "Action Denied"
+    end
+
+    test "presentation status labels keep evidence verdicts but use sentence-case fallback" do
+      assert Presentation.status_label(:proven) == "Proven"
+      assert Presentation.status_label(:inferred_posture) == "Inferred"
+      assert Presentation.status_label(:unsupported) == "Unsupported"
+      assert Presentation.status_label(:custom_review_state) == "Custom review state"
     end
 
     defp render_shell do

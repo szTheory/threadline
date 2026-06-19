@@ -171,7 +171,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert pruned =~ "tl-empty--unavailable"
       # archive glyph — the pruned-by-retention distinction
       assert pruned =~ "M3 7h18"
-      assert pruned =~ "Removed under retention"
+      assert pruned =~ "Audit data pruned under retention"
     end
 
     test "permission/unavailable without a typed reason fails loudly (never silently collapses)" do

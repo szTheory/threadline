@@ -115,8 +115,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
-        assert html =~ "Unsupported View"
-        assert html =~ "Evidence view unavailable."
+        assert html =~ "Evidence unavailable"
+        assert html =~ "Evidence is unavailable in this support lane"
+        assert html =~ "This is not a permissions issue."
         assert html =~ "mix threadline.evidence.show"
         refute html =~ "What can Threadline prove right now?"
       end

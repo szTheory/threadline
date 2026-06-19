@@ -166,8 +166,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
         {:ok, _view, html} = live(conn, "/audit/policy/redaction")
-        assert html =~ "Unsupported View"
-        assert html =~ "Policy redaction drift is not available"
+        assert html =~ "Redaction policy unavailable"
+        assert html =~ "Redaction policy status is unavailable in this support lane"
+        assert html =~ "This is not a permissions issue."
         assert html =~ "mix threadline.policy.show"
         refute html =~ "Redaction assurance"
       end

@@ -128,8 +128,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
 
         {:ok, _view, html} = live(conn, "/audit/exports?table=posts&actor_kind=user&actor_id=42")
-        assert html =~ "Action Denied"
-        assert html =~ "explicit host authorization for exports"
+        assert html =~ "Export access needed"
+        assert html =~ "You do not have access to exports."
+        assert html =~ "export_authorize_fn"
         assert html =~ "mix threadline.export --dry-run"
         refute html =~ "--actor_id"
         refute html =~ "--table 'posts'"
@@ -148,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "/audit/exports?table=posts&from=2026-05-01T00:00:00Z&to=2026-05-06T23:59:00Z"
           )
 
-        assert html =~ "Action Denied"
+        assert html =~ "Export access needed"
         assert html =~ "mix threadline.export --dry-run"
         assert html =~ "--table &#39;posts&#39;"
         assert html =~ "--from &#39;2026-05-01T00:00:00Z&#39;"
@@ -211,7 +212,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, view, html} =
           live(conn, "/audit/exports?table=ticket_replies&correlation_id=req_ef3")
 
-        assert html =~ "Action Denied"
+        assert html =~ "Export access needed"
         refute html =~ "Queue Timeline export"
 
         render_click(view, "queue_timeline_export_context", %{})

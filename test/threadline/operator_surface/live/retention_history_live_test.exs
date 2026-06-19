@@ -140,8 +140,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
-        assert html =~ "Unsupported View"
-        assert html =~ "Retention history is not available"
+        assert html =~ "Retention history unavailable"
+        assert html =~ "Retention history is unavailable in this support lane"
+        assert html =~ "This is not a permissions issue."
         assert html =~ "mix threadline.retention.purge --dry-run"
         refute html =~ "Run retention prune"
       end
