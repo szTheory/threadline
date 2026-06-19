@@ -193,8 +193,70 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-persona="P1"|
       assert html =~ ~s|data-jtbd="J2"|
       assert html =~ "Row history: ticket_replies / reply-1"
+      assert html =~ "Snapshot as of"
       assert html =~ "Customer-visible answer"
       refute html =~ "/transactions/"
+    end
+
+    test "snapshot before audit horizon names the row snapshot and next action", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      before_horizon = DateTime.add(captured_at, -60, :second)
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-before-horizon"},
+        data_after: %{"id" => "row-before-horizon", "name" => "Later Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/rows/users/row-before-horizon?as_of=#{DateTime.to_iso8601(before_horizon)}"
+               )
+
+      assert html =~ "Snapshot as of"
+      assert html =~ "This row snapshot did not exist at the selected time."
+      assert html =~ "Choose a later point in row history."
+      refute html =~ "Record did not exist at this time."
+    end
+
+    test "deleted snapshot state names the row snapshot and next action", %{conn: conn} do
+      created_at = ~U[2026-10-03 12:00:00.000000Z]
+      deleted_at = DateTime.add(created_at, 60, :second)
+      created_txn = insert_transaction(%{occurred_at: created_at})
+      deleted_txn = insert_transaction(%{occurred_at: deleted_at})
+
+      insert_change(created_txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-deleted-state"},
+        data_after: %{"id" => "row-deleted-state", "name" => "Before Delete"},
+        changed_fields: ["id", "name"],
+        captured_at: created_at
+      })
+
+      insert_change(deleted_txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-deleted-state"},
+        op: "delete",
+        data_after: nil,
+        changed_fields: nil,
+        changed_from: nil,
+        captured_at: deleted_at
+      })
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/rows/users/row-deleted-state?as_of=#{DateTime.to_iso8601(deleted_at)}"
+               )
+
+      assert html =~ "Snapshot as of"
+      assert html =~ "This row snapshot was deleted at the selected time."
+      assert html =~ "Choose an earlier point in row history."
+      refute html =~ "Record was deleted at this time."
     end
 
     test "unmapped table renders mapped-schema error without raising", %{conn: conn} do

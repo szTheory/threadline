@@ -122,15 +122,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "<th>STATUS</th>"
         assert html =~ "<th>SOURCE</th>"
 
+        assert html =~
+                 "Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps."
+
         # The footer summary (locked literal — D-34)
-        assert html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps?/
+        assert html =~ ~r/Coverage: \d+ covered, \d+ need capture, \d+ expected gaps?/
 
         # The three coverage buckets still render; schema_migrations is the
         # baseline `:expected_uncovered` table — its source label "baseline" appears
         # in the third column. The STATUS column uses operator-facing labels.
         assert html =~ ">Expected gap<"
+        assert html =~ ">Covered<"
         assert html =~ "schema_migrations"
         assert html =~ "baseline"
+        refute html =~ "capture is complete"
+        refute html =~ "complete timeline answers"
       end
 
       test "uncovered rows render Add capture disclosure with command and verify follow-up",
@@ -146,7 +152,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
-        assert html =~ "Timeline may be incomplete"
+        assert html =~ "Timeline results may be incomplete for these tables."
+        assert html =~ "Add capture, verify coverage, then rerun the timeline search."
 
         row_actions =
           Regex.scan(~r/<td data-label="Actions" class="tl-table__actions">(.*?)<\/td>/s, html)
@@ -212,6 +219,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # The metric grid keeps its generic summary-grid boundary (not the removed
         # tl-coverage-command__metrics modifier).
         assert html =~ ~s|class="tl-summary-grid"|
+        assert html =~ "table coverage status shows which tracked tables are covered"
+        refute html =~ "complete timeline answers"
       end
 
       test "form-error branch renders the header via UI.page_header", %{conn: conn} do
@@ -249,7 +258,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # After refresh, the dashboard should still render normally with the same literals
         assert new_html =~ "Coverage — schema: public"
-        assert new_html =~ ~r/Coverage: \d+ captured, \d+ need capture, \d+ expected gaps?/
+        assert new_html =~ ~r/Coverage: \d+ covered, \d+ need capture, \d+ expected gaps?/
       end
     end
 

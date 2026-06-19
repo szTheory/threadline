@@ -156,16 +156,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
     end
 
-    test "Case 1: Renders invalid actor reference for invalid kind", %{conn: conn} do
+    test "Case 1: renders invalid actor reference with next action", %{conn: conn} do
       assert {:ok, _lv, html} = live(conn, "/audit/actors/non_existent_kind_xyz/123")
-      assert html =~ "Invalid Actor Reference"
+      assert html =~ "Invalid actor reference"
+
+      assert html =~
+               "This actor kind and id could not be parsed as a Threadline actor reference."
+
+      assert html =~ "Return to Timeline and check the actor reference."
+      refute html =~ "Invalid Actor Reference"
     end
 
     test "Case 2: Renders distinct empty state if actor has NEVER recorded an event", %{
       conn: conn
     } do
       assert {:ok, _lv, html} = live(conn, "/audit/actors/user/no_events_ever")
-      assert html =~ "This actor has never recorded any events."
+      assert html =~ "No transactions or actions are linked to this actor yet."
+      assert html =~ "Run an audited transaction or record a semantic action for this actor"
     end
 
     test "Case 3: Renders window empty state if actor has events but none in window", %{
@@ -183,7 +190,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/actors/user/window_test")
-      assert html =~ "No events found in the selected time window."
+      assert html =~ "No actor activity in this window"
+
+      assert html =~
+               "No transactions or actions are linked to this actor in the selected time window."
+
+      assert html =~ "Widen the time window or open Timeline to adjust actor filters."
+      refute html =~ "No events found in the selected time window."
     end
 
     test "Case 4: Renders transactions and deep links to incident drill-down", %{conn: conn} do

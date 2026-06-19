@@ -158,12 +158,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
-    test "Case 1: Renders explicit not-found state for missing transaction ID", %{conn: conn} do
+    test "Case 1: renders explicit not-found state for missing transaction ID", %{conn: conn} do
       uuid = Ecto.UUID.generate()
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{uuid}")
 
+      assert html =~ "Transaction not found"
+
       assert html =~
-               "Transaction Not Found - The requested transaction ID does not exist or has been purged by the retention policy."
+               "This database transaction may not exist, or it may have been pruned by the retention policy."
+
+      assert html =~ "Return to Timeline and check the transaction id."
+      refute html =~ "Transaction Not Found"
     end
 
     test "Case 2: Renders bundle header details (actor, action) for valid transaction ID", %{
@@ -186,7 +191,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ txn.id
     end
 
-    test "Case 3: Renders 'No Changes Recorded' empty state when bundle.changes is empty", %{
+    test "Case 3: renders no-row-change state when bundle.changes is empty", %{
       conn: conn
     } do
       repo = Threadline.Test.Repo
@@ -200,7 +205,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "No row-level changes recorded"
+      assert html =~ "No row-level changes captured"
+
+      assert html =~
+               "A database transaction was found, but row-level changes were not captured."
+
+      assert html =~ "Check audit readiness for this table, then return to Timeline."
     end
 
     test "Case 4: Renders change row with DOM virtualization", %{conn: conn} do
@@ -388,10 +398,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
 
-      assert html =~ "No row-level changes recorded"
+      assert html =~ "No row-level changes captured"
 
       assert html =~
-               "Threadline found the transaction, but no row-level field changes were captured for it. Check capture coverage for this table, then return to Timeline."
+               "A database transaction was found, but row-level changes were not captured."
+
+      assert html =~ "Check audit readiness for this table, then return to Timeline."
     end
 
     test "renders verifiable secondary refs and enabled copy affordances", %{conn: conn} do
@@ -629,7 +641,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       txn = insert_transaction(%{source: "admin"})
 
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/transactions/#{txn.id}")
-      assert html =~ "Transaction Not Found"
+      assert html =~ "Transaction not found"
     end
 
     test "scoped transaction history route hides out-of-scope row history", %{conn: conn} do
