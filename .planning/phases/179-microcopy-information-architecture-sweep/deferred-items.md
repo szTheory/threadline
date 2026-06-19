@@ -34,3 +34,14 @@
   - `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs:215` cannot find the expected hard-delete timestamp.
   - `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` has five seed/audit-row failures around expected close transactions, delete incidents, leaving-agent window counts, and `org_memberships` actor attribution.
 - **Plan-owned verification that passed:** Timeline/pager ExUnit suite, full operator accessibility Playwright suite, and carried copy/live sweep.
+
+## 179-05 Out-of-Scope Verification Failures
+
+- **Found during:** Final `mix ci.all` verification for 179-05 after governance copy, plan-owned browser assertions, root copy/live contracts, and copy-caused example assertions passed.
+- **Scope decision:** Out of scope for 179-05. Remaining failures are in milestone charter documentation and example demo seed/audit-row data, not in Evidence, Export, Redaction, or Retention governance copy, handoff URLs, permission distinctions, or destructive-retention copy owned by this plan.
+- **Observed failures:**
+  - `test/threadline/v1_23_charter_doc_contract_test.exs:15` expects older `PROJECT.md` milestone wording (`has now opened milestone...`).
+  - `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs:47` cannot find the expected hero close transaction.
+  - `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs:215` cannot find the expected hard-delete timestamp.
+  - `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` has five seed/audit-row failures around expected close transactions, delete incidents, leaving-agent window counts, and `org_memberships` actor attribution.
+- **Plan-owned verification that passed:** Governance LiveView ExUnit suite, `operator-prove-mobile.spec.ts`, `operator-earned-flows.spec.ts`, root copy/live/doc-contract sweep, and copy-caused example assertion updates.
