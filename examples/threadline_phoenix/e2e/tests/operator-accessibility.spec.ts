@@ -144,6 +144,14 @@ test.describe("operator accessibility baseline", () => {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
+    const workflowLine = page.getByText(
+      "Filter the timeline, open transactions or row history, then export the current view when you need a handoff.",
+    );
+    await expect(workflowLine).toBeVisible();
+    await expect(page.getByText("FIND")).toHaveCount(0);
+    await expect(page.getByText("EXPLAIN")).toHaveCount(0);
+    await expect(page.getByText("PACKAGE")).toHaveCount(0);
+
     await openTimelineAdvancedFilters(page);
     for (const label of ["actor kind", "actor id"]) {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();

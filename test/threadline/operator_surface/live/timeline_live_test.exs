@@ -492,7 +492,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, _lv, html} = live(conn, "/audit/timeline?correlation_id=#{long_id}")
 
       assert html =~
-               "Timeline filters could not be applied. Fix the highlighted value, then apply filters again."
+               "Timeline filters could not be applied. Fix the correlation id filter, then apply filters again."
 
       assert html =~ "256 UTF-8 bytes"
     end
@@ -515,8 +515,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 7: Unknown table renders the known-tables hint", %{conn: conn} do
       assert {:ok, _lv, html} = live(conn, "/audit/timeline?table=does_not_exist_xyz")
-      # Hint copy mentions the unknown name, plus "known" or "audited" list copy
-      assert html =~ "does_not_exist_xyz" or html =~ "No audited table"
+
+      assert html =~
+               "Table filter `does_not_exist_xyz` is not audited. Select an audited table or clear the table filter."
+
+      refute html =~ "No rows found for this table."
     end
 
     # -------------------------------------------------------------------
@@ -895,12 +898,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="timeline-row"|
       assert html =~ ~s|class="tl-journey--legend"|
 
-      assert :binary.match(html, ~s|class="tl-filter-summary"|) != :nomatch
+      assert html =~
+               "Filter the timeline, open transactions or row history, then export the current view when you need a handoff."
+
+      {form_index, _} = :binary.match(html, ~s|id="timeline-filters"|)
+      {summary_index, _} = :binary.match(html, ~s|class="tl-filter-summary"|)
+      {utilities_index, _} = :binary.match(html, ~s|class="tl-timeline-command__utilities"|)
       {row_index, _} = :binary.match(html, ~s|data-testid="timeline-row"|)
       {legend_index, _} = :binary.match(html, ~s|class="tl-journey--legend"|)
+
+      assert form_index < summary_index
+      assert summary_index < utilities_index
+      assert utilities_index < row_index
       assert row_index < legend_index
 
-      refute html =~ ~r/tl-card[^"]*[^>]*>\s*(FIND|EXPLAIN|PACKAGE)/i
+      refute html =~ "FIND"
+      refute html =~ "EXPLAIN"
+      refute html =~ "PACKAGE"
     end
 
     test "F-405: long table and correlation refs are middle-truncated with titles and copy",
