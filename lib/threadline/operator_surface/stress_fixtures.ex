@@ -242,9 +242,9 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   def assigns_for(%{id: "state.permission-denied"}) do
     {:ok,
      %{
-       title: "Permission denied",
+       title: "Audit object access needed",
        body:
-         "Permission denied. This state proves the operator can distinguish restricted data from empty data.",
+         "You do not have access to this audit object. The audit object exists; your account needs `audit.read`.",
        fallback_label: "Fixture",
        fallback_value: "state.permission_denied",
        base_path: "/audit"
@@ -371,10 +371,18 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       owner_phase: 177,
       data: %{
         surface: surface,
-        summary: "Phase 177 #{scenario} audited as a unit on /audit/__stress."
+        summary: group_summary(id, scenario)
       },
       metadata: %{owner_phase: 177, surface: surface}
     })
+  end
+
+  defp group_summary("group.modal-destructive.current", _scenario) do
+    "Prune retention window permanently? This permanently deletes audit records older than the retention window. Type `default` to confirm."
+  end
+
+  defp group_summary(_id, scenario) do
+    "Phase 177 #{scenario} audited as a unit on /audit/__stress."
   end
 
   defp group_cases("group.data-panel.current"), do: ["empty", "stale", "error"]
@@ -419,11 +427,31 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         data: %{
           id: id,
           cases: cases,
-          summary: "Phase 176 #{scenario} audited in isolation on /audit/__stress."
+          summary: data_display_summary(id, scenario)
         },
         metadata: %{owner_phase: 176}
       })
     end)
+  end
+
+  defp data_display_summary("state.stale", _scenario) do
+    "Could not refresh - showing last known audit data from 2026-06-16 23:59 UTC. Retry."
+  end
+
+  defp data_display_summary("state.unavailable-down", _scenario) do
+    "Audit source is temporarily unavailable. This is not a permissions issue. Retry, then check operator logs."
+  end
+
+  defp data_display_summary("state.unavailable-redacted", _scenario) do
+    "This field was redacted by the redaction policy. This is not a permissions issue. Check the redaction policy before relying on this view."
+  end
+
+  defp data_display_summary("state.unavailable-pruned", _scenario) do
+    "This audit history was permanently pruned by the retention window. This is not a permissions issue. Check the retention window before relying on this view."
+  end
+
+  defp data_display_summary(_id, scenario) do
+    "Phase 176 #{scenario} audited in isolation on /audit/__stress."
   end
 
   defp page_story_maps do
@@ -477,13 +505,13 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       id: "state.permission-denied",
       kind: "state",
       category: "state",
-      scenario: "Permission denied state",
+      scenario: "Audit object access needed",
       fixture_key: "state.permission_denied",
       cases: ["permission_denied"],
       status: "baseline",
       data: %{
         message:
-          "Permission denied. This state proves the operator can distinguish restricted data from empty data.",
+          "You do not have access to this audit object. The audit object exists; your account needs `audit.read`.",
         actor_id: "usr_00000000-0000-4000-8000-000000000171",
         restricted_table: "billing_adjustments"
       },
@@ -682,6 +710,24 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       cases: cases,
       rows: [],
       summary: "Timeline empty state with no captured changes matching this synthetic window."
+    }
+  end
+
+  defp page_data("page.evidence.happy", cases) do
+    %{
+      id: "page.evidence.happy",
+      cases: cases,
+      summary:
+        "Evidence shows the current audit posture. Open proof history only for append-only evidence detail."
+    }
+  end
+
+  defp page_data("page.retention.happy", cases) do
+    %{
+      id: "page.retention.happy",
+      cases: cases,
+      summary:
+        "Retention window status names the permanent pruning consequence; review before running another prune."
     }
   end
 

@@ -45,3 +45,14 @@
   - `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs:215` cannot find the expected hard-delete timestamp.
   - `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` has five seed/audit-row failures around expected close transactions, delete incidents, leaving-agent window counts, and `org_memberships` actor attribution.
 - **Plan-owned verification that passed:** Governance LiveView ExUnit suite, `operator-prove-mobile.spec.ts`, `operator-earned-flows.spec.ts`, root copy/live/doc-contract sweep, and copy-caused example assertion updates.
+
+## 179-06 Out-of-Scope Verification Failures
+
+- **Found during:** Final `mix ci.all` verification for 179-06 after stress fixture, ledger, browser stress route, and ledger screenshot assertions passed.
+- **Scope decision:** Out of scope for 179-06. Remaining failures are in milestone charter documentation and example demo seed/audit-row data, not in stress fixture copy, stress route rendering, story/ledger parity, or browser stress assertions owned by this plan.
+- **Observed failures:**
+  - Root suite: `test/threadline/v1_23_charter_doc_contract_test.exs:15` expects older `PROJECT.md` milestone wording (`has now opened milestone...`). Root run reported `1114 tests, 1 failure (1 excluded)`.
+  - Example suite: `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs:47` cannot find the expected hero close transaction.
+  - Example suite: `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs:215` cannot find the expected hard-delete timestamp.
+  - Example suite: `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` has five seed/audit-row failures around expected close transactions, delete incidents, leaving-agent window counts, and `org_memberships` actor attribution. Example run reported `95 tests, 7 failures`.
+- **Plan-owned verification that passed:** Copy/stress/ledger ExUnit slice and `operator-stress.spec.ts` across Chromium, desktop Chromium, and mobile Chromium, including the Phase 179 copy-state evidence assertions and the existing ledger screenshot baselines.

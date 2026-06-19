@@ -207,7 +207,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= preview_copy(@selected_story, @selected_assigns) %>
                 </div>
 
-                <div class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
+                <div :if={show_ui_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
                   <h3>Phase 173 Primitives Matrix</h3>
                   
                   <div class="tl-space-y-4">
@@ -593,5 +593,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp preview_copy(story, _assigns) do
       Map.get(story.data, :summary, "Synthetic stress fixture.")
     end
+
+    defp show_ui_matrix?(%{category: category})
+         when category in ~w(foundation primitive form_control group state),
+         do: true
+
+    defp show_ui_matrix?(_story), do: false
   end
 end

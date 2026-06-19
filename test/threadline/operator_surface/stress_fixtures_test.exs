@@ -253,8 +253,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       denied_html = render_component(&UnsupportedView.unsupported_view/1, denied_assigns)
 
-      assert denied_html =~ "Permission denied"
-      assert denied_html =~ "restricted data"
+      assert denied_html =~ "Audit object access needed"
+      assert denied_html =~ "You do not have access to this audit object."
+      assert denied_html =~ "account needs `audit.read`"
     end
 
     test "Phase 179 copy-state evidence uses final state grammar without story churn" do
