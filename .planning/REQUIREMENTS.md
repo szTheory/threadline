@@ -56,9 +56,9 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Microcopy & Information Architecture (COPY)
 
-- [ ] **COPY-01**: All UI copy follows the brand voice and avoids banned vocabulary; error/empty/success/warning/destructive copy follows the documented patterns (say what happened + how to fix; name the object + consequence; no blame).
-- [ ] **COPY-02**: Domain language is used consistently across headings/tabs/filters/buttons/alerts (AuditTransaction, AuditChange, AuditAction, ActorRef, Correlation; covered/uncovered, drift detected, redaction policy, retention window, evidence, incident drill-down, actor window, row history / as-of).
-- [ ] **COPY-03**: Information architecture follows least-surprise and progressive disclosure (GOV.UK lens) while preserving power-user efficiency (keyboard support, dense views, stable URLs, copyable IDs, direct links).
+- [x] **COPY-01**: All UI copy follows the brand voice and avoids banned vocabulary; error/empty/success/warning/destructive copy follows the documented patterns (say what happened + how to fix; name the object + consequence; no blame).
+- [x] **COPY-02**: Domain language is used consistently across headings/tabs/filters/buttons/alerts (AuditTransaction, AuditChange, AuditAction, ActorRef, Correlation; covered/uncovered, drift detected, redaction policy, retention window, evidence, incident drill-down, actor window, row history / as-of).
+- [x] **COPY-03**: Information architecture follows least-surprise and progressive disclosure (GOV.UK lens) while preserving power-user efficiency (keyboard support, dense views, stable URLs, copyable IDs, direct links).
 
 ### Accessibility Verification (A11Y)
 
@@ -127,9 +127,9 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | PAGE-01 | Phase 178 | Complete (178-04: 11×7 fixture-backed page stories + ledger parity; 178-05: Tier B sample; 178-06: `[data-phx-main]` reconnect selector proof; 178-07: real socket-drop command passes 3/3 including default Chromium) |
 | PAGE-02 | Phase 178 | Complete |
 | PAGE-03 | Phase 178 | Complete (178-03: `.tl-container` + `.tl-home` `justify-self:center`; 178-05/178-06 preservation via operator-surface suite) |
-| COPY-01 | Phase 179 | Pending |
-| COPY-02 | Phase 179 | Pending |
-| COPY-03 | Phase 179 | Pending |
+| COPY-01 | Phase 179 | Complete |
+| COPY-02 | Phase 179 | Complete |
+| COPY-03 | Phase 179 | Complete |
 | A11Y-01 | Phase 180 | Pending |
 | A11Y-02 | Phase 180 | Pending |
 | MOTION-01 | Phase 180 | Pending |

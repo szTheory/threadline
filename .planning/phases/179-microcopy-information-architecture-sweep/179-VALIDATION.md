@@ -3,7 +3,7 @@ phase: 179
 slug: microcopy-information-architecture-sweep
 status: ready
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-19
 revised: 2026-06-19
 ---
@@ -48,7 +48,7 @@ and observes the expected red run.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 179-01-T1 | 179-01 | W0 task in plan wave 1 | COPY-01/COPY-02/COPY-03 | T-179-01/T-179-03 | Guard-first tests reject banned vocabulary, title-case leaks, broad proof wording, unallowed CamelCase, route-label drift, and missing full copy targets. | rendered unit/source contract | `mix test test/threadline/operator_surface/copy_contract_test.exs --max-failures 6` | Missing now; created by this task | planned, red-first pending |
+| 179-01-T1 | 179-01 | W0 task in plan wave 1 | COPY-01/COPY-02/COPY-03 | T-179-01/T-179-03 | Guard-first tests reject banned vocabulary, title-case leaks, broad proof wording, unallowed CamelCase, route-label drift, and missing full copy targets. | rendered unit/source contract | `mix test test/threadline/operator_surface/copy_contract_test.exs --max-failures 6` | Present | complete; red-first observed |
 | 179-01-T2 | 179-01 | 1 | COPY-03 | T-179-01 | Shell labels change to the D-01 IA while hrefs, current atoms, data-testids, order, and Overview route stay stable. | component/render contract | `mix test test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/surface_header_test.exs` | Existing source/tests plus W0 guard | planned |
 | 179-01-T3 | 179-01 | 1 | COPY-01/COPY-02/COPY-03 | T-179-02 | Home jobs and validation copy use D-01/D-08 language while saved searches, row history, correlation lookup, and direct links keep working. | ExUnit + Playwright | `mix test test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/live/start_live_test.exs && ./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-home-nav-mobile.spec.ts` | Existing source/tests plus W0 guard | planned |
 | 179-02-T1 | 179-02 | 2 | COPY-01/COPY-02/COPY-03 | T-179-04/T-179-05/T-179-06 | Shared state helpers distinguish permission/unavailable/no-data/redacted/pruned/stale states, keep severity roles, focus validation summaries, and preserve full copy targets. | rendered unit contract | `mix test test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/data_state_mapping_wave0_test.exs` | Existing source/tests plus W0 guard | planned |
@@ -63,10 +63,10 @@ Status values: `planned` means the task has a concrete automated verification co
 
 ## Wave 0 Requirements
 
-- [ ] `179-01-T1` creates `test/threadline/operator_surface/copy_contract_test.exs` with guard-first rendered/source contracts for COPY-01, COPY-02, and COPY-03.
-- [ ] The first run of `179-01-T1` is expected to fail against current shell/Home copy before Tasks 2 and 3 apply the IA changes.
-- [ ] Copy-contract guards cover retired `Find / Verify / Prove` primary IA labels, broad proof language outside allowed proof-history contexts, visible CamelCase model names in primary UI, exclamation marks, explicit title-case state leaks, generic state text, and full-value copy affordance invariants.
-- [ ] Copy-contract guards include allowlists for operation badges (`INSERT`, `UPDATE`, `DELETE`), evidence verdicts (`Proven`, `Inferred`, `Unsupported`), exact model/code tokens in advanced/error/tooling contexts, and non-UI technical terms such as CSP-proof/phone-proof.
+- [x] `179-01-T1` creates `test/threadline/operator_surface/copy_contract_test.exs` with guard-first rendered/source contracts for COPY-01, COPY-02, and COPY-03.
+- [x] The first run of `179-01-T1` is expected to fail against current shell/Home copy before Tasks 2 and 3 apply the IA changes.
+- [x] Copy-contract guards cover retired `Find / Verify / Prove` primary IA labels, broad proof language outside allowed proof-history contexts, visible CamelCase model names in primary UI, exclamation marks, explicit title-case state leaks, generic state text, and full-value copy affordance invariants.
+- [x] Copy-contract guards include allowlists for operation badges (`INSERT`, `UPDATE`, `DELETE`), evidence verdicts (`Proven`, `Inferred`, `Unsupported`), exact model/code tokens in advanced/error/tooling contexts, and non-UI technical terms such as CSP-proof/phone-proof.
 - [ ] `179-02-T1` verifies whether `UI.error_summary/1` already provides focusable linked validation summaries and adds the minimal helper-level behavior if absent.
 
 ---
@@ -89,6 +89,6 @@ All route stability, copy bans, role mapping, full-value copy affordances, stres
 - [x] `UI.error_summary/1` focus behavior is assigned to `179-02-T1`
 - [x] Every requirement COPY-01, COPY-02, and COPY-03 appears in at least one plan and in the final validation map
 - [x] `nyquist_compliant: true` set in frontmatter because every task has a concrete automated verification path
-- [ ] `wave_0_complete: true` remains unchecked until execution completes `179-01-T1`
+- [x] `wave_0_complete: true` remains unchecked until execution completes `179-01-T1`
 
 **Approval:** ready for execution; Wave 0 remains pending by design.
