@@ -17,9 +17,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     #
     # A task launcher: it lets each operator pick their job in plain
     # language (GDS "start with user needs") rather than assuming every
-    # visitor wants the timeline first. Cards mirror the Find / Verify /
-    # Prove nav and degrade gracefully when sections are feature-flagged
-    # off. The "System health" row answers the platform-engineer's
+    # visitor wants the timeline first. Cards mirror the shell destinations
+    # and degrade gracefully when sections are feature-flagged off. The
+    # "System health" row answers the platform-engineer's
     # standing question — "is anything wrong?" — at a glance, so problems
     # surface here instead of being hunted across four pages.
     #
@@ -59,14 +59,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       cond do
         table == "" ->
-          {:noreply, assign(socket, :record_lookup_error, "Choose a table to open row history.")}
+          {:noreply, assign(socket, :record_lookup_error, "Select a table for row history.")}
 
         not mapped_table?(socket, table) ->
-          {:noreply, assign(socket, :record_lookup_error, "Choose a mapped table from the list.")}
+          {:noreply,
+           assign(socket, :record_lookup_error, "Select a mapped table for row history.")}
 
         record_id == "" ->
-          {:noreply,
-           assign(socket, :record_lookup_error, "Enter a record id to open row history.")}
+          {:noreply, assign(socket, :record_lookup_error, "Enter a record id for row history.")}
 
         true ->
           path =
@@ -85,14 +85,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       cond do
         correlation_id == "" ->
           {:noreply,
-           assign(socket, :correlation_lookup_error, "Paste a correlation id to open Timeline.")}
+           assign(
+             socket,
+             :correlation_lookup_error,
+             "Enter a correlation id to open the timeline."
+           )}
 
         byte_size(correlation_id) > 256 ->
           {:noreply,
            assign(
              socket,
              :correlation_lookup_error,
-             "Correlation ids must be 256 bytes or fewer."
+             "Correlation id must be 256 bytes or fewer."
            )}
 
         true ->
@@ -151,11 +155,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           <ul class="tl-home__cards">
             <li class="tl-home__card tl-home__card--primary">
-              <span class="tl-home__card-kicker">Find</span>
-              <h2 class="tl-home__card-title">What changed?</h2>
+              <span class="tl-home__card-kicker">Timeline</span>
+              <h2 class="tl-home__card-title">Find what changed</h2>
               <p class="tl-home__card-body">
-                Search captured changes by time, table, actor, or correlation id — then open the
-                transaction and row history to see exactly who did it and why.
+                Search captured changes by time, table, actor, or correlation id, then open
+                transactions and row history for context.
               </p>
               <a href={"#{@base_path}/timeline"} class="tl-button tl-button--primary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -164,11 +168,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </li>
 
             <li :if={@threadline_coverage_enabled} class="tl-home__card">
-              <span class="tl-home__card-kicker">Verify</span>
-              <h2 class="tl-home__card-title">Is everything captured?</h2>
+              <span class="tl-home__card-kicker">Coverage</span>
+              <h2 class="tl-home__card-title">Check audit readiness</h2>
               <p class="tl-home__card-body">
-                Confirm every table you rely on is actually audited. Close coverage gaps before you
-                trust the timeline to be complete.
+                Confirm audited tables are captured. Close coverage gaps before relying on the
+                timeline.
               </p>
               <a href={"#{@base_path}/coverage"} class="tl-button tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
@@ -177,11 +181,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </li>
 
             <li :if={@prove_enabled} class="tl-home__card">
-              <span class="tl-home__card-kicker">Prove</span>
-              <h2 class="tl-home__card-title">Prove and export</h2>
+              <span class="tl-home__card-kicker">Evidence & exports</span>
+              <h2 class="tl-home__card-title">Use evidence and exports</h2>
               <p class="tl-home__card-body">
-                Produce defensible answers for auditors and legal: evidence proofs, retention runs,
-                redaction status, and downloadable exports.
+                Review evidence, retention runs, redaction status, and downloadable exports without
+                changing audit data.
               </p>
               <div class="tl-home__card-links">
                 <div class="tl-home__prove-controls">
@@ -260,7 +264,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <span class="tl-home__card-kicker">Correlation</span>
                 <h2 class="tl-home__section-title">Open incident timeline</h2>
                 <p class="tl-home__section-lede">
-                  Paste a correlation id to resume the exact Timeline thread.
+                  Paste a correlation id to resume the exact timeline thread.
                 </p>
               </div>
               <form id="tl-correlation-lookup" class="tl-home__earned-form" phx-submit="open-correlation">
@@ -288,7 +292,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <h2 class="tl-home__section-title">Pick up where you left off</h2>
             <p :if={@saved_views != []} class="tl-home__section-lede">Reopen a saved timeline search.</p>
             <p :if={@saved_views == []} class="tl-home__resume-empty">
-              No saved timeline searches yet. Use Timeline filters when you are ready to save a repeat investigation.
+              No saved timeline searches yet. Use timeline filters when you are ready to save a repeat investigation.
             </p>
             <ul :if={@saved_views != []} class="tl-home__views">
               <li :for={view <- @saved_views}>
@@ -323,7 +327,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            coverage.uncovered_count > 0 do
         [
           %{
-            label: "Close coverage gaps before trusting Timeline answers",
+            label: "Close coverage gaps before relying on timeline answers",
             path: "/coverage",
             severity: :warning
           }

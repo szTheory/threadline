@@ -267,7 +267,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Check audit readiness"
       assert html =~ ~s|href="/audit/coverage"|
 
-      assert html =~ "Evidence & exports"
+      assert html =~ "Evidence &amp; exports"
       assert html =~ "Use evidence and exports"
       assert html =~ ~s|href="/audit/evidence"|
       assert html =~ ~s|href="/audit/policy/redaction"|
