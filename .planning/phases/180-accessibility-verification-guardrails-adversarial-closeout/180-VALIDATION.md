@@ -3,7 +3,7 @@ phase: 180
 slug: accessibility-verification-guardrails-adversarial-closeout
 status: draft
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-19
 ---
 
@@ -46,12 +46,14 @@ Status: pending, green, red, flaky.
 
 ## Wave 0 Requirements
 
-- [ ] Extend existing `operator-accessibility.spec.ts` coverage for D-04 rendered states where gaps remain.
-- [ ] Extend existing component/style contracts for APG mapping, non-color-only signals, touch targets, and `scale(0)` absence.
-- [ ] Extend existing `operator-motion.spec.ts` computed-style checks for easing, transition properties, reduced-motion collapse, press feedback, and dense-row stillness.
-- [ ] Create final closeout/adversarial/manual evidence artifacts during execution.
+Existing infrastructure covers all phase requirements. No separate Wave 0 framework, fixture, or harness setup is required.
 
-No new framework or runtime dependency is required.
+The Phase 180 plans still add failing or tightened checks during execution:
+
+- Extend existing `operator-accessibility.spec.ts` coverage for D-04 rendered states where gaps remain.
+- Extend existing component/style contracts for APG mapping, non-color-only signals, touch targets, and `scale(0)` absence.
+- Extend existing `operator-motion.spec.ts` computed-style checks for easing, transition properties, reduced-motion collapse, press feedback, and dense-row stillness.
+- Create final closeout/adversarial/manual evidence artifacts during execution.
 
 ## Manual-Only Verifications
 

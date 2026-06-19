@@ -282,15 +282,15 @@ No new external package is recommended for Phase 180. [VERIFIED: examples/thread
 
 All recommendations above are based on local project files or cited external standards/docs inspected during this research pass. No `[ASSUMED]` claims are required for planning. [VERIFIED: local research inventory]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 180 add axe-based package scanning?**  
    What we know: no axe package is currently present in `examples/threadline_phoenix/e2e/package.json`, and the phase can satisfy its stated requirements with existing Playwright role/keyboard/computed-style checks plus manual evidence. [VERIFIED: examples/threadline_phoenix/e2e/package.json]  
-   Recommendation: do not add axe unless the user explicitly approves a dev-only dependency and a package legitimacy gate is run. [VERIFIED: .planning/STATE.md]
+   **Resolved:** do not add axe or any new package for Phase 180. Use existing Playwright, ExUnit contracts, and bounded manual evidence unless a future human-approved dependency gate explicitly changes that decision. [VERIFIED: .planning/STATE.md]
 
 2. **Where should final manual evidence live?**  
    What we know: Phase 180 requires bounded manual keyboard/screen-reader evidence and an adversarial closeout artifact, while this research turn is limited to one artifact. [VERIFIED: .planning/phases/180-accessibility-verification-guardrails-adversarial-closeout/180-CONTEXT.md] [VERIFIED: user request]  
-   Recommendation: execution should write manual evidence into Phase 180 verification/closeout artifacts, not this research artifact. [VERIFIED: .planning/phases/180-accessibility-verification-guardrails-adversarial-closeout/180-CONTEXT.md]
+   **Resolved:** Plan 180-04 writes final evidence to `180-MANUAL-EVIDENCE.md`, `180-ADVERSARIAL-REVIEW.md`, `180-RESIDUAL-CI.md`, and `180-VERIFICATION.md`; this research artifact remains input only. [VERIFIED: .planning/phases/180-accessibility-verification-guardrails-adversarial-closeout/180-CONTEXT.md]
 
 ## Sources
 
