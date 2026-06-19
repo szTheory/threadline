@@ -417,9 +417,7 @@ async function assertActor(page: Page) {
 }
 
 async function assertEvidence(page: Page) {
-  await expect(
-    page.getByText("What can Threadline prove right now?"),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
   await expect(page.getByTestId("evidence-table").first()).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open proof history" }).first(),
@@ -427,15 +425,13 @@ async function assertEvidence(page: Page) {
 }
 
 async function assertRedaction(page: Page) {
-  await expect(page.getByText("Redaction assurance").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
   await expectTrustRailGap(page, 16);
   await expect(page.getByTestId("policy-section").first()).toBeVisible();
 }
 
 async function assertRetention(page: Page, viewportWidth: number) {
-  await expect(
-    page.getByText("What was purged, and did it succeed?"),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
   await expectTrustRailGap(page, 16);
   await expect(
     page.getByRole("button", { name: "Run retention prune" }).last(),
@@ -447,7 +443,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
 }
 
 async function assertExports(page: Page) {
-  await expect(page.getByText("What's ready to hand off?")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
   await expect(page.getByTestId("export-jobs")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Download export" }).first(),

@@ -33,7 +33,7 @@ test.describe("operator surface — pass-3 features", () => {
   test("retention history shows the full run lifecycle", async ({ page }) => {
     await login(page);
     await page.goto("/audit/policy/retention");
-    await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
     const table = page.getByTestId("retention-runs-table");
     await expect(table.getByText("Failed").first()).toBeVisible();
     await expect(table.getByText("Queued").first()).toBeVisible();
@@ -52,7 +52,7 @@ test.describe("operator surface — pass-3 features", () => {
   test("redaction shows a deployed-matches-config row for posts", async ({ page }) => {
     await login(page);
     await page.goto("/audit/policy/redaction");
-    await expect(page.getByRole("heading", { name: "Redaction assurance" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
     await expect(page.getByText("Deployed matches config").first()).toBeVisible();
     await expect(page.getByText("posts").first()).toBeVisible();
   });

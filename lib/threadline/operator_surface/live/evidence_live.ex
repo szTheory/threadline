@@ -65,18 +65,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_evidence_enabled do %>
-            <UI.page_header title="What can Threadline prove right now?">
+            <UI.page_header title="Evidence">
               <:lede>
                 <%= if @request.mode == :history do %>
-                  Viewing append-only history for one evidence subject reference.
+                  Viewing append-only proof history for one evidence subject reference.
                 <% else %>
-                  Latest is a projection over append-only evidence history, not a mutable state record.
+                  Latest evidence is a projection over append-only evidence history, not a mutable state record.
                 <% end %>
               </:lede>
             </UI.page_header>
 
-            <section class="tl-trust-rail" aria-label="Evidence proof flow">
-              <span class="tl-trust-rail__label">Proof chain</span>
+            <section class="tl-trust-rail" aria-label="Evidence workflow">
+              <span class="tl-trust-rail__label">Evidence workflow</span>
               <span class="tl-chip tl-chip--success">Append-only history</span>
               <span class="tl-chip tl-chip--info">Latest projection</span>
               <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
@@ -131,7 +131,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <:title>No evidence records yet</:title>
                   Threadline has not recorded evidence for this selection yet. Use
                   <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
-                  API to confirm the current proof state, then narrow by subject or date if
+                  API to confirm the current evidence record, then narrow by subject or date if
                   needed.
                 </UI.empty_state>
               <% else %>

@@ -192,10 +192,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert section_tables(html, section_heading(report, :config_matches_deployed)) ==
                  Enum.map(report.grouped[:config_matches_deployed], & &1.table)
 
-        assert html =~ "Redaction drift detected"
+        assert html =~ "Drift detected"
         assert html =~ "Could not introspect"
         assert html =~ "Config matches deployed"
-        assert html =~ "Redaction drift blocks trust"
+        assert html =~ "Redaction drift detected"
 
         assert html =~ "Configured redaction does not match deployed trigger SQL."
         assert html =~ "Could not inspect deployed trigger SQL."
@@ -357,7 +357,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> List.flatten()
     end
 
-    defp status_label(:drift_detected), do: "Redaction drift detected"
+    defp status_label(:drift_detected), do: "Drift detected"
     defp status_label(:could_not_introspect), do: "Could not introspect"
     defp status_label(:config_matches_deployed), do: "Config matches deployed"
   end

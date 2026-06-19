@@ -149,7 +149,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
         |> get(~p"/audit/exports")
 
       html = html_response(conn, 200)
-      assert html =~ "ready to hand off?"
+      assert html =~ "Ready to hand off"
       assert html =~ "Completed"
       assert html =~ "Failed"
       assert html =~ "Running"
@@ -207,7 +207,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
         |> get(~p"/audit/policy/retention")
 
       html = html_response(conn, 200)
-      assert html =~ "What was purged, and did it succeed?"
+      assert html =~ "Retention window"
       assert html =~ "completed"
       refute html =~ "No retention runs yet"
     end

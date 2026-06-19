@@ -60,8 +60,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       policy_conn = admin_conn() |> get(~p"/audit/policy/redaction")
       policy_html = html_response(policy_conn, 200)
-      assert policy_html =~ "Redaction assurance"
-      assert policy_html =~ "Compare configured redaction policy with deployed database trigger policy"
+      assert policy_html =~ "Redaction policy"
+      assert policy_html =~ "Compare the configured redaction policy"
       assert policy_html =~ "Drift detected"
 
       {tx_id, reply_pk} = hero_4521_close_reply_ids!()

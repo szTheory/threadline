@@ -124,7 +124,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_exports_enabled do %>
-            <UI.page_header title="What's ready to hand off?">
+            <UI.page_header title="Exports">
               <:lede>
                 Download completed Timeline packets, or reopen the source search when an export needs another pass.
               </:lede>
@@ -158,7 +158,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-job__summary">
                     <span class="tl-chip tl-chip--info">Timeline export context</span>
                     <div class="tl-job__title">
-                      <strong>Exports handoff</strong>
+                      <strong>Timeline handoff</strong>
                       <span>Pre-populated from the active Timeline filters.</span>
                     </div>
                   </div>
@@ -199,10 +199,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               >
                 <div class="tl-job__main">
                   <div class="tl-job__summary">
-                    <span class="tl-chip tl-chip--info">Evidence proof context</span>
+                    <span class="tl-chip tl-chip--info">Evidence export context</span>
                     <div class="tl-job__title">
-                      <strong>Proof handoff</strong>
-                      <span>Pre-populated from the active Evidence proof view.</span>
+                      <strong>Evidence handoff</strong>
+                      <span>Pre-populated from the active Evidence view.</span>
                     </div>
                   </div>
                   <div class="tl-job__actions">
@@ -212,20 +212,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       class="tl-button tl-button--compact tl-button--secondary"
                     >
                       <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                      Reopen Evidence proof
+                      Reopen Evidence
                     </.link>
                   </div>
                 </div>
 
-                <UI.kv :if={@evidence_export_context.status == :valid} aria-label="Evidence proof filters">
+                <UI.kv :if={@evidence_export_context.status == :valid} aria-label="Evidence filters">
                   <:item :for={{key, value} <- @evidence_export_context.pairs} key={key}>
                     <UI.ref value={value} copy_label={"Copy #{key} filter"} />
                   </:item>
                 </UI.kv>
 
                 <div :if={@evidence_export_context.status == :invalid} class="tl-alert tl-alert--error" role="alert">
-                  <strong>Evidence proof context could not be applied.</strong>
-                  Return to Evidence, then carry the proof context to Exports again.
+                  <strong>Evidence context could not be applied.</strong>
+                  Return to Evidence, then carry the Evidence context to Exports again.
                   <span><%= @evidence_export_context.error %></span>
                 </div>
               </section>
@@ -543,7 +543,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           :ok
 
         [key | _rest] ->
-          {:error, "Unsupported Evidence proof context parameter: #{key}."}
+          {:error, "Unsupported Evidence context parameter: #{key}."}
       end
     end
 

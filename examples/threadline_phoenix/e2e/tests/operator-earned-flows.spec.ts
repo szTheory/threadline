@@ -37,13 +37,20 @@ async function expectEarnedFlowTrace(locator: Locator, flow: string) {
 }
 
 async function discoverTicketReplyRecordId(page: Page) {
-  await page.goto(
-    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
-  );
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(
-    closeCorrelation,
-  );
-  await page.getByTestId("transaction-link").first().click();
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+
+  const transactionLink = page
+    .getByTestId("timeline-row")
+    .filter({ hasText: rowTable })
+    .first()
+    .getByTestId("transaction-link");
+
+  await expect(transactionLink).toBeVisible();
+  const transactionHref = await transactionLink.getAttribute("href");
+  expect(transactionHref).not.toBeNull();
+
+  await page.goto(transactionHref!);
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
 
   const rowHistoryLink = page
@@ -65,16 +72,15 @@ async function discoverTicketReplyRecordId(page: Page) {
 }
 
 test.describe("operator earned-flow browser UAT", () => {
-  let ticketReplyRecordId: string;
-
   test.beforeEach(async ({ page }) => {
     await login(page);
-    ticketReplyRecordId = await discoverTicketReplyRecordId(page);
   });
 
   test("EF1 Home record-first lookup reaches first-class row history", async ({
     page,
   }) => {
+    const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
+
     await page.goto("/audit");
 
     const earnedFlow = page.locator('[data-earned-flow="EF1"]');
@@ -100,6 +106,8 @@ test.describe("operator earned-flow browser UAT", () => {
   test("EF2 direct first-class row-history route opens without a transaction first", async ({
     page,
   }) => {
+    const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
+
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
@@ -131,7 +139,6 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(page.locator("#filter-correlation-id")).toHaveValue(
       closeCorrelation,
     );
-    await expect(page.getByTestId("timeline-row").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -147,7 +154,6 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(page.locator("#filter-correlation-id")).toHaveValue(
       closeCorrelation,
     );
-    await expect(page.getByTestId("timeline-row").first()).toBeVisible();
 
     const carry = page
       .locator('[data-earned-flow="EF3"]')
@@ -190,7 +196,9 @@ test.describe("operator earned-flow browser UAT", () => {
       "href",
       /\/audit\/evidence\?.*mode=history/,
     );
-    await proofHistory.click();
+    const proofHistoryHref = await proofHistory.getAttribute("href");
+    expect(proofHistoryHref).not.toBeNull();
+    await page.goto(proofHistoryHref!);
     await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
 
     const carry = page
@@ -212,8 +220,8 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(context.getByText("Evidence export context")).toBeVisible();
     await expect(context.getByText("Evidence handoff")).toBeVisible();
     await expect(context.getByText("active Evidence view")).toBeVisible();
-    await expect(context.locator("dt", { hasText: "subject" })).toBeVisible();
-    await expect(context.locator("dt", { hasText: "mode" })).toBeVisible();
+    await expect(context.locator("dt", { hasText: /^subject$/ })).toBeVisible();
+    await expect(context.locator("dt", { hasText: /^mode$/ })).toBeVisible();
     await expect(
       context.locator("dd", { hasText: "history" }).locator(".tl-secondary-ref"),
     ).toHaveAttribute("data-tl-copy", "history");

@@ -39,7 +39,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
     page,
   }) => {
     await page.goto("/audit/exports");
-    await expect(page.getByText("What's ready to hand off?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
 
     const exportJobs = page.getByTestId("export-jobs");
     for (const heading of ["Ready to hand off", "Preparing", "Needs attention", "Unavailable"]) {
@@ -72,7 +72,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
     page,
   }) => {
     await page.goto("/audit/policy/retention");
-    await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
 
     const summary = await box(page.locator(".tl-summary-grid"));
     const prune = await box(page.getByRole("button", { name: "Run retention prune" }).last());
@@ -101,8 +101,9 @@ test.describe("operator evidence and exports mobile UAT", () => {
     const href = await failureLink.getAttribute("href");
     expect(href).toMatch(/^#runs-/);
 
-    const failedRow = page.locator(`${href}.tl-target-row`);
+    const failedRow = page.locator(href!);
     await expect(failedRow).toBeVisible();
+    await expect(failedRow).toContainText("Failed");
 
     const chip = failedRow.locator(".tl-chip").first();
     const chipBox = await box(chip);
@@ -115,7 +116,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
 
   test("evidence and redaction dense states keep evidence/status owners readable", async ({ page }) => {
     await page.goto("/audit/evidence");
-    await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
     await expect(
       page.getByText("Latest evidence is a projection over append-only evidence history"),
     ).toBeVisible();
@@ -136,7 +137,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expectNoHorizontalOverflow(page);
 
     await page.goto("/audit/policy/redaction");
-    await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Redaction policy", exact: true })).toBeVisible();
     await expect(page.getByText("Redaction drift detected").first()).toBeVisible();
     await expect(page.getByTestId("policy-section").first()).toBeVisible();
     await expect(page.locator("details.tl-policy__row").first()).toBeVisible();

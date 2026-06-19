@@ -135,15 +135,15 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto("/audit/policy/redaction");
     await expect(page.getByTestId("policy-section").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Redaction assurance" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
     await capture(page, testInfo, "redaction");
 
     await page.goto("/audit/policy/retention");
-    await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
     await capture(page, testInfo, "retention");
 
     await page.goto("/audit/exports");
-    await expect(page.getByText("What's ready to hand off?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
     await expect(page.getByText("Completed").first()).toBeVisible();
     await expect(page.getByText("Failed").first()).toBeVisible();
     await expect(page.getByText("Queued").first()).toBeVisible();
@@ -169,7 +169,7 @@ test.describe("operator surface screenshots", () => {
     await capture(page, testInfo, "support-acme-timeline");
 
     await page.goto("/audit/evidence");
-    await expect(page.getByText("Evidence view unavailable.")).toBeVisible();
+    await expect(page.getByText("Evidence unavailable")).toBeVisible();
     await capture(page, testInfo, "support-evidence-denied");
 
     await page.goto("/audit/coverage");

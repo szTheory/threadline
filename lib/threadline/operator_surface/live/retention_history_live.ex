@@ -78,7 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply,
          socket
          |> assign(:prune_modal_open, false)
-         |> put_flash(:info, "Prune started.")}
+         |> put_flash(:info, "Retention prune started. Follow retention runs here.")}
       else
         {:error, :not_started} ->
           {:noreply,
@@ -139,12 +139,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_policy_enabled do %>
-            <UI.page_header title="What was purged, and did it succeed?">
-              <:lede>Review the latest completed purge, failures, and evidence before triggering another destructive retention pass.</:lede>
+            <UI.page_header title="Retention window">
+              <:lede>Review retention window pruning runs, failures, and evidence before triggering another destructive retention pass.</:lede>
             </UI.page_header>
 
             <section class="tl-trust-rail" aria-label="Retention context">
-              <span class="tl-trust-rail__label">Retention assurance</span>
+              <span class="tl-trust-rail__label">Retention window</span>
               <span class="tl-chip tl-chip--warning">Permanent deletion</span>
               <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
@@ -159,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if not @has_runs do %>
               <div class="tl-empty">
                 <h3 class="tl-empty__title">No retention runs yet</h3>
-                <p class="tl-empty__body">Configure retention, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
+                <p class="tl-empty__body">Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
                 <div class="tl-empty__actions">
                   <button type="button" class="tl-button tl-button--secondary tl-button--danger" phx-click="open_prune_modal">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
@@ -195,16 +195,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
               <%= if @runs_summary.healthy? do %>
                 <div class="tl-alert tl-alert--success" role="status">
-                  Latest run succeeded<%= if @runs_summary.latest_at do %> <%= Presentation.human_time(@runs_summary.latest_at) %><% end %> — retention is healthy. Pruning permanently deletes older audit records, so review before running another.
+                  Latest run succeeded<%= if @runs_summary.latest_at do %> <%= Presentation.human_time(@runs_summary.latest_at) %><% end %> — the retention window is healthy. Pruning permanently deletes older audit records by policy, so review before running another.
                 </div>
               <% else %>
                 <div class="tl-alert tl-alert--warning" role="status">
-                  Review the latest status and failure count before running another prune. Retention deletes older audit records permanently.
+                  Review the latest status and failure count before running another prune. Pruning permanently deletes older audit records by policy.
                 </div>
               <% end %>
 
               <div class="tl-page__actions">
-                <span class="tl-hint">Permanent delete action</span>
+                <span class="tl-hint">Retention window destructive action</span>
                 <button type="button" class="tl-button tl-button--secondary tl-button--danger" phx-click="open_prune_modal">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                   Run retention prune
@@ -262,7 +262,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <UI.divider />
                       <button type="button" role="menuitem" class="tl-button tl-button--compact tl-button--danger" phx-click="open_prune_modal">
                         <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                        Prune now — removes matching records permanently
+                        Prune records permanently
                       </button>
                     </UI.dropdown>
                   </:action>
@@ -277,9 +277,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   client-side comparison. The danger button copy names the
                   irreversible consequence (not "Continue"). --%>
             <UI.modal id="prune-confirm" show={@prune_modal_open} on_cancel={JS.push("close_prune_modal")}>
-              <h2 id="prune-confirm-title" class="tl-modal__title">Prune retention records permanently?</h2>
+              <h2 id="prune-confirm-title" class="tl-modal__title">Prune retention window permanently?</h2>
               <p id="prune-confirm-description" class="tl-modal__body">
-                This permanently deletes audit records older than the retention window — it cannot be undone.
+                This permanently deletes audit records older than the retention window for policy <code>default</code>; it cannot be undone.
                 To confirm, type the policy name <code>default</code> exactly.
               </p>
               <form phx-submit="prune_now" class="tl-form">
@@ -293,7 +293,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </button>
                   <button type="submit" class="tl-button tl-button--danger" data-tl-mutating>
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                    Prune now — removes matching records permanently
+                    Prune records permanently
                   </button>
                 </div>
               </form>

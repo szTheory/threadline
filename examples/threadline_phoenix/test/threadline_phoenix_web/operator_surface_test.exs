@@ -69,7 +69,7 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> get("/audit/evidence")
 
     html = html_response(conn, 200)
-    refute html =~ "Evidence view unavailable."
+    refute html =~ "Evidence unavailable"
   end
 
   test "support user sees unsupported evidence view", %{conn: conn} do
@@ -82,7 +82,7 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> login_via_sigra(user)
       |> get("/audit/evidence")
 
-    assert html_response(conn, 200) =~ "Evidence view unavailable."
+    assert html_response(conn, 200) =~ "Evidence unavailable"
   end
 
   test "support user cannot export from the shared operator surface", %{conn: conn} do

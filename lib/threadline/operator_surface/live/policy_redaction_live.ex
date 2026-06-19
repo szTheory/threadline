@@ -54,13 +54,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_policy_enabled do %>
-            <UI.page_header title="Redaction assurance">
-              <:lede>Compare configured redaction policy with deployed database trigger policy before trusting sensitive Timeline captures.</:lede>
+            <UI.page_header title="Redaction policy">
+              <:lede>Compare the configured redaction policy with deployed database trigger policy before relying on sensitive Timeline captures.</:lede>
             </UI.page_header>
 
             <section class="tl-trust-rail" aria-label="Redaction workflow">
-              <span class="tl-trust-rail__label">Redaction assurance</span>
-              <span class="tl-chip tl-chip--warning">Drift blocks trust</span>
+              <span class="tl-trust-rail__label">Redaction policy</span>
+              <span class="tl-chip tl-chip--warning">Redaction drift detected</span>
               <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
                 Check coverage
@@ -91,7 +91,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
 
             <p :if={@report.summary.drift_detected == 0 and @report.summary.could_not_introspect == 0} class="tl-policy__success">
-              Configured redaction matches deployed trigger policy for every introspected table. Continue to Evidence for the latest proof record.
+              Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
             </p>
 
             <%= for section <- @sections do %>

@@ -127,7 +127,7 @@ test.describe("operator screenshot regression guard", () => {
 
   test("Exports readiness hierarchy stays stable", async ({ page }) => {
     await page.goto("/audit/exports");
-    await expect(page.getByText("What's ready to hand off?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
     await expect(
       page.getByTestId("export-jobs").getByRole("heading", { name: "Ready to hand off" }),
     ).toBeVisible();
@@ -136,7 +136,7 @@ test.describe("operator screenshot regression guard", () => {
 
   test("Retention safety hierarchy stays stable", async ({ page }) => {
     await page.goto("/audit/policy/retention");
-    await expect(page.getByText("What was purged, and did it succeed?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Run retention prune" }).last()).toBeVisible();
     await expectOperatorScreenshot(page, "retention");
   });
