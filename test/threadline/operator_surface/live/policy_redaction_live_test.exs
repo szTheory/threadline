@@ -179,7 +179,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/policy/redaction")
         report = RedactionPresenter.build(repo: Repo, schema: "public")
 
-        assert html =~ "Redaction assurance"
+        assert html =~ "Redaction policy"
+        assert html =~ "Compare the configured redaction policy"
         assert section_titles(html) == expected_section_titles(report)
 
         assert section_tables(html, section_heading(report, :drift_detected)) ==
@@ -191,13 +192,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert section_tables(html, section_heading(report, :config_matches_deployed)) ==
                  Enum.map(report.grouped[:config_matches_deployed], & &1.table)
 
-        assert html =~ "Drift detected"
+        assert html =~ "Redaction drift detected"
         assert html =~ "Could not introspect"
         assert html =~ "Config matches deployed"
+        assert html =~ "Redaction drift blocks trust"
 
         assert html =~ "Configured redaction does not match deployed trigger SQL."
         assert html =~ "Could not inspect deployed trigger SQL."
         assert html =~ "Configured redaction matches deployed trigger redaction."
+        refute html =~ "latest proof record"
 
         assert html =~ "No deployed Threadline trigger found for configured table."
         assert html =~ "Deployed trigger SQL did not match the expected Threadline trigger shape."
@@ -354,7 +357,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> List.flatten()
     end
 
-    defp status_label(:drift_detected), do: "Drift detected"
+    defp status_label(:drift_detected), do: "Redaction drift detected"
     defp status_label(:could_not_introspect), do: "Could not introspect"
     defp status_label(:config_matches_deployed), do: "Config matches deployed"
   end

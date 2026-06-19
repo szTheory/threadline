@@ -164,22 +164,20 @@ test.describe("operator earned-flow browser UAT", () => {
     const context = page.getByTestId("timeline-export-context");
     await expectEarnedFlow(context, "EF3");
     await expect(context.getByText("Timeline export context")).toBeVisible();
+    await expect(context.locator("dt", { hasText: "table" })).toBeVisible();
     await expect(
-      context.locator(".tl-param", { hasText: "table" }),
-    ).toHaveAttribute("title", `table: ${rowTable}`);
+      context.locator("dd", { hasText: rowTable }).locator(".tl-secondary-ref"),
+    ).toHaveAttribute("data-tl-copy", rowTable);
+    await expect(context.locator("dt", { hasText: "correlation_id" })).toBeVisible();
     await expect(
-      context.locator(".tl-param", { hasText: "correlation_id" }),
-    ).toHaveAttribute("title", `correlation_id: ${closeCorrelation}`);
-    await expect(
-      context.locator(".tl-param__key", { hasText: "source" }),
-    ).toHaveCount(0);
-    await expect(
-      context.locator(".tl-param__key", { hasText: "subject_ref_json" }),
-    ).toHaveCount(0);
+      context.locator("dd", { hasText: closeCorrelation }).locator(".tl-secondary-ref"),
+    ).toHaveAttribute("data-tl-copy", closeCorrelation);
+    await expect(context.locator("dt", { hasText: "source" })).toHaveCount(0);
+    await expect(context.locator("dt", { hasText: "subject_ref_json" })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF3 filtered Evidence proof context carries into Exports", async ({
+  test("EF3 filtered Evidence context carries into Exports", async ({
     page,
   }) => {
     await page.goto("/audit/evidence");
@@ -211,16 +209,16 @@ test.describe("operator earned-flow browser UAT", () => {
 
     const context = page.getByTestId("evidence-export-context");
     await expectEarnedFlow(context, "EF3");
-    await expect(context.getByText("Evidence proof context")).toBeVisible();
-    await expect(context.getByText("Proof handoff")).toBeVisible();
+    await expect(context.getByText("Evidence export context")).toBeVisible();
+    await expect(context.getByText("Evidence handoff")).toBeVisible();
+    await expect(context.getByText("active Evidence view")).toBeVisible();
+    await expect(context.locator("dt", { hasText: "subject" })).toBeVisible();
+    await expect(context.locator("dt", { hasText: "mode" })).toBeVisible();
     await expect(
-      context.locator('.tl-param[title^="subject: "]'),
-    ).toHaveAttribute("title", /subject: .+/);
-    await expect(
-      context.locator(".tl-param", { hasText: "mode" }),
-    ).toHaveAttribute("title", "mode: history");
+      context.locator("dd", { hasText: "history" }).locator(".tl-secondary-ref"),
+    ).toHaveAttribute("data-tl-copy", "history");
 
-    const reopen = context.getByRole("link", { name: "Reopen Evidence proof" });
+    const reopen = context.getByRole("link", { name: "Reopen Evidence" });
     await expect(reopen).toBeVisible();
     await expect(reopen).toHaveAttribute("href", /\/audit\/evidence\?/);
     await expectNoHorizontalOverflow(page);

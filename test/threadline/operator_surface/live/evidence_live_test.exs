@@ -154,8 +154,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
-        assert html =~ "What can Threadline prove right now?"
+        assert html =~ "Evidence"
+        assert html =~ "Latest evidence is a projection over append-only evidence history"
         assert html =~ ~s|href="/audit/evidence"|
+        assert html =~ "Evidence workflow"
+        refute html =~ "What can Threadline prove right now?"
+        refute html =~ "Proof chain"
+        refute html =~ "proof state"
         assert html =~ "Open proof history"
         assert html =~ "Proven"
         assert html =~ "Inferred"
@@ -236,7 +241,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "correlation_id="
       end
 
-      test "carries only available proof-context keys from subject-only Evidence filters", %{
+      test "carries only available evidence-context keys from subject-only Evidence filters", %{
         conn: conn
       } do
         insert_evidence(
@@ -320,7 +325,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "/audit/evidence?subject=retention_run&subject_ref_json=#{subject_ref_json}&mode=history"
           )
 
-        assert html =~ "Viewing append-only history for one evidence subject reference."
+        assert html =~ "Viewing append-only proof history for one evidence subject reference."
         assert html =~ "May 26, 12:05 PM UTC"
         assert html =~ "May 26, 12:00 PM UTC"
         assert html =~ "2026-05-26T12:05:00.000000Z"
@@ -332,6 +337,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "No evidence records yet"
         assert html =~ "mix threadline.evidence.show"
         assert html =~ "Threadline.Evidence"
+        assert html =~ "current evidence record"
+        refute html =~ "current proof state"
       end
     end
   end

@@ -149,8 +149,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       test "shows empty state when no runs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
-        assert html =~ "What was purged, and did it succeed?"
+        assert html =~ "Retention window"
         assert html =~ "No retention runs yet"
+        assert html =~ "Configure a retention window"
         assert html =~ "mix threadline.retention.purge --dry-run"
         assert html =~ "Run retention prune"
         assert html =~ "tl-button--secondary tl-button--danger"
@@ -202,6 +203,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
         assert html =~ "Latest run succeeded"
+        assert html =~ "retention window is healthy"
+        assert html =~ "Pruning permanently deletes older audit records by policy"
         refute html =~ "Review the latest status and failure count"
       end
 
@@ -218,6 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
         assert html =~ "Review the latest status and failure count"
+        assert html =~ "Pruning permanently deletes older audit records by policy"
         refute html =~ "Latest run succeeded"
       end
 
@@ -233,6 +237,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Pruner.started?()
 
         # Type the canonical policy name and submit the server-enforced form.
+        assert html =~ "Prune retention window permanently?"
+        assert html =~ "older than the retention window for policy"
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
 
         assert_eventually(fn ->
@@ -333,6 +339,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "phx-submit",
                "T3 prune must be a <form phx-submit> type-to-confirm, not a bare phx-click"
+
+        assert html =~ "Prune records permanently"
       end
 
       test "a forged confirmation token fails closed and performs no prune", %{conn: conn} do

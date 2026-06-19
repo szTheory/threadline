@@ -159,7 +159,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
-        assert html =~ "What&#39;s ready to hand off?"
+        assert html =~ "Exports"
+        refute html =~ "What&#39;s ready to hand off?"
         assert html =~ "No export jobs queued"
         assert html =~ "Open timeline"
       end
@@ -172,7 +173,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         assert html =~ "Timeline export context"
-        assert html =~ "Exports handoff"
+        assert html =~ "Timeline handoff"
         assert html =~ ~s|data-testid="timeline-export-context"|
         assert html =~ ~s|data-earned-flow="EF3"|
         assert html =~ ~s|data-persona="P3"|
@@ -220,7 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Threadline.Test.Repo.all(ExportJob) == []
       end
 
-      test "renders carried Evidence proof context separately from Timeline exports", %{
+      test "renders carried Evidence export context separately from Timeline exports", %{
         conn: conn
       } do
         subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
@@ -231,8 +232,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "/audit/exports?source=evidence&subject=export_delivery&mode=history&subject_ref_json=#{subject_ref_json}"
           )
 
-        assert html =~ "Evidence proof context"
-        assert html =~ "Proof handoff"
+        assert html =~ "Evidence export context"
+        assert html =~ "Evidence handoff"
+        assert html =~ "active Evidence view"
         assert html =~ ~s|data-testid="evidence-export-context"|
         assert html =~ ~s|data-earned-flow="EF3"|
         assert html =~ ~s|data-persona="P3"|
@@ -244,12 +246,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "subject=export_delivery"
         assert html =~ "subject_ref_json="
         assert html =~ "mode=history"
-        assert html =~ "Reopen Evidence proof"
+        assert html =~ ~s|aria-label="Evidence filters"|
+        assert html =~ "Reopen Evidence"
+        refute html =~ "Evidence proof context"
+        refute html =~ "Proof handoff"
+        refute html =~ "Reopen Evidence proof"
         refute html =~ "Queue Timeline export"
         refute html =~ ~s|data-testid="timeline-export-context"|
       end
 
-      test "rejects invalid Evidence proof context without creating ExportJobs", %{conn: conn} do
+      test "rejects invalid Evidence context without creating ExportJobs", %{conn: conn} do
         for {query, message} <- [
               {"source=evidence&subject=not_supported", "Unsupported evidence subject"},
               {"source=evidence&subject=export_delivery&mode=archive",
@@ -260,12 +266,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               {"source=evidence&subject=export_delivery&mode=history",
                "History drill-down requires subject_ref_json"},
               {"source=evidence&subject=export_delivery&unexpected=param",
-               "Unsupported Evidence proof context parameter"}
+               "Unsupported Evidence context parameter"}
             ] do
           {:ok, _view, html} = live(conn, "/audit/exports?#{query}")
 
-          assert html =~ "Evidence proof context could not be applied"
+          assert html =~ "Evidence context could not be applied"
           assert html =~ message
+          refute html =~ "Evidence proof context could not be applied"
           refute html =~ "Reopen Evidence proof"
           refute html =~ "Queue Timeline export"
         end
@@ -273,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Threadline.Test.Repo.all(ExportJob) == []
       end
 
-      test "does not pass Evidence proof params into Timeline file export hrefs", %{conn: conn} do
+      test "does not pass Evidence context params into Timeline file export hrefs", %{conn: conn} do
         subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
 
         {:ok, _view, html} =

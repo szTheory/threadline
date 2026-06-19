@@ -30,7 +30,7 @@ async function box(locator: Locator) {
   return rect!;
 }
 
-test.describe("operator Prove cluster mobile UAT", () => {
+test.describe("operator evidence and exports mobile UAT", () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
   });
@@ -81,10 +81,19 @@ test.describe("operator Prove cluster mobile UAT", () => {
     const pruneButton = page.getByRole("button", { name: "Run retention prune" }).last();
     await expect(pruneButton).toHaveClass(/tl-button--secondary/);
     await expect(pruneButton).toHaveClass(/tl-button--danger/);
-    await expect(pruneButton).toHaveAttribute(
-      "data-confirm",
-      "Confirm retention prune. This permanently deletes older audit records; review the latest completed run and failure count first.",
-    );
+    await expect(pruneButton).not.toHaveAttribute("data-confirm", /./);
+    await pruneButton.click();
+    const modal = page.locator("#prune-confirm");
+    await expect(
+      modal.getByRole("heading", { name: "Prune retention window permanently?" }),
+    ).toBeVisible();
+    await expect(
+      modal.getByText("older than the retention window for policy"),
+    ).toBeVisible();
+    await expect(
+      modal.getByRole("button", { name: "Prune records permanently" }),
+    ).toBeVisible();
+    await modal.getByRole("button", { name: "Cancel" }).click();
 
     const failureMetric = page.locator(".tl-card--metric", { hasText: "Failures" });
     const failureLink = failureMetric.getByRole("link");
@@ -104,9 +113,12 @@ test.describe("operator Prove cluster mobile UAT", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("evidence and redaction dense states keep proof/status owners readable", async ({ page }) => {
+  test("evidence and redaction dense states keep evidence/status owners readable", async ({ page }) => {
     await page.goto("/audit/evidence");
-    await expect(page.getByText("What can Threadline prove right now?")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
+    await expect(
+      page.getByText("Latest evidence is a projection over append-only evidence history"),
+    ).toBeVisible();
 
     const firstEvidenceCard = page.locator(".tl-record-card").first();
     const verdict = await box(firstEvidenceCard.locator(".tl-chip").first());
@@ -124,7 +136,8 @@ test.describe("operator Prove cluster mobile UAT", () => {
     await expectNoHorizontalOverflow(page);
 
     await page.goto("/audit/policy/redaction");
-    await expect(page.getByText("Redaction assurance").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
+    await expect(page.getByText("Redaction drift detected").first()).toBeVisible();
     await expect(page.getByTestId("policy-section").first()).toBeVisible();
     await expect(page.locator("details.tl-policy__row").first()).toBeVisible();
 
