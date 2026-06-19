@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
-const closeCorrelation = "walk-acme-4521-close";
 const rowTable = "ticket_replies";
 const leavingAgentId = "33123cc4-da21-5674-b030-e168cee90521";
 
@@ -32,6 +31,28 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function openOperatorNav(page: Page) {
+  const shell = page.getByTestId("operator-nav-shell");
+  const toggle = shell.locator(".tl-shell-nav__toggle");
+  const panel = shell.locator(".tl-shell-nav__panel");
+
+  if ((await toggle.isVisible()) && !(await panel.isVisible())) {
+    await toggle.click();
+  }
+
+  if (!(await panel.isVisible())) {
+    await shell.evaluate((element) => {
+      if (element instanceof HTMLDetailsElement) {
+        element.open = true;
+      } else {
+        element.setAttribute("open", "");
+      }
+    });
+  }
+
+  await expect(panel).toBeVisible();
+}
+
 async function openTimelineAdvancedFilters(page: Page) {
   const disclosure = page.locator(".tl-filter-disclosure");
   if ((await disclosure.count()) === 0) {
@@ -47,17 +68,16 @@ async function openTimelineAdvancedFilters(page: Page) {
 }
 
 async function discoverTransactionAndRowHistory(page: Page) {
-  await page.goto(
-    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
-  );
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(
-    closeCorrelation,
-  );
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
 
-  const transactionHref = await page
-    .getByTestId("transaction-link")
+  const transactionLink = page
+    .getByTestId("timeline-row")
+    .filter({ hasText: rowTable })
     .first()
-    .getAttribute("href");
+    .getByTestId("transaction-link");
+  await expect(transactionLink).toBeVisible();
+  const transactionHref = await transactionLink.getAttribute("href");
   expect(transactionHref).not.toBeNull();
 
   await page.goto(transactionHref!);
@@ -93,9 +113,9 @@ test.describe("operator accessibility baseline", () => {
     await page.keyboard.press("Enter");
     await expect(page.locator("#tl-main")).toBeFocused();
 
-    await expect(
-      page.getByRole("navigation", { name: "Operator surface" }),
-    ).toBeVisible();
+    const shellNav = page.getByTestId("operator-nav-shell");
+    await expect(shellNav).toBeVisible();
+    await expect(shellNav).toHaveAttribute("aria-label", "Operator surface");
     await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
       "aria-current",
       "page",
@@ -125,10 +145,7 @@ test.describe("operator accessibility baseline", () => {
     ).toBeVisible();
 
     await page.goto("/audit/timeline");
-    const navToggle = page.locator(".tl-shell-nav__toggle");
-    if (await navToggle.isVisible()) {
-      await navToggle.click();
-    }
+    await openOperatorNav(page);
     const timelineNav = page.getByTestId("operator-nav-timeline");
     await expect(timelineNav).toHaveAttribute("aria-current", "page");
     await timelineNav.focus();
@@ -140,7 +157,7 @@ test.describe("operator accessibility baseline", () => {
   }) => {
     await page.goto("/audit/timeline");
 
-    for (const label of ["from", "to", "table", "correlation id"]) {
+    for (const label of ["From", "To", "Table", "Correlation id"]) {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
@@ -153,12 +170,12 @@ test.describe("operator accessibility baseline", () => {
     await expect(page.getByText("PACKAGE")).toHaveCount(0);
 
     await openTimelineAdvancedFilters(page);
-    for (const label of ["actor kind", "actor id"]) {
+    for (const label of ["Actor kind", "Actor id"]) {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
-    await page.getByLabel("correlation id", { exact: true }).focus();
-    await expectFocused(page.getByLabel("correlation id", { exact: true }));
+    await page.getByLabel("Correlation id", { exact: true }).focus();
+    await expectFocused(page.getByLabel("Correlation id", { exact: true }));
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
@@ -173,12 +190,17 @@ test.describe("operator accessibility baseline", () => {
       .getByRole("button", { name: "Run retention prune" })
       .last();
     await expect(prune).toBeVisible();
-    await expect(prune).toHaveAttribute(
-      "data-confirm",
-      /permanently deletes older audit records/,
-    );
     await prune.focus();
     await expectFocused(prune);
+    await prune.click();
+    const pruneModal = page.locator("#prune-confirm");
+    await expect(pruneModal).toBeVisible();
+    await expect(pruneModal.locator('[role="dialog"]')).toBeVisible();
+    await expect(pruneModal.locator('[aria-modal="true"]')).toBeVisible();
+    await expect(pruneModal).toContainText(
+      "This permanently deletes audit records older than the retention window",
+    );
+    await expect(pruneModal.getByLabel("Policy name to confirm")).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
   });

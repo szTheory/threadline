@@ -363,8 +363,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% end %>
 
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
-          <div class="tl-alert tl-alert--info">
-            No rows found for this table. Audited tables: <%= Enum.join(@audited_tables, ", ") %>
+          <div class="tl-alert tl-alert--info" role="status">
+            <%= unknown_table_message(@filters_raw["table"], @audited_tables) %>
           </div>
         <% end %>
 
@@ -444,11 +444,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </.link>
           </:actions>
         </UI.empty_state>
-        <aside class="tl-journey--legend" aria-label="Investigation journey">
+        <aside class="tl-journey--legend" aria-label="Timeline workflow">
           <p>
-            <strong>FIND</strong> filter the timeline ·
-            <strong>EXPLAIN</strong> open transaction and row history ·
-            <strong>PACKAGE</strong> queue or download the current export
+            Filter the timeline, open transactions or row history, then export the current view when you need a handoff.
           </p>
         </aside>
       </UI.shell>
@@ -967,7 +965,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp filter_label(key), do: key
 
     defp invalid_filter_message(message) do
-      "Timeline filters could not be applied. Fix the highlighted value, then apply filters again. #{message}"
+      target = invalid_filter_target(message)
+
+      "Timeline filters could not be applied. Fix the #{target} filter, then apply filters again. #{message}"
+    end
+
+    defp invalid_filter_target(message) when is_binary(message) do
+      cond do
+        String.contains?(message, "correlation_id") -> "correlation id"
+        String.contains?(message, "actor_kind") -> "actor kind"
+        String.contains?(message, "actor_id") -> "actor id"
+        String.contains?(message, "table_schema") -> "schema"
+        String.contains?(message, "table") -> "table"
+        String.contains?(message, "from") or String.contains?(message, "to") -> "time window"
+        true -> "named"
+      end
+    end
+
+    defp invalid_filter_target(_message), do: "named"
+
+    defp unknown_table_message(table, audited_tables) do
+      table_name =
+        table
+        |> to_string()
+        |> String.trim()
+        |> case do
+          "" -> "selected table"
+          value -> value
+        end
+
+      base =
+        "Table filter `#{table_name}` is not audited. Select an audited table or clear the table filter."
+
+      case audited_tables do
+        [] -> base
+        tables -> base <> " Audited tables: " <> Enum.join(tables, ", ")
+      end
     end
 
     # Distinguish the two ok-empty states (D-17): a first-run empty (no narrowing
