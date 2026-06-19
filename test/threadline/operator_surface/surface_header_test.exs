@@ -97,7 +97,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "All tables captured"
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ">Investigate</h2>"
-      assert html =~ ">Evidence &amp; exports</h2>"
+      assert html =~ ">Evidence & exports</h2>"
       assert html =~ ~s|data-testid="operator-nav-exports"|
       assert_preserved_affordances(html)
 
@@ -176,7 +176,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp html_label(label) do
-      String.replace(label, "&", "&amp;")
+      label
     end
 
     defp assert_preserved_affordances(html) do

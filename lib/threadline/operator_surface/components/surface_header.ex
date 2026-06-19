@@ -66,11 +66,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             >Overview</.nav_link>
           </div>
           <section class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-find">
-            <h2 id="tl-shell-nav-find" class="tl-shell-nav__label">Find</h2>
+            <h2 id="tl-shell-nav-find" class="tl-shell-nav__label">Investigate</h2>
             <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
           </section>
           <section :if={@coverage_enabled} class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-verify">
-            <h2 id="tl-shell-nav-verify" class="tl-shell-nav__label">Verify</h2>
+            <h2 id="tl-shell-nav-verify" class="tl-shell-nav__label">Audit readiness</h2>
             <.nav_link href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
           </section>
           <section
@@ -78,7 +78,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             class="tl-shell-nav__group"
             aria-labelledby="tl-shell-nav-prove"
           >
-            <h2 id="tl-shell-nav-prove" class="tl-shell-nav__label">Prove</h2>
+            <h2 id="tl-shell-nav-prove" class="tl-shell-nav__label">Evidence & exports</h2>
             <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} current={@current} page={:policy}>Redaction</.nav_link>
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
