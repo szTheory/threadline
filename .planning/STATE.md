@@ -4,9 +4,9 @@ milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 current_phase: 179
 current_phase_name: microcopy-information-architecture-sweep
-status: verifying
-stopped_at: Completed 179-06-PLAN.md
-last_updated: "2026-06-19T20:53:57.732Z"
+status: ready_to_plan
+stopped_at: Phase 179 complete (6/6) — ready to discuss Phase 180
+last_updated: 2026-06-19T21:05:41.841Z
 last_activity: 2026-06-19
 progress:
   total_phases: 10
@@ -23,13 +23,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 179 — microcopy-information-architecture-sweep
+**Current focus:** Phase 180 — accessibility verification, guardrails & adversarial closeout
 
 ## Current Position
 
-Phase: 179 (microcopy-information-architecture-sweep) — VERIFYING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
+Phase: 180
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-19
 
 ## Performance Metrics
