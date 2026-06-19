@@ -106,7 +106,7 @@ async function expectHeaderDestinationsReachable(page: Page) {
   await expectReachable(overview);
   await expect(overview).toHaveAttribute("href", "/audit");
 
-  for (const group of ["Find", "Verify", "Prove"]) {
+  for (const group of ["Investigate", "Audit readiness", "Evidence & exports"]) {
     await expectReachable(
       nav.locator(".tl-shell-nav__label", { hasText: group }),
     );
@@ -143,25 +143,31 @@ test.describe("operator Home orientation mobile UAT", () => {
       main.getByRole("heading", { name: "Follow what happened." }),
     ).toBeVisible();
 
-    await expect(main.getByText("Find", { exact: true })).toBeVisible();
     await expect(
-      main.getByRole("heading", { name: "What changed?" }),
+      main.getByText("Timeline", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Find what changed" }),
     ).toBeVisible();
     await expect(
       main.getByRole("link", { name: "Open the timeline" }),
     ).toBeVisible();
 
-    await expect(main.getByText("Verify", { exact: true })).toBeVisible();
     await expect(
-      main.getByRole("heading", { name: "Is everything captured?" }),
+      main.getByText("Coverage", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Check audit readiness" }),
     ).toBeVisible();
     await expect(
       main.getByRole("link", { name: "Check coverage" }),
     ).toBeVisible();
 
-    await expect(main.getByText("Prove", { exact: true })).toBeVisible();
     await expect(
-      main.getByRole("heading", { name: "Prove and export" }),
+      main.getByText("Evidence & exports", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Use evidence and exports" }),
     ).toBeVisible();
     for (const action of ["Evidence", "Redaction", "Retention", "Exports"]) {
       await expect(

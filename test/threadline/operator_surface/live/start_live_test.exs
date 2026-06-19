@@ -259,16 +259,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Follow what happened."
       refute html =~ ~s|class="tl-home__eyebrow">Threadline</p>|
 
-      assert html =~ "Find"
-      assert html =~ "What changed?"
+      assert html =~ "Timeline"
+      assert html =~ "Find what changed"
       assert html =~ ~s|href="/audit/timeline"|
 
-      assert html =~ "Verify"
-      assert html =~ "Is everything captured?"
+      assert html =~ "Coverage"
+      assert html =~ "Check audit readiness"
       assert html =~ ~s|href="/audit/coverage"|
 
-      assert html =~ "Prove"
-      assert html =~ "Prove and export"
+      assert html =~ "Evidence & exports"
+      assert html =~ "Use evidence and exports"
       assert html =~ ~s|href="/audit/evidence"|
       assert html =~ ~s|href="/audit/policy/redaction"|
       assert html =~ ~s|href="/audit/policy/retention"|
@@ -301,7 +301,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s|href="/audit/coverage"|
       assert html =~ "tl-chip tl-chip--warning"
-      assert html =~ "Close coverage gaps before trusting Timeline answers"
+      assert html =~ "Close coverage gaps before relying on timeline answers"
 
       refute home_health(html) =~
                ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
@@ -434,17 +434,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-record-lookup", %{
                "record_lookup" => %{"table" => "", "record_id" => "row-1"}
              })
-             |> render_submit() =~ "Choose a table to open row history."
+             |> render_submit() =~ "Select a table for row history."
 
       assert render_submit(view, "open-row-history", %{
                "record_lookup" => %{"table" => "secrets", "record_id" => "row-1"}
-             }) =~ "Choose a mapped table from the list."
+             }) =~ "Select a mapped table for row history."
 
       assert view
              |> form("#tl-record-lookup", %{
                "record_lookup" => %{"table" => "ticket_replies", "record_id" => "   "}
              })
-             |> render_submit() =~ "Enter a record id to open row history."
+             |> render_submit() =~ "Enter a record id for row history."
     end
 
     test "renders earned correlation shortcut and navigates with canonical query", %{conn: conn} do
@@ -471,7 +471,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-correlation-lookup", %{
                "correlation" => %{"correlation_id" => "   "}
              })
-             |> render_submit() =~ "Paste a correlation id to open Timeline."
+             |> render_submit() =~ "Enter a correlation id to open the timeline."
 
       too_long = String.duplicate("a", 257)
 
@@ -479,7 +479,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-correlation-lookup", %{
                "correlation" => %{"correlation_id" => too_long}
              })
-             |> render_submit() =~ "Correlation ids must be 256 bytes or fewer."
+             |> render_submit() =~ "Correlation id must be 256 bytes or fewer."
     end
 
     test "renders honest resume empty state when the actor has no saved views", %{conn: conn} do
