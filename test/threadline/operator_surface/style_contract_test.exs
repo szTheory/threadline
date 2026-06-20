@@ -456,12 +456,83 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "animation-iteration-count: 1 !important;",
           "scroll-behavior: auto !important;",
           ".tl-button:active",
+          ".tl-fade-in",
+          ".tl-rise-in",
+          ".tl-slide-in-right",
+          ".translate-y-4",
+          ".translate-x-full",
+          ".tl-toast",
           ".tl-subview",
           "animation: none !important;",
           "transform: none;"
         ] do
       assert String.contains?(reduced_motion, required),
              "reduced-motion block missing #{required}"
+    end
+  end
+
+  test "MOTION-01 press feedback is enabled-only and disabled controls remain still" do
+    src = File.read!(@style_path)
+
+    refute Regex.match?(
+             ~r/\.tl-button:active\s*\{[^}]*transform:\s*scale\(0\.96\);/s,
+             src
+           ),
+           "button press feedback must not be attached to the unqualified active selector"
+
+    assert_selector_contains(
+      src,
+      ~S|.tl-button:active:not(:disabled):not([disabled]):not([aria-disabled="true"])|,
+      ["transform: scale(0.96);"]
+    )
+
+    assert_selector_contains(src, ".tl-button:disabled", [
+      "cursor: not-allowed;",
+      "box-shadow: none;",
+      "transform: none;"
+    ])
+
+    assert_selector_contains(src, ~s(.tl-button[aria-disabled="true"]), [
+      "cursor: not-allowed;",
+      "box-shadow: none;",
+      "transform: none;"
+    ])
+  end
+
+  test "MOTION-01 rejects unsafe zero-scale and layout-affecting motion transitions" do
+    src = File.read!(@style_path)
+
+    refute Regex.match?(~r/transform:\s*scale\(\s*0(?:\.0+)?\s*\)/, src),
+           "surface motion must not collapse elements with transform: scale(0)"
+
+    refute Regex.match?(~r/transform:\s*scale3d\(\s*0(?:\.0+)?\s*,/i, src),
+           "surface motion must not collapse elements with transform: scale3d(0, ...)"
+
+    for [_, declaration, properties] <-
+          Regex.scan(~r/((?:transition|transition-property):\s*([^;]+);)/, src) do
+      refute Regex.match?(
+               ~r/\b(block-size|inline-size|content-visibility|width|height|left|right|top|bottom|margin|padding|gap|grid-template)\b/,
+               properties
+             ),
+             "layout-affecting motion is forbidden in #{String.trim(declaration)}"
+    end
+  end
+
+  test "MOTION-01 keeps high-frequency timeline and table streams free of entrance animations" do
+    src = File.read!(@style_path)
+    timeline_row = selector_block!(src, ".tl-change")
+
+    refute String.contains?(timeline_row, "animation:"),
+           "the high-frequency timeline row primitive must not animate on stream updates"
+
+    for forbidden_pattern <- [
+          ~r/#timeline-rows\s*>\s*\.tl-change[^}]*animation\s*:/s,
+          ~r/#changes-list\s*>\s*\.tl-change[^}]*animation\s*:/s,
+          ~r/\.tl-change-list\s*>\s*\.tl-change[^}]*animation\s*:/s,
+          ~r/\.tl-table--actionable\s+tbody\s+tr[^}]*animation\s*:/s
+        ] do
+      refute Regex.match?(forbidden_pattern, src),
+             "high-frequency row/list/table selectors must stay still"
     end
   end
 
@@ -1108,7 +1179,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, ".threadline-ui a.tl-topbar__brand:hover,")
     assert String.contains?(src, "text-decoration: none;")
 
-    assert_selector_contains(src, ".tl-button:active", ["transform: scale(0.96);"])
+    assert_selector_contains(
+      src,
+      ~S|.tl-button:active:not(:disabled):not([disabled]):not([aria-disabled="true"])|,
+      ["transform: scale(0.96);"]
+    )
 
     assert_selector_contains(src, ".tl-icon", [
       "width: 1em;",
