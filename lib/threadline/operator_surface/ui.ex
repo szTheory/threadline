@@ -1218,6 +1218,7 @@ defmodule Threadline.OperatorSurface.UI do
         id={"#{@id}-trigger"}
         aria-expanded="false"
         aria-controls={@id}
+        aria-haspopup="dialog"
         phx-click={JS.toggle(to: "##{@id}") |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-trigger")}
         phx-click-away={JS.hide(to: "##{@id}") |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-trigger")}
       >
@@ -1244,7 +1245,7 @@ defmodule Threadline.OperatorSurface.UI do
         type="button"
         id={"#{@id}-button"}
         aria-expanded="false"
-        aria-haspopup="true"
+        aria-haspopup="menu"
         phx-click={JS.toggle(to: "##{@id}-menu") |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")}
         phx-click-away={JS.hide(to: "##{@id}-menu") |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button")}
       >
@@ -1263,12 +1264,23 @@ defmodule Threadline.OperatorSurface.UI do
 
   slot :tab, required: true do
     attr(:active, :boolean)
+    attr(:id, :string)
+    attr(:controls, :string)
   end
 
   def tabs(assigns) do
     ~H"""
     <div class={["tl-tabs", @class]} role="tablist" {@rest}>
-      <button :for={tab <- @tab} type="button" role="tab" aria-selected={if tab[:active], do: "true", else: "false"} class={["tl-tab", tab[:active] && "tl-tab--active"]}>
+      <button
+        :for={tab <- @tab}
+        type="button"
+        id={tab[:id]}
+        role="tab"
+        aria-selected={if tab[:active], do: "true", else: "false"}
+        aria-controls={tab[:controls]}
+        tabindex={if tab[:active], do: "0", else: "-1"}
+        class={["tl-tab", tab[:active] && "tl-tab--active"]}
+      >
         <%= render_slot(tab) %>
       </button>
     </div>
@@ -1316,7 +1328,12 @@ defmodule Threadline.OperatorSurface.UI do
           <span class="tl-accordion__icon" aria-hidden="true"></span>
         </button>
       </h3>
-      <div id={"#{@id}-content"} class="hidden tl-accordion__panel" aria-labelledby={"#{@id}-button"}>
+      <div
+        id={"#{@id}-content"}
+        class="hidden tl-accordion__panel"
+        role="region"
+        aria-labelledby={"#{@id}-button"}
+      >
         <%= render_slot(@inner_block) %>
       </div>
     </div>
@@ -1594,6 +1611,7 @@ defmodule Threadline.OperatorSurface.UI do
         value={@value}
         role="combobox"
         aria-expanded="false"
+        aria-haspopup="listbox"
         aria-controls={"#{@id}-listbox"}
         aria-autocomplete="list"
         autocomplete="off"
