@@ -235,6 +235,7 @@ Plans:
   3. The transaction page centers correctly at desktop widths (resolves `transaction-page-left-push-desktop`).
 
 **Plans**: 7 plans
+
 - [x] 178-01-PLAN.md — Wave 1: guard-first RED detectors (11 footguns + centering + Home twin + reconnect-mount + page-story conversion) + Tier B spec scaffold
 - [x] 178-02-PLAN.md — Wave 2 (SEED-005): extract shared shell, mount reconnect_banner once, wire data-tl-mutating on real state-changers
 - [x] 178-03-PLAN.md — Wave 3 (PAGE-03): justify-self:center on .tl-container + latent-twin .tl-home; Tier B centering geometry
@@ -242,6 +243,7 @@ Plans:
 - [x] 178-05-PLAN.md — Wave 4 (PAGE-02): fix all 11 footgun classes to green (Tier A + Tier B) + representative ~66-cell sample
 - [x] 178-06-PLAN.md — Wave 5 (gap closure): re-anchor reconnect selectors to [data-phx-main], strengthen Tier A guard, prove real socket-drop banner/dimming behavior
 - [x] 178-07-PLAN.md — Wave 6 (gap closure): make default Chromium prune-modal setup deterministic and prove real socket-drop 3/3
+
 **UI hint**: yes
 
 ### Phase 179: Microcopy & information-architecture sweep
@@ -305,7 +307,7 @@ Plans:
 | 177. Component groups / meta-components | v1.37 | 5/5 | Complete   | 2026-06-18 |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 7/7 | Complete   | 2026-06-18 |
 | 179. Microcopy & information-architecture sweep | v1.37 | 6/6 | Complete    | 2026-06-19 |
-| 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 1/4 | In Progress|  |
+| 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 2/4 | In Progress|  |
 | 166. unfreeze-token-lane-mechanism | v1.36 | 1/1 | Complete | 2026-06-13 |
 | 167. component-retune | v1.36 | 2/2 | Complete | 2026-06-14 |
 | 168. accessibility-verification | v1.36 | 2/2 | Complete | 2026-06-14 |
