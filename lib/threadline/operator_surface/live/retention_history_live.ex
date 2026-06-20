@@ -161,7 +161,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <h3 class="tl-empty__title">No retention runs yet</h3>
                 <p class="tl-empty__body">Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
                 <div class="tl-empty__actions">
-                  <button type="button" class="tl-button tl-button--secondary tl-button--danger" phx-click="open_prune_modal">
+                  <button
+                    type="button"
+                    class="tl-button tl-button--secondary tl-button--danger"
+                    phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
+                  >
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                     Run retention prune
                   </button>
@@ -205,7 +209,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
               <div class="tl-page__actions">
                 <span class="tl-hint">Retention window destructive action</span>
-                <button type="button" class="tl-button tl-button--secondary tl-button--danger" phx-click="open_prune_modal">
+                <button
+                  type="button"
+                  class="tl-button tl-button--secondary tl-button--danger"
+                  phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
+                >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                   Run retention prune
                 </button>
@@ -260,7 +268,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         Review evidence
                       </.link>
                       <UI.divider />
-                      <button type="button" role="menuitem" class="tl-button tl-button--compact tl-button--danger" phx-click="open_prune_modal">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="tl-button tl-button--compact tl-button--danger"
+                        phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
+                      >
                         <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                         Prune records permanently
                       </button>
@@ -276,7 +289,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   prune_now handler and is never shipped to the client for a
                   client-side comparison. The danger button copy names the
                   irreversible consequence (not "Continue"). --%>
-            <UI.modal id="prune-confirm" show={@prune_modal_open} on_cancel={JS.push("close_prune_modal")}>
+            <UI.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
               <h2 id="prune-confirm-title" class="tl-modal__title">Prune retention window permanently?</h2>
               <p id="prune-confirm-description" class="tl-modal__body">
                 This permanently deletes audit records older than the retention window for policy <code>default</code>; it cannot be undone.
@@ -285,7 +298,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <form phx-submit="prune_now" class="tl-form">
                 <label class="tl-field">
                   <span class="tl-field__label">Type the policy name <code>default</code> to confirm</span>
-                  <input type="text" name="confirm" autocomplete="off" class="tl-input" aria-label="Policy name to confirm" />
+                  <input
+                    id="prune-confirm-input"
+                    type="text"
+                    name="confirm"
+                    autocomplete="off"
+                    class="tl-control"
+                    aria-label="Policy name to confirm"
+                    data-tl-initial-focus
+                  />
                 </label>
                 <div class="tl-modal__actions">
                   <button type="button" class="tl-button tl-button--secondary" phx-click={JS.push("close_prune_modal")}>

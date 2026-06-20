@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
+    alias Phoenix.LiveView.JS
     alias Threadline.OperatorSurface.StressFixtures
 
     @ledger_path ".planning/design-system-ledger.json"
@@ -349,13 +350,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <Threadline.OperatorSurface.UI.field id="stress-text" name="text_field" label="Text Field" type="text" value="Sample text" />
                       <Threadline.OperatorSurface.UI.field id="stress-textarea" name="textarea_field" label="Textarea Field" type="textarea" value="Sample text" />
                       <Threadline.OperatorSurface.UI.field id="stress-select" name="select_field" label="Select Field" type="select" options={["Option 1", "Option 2"]} />
+                      <Threadline.OperatorSurface.UI.field id="stress-search" name="search_field" label="Search Field" type="search" value="audit changes" />
                       <Threadline.OperatorSurface.UI.field id="stress-checkbox" name="checkbox_field" label="Checkbox Field" type="checkbox" value="true" />
                       <Threadline.OperatorSurface.UI.field id="stress-radio" name="radio_field" label="Radio Field" type="radio" value="true" />
                       <Threadline.OperatorSurface.UI.field id="stress-switch" name="switch_field" label="Switch Field" type="switch" value="true" />
                       <Threadline.OperatorSurface.UI.field id="stress-date" name="date_field" label="Date Field" type="date" value="2026-06-16" />
                       <Threadline.OperatorSurface.UI.field id="stress-error" name="error_field" label="Error Field" type="text" value="Bad input" errors={["This field is required"]} help_text="Please enter a valid value." />
                       <Threadline.OperatorSurface.UI.field id="stress-disabled" name="disabled_field" label="Disabled Field" type="text" value="Can't touch this" disabled />
+                      <div class="tl-field">
+                        <label class="tl-label" for="stress-combobox">Combobox Field</label>
+                        <Threadline.OperatorSurface.UI.combobox
+                          id="stress-combobox"
+                          name="combobox_field"
+                          value="Option 1"
+                          options={[{"Option 1", "option_1"}, {"Option 2", "option_2"}]}
+                        />
+                      </div>
+                      <Threadline.OperatorSurface.UI.error_summary
+                        id="stress-error-summary"
+                        errors={[{"stress-error", "Error Field is required"}]}
+                      />
                     </div>
+                  </div>
+
+                  <div class="tl-space-y-4">
+                    <h4>Data Panel</h4>
+                    <Threadline.OperatorSurface.UI.data_panel id="stress-data-panel" aria-label="Stress data panel">
+                      <:data>
+                        <Threadline.OperatorSurface.UI.data_table
+                          rows={[
+                            %{status: "ready", rows: "24", at: "2026-06-16T12:00:00Z"}
+                          ]}
+                        >
+                          <:col :let={r} label="Status"><%= r.status %></:col>
+                          <:col :let={r} label="Rows"><%= r.rows %></:col>
+                          <:col :let={r} label="Date"><%= r.at %></:col>
+                        </Threadline.OperatorSurface.UI.data_table>
+                      </:data>
+                    </Threadline.OperatorSurface.UI.data_panel>
                   </div>
 
                   <div class="tl-space-y-4">
@@ -377,9 +409,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                       <Threadline.OperatorSurface.UI.dropdown id="stress-dropdown">
                         <:trigger>
-                          <Threadline.OperatorSurface.UI.button>Dropdown Menu</Threadline.OperatorSurface.UI.button>
+                          <span class="tl-button tl-button--secondary">Dropdown Menu</span>
                         </:trigger>
-                        Dropdown content
+                        <button type="button" role="menuitem" class="tl-button tl-button--compact tl-button--secondary">
+                          View stress details
+                        </button>
+                        <button type="button" role="menuitem" class="tl-button tl-button--compact tl-button--ghost">
+                          Copy stress link
+                        </button>
                       </Threadline.OperatorSurface.UI.dropdown>
                     </div>
                     
@@ -398,15 +435,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </Threadline.OperatorSurface.UI.segmented_control>
 
                     <div class="tl-flex tl-gap-4">
-                      <Threadline.OperatorSurface.UI.button phx-click={Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button phx-click={Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.button>
                       
                       <Threadline.OperatorSurface.UI.modal id="stress-modal">
-                        Modal Content
+                        <h2 id="stress-modal-title" class="tl-modal__title">Stress modal</h2>
+                        <p id="stress-modal-description" class="tl-modal__body">
+                          Modal content for rendered accessibility checks.
+                        </p>
+                        <Threadline.OperatorSurface.UI.button
+                          variant="primary"
+                          phx-click={Threadline.OperatorSurface.UI.hide_modal("stress-modal")}
+                          data-tl-initial-focus
+                        >
+                          Confirm stress modal
+                        </Threadline.OperatorSurface.UI.button>
                       </Threadline.OperatorSurface.UI.modal>
                       
                       <Threadline.OperatorSurface.UI.drawer id="stress-drawer">
-                        Drawer Content
+                        <h2 id="stress-drawer-title" class="tl-modal__title">Stress drawer</h2>
+                        <p id="stress-drawer-description" class="tl-modal__body">
+                          Drawer content for rendered accessibility checks.
+                        </p>
+                        <Threadline.OperatorSurface.UI.button
+                          phx-click={Threadline.OperatorSurface.UI.hide_drawer("stress-drawer")}
+                          data-tl-initial-focus
+                        >
+                          Close stress drawer
+                        </Threadline.OperatorSurface.UI.button>
                       </Threadline.OperatorSurface.UI.drawer>
                       
                       <Threadline.OperatorSurface.UI.toast id="stress-toast" kind="info" title="Toast Title">

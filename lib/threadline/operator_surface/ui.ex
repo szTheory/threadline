@@ -923,6 +923,7 @@ defmodule Threadline.OperatorSurface.UI do
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
+    |> JS.focus(to: "##{id} [data-tl-initial-focus]")
   end
 
   @doc false
@@ -969,6 +970,8 @@ defmodule Threadline.OperatorSurface.UI do
       class="tl-drawer-wrapper"
       role="dialog"
       aria-modal="true"
+      aria-labelledby={"#{@id}-title"}
+      aria-describedby={"#{@id}-description"}
       tabindex="0"
     >
       <div
@@ -1000,6 +1003,7 @@ defmodule Threadline.OperatorSurface.UI do
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
+    |> JS.focus(to: "##{id} [data-tl-initial-focus]")
   end
 
   @doc false

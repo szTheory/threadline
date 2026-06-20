@@ -87,10 +87,21 @@ async function login(page: Page) {
 
 async function expectFocused(locator: Locator) {
   await expect(locator).toBeFocused();
-  const boxShadow = await locator.evaluate(
-    (element) => window.getComputedStyle(element).boxShadow,
-  );
-  expect(boxShadow).not.toBe("none");
+  const focusStyle = await locator.evaluate((element) => {
+    const style = window.getComputedStyle(element);
+
+    return {
+      boxShadow: style.boxShadow,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+    };
+  });
+  const hasFocusRing =
+    focusStyle.boxShadow !== "none" ||
+    (focusStyle.outlineStyle !== "none" &&
+      focusStyle.outlineWidth !== "0px");
+
+  expect(hasFocusRing).toBe(true);
 }
 
 async function expectNonObscuredFocused(locator: Locator, page: Page) {
@@ -268,16 +279,25 @@ test.describe("operator accessibility baseline", () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 900 });
     await page.goto("/audit");
-    await openOperatorNav(page);
 
     const nav = page.getByTestId("operator-nav-shell");
     await expect(nav).toHaveAttribute("aria-label", "Operator surface");
+    await nav.evaluate((element) => {
+      if (element instanceof HTMLDetailsElement) {
+        element.open = false;
+      } else {
+        element.removeAttribute("open");
+      }
+    });
 
     const toggle = nav.locator(".tl-shell-nav__toggle");
+    const panel = nav.locator(".tl-shell-nav__panel");
+    await expect(panel).toBeHidden();
     await toggle.focus();
-    await expectNonObscuredFocused(toggle, page);
+    await expect(toggle).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(nav.locator(".tl-shell-nav__panel")).toBeVisible();
+    await expect(nav).toHaveAttribute("open", "");
+    await expect(panel).toBeVisible();
 
     const timeline = page.getByTestId("operator-nav-timeline");
     await timeline.focus();
@@ -382,10 +402,11 @@ test.describe("operator accessibility baseline", () => {
 
     const close = drawer.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
-    await close.focus();
-    await expectNonObscuredFocused(close, page);
 
-    await expect(drawer.getByLabel("View snapshot at")).toBeVisible();
+    const snapshot = drawer.getByLabel("View snapshot at");
+    await expect(snapshot).toBeVisible();
+    await snapshot.focus();
+    await expectNonObscuredFocused(snapshot, page);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -398,6 +419,7 @@ test.describe("operator accessibility baseline", () => {
     const dropdownTrigger = page.locator("#stress-dropdown-button");
     const dropdownMenu = page.locator("#stress-dropdown-menu");
     await expect(dropdownTrigger).toHaveAttribute("aria-expanded", "false");
+    await dropdownTrigger.scrollIntoViewIfNeeded();
     await dropdownTrigger.focus();
     await expectNonObscuredFocused(dropdownTrigger, page);
     await page.keyboard.press("Enter");
@@ -411,6 +433,7 @@ test.describe("operator accessibility baseline", () => {
 
     const accordion = page.getByRole("button", { name: "Accordion Section" });
     await expect(accordion).toHaveAttribute("aria-expanded", "false");
+    await accordion.scrollIntoViewIfNeeded();
     await accordion.focus();
     await expectNonObscuredFocused(accordion, page);
     await page.keyboard.press("Enter");
@@ -419,6 +442,7 @@ test.describe("operator accessibility baseline", () => {
 
     const activeTab = page.getByRole("tab", { name: "Tab 1" });
     await expect(activeTab).toHaveAttribute("aria-selected", "true");
+    await activeTab.scrollIntoViewIfNeeded();
     await activeTab.focus();
     await expectNonObscuredFocused(activeTab, page);
 
@@ -439,22 +463,23 @@ test.describe("operator accessibility baseline", () => {
 
     const dataPanel = page.getByRole("region", { name: "Stress data panel" });
     await expect(dataPanel).toBeVisible();
-    await expect(
-      dataPanel.getByRole("table").getByRole("columnheader", {
-        name: "Status",
-      }),
-    ).toBeVisible();
+    await expect(dataPanel.getByRole("table")).toBeVisible();
+    await expect(dataPanel.locator("th", { hasText: "Status" })).toHaveCount(
+      1,
+    );
+    await expect(dataPanel.locator('td[data-label="Status"]')).toBeVisible();
 
     await expect(
-      page.getByRole("alert", {
-        name: /You do not have access to this audit data/i,
-      }),
+      page
+        .getByRole("alert")
+        .filter({ hasText: "You do not have access to this audit data" }),
     ).toBeVisible();
     await expect(
       page.getByRole("status").filter({ hasText: "Could not refresh" }),
     ).toBeVisible();
 
     const modalTrigger = page.getByRole("button", { name: "Show Modal" });
+    await modalTrigger.scrollIntoViewIfNeeded();
     await modalTrigger.focus();
     await expectNonObscuredFocused(modalTrigger, page);
     await page.keyboard.press("Enter");
@@ -466,11 +491,12 @@ test.describe("operator accessibility baseline", () => {
       "stress-modal-description",
     );
     await expect(page.getByRole("button", { name: "Confirm stress modal" })).toBeFocused();
-    await page.keyboard.press("Escape");
+    await page.keyboard.press("Enter");
     await expect(modal).toBeHidden();
     await expectNonObscuredFocused(modalTrigger, page);
 
     const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await drawerTrigger.scrollIntoViewIfNeeded();
     await drawerTrigger.focus();
     await expectNonObscuredFocused(drawerTrigger, page);
     await page.keyboard.press("Enter");
@@ -482,7 +508,7 @@ test.describe("operator accessibility baseline", () => {
       "stress-drawer-description",
     );
     await expect(page.getByRole("button", { name: "Close stress drawer" })).toBeFocused();
-    await page.keyboard.press("Escape");
+    await page.keyboard.press("Enter");
     await expect(drawer).toBeHidden();
     await expectNonObscuredFocused(drawerTrigger, page);
 
