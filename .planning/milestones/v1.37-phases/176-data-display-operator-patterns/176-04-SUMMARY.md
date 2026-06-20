@@ -3,6 +3,7 @@ phase: 176-data-display-operator-patterns
 plan: 04
 subsystem: operator-surface
 tags: [data-display, flatten, card-nesting, coverage, page-header, declutter, regression-test, wave-4]
+requirements-completed: [DATA-05]
 
 # Dependency graph
 requires:

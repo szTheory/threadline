@@ -3,6 +3,7 @@ phase: 176-data-display-operator-patterns
 plan: 03
 subsystem: operator-surface
 tags: [consumer-migration, ref, kv, data-state, copy-footgun, double-truncation, forensic, security, wave-3]
+requirements-completed: [DATA-01, DATA-02, DATA-03]
 
 # Dependency graph
 requires:

@@ -1,6 +1,7 @@
 ---
 phase: 172
 plan: 01
+requirements-completed: [DS-05, DS-06]
 ---
 
 ## Summary

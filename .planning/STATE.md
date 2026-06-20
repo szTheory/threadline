@@ -2,39 +2,40 @@
 gsd_state_version: 1.0
 milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
-current_phase: 180
-current_phase_name: accessibility-verification-guardrails-adversarial-closeout
-status: phase-complete
-stopped_at: Phase 180 complete; v1.37 ready for milestone audit/closeout
-last_updated: "2026-06-20T09:30:00-04:00"
+current_phase: null
+status: Awaiting next milestone
+stopped_at: Milestone v1.37 complete and archived; awaiting next milestone definition
+last_updated: "2026-06-20T14:58:51.650Z"
 last_activity: 2026-06-20
+last_activity_desc: Milestone v1.37 completed and archived
 progress:
   total_phases: 10
   completed_phases: 10
   total_plans: 47
   completed_plans: 47
   percent: 100
+current_phase_name: null
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-19)
+See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 180 — accessibility-verification-guardrails-adversarial-closeout
+**Current focus:** Awaiting next milestone definition
 
 ## Current Position
 
-Phase: 180 (accessibility-verification-guardrails-adversarial-closeout) — COMPLETE
-Plan: 4 of 4
-Status: Complete; milestone v1.37 is ready for audit/closeout
-Last activity: 2026-06-20
+Phase: Milestone v1.37 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 
 ## Performance Metrics
 
-- **Last Milestone Shipped**: v1.35 — Unified Logo & Brand Book v2 (2026-06-12)
+- **Last Milestone Shipped**: v1.37 — Operator Surface Design-System Stress Test & Component System (2026-06-20)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -101,6 +102,9 @@ Last activity: 2026-06-20
 | Phase 180 P02 | 10m 27s | 2 tasks | 6 files |
 | Phase 180 P03 | 21m 49s | 2 tasks | 5 files |
 | Phase 180 P04 | closeout | 3 tasks | guardrail tests + closeout artifacts |
+| todo (v1.37 close 2026-06-20) | coverage-schema-card-declutter (functional outcome resolved by Phase 176 and regression-guarded by Phase 180; todo artifact cleanup remains) | deferred — acknowledged at close |
+| todo (v1.37 close 2026-06-20) | operator-shell-nav-ia-and-visibility | deferred — post-close operator-surface polish |
+| todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | deferred — post-close demo-login polish |
 
 ## Accumulated Context
 
@@ -256,7 +260,7 @@ Last activity: 2026-06-20
 ## Session Continuity
 
 **Last session:** 2026-06-20T01:46:15.955Z
-**Stopped at:** Phase 180 complete; v1.37 ready for milestone audit/closeout
+**Stopped at:** Milestone v1.37 complete and archived; awaiting next milestone definition
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

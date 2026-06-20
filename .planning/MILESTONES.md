@@ -1,5 +1,31 @@
 # Project milestones: Threadline
 
+## v1.37 Operator Surface Design-System Stress Test & Component System (Shipped: 2026-06-20)
+
+**Delivered:** Converted the mounted `/audit` operator surface from a page-level class-soup UI into an internally-componentized, stress-tested design system. The milestone shipped the `/audit/__stress` harness, scored idempotency ledger, hardened foundations, private primitives/forms/data/meta-components, shell/navigation and runtime theme picker, per-page stress coverage, microcopy/IA normalization, WCAG/APG/motion guardrails, bounded accessibility-tree evidence, screenshot regression, residual CI classification, and adversarial closeout.
+
+**Phases completed:** 10 phases (171-180), 47 plans, 70 tasks. Requirements: 33/33 satisfied.
+
+**Key accomplishments:**
+
+- **Stress harness and ledger** - dev/test-only `/audit/__stress`, fixture matrix, `DESIGN-SYSTEM.md` projection, ratchet ledger, and screenshot allowlist/baselines.
+- **Internal component system** - private primitives, overlays, form controls, data-display helpers, layout primitives, and meta-components with contract tests and no public API expansion.
+- **Operator workflow polish** - shell/navigation, page headers, breadcrumbs, pager, runtime theme picker, full-value copy affordances, data-state taxonomy, coverage flattening, destructive action confirmation, and all-page stress evidence.
+- **Copy and IA sweep** - stable route labels, domain vocabulary, actionable state/error/destructive copy, and stress-route copy evidence without adding routes, capabilities, dependencies, or copy registries.
+- **Accessibility and motion closeout** - rendered Playwright accessibility checks, APG/non-color/touch-target contracts, motion/reduced-motion guardrails, automated accessibility-tree evidence, screenshot regression, and adversarial review.
+- **Closeout honesty** - `mix ci.all` residuals classified as inherited Phase 179 demo/doc seed failures; no Phase 180-owned closeout blocker remained.
+
+**Known deferred items at close:** 3 open todo artifacts acknowledged in `STATE.md` (coverage-schema todo cleanup, operator shell nav visibility, demo login copy credentials), plus the intentional redact destructive-flow deferral recorded in Phase 176.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.37-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.37-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.37-MILESTONE-AUDIT.md`
+- Phase execution tree: `.planning/milestones/v1.37-phases/`
+
+---
+
 ## v1.36 Operator Surface Light Mode (Shipped: 2026-06-14)
 
 **Delivered:** Gave the operator surface a first-class light mode without touching the dark default. Hosts now mount with `theme: :dark | :light | :system` and the chosen theme renders server-side as a `data-tl-theme` attribute — correct on first paint, zero JavaScript, zero localStorage, zero FOUC. All 45 color-bearing `--tl-*` tokens gained a designed light lane, the ~9 dark-effect component families and data-viz surfaces were explicitly retuned for light, and a light/system WCAG-AA contrast mirror (with an alpha-aware compositing parser) guards every text-bearing token in both modes. Brand artifacts reached full token parity with the shipped UI and the brand book records the settled "dark-primary, light-supported" theming posture.

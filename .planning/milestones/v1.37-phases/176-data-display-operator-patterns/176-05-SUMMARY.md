@@ -3,6 +3,7 @@ phase: 176-data-display-operator-patterns
 plan: 05
 subsystem: operator-surface
 tags: [destructive-actions, security, t3-confirm, secure-compare, data-table, kebab, redaction, diff-table, a11y, wave-4]
+requirements-completed: [DATA-04]
 
 # Dependency graph
 requires:

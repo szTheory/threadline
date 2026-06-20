@@ -952,8 +952,54 @@ First-class light mode for the operator surface without disturbing the dark defa
 
 ---
 
+## Milestone: v1.37 — Operator Surface Design-System Stress Test & Component System
+
+**Shipped:** 2026-06-20
+**Phases:** 10 (171-180) | **Plans:** 47
+
+### What was built
+
+- Dev/test-only stress-lab harness, fixture matrix, scored ledger, `DESIGN-SYSTEM.md` projection, and screenshot ratchet guards.
+- Private operator-surface component system across primitives, overlays, forms, data display, layout, and meta-components.
+- Shell/navigation, runtime theme picker, page headers, breadcrumbs, pager, data-state taxonomy, full-value copy affordances, coverage flattening, and destructive action confirmation.
+- All-page stress evidence, microcopy/IA normalization, WCAG/APG/motion guardrails, bounded accessibility-tree evidence, residual CI classification, and adversarial closeout.
+
+### What worked
+
+- The fractal order held: harness and foundations first, then primitives/forms, groups, pages, copy, and final accessibility/motion guardrails.
+- Keeping components private preserved the v1.31 freeze while still reducing page-level duplication and making regression tests sharper.
+- Phase 180's proof tiers were honest: source contracts, rendered browser checks, and accessibility-tree snapshots each state what they prove and do not prove.
+
+### What was inefficient
+
+- The generated milestone-accomplishment extraction was too noisy and needed manual editorial cleanup.
+- `roadmap.analyze` miscounted phase 180 because of stale roadmap shape, which required manual state correction before closeout.
+- `REQUIREMENTS.md` traceability for DATA-01/02/03 lagged behind verified Phase 176 evidence until milestone close.
+
+### Patterns established
+
+- Use `/audit/__stress` plus a scored ledger as the regression anchor for future operator-surface work.
+- Treat visual polish milestones like backend milestones: every claim needs source, rendered, and archive-ready evidence.
+- Bounded accessibility evidence is acceptable when it names the gap explicitly; do not let browser automation imply real assistive-technology UAT.
+
+### Key lessons
+
+1. Keep roadmap plan lists synchronized before running milestone tooling; stale `TBD` markers can poison readiness metrics even when disk artifacts are complete.
+2. Requirements traceability should be updated in the same wave as verification, not reconciled at close.
+3. Generated archive summaries need an editorial pass before they become durable project history.
+
+### Cost observations
+
+- Timeline: 2026-06-14 -> 2026-06-20; 10 phases; 47 plans.
+- Closed with 3 acknowledged post-close todo artifacts and one intentional destructive-flow deferral.
+- Model mix is not instrumented in-repo.
+
+---
+
 ## Cross-Milestone Trends
 
+- v1.37 reinforces the v1.36 lesson: archive-ready evidence must be clean against the current working tree, not only locally remembered phase context.
+- Planning tools can misread stale roadmap metadata; closeout should include a manual sanity pass over phase counts, requirement traceability, and state frontmatter before tagging.
 - **Commit keystone source in the wave it's verified.** v1.36's Finding F1 (entangled uncommitted `style.ex`) echoes the recurring "verified-live but source-pending" hazard — it hides doc-contract drift and makes quality gates green only against a dirty tree. Treat a clean-checkout green as the bar.
 - Brand and UI milestones now need the same evidence discipline as backend milestones: source artifacts, direct-render checks, explicit deferred rollout boundaries, and archive-ready verification.
 - Public-surface rollout should start from fresh requirements even when source guidance is approved; approval is not implementation scope.
