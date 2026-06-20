@@ -110,6 +110,7 @@ Last activity: 2026-06-20
 - **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
 - **Todo: Coverage audit-readiness IA, schema affordance, and duplicate remediation copy:** update `/audit/coverage` so schema scope is visible, readiness copy has one clear hierarchy, and Timeline remains a nav/contextual action rather than a page-level distraction. See `.planning/todos/pending/coverage-schema-card-declutter.md`.
 - **Todo: Operator shell nav IA and visibility:** make the existing operator shell nav easier to perceive and use across desktop/mobile while preserving Phase 179 route and IA stability. See `.planning/todos/pending/2026-06-20-operator-shell-nav-ia-and-visibility.md`.
+- **Todo: Demo login copy credentials:** make the visible `/users/log_in` demo credentials clickable/copyable with explicit feedback while preserving selectable text, CSP cleanliness, and dev/test-only framing. See `.planning/todos/pending/2026-06-20-demo-login-copy-credentials.md`.
 
 ### Roadmap Evolution
 
