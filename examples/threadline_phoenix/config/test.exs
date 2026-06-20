@@ -25,7 +25,9 @@ config :threadline_phoenix, ThreadlinePhoenix.Repo,
 # you can enable the server option below.
 config :threadline_phoenix, ThreadlinePhoenixWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  check_origin: ["//127.0.0.1:4002", "//localhost:4002"],
+  # The e2e runner chooses a free localhost port dynamically. Keep origin
+  # checks disabled in test only so LiveView sockets connect on that port.
+  check_origin: false,
   secret_key_base: "EjvmPWRdJYl2nuzaH1YTk0jrEqwiEFmBxkknVmdDY2eYjwJ16VMVmRYqleJVRC25",
   server: false
 

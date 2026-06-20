@@ -137,6 +137,26 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function expectAriaSnapshotContains(
+  locator: Locator,
+  expectedSnippets: (string | RegExp)[],
+  options: { depth?: number } = {},
+) {
+  const snapshot = await locator.ariaSnapshot({
+    depth: options.depth ?? 6,
+  });
+
+  for (const snippet of expectedSnippets) {
+    if (typeof snippet === "string") {
+      expect(snapshot).toContain(snippet);
+    } else {
+      expect(snapshot).toMatch(snippet);
+    }
+  }
+
+  return snapshot;
+}
+
 async function openOperatorNav(page: Page) {
   const shell = page.getByTestId("operator-nav-shell");
   const toggle = shell.locator(".tl-shell-nav__toggle");
@@ -161,16 +181,23 @@ async function openOperatorNav(page: Page) {
 
 async function openTimelineAdvancedFilters(page: Page) {
   const disclosure = page.locator(".tl-filter-disclosure");
-  if ((await disclosure.count()) === 0) {
+  if ((await disclosure.count()) > 0) {
+    const open = await disclosure.evaluate((element) =>
+      element.hasAttribute("open"),
+    );
+    if (!open) {
+      await disclosure.locator("summary").click();
+    }
     return;
   }
 
-  const open = await disclosure.evaluate((element) =>
-    element.hasAttribute("open"),
-  );
-  if (!open) {
-    await disclosure.locator("summary").click();
+  const drawer = page.locator("#timeline-filters-drawer");
+  if ((await drawer.count()) === 0 || (await drawer.isVisible())) {
+    return;
   }
+
+  await page.getByRole("button", { name: "Filters" }).first().click();
+  await expect(drawer).toBeVisible();
 }
 
 async function discoverTransactionAndRowHistory(page: Page) {
@@ -317,20 +344,26 @@ test.describe("operator accessibility baseline", () => {
       "Filter the timeline, open transactions or row history, then export the current view when you need a handoff.",
     );
     await expect(workflowLine).toBeVisible();
-    await expect(page.getByText("FIND")).toHaveCount(0);
-    await expect(page.getByText("EXPLAIN")).toHaveCount(0);
-    await expect(page.getByText("PACKAGE")).toHaveCount(0);
+    const timelineText = await page.locator("#tl-main").textContent();
+    expect(timelineText).not.toMatch(/\bFIND\b/);
+    expect(timelineText).not.toMatch(/\bEXPLAIN\b/);
+    expect(timelineText).not.toMatch(/\bPACKAGE\b/);
+
+    const correlationFilter = page
+      .getByLabel("Correlation id", {
+        exact: true,
+      })
+      .filter({ visible: true })
+      .first();
+    await correlationFilter.focus();
+    await expectNonObscuredFocused(correlationFilter, page);
 
     await openTimelineAdvancedFilters(page);
     for (const label of ["Actor kind", "Actor id"]) {
-      await expect(page.getByLabel(label, { exact: true })).toBeVisible();
+      await expect(
+        page.getByLabel(label, { exact: true }).filter({ visible: true }),
+      ).toBeVisible();
     }
-
-    const correlationFilter = page.getByLabel("Correlation id", {
-      exact: true,
-    });
-    await correlationFilter.focus();
-    await expectNonObscuredFocused(correlationFilter, page);
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
@@ -341,6 +374,9 @@ test.describe("operator accessibility baseline", () => {
     ).toBeVisible();
 
     await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]").first()).toHaveClass(
+      /phx-connected/,
+    );
     const prune = page
       .getByRole("button", { name: "Run retention prune" })
       .last();
@@ -526,6 +562,122 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(drawerTrigger, page);
 
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("captures accessibility-tree evidence for screen-reader-ready structure", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/audit");
+    const homeSnapshot = await expectAriaSnapshotContains(
+      page.locator("#tl-main"),
+      [
+        '- main:',
+        'heading "Follow what happened."',
+        'status "System health"',
+        'link "Open the timeline"',
+        'combobox "Table"',
+        'textbox "Record id"',
+        'button "Open row history"',
+      ],
+      { depth: 6 },
+    );
+    await testInfo.attach("home-main-aria-snapshot", {
+      body: homeSnapshot,
+      contentType: "text/plain",
+    });
+
+    await page.goto("/audit/timeline");
+    await openTimelineAdvancedFilters(page);
+    const timelineSnapshot = await expectAriaSnapshotContains(
+      page.locator("#tl-main"),
+      [
+        'region "Investigate audit activity"',
+        'heading "Investigate audit activity" [level=1]',
+        '- search:',
+        'group "Search"',
+        'textbox "From"',
+        'textbox "To"',
+        'combobox "Table"',
+        'textbox "Correlation id"',
+        'button "Apply"',
+        'status:',
+      ],
+      { depth: 5 },
+    );
+    await testInfo.attach("timeline-main-aria-snapshot", {
+      body: timelineSnapshot,
+      contentType: "text/plain",
+    });
+
+    const { rowHistoryHref } = await discoverTransactionAndRowHistory(page);
+    await page.goto(rowHistoryHref);
+    const rowHistorySnapshot = await expectAriaSnapshotContains(
+      page.getByTestId("row-history-drawer"),
+      [
+        /^- '?dialog /m,
+        /heading "Row history:/,
+        'link "Close"',
+        'textbox "View snapshot at"',
+        'list:',
+      ],
+      { depth: 6 },
+    );
+    await testInfo.attach("row-history-drawer-aria-snapshot", {
+      body: rowHistorySnapshot,
+      contentType: "text/plain",
+    });
+
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    const dropdownTrigger = page.locator("#stress-dropdown-button");
+    await dropdownTrigger.scrollIntoViewIfNeeded();
+    await dropdownTrigger.focus();
+    await page.keyboard.press("Enter");
+    const dropdownSnapshot = await expectAriaSnapshotContains(
+      page.getByTestId("stress-preview"),
+      [
+        'button "Dropdown Menu" [expanded]',
+        'combobox "Combobox Field"',
+        'alert "There is a problem"',
+        '- tablist:',
+      ],
+      { depth: 8 },
+    );
+    await testInfo.attach("stress-menu-aria-snapshot", {
+      body: dropdownSnapshot,
+      contentType: "text/plain",
+    });
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Show Modal" }).click();
+    const stressModalSnapshot = await expectAriaSnapshotContains(
+      page.getByRole("dialog", { name: "Stress modal" }),
+      [
+        'dialog "Stress modal"',
+        'heading "Stress modal" [level=2]',
+        'button "Confirm stress modal"',
+      ],
+      { depth: 5 },
+    );
+    await testInfo.attach("stress-modal-aria-snapshot", {
+      body: stressModalSnapshot,
+      contentType: "text/plain",
+    });
+    await page.getByRole("button", { name: "Confirm stress modal" }).click();
+
+    await page.getByRole("button", { name: "Show Drawer" }).click();
+    const stressDrawerSnapshot = await expectAriaSnapshotContains(
+      page.getByRole("dialog", { name: "Stress drawer" }),
+      [
+        'dialog "Stress drawer"',
+        'heading "Stress drawer" [level=2]',
+        'button "Close stress drawer"',
+      ],
+      { depth: 5 },
+    );
+    await testInfo.attach("stress-drawer-aria-snapshot", {
+      body: stressDrawerSnapshot,
+      contentType: "text/plain",
+    });
   });
 
   test("renders status and verdict chips with text labels and non-color shape", async ({
