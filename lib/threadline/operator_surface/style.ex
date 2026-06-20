@@ -1459,7 +1459,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           box-shadow: var(--tl-shadow-subtle);
         }
 
-        .tl-button:active {
+        .tl-button:active:not(:disabled):not([disabled]):not([aria-disabled="true"]) {
           transform: scale(0.96);
         }
 
@@ -3183,13 +3183,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-policy__row::details-content {
           block-size: 0;
           overflow: clip;
-          transition:
-            block-size var(--tl-motion-base) var(--tl-ease-out),
-            content-visibility var(--tl-motion-base) allow-discrete;
+          opacity: 0;
+          transition: opacity var(--tl-motion-base) var(--tl-ease-out);
         }
 
         .tl-policy__row[open]::details-content {
           block-size: auto;
+          opacity: 1;
         }
 
         .tl-subview-backdrop {
@@ -4240,7 +4240,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scroll-behavior: auto !important;
           }
 
-          .tl-button:active {
+          .tl-fade-in,
+          .tl-fade-out,
+          .tl-rise-in,
+          .tl-rise-out,
+          .tl-slide-in-right,
+          .tl-slide-out-right,
+          .tl-toast,
+          .tl-policy__row::details-content {
+            transition-duration: 1ms !important;
+            animation-duration: 1ms !important;
+            animation-delay: 0ms !important;
+          }
+
+          .translate-y-4,
+          .translate-x-full,
+          .tl-button:active:not(:disabled):not([disabled]):not([aria-disabled="true"]) {
             transform: none;
           }
 

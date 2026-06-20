@@ -486,17 +486,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       ["transform: scale(0.96);"]
     )
 
-    assert_selector_contains(src, ".tl-button:disabled", [
-      "cursor: not-allowed;",
-      "box-shadow: none;",
-      "transform: none;"
-    ])
-
-    assert_selector_contains(src, ~s(.tl-button[aria-disabled="true"]), [
-      "cursor: not-allowed;",
-      "box-shadow: none;",
-      "transform: none;"
-    ])
+    assert Regex.match?(
+             ~r/\.tl-button:disabled,\s*\.tl-button\[disabled\],\s*\.tl-button\[aria-disabled="true"\]\s*\{[^}]*cursor:\s*not-allowed;[^}]*box-shadow:\s*none;[^}]*transform:\s*none;/s,
+             src
+           ),
+           "disabled and aria-disabled button controls must share the still/disabled block"
   end
 
   test "MOTION-01 rejects unsafe zero-scale and layout-affecting motion transitions" do
