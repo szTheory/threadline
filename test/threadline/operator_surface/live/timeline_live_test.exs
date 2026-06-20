@@ -770,19 +770,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "24h window"
     end
 
-    test "Timeline command shows 24h windows exactly and keeps advanced filters collapsed",
+    test "Timeline command shows 24h windows exactly and keeps advanced filters in the drawer",
          %{conn: conn} do
       {:ok, _lv, html} =
         live(conn, "/audit/timeline?from=2026-06-06T20:07&to=2026-06-07T20:07")
 
       assert html =~ ~s|class="tl-toolbar tl-timeline-command"|
+      assert html =~ ~s|aria-controls="timeline-filters-drawer"|
+      assert html =~ ~s|id="timeline-filters-drawer"|
+      assert html =~ ~s|phx-window-keydown=|
+      assert html =~ ~s|phx-key="Escape"|
       assert html =~ "Window: 24h"
       assert html =~ "2026-06-06 20:07 UTC to 2026-06-07 20:07 UTC"
       assert html =~ "Reset to last 24h"
-      refute Regex.match?(~r/<details class="tl-filter-disclosure" open/, html)
+      refute html =~ ~s|class="tl-filter-disclosure"|
     end
 
-    test "Timeline command opens advanced filters when URL contains advanced state",
+    test "Timeline command surfaces active advanced filters while keeping fields in the drawer",
          %{conn: conn} do
       {:ok, _lv, html} =
         live(
@@ -790,8 +794,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "/audit/timeline?from=2026-06-06T20:07&to=2026-06-07T20:07&table_schema=public&actor_kind=user&actor_id=42"
         )
 
-      assert Regex.match?(~r/<details class="tl-filter-disclosure" open/, html)
+      assert html =~ ~s|aria-controls="timeline-filters-drawer"|
       assert html =~ "3 active"
+      assert html =~ ~s|form="timeline-filters"|
       assert html =~ "schema: public"
       assert html =~ "actor kind: user"
       assert html =~ "actor id: 42"
@@ -903,13 +908,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {form_index, _} = :binary.match(html, ~s|id="timeline-filters"|)
       {summary_index, _} = :binary.match(html, ~s|class="tl-filter-summary"|)
-      {utilities_index, _} = :binary.match(html, ~s|class="tl-timeline-command__utilities"|)
       {row_index, _} = :binary.match(html, ~s|data-testid="timeline-row"|)
+      {utilities_index, _} = :binary.match(html, ~s|class="tl-timeline-command__utilities"|)
       {legend_index, _} = :binary.match(html, ~s|class="tl-journey--legend"|)
 
       assert form_index < summary_index
-      assert summary_index < utilities_index
-      assert utilities_index < row_index
+      assert summary_index < row_index
+      assert row_index < utilities_index
       assert row_index < legend_index
 
       refute html =~ "FIND"

@@ -1093,12 +1093,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-timeline-command {
+          gap: var(--tl-space-2);
           margin-bottom: var(--tl-space-4);
         }
 
         .tl-timeline-command__summary {
           display: grid;
-          gap: var(--tl-space-3);
+          gap: var(--tl-space-2);
           align-items: start;
         }
 
@@ -1138,7 +1139,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
           gap: var(--tl-space-1);
           min-width: 0;
-          padding: var(--tl-space-2) var(--tl-space-3);
+          padding: var(--tl-space-2);
           border-radius: var(--tl-radius-md);
           background: var(--tl-color-surface-raised);
           box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-border-strong), var(--tl-shadow-border);
@@ -1298,6 +1299,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding-top: calc(var(--tl-font-size-label) * var(--tl-line-label) + var(--tl-space-1));
         }
 
+        .tl-timeline-command .tl-filter-actions {
+          padding-top: 0;
+        }
+
         .tl-action-group {
           display: inline-flex;
           flex-wrap: wrap;
@@ -1379,6 +1384,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-timeline-command__status {
+          padding-top: var(--tl-space-1);
           border-top: 1px solid var(--tl-color-border);
         }
 
@@ -1387,6 +1393,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           gap: var(--tl-space-3);
           padding-top: var(--tl-space-3);
           border-top: 1px solid var(--tl-color-border);
+        }
+
+        .tl-timeline-drawer {
+          display: grid;
+          align-content: start;
+          gap: var(--tl-space-4);
+        }
+
+        .tl-timeline-drawer__header {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: start;
+          justify-content: space-between;
+          gap: var(--tl-space-3);
+          padding-bottom: var(--tl-space-3);
+          border-bottom: 1px solid var(--tl-color-border);
+        }
+
+        .tl-timeline-drawer__heading {
+          display: grid;
+          gap: var(--tl-space-1);
+          min-width: 0;
+        }
+
+        .tl-timeline-drawer__section {
+          display: grid;
+          gap: var(--tl-space-3);
+          min-width: 0;
+        }
+
+        .tl-timeline-drawer__section-heading {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-timeline-drawer__actions {
+          padding-top: 0;
         }
 
         .tl-utility-group {
@@ -1440,6 +1485,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transition-property: color, background-color, border-color, box-shadow, transform;
           transition-duration: var(--tl-motion-fast);
           transition-timing-function: var(--tl-ease-standard);
+        }
+
+        .tl-button__meta {
+          display: inline-flex;
+          min-width: 1.5em;
+          min-height: 1.5em;
+          align-items: center;
+          justify-content: center;
+          padding: 0 var(--tl-space-1);
+          border-radius: 999px;
+          background: var(--tl-color-accent-soft);
+          color: var(--tl-color-accent-strong);
+          font-size: var(--tl-font-size-xs);
+          font-weight: var(--tl-weight-strong);
+          line-height: 1;
+          font-variant-numeric: tabular-nums;
         }
 
         .threadline-ui a.tl-button,
@@ -2763,7 +2824,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           flex-wrap: wrap;
           align-items: center;
           gap: var(--tl-space-2);
-          padding-top: var(--tl-space-3);
+          padding-top: var(--tl-space-2);
           border-top: 1px solid var(--tl-color-border);
           color: var(--tl-color-muted);
           font-size: var(--tl-font-size-label);
@@ -4072,9 +4133,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             padding: var(--tl-space-4);
           }
 
+          .tl-toolbar.tl-timeline-command {
+            position: static;
+            padding: var(--tl-space-3);
+          }
+
           .tl-timeline-command__summary {
-            grid-template-columns: minmax(0, 1.15fr) minmax(520px, .85fr);
-            align-items: start;
+            grid-template-columns: minmax(240px, .85fr) minmax(0, 1.15fr);
+            align-items: center;
           }
 
           .tl-filter-grid--primary {

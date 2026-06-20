@@ -115,6 +115,51 @@ async function expectTimelineIntroFlow(page: Page) {
   expect(gap).toBeLessThanOrEqual(1);
 }
 
+async function expectTimelineRowsFirstViewport(page: Page) {
+  const firstRow = page.getByTestId("timeline-row").first();
+  await expect(firstRow).toBeVisible();
+  await expect(firstRow.getByTestId("transaction-link")).toBeVisible();
+
+  const metrics = await page.evaluate(() => {
+    const command = document.querySelector(".tl-timeline-command");
+    const firstRow = document.querySelector('[data-testid="timeline-row"]');
+    const rowAction = firstRow?.querySelector('[data-testid="transaction-link"]');
+
+    if (!command || !firstRow || !rowAction) {
+      throw new Error("Timeline command, row, or row action missing");
+    }
+
+    const commandRect = command.getBoundingClientRect();
+    const rowRect = firstRow.getBoundingClientRect();
+    const actionRect = rowAction.getBoundingClientRect();
+    const actionCenterX = actionRect.left + actionRect.width / 2;
+    const actionCenterY = actionRect.top + actionRect.height / 2;
+    const hitTarget = document.elementFromPoint(actionCenterX, actionCenterY);
+
+    return {
+      commandPosition: window.getComputedStyle(command).position,
+      commandBottom: commandRect.bottom,
+      rowTop: rowRect.top,
+      rowVisiblePx: Math.max(
+        0,
+        Math.min(rowRect.bottom, window.innerHeight) - Math.max(rowRect.top, 0),
+      ),
+      actionHitTestable:
+        hitTarget === rowAction ||
+        Boolean(hitTarget && rowAction.contains(hitTarget)),
+      viewportHeight: window.innerHeight,
+      scrollY: window.scrollY,
+    };
+  });
+
+  expect(metrics.scrollY).toBe(0);
+  expect(metrics.commandPosition).toBe("static");
+  expect(metrics.rowTop).toBeGreaterThanOrEqual(metrics.commandBottom);
+  expect(metrics.rowTop).toBeLessThan(metrics.viewportHeight);
+  expect(metrics.rowVisiblePx).toBeGreaterThanOrEqual(48);
+  expect(metrics.actionHitTestable).toBe(true);
+}
+
 async function expectTrustRailGap(page: Page, expectedPx: number) {
   const gap = await page.evaluate(() => {
     const rail = document.querySelector("#tl-main > .tl-trust-rail");
@@ -449,6 +494,30 @@ async function assertExports(page: Page) {
     page.getByRole("link", { name: "Download export" }).first(),
   ).toBeVisible();
 }
+
+test.describe("Timeline row-first command surface", () => {
+  test.use({ viewport: { width: 1280, height: 720 }, isMobile: false });
+
+  test("keeps rows and row actions visible below filters on short desktop viewports", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto(
+      "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00",
+    );
+    await expectTimelineIntroFlow(page);
+    await expectTimelineRowsFirstViewport(page);
+    const filtersButton = page.getByRole("button", { name: /Filters/ });
+    await filtersButton.click();
+    const drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByLabel("Schema")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+    await expect(filtersButton).toBeFocused();
+    await expectNoHorizontalOverflow(page);
+  });
+});
 
 for (const viewport of viewports) {
   test.describe(`operator responsive matrix: ${viewport.name}`, () => {

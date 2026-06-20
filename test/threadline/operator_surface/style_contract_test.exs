@@ -708,6 +708,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "grid-template-columns: minmax(178px, .8fr) minmax(178px, .8fr) minmax(180px, 1fr) minmax(240px, 1.3fr);"
     ])
 
+    assert_selector_contains(desktop, ".tl-toolbar.tl-timeline-command", [
+      "position: static;",
+      "padding: var(--tl-space-3);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-timeline-command__summary", [
+      "grid-template-columns: minmax(240px, .85fr) minmax(0, 1.15fr);",
+      "align-items: center;"
+    ])
+
     assert_selector_contains(desktop, ".tl-toolbar__actions", [
       "grid-column: 1 / -1;",
       "justify-content: flex-end;"

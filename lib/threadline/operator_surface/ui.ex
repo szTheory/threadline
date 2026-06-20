@@ -1491,7 +1491,7 @@ defmodule Threadline.OperatorSurface.UI do
 
   attr(:rest, :global,
     include:
-      ~w(autocomplete disabled readonly required placeholder phx-debounce step min max checked list maxlength)
+      ~w(autocomplete disabled form readonly required placeholder phx-debounce step min max checked list maxlength)
   )
 
   def field(assigns) do

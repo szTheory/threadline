@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
     import Ecto.Query
 
+    alias Phoenix.LiveView.JS
     alias Threadline.Export
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Exports.FilterParams
@@ -444,6 +445,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </.link>
           </:actions>
         </UI.empty_state>
+        <.timeline_filter_drawer
+          filters_raw={@filters_raw}
+          coverage_enabled={@threadline_coverage_enabled}
+          evidence_enabled={@threadline_evidence_enabled}
+          exports_enabled={@threadline_exports_enabled}
+          actor_ref={assigns[:threadline_actor_ref]}
+          saved_views={@saved_views}
+          base_path={@base_path}
+          filter_query={@filter_query}
+        />
         <aside class="tl-journey--legend" aria-label="Timeline workflow">
           <p>
             Filter the timeline, open transactions or row history, then export the current view when you need a handoff.
@@ -458,7 +469,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assigns
         |> assign(:window, filter_window_summary(assigns.filters_raw))
         |> assign(:active_filters, active_filter_pairs(assigns.filters_raw))
-        |> assign(:advanced_filters_active?, advanced_filters_active?(assigns.filters_raw))
         |> assign(:advanced_filter_count, advanced_filter_count(assigns.filters_raw))
 
       ~H"""
@@ -540,9 +550,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 class="tl-toolbar__field tl-toolbar__field--wide"
                 maxlength="256"
                 phx-debounce="300"
-                help_text="request_id, job_id, or integration token. Up to 256 chars."
+                placeholder="request, job, or integration id"
               />
               <div class="tl-toolbar__actions tl-filter-actions">
+                <button
+                  type="button"
+                  class="tl-button tl-button--secondary"
+                  aria-haspopup="dialog"
+                  aria-controls="timeline-filters-drawer"
+                  phx-click={JS.push_focus() |> UI.show_drawer("timeline-filters-drawer")}
+                >
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:funnel} class="tl-button__icon" />
+                  Filters
+                  <span :if={@advanced_filter_count > 0} class="tl-button__meta">
+                    <%= @advanced_filter_count %>
+                  </span>
+                </button>
                 <.link patch={@timeline_path} class="tl-button tl-button--ghost">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
                   Reset to last 24h
@@ -554,48 +577,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </div>
           </UI.field_group>
-
-          <details class="tl-filter-disclosure" open={@advanced_filters_active?}>
-            <summary class="tl-filter-disclosure__summary">
-              <span>More filters</span>
-              <span :if={@advanced_filter_count > 0} class="tl-chip tl-chip--neutral">
-                <%= @advanced_filter_count %> active
-              </span>
-            </summary>
-            <UI.field_group legend="Advanced filters" class="tl-filter-group--advanced">
-              <div class="tl-filter-grid tl-filter-grid--advanced">
-                <UI.field
-                  id="filter-table-schema"
-                  type="text"
-                  name="filter[table_schema]"
-                  label="Schema"
-                  value={@filters_raw["table_schema"] || ""}
-                  class="tl-toolbar__field"
-                  phx-debounce="blur"
-                />
-                <UI.field
-                  id="filter-actor-kind"
-                  type="select"
-                  name="filter[actor_kind]"
-                  label="Actor kind"
-                  options={[{"Any kind", ""} | Enum.map(~w(user admin service_account job system anonymous), &{&1, &1})]}
-                  value={@filters_raw["actor_kind"] || ""}
-                  class="tl-toolbar__field"
-                />
-                <UI.field
-                  id="filter-actor-id"
-                  type="text"
-                  name="filter[actor_id]"
-                  label="Actor id"
-                  value={@filters_raw["actor_id"] || ""}
-                  class="tl-toolbar__field"
-                  disabled={@filters_raw["actor_kind"] == "anonymous"}
-                  phx-debounce="blur"
-                  help_text={if @filters_raw["actor_kind"] == "anonymous", do: "n/a for anonymous", else: nil}
-                />
-              </div>
-            </UI.field_group>
-          </details>
         </form>
 
         <section class="tl-filter-summary" aria-label="Active Timeline filters">
@@ -615,6 +596,92 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <span><%= format_count(@match_count) %> matching changes</span>
           <span>Window: <%= @window.label %></span>
         </div>
+
+      </section>
+      """
+    end
+
+    defp timeline_filter_drawer(assigns) do
+      assigns =
+        assigns
+        |> assign(:advanced_filter_count, advanced_filter_count(assigns.filters_raw))
+
+      ~H"""
+      <UI.drawer
+        id="timeline-filters-drawer"
+        class="tl-timeline-drawer"
+        phx-window-keydown={UI.hide_drawer("timeline-filters-drawer")}
+        phx-key="Escape"
+      >
+        <div class="tl-timeline-drawer__header">
+          <div class="tl-timeline-drawer__heading">
+            <h2 id="timeline-filters-drawer-title" class="tl-modal__title">
+              Filters and handoff
+            </h2>
+            <p id="timeline-filters-drawer-description" class="tl-modal__body">
+              Refine the current Timeline query, save reusable views, or package this result set for a handoff.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="tl-button tl-button--secondary"
+            phx-click={UI.hide_drawer("timeline-filters-drawer")}
+            data-tl-initial-focus
+          >
+            Close
+          </button>
+        </div>
+
+        <section class="tl-timeline-drawer__section" aria-labelledby="timeline-advanced-filters-title">
+          <div class="tl-timeline-drawer__section-heading">
+            <h3 id="timeline-advanced-filters-title" class="tl-utility-group__label">
+              Advanced filters
+            </h3>
+            <span :if={@advanced_filter_count > 0} class="tl-chip tl-chip--neutral">
+              <%= @advanced_filter_count %> active
+            </span>
+          </div>
+          <div class="tl-filter-grid tl-filter-grid--advanced">
+            <UI.field
+              id="filter-table-schema"
+              type="text"
+              name="filter[table_schema]"
+              label="Schema"
+              value={@filters_raw["table_schema"] || ""}
+              class="tl-toolbar__field"
+              form="timeline-filters"
+              phx-debounce="blur"
+            />
+            <UI.field
+              id="filter-actor-kind"
+              type="select"
+              name="filter[actor_kind]"
+              label="Actor kind"
+              options={[{"Any kind", ""} | Enum.map(~w(user admin service_account job system anonymous), &{&1, &1})]}
+              value={@filters_raw["actor_kind"] || ""}
+              class="tl-toolbar__field"
+              form="timeline-filters"
+            />
+            <UI.field
+              id="filter-actor-id"
+              type="text"
+              name="filter[actor_id]"
+              label="Actor id"
+              value={@filters_raw["actor_id"] || ""}
+              class="tl-toolbar__field"
+              disabled={@filters_raw["actor_kind"] == "anonymous"}
+              form="timeline-filters"
+              phx-debounce="blur"
+              help_text={if @filters_raw["actor_kind"] == "anonymous", do: "n/a for anonymous", else: nil}
+            />
+          </div>
+          <div class="tl-toolbar__actions tl-timeline-drawer__actions">
+            <button type="submit" form="timeline-filters" class="tl-button tl-button--primary">
+              <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+              Apply filters
+            </button>
+          </div>
+        </section>
 
         <div class="tl-timeline-command__utilities">
           <section
@@ -733,7 +800,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </ul>
           </section>
         </div>
-      </section>
+      </UI.drawer>
       """
     end
 
@@ -867,9 +934,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp active_filter_pairs(_), do: []
-
-    defp advanced_filters_active?(%{} = raw), do: advanced_filter_count(raw) > 0
-    defp advanced_filters_active?(_), do: false
 
     defp advanced_filter_count(%{} = raw) do
       raw
