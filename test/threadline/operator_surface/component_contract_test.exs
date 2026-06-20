@@ -19,6 +19,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   alias Threadline.OperatorSurface.UI
 
   @style_path "lib/threadline/operator_surface/style.ex"
+  @ui_source_path "lib/threadline/operator_surface/ui.ex"
 
   # --- UAT #2: data_panel state matrix (D-03 / D-06 / D-13..D-16) -------------
 
@@ -320,6 +321,50 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
   end
 
+  # --- Phase 180 A11Y-02: APG/native/non-applicability component map ----------
+
+  describe "A11Y-02 APG semantics map" do
+    test "custom APG widgets declare the state, popup, and relationship hooks they implement" do
+      src = File.read!(@ui_source_path)
+
+      assert src =~ ~s(role="dialog")
+      assert src =~ ~s(aria-modal="true")
+      assert src =~ ~S(aria-labelledby={"#{@id}-title"})
+      assert src =~ ~S(aria-describedby={"#{@id}-description"})
+
+      assert src =~ ~s(aria-haspopup="menu"),
+             "dropdown triggers must expose the actual popup type, not a generic true value"
+
+      assert src =~ ~s(aria-haspopup="dialog"),
+             "popover triggers must expose the dialog popup type"
+
+      assert src =~ ~s(aria-haspopup="listbox"),
+             "combobox inputs must expose their listbox popup type"
+
+      assert src =~ ~s(role="region"),
+             "accordion panels must expose a named region relationship"
+
+      assert src =~ ~s(tabindex={if tab[:active], do: "0", else: "-1"}),
+             "tabs must use a roving-tabindex contract instead of placing every tab in the tab order"
+    end
+
+    test "native/non-applicable categories stay documented instead of gaining misleading ARIA roles" do
+      src = File.read!(@ui_source_path)
+
+      assert src =~ ~s(<select id={@id} name={@name}),
+             "select remains native HTML, not a custom combobox"
+
+      assert src =~ ~s(<input\n      type={@type}),
+             "search/date/number controls remain native inputs"
+
+      assert src =~ "NO ARIA role=\"table\"/\"row\"/\"cell\"",
+             "data_table documents native table semantics rather than pretending to be an interactive grid"
+
+      refute src =~ ~s(role="grid"),
+             "Threadline has no custom interactive grid widget in the current operator surface"
+    end
+  end
+
   # --- Phase 178 (SEED-005 / D-10, D-11): reconnect banner mounted once --------
   #
   # SEED-005 (D-10) extracted the previously-11-way-duplicated
@@ -426,8 +471,6 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #       phx-click) and dismissal rides phx-click-away on the CONTENT element — a
   #       different mechanism. A genuine click-outside affordance puts the dismiss on
   #       the scrim. RED today (scrim has no phx-click dismiss).
-  @ui_source_path "lib/threadline/operator_surface/ui.ex"
-
   describe "overlay Esc + click-outside dismiss markers (PAGE-02 #4, D-06)" do
     test "modal and drawer scrims carry a click-outside (phx-click) dismiss marker, independent of #3 focus hooks" do
       src = File.read!(@ui_source_path)

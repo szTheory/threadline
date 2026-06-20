@@ -419,6 +419,7 @@ test.describe("operator accessibility baseline", () => {
     const dropdownTrigger = page.locator("#stress-dropdown-button");
     const dropdownMenu = page.locator("#stress-dropdown-menu");
     await expect(dropdownTrigger).toHaveAttribute("aria-expanded", "false");
+    await expect(dropdownTrigger).toHaveAttribute("aria-haspopup", "menu");
     await dropdownTrigger.scrollIntoViewIfNeeded();
     await dropdownTrigger.focus();
     await expectNonObscuredFocused(dropdownTrigger, page);
@@ -438,6 +439,10 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(accordion, page);
     await page.keyboard.press("Enter");
     await expect(accordion).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("#stress-accordion-content")).toHaveAttribute(
+      "role",
+      "region",
+    );
     await expect(page.locator("#stress-accordion-content")).toBeVisible();
 
     const activeTab = page.getByRole("tab", { name: "Tab 1" });
@@ -449,8 +454,16 @@ test.describe("operator accessibility baseline", () => {
     await expect(
       page.getByRole("combobox", { name: "Combobox Field" }),
     ).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Combobox Field" })).toHaveAttribute(
+      "aria-haspopup",
+      "listbox",
+    );
     await expect(page.getByLabel("Select Field")).toBeVisible();
     await expect(page.getByLabel("Search Field")).toBeVisible();
+
+    const popoverTrigger = page.locator("#stress-popover-trigger");
+    await expect(popoverTrigger).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(popoverTrigger).toHaveAttribute("aria-controls", "stress-popover");
 
     const errorSummary = page.getByRole("alert", {
       name: "There is a problem",

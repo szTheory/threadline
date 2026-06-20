@@ -329,6 +329,8 @@ defmodule Threadline.OperatorSurface.UITest do
         """)
 
       assert html =~ "aria-expanded=\"false\""
+      assert html =~ "aria-haspopup=\"dialog\""
+      assert html =~ "aria-controls=\"test-popover\""
       assert html =~ "phx-click-away"
       assert html =~ "Popover content"
     end
@@ -346,22 +348,23 @@ defmodule Threadline.OperatorSurface.UITest do
         </UI.dropdown>
         """)
 
-      assert html =~ "aria-haspopup=\"true\""
+      assert html =~ "aria-haspopup=\"menu\""
       assert html =~ "aria-expanded=\"false\""
       assert html =~ "Dropdown item"
       assert html =~ "role=\"menu\""
+      assert html =~ "aria-labelledby=\"test-dropdown-button\""
     end
   end
 
   describe "tabs" do
-    test "renders tabs with role tablist and tab" do
+    test "renders tabs with APG tablist state and optional panel linkage" do
       assigns = %{}
 
       html =
         rendered_to_string(~H"""
         <UI.tabs>
-          <:tab active>Tab 1</:tab>
-          <:tab>Tab 2</:tab>
+          <:tab id="events-tab" controls="events-panel" active>Tab 1</:tab>
+          <:tab id="evidence-tab" controls="evidence-panel">Tab 2</:tab>
         </UI.tabs>
         """)
 
@@ -369,6 +372,10 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "role=\"tab\""
       assert html =~ "aria-selected=\"true\""
       assert html =~ "aria-selected=\"false\""
+      assert html =~ ~s(id="events-tab")
+      assert html =~ ~s(aria-controls="events-panel")
+      assert html =~ ~r/id="events-tab"[^>]*tabindex="0"/
+      assert html =~ ~r/id="evidence-tab"[^>]*tabindex="-1"/
       assert html =~ "Tab 1"
       assert html =~ "Tab 2"
     end
@@ -406,6 +413,8 @@ defmodule Threadline.OperatorSurface.UITest do
 
       assert html =~ "aria-expanded=\"false\""
       assert html =~ "aria-controls=\"test-accordion-content\""
+      assert html =~ ~s(role="region")
+      assert html =~ ~s(aria-labelledby="test-accordion-button")
       assert html =~ "Section 1"
       assert html =~ "Accordion content"
     end
@@ -670,6 +679,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       assert html =~ ~s(role="combobox")
       assert html =~ ~s(aria-expanded="false")
+      assert html =~ ~s(aria-haspopup="listbox")
       assert html =~ ~s(aria-controls="city-listbox")
       assert html =~ ~s(role="listbox")
       assert html =~ ~s(id="city-listbox")
