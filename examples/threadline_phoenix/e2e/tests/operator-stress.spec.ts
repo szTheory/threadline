@@ -249,7 +249,7 @@ test("light/system Playwright lane includes the stress route spec", () => {
   const config = readFileSync(configPath, "utf8");
 
   expect(config).toContain(
-    "operator-(accessibility|screenshots|screenshot-regression|stress)",
+    "operator-(accessibility|motion|screenshots|screenshot-regression|stress)",
   );
 });
 
