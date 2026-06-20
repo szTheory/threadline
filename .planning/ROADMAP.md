@@ -267,7 +267,7 @@ Plans:
 **Requirements**: A11Y-01, A11Y-02, MOTION-01, MOTION-02
 **Success Criteria** (what must be TRUE):
 
-  1. The surface meets WCAG 2.2 AA, verified by automated scans on rendered states including opened dialogs/menus/popovers AND manual keyboard + screen-reader checks; every flow is keyboard-operable with visible, non-obscured, restored focus.
+  1. The surface meets WCAG 2.2 AA within the Phase 180 evidence boundary, verified by automated rendered-state, keyboard/focus, and browser accessibility-tree checks on opened dialogs/menus/popovers; every sampled flow is keyboard-operable with visible, non-obscured, restored focus. No real screen-reader UAT is claimed.
   2. Custom widgets follow WAI-ARIA APG patterns (dialog, tabs, menu, combobox, disclosure, tooltip, table/grid, alert, nav); color is never the only signal; touch target sizes are comfortable.
   3. Motion communicates state/continuity/feedback only, uses compositor-friendly properties, is origin-aware where applicable, avoids animating from `scale(0)`, gives responsive press feedback, respects `prefers-reduced-motion`, and stays within the motion-token contract.
   4. Idempotency guardrails are in place and green (expanded Playwright matrix + stress-route screenshot regression, per-component + style contract tests, brand-token parity), and an adversarial regression review is signed off (aesthetics-vs-usability, dependency/architecture weight, host-integration friction, inaccessible custom behavior, generic-template drift, screenshot-only quality).
@@ -307,7 +307,7 @@ Plans:
 | 177. Component groups / meta-components | v1.37 | 5/5 | Complete   | 2026-06-18 |
 | 178. Per-page & flow stress pass (all 11 pages) | v1.37 | 7/7 | Complete   | 2026-06-18 |
 | 179. Microcopy & information-architecture sweep | v1.37 | 6/6 | Complete    | 2026-06-19 |
-| 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 3/4 | In Progress|  |
+| 180. Accessibility verification, guardrails & adversarial closeout | v1.37 | 4/4 | Complete   | 2026-06-20 |
 | 166. unfreeze-token-lane-mechanism | v1.36 | 1/1 | Complete | 2026-06-13 |
 | 167. component-retune | v1.36 | 2/2 | Complete | 2026-06-14 |
 | 168. accessibility-verification | v1.36 | 2/2 | Complete | 2026-06-14 |

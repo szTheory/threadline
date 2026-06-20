@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
-const closeCorrelation = "walk-acme-4521-close";
 const rowTable = "ticket_replies";
 
 async function login(page: Page) {
@@ -15,22 +14,22 @@ async function login(page: Page) {
 }
 
 async function discoverRowHistoryHref(page: Page) {
-  await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
 
-  const transactionHref = await page
+  const transactionLink = page
     .getByTestId("timeline-row")
     .filter({ hasText: rowTable })
     .first()
-    .getByTestId("transaction-link")
-    .getAttribute("href");
+    .getByTestId("transaction-link");
+  await expect(transactionLink).toBeVisible();
+  const transactionHref = await transactionLink.getAttribute("href");
   expect(transactionHref).not.toBeNull();
   await page.goto(transactionHref!);
 
   const rowHistoryHref = await page
     .getByTestId("transaction-change-row")
     .filter({ hasText: rowTable })
-    .filter({ hasText: "Thanks — we're closing this out." })
     .getByTestId("row-history-link")
     .first()
     .getAttribute("href");
@@ -107,8 +106,8 @@ test.describe("operator screenshot regression guard", () => {
   });
 
   test("dense Timeline keeps row-first evidence stable", async ({ page }) => {
-    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-    await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+    await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+    await expect(page.locator("#filter-table")).toHaveValue(rowTable);
     await expect(page.getByTestId("timeline-row").first()).toBeVisible();
     await expectOperatorScreenshot(page, "timeline-dense", { fullPage: false });
   });

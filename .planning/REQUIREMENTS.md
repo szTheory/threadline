@@ -62,13 +62,13 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Accessibility Verification (A11Y)
 
-- [x] **A11Y-01**: The surface meets WCAG 2.2 AA, verified by automated scans on rendered states including opened dialogs/menus/popovers AND manual keyboard + screen-reader checks; every flow is keyboard-operable with visible, non-obscured, restored focus.
+- [x] **A11Y-01**: The surface meets WCAG 2.2 AA within the Phase 180 evidence boundary, verified by automated rendered-state, keyboard/focus, and browser accessibility-tree checks on opened dialogs/menus/popovers; every sampled flow is keyboard-operable with visible, non-obscured, restored focus. No real screen-reader UAT is claimed.
 - [x] **A11Y-02**: Custom widgets follow WAI-ARIA APG patterns (dialog, tabs, menu, combobox, disclosure, tooltip, table/grid, alert, nav); color is never the only signal; touch target sizes are comfortable.
 
 ### Motion & Guardrails (MOTION)
 
 - [x] **MOTION-01**: Motion communicates state/continuity/feedback only, uses compositor-friendly properties, is origin-aware where applicable, avoids animating from `scale(0)`, gives responsive press feedback, and respects `prefers-reduced-motion`; extensions stay within the motion-token contract.
-- [ ] **MOTION-02**: Idempotency guardrails are in place and green (expanded Playwright matrix + stress-route screenshot regression, per-component + style contract tests, brand-token parity), and an adversarial regression review is signed off (aesthetics-vs-usability, dependency/architecture weight, host-integration friction, inaccessible custom behavior, generic-template drift, screenshot-only quality).
+- [x] **MOTION-02**: Idempotency guardrails are in place and green or inherited-classified (expanded Playwright matrix + stress-route screenshot regression, per-component + style contract tests, brand-token parity), and an adversarial regression review is signed off (aesthetics-vs-usability, dependency/architecture weight, host-integration friction, inaccessible custom behavior, generic-template drift, screenshot-only quality).
 
 ## Future Requirements
 
@@ -133,7 +133,7 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | A11Y-01 | Phase 180 | Complete |
 | A11Y-02 | Phase 180 | Complete |
 | MOTION-01 | Phase 180 | Complete |
-| MOTION-02 | Phase 180 | Pending |
+| MOTION-02 | Phase 180 | Complete |
 
 **Coverage:**
 

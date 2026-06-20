@@ -157,10 +157,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "tl-button--secondary tl-button--danger"
 
         # The destructive prune is now a server-enforced T3 type-to-confirm flow
-        # (D-21): the client-only data-confirm is gone, replaced by a
-        # <form phx-submit="prune_now"> that types the policy name.
+        # (D-21): the client-only data-confirm is gone, and the modal form is
+        # mounted only after the operator opens the destructive action.
         refute html =~ "data-confirm"
-        assert html =~ "phx-submit=\"prune_now\""
+        refute html =~ "phx-submit=\"prune_now\""
       end
 
       test "displays existing retention runs in a table", %{conn: conn} do
@@ -237,8 +237,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Pruner.started?()
 
         # Type the canonical policy name and submit the server-enforced form.
-        assert html =~ "Prune retention window permanently?"
-        assert html =~ "older than the retention window for policy"
+        modal_html = open_prune_modal(view)
+        assert modal_html =~ "older than the retention window for policy"
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
 
         assert_eventually(fn ->
@@ -329,7 +329,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "the canonical confirmation token is never shipped to the client", %{conn: conn} do
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, view, html} = live(conn, "/audit/policy/retention")
 
         # The client-only data-confirm string is the footgun this plan removes:
         # a real T3 modal types the policy NAME and the canonical token stays
@@ -337,16 +337,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "data-confirm",
                "client-only data-confirm must be replaced by a server-enforced type-to-confirm modal (D-21)"
 
-        assert html =~ "phx-submit",
+        refute html =~ "phx-submit=\"prune_now\"",
+               "T3 prune form must not be mounted until the destructive action is opened"
+
+        modal_html = open_prune_modal(view)
+
+        assert modal_html =~ "phx-submit",
                "T3 prune must be a <form phx-submit> type-to-confirm, not a bare phx-click"
 
-        assert html =~ "Prune records permanently"
+        assert modal_html =~ "Prune records permanently"
       end
 
       test "a forged confirmation token fails closed and performs no prune", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
 
         before = count_audit_actions()
+        open_prune_modal(view)
 
         # An attacker-supplied wrong token must be rejected server-side
         # (secure_compare against the DB-canonical policy name).
@@ -361,6 +367,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       test "a forged phx-value scope fails closed", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        open_prune_modal(view)
 
         # phx-value-id is an untrusted client claim; a forged scope must be
         # re-checked + scope-filtered server-side and fail closed.
@@ -386,14 +393,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       test "a valid type-to-confirm prune records an AuditAction for the destructive action",
            %{conn: conn} do
-        {:ok, view, html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
 
         before = count_audit_actions()
 
         # The canonical policy name the operator must type (D-21). The handler
         # re-fetches this server-side; the test discovers it from the rendered
         # confirmation prompt rather than hardcoding a constant.
-        policy_name = canonical_policy_name(html)
+        policy_name = view |> open_prune_modal() |> canonical_policy_name()
 
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
@@ -408,6 +415,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           [_, name] -> name
           _ -> "default"
         end
+      end
+
+      defp open_prune_modal(view) do
+        html = render_click(element(view, "button", "Run retention prune"))
+
+        assert html =~ "Prune retention window permanently?"
+        assert html =~ "phx-submit=\"prune_now\""
+
+        html
       end
     end
 

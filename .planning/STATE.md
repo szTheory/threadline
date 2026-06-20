@@ -4,16 +4,16 @@ milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 current_phase: 180
 current_phase_name: accessibility-verification-guardrails-adversarial-closeout
-status: executing
-stopped_at: Phase 180 context gathered
-last_updated: "2026-06-20T12:25:36Z"
+status: phase-complete
+stopped_at: Phase 180 complete; v1.37 ready for milestone audit/closeout
+last_updated: "2026-06-20T09:30:00-04:00"
 last_activity: 2026-06-20
 progress:
   total_phases: 10
-  completed_phases: 9
-  total_plans: 48
-  completed_plans: 46
-  percent: 90
+  completed_phases: 10
+  total_plans: 47
+  completed_plans: 47
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -27,9 +27,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-19)
 
 ## Current Position
 
-Phase: 180 (accessibility-verification-guardrails-adversarial-closeout) — EXECUTING
+Phase: 180 (accessibility-verification-guardrails-adversarial-closeout) — COMPLETE
 Plan: 4 of 4
-Status: Ready to execute
+Status: Complete; milestone v1.37 is ready for audit/closeout
 Last activity: 2026-06-20
 
 ## Performance Metrics
@@ -100,6 +100,7 @@ Last activity: 2026-06-20
 | Phase 180 P01 | 178m | 2 tasks | 6 files |
 | Phase 180 P02 | 10m 27s | 2 tasks | 6 files |
 | Phase 180 P03 | 21m 49s | 2 tasks | 5 files |
+| Phase 180 P04 | closeout | 3 tasks | guardrail tests + closeout artifacts |
 
 ## Accumulated Context
 
@@ -243,6 +244,10 @@ Last activity: 2026-06-20
 - [Phase 180]: [Phase 180-02]: Tabs and segmented controls use actual rendered selectors for target sizing and non-color selected-state cues; stale selector rules are removed.
 - [Phase 180]: [Phase 180-02]: No dependencies, audit frameworks, public routes, public component APIs, or stress-route auth behavior were added.
 - [Phase 180]: [Phase 180-03]: MOTION-01 guardrails stay in the existing style contract and operator-motion Playwright harness, preserving enabled press feedback while collapsing reduced-motion behavior without new dependencies.
+- [Phase 180]: [Phase 180-04]: Replaced the manual screen-reader checkpoint with Playwright accessibility-tree snapshots and explicit proof limits; no real assistive-technology UAT is claimed.
+- [Phase 180]: [Phase 180-04]: Dynamic E2E ports require LiveView origin checks to be disabled in Phoenix test config only; production origin behavior is unchanged.
+- [Phase 180]: [Phase 180-04]: Screenshot regression guards now discover current `ticket_replies` seeded rows instead of stale #4521 correlation assumptions, and local desktop/mobile baselines were refreshed from current rendered output.
+- [Phase 180]: [Phase 180-04]: Retention destructive modal tests must open the conditionally mounted modal before asserting or submitting `form[phx-submit=prune_now]`.
 
 ### Blockers
 
@@ -251,7 +256,7 @@ Last activity: 2026-06-20
 ## Session Continuity
 
 **Last session:** 2026-06-20T01:46:15.955Z
-**Stopped at:** Phase 180 context gathered
+**Stopped at:** Phase 180 complete; v1.37 ready for milestone audit/closeout
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -268,7 +273,7 @@ Last activity: 2026-06-20
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Completed `177-05-PLAN.md` (2026-06-18) — Wave-5, FINAL plan of phase 177; GROUP-01/GROUP-02 delivered.
+- **Last Action**: Completed `180-04-PLAN.md` (2026-06-20) — final Phase 180 guardrail/adversarial closeout; A11Y-01/A11Y-02/MOTION-01/MOTION-02 complete, with `mix ci.all` residuals classified as inherited Phase 179 doc/demo-seed failures.
 - **Next Step**: Verify phase 177 (`/gsd-verify-work` — 12-story visual audit across viewport × theme × state × motion × reconnect).
 - **Resume file**: None
 

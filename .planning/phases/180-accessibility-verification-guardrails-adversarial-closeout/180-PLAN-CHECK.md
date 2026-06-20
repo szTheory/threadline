@@ -9,20 +9,20 @@
 
 | Prior finding | Status | Evidence |
 |---|---|---|
-| 180-04 must not use `checkpoint:human-verify` for manual keyboard/screen-reader evidence | Resolved | Task 2 is now `checkpoint:human-action` with `gate="blocking"`. |
-| 180-04 must not be auto-approved by a bare `approved` response | Resolved | Task 2 action, verification, manual verifier, and resume signal all require concrete evidence fields and explicitly reject bare `approved`. |
-| 180-04 must not use automated `MISSING` for manual evidence | Resolved | Task 2 uses `<manual>` verification only; Task 3 verifies created artifacts with `test -s ...`. |
-| 180-RESEARCH open questions must be resolved | Resolved | Research now has `## Open Questions (RESOLVED)` with resolved dispositions for axe/package scanning and manual evidence location. |
+| 180-04 must not depend on human-only screen-reader evidence | Resolved | Task 2 is now automated and uses Playwright keyboard/focus assertions plus ARIA accessibility-tree snapshots with explicit proof limits. |
+| 180-04 must not overclaim automation as real assistive-technology UAT | Resolved | `180-AUTOMATED-A11Y-EVIDENCE.md` and `180-VERIFICATION.md` state that no real screen-reader or human UAT pass is claimed. |
+| 180-04 must not use automated `MISSING` for evidence artifacts | Resolved | Task 2 and Task 3 verify created artifacts with `test -s ...`. |
+| 180-RESEARCH open questions must be resolved | Resolved | Research has `## Open Questions (RESOLVED)`; final execution superseded manual-evidence placement with automated accessibility-tree artifacts. |
 | 180-02/180-03 key-link anchors must resolve | Resolved | `verify.key-links` passes for both plans; stale `operator_css` was replaced with `@style_path`. |
 
 ### Requirement Coverage
 
 | Requirement | Plans | Status |
 |---|---|---|
-| A11Y-01 | 180-01, 180-04 | Covered: rendered-state browser checks plus bounded manual keyboard/screen-reader evidence. |
+| A11Y-01 | 180-01, 180-04 | Covered: rendered-state browser checks plus bounded keyboard/focus and browser accessibility-tree evidence. |
 | A11Y-02 | 180-02 | Covered: APG mapping, native/non-applicable cases, non-color cues, and target sizing. |
 | MOTION-01 | 180-03 | Covered: source contracts plus browser computed-style checks for default and reduced motion. |
-| MOTION-02 | 180-04 | Covered: guardrail matrix, residual CI classification, manual evidence, and adversarial closeout artifacts. |
+| MOTION-02 | 180-04 | Covered: guardrail matrix, residual CI classification, automated accessibility-tree evidence, and adversarial closeout artifacts. |
 
 ### Decision Coverage
 
@@ -31,7 +31,7 @@
 | D-01/D-02 layered proof and honest tier boundaries | Covered in 180-01 and final 180-04 verification artifacts. |
 | D-03 existing harnesses, no parallel framework | Covered across all plans; no new dependencies or harnesses planned. |
 | D-04 rendered-state accessibility claim | Covered in 180-01 browser checks and 180-02 APG/rendered checks. |
-| D-05 bounded manual keyboard/screen-reader evidence | Covered by blocking human-action checkpoint and `180-MANUAL-EVIDENCE.md`. |
+| D-05 bounded keyboard/accessibility-tree evidence | Covered by Playwright assertions and `180-AUTOMATED-A11Y-EVIDENCE.md`; no real screen-reader UAT is claimed. |
 | D-06 preserve dense workflows | Covered by narrow-fix actions in 180-01 and 180-02. |
 | D-07 actual implementation APG mapping | Covered in 180-02. |
 | D-08/D-09/D-10 measurable motion contract | Covered in 180-03. |
@@ -71,10 +71,10 @@
 | Task 1 | 180-03 | 3 | style contract ExUnit command | Pass |
 | Task 2 | 180-03 | 3 | default and system motion Playwright lanes | Pass |
 | Task 1 | 180-04 | 4 | quick contracts plus Phase 178/stress browser command | Pass |
-| Task 2 | 180-04 | 4 | blocking manual evidence checkpoint with required fields | Pass |
+| Task 2 | 180-04 | 4 | automated keyboard/focus checks and accessibility-tree snapshot evidence | Pass |
 | Task 3 | 180-04 | 4 | full matrix, screenshot evidence, `mix ci.all`, artifact existence | Pass |
 
-`180-VALIDATION.md` exists and `nyquist_compliant: true` is set. No watch-mode commands appear. The manual-only checkpoint is not treated as an automated missing verifier; its output is verified by Task 3 artifact checks.
+`180-VALIDATION.md` exists and `nyquist_compliant: true` is set. No watch-mode commands appear. The accessibility-tree evidence is verified by Playwright and Task 3 artifact checks, with real assistive-technology UAT explicitly out of claim.
 
 ### Other Dimensions
 

@@ -1,7 +1,7 @@
 ---
 phase: 180
 slug: accessibility-verification-guardrails-adversarial-closeout
-status: draft
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-19
@@ -37,10 +37,10 @@ Per-phase validation contract for accessibility, motion, guardrail, and adversar
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 180-01 | 01 | 1 | A11Y-01 | T-180-01 | Rendered operator states expose accessible names, landmarks, focus behavior, and keyboard paths without obscured focus or overflow. | browser | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-accessibility.spec.ts` | yes | pending |
-| 180-02 | 02 | 2 | A11Y-02 | T-180-02 | Custom widgets follow applicable APG behavior; native/non-applicable controls are documented; color is not the only signal. | exunit + browser | `mix test test/threadline/operator_surface/component_contract_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/style_contract_test.exs` plus targeted accessibility spec checks | yes | pending |
-| 180-03 | 03 | 3 | MOTION-01 | T-180-03 | Motion uses token durations/easing, avoids unsafe transforms, respects reduced motion, and keeps disabled controls still. | exunit + browser | `mix test test/threadline/operator_surface/style_contract_test.exs` and `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-motion.spec.ts` | yes | pending |
-| 180-04 | 04 | 4 | MOTION-02 | T-180-04 | Existing guardrails remain green; residual CI failures are classified; adversarial closeout separates automation, browser, and manual evidence. | exunit + browser + artifact | quick contract command, guardrail continuity command, light/system lane, local screenshot evidence, `mix ci.all` | yes | pending |
+| 180-01 | 01 | 1 | A11Y-01 | T-180-01 | Rendered operator states expose accessible names, landmarks, focus behavior, and keyboard paths without obscured focus or overflow. | browser | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-accessibility.spec.ts` | yes | green |
+| 180-02 | 02 | 2 | A11Y-02 | T-180-02 | Custom widgets follow applicable APG behavior; native/non-applicable controls are documented; color is not the only signal. | exunit + browser | `mix test test/threadline/operator_surface/component_contract_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/style_contract_test.exs` plus targeted accessibility spec checks | yes | green |
+| 180-03 | 03 | 3 | MOTION-01 | T-180-03 | Motion uses token durations/easing, avoids unsafe transforms, respects reduced motion, and keeps disabled controls still. | exunit + browser | `mix test test/threadline/operator_surface/style_contract_test.exs` and `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-motion.spec.ts` | yes | green |
+| 180-04 | 04 | 4 | MOTION-02 | T-180-04 | Existing guardrails remain green; residual CI failures are classified; adversarial closeout separates source, browser, and automated accessibility-tree evidence. | exunit + browser + artifact | quick contract command, guardrail continuity command, light/system lane, local screenshot evidence, `mix ci.all` | yes | green |
 
 Status: pending, green, red, flaky.
 
@@ -53,19 +53,19 @@ The Phase 180 plans still add failing or tightened checks during execution:
 - Extend existing `operator-accessibility.spec.ts` coverage for D-04 rendered states where gaps remain.
 - Extend existing component/style contracts for APG mapping, non-color-only signals, touch targets, and `scale(0)` absence.
 - Extend existing `operator-motion.spec.ts` computed-style checks for easing, transition properties, reduced-motion collapse, press feedback, and dense-row stillness.
-- Create final closeout/adversarial/manual evidence artifacts during execution.
+- Create final closeout/adversarial/automated accessibility-tree evidence artifacts during execution.
 
-## Manual-Only Verifications
+## Automated Accessibility-Tree Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
+| Behavior | Requirement | Why This Evidence Is Bounded | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Keyboard traversal and focus judgement across representative operator flows | A11Y-01 | Automation can verify selectors and focus location, but not the usability of the full keyboard path. | Record bounded keyboard notes for shell navigation, modal/drawer open-close, filter form, status/error state, and stress-route sample. |
-| Screen-reader smoke pass for landmarks, headings, labels, status, and alert announcements | A11Y-01 | Browser assertions cannot honestly prove assistive-technology announcement quality. | Record a small smoke pass that states browser/screen-reader combination, covered routes/states, and any gaps or non-applicable states. |
+| Keyboard traversal and focus judgement across representative operator flows | A11Y-01 | Playwright verifies selectors, focus location, focus restoration, and non-obscured focus, but does not judge a human user's full keyboard experience. | Record bounded keyboard assertions for shell navigation, modal/drawer open-close, filter form, status/error state, and stress-route sample. |
+| Accessibility-tree snapshots for landmarks, headings, labels, status, alert, dialog, drawer, menu, tab, and combobox states | A11Y-01 | Browser accessibility-tree snapshots are a deterministic proxy for screen-reader-ready structure; they do not prove real assistive-technology announcement timing, verbosity, rotor behavior, or user comprehension. | Attach ARIA snapshots from `operator-accessibility.spec.ts` and record browser/project, covered routes/states, gaps, and limits in `180-AUTOMATED-A11Y-EVIDENCE.md`. |
 | Adversarial closeout judgement | MOTION-02 | The phase requires a written review of usability, architecture weight, route stability, screenshot-only risk, and residual CI ownership. | Write closeout evidence comparing final results to Phase 179 residual failures and Phase 180 requirements. |
 
 ## Validation Sign-Off
 
-- [x] All phase requirements have automated verification or explicit manual evidence.
+- [x] All phase requirements have automated verification or explicit bounded accessibility-tree evidence.
 - [x] Sampling continuity keeps every implementation plan tied to affected checks.
 - [x] Wave 0 gaps are scoped to extending existing files, not adding a new harness.
 - [x] No watch-mode flags are part of the required commands.

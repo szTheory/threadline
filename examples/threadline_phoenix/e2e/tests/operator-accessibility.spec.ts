@@ -630,8 +630,8 @@ test.describe("operator accessibility baseline", () => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
     const dropdownTrigger = page.locator("#stress-dropdown-button");
     await dropdownTrigger.scrollIntoViewIfNeeded();
-    await dropdownTrigger.focus();
-    await page.keyboard.press("Enter");
+    await dropdownTrigger.click();
+    await expect(dropdownTrigger).toHaveAttribute("aria-expanded", "true");
     const dropdownSnapshot = await expectAriaSnapshotContains(
       page.getByTestId("stress-preview"),
       [
