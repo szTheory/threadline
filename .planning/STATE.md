@@ -4,13 +4,13 @@ milestone: v1.37
 milestone_name: Operator Surface Design-System Stress Test & Component System
 status: executing
 stopped_at: Phase 180 context gathered
-last_updated: "2026-06-19T22:04:56.785Z"
-last_activity: 2026-06-19 -- Phase 180 execution started
+last_updated: "2026-06-20T01:06:19.002Z"
+last_activity: 2026-06-20
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 47
-  completed_plans: 43
+  completed_plans: 44
   percent: 90
 ---
 
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-19)
 ## Current Position
 
 Phase: 180 (accessibility-verification-guardrails-adversarial-closeout) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 180
-Last activity: 2026-06-19 -- Phase 180 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-20
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ Last activity: 2026-06-19 -- Phase 180 execution started
 | Phase 179 P04 | 25min | 1 tasks | 4 files |
 | Phase 179 P05 | 28min | 1 tasks | 17 files |
 | Phase 179 P06 | 8m | 1 tasks | 5 files |
+| Phase 180 P01 | 178m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -228,6 +229,9 @@ Last activity: 2026-06-19 -- Phase 180 execution started
 - [Phase 179]: Retention destructive actions consistently name the retention window and permanent pruning consequence.
 - [Phase 179]: Phase 179 stress copy evidence was added to existing story ids only; no stress story, ledger id, route, selector, density knob, capability, ledger row, or DESIGN-SYSTEM projection was added. — Preserves COPY-03 and D-17 stability while adding durable copy-state evidence for final Phase 179 terminology.
 - [Phase 179]: The component matrix remains available for component/state/foundation stress stories, but page, footgun, and future-reserved screenshot targets stay bounded to preserve the Phase 178 ledger baselines. — Keeps ledger-owned screenshot baselines useful while avoiding screenshot churn from unrelated component stress content.
+- [Phase 180]: 180-01: Use existing Playwright operator accessibility spec for rendered-state A11Y-01 proof; no axe scan or new dependency was added.
+- [Phase 180]: 180-01: Use shared LiveView JS overlay helpers for focus entry/restoration where possible, with stress-route-only fixtures for missing rendered state coverage.
+- [Phase 180]: 180-01: Classify examples/threadline_phoenix mix precommit demo seed failures as inherited/non-owned for this plan.
 
 ### Blockers
 
@@ -235,9 +239,9 @@ Last activity: 2026-06-19 -- Phase 180 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-19T21:10:48.926Z
+**Last session:** 2026-06-20T01:05:48.005Z
 **Stopped at:** Phase 180 context gathered
-**Resume file:** .planning/phases/180-accessibility-verification-guardrails-adversarial-closeout/180-CONTEXT.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

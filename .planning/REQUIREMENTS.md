@@ -62,7 +62,7 @@ Requirements for milestone v1.37. Each maps to roadmap phases 171–180 (fractal
 
 ### Accessibility Verification (A11Y)
 
-- [ ] **A11Y-01**: The surface meets WCAG 2.2 AA, verified by automated scans on rendered states including opened dialogs/menus/popovers AND manual keyboard + screen-reader checks; every flow is keyboard-operable with visible, non-obscured, restored focus.
+- [x] **A11Y-01**: The surface meets WCAG 2.2 AA, verified by automated scans on rendered states including opened dialogs/menus/popovers AND manual keyboard + screen-reader checks; every flow is keyboard-operable with visible, non-obscured, restored focus.
 - [ ] **A11Y-02**: Custom widgets follow WAI-ARIA APG patterns (dialog, tabs, menu, combobox, disclosure, tooltip, table/grid, alert, nav); color is never the only signal; touch target sizes are comfortable.
 
 ### Motion & Guardrails (MOTION)
@@ -130,7 +130,7 @@ Pre-mapped to the planned phase breakdown; confirmed/finalized by the roadmapper
 | COPY-01 | Phase 179 | Complete |
 | COPY-02 | Phase 179 | Complete |
 | COPY-03 | Phase 179 | Complete |
-| A11Y-01 | Phase 180 | Pending |
+| A11Y-01 | Phase 180 | Complete |
 | A11Y-02 | Phase 180 | Pending |
 | MOTION-01 | Phase 180 | Pending |
 | MOTION-02 | Phase 180 | Pending |
