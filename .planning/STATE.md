@@ -6,7 +6,7 @@ current_phase: 180
 current_phase_name: accessibility-verification-guardrails-adversarial-closeout
 status: executing
 stopped_at: Phase 180 context gathered
-last_updated: "2026-06-20T01:47:37.549Z"
+last_updated: "2026-06-20T12:25:36Z"
 last_activity: 2026-06-20
 progress:
   total_phases: 10
@@ -74,7 +74,7 @@ Last activity: 2026-06-20
 | uat_gap (v1.36 close 2026-06-14) | 170-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
 | verification_gap (v1.36 close 2026-06-14) | 170-VERIFICATION.md | human_needed — acknowledged & deferred |
 | todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | resolved by Phase 178 |
-| todo (v1.36 close 2026-06-14) | coverage-schema-card-declutter (operator-surface cosmetic) | pending — carried to backlog |
+| todo (v1.36 close 2026-06-14; reframed 2026-06-20) | coverage-schema-card-declutter (operator-surface Coverage IA/schema workflow) | pending — see updated todo |
 | todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
 | deferred [176-05] | T3 redact destructive flow — no runtime redaction backend (codegen-time only); building one would touch the capture layer (v1.37 invariant). Revisit only if a runtime "redact a stored value" op is explicitly scoped without editing capture. | deferred per Task-1 checkpoint (option 1) |
 | Phase 174 P06 | 6min | 2 tasks | 2 files |
@@ -108,6 +108,8 @@ Last activity: 2026-06-20
 - **Human gate (after Phase 166, before Phase 167):** light-lane design review — user eyeballs the rendered light surface (status-tint keystone included) before retune effort is spent.
 - **Human gate (after Phase 170):** end-of-milestone UAT across dark/light/system modes before closeout.
 - **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
+- **Todo: Coverage audit-readiness IA, schema affordance, and duplicate remediation copy:** update `/audit/coverage` so schema scope is visible, readiness copy has one clear hierarchy, and Timeline remains a nav/contextual action rather than a page-level distraction. See `.planning/todos/pending/coverage-schema-card-declutter.md`.
+- **Todo: Operator shell nav IA and visibility:** make the existing operator shell nav easier to perceive and use across desktop/mobile while preserving Phase 179 route and IA stability. See `.planning/todos/pending/2026-06-20-operator-shell-nav-ia-and-visibility.md`.
 
 ### Roadmap Evolution
 
