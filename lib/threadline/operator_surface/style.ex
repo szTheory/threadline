@@ -1006,7 +1006,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           justify-content: flex-start;
         }
 
-        .tl-segmented {
+        .tl-segmented-control,
+        .tl-tabs {
           display: inline-flex;
           flex-wrap: wrap;
           align-items: center;
@@ -1017,7 +1018,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface);
         }
 
-        .tl-segmented__item {
+        .tl-segment {
           min-height: var(--tl-control-height-compact);
           display: inline-flex;
           align-items: center;
@@ -1034,16 +1035,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           text-decoration: none;
         }
 
-        .tl-segmented__item:hover {
+        .tl-tab {
+          min-height: var(--tl-control-height-compact);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--tl-space-1) var(--tl-space-3);
+          border: 0;
+          border-radius: var(--tl-radius-md);
+          background: transparent;
+          color: var(--tl-color-muted);
+          cursor: pointer;
+          font: inherit;
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-strong);
+          text-decoration: none;
+        }
+
+        .tl-segment:hover {
           background: var(--tl-color-surface-hover);
           color: var(--tl-color-text);
           text-decoration: none;
         }
 
-        .tl-segmented__item[aria-pressed="true"] {
+        .tl-tab:hover {
+          background: var(--tl-color-surface-hover);
+          color: var(--tl-color-text);
+          text-decoration: none;
+        }
+
+        .tl-segment[aria-pressed="true"] {
           background: var(--tl-color-accent-soft);
           color: var(--tl-color-accent-strong);
           box-shadow: inset 0 0 0 1px var(--tl-color-accent-border), var(--tl-shadow-subtle);
+          font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-tab[aria-selected="true"] {
+          background: var(--tl-color-accent-soft);
+          color: var(--tl-color-accent-strong);
+          box-shadow: inset 0 0 0 1px var(--tl-color-accent-border), var(--tl-shadow-subtle);
+          font-weight: var(--tl-weight-strong);
         }
 
         .tl-toolbar {

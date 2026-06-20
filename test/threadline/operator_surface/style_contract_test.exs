@@ -73,13 +73,18 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     assert_exact_selector_contains(src, ".tl-button--icon", ["width: var(--tl-hit-area);"])
-    assert_exact_selector_contains(src, ".tl-shell-nav__toggle", ["min-height: var(--tl-hit-area);"])
+
+    assert_exact_selector_contains(src, ".tl-shell-nav__toggle", [
+      "min-height: var(--tl-hit-area);"
+    ])
 
     assert_exact_selector_contains(src, ".threadline-ui .tl-shell-nav__item", [
       "min-height: var(--tl-hit-area);"
     ])
 
-    assert_exact_selector_contains(src, ".tl-theme-picker__option", ["min-height: var(--tl-hit-area);"])
+    assert_exact_selector_contains(src, ".tl-theme-picker__option", [
+      "min-height: var(--tl-hit-area);"
+    ])
 
     assert_selector_contains(src, ".tl-tab", ["min-height: var(--tl-control-height-compact);"])
 
