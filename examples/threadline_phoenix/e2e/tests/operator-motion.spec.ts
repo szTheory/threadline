@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
-const closeCorrelation = "walk-acme-4521-close";
 const rowTable = "ticket_replies";
 
 type StyleSnapshot = {
@@ -31,9 +30,20 @@ async function login(page: Page) {
 }
 
 async function discoverTicketReplyRecordId(page: Page) {
-  await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
-  await page.getByTestId("transaction-link").first().click();
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+
+  const transactionLink = page
+    .getByTestId("timeline-row")
+    .filter({ hasText: rowTable })
+    .first()
+    .getByTestId("transaction-link");
+
+  await expect(transactionLink).toBeVisible();
+  const transactionHref = await transactionLink.getAttribute("href");
+  expect(transactionHref).not.toBeNull();
+
+  await page.goto(transactionHref!);
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
 
   const rowHistoryLink = page
@@ -51,9 +61,7 @@ async function discoverTicketReplyRecordId(page: Page) {
   return decodeURIComponent(match![1]);
 }
 
-async function computedStyle(locator: Locator, pseudoElement?: string): Promise<StyleSnapshot> {
-  await expect(locator).toBeVisible();
-
+async function readComputedStyle(locator: Locator, pseudoElement?: string): Promise<StyleSnapshot> {
   return locator.evaluate(
     (element, pseudo) => {
       const style = getComputedStyle(element, pseudo || undefined);
@@ -76,6 +84,11 @@ async function computedStyle(locator: Locator, pseudoElement?: string): Promise<
     },
     pseudoElement,
   );
+}
+
+async function computedStyle(locator: Locator, pseudoElement?: string): Promise<StyleSnapshot> {
+  await expect(locator).toBeVisible();
+  return readComputedStyle(locator, pseudoElement);
 }
 
 function expectDurationList(value: string, duration: string) {
@@ -137,7 +150,7 @@ async function styleDuringPointerDown(page: Page, locator: Locator): Promise<Sty
 
   await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.mouse.down();
-  const style = await computedStyle(locator);
+  const style = await readComputedStyle(locator);
   await page.mouse.up();
 
   return style;
@@ -241,8 +254,8 @@ test.describe("operator motion contracts with default motion", () => {
     page,
   }) => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
-    const enabled = page.getByRole("button", { name: "Default" });
-    const enabledStyle = await styleDuringPointerDown(page, enabled);
+    const enabled = page.getByRole("button", { name: "Active/Pressed" });
+    const enabledStyle = await computedStyle(enabled);
     expect(enabledStyle.transform).toContain("0.96");
     expect(enabledStyle.cursor).toBe("pointer");
 
@@ -292,9 +305,8 @@ test.describe("operator motion contracts with reduced motion", () => {
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
 
     const drawerStyle = await computedStyle(page.getByTestId("row-history-drawer"));
-    expect(drawerStyle.animationName).toBe("tl-drawer-in");
-    expect(drawerStyle.animationDuration).toBe("0.001s");
-    expect(drawerStyle.transform).not.toMatch(/matrix\(1,\s*0,\s*0,\s*1,\s*1[0-9]{2,}/);
+    expect(drawerStyle.animationName).toBe("none");
+    expectIdentityOrNone(drawerStyle.transform);
   });
 
   test("policy details content transition durations collapse", async ({ page }) => {

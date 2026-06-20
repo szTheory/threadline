@@ -1219,8 +1219,23 @@ defmodule Threadline.OperatorSurface.UI do
         aria-expanded="false"
         aria-controls={@id}
         aria-haspopup="dialog"
-        phx-click={JS.toggle(to: "##{@id}") |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-trigger")}
-        phx-click-away={JS.hide(to: "##{@id}") |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-trigger")}
+        phx-click={
+          JS.toggle(
+            to: "##{@id}",
+            in: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"},
+            out: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"},
+            time: 180
+          )
+          |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-trigger")
+        }
+        phx-click-away={
+          JS.hide(
+            to: "##{@id}",
+            transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"},
+            time: 180
+          )
+          |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-trigger")
+        }
       >
         <%= render_slot(@trigger) %>
       </button>
@@ -1246,8 +1261,23 @@ defmodule Threadline.OperatorSurface.UI do
         id={"#{@id}-button"}
         aria-expanded="false"
         aria-haspopup="menu"
-        phx-click={JS.toggle(to: "##{@id}-menu") |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")}
-        phx-click-away={JS.hide(to: "##{@id}-menu") |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button")}
+        phx-click={
+          JS.toggle(
+            to: "##{@id}-menu",
+            in: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"},
+            out: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"},
+            time: 180
+          )
+          |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")
+        }
+        phx-click-away={
+          JS.hide(
+            to: "##{@id}-menu",
+            transition: {"tl-rise-out", "opacity-100 translate-y-0", "opacity-0 translate-y-4"},
+            time: 180
+          )
+          |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button")
+        }
       >
         <%= render_slot(@trigger) %>
       </button>
@@ -1322,7 +1352,15 @@ defmodule Threadline.OperatorSurface.UI do
           aria-expanded="false"
           aria-controls={"#{@id}-content"}
           class="tl-accordion__trigger"
-          phx-click={JS.toggle(to: "##{@id}-content") |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")}
+          phx-click={
+            JS.toggle(
+              to: "##{@id}-content",
+              in: {"tl-fade-in", "opacity-0", "opacity-100"},
+              out: {"tl-fade-out", "opacity-100", "opacity-0"},
+              time: 180
+            )
+            |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")
+          }
         >
           <%= @title %>
           <span class="tl-accordion__icon" aria-hidden="true"></span>

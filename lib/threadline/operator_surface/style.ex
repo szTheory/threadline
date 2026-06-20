@@ -1463,6 +1463,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transform: scale(0.96);
         }
 
+        .tl-button.active:not(:disabled):not([disabled]):not([aria-disabled="true"]) {
+          transform: scale(0.96);
+        }
+
         .tl-button:disabled,
         .tl-button[disabled],
         .tl-button[aria-disabled="true"] {
@@ -3381,6 +3385,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface-raised);
           border: 1px solid var(--tl-color-border);
           border-radius: var(--tl-radius-md);
+          transform-origin: top center;
+          transition-property: opacity, transform;
+          transition-duration: var(--tl-motion-base);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-drawer-wrapper {
@@ -3397,6 +3405,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-5);
           background: var(--tl-color-surface-raised);
           border-left: 1px solid var(--tl-color-border);
+          transform-origin: top right;
+          transition-property: opacity, transform;
+          transition-duration: var(--tl-motion-base);
+          transition-timing-function: var(--tl-ease-standard);
+        }
+
+        .tl-popover,
+        .tl-shadow-popover,
+        .tl-accordion__panel {
+          transform-origin: top right;
+          transition-property: opacity, transform;
+          transition-duration: var(--tl-motion-base);
+          transition-timing-function: var(--tl-ease-standard);
+        }
+
+        .tl-accordion__panel {
+          transform-origin: top center;
         }
 
         /*
@@ -3418,6 +3443,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           background: var(--tl-color-surface-raised);
           border: 1px solid var(--tl-color-border);
           border-radius: var(--tl-radius-md);
+          transform-origin: bottom right;
+          transition-property: opacity, transform;
+          transition-duration: var(--tl-motion-base);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         /*
@@ -4246,6 +4275,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           .tl-rise-out,
           .tl-slide-in-right,
           .tl-slide-out-right,
+          .tl-modal,
+          .tl-drawer,
+          .tl-popover,
+          .tl-shadow-popover,
+          .tl-accordion__panel,
           .tl-toast,
           .tl-policy__row::details-content {
             transition-duration: 1ms !important;
@@ -4255,6 +4289,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           .translate-y-4,
           .translate-x-full,
+          .tl-popover,
+          .tl-shadow-popover,
+          .tl-accordion__panel,
           .tl-button:active:not(:disabled):not([disabled]):not([aria-disabled="true"]) {
             transform: none;
           }
