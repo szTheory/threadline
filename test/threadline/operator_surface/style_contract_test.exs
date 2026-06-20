@@ -60,6 +60,45 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "shell must use the small viewport unit (mobile browser chrome safe)"
   end
 
+  test "A11Y-02 target-size and selected-state cues stay mapped to actual rendered selectors" do
+    src = File.read!(@style_path)
+
+    assert String.contains?(src, "--tl-hit-area: 40px;")
+    assert String.contains?(src, "--tl-control-height-compact: 32px;")
+
+    assert_exact_selector_contains(src, ".tl-button", ["min-height: var(--tl-hit-area);"])
+
+    assert_exact_selector_contains(src, ".tl-button--compact", [
+      "min-height: var(--tl-control-height-compact);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-button--icon", ["width: var(--tl-hit-area);"])
+    assert_exact_selector_contains(src, ".tl-shell-nav__toggle", ["min-height: var(--tl-hit-area);"])
+
+    assert_exact_selector_contains(src, ".threadline-ui .tl-shell-nav__item", [
+      "min-height: var(--tl-hit-area);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-theme-picker__option", ["min-height: var(--tl-hit-area);"])
+
+    assert_selector_contains(src, ".tl-tab", ["min-height: var(--tl-control-height-compact);"])
+
+    assert_selector_contains(src, ~s(.tl-tab[aria-selected="true"]), [
+      "box-shadow:",
+      "font-weight: var(--tl-weight-strong);"
+    ])
+
+    assert_selector_contains(src, ".tl-segment", ["min-height: var(--tl-control-height-compact);"])
+
+    assert_selector_contains(src, ~s(.tl-segment[aria-pressed="true"]), [
+      "box-shadow:",
+      "font-weight: var(--tl-weight-strong);"
+    ])
+
+    refute String.contains?(src, ".tl-segmented__item"),
+           "segmented-control hit-area and selected-state CSS must target UI.segmented_control/1's actual .tl-segment markup"
+  end
+
   test "dark interaction tokens cover readable hover and focus states" do
     src = File.read!(@style_path)
 
