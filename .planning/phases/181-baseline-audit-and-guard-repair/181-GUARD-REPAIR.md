@@ -139,6 +139,13 @@ Plan 04 also added a durable source-prose guard in `test/threadline/operator_sur
 | Root package Storybook/stress production exclusion | `test/threadline/operator_surface/stress_router_test.exs`; `lib/threadline/operator_surface/router.ex`; `lib/threadline/operator_surface/stress_router.ex` | D-181-05 now has source contracts proving the root operator macro does not expose `/__stress`, story routes, PhoenixStorybook, `phoenix_storybook`, or Storybook; the stress macro stays in `live_session :threadline_stress`, runs `Auth` before `Coverage.OnMount`, and fails closed for prod. | Repaired in 181-05. |
 | Feature-gated nav group IDs and single current nav source | `test/threadline/operator_surface/surface_header_test.exs`; `lib/threadline/operator_surface/components/surface_header.ex` | D-181-05 now locks stable `operator-nav-group-*` source IDs for Investigate, Audit readiness, Evidence & exports, and Theme groups. The IDs are additive semantic hooks only; existing destination IDs, route hrefs, copy, and the single `aria-current="page"` source remain unchanged. | Repaired in 181-05. |
 
+## Plan 06 Stress Ledger Ratchet Evidence
+
+| Contract | Commit-time file path | Replacement / locked proof | Status |
+|---|---|---|---|
+| Ledger/story/projection parity | `.planning/design-system-ledger.json`; `DESIGN-SYSTEM.md`; `lib/threadline/operator_surface/stress_fixtures.ex`; `lib/threadline/operator_surface/live/stress_live.ex`; `test/threadline/operator_surface/stress_ledger_test.exs`; `test/threadline/operator_surface/stress_fixtures_test.exs`; `test/threadline/operator_surface/stress_router_test.exs` | D-181-05/D-181-07/D-181-08 source-contract slice passed without ledger, fixture, projection, route, allowlist, or test repair. `mix test test/threadline/operator_surface/stress_ledger_test.exs test/threadline/operator_surface/stress_fixtures_test.exs test/threadline/operator_surface/stress_router_test.exs` returned 40 tests, 0 failures. | Verified in 181-06; no repair required. |
+| Score ratchet and bounded screenshot cells | `.planning/design-system-ledger.json`; `DESIGN-SYSTEM.md` | Explicit source checks confirmed `ratchet_rule`, `locked_ids`, `minimum_scores`, `screenshot_allowlist`, `page.home.happy`, `page.timeline.empty`, and `footgun.transaction-page-left-push-desktop` remain present. A structured score check confirmed all 130 entries have `current_score >= ratchet_score` or an explicit reset rationale. | Verified in 181-06; no score reset or allowlist change. |
+
 ## Later-Phase Ownership Boundaries
 
 | Owner | What this ledger allows | What remains deferred |
