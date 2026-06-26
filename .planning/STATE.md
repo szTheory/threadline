@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Completed 181-09-PLAN.md
-last_updated: "2026-06-26T16:43:57.160Z"
+stopped_at: Completed 181-10-PLAN.md
+last_updated: "2026-06-26T16:52:00.489Z"
 last_activity: 2026-06-26
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 9
-  percent: 82
+  completed_plans: 10
+  percent: 91
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 10 of 11
+Plan: 11 of 11
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -113,6 +113,7 @@ Last activity: 2026-06-26
 | Phase 181-baseline-audit-and-guard-repair P07 | 6 min | 1 tasks | 7 files |
 | Phase 181-baseline-audit-and-guard-repair P08 | 4 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P09 | 3 min | 1 tasks | 2 files |
+| Phase 181-baseline-audit-and-guard-repair P10 | 3 min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -280,6 +281,9 @@ Last activity: 2026-06-26
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 09 left all four Home/dense Timeline PNG baselines untouched because Plan 08 classified them as current committed local baselines with no accepted update.
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 09 did not run --update-snapshots; the bounded Home/dense Timeline subset passed against existing desktop/mobile local baselines.
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 09 re-recorded the example-app mix precommit residual as inherited demo-seed/walkthrough drift, not screenshot baseline fallout.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 10 left all six Row-history/Exports/Retention PNG baselines untouched because Plan 08 classified them as current committed local baselines with no accepted update.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 10 did not run --update-snapshots; the bounded Row-history/Exports/Retention subset passed against existing desktop/mobile local baselines.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 10 re-recorded the example-app mix precommit residual as inherited demo-seed/walkthrough drift, not screenshot baseline fallout.
 
 ### Blockers
 
@@ -287,8 +291,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T16:43:57.152Z
-**Stopped at:** Completed 181-09-PLAN.md
+**Last session:** 2026-06-26T16:52:00.483Z
+**Stopped at:** Completed 181-10-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

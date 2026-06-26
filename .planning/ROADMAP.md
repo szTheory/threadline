@@ -71,7 +71,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 181-10-PLAN.md - Accepted Row-history, Exports, and Retention local PNG baselines
+- [x] 181-10-PLAN.md - Accepted Row-history, Exports, and Retention local PNG baselines
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
