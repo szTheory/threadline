@@ -43,7 +43,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 181-03-PLAN.md - Stale E2E selector repair
+- [x] 181-03-PLAN.md - Stale E2E selector repair
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

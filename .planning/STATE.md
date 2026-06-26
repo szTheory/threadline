@@ -5,16 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Completed 181-02-PLAN.md
-last_updated: "2026-06-26T14:20:51.124Z"
+stopped_at: Completed 181-03-PLAN.md
+last_updated: "2026-06-26T14:43:45.610Z"
 last_activity: 2026-06-26
-last_activity_desc: Completed 181-02-PLAN.md
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 2
-  percent: 18
+  completed_plans: 3
+  percent: 27
 ---
 
 # Project State: Threadline
@@ -29,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 3 of 11
+Plan: 4 of 11
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -107,6 +106,7 @@ Last activity: 2026-06-26
 | todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | completed as post-close demo-login polish |
 | Phase 181 P01 | 32 min | 2 tasks | 12 files |
 | Phase 181 P02 | 4 min | 1 tasks | 1 files |
+| Phase 181-baseline-audit-and-guard-repair P03 | 1028 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -258,6 +258,8 @@ Last activity: 2026-06-26
 - [Phase 181]: [181-02] 181-03 owns stale E2E/demo-seed discovery and copy assertion repair; Timeline/Coverage page polish remains deferred to 184/185. — Recorded in 181-02-SUMMARY.md key-decisions.
 - [Phase 181]: [181-02] 181-04 owns active source-test prose that still says RED today/RED until after the guarded behavior landed. — Recorded in 181-02-SUMMARY.md key-decisions.
 - [Phase 181]: [181-02] Local screenshot skips and stress bad-param strings are intentional guards/fixtures, not defects. — Recorded in 181-02-SUMMARY.md key-decisions.
+- [Phase 181]: 181-03 replaced stale issue-number/correlation E2E contracts with current ticket_replies table-filter discovery, transaction href navigation, row-history redaction, and DELETE-row actor transaction checks. — Recorded in 181-03-SUMMARY.md after the targeted Playwright suite passed 18/18.
+- [Phase 181]: 181-03 kept adjacent stale browser families outside the declared file contract as residual ledger ownership instead of editing out-of-scope files. — Plan 03 files were explicitly limited to operator.spec.ts, operator-screenshots.spec.ts, and 181-GUARD-REPAIR.md.
 
 ### Blockers
 
@@ -265,8 +267,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T14:20:51.116Z
-**Stopped at:** Completed 181-02-PLAN.md
+**Last session:** 2026-06-26T14:43:45.601Z
+**Stopped at:** Completed 181-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
