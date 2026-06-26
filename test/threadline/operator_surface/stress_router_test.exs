@@ -264,6 +264,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute File.read!(@example_router_source) =~ forbidden
     end
 
+    test "root operator macro source does not expose stress or story routes" do
+      source = File.read!(@router_source)
+
+      refute source =~ "threadline_operator_surface_stress"
+      refute source =~ ~s|"/__stress"|
+      refute source =~ ~s|"/stories"|
+      refute source =~ "PhoenixStorybook"
+      refute source =~ "phoenix_storybook"
+      refute source =~ "Storybook"
+    end
+
+    test "stress macro source keeps auth, coverage, and prod fail-closed hooks together" do
+      source = File.read!(@stress_router_source)
+
+      assert source =~ "live_session :threadline_stress"
+      assert source =~ "{Threadline.OperatorSurface.Auth, unquote(clean_opts)}"
+      assert source =~ "{Threadline.OperatorSurface.Coverage.OnMount, unquote(clean_opts)}"
+      assert source =~ "stress_env == :prod"
+      assert source =~ "Threadline stress surface is dev/test-only"
+
+      assert_before(
+        source,
+        "{Threadline.OperatorSurface.Auth, unquote(clean_opts)}",
+        "{Threadline.OperatorSurface.Coverage.OnMount, unquote(clean_opts)}"
+      )
+    end
+
     test "example app mounts audit and stress routes with a distinct live session" do
       source = File.read!(@example_router_source)
 
@@ -463,6 +490,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         :code.delete(module)
         :code.purge(module)
       end
+    end
+
+    defp assert_before(source, first, second) do
+      first_index = :binary.match(source, first)
+      second_index = :binary.match(source, second)
+
+      assert first_index != :nomatch
+      assert second_index != :nomatch
+
+      {first_offset, _} = first_index
+      {second_offset, _} = second_index
+      assert first_offset < second_offset
     end
 
     defp restore_env(key, nil), do: Application.delete_env(:threadline, key)

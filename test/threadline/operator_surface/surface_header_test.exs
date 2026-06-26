@@ -131,6 +131,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_preserved_affordances(html)
     end
 
+    test "feature-gated navigation groups expose stable source IDs" do
+      html = render_header()
+
+      assert html =~ ~s|data-testid="operator-nav-group-investigate"|
+      assert html =~ ~s|data-testid="operator-nav-group-readiness"|
+      assert html =~ ~s|data-testid="operator-nav-group-evidence"|
+      assert html =~ ~s|data-testid="operator-nav-group-theme"|
+
+      html = render_header(%{coverage_enabled: false})
+
+      assert html =~ ~s|data-testid="operator-nav-group-investigate"|
+      refute html =~ ~s|data-testid="operator-nav-group-readiness"|
+      assert html =~ ~s|data-testid="operator-nav-group-evidence"|
+      assert html =~ ~s|data-testid="operator-nav-group-theme"|
+
+      html =
+        render_header(%{
+          evidence_enabled: false,
+          policy_enabled: false,
+          exports_enabled: false
+        })
+
+      assert html =~ ~s|data-testid="operator-nav-group-investigate"|
+      assert html =~ ~s|data-testid="operator-nav-group-readiness"|
+      refute html =~ ~s|data-testid="operator-nav-group-evidence"|
+      assert html =~ ~s|data-testid="operator-nav-group-theme"|
+    end
+
     defp render_header(overrides \\ %{}) do
       assigns =
         Map.merge(
