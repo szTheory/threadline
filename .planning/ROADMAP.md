@@ -59,7 +59,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 181-07-PLAN.md - Bounded stress screenshot guard freshness
+- [x] 181-07-PLAN.md - Bounded stress screenshot guard freshness
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
