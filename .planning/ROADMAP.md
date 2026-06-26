@@ -36,17 +36,50 @@
 **Plans:** 11 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 181-01-PLAN.md - Rendered baseline audit and screenshot inventory
 - [ ] 181-02-PLAN.md - Stale guard finding ledger
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 181-03-PLAN.md - Stale E2E selector repair
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 181-04-PLAN.md - Active source-test prose repair
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 181-05-PLAN.md - Route, auth, feature-gate, and optional-dependency source contracts
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 181-06-PLAN.md - Design-system ledger, projection, and stress source ratchet repair
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 181-07-PLAN.md - Bounded stress screenshot guard freshness
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 181-08-PLAN.md - Local screenshot-regression verification and classification
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 181-09-PLAN.md - Accepted Home and dense Timeline local PNG baselines
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
 - [ ] 181-10-PLAN.md - Accepted Row-history, Exports, and Retention local PNG baselines
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
 - [ ] 181-11-PLAN.md - Verification closeout and source coverage audit
+
+**Cross-cutting constraints:**
+
+- D-181-07 and D-181-08: Tier C local baseline updates remain bounded and inventory-backed.
 
 ### Phase 182: PhoenixStorybook example/dev lane
 
