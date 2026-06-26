@@ -32,7 +32,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     # Mobile nav reveals its panel on the native <details> [open] attribute,
     # never on a JS-toggled checkbox/.--open class.
-    assert String.contains?(src, ".tl-shell-nav[open]"),
+    assert String.contains?(src, ".tl-shell-nav__disclosure[open]"),
            "mobile nav must key off the native <details> [open] attribute"
 
     refute String.contains?(src, ".tl-shell-nav__control:checked"),
@@ -580,7 +580,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(
       base,
-      ".tl-shell-nav[open] .tl-shell-nav__panel",
+      ".tl-shell-nav__disclosure[open] .tl-shell-nav__panel",
       ["display: grid;"]
     )
 

@@ -8,8 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Coverage.Snapshot
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Health.CoverageSchemas
 
-    @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
     @baseline ~w(schema_migrations)
 
     # ------------------------------------------------------------------
@@ -29,6 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:base_path, nil)
         |> assign(:schema_param, "public")
         |> assign(:coverage_for_schema, initial)
+        |> assign(:available_schemas, [])
         |> assign(:form_error, nil)
 
       {:ok, socket}
@@ -47,6 +48,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             socket =
               socket
               |> assign(:schema_param, schema)
+              |> assign(:available_schemas, available_schemas(socket))
               |> assign(:form_error, nil)
               |> fetch_coverage_for_schema(schema)
 
@@ -63,6 +65,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         {:noreply, socket}
       end
+    end
+
+    def handle_event("select-schema", %{"schema" => schema}, socket) do
+      schema =
+        case String.trim(to_string(schema)) do
+          "" -> "public"
+          value -> value
+        end
+
+      {:noreply,
+       push_patch(socket,
+         to: "#{socket.assigns.base_path}/coverage?#{URI.encode_query(%{"schema" => schema})}"
+       )}
     end
 
     def handle_event("refresh", _params, socket) do
@@ -102,15 +117,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         evidence_enabled={@threadline_evidence_enabled}
         exports_enabled={@threadline_exports_enabled}
         current={:coverage}
+        script
         main_class="tl-page"
       >
           <%= if @threadline_coverage_enabled do %>
             <%= if @form_error do %>
-              <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+              <UI.page_header title="Audit coverage">
                 <:lede>
                   Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                 </:lede>
+                <:meta>
+                  Schema: <%= @schema_param %>
+                </:meta>
                 <:actions>
+                  <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
                   <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
                     Refresh
@@ -119,7 +139,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </UI.page_header>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
-              <%= if @threadline_coverage_error do %>
+              <%= if @coverage_for_schema.error do %>
                 <div class="tl-alert tl-alert--warning" role="status">
                   Could not refresh - showing last known coverage results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
                   Retry.
@@ -127,11 +147,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
 
               <%= if all_empty?(@coverage_for_schema) do %>
-                <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+                <UI.page_header title="Audit coverage">
                   <:lede>
                     Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                   </:lede>
+                  <:meta>
+                    Schema: <%= @schema_param %>
+                    <%= if @coverage_for_schema.last_checked_at do %>
+                      · <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                    <% end %>
+                  </:meta>
                   <:actions>
+                    <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
                     <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
                       <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
                       Refresh
@@ -145,14 +172,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </p>
                 </div>
               <% else %>
-                <UI.page_header title={"Coverage — schema: #{@schema_param}"}>
+                <UI.page_header title="Audit coverage">
                   <:lede>
                     Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
                   </:lede>
-                  <:meta :if={@coverage_for_schema.last_checked_at}>
-                    <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                  <:meta>
+                    Schema: <%= @schema_param %>
+                    <%= if @coverage_for_schema.last_checked_at do %>
+                      · <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                    <% end %>
                   </:meta>
                   <:actions>
+                    <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
                     <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
                       <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
                       Refresh
@@ -163,14 +194,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <section class="tl-trust-rail" aria-label="Audit readiness">
                   <span class="tl-trust-rail__label">Audit readiness</span>
                   <%= if @coverage_for_schema.uncovered_count > 0 do %>
-                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> need capture</span>
+                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables need capture</span>
+                    <span class="tl-hint">Add capture before relying on Timeline answers for this schema.</span>
                   <% else %>
                     <span class="tl-chip tl-chip--success">All tracked tables covered</span>
+                    <span class="tl-hint">Timeline can answer from every tracked table in this schema.</span>
                   <% end %>
-                  <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                    Open timeline
-                  </.link>
                 </section>
 
                 <section class="tl-summary-grid" aria-label="Coverage summary">
@@ -191,7 +220,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
                   <header class="tl-remediation__header">
                     <h3 class="tl-remediation__title">Needs capture before relying on timeline results</h3>
-                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables</span>
                   </header>
                   <div class="tl-remediation__body">
                     Timeline results may be incomplete for these tables.
@@ -251,7 +279,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
                             <div class="tl-coverage-actions">
-                              <.link navigate={timeline_table_path(@base_path, table)} class="tl-button tl-button--compact tl-button--secondary">
+                              <.link navigate={timeline_table_path(@base_path, table, @schema_param)} class="tl-button tl-button--compact tl-button--secondary">
                                 <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                                 View activity
                               </.link>
@@ -262,10 +290,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </tbody>
                   </table>
                 </div>
-
-                <p class="tl-hint">
-                  Coverage: <%= @coverage_for_schema.covered_count %> covered, <%= @coverage_for_schema.uncovered_count %> need capture, <%= Presentation.expected_gap_count_label(@coverage_for_schema.expected_uncovered_count) %>
-                </p>
               <% end %>
             <% end %>
           <% else %>
@@ -278,20 +302,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    attr(:schema, :string, required: true)
+    attr(:available_schemas, :list, default: [])
+
+    defp schema_form(assigns) do
+      ~H"""
+      <form phx-submit="select-schema" class="tl-schema-picker" aria-label="Coverage schema">
+        <label class="tl-schema-picker__label" for="coverage-schema">Schema</label>
+        <input
+          id="coverage-schema"
+          name="schema"
+          type="text"
+          value={@schema}
+          list="coverage-schema-options"
+          class="tl-control tl-schema-picker__control"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <datalist id="coverage-schema-options">
+          <option :for={schema <- @available_schemas} value={schema} />
+        </datalist>
+        <button type="submit" class="tl-button tl-button--secondary">Apply schema</button>
+      </form>
+      """
+    end
+
     # -------------------------- private helpers --------------------------
 
     defp validate_schema(socket, schema) when is_binary(schema) do
-      if schema =~ @schema_regex do
-        repo = resolve_repo(socket)
-        sql = "SELECT 1 FROM pg_namespace WHERE nspname = $1 LIMIT 1"
-
-        case Ecto.Adapters.SQL.query!(repo, sql, [schema]) do
-          %{rows: []} -> {:error, "Schema '#{schema}' not found."}
-          %{rows: _} -> {:ok, schema}
-        end
-      else
-        {:error, "Schema '#{schema}' not found."}
-      end
+      socket
+      |> resolve_repo()
+      |> CoverageSchemas.validate(schema)
     end
 
     defp fetch_coverage_for_schema(socket, schema) do
@@ -318,6 +359,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
 
+    defp available_schemas(socket) do
+      socket
+      |> resolve_repo()
+      |> CoverageSchemas.available()
+    end
+
     defp last_label(%DateTime{} = ts), do: Presentation.human_time(ts)
     defp last_label(_), do: "never"
 
@@ -333,8 +380,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp timeline_table_path(base_path, table) do
+    defp timeline_table_path(base_path, table, "public") do
       "#{base_path}/timeline?#{URI.encode_query(%{"table" => table})}"
+    end
+
+    defp timeline_table_path(base_path, table, schema) do
+      "#{base_path}/timeline?#{URI.encode_query(%{"table_schema" => schema, "table" => table})}"
     end
 
     defp all_empty?(%Snapshot{

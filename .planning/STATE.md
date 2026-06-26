@@ -1,37 +1,35 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.37
-milestone_name: Operator Surface Design-System Stress Test & Component System
-current_phase: null
-status: Awaiting next milestone
-stopped_at: Milestone v1.37 complete and archived; awaiting next milestone definition
-last_updated: "2026-06-20T14:58:51.650Z"
-last_activity: 2026-06-20
-last_activity_desc: Milestone v1.37 completed and archived
+milestone: v1.38
+milestone_name: Operator UI Page-by-Page IA & Design-System Polish
+current_phase: 181
+current_phase_name: Baseline audit and guard repair
+status: planning
+last_updated: "2026-06-26T02:45:58Z"
+last_activity: 2026-06-26
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 47
-  completed_plans: 47
-  percent: 100
-current_phase_name: null
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-20)
+See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Awaiting next milestone definition
+**Current focus:** v1.38 operator UI page-by-page IA and design-system polish; next planned phase is 181 Baseline audit and guard repair.
 
 ## Current Position
 
-Phase: Milestone v1.37 complete
+Phase: 181 — Baseline audit and guard repair
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-20 — Milestone v1.37 completed and archived
+Status: Ready for phase discussion/planning
+Last activity: 2026-06-26 — v1.38 requirements, roadmap, and research initialized
 
 ## Performance Metrics
 
@@ -75,8 +73,8 @@ Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 | uat_gap (v1.36 close 2026-06-14) | 170-HUMAN-UAT.md — 1 pending scenario | partial — acknowledged & deferred |
 | verification_gap (v1.36 close 2026-06-14) | 170-VERIFICATION.md | human_needed — acknowledged & deferred |
 | todo (v1.36 close 2026-06-14) | transaction-page-left-push-desktop (operator-surface layout bug) | resolved by Phase 178 |
-| todo (v1.36 close 2026-06-14; reframed 2026-06-20) | coverage-schema-card-declutter (operator-surface Coverage IA/schema workflow) | pending — see updated todo |
-| todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | pending — carried to backlog |
+| todo (v1.36 close 2026-06-14; reframed 2026-06-20) | coverage-schema-card-declutter (operator-surface Coverage IA/schema workflow) | completed as standalone todo; broader Coverage audit-readiness polish now scoped to v1.38 Phase 185 |
+| todo (v1.36 close 2026-06-14) | theme-picker-idiomatic-ui (THEME-TOGGLE-01, out of v1 scope per [165-01]) | completed in v1.37 runtime theme picker work |
 | deferred [176-05] | T3 redact destructive flow — no runtime redaction backend (codegen-time only); building one would touch the capture layer (v1.37 invariant). Revisit only if a runtime "redact a stored value" op is explicitly scoped without editing capture. | deferred per Task-1 checkpoint (option 1) |
 | Phase 174 P06 | 6min | 2 tasks | 2 files |
 | Phase 175 P01 | 14min | 2 tasks | 5 files |
@@ -102,20 +100,16 @@ Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 | Phase 180 P02 | 10m 27s | 2 tasks | 6 files |
 | Phase 180 P03 | 21m 49s | 2 tasks | 5 files |
 | Phase 180 P04 | closeout | 3 tasks | guardrail tests + closeout artifacts |
-| todo (v1.37 close 2026-06-20) | coverage-schema-card-declutter (functional outcome resolved by Phase 176 and regression-guarded by Phase 180; todo artifact cleanup remains) | deferred — acknowledged at close |
-| todo (v1.37 close 2026-06-20) | operator-shell-nav-ia-and-visibility | deferred — post-close operator-surface polish |
-| todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | deferred — post-close demo-login polish |
+| todo (v1.37 close 2026-06-20) | coverage-schema-card-declutter (functional outcome resolved by Phase 176 and regression-guarded by Phase 180; todo artifact cleanup remains) | completed as todo artifact cleanup; broader Coverage flow polish now scoped to v1.38 Phase 185 |
+| todo (v1.37 close 2026-06-20) | operator-shell-nav-ia-and-visibility | completed as post-close todo; broader shell/home polish now scoped to v1.38 Phase 183 |
+| todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | completed as post-close demo-login polish |
 
 ## Accumulated Context
 
 ### Pending Todos
 
-- **Human gate (after Phase 166, before Phase 167):** light-lane design review — user eyeballs the rendered light surface (status-tint keystone included) before retune effort is spent.
-- **Human gate (after Phase 170):** end-of-milestone UAT across dark/light/system modes before closeout.
-- **Standing caution (all v1.36 phases):** never stage, edit, or revert the user's uncommitted nav-overhaul lane (~29 files under lib/, examples/, test/), including its 3 pre-existing test failures.
-- **Todo: Coverage audit-readiness IA, schema affordance, and duplicate remediation copy:** update `/audit/coverage` so schema scope is visible, readiness copy has one clear hierarchy, and Timeline remains a nav/contextual action rather than a page-level distraction. See `.planning/todos/pending/coverage-schema-card-declutter.md`.
-- **Todo: Operator shell nav IA and visibility:** make the existing operator shell nav easier to perceive and use across desktop/mobile while preserving Phase 179 route and IA stability. See `.planning/todos/pending/2026-06-20-operator-shell-nav-ia-and-visibility.md`.
-- **Todo: Demo login copy credentials:** make the visible `/users/log_in` demo credentials clickable/copyable with explicit feedback while preserving selectable text, CSP cleanliness, and dev/test-only framing. See `.planning/todos/pending/2026-06-20-demo-login-copy-credentials.md`.
+- No pending todo artifacts remain. The former Coverage, shell/nav, and demo-login todo items have been completed or absorbed into the broader v1.38 requirements in `.planning/REQUIREMENTS.md`.
+- v1.38 inherits the standing no-regression rule for operator routes, data-testids, feature gates, capture/query/auth semantics, optional Phoenix dependencies, and host-app-friendly theming.
 
 ### Roadmap Evolution
 
@@ -145,9 +139,12 @@ Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 - **Milestone v1.35 shipped + archived (2026-06-12):** C13 topstitch-geist identity, brand book v2, product rollout, and light-mode strategy decision [165-01] (supersedes [136-01]; v1.36 seeded via SEED-004). Archives under `.planning/milestones/v1.35-*`.
 - **Milestone v1.37 roadmap created (2026-06-14):** Operator Surface Design-System Stress Test & Component System — phases 171-180 per the approved plan `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`, continued numbering. Largely linear fractal sequence: 171 (harness: `/audit/__stress` + DESIGN-SYSTEM.md v2 + scored ratchet ledger + ugly-data fixtures) → 172 (foundations/tokens, parity-gated) → 173 (primitive + overlay/disclosure components) → 174 (form components + page adoption + contract tests) → 175 (shell/nav + runtime theme picker, THEME-TOGGLE-01) → 176 (data display, flatten card-in-card) → 177 (component groups) → 178 (per-page stress, all 11 pages, kill footguns) → 179 (microcopy + IA sweep) → 180 (WCAG 2.2 AA + guardrails + adversarial closeout). 33/33 requirements mapped. Carried-todo phase tags: `theme-picker-idiomatic-ui`→175, `coverage-schema-card-declutter`→176, `transaction-page-left-push-desktop`→178. Invariants held: no public component API, zero new runtime deps, inline assets, brand-token parity green, capture/semantics untouched, fail-closed auth.
 - **Milestone v1.36 roadmap created (2026-06-12):** Operator Surface Light Mode — phases 166–170 per the approved 165 recommendation's pre-decided breakdown: 166 (unfreeze + 45-token light lane + `data-tl-theme` mechanism, contract amended same-wave) → 167 (component retune, largest) → 168 (accessibility AA mirror) ∥ 169 (`__light__` screenshots + example + docs) → 170 (brand alignment + closeout). 15/15 requirements mapped. Human gates: light-lane design review after 166; end-of-milestone UAT after 170.
+- **Milestone v1.38 roadmap created (2026-06-26):** Operator UI Page-by-Page IA & Design-System Polish — phases 181-187. Order is baseline guard repair → PhoenixStorybook example/dev lane → shell/home → Timeline → Coverage → detail/governance/export → accessibility/motion/docs/adversarial closeout. 24/24 requirements mapped, with former post-close todo pressure absorbed into phases 183, 185, and prior demo-login polish.
 
 ### Decisions
 
+- [v1.38-01]: PhoenixStorybook is scoped to `examples/threadline_phoenix` for development/design review only. Root `threadline` keeps optional Phoenix/LiveView dependencies, no public component API, and `/audit/__stress` remains the canonical flow stress harness.
+- [v1.38-02]: Page cleanup order starts shell/home/timeline, then Coverage, then detail/governance/export, then closeout. This fixes orientation and task flow first and reuses patterns on lower-traffic pages.
 - [176-05] (checkpoint, human-approved option 1): T3 destructive pattern ships via "prune now" ONLY this phase; the redact destructive flow is DEFERRED. Redact has no runtime backend (codegen-time only); building one would touch the capture layer (v1.37 invariant violation). Prune is enforced server-side: secure_compare(typed, server-canonical policy name) + authz re-check + scope fail-closed + audit-the-action; client-only `data-confirm` deleted.
 - [Phase 174-02]: Extended `<.field>` properties with global attribute pass-through (e.g. `list`, `maxlength`) rather than rigid structs, accommodating existing advanced filter functionality natively.
 - [Phase 174-01]: Form components use explicit `name`, `value`, and `errors` rather than requiring `Phoenix.HTML.Form` structs to maintain isolation and independence from Ecto.
@@ -259,8 +256,8 @@ Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 
 ## Session Continuity
 
-**Last session:** 2026-06-20T01:46:15.955Z
-**Stopped at:** Milestone v1.37 complete and archived; awaiting next milestone definition
+**Last session:** 2026-06-26T02:45:58Z
+**Stopped at:** Milestone v1.38 requirements and roadmap initialized; Phase 181 ready for discussion/planning
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -277,10 +274,10 @@ Last activity: 2026-06-20 — Milestone v1.37 completed and archived
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Completed `180-04-PLAN.md` (2026-06-20) — final Phase 180 guardrail/adversarial closeout; A11Y-01/A11Y-02/MOTION-01/MOTION-02 complete, with `mix ci.all` residuals classified as inherited Phase 179 doc/demo-seed failures.
-- **Next Step**: Verify phase 177 (`/gsd-verify-work` — 12-story visual audit across viewport × theme × state × motion × reconnect).
+- **Last Action**: Initialized v1.38 requirements, roadmap, research, PROJECT, and STATE for page-by-page operator UI polish (2026-06-26).
+- **Next Step**: Start Phase 181 (`/gsd-discuss-phase` or `/gsd-plan-phase`) for baseline audit and guard repair.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Start Phase 181 for v1.38 baseline audit and guard repair.

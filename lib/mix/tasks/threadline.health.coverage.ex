@@ -31,6 +31,8 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
 
   use Mix.Task
 
+  alias Threadline.Health.CoverageSchemas
+
   @impl Mix.Task
   def run(argv) do
     {opts, _, _} = OptionParser.parse(argv, strict: [json: :boolean, schema: :string])
@@ -79,24 +81,21 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     end
   end
 
-  @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
-
   defp validate_schema!(repo, schema) do
-    unless schema =~ @schema_regex do
-      Mix.raise(
-        "threadline.health.coverage: schema #{inspect(schema)} is not a valid PostgreSQL identifier. " <>
-          "Expected lowercase letters, digits, and underscores starting with a letter or underscore (max 63 chars)."
-      )
+    case CoverageSchemas.validate(repo, schema) do
+      {:ok, _schema} ->
+        :ok
+
+      {:error, "Schema '" <> _rest} ->
+        if schema =~ ~r/\A[a-z_][a-z0-9_]{0,62}\z/ do
+          Mix.raise("threadline.health.coverage: schema #{inspect(schema)} not found.")
+        else
+          Mix.raise(
+            "threadline.health.coverage: schema #{inspect(schema)} is not a valid PostgreSQL identifier. " <>
+              "Expected lowercase letters, digits, and underscores starting with a letter or underscore (max 63 chars)."
+          )
+        end
     end
-
-    sql = "SELECT 1 FROM pg_namespace WHERE nspname = $1 LIMIT 1"
-    %{rows: rows} = Ecto.Adapters.SQL.query!(repo, sql, [schema])
-
-    if rows == [] do
-      Mix.raise("threadline.health.coverage: schema #{inspect(schema)} not found.")
-    end
-
-    :ok
   end
 
   defp render_table(_schema, coverage) do

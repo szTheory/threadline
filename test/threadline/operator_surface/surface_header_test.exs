@@ -23,7 +23,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ~s|role="img"|
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-shell"|
+      assert html =~ ~s|aria-label="Audit navigation"|
       assert html =~ ~s|class="tl-shell-nav__toggle"|
+      assert html =~ ">Audit navigation</summary>"
       assert html =~ ~s|class="tl-shell-nav__overview"|
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|

@@ -34,16 +34,34 @@ defmodule ThreadlinePhoenixWeb.PageHTML do
 
         <aside class="rd-hero__panel" aria-label="Demo credentials">
           <div class="rd-panel__label">Seeded account</div>
-          <dl class="rd-creds">
-            <div>
-              <dt>Email</dt>
-              <dd>{@demo.admin_email}</dd>
+          <div class="rd-demo-creds" aria-label="Demo credentials">
+            <div class="rd-demo-creds__row">
+              <span class="rd-demo-creds__label">Email</span>
+              <code
+                class="rd-demo-creds__value"
+                tabindex="0"
+                role="button"
+                data-demo-copy={@demo.admin_email}
+                data-demo-copy-label="email"
+                aria-label="Copy demo email"
+                title="Copy demo email"
+              >{@demo.admin_email}</code>
             </div>
-            <div>
-              <dt>Password</dt>
-              <dd>{@demo.password}</dd>
+            <div class="rd-demo-creds__row">
+              <span class="rd-demo-creds__label">Password</span>
+              <code
+                class="rd-demo-creds__value"
+                tabindex="0"
+                role="button"
+                data-demo-copy={@demo.password}
+                data-demo-copy-label="password"
+                aria-label="Copy demo password"
+                title="Copy demo password"
+              >{@demo.password}</code>
             </div>
-          </dl>
+            <p class="rd-demo-creds__status" role="status" aria-live="polite" data-demo-copy-status>
+            </p>
+          </div>
           <p>
             Start here, then jump into Threadline from the links below. New registrations
             get a default RelayDesk workspace for local exploration.

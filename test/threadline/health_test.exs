@@ -46,6 +46,29 @@ defmodule Threadline.HealthTest do
     end
   end
 
+  describe "CoverageSchemas boundary helper" do
+    test "validates existing lowercase schemas and rejects invalid input" do
+      assert Threadline.Health.CoverageSchemas.validate(@repo, "public") == {:ok, "public"}
+
+      assert Threadline.Health.CoverageSchemas.validate(@repo, "Public") ==
+               {:error, "Schema 'Public' not found."}
+
+      assert Threadline.Health.CoverageSchemas.validate(
+               @repo,
+               "nonexistent_schema_xyz_definitely_not_present"
+             ) ==
+               {:error, "Schema 'nonexistent_schema_xyz_definitely_not_present' not found."}
+    end
+
+    test "lists non-system schemas with ordinary tables" do
+      schemas = Threadline.Health.CoverageSchemas.available(@repo)
+
+      assert "public" in schemas
+      refute "information_schema" in schemas
+      refute Enum.any?(schemas, &String.starts_with?(&1, "pg_"))
+    end
+  end
+
   describe "trigger_coverage/1 — Phase 66 three-bucket policy (D-32, D-32a, D-32b, D-32c)" do
     setup do
       original_health = Application.get_env(:threadline, :health)

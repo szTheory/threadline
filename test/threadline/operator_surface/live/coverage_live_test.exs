@@ -115,7 +115,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "renders three-bucket coverage table with operator-facing badge labels", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
-        assert html =~ "Coverage — schema: public"
+        assert html =~ "Audit coverage"
+        assert html =~ "Schema: public"
+        assert html =~ ~s|aria-label="Coverage schema"|
+        assert html =~ ~s|name="schema"|
+        assert html =~ "Apply schema"
 
         # The table headers (D-32d locked literals)
         assert html =~ "<th>TABLE</th>"
@@ -124,9 +128,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~
                  "Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps."
-
-        # The footer summary (locked literal — D-34)
-        assert html =~ ~r/Coverage: \d+ covered, \d+ need capture, \d+ expected gaps?/
 
         # The three coverage buckets still render; schema_migrations is the
         # baseline `:expected_uncovered` table — its source label "baseline" appears
@@ -137,6 +138,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "baseline"
         refute html =~ "capture is complete"
         refute html =~ "complete timeline answers"
+        refute html =~ "Open timeline"
       end
 
       test "uncovered rows render Add capture disclosure with command and verify follow-up",
@@ -177,11 +179,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute expected_row =~ "mix threadline.gen.triggers --tables"
       end
 
-      test "footer expected-gap count uses singular grammar", %{conn: conn} do
+      test "expected-gap metric remains present without footer repetition", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
-        assert html =~ "1 expected gap"
-        refute html =~ "1 expected gaps"
+        assert html =~ ">Expected gaps<"
+        refute html =~ ~r/Coverage: \d+ covered, \d+ need capture/
       end
 
       test "shows 'Refresh' link with phx-click=refresh", %{conn: conn} do
@@ -203,9 +205,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # with the title, the lede, the last-checked meta line, and the Refresh action.
         assert html =~ ~s|<header class="tl-page__header">|
         assert html =~ ~s|class="tl-page__title"|
-        assert html =~ "Coverage — schema: public"
+        assert html =~ "Audit coverage"
         assert html =~ ~s|class="tl-page__lede"|
         assert html =~ ~s|class="tl-page__meta"|
+        assert html =~ "Schema: public"
 
         # Exactly one <h1> on the page (no hand-rolled second heading).
         assert html |> String.split("<h1") |> length() == 2
@@ -229,7 +232,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "tl-coverage-command"
         assert html =~ ~s|<header class="tl-page__header">|
         assert html =~ ~s|class="tl-page__title"|
-        assert html =~ "Coverage — schema: Public"
+        assert html =~ "Audit coverage"
+        assert html =~ "Schema: Public"
         assert html |> String.split("<h1") |> length() == 2
       end
 
@@ -257,42 +261,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         new_html = render_click(view, "refresh")
 
         # After refresh, the dashboard should still render normally with the same literals
-        assert new_html =~ "Coverage — schema: public"
-        assert new_html =~ ~r/Coverage: \d+ covered, \d+ need capture, \d+ expected gaps?/
-      end
-    end
-
-    describe "footer grammar" do
-      test "expected-gap count uses plural grammar", %{conn: conn} do
-        original = Application.get_env(:threadline, :health)
-
-        Ecto.Adapters.SQL.query!(
-          Threadline.Test.Repo,
-          "CREATE TABLE IF NOT EXISTS public.coverage_expected_extra (id bigint PRIMARY KEY)",
-          []
-        )
-
-        Application.put_env(:threadline, :health,
-          expected_uncovered_tables: ["coverage_expected_extra"]
-        )
-
-        on_exit(fn ->
-          Ecto.Adapters.SQL.query!(
-            Threadline.Test.Repo,
-            "DROP TABLE IF EXISTS public.coverage_expected_extra",
-            []
-          )
-
-          if original do
-            Application.put_env(:threadline, :health, original)
-          else
-            Application.delete_env(:threadline, :health)
-          end
-        end)
-
-        {:ok, _view, html} = live(conn, "/audit/coverage")
-
-        assert html =~ "2 expected gaps"
+        assert new_html =~ "Audit coverage"
+        assert new_html =~ "Schema: public"
       end
     end
 
@@ -300,7 +270,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "?schema=public renders coverage normally", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=public")
 
-        assert html =~ "Coverage — schema: public"
+        assert html =~ "Audit coverage"
+        assert html =~ "Schema: public"
         # The error message would render with HEEx-escaped single-quotes; refute
         # both forms (raw + escaped) defensively.
         refute html =~ "Schema 'public' not found."
@@ -333,6 +304,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|tl-alert--error|
         # Don't assert the exact message body — the schema string with a semicolon
         # would break HTML escaping if rendered raw; the error alert must appear.
+      end
+
+      test "schema picker patches to the selected schema", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/coverage")
+
+        render_submit(view, "select-schema", %{"schema" => "public"})
+
+        assert_patch(view, "/audit/coverage?schema=public")
+      end
+
+      test "non-public schema row activity links include table_schema", %{conn: conn} do
+        Ecto.Adapters.SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE SCHEMA IF NOT EXISTS tenant_demo",
+          []
+        )
+
+        Ecto.Adapters.SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE IF NOT EXISTS tenant_demo.coverage_link_target (id bigint PRIMARY KEY)",
+          []
+        )
+
+        Ecto.Adapters.SQL.query!(
+          Threadline.Test.Repo,
+          Threadline.Capture.TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
+        )
+
+        on_exit(fn ->
+          Ecto.Adapters.SQL.query!(
+            Threadline.Test.Repo,
+            "DROP TABLE IF EXISTS tenant_demo.coverage_link_target CASCADE",
+            []
+          )
+
+          Ecto.Adapters.SQL.query!(Threadline.Test.Repo, "DROP SCHEMA IF EXISTS tenant_demo", [])
+        end)
+
+        {:ok, _view, html} = live(conn, "/audit/coverage?schema=tenant_demo")
+
+        assert html =~ "Schema: tenant_demo"
+        assert html =~ "coverage_link_target"
+        assert html =~ "table_schema=tenant_demo"
+        assert html =~ "table=coverage_link_target"
       end
     end
   end

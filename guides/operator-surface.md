@@ -294,13 +294,17 @@ Floor is `5_000` ms — below this the two `pg_*` queries become a noisy neighbo
 
 ### Multi-schema adopters
 
-Pass `?schema=NAME` to view a non-`public` schema:
+Use the visible **Schema** control on `/audit/coverage` to switch schemas. The
+selected schema is still encoded in the URL so the view is shareable:
 
     /audit/coverage?schema=tenant_42
 
-The schema is validated at the LV edge (regex + `pg_namespace` lookup); invalid input renders a `Schema 'X' not found.` error.
+The schema is validated at the LV edge (regex + `pg_namespace` lookup); invalid
+input renders a `Schema 'X' not found.` error. Row-level **View activity** links
+carry `table_schema` for non-`public` schemas.
 
-The surface header always queries the `"public"` schema — multi-schema is opt-in on the dashboard only.
+The surface header badge always queries the `"public"` schema — multi-schema is
+opt-in on the dashboard only.
 
 ### Marking expected-uncovered tables
 

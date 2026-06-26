@@ -24,11 +24,35 @@ defmodule ThreadlinePhoenixWeb.SessionHTML do
           Use the seeded admin to unlock the Threadline surfaces, or register a
           new user to see how the host app provisions a local workspace.
         </p>
-        <p>
-          Demo credentials:
-          <br /> <code>admin@example.com</code>
-          <br /> <code>password123456</code>
-        </p>
+        <div class="rd-demo-creds" aria-label="Demo credentials">
+          <p class="rd-demo-creds__intro">Demo credentials:</p>
+          <div class="rd-demo-creds__row">
+            <span class="rd-demo-creds__label">Email</span>
+            <code
+              class="rd-demo-creds__value"
+              tabindex="0"
+              role="button"
+              data-demo-copy="admin@example.com"
+              data-demo-copy-label="email"
+              aria-label="Copy demo email"
+              title="Copy demo email"
+            >admin@example.com</code>
+          </div>
+          <div class="rd-demo-creds__row">
+            <span class="rd-demo-creds__label">Password</span>
+            <code
+              class="rd-demo-creds__value"
+              tabindex="0"
+              role="button"
+              data-demo-copy="password123456"
+              data-demo-copy-label="password"
+              aria-label="Copy demo password"
+              title="Copy demo password"
+            >password123456</code>
+          </div>
+          <p class="rd-demo-creds__status" role="status" aria-live="polite" data-demo-copy-status>
+          </p>
+        </div>
         <p>
           <.link navigate={~p"/"}>Return to RelayDesk home</.link>
         </p>

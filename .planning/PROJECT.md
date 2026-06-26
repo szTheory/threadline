@@ -10,9 +10,21 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped milestone **v1.37 Operator Surface Design-System Stress Test & Component System** on 2026-06-20. The mounted `/audit` operator surface now has a private, internally-componentized design system with a dev/test stress route, scored idempotency ledger, hardened foundations, private primitives/forms/data/meta-components, shell/navigation and runtime theme picker, page/flow stress coverage, microcopy/IA normalization, WCAG/APG/motion guardrails, bounded accessibility-tree evidence, and adversarial closeout. All 33 v1.37 requirements are complete.
+Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. The mounted `/audit` operator surface already has the v1.37 private component system, stress route, ledger, theme coverage, accessibility/motion guardrails, and copy normalization; v1.38 now uses that substrate for a page-by-page cleanup focused on information architecture, task-led interaction groups, navigation clarity, responsive polish, and regression guardrails.
 
-No active milestone is open. The next milestone should start with fresh requirements via `/gsd-new-milestone`; until then, the default posture is hold or thin polish only on explicit signal. Deferred at v1.37 close: the redact destructive flow (no runtime backend without touching capture), no real assistive-technology UAT claim, and three post-close polish todos recorded in `STATE.md`.
+The highest-impact pass starts with the shell/home/timeline path so operators always know where they are and what to do next. Coverage follows as the audit-readiness workflow, then detail/governance/export surfaces, with accessibility, motion, docs, and adversarial closeout locking the result. PhoenixStorybook is scoped to the Phoenix example/dev lane; `/audit/__stress` remains the canonical runtime stress harness for operator flows. Core capture/query/auth semantics remain out of scope.
+
+## Current Milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish
+
+**Goal:** Make the operator UI feel deliberate, navigable, and task-led page by page while preserving v1.37's internal design-system substrate and the host-app-friendly library boundary.
+
+**Target features:**
+- **Baseline audit and guard repair** — current screenshots, route/selector inventory, stale planning cleanup, and any broken guardrail repair before page edits.
+- **PhoenixStorybook example/dev lane** — component/state stories for the existing private operator components without making PhoenixStorybook a root `threadline` dependency or public component API.
+- **Shell, home, and Timeline cleanup** — clear nav, page titles, active states, orientation affordances, primary tasks, filters, result states, and responsive behavior.
+- **Coverage audit-readiness flow** — schema scope, readiness hierarchy, duplicate remediation, and contextual transitions into Timeline without page-level distraction.
+- **Detail, governance, and export surfaces** — transaction, actor, row history, redaction, retention, evidence, and export pages reviewed as coherent operator workflows.
+- **A11y, motion, docs, and closeout** — keyboard/focus/reduced-motion checks, visual QA matrix, docs alignment, and an adversarial review that prevents regressions.
 
 ## Latest Milestone Shipped: v1.37 Operator Surface Design-System Stress Test & Component System (2026-06-20)
 
@@ -26,7 +38,7 @@ No active milestone is open. The next milestone should start with fresh requirem
 
 **Archives:** `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-REQUIREMENTS.md`, `.planning/milestones/v1.37-MILESTONE-AUDIT.md`, `.planning/milestones/v1.37-phases/`
 
-**Next milestone goals:** Define fresh requirements via `/gsd-new-milestone`; otherwise hold per the no-signal default.
+**Next milestone goals:** Superseded by active v1.38 page-by-page operator UI polish.
 
 ## Prior shipped milestone: v1.36 Operator Surface Light Mode (2026-06-14)
 
@@ -501,7 +513,13 @@ No active milestone is open. The next milestone should start with fresh requirem
 
 ### Active
 
-No active milestone requirements. Start the next milestone with `/gsd-new-milestone` before adding new active requirements.
+- [ ] **BASE-01 through BASE-03 (Phase 181)** — Establish current-state evidence, refresh the UI issue inventory, and repair stale guardrails before making broad visual changes.
+- [ ] **STORY-01 through STORY-03 (Phase 182)** — Add PhoenixStorybook only to `examples/threadline_phoenix` for development/design review, keeping `/audit/__stress` as the canonical flow stress surface.
+- [ ] **SHELL-01 through SHELL-03 (Phase 183)** — Rework operator shell, home orientation, navigation visibility, active/current state, and mobile IA around user jobs.
+- [ ] **TIME-01 through TIME-03 (Phase 184)** — Streamline Timeline filters, investigation flow, result states, copy, and responsive scanning behavior.
+- [ ] **COV-01 through COV-03 (Phase 185)** — Clean up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, and contextual Timeline affordances.
+- [ ] **DETAIL-01 and GOV-01 through GOV-03 (Phase 186)** — Review transaction, actor, row history, redaction, retention, evidence, and export surfaces for coherent task groups and risk-aware actions.
+- [ ] **A11Y-01, A11Y-02, MOTION-01, DOC-01, CLOSE-01 (Phase 187)** — Lock accessibility, motion, docs, visual QA, and adversarial closeout evidence.
 
 ### Out of Scope
 
@@ -593,6 +611,8 @@ No active milestone requirements. Start the next milestone with `/gsd-new-milest
 | Light tokens designed, not recolored; status tints redesigned as one coherent decision | Mechanically inverting dark values produces the "Grafana lesson" — dark-tuned content shipped unreviewed into light. Data-viz-adjacent surfaces got an explicit light review. | ✓ Good (v1.36) |
 | Source-first contract: `style.ex` + `style_contract_test.exs` amended in the same wave | The style contract reads `style.ex` directly; amending both together keeps the seven light refutes → theme-aware assertions atomic and the dark phase-143 contract byte-stable. | ✓ Good (v1.36) |
 | Entangled `style.ex` light source committed at v1.36 close (resolves audit Finding F1) | COMP-01/02 were built and verified live but their source sat uncommitted in a broader operator-surface working tree; committing it at close (commit `b9f8fc1`, suite green at 912 tests) made the parity gate green on a clean checkout. | ✓ Resolved (v1.36, 2026-06-14) |
+| v1.38 scopes PhoenixStorybook to the Phoenix example/dev lane | Storybook is valuable for component/state review, but making it a root dependency or public component API would violate the optional-Phoenix and host-app-friendly library boundary. `/audit/__stress` remains the canonical operator-flow stress harness. | — Active (v1.38, 2026-06-26) |
+| v1.38 cleans pages in operator-value order: shell/home/timeline, then coverage, then detail/governance/export | The current user pain is orientation and task flow, not missing primitives. Starting with shell/home/timeline fixes the common path and creates patterns that later pages can adopt without re-litigating the design language. | — Active (v1.38, 2026-06-26) |
 
 ## Evolution
 
@@ -614,4 +634,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-20 — v1.37 shipped and archived; awaiting next milestone requirements*
+*Last updated: 2026-06-26 — v1.38 opened with requirements, roadmap, research, and page-by-page operator UI polish scope*

@@ -18,6 +18,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
   @health_path "lib/threadline/health.ex"
   @policy_path "lib/threadline/health/policy.ex"
   @coverage_lv_path "lib/threadline/operator_surface/live/coverage_live.ex"
+  @coverage_schemas_path "lib/threadline/health/coverage_schemas.ex"
   @on_mount_path "lib/threadline/operator_surface/coverage/on_mount.ex"
   @surface_header_path "lib/threadline/operator_surface/components/surface_header.ex"
   @mix_task_path "lib/mix/tasks/threadline.health.coverage.ex"
@@ -99,18 +100,21 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
              "expected literal `Expected gap` badge in #{@coverage_lv_path}"
     end
 
-    test "coverage_live.ex page heading literal Coverage — schema:" do
+    test "coverage_live.ex page heading and schema picker literals" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, "Coverage — schema:"),
-             "expected literal page heading `Coverage — schema:` per D-33 in #{@coverage_lv_path}"
+      assert String.contains?(src, "Audit coverage"),
+             "expected literal page heading `Audit coverage` in #{@coverage_lv_path}"
+
+      assert String.contains?(src, "Apply schema"),
+             "expected visible schema picker affordance in #{@coverage_lv_path}"
     end
 
-    test "coverage_live.ex error copy contains \"' not found.\" (D-33a)" do
-      src = File.read!(@coverage_lv_path)
+    test "coverage schema helper error copy contains \"' not found.\" (D-33a)" do
+      src = File.read!(@coverage_schemas_path)
 
       assert String.contains?(src, "' not found."),
-             "expected literal `Schema 'X' not found.` error copy fragment per D-33a in #{@coverage_lv_path}"
+             "expected literal `Schema 'X' not found.` error copy fragment per D-33a in #{@coverage_schemas_path}"
     end
 
     test "coverage_live.ex shows Refresh affordance with phx-click=refresh" do

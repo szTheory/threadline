@@ -26,6 +26,11 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     assert html =~ "Support operations demo app"
     assert html =~ "Demo credentials"
     assert html =~ "admin@example.com"
+    assert html =~ ~s|data-demo-copy="admin@example.com"|
+    assert html =~ ~s|data-demo-copy="password123456"|
+    refute html =~ "Copy email"
+    refute html =~ "Copy password"
+    assert html =~ ~s|data-demo-copy-status|
     assert html =~ "Register"
     assert html =~ "Log in"
     assert html =~ "operator surface is mounted"
@@ -33,6 +38,18 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     refute html =~ "threadline-admin-favicon.svg"
     refute html =~ "Signed in as"
     refute html =~ ~s|href="/audit"|
+  end
+
+  test "login page exposes copyable demo credentials", %{conn: conn} do
+    conn = get(conn, ~p"/users/log_in")
+    html = html_response(conn, 200)
+
+    assert html =~ "Demo credentials"
+    assert html =~ ~s|data-demo-copy="admin@example.com"|
+    assert html =~ ~s|data-demo-copy="password123456"|
+    refute html =~ "Copy email"
+    refute html =~ "Copy password"
+    assert html =~ ~s|data-demo-copy-status|
   end
 
   test "register creates account, provisions workspace, and keeps session on reload" do
@@ -52,6 +69,8 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     assert html =~ "RelayDesk"
     assert html =~ "Signed in as"
     assert html =~ email
+    assert html =~ ~s|action="/users/log_out"|
+    refute html =~ ~s|href="/users/log_in"|
     refute html =~ "Open Threadline admin"
     refute html =~ ~s|href="/audit"|
 
@@ -59,6 +78,7 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
     html = html_response(conn, 200)
     assert html =~ "Signed in as"
     assert html =~ email
+    refute html =~ ~s|href="/users/log_in"|
   end
 
   test "admin home exposes full operator links", %{conn: conn} do
@@ -73,6 +93,9 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
 
     html = html_response(conn, 200)
     assert html =~ "Open Threadline admin"
+    assert html =~ ~s|action="/users/log_out"|
+    refute html =~ "rd-nav__primary"
+    refute html =~ ~s|href="/users/log_in"|
     assert html =~ ~s|href="/audit"|
     assert html =~ ~s|href="/audit/evidence"|
     assert html =~ ~s|href="/audit/policy/redaction"|
@@ -91,6 +114,9 @@ defmodule ThreadlinePhoenixWeb.SigraAuthFlowTest do
 
     html = html_response(conn, 200)
     assert html =~ "Open Threadline admin"
+    assert html =~ ~s|action="/users/log_out"|
+    refute html =~ "rd-nav__primary"
+    refute html =~ ~s|href="/users/log_in"|
     assert html =~ ~s|href="/audit"|
     assert html =~ ~s|href="/audit/timeline?|
     refute html =~ ~s|href="/audit/evidence"|

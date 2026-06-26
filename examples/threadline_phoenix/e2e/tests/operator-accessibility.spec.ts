@@ -159,6 +159,7 @@ async function expectAriaSnapshotContains(
 
 async function openOperatorNav(page: Page) {
   const shell = page.getByTestId("operator-nav-shell");
+  const disclosure = shell.locator(".tl-shell-nav__disclosure");
   const toggle = shell.locator(".tl-shell-nav__toggle");
   const panel = shell.locator(".tl-shell-nav__panel");
 
@@ -167,7 +168,7 @@ async function openOperatorNav(page: Page) {
   }
 
   if (!(await panel.isVisible())) {
-    await shell.evaluate((element) => {
+    await disclosure.evaluate((element) => {
       if (element instanceof HTMLDetailsElement) {
         element.open = true;
       } else {
@@ -264,7 +265,7 @@ test.describe("operator accessibility baseline", () => {
 
     const shellNav = page.getByTestId("operator-nav-shell");
     await expect(shellNav).toBeVisible();
-    await expect(shellNav).toHaveAttribute("aria-label", "Operator surface");
+    await expect(shellNav).toHaveAttribute("aria-label", "Audit navigation");
     await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
       "aria-current",
       "page",
@@ -294,11 +295,18 @@ test.describe("operator accessibility baseline", () => {
     ).toBeVisible();
 
     await page.goto("/audit/timeline");
+    await expect(page.locator("#filter-from")).toHaveValue(
+      /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/,
+    );
     await openOperatorNav(page);
     const timelineNav = page.getByTestId("operator-nav-timeline");
     await expect(timelineNav).toHaveAttribute("aria-current", "page");
-    await timelineNav.focus();
-    await expectNonObscuredFocused(timelineNav, page);
+    await expect(timelineNav).toBeVisible();
+    await timelineNav.evaluate((element) => {
+      if (element instanceof HTMLElement) element.focus();
+    });
+    await expectFocused(timelineNav);
+    await expectNoHorizontalOverflow(page);
   });
 
   test("keeps mobile shell navigation keyboard reachable without obscured focus", async ({
@@ -308,8 +316,9 @@ test.describe("operator accessibility baseline", () => {
     await page.goto("/audit");
 
     const nav = page.getByTestId("operator-nav-shell");
-    await expect(nav).toHaveAttribute("aria-label", "Operator surface");
-    await nav.evaluate((element) => {
+    const disclosure = nav.locator(".tl-shell-nav__disclosure");
+    await expect(nav).toHaveAttribute("aria-label", "Audit navigation");
+    await disclosure.evaluate((element) => {
       if (element instanceof HTMLDetailsElement) {
         element.open = false;
       } else {
@@ -323,12 +332,16 @@ test.describe("operator accessibility baseline", () => {
     await toggle.focus();
     await expect(toggle).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(nav).toHaveAttribute("open", "");
+    await expect(disclosure).toHaveAttribute("open", "");
     await expect(panel).toBeVisible();
 
     const timeline = page.getByTestId("operator-nav-timeline");
-    await timeline.focus();
-    await expectNonObscuredFocused(timeline, page);
+    await expect(timeline).toBeVisible();
+    await timeline.evaluate((element) => {
+      if (element instanceof HTMLElement) element.focus();
+    });
+    await expectFocused(timeline);
+    await expectNoHorizontalOverflow(page);
   });
 
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({

@@ -520,6 +520,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-size: var(--tl-font-size-label);
         }
 
+        .tl-shell-nav__disclosure {
+          margin: 0;
+        }
+
         .tl-shell-nav__toggle {
           display: flex;
           align-items: center;
@@ -550,7 +554,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transition: transform var(--tl-transition-fast);
         }
 
-        .tl-shell-nav[open] .tl-shell-nav__toggle::after {
+        .tl-shell-nav__disclosure[open] .tl-shell-nav__toggle::after {
           transform: rotate(225deg);
         }
 
@@ -562,7 +566,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-top: 1px solid var(--tl-color-border);
         }
 
-        .tl-shell-nav[open] .tl-shell-nav__panel {
+        .tl-shell-nav__disclosure[open] .tl-shell-nav__panel {
           display: grid;
         }
 
@@ -648,7 +652,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-2) var(--tl-space-3);
           border: 1px solid transparent;
           border-radius: var(--tl-radius-md);
-          color: var(--tl-color-muted);
+          color: var(--tl-color-text);
           font-weight: var(--tl-weight-medium);
           text-decoration: none;
           transition: color var(--tl-transition-fast), background-color var(--tl-transition-fast), border-color var(--tl-transition-fast), box-shadow var(--tl-transition-fast);
@@ -960,6 +964,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           flex-wrap: wrap;
           align-items: center;
           gap: var(--tl-space-2);
+        }
+
+        .tl-schema-picker {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-2);
+        }
+
+        .tl-schema-picker__label {
+          color: var(--tl-color-muted);
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-strong);
+        }
+
+        .tl-schema-picker__control {
+          width: min(18rem, 100%);
         }
 
         .tl-orientation {
@@ -3781,6 +3802,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-weight: var(--tl-weight-strong);
         }
 
+        .tl-trust-rail .tl-hint {
+          flex-basis: 100%;
+          margin: 0;
+        }
+
         .tl-table--coverage .tl-table__actions {
           white-space: normal;
         }
@@ -4038,12 +4064,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             border-bottom: 0;
           }
 
+          .tl-shell-nav__disclosure {
+            display: contents;
+          }
+
           .tl-shell-nav__toggle {
             display: none;
           }
 
           .tl-shell-nav__panel,
-          .tl-shell-nav[open] .tl-shell-nav__panel {
+          .tl-shell-nav__disclosure[open] .tl-shell-nav__panel {
             display: grid;
             padding: var(--tl-space-4) var(--tl-space-3);
             border-top: 0;

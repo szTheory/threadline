@@ -19,7 +19,109 @@ async function login(page: Page, email = adminEmail) {
 }
 
 test.describe("operator surface — pass-3 features", () => {
-  test("coverage shows the uncovered audit_events row + header badge", async ({ page }) => {
+  test("home login link and credentials behave without a redirect loop", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    const panel = page.locator(".rd-hero__panel");
+    const status = panel.locator("[data-demo-copy-status]");
+    await expect(panel.getByRole("button", { name: "Copy email" })).toHaveCount(
+      0,
+    );
+    await expect(
+      panel.getByRole("button", { name: "Copy password" }),
+    ).toHaveCount(0);
+    const email = panel.locator(`[data-demo-copy="${adminEmail}"]`).first();
+    await expect(email).toBeVisible();
+    await email.click();
+    await expect(status).toHaveText("Copied email");
+    await expect(status).toHaveClass(/is-visible/);
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(adminEmail);
+
+    const passwordCopy = panel
+      .locator(`[data-demo-copy="${password}"]`)
+      .first();
+    await expect(passwordCopy).toBeVisible();
+    await passwordCopy.press("Enter");
+    await expect(status).toHaveText("Copied password");
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(password);
+
+    await page
+      .getByRole("link", { name: /^Log in$/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL("/users/log_in");
+    await expect(
+      page.getByRole("heading", { name: "Log in to the support ops demo" }),
+    ).toBeVisible();
+  });
+
+  test("demo login credentials copy independently with visible feedback", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("button", { name: "Copy email" })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByRole("button", { name: "Copy password" }),
+    ).toHaveCount(0);
+
+    const email = page.locator('[data-demo-copy="admin@example.com"]').first();
+    await expect(email).toBeVisible();
+    await email.click();
+    await expect(page.locator("[data-demo-copy-status]")).toHaveText(
+      "Copied email",
+    );
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(adminEmail);
+
+    const passwordCopy = page
+      .locator('[data-demo-copy="password123456"]')
+      .first();
+    await expect(passwordCopy).toBeVisible();
+    await passwordCopy.press("Enter");
+    await expect(page.locator("[data-demo-copy-status]")).toHaveText(
+      "Copied password",
+    );
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(password);
+  });
+
+  test("authenticated home topbar does not expose the login link", async ({
+    page,
+  }) => {
+    await login(page);
+
+    const nav = page.getByRole("navigation", { name: "RelayDesk demo" });
+    await expect(nav.getByText("Signed in as")).toBeVisible();
+    await expect(nav.getByText(adminEmail)).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: "Open Threadline admin" }),
+    ).toHaveCount(0);
+    await expect(
+      page.locator(".rd-signed-in").getByRole("link", {
+        name: "Open Threadline admin",
+      }),
+    ).toBeVisible();
+    await expect(nav.getByRole("button", { name: "Log out" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: /^Log in$/ })).toHaveCount(0);
+  });
+
+  test("coverage shows the uncovered audit_events row + header badge", async ({
+    page,
+  }) => {
     await login(page);
     await page.goto("/audit/coverage");
     const table = page.getByTestId("coverage-table");
@@ -33,7 +135,9 @@ test.describe("operator surface — pass-3 features", () => {
   test("retention history shows the full run lifecycle", async ({ page }) => {
     await login(page);
     await page.goto("/audit/policy/retention");
-    await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Retention window" }),
+    ).toBeVisible();
     const table = page.getByTestId("retention-runs-table");
     await expect(table.getByText("Failed").first()).toBeVisible();
     await expect(table.getByText("Queued").first()).toBeVisible();
@@ -49,11 +153,17 @@ test.describe("operator surface — pass-3 features", () => {
     await expect(page.getByText("Unsupported").first()).toBeVisible();
   });
 
-  test("redaction shows a deployed-matches-config row for posts", async ({ page }) => {
+  test("redaction shows a deployed-matches-config row for posts", async ({
+    page,
+  }) => {
     await login(page);
     await page.goto("/audit/policy/redaction");
-    await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
-    await expect(page.getByText("Deployed matches config").first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Redaction policy" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Deployed matches config").first(),
+    ).toBeVisible();
     await expect(page.getByText("posts").first()).toBeVisible();
   });
 
@@ -66,14 +176,23 @@ test.describe("operator surface — pass-3 features", () => {
     await expect(actorLink).toBeVisible();
     await actorLink.click();
     await expect(page).toHaveURL(/\/audit\/actors\/user\//);
-    await expect(page.getByTestId("actor-transaction-row").first()).toBeVisible();
+    await expect(
+      page.getByTestId("actor-transaction-row").first(),
+    ).toBeVisible();
   });
 
-  test("copy button copies the correlation id and confirms", async ({ page, context }) => {
+  test("copy button copies the correlation id and confirms", async ({
+    page,
+    context,
+  }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await login(page);
-    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`);
-    const copyBtn = page.locator(`button.tl-copy[data-tl-copy="${correlation}"]`).first();
+    await page.goto(
+      `/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`,
+    );
+    const copyBtn = page
+      .locator(`button.tl-copy[data-tl-copy="${correlation}"]`)
+      .first();
     await expect(copyBtn).toBeVisible();
     await copyBtn.click();
     await expect(copyBtn).toHaveClass(/is-copied/);
