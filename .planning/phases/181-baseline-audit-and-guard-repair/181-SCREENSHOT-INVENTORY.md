@@ -2,7 +2,7 @@
 phase: 181-baseline-audit-and-guard-repair
 date: 2026-06-26
 status: partial-evidence-recorded
-requirements: [BASE-01, BASE-03]
+requirements: [BASE-01, BASE-02, BASE-03]
 evidence_tiers: [Tier B, Tier C]
 ---
 
@@ -86,6 +86,24 @@ Plan 09 re-ran the bounded Home/dense Timeline subset after reading the Plan 08 
 | Home | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/home-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
 | Dense Timeline | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
 | Dense Timeline | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
+
+### Plan 10 Row-history, Exports, and Retention No-Update Confirmation
+
+Plan 10 re-ran the bounded Row-history/Exports/Retention subset after reading the Plan 08 classification rows. No `--update-snapshots` command was run because Plan 08 classified all six target PNGs as current committed local baselines with no accepted update.
+
+| Lane | Command | Result | Notes |
+|---|---|---|---|
+| Row-history/Exports/Retention subset | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-screenshot-regression.spec.ts --grep "row-history\|Exports\|Retention"` | Passed: 6 passed, 3 skipped | Desktop/mobile Row-history, Exports, and Retention baselines matched current rendered truth. Generic `chromium` skips remained intentional. No PNG files, Playwright specs, stress screenshots, ledger rows, or CI allowlist entries changed. |
+| Example-app precommit after Plan 10 verification | `mix precommit` from `examples/threadline_phoenix` | Failed: 96 tests, 7 failures | Same inherited demo-seed/walkthrough contract residuals recorded by Plans 01, 07, 08, and 09. Plan 10 changed only this inventory evidence and did not modify Elixir source, seed data, capture/query/auth behavior, route paths, Playwright specs, or PNG baselines. |
+
+| Surface | Project | Viewport | Snapshot path | Committed status | Plan 10 disposition |
+|---|---|---:|---|---|---|
+| Row history | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/row-history-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
+| Row history | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/row-history-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
+| Exports | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/exports-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
+| Exports | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/exports-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
+| Retention | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
+| Retention | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 10 subset passed. |
 
 ### Plan 08 Intentional Skips
 
