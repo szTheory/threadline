@@ -1,8 +1,8 @@
 ---
 phase: 181-baseline-audit-and-guard-repair
 date: 2026-06-26
-status: baseline-packet
-requirements: [BASE-01, BASE-03]
+status: baseline-packet-verified
+requirements: [BASE-01, BASE-02, BASE-03]
 evidence_tiers:
   tier_a: source/CI contracts for route, auth, feature-gate, stress, ledger, and fixture truth
   tier_b: rendered CI slices for overflow, navigation, header, and selected responsive cells
@@ -77,7 +77,18 @@ Per **D-181-09**, later v1.38 plans should consume this compact contract instead
 ## Baseline Guard Notes
 
 - `operator-screenshots.spec.ts` is the Tier C durable local packet source for `actor`, `coverage`, `evidence`, `exports`, `home`, `redaction`, `retention`, `row-history`, `timeline`, `timeline-dense`, `timeline-empty`, and `transaction`.
-- The light lane uses the `desktop-chromium-light` project and should only be treated as durable local evidence for Shell/Home, Timeline, and Coverage in this plan.
+- The light lane uses the `desktop-chromium-light` project and is durable local evidence for all 12 packet names after Plan 181-11 closeout.
 - Existing screenshot CI baselines remain ledger-owned; Plan 01 records their relationship to the local packet but does not rebaseline or expand the allowlist.
-- BASE-01 is satisfied at Plan 01 scope when every `/audit` page has a packet path and inventory disposition.
-- BASE-03 is satisfied at Plan 01 scope when this packet links the v1.38 personas, JTBD, PhoenixStorybook/stress distinction, nav IA, accessibility, motion, and brand/theming decisions.
+- BASE-01 is satisfied when every `/audit` page has a packet path, inventory disposition, rendered-slice evidence, and classified residuals in `181-VERIFICATION.md`.
+- BASE-02 is satisfied when local screenshot packet names, selected stress-state screenshots, screenshot regression baselines, and the unchanged CI screenshot allowlist boundary are explicitly separated.
+- BASE-03 is satisfied when this packet links the v1.38 personas, JTBD, PhoenixStorybook/stress distinction, nav IA, accessibility, motion, and brand/theming decisions without claiming real assistive-technology UAT.
+
+## Plan 181-11 Closeout Alignment
+
+| Check | Status | Evidence |
+|---|---|---|
+| Decision IDs D-181-01 through D-181-16 | Complete across packet | `181-BASELINE-AUDIT.md` owns D-181-01..03 and D-181-07..16; `181-GUARD-REPAIR.md` owns D-181-04..08; `181-SCREENSHOT-INVENTORY.md` and `181-VERIFICATION.md` carry the executable evidence. |
+| BASE-01 | Complete with classified residual CI | `181-VERIFICATION.md` records source, stress, Tier B route, responsive, stale-scan, precommit, and `mix ci.all` evidence. |
+| BASE-02 | Complete | `181-SCREENSHOT-INVENTORY.md` records the 36 top-level local PNGs, four selected stress-state PNGs, local screenshot regression guard, and unchanged CI allowlist boundary. |
+| BASE-03 | Complete | This baseline packet plus `181-VERIFICATION.md` links personas, JTBD, PhoenixStorybook research, `/audit/__stress`, nav IA, APG/WCAG/motion guardrails, and proof limits. |
+| Deferred ideas remain deferred | No delivery claim | Later-phase polish, page IA, broad screenshot rebaselining, route churn, public component APIs, root Storybook dependencies, Tailwind/shadcn migration, and runtime destructive redaction remain classified as deferred owners rather than delivered work. |

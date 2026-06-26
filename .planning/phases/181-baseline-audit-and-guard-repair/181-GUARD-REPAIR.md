@@ -104,7 +104,7 @@ The scan evidence proves only that the current source tree still contains the ma
 | G-002 | `examples/threadline_phoenix/e2e/tests/operator.spec.ts` | The old `#4518`/deleter-specific title is retired. The active replacement discovers a current `ticket_replies` `DELETE` row, opens its transaction, verifies a user actor link, and asserts the transaction change row still names `ticket_replies` and `DELETE`. | Repaired in 181-03. |
 | G-003 | `examples/threadline_phoenix/e2e/tests/operator.spec.ts` | Timeline discovery no longer depends on the stale `walk-acme-4521-close` correlation or `tickets` text. It keeps stable `timeline-row` and `transaction-link` contracts under the current `ticket_replies` table filter. | Repaired in 181-03 for the owning active smoke spec; broader Timeline polish remains 184. |
 | G-004 | `examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts` | The screenshot packet now uses the same `ticket_replies` table discovery, transaction navigation, row-history redaction check, current `DELETE` row discovery, and current support Coverage denied-state alert copy (`Coverage unavailable` plus `mix threadline.health.coverage`). | Repaired in 181-03 for the owning screenshot packet; no broad screenshot baseline expansion. |
-| G-005 | `examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts` | Residual stale-correlation family remains outside the Plan 03 declared file list. It is retained as scan ownership until a follow-up plan edits that file with the same current `ticket_replies` route-discovery contract. | Residual owner: 181 follow-up or Timeline phase 184 if repair requires layout/workflow scope. |
+| G-005 | `examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts` | The responsive matrix now uses current `ticket_replies` route discovery, exact Evidence heading, flattened Coverage layout assertions, visible button typography, and the 1280px gutter breakpoint. The bounded command passed 30 tests. | Repaired in 181-11; Timeline workflow polish remains 184 only for page-level IA changes. |
 | G-006 | `examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-features.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts` | Additional stale demo-correlation families remain recorded but were not in the Plan 03 modified-file contract. Future repairs should preserve stable IDs and use current rendered `ticket_replies`/route-href discovery rather than old issue-number fiction. | Residual owner: 181 follow-up or owning page/UAT phase. |
 
 ## Plan 03 Residual Verification
@@ -113,6 +113,12 @@ The scan evidence proves only that the current source tree still contains the ma
 |---|---|---|
 | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator.spec.ts tests/operator-screenshots.spec.ts` | Passed: 18/18 across `chromium`, `desktop-chromium`, and `mobile-chromium`. | Plan 03 repaired the declared active browser contracts. |
 | `cd examples/threadline_phoenix && mix precommit` | Failed after the E2E repair. | Out of Plan 03 file scope: inherited Elixir demo-seed contract failures still expect old `#4521`/`#4518` May anchor rows, `agent2` window rows, and `org_memberships` actor attribution. Failing tests: `ThreadlinePhoenixWeb.WalkthroughEvidenceTest` WALK-04-02; `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` WALK-03-04; `ThreadlinePhoenix.DemoContractTest` D-05 persona setup, SEED-03 leaving-agent window, SEED-03 hero close transaction, SEED-05 delete incident, and SEED-03 redacted close reply. Owner: source/demo contract repair plan, not this E2E selector plan. |
+
+## Plan 11 Responsive Guard Repair Evidence
+
+| Finding | Commit-time file path | Replacement contract | Status |
+|---|---|---|---|
+| G-005 | `examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts` | Route discovery starts from `/audit/timeline?table=ticket_replies`, follows the rendered transaction and row-history links, and asserts current Home, Timeline, Coverage, Transaction, Row history, Actor, Evidence, Redaction, Retention, and Exports pages without root horizontal overflow. Coverage assertions target the flattened readiness rail and summary grid instead of retired `tl-coverage-command` classes. | Repaired in 181-11. `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-responsive-mobile-first.spec.ts --grep "operator responsive matrix: (phone|tablet|desktop-1024)|Timeline row-first command surface"` returned 30 passed. |
 
 ## Plan 04 Source-Test Prose Repair Evidence
 
@@ -151,6 +157,7 @@ Plan 04 also added a durable source-prose guard in `test/threadline/operator_sur
 | Owner | What this ledger allows | What remains deferred |
 |---|---|---|
 | 181-03 | Repair stale E2E selectors, data discovery, and copy assertions to current rendered truth. | Timeline IA, mobile density, toolbar/filter hierarchy, and workflow redesign remain 184. |
+| 181-11 | Repair final closeout responsive guard drift when verification proves the guard is stale and bounded. | Root CI residuals, demo-seed/walkthrough repairs, and page-level IA remain separate owners. |
 | 181-04 | Repair active source-test prose and failure messages that still describe old RED states. | Behavior rewrites are not allowed unless a source contract proves current behavior drift. |
 | 181-05 | Add/verify route, auth, export, feature-gate, optional-dependency, and stress boundary source contracts. | Capture/query/auth semantic changes remain out of scope. |
 | 181-06 | Repair design-system ledger, projection, and stress fixture parity without score backslide. | Lowering ratchets, removing locked IDs, or dropping stories without reset rationale is prohibited. |
@@ -164,9 +171,8 @@ This ledger proves that every current primary stale-scan hit has a file path, li
 
 This ledger does not prove:
 
-- The E2E suite is green.
-- The screenshot packet can complete.
-- The source contracts are already free of stale wording after repair.
+- The entire E2E suite is green.
+- Full `mix ci.all` is green.
 - The operator UI is visually polished.
 - Real assistive-technology UAT was run.
 
