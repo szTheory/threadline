@@ -20,6 +20,40 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   @style_path "lib/threadline/operator_surface/style.ex"
   @ui_source_path "lib/threadline/operator_surface/ui.ex"
+  @source_prose_files [
+    "test/threadline/operator_surface/card_nesting_regression_test.exs",
+    "test/threadline/operator_surface/data_state_mapping_wave0_test.exs",
+    "test/threadline/operator_surface/component_contract_test.exs",
+    "test/threadline/operator_surface/style_contract_test.exs",
+    "test/threadline/operator_surface/live/retention_history_live_test.exs",
+    "test/threadline/operator_surface/breadcrumb_test.exs",
+    "test/threadline/operator_surface/stress_fixtures_test.exs"
+  ]
+
+  @stale_source_prose_patterns [
+    old_red_today_marker: ~r/\bRED\s+today\b/i,
+    old_red_until_plan_marker: ~r/\bRED\s+until\s+Plan\b/i,
+    old_red_wave_marker: ~r/\bRED\s+Wave-0\s+scaffold\b/i,
+    old_wave_red_marker: ~r/\bWave-0\s+RED\b/i,
+    old_binding_target_marker: ~r/\bbinding\s+RED\s+target\b/i,
+    old_turns_green_marker: ~r/\bturns?\s+GREEN\b/i
+  ]
+
+  describe "active source-test prose repair guard (181-04)" do
+    test "current source-test prose describes live invariants, not old scaffold state" do
+      offenders =
+        for file <- @source_prose_files,
+            source = File.read!(file),
+            {marker, pattern} <- @stale_source_prose_patterns,
+            {line, line_no} <- source |> String.split("\n") |> Enum.with_index(1),
+            Regex.match?(pattern, line) do
+          {file, line_no, marker, String.trim(line)}
+        end
+
+      assert offenders == [],
+             "active source-test prose still describes repaired guards as old scaffolds: #{inspect(offenders, pretty: true)}"
+    end
+  end
 
   # --- UAT #2: data_panel state matrix (D-03 / D-06 / D-13..D-16) -------------
 
