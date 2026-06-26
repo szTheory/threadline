@@ -75,7 +75,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 181-11-PLAN.md - Verification closeout and source coverage audit
+- [x] 181-11-PLAN.md - Verification closeout and source coverage audit
 
 **Cross-cutting constraints:**
 

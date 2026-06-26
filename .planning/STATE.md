@@ -4,16 +4,16 @@ milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
-status: executing
-stopped_at: Completed 181-10-PLAN.md
-last_updated: "2026-06-26T16:52:00.489Z"
+status: verifying
+stopped_at: Completed 181-11-PLAN.md
+last_updated: "2026-06-26T17:26:09.116Z"
 last_activity: 2026-06-26
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 11
-  completed_plans: 10
-  percent: 91
+  completed_plans: 11
+  percent: 14
 ---
 
 # Project State: Threadline
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
 Plan: 11 of 11
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-26
 
 ## Performance Metrics
@@ -114,6 +114,7 @@ Last activity: 2026-06-26
 | Phase 181-baseline-audit-and-guard-repair P08 | 4 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P09 | 3 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P10 | 3 min | 1 tasks | 2 files |
+| Phase 181-baseline-audit-and-guard-repair P11 | 29m24s | 2 tasks | 37 files |
 
 ## Accumulated Context
 
@@ -284,6 +285,8 @@ Last activity: 2026-06-26
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 10 left all six Row-history/Exports/Retention PNG baselines untouched because Plan 08 classified them as current committed local baselines with no accepted update.
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 10 did not run --update-snapshots; the bounded Row-history/Exports/Retention subset passed against existing desktop/mobile local baselines.
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 10 re-recorded the example-app mix precommit residual as inherited demo-seed/walkthrough drift, not screenshot baseline fallout.
+- [Phase 181-baseline-audit-and-guard-repair]: 181-11: Full CI remains red but classified; Phase 181 closes on targeted guard evidence plus residual ownership, not by relabeling red gates as green.
+- [Phase 181-baseline-audit-and-guard-repair]: 181-11: The local Tier C screenshot packet is complete planning evidence and does not expand the CI screenshot allowlist.
 
 ### Blockers
 
@@ -291,8 +294,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T16:52:00.483Z
-**Stopped at:** Completed 181-10-PLAN.md
+**Last session:** 2026-06-26T17:25:52.488Z
+**Stopped at:** Completed 181-11-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
