@@ -53,3 +53,6 @@ tmp/
 
 # Local agent/session config
 /.claude/
+/.git-commit-task*.sh
+/.update_roadmap.rb
+/fix_theme.exs
