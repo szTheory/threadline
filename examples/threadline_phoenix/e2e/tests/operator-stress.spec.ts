@@ -1,6 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -10,32 +10,27 @@ const ledgerPath = resolve(
   "../../..",
   ".planning/design-system-ledger.json",
 );
-const expectedCiScreenshots = [
-  {
-    baseline_ref: "stress-page-home-happy-dark-1024.png",
-    ledger_id: "page.home.happy",
-    story_id: "page.home.happy",
-    theme: "dark",
-    viewport: 1024,
-  },
-  {
-    baseline_ref: "stress-page-timeline-empty-dark-1024.png",
-    ledger_id: "page.timeline.empty",
-    story_id: "page.timeline.empty",
-    theme: "dark",
-    viewport: 1024,
-  },
-  {
-    baseline_ref: "stress-footgun-transaction-desktop-centering-dark-1024.png",
-    ledger_id: "footgun.transaction-page-left-push-desktop",
-    story_id: "footgun.transaction-page-left-push-desktop",
-    theme: "dark",
-    viewport: 1024,
-  },
+const repoRoot = resolve(process.cwd(), "../../..");
+const selectedTierCStressStories = [
+  "page.home.happy",
+  "state.unavailable-down",
+  "state.permission-denied",
+  "state.pagination-boundary",
 ];
 
 function ledger() {
   return JSON.parse(readFileSync(ledgerPath, "utf8"));
+}
+
+function ciScreenshotAllowlist() {
+  return ledger().screenshot_allowlist.ci;
+}
+
+function ledgerEntryForStory(storyId: string) {
+  return ledger().entries.find(
+    (entry: { id: string; story_id?: string }) =>
+      entry.id === storyId || entry.story_id === storyId,
+  );
 }
 
 function desktopSnapshotPath(baselineRef: string) {
@@ -54,6 +49,20 @@ function dynamicMasks(page: Page) {
     page.locator('[data-dynamic="true"]'),
     page.getByTestId("stress-run-id"),
   ];
+}
+
+function stressScreenshotOutputDir() {
+  const outputDir = process.env.OPERATOR_STRESS_SCREENSHOT_DIR;
+
+  if (!outputDir) return undefined;
+
+  return resolve(repoRoot, outputDir);
+}
+
+function stressPacketName(storyId: string, theme: string, viewport: number) {
+  const slug = storyId.replace(/[^a-z0-9]+/gi, "-");
+
+  return `stress-${slug}-${theme}-${viewport}.png`;
 }
 
 async function login(page: Page) {
@@ -264,7 +273,7 @@ test.describe("ledger-owned stress screenshots", () => {
     await login(page);
   });
 
-  for (const item of expectedCiScreenshots) {
+  for (const item of ciScreenshotAllowlist()) {
     test(`${item.story_id} ${item.theme} ${item.viewport}px matches its ledger baseline`, async ({
       page,
     }) => {
@@ -289,10 +298,51 @@ test.describe("ledger-owned stress screenshots", () => {
   }
 });
 
-test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
-  const ci = ledger().screenshot_allowlist.ci;
+test.describe("selected Tier C stress state packet", () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      !stressScreenshotOutputDir(),
+      "set OPERATOR_STRESS_SCREENSHOT_DIR to capture local-only selected stress packet evidence",
+    );
+    test.skip(
+      testInfo.project.name !== "desktop-chromium",
+      "selected stress packet captures one stable desktop local lane",
+    );
 
-  expect(ci).toEqual(expectedCiScreenshots);
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await login(page);
+  });
+
+  test("captures selected Tier C stress state packet", async ({ page }) => {
+    const outputDir = stressScreenshotOutputDir();
+    expect(outputDir).toBeTruthy();
+    mkdirSync(outputDir!, { recursive: true });
+
+    for (const storyId of selectedTierCStressStories) {
+      expect(
+        ledgerEntryForStory(storyId),
+        `${storyId} must be represented in the design-system ledger before local packet capture`,
+      ).toBeTruthy();
+
+      await page.goto(
+        `/audit/__stress?story=${storyId}&theme=dark&viewport=1024`,
+      );
+      const preview = page.getByTestId("stress-preview");
+      await expect(preview).toBeVisible();
+      await expect(page.getByTestId("stress-story-id")).toHaveText(storyId);
+
+      await preview.screenshot({
+        path: join(outputDir!, stressPacketName(storyId, "dark", 1024)),
+        scale: "css",
+      });
+    }
+  });
+});
+
+test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
+  const ci = ciScreenshotAllowlist();
+
+  expect(ci).toHaveLength(3);
 
   for (const item of ci) {
     expect(item.baseline_ref).toBeTruthy();

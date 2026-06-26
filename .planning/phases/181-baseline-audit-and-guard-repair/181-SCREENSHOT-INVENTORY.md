@@ -28,6 +28,25 @@ This inventory records the bounded screenshot and rendered-slice evidence collec
 | Tier B responsive Shell/Home/Timeline/Coverage slice | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-responsive-mobile-first.spec.ts --grep "operator responsive matrix: (phone|tablet|desktop-1024)|Timeline row-first command surface"` | Failed: 12 passed, 18 failed | New `desktop-1024` row executed and failed with the same stale Timeline-row discovery as phone/tablet. Timeline row-first and non-audit host-shell checks passed. |
 | Example-app precommit | `cd examples/threadline_phoenix && mix precommit` | Failed: 96 tests, 7 failures | Failures are demo-seed/audit-transaction query assertions; no Elixir source or seed code changed in Plan 01. |
 
+## Plan 07 Stress Guard Freshness
+
+| Lane | Command | Result | Notes |
+|---|---|---|---|
+| Tier B ledger-owned stress screenshot guard | `mix verify.operator_stress` | Passed: 42 passed, 9 skipped | The three ledger-owned desktop Chromium screenshot cells matched current rendered truth. No CI baseline PNG update was needed. |
+| Tier C selected stress-state packet | `OPERATOR_STRESS_SCREENSHOT_DIR=.planning/phases/181-baseline-audit-and-guard-repair/screenshots/stress-states ./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-stress.spec.ts --grep "selected Tier C stress state packet"` | Passed: 1 passed, 2 skipped | Captured the local-only dark 1024px desktop packet for the selected D-181-07 happy/error/permission/boundary story IDs. Non-desktop projects skip intentionally. |
+| Example-app precommit after stress spec/packet changes | `mix precommit` from `examples/threadline_phoenix` | Failed: 96 tests, 7 failures | Same inherited demo-seed/walkthrough contract residuals recorded by Plans 01 and 03; no Elixir source, seed, capture, query, auth, route, dependency, public API, or runtime operator UI code changed in Plan 07. |
+
+### Plan 07 Local-Only Selected Stress-State Packet
+
+These PNGs are Phase 181 local evidence under `.planning/`; they are not `toHaveScreenshot` baselines and are not part of `.planning/design-system-ledger.json` `screenshot_allowlist.ci`.
+
+| Story ID | Evidence kind | Project | Theme | Viewport | Path | Dimensions | Status | Rationale |
+|---|---|---|---|---:|---|---:|---|---|
+| `page.home.happy` | happy | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-page-home-happy-dark-1024.png` | 752 x 478 | local-only phase packet, committed as planning evidence | Confirms the existing happy page baseline story is represented in the stress route before page polish. |
+| `state.unavailable-down` | error | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-state-unavailable-down-dark-1024.png` | 752 x 6761 | local-only phase packet, committed as planning evidence | Captures source-down/error data-state evidence without promoting it to CI pixels. |
+| `state.permission-denied` | permission | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-state-permission-denied-dark-1024.png` | 752 x 6761 | local-only phase packet, committed as planning evidence | Captures permission-denied state evidence without expanding the screenshot allowlist. |
+| `state.pagination-boundary` | boundary | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-state-pagination-boundary-dark-1024.png` | 752 x 6737 | local-only phase packet, committed as planning evidence | Captures pagination-boundary state evidence for D-181-07 Tier C review. |
+
 ## Tier C Local Packet Matrix
 
 | Durable name | `__default__1280` | `__default__375` | `__light__1280` | Status |
@@ -72,7 +91,7 @@ This inventory records the bounded screenshot and rendered-slice evidence collec
 
 ## Tier B CI Screenshot Allowlist
 
-These remain ledger-owned CI baselines. Plan 01 did not expand or rebaseline the allowlist.
+These remain ledger-owned CI baselines. Plans 01 and 07 did not expand or rebaseline the allowlist.
 
 | Baseline | Ledger ID | Theme | Viewport | Path |
 |---|---|---|---:|---|
