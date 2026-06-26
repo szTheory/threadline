@@ -1,0 +1,103 @@
+---
+phase: 181-baseline-audit-and-guard-repair
+date: 2026-06-26
+status: partial-evidence-recorded
+requirements: [BASE-01, BASE-03]
+evidence_tiers: [Tier B, Tier C]
+---
+
+# Phase 181 Screenshot Inventory
+
+This inventory records the bounded screenshot and rendered-slice evidence collected for Plan 01. It keeps the existing `screenshot_allowlist` bounded, separates ledger-owned CI screenshot baselines from local Tier C packet screenshots, and records failed rendered commands as owned guard-repair findings instead of deleting or weakening coverage.
+
+## Capture
+
+- Packet directory: `.planning/phases/181-baseline-audit-and-guard-repair/screenshots/`
+- Durable name source: `examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts`
+- Helper behavior: `OPERATOR_SCREENSHOT_DIR` writes durable files named `{name}__default__1280.png`, `{name}__default__375.png`, or `{name}__light__1280.png` depending on Playwright project.
+- Generated PNG disposition: the partial Tier C packet below is intentionally committed. It contains only pages reached before the current stale rendered assertions failed.
+- Path correction: `run-e2e.sh` runs Playwright from `examples/threadline_phoenix/e2e`, so relative `OPERATOR_SCREENSHOT_DIR=.planning/...` initially emitted under `examples/threadline_phoenix/e2e/.planning/...`. Those generated PNGs were moved to the root phase directory above; use an absolute path in future reruns if writing directly to root is required.
+
+## Commands Run
+
+| Lane | Command | Result | Notes |
+|---|---|---|---|
+| Tier C default packet | `OPERATOR_SCREENSHOT_DIR=.planning/phases/181-baseline-audit-and-guard-repair/screenshots ./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-screenshots.spec.ts` | Failed: 6 failed | Generated default Home, Timeline, and Timeline-empty desktop/mobile PNGs before failure. |
+| Tier C light packet | `THREADLINE_E2E_THEME=system OPERATOR_SCREENSHOT_DIR=.planning/phases/181-baseline-audit-and-guard-repair/screenshots ./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-screenshots.spec.ts` | Failed: 2 failed | `run-e2e.sh` selected `desktop-chromium-light`; generated light Home, Timeline, and Timeline-empty PNGs before failure. |
+| Tier B 320/1440 route sweep and 1024 centering cells | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-phase-178-uat.spec.ts --grep "stays within viewport at 320 \\+ 1440|column 2 at 1024"` | Passed: 27 passed | Covers `/audit`, Timeline, Coverage, Evidence, Exports, Redaction, and Retention at 320/1440 plus Home/transaction centering at 1024. |
+| Tier B responsive Shell/Home/Timeline/Coverage slice | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-responsive-mobile-first.spec.ts --grep "operator responsive matrix: (phone|tablet|desktop-1024)|Timeline row-first command surface"` | Failed: 12 passed, 18 failed | New `desktop-1024` row executed and failed with the same stale Timeline-row discovery as phone/tablet. Timeline row-first and non-audit host-shell checks passed. |
+| Example-app precommit | `cd examples/threadline_phoenix && mix precommit` | Failed: 96 tests, 7 failures | Failures are demo-seed/audit-transaction query assertions; no Elixir source or seed code changed in Plan 01. |
+
+## Tier C Local Packet Matrix
+
+| Durable name | `__default__1280` | `__default__375` | `__light__1280` | Status |
+|---|---|---|---|---|
+| `home` | committed, 1280 x 1281 | committed, 375 x 2013 | committed, 1280 x 1281 | Shell/Home light-lane evidence present. |
+| `timeline` | committed, 1280 x 2571 | committed, 375 x 5509 | committed, 1280 x 2402 | Timeline light-lane evidence present. |
+| `timeline-empty` | committed, 1280 x 901 | committed, 375 x 1530 | committed, 1280 x 901 | Timeline empty-state light-lane evidence present. |
+| `timeline-dense` | missing | missing | missing | Blocked by `operator-screenshots.spec.ts:98` before capture. |
+| `transaction` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `row-history` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `actor` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `evidence` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `coverage` | missing | missing | missing | Coverage review evidence missing from light lane; blocked before admin Coverage capture and support denied-state assertion also failed. |
+| `exports` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `redaction` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+| `retention` | missing | missing | not reached | Blocked downstream of `timeline-dense` failure. |
+
+## Light-Lane Review Cells
+
+| Review cell | Evidence | Disposition |
+|---|---|---|
+| Shell/Home | `screenshots/home__light__1280.png` | Present; includes shell, header, nav, theme picker, and Home content in the `desktop-chromium-light` lane. |
+| Timeline | `screenshots/timeline__light__1280.png`, `screenshots/timeline-empty__light__1280.png` | Present for default and empty states; dense state missing because the stale Timeline-row assertion fires before capture. |
+| Coverage | Missing `screenshots/coverage__light__1280.png` | Owner: 181-03 stale E2E selector repair for command reachability, then 185 for Coverage page polish if needed. |
+| Shell/Home/Timeline/Coverage responsive slice | `operator-responsive-mobile-first.spec.ts` includes phone, tablet, and `desktop-1024` rows | Command ran but route/typography rows failed before route traversal because seeded Timeline discovery found no transaction link. |
+
+## Tier B Rendered Slice Evidence
+
+| Spec | Scope | Result | Disposition |
+|---|---|---|---|
+| `operator-phase-178-uat.spec.ts` | Phase 178 route sweep at 320 + 1440 and column-2 centering at 1024 | Passed: 27 passed | Current source/rendered no-overflow proof remains usable for the bounded route sweep. |
+| `operator-responsive-mobile-first.spec.ts` | Shell/Home/Timeline/Coverage responsive matrix at 375, 768, and `desktop-1024`; Timeline row-first command surface | Partial: 12 passed, 18 failed | Additive `desktop-1024` row is present. Failures are stale data-discovery assertions, not a new layout/API change from Plan 01. |
+
+### Rendered-Slice Failures Recorded
+
+| Command | Failing assertion | Affected slice | Owner |
+|---|---|---|---|
+| `operator-screenshots.spec.ts` default and light packet commands | `operator-screenshots.spec.ts:98` waited for `getByTestId("timeline-row").filter({ hasText: "tickets" }).first()` after `correlation_id=walk-acme-4521-close`; no element found. | Blocks `timeline-dense`, Transaction detail, Row history, Actor detail, Evidence, Coverage, Redaction, Retention, and Exports Tier C packet captures. | 181-03 stale E2E selector/seed repair; 184 owns later Timeline polish only if the rendered data contract is intentionally changed. |
+| `operator-screenshots.spec.ts` default and light packet commands | `operator-screenshots.spec.ts:176` waited for text `Coverage inspection is not available`; no element found after support-user Coverage visit. | Blocks support Coverage denied-state evidence and confirms copy/permission assertion drift. | 181-03 stale E2E selector/copy repair; 185 owns later Coverage workflow polish. |
+| `operator-responsive-mobile-first.spec.ts` responsive command | `operator-responsive-mobile-first.spec.ts:353` timed out waiting for `getByTestId("transaction-link").first().getAttribute("href")` inside `discoverMatrixRoutes`. | Phone, tablet, and `desktop-1024` route traversal rows failed in all three Playwright projects. | 181-03 stale data-discovery repair; 184 owns later Timeline page behavior if discovery should change. |
+| `operator-responsive-mobile-first.spec.ts` responsive command | `operator-responsive-mobile-first.spec.ts:556` waited for `getByTestId("timeline-row").first()` after the `walk-acme-4521-close` correlation filter; no element found. | Phone, tablet, and `desktop-1024` typography/gutter rows failed in all three Playwright projects. | 181-03 stale data-discovery repair; 184 owns later Timeline page behavior if discovery should change. |
+
+## Tier B CI Screenshot Allowlist
+
+These remain ledger-owned CI baselines. Plan 01 did not expand or rebaseline the allowlist.
+
+| Baseline | Ledger ID | Theme | Viewport | Path |
+|---|---|---|---:|---|
+| `stress-page-home-happy-dark-1024.png` | `page.home.happy` | dark | 1024 | `examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts-snapshots/stress-page-home-happy-dark-1024-desktop-chromium.png` |
+| `stress-page-timeline-empty-dark-1024.png` | `page.timeline.empty` | dark | 1024 | `examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts-snapshots/stress-page-timeline-empty-dark-1024-desktop-chromium.png` |
+| `stress-footgun-transaction-desktop-centering-dark-1024.png` | `footgun.transaction-page-left-push-desktop` | dark | 1024 | `examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts-snapshots/stress-footgun-transaction-desktop-centering-dark-1024-desktop-chromium.png` |
+
+## Example-App Precommit Failure
+
+`mix precommit` was run from `examples/threadline_phoenix` after the E2E spec change. It failed with 96 tests, 7 failures, all in existing demo-seed/audit-transaction evidence tests:
+
+| Test file | Failure class | Disposition |
+|---|---|---|
+| `test/threadline_phoenix_web/walkthrough_evidence_test.exs` | Missing #4521 close transaction / row-history evidence query result. | Not caused by Plan 01; inventory records the failure for 181 guard repair and later verification. |
+| `test/threadline_phoenix_web/walkthrough_happy_path_test.exs` | Missing #4518 hard-delete audit transaction. | Not caused by Plan 01; no Elixir seed, capture, query, or auth code changed. |
+| `test/threadline_phoenix/demo_contract_test.exs` | Missing leaving-agent audit transactions, org_membership actor attribution rows, #4521 close/redaction rows, and #4518 delete row. | Not caused by Plan 01; likely the same current demo-seed drift surfaced by the rendered screenshot failures. |
+
+## Related Specs
+
+- `operator-screenshots.spec.ts` owns Tier C durable packet generation and the durable names: `actor`, `coverage`, `evidence`, `exports`, `home`, `redaction`, `retention`, `row-history`, `timeline`, `timeline-dense`, `timeline-empty`, and `transaction`.
+- `operator-screenshot-regression.spec.ts` remains the local-only visual regression guard and was not promoted to a full CI matrix.
+- `operator-stress.spec.ts` owns the bounded stress screenshot ratchet and `screenshot_allowlist` contract.
+- `operator-phase-178-uat.spec.ts` owns the 320/1440 route sweep and 1024 column-centering cells.
+- `operator-responsive-mobile-first.spec.ts` now includes the bounded `desktop-1024` viewport row alongside phone, tablet, and desktop.
+
+## Unexplained Deltas
+
+None. This plan did not compare final images against prior local packet PNGs. Missing packet cells are recorded as command failures with owners instead of being treated as visual deltas.

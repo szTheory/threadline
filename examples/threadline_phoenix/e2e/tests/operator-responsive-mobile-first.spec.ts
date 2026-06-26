@@ -7,6 +7,7 @@ const closeCorrelation = "walk-acme-4521-close";
 const viewports = [
   { name: "phone", width: 375, height: 812, isMobile: true },
   { name: "tablet", width: 768, height: 900, isMobile: false },
+  { name: "desktop-1024", width: 1024, height: 900, isMobile: false },
   { name: "desktop", width: 1280, height: 900, isMobile: false },
 ];
 
