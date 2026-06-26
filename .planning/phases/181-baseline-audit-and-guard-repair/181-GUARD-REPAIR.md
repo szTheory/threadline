@@ -114,6 +114,23 @@ The scan evidence proves only that the current source tree still contains the ma
 | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator.spec.ts tests/operator-screenshots.spec.ts` | Passed: 18/18 across `chromium`, `desktop-chromium`, and `mobile-chromium`. | Plan 03 repaired the declared active browser contracts. |
 | `cd examples/threadline_phoenix && mix precommit` | Failed after the E2E repair. | Out of Plan 03 file scope: inherited Elixir demo-seed contract failures still expect old `#4521`/`#4518` May anchor rows, `agent2` window rows, and `org_memberships` actor attribution. Failing tests: `ThreadlinePhoenixWeb.WalkthroughEvidenceTest` WALK-04-02; `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` WALK-03-04; `ThreadlinePhoenix.DemoContractTest` D-05 persona setup, SEED-03 leaving-agent window, SEED-03 hero close transaction, SEED-05 delete incident, and SEED-03 redacted close reply. Owner: source/demo contract repair plan, not this E2E selector plan. |
 
+## Plan 04 Source-Test Prose Repair Evidence
+
+| Finding | Commit-time file path | Replacement contract | Status |
+|---|---|---|---|
+| G-011 | `test/threadline/operator_surface/data_state_mapping_wave0_test.exs` | Module docs now describe the current `UI.data_state/1` dispatcher and typed-reason data-state distinction instead of saying the dispatcher and variants do not exist. | Repaired in 181-04. |
+| G-012 | `test/threadline/operator_surface/card_nesting_regression_test.exs` | Header comments now describe the permanent DATA-05/D-12 one-card-boundary regression guard and the already-flattened Coverage command shell. | Repaired in 181-04. |
+| G-013 | `test/threadline/operator_surface/breadcrumb_test.exs` | Module docs and inline comments now describe the current Breadcrumb landmark contract and legacy-label refute without claiming drill-down pages still use `Investigation path`. | Repaired in 181-04. |
+| G-014 | `test/threadline/operator_surface/component_contract_test.exs` | Overlay comments and assertion text now describe the current Esc + scrim `phx-click` ratchet, independent of focus hooks, without claiming scrims are still inert. | Repaired in 181-04. |
+| G-015 | `test/threadline/operator_surface/style_contract_test.exs` | Overlay JS-transition utility comments now describe the current class-selector source contract and why keyframes alone cannot satisfy it. | Repaired in 181-04. |
+| G-016 | `test/threadline/operator_surface/style_contract_test.exs` | Grid-item centering comments now describe the current `.tl-container` and `.tl-home` `justify-self: center` ratchet instead of the old left-push failure state. | Repaired in 181-04. |
+| G-017 | `test/threadline/operator_surface/style_contract_test.exs` | Desktop scroll-offset comments and failure text now describe the current `.tl-target-row` desktop `--tl-header-height` reconciliation ratchet. | Repaired in 181-04. |
+| G-018 | `test/threadline/operator_surface/style_contract_test.exs` | Timeline fact spacing comments and failure text now describe the current token-scale gap contract and forbid raw spacing drift. | Repaired in 181-04. |
+| G-019 | `test/threadline/operator_surface/stress_fixtures_test.exs` | PAGE-01 comments, test title, and failure messages now describe the current 11-subject x 7-path current-story ratchet instead of reserved-baseline worklist prose. | Repaired in 181-04. |
+| G-020 | `test/threadline/operator_surface/live/retention_history_live_test.exs` | Retention destructive-flow and copy-equals-full comments/test group names now describe the current fail-closed prune path, AuditAction recording, and full-value `UI.ref/1` copy contract. | Repaired in 181-04. |
+
+Plan 04 also added a durable source-prose guard in `test/threadline/operator_surface/component_contract_test.exs` that scans these source-test files for stale scaffold markers before the targeted ExUnit slice runs.
+
 ## Later-Phase Ownership Boundaries
 
 | Owner | What this ledger allows | What remains deferred |

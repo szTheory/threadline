@@ -1,6 +1,6 @@
 defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
   @moduledoc """
-  Wave-0 RED until Plan 02/03 (DATA-03 / D-13..D-16).
+  DATA-03 / D-13..D-16 data-state dispatcher regression guard.
 
   The page author must preserve the server's TYPED `:failed` reason all the way
   to the view and branch it into DISTINCT data-states — permission ≠ no-data ≠
@@ -13,11 +13,9 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     * unavailable  = NOT a permissions issue — down /   (plug/cloud-off / eye-off
                      redacted / pruned                    / archive)
 
-  This test asserts a `UI.data_state/1` dispatcher maps each typed reason to the
-  correct component (icon + heading + role). It is RED today: no `data_state/1`
-  exists, `empty_state/1` lacks the `no_data`/`permission`/`unavailable` variants,
-  and there is no async typed-reason dispatch in the surface. It turns GREEN when
-  Plan 02/03 land the components and variants.
+  This test asserts the current `UI.data_state/1` dispatcher maps each typed
+  reason to the correct component (icon + heading + role). The invariant is that
+  these states remain distinct as the operator surface evolves.
   """
   use ExUnit.Case, async: true
   import Phoenix.Component

@@ -58,7 +58,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.BreadcrumbTest do
     @moduledoc """
-    Wave 0 RED scaffold for NAV-01 / D-12 / D-13 — drill-down breadcrumb trails.
+    NAV-01 / D-12 / D-13 drill-down breadcrumb trail regression guard.
 
     Drives the real drill-down LiveView (actor window, which renders the breadcrumb
     trail today) and asserts the *target* breadcrumb contract:
@@ -68,11 +68,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         on the breadcrumb itself,
       * across the whole page render there is exactly one `aria-current="page"` (the nav
         link in the shell), never zero and never two.
-
-    Expected state at Wave 0 (this plan, 175-01):
-      * RED — the drill-down pages still emit `aria-label="Investigation path"`
-        (transaction_live.ex:113, actor_live.ex:117). The Breadcrumb-landmark assertion
-        FAILS until Plan 03 relabels the trail and routes it through the new page header.
 
     aria_current_count idiom copied from `surface_header_test.exs`.
     """
@@ -112,7 +107,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:ok, _lv, html} = live(conn, "/audit/actors/user/breadcrumb_actor")
 
-      # NAV-01 target landmark label (RED today — pages still say "Investigation path").
+      # NAV-01 current landmark label; the legacy "Investigation path" label stays retired.
       assert html =~ ~s|<nav aria-label="Breadcrumb"|
       refute html =~ ~s|aria-label="Investigation path"|
 
@@ -157,8 +152,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [trail] ->
           trail
 
-        # Until Plan 03 relabels the trail, fall back to the legacy landmark so the
-        # aria-current assertion still inspects the right region (keeps the RED honest).
+        # Legacy fallback keeps the aria-current assertion pointed at the same region
+        # if the landmark label regresses; the primary assertion above still fails.
         nil ->
           case Regex.run(~r/<nav[^>]*aria-label="Investigation path".*?<\/nav>/s, html) do
             [legacy] -> legacy

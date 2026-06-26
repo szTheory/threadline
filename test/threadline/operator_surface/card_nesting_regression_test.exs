@@ -1,13 +1,12 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   # ---------------------------------------------------------------------------
-  # Wave-0 RED regression test (DATA-05 / D-12).
+  # Permanent DATA-05 / D-12 card-nesting regression test.
   #
   # "One card boundary per logical unit" (brand-book.md:348). This test renders
   # each operator page and `refute`s any card-family class (`tl-card*`) nested
-  # inside another card-family element. It is RED today because Coverage's
-  # success branch hand-rolls a header region inside a synthetic command shell
-  # that nests card-family surfaces (the D-12 flatten target). It turns GREEN in
-  # the Wave-3 coverage flatten plan.
+  # inside another card-family element. Coverage's former synthetic command shell
+  # was flattened in Phase 176; this guard keeps the one-card-boundary contract
+  # from regressing.
   #
   # The eleven operator surfaces this guards (router.ex L112-122 + shell):
   #   StartLive, TimelineLive, EvidenceLive, CoverageLive, ExportStatusLive,

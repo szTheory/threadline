@@ -316,14 +316,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -----------------------------------------------------------------------
-    # Wave-0 RED until Plan 05 (DATA-04 / D-20/D-21). The destructive prune is
-    # the only real destructive backend in the surface. Today it is gated by a
-    # CLIENT-ONLY `data-confirm` with ZERO server enforcement: no type-to-confirm
-    # `secure_compare`, no event-time authz re-check, no scope-filtered query,
-    # and no `AuditAction` recording the destructive action itself. These tests
-    # assert the load-bearing T3 fail-closed contract and turn GREEN in Plan 05.
+    # DATA-04 / D-20/D-21. The destructive prune is the only real destructive backend
+    # in the surface. These tests assert the load-bearing T3 fail-closed contract:
+    # no client-only `data-confirm`, server-side type-to-confirm, event-time authz
+    # re-check, scope-filtered query, and `AuditAction` recording for the destructive
+    # action itself.
     # -----------------------------------------------------------------------
-    describe "T3 destructive prune — server-side fail-closed enforcement (Wave-0 RED)" do
+    describe "T3 destructive prune — server-side fail-closed enforcement" do
       defp count_audit_actions do
         Threadline.Test.Repo.aggregate(AuditAction, :count, :id)
       end
@@ -428,13 +427,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -----------------------------------------------------------------------
-    # Wave-0 RED until Plan 05 (DATA-01 / D-02, Pitfall 4). Cross-page copy
-    # contract: the rendered copy target must carry the EXACT full value, never
-    # the truncated visible text. Retention currently renders no `ref/1` copy
-    # affordance for its run identifiers, so this is RED until the page adopts
-    # `UI.ref/1` (which binds `data-tl-copy={ref.full}`).
+    # DATA-01 / D-02, Pitfall 4. Cross-page copy contract: the rendered copy target
+    # must carry the EXACT full value, never the truncated visible text. Retention run
+    # identifiers use `UI.ref/1`, which binds `data-tl-copy={ref.full}`.
     # -----------------------------------------------------------------------
-    describe "ref copy-equals-full contract (Wave-0 RED)" do
+    describe "ref copy-equals-full contract" do
       test "rendered run reference copies the full value, not the truncated text", %{conn: conn} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 

@@ -387,17 +387,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Enum.sort(by_surface[:reference]) == Enum.sort(@reference_group_story_ids)
     end
 
-    # --- Phase 178 (PAGE-01 / D-04): page-story reserved -> current conversion --
+    # --- Phase 178 (PAGE-01 / D-04): 77 current page-path story ratchet --------
     #
-    # RED Wave-0 scaffold. The 11 `page.<x>.reserved` entries (status "reserved",
-    # cases ["warning"]) are PAGE-01's worklist. D-04 converts each into a real
-    # fixture-backed CURRENT path story carrying the 7 audit paths
-    # (happy/empty/loading/error/permission/boundary/advanced). This assertion is the
-    # binding RED target Plan 04 turns green: today every page subject still resolves
-    # to a `.reserved` baseline (status "reserved"), so it FAILS. Written against the
-    # eventual shape (a non-reserved story whose cases cover the 7 paths) so it cannot
-    # silently pass until Plan 04 actually does the conversion. Does NOT mutate
-    # stress_fixtures.ex or the ledger here (Wave 0 authors the detector only).
+    # The 11 page subjects must stay fixture-backed across the 7 audit paths
+    # (happy/empty/loading/error/permission/boundary/advanced). This assertion locks
+    # the converted current-story shape so a page subject cannot silently regress to
+    # a reserved baseline or lose one of the path fixtures.
     @page_subjects ~w(
       actor
       coverage
@@ -425,7 +420,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "advanced" => ~w(non_ascii null_fields mixed_severity)
     }
 
-    test "PAGE-01 (D-04): each of the 11 page subjects is a fixture-backed CURRENT 7-path story (RED until Plan 04)" do
+    test "PAGE-01 (D-04): each of the 11 page subjects is a fixture-backed CURRENT 7-path story" do
       stories = StressFixtures.all()
 
       page_stories_by_subject =
@@ -445,18 +440,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute subject_stories == [],
                "PAGE-01: page subject #{subject} must have at least one page story (D-04)"
 
-        # D-04: the page must be CONVERTED off the reserved baseline. A subject that
-        # still only carries `.reserved` (status "reserved") stories has not been
-        # converted — RED today for all 11.
+        # D-04: the page must stay converted off the reserved baseline. A subject
+        # that only carries `.reserved` (status "reserved") stories has regressed.
         converted =
           Enum.filter(subject_stories, fn story -> story.status != "reserved" end)
 
         refute converted == [],
-               "PAGE-01: page subject #{subject} is still a RESERVED baseline — Plan 04 must convert it to a fixture-backed current/baseline path story (D-04, RED today)"
+               "PAGE-01: page subject #{subject} is still a RESERVED baseline — it must expose fixture-backed current/baseline path stories (D-04)"
 
         # The converted page story/stories must cover all 7 audit paths via their
-        # fixture cases. RED today (the only non-reserved page stories — home.happy,
-        # timeline.empty — cover a single path each, not all 7).
+        # fixture cases.
         covered_cases =
           converted
           |> Enum.flat_map(& &1.cases)
@@ -464,7 +457,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         for {path, representative_cases} <- @page_path_cases do
           assert Enum.any?(representative_cases, &MapSet.member?(covered_cases, &1)),
-                 "PAGE-01: page subject #{subject} must be fixture-backed for the '#{path}' path (one of #{inspect(representative_cases)}); got cases #{inspect(MapSet.to_list(covered_cases))} (D-04, RED until Plan 04 converts the 7-path page stories)"
+                 "PAGE-01: page subject #{subject} must be fixture-backed for the '#{path}' path (one of #{inspect(representative_cases)}); got cases #{inspect(MapSet.to_list(covered_cases))} (D-04)"
         end
       end
     end

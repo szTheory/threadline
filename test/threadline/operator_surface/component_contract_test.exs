@@ -493,18 +493,16 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   # --- Phase 178 (PAGE-02 #4, D-06): Esc + click-outside dismiss markers -------
   #
-  # RED Wave-0 scaffold. Footgun #4 (Esc / click-outside dismiss). This is #4's OWN
-  # structural detector, asserted INDEPENDENTLY of #3's focus-entry hooks
-  # (JS.focus_first/phx-mounted) — the two are distinct halves, so 178-05's "#4 →
-  # green" ratchets against a real failing detector and cannot piggyback on #3.
+  # Permanent Footgun #4 (Esc / click-outside dismiss) structural detector, asserted
+  # INDEPENDENTLY of #3's focus-entry hooks (JS.focus_first/phx-mounted) — the two
+  # are distinct halves, so this guard cannot piggyback on #3.
   #
   # Each overlay (modal, drawer) must carry BOTH:
   #   (a) an Escape-key dismiss binding (phx-key="escape" + phx-window-keydown) — present today, and
   #   (b) a CLICK-OUTSIDE/scrim dismiss marker: the SCRIM element itself carrying a
-  #       phx-click dismiss. Today the scrim is inert (`aria-hidden="true"`, no
-  #       phx-click) and dismissal rides phx-click-away on the CONTENT element — a
-  #       different mechanism. A genuine click-outside affordance puts the dismiss on
-  #       the scrim. RED today (scrim has no phx-click dismiss).
+  #       phx-click dismiss. A genuine click-outside affordance puts the dismiss on
+  #       the scrim; this guard prevents regression to content-only phx-click-away
+  #       handling.
   describe "overlay Esc + click-outside dismiss markers (PAGE-02 #4, D-06)" do
     test "modal and drawer scrims carry a click-outside (phx-click) dismiss marker, independent of #3 focus hooks" do
       src = File.read!(@ui_source_path)
@@ -518,10 +516,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
                "#{component} must bind an Escape-key dismiss (phx-key=\"escape\")"
 
         # (b) Click-outside: the SCRIM element itself must carry a phx-click dismiss.
-        # Extract the scrim element tag and require a phx-click on it. RED today —
-        # the scrim is `aria-hidden="true"` with no phx-click; dismissal currently
-        # rides phx-click-away on the content (a distinct mechanism, not a clickable
-        # scrim). This is the binding #4 click-outside half Plan 05 turns green.
+        # Extract the scrim element tag and require the current click-outside marker.
         scrim_tag =
           case Regex.run(~r/<div[^>]*class="#{scrim_class}"[^>]*\/?>/s, src) do
             [tag] -> tag
@@ -529,7 +524,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
           end
 
         assert String.contains?(scrim_tag, "phx-click"),
-               "#{component} scrim (.#{scrim_class}) must carry a phx-click click-outside dismiss marker (PAGE-02 #4, RED today — the scrim is inert; phx-click-away on the content is the #3-adjacent mechanism, not #4's own clickable scrim)"
+               "#{component} scrim (.#{scrim_class}) must carry a phx-click click-outside dismiss marker (PAGE-02 #4); do not regress to content-only phx-click-away handling"
       end
     end
   end

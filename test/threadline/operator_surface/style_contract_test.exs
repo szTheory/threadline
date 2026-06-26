@@ -1400,14 +1400,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   # --- Phase 177 (GROUP-02 / D-10.1, RESEARCH Pitfall 2): overlay JS-transition utilities ---
   #
-  # RED Wave-0 scaffold. modal/drawer/toast show_*/hide_* (ui.ex) reference a set of
-  # JS-transition utility CLASSES that are NOT defined in style.ex today (grep-verified:
-  # only the `@keyframes tl-fade-in`/`tl-rise-in` exist, which drive CSS `animation:`
-  # mount reveals — NOT the JS `transition:` tuples the overlays use). The group-motion
-  # work (Plan 04) must DEFINE these as real class selectors with token-backed
-  # transitions. Each assertion is keyed to the class-SELECTOR form (`.x {` or `.x,`)
-  # so the existing `@keyframes tl-fade-in`/`tl-rise-in` cannot false-green it.
-  # This block is RED until Plan 04 defines the overlay utility classes + shells.
+  # modal/drawer/toast show_*/hide_* (ui.ex) reference JS-transition utility
+  # CLASSES that must stay defined in style.ex as real class selectors with
+  # token-backed transitions. Each assertion is keyed to the class-SELECTOR form
+  # (`.x {` or `.x,`) so `@keyframes tl-fade-in`/`tl-rise-in` cannot false-green it.
   test "phase 177 overlay JS-transition utility classes are defined as class selectors (not just keyframes)" do
     src = File.read!(@style_path)
 
@@ -1453,19 +1449,17 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   # --- Phase 178 (PAGE-03 / D-09, RESEARCH Pitfall 1): grid-item centering ---
   #
-  # RED Wave-0 scaffold. `margin: 0 auto` does NOT center a CSS-grid item: at
-  # >=768px both `.tl-container` (style.ex:675-678) and `.tl-home` (style.ex:689-692)
-  # are grid items (grid-column: 2 via the `.threadline-ui > :not(...)` catch-all),
-  # and under the default `justify-self: stretch` a max-width cap anchors them to the
-  # column START (left) — the "left push." The grid-native fix is `justify-self:
-  # center` (D-09), kept alongside max-width. This guard locks the fix so a silent
-  # revert to bare `margin: 0 auto` on a grid item is impossible.
+  # `margin: 0 auto` does NOT center a CSS-grid item: at >=768px both `.tl-container`
+  # and `.tl-home` are grid items (grid-column: 2 via the `.threadline-ui > :not(...)`
+  # catch-all), and under the default `justify-self: stretch` a max-width cap anchors
+  # them to the column START (left) — the "left push." The grid-native fix is
+  # `justify-self: center` (D-09), kept alongside max-width. This guard locks the fix
+  # so a silent revert to bare `margin: 0 auto` on a grid item is impossible.
   #
   # `.tl-home` is the latent twin (RESEARCH Pitfall 1 / Open Q1 — RESOLVED: fold in):
   # it carries the identical capping CSS on a grid-item <main>, so it left-pushes
-  # exactly like the transaction page. Both assertions are RED today (no
-  # `justify-self` anywhere in style.ex). Plan 178-03 Task 1 applies the one-line fix
-  # to BOTH selectors.
+  # exactly like the transaction page. Both selectors must keep the same grid-native
+  # centering contract.
   test "phase 178 PAGE-03 .tl-container centers as a grid item via justify-self: center (D-09)" do
     src = File.read!(@style_path)
 
@@ -1535,17 +1529,13 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   # --- Phase 178 (PAGE-02 #1, D-06): surface-wide scroll-trap source scan ------
   #
-  # RED Wave-0 scaffold. Footgun #1 (scroll traps / sticky occlusion). The mobile
-  # base already reconciles scroll-padding-top to the .tl-target-row scroll-margin-top
-  # (both `calc(var(--tl-header-height-mobile) + var(--tl-space-4))`), carries
-  # overscroll-behavior: contain, and uses 100svh (phase 177 hardening). BUT at the
-  # desktop grid shell (>=768px) the scroll container's reserved offset switches to
-  # the DESKTOP header token (`calc(var(--tl-header-height) + var(--tl-space-4))`,
-  # style.ex:3897) while `.tl-target-row` scroll-margin-top stays pinned to the
-  # MOBILE token (style.ex:2647) with no desktop override — so a sticky desktop topbar
-  # over-/under-shoots an anchored target. This guard requires the desktop offsets to
-  # reconcile (a `.tl-target-row` rule carrying scroll-margin-top with the DESKTOP
-  # `--tl-header-height` token, matching the desktop scroll-padding-top). RED today.
+  # Footgun #1 (scroll traps / sticky occlusion). The mobile base reconciles
+  # scroll-padding-top to the .tl-target-row scroll-margin-top (both
+  # `calc(var(--tl-header-height-mobile) + var(--tl-space-4))`), carries
+  # overscroll-behavior: contain, and uses 100svh (phase 177 hardening). At the desktop
+  # grid shell (>=768px), this guard requires the offsets to reconcile through a
+  # `.tl-target-row` rule carrying scroll-margin-top with the DESKTOP `--tl-header-height`
+  # token, matching the desktop scroll-padding-top.
   # This is the surface-wide Tier A half D-06 mandates for #1; the Tier B sticky-
   # occlusion sweep half lives in operator-phase-178-uat.spec.ts.
   test "phase 178 PAGE-02 #1 desktop scroll offset reconciles scroll-padding-top to scroll-margin-top (D-06)" do
@@ -1569,19 +1559,17 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
              ),
              desktop
            ),
-           ".tl-target-row scroll-margin-top must reconcile to the DESKTOP --tl-header-height offset at >=768px (style.ex:2647 currently stays pinned to --tl-header-height-mobile — a sticky desktop topbar occludes the anchored target). #1 scroll-trap reconciliation, RED today (D-06)"
+           ".tl-target-row scroll-margin-top must reconcile to the DESKTOP --tl-header-height offset at >=768px so a sticky desktop topbar never occludes the anchored target (D-06)"
   end
 
   # --- Phase 178 (PAGE-02 #6, D-06): spacing-token source scan ----------------
   #
-  # RED Wave-0 scaffold. Footgun #6 (misalignment / chopped-padding / spacing). The
-  # cheap per-PR surface-wide source half of #6: stressed-page child spacing must
-  # resolve through the --tl-space-* / token scale (or 0), never a raw px/rem/em
-  # literal that drifts off the rhythm. `.tl-timeline-fact` (a timeline-page child)
-  # carries a raw `gap: 2px` (style.ex:1105) that does NOT resolve through the space
-  # scale — RED today. The boundingBox / within-viewport half of #6 lives in
-  # operator-phase-178-uat.spec.ts. Scope the scan to the selector block via
-  # selector_block! so a sibling rule cannot false-pass.
+  # Footgun #6 (misalignment / chopped-padding / spacing). The cheap per-PR
+  # surface-wide source half of #6: stressed-page child spacing must resolve through
+  # the --tl-space-* / token scale (or 0), never a raw px/rem/em literal that drifts
+  # off the rhythm. Scope the scan to the selector block via selector_block! so a
+  # sibling rule cannot false-pass. The boundingBox / within-viewport half lives in
+  # operator-phase-178-uat.spec.ts.
   test "phase 178 PAGE-02 #6 stressed-page child spacing resolves through the --tl-space-* token scale (no raw gap/margin literal) (D-06)" do
     src = File.read!(@style_path)
 
@@ -1596,7 +1584,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       end
 
     assert String.contains?(gap_decl, "var(--tl-space-"),
-           ".tl-timeline-fact gap must resolve through the --tl-space-* scale, got raw `#{gap_decl}` (footgun #6 spacing drift, RED today; Plan 04 retokenizes it)"
+           ".tl-timeline-fact gap must resolve through the --tl-space-* scale, got raw `#{gap_decl}` (footgun #6 spacing drift)"
   end
 
   defp motion_inventory_rows(inventory) do
