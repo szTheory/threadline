@@ -589,17 +589,15 @@ end
 | A2 | The Storybook wrapper can inject `Threadline.OperatorSurface.Style.css/1` cleanly without a separate CSS asset bundle. `[ASSUMED]` | Architecture Patterns | If wrong, planner must add a minimal example-app Storybook CSS asset while still avoiding root/package leakage. |
 | A3 | No normal operator login is acceptable for local Storybook because it remains dev/test-only and not exposed in production. `[ASSUMED]` | Security Domain | If deployment or demo exposure changes, planner must add a maintainer auth guard. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Storybook be linked from the example home page?**
    - What we know: The route is `/dev/storybook` and must not become a production/demo route. `[VERIFIED: .planning/phases/182-phoenixstorybook-example-dev-lane/182-CONTEXT.md]`
-   - What's unclear: Whether a dev-only visible link is helpful or too close to demo exposure. `[ASSUMED]`
-   - Recommendation: Do not add a normal home/operator nav link in Phase 182; document the URL in maintainer docs instead. `[ASSUMED]`
+   - Resolution: Do not add a normal home, operator, demo, or production nav link in Phase 182. Document the URL in maintainer docs instead so Storybook remains a local example-app component documentation lane. `[RESOLVED: D-182-02, D-182-04, D-182-05, D-182-21, D-182-22]`
 
 2. **Do any overlay stories need Storybook JS hooks?**
    - What we know: PhoenixStorybook supports templates and JS commands, and the example app has no conventional assets directory. `[CITED: https://phoenix-storybook.hexdocs.pm/components.html]` `[VERIFIED: find examples/threadline_phoenix/assets]`
-   - What's unclear: Whether Threadline overlay stories can be shown with static open-state assigns/templates only. `[ASSUMED]`
-   - Recommendation: Start with static/templated examples; add `js_path` only if a representative overlay story needs it. `[ASSUMED]`
+   - Resolution: Use static or templated open-state overlay stories for Phase 182. Do not add Storybook JS hooks unless a later explicit implementation finding proves a representative component cannot be reviewed through the static/template approach. `[RESOLVED: D-182-08, D-182-12, D-182-15, D-182-18, D-182-20]`
 
 ## Environment Availability
 
