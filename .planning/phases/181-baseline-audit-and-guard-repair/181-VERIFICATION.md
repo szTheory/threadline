@@ -1,7 +1,10 @@
 ---
 phase: 181-baseline-audit-and-guard-repair
-verified: 2026-06-26
-status: passed-with-classified-ci-residuals
+verified: 2026-06-26T17:39:35Z
+status: passed
+score: 4/4 must-haves verified
+behavior_unverified: 0
+overrides_applied: 0
 requirements: [BASE-01, BASE-02, BASE-03]
 ---
 
@@ -18,6 +21,31 @@ Phase 181 is complete for the baseline audit and guard-repair scope. The targete
 - Example-app failures remain the inherited demo-seed/walkthrough residuals around old #4521/#4518 anchors, leaving-agent window rows, and org-membership actor attribution. They are unchanged in ownership from earlier Phase 181 summaries.
 
 No real screen-reader UAT or human assistive-technology run occurred.
+
+## Verifier Recheck
+
+This recheck normalizes the frontmatter to the canonical GSD status vocabulary and treats the prior residual classification as evidence to verify, not as a status value. The phase goal is achieved: the remaining red full-suite rows are classified residuals outside the Phase 181 guard-repair contract, not hidden pass claims.
+
+| Must-have | Status | Evidence |
+|---|---|---|
+| Current rendered `/audit` pages are audited against the page/JTBD matrix, including nav discoverability, stale selectors, and info-dump risks. | VERIFIED | `181-BASELINE-AUDIT.md` maps Shell/Home, Timeline, Coverage, Transaction detail, Row history, Actor, Evidence, Exports, Redaction, Retention, and `/audit/__stress` to JTBD, render proof, issue taxonomy, guard disposition, and later owner. The screenshot directory contains the expected default/mobile/light page packet and selected stress-state packet. |
+| E2E/source tests no longer reference removed contracts unless intentionally retired with rationale. | VERIFIED | The stale scan over `test/threadline/operator_surface`, `examples/threadline_phoenix/e2e/tests`, and `lib/threadline/operator_surface` now reports only the intentional `not-real` stress fixture and intentional Playwright skip rows. `181-GUARD-REPAIR.md` records repaired, retained, and residual owner decisions. |
+| `DESIGN-SYSTEM.md`, `.planning/design-system-ledger.json`, screenshots, and stress fixtures stay fresh without lowering ratchet scores. | VERIFIED | Re-ran `mix test test/threadline/operator_surface/stress_ledger_test.exs test/threadline/operator_surface/stress_fixtures_test.exs test/threadline/operator_surface/stress_router_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/style_contract_test.exs`: 91 tests, 0 failures. A direct ledger check confirmed the CI screenshot allowlist still exactly contains `page.home.happy`, `page.timeline.empty`, and `footgun.transaction-page-left-push-desktop`. |
+| Research and decision context for Storybook, `/audit/__stress`, nav IA, a11y, motion, and operator personas is linked from the phase packet. | VERIFIED | `181-CONTEXT.md`, `181-RESEARCH.md`, `181-BASELINE-AUDIT.md`, and this report link PhoenixStorybook as a later example/dev lane, `/audit/__stress` as the authenticated stress harness, nav IA, APG/WCAG proof limits, motion guardrails, and operator personas/JTBD. |
+
+### Canonical Status Decision
+
+`status: passed` is the canonical closeout status. `mix ci.all` remains red, but Phase 181's validation contract allowed closure when the exact residual rows were classified and shown not to come from Phase 181 changes. Those residuals remain release-readiness risks and are preserved below; they do not invalidate the Phase 181 goal of establishing baseline truth, repairing stale guards in scope, and preserving the v1.37 ratchet.
+
+### Advisory Review Risks
+
+The three warnings in `181-REVIEW.md` are not goal-blocking for Phase 181 because the current implementation state is verified, but they should stay visible:
+
+| Review item | Verification decision |
+|---|---|
+| WR-01: responsive nav guard can pass with hidden desktop navigation | Current source keeps desktop/tablet nav visible at `min-width: 768px`, and the phase packet records nav discoverability evidence. The Playwright guard should be hardened in follow-up, but current rendered truth is not contradicted. |
+| WR-02: export auth boundary test uses source-order proxy | `router.ex` currently mounts export routes inside `pipe_through(:threadline_exports)` with `ExportAuthPlug`. The test can be made stricter by asserting route `pipe_through`, but the current route/auth boundary exists. |
+| WR-03: stress allowlist guard checks length/baselines, not exact entries | The actual ledger currently has the exact three accepted CI screenshot cells. The Playwright guard should restore exact-entry locking to better protect future substitutions, but Phase 181 did not silently drop or expand the allowlist. |
 
 ## Tiered Proof
 
