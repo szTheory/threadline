@@ -33,7 +33,7 @@
 3. `DESIGN-SYSTEM.md`, `.planning/design-system-ledger.json`, screenshots, and stress fixtures stay fresh without lowering ratchet scores.
 4. Research and decision context for Storybook, `/audit/__stress`, nav IA, a11y, motion, and operator personas is linked from the phase plan.
 
-**Plans:** 11 plans
+**Plans:** 11/11 plans complete
 
 Plans:
 **Wave 1**
