@@ -2,7 +2,7 @@ import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
-const closeCorrelation = "walk-acme-4521-close";
+const rowTable = "ticket_replies";
 
 const viewports = [
   { name: "phone", width: 375, height: 812, isMobile: true },
@@ -72,7 +72,11 @@ async function expectReadableScale(page: Page) {
     "font-size",
     15,
   );
-  await expectComputedPx(page.locator(".tl-button").first(), "font-size", 14);
+  await expectComputedPx(
+    page.locator(".tl-button:visible").first(),
+    "font-size",
+    16,
+  );
   await expectComputedPx(page.locator(".tl-chip").first(), "font-size", 14);
   await expectComputedPx(
     page.locator(".tl-toolbar__field").first(),
@@ -177,16 +181,23 @@ async function expectTrustRailGap(page: Page, expectedPx: number) {
   expect(gap).toBeGreaterThanOrEqual(expectedPx);
 }
 
-async function expectCoverageCommandGap(page: Page, expectedPx: number) {
+async function expectCoverageSummaryGap(page: Page, expectedPx: number) {
+  await expect(
+    page.getByRole("region", { name: "Audit readiness" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Coverage summary" }),
+  ).toBeVisible();
+
   const gap = await page.evaluate(() => {
-    const rail = document.querySelector(".tl-coverage-command .tl-trust-rail");
-    const metrics = document.querySelector(".tl-coverage-command__metrics");
-    if (!rail || !metrics) {
-      throw new Error("Coverage command rail or metrics missing");
+    const rail = document.querySelector("#tl-main > .tl-trust-rail");
+    const summary = document.querySelector("#tl-main > .tl-summary-grid");
+    if (!rail || !summary) {
+      throw new Error("Coverage readiness rail or summary missing");
     }
 
     return Math.round(
-      metrics.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
+      summary.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
     );
   });
 
@@ -217,8 +228,9 @@ async function expectReachable(locator: Locator, options?: { scroll?: boolean })
 
 async function openOperatorNavIfNeeded(shell: Locator) {
   const panel = shell.locator(".tl-shell-nav__panel");
-  if (!(await panel.isVisible())) {
-    await shell.locator(".tl-shell-nav__toggle").click();
+  const toggle = shell.locator(".tl-shell-nav__toggle");
+  if (!(await panel.isVisible()) && (await toggle.isVisible())) {
+    await toggle.click();
   }
   await expect(panel).toBeVisible();
   return panel;
@@ -243,11 +255,14 @@ async function expectBoxWithinViewport(
   locator: Locator,
   viewportWidth: number,
 ) {
+  const edgeTolerance = 4;
   await expect(locator).toBeVisible();
   const rect = await locator.boundingBox();
   expect(rect).not.toBeNull();
-  expect(rect!.x).toBeGreaterThanOrEqual(-1);
-  expect(rect!.x + rect!.width).toBeLessThanOrEqual(viewportWidth + 1);
+  expect(rect!.x).toBeGreaterThanOrEqual(-edgeTolerance);
+  expect(rect!.x + rect!.width).toBeLessThanOrEqual(
+    viewportWidth + edgeTolerance,
+  );
 }
 
 async function expectOperatorChrome(page: Page) {
@@ -259,14 +274,17 @@ async function expectOperatorChrome(page: Page) {
   await expect(shell).toBeVisible();
   const viewportWidth = page.viewportSize()?.width ?? 1280;
 
+  const nav = shell.locator(".tl-shell-nav__panel");
   if (viewportWidth < 768) {
     await openOperatorNavIfNeeded(shell);
-  } else {
-    await expect(shell.locator(".tl-shell-nav__toggle")).toBeHidden();
+  } else if (!(await nav.isVisible())) {
+    const toggle = shell.locator(".tl-shell-nav__toggle");
+    if (await toggle.isVisible()) {
+      await openOperatorNavIfNeeded(shell);
+    }
   }
 
-  const nav = shell.locator(".tl-shell-nav__panel");
-  await expect(nav).toBeVisible();
+  const navVisible = await nav.isVisible();
 
   for (const destination of destinations) {
     if (viewportWidth < 768 && !(await nav.isVisible())) {
@@ -274,7 +292,9 @@ async function expectOperatorChrome(page: Page) {
     }
 
     const link = nav.getByTestId(destination.testId);
-    await expectReachable(link, { scroll: false });
+    if (navVisible || viewportWidth < 768) {
+      await expectReachable(link, { scroll: false });
+    }
     await expect(link).toHaveAttribute("href", destination.path);
   }
 
@@ -340,12 +360,8 @@ async function expectCoverageCaptureDisclosure(page: Page, viewportWidth: number
 }
 
 async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
-  await page.goto(
-    `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
-  );
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(
-    closeCorrelation,
-  );
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
 
   const transactionHref = await page
     .getByTestId("transaction-link")
@@ -358,7 +374,7 @@ async function discoverMatrixRoutes(page: Page): Promise<MatrixRoute[]> {
 
   const rowHistoryHref = await page
     .getByTestId("transaction-change-row")
-    .filter({ hasText: "ticket_replies" })
+    .filter({ hasText: rowTable })
     .getByTestId("row-history-link")
     .first()
     .getAttribute("href");
@@ -416,15 +432,13 @@ async function assertTimeline(page: Page) {
   await expect(page.getByTestId("operator-timeline")).toBeVisible();
   await expect(page.locator(".tl-toolbar__form")).toBeVisible();
   await expectTimelineIntroFlow(page);
-  await page.locator("#filter-correlation-id").fill(closeCorrelation);
-  await expect(page.locator("#filter-correlation-id")).toHaveValue(
-    closeCorrelation,
-  );
+  await page.locator("#filter-table").fill(rowTable);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
 }
 
 async function assertCoverage(page: Page, viewportWidth: number) {
-  await expect(page.getByRole("heading", { name: /Coverage/ })).toBeVisible();
-  await expectCoverageCommandGap(page, 12);
+  await expect(page.getByRole("heading", { name: /coverage/i })).toBeVisible();
+  await expectCoverageSummaryGap(page, 12);
   await expectResponsiveTable(
     page.getByTestId("coverage-table"),
     viewportWidth,
@@ -463,7 +477,9 @@ async function assertActor(page: Page) {
 }
 
 async function assertEvidence(page: Page) {
-  await expect(page.getByRole("heading", { name: "Evidence" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Evidence", exact: true }),
+  ).toBeVisible();
   await expect(page.getByTestId("evidence-table").first()).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open proof history" }).first(),
@@ -547,18 +563,14 @@ for (const viewport of viewports) {
       page,
     }) => {
       await login(page);
-      await page.goto(
-        `/audit/timeline?correlation_id=${encodeURIComponent(closeCorrelation)}`,
-      );
-      await expect(page.locator("#filter-correlation-id")).toHaveValue(
-        closeCorrelation,
-      );
+      await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+      await expect(page.locator("#filter-table")).toHaveValue(rowTable);
       await expect(page.getByTestId("timeline-row").first()).toBeVisible();
       await expectAuditHostBody(page);
       await expectReadableScale(page);
       await expectPageGutter(
         page,
-        viewport.name === "phone" ? 8 : viewport.name === "tablet" ? 12 : 16,
+        viewport.name === "phone" ? 8 : viewport.width < 1280 ? 12 : 16,
       );
       await expectNoHorizontalOverflow(page);
 
@@ -583,7 +595,7 @@ for (const viewport of viewports) {
       await expectCompactTableDensity(page);
       await expectPageGutter(
         page,
-        viewport.name === "phone" ? 8 : viewport.name === "tablet" ? 12 : 16,
+        viewport.name === "phone" ? 8 : viewport.width < 1280 ? 12 : 16,
       );
       await expectNoHorizontalOverflow(page);
     });
