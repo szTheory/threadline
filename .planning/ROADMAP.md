@@ -33,6 +33,14 @@
 3. `DESIGN-SYSTEM.md`, `.planning/design-system-ledger.json`, screenshots, and stress fixtures stay fresh without lowering ratchet scores.
 4. Research and decision context for Storybook, `/audit/__stress`, nav IA, a11y, motion, and operator personas is linked from the phase plan.
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 181-01-PLAN.md - Rendered baseline audit and screenshot inventory
+- [ ] 181-02-PLAN.md - Stale guard repair and route/auth source contracts
+- [ ] 181-03-PLAN.md - Design-system ratchet and screenshot guard freshness
+- [ ] 181-04-PLAN.md - Verification closeout and source coverage audit
+
 ### Phase 182: PhoenixStorybook example/dev lane
 
 **Goal:** Add PhoenixStorybook as maintainer tooling in the Phoenix example app without changing the root package or production host surface.
