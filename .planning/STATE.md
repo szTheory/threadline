@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Completed 181-07-PLAN.md
-last_updated: "2026-06-26T16:26:31.796Z"
+stopped_at: Completed 181-08-PLAN.md
+last_updated: "2026-06-26T16:35:24.367Z"
 last_activity: 2026-06-26
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 7
-  percent: 64
+  completed_plans: 8
+  percent: 73
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 8 of 11
+Plan: 9 of 11
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -111,6 +111,7 @@ Last activity: 2026-06-26
 | Phase 181-baseline-audit-and-guard-repair P05 | 8 min | 1 tasks | 5 files |
 | Phase 181-baseline-audit-and-guard-repair P06 | 1h 1m | 1 tasks | 1 files |
 | Phase 181-baseline-audit-and-guard-repair P07 | 6 min | 1 tasks | 7 files |
+| Phase 181-baseline-audit-and-guard-repair P08 | 4 min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -272,6 +273,9 @@ Last activity: 2026-06-26
 - [Phase 181-06]: The three bounded screenshot allowlist cells remain page.home.happy, page.timeline.empty, and footgun.transaction-page-left-push-desktop; broader screenshot freshness remains owned by 181-07 through 181-10.
 - [Phase 181-baseline-audit-and-guard-repair]: Stress CI screenshots now read `.planning/design-system-ledger.json` `screenshot_allowlist.ci` directly instead of a separate hardcoded allowlist. — Bounded stress screenshot guard stays ledger-backed and matrix-bounded while local packet evidence remains outside CI baselines.
 - [Phase 181-baseline-audit-and-guard-repair]: The selected happy/error/permission/boundary stress-state PNGs are local-only planning evidence, not CI `toHaveScreenshot` baselines. — D-181-07 needs Tier C evidence without expanding the accepted Tier B screenshot ratchet.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 08 found all existing operator-screenshot-regression desktop/mobile local PNG baselines current, with no accepted Plan 09 or Plan 10 PNG updates discovered.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 08 preserved the generic chromium local screenshot-regression skip as intentional platform-sensitive guard behavior rather than expanding CI coverage.
+- [Phase 181-baseline-audit-and-guard-repair]: Plan 08 re-recorded the example-app mix precommit residual as inherited demo-seed/walkthrough drift, not local screenshot-regression or PNG baseline fallout.
 
 ### Blockers
 
@@ -279,8 +283,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T16:25:44.773Z
-**Stopped at:** Completed 181-07-PLAN.md
+**Last session:** 2026-06-26T16:35:05.018Z
+**Stopped at:** Completed 181-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

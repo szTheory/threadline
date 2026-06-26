@@ -63,7 +63,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 181-08-PLAN.md - Local screenshot-regression verification and classification
+- [x] 181-08-PLAN.md - Local screenshot-regression verification and classification
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
