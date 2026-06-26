@@ -1,10 +1,11 @@
 ---
 phase: 182
 slug: phoenixstorybook-example-dev-lane
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-26
+reviewed_at: 2026-06-26T16:41:06-0400
 ---
 
 # Phase 182 - UI Design Contract
@@ -158,6 +159,12 @@ Story taxonomy:
 - Do not put story maturity, fixture provenance, accessibility notes, theme support, or ugly-data coverage in the top-level navigation taxonomy. Put that in story notes/index metadata.
 - Do not move page-level flows, auth behavior, navigation flows, full page x path matrices, or stress footguns into Storybook.
 
+Visual hierarchy:
+
+- The active story preview is the primary visual anchor. It should occupy the clearest review surface and carry the highest contrast within the Threadline preview wrapper.
+- Sidebar category selection is secondary. Story notes, fixture provenance, and metadata are tertiary and must not visually compete with the rendered component state.
+- Icon-only and icon-button examples must include accessible labels or explicit Storybook notes naming the label contract; visible text fallback is required in any example where the icon meaning is not independently obvious.
+
 Minimum story coverage:
 
 - Foundations: tokens, theme lanes, typography, density, radius, focus, and motion rules.
@@ -209,11 +216,11 @@ Browser smoke scope:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-26T16:41:06-0400
