@@ -47,6 +47,36 @@ These PNGs are Phase 181 local evidence under `.planning/`; they are not `toHave
 | `state.permission-denied` | permission | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-state-permission-denied-dark-1024.png` | 752 x 6761 | local-only phase packet, committed as planning evidence | Captures permission-denied state evidence without expanding the screenshot allowlist. |
 | `state.pagination-boundary` | boundary | `desktop-chromium` | dark | 1024 | `screenshots/stress-states/stress-state-pagination-boundary-dark-1024.png` | 752 x 6737 | local-only phase packet, committed as planning evidence | Captures pagination-boundary state evidence for D-181-07 Tier C review. |
 
+## Plan 08 Local Screenshot Regression Guard
+
+| Lane | Command | Result | Notes |
+|---|---|---|---|
+| Local screenshot regression guard | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-screenshot-regression.spec.ts` | Passed: 10 passed, 5 skipped | Existing committed local baselines matched current rendered truth for desktop/mobile Home, dense Timeline, row-history, Exports, and Retention. The generic `chromium` project skipped intentionally; the guard remains local-only and was not promoted to CI. |
+| Example-app precommit after local screenshot-regression verification | `mix precommit` from `examples/threadline_phoenix` | Failed: 96 tests, 7 failures | Same inherited demo-seed/walkthrough contract residuals recorded by Plans 01 and 07; no Elixir source, seed, capture, query, auth, route, dependency, public API, Playwright spec, or PNG baseline changed in Plan 08. |
+
+### Plan 08 Local Baseline Classification
+
+All rows below are existing `operator-screenshot-regression.spec.ts` Playwright snapshot baselines. Plan 08 did not update PNG files, did not add baseline cells, and did not move any local baseline into the CI allowlist. No accepted update was discovered for Plan 09 or Plan 10.
+
+| Surface | Project | Viewport | Snapshot path | Classification | Rationale |
+|---|---|---:|---|---|---|
+| Home | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/home-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Home desktop PNG update is accepted for Plan 09. |
+| Home | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/home-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Home mobile PNG update is accepted for Plan 09. |
+| Dense Timeline | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no dense Timeline desktop PNG update is accepted for Plan 09. |
+| Dense Timeline | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no dense Timeline mobile PNG update is accepted for Plan 09. |
+| Row history | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/row-history-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no row-history desktop PNG update is accepted for Plan 10. |
+| Row history | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/row-history-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no row-history mobile PNG update is accepted for Plan 10. |
+| Exports | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/exports-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Exports desktop PNG update is accepted for Plan 10. |
+| Exports | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/exports-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Exports mobile PNG update is accepted for Plan 10. |
+| Retention | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Retention desktop PNG update is accepted for Plan 10. |
+| Retention | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Retention mobile PNG update is accepted for Plan 10. |
+
+### Plan 08 Intentional Skips
+
+| Project | Tests skipped | Disposition | Rationale |
+|---|---:|---|---|
+| `chromium` | 5 | intentional local guard skip | `operator-screenshot-regression.spec.ts` skips the generic Chromium project so fixed local baselines only run on `desktop-chromium` and `mobile-chromium`; the full guard is still skipped on CI because these PNG baselines are platform-sensitive. |
+
 ## Tier C Local Packet Matrix
 
 | Durable name | `__default__1280` | `__default__375` | `__light__1280` | Status |
@@ -101,13 +131,13 @@ These remain ledger-owned CI baselines. Plans 01 and 07 did not expand or rebase
 
 ## Example-App Precommit Failure
 
-`mix precommit` was run from `examples/threadline_phoenix` after the E2E spec change. It failed with 96 tests, 7 failures, all in existing demo-seed/audit-transaction evidence tests:
+`mix precommit` was run from `examples/threadline_phoenix` after the Plan 01 E2E spec change and re-run during Plans 07 and 08 after local screenshot guard work. It failed with 96 tests, 7 failures, all in existing demo-seed/audit-transaction evidence tests:
 
 | Test file | Failure class | Disposition |
 |---|---|---|
-| `test/threadline_phoenix_web/walkthrough_evidence_test.exs` | Missing #4521 close transaction / row-history evidence query result. | Not caused by Plan 01; inventory records the failure for 181 guard repair and later verification. |
-| `test/threadline_phoenix_web/walkthrough_happy_path_test.exs` | Missing #4518 hard-delete audit transaction. | Not caused by Plan 01; no Elixir seed, capture, query, or auth code changed. |
-| `test/threadline_phoenix/demo_contract_test.exs` | Missing leaving-agent audit transactions, org_membership actor attribution rows, #4521 close/redaction rows, and #4518 delete row. | Not caused by Plan 01; likely the same current demo-seed drift surfaced by the rendered screenshot failures. |
+| `test/threadline_phoenix_web/walkthrough_evidence_test.exs` | Missing #4521 close transaction / row-history evidence query result. | Not caused by Plans 01, 07, or 08; inventory records the failure for 181 guard repair and later verification. |
+| `test/threadline_phoenix_web/walkthrough_happy_path_test.exs` | Missing #4518 hard-delete audit transaction. | Not caused by Plans 01, 07, or 08; no Elixir seed, capture, query, auth, Playwright spec, or PNG baseline changed in Plan 08. |
+| `test/threadline_phoenix/demo_contract_test.exs` | Missing leaving-agent audit transactions, org_membership actor attribution rows, #4521 close/redaction rows, and #4518 delete row. | Not caused by Plans 01, 07, or 08; same current demo-seed drift class surfaced by earlier rendered screenshot and precommit evidence. |
 
 ## Related Specs
 
