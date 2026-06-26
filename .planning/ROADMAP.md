@@ -67,7 +67,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 181-09-PLAN.md - Accepted Home and dense Timeline local PNG baselines
+- [x] 181-09-PLAN.md - Accepted Home and dense Timeline local PNG baselines
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
