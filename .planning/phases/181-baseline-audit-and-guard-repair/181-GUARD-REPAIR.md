@@ -96,6 +96,24 @@ The scan evidence proves only that the current source tree still contains the ma
 | Old issue-number demo story titles (`#4521`, `#4518`) | Incident-number labels are brittle seed fiction and have already produced residual evidence drift in Plan 01. | Current correlation/table/row discovery or retired-contract rationale in 181-03. |
 | Support Coverage denied-state copy `Coverage inspection is not available` | Plan 01 recorded this as a rendered copy assertion drift. | Current denied-state rendered copy or explicit retirement in 181-03, with Coverage workflow polish deferred to 185. |
 
+## Plan 03 Repair Evidence
+
+| Finding | Commit-time file path | Replacement contract | Status |
+|---|---|---|---|
+| G-001 | `examples/threadline_phoenix/e2e/tests/operator.spec.ts` | Test title now uses `ticket_replies` semantics. The row-history path is discovered from `/audit/timeline?table=ticket_replies`, follows the row `transaction-link`, then opens the `ticket_replies` `row-history-link` and asserts `/history/ticket_replies/` plus `[REDACTED]`. | Repaired in 181-03. |
+| G-002 | `examples/threadline_phoenix/e2e/tests/operator.spec.ts` | The old `#4518`/deleter-specific title is retired. The active replacement discovers a current `ticket_replies` `DELETE` row, opens its transaction, verifies a user actor link, and asserts the transaction change row still names `ticket_replies` and `DELETE`. | Repaired in 181-03. |
+| G-003 | `examples/threadline_phoenix/e2e/tests/operator.spec.ts` | Timeline discovery no longer depends on the stale `walk-acme-4521-close` correlation or `tickets` text. It keeps stable `timeline-row` and `transaction-link` contracts under the current `ticket_replies` table filter. | Repaired in 181-03 for the owning active smoke spec; broader Timeline polish remains 184. |
+| G-004 | `examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts` | The screenshot packet now uses the same `ticket_replies` table discovery, transaction navigation, row-history redaction check, current `DELETE` row discovery, and current support Coverage denied-state alert copy (`Coverage unavailable` plus `mix threadline.health.coverage`). | Repaired in 181-03 for the owning screenshot packet; no broad screenshot baseline expansion. |
+| G-005 | `examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts` | Residual stale-correlation family remains outside the Plan 03 declared file list. It is retained as scan ownership until a follow-up plan edits that file with the same current `ticket_replies` route-discovery contract. | Residual owner: 181 follow-up or Timeline phase 184 if repair requires layout/workflow scope. |
+| G-006 | `examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-features.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts`; `examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts` | Additional stale demo-correlation families remain recorded but were not in the Plan 03 modified-file contract. Future repairs should preserve stable IDs and use current rendered `ticket_replies`/route-href discovery rather than old issue-number fiction. | Residual owner: 181 follow-up or owning page/UAT phase. |
+
+## Plan 03 Residual Verification
+
+| Command | Result | Residual owner / evidence |
+|---|---|---|
+| `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator.spec.ts tests/operator-screenshots.spec.ts` | Passed: 18/18 across `chromium`, `desktop-chromium`, and `mobile-chromium`. | Plan 03 repaired the declared active browser contracts. |
+| `cd examples/threadline_phoenix && mix precommit` | Failed after the E2E repair. | Out of Plan 03 file scope: inherited Elixir demo-seed contract failures still expect old `#4521`/`#4518` May anchor rows, `agent2` window rows, and `org_memberships` actor attribution. Failing tests: `ThreadlinePhoenixWeb.WalkthroughEvidenceTest` WALK-04-02; `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` WALK-03-04; `ThreadlinePhoenix.DemoContractTest` D-05 persona setup, SEED-03 leaving-agent window, SEED-03 hero close transaction, SEED-05 delete incident, and SEED-03 redacted close reply. Owner: source/demo contract repair plan, not this E2E selector plan. |
+
 ## Later-Phase Ownership Boundaries
 
 | Owner | What this ledger allows | What remains deferred |
@@ -122,7 +140,7 @@ This ledger does not prove:
 
 ## Verification Notes
 
-- No source/test files were edited by this plan.
+- Plan 03 edits only the active E2E files named in its file contract plus this ledger.
 - No product UI polish or later-phase redesign was implemented.
 - No packages were installed or upgraded.
 - `test.skip` entries in this ledger are intentionally retained guards, not defects.

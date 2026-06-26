@@ -5,7 +5,7 @@ import { join } from "node:path";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const supportEmail = "support@acme.example.com";
-const correlation = "walk-acme-4521-close";
+const rowTable = "ticket_replies";
 const leavingAgentId = "33123cc4-da21-5674-b030-e168cee90521";
 const durableScreenshotNames = new Set([
   "actor",
@@ -54,6 +54,11 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
   }
 }
 
+async function gotoTicketRepliesTimeline(page: Page) {
+  await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+}
+
 function screenshotViewport(testInfo: TestInfo) {
   switch (testInfo.project.name) {
     case "desktop-chromium":
@@ -93,29 +98,38 @@ test.describe("operator surface screenshots", () => {
     await expect(page.getByTestId("operator-header")).toBeVisible();
     await capture(page, testInfo, "timeline");
 
-    await page.goto(`/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`);
-    await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
-    await expect(page.getByTestId("timeline-row").filter({ hasText: "tickets" }).first()).toBeVisible();
+    await gotoTicketRepliesTimeline(page);
+    const ticketReplyRow = page
+      .getByTestId("timeline-row")
+      .filter({ hasText: rowTable })
+      .first();
+    await expect(ticketReplyRow).toBeVisible();
     await capture(page, testInfo, "timeline-dense");
 
-    await page.getByTestId("transaction-link").first().click();
-    await expect(page).toHaveURL(/\/audit\/transactions\//);
-    await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+    await ticketReplyRow.getByTestId("transaction-link").click();
+    await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
+    const ticketReplyChange = page
+      .getByTestId("transaction-change-row")
+      .filter({ hasText: rowTable })
+      .first();
+    await expect(ticketReplyChange).toBeVisible();
     await capture(page, testInfo, "transaction");
 
-    await page
-      .getByTestId("transaction-change-row")
-      .filter({ hasText: "ticket_replies" })
-      .getByTestId("row-history-link")
-      .first()
-      .click();
+    await ticketReplyChange.getByTestId("row-history-link").first().click();
+    await expect(page).toHaveURL(/\/history\/ticket_replies\//);
     await expect(page.getByTestId("row-history-drawer")).toBeVisible();
     await expect(page.getByTestId("row-history-drawer").getByText("[REDACTED]")).toBeVisible();
     await capture(page, testInfo, "row-history");
 
-    await page.goto("/audit/timeline?table=ticket_replies&from=2026-05-20T00:00&to=2026-05-21T23:59");
-    await expect(page.getByTestId("timeline-row").filter({ hasText: "DELETE" }).first()).toBeVisible();
-    await capture(page, testInfo, "admin-delete-4518-timeline");
+    await gotoTicketRepliesTimeline(page);
+    await expect(
+      page
+        .getByTestId("timeline-row")
+        .filter({ hasText: rowTable })
+        .filter({ hasText: "DELETE" })
+        .first(),
+    ).toBeVisible();
+    await capture(page, testInfo, "admin-delete-ticket-replies-timeline");
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
@@ -173,7 +187,10 @@ test.describe("operator surface screenshots", () => {
     await capture(page, testInfo, "support-evidence-denied");
 
     await page.goto("/audit/coverage");
-    await expect(page.getByText("Coverage inspection is not available")).toBeVisible();
+    const coverageAlert = page.locator("[role='alert']").first();
+    await expect(coverageAlert.getByRole("heading", { name: "Coverage unavailable" })).toBeVisible();
+    await expect(coverageAlert).toContainText("Coverage is unavailable in this support lane");
+    await expect(coverageAlert.getByText("mix threadline.health.coverage")).toBeVisible();
     await capture(page, testInfo, "support-coverage-denied");
   });
 });
