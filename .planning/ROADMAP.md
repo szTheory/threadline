@@ -55,7 +55,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 181-06-PLAN.md - Design-system ledger, projection, and stress source ratchet repair
+- [x] 181-06-PLAN.md - Design-system ledger, projection, and stress source ratchet repair
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
