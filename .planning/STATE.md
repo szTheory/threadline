@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Completed 181-04-PLAN.md
-last_updated: "2026-06-26T14:56:55.308Z"
+stopped_at: Completed 181-05-PLAN.md
+last_updated: "2026-06-26T15:09:30.631Z"
 last_activity: 2026-06-26
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 4
-  percent: 36
+  completed_plans: 5
+  percent: 45
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -108,6 +108,7 @@ Last activity: 2026-06-26
 | Phase 181 P02 | 4 min | 1 tasks | 1 files |
 | Phase 181-baseline-audit-and-guard-repair P03 | 1028 | 1 tasks | 3 files |
 | Phase 181-baseline-audit-and-guard-repair P04 | 7 min | 1 tasks | 8 files |
+| Phase 181-baseline-audit-and-guard-repair P05 | 8 min | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -262,6 +263,9 @@ Last activity: 2026-06-26
 - [Phase 181]: 181-03 replaced stale issue-number/correlation E2E contracts with current ticket_replies table-filter discovery, transaction href navigation, row-history redaction, and DELETE-row actor transaction checks. — Recorded in 181-03-SUMMARY.md after the targeted Playwright suite passed 18/18.
 - [Phase 181]: 181-03 kept adjacent stale browser families outside the declared file contract as residual ledger ownership instead of editing out-of-scope files. — Plan 03 files were explicitly limited to operator.spec.ts, operator-screenshots.spec.ts, and 181-GUARD-REPAIR.md.
 - [Phase 181-04]: Plan 181-04 repairs active source-test prose and failure messages while preserving executable assertions, route paths, feature gates, public APIs, and production source. — Plan scope is documentation/prose in tests and guard ledger; behavior remains unchanged.
+- [Phase 181-05]: Route/export/stress/header boundaries are locked through source contracts rather than rendered UI redesign. — Plan 05 protects server route/auth/export and feature-gate invariants without changing operator IA or layout.
+- [Phase 181-05]: Feature-gated nav group IDs are additive semantic hooks only. — Existing destination IDs, hrefs, copy, active-state semantics, and public component API remain unchanged.
+- [Phase 181-05]: Root threadline continues to exclude PhoenixStorybook/Storybook and production story/stress routes. — Phase 182 owns example-app dev/test Storybook; root optional Phoenix boundaries stay intact.
 
 ### Blockers
 
@@ -269,8 +273,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T14:55:26.352Z
-**Stopped at:** Completed 181-04-PLAN.md
+**Last session:** 2026-06-26T15:08:49.216Z
+**Stopped at:** Completed 181-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

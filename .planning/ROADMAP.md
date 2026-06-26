@@ -51,7 +51,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 181-05-PLAN.md - Route, auth, feature-gate, and optional-dependency source contracts
+- [x] 181-05-PLAN.md - Route, auth, feature-gate, and optional-dependency source contracts
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
