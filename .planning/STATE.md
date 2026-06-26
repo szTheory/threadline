@@ -5,16 +5,16 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Completed 181-01-PLAN.md
-last_updated: "2026-06-26T13:11:42.129Z"
+stopped_at: Completed 181-02-PLAN.md
+last_updated: "2026-06-26T14:20:51.124Z"
 last_activity: 2026-06-26
-last_activity_desc: Completed 181-01-PLAN.md
+last_activity_desc: Completed 181-02-PLAN.md
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 1
-  percent: 9
+  completed_plans: 2
+  percent: 18
 ---
 
 # Project State: Threadline
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-06-26
 
@@ -106,6 +106,7 @@ Last activity: 2026-06-26
 | todo (v1.37 close 2026-06-20) | operator-shell-nav-ia-and-visibility | completed as post-close todo; broader shell/home polish now scoped to v1.38 Phase 183 |
 | todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | completed as post-close demo-login polish |
 | Phase 181 P01 | 32 min | 2 tasks | 12 files |
+| Phase 181 P02 | 4 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -254,6 +255,9 @@ Last activity: 2026-06-26
 - [Phase 180]: [Phase 180-04]: Retention destructive modal tests must open the conditionally mounted modal before asserting or submitting `form[phx-submit=prune_now]`.
 - [Phase 181]: Plan 01 keeps screenshot evidence tiered: partial Tier C PNGs are committed, failed cells are recorded with owners, and CI screenshot allowlist remains bounded. — This preserves D-181-07/D-181-08 while avoiding a full page x path x theme x viewport pixel matrix.
 - [Phase 181]: Plan 01 adds a desktop-1024 responsive viewport row without changing operator routes, data-testids, capture/query/auth semantics, public APIs, or dependencies. — The new row extends the bounded rendered-slice matrix required by D-181-07 and records current stale Timeline discovery failures for repair.
+- [Phase 181]: [181-02] 181-03 owns stale E2E/demo-seed discovery and copy assertion repair; Timeline/Coverage page polish remains deferred to 184/185. — Recorded in 181-02-SUMMARY.md key-decisions.
+- [Phase 181]: [181-02] 181-04 owns active source-test prose that still says RED today/RED until after the guarded behavior landed. — Recorded in 181-02-SUMMARY.md key-decisions.
+- [Phase 181]: [181-02] Local screenshot skips and stress bad-param strings are intentional guards/fixtures, not defects. — Recorded in 181-02-SUMMARY.md key-decisions.
 
 ### Blockers
 
@@ -261,8 +265,8 @@ Last activity: 2026-06-26
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T13:11:28.791Z
-**Stopped at:** Completed 181-01-PLAN.md
+**Last session:** 2026-06-26T14:20:51.116Z
+**Stopped at:** Completed 181-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
