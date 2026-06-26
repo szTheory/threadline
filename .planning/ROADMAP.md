@@ -47,7 +47,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 181-04-PLAN.md - Active source-test prose repair
+- [x] 181-04-PLAN.md - Active source-test prose repair
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
