@@ -71,6 +71,22 @@ All rows below are existing `operator-screenshot-regression.spec.ts` Playwright 
 | Retention | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-desktop-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Retention desktop PNG update is accepted for Plan 10. |
 | Retention | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/retention-mobile-chromium.png` | current committed local baseline | Guard reached screenshot comparison and passed; no Retention mobile PNG update is accepted for Plan 10. |
 
+### Plan 09 Home and Dense Timeline No-Update Confirmation
+
+Plan 09 re-ran the bounded Home/dense Timeline subset after reading the Plan 08 classification rows. No `--update-snapshots` command was run because Plan 08 classified all four target PNGs as current committed local baselines with no accepted update.
+
+| Lane | Command | Result | Notes |
+|---|---|---|---|
+| Home/dense Timeline subset | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-screenshot-regression.spec.ts --grep "global chrome\|dense Timeline"` | Passed: 4 passed, 2 skipped | Desktop/mobile Home and dense Timeline baselines matched current rendered truth. Generic `chromium` skips remained intentional. No PNG files, Playwright specs, stress screenshots, ledger rows, or CI allowlist entries changed. |
+| Example-app precommit after Plan 09 verification | `mix precommit` from `examples/threadline_phoenix` | Failed: 96 tests, 7 failures | Same inherited demo-seed/walkthrough contract residuals recorded by Plans 01, 07, and 08. Plan 09 changed only this inventory evidence and did not modify Elixir source, seed data, capture/query/auth behavior, route paths, Playwright specs, or PNG baselines. |
+
+| Surface | Project | Viewport | Snapshot path | Committed status | Plan 09 disposition |
+|---|---|---:|---|---|---|
+| Home | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/home-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
+| Home | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/home-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
+| Dense Timeline | `desktop-chromium` | 1280 x 900 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-desktop-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
+| Dense Timeline | `mobile-chromium` | 375 x 812 | `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/timeline-dense-mobile-chromium.png` | unchanged committed local baseline | Left untouched; Plan 08 accepted no update and the Plan 09 subset passed. |
+
 ### Plan 08 Intentional Skips
 
 | Project | Tests skipped | Disposition | Rationale |
