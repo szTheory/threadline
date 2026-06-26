@@ -38,7 +38,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 181-01-PLAN.md - Rendered baseline audit and screenshot inventory
+- [x] 181-01-PLAN.md - Rendered baseline audit and screenshot inventory
 - [ ] 181-02-PLAN.md - Stale guard finding ledger
 
 **Wave 2** *(blocked on Wave 1 completion)*

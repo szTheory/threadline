@@ -5,16 +5,16 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 181
 current_phase_name: baseline-audit-and-guard-repair
 status: executing
-stopped_at: Phase 181 UI-SPEC approved
-last_updated: "2026-06-26T12:35:47.345Z"
+stopped_at: Completed 181-01-PLAN.md
+last_updated: "2026-06-26T13:11:42.129Z"
 last_activity: 2026-06-26
-last_activity_desc: Phase 181 execution started
+last_activity_desc: Completed 181-01-PLAN.md
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 11
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 9
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 181 (baseline-audit-and-guard-repair) — EXECUTING
-Plan: 1 of 11
-Status: Executing Phase 181
-Last activity: 2026-06-26 — Phase 181 execution started
+Plan: 2 of 11
+Status: Ready to execute
+Last activity: 2026-06-26
 
 ## Performance Metrics
 
@@ -105,6 +105,7 @@ Last activity: 2026-06-26 — Phase 181 execution started
 | todo (v1.37 close 2026-06-20) | coverage-schema-card-declutter (functional outcome resolved by Phase 176 and regression-guarded by Phase 180; todo artifact cleanup remains) | completed as todo artifact cleanup; broader Coverage flow polish now scoped to v1.38 Phase 185 |
 | todo (v1.37 close 2026-06-20) | operator-shell-nav-ia-and-visibility | completed as post-close todo; broader shell/home polish now scoped to v1.38 Phase 183 |
 | todo (v1.37 close 2026-06-20) | demo-login-copy-credentials | completed as post-close demo-login polish |
+| Phase 181 P01 | 32 min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -251,6 +252,8 @@ Last activity: 2026-06-26 — Phase 181 execution started
 - [Phase 180]: [Phase 180-04]: Dynamic E2E ports require LiveView origin checks to be disabled in Phoenix test config only; production origin behavior is unchanged.
 - [Phase 180]: [Phase 180-04]: Screenshot regression guards now discover current `ticket_replies` seeded rows instead of stale #4521 correlation assumptions, and local desktop/mobile baselines were refreshed from current rendered output.
 - [Phase 180]: [Phase 180-04]: Retention destructive modal tests must open the conditionally mounted modal before asserting or submitting `form[phx-submit=prune_now]`.
+- [Phase 181]: Plan 01 keeps screenshot evidence tiered: partial Tier C PNGs are committed, failed cells are recorded with owners, and CI screenshot allowlist remains bounded. — This preserves D-181-07/D-181-08 while avoiding a full page x path x theme x viewport pixel matrix.
+- [Phase 181]: Plan 01 adds a desktop-1024 responsive viewport row without changing operator routes, data-testids, capture/query/auth semantics, public APIs, or dependencies. — The new row extends the bounded rendered-slice matrix required by D-181-07 and records current stale Timeline discovery failures for repair.
 
 ### Blockers
 
@@ -258,9 +261,9 @@ Last activity: 2026-06-26 — Phase 181 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T09:19:00.404Z
-**Stopped at:** Phase 181 UI-SPEC approved
-**Resume file:** .planning/phases/181-baseline-audit-and-guard-repair/181-UI-SPEC.md
+**Last session:** 2026-06-26T13:11:28.791Z
+**Stopped at:** Completed 181-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

@@ -12,9 +12,9 @@
 
 ### Baseline, Research, and Guardrails
 
-- [ ] **BASE-01**: Maintainers can see a current rendered audit of every `/audit` page, with stale tests and stale selectors identified before page polish begins.
+- [x] **BASE-01**: Maintainers can see a current rendered audit of every `/audit` page, with stale tests and stale selectors identified before page polish begins.
 - [ ] **BASE-02**: The design-system ledger, `DESIGN-SYSTEM.md`, screenshot allowlist, and E2E suites continue to ratchet upward without lowering scores or silently dropping stories.
-- [ ] **BASE-03**: The milestone preserves a compact research/decision record for PhoenixStorybook, `/audit/__stress`, nav IA, motion, accessibility, and operator JTBD tradeoffs.
+- [x] **BASE-03**: The milestone preserves a compact research/decision record for PhoenixStorybook, `/audit/__stress`, nav IA, motion, accessibility, and operator JTBD tradeoffs.
 
 ### Storybook Dev Lane
 
@@ -86,9 +86,9 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 181 | Pending |
+| BASE-01 | Phase 181 | Complete |
 | BASE-02 | Phase 181 | Pending |
-| BASE-03 | Phase 181 | Pending |
+| BASE-03 | Phase 181 | Complete |
 | STORY-01 | Phase 182 | Pending |
 | STORY-02 | Phase 182 | Pending |
 | STORY-03 | Phase 182 | Pending |
