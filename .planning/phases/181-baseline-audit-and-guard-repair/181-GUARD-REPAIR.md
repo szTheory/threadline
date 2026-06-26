@@ -131,6 +131,14 @@ The scan evidence proves only that the current source tree still contains the ma
 
 Plan 04 also added a durable source-prose guard in `test/threadline/operator_surface/component_contract_test.exs` that scans these source-test files for stale scaffold markers before the targeted ExUnit slice runs.
 
+## Plan 05 Source-Contract Evidence
+
+| Contract | Commit-time file path | Replacement / locked proof | Status |
+|---|---|---|---|
+| Mounted operator route set and export auth boundary | `test/threadline/operator_surface/router_test.exs`; `lib/threadline/operator_surface/router.ex` | D-181-05 now has a focused source-contract test that compiles a mounted router, asserts the stable `/threadline` LiveView route set, asserts the four HTTP export controller routes, and pins `pipeline :threadline_exports` before `ExportController` routes with `ExportAuthPlug` in the root router source. | Repaired in 181-05. |
+| Root package Storybook/stress production exclusion | `test/threadline/operator_surface/stress_router_test.exs`; `lib/threadline/operator_surface/router.ex`; `lib/threadline/operator_surface/stress_router.ex` | D-181-05 now has source contracts proving the root operator macro does not expose `/__stress`, story routes, PhoenixStorybook, `phoenix_storybook`, or Storybook; the stress macro stays in `live_session :threadline_stress`, runs `Auth` before `Coverage.OnMount`, and fails closed for prod. | Repaired in 181-05. |
+| Feature-gated nav group IDs and single current nav source | `test/threadline/operator_surface/surface_header_test.exs`; `lib/threadline/operator_surface/components/surface_header.ex` | D-181-05 now locks stable `operator-nav-group-*` source IDs for Investigate, Audit readiness, Evidence & exports, and Theme groups. The IDs are additive semantic hooks only; existing destination IDs, route hrefs, copy, and the single `aria-current="page"` source remain unchanged. | Repaired in 181-05. |
+
 ## Later-Phase Ownership Boundaries
 
 | Owner | What this ledger allows | What remains deferred |

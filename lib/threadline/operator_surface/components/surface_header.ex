@@ -66,11 +66,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               test_id="operator-nav-overview"
             >Overview</.nav_link>
           </div>
-          <section class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-find">
+          <section
+            class="tl-shell-nav__group"
+            aria-labelledby="tl-shell-nav-find"
+            data-testid="operator-nav-group-investigate"
+          >
             <h2 id="tl-shell-nav-find" class="tl-shell-nav__label">Investigate</h2>
             <.nav_link href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>
           </section>
-          <section :if={@coverage_enabled} class="tl-shell-nav__group" aria-labelledby="tl-shell-nav-verify">
+          <section
+            :if={@coverage_enabled}
+            class="tl-shell-nav__group"
+            aria-labelledby="tl-shell-nav-verify"
+            data-testid="operator-nav-group-readiness"
+          >
             <h2 id="tl-shell-nav-verify" class="tl-shell-nav__label">Audit readiness</h2>
             <.nav_link href={"#{@base_path}/coverage"} current={@current} page={:coverage}>Coverage</.nav_link>
           </section>
@@ -78,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             :if={@evidence_enabled or @policy_enabled or @exports_enabled}
             class="tl-shell-nav__group"
             aria-labelledby="tl-shell-nav-prove"
+            data-testid="operator-nav-group-evidence"
           >
             <h2 id="tl-shell-nav-prove" class="tl-shell-nav__label">Evidence & exports</h2>
             <.nav_link :if={@evidence_enabled} href={"#{@base_path}/evidence"} current={@current} page={:evidence}>Evidence</.nav_link>
@@ -85,7 +95,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
           </section>
-          <section class="tl-shell-nav__group tl-theme-picker" aria-labelledby="tl-shell-nav-theme">
+          <section
+            class="tl-shell-nav__group tl-theme-picker"
+            aria-labelledby="tl-shell-nav-theme"
+            data-testid="operator-nav-group-theme"
+          >
             <form action={"#{@base_path}/theme"} method="post" class="tl-theme-picker__form">
               <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
               <fieldset class="tl-theme-picker__options">
