@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 status: planning
-stopped_at: Phase 181 context gathered
-last_updated: "2026-06-26T08:33:54.635Z"
+stopped_at: Phase 181 UI-SPEC approved
+last_updated: "2026-06-26T09:19:00.410Z"
 last_activity: 2026-06-26 — v1.38 requirements, roadmap, and research initialized
 progress:
   total_phases: 7
@@ -255,9 +255,9 @@ Last activity: 2026-06-26 — v1.38 requirements, roadmap, and research initiali
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T08:33:54.625Z
-**Stopped at:** Phase 181 context gathered
-**Resume file:** .planning/phases/181-baseline-audit-and-guard-repair/181-CONTEXT.md
+**Last session:** 2026-06-26T09:19:00.404Z
+**Stopped at:** Phase 181 UI-SPEC approved
+**Resume file:** .planning/phases/181-baseline-audit-and-guard-repair/181-UI-SPEC.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
