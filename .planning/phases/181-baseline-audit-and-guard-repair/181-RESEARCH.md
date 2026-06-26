@@ -396,22 +396,22 @@ All claims in this research were verified from the codebase, local commands, GSD
 |---|-------|---------|---------------|
 | — | None | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 181 run full `mix ci.all`, or keep verification targeted?**  
    What we know: Phase 180 recorded inherited `mix ci.all` residuals from docs/demo seed, while Phase 181 targeted source-contract slices passed 133 tests during research. [VERIFIED: 180-RESIDUAL-CI.md] [VERIFIED: mix test]  
-   What's unclear: Whether those inherited residuals are still present today was not rechecked with full `mix ci.all` because that command runs the full example/browser path. [VERIFIED: research command log]  
-   Recommendation: Plan a targeted Phase 181 gate first, then a final `mix ci.all` or explicit residual classification in `181-VERIFICATION.md`. [VERIFIED: 181-CONTEXT.md]
+   Prior uncertainty: Whether those inherited residuals are still present today was not rechecked with full `mix ci.all` because that command runs the full example/browser path. [VERIFIED: research command log]
+   Resolution: Phase 181 uses targeted task and wave gates first, then the closeout plan runs full `mix ci.all`; if it is non-green, `181-VERIFICATION.md` must classify exact inherited residuals with evidence they are unrelated to Phase 181. [VERIFIED: 181-CONTEXT.md]
 
 2. **How much stale Wave-0 prose should be repaired?**  
    What we know: Multiple current-green tests still contain old "RED today" or "RED until" wording. [VERIFIED: rg stale scan]  
-   What's unclear: Some wording lives in historical explanatory comments and may not affect behavior. [VERIFIED: codebase grep]  
-   Recommendation: Repair comments/failure messages that can mislead future planners; leave historical phase docs unchanged and record rationale in `181-GUARD-REPAIR.md`. [VERIFIED: 181-CONTEXT.md]
+   Prior uncertainty: Some wording lives in historical explanatory comments and may not affect behavior. [VERIFIED: codebase grep]
+   Resolution: Repair active source/test comments, failure messages, test names, and selector prose that can mislead future planners; leave historical phase docs unchanged, and record retained historical references with rationale in `181-GUARD-REPAIR.md`. [VERIFIED: 181-CONTEXT.md]
 
 3. **Where should generated screenshot packet files live?**  
    What we know: `operator-screenshots.spec.ts` writes durable screenshots only when `OPERATOR_SCREENSHOT_DIR` is set. [VERIFIED: operator-screenshots.spec.ts]  
-   What's unclear: Whether Phase 181 wants committed images, untracked local evidence, or markdown inventory links only. [VERIFIED: 181-CONTEXT.md]  
-   Recommendation: Default to `181-SCREENSHOT-INVENTORY.md` plus optional local `screenshots/` output; commit PNGs only if explicitly useful and stable. [VERIFIED: 181-CONTEXT.md]
+   Prior uncertainty: Whether Phase 181 wants committed images, untracked local evidence, or markdown inventory links only. [VERIFIED: 181-CONTEXT.md]
+   Resolution: Default to `181-SCREENSHOT-INVENTORY.md` plus optional local `screenshots/` output for the Tier C packet; generated packet PNGs may stay local, and committed PNG changes are limited to accepted bounded CI/local baseline updates that are recorded in the inventory with command, project, surface, viewport, and rationale. [VERIFIED: 181-CONTEXT.md]
 
 ## Environment Availability
 
