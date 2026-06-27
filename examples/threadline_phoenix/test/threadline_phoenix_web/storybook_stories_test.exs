@@ -66,6 +66,28 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"combobox", ["combobox", "UI.combobox"]}
   ]
 
+  @overlay_contracts [
+    {"modal", ["modal", "UI.modal"]},
+    {"drawer", ["drawer", "UI.drawer"]},
+    {"toast", ["toast", "UI.toast"]},
+    {"tooltip", ["tooltip", "UI.tooltip"]},
+    {"popover", ["popover", "UI.popover"]},
+    {"dropdown", ["dropdown", "UI.dropdown"]},
+    {"accordion", ["accordion", "UI.accordion"]},
+    {"tabs", ["tabs", "UI.tabs"]},
+    {"segmented control", ["segmented_control", "UI.segmented_control"]}
+  ]
+
+  @data_display_contracts [
+    {"ref", ["ref", "UI.ref"]},
+    {"kv", ["kv", "UI.kv"]},
+    {"data table", ["data_table", "UI.data_table"]},
+    {"data panel", ["data_panel", "UI.data_panel"]},
+    {"code block", ["code_block", "UI.code_block"]},
+    {"detail header", ["detail_header", "UI.detail_header"]},
+    {"toolbar", ["toolbar", "UI.toolbar"]}
+  ]
+
   test "backend and wrapper render stories through the Threadline preview context" do
     assert File.exists?(@backend_path), "expected Storybook backend at #{@backend_path}"
 
@@ -136,6 +158,43 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     end
   end
 
+  test "overlay stories cover the UI-SPEC minimum with inert focus-contract examples" do
+    source = story_file!("overlays/modal.story.exs")
+
+    for {component, terms} <- @overlay_contracts do
+      assert covered_or_source_backed?(source, component, terms),
+             "missing overlay Storybook coverage or source-backed rationale for #{component}"
+    end
+
+    assert source =~ "focus"
+    assert source =~ "keyboard"
+    assert source =~ "inert destructive"
+    refute source =~ "phx-submit"
+    refute source =~ "JS.push"
+  end
+
+  test "data-display stories cover the UI-SPEC minimum with representative ugly data" do
+    source = story_file!("data_display/data_table.story.exs") <> "\n" <> helper_sources()
+
+    for {component, terms} <- @data_display_contracts do
+      assert covered_or_source_backed?(source, component, terms),
+             "missing data-display Storybook coverage or source-backed rationale for #{component}"
+    end
+
+    for ugly_case <- [
+          "long_id",
+          "null_fields",
+          "mixed_severity",
+          "pagination_boundary",
+          "timezone_boundary",
+          "disabled",
+          "error",
+          "empty"
+        ] do
+      assert source =~ ugly_case, "missing data-display ugly-data case #{ugly_case}"
+    end
+  end
+
   defp covered_or_source_backed?(source, component, terms) do
     Enum.any?(terms, &String.contains?(source, &1)) or
       (source =~ "unsupported: #{component}" and
@@ -158,6 +217,13 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     |> Enum.filter(&File.regular?/1)
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp story_file!(relative_path) do
+    path = Path.join(@storybook_root, relative_path)
+
+    assert File.exists?(path), "expected curated PhoenixStorybook story file #{path}"
+    File.read!(path)
   end
 
   defp helper_sources do
