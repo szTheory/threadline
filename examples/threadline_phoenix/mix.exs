@@ -55,6 +55,7 @@ defmodule ThreadlinePhoenix.MixProject do
       {:gettext, "~> 0.26"},
       {:swoosh, "~> 1.16"},
       {:heroicons, "~> 0.5"},
+      {:phoenix_storybook, "~> 1.2.0", only: [:dev, :test]},
       {:sigra, "~> 0.2"}
     ]
   end
