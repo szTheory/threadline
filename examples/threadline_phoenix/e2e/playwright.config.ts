@@ -22,6 +22,7 @@ const projects = [
           name: "desktop-chromium-light",
           testMatch: [
             /operator-(accessibility|motion|screenshots|screenshot-regression|stress)\.spec\.ts/,
+            /operator-storybook\.spec\.ts/,
             /operator-phase-177-uat\.spec\.ts/,
             /operator-phase-178-uat\.spec\.ts/,
           ],

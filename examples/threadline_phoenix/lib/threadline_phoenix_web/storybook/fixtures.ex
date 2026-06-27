@@ -147,9 +147,11 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
       source_down: %{reason: :source_down, logs_label: "operator logs"},
       redacted: %{reason: :redacted},
       pruned: %{reason: :pruned, as_of: "2026-06-01"},
+      error: sample("error"),
       null_fields: sample("null_fields"),
       pagination_boundary: sample("pagination_boundary"),
       timezone_boundary: sample("timezone_boundary"),
+      zero_count: sample("zero_count"),
       stress: stress_assigns("permission_denied")
     }
   end

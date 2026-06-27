@@ -6,10 +6,10 @@ const storybookIndexPath = "/dev/storybook";
 const representativeStories = [
   { category: "primitive", path: "/dev/storybook/primitives/button" },
   { category: "form", path: "/dev/storybook/forms/field" },
-  { category: "state", path: "/dev/storybook/states/data-state" },
+  { category: "state", path: "/dev/storybook/states/data_state" },
   { category: "overlay", path: "/dev/storybook/overlays/modal" },
-  { category: "data display", path: "/dev/storybook/data-display/data-table" },
-  { category: "group", path: "/dev/storybook/groups/data-panel" },
+  { category: "data display", path: "/dev/storybook/data_display/data_table" },
+  { category: "group", path: "/dev/storybook/groups/operator_groups" },
 ];
 const viewportWidths = [320, 375, 768];
 
@@ -23,7 +23,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 }
 
 async function expectThreadlinePreview(page: Page) {
-  const preview = page.locator(".threadline-ui").first();
+  const preview = page.locator(".threadline-ui[data-tl-theme]").first();
 
   await expect(preview).toBeVisible();
   await expect(preview).toHaveAttribute("data-tl-theme", /^(dark|light|system)$/);
