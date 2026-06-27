@@ -2,15 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
+current_phase: 182
+current_phase_name: phoenixstorybook-example-dev-lane
 status: executing
-stopped_at: Completed 182-01-PLAN.md
-last_updated: "2026-06-27T01:10:44.081Z"
+stopped_at: Completed 182-02-PLAN.md
+last_updated: "2026-06-27T01:23:49.252Z"
 last_activity: 2026-06-27
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 14
 ---
 
@@ -26,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 182 (phoenixstorybook-example-dev-lane) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-27
 
@@ -114,6 +116,7 @@ Last activity: 2026-06-27
 | Phase 181-baseline-audit-and-guard-repair P10 | 3 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P11 | 29m24s | 2 tasks | 37 files |
 | Phase 182 P01 | 7 min | 3 tasks | 6 files |
+| Phase 182-phoenixstorybook-example-dev-lane P02 | 7 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -289,6 +292,8 @@ Last activity: 2026-06-27
 - [Phase 182]: Plan 182-01 is RED-only by design: it locks executable contracts before package, route, story, or documentation implementation. — Phase 182 implementation is split across later plans, so this plan intentionally commits failing contracts first.
 - [Phase 182]: Storybook browser coverage stays bounded to index plus representative primitive/form/state/overlay/data-display/group stories; no screenshot matrix or external visual regression service was added. — D-182-20 requires bounded browser smoke rather than broad screenshot or SaaS visual-regression coverage.
 - [Phase 182]: Root optional-dependency hygiene remains protected by source contracts and mix verify.compile_no_optional. — The plan adds tests only and proves no root PhoenixStorybook dependency leakage occurred.
+- [Phase 182-02]: PhoenixStorybook remains an example-app dev/test dependency only; production compiles through a no-op router macro fallback when the package is absent.
+- [Phase 182-02]: The maintainer Storybook lane is mounted at /dev/storybook outside /audit and outside normal operator navigation.
 
 ### Blockers
 
@@ -296,8 +301,8 @@ Last activity: 2026-06-27
 
 ## Session Continuity
 
-**Last session:** 2026-06-27T01:10:44.075Z
-**Stopped at:** Completed 182-01-PLAN.md
+**Last session:** 2026-06-27T01:23:49.245Z
+**Stopped at:** Completed 182-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

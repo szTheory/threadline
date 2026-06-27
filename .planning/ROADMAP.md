@@ -12,7 +12,7 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is next.
+**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is in progress with the example dependency and route boundary complete.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
@@ -87,7 +87,7 @@ Plans:
 
 **Requirements:** STORY-01, STORY-02, STORY-03
 
-**Plans:** 1/5 plans complete
+**Plans:** 2/5 plans complete
 
 **Success criteria:**
 
@@ -164,7 +164,7 @@ Plans:
 
 ## Current Planning State
 
-v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phase 181 is complete and Phase 182 is next.
+v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phase 181 is complete and Phase 182 is in progress.
 
 ## Prior Milestones
 
