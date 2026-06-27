@@ -94,6 +94,19 @@ Optional: from the **repository root**, `docker compose up -d postgres` publishe
 | Maintainer walk, seeded operators, `/audit` exercises | **Track B** + [WALKTHROUGH.md](./WALKTHROUGH.md) | **Yes** |
 | Threadline in your own Phoenix app | [getting-started-saas.md](../../guides/getting-started-saas.md) | N/A |
 
+## Maintainer component docs and stress testing
+
+PhoenixStorybook is local maintainer component documentation and design review under `examples/threadline_phoenix`.
+After starting this example app in dev or test, maintainers can open `/dev/storybook`
+to review focused Threadline component states, theme lanes, and representative
+ugly data while evolving the private operator UI.
+
+`/audit/__stress` is authenticated operator-flow stress testing. Use it when
+you need the real operator shell, routing, auth boundary, flow states, and
+stress fixtures exercised as a mounted `/audit` experience.
+
+Neither `/dev/storybook` nor `/audit/__stress` is a production route. Host apps do not install `phoenix_storybook`; it stays in the example app's dev/test dependency set and is not required by root `threadline`.
+
 ## Regenerating the skeleton (generator contract)
 
 This tree was created with **`mix phx.new`** using an API-lean, asset-free flag set. To reproduce or refresh after a Phoenix upgrade, align the command with upstream **`Mix.Tasks.Phx.New`** for your installed Phoenix version, then diff port Threadline-specific files (`mix.exs` path dep, migrations, README).

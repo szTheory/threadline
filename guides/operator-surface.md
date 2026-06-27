@@ -9,6 +9,10 @@ For the broader composition contract across `Threadline.Plug`, `Threadline.Job`,
 reference adapters, and operator-surface auth/export auth, see
 `guides/integration-contracts.md`.
 
+PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`.
+`/audit/__stress` remains the authenticated operator-flow stress harness.
+`/dev/storybook` is not a production route and is not part of the mounted `/audit` operator surface. Adopters do not add `phoenix_storybook` to host apps to use Threadline.
+
 ## 1-Minute Mount
 
 To enable the UI, first ensure your host app has the root Threadline dependency
