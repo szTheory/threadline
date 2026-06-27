@@ -35,6 +35,15 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
     "zero_count" => "state.empty"
   }
 
+  @group_story_allowlist %{
+    "data_panel" => "group.data-panel.current",
+    "detail_header" => "group.detail-header.current",
+    "modal_destructive" => "group.modal-destructive.current",
+    "offline" => "group.offline.current",
+    "permission_denied" => "group.permission-denied.current",
+    "toolbar" => "group.toolbar.current"
+  }
+
   @samples %{
     "long_id" =>
       "chg_00000000-0000-4000-8000-182182182182/correlation/" <>
@@ -77,6 +86,25 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
 
   @doc false
   def sample(case_name) when is_binary(case_name), do: Map.fetch!(@samples, case_name)
+
+  @doc false
+  def group_story_ids, do: @group_story_allowlist |> Map.values() |> Enum.sort()
+
+  @doc false
+  def group_sample(key) when is_binary(key) do
+    story_id = Map.fetch!(@group_story_allowlist, key)
+    {:ok, story} = StressFixtures.by_id(story_id)
+    {:ok, assigns} = StressFixtures.assigns_for(story_id)
+
+    %{
+      story_id: story_id,
+      fixture_key: story.fixture_key,
+      title: Map.get(assigns, :title, story.scenario),
+      body: Map.get(assigns, :body, story.data.summary),
+      cases: story.cases,
+      surface: story.metadata[:surface]
+    }
+  end
 
   @doc false
   def component_assigns("primitives") do
