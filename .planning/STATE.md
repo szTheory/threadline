@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 182
 current_phase_name: phoenixstorybook-example-dev-lane
 status: executing
-stopped_at: Completed 182-03-PLAN.md
-last_updated: "2026-06-27T01:38:10.861Z"
+stopped_at: Completed 182-04-PLAN.md
+last_updated: "2026-06-27T02:04:39.980Z"
 last_activity: 2026-06-27
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 16
-  completed_plans: 14
-  percent: 88
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 182 (phoenixstorybook-example-dev-lane) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-06-27
 
@@ -118,6 +118,7 @@ Last activity: 2026-06-27
 | Phase 182 P01 | 7 min | 3 tasks | 6 files |
 | Phase 182-phoenixstorybook-example-dev-lane P02 | 7 min | 2 tasks | 5 files |
 | Phase 182 P03 | 9 min | 2 tasks | 15 files |
+| Phase 182 P04 | 18 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -298,6 +299,9 @@ Last activity: 2026-06-27
 - [Phase 182-03]: Core Storybook category files use PhoenixStorybook page stories to document multiple private UI functions without promoting a public component API. — Plan 03 covers category pages, not one public component story per exported API; private operator components remain private.
 - [Phase 182-03]: Storybook fixtures expose static samples plus an explicit StressFixtures allowlist, with no database, dynamic atom, ledger mirror, or full stress registry navigation. — This preserves D-182-06 and D-182-07 while giving stories representative ugly data.
 - [Phase 182-03]: Overlays, Data Display, Groups, and Patterns received index metadata now to satisfy the RED category spine while later plans still own their story content. — The existing RED story contract required the full top-level category spine before Plan 04 and Plan 05 add those stories.
+- [Phase 182-04]: Storybook coverage remains curated component documentation; /audit/__stress remains the flow-level stress harness.
+- [Phase 182-04]: Groups sample StressFixtures only through an explicit Storybook helper allowlist instead of mirroring the ledger or full registry.
+- [Phase 182-04]: The light/system Playwright lane includes Storybook only through operator-storybook.spec.ts and asserts that bounded contract.
 
 ### Blockers
 
@@ -305,8 +309,8 @@ Last activity: 2026-06-27
 
 ## Session Continuity
 
-**Last session:** 2026-06-27T01:38:10.850Z
-**Stopped at:** Completed 182-03-PLAN.md
+**Last session:** 2026-06-27T02:04:39.973Z
+**Stopped at:** Completed 182-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
