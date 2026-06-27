@@ -1,4 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const storybookIndexPath = "/dev/storybook";
 const representativeStories = [
@@ -30,6 +32,14 @@ async function expectThreadlinePreview(page: Page) {
 }
 
 test.describe("operator Storybook maintainer lane", () => {
+  test("light/system Playwright lane includes only the bounded Storybook smoke", () => {
+    const config = readFileSync(resolve(process.cwd(), "playwright.config.ts"), "utf8");
+
+    expect(config).toContain("desktop-chromium-light");
+    expect(config).toContain("operator-storybook\\.spec\\.ts");
+    expect(config).not.toContain("operator-.*\\.spec\\.ts");
+  });
+
   test("renders the Storybook index with local assets and Threadline framing", async ({
     page,
   }) => {
