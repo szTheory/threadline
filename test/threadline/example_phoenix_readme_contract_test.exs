@@ -83,6 +83,33 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     assert String.contains?(doc, "Coverage and policy surfaces stay admin/global")
   end
 
+  test "example README distinguishes maintainer Storybook from operator stress testing" do
+    doc = read_rel!(@readme_path)
+
+    assert String.contains?(
+             doc,
+             "PhoenixStorybook is local maintainer component documentation and design review under `examples/threadline_phoenix`"
+           )
+
+    assert String.contains?(
+             doc,
+             "`/audit/__stress` is authenticated operator-flow stress testing"
+           )
+
+    assert String.contains?(
+             doc,
+             "Neither `/dev/storybook` nor `/audit/__stress` is a production route"
+           )
+
+    assert String.contains?(
+             doc,
+             "Host apps do not install `phoenix_storybook`; it stays in the example app's dev/test dependency set"
+           )
+
+    refute String.contains?(doc, "{:phoenix_storybook")
+    refute String.contains?(doc, "install PhoenixStorybook in your app")
+  end
+
   test "example router uses one shared assigns-shaped authorizer" do
     router =
       read_rel!(["examples", "threadline_phoenix", "lib", "threadline_phoenix_web", "router.ex"])

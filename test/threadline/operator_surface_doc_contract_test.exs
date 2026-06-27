@@ -117,6 +117,33 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, "advanced escape hatch")
   end
 
+  test "operator surface guide keeps Storybook out of adopter install guidance" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(
+             guide,
+             "PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`"
+           )
+
+    assert String.contains?(
+             guide,
+             "`/audit/__stress` remains the authenticated operator-flow stress harness"
+           )
+
+    assert String.contains?(
+             guide,
+             "`/dev/storybook` is not a production route and is not part of the mounted `/audit` operator surface"
+           )
+
+    assert String.contains?(
+             guide,
+             "Adopters do not add `phoenix_storybook` to host apps to use Threadline"
+           )
+
+    refute String.contains?(guide, "{:phoenix_storybook")
+    refute String.contains?(guide, "live_storybook")
+  end
+
   test "operator surface guide locks mounted parity table and rejects overclaiming" do
     guide = File.read!("guides/operator-surface.md")
 
