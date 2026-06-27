@@ -4,16 +4,16 @@ milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 182
 current_phase_name: phoenixstorybook-example-dev-lane
-status: executing
-stopped_at: Completed 182-04-PLAN.md
-last_updated: "2026-06-27T02:04:39.980Z"
+status: verifying
+stopped_at: Completed 182-05-PLAN.md
+last_updated: "2026-06-27T02:17:18.157Z"
 last_activity: 2026-06-27
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 16
-  completed_plans: 15
-  percent: 94
+  completed_plans: 16
+  percent: 29
 ---
 
 # Project State: Threadline
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 Phase: 182 (phoenixstorybook-example-dev-lane) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-27
 
 ## Performance Metrics
@@ -119,6 +119,7 @@ Last activity: 2026-06-27
 | Phase 182-phoenixstorybook-example-dev-lane P02 | 7 min | 2 tasks | 5 files |
 | Phase 182 P03 | 9 min | 2 tasks | 15 files |
 | Phase 182 P04 | 18 min | 3 tasks | 9 files |
+| Phase 182 P05 | 7 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -302,6 +303,9 @@ Last activity: 2026-06-27
 - [Phase 182-04]: Storybook coverage remains curated component documentation; /audit/__stress remains the flow-level stress harness.
 - [Phase 182-04]: Groups sample StressFixtures only through an explicit Storybook helper allowlist instead of mirroring the ledger or full registry.
 - [Phase 182-04]: The light/system Playwright lane includes Storybook only through operator-storybook.spec.ts and asserts that bounded contract.
+- [Phase 182]: Phase 182 closes on targeted Storybook/package/route/story/browser/stress/docs evidence while classifying inherited example demo-seed and broad-suite residuals as non-green. — Plan 05 verification found all targeted Phase 182 gates green, while mix precommit and mix ci.all still include pre-existing residuals outside the Storybook/docs scope.
+- [Phase 182]: Storybook remains example-app dev/test maintainer component documentation; /audit/__stress remains the authenticated operator-flow stress harness. — Docs contracts and 182-VERIFICATION.md preserve the root optional dependency and production-route boundaries.
+- [Phase 182]: No schema push task was required because Plan 05 modified only docs and planning verification artifacts. — No schema, migration, SQL trigger, config, struct field, CLI flag, decorator, or dataclass-style field changed.
 
 ### Blockers
 
@@ -309,8 +313,8 @@ Last activity: 2026-06-27
 
 ## Session Continuity
 
-**Last session:** 2026-06-27T02:04:39.973Z
-**Stopped at:** Completed 182-04-PLAN.md
+**Last session:** 2026-06-27T02:17:18.150Z
+**Stopped at:** Completed 182-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
