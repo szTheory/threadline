@@ -88,6 +88,24 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"toolbar", ["toolbar", "UI.toolbar"]}
   ]
 
+  @group_story_ids [
+    "group.toolbar.current",
+    "group.data-panel.current",
+    "group.detail-header.current",
+    "group.modal-destructive.current",
+    "group.offline.current",
+    "group.permission-denied.current"
+  ]
+
+  @pattern_contracts [
+    "toolbar plus filters",
+    "detail header plus metadata",
+    "data panel plus state and pager",
+    "inert destructive modal",
+    "offline and reconnect",
+    "permission denied"
+  ]
+
   test "backend and wrapper render stories through the Threadline preview context" do
     assert File.exists?(@backend_path), "expected Storybook backend at #{@backend_path}"
 
@@ -193,6 +211,32 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
         ] do
       assert source =~ ugly_case, "missing data-display ugly-data case #{ugly_case}"
     end
+  end
+
+  test "group stories are traceable to explicit recurring stress fixture groups" do
+    source = story_file!("groups/operator_groups.story.exs")
+
+    assert source =~ "Threadline.OperatorSurface.StressFixtures"
+    assert source =~ "fixture provenance"
+    assert source =~ "ledger remains"
+
+    for story_id <- @group_story_ids do
+      assert source =~ story_id, "missing recurring group Storybook coverage for #{story_id}"
+    end
+  end
+
+  test "patterns branch stays small and excludes stress page-flow generation" do
+    source = story_file!("patterns/operator_patterns.story.exs")
+
+    for contract <- @pattern_contracts do
+      assert source =~ contract, "missing small Patterns branch contract #{contract}"
+    end
+
+    refute source =~ ".planning/design-system-ledger.json"
+    refute source =~ "page.home"
+    refute source =~ "page.timeline"
+    refute source =~ "footgun."
+    refute source =~ "operator-stress"
   end
 
   defp covered_or_source_backed?(source, component, terms) do
