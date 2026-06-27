@@ -1,0 +1,69 @@
+import { expect, Page, test } from "@playwright/test";
+
+const storybookIndexPath = "/dev/storybook";
+const representativeStories = [
+  { category: "primitive", path: "/dev/storybook/primitives/button" },
+  { category: "form", path: "/dev/storybook/forms/field" },
+  { category: "state", path: "/dev/storybook/states/data-state" },
+  { category: "overlay", path: "/dev/storybook/overlays/modal" },
+  { category: "data display", path: "/dev/storybook/data-display/data-table" },
+  { category: "group", path: "/dev/storybook/groups/data-panel" },
+];
+const viewportWidths = [320, 375, 768];
+
+async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(() => {
+    const root = document.documentElement;
+    return root.scrollWidth - root.clientWidth;
+  });
+
+  expect(overflow).toBeLessThanOrEqual(1);
+}
+
+async function expectThreadlinePreview(page: Page) {
+  const preview = page.locator(".threadline-ui").first();
+
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveAttribute("data-tl-theme", /^(dark|light|system)$/);
+  await expect(page.locator("body")).toContainText(/Threadline|Audit|Component/i);
+  await expectNoHorizontalOverflow(page);
+}
+
+test.describe("operator Storybook maintainer lane", () => {
+  test("renders the Storybook index with local assets and Threadline framing", async ({
+    page,
+  }) => {
+    await page.goto(storybookIndexPath);
+
+    await expect(page).toHaveURL(/\/dev\/storybook/);
+    await expect(page.locator("body")).toContainText(/Storybook|Threadline/i);
+    await expect(
+      page.locator(
+        '[href*="/dev/storybook/assets"], [src*="/dev/storybook/assets"]',
+      ).first(),
+    ).toBeAttached();
+  });
+
+  for (const story of representativeStories) {
+    test(`renders the representative ${story.category} story`, async ({
+      page,
+    }) => {
+      await page.goto(story.path);
+
+      await expectThreadlinePreview(page);
+    });
+  }
+
+  for (const width of viewportWidths) {
+    test(`keeps representative stories within the ${width}px viewport`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+
+      for (const story of representativeStories) {
+        await page.goto(story.path);
+        await expectThreadlinePreview(page);
+      }
+    });
+  }
+});
