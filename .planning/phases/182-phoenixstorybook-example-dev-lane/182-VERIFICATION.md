@@ -1,6 +1,6 @@
 ---
 phase: 182-phoenixstorybook-example-dev-lane
-status: complete
+status: passed
 verified_at: 2026-06-27T02:14:16Z
 requirements:
   - STORY-01
@@ -30,8 +30,9 @@ replacement for `/audit/__stress`.
 | Root optional dependency | `mix verify.compile_no_optional` | PASS | Exit 0; command produced no failure output. |
 | Root package/docs contracts | `mix test test/threadline/operator_surface/storybook_boundary_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs` | PASS | 24 tests, 0 failures. Covers `storybook_boundary_test`, example README contract, and operator guide contract. |
 | Example route/story contracts | `cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix_web/storybook_route_test.exs test/threadline_phoenix_web/storybook_stories_test.exs` | PASS | 13 tests, 0 failures. Covers `storybook_route_test` and `storybook_stories_test`. |
-| Bounded Storybook browser smoke | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-storybook.spec.ts` | PASS | 33 Playwright tests passed across `chromium`, `desktop-chromium`, and `mobile-chromium`; representative primitive, form, state, overlay, data display, and group stories rendered. |
+| Bounded Storybook browser smoke | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-storybook.spec.ts` | PASS | 39 Playwright tests passed across `chromium`, `desktop-chromium`, and `mobile-chromium`; Foundations, Primitives, Forms, States, Overlays, Data Display, Groups, and Patterns rendered through `.threadline-ui[data-tl-theme]`. |
 | Stress harness remains separate | `mix verify.operator_stress` | PASS | 42 passed, 9 configured skips; `/audit/__stress` remains the authenticated operator-flow stress harness. |
+| Code review | `gsd-code-review 182` plus fix/re-review | PASS | Initial review found 3 warnings; commit `1f832fda` resolved them. `182-REVIEW.md` is clean with 0 findings. |
 | Example app precommit | `cd examples/threadline_phoenix && mix precommit` | FAIL - classified | 109 tests, 7 failures. Failures are inherited demo/walkthrough seed drift in `walkthrough_evidence_test.exs`, `walkthrough_happy_path_test.exs`, and `demo_contract_test.exs`; no Storybook route/story/docs failures. |
 | Full CI | `mix ci.all` | FAIL - classified | Root slice: 1135 tests, 2 failures, 1 excluded. Example slice: 109 tests, 7 failures, then `verify.example failed`. Failures are listed in Residual Risks. |
 
@@ -69,7 +70,8 @@ Story coverage is green and bounded.
 - Required categories are present: Foundations, Primitives, Forms, States, Overlays, Data Display, Groups, and Patterns.
 - Story files render through the Threadline wrapper using `.threadline-ui`, `data-tl-theme`, and `Threadline.OperatorSurface.Style.css`.
 - Representative ugly data is covered through explicit helper/allowlist cases rather than a generated ledger mirror or database query.
-- `operator-storybook.spec.ts` passed 33 browser smoke tests: index plus representative primitive, form, state, overlay, data display, and group stories at 320, 375, and 768 px viewport checks across configured Chromium projects.
+- `operator-storybook.spec.ts` passed 39 browser smoke tests: index plus representative foundation, primitive, form, state, overlay, data display, group, and pattern stories at 320, 375, and 768 px viewport checks across configured Chromium projects.
+- Storybook source tests assert concrete story-file render markers for required components, and browser smoke asserts story-specific markers inside `.threadline-ui[data-tl-theme]`.
 
 ## Docs Contract
 
