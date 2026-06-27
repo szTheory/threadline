@@ -330,6 +330,21 @@ defmodule ThreadlinePhoenixWeb.Router do
   end
 
   if Application.compile_env(:threadline_phoenix, :dev_routes) do
+    import PhoenixStorybook.Router
+
+    scope "/" do
+      storybook_assets("/dev/storybook/assets")
+    end
+
+    scope "/", ThreadlinePhoenixWeb do
+      pipe_through(:browser)
+
+      live_storybook("/dev/storybook",
+        backend_module: ThreadlinePhoenixWeb.Storybook,
+        assets_path: "/dev/storybook/assets"
+      )
+    end
+
     scope "/dev", ThreadlinePhoenixWeb do
       pipe_through [:browser, :operator_browser]
 
