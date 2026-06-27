@@ -4,12 +4,14 @@ import { resolve } from "node:path";
 
 const storybookIndexPath = "/dev/storybook";
 const representativeStories = [
-  { category: "primitive", path: "/dev/storybook/primitives/button" },
-  { category: "form", path: "/dev/storybook/forms/field" },
-  { category: "state", path: "/dev/storybook/states/data_state" },
-  { category: "overlay", path: "/dev/storybook/overlays/modal" },
-  { category: "data display", path: "/dev/storybook/data_display/data_table" },
-  { category: "group", path: "/dev/storybook/groups/operator_groups" },
+  { category: "foundation", path: "/dev/storybook/foundations/index", marker: "Foundation rules" },
+  { category: "primitive", path: "/dev/storybook/primitives/button", marker: "Primitive variation groups" },
+  { category: "form", path: "/dev/storybook/forms/field", marker: "Form variation groups" },
+  { category: "state", path: "/dev/storybook/states/data_state", marker: "Data-state variation groups" },
+  { category: "overlay", path: "/dev/storybook/overlays/modal", marker: "Overlay and disclosure contracts" },
+  { category: "data display", path: "/dev/storybook/data_display/data_table", marker: "Data Display contracts" },
+  { category: "group", path: "/dev/storybook/groups/operator_groups", marker: "Recurring operator groups" },
+  { category: "pattern", path: "/dev/storybook/patterns/operator_patterns", marker: "Small operator patterns" },
 ];
 const viewportWidths = [320, 375, 768];
 
@@ -22,12 +24,12 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
-async function expectThreadlinePreview(page: Page) {
+async function expectThreadlinePreview(page: Page, marker: string) {
   const preview = page.locator(".threadline-ui[data-tl-theme]").first();
 
   await expect(preview).toBeVisible();
   await expect(preview).toHaveAttribute("data-tl-theme", /^(dark|light|system)$/);
-  await expect(page.locator("body")).toContainText(/Threadline|Audit|Component/i);
+  await expect(preview).toContainText(marker);
   await expectNoHorizontalOverflow(page);
 }
 
@@ -60,7 +62,7 @@ test.describe("operator Storybook maintainer lane", () => {
     }) => {
       await page.goto(story.path);
 
-      await expectThreadlinePreview(page);
+      await expectThreadlinePreview(page, story.marker);
     });
   }
 
@@ -72,7 +74,7 @@ test.describe("operator Storybook maintainer lane", () => {
 
       for (const story of representativeStories) {
         await page.goto(story.path);
-        await expectThreadlinePreview(page);
+        await expectThreadlinePreview(page, story.marker);
       }
     });
   }

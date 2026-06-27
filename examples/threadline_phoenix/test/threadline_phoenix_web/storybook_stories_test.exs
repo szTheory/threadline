@@ -35,57 +35,57 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   )
 
   @primitive_contracts [
-    {"button", ["button", "UI.button"]},
-    {"icon button", ["icon_button", "UI.icon_button"]},
-    {"link", ["link", "UI.link"]},
-    {"badge", ["badge", "UI.badge"]},
-    {"alert", ["alert", "UI.alert"]},
-    {"divider", ["divider", "UI.divider"]},
-    {"spinner", ["spinner", "UI.spinner"]},
-    {"avatar", ["avatar", "UI.avatar"]},
-    {"card", ["card", "UI.card"]},
-    {"stack", ["stack", "UI.stack"]},
-    {"cluster", ["cluster", "UI.cluster"]},
-    {"page header", ["page_header", "UI.page_header"]},
-    {"pager", ["pager", "UI.pager"]},
-    {"stat tile", ["stat_tile", "UI.stat_tile"]}
+    {"button", ["<UI.button"]},
+    {"icon button", ["<UI.icon_button"]},
+    {"link", ["<UI.link"]},
+    {"badge", ["<UI.badge"]},
+    {"alert", ["<UI.alert"]},
+    {"divider", ["<UI.divider"]},
+    {"spinner", ["<UI.spinner"]},
+    {"avatar", ["<UI.avatar"]},
+    {"card", ["<UI.card"]},
+    {"stack", ["<UI.stack"]},
+    {"cluster", ["<UI.cluster"]},
+    {"page header", ["<UI.page_header"]},
+    {"pager", ["<UI.pager"]},
+    {"stat tile", ["<UI.stat_tile"]}
   ]
 
   @form_contracts [
-    {"field/input", ["field", "UI.field", "input"]},
-    {"label", ["label"]},
-    {"help text", ["help", "help text"]},
-    {"error text", ["error", "error text"]},
-    {"error summary", ["error_summary", "UI.error_summary"]},
-    {"field group", ["field_group", "UI.field_group"]},
-    {"checkbox", ["checkbox"]},
-    {"radio", ["radio"]},
-    {"switch", ["switch"]},
-    {"select", ["select"]},
-    {"textarea", ["textarea"]},
-    {"combobox", ["combobox", "UI.combobox"]}
+    {"field/input", ["<UI.field", "<UI.input"]},
+    {"label", ["<UI.label"]},
+    {"help text", ["<UI.help"]},
+    {"error text", ["<UI.error"]},
+    {"error summary", ["<UI.error_summary"]},
+    {"field group", ["<UI.field_group"]},
+    {"checkbox", [~s|type="checkbox"|]},
+    {"radio", ["<UI.radio"]},
+    {"switch", ["<UI.switch"]},
+    {"select", [~s|type="select"|]},
+    {"textarea", [~s|type="textarea"|]},
+    {"combobox", ["<UI.combobox"]}
   ]
 
   @overlay_contracts [
-    {"modal", ["modal", "UI.modal"]},
-    {"drawer", ["drawer", "UI.drawer"]},
-    {"toast", ["toast", "UI.toast"]},
-    {"tooltip", ["tooltip", "UI.tooltip"]},
-    {"popover", ["popover", "UI.popover"]},
-    {"dropdown", ["dropdown", "UI.dropdown"]},
-    {"accordion", ["accordion", "UI.accordion"]},
-    {"tabs", ["tabs", "UI.tabs"]},
-    {"segmented control", ["segmented_control", "UI.segmented_control"]}
+    {"modal", ["<UI.modal"]},
+    {"drawer", ["<UI.drawer"]},
+    {"toast", ["<UI.toast"]},
+    {"tooltip", ["<UI.tooltip"]},
+    {"popover", ["<UI.popover"]},
+    {"dropdown", ["<UI.dropdown"]},
+    {"accordion", ["<UI.accordion"]},
+    {"tabs", ["<UI.tabs"]},
+    {"segmented control", ["<UI.segmented_control"]}
   ]
 
   @data_display_contracts [
-    {"ref", ["ref", "UI.ref"]},
-    {"kv", ["kv", "UI.kv"]},
-    {"data table", ["data_table", "UI.data_table"]},
-    {"data panel", ["data_panel", "UI.data_panel"]},
-    {"code block", ["code_block", "UI.code_block"]},
-    {"detail header", ["detail_header", "UI.detail_header"]},
-    {"toolbar", ["toolbar", "UI.toolbar"]}
+    {"ref", ["<UI.ref"]},
+    {"kv", ["<UI.kv"]},
+    {"data table", ["<UI.data_table"]},
+    {"data panel", ["<UI.data_panel"]},
+    {"code block", ["<UI.code_block"]},
+    {"detail header", ["<UI.detail_header"]},
+    {"toolbar", ["<UI.toolbar"]}
   ]
 
   @group_story_ids [
@@ -159,19 +159,19 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   end
 
   test "primitive stories cover the UI-SPEC minimum or provide source-backed rationale" do
-    source = story_source!() <> "\n" <> helper_sources()
+    source = story_file!("primitives/button.story.exs")
 
-    for {component, terms} <- @primitive_contracts do
-      assert covered_or_source_backed?(source, component, terms),
+    for {component, markers} <- @primitive_contracts do
+      assert rendered_or_source_backed?(source, component, markers),
              "missing primitive Storybook coverage or source-backed rationale for #{component}"
     end
   end
 
   test "form stories cover the UI-SPEC minimum or provide source-backed rationale" do
-    source = story_source!() <> "\n" <> helper_sources()
+    source = story_file!("forms/field.story.exs")
 
-    for {component, terms} <- @form_contracts do
-      assert covered_or_source_backed?(source, component, terms),
+    for {component, markers} <- @form_contracts do
+      assert rendered_or_source_backed?(source, component, markers),
              "missing form Storybook coverage or source-backed rationale for #{component}"
     end
   end
@@ -179,8 +179,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   test "overlay stories cover the UI-SPEC minimum with inert focus-contract examples" do
     source = story_file!("overlays/modal.story.exs")
 
-    for {component, terms} <- @overlay_contracts do
-      assert covered_or_source_backed?(source, component, terms),
+    for {component, markers} <- @overlay_contracts do
+      assert rendered_or_source_backed?(source, component, markers),
              "missing overlay Storybook coverage or source-backed rationale for #{component}"
     end
 
@@ -194,8 +194,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   test "data-display stories cover the UI-SPEC minimum with representative ugly data" do
     source = story_file!("data_display/data_table.story.exs") <> "\n" <> helper_sources()
 
-    for {component, terms} <- @data_display_contracts do
-      assert covered_or_source_backed?(source, component, terms),
+    for {component, markers} <- @data_display_contracts do
+      assert rendered_or_source_backed?(source, component, markers),
              "missing data-display Storybook coverage or source-backed rationale for #{component}"
     end
 
@@ -239,8 +239,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     refute source =~ "operator-stress"
   end
 
-  defp covered_or_source_backed?(source, component, terms) do
-    Enum.any?(terms, &String.contains?(source, &1)) or
+  defp rendered_or_source_backed?(source, component, markers) do
+    Enum.all?(markers, &String.contains?(source, &1)) or
       (source =~ "unsupported: #{component}" and
          source =~ "Threadline.OperatorSurface.UI" and
          source =~ "source-backed rationale")

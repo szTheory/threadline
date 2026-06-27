@@ -1,3 +1,31 @@
+storybook_routes =
+  if Application.compile_env(:threadline_phoenix, :dev_routes) do
+    unless Code.ensure_loaded?(PhoenixStorybook.Router) do
+      raise CompileError,
+        file: __ENV__.file,
+        description: "dev_routes requires the :phoenix_storybook dependency"
+    end
+
+    quote do
+      import PhoenixStorybook.Router
+
+      scope "/" do
+        storybook_assets("/dev/storybook/assets")
+      end
+
+      scope "/", ThreadlinePhoenixWeb do
+        pipe_through(:browser)
+
+        live_storybook("/dev/storybook",
+          backend_module: ThreadlinePhoenixWeb.Storybook,
+          assets_path: "/dev/storybook/assets"
+        )
+      end
+    end
+  else
+    quote(do: :ok)
+  end
+
 defmodule ThreadlinePhoenixWeb.Router do
   use ThreadlinePhoenixWeb, :router
 
@@ -15,7 +43,7 @@ defmodule ThreadlinePhoenixWeb.Router do
     plug(:put_layout, html: {ThreadlinePhoenixWeb.Layouts, :app})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
-    plug :fetch_current_scope
+    plug(:fetch_current_scope)
   end
 
   pipeline :admin_auth do
@@ -248,12 +276,12 @@ defmodule ThreadlinePhoenixWeb.Router do
   # Sigra authentication
 
   pipeline :require_authenticated do
-    plug :require_authenticated_user
-    plug :require_mfa
+    plug(:require_authenticated_user)
+    plug(:require_mfa)
   end
 
   pipeline :require_sudo do
-    plug Sigra.Plug.RequireSudo, error_handler: ThreadlinePhoenixWeb.AuthErrorHandler
+    plug(Sigra.Plug.RequireSudo, error_handler: ThreadlinePhoenixWeb.AuthErrorHandler)
   end
 
   # Phase 14 Plan 03: organization-aware pipelines (opt-in).
@@ -262,99 +290,87 @@ defmodule ThreadlinePhoenixWeb.Router do
   # :require_org_owner (owner role only). Phase 16 wires these to
   # the organization picker + switcher.
   pipeline :require_org do
-    plug Sigra.Plug.RequireMembership, error_handler: ThreadlinePhoenixWeb.AuthErrorHandler
+    plug(Sigra.Plug.RequireMembership, error_handler: ThreadlinePhoenixWeb.AuthErrorHandler)
   end
 
   pipeline :require_org_owner do
-    plug Sigra.Plug.RequireMembership,
+    plug(Sigra.Plug.RequireMembership,
       error_handler: ThreadlinePhoenixWeb.AuthErrorHandler,
       roles: [:owner]
+    )
   end
 
   # MFA challenge (accessible with mfa_pending sessions, D-24)
   scope "/users", ThreadlinePhoenixWeb do
-    pipe_through [:browser]
+    pipe_through([:browser])
 
-    get "/mfa", MFAChallengeController, :new
-    post "/mfa", MFAChallengeController, :create
+    get("/mfa", MFAChallengeController, :new)
+    post("/mfa", MFAChallengeController, :create)
   end
 
   scope "/users", ThreadlinePhoenixWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
+    pipe_through([:browser, :redirect_if_user_is_authenticated])
 
     # Phase 10.1.1 B9: login page is a plain controller, not a LiveView.
-    get "/log_in", SessionController, :new
+    get("/log_in", SessionController, :new)
 
-    get "/register", RegistrationController, :new
-    post "/register", RegistrationController, :create
+    get("/register", RegistrationController, :new)
+    post("/register", RegistrationController, :create)
 
-    post "/log_in", SessionController, :create
-    get "/log_in/:token", SessionController, :magic_link
+    post("/log_in", SessionController, :create)
+    get("/log_in/:token", SessionController, :magic_link)
 
-    get "/confirm", ConfirmationController, :new
-    post "/confirm", ConfirmationController, :create
-    get "/confirm/:token", ConfirmationController, :confirm
-    post "/confirm/resend", ConfirmationController, :resend
+    get("/confirm", ConfirmationController, :new)
+    post("/confirm", ConfirmationController, :create)
+    get("/confirm/:token", ConfirmationController, :confirm)
+    post("/confirm/resend", ConfirmationController, :resend)
 
-    get "/reset-password", ResetPasswordController, :new
-    post "/reset-password", ResetPasswordController, :create
-    get "/reset-password/:token", ResetPasswordController, :edit
-    put "/reset-password/:token", ResetPasswordController, :update
+    get("/reset-password", ResetPasswordController, :new)
+    post("/reset-password", ResetPasswordController, :create)
+    get("/reset-password/:token", ResetPasswordController, :edit)
+    put("/reset-password/:token", ResetPasswordController, :update)
   end
 
   scope "/users", ThreadlinePhoenixWeb do
-    pipe_through [:browser, :require_authenticated]
+    pipe_through([:browser, :require_authenticated])
 
-    delete "/log_out", SessionController, :delete
+    delete("/log_out", SessionController, :delete)
 
-    get "/sudo", Auth.SudoController, :new
-    post "/sudo", Auth.SudoController, :create
+    get("/sudo", Auth.SudoController, :new)
+    post("/sudo", Auth.SudoController, :create)
   end
 
   scope "/users", ThreadlinePhoenixWeb do
-    pipe_through [:browser, :require_authenticated, :require_sudo]
+    pipe_through([:browser, :require_authenticated, :require_sudo])
   end
 
   # Dormant Sigra settings/MFA routes (compile-time verified route targets only).
   scope "/users", ThreadlinePhoenixWeb do
-    pipe_through [:browser, :require_authenticated]
+    pipe_through([:browser, :require_authenticated])
 
-    get "/settings", DormantAuthController, :not_available
-    get "/reactivation", DormantAuthController, :not_available
-    post "/settings/mfa/disable", DormantAuthController, :not_available
-    post "/settings/mfa/regenerate", DormantAuthController, :not_available
-    post "/settings/mfa/revoke-trust", DormantAuthController, :not_available
-    get "/settings/mfa/enroll", DormantAuthController, :not_available
-    post "/settings/mfa/confirm", DormantAuthController, :not_available
-    post "/settings/mfa/complete", DormantAuthController, :not_available
+    get("/settings", DormantAuthController, :not_available)
+    get("/reactivation", DormantAuthController, :not_available)
+    post("/settings/mfa/disable", DormantAuthController, :not_available)
+    post("/settings/mfa/regenerate", DormantAuthController, :not_available)
+    post("/settings/mfa/revoke-trust", DormantAuthController, :not_available)
+    get("/settings/mfa/enroll", DormantAuthController, :not_available)
+    post("/settings/mfa/confirm", DormantAuthController, :not_available)
+    post("/settings/mfa/complete", DormantAuthController, :not_available)
   end
 
   if Application.compile_env(:threadline_phoenix, :dev_routes) do
-    import PhoenixStorybook.Router
-
-    scope "/" do
-      storybook_assets("/dev/storybook/assets")
-    end
-
-    scope "/", ThreadlinePhoenixWeb do
-      pipe_through(:browser)
-
-      live_storybook("/dev/storybook",
-        backend_module: ThreadlinePhoenixWeb.Storybook,
-        assets_path: "/dev/storybook/assets"
-      )
-    end
+    Code.eval_quoted(storybook_routes, [], __ENV__)
 
     scope "/dev", ThreadlinePhoenixWeb do
-      pipe_through [:browser, :operator_browser]
+      pipe_through([:browser, :operator_browser])
 
-      post "/help_desk/ticket_reply", HelpDeskDevController, :ticket_reply
+      post("/help_desk/ticket_reply", HelpDeskDevController, :ticket_reply)
     end
 
     scope "/dev" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 end
