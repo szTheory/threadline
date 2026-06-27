@@ -10,9 +10,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. Phase 181 established the current `/audit` baseline packet, refreshed stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. The mounted `/audit` operator surface now enters Phase 182 with baseline evidence in hand; PhoenixStorybook remains scoped to the Phoenix example/dev lane while `/audit/__stress` stays the canonical runtime stress harness.
+Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. Phase 181 established the current `/audit` baseline packet, refreshed stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Phase 182 added the PhoenixStorybook example/dev lane as maintainer-only component documentation in `examples/threadline_phoenix`, with root optional-dependency hygiene preserved and `/audit/__stress` still the canonical runtime stress harness.
 
-The highest-impact page-polish pass starts after the Phase 182 Storybook dev lane, with the shell/home/timeline path so operators always know where they are and what to do next. Coverage follows as the audit-readiness workflow, then detail/governance/export surfaces, with accessibility, motion, docs, and adversarial closeout locking the result. Core capture/query/auth semantics remain out of scope.
+The highest-impact page-polish pass starts next with the shell/home/timeline path so operators always know where they are and what to do next. Coverage follows as the audit-readiness workflow, then detail/governance/export surfaces, with accessibility, motion, docs, and adversarial closeout locking the result. Core capture/query/auth semantics remain out of scope.
 
 ## Current Milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
@@ -511,10 +511,10 @@ The highest-impact page-polish pass starts after the Phase 182 Storybook dev lan
 - [x] **POLISH-DS (Phase 144 close-gap)** — Operation primitive consolidation, `v1.31-DESIGN-SYSTEM.md`, source freeze marker, and style contract tests close the design-system catalog/freeze requirement. Validated in v1.31 close-gap audit (2026-06-04).
 - [x] **v1.37 Operator Surface Design-System Stress Test & Component System** — DS, COMP, NAV, DATA, GROUP, PAGE, COPY, A11Y, and MOTION requirements all complete. Archives: `.planning/milestones/v1.37-REQUIREMENTS.md`, `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-MILESTONE-AUDIT.md`. Validated in v1.37 closeout (2026-06-20).
 - [x] **BASE-01 through BASE-03 (Phase 181)** — Established current rendered `/audit` evidence, refreshed the UI issue inventory, repaired stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Validated in Phase 181 (2026-06-26).
+- [x] **STORY-01 through STORY-03 (Phase 182)** — Added PhoenixStorybook only to the Phoenix example app as dev/test maintainer component documentation; preserved the root package boundary, production route absence, private component API posture, and `/audit/__stress` as the authenticated operator-flow stress harness. Validated in Phase 182 (2026-06-27).
 
 ### Active
 
-- [ ] **STORY-01 through STORY-03 (Phase 182)** — Add PhoenixStorybook only to `examples/threadline_phoenix` for development/design review, keeping `/audit/__stress` as the canonical flow stress surface.
 - [ ] **SHELL-01 through SHELL-03 (Phase 183)** — Rework operator shell, home orientation, navigation visibility, active/current state, and mobile IA around user jobs.
 - [ ] **TIME-01 through TIME-03 (Phase 184)** — Streamline Timeline filters, investigation flow, result states, copy, and responsive scanning behavior.
 - [ ] **COV-01 through COV-03 (Phase 185)** — Clean up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, and contextual Timeline affordances.
@@ -634,4 +634,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-26 — Phase 181 baseline audit and guard repair complete; Phase 182 PhoenixStorybook example/dev lane is next*
+*Last updated: 2026-06-27 — Phase 182 PhoenixStorybook example/dev lane complete; Phase 183 shell navigation and Home orientation is next*
