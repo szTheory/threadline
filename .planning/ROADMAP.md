@@ -87,6 +87,8 @@ Plans:
 
 **Requirements:** STORY-01, STORY-02, STORY-03
 
+**Plans:** 1/5 plans complete
+
 **Success criteria:**
 
 1. PhoenixStorybook exists only in `examples/threadline_phoenix` dev/test setup and is excluded from production/demo routes unless explicitly enabled for maintainers.

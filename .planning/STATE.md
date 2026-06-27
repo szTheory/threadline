@@ -2,18 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
-current_phase: 182
-current_phase_name: PhoenixStorybook example/dev lane
 status: executing
-stopped_at: Phase 182 UI-SPEC approved
-last_updated: "2026-06-26T21:26:55.111Z"
-last_activity: 2026-06-26
-last_activity_desc: Phase 181 complete, transitioned to Phase 182
+stopped_at: Completed 182-01-PLAN.md
+last_updated: "2026-06-27T01:10:44.081Z"
+last_activity: 2026-06-27
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 16
+  completed_plans: 12
   percent: 14
 ---
 
@@ -24,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 181 — baseline-audit-and-guard-repair
+**Current focus:** Phase 182 — phoenixstorybook-example-dev-lane
 
 ## Current Position
 
-Phase: 182 — PhoenixStorybook example/dev lane
-Plan: Not started
+Phase: 182 (phoenixstorybook-example-dev-lane) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-06-26 — Phase 181 complete, transitioned to Phase 182
+Last activity: 2026-06-27
 
 ## Performance Metrics
 
@@ -116,6 +113,7 @@ Last activity: 2026-06-26 — Phase 181 complete, transitioned to Phase 182
 | Phase 181-baseline-audit-and-guard-repair P09 | 3 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P10 | 3 min | 1 tasks | 2 files |
 | Phase 181-baseline-audit-and-guard-repair P11 | 29m24s | 2 tasks | 37 files |
+| Phase 182 P01 | 7 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -288,6 +286,9 @@ Last activity: 2026-06-26 — Phase 181 complete, transitioned to Phase 182
 - [Phase 181-baseline-audit-and-guard-repair]: Plan 10 re-recorded the example-app mix precommit residual as inherited demo-seed/walkthrough drift, not screenshot baseline fallout.
 - [Phase 181-baseline-audit-and-guard-repair]: 181-11: Full CI remains red but classified; Phase 181 closes on targeted guard evidence plus residual ownership, not by relabeling red gates as green.
 - [Phase 181-baseline-audit-and-guard-repair]: 181-11: The local Tier C screenshot packet is complete planning evidence and does not expand the CI screenshot allowlist.
+- [Phase 182]: Plan 182-01 is RED-only by design: it locks executable contracts before package, route, story, or documentation implementation. — Phase 182 implementation is split across later plans, so this plan intentionally commits failing contracts first.
+- [Phase 182]: Storybook browser coverage stays bounded to index plus representative primitive/form/state/overlay/data-display/group stories; no screenshot matrix or external visual regression service was added. — D-182-20 requires bounded browser smoke rather than broad screenshot or SaaS visual-regression coverage.
+- [Phase 182]: Root optional-dependency hygiene remains protected by source contracts and mix verify.compile_no_optional. — The plan adds tests only and proves no root PhoenixStorybook dependency leakage occurred.
 
 ### Blockers
 
@@ -295,9 +296,9 @@ Last activity: 2026-06-26 — Phase 181 complete, transitioned to Phase 182
 
 ## Session Continuity
 
-**Last session:** 2026-06-26T20:41:47.516Z
-**Stopped at:** Phase 182 UI-SPEC approved
-**Resume file:** .planning/phases/182-phoenixstorybook-example-dev-lane/182-UI-SPEC.md
+**Last session:** 2026-06-27T01:10:44.075Z
+**Stopped at:** Completed 182-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

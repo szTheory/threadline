@@ -18,9 +18,9 @@
 
 ### Storybook Dev Lane
 
-- [ ] **STORY-01**: The Phoenix example app exposes PhoenixStorybook as a dev/test maintainer component-lab lane without adding a root `threadline` dependency or production route.
-- [ ] **STORY-02**: Storybook stories cover the internal primitive, form, state, overlay, data-display, and recurring group components across dark/light/system and representative ugly data.
-- [ ] **STORY-03**: `/audit/__stress` remains the canonical authenticated operator-flow stress harness, and docs explain when to use Storybook versus the stress route.
+- [x] **STORY-01**: The Phoenix example app exposes PhoenixStorybook as a dev/test maintainer component-lab lane without adding a root `threadline` dependency or production route.
+- [x] **STORY-02**: Storybook stories cover the internal primitive, form, state, overlay, data-display, and recurring group components across dark/light/system and representative ugly data.
+- [x] **STORY-03**: `/audit/__stress` remains the canonical authenticated operator-flow stress harness, and docs explain when to use Storybook versus the stress route.
 
 ### Shell, Navigation, and Home
 
@@ -89,9 +89,9 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | BASE-01 | Phase 181 | Complete |
 | BASE-02 | Phase 181 | Complete |
 | BASE-03 | Phase 181 | Complete |
-| STORY-01 | Phase 182 | Pending |
-| STORY-02 | Phase 182 | Pending |
-| STORY-03 | Phase 182 | Pending |
+| STORY-01 | Phase 182 | Complete |
+| STORY-02 | Phase 182 | Complete |
+| STORY-03 | Phase 182 | Complete |
 | SHELL-01 | Phase 183 | Pending |
 | SHELL-02 | Phase 183 | Pending |
 | SHELL-03 | Phase 183 | Pending |
