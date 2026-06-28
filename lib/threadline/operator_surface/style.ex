@@ -4047,6 +4047,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-top: 1px solid var(--tl-color-border);
         }
 
+        @media (max-width: 480px) {
+          .tl-toolbar.tl-timeline-command {
+            gap: var(--tl-space-1);
+            margin-bottom: var(--tl-space-2);
+            padding: var(--tl-space-2);
+          }
+
+          .tl-timeline-command__lede,
+          .tl-timeline-fact__detail,
+          .tl-timeline-command .tl-filter-summary {
+            display: none;
+          }
+
+          .tl-timeline-command__facts {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--tl-space-1);
+          }
+
+          .tl-timeline-fact {
+            padding: var(--tl-space-1);
+          }
+
+          .tl-filter-grid {
+            gap: var(--tl-space-2);
+          }
+        }
+
         /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
         @media (min-width: 768px) {
           .threadline-ui {
