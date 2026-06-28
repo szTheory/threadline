@@ -672,6 +672,38 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "root/body overflow-x hidden masks responsive bugs instead of fixing components"
   end
 
+  test "phase 184 Timeline rows and copy controls keep narrow-width reflow dimensions" do
+    src = File.read!(@style_path)
+    base = base_responsive_section(src)
+
+    assert_selector_contains(base, ".tl-change__summary", [
+      "min-width: 0;"
+    ])
+
+    assert_selector_contains(base, ".tl-change__actions", [
+      "min-width: 0;"
+    ])
+
+    assert_selector_contains(base, ".tl-ref", [
+      "min-width: 0;",
+      "overflow-wrap: anywhere;"
+    ])
+
+    assert_selector_contains(base, ".tl-copy", [
+      "min-width: var(--tl-control-height-compact);"
+    ])
+
+    assert_selector_contains(base, ".tl-timeline-drawer", [
+      "min-width: 0;"
+    ])
+
+    refute Regex.match?(
+             ~r/\.tl-change(?:-list|__summary|__actions)?[^}]*overflow-x:\s*hidden;/s,
+             src
+           ),
+           "Timeline rows must fix narrow-width overflow at row/control level, not hide horizontal overflow"
+  end
+
   test "phase 142 responsive primitives keep tablet wrapping and desktop table restoration" do
     src = File.read!(@style_path)
     tablet = media_section(src, "768px")

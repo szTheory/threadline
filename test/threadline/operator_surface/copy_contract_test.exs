@@ -202,6 +202,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute text =~ ~r/\b(Prove|proofs?|Proof)\b/
     end
 
+    test "primary Timeline copy keeps incident-pressure vocabulary calm and domain-specific",
+         %{conn: conn} do
+      seed_timeline_change!()
+      text = conn |> render_timeline() |> visible_text()
+
+      for expected <- [
+            "Timeline",
+            "Audit readiness",
+            "Matching changes",
+            "current result set",
+            "Open transaction",
+            "Carry to Exports",
+            "Queue export"
+          ] do
+        assert text =~ expected
+      end
+
+      refute text =~ "!"
+
+      for unsafe <- [
+            "robust",
+            "seamless",
+            "powerful",
+            "SIEM",
+            "immutable ledger",
+            "compliance suite",
+            "event sourcing",
+            "raw storage",
+            "trigger function",
+            "query engine"
+          ] do
+        refute String.contains?(String.downcase(text), String.downcase(unsafe)),
+               "Timeline primary copy leaked unsafe framing: #{unsafe}"
+      end
+    end
+
     test "copy affordances bind every visible short ref to the full forensic value" do
       assigns = %{value: @long_correlation_id}
 
@@ -277,6 +313,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_home(conn) do
       {:ok, _view, html} = live(conn, "/audit")
       html
+    end
+
+    defp render_timeline(conn) do
+      path = "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=ticket_replies"
+
+      case live(conn, path) do
+        {:ok, _view, html} -> html
+        {:error, {:live_redirect, %{to: redirect_path}}} -> conn |> live(redirect_path) |> elem(2)
+      end
+    end
+
+    defp seed_timeline_change! do
+      occurred_at = ~U[2020-01-01 12:00:00Z]
+
+      txn =
+        Threadline.Test.Repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: System.unique_integer([:positive]),
+            occurred_at: occurred_at,
+            actor_ref: %{"type" => "user", "id" => "copy-contract-operator"},
+            source: "support"
+          })
+        )
+
+      Threadline.Test.Repo.insert!(
+        Threadline.Capture.AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "ticket_replies",
+          table_pk: %{"id" => "copy-contract-row"},
+          op: "insert",
+          data_after: %{"body" => "copy contract row"},
+          changed_fields: nil,
+          captured_at: occurred_at
+        })
+      )
     end
 
     defp shell_group_labels(html) do

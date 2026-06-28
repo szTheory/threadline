@@ -866,6 +866,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
     end
 
+    test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
+         %{conn: conn} do
+      clear_audit_rows!()
+
+      assert {:ok, _lv, first_run_html} =
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00"
+               )
+
+      assert first_run_html =~ ~s|tl-empty--never|
+      assert first_run_html =~ "No captured changes in this window"
+      assert first_run_html =~ "Reset to last 24h"
+      refute first_run_html =~ "No captured changes match this window"
+
+      table = "filtered_no_data_#{System.unique_integer([:positive])}"
+
+      assert {:ok, _lv, filtered_html} =
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
+               )
+
+      assert filtered_html =~ ~s|tl-empty--no_data|
+      assert filtered_html =~ "No captured changes match this window"
+
+      assert filtered_html =~
+               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+
+      refute filtered_html =~ "No captured changes in this window"
+    end
+
     test "F-402: future-window empty state explains data exists outside the selected window",
          %{conn: conn} do
       table = "future_window_#{System.unique_integer([:positive])}"
@@ -950,6 +982,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ correlation_ref.visible
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
       assert html =~ ~s|aria-label="Copy correlation id"|
+    end
+
+    test "TIME-02: long table, actor, correlation, and row refs preserve full copy values",
+         %{conn: conn} do
+      clear_audit_rows!()
+
+      table = "threadline_extremely_long_table_name_for_full_value_copy_contracts"
+      actor_id = "service-" <> String.duplicate("actor-copy-", 8) <> "tail"
+      actor_ref = "service_account/#{actor_id}"
+      correlation_id = "corr_" <> String.duplicate("1234567890abcdef", 8)
+      row_id = "row-" <> String.duplicate("identity-", 8) <> "tail"
+
+      seed_change!(
+        table: table,
+        table_pk: %{"id" => row_id},
+        actor_ref: %{"type" => "service_account", "id" => actor_id},
+        correlation_id: correlation_id
+      )
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
+               )
+
+      assert html =~ ~s|title="#{table}"|
+      assert html =~ ~s|data-tl-copy="#{table}"|
+      assert html =~ ~s|title="#{actor_ref}"|
+      assert html =~ ~s|data-tl-copy="#{actor_ref}"|
+      assert html =~ ~s|aria-label="Copy actor ref"|
+      assert html =~ ~s|data-tl-copy="#{correlation_id}"|
+      assert html =~ ~s|data-tl-copy="#{row_id}"|
+      assert html =~ ~s|aria-label="Copy row id"|
     end
 
     test "TIME-01: routeable Timeline rows expose direct row history without hiding transaction",
