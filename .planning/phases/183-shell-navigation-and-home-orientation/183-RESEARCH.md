@@ -403,12 +403,10 @@ This is the kind of non-color cue Phase 183 browser tests should confirm without
 |---|-------|---------|---------------|
 | A1 | Research validity estimate is 30 days for local-code planning and should be rechecked before dependency upgrades. [ASSUMED] | Metadata | Low; affects future planning freshness only, not Phase 183 implementation. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **No blocking open questions.**
-   - What we know: The Phase 183 CONTEXT and UI-SPEC lock scope, files, browser cells, and boundaries. [VERIFIED: .planning/phases/183-shell-navigation-and-home-orientation/183-CONTEXT.md] [VERIFIED: .planning/phases/183-shell-navigation-and-home-orientation/183-UI-SPEC.md]
-   - What's unclear: The planner must choose whether to extend existing browser specs or add one narrow Phase 183 spec. [VERIFIED: .planning/phases/183-shell-navigation-and-home-orientation/183-CONTEXT.md]
-   - Recommendation: Prefer the option that keeps assertions readable and avoids duplicating existing Home/nav/earned-flow coverage. [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts] [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts]
+1. **RESOLVED:** Plan 183-01 adds `examples/threadline_phoenix/e2e/tests/operator-shell-home-phase183.spec.ts` as the narrow Phase 183 browser supplement; no blocking open questions remain.
+   - Resolution basis: D-183-16 allowed the planner to choose exact browser spec organization, and Plan 183-01 selected a dedicated semantic Playwright supplement to keep Phase 183 assertions readable without duplicating existing Home/nav/earned-flow coverage. [VERIFIED: .planning/phases/183-shell-navigation-and-home-orientation/183-CONTEXT.md] [VERIFIED: .planning/phases/183-shell-navigation-and-home-orientation/183-01-PLAN.md]
 
 ## Environment Availability
 

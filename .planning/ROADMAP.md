@@ -109,6 +109,21 @@ Plans:
 3. Active/current state, scope/coverage status, theme picker, skip link, and feature-gated groups are accessible and consistent across dark/light/system.
 4. Browser tests cover desktop/tablet/mobile nav perception and Home task-launch flows.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 0**
+
+- [ ] 183-01-PLAN.md - Browser perception proof
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [ ] 183-02-PLAN.md - Source contracts and shell/Home retune
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 183-03-PLAN.md - Verification closeout and source coverage audit
+
 ### Phase 184: Timeline investigation flow
 
 **Goal:** Make Timeline the clean reference workflow for investigating audit history.
