@@ -388,7 +388,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <div class="tl-change__summary">
               <div class="tl-change__meta">
                 <span class={["tl-change__op", Presentation.operation_modifier(change.op)]}><%= Presentation.operation_label(change.op) %></span>
-                <span class="tl-change__table tl-secondary-ref" title={table_ref(change).title}>
+                <span
+                  class="tl-change__table tl-secondary-ref"
+                  title={table_ref(change).title}
+                  data-tl-copy={table_ref(change).title}
+                >
                   <%= table_ref(change).visible %>
                 </span>
                 <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
@@ -398,8 +402,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-meta">
                 <span>
                   Actor
-                  <%= if path = actor_path(@base_path, change) do %>
-                    <a href={path} class="tl-link tl-link--deep"><code><%= actor_label(change) %></code></a>
+                  <%= if actor_label(change) != "unknown" do %>
+                    <UI.ref value={actor_label(change)} kind="actor" copy_label="Copy actor ref" />
+                    <a
+                      :if={path = actor_path(@base_path, change)}
+                      href={path}
+                      class="tl-link tl-link--deep"
+                      title="View actor activity"
+                    >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                      Actor timeline
+                    </a>
                   <% else %>
                     <code><%= actor_label(change) %></code>
                   <% end %>
@@ -411,6 +424,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                     Timeline
                   </a>
+                </span>
+                <span :if={row_id = routeable_row_ref(change)}>
+                  Row
+                  <UI.ref value={row_id} kind="uuid" copy_label="Copy row id" />
                 </span>
               </div>
               <div class="tl-change__actions">
@@ -441,16 +458,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
         <UI.empty_state
           :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
-          variant={timeline_empty_variant(@filters_raw)}
+          variant={timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
-          icon={timeline_empty_icon(@filters_raw)}
+          icon={timeline_empty_icon(@filters_raw, @future_window_empty)}
         >
-          <:title><%= empty_title(@future_window_empty) %></:title>
-          <%= empty_body(@future_window_empty) %>
+          <:title><%= timeline_empty_title(@filters_raw, @future_window_empty) %></:title>
+          <%= timeline_empty_body(@filters_raw, @future_window_empty) %>
           <:actions>
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">
               <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
-              Clear filters
+              <%= timeline_empty_action_label(@filters_raw, @future_window_empty) %>
             </.link>
           </:actions>
         </UI.empty_state>
@@ -881,6 +898,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
     defp table_ref(_change), do: Presentation.secondary_ref("", 30)
 
+    defp routeable_row_ref(change) do
+      case routeable_row_identity(change) do
+        {_table, record_id} -> record_id
+        nil -> nil
+      end
+    end
+
     defp safe_row_history_path(base_path, change) when is_binary(base_path) do
       case routeable_row_identity(change) do
         {table, record_id} ->
@@ -1130,21 +1154,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp timeline_filters_active?(_), do: false
 
-    defp timeline_empty_variant(raw),
-      do: if(timeline_filters_active?(raw), do: "no_data", else: "never")
+    defp timeline_empty_reason(_raw, true), do: :future_window
 
-    defp timeline_empty_icon(raw),
-      do: if(timeline_filters_active?(raw), do: :funnel, else: :history)
+    defp timeline_empty_reason(raw, false),
+      do: if(timeline_filters_active?(raw), do: :filtered, else: :first_run)
 
-    defp empty_title(true), do: "No captured changes in this time window"
-    defp empty_title(false), do: "No captured changes match this window"
-
-    defp empty_body(true) do
-      "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
+    defp timeline_empty_variant(raw, future_window_empty) do
+      case timeline_empty_reason(raw, future_window_empty) do
+        :filtered -> "no_data"
+        _ -> "never"
+      end
     end
 
-    defp empty_body(false) do
-      "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+    defp timeline_empty_icon(raw, future_window_empty) do
+      case timeline_empty_reason(raw, future_window_empty) do
+        :filtered -> :funnel
+        _ -> :history
+      end
+    end
+
+    defp timeline_empty_title(raw, future_window_empty) do
+      case timeline_empty_reason(raw, future_window_empty) do
+        :future_window -> "No captured changes in this time window"
+        :first_run -> "No captured changes in this window"
+        :filtered -> "No captured changes match this window"
+      end
+    end
+
+    defp timeline_empty_body(raw, future_window_empty) do
+      case timeline_empty_reason(raw, future_window_empty) do
+        :future_window ->
+          "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
+
+        :first_run ->
+          "No audit changes were captured in this window. Reset to last 24h or widen the time range."
+
+        :filtered ->
+          "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+      end
+    end
+
+    defp timeline_empty_action_label(raw, future_window_empty) do
+      case timeline_empty_reason(raw, future_window_empty) do
+        :first_run -> "Reset to last 24h"
+        _ -> "Clear filters"
+      end
     end
 
     defp future_window_empty?(_filters, count, _socket) when count != 0, do: false

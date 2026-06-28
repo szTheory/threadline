@@ -1415,6 +1415,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: grid;
           align-content: start;
           gap: var(--tl-space-4);
+          min-width: 0;
         }
 
         .tl-timeline-drawer__header {
@@ -2468,6 +2469,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           grid-template-columns: 1fr;
           gap: var(--tl-space-3);
           align-items: center;
+          min-width: 0;
         }
 
         .tl-change__detail {
@@ -2479,6 +2481,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           flex-wrap: wrap;
           gap: var(--tl-space-2);
           justify-content: flex-start;
+          min-width: 0;
         }
 
         /* Canonical metadata row. */
@@ -2755,6 +2758,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: var(--tl-font-mono);
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
+          overflow-wrap: anywhere;
+        }
+
+        .tl-ref {
+          display: inline-flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--tl-space-1);
+          min-width: 0;
+          max-width: 100%;
           overflow-wrap: anywhere;
         }
 
@@ -3621,6 +3634,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           position: relative;
           display: inline-flex;
           align-items: center;
+          min-width: var(--tl-control-height-compact);
           min-height: var(--tl-control-height-chip);
           padding: 0 var(--tl-space-2);
           border: 1px solid var(--tl-color-border);
