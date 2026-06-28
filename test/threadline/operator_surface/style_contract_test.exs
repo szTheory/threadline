@@ -803,7 +803,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(tablet, ".tl-shell-nav__panel", ["display: grid;"])
 
-    refute String.contains?(tablet, ".tl-shell-nav__disclosure:not([open]) > .tl-shell-nav__panel"),
+    refute String.contains?(
+             tablet,
+             ".tl-shell-nav__disclosure:not([open]) > .tl-shell-nav__panel"
+           ),
            "the desktop rail panel must not depend on overriding closed <details> internals"
 
     assert_selector_contains(tablet, ".tl-page", [
