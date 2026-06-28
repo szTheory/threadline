@@ -566,7 +566,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           border-top: 1px solid var(--tl-color-border);
         }
 
-        .tl-shell-nav__disclosure[open] .tl-shell-nav__panel {
+        .tl-shell-nav__disclosure[open] + .tl-shell-nav__panel {
           display: grid;
         }
 
@@ -4073,7 +4073,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
 
           .tl-shell-nav__panel,
-          .tl-shell-nav__disclosure[open] .tl-shell-nav__panel {
+          .tl-shell-nav__disclosure[open] + .tl-shell-nav__panel {
             display: grid;
             padding: var(--tl-space-4) var(--tl-space-3);
             border-top: 0;

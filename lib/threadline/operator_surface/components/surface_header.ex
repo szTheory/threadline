@@ -57,7 +57,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <nav class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Audit navigation">
         <details class="tl-shell-nav__disclosure">
           <summary class="tl-shell-nav__toggle" aria-controls="tl-shell-nav-panel">Audit navigation</summary>
-          <div id="tl-shell-nav-panel" class="tl-shell-nav__panel">
+        </details>
+        <div id="tl-shell-nav-panel" class="tl-shell-nav__panel">
           <div class="tl-shell-nav__overview">
             <.nav_link
               href={home_path(@base_path)}
@@ -120,8 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <button type="submit" class="tl-button tl-button--primary">Apply theme</button>
             </form>
           </section>
-          </div>
-        </details>
+        </div>
       </nav>
       """
     end

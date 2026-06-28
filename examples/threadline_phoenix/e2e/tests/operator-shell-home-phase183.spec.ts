@@ -25,12 +25,36 @@ const destinations = [
 ];
 
 const adjacentRoutes = [
-  { path: "/audit/timeline", currentTestId: "operator-nav-timeline" },
-  { path: "/audit/coverage", currentTestId: "operator-nav-coverage" },
-  { path: "/audit/evidence", currentTestId: "operator-nav-evidence" },
-  { path: "/audit/policy/redaction", currentTestId: "operator-nav-policy" },
-  { path: "/audit/policy/retention", currentTestId: "operator-nav-retention" },
-  { path: "/audit/exports", currentTestId: "operator-nav-exports" },
+  {
+    path: "/audit/timeline",
+    currentTestId: "operator-nav-timeline",
+    heading: "Investigate audit activity",
+  },
+  {
+    path: "/audit/coverage",
+    currentTestId: "operator-nav-coverage",
+    heading: "Audit coverage",
+  },
+  {
+    path: "/audit/evidence",
+    currentTestId: "operator-nav-evidence",
+    heading: "Evidence",
+  },
+  {
+    path: "/audit/policy/redaction",
+    currentTestId: "operator-nav-policy",
+    heading: "Redaction policy",
+  },
+  {
+    path: "/audit/policy/retention",
+    currentTestId: "operator-nav-retention",
+    heading: "Retention window",
+  },
+  {
+    path: "/audit/exports",
+    currentTestId: "operator-nav-exports",
+    heading: "Exports",
+  },
 ];
 
 async function login(page: Page) {
@@ -133,7 +157,7 @@ async function expectMobileDisclosureNav(page: Page) {
   await expectNoHorizontalOverflow(page);
 }
 
-async function expectDesktopRailNav(page: Page) {
+async function expectDesktopRailNav(page: Page, heading = "Follow what happened.") {
   const shell = page.getByTestId("operator-nav-shell");
   const panel = shell.locator(".tl-shell-nav__panel");
   const toggle = shell.locator(".tl-shell-nav__toggle");
@@ -156,7 +180,13 @@ async function expectDesktopRailNav(page: Page) {
   const mainBox = await page.locator("#tl-main").boundingBox();
   expect(mainBox).not.toBeNull();
   expect(mainBox!.width).toBeGreaterThan(shellBox!.width);
-  await expect(page.getByRole("heading", { name: "Follow what happened." })).toBeVisible();
+  await expect(
+    page.locator("#tl-main").getByRole("heading", {
+      name: heading,
+      level: 1,
+      exact: true,
+    }),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 }
 
@@ -337,7 +367,7 @@ test.describe("Phase 183 shell and Home browser perception", () => {
         await page.goto(route.path);
         await expectPath(page, route.path);
         await expectLiveViewConnected(page);
-        await expectDesktopRailNav(page);
+        await expectDesktopRailNav(page, route.heading);
         await expectActiveNavNonColorCue(page, route.currentTestId);
         await expectThemePickerSelected(page, expectedTheme);
         await expectFocusCue(page.getByTestId(route.currentTestId), page);

@@ -96,7 +96,7 @@ mix deps.get --only test
 # switch between the default (:dark) and light (:system) lanes would otherwise
 # reuse a stale compiled router. (Phase 168, A11Y-02 part 2.)
 touch lib/threadline_phoenix_web/router.ex
-mix compile
+mix compile --force
 mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
 mix ecto.migrate --quiet
 mix demo.reset
