@@ -137,6 +137,21 @@ Plans:
 3. Keyboard-only operation covers filters, result rows, copy controls, pagination, and route transitions.
 4. Copy is concise, exact, and useful under incident pressure.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 184-01-PLAN.md - Timeline workflow source contracts and implementation
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 184-02-PLAN.md - Timeline states, responsive layout, copy, and motion
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 184-03-PLAN.md - Timeline browser proof and verification closeout
+
 ### Phase 185: Coverage and audit readiness
 
 **Goal:** Make Coverage answer one readiness question for one schema without repeated signals or compensating CTAs.
