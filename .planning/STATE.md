@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 status: executing
-stopped_at: Phase 183 context gathered
-last_updated: "2026-06-28T17:03:53.288Z"
-last_activity: 2026-06-28 -- Phase 183 planning complete
+stopped_at: Completed 183-01-PLAN.md
+last_updated: "2026-06-28T17:23:44.959Z"
+last_activity: 2026-06-28
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 29
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 182 — phoenixstorybook-example-dev-lane
+**Current focus:** Phase 183 — shell-navigation-and-home-orientation
 
 ## Current Position
 
-Phase: 183 — Shell navigation and Home orientation
-Plan: Not started
+Phase: 183 (shell-navigation-and-home-orientation) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-28 -- Phase 183 planning complete
+Last activity: 2026-06-28
 
 ## Performance Metrics
 
@@ -118,6 +118,7 @@ Last activity: 2026-06-28 -- Phase 183 planning complete
 | Phase 182 P03 | 9 min | 2 tasks | 15 files |
 | Phase 182 P04 | 18 min | 3 tasks | 9 files |
 | Phase 182 P05 | 7 min | 2 tasks | 4 files |
+| Phase 183 P01 | 15 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -304,6 +305,8 @@ Last activity: 2026-06-28 -- Phase 183 planning complete
 - [Phase 182]: Phase 182 closes on targeted Storybook/package/route/story/browser/stress/docs evidence while classifying inherited example demo-seed and broad-suite residuals as non-green. — Plan 05 verification found all targeted Phase 182 gates green, while mix precommit and mix ci.all still include pre-existing residuals outside the Storybook/docs scope.
 - [Phase 182]: Storybook remains example-app dev/test maintainer component documentation; /audit/__stress remains the authenticated operator-flow stress harness. — Docs contracts and 182-VERIFICATION.md preserve the root optional dependency and production-route boundaries.
 - [Phase 182]: No schema push task was required because Plan 05 modified only docs and planning verification artifacts. — No schema, migration, SQL trigger, config, struct field, CLI flag, decorator, or dataclass-style field changed.
+- [Phase 183]: Plan 01 remains RED/proof-only: browser failures are actionable Plan 02 evidence, not production retuning scope. — 183-01 adds the browser perception proof before shell/Home implementation polish and the plan explicitly allows actionable browser failures.
+- [Phase 183]: The Phase 183 supplement is admitted to the existing system/light lane rather than adding a new Playwright project or screenshot matrix. — The plan forbids screenshot matrix expansion and requires preserving the THREADLINE_E2E_THEME=system desktop-chromium-light lane.
 
 ### Blockers
 
@@ -311,9 +314,9 @@ Last activity: 2026-06-28 -- Phase 183 planning complete
 
 ## Session Continuity
 
-**Last session:** 2026-06-28T16:19:03.816Z
-**Stopped at:** Phase 183 context gathered
-**Resume file:** .planning/phases/183-shell-navigation-and-home-orientation/183-CONTEXT.md
+**Last session:** 2026-06-28T17:23:44.953Z
+**Stopped at:** Completed 183-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

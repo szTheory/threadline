@@ -24,9 +24,9 @@
 
 ### Shell, Navigation, and Home
 
-- [ ] **SHELL-01**: Every `/audit` page has one obvious global operator navigation surface that is visible on desktop/tablet and clearly labeled on mobile.
-- [ ] **SHELL-02**: Home is a focused task launcher, not an info dump: it exposes the top operator jobs, system status, and direct investigation entrypoints with deliberate hierarchy and no redundant generic CTAs.
-- [ ] **SHELL-03**: Active nav state, feature-gated destinations, skip link, theme picker, and topbar status are discoverable, accessible, and stable across dark/light/system and 320-1440px viewports.
+- [x] **SHELL-01**: Every `/audit` page has one obvious global operator navigation surface that is visible on desktop/tablet and clearly labeled on mobile.
+- [x] **SHELL-02**: Home is a focused task launcher, not an info dump: it exposes the top operator jobs, system status, and direct investigation entrypoints with deliberate hierarchy and no redundant generic CTAs.
+- [x] **SHELL-03**: Active nav state, feature-gated destinations, skip link, theme picker, and topbar status are discoverable, accessible, and stable across dark/light/system and 320-1440px viewports.
 
 ### Timeline Investigation Flow
 
@@ -92,9 +92,9 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | STORY-01 | Phase 182 | Complete |
 | STORY-02 | Phase 182 | Complete |
 | STORY-03 | Phase 182 | Complete |
-| SHELL-01 | Phase 183 | Pending |
-| SHELL-02 | Phase 183 | Pending |
-| SHELL-03 | Phase 183 | Pending |
+| SHELL-01 | Phase 183 | Complete |
+| SHELL-02 | Phase 183 | Complete |
+| SHELL-03 | Phase 183 | Complete |
 | TIME-01 | Phase 184 | Pending |
 | TIME-02 | Phase 184 | Pending |
 | TIME-03 | Phase 184 | Pending |

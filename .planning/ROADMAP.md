@@ -114,7 +114,7 @@ Plans:
 Plans:
 **Wave 0**
 
-- [ ] 183-01-PLAN.md - Browser perception proof
+- [x] 183-01-PLAN.md - Browser perception proof
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
