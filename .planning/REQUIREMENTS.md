@@ -31,8 +31,8 @@
 ### Timeline Investigation Flow
 
 - [x] **TIME-01**: Timeline presents one clear investigation workflow: filter, scan, open transaction or row history, and export the current view.
-- [ ] **TIME-02**: Timeline controls, pager, saved-view affordances, empty/loading/error/stale states, long values, and mobile layouts remain readable and keyboard-operable under ugly real data.
-- [ ] **TIME-03**: Timeline copy and micro-interactions are concise, on-brand, and useful under incident pressure without creating decorative motion or layout jumps.
+- [x] **TIME-02**: Timeline controls, pager, saved-view affordances, empty/loading/error/stale states, long values, and mobile layouts remain readable and keyboard-operable under ugly real data.
+- [x] **TIME-03**: Timeline copy and micro-interactions are concise, on-brand, and useful under incident pressure without creating decorative motion or layout jumps.
 
 ### Coverage and Audit Readiness
 
@@ -96,8 +96,8 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | SHELL-02 | Phase 183 | Complete |
 | SHELL-03 | Phase 183 | Complete |
 | TIME-01 | Phase 184 | Complete |
-| TIME-02 | Phase 184 | Pending |
-| TIME-03 | Phase 184 | Pending |
+| TIME-02 | Phase 184 | Complete |
+| TIME-03 | Phase 184 | Complete |
 | COV-01 | Phase 185 | Pending |
 | COV-02 | Phase 185 | Pending |
 | COV-03 | Phase 185 | Pending |

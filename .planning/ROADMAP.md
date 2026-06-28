@@ -146,7 +146,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 184-02-PLAN.md - Timeline states, responsive layout, copy, and motion
+- [x] 184-02-PLAN.md - Timeline states, responsive layout, copy, and motion
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
