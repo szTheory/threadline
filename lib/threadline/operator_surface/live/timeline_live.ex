@@ -500,7 +500,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </strong>
               <span class="tl-timeline-fact__detail"><%= @window.detail %></span>
             </div>
-            <div class="tl-timeline-fact">
+            <div class="tl-status tl-timeline-fact">
               <span class="tl-timeline-fact__label">Matching changes</span>
               <strong class="tl-timeline-fact__value"><%= format_count(@match_count) %></strong>
               <span class="tl-timeline-fact__detail">current result set</span>
