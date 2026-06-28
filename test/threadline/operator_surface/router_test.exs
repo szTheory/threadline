@@ -283,6 +283,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                    {"/threadline/exports/download/:job_id", :download}
                  ])
 
+        theme_routes =
+          routes
+          |> Enum.flat_map(fn
+            %{
+              path: "/threadline/theme",
+              plug: Threadline.OperatorSurface.Controllers.ThemeController,
+              plug_opts: :update,
+              verb: :post
+            } ->
+              ["/threadline/theme"]
+
+            _route ->
+              []
+          end)
+
+        assert theme_routes == ["/threadline/theme"]
+
         source = File.read!("lib/threadline/operator_surface/router.ex")
         assert source =~ "pipeline :threadline_exports"
         assert source =~ "plug(Threadline.OperatorSurface.ExportAuthPlug"

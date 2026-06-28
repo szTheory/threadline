@@ -257,7 +257,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _view, html} = live(conn, "/audit")
 
       assert html =~ "Follow what happened."
+      assert html =~ "Every change is connected to the action, context, and story around it."
+      assert html =~ "Pick where you want to start."
+
       refute html =~ ~s|class="tl-home__eyebrow">Threadline</p>|
+      assert html =~ ~s|class="tl-home__health" role="status" aria-label="System health"|
 
       assert html =~ "Timeline"
       assert html =~ "Find what changed"
@@ -278,6 +282,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ~s|href="/audit/records"|
       refute html =~ ~s|href="/audit/correlations"|
       refute html =~ ~s|href="/audit/row-history"|
+      refute html =~ "Get started"
+
+      assert_before(html, "Find what changed", "Check audit readiness")
+      assert_before(html, "Check audit readiness", "Use evidence and exports")
+      assert_before(html, "Use evidence and exports", ~s|data-earned-flow="EF1"|)
+      assert_before(html, ~s|data-earned-flow="EF1"|, ~s|data-earned-flow="EF4"|)
+      assert_before(html, ~s|data-earned-flow="EF4"|, "Pick up where you left off")
     end
 
     test "renders dark theme by default on the surface root", %{conn: conn} do
@@ -434,17 +445,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-record-lookup", %{
                "record_lookup" => %{"table" => "", "record_id" => "row-1"}
              })
-             |> render_submit() =~ "Select a table for row history."
+             |> render_submit()
+             |> alert_contains?("Select a table for row history.")
 
       assert render_submit(view, "open-row-history", %{
                "record_lookup" => %{"table" => "secrets", "record_id" => "row-1"}
-             }) =~ "Select a mapped table for row history."
+             })
+             |> alert_contains?("Select a mapped table for row history.")
 
       assert view
              |> form("#tl-record-lookup", %{
                "record_lookup" => %{"table" => "ticket_replies", "record_id" => "   "}
              })
-             |> render_submit() =~ "Enter a record id for row history."
+             |> render_submit()
+             |> alert_contains?("Enter a record id for row history.")
     end
 
     test "renders earned correlation shortcut and navigates with canonical query", %{conn: conn} do
@@ -471,7 +485,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-correlation-lookup", %{
                "correlation" => %{"correlation_id" => "   "}
              })
-             |> render_submit() =~ "Enter a correlation id to open the timeline."
+             |> render_submit()
+             |> alert_contains?("Enter a correlation id to open the timeline.")
 
       too_long = String.duplicate("a", 257)
 
@@ -479,7 +494,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> form("#tl-correlation-lookup", %{
                "correlation" => %{"correlation_id" => too_long}
              })
-             |> render_submit() =~ "Correlation id must be 256 bytes or fewer."
+             |> render_submit()
+             |> alert_contains?("Correlation id must be 256 bytes or fewer.")
     end
 
     test "renders honest resume empty state when the actor has no saved views", %{conn: conn} do
@@ -537,6 +553,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp form_html(html, event) do
       Regex.run(~r/<form[^>]*phx-submit="#{event}".*?<\/form>/s, html)
       |> List.first()
+    end
+
+    defp alert_contains?(html, text) do
+      Regex.match?(~r/<div[^>]*role="alert"[^>]*>.*?#{Regex.escape(text)}.*?<\/div>/s, html)
+    end
+
+    defp assert_before(html, first, second) do
+      first_index = :binary.match(html, first)
+      second_index = :binary.match(html, second)
+
+      assert first_index != :nomatch
+      assert second_index != :nomatch
+
+      {first_offset, _} = first_index
+      {second_offset, _} = second_index
+      assert first_offset < second_offset
     end
   end
 

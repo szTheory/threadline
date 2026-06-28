@@ -10,6 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "renders grouped rail IA and preserved header affordances" do
       html = render_header()
 
+      assert nav_root_count(html) == 1
       assert html =~ ~s|href="/audit"|
       assert html =~ ~s|class="tl-topbar__brand"|
       assert html =~ ~s|aria-label="Threadline operator home"|
@@ -24,8 +25,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-shell"|
       assert html =~ ~s|aria-label="Audit navigation"|
+      assert html =~ ~s|<details class="tl-shell-nav__disclosure">|
       assert html =~ ~s|class="tl-shell-nav__toggle"|
+      assert html =~ ~s|aria-controls="tl-shell-nav-panel"|
       assert html =~ ">Audit navigation</summary>"
+      assert html =~ ~s|id="tl-shell-nav-panel"|
       assert html =~ ~s|class="tl-shell-nav__overview"|
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|
@@ -57,6 +61,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       for page <- [:timeline, :coverage, :evidence, :policy, :retention, :exports] do
         assert html =~ ~s|data-testid="operator-nav-#{page}"|
       end
+    end
+
+    test "renders native POST theme form with stable CSRF and radio contract" do
+      html = render_header(%{theme: "system"})
+
+      assert html =~ ~s|action="/audit/theme"|
+      assert html =~ ~s|method="post"|
+      assert html =~ ~s|name="_csrf_token"|
+      assert html =~ ~s|Apply theme|
+      assert html =~ ~s|id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>|
+
+      for value <- ~w(system light dark) do
+        assert html =~ ~s|type="radio"|
+        assert html =~ ~s|name="theme"|
+        assert html =~ ~s|value="#{value}"|
+      end
+
+      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
+      refute html =~ ~s|onchange=|
+      refute html =~ ~s|onclick=|
+      refute html =~ ~s|localStorage|
     end
 
     test "uses current atom as the single aria-current source" do
@@ -96,6 +121,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       html = render_header(%{coverage_enabled: false})
 
       refute html =~ ~s|data-testid="operator-nav-coverage"|
+      refute html =~ ~s|data-testid="operator-nav-group-readiness"|
+      refute html =~ ">Audit readiness</h2>"
       refute html =~ "All tables captured"
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ">Investigate</h2>"
@@ -156,6 +183,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="operator-nav-group-investigate"|
       assert html =~ ~s|data-testid="operator-nav-group-readiness"|
       refute html =~ ~s|data-testid="operator-nav-group-evidence"|
+      refute html =~ ">Evidence &amp; exports</h2>"
       assert html =~ ~s|data-testid="operator-nav-group-theme"|
     end
 
@@ -197,6 +225,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp aria_current_count(html) do
       ~r/aria-current="page"/
+      |> Regex.scan(html)
+      |> length()
+    end
+
+    defp nav_root_count(html) do
+      ~r/<nav[^>]*data-testid="operator-nav-shell"[^>]*aria-label="Audit navigation"[^>]*>/
       |> Regex.scan(html)
       |> length()
     end

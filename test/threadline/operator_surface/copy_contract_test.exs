@@ -155,6 +155,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       html = render_shell()
 
       assert shell_group_labels(html) == @expected_shell_groups
+      assert shell_theme_labels(html) == ["Theme"]
       assert html =~ ~s|href="/audit"|
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-nav-timeline"|
@@ -280,6 +281,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp shell_group_labels(html) do
       ~r/<section[^>]*class="[^"]*\btl-shell-nav__group\b(?![^"]*\btl-theme-picker\b)[^"]*"[^>]*>.*?<h2[^>]*class="[^"]*\btl-shell-nav__label\b[^"]*"[^>]*>(.*?)<\/h2>/s
+      |> Regex.scan(html)
+      |> Enum.map(fn [_, label] -> normalize_text(label) end)
+    end
+
+    defp shell_theme_labels(html) do
+      ~r/<legend[^>]*class="[^"]*\btl-shell-nav__label\b[^"]*"[^>]*>(.*?)<\/legend>/s
       |> Regex.scan(html)
       |> Enum.map(fn [_, label] -> normalize_text(label) end)
     end

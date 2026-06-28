@@ -767,6 +767,75 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
   end
 
+  test "phase 183 shell rail keeps native mobile disclosure and desktop rail visibility" do
+    src = File.read!(@style_path)
+    base = base_responsive_section(src)
+    tablet = media_section(src, "768px")
+
+    assert String.contains?(src, "100svh")
+    assert String.contains?(src, "scroll-padding-top")
+    assert String.contains?(src, "overscroll-behavior: contain")
+
+    refute String.contains?(src, ".tl-shell-nav__control:checked"),
+           "Phase 183 keeps mobile nav native; hidden-checkbox controls are forbidden"
+
+    refute String.contains?(src, "tl-shell-nav--open"),
+           "Phase 183 keeps mobile nav native; JS-open nav classes are forbidden"
+
+    assert_selector_contains(base, ".tl-shell-nav__panel", [
+      "display: none;",
+      "border-top: 1px solid var(--tl-color-border);"
+    ])
+
+    assert_selector_contains(
+      base,
+      ".tl-shell-nav__disclosure[open] .tl-shell-nav__panel",
+      ["display: grid;"]
+    )
+
+    assert_selector_contains(tablet, ".threadline-ui", [
+      "grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);"
+    ])
+
+    assert_selector_contains(tablet, ".tl-shell-nav", [
+      "grid-column: 1;",
+      "grid-row: 2;",
+      "overflow: auto;"
+    ])
+
+    assert_selector_contains(tablet, ".tl-shell-nav__toggle", ["display: none;"])
+
+    assert Regex.match?(
+             ~r/\.tl-shell-nav__panel,\s*\.tl-shell-nav__disclosure\[open\]\s+\.tl-shell-nav__panel\s*\{[^}]*display:\s*grid;/s,
+             tablet
+           ),
+           "the 768px layer must show the rail panel even when the native details is closed"
+
+    assert_selector_contains(tablet, ".tl-page", [
+      "grid-column: 2;",
+      "min-width: 0;"
+    ])
+
+    assert_selector_contains(
+      tablet,
+      ".threadline-ui > :not(.tl-skip-link):not(.tl-topbar):not(.tl-shell-nav)",
+      ["min-width: 0;"]
+    )
+  end
+
+  test "phase 183 active shell nav state is keyed to aria-current and not color alone" do
+    src = File.read!(@style_path)
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui .tl-shell-nav__item--active,\n        .threadline-ui .tl-shell-nav__item[aria-current="page"]|,
+      [
+        "box-shadow: inset 0 0 0 1px var(--tl-color-accent-inset);",
+        "font-weight: var(--tl-weight-strong);"
+      ]
+    )
+  end
+
   test "operator typography defaults stay readable and dense text is opt-in" do
     src = File.read!(@style_path)
 
