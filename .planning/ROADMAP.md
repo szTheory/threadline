@@ -150,7 +150,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 184-03-PLAN.md - Timeline browser proof and verification closeout
+- [x] 184-03-PLAN.md - Timeline browser proof and verification closeout
 
 ### Phase 185: Coverage and audit readiness
 
