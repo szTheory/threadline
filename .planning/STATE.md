@@ -2,13 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
-current_phase: 183
-current_phase_name: Shell navigation and Home orientation
 status: verifying
-stopped_at: Phase 183 UI-SPEC approved
-last_updated: "2026-06-28T01:35:01.475Z"
-last_activity: 2026-06-27
-last_activity_desc: Phase 182 complete, transitioned to Phase 183
+stopped_at: Phase 183 context gathered
+last_updated: "2026-06-28T16:19:03.822Z"
+last_activity: 2026-06-27 — Phase 182 complete, transitioned to Phase 183
 progress:
   total_phases: 7
   completed_phases: 2
@@ -314,9 +311,9 @@ Last activity: 2026-06-27 — Phase 182 complete, transitioned to Phase 183
 
 ## Session Continuity
 
-**Last session:** 2026-06-28T01:35:01.466Z
-**Stopped at:** Phase 183 UI-SPEC approved
-**Resume file:** .planning/phases/183-shell-navigation-and-home-orientation/183-UI-SPEC.md
+**Last session:** 2026-06-28T16:19:03.816Z
+**Stopped at:** Phase 183 context gathered
+**Resume file:** .planning/phases/183-shell-navigation-and-home-orientation/183-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
