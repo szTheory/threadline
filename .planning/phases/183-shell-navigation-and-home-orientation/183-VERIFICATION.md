@@ -1,8 +1,11 @@
 ---
 phase: 183-shell-navigation-and-home-orientation
 plan: 03
-status: complete
-verified: 2026-06-28
+status: passed
+verified: 2026-06-28T19:32:26Z
+score: 12/12 must-haves verified
+behavior_unverified: 0
+overrides_applied: 0
 requirements:
   - SHELL-01
   - SHELL-02
@@ -18,6 +21,12 @@ PASS with classified residuals.
 Phase 183's targeted source contracts and dedicated browser perception proof are green for SHELL-01, SHELL-02, and SHELL-03 in the dark/default and system/light lanes. The broad verification commands are not all green; their failures are classified below and are not reported as Phase 183 shell/Home success.
 
 No broad screenshot matrix, public component API, route churn, data-testid churn, new UI dependency, or adjacent page content polish was introduced by Phase 183 closeout.
+
+## Verifier Recheck - 2026-06-28T19:32:26Z
+
+Rechecked Phase 183 goal achievement backward from the roadmap success criteria and plan must-haves against the actual codebase. GSD artifact and key-link checks pass for plans 183-01, 183-02, and 183-03. Targeted source contracts pass with `121 tests, 0 failures`. The Phase 183 dark/default browser proof passes with `27 passed`, and the system/light proof passes with `9 passed`.
+
+The reproduced `mix verify.threadline` failure remains the documented standalone alias environment residual: no Ecto repository is configured for `verify_coverage`. The broad-suite residuals recorded below do not block Phase 183 because the shell/Home source contracts and dedicated browser proofs are green, while the non-green broad lanes are classified as command-environment, inherited demo-seed/walkthrough, screenshot-baseline, page-content, or legacy workflow ownership outside the Phase 183 shell navigation and Home orientation goal. No Phase 183 gap or human-verification item remains.
 
 ## Command Evidence
 
