@@ -1404,11 +1404,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           gap: var(--tl-space-1);
         }
 
-        .tl-timeline-command__status {
-          padding-top: var(--tl-space-1);
-          border-top: 1px solid var(--tl-color-border);
-        }
-
         .tl-timeline-command__utilities {
           display: grid;
           gap: var(--tl-space-3);

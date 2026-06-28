@@ -418,6 +418,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                   Open transaction
                 </a>
+                <a
+                  :if={row_history_path = safe_row_history_path(@base_path, change)}
+                  href={row_history_path}
+                  class="tl-button tl-button--compact tl-button--secondary"
+                  data-testid="timeline-row-history-link"
+                >
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                  Row history
+                </a>
               </div>
             </div>
           </div>
@@ -591,12 +600,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </span>
         </section>
 
-        <div class="tl-status tl-timeline-command__status" role="status" aria-live="polite">
-          <strong><%= @shown_count %> shown</strong>
-          <span><%= format_count(@match_count) %> matching changes</span>
-          <span>Window: <%= @window.label %></span>
-        </div>
-
       </section>
       """
     end
@@ -710,10 +713,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           <section :if={@exports_enabled} class="tl-utility-group" aria-label="Export actions">
             <span class="tl-utility-group__label">Export</span>
-            <button phx-click="request_background_export" type="button" class="tl-button tl-button--quiet-primary">
-              <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-              Queue export
-            </button>
             <.link
               navigate={"#{@base_path}/exports?#{@filter_query}"}
               class="tl-button tl-button--compact tl-button--secondary"
@@ -724,6 +723,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
               Carry to Exports
             </.link>
+            <button phx-click="request_background_export" type="button" class="tl-button tl-button--quiet-primary">
+              <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
+              Queue export
+            </button>
             <.link
               href={"#{@base_path}/exports/changes.csv?#{@filter_query}"}
               download
@@ -877,6 +880,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
     defp table_ref(_change), do: Presentation.secondary_ref("", 30)
+
+    defp safe_row_history_path(base_path, change) when is_binary(base_path) do
+      case routeable_row_identity(change) do
+        {table, record_id} ->
+          "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+
+        nil ->
+          nil
+      end
+    end
+
+    defp safe_row_history_path(_base_path, _change), do: nil
+
+    defp routeable_row_identity(%{table_name: table, table_pk: table_pk}),
+      do: routeable_row_identity(table, table_pk)
+
+    defp routeable_row_identity(%{change_diff: %{} = diff}) do
+      table = Map.get(diff, "table_name") || Map.get(diff, :table_name)
+      table_pk = Map.get(diff, "table_pk") || Map.get(diff, :table_pk)
+
+      routeable_row_identity(table, table_pk)
+    end
+
+    defp routeable_row_identity(_change), do: nil
+
+    defp routeable_row_identity(table, %{} = table_pk) when is_binary(table) do
+      table = String.trim(table)
+
+      with true <- table != "",
+           [{_key, value}] <- Map.to_list(table_pk),
+           true <- routeable_row_value?(value) do
+        {table, to_string(value)}
+      else
+        _ -> nil
+      end
+    end
+
+    defp routeable_row_identity(_table, _table_pk), do: nil
+
+    defp routeable_row_value?(value) when is_binary(value), do: String.trim(value) != ""
+    defp routeable_row_value?(value) when is_integer(value), do: true
+    defp routeable_row_value?(value) when is_float(value), do: true
+    defp routeable_row_value?(_value), do: false
+
+    defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 
     # Renders the match count for the status line:
     # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
