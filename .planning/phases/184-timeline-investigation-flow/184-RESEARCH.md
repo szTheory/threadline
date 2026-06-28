@@ -489,22 +489,25 @@ All claims in this research were verified from project files, registry commands,
 |---|-------|---------|---------------|
 | - | None | - | - |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What exact row identity should qualify as safe for direct Timeline row-history links?**
+1. **RESOLVED: What exact row identity should qualify as safe for direct Timeline row-history links?**
    - What we know: User decisions require direct row-history only when the row has a safe routeable row identity. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-CONTEXT.md]
    - What's unclear: The planner must inspect current row entry shape and route builder behavior before deciding whether single-column ids, table schema, or encoded table refs are enough. [VERIFIED: codebase grep]
    - Recommendation: Add a helper and tests that return `nil` for missing/composite/unsupported identities, then render no direct row-history action in that case. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-CONTEXT.md]
+   - Final decision: Plan 01 resolves this with private `TimelineLive` helpers `routeable_row_identity/1` and `safe_row_history_path/2`; a safe direct row-history link requires a nonblank binary table plus exactly one nonblank scalar primary-key value from `change.change_diff["table_pk"]`, encoded through the existing row-history route shape. Missing table, missing primary key, empty maps, composite keys, nested/list values, blank values, unsupported values, or ambiguous identity return `nil` and leave `Open transaction` as the safe pivot. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-01-PLAN.md] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-UI-SPEC.md]
 
-2. **Should 320 and 1440 px proof extend the existing responsive matrix or live in a Phase 184-specific spec?**
+2. **RESOLVED: Should 320 and 1440 px proof extend the existing responsive matrix or live in a Phase 184-specific spec?**
    - What we know: Existing Playwright responsive coverage includes 375, 768, 1024, and 1280 px, while Phase 184 success criteria require 320, 375, 768, 1024, and 1440 px. [VERIFIED: codebase grep] [VERIFIED: .planning/REQUIREMENTS.md]
    - What's unclear: Extending the shared matrix may increase runtime for unrelated pages. [VERIFIED: codebase grep]
    - Recommendation: Add a narrow Timeline-only test for 320 and 1440 if widening the shared matrix creates too much browser runtime. [CITED: https://playwright.dev/docs/best-practices]
+   - Final decision: Plan 03 creates a narrow Phase 184 browser proof at `examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts` covering 320, 375, 768, 1024, and 1440 px, and wires that spec into the existing `desktop-chromium-light` lane without creating a new Playwright project or broad screenshot matrix. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-03-PLAN.md] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-VALIDATION.md] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-UI-SPEC.md]
 
-3. **How should stale/last-good Timeline data be triggered in tests?**
+3. **RESOLVED: How should stale/last-good Timeline data be triggered in tests?**
    - What we know: `UI.stale_banner` exists, and user decisions require stale data not to replace last-good data unless no safe data exists. [VERIFIED: codebase grep] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-CONTEXT.md]
    - What's unclear: Timeline may not currently have a dedicated async stale branch beyond shared component primitives. [VERIFIED: codebase grep]
    - Recommendation: If Phase 184 renders stale state directly, test the real branch; otherwise cite shared component/stress proof and avoid fabricating a fake Timeline stale path. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-CONTEXT.md]
+   - Final decision: Plans 02 and 03 keep stale proof tied to real behavior only. If Timeline directly renders stale/last-good data, source and browser proof must assert `UI.stale_banner/1` above last-good rows with a retry/refresh path; if no dedicated Timeline stale branch exists, executors cite the shared `UI.stale_banner/1` or stress/source proof and do not fabricate a Timeline stale path for coverage. [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-02-PLAN.md] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-03-PLAN.md] [VERIFIED: .planning/phases/184-timeline-investigation-flow/184-VALIDATION.md]
 
 ## Environment Availability
 
