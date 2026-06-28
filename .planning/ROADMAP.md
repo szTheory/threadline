@@ -142,7 +142,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 184-01-PLAN.md - Timeline workflow source contracts and implementation
+- [x] 184-01-PLAN.md - Timeline workflow source contracts and implementation
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

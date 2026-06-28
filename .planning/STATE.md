@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 184
 current_phase_name: Timeline investigation flow
 status: executing
-stopped_at: Phase 184 UI-SPEC approved
-last_updated: "2026-06-28T22:12:56.252Z"
+stopped_at: Completed 184-01-PLAN.md
+last_updated: "2026-06-28T22:26:20.917Z"
 last_activity: 2026-06-28
 last_activity_desc: Phase 184 execution started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 43
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 184 (Timeline investigation flow) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 184
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-06-28 — Phase 184 execution started
 
 ## Performance Metrics
@@ -124,6 +124,7 @@ Last activity: 2026-06-28 — Phase 184 execution started
 | Phase 183 P01 | 15 min | 2 tasks | 2 files |
 | Phase 183 P02 | 68m | 2 tasks | 9 files |
 | Phase 183 P03 | 36m | 1 tasks | 3 files |
+| Phase 184 P01 | 10 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -317,6 +318,9 @@ Last activity: 2026-06-28 — Phase 184 execution started
 - [Phase 183]: Phase 183 closes as targeted PASS with classified residuals: dedicated source and browser evidence is green, broad command failures remain non-green and scoped.
 - [Phase 183]: Generated light screenshot candidates from broad verification were treated as verification byproducts and not committed as baselines.
 - [Phase 183]: No package, schema, public API, route, data-testid, or adjacent page content change was accepted during Phase 183 closeout.
+- [Phase 184]: Timeline row-history links are emitted only for rows with exactly one nonblank scalar primary-key value; unsafe identities keep the transaction pivot only.
+- [Phase 184]: Timeline export handoff remains canonical-query driven through FilterParams and ExportController rather than duplicating filter semantics in the UI.
+- [Phase 184]: The Timeline command surface reports result facts once through the facts/filter summary; duplicate status copy and its dead selector were removed.
 
 ### Blockers
 
@@ -324,9 +328,9 @@ Last activity: 2026-06-28 — Phase 184 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-28T21:29:26.493Z
-**Stopped at:** Phase 184 UI-SPEC approved
-**Resume file:** .planning/phases/184-timeline-investigation-flow/184-UI-SPEC.md
+**Last session:** 2026-06-28T22:26:20.908Z
+**Stopped at:** Completed 184-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
