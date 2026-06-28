@@ -4,7 +4,7 @@ milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 status: executing
 stopped_at: Completed 184-02-PLAN.md
-last_updated: "2026-06-28T22:43:19.365Z"
+last_updated: "2026-06-28T22:43:45.082Z"
 last_activity: 2026-06-28
 progress:
   total_phases: 7
@@ -319,6 +319,9 @@ Last activity: 2026-06-28
 - [Phase 184]: Timeline row-history links are emitted only for rows with exactly one nonblank scalar primary-key value; unsafe identities keep the transaction pivot only.
 - [Phase 184]: Timeline export handoff remains canonical-query driven through FilterParams and ExportController rather than duplicating filter semantics in the UI.
 - [Phase 184]: The Timeline command surface reports result facts once through the facts/filter summary; duplicate status copy and its dead selector were removed.
+- [Phase 184]: Timeline empty states now distinguish first-run, filtered no-data, and future-window copy through private reason helpers instead of a single future-window boolean. — This preserves distinct operator meanings for no captured changes, no matches, and future windows without adding a new component family.
+- [Phase 184]: Timeline rows expose full table, actor, correlation, and safe row-id values for copy/title use while preserving transaction and row-history pivots. — Full values must remain available under long real data; direct row history remains gated by the existing safe routeable identity helper.
+- [Phase 184]: No fake Timeline stale branch was added; stale/last-good proof remains with shared UI.stale_banner/data-state primitives because Timeline has no dedicated stale assign. — The plan explicitly prohibited fabricating Timeline-only stale states for coverage when no real branch exists.
 
 ### Blockers
 
