@@ -111,6 +111,32 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
     end
   end
 
+  describe "canonical_query/1" do
+    test "orders Timeline and export handoff params through the shared canonical dialect" do
+      assert FilterParams.canonical_query(%{
+               "correlation_id" => "req-123",
+               "actor_id" => "42",
+               "to" => "2026-05-06T23:59",
+               "table" => "ticket_replies",
+               "actor_kind" => "user",
+               "from" => "2026-05-01T00:00",
+               "table_schema" => "public"
+             }) ==
+               "from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table_schema=public&table=ticket_replies&actor_kind=user&actor_id=42&correlation_id=req-123"
+    end
+
+    test "drops blanks and strips actor_id when anonymous before encoding" do
+      assert FilterParams.canonical_query(%{
+               "from" => "",
+               "to" => "",
+               "table" => "audit_events",
+               "actor_kind" => "anonymous",
+               "actor_id" => "ignored",
+               "correlation_id" => ""
+             }) == "table=audit_events&actor_kind=anonymous"
+    end
+  end
+
   describe "atom safety (RESEARCH Pitfall 11)" do
     test "FilterParams source uses String.to_existing_atom, NEVER String.to_atom" do
       src = File.read!("lib/threadline/operator_surface/exports/filter_params.ex")

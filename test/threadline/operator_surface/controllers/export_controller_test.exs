@@ -333,6 +333,36 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       assert length(lines) == 1
     end
 
+    test "direct CSV JSON and NDJSON downloads honor the canonical Timeline filter query" do
+      keep_table = "direct_keep_#{System.unique_integer([:positive])}"
+      drop_table = "direct_drop_#{System.unique_integer([:positive])}"
+
+      seed_changes!(1, table: keep_table)
+      seed_changes!(1, table: drop_table)
+
+      query =
+        Threadline.OperatorSurface.Exports.FilterParams.canonical_query(%{
+          "from" => "2020-01-01T00:00",
+          "to" => "2099-01-01T00:00",
+          "table" => keep_table
+        })
+
+      for ext <- ~w(csv json ndjson) do
+        conn = build_conn() |> get("/audit/exports/changes.#{ext}?#{query}")
+        assert conn.status == 200
+
+        body =
+          if conn.state == :chunked do
+            conn.resp_body
+          else
+            response(conn, 200)
+          end
+
+        assert body =~ keep_table
+        refute body =~ drop_table
+      end
+    end
+
     # ---- Helpers ----
 
     defp seed_changes!(n, opts) when n > 0 do

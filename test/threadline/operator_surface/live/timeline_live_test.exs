@@ -321,7 +321,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           transaction_id: txn.id,
           table_schema: "public",
           table_name: Keyword.get(opts, :table, "posts"),
-          table_pk: %{"id" => "1"},
+          table_pk: Keyword.get(opts, :table_pk, %{"id" => "1"}),
           op: Keyword.get(opts, :op, "insert"),
           data_after: %{"title" => "x"},
           changed_fields: nil,
@@ -741,11 +741,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-earned-flow="EF3"|
       assert html =~ ~s|data-persona="P3"|
       assert html =~ ~s|data-jtbd="J6"|
-      assert html =~ ~s|href="/audit/exports?|
-      assert html =~ "from=2026-05-01T00%3A00"
-      assert html =~ "to=2026-05-06T23%3A59"
-      assert html =~ "table=ticket_replies"
-      assert html =~ "correlation_id=req_ef3"
+
+      escaped_query =
+        "from=2026-05-01T00%3A00&amp;to=2026-05-06T23%3A59&amp;table=ticket_replies&amp;correlation_id=req_ef3"
+
+      assert html =~ ~s|href="/audit/exports?#{escaped_query}"|
+      assert html =~ ~s|href="/audit/exports/changes.csv?#{escaped_query}"|
+      assert html =~ ~s|href="/audit/exports/changes.json?#{escaped_query}"|
+      assert html =~ ~s|href="/audit/exports/changes.ndjson?#{escaped_query}"|
       refute html =~ "subject_ref_json"
     end
 
@@ -753,7 +756,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Case 16 — command status renders (EXPO-04 / D-17)
     # -------------------------------------------------------------------
 
-    test "Case 16: Command status renders with visible/total count and exact window",
+    test "Case 16: Command facts render the current result set without duplicate status copy",
          %{conn: conn} do
       table = "posts_count_status_#{System.unique_integer([:positive])}"
       for _ <- 1..7, do: seed_change!(table: table)
@@ -762,9 +765,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         live(conn, "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}")
 
       assert html =~ "tl-timeline-command"
-      assert html =~ "tl-status"
+      assert html =~ "tl-timeline-command__facts"
+      assert html =~ "Window"
+      assert html =~ "Matching changes"
+      assert html =~ "Audit readiness"
       assert html =~ "7 matching changes"
       assert html =~ "2020-01-01 00:00 UTC to 2099-01-01 00:00 UTC"
+      refute html =~ "tl-timeline-command__status"
       refute html =~ "current filter window"
       refute html =~ "Current window"
       refute html =~ "24h window"
@@ -945,11 +952,79 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|aria-label="Copy correlation id"|
     end
 
+    test "TIME-01: routeable Timeline rows expose direct row history without hiding transaction",
+         %{conn: conn} do
+      clear_audit_rows!()
+
+      table = "routeable_rows_#{System.unique_integer([:positive])}"
+      row_id = "row/with space"
+      correlation_id = "corr_" <> Ecto.UUID.generate()
+
+      change =
+        seed_change!(table: table, table_pk: %{"id" => row_id}, correlation_id: correlation_id)
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
+               )
+
+      assert html =~ ~s|data-testid="timeline-row"|
+      assert html =~ "INSERT"
+      assert html =~ table
+      assert html =~ "Actor"
+      assert html =~ "user/u1"
+      assert html =~ ~s|data-tl-copy="#{correlation_id}"|
+      assert html =~ ~s|data-testid="transaction-link"|
+      assert html =~ "/audit/transactions/#{change.transaction_id}"
+      assert html =~ ~s|data-testid="timeline-row-history-link"|
+      assert html =~ ~s|href="/audit/rows/#{table}/row%2Fwith%20space"|
+      assert html =~ "Row history"
+    end
+
+    test "TIME-01: unsafe Timeline row identities keep only the transaction pivot", %{conn: conn} do
+      unsafe_cases = [
+        {"missing primary key", "missing_pk", %{"id" => nil}},
+        {"empty primary key map", "empty_pk", %{}},
+        {"composite primary key map", "composite_pk", %{"id" => "1", "tenant_id" => "t1"}},
+        {"nested primary key value", "nested_pk", %{"id" => %{"nested" => "1"}}},
+        {"list primary key value", "list_pk", %{"id" => ["1"]}},
+        {"blank primary key value", "blank_pk", %{"id" => "   "}}
+      ]
+
+      for {label, suffix, table_pk} <- unsafe_cases do
+        clear_audit_rows!()
+
+        table = "unsafe_rows_#{suffix}_#{System.unique_integer([:positive])}"
+
+        seed_change!(table: table, table_pk: table_pk)
+
+        path = "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
+
+        assert {:ok, _lv, html} = live(conn, path), "expected render for #{label}"
+
+        assert html =~ ~s|data-testid="transaction-link"|,
+               "transaction pivot missing for #{label}"
+
+        refute html =~ ~s|data-testid="timeline-row-history-link"|,
+               "unsafe #{label} must not render a direct row-history link"
+      end
+    end
+
     test "standard mount without actor_fn does not expose actor-owned saved views", %{conn: conn} do
       {:ok, _lv, html} = mount_audit(conn, "/audit/timeline?table=posts")
 
       refute html =~ "save-view-form"
       refute html =~ "Saved Views:"
+    end
+
+    defp clear_audit_rows! do
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange)
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction)
+
+      if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
+        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      end
     end
 
     # -------------------------------------------------------------------

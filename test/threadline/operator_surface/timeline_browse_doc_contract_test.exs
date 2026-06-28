@@ -123,6 +123,59 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            "expected LV to use native <select> for actor_kind per D-09 / BROWSE-03 (no custom dropdown widgets)"
   end
 
+  test "timeline command keeps starter filters inline and advanced filters in the drawer" do
+    live_src = File.read!(@lv_path)
+
+    [form_src] =
+      Regex.run(~r/<form id="timeline-filters".*?<\/form>/s, live_src) ||
+        flunk("could not find timeline-filters form in #{@lv_path}")
+
+    for key <- ~w(from to table correlation_id) do
+      assert String.contains?(form_src, ~s|name="filter[#{key}]"|),
+             "expected starter filter #{key} inside the main Timeline form"
+    end
+
+    for key <- ~w(table_schema actor_kind actor_id) do
+      refute String.contains?(form_src, ~s|name="filter[#{key}]"|),
+             "advanced filter #{key} must stay out of the first-viewport form"
+
+      assert String.contains?(live_src, ~s|name="filter[#{key}]"|),
+             "expected advanced filter #{key} to still exist in the drawer"
+
+      assert String.contains?(live_src, ~s|name="filter[#{key}]"|) and
+               String.contains?(live_src, ~s|form="timeline-filters"|),
+             "advanced filter #{key} must submit through form=\"timeline-filters\""
+    end
+  end
+
+  test "timeline source declares direct row-history helpers without route churn" do
+    live_src = File.read!(@lv_path)
+
+    assert String.contains?(live_src, "routeable_row_identity"),
+           "TimelineLive must gate row-history links through routeable_row_identity/1"
+
+    assert String.contains?(live_src, "safe_row_history_path"),
+           "TimelineLive must build direct row-history links through safe_row_history_path/2"
+
+    assert String.contains?(live_src, "String.trim(table)"),
+           "routeable_row_identity/1 must reject missing or blank table names"
+
+    assert String.contains?(live_src, "encode_segment"),
+           "row-history route segments must be encoded before entering /rows/:table/:record_id"
+
+    assert String.contains?(live_src, ~s|data-testid="timeline-row-history-link"|),
+           "direct Timeline row-history action must use the additive stable test id"
+
+    router_src = File.read!(@router_path)
+
+    assert String.contains?(
+             router_src,
+             ~s|live("/rows/:table/:record_id", RowHistoryLive, :show)|
+           )
+
+    assert String.contains?(router_src, ~s|live("/transactions/:id", TransactionLive, :show)|)
+  end
+
   # --- BROWSE-04: phx-change prohibition (D-04 / F-6 / Pitfall 3) ---
 
   test "timeline live form contains no phx-change attribute (D-04 explicit Apply only)" do
