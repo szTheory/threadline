@@ -118,7 +118,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
-- [ ] 183-02-PLAN.md - Source contracts and shell/Home retune
+- [x] 183-02-PLAN.md - Source contracts and shell/Home retune
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

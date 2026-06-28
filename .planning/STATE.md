@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 status: executing
-stopped_at: Completed 183-01-PLAN.md
-last_updated: "2026-06-28T17:23:44.959Z"
+stopped_at: Completed 183-02-PLAN.md
+last_updated: "2026-06-28T18:37:26.968Z"
 last_activity: 2026-06-28
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 29
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 ## Current Position
 
 Phase: 183 (shell-navigation-and-home-orientation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-28
 
@@ -119,6 +119,7 @@ Last activity: 2026-06-28
 | Phase 182 P04 | 18 min | 3 tasks | 9 files |
 | Phase 182 P05 | 7 min | 2 tasks | 4 files |
 | Phase 183 P01 | 15 min | 2 tasks | 2 files |
+| Phase 183 P02 | 68m | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -307,6 +308,8 @@ Last activity: 2026-06-28
 - [Phase 182]: No schema push task was required because Plan 05 modified only docs and planning verification artifacts. — No schema, migration, SQL trigger, config, struct field, CLI flag, decorator, or dataclass-style field changed.
 - [Phase 183]: Plan 01 remains RED/proof-only: browser failures are actionable Plan 02 evidence, not production retuning scope. — 183-01 adds the browser perception proof before shell/Home implementation polish and the plan explicitly allows actionable browser failures.
 - [Phase 183]: The Phase 183 supplement is admitted to the existing system/light lane rather than adding a new Playwright project or screenshot matrix. — The plan forbids screenshot matrix expansion and requires preserving the THREADLINE_E2E_THEME=system desktop-chromium-light lane.
+- [Phase 183]: Plan 183-02 kept native mobile details/summary navigation but moved the single nav panel to a sibling so desktop rail visibility does not depend on closed-details internals. — Chromium keeps non-summary descendants hidden in closed details, which broke the Phase 183 desktop browser proof.
+- [Phase 183]: Plan 183-02 forced example e2e compilation before browser runs so THREADLINE_E2E_THEME compile-time router gates match the current lane. — The system/light lane reused stale dark-compiled router artifacts until the runner used mix compile --force.
 
 ### Blockers
 
@@ -314,8 +317,8 @@ Last activity: 2026-06-28
 
 ## Session Continuity
 
-**Last session:** 2026-06-28T17:23:44.953Z
-**Stopped at:** Completed 183-01-PLAN.md
+**Last session:** 2026-06-28T18:37:26.963Z
+**Stopped at:** Completed 183-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
