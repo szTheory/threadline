@@ -4055,14 +4055,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
 
           .tl-timeline-command__lede,
-          .tl-timeline-fact__detail,
-          .tl-timeline-command .tl-filter-summary {
+          .tl-timeline-fact__detail {
             display: none;
           }
 
+          .tl-timeline-command .tl-filter-summary {
+            margin-top: 0;
+            padding: var(--tl-space-1);
+          }
+
           .tl-timeline-command__facts {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: var(--tl-space-1);
+            display: none;
           }
 
           .tl-timeline-fact {
