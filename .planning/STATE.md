@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
-status: executing
-stopped_at: Completed 183-02-PLAN.md
-last_updated: "2026-06-28T18:37:26.968Z"
+status: verifying
+stopped_at: Completed 183-03-PLAN.md
+last_updated: "2026-06-28T19:18:00.688Z"
 last_activity: 2026-06-28
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 18
-  percent: 29
+  completed_plans: 19
+  percent: 43
 ---
 
 # Project State: Threadline
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 183 (shell-navigation-and-home-orientation) — EXECUTING
+Phase: 183 (shell-navigation-and-home-orientation) — VERIFYING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-28
 
 ## Performance Metrics
@@ -120,6 +120,7 @@ Last activity: 2026-06-28
 | Phase 182 P05 | 7 min | 2 tasks | 4 files |
 | Phase 183 P01 | 15 min | 2 tasks | 2 files |
 | Phase 183 P02 | 68m | 2 tasks | 9 files |
+| Phase 183 P03 | 36m | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -310,6 +311,9 @@ Last activity: 2026-06-28
 - [Phase 183]: The Phase 183 supplement is admitted to the existing system/light lane rather than adding a new Playwright project or screenshot matrix. — The plan forbids screenshot matrix expansion and requires preserving the THREADLINE_E2E_THEME=system desktop-chromium-light lane.
 - [Phase 183]: Plan 183-02 kept native mobile details/summary navigation but moved the single nav panel to a sibling so desktop rail visibility does not depend on closed-details internals. — Chromium keeps non-summary descendants hidden in closed details, which broke the Phase 183 desktop browser proof.
 - [Phase 183]: Plan 183-02 forced example e2e compilation before browser runs so THREADLINE_E2E_THEME compile-time router gates match the current lane. — The system/light lane reused stale dark-compiled router artifacts until the runner used mix compile --force.
+- [Phase 183]: Phase 183 closes as targeted PASS with classified residuals: dedicated source and browser evidence is green, broad command failures remain non-green and scoped.
+- [Phase 183]: Generated light screenshot candidates from broad verification were treated as verification byproducts and not committed as baselines.
+- [Phase 183]: No package, schema, public API, route, data-testid, or adjacent page content change was accepted during Phase 183 closeout.
 
 ### Blockers
 
@@ -317,8 +321,8 @@ Last activity: 2026-06-28
 
 ## Session Continuity
 
-**Last session:** 2026-06-28T18:37:26.963Z
-**Stopped at:** Completed 183-02-PLAN.md
+**Last session:** 2026-06-28T19:18:00.682Z
+**Stopped at:** Completed 183-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

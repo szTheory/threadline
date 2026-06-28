@@ -12,7 +12,7 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is next.
+**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is next.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
@@ -109,7 +109,7 @@ Plans:
 3. Active/current state, scope/coverage status, theme picker, skip link, and feature-gated groups are accessible and consistent across dark/light/system.
 4. Browser tests cover desktop/tablet/mobile nav perception and Home task-launch flows.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 0**
@@ -122,7 +122,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 183-03-PLAN.md - Verification closeout and source coverage audit
+- [x] 183-03-PLAN.md - Verification closeout and source coverage audit
 
 ### Phase 184: Timeline investigation flow
 
