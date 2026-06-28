@@ -6,7 +6,7 @@ current_phase: 184
 current_phase_name: Timeline investigation flow
 status: verifying
 stopped_at: Completed 184-02-PLAN.md
-last_updated: "2026-06-28T23:36:53.187Z"
+last_updated: "2026-06-28T23:37:21.202Z"
 last_activity: 2026-06-28
 progress:
   total_phases: 7
@@ -125,6 +125,7 @@ Last activity: 2026-06-28
 | Phase 183 P03 | 36m | 1 tasks | 3 files |
 | Phase 184 P01 | 10 min | 2 tasks | 6 files |
 | Phase 184 P02 | 9 min | 2 tasks | 5 files |
+| Phase 184 P03 | 49 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -324,6 +325,9 @@ Last activity: 2026-06-28
 - [Phase 184]: Timeline empty states now distinguish first-run, filtered no-data, and future-window copy through private reason helpers instead of a single future-window boolean. — This preserves distinct operator meanings for no captured changes, no matches, and future windows without adding a new component family.
 - [Phase 184]: Timeline rows expose full table, actor, correlation, and safe row-id values for copy/title use while preserving transaction and row-history pivots. — Full values must remain available under long real data; direct row history remains gated by the existing safe routeable identity helper.
 - [Phase 184]: No fake Timeline stale branch was added; stale/last-good proof remains with shared UI.stale_banner/data-state primitives because Timeline has no dedicated stale assign. — The plan explicitly prohibited fabricating Timeline-only stale states for coverage when no real branch exists.
+- [Phase 184-03]: Use a narrow Timeline-only Playwright proof for required viewport/keyboard/copy/export/theme/reduced-motion coverage instead of broad screenshot baselines.
+- [Phase 184-03]: Create browser proof correlation data through existing authenticated /api/posts setup rather than relying on stale demo seed correlations.
+- [Phase 184-03]: Classify broad-suite residuals honestly while treating targeted Phase 184 source and browser gates as the closeout authority.
 
 ### Blockers
 
