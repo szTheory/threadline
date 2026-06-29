@@ -20,7 +20,7 @@ created: 2026-06-29
 | **Framework** | ExUnit/Mix with Phoenix.LiveViewTest; Playwright `@playwright/test` for example-browser proof |
 | **Config file** | `mix.exs`; `examples/threadline_phoenix/e2e/playwright.config.ts` |
 | **Quick run command** | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs` |
-| **Full suite command** | `mix verify.test`; add `mix verify.example_browser` for the narrow Coverage/mobile lane when browser proof is updated |
+| **Full suite command** | `mix verify.test`; add `mix verify.example_browser` for the narrow Coverage/mobile lane when browser proof is updated; add `cd examples/threadline_phoenix && mix precommit` as nested app closeout after example e2e edits |
 | **Estimated runtime** | ~15 seconds for targeted Mix slice; browser lane varies by local example-app startup |
 
 ---
@@ -29,8 +29,8 @@ created: 2026-06-29
 
 - **After every task commit:** Run `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs`
 - **After every plan wave:** Run `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs`
-- **Before `/gsd:verify-work`:** Run the targeted Mix slice as primary sampling, the narrow Coverage/mobile browser lane as closeout proof, and `mix verify.test` when local residuals allow.
-- **Max feedback latency:** 30 seconds for primary targeted Mix sampling; browser closeout proof is outside the sampling latency budget.
+- **Before `/gsd:verify-work`:** Run the targeted Mix slice as primary sampling, the narrow Coverage/mobile browser lane and `cd examples/threadline_phoenix && mix precommit` as closeout proof, and `mix verify.test` when local residuals allow.
+- **Max feedback latency:** 30 seconds for primary targeted Mix sampling; browser and nested app precommit closeout proof are outside the sampling latency budget.
 
 ---
 
@@ -42,7 +42,7 @@ created: 2026-06-29
 | 185-01-02 | 01 | 1 | COV-02 | T-185-02 | Removed page-level CTAs cannot imply incomplete coverage data is reliable | LiveView/style | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/style_contract_test.exs` | yes | pending |
 | 185-01-03 | 01 | 1 | COV-03 | T-185-03 | Invalid schema URLs preserve the rejected value and do not leak stale public data as selected-schema truth | LiveView/doc | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs` | yes | pending |
 | 185-01-04 | 01 | 1 | COV-03 | T-185-04 | Non-public Timeline links preserve schema scope with `table_schema=NAME&table=TABLE` only on covered rows | LiveView primary | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes | pending |
-| 185-01-05 | 01 | 1 | COV-03 | T-185-05 | Mobile schema control, row disclosure, and focus affordances remain reachable without horizontal overflow | Browser closeout proof | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` after primary Mix sampling | yes | pending |
+| 185-01-05 | 01 | 1 | COV-03 | T-185-05 | Mobile schema control, row disclosure, and focus affordances remain reachable without horizontal overflow | Browser closeout proof | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` and `cd examples/threadline_phoenix && mix precommit` after primary Mix sampling | yes | pending |
 
 *Status: pending, green, red, flaky*
 
