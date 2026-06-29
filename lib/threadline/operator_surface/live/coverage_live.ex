@@ -43,12 +43,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       schema_param = Map.get(params, "schema", "public")
 
       if socket.assigns[:threadline_coverage_enabled] do
+        schemas = available_schemas(socket)
+
         case validate_schema(socket, schema_param) do
           {:ok, schema} ->
             socket =
               socket
               |> assign(:schema_param, schema)
-              |> assign(:available_schemas, available_schemas(socket))
+              |> assign(:available_schemas, schemas)
               |> assign(:form_error, nil)
               |> fetch_coverage_for_schema(schema)
 
@@ -58,6 +60,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             socket =
               socket
               |> assign(:schema_param, schema_param)
+              |> assign(:available_schemas, schemas)
+              |> assign(:coverage_for_schema, Snapshot.empty(DateTime.utc_now()))
               |> assign(:form_error, message)
 
             {:noreply, socket}
@@ -121,112 +125,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_coverage_enabled do %>
+            <UI.page_header title="Audit coverage">
+              <:lede>
+                Selected-schema audit readiness and table-level capture gaps.
+              </:lede>
+              <:meta>
+                Schema: <%= @schema_param %>
+                <%= if is_nil(@form_error) and @coverage_for_schema.last_checked_at do %>
+                  · <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
+                <% end %>
+              </:meta>
+              <:actions>
+                <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
+                <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
+                  Refresh
+                </button>
+              </:actions>
+            </UI.page_header>
+
             <%= if @form_error do %>
-              <UI.page_header title="Audit coverage">
-                <:lede>
-                  Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
-                </:lede>
-                <:meta>
-                  Schema: <%= @schema_param %>
-                </:meta>
-                <:actions>
-                  <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
-                  <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                    Refresh
-                  </button>
-                </:actions>
-              </UI.page_header>
-              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
+              <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
             <% else %>
-              <%= if @coverage_for_schema.error do %>
+              <%= if stale_selected_schema?(@coverage_for_schema) do %>
                 <div class="tl-alert tl-alert--warning" role="status">
                   Could not refresh - showing last known coverage results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
                   Retry.
                 </div>
               <% end %>
 
+              <.coverage_verdict snapshot={@coverage_for_schema} schema={@schema_param} />
+
               <%= if all_empty?(@coverage_for_schema) do %>
-                <UI.page_header title="Audit coverage">
-                  <:lede>
-                    Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
-                  </:lede>
-                  <:meta>
-                    Schema: <%= @schema_param %>
-                    <%= if @coverage_for_schema.last_checked_at do %>
-                      · <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
-                    <% end %>
-                  </:meta>
-                  <:actions>
-                    <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
-                    <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                      Refresh
-                    </button>
-                  </:actions>
-                </UI.page_header>
                 <div class="tl-empty">
                   <h3 class="tl-empty__title">No audited tables found</h3>
                   <p class="tl-empty__body">
-                    No audited tables were found for schema '<%= @schema_param %>'. Run <code>mix threadline.gen.triggers</code> to set up capture, then refresh audit readiness.
+                    No audited tables were found for schema <%= @schema_param %>. Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness.
                   </p>
                 </div>
               <% else %>
-                <UI.page_header title="Audit coverage">
-                  <:lede>
-                    Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps.
-                  </:lede>
-                  <:meta>
-                    Schema: <%= @schema_param %>
-                    <%= if @coverage_for_schema.last_checked_at do %>
-                      · <%= Presentation.checked_label(@coverage_for_schema.last_checked_at) %>
-                    <% end %>
-                  </:meta>
-                  <:actions>
-                    <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
-                    <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                      Refresh
-                    </button>
-                  </:actions>
-                </UI.page_header>
-
-                <section class="tl-trust-rail" aria-label="Audit readiness">
-                  <span class="tl-trust-rail__label">Audit readiness</span>
-                  <%= if @coverage_for_schema.uncovered_count > 0 do %>
-                    <span class="tl-chip tl-chip--danger"><%= @coverage_for_schema.uncovered_count %> tables need capture</span>
-                    <span class="tl-hint">Add capture before relying on Timeline answers for this schema.</span>
-                  <% else %>
-                    <span class="tl-chip tl-chip--success">All tracked tables covered</span>
-                    <span class="tl-hint">Timeline can answer from every tracked table in this schema.</span>
-                  <% end %>
-                </section>
-
-                <section class="tl-summary-grid" aria-label="Coverage summary">
-                  <div class="tl-card--metric" data-status="success">
-                    <span class="tl-card__metric-label">Covered</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.covered_count %></strong>
-                  </div>
-                  <div class="tl-card--metric" data-status={if @coverage_for_schema.uncovered_count > 0, do: "danger"}>
-                    <span class="tl-card__metric-label">Needs capture</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.uncovered_count %></strong>
-                  </div>
-                  <div class="tl-card--metric">
-                    <span class="tl-card__metric-label">Expected gaps</span>
-                    <strong class="tl-card__metric"><%= @coverage_for_schema.expected_uncovered_count %></strong>
-                  </div>
-                </section>
-
-                <section :if={@coverage_for_schema.uncovered_count > 0} class="tl-remediation" aria-label="Coverage remediation">
-                  <header class="tl-remediation__header">
-                    <h3 class="tl-remediation__title">Needs capture before relying on timeline results</h3>
-                  </header>
-                  <div class="tl-remediation__body">
-                    Timeline results may be incomplete for these tables.
-                    Add capture, verify coverage, then rerun the timeline search.
-                  </div>
-                </section>
-
                 <div class="tl-table-wrap" data-testid="coverage-table">
                   <table class="tl-table tl-table--coverage tl-table--compact tl-table--sticky tl-table--actionable tl-table--responsive">
                     <thead>
@@ -303,25 +240,69 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     attr(:schema, :string, required: true)
+    attr(:form_error, :string, required: true)
+    attr(:base_path, :string, required: true)
+
+    defp render_invalid_schema(assigns) do
+      ~H"""
+      <div class="tl-alert tl-alert--error" role="alert">
+        <p><%= @form_error %></p>
+        <p>Choose a schema from the list or use public schema.</p>
+        <.link navigate={coverage_path(@base_path, "public")} class="tl-button tl-button--secondary">
+          Use public schema
+        </.link>
+      </div>
+      """
+    end
+
+    attr(:snapshot, :map, required: true)
+    attr(:schema, :string, required: true)
+
+    defp coverage_verdict(assigns) do
+      ~H"""
+      <section class={["tl-coverage-verdict", "tl-coverage-verdict--#{verdict_status(@snapshot)}"]} aria-label="Selected schema readiness">
+        <p class="tl-coverage-verdict__eyebrow">Selected schema readiness</p>
+        <span class={["tl-coverage-verdict__status", "tl-chip", verdict_chip_class(@snapshot)]}>
+          <%= verdict_label(@snapshot) %>
+        </span>
+        <h2 class="tl-coverage-verdict__title"><%= verdict_heading(@snapshot, @schema) %></h2>
+        <p class="tl-coverage-verdict__meta">
+          selected schema: <code><%= @schema %></code>
+          <%= if @snapshot.last_checked_at do %>
+            · Checked <%= Presentation.human_time(@snapshot.last_checked_at) %>
+          <% end %>
+        </p>
+        <dl class="tl-coverage-verdict__counts">
+          <div class="tl-coverage-verdict__count">
+            <dt>Covered</dt>
+            <dd><%= @snapshot.covered_count %></dd>
+          </div>
+          <div class="tl-coverage-verdict__count">
+            <dt>Needs capture</dt>
+            <dd><%= @snapshot.uncovered_count %></dd>
+          </div>
+          <div class="tl-coverage-verdict__count">
+            <dt>Expected gaps</dt>
+            <dd><%= @snapshot.expected_uncovered_count %></dd>
+          </div>
+        </dl>
+        <p class="tl-coverage-verdict__next-step"><%= verdict_next_step(@snapshot, @schema) %></p>
+      </section>
+      """
+    end
+
+    attr(:schema, :string, required: true)
     attr(:available_schemas, :list, default: [])
 
     defp schema_form(assigns) do
       ~H"""
       <form phx-submit="select-schema" class="tl-schema-picker" aria-label="Coverage schema">
         <label class="tl-schema-picker__label" for="coverage-schema">Schema</label>
-        <input
-          id="coverage-schema"
-          name="schema"
-          type="text"
-          value={@schema}
-          list="coverage-schema-options"
-          class="tl-control tl-schema-picker__control"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <datalist id="coverage-schema-options">
-          <option :for={schema <- @available_schemas} value={schema} />
-        </datalist>
+        <select id="coverage-schema" name="schema" class="tl-control tl-schema-picker__control">
+          <option :for={option <- schema_options(@available_schemas, @schema)} value={option} selected={option == @schema}>
+            <%= option %>
+          </option>
+        </select>
         <button type="submit" class="tl-button tl-button--secondary">Apply schema</button>
       </form>
       """
@@ -349,7 +330,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Telemetry.emit_health_checked_error(message)
 
           previous = socket.assigns[:coverage_for_schema] || Snapshot.empty(now)
-          snapshot = %{previous | error: message, last_checked_at: now}
+          snapshot = %{previous | error: message}
           assign(socket, :coverage_for_schema, snapshot)
       end
     end
@@ -367,6 +348,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp last_label(%DateTime{} = ts), do: Presentation.human_time(ts)
     defp last_label(_), do: "never"
+
+    defp coverage_path(base_path, schema) do
+      "#{base_path}/coverage?#{URI.encode_query(%{"schema" => schema})}"
+    end
+
+    defp schema_options(available_schemas, schema) do
+      (["public", schema] ++ List.wrap(available_schemas))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&to_string/1)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp stale_selected_schema?(%Snapshot{error: error}) when is_binary(error) do
+      String.trim(error) != ""
+    end
+
+    defp stale_selected_schema?(_), do: false
+
+    defp verdict_status(snapshot) do
+      cond do
+        all_empty?(snapshot) -> "empty"
+        snapshot.uncovered_count > 0 -> "not-ready"
+        snapshot.expected_uncovered_count > 0 -> "tracked-ready"
+        true -> "ready"
+      end
+    end
+
+    defp verdict_chip_class(snapshot) do
+      cond do
+        all_empty?(snapshot) -> "tl-chip--warning"
+        snapshot.uncovered_count > 0 -> "tl-chip--danger"
+        snapshot.expected_uncovered_count > 0 -> "tl-chip--success"
+        true -> "tl-chip--success"
+      end
+    end
+
+    defp verdict_label(snapshot) do
+      cond do
+        all_empty?(snapshot) -> "No audited tables"
+        snapshot.uncovered_count > 0 -> "Not ready"
+        snapshot.expected_uncovered_count > 0 -> "Ready for tracked tables"
+        true -> "Ready"
+      end
+    end
+
+    defp verdict_heading(snapshot, schema) do
+      cond do
+        all_empty?(snapshot) ->
+          "No audited tables found"
+
+        snapshot.uncovered_count > 0 ->
+          count = snapshot.uncovered_count
+          verb = if count == 1, do: "needs", else: "need"
+          "Not ready for #{schema}: #{count} #{table_word(count)} #{verb} capture."
+
+        snapshot.expected_uncovered_count > 0 ->
+          "Ready for tracked tables in #{schema}: #{snapshot.covered_count} covered, #{snapshot.expected_uncovered_count} expected gaps excluded."
+
+        true ->
+          "Ready for #{schema}: all tracked tables covered."
+      end
+    end
+
+    defp verdict_next_step(snapshot, schema) do
+      verifier = verifier_command(schema)
+
+      cond do
+        all_empty?(snapshot) ->
+          "Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness."
+
+        snapshot.uncovered_count > 0 ->
+          "Fix rows marked Needs capture, apply the generated migration, run #{verifier}, then refresh audit readiness."
+
+        snapshot.expected_uncovered_count > 0 ->
+          "Expected gaps are excluded from readiness. Run #{verifier} after capture changes, then refresh audit readiness."
+
+        true ->
+          "Run #{verifier} after capture changes, then refresh audit readiness."
+      end
+    end
+
+    defp verifier_command("public"), do: "mix threadline.verify_coverage"
+    defp verifier_command(schema), do: "mix threadline.verify_coverage --schema=#{schema}"
+
+    defp table_word(1), do: "table"
+    defp table_word(_), do: "tables"
 
     defp source_for(table) do
       if table in @baseline, do: "baseline", else: "config"

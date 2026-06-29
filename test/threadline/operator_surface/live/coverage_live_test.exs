@@ -169,8 +169,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
-        assert html =~ "Timeline results may be incomplete for these tables."
-        assert html =~ "Add capture, verify coverage, then rerun the timeline search."
+        assert html =~ "Fix rows marked Needs capture"
+        assert html =~ "apply the generated migration"
 
         row_actions =
           Regex.scan(~r/<td data-label="Actions" class="tl-table__actions">(.*?)<\/td>/s, html)

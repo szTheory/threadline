@@ -274,21 +274,25 @@ You can query the exact same incident data natively in the terminal without moun
 mix threadline.incident <transaction_id>
 ```
 
-## Coverage dashboard
+## Coverage and audit readiness
 
-The operator surface ships a polled coverage dashboard at `/audit/coverage` that wraps `Threadline.Health.trigger_coverage/1`. Every LV in the surface also renders a small "uncovered count" pill in its header so operators notice drift from any screen.
+The operator surface ships selected-schema audit readiness at `/audit/coverage` by wrapping `Threadline.Health.trigger_coverage/1`. Every LV in the surface also renders a small "uncovered count" pill in its header so operators notice public-schema drift from any screen.
 
-### Reading the dashboard
+### Selected schema readiness
 
-The dashboard renders three buckets:
+The Coverage page renders one **Selected schema readiness** verdict before table triage. The verdict names the active schema, last checked time, covered count, Needs capture count, and expected gaps excluded from readiness. A schema is not ready when any table is marked Needs capture. A schema is ready for tracked tables when all tracked rows are covered and only expected gaps remain.
 
-- **covered** — tables that have a Threadline trigger installed.
-- **uncovered** — tables that DO NOT have a trigger and are NOT marked expected.
-- **expected** — tables intentionally not audited (e.g. `schema_migrations`). The `SOURCE` column shows whether the entry comes from the hardcoded baseline or from your `:expected_uncovered_tables` config.
+### Schema selection
 
-### Polling
+Use the native **Schema** select on `/audit/coverage` to switch schemas. The selected schema is encoded in the URL so the view is shareable:
 
-The dashboard polls every 30 seconds by default. Override globally:
+    /audit/coverage?schema=tenant_42
+
+The schema is validated at the LV edge (regex + `pg_namespace` lookup). Invalid input renders a schema-not-found message, keeps the picker usable, and offers **Use public schema** instead of showing stale rows from another schema.
+
+### Refresh and stale data
+
+The page polls every 30 seconds by default. Override globally:
 
 ```elixir
 config :threadline, :coverage_poll_ms, 30_000
@@ -296,19 +300,26 @@ config :threadline, :coverage_poll_ms, 30_000
 
 Floor is `5_000` ms — below this the two `pg_*` queries become a noisy neighbor on busy schemas.
 
+Manual refresh re-fetches the selected schema. If refresh fails after a prior success, the page keeps the last known results and last checked time, then shows a stale warning so operators do not mistake old counts for a fresh pass.
+
+### Row actions and remediation
+
+Covered rows link to Timeline activity. Public-schema links omit `table_schema`; non-public links include `table_schema=NAME&table=TABLE`.
+
+Needs capture rows expose **Add capture** details with the generator command and follow-up verification. After applying trigger migrations, run:
+
+    mix threadline.verify_coverage
+
+For non-public schemas, run:
+
+    mix threadline.verify_coverage --schema=NAME
+
+Expected gaps are excluded from readiness and do not show Add capture.
+
 ### Multi-schema adopters
 
-Use the visible **Schema** control on `/audit/coverage` to switch schemas. The
-selected schema is still encoded in the URL so the view is shareable:
-
-    /audit/coverage?schema=tenant_42
-
-The schema is validated at the LV edge (regex + `pg_namespace` lookup); invalid
-input renders a `Schema 'X' not found.` error. Row-level **View activity** links
-carry `table_schema` for non-`public` schemas.
-
 The surface header badge always queries the `"public"` schema — multi-schema is
-opt-in on the dashboard only.
+opt-in on the Coverage page only.
 
 ### Marking expected-uncovered tables
 
