@@ -6,7 +6,7 @@ current_phase: 185
 current_phase_name: coverage-and-audit-readiness
 status: verifying
 stopped_at: Phase 185 UI-SPEC approved
-last_updated: "2026-06-29T20:24:28.955Z"
+last_updated: "2026-06-29T20:25:04.060Z"
 last_activity: 2026-06-29
 last_activity_desc: Phase 185 execution started
 progress:
@@ -127,6 +127,7 @@ Last activity: 2026-06-29 — Phase 185 execution started
 | Phase 184 P01 | 10 min | 2 tasks | 6 files |
 | Phase 184 P02 | 9 min | 2 tasks | 5 files |
 | Phase 184 P03 | 49 min | 2 tasks | 5 files |
+| Phase 185 P01 | 19m | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -329,6 +330,8 @@ Last activity: 2026-06-29 — Phase 185 execution started
 - [Phase 184-03]: Use a narrow Timeline-only Playwright proof for required viewport/keyboard/copy/export/theme/reduced-motion coverage instead of broad screenshot baselines.
 - [Phase 184-03]: Create browser proof correlation data through existing authenticated /api/posts setup rather than relying on stale demo seed correlations.
 - [Phase 184-03]: Classify broad-suite residuals honestly while treating targeted Phase 184 source and browser gates as the closeout authority.
+- [Phase 185]: Coverage now answers readiness through one selected-schema verdict and keeps table rows as triage/action detail. — Phase 185 COV-01/COV-02 required deleting repeated readiness signals while preserving row actions.
+- [Phase 185]: Phase 185 browser proof stays narrow in the existing light/system lane; non-public schema link truth remains owned by deterministic LiveViewTest setup. — The plan prohibited broad screenshot matrices and had no deterministic example non-public schema fixture.
 
 ### Blockers
 
