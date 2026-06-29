@@ -659,6 +659,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "cursor: pointer;"
     ])
 
+    assert_selector_contains(base, ".tl-button--quiet-primary", [
+      "border-color: var(--tl-color-info-border);",
+      "background: var(--tl-color-info-bg);",
+      "color: var(--tl-color-accent-strong);"
+    ])
+
     assert_selector_contains(base, ".tl-command-copy", [
       "grid-template-columns: minmax(0, 1fr) auto;",
       "min-width: 0;"
@@ -1380,6 +1386,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".threadline-ui a.tl-button--primary",
+          ".threadline-ui a.tl-button--quiet-primary",
           ".threadline-ui a.tl-button--secondary",
           ".threadline-ui a.tl-button--ghost",
           ".threadline-ui a.tl-chip--accent",

@@ -126,6 +126,24 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       assert String.contains?(src, ~s|phx-click="refresh"|),
              "expected `phx-click=\"refresh\"` attribute per D-30b in #{@coverage_lv_path}"
     end
+
+    test "coverage_live.ex locks Phase 185 verifier next-step copy and accent action classes" do
+      src = File.read!(@coverage_lv_path)
+
+      assert String.contains?(
+               src,
+               ~S|Fix rows marked Needs capture, apply the migration, run #{verifier}, then refresh.|
+             )
+
+      assert String.contains?(src, ~S|Run #{verifier}, then refresh.|)
+
+      assert String.contains?(src, ~s|class="tl-button tl-button--quiet-primary"|)
+
+      assert String.contains?(
+               src,
+               ~s|class="tl-button tl-button--compact tl-button--quiet-primary"|
+             )
+    end
   end
 
   describe "Phase 185 selected-schema readiness contracts (COV-01/COV-02/COV-03)" do

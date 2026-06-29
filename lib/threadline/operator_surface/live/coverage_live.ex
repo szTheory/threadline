@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <button
                   type="button"
                   phx-click="refresh"
-                  class="tl-button tl-button--secondary"
+                  class="tl-button tl-button--quiet-primary"
                   disabled={not is_nil(@form_error)}
                   aria-disabled={not is_nil(@form_error)}
                 >
@@ -227,7 +227,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <td data-label="SOURCE">trigger present</td>
                           <td data-label="Actions" class="tl-table__actions">
                             <div class="tl-coverage-actions">
-                              <.link navigate={timeline_table_path(@base_path, table, @schema_param)} class="tl-button tl-button--compact tl-button--secondary">
+                              <.link navigate={timeline_table_path(@base_path, table, @schema_param)} class="tl-button tl-button--compact tl-button--quiet-primary">
                                 <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                                 View activity
                               </.link>
@@ -259,7 +259,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <div class="tl-alert tl-alert--error" role="alert">
         <p><%= @form_error %></p>
         <p>Choose a schema from the list or use public schema.</p>
-        <.link navigate={coverage_path(@base_path, "public")} class="tl-button tl-button--secondary">
+        <.link navigate={coverage_path(@base_path, "public")} class="tl-button tl-button--quiet-primary">
           Use public schema
         </.link>
       </div>
@@ -314,7 +314,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= option %>
           </option>
         </select>
-        <button type="submit" class="tl-button tl-button--secondary">Apply schema</button>
+        <button type="submit" class="tl-button tl-button--quiet-primary">Apply schema</button>
       </form>
       """
     end
@@ -462,13 +462,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness."
 
         snapshot.uncovered_count > 0 ->
-          "Fix rows marked Needs capture, apply the generated migration, run #{verifier}, then refresh audit readiness."
+          "Fix rows marked Needs capture, apply the migration, run #{verifier}, then refresh."
 
         snapshot.expected_uncovered_count > 0 ->
-          "Expected gaps are excluded from readiness. Run #{verifier} after capture changes, then refresh audit readiness."
+          "Expected gaps are excluded from readiness. Run #{verifier}, then refresh."
 
         true ->
-          "Run #{verifier} after capture changes, then refresh audit readiness."
+          "Run #{verifier}, then refresh."
       end
     end
 

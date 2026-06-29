@@ -129,11 +129,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Covered"
         assert html =~ "Needs capture"
         assert html =~ "Expected gaps"
-        assert html =~ "Fix rows marked Needs capture"
+
+        assert html =~
+                 "Fix rows marked Needs capture, apply the migration, run mix threadline.verify_coverage, then refresh."
+
         assert html =~ "mix threadline.verify_coverage"
         assert html =~ ~s|aria-label="Coverage schema"|
         assert html =~ ~s|name="schema"|
         assert html =~ "Apply schema"
+        assert html =~ ~s|class="tl-button tl-button--quiet-primary"|
 
         assert html =~ ~s|data-testid="coverage-table"|
         assert String.contains?(html, ~s|aria-label="Selected schema readiness"|)
@@ -173,7 +177,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
         assert html =~ "Fix rows marked Needs capture"
-        assert html =~ "apply the generated migration"
+        assert html =~ "apply the migration"
+        refute html =~ "apply the generated migration"
 
         row_actions =
           Regex.scan(~r/<td data-label="Actions" class="tl-table__actions">(.*?)<\/td>/s, html)
@@ -390,6 +395,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Add capture"
         assert html =~ "Excluded from readiness"
         assert html =~ "View activity"
+        assert html =~ ~s|tl-button tl-button--compact tl-button--quiet-primary|
         refute html =~ "Open Timeline"
       end
 
