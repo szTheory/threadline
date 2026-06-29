@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
-current_phase: 185
-current_phase_name: coverage-and-audit-readiness
+current_phase: 186
+current_phase_name: Detail, governance, and export surfaces
 status: verifying
 stopped_at: Completed 185-01-PLAN.md
-last_updated: "2026-06-29T20:25:04.060Z"
+last_updated: "2026-06-29T21:02:22.406Z"
 last_activity: 2026-06-29
-last_activity_desc: Completed 185-01-PLAN.md
+last_activity_desc: Phase 185 complete, transitioned to Phase 186
 progress:
   total_phases: 7
   completed_phases: 5
@@ -28,10 +28,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 185 (coverage-and-audit-readiness) — COMPLETE
-Plan: 1 of 1
+Phase: 186 — Detail, governance, and export surfaces
+Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Completed 185-01-PLAN.md
+Last activity: 2026-06-29 — Phase 185 complete, transitioned to Phase 186
 
 ## Performance Metrics
 

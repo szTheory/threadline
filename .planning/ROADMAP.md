@@ -165,7 +165,7 @@ Plans:
 3. Schema switch, invalid schema, non-public row links, refresh, page-specific errors, and docs stay correct.
 4. Regression tests cover public and non-public schema URL state plus mobile readability.
 
-**Plans:** 1/1 plans planned
+**Plans:** 1/1 plans complete
 
 Plans:
 **Wave 1**
