@@ -1,6 +1,6 @@
 ---
 phase: 185-coverage-and-audit-readiness
-verified: 2026-06-29T21:00:16Z
+verified: 2026-06-29T21:29:21Z
 status: passed
 score: 6/6 must-haves verified
 behavior_unverified: 0
@@ -16,7 +16,7 @@ re_verification:
 # Phase 185: Coverage and Audit Readiness Verification Report
 
 **Phase Goal:** Make Coverage answer one readiness question for one schema without repeated signals or compensating CTAs.
-**Verified:** 2026-06-29T21:00:16Z
+**Verified:** 2026-06-29T21:29:21Z
 **Status:** passed
 **Re-verification:** No - prior verification existed, but it had no `gaps:` frontmatter; this pass re-verified the phase goal from code.
 
@@ -29,7 +29,7 @@ re_verification:
 | 1 | Coverage shows one primary readiness verdict for the selected schema with schema scope, checked-at metadata, counts, and a clear remediation path. | VERIFIED | `CoverageLive.render/1` renders page header, then `.coverage_verdict`, then `data-testid="coverage-table"`; `coverage_verdict/1` includes selected schema, checked time, Covered, Needs capture, Expected gaps, and next step. `coverage_live_test.exs` asserts verdict precedes the table. |
 | 2 | Repeated readiness copy and duplicate cross-surface CTAs are collapsed; Timeline handoff remains contextual to rows. | VERIFIED | Normal Coverage branch has one verdict region; uncovered rows render `Add capture`, expected-gap rows render `Excluded from readiness`, covered rows render `View activity`. Tests refute `Open Timeline`, retired readiness labels, and old summary/remediation blocks. |
 | 3 | Schema switch, invalid schema, non-public row links, refresh, page-specific errors, and docs stay correct. | VERIFIED | `handle_params/3` validates through `CoverageSchemas`, invalid state renders `Use public schema` without stale rows, refresh blocks invalid forms and preserves same-schema last-good snapshots, non-public `timeline_table_path/3` includes `table_schema`. LiveView and doc-contract tests cover these paths. |
-| 4 | Regression proof covers public/non-public schema URL state plus mobile readability. | VERIFIED | Targeted ExUnit slice passed 117 tests. Playwright spec enumerates 21 tests across chromium/desktop/mobile and `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` passed 7 browser tests including 320/375 viewport readability, focus, disclosure/copy layout, and public Timeline link scope. |
+| 4 | Regression proof covers public/non-public schema URL state plus mobile readability. | VERIFIED | Final targeted ExUnit slice passed 143 tests. Playwright spec enumerates 21 tests across chromium/desktop/mobile and `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` passed 7 browser tests including 320/375 viewport readability, focus, disclosure/copy layout, and public Timeline link scope. |
 | 5 | Coverage copy uses audit-readiness language without completion overclaims and distinguishes invalid, empty, stale, covered, missing, and expected states. | VERIFIED | Verdict helpers use `Not ready`, `Ready for tracked tables`, `No audited tables`, and expected-gap language. `copy_contract_test.exs` and `coverage_doc_contract_test.exs` reject `capture is complete`, `complete timeline answers`, generic `Open Timeline`, and Coverage dashboard framing. |
 | 6 | Implementation stays within private LiveView assets and preserves route/auth/testid/dependency/API boundaries. | VERIFIED | Existing `/audit/coverage` route remains; `data-testid="coverage-table"` preserved; no new package dependency or public API found; `Coverage.OnMount` public-schema header behavior remains separate from selected-schema page readiness; `coverage_live` is intentionally excluded from formless pages for the native schema selector. |
 
@@ -73,13 +73,15 @@ re_verification:
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Coverage LiveView, docs, style, copy, on_mount, and formless contracts | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs test/threadline/operator_surface/formless_pages_test.exs` | 117 tests, 0 failures | PASS |
+| Coverage LiveView, health/schema validation, Mix schema flags, docs, style, copy, on_mount, and formless contracts after UI-review fixes | `mix test test/threadline/health_test.exs test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs test/threadline/operator_surface/formless_pages_test.exs test/threadline/operator_surface/coverage_mix_test.exs` | 143 tests, 0 failures | PASS |
 | Targeted formatting | `mix format --check-formatted ...` | Exit 0 | PASS |
 | Workspace format gate | `mix verify.format` | Exit 0 | PASS |
 | Credo gate | `mix verify.credo` | 230 source files checked, 0 issues | PASS |
 | Browser proof enumeration | `npm test -- --list tests/operator-coverage-readiness.spec.ts` | 21 tests listed in 1 file | PASS |
 | Narrow Coverage browser lane | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` | 7 tests passed | PASS |
 | Full test gate residual classification | `mix verify.test` | 1157 tests, 2 failures: `V123CharterDocContractTest` stale v1.37 PROJECT.md charter text; `ExportsDocContractTest` Timeline download-attribute source contract | NON-BLOCKING RESIDUAL |
+| UI review closeout | `185-UI-REVIEW.md` | 24/24, 0 blockers, 0 warnings after copy/color/action fixes | PASS |
+| Security closeout | `185-SECURITY.md` | `threats_open: 0`, 8 threats closed, accepted risks documented | PASS |
 
 ### Probe Execution
 
@@ -115,5 +117,5 @@ No Phase 185 gaps found. The full `mix verify.test` gate is still non-green, but
 
 ---
 
-_Verified: 2026-06-29T21:00:16Z_
+_Verified: 2026-06-29T21:29:21Z_
 _Verifier: the agent (gsd-verifier)_
