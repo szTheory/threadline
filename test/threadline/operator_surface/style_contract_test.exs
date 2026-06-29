@@ -676,6 +676,33 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     src = File.read!(@style_path)
     base = base_responsive_section(src)
 
+    assert_selector_contains(base, ".tl-timeline-command__lede", [
+      "font-size: var(--tl-font-size-body);"
+    ])
+
+    assert_selector_contains(base, ".tl-timeline-fact__label", [
+      "font-size: var(--tl-font-size-label);",
+      "font-weight: var(--tl-weight-regular);"
+    ])
+
+    assert_selector_contains(base, ".tl-timeline-fact__value", [
+      "font-size: var(--tl-font-size-body);"
+    ])
+
+    assert_selector_contains(base, ".tl-timeline-fact__detail", [
+      "font-size: var(--tl-font-size-label);"
+    ])
+
+    assert_selector_contains(base, ".tl-filter-group__legend", [
+      "font-size: var(--tl-font-size-label);",
+      "font-weight: var(--tl-weight-regular);"
+    ])
+
+    assert_selector_contains(base, ".tl-utility-group__label", [
+      "font-size: var(--tl-font-size-label);",
+      "font-weight: var(--tl-weight-regular);"
+    ])
+
     assert_selector_contains(base, ".tl-change__summary", [
       "min-width: 0;"
     ])
@@ -695,6 +722,34 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-timeline-drawer", [
       "min-width: 0;"
+    ])
+
+    assert_selector_contains(base, ".tl-change", [
+      "box-shadow: inset var(--tl-space-1) 0 0 transparent;"
+    ])
+
+    assert_selector_contains(base, ".tl-change--insert", [
+      "box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-insert-text);"
+    ])
+
+    assert_selector_contains(base, ".tl-change--update", [
+      "box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-update-text);"
+    ])
+
+    assert_selector_contains(base, ".tl-change--delete", [
+      "box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-delete-text);"
+    ])
+
+    assert_selector_contains(base, ".tl-change__op", [
+      "padding: 0 var(--tl-space-2);"
+    ])
+
+    assert_selector_contains(base, ".tl-change__table", [
+      "padding: 0 var(--tl-space-1);"
+    ])
+
+    assert_selector_contains(base, ".tl-filter-summary > strong", [
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     refute Regex.match?(

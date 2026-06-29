@@ -353,10 +353,12 @@ test.describe("operator accessibility baseline", () => {
       await expect(page.getByLabel(label, { exact: true })).toBeVisible();
     }
 
-    const workflowLine = page.getByText(
-      "Filter the timeline, open transactions or row history, then export the current view when you need a handoff.",
-    );
-    await expect(workflowLine).toBeVisible();
+    await expect(
+      page.getByText(
+        "Filter the timeline, open transactions or row history, then export the current view when you need a handoff.",
+      ),
+    ).toHaveCount(0);
+
     const timelineText = await page.locator("#tl-main").textContent();
     expect(timelineText).not.toMatch(/\bFIND\b/);
     expect(timelineText).not.toMatch(/\bEXPLAIN\b/);

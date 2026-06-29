@@ -780,6 +780,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert length(download_anchors) == 3
+
+      Enum.each(download_anchors, fn [anchor, _format] ->
+        refute anchor =~ ~s|aria-disabled="true"|
+        refute anchor =~ ~s|tabindex="-1"|
+      end)
     end
 
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
@@ -979,7 +984,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Scoped views only show records you are authorized to see."
     end
 
-    test "F-403: dense Timeline renders filter summary and rows before demoted journey legend",
+    test "F-403: dense Timeline renders filter summary and rows without a visible journey legend",
          %{conn: conn} do
       table = "dense_order_#{System.unique_integer([:positive])}"
       seed_change!(table: table)
@@ -992,21 +997,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s|class="tl-filter-summary"|
       assert html =~ ~s|data-testid="timeline-row"|
-      assert html =~ ~s|class="tl-journey--legend"|
+      refute html =~ ~s|class="tl-journey--legend"|
 
-      assert html =~
+      refute html =~
                "Filter the timeline, open transactions or row history, then export the current view when you need a handoff."
 
       {form_index, _} = :binary.match(html, ~s|id="timeline-filters"|)
       {summary_index, _} = :binary.match(html, ~s|class="tl-filter-summary"|)
       {row_index, _} = :binary.match(html, ~s|data-testid="timeline-row"|)
       {utilities_index, _} = :binary.match(html, ~s|class="tl-timeline-command__utilities"|)
-      {legend_index, _} = :binary.match(html, ~s|class="tl-journey--legend"|)
 
       assert form_index < summary_index
       assert summary_index < row_index
       assert row_index < utilities_index
-      assert row_index < legend_index
 
       refute html =~ "FIND"
       refute html =~ "EXPLAIN"

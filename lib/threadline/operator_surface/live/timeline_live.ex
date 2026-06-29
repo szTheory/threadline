@@ -481,11 +481,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           filter_query={@filter_query}
         />
-        <aside class="tl-journey--legend" aria-label="Timeline workflow">
-          <p>
-            Filter the timeline, open transactions or row history, then export the current view when you need a handoff.
-          </p>
-        </aside>
       </UI.shell>
       """
     end
@@ -749,8 +744,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               download
               class="tl-button tl-button--compact tl-button--secondary"
               data-tl-mutating
-              aria-disabled="true"
-              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               CSV
@@ -760,8 +753,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               download
               class="tl-button tl-button--compact tl-button--secondary"
               data-tl-mutating
-              aria-disabled="true"
-              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               JSON
@@ -771,8 +762,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               download
               class="tl-button tl-button--compact tl-button--secondary"
               data-tl-mutating
-              aria-disabled="true"
-              tabindex="-1"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               NDJSON

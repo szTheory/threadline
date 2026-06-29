@@ -298,6 +298,9 @@ async function expectExportAnchorsUseCurrentQuery(page: Page, proof: CorrelatedP
   for (const format of ["CSV", "JSON", "NDJSON"]) {
     const link = drawer.getByRole("link", { name: format, exact: true });
     await expect(link).toBeVisible();
+    await expect(link).toBeEnabled();
+    await expect(link).not.toHaveAttribute("aria-disabled", "true");
+    await expect(link).not.toHaveAttribute("tabindex", "-1");
     await expect(link).toHaveAttribute("download", "");
     await expect(link).toHaveAttribute(
       "href",
@@ -305,6 +308,15 @@ async function expectExportAnchorsUseCurrentQuery(page: Page, proof: CorrelatedP
         `/audit/exports/changes\\.${format.toLowerCase()}\\?.*table=${proof.table}.*correlation_id=${proof.correlation}`,
       ),
     );
+  }
+
+  await carry.focus();
+  await page.keyboard.press("Tab");
+  await expect(drawer.getByRole("button", { name: "Queue export" })).toBeFocused();
+
+  for (const format of ["CSV", "JSON", "NDJSON"]) {
+    await page.keyboard.press("Tab");
+    await expect(drawer.getByRole("link", { name: format, exact: true })).toBeFocused();
   }
 
   await page.keyboard.press("Escape");

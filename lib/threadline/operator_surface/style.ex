@@ -1144,7 +1144,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           max-width: 68ch;
           margin: 0;
           color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-ui);
+          font-size: var(--tl-font-size-body);
           line-height: var(--tl-line-body);
           text-wrap: pretty;
         }
@@ -1180,8 +1180,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-timeline-fact__label {
           color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-medium);
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-regular);
           line-height: var(--tl-line-label);
           text-transform: uppercase;
           letter-spacing: var(--tl-tracking-caps);
@@ -1190,7 +1190,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-timeline-fact__value {
           min-width: 0;
           color: var(--tl-color-text);
-          font-size: var(--tl-font-size-ui);
+          font-size: var(--tl-font-size-body);
           font-weight: var(--tl-weight-strong);
           line-height: var(--tl-line-label);
           overflow-wrap: anywhere;
@@ -1200,7 +1200,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-timeline-fact__detail {
           min-width: 0;
           color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-xs);
+          font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
           overflow-wrap: anywhere;
           font-variant-numeric: tabular-nums;
@@ -1223,8 +1223,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-filter-group__legend {
           padding: 0;
           color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-medium);
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-regular);
           line-height: var(--tl-line-label);
           text-transform: uppercase;
           letter-spacing: var(--tl-tracking-caps);
@@ -1462,8 +1462,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         .tl-utility-group__label {
           flex: 0 0 100%;
           color: var(--tl-color-muted);
-          font-size: var(--tl-font-size-xs);
-          font-weight: var(--tl-weight-medium);
+          font-size: var(--tl-font-size-label);
+          font-weight: var(--tl-weight-regular);
           line-height: var(--tl-line-label);
           text-transform: uppercase;
           letter-spacing: var(--tl-tracking-caps);
@@ -2396,7 +2396,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           padding: var(--tl-space-4);
           border-bottom: 1px solid var(--tl-color-border);
           background: transparent;
-          box-shadow: inset var(--tl-status-stripe-width) 0 0 transparent;
+          box-shadow: inset var(--tl-space-1) 0 0 transparent;
           transition-property: background-color, box-shadow;
           transition-duration: var(--tl-motion-fast);
           transition-timing-function: var(--tl-ease-standard);
@@ -2411,20 +2411,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-change--insert {
-          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-insert-text);
+          box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-insert-text);
         }
 
         .tl-change--update {
-          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-update-text);
+          box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-update-text);
         }
 
         .tl-change--delete {
-          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-op-delete-text);
+          box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-op-delete-text);
         }
 
         .tl-change--featured {
           border-top: 1px solid var(--tl-color-border);
-          box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-brand-rail), var(--tl-shadow-subtle);
+          box-shadow: inset var(--tl-space-1) 0 0 var(--tl-color-brand-rail), var(--tl-shadow-subtle);
         }
 
         .tl-change__meta {
@@ -2441,7 +2441,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           display: inline-flex;
           align-items: center;
           min-height: var(--tl-control-height-badge);
-          padding: 1px var(--tl-space-2);
+          padding: 0 var(--tl-space-2);
           border-radius: var(--tl-radius-pill);
           background: var(--tl-color-info-bg);
           color: var(--tl-color-accent-strong);
@@ -2514,7 +2514,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-change__table {
-          padding: 2px var(--tl-space-1);
+          padding: 0 var(--tl-space-1);
           color: var(--tl-color-text);
         }
 
@@ -2862,7 +2862,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         .tl-filter-summary > strong {
           color: var(--tl-color-text);
-          font-weight: var(--tl-weight-medium);
+          font-weight: var(--tl-weight-strong);
         }
 
         .tl-filter-summary__window {
