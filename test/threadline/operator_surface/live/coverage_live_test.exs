@@ -112,26 +112,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "mix threadline.health.coverage"
       end
 
-      test "renders three-bucket coverage table with operator-facing badge labels", %{conn: conn} do
+      test "COV-01/COV-02 renders one selected-schema readiness verdict before table triage",
+           %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
         assert html =~ "Audit coverage"
-        assert html =~ "Schema: public"
+        assert html =~ "Selected-schema audit readiness and table-level capture gaps."
+        assert html =~ ~s|aria-label="Selected schema readiness"|
+        assert html =~ ~s|class="tl-coverage-verdict|
+        assert html =~ "Selected schema readiness"
+        assert html =~ "public"
+        assert html =~ "Checked"
+        assert html =~ "Covered"
+        assert html =~ "Needs capture"
+        assert html =~ "Expected gaps"
+        assert html =~ "Fix rows marked Needs capture"
+        assert html =~ "mix threadline.verify_coverage"
         assert html =~ ~s|aria-label="Coverage schema"|
         assert html =~ ~s|name="schema"|
         assert html =~ "Apply schema"
+
+        assert html =~ ~s|data-testid="coverage-table"|
+        assert String.contains?(html, ~s|aria-label="Selected schema readiness"|)
+        assert String.contains?(html, ~s|data-testid="coverage-table"|)
+
+        assert :binary.match(html, ~s|aria-label="Selected schema readiness"|) <
+                 :binary.match(html, ~s|data-testid="coverage-table"|)
 
         # The table headers (D-32d locked literals)
         assert html =~ "<th>TABLE</th>"
         assert html =~ "<th>STATUS</th>"
         assert html =~ "<th>SOURCE</th>"
 
-        assert html =~
-                 "Audit readiness by table: table coverage status shows which tracked tables are covered, need capture, or are expected gaps."
-
-        # The three coverage buckets still render; schema_migrations is the
-        # baseline `:expected_uncovered` table — its source label "baseline" appears
-        # in the third column. The STATUS column uses operator-facing labels.
         assert html =~ ">Expected gap<"
         assert html =~ ">Covered<"
         assert html =~ "schema_migrations"
@@ -139,6 +151,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "capture is complete"
         refute html =~ "complete timeline answers"
         refute html =~ "Open timeline"
+        refute html =~ ~s|aria-label="Audit readiness"|
+        refute html =~ ~s|aria-label="Coverage summary"|
+        refute html =~ ~s|aria-label="Coverage remediation"|
       end
 
       test "uncovered rows render Add capture disclosure with command and verify follow-up",
@@ -193,7 +208,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|phx-click="refresh"|
       end
 
-      test "success branch renders the header via UI.page_header and drops the command shell (D-12)",
+      test "success branch renders page_header and retires repeated readiness structures",
            %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
@@ -208,21 +223,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Audit coverage"
         assert html =~ ~s|class="tl-page__lede"|
         assert html =~ ~s|class="tl-page__meta"|
-        assert html =~ "Schema: public"
+        assert html =~ "Selected-schema audit readiness and table-level capture gaps."
 
         # Exactly one <h1> on the page (no hand-rolled second heading).
         assert html |> String.split("<h1") |> length() == 2
 
-        # The legit repeated-item metric tiles survive the flatten.
-        assert html =~ ~s|class="tl-card--metric"|
-        assert html =~ ">Covered<"
-        assert html =~ ">Needs capture<"
-        assert html =~ ">Expected gaps<"
-
-        # The metric grid keeps its generic summary-grid boundary (not the removed
-        # tl-coverage-command__metrics modifier).
-        assert html =~ ~s|class="tl-summary-grid"|
-        assert html =~ "table coverage status shows which tracked tables are covered"
+        assert html =~ ~s|class="tl-coverage-verdict|
+        refute html =~ ~s|class="tl-card--metric"|
+        refute html =~ ~s|class="tl-summary-grid"|
+        refute html =~ "table coverage status shows which tracked tables are covered"
         refute html =~ "complete timeline answers"
       end
 
@@ -287,6 +296,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # this comment preserves the source-side literal for doc-contract greps.
         assert html =~ ~s|tl-alert--error|
         assert html =~ "Schema &#39;Public&#39; not found."
+        assert html =~ "Use public schema"
+        assert html =~ ~s|href="/audit/coverage?schema=public"|
+        assert html =~ ~s|id="coverage-schema"|
+        assert html =~ ~s|<select|
+        refute html =~ ~s|data-testid="coverage-table"|
+        refute html =~ "schema_migrations"
+        refute html =~ ~s|aria-label="Selected schema readiness"|
       end
 
       test "?schema=nonexistent_xyz fails the pg_namespace lookup", %{conn: conn} do
@@ -309,9 +325,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "schema picker patches to the selected schema", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")
 
+        html = render(view)
+        assert html =~ ~s|<select|
+        assert html =~ ~s|id="coverage-schema"|
+        assert html =~ ~s|name="schema"|
+        assert html =~ ~s|<option value="public" selected|
+        refute html =~ ~s|list="coverage-schema-options"|
+        refute html =~ ~s|<datalist id="coverage-schema-options"|
+
         render_submit(view, "select-schema", %{"schema" => "public"})
 
         assert_patch(view, "/audit/coverage?schema=public")
+      end
+
+      test "COV-03 selected-schema state lattice includes invalid, empty, expected, covered, uncovered, refresh, and links",
+           %{conn: conn} do
+        # D-185-24 source lattice reminder: public/default, valid non-public,
+        # invalid schema, schema selection patch, selected-schema refresh,
+        # stale last-good warning, all-empty schema, covered rows, uncovered rows,
+        # expected-gap rows, docs, and public/non-public Timeline links.
+        {:ok, _view, html} = live(conn, "/audit/coverage?schema=public")
+
+        assert html =~ "Selected schema readiness"
+        assert html =~ "Refresh"
+        assert html =~ "Add capture"
+        assert html =~ "Excluded from readiness"
+        assert html =~ "View activity"
+        refute html =~ "Open Timeline"
       end
 
       test "non-public schema row activity links include table_schema", %{conn: conn} do

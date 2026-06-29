@@ -609,9 +609,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "border-top: 1px solid var(--tl-color-border);"
     ])
 
-    assert_selector_contains(base, "#tl-main > .tl-trust-rail", [
-      "margin-bottom: var(--tl-space-4);"
-    ])
+    refute String.contains?(src, ".tl-trust-rail"),
+           "Phase 185 retires the page-level trust rail; selected-schema readiness lives in .tl-coverage-verdict"
 
     # DATA-05 / D-12: the synthetic `tl-coverage-command` command-shell is flattened
     # away — the coverage success branch now uses UI.page_header with its children
@@ -622,9 +621,31 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(src, "tl-coverage-command"),
            ".tl-coverage-command* CSS must be deleted (D-12 flatten); the command shell is retired"
 
-    assert_selector_contains(base, ".tl-summary-grid", [
-      "margin-bottom: var(--tl-space-4);"
+    assert_selector_contains(base, ".tl-coverage-verdict", [
+      "display: grid;",
+      "gap: var(--tl-space-3);",
+      "margin-bottom: var(--tl-space-4);",
+      "border: 1px solid var(--tl-color-border);",
+      "background: var(--tl-color-surface-raised);"
     ])
+
+    assert_selector_contains(base, ".tl-coverage-verdict__title", [
+      "font-size: var(--tl-font-size-title);",
+      "line-height: var(--tl-line-heading);"
+    ])
+
+    assert_selector_contains(base, ".tl-coverage-verdict__counts", [
+      "display: flex;",
+      "flex-wrap: wrap;",
+      "gap: var(--tl-space-2);"
+    ])
+
+    assert_selector_contains(base, ".tl-coverage-verdict__next-step", [
+      "overflow-wrap: anywhere;"
+    ])
+
+    refute String.contains?(src, "#tl-main > .tl-summary-grid"),
+           "Phase 185 verdict replaces the old top-level metric-grid spacing contract"
 
     assert_selector_contains(base, ".tl-table--coverage .tl-table__actions", [
       "white-space: normal;"

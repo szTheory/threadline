@@ -238,6 +238,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "primary Coverage copy answers readiness without generic Timeline or completion overclaims",
+         %{conn: conn} do
+      text = conn |> render_coverage() |> visible_text()
+
+      for expected <- [
+            "Audit coverage",
+            "Selected schema readiness",
+            "selected schema",
+            "Needs capture",
+            "Expected gap",
+            "Add capture",
+            "View activity"
+          ] do
+        assert text =~ expected
+      end
+
+      for unsafe <- [
+            "capture is complete",
+            "complete timeline answers",
+            "Open Timeline",
+            "Timeline can answer from every tracked table",
+            "Timeline results may be incomplete for these tables",
+            "rerun the timeline search"
+          ] do
+        refute String.contains?(String.downcase(text), String.downcase(unsafe)),
+               "Coverage primary copy leaked retired readiness framing: #{unsafe}"
+      end
+    end
+
     test "copy affordances bind every visible short ref to the full forensic value" do
       assigns = %{value: @long_correlation_id}
 
@@ -322,6 +351,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} -> html
         {:error, {:live_redirect, %{to: redirect_path}}} -> conn |> live(redirect_path) |> elem(2)
       end
+    end
+
+    defp render_coverage(conn) do
+      {:ok, _view, html} = live(conn, "/audit/coverage")
+      html
     end
 
     defp seed_timeline_change! do

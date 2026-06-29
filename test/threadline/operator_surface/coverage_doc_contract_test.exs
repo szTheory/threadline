@@ -128,6 +128,67 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     end
   end
 
+  describe "Phase 185 selected-schema readiness contracts (COV-01/COV-02/COV-03)" do
+    test "coverage_live.ex owns one selected-schema verdict and native schema select" do
+      src = File.read!(@coverage_lv_path)
+
+      assert String.contains?(src, "Selected schema readiness")
+      assert String.contains?(src, "tl-coverage-verdict")
+      assert String.contains?(src, ~s|<select|)
+      assert String.contains?(src, ~s|id="coverage-schema"|)
+      assert String.contains?(src, ~s|name="schema"|)
+      refute String.contains?(src, ~s|<datalist|)
+      refute String.contains?(src, ~s|list="coverage-schema-options"|)
+    end
+
+    test "coverage_live.ex has invalid-schema recovery without stale selected-schema data" do
+      src = File.read!(@coverage_lv_path)
+
+      assert String.contains?(src, "Use public schema")
+      assert String.contains?(src, "render_invalid_schema")
+      assert String.contains?(src, "schema_options")
+      assert String.contains?(src, "coverage_path")
+      refute String.contains?(src, "stale public data")
+    end
+
+    test "coverage_live.ex preserves last-good checked_at on selected-schema refresh failure" do
+      src = File.read!(@coverage_lv_path)
+
+      assert String.contains?(src, "stale_selected_schema?")
+      assert String.contains?(src, "%{previous | error: message}")
+      refute String.contains?(src, "%{previous | error: message, last_checked_at: now}")
+    end
+
+    test "operator guide documents selected-schema readiness, schema recovery, refresh, and row actions" do
+      guide = File.read!("guides/operator-surface.md")
+
+      for heading <- [
+            "## Coverage and audit readiness",
+            "### Selected schema readiness",
+            "### Schema selection",
+            "### Refresh and stale data",
+            "### Row actions and remediation",
+            "### Multi-schema adopters"
+          ] do
+        assert String.contains?(guide, heading), "missing operator guide heading #{heading}"
+      end
+
+      assert String.contains?(guide, "Selected schema readiness")
+      assert String.contains?(guide, "Use public schema")
+      assert String.contains?(guide, "last known results")
+      assert String.contains?(guide, "table_schema=NAME&table=TABLE")
+      assert String.contains?(guide, "mix threadline.verify_coverage --schema=NAME")
+    end
+
+    test "production checklist uses audit-readiness language instead of dashboard language" do
+      checklist = File.read!("guides/production-checklist.md")
+
+      assert String.contains?(checklist, "selected-schema audit readiness")
+      assert String.contains?(checklist, "one readiness verdict")
+      refute String.contains?(checklist, "Coverage dashboard responds")
+    end
+  end
+
   describe "Mix-task help text and flags (D-34, D-35 #6, #7)" do
     test "threadline.health.coverage.ex declares @shortdoc with the locked literal" do
       src = File.read!(@mix_task_path)
