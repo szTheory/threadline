@@ -44,25 +44,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       schema_param = Map.get(params, "schema", "public")
 
       if socket.assigns[:threadline_coverage_enabled] do
-        schemas = available_schemas(socket)
+        with {:ok, schemas} <- safe_available_schemas(socket),
+             {:ok, schema} <- safe_validate_schema(socket, schema_param, schemas) do
+          socket =
+            socket
+            |> assign(:schema_param, schema)
+            |> assign(:available_schemas, schemas)
+            |> assign(:form_error, nil)
+            |> fetch_coverage_for_schema(schema)
 
-        case validate_schema(socket, schema_param) do
-          {:ok, schema} ->
-            socket =
-              socket
-              |> assign(:schema_param, schema)
-              |> assign(:available_schemas, schemas)
-              |> assign(:form_error, nil)
-              |> fetch_coverage_for_schema(schema)
-
-            {:noreply, socket}
-
-          {:error, message} ->
+          {:noreply, socket}
+        else
+          {:error, message, schemas} ->
             socket =
               socket
               |> assign(:schema_param, schema_param)
               |> assign(:available_schemas, schemas)
-              |> assign(:coverage_for_schema, Snapshot.empty(DateTime.utc_now()))
+              |> assign(:coverage_for_schema, %{Snapshot.empty(nil) | error: message})
+              |> assign(:coverage_for_schema_name, schema_param)
               |> assign(:form_error, message)
 
             {:noreply, socket}
@@ -315,6 +314,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket
       |> resolve_repo()
       |> CoverageSchemas.validate(schema)
+    end
+
+    defp safe_available_schemas(socket) do
+      {:ok, available_schemas(socket)}
+    rescue
+      e -> {:error, Exception.message(e), ["public"]}
+    end
+
+    defp safe_validate_schema(socket, schema, schemas) when is_binary(schema) do
+      case validate_schema(socket, schema) do
+        {:ok, schema} -> {:ok, schema}
+        {:error, message} -> {:error, message, schemas}
+      end
+    rescue
+      e -> {:error, Exception.message(e), schemas}
     end
 
     defp fetch_coverage_for_schema(socket, schema) do
