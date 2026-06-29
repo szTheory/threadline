@@ -170,7 +170,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 185-01-PLAN.md - Coverage selected-schema readiness verdict, remediation, docs, and browser proof
+- [x] 185-01-PLAN.md - Coverage selected-schema readiness verdict, remediation, docs, and browser proof
 
 ### Phase 186: Detail, governance, and export surfaces
 

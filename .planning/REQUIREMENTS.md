@@ -36,9 +36,9 @@
 
 ### Coverage and Audit Readiness
 
-- [ ] **COV-01**: Coverage renders one primary readiness verdict for the selected schema, with schema scope and checked-at metadata visible and URL-addressable.
-- [ ] **COV-02**: Coverage removes repeated readiness copy and duplicate cross-surface CTAs, leaving contextual row actions and one clear remediation path.
-- [ ] **COV-03**: Coverage schema selection, invalid-schema errors, non-public schema row links, refresh behavior, and docs remain correct and regression-guarded.
+- [x] **COV-01**: Coverage renders one primary readiness verdict for the selected schema, with schema scope and checked-at metadata visible and URL-addressable.
+- [x] **COV-02**: Coverage removes repeated readiness copy and duplicate cross-surface CTAs, leaving contextual row actions and one clear remediation path.
+- [x] **COV-03**: Coverage schema selection, invalid-schema errors, non-public schema row links, refresh behavior, and docs remain correct and regression-guarded.
 
 ### Detail, Governance, and Export Surfaces
 
@@ -98,9 +98,9 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | TIME-01 | Phase 184 | Complete |
 | TIME-02 | Phase 184 | Complete |
 | TIME-03 | Phase 184 | Complete |
-| COV-01 | Phase 185 | Pending |
-| COV-02 | Phase 185 | Pending |
-| COV-03 | Phase 185 | Pending |
+| COV-01 | Phase 185 | Complete |
+| COV-02 | Phase 185 | Complete |
+| COV-03 | Phase 185 | Complete |
 | DETAIL-01 | Phase 186 | Pending |
 | GOV-01 | Phase 186 | Pending |
 | GOV-02 | Phase 186 | Pending |
