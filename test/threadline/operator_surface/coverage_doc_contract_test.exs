@@ -143,6 +143,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
     test "operator guide documents selected-schema readiness, schema recovery, refresh, and row actions" do
       guide = File.read!("guides/operator-surface.md")
+      coverage_section = guide_section(guide, "## Coverage and audit readiness")
 
       for heading <- [
             "## Coverage and audit readiness",
@@ -160,14 +161,24 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       assert String.contains?(guide, "last known results")
       assert String.contains?(guide, "table_schema=NAME&table=TABLE")
       assert String.contains?(guide, "mix threadline.verify_coverage --schema=NAME")
+
+      assert String.contains?(
+               guide,
+               "Can operators rely on audit history for the selected schema?"
+             )
+
+      refute String.contains?(coverage_section, "dashboard")
+      refute String.contains?(guide, "Which tables are covered right now?")
     end
 
     test "production checklist uses audit-readiness language instead of dashboard language" do
       checklist = File.read!("guides/production-checklist.md")
+      coverage_section = guide_section(checklist, "## Coverage drift visibility")
 
       assert String.contains?(checklist, "selected-schema audit readiness")
       assert String.contains?(checklist, "one readiness verdict")
       refute String.contains?(checklist, "Coverage dashboard responds")
+      refute String.contains?(coverage_section, "dashboard")
     end
   end
 
@@ -357,5 +368,13 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
                "RowHistoryComponent should inherit the surface header via TransactionLive's render — see UI-SPEC §\"Out of scope for this UI contract\""
       end
     end
+  end
+
+  defp guide_section(markdown, heading) do
+    markdown
+    |> String.split(heading, parts: 2)
+    |> List.last()
+    |> String.split("\n## ", parts: 2)
+    |> List.first()
   end
 end

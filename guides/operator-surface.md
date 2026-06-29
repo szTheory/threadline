@@ -261,7 +261,7 @@ ready:
 | `/audit/actors/:kind/:id` | What did this actor drive recently? | `Threadline.actor_history/2` or `Threadline.timeline_page/2` | API parity |
 | `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | Mounted route exists; support-scoped row history / as-of is proven on the current tree |
 | export actions from `/audit` | Can I download the same filtered audit data? | `mix threadline.export --dry-run` plus exact `--table` / `--from` / `--to` flags when the denied route can derive them safely, or a file export run | CLI parity |
-| `/audit/coverage` | Which tables are covered right now? | `mix threadline.health.coverage` | Direct parity |
+| `/audit/coverage` | Can operators rely on audit history for the selected schema? | `mix threadline.health.coverage` | Direct parity |
 | `/audit/policy/redaction` | Does deployed redaction match config? | `mix threadline.policy.show` | Direct parity |
 
 ## `mix threadline.incident` Companion Task
@@ -323,7 +323,7 @@ opt-in on the Coverage page only.
 
 ### Marking expected-uncovered tables
 
-Adopters typically have bookkeeping tables that are not application data (Oban, application metrics, vendor add-ons). Declare them so the dashboard shows them as `expected` rather than `uncovered`:
+Adopters typically have bookkeeping tables that are not application data (Oban, application metrics, vendor add-ons). Declare them so the readiness verdict lists them as `Expected gap` rather than `Needs capture`:
 
 ```elixir
 config :threadline, :health,

@@ -26,7 +26,7 @@ Threadline's strongest production posture comes from making coverage drift impos
 - [ ] **Coverage selected-schema audit readiness responds at `/audit/coverage`** — the page renders one readiness verdict before table triage, with covered / Needs capture / expected-gap counts and a 30-second polling default.
 - [ ] **Mix-task parity for capture-only paths** — `mix threadline.health.coverage` prints the same data; `mix threadline.health.coverage --json` for machine consumption.
 - [ ] **Adopter-declared expected-uncovered set** — if you use Oban, vendor add-ons, or non-Threadline bookkeeping tables, declare them in `config :threadline, :health, expected_uncovered_tables: [...]`. Run `Threadline.Health.Policy.validate!/1` at boot to fail loudly on typos.
-- [ ] **Telemetry alert on failure** — subscribe to `[:threadline, :health, :checked, :error]` so sustained polling failures (e.g. DB connection issues) page someone instead of silently freezing the dashboard at the last-good count.
+- [ ] **Telemetry alert on failure** — subscribe to `[:threadline, :health, :checked, :error]` so sustained polling failures (e.g. DB connection issues) page someone instead of leaving the readiness verdict at the last-good count.
 
 See also `guides/operator-surface.md` §"Coverage and audit readiness".
 
