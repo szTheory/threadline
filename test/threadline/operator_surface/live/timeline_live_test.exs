@@ -39,6 +39,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.RouteableRow do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "routeable_rows" do
+      field(:title, :string)
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter do
+    use Phoenix.Router
+    import Phoenix.LiveView.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:fetch_live_flash)
+
+      plug(:put_root_layout,
+        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
+      )
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_schema",
+        schemas: %{
+          "routeable_rows" => Threadline.OperatorSurface.TimelineLiveTest.RouteableRow
+        }
+      )
+    end
+  end
+
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorRouter do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -95,6 +130,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     plug(Plug.MethodOverride)
     plug(Plug.Head)
     plug(Threadline.OperatorSurface.TimelineLiveTest.Router)
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_schema_key",
+      signing_salt: "v8q+QWvj"
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter)
   end
 
   # Scoped endpoint/router for Case 10 — mounts the surface with an authorize_fn
@@ -1017,7 +1069,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|aria-label="Copy row id"|
     end
 
-    test "TIME-01: routeable Timeline rows expose direct row history without hiding transaction",
+    test "TIME-01: default no-schema Timeline mount keeps routeable rows on transaction only",
          %{conn: conn} do
       clear_audit_rows!()
 
@@ -1042,9 +1094,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
       assert html =~ ~s|data-testid="transaction-link"|
       assert html =~ "/audit/transactions/#{change.transaction_id}"
-      assert html =~ ~s|data-testid="timeline-row-history-link"|
-      assert html =~ ~s|href="/audit/rows/#{table}/row%2Fwith%20space"|
-      assert html =~ "Row history"
+      refute html =~ ~s|data-testid="timeline-row-history-link"|
+      refute html =~ "Row history"
     end
 
     test "TIME-01: unsafe Timeline row identities keep only the transaction pivot", %{conn: conn} do
@@ -1141,6 +1192,109 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~
                  ~r/<datalist[^>]*id="audited-tables"[^>]*>.*?<option value="schema_migrations".*?<\/datalist>/s
       end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveSchemaBackedTest do
+    use ExUnit.Case, async: false
+    import Phoenix.ConnTest
+    import Phoenix.LiveViewTest
+
+    @endpoint Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, @endpoint,
+        secret_key_base: "s" |> String.duplicate(64),
+        live_view: [signing_salt: "s" |> String.duplicate(8)],
+        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      clear_audit_rows!()
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    test "schema-backed Timeline rows expose direct row history without hiding transaction",
+         %{conn: conn} do
+      row_id = "row/with space"
+      correlation_id = "corr_" <> Ecto.UUID.generate()
+
+      change =
+        seed_change!(
+          table: "routeable_rows",
+          table_pk: %{"id" => row_id},
+          correlation_id: correlation_id
+        )
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit_schema/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=routeable_rows"
+               )
+
+      assert html =~ ~s|data-testid="timeline-row"|
+      assert html =~ ~s|data-testid="transaction-link"|
+      assert html =~ "/audit_schema/transactions/#{change.transaction_id}"
+      assert html =~ ~s|data-testid="timeline-row-history-link"|
+      assert html =~ ~s|href="/audit_schema/rows/routeable_rows/row%2Fwith%20space"|
+      assert html =~ "Row history"
+      assert html =~ ~s|data-tl-copy="#{correlation_id}"|
+    end
+
+    defp clear_audit_rows! do
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange)
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction)
+
+      if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
+        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      end
+    end
+
+    defp seed_change!(opts) do
+      repo = Threadline.Test.Repo
+      occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
+      actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
+      correlation_id = Keyword.get(opts, :correlation_id)
+
+      action =
+        if correlation_id do
+          repo.insert!(
+            Threadline.Semantics.AuditAction.changeset(%{
+              name: "timeline.test",
+              actor_ref: actor_ref,
+              status: "ok",
+              correlation_id: correlation_id
+            })
+          )
+        end
+
+      txn =
+        repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: occurred_at,
+            actor_ref: actor_ref,
+            source: Keyword.get(opts, :source, "support"),
+            action_id: action && action.id
+          })
+        )
+
+      repo.insert!(
+        Threadline.Capture.AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: Keyword.fetch!(opts, :table),
+          table_pk: Keyword.fetch!(opts, :table_pk),
+          op: Keyword.get(opts, :op, "insert"),
+          data_after: %{"title" => "x"},
+          changed_fields: nil,
+          captured_at: occurred_at
+        })
+      )
     end
   end
 

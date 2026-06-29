@@ -315,7 +315,11 @@ async function expectTimelineRouteTransition(page: Page, proof: CorrelatedPost) 
   await page.goto(timelineUrl({ table: proof.table }));
   const row = page
     .getByTestId("timeline-row")
-    .filter({ has: page.locator('a[title="View correlated changes in Timeline"]') })
+    .filter({
+      has: page.locator(
+        `[aria-label="Copy correlation id"][data-tl-copy="${proof.correlation}"]`,
+      ),
+    })
     .first();
   await expect(row).toBeVisible();
 
@@ -333,13 +337,18 @@ async function expectTimelineRouteTransition(page: Page, proof: CorrelatedPost) 
   await transaction.click();
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
 
-  await page.goto(timelineUrl({ table: proof.table }));
-  const rowHistory = page.getByTestId("timeline-row-history-link").first();
+  await page.goto(timelineUrl({ table: rowTable }));
+  const historyRow = page
+    .getByTestId("timeline-row")
+    .filter({ has: page.getByTestId("timeline-row-history-link") })
+    .first();
+  await expect(historyRow).toBeVisible();
+  const rowHistory = historyRow.getByTestId("timeline-row-history-link").first();
   await expect(rowHistory).toBeVisible();
   const rowHistoryHref = await rowHistory.getAttribute("href");
-  expect(rowHistoryHref).toMatch(new RegExp(`/audit/rows/${proof.table}/[^?#/]+`));
+  expect(rowHistoryHref).toMatch(new RegExp(`/audit/rows/${rowTable}/[^?#/]+`));
   await rowHistory.click();
-  await expect(page).toHaveURL(new RegExp(`/audit/rows/${proof.table}/[^?#/]+`));
+  await expect(page).toHaveURL(new RegExp(`/audit/rows/${rowTable}/[^?#/]+`));
   await expect(page.getByTestId("row-history-drawer")).toBeVisible();
 
   await page.goto(timelineUrl({ correlation: proof.correlation, table: proof.table }));
@@ -448,9 +457,16 @@ async function expectKeyboardWorkflow(page: Page, proof: CorrelatedPost) {
     row.getByRole("link", { name: "Open transaction" }),
     "Open transaction",
   );
+
+  await page.goto(timelineUrl({ table: rowTable }));
+  const historyRow = page
+    .getByTestId("timeline-row")
+    .filter({ has: page.getByTestId("timeline-row-history-link") })
+    .first();
+  await expect(historyRow).toBeVisible();
   await tabTo(
     page,
-    row.getByRole("link", { name: "Row history" }),
+    historyRow.getByRole("link", { name: "Row history" }),
     "Row history",
   );
 

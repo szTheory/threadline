@@ -139,12 +139,21 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
       refute String.contains?(form_src, ~s|name="filter[#{key}]"|),
              "advanced filter #{key} must stay out of the first-viewport form"
 
-      assert String.contains?(live_src, ~s|name="filter[#{key}]"|),
+      assert field_src = field_source(live_src, key),
              "expected advanced filter #{key} to still exist in the drawer"
 
-      assert String.contains?(live_src, ~s|name="filter[#{key}]"|) and
-               String.contains?(live_src, ~s|form="timeline-filters"|),
+      assert String.contains?(field_src, ~s|form="timeline-filters"|),
              "advanced filter #{key} must submit through form=\"timeline-filters\""
+    end
+  end
+
+  defp field_source(src, key) do
+    pattern =
+      ~r/<UI\.field\b(?=[^>]*\bname="filter\[#{Regex.escape(key)}\]")[^>]*\/>/s
+
+    case Regex.run(pattern, src) do
+      [field] -> field
+      _ -> nil
     end
   end
 
@@ -155,7 +164,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            "TimelineLive must gate row-history links through routeable_row_identity/1"
 
     assert String.contains?(live_src, "safe_row_history_path"),
-           "TimelineLive must build direct row-history links through safe_row_history_path/2"
+           "TimelineLive must build direct row-history links through safe_row_history_path/3"
 
     assert String.contains?(live_src, "String.trim(table)"),
            "routeable_row_identity/1 must reject missing or blank table names"

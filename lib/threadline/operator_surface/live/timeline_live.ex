@@ -436,7 +436,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open transaction
                 </a>
                 <a
-                  :if={row_history_path = safe_row_history_path(@base_path, change)}
+                  :if={row_history_path = safe_row_history_path(@base_path, change, assigns[:threadline_schemas])}
                   href={row_history_path}
                   class="tl-button tl-button--compact tl-button--secondary"
                   data-testid="timeline-row-history-link"
@@ -905,17 +905,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp safe_row_history_path(base_path, change) when is_binary(base_path) do
+    defp safe_row_history_path(base_path, change, schemas)
+         when is_binary(base_path) and is_map(schemas) do
       case routeable_row_identity(change) do
         {table, record_id} ->
-          "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+          if schema_for_table(schemas, table) do
+            "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+          end
 
         nil ->
           nil
       end
     end
 
-    defp safe_row_history_path(_base_path, _change), do: nil
+    defp safe_row_history_path(_base_path, _change, _schemas), do: nil
+
+    defp schema_for_table(schemas, table) when is_map(schemas) do
+      case Map.fetch(schemas, table) do
+        {:ok, schema} ->
+          schema
+
+        :error ->
+          Enum.find_value(schemas, fn
+            {key, schema} when is_atom(key) ->
+              if Atom.to_string(key) == table, do: schema
+
+            _entry ->
+              nil
+          end)
+      end
+    end
 
     defp routeable_row_identity(%{table_name: table, table_pk: table_pk}),
       do: routeable_row_identity(table, table_pk)
