@@ -43,10 +43,21 @@ async function expectBoxWithinViewport(
   );
 }
 
-async function expectKeyboardFocus(locator: Locator, page: Page) {
-  await page.keyboard.press("Tab");
-  await locator.focus();
-  await expect(locator).toBeFocused();
+async function expectKeyboardFocus(locator: Locator, page: Page, maxTabs = 30) {
+  await expect(locator).toBeVisible();
+
+  for (let step = 0; step < maxTabs; step += 1) {
+    await page.keyboard.press("Tab");
+
+    try {
+      await expect(locator).toBeFocused({ timeout: 100 });
+      break;
+    } catch {
+      if (step === maxTabs - 1) {
+        await expect(locator).toBeFocused();
+      }
+    }
+  }
 
   const focusStyle = await locator.evaluate((element) => {
     const style = window.getComputedStyle(element);
@@ -171,7 +182,7 @@ test.describe("Coverage readiness keyboard and row-action proof", () => {
       .getByRole("link", { name: "View activity" })
       .first();
     await firstCoveredLink.scrollIntoViewIfNeeded();
-    await expectKeyboardFocus(firstCoveredLink, page);
+    await expectKeyboardFocus(firstCoveredLink, page, 80);
     await expectNoHorizontalOverflow(page);
   });
 });
