@@ -29,6 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:base_path, nil)
         |> assign(:schema_param, "public")
         |> assign(:coverage_for_schema, initial)
+        |> assign(:coverage_for_schema_name, "public")
         |> assign(:available_schemas, [])
         |> assign(:form_error, nil)
 
@@ -323,15 +324,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       try do
         coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
         snapshot = Snapshot.from_coverage(coverage, last_checked_at: now)
-        assign(socket, :coverage_for_schema, snapshot)
+
+        socket
+        |> assign(:coverage_for_schema, snapshot)
+        |> assign(:coverage_for_schema_name, schema)
       rescue
         e ->
           message = Exception.message(e)
           Threadline.Telemetry.emit_health_checked_error(message)
 
-          previous = socket.assigns[:coverage_for_schema] || Snapshot.empty(now)
-          snapshot = %{previous | error: message}
-          assign(socket, :coverage_for_schema, snapshot)
+          previous = socket.assigns[:coverage_for_schema]
+          previous_schema = socket.assigns[:coverage_for_schema_name]
+
+          snapshot =
+            case {previous_schema, previous} do
+              {^schema, %Snapshot{last_checked_at: %DateTime{}} = last_good} ->
+                %{last_good | error: message}
+
+              _ ->
+                %{Snapshot.empty(nil) | error: message}
+            end
+
+          socket
+          |> assign(:coverage_for_schema, snapshot)
+          |> assign(:coverage_for_schema_name, schema)
       end
     end
 
