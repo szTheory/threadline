@@ -10,9 +10,9 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. Phase 181 established the current `/audit` baseline packet, refreshed stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Phase 182 added the PhoenixStorybook example/dev lane as maintainer-only component documentation in `examples/threadline_phoenix`, with root optional-dependency hygiene preserved and `/audit/__stress` still the canonical runtime stress harness. Phase 183 completed the shell navigation and `/audit` Home orientation pass, with targeted source contracts plus dark/default and system/light browser proof green; broad non-green commands remain classified as inherited or out-of-scope residuals.
+Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. Phase 181 established the current `/audit` baseline packet, refreshed stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Phase 182 added the PhoenixStorybook example/dev lane as maintainer-only component documentation in `examples/threadline_phoenix`, with root optional-dependency hygiene preserved and `/audit/__stress` still the canonical runtime stress harness. Phase 183 completed the shell navigation and `/audit` Home orientation pass. Phase 184 completed Timeline investigation flow polish. Phase 185 completed Coverage audit-readiness with a selected-schema verdict, contextual row actions, schema/stale safety, clean code review, threat verification, Nyquist validation, and a 24/24 UI review; broad non-green commands remain classified as inherited or out-of-scope residuals.
 
-The highest-impact page-polish pass now moves from shell/Home into Timeline so operators can investigate cleanly from the improved shell. Coverage follows as the audit-readiness workflow, then detail/governance/export surfaces, with accessibility, motion, docs, and adversarial closeout locking the result. Core capture/query/auth semantics remain out of scope.
+The highest-impact page-polish pass now moves into detail, governance, and export surfaces, then accessibility, motion, docs, and adversarial closeout lock the result. Core capture/query/auth semantics remain out of scope.
 
 ## Current Milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
@@ -516,8 +516,8 @@ The highest-impact page-polish pass now moves from shell/Home into Timeline so o
 ### Active
 
 - [x] **SHELL-01 through SHELL-03 (Phase 183)** — Reworked operator shell, home orientation, navigation visibility, active/current state, and mobile IA around user jobs.
-- [ ] **TIME-01 through TIME-03 (Phase 184)** — Streamline Timeline filters, investigation flow, result states, copy, and responsive scanning behavior.
-- [ ] **COV-01 through COV-03 (Phase 185)** — Clean up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, and contextual Timeline affordances.
+- [x] **TIME-01 through TIME-03 (Phase 184)** — Streamline Timeline filters, investigation flow, result states, copy, and responsive scanning behavior.
+- [x] **COV-01 through COV-03 (Phase 185)** — Clean up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, and contextual Timeline affordances.
 - [ ] **DETAIL-01 and GOV-01 through GOV-03 (Phase 186)** — Review transaction, actor, row history, redaction, retention, evidence, and export surfaces for coherent task groups and risk-aware actions.
 - [ ] **A11Y-01, A11Y-02, MOTION-01, DOC-01, CLOSE-01 (Phase 187)** — Lock accessibility, motion, docs, visual QA, and adversarial closeout evidence.
 
@@ -634,4 +634,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-28 — Phase 183 shell navigation and Home orientation complete; Phase 184 Timeline investigation flow is next*
+*Last updated: 2026-06-29 — Phase 185 Coverage audit-readiness complete; Phase 186 detail/governance/export surfaces are next*
