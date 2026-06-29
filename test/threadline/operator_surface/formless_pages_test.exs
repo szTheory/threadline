@@ -21,8 +21,12 @@ defmodule Threadline.OperatorSurface.FormlessPagesTest do
   type-to-confirm flow whose modal hosts a single `<form phx-submit="prune_now">`
   + text `<input>` (the operator types the policy name to confirm). That form is
   the ONE legitimate, security-mandated exception on that page — the page is no
-  longer display-only. `policy_redaction_live` stays formless (read-only diff
-  table, redact deferred per the Phase 176 checkpoint).
+  longer display-only.
+
+  `coverage_live` is intentionally NOT in this list as of Phase 185 (COV-01 /
+  COV-03): the page now has a native schema selector form that owns
+  `/audit/coverage?schema=NAME` URL state. `policy_redaction_live` stays
+  formless (read-only diff table, redact deferred per the Phase 176 checkpoint).
   """
 
   use ExUnit.Case, async: true
@@ -38,9 +42,10 @@ defmodule Threadline.OperatorSurface.FormlessPagesTest do
   # The display-only pages confirmed formless by grep (0 form controls each).
   # retention_history_live is excluded as of Phase 176 — it now hosts the
   # security-mandated T3 prune-confirmation form (see @moduledoc).
+  # coverage_live is excluded as of Phase 185 — it now hosts the native
+  # selected-schema URL-state form (see @moduledoc).
   @formless_pages ~w(
     actor_live
-    coverage_live
     evidence_live
     export_status_live
     policy_redaction_live
