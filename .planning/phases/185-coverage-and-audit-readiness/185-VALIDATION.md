@@ -1,9 +1,9 @@
 ---
 phase: 185
 slug: coverage-and-audit-readiness
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-29
 ---
 
@@ -38,11 +38,11 @@ created: 2026-06-29
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 185-01-01 | 01 | 1 | COV-01 | T-185-01 | Schema names and readiness copy render through HEEx interpolation with no raw HTML | LiveView/source | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes | pending |
-| 185-01-02 | 01 | 1 | COV-02 | T-185-02 | Removed page-level CTAs cannot imply incomplete coverage data is reliable | LiveView/style | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/style_contract_test.exs` | yes | pending |
-| 185-01-03 | 01 | 1 | COV-03 | T-185-03 | Invalid schema URLs preserve the rejected value and do not leak stale public data as selected-schema truth | LiveView/doc | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs` | yes | pending |
-| 185-01-04 | 01 | 1 | COV-03 | T-185-04 | Non-public Timeline links preserve schema scope with `table_schema=NAME&table=TABLE` only on covered rows | LiveView primary | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes | pending |
-| 185-01-05 | 01 | 1 | COV-03 | T-185-05 | Mobile schema control, row disclosure, and focus affordances remain reachable without horizontal overflow | Browser closeout proof | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` and `cd examples/threadline_phoenix && mix precommit` after primary Mix sampling | yes | pending |
+| 185-01-01 | 01 | 1 | COV-01 | T-185-01 | Schema names and readiness copy render through HEEx interpolation with no raw HTML | LiveView/source | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes | green |
+| 185-01-02 | 01 | 1 | COV-02 | T-185-02 | Removed page-level CTAs cannot imply incomplete coverage data is reliable | LiveView/style | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/style_contract_test.exs` | yes | green |
+| 185-01-03 | 01 | 1 | COV-03 | T-185-03 | Invalid schema URLs preserve the rejected value and do not leak stale public data as selected-schema truth | LiveView/doc | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs` | yes | green |
+| 185-01-04 | 01 | 1 | COV-03 | T-185-04 | Non-public Timeline links preserve schema scope with `table_schema=NAME&table=TABLE` only on covered rows | LiveView primary | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes | green |
+| 185-01-05 | 01 | 1 | COV-03 | T-185-05 | Mobile schema control, row disclosure, and focus affordances remain reachable without horizontal overflow | Browser closeout proof | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` and `cd examples/threadline_phoenix && mix precommit` after primary Mix sampling | yes | green-with-residual |
 
 *Status: pending, green, red, flaky*
 
@@ -50,10 +50,10 @@ created: 2026-06-29
 
 ## Wave 0 Requirements
 
-- [ ] `test/threadline/operator_surface/live/coverage_live_test.exs` - add or flip assertions for one verdict, native select, stale timestamp preservation, empty schema copy, and invalid-schema recovery.
-- [ ] `test/threadline/operator_surface/coverage_doc_contract_test.exs` - update docs/source literals for selected-schema readiness, refresh, and non-public row links.
-- [ ] `test/threadline/operator_surface/style_contract_test.exs` - retire `tl-trust-rail`/standalone remediation CSS if deleted; add `tl-coverage-verdict` token-backed/mobile rules if introduced.
-- [ ] `examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts` - add narrow closeout browser proof for the verdict region, schema select, mobile overflow, focus traversal, row disclosure/copy layout, and public-schema link behavior; admit it to the existing light/system lane.
+- [x] `test/threadline/operator_surface/live/coverage_live_test.exs` - add or flip assertions for one verdict, native select, stale timestamp preservation, empty schema copy, and invalid-schema recovery.
+- [x] `test/threadline/operator_surface/coverage_doc_contract_test.exs` - update docs/source literals for selected-schema readiness, refresh, and non-public row links.
+- [x] `test/threadline/operator_surface/style_contract_test.exs` - retire `tl-trust-rail`/standalone remediation CSS if deleted; add `tl-coverage-verdict` token-backed/mobile rules if introduced.
+- [x] `examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts` - add narrow closeout browser proof for the verdict region, schema select, mobile overflow, focus traversal, row disclosure/copy layout, and public-schema link behavior; admit it to the existing light/system lane.
 
 ---
 
@@ -72,4 +72,18 @@ All phase behaviors have automated verification. Manual review may still inspect
 - [x] Feedback latency target is under 120 seconds for the targeted Mix slice.
 - [x] `nyquist_compliant: true` set in frontmatter.
 
-**Approval:** pending execution
+## Validation Audit 2026-06-29
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 3 |
+| Gaps found | 0 |
+| Resolved | 3 |
+| Escalated | 0 |
+
+Evidence:
+- `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs test/threadline/operator_surface/formless_pages_test.exs` passed with 117 tests.
+- `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` passed with 7 tests.
+- `cd examples/threadline_phoenix && mix precommit` remains non-green due to inherited demo seed/audit-history residuals documented in `185-VERIFICATION.md`; Phase 185 browser and Mix coverage are green.
+
+**Approval:** approved 2026-06-29
