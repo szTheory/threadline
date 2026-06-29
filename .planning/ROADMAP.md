@@ -12,7 +12,7 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is next.
+**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is complete; Phase 185 Coverage and audit readiness is planned.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
@@ -164,6 +164,13 @@ Plans:
 2. Repeated "needs capture" copy is collapsed; page-level generic Timeline CTAs are removed unless contextual to a row.
 3. Schema switch, invalid schema, non-public row links, refresh, page-specific errors, and docs stay correct.
 4. Regression tests cover public and non-public schema URL state plus mobile readability.
+
+**Plans:** 1/1 plans planned
+
+Plans:
+**Wave 1**
+
+- [ ] 185-01-PLAN.md - Coverage selected-schema readiness verdict, remediation, docs, and browser proof
 
 ### Phase 186: Detail, governance, and export surfaces
 
