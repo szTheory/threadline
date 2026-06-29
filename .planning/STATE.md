@@ -5,10 +5,10 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 185
 current_phase_name: coverage-and-audit-readiness
 status: verifying
-stopped_at: Phase 185 UI-SPEC approved
+stopped_at: Completed 185-01-PLAN.md
 last_updated: "2026-06-29T20:25:04.060Z"
 last_activity: 2026-06-29
-last_activity_desc: Phase 185 execution started
+last_activity_desc: Completed 185-01-PLAN.md
 progress:
   total_phases: 7
   completed_phases: 5
@@ -28,10 +28,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 185 (coverage-and-audit-readiness) — EXECUTING
+Phase: 185 (coverage-and-audit-readiness) — COMPLETE
 Plan: 1 of 1
 Status: Phase complete — ready for verification
-Last activity: 2026-06-29 — Phase 185 execution started
+Last activity: 2026-06-29 — Completed 185-01-PLAN.md
 
 ## Performance Metrics
 
@@ -340,8 +340,8 @@ Last activity: 2026-06-29 — Phase 185 execution started
 ## Session Continuity
 
 **Last session:** 2026-06-29T20:24:28.949Z
-**Stopped at:** Phase 185 UI-SPEC approved
-**Resume file:** .planning/phases/185-coverage-and-audit-readiness/185-UI-SPEC.md
+**Stopped at:** Completed 185-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

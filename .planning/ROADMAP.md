@@ -12,7 +12,7 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is complete; Phase 185 Coverage and audit readiness is planned.
+**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is complete; Phase 185 Coverage and audit readiness is complete.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
