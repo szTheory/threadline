@@ -335,7 +335,7 @@ Retention prune is the only destructive action in Phase 186.
 | Consequence copy | `This permanently deletes audit records older than the retention window for policy default; it cannot be undone.` |
 | Type to confirm | Input label `Type the policy name default to confirm`; typed value posts under `confirm`; no client-side comparison is trusted. |
 | Initial focus | Text input has `data-tl-initial-focus`; modal focuses into the dialog on open. |
-| Cancel | Button label `Cancel`; closes modal and restores focus to the opener. |
+| Cancel | Button label `Keep retention window`; closes modal and restores focus to the opener. |
 | Submit | Button label `Prune records permanently`; danger variant; `data-tl-mutating`; no generic `Continue`. |
 | Server checks | Event re-checks policy authorization, derives canonical policy name server-side, uses `Plug.Crypto.secure_compare/2`, audits the action before triggering prune, triggers backend only after audit success, and fails closed. |
 | Mismatch | Close modal and flash `Could not prune - confirmation did not match.` No prune and no destructive audit action. |
@@ -370,7 +370,7 @@ Retention prune is the only destructive action in Phase 186.
 | Viewport | Required behavior |
 |----------|-------------------|
 | 320 px | No horizontal document overflow. Detail metadata, refs, copy buttons, tables, drawer, modal, and job cards wrap safely. |
-| 375 px | Retention destructive modal shows title, consequence, input, Cancel, and submit without the submit button being hidden off-screen. |
+| 375 px | Retention destructive modal shows title, consequence, input, `Keep retention window`, and submit without the submit button being hidden off-screen. |
 | 768 px | Shell rail remains usable; detail/governance content remains the primary task area; summary grids may become two columns only if labels remain readable. |
 | 1024 px | Detail pages can align summary actions trailing, but object metadata remains readable before row lists. |
 | 1440 px | Wider layout may group governance cards, but pages still read top-to-bottom as workflows rather than dashboards. |
