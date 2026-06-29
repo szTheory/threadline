@@ -137,7 +137,7 @@ Plans:
 3. Keyboard-only operation covers filters, result rows, copy controls, pagination, and route transitions.
 4. Copy is concise, exact, and useful under incident pressure.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
