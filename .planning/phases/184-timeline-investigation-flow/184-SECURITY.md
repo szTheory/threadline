@@ -50,9 +50,10 @@ created: 2026-06-29
 
 | Evidence | Result |
 |----------|--------|
-| `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/pager_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/style_contract_test.exs` | 189 tests, 0 failures |
+| `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/live/actor_live_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs` | 223 tests, 0 failures |
 | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-timeline-investigation-flow.spec.ts` | 27 tests, 0 failures |
 | `mix verify.example_browser_light tests/operator-timeline-investigation-flow.spec.ts` | 9 tests, 0 failures |
+| `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-timeline-investigation-flow.spec.ts tests/operator-find-mobile.spec.ts --grep "Timeline investigation flow|actor mobile exposes"` | 27 tests, 0 failures |
 | `184-VERIFICATION.md` | Canonical status `passed`; broad `mix verify.test` residuals classified outside Phase 184 |
 | `184-REVIEW.md` | Status `clean`; prior row-history, contract, and browser-proof findings resolved |
 

@@ -3,7 +3,7 @@
 **Audited:** 2026-06-28 local / 2026-06-29 UTC
 **Baseline:** `.planning/phases/184-timeline-investigation-flow/184-UI-SPEC.md`
 **Screenshots:** not captured (no app dev server returned a direct usable Timeline page on localhost:3000, 5173, or 8080; 8080 served `/dashboard/` but `/audit/timeline` returned 404)
-**Verification Evidence Considered:** focused source contracts 189 tests/0 failures, full Timeline browser proof 27 tests/0 failures, light/system Timeline lane 9 tests/0 failures, targeted legacy browser checks for removed legend/accessibility assertions 6 tests/0 failures.
+**Verification Evidence Considered:** focused source contracts 223 tests/0 failures, full Timeline browser proof 27 tests/0 failures, light/system Timeline lane 9 tests/0 failures, targeted actor+Timeline browser checks 27 tests/0 failures, and targeted legacy browser checks for removed legend/accessibility assertions 6 tests/0 failures.
 
 ---
 
@@ -30,7 +30,7 @@ No priority fixes remain. The three prior priority findings and the remaining Vi
 
 ## Resolved Prior Findings
 
-1. **Direct CSV/JSON/NDJSON links disabled/tabindex - resolved.** In `lib/threadline/operator_surface/live/timeline_live.ex:742-768`, the direct export links keep `href`, `download`, and `data-tl-mutating`, but do not include permanent `aria-disabled="true"` or `tabindex="-1"`. Browser proof at `examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts:298-320` asserts each link is visible, enabled, not aria-disabled, not removed from tab order, has `download`, preserves the current query, and is reachable by Tab.
+1. **Direct CSV/JSON/NDJSON links disabled/tabindex - resolved.** In `lib/threadline/operator_surface/live/timeline_live.ex`, the direct export links keep `href` and `download`, but do not include permanent `aria-disabled="true"`, `tabindex="-1"`, or `data-tl-mutating`. Browser proof in `examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts` asserts each link is visible, enabled, not aria-disabled, not removed from tab order, not marked mutating, has `download`, preserves the current query, and is reachable by Tab.
 2. **Timeline typography using 12/15/500 roles - resolved.** Timeline-specific CSS maps command and drawer roles to the Phase 184 contract: lede uses body size at `style.ex:1143-1149`, fact labels use label size and regular weight at `style.ex:1181-1188`, fact values use body size and strong weight at `style.ex:1190-1197`, fact details use label size at `style.ex:1200-1207`, drawer utility labels use label size and regular weight at `style.ex:1462-1469`, and filter summary strong text uses strong weight at `style.ex:2863-2866`.
 3. **Timeline row stripe/badge spacing - resolved.** Timeline row status stripes use `var(--tl-space-1)` (4px) for base/insert/update/delete/featured rows at `style.ex:2395-2428`. Operation badge padding is tokenized as `0 var(--tl-space-2)` at `style.ex:2440-2449`, and table-ref padding is tokenized as `0 var(--tl-space-1)` at `style.ex:2516-2518`.
 4. **Visible post-row journey legend - resolved.** `lib/threadline/operator_surface/live/timeline_live.ex:450-484` now renders the pager, empty state, drawer, and shell close without a `tl-journey--legend` block. Source and browser checks assert absence at `test/threadline/operator_surface/live/timeline_live_test.exs:987-1003`, `examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts:32-45`, and `examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts:356-360`.
@@ -73,13 +73,13 @@ PASS - Other Timeline spacing remains contract-aligned: command gap 8px and bott
 
 ### Pillar 6: Experience Design (4/4)
 
-PASS - Prior direct export interaction issue is resolved. CSV/JSON/NDJSON links in `timeline_live.ex:742-768` are real enabled download anchors, and the Playwright proof at `operator-timeline-investigation-flow.spec.ts:298-320` verifies enabled state, absence of `aria-disabled="true"`, absence of `tabindex="-1"`, `download` attributes, query-preserving `href`s, and Tab reachability.
+PASS - Prior direct export interaction issue is resolved. CSV/JSON/NDJSON links in `timeline_live.ex` are real enabled download anchors, and the Playwright proof at `operator-timeline-investigation-flow.spec.ts` verifies enabled state, absence of `aria-disabled="true"`, absence of `tabindex="-1"`, absence of `data-tl-mutating`, `download` attributes, query-preserving `href`s, and Tab reachability.
 
 PASS - The rest of the workflow remains implemented with URL-backed batch Apply and native controls: native datetime/table/correlation fields at `timeline_live.ex:536-575`, `phx-submit="apply"` through the Timeline form, drawer select/text fields at `timeline_live.ex:660-690`, drawer `Apply filters` at `timeline_live.ex:694-696`, and canonical query export links through `@filter_query`.
 
 PASS - State coverage remains broad: invalid filters use `role="alert"` at `timeline_live.ex:360-363`, unknown-table and large-result statuses use `role="status"` at `timeline_live.ex:366-375`, capped results use warning alert at `timeline_live.ex:378-380`, empty states use `UI.empty_state` with state-specific variants/copy at `timeline_live.ex:459-473` and `timeline_live.ex:1184-1209`, and export failures preserve rows with clear feedback at `timeline_live.ex:1268-1273`.
 
-PASS - Verification evidence now covers all prior findings directly: focused source contracts 189 tests/0 failures, full Timeline browser proof 27 tests/0 failures, light/system Timeline lane 9 tests/0 failures, and targeted legacy browser checks for removed legend/accessibility assertions 6 tests/0 failures.
+PASS - Verification evidence now covers all prior findings directly: focused source contracts 223 tests/0 failures, full Timeline browser proof 27 tests/0 failures, light/system Timeline lane 9 tests/0 failures, targeted actor+Timeline browser checks 27 tests/0 failures, and targeted legacy browser checks for removed legend/accessibility assertions 6 tests/0 failures.
 
 ---
 

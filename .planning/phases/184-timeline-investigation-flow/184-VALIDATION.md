@@ -20,7 +20,7 @@ updated: 2026-06-29
 |----------|-------|
 | **Framework** | ExUnit through Mix, Phoenix.LiveViewTest, and Playwright browser proof |
 | **Config file** | `mix.exs`; `examples/threadline_phoenix/e2e/playwright.config.ts` |
-| **Quick run command** | `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/pager_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/style_contract_test.exs` |
+| **Quick run command** | `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/live/actor_live_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs` |
 | **Browser proof command** | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-timeline-investigation-flow.spec.ts` |
 | **Light/system browser command** | `mix verify.example_browser_light tests/operator-timeline-investigation-flow.spec.ts` |
 | **Estimated runtime** | Focused Mix slice: under 60 seconds locally; browser proof: about 30 seconds locally after dependency setup |
@@ -59,7 +59,8 @@ updated: 2026-06-29
 
 | Command | Result | Status |
 |---------|--------|--------|
-| `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/pager_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs test/threadline/operator_surface/style_contract_test.exs` | 189 tests, 0 failures | pass |
+| `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/live/actor_live_test.exs test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/timeline_browse_doc_contract_test.exs test/threadline/operator_surface/exports/filter_params_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs test/threadline/operator_surface/copy_contract_test.exs` | 223 tests, 0 failures | pass |
+| `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-timeline-investigation-flow.spec.ts tests/operator-find-mobile.spec.ts --grep "Timeline investigation flow|actor mobile exposes"` | 27 tests, 0 failures | pass |
 | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-timeline-investigation-flow.spec.ts` | 27 tests, 0 failures | pass |
 | `mix verify.example_browser_light tests/operator-timeline-investigation-flow.spec.ts` | 9 tests, 0 failures | pass |
 | `mix verify.test` | 1150 tests, 2 known outside-scope residual failures, 1 excluded | residuals classified in `184-VERIFICATION.md` |
