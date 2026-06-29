@@ -96,6 +96,8 @@ status: complete
 - `mix verify.credo` - PASS, 230 files checked, 0 issues.
 - `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-coverage-readiness.spec.ts` - PASS, 21 Playwright tests.
 - `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` - PASS, 7 Playwright tests.
+- `mix test test/threadline/operator_surface/formless_pages_test.exs` - PASS, 6 tests after updating the stale display-only guard to exclude Coverage's Phase 185 native schema selector form.
+- `mix verify.test` - NON-GREEN residual after the guard repair: 1157 tests, 2 inherited failures in `V123CharterDocContractTest` and `ExportsDocContractTest`, neither Coverage readiness.
 - `cd examples/threadline_phoenix && mix precommit` - NON-GREEN residual: 109 tests, 7 failures in existing demo seed/audit-history expectations, classified in `185-VERIFICATION.md`.
 
 ## Decisions Made
@@ -116,11 +118,20 @@ status: complete
 - **Verification:** Targeted Mix slice passed with 111 tests, 0 failures.
 - **Committed in:** `36086b9a`
 
-**Total deviations:** 1 auto-fixed Rule 1 issue.
-**Impact on plan:** The fix aligned tests and implementation with COV-02 copy posture; no scope or boundary expansion.
+**2. [Post-merge gate] Updated stale display-only guard for Coverage's native schema selector**
+- **Found during:** Orchestrator post-merge `mix verify.test`
+- **Issue:** `FormlessPagesTest` still listed `coverage_live` as a display-only page even though Phase 185 intentionally added a native schema selector form for `/audit/coverage?schema=NAME`.
+- **Fix:** Removed `coverage_live` from the formless page list and documented the Phase 185 exception.
+- **Files modified:** `test/threadline/operator_surface/formless_pages_test.exs`
+- **Verification:** `mix test test/threadline/operator_surface/formless_pages_test.exs` passed; `mix verify.test` no longer reports the Coverage formless failure.
+- **Committed in:** `067c0c11`
+
+**Total deviations after post-merge:** 2 auto-fixed issues.
+**Impact on plan:** The fixes aligned tests and implementation with COV-02 copy posture and Phase 185's native schema selector contract; no scope or boundary expansion.
 
 ## Issues Encountered
 
+- `mix verify.test` remains non-green with two inherited residuals: stale v1.37 PROJECT.md charter posture text and Timeline export `download` attribute source-contract drift. The Phase 185 Coverage formless guard failure found by the first post-merge run was fixed in `067c0c11`.
 - `cd examples/threadline_phoenix && mix precommit` remains non-green due to inherited demo seed/audit-history residuals: missing #4521 close transaction evidence, #4518 delete audit rows, leaving-agent audit transactions, and `org_memberships` actor attribution rows. Phase 185 targeted Mix and browser proof passed; residual ownership is recorded in `185-VERIFICATION.md`.
 
 ## Known Stubs

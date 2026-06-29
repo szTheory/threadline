@@ -22,6 +22,8 @@ Plan 185-01 changed the operator Coverage surface to answer one selected-schema 
 | `mix verify.credo` | PASS | 230 files checked, 0 issues. |
 | `./examples/threadline_phoenix/e2e/run-e2e.sh tests/operator-coverage-readiness.spec.ts` | PASS | 21 Playwright tests passed across chromium, desktop-chromium, and mobile-chromium. |
 | `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` | PASS | 7 Playwright tests passed in `desktop-chromium-light`. |
+| `mix test test/threadline/operator_surface/formless_pages_test.exs` | PASS | 6 tests, 0 failures after updating the stale display-only guard to exclude Coverage's Phase 185 native schema selector form. |
+| `mix verify.test` | NON-GREEN RESIDUAL | 1157 tests, 2 failures after the Phase 185 formless guard repair. Remaining failures are `V123CharterDocContractTest` stale v1.37 PROJECT.md posture text and `ExportsDocContractTest` Timeline export `download` attribute source-contract drift; neither touches Coverage readiness. |
 | `cd examples/threadline_phoenix && mix precommit` | NON-GREEN RESIDUAL | 109 tests, 7 failures in existing demo seed/audit-history tests. Failures were missing seeded audit transactions / actor attribution rows, not Coverage UI, e2e, docs, style, schema selection, or route/auth/testid behavior. |
 
 ## Requirement Coverage
@@ -73,3 +75,5 @@ Plan 185-01 changed the operator Coverage surface to answer one selected-schema 
 - `ThreadlinePhoenix.DemoContractTest` reported missing ticket close, delete, leaving-agent, and `org_memberships` actor-attribution audit rows.
 
 These failures are outside Phase 185 Coverage UI scope. The Phase 185 targeted Mix slice and both narrow browser closeout commands passed.
+
+The orchestrator post-merge `mix verify.test` gate initially surfaced one Phase 185-related guard failure: `FormlessPagesTest` still listed `coverage_live` as display-only. That stale guard was fixed in commit `067c0c11` by documenting Coverage as the Phase 185 native schema selector exception. Re-running `mix verify.test` left only the two inherited residuals listed above.
