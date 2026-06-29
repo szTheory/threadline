@@ -124,6 +124,10 @@ test.describe("operator surface — pass-3 features", () => {
   }) => {
     await login(page);
     await page.goto("/audit/coverage");
+    await expect(
+      page.getByRole("region", { name: "Selected schema readiness" }),
+    ).toBeVisible();
+    await expect(page.getByLabel("Coverage schema")).toBeVisible();
     const table = page.getByTestId("coverage-table");
     await expect(table).toBeVisible();
     const row = table.locator("tr", { hasText: "audit_events" });

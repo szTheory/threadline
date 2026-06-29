@@ -181,23 +181,22 @@ async function expectTrustRailGap(page: Page, expectedPx: number) {
   expect(gap).toBeGreaterThanOrEqual(expectedPx);
 }
 
-async function expectCoverageSummaryGap(page: Page, expectedPx: number) {
+async function expectCoverageVerdictGap(page: Page, expectedPx: number) {
   await expect(
-    page.getByRole("region", { name: "Audit readiness" }),
+    page.getByRole("region", { name: "Selected schema readiness" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Coverage summary" }),
-  ).toBeVisible();
+  await expect(page.getByTestId("coverage-table")).toBeVisible();
 
   const gap = await page.evaluate(() => {
-    const rail = document.querySelector("#tl-main > .tl-trust-rail");
-    const summary = document.querySelector("#tl-main > .tl-summary-grid");
-    if (!rail || !summary) {
-      throw new Error("Coverage readiness rail or summary missing");
+    const verdict = document.querySelector("#tl-main > .tl-coverage-verdict");
+    const table = document.querySelector('[data-testid="coverage-table"]');
+    if (!verdict || !table) {
+      throw new Error("Coverage readiness verdict or table missing");
     }
 
     return Math.round(
-      summary.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
+      table.getBoundingClientRect().top -
+        verdict.getBoundingClientRect().bottom,
     );
   });
 
@@ -438,7 +437,7 @@ async function assertTimeline(page: Page) {
 
 async function assertCoverage(page: Page, viewportWidth: number) {
   await expect(page.getByRole("heading", { name: /coverage/i })).toBeVisible();
-  await expectCoverageSummaryGap(page, 12);
+  await expectCoverageVerdictGap(page, 12);
   await expectResponsiveTable(
     page.getByTestId("coverage-table"),
     viewportWidth,

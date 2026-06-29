@@ -23,6 +23,7 @@ const projects = [
           testMatch: [
             /operator-(accessibility|motion|screenshots|screenshot-regression|stress)\.spec\.ts/,
             /operator-shell-home-phase183\.spec\.ts/,
+            /operator-coverage-readiness\.spec\.ts/,
             /operator-storybook\.spec\.ts/,
             /operator-timeline-investigation-flow\.spec\.ts/,
             /operator-phase-177-uat\.spec\.ts/,
