@@ -85,27 +85,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("refresh", _params, socket) do
-      if not socket.assigns[:threadline_coverage_enabled] do
-        {:noreply, socket}
-      else
-        # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
-        # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
-        if ref = socket.assigns[:threadline_timer_ref] do
-          Process.cancel_timer(ref)
-        end
+      cond do
+        not socket.assigns[:threadline_coverage_enabled] ->
+          {:noreply, socket}
 
-        schema = socket.assigns[:schema_param] || "public"
-        socket = fetch_coverage_for_schema(socket, schema)
+        socket.assigns[:form_error] ->
+          {:noreply, socket}
 
-        # Reschedule using the same interval Coverage.OnMount uses.
-        interval =
-          socket.assigns[:threadline_coverage_poll_ms] ||
-            Application.get_env(:threadline, :coverage_poll_ms, 30_000)
+        true ->
+          # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
+          # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
+          if ref = socket.assigns[:threadline_timer_ref] do
+            Process.cancel_timer(ref)
+          end
 
-        new_ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
-        socket = assign(socket, :threadline_timer_ref, new_ref)
+          schema = socket.assigns[:schema_param] || "public"
+          socket = fetch_coverage_for_schema(socket, schema)
 
-        {:noreply, socket}
+          # Reschedule using the same interval Coverage.OnMount uses.
+          interval =
+            socket.assigns[:threadline_coverage_poll_ms] ||
+              Application.get_env(:threadline, :coverage_poll_ms, 30_000)
+
+          new_ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
+          socket = assign(socket, :threadline_timer_ref, new_ref)
+
+          {:noreply, socket}
       end
     end
 
@@ -137,7 +142,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:meta>
               <:actions>
                 <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
-                <button type="button" phx-click="refresh" class="tl-button tl-button--secondary">
+                <button
+                  type="button"
+                  phx-click="refresh"
+                  class="tl-button tl-button--secondary"
+                  disabled={not is_nil(@form_error)}
+                  aria-disabled={not is_nil(@form_error)}
+                >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
                   Refresh
                 </button>
