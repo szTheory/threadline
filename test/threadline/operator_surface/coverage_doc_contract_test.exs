@@ -141,24 +141,6 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       refute String.contains?(src, ~s|list="coverage-schema-options"|)
     end
 
-    test "coverage_live.ex has invalid-schema recovery without stale selected-schema data" do
-      src = File.read!(@coverage_lv_path)
-
-      assert String.contains?(src, "Use public schema")
-      assert String.contains?(src, "render_invalid_schema")
-      assert String.contains?(src, "schema_options")
-      assert String.contains?(src, "coverage_path")
-      refute String.contains?(src, "stale public data")
-    end
-
-    test "coverage_live.ex preserves last-good checked_at on selected-schema refresh failure" do
-      src = File.read!(@coverage_lv_path)
-
-      assert String.contains?(src, "stale_selected_schema?")
-      assert String.contains?(src, "%{previous | error: message}")
-      refute String.contains?(src, "%{previous | error: message, last_checked_at: now}")
-    end
-
     test "operator guide documents selected-schema readiness, schema recovery, refresh, and row actions" do
       guide = File.read!("guides/operator-surface.md")
 

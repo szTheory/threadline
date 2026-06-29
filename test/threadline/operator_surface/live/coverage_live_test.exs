@@ -22,6 +22,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def authorize(_), do: Application.get_env(:threadline, :test_allow_coverage, true)
   end
 
+  defmodule Threadline.OperatorSurface.CoverageLiveTest.BrokenRepo do
+  end
+
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Router do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -275,6 +278,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    describe "selected-schema stale/error behavior" do
+      test "same-schema refresh failure preserves last-good rows and checked_at", %{conn: conn} do
+        {:ok, view, html} = live(conn, "/audit/coverage?schema=public")
+
+        assert html =~ "Schema: public"
+        assert html =~ "Checked"
+        assert html =~ "schema_migrations"
+        assert html =~ ~s|data-testid="coverage-table"|
+
+        force_broken_repo!()
+
+        failed_html = render_click(view, "refresh")
+
+        assert failed_html =~ "Schema: public"
+        assert failed_html =~ "Checked"
+        assert failed_html =~ "Could not refresh - showing last known coverage results"
+        assert failed_html =~ "schema_migrations"
+        assert failed_html =~ ~s|data-testid="coverage-table"|
+        refute failed_html =~ ~s|class="tl-alert tl-alert--error"|
+      end
+
+      test "cross-schema catalog failure does not render prior selected-schema rows", %{
+        conn: conn
+      } do
+        {:ok, view, html} = live(conn, "/audit/coverage?schema=public")
+
+        assert html =~ "Schema: public"
+        assert html =~ "schema_migrations"
+
+        force_broken_repo!()
+
+        failed_html = render_patch(view, "/audit/coverage?schema=tenant_demo")
+
+        assert failed_html =~ "Schema: tenant_demo"
+        assert failed_html =~ ~s|class="tl-alert tl-alert--error"|
+        refute failed_html =~ "schema_migrations"
+        refute failed_html =~ ~s|data-testid="coverage-table"|
+        refute failed_html =~ ~s|aria-label="Selected schema readiness"|
+      end
+    end
+
     describe "?schema=NAME validation" do
       test "?schema=public renders coverage normally", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=public")
@@ -389,6 +433,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "table_schema=tenant_demo"
         assert html =~ "table=coverage_link_target"
       end
+    end
+
+    defp force_broken_repo! do
+      original_repos = Application.get_env(:threadline, :ecto_repos)
+
+      Application.put_env(:threadline, :ecto_repos, [
+        Threadline.OperatorSurface.CoverageLiveTest.BrokenRepo
+      ])
+
+      on_exit(fn ->
+        if original_repos do
+          Application.put_env(:threadline, :ecto_repos, original_repos)
+        else
+          Application.delete_env(:threadline, :ecto_repos)
+        end
+      end)
     end
   end
 end
