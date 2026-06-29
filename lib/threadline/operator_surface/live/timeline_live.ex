@@ -108,6 +108,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         case FilterParams.parse(params) do
           {:error, message} ->
+            filter_query = build_canonical_query(socket.assigns.filters_raw)
+
             socket =
               socket
               |> assign(:form_error, message)
@@ -116,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               |> assign(:future_window_empty, false)
               |> assign(:match_count, 0)
               |> assign(:shown_count, 0)
-              |> assign(:filter_query, "")
+              |> assign(:filter_query, filter_query)
               |> stream(:changes, [], reset: true)
 
             {:noreply, socket}
@@ -124,6 +126,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:ok, filters} ->
             case safe_validate(filters) do
               {:error, message} ->
+                filter_query = build_canonical_query(socket.assigns.filters_raw)
+
                 socket =
                   socket
                   |> assign(:form_error, message)
@@ -132,7 +136,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   |> assign(:future_window_empty, false)
                   |> assign(:match_count, 0)
                   |> assign(:shown_count, 0)
-                  |> assign(:filter_query, "")
+                  |> assign(:filter_query, filter_query)
                   |> stream(:changes, [], reset: true)
 
                 {:noreply, socket}
@@ -248,6 +252,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("apply", _params, socket) do
       {:noreply, push_patch(socket, to: socket.assigns.timeline_path)}
+    end
+
+    def handle_event(
+          "request_background_export",
+          _params,
+          %{assigns: %{form_error: error}} = socket
+        )
+        when is_binary(error) and error != "" do
+      {:noreply, put_flash(socket, :error, "Fix Timeline filters before exporting.")}
     end
 
     def handle_event(
@@ -480,6 +493,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           saved_views={@saved_views}
           base_path={@base_path}
           filter_query={@filter_query}
+          export_ready={is_nil(@form_error)}
         />
       </UI.shell>
       """
@@ -735,33 +749,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
               Carry to Exports
             </.link>
-            <button phx-click="request_background_export" type="button" class="tl-button tl-button--quiet-primary">
+            <button
+              :if={@export_ready}
+              phx-click="request_background_export"
+              type="button"
+              class="tl-button tl-button--quiet-primary"
+            >
               <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
               Queue export
             </button>
             <.link
+              :if={@export_ready}
               href={"#{@base_path}/exports/changes.csv?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
-              data-tl-mutating
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               CSV
             </.link>
             <.link
+              :if={@export_ready}
               href={"#{@base_path}/exports/changes.json?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
-              data-tl-mutating
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               JSON
             </.link>
             <.link
+              :if={@export_ready}
               href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"}
               download
               class="tl-button tl-button--compact tl-button--secondary"
-              data-tl-mutating
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
               NDJSON

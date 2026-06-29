@@ -301,6 +301,7 @@ async function expectExportAnchorsUseCurrentQuery(page: Page, proof: CorrelatedP
     await expect(link).toBeEnabled();
     await expect(link).not.toHaveAttribute("aria-disabled", "true");
     await expect(link).not.toHaveAttribute("tabindex", "-1");
+    await expect(link).not.toHaveAttribute("data-tl-mutating", "");
     await expect(link).toHaveAttribute("download", "");
     await expect(link).toHaveAttribute(
       "href",

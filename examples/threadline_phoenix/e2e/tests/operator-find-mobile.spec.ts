@@ -88,7 +88,8 @@ test.describe("operator Find cluster mobile UAT", () => {
   test("actor mobile exposes selected window state and transaction pivots", async ({ page }) => {
     await page.goto("/audit/actors/service_account/zendesk-sync");
 
-    await expect(page.locator(".tl-segmented__item[aria-pressed]").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "24h", pressed: true })).toBeVisible();
+    await expect(page.locator(".tl-segmented__item")).toHaveCount(0);
 
     const summary = page.locator(".tl-actor-summary").first();
     await expect(summary).toBeVisible();

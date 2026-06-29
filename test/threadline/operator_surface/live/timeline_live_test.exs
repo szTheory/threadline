@@ -784,7 +784,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Enum.each(download_anchors, fn [anchor, _format] ->
         refute anchor =~ ~s|aria-disabled="true"|
         refute anchor =~ ~s|tabindex="-1"|
+        refute anchor =~ "data-tl-mutating"
       end)
+    end
+
+    test "invalid Timeline filters carry the rejected query but do not expose export downloads or queue",
+         %{conn: conn} do
+      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
+
+      assert {:ok, lv, html} = live(conn, "/audit/timeline?from=not-a-date&table=posts")
+
+      assert html =~ "invalid datetime: not-a-date"
+      assert html =~ ~s|href="/audit/exports?from=not-a-date&amp;table=posts"|
+      refute html =~ "Queue export"
+      refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob) == []
     end
 
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do

@@ -128,12 +128,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </:item>
               </UI.kv>
               <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
-              <div class="tl-segmented" role="group" aria-label="Actor activity window">
-                <button type="button" phx-click="set-window" phx-value-hours="1" aria-pressed={pressed_state(@time_window_hours, 1)} class="tl-segmented__item">1h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="24" aria-pressed={pressed_state(@time_window_hours, 24)} class="tl-segmented__item">24h</button>
-                <button type="button" phx-click="set-window" phx-value-hours="168" aria-pressed={pressed_state(@time_window_hours, 168)} class="tl-segmented__item">7d</button>
-                <button type="button" phx-click="set-window" phx-value-hours="720" aria-pressed={pressed_state(@time_window_hours, 720)} class="tl-segmented__item">30d</button>
-              </div>
+              <UI.segmented_control aria-label="Actor activity window">
+                <:segment active={@time_window_hours == 1} phx-click="set-window" phx-value-hours="1">1h</:segment>
+                <:segment active={@time_window_hours == 24} phx-click="set-window" phx-value-hours="24">24h</:segment>
+                <:segment active={@time_window_hours == 168} phx-click="set-window" phx-value-hours="168">7d</:segment>
+                <:segment active={@time_window_hours == 720} phx-click="set-window" phx-value-hours="720">30d</:segment>
+              </UI.segmented_control>
             </UI.page_header>
           </div>
 
@@ -310,9 +310,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       "#{base_path}/timeline?#{query}"
     end
-
-    defp pressed_state(current, value) when current == value, do: "true"
-    defp pressed_state(_current, _value), do: "false"
 
     defp actor_summaries(_transactions, _repo, scope)
          when not is_nil(scope),

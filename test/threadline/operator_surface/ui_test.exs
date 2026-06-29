@@ -388,14 +388,19 @@ defmodule Threadline.OperatorSurface.UITest do
       html =
         rendered_to_string(~H"""
         <UI.segmented_control>
-          <:segment active>Seg 1</:segment>
-          <:segment>Seg 2</:segment>
+          <:segment active phx-click="set-window" phx-value-hours="24">Seg 1</:segment>
+          <:segment phx-click="set-window" phx-value-hours="168">Seg 2</:segment>
         </UI.segmented_control>
         """)
 
       assert html =~ "role=\"group\""
+      assert html =~ "class=\"tl-segment tl-segment--active\""
+      assert html =~ ~r/class="tl-segment\s*"/
       assert html =~ "aria-pressed=\"true\""
       assert html =~ "aria-pressed=\"false\""
+      assert html =~ "phx-click=\"set-window\""
+      assert html =~ "phx-value-hours=\"24\""
+      assert html =~ "phx-value-hours=\"168\""
       assert html =~ "Seg 1"
     end
   end

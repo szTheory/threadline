@@ -1323,12 +1323,21 @@ defmodule Threadline.OperatorSurface.UI do
 
   slot :segment, required: true do
     attr(:active, :boolean)
+    attr(:"phx-click", :string)
+    attr(:"phx-value-hours", :string)
   end
 
   def segmented_control(assigns) do
     ~H"""
     <div class={["tl-segmented-control", @class]} role="group" {@rest}>
-      <button :for={seg <- @segment} type="button" aria-pressed={if seg[:active], do: "true", else: "false"} class={["tl-segment", seg[:active] && "tl-segment--active"]}>
+      <button
+        :for={seg <- @segment}
+        type="button"
+        aria-pressed={if seg[:active], do: "true", else: "false"}
+        class={["tl-segment", seg[:active] && "tl-segment--active"]}
+        phx-click={seg[:"phx-click"]}
+        phx-value-hours={seg[:"phx-value-hours"]}
+      >
         <%= render_slot(seg) %>
       </button>
     </div>

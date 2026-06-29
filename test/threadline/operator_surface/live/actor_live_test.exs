@@ -221,9 +221,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Test time window change
       html_7d = render_click(lv, "set-window", %{"hours" => "168"})
       assert html =~ ~s|phx-value-hours="24"|
+      assert html =~ ~s|class="tl-segment tl-segment--active"|
       assert html =~ ~s|aria-pressed="true"|
+      refute html =~ "tl-segmented__item"
       assert html_7d =~ ~s|phx-value-hours="168"|
+      assert html_7d =~ ~s|class="tl-segment tl-segment--active"|
       assert html_7d =~ ~s|aria-pressed="true"|
+      refute html_7d =~ "tl-segmented__item"
 
       # Verify dummy event handlers for pagination
       render_hook(lv, "prev-page", %{})
