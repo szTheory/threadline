@@ -418,12 +418,11 @@ await expectNoHorizontalOverflow(page);
 |---|-------|---------|---------------|
 | A1 | The exact helper/function names shown in Code Examples are illustrative planner guidance, not locked API names. [ASSUMED] | Code Examples | Low; implementation can choose different private names while preserving behavior. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should browser proof include non-public schema links, or should LiveView tests own that entirely?**
    - What we know: LiveView tests already create `tenant_demo`, render `/audit/coverage?schema=tenant_demo`, and assert `table_schema=tenant_demo`. [VERIFIED: test/threadline/operator_surface/live/coverage_live_test.exs:317]
-   - What's unclear: The example app e2e seed may not have a stable non-public schema path. [ASSUMED]
-   - Recommendation: Plan LiveView coverage as required proof; add browser proof for non-public links only if the example app can create a deterministic tenant schema without broad setup churn. [VERIFIED: .planning/phases/185-coverage-and-audit-readiness/185-CONTEXT.md]
+   - Resolved decision: LiveView tests own non-public schema link correctness because they can deterministically create non-public schema state. Browser proof owns mobile readability, native schema control reachability, focus traversal, row disclosure/copy layout, no horizontal overflow, and public-schema link behavior. Do not require browser non-public schema data unless a deterministic fixture already exists. [VERIFIED: .planning/phases/185-coverage-and-audit-readiness/185-CONTEXT.md]
 
 ## Environment Availability
 
@@ -458,23 +457,23 @@ await expectNoHorizontalOverflow(page);
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|--------------|
-| COV-01 | Primary selected-schema readiness verdict, URL-addressable schema, checked metadata | LiveView/source | `mix test test/threadline/operator_surface/live/coverage_live_test.exs -x` | yes, extend [VERIFIED: test/threadline/operator_surface/live/coverage_live_test.exs] |
-| COV-02 | Remove repeated readiness copy and generic Timeline CTA; keep contextual row actions | LiveView/source/style | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/style_contract_test.exs -x` | yes, update assertions [VERIFIED: test/threadline/operator_surface/style_contract_test.exs] |
-| COV-03 | Schema select, invalid schema, non-public row links, refresh/stale, docs | LiveView/doc/browser | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs -x` | yes, extend [VERIFIED: targeted test run: 46 tests, 0 failures] |
-| COV-03 | Mobile readability/no horizontal overflow/schema control reachability | Playwright | `mix verify.example_browser -- operator-responsive-mobile-first.spec.ts` or a narrower Phase 185 spec admitted to the existing lane | yes, update [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts] |
+| COV-01 | Primary selected-schema readiness verdict, URL-addressable schema, checked metadata | LiveView/source | `mix test test/threadline/operator_surface/live/coverage_live_test.exs` | yes, extend [VERIFIED: test/threadline/operator_surface/live/coverage_live_test.exs] |
+| COV-02 | Remove repeated readiness copy and generic Timeline CTA; keep contextual row actions | LiveView/source/style | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/style_contract_test.exs` | yes, update assertions [VERIFIED: test/threadline/operator_surface/style_contract_test.exs] |
+| COV-03 | Schema select, invalid schema, non-public row links, refresh/stale, docs | LiveView/doc/browser | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs` | yes, extend [VERIFIED: targeted test run: 46 tests, 0 failures] |
+| COV-03 | Mobile readability/no horizontal overflow/schema control reachability | Playwright | Closeout proof: `mix verify.example_browser_light tests/operator-coverage-readiness.spec.ts` after fast Mix sampling | yes, add/admit [VERIFIED: examples/threadline_phoenix/e2e/playwright.config.ts] |
 
 ### Sampling Rate
 
-- **Per task commit:** `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs -x`
-- **Per wave merge:** add `mix test test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs -x`
-- **Phase gate:** targeted Mix slice plus the narrow Playwright Coverage/mobile lane; run `mix verify.test` before `$gsd-verify-work` when local residuals allow. [VERIFIED: CLAUDE.md] [VERIFIED: mix.exs]
+- **Per task commit:** `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs`
+- **Per wave merge:** add `mix test test/threadline/operator_surface/style_contract_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs`
+- **Phase gate:** targeted Mix slice remains primary sampling; run the narrow Playwright Coverage/mobile lane as closeout proof, then run `mix verify.test` before `$gsd-verify-work` when local residuals allow. [VERIFIED: CLAUDE.md] [VERIFIED: mix.exs]
 
 ### Wave 0 Gaps
 
 - [ ] `test/threadline/operator_surface/live/coverage_live_test.exs` - add/flip assertions for one verdict, native select, stale timestamp preservation, empty schema copy, and invalid-schema recovery.
 - [ ] `test/threadline/operator_surface/coverage_doc_contract_test.exs` - update docs/source literals for selected-schema readiness, refresh, and non-public row links.
 - [ ] `test/threadline/operator_surface/style_contract_test.exs` - retire `tl-trust-rail`/standalone remediation CSS if deleted; add `tl-coverage-verdict` token-backed/mobile rules if introduced.
-- [ ] `examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts` or a narrow `operator-phase-185-uat.spec.ts` - retarget old trust-rail/summary assertions to the verdict region and schema select.
+- [ ] `examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts` - add narrow closeout browser proof for the verdict region, schema select, mobile overflow, focus traversal, row disclosure/copy layout, and public-schema link behavior; admit it to the existing light/system lane.
 
 ## Security Domain
 
