@@ -160,8 +160,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% else %>
               <%= if stale_selected_schema?(@coverage_for_schema) do %>
                 <div class="tl-alert tl-alert--warning" role="status">
-                  Could not refresh - showing last known coverage results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
-                  Retry.
+                  Could not refresh coverage for <%= @schema_param %>; showing last known results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
+                  Retry refresh.
                 </div>
               <% end %>
 

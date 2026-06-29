@@ -51,13 +51,13 @@ defmodule Threadline.HealthTest do
       assert Threadline.Health.CoverageSchemas.validate(@repo, "public") == {:ok, "public"}
 
       assert Threadline.Health.CoverageSchemas.validate(@repo, "Public") ==
-               {:error, "Schema 'Public' not found."}
+               {:error, "Schema Public was not found."}
 
       assert Threadline.Health.CoverageSchemas.validate(
                @repo,
                "nonexistent_schema_xyz_definitely_not_present"
              ) ==
-               {:error, "Schema 'nonexistent_schema_xyz_definitely_not_present' not found."}
+               {:error, "Schema nonexistent_schema_xyz_definitely_not_present was not found."}
     end
 
     test "lists non-system schemas with ordinary tables" do

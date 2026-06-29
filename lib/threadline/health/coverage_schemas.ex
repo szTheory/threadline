@@ -29,11 +29,11 @@ defmodule Threadline.Health.CoverageSchemas do
       sql = "SELECT 1 FROM pg_namespace WHERE nspname = $1 LIMIT 1"
 
       case Ecto.Adapters.SQL.query!(repo, sql, [schema]) do
-        %{rows: []} -> {:error, "Schema '#{schema}' not found."}
+        %{rows: []} -> {:error, "Schema #{schema} was not found."}
         %{rows: _} -> {:ok, schema}
       end
     else
-      {:error, "Schema '#{schema}' not found."}
+      {:error, "Schema #{schema} was not found."}
     end
   end
 

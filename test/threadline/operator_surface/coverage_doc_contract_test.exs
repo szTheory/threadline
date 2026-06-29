@@ -110,11 +110,11 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
              "expected visible schema picker affordance in #{@coverage_lv_path}"
     end
 
-    test "coverage schema helper error copy contains \"' not found.\" (D-33a)" do
+    test "coverage schema helper error copy contains selected-schema recovery wording (D-33a)" do
       src = File.read!(@coverage_schemas_path)
 
-      assert String.contains?(src, "' not found."),
-             "expected literal `Schema 'X' not found.` error copy fragment per D-33a in #{@coverage_schemas_path}"
+      assert String.contains?(src, "was not found."),
+             "expected selected-schema not-found copy fragment per D-33a in #{@coverage_schemas_path}"
     end
 
     test "coverage_live.ex shows Refresh affordance with phx-click=refresh" do

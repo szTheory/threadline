@@ -653,6 +653,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-row-action__summary", [
       "min-height: var(--tl-hit-area);",
+      "border: 1px solid var(--tl-color-warning-border);",
+      "background: var(--tl-color-warning-bg);",
+      "color: var(--tl-color-warning-text);",
       "cursor: pointer;"
     ])
 

@@ -2948,10 +2948,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           min-height: var(--tl-hit-area);
           width: fit-content;
           padding: var(--tl-space-1) var(--tl-space-3);
-          border: 1px solid var(--tl-color-border);
+          border: 1px solid var(--tl-color-warning-border);
           border-radius: var(--tl-radius-md);
-          background: var(--tl-color-surface);
-          color: var(--tl-color-accent-strong);
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
           cursor: pointer;
           font-size: var(--tl-font-size-label);
           line-height: var(--tl-line-label);
@@ -2971,9 +2971,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-row-action__summary:hover {
-          border-color: var(--tl-color-border-focus);
-          background: var(--tl-color-surface-hover);
-          color: var(--tl-color-text);
+          border-color: var(--tl-color-warning-border);
+          background: var(--tl-color-warning-bg);
+          color: var(--tl-color-warning-text);
         }
 
         .tl-row-action[open] > .tl-row-action__summary {

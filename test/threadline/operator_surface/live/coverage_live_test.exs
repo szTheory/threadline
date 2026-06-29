@@ -293,7 +293,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert failed_html =~ "Schema: public"
         assert failed_html =~ "Checked"
-        assert failed_html =~ "Could not refresh - showing last known coverage results"
+        assert failed_html =~ "Could not refresh coverage for public"
+        assert failed_html =~ "showing last known results"
+        assert failed_html =~ "Retry refresh"
         assert failed_html =~ "schema_migrations"
         assert failed_html =~ ~s|data-testid="coverage-table"|
         refute failed_html =~ ~s|class="tl-alert tl-alert--error"|
@@ -325,21 +327,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Audit coverage"
         assert html =~ "Schema: public"
-        # The error message would render with HEEx-escaped single-quotes; refute
-        # both forms (raw + escaped) defensively.
-        refute html =~ "Schema 'public' not found."
-        refute html =~ "Schema &#39;public&#39; not found."
+        refute html =~ "Schema public was not found."
       end
 
       test "?schema=Public fails the regex (uppercase rejected)", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=Public")
 
-        # Renders the error alert with locked copy (D-33a). The source-level
-        # literal `Schema 'Public' not found.` is HEEx-escaped to use `&#39;` in
-        # the rendered HTML, so the runtime assertion uses the escaped form while
-        # this comment preserves the source-side literal for doc-contract greps.
+        # Renders the error alert with locked copy (D-33a).
         assert html =~ ~s|tl-alert--error|
-        assert html =~ "Schema &#39;Public&#39; not found."
+        assert html =~ "Schema Public was not found."
         assert html =~ "Use public schema"
         assert html =~ ~s|href="/audit/coverage?schema=public"|
         assert html =~ ~s|id="coverage-schema"|
@@ -354,8 +350,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           live(conn, "/audit/coverage?schema=nonexistent_xyz_definitely_not_present")
 
         assert html =~ ~s|tl-alert--error|
-        # HEEx-escaped form (single-quotes → &#39;).
-        assert html =~ "Schema &#39;nonexistent_xyz_definitely_not_present&#39; not found."
+        assert html =~ "Schema nonexistent_xyz_definitely_not_present was not found."
       end
 
       test "?schema with semicolon (SQL-injection probe) fails the regex", %{conn: conn} do

@@ -87,7 +87,7 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
       {:ok, _schema} ->
         :ok
 
-      {:error, "Schema '" <> _rest} ->
+      {:error, _message} ->
         if schema =~ ~r/\A[a-z_][a-z0-9_]{0,62}\z/ do
           Mix.raise("threadline.verify_coverage: schema #{inspect(schema)} not found.")
         else
