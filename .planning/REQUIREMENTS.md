@@ -53,7 +53,7 @@
 - [x] **A11Y-02**: Keyboard-only users can complete the primary investigation, readiness, export, and retention flows with visible non-obscured focus and correct focus restoration.
 - [x] **MOTION-01**: Motion remains token-backed, fast, transform/opacity-oriented, purposeful, and reduced-motion aware; no new decorative animation or `transition: all` enters the operator surface.
 - [x] **DOC-01**: Operator docs match the implementation for runtime theme picker, Storybook dev lane, stress route, mount/auth/export gates, schema selection, CSP expectations, and production exclusions.
-- [ ] **CLOSE-01**: Final closeout includes current verification evidence, screenshot/Playwright guard status, residual failure ownership if any, and adversarial review across operator, accessibility, OSS maintainer, and host-app DX lenses.
+- [x] **CLOSE-01**: Final closeout includes current verification evidence, screenshot/Playwright guard status, residual failure ownership if any, and adversarial review across operator, accessibility, OSS maintainer, and host-app DX lenses.
 
 ## Future Requirements
 
@@ -109,7 +109,7 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | A11Y-02 | Phase 187 | Complete |
 | MOTION-01 | Phase 187 | Complete |
 | DOC-01 | Phase 187 | Complete |
-| CLOSE-01 | Phase 187 | Pending |
+| CLOSE-01 | Phase 187 | Complete |
 
 **Coverage:**
 

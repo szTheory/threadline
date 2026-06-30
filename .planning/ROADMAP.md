@@ -223,7 +223,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 187-03-PLAN.md - Verification evidence and adversarial closeout
+- [x] 187-03-PLAN.md - Verification evidence and adversarial closeout
 
 ## Current Planning State
 
