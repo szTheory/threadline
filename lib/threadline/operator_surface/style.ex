@@ -3649,7 +3649,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-family: inherit;
           font-size: var(--tl-font-size-xs);
           cursor: pointer;
-          transition: var(--tl-transition-fast);
+          transition-property: color, border-color, background-color, box-shadow;
+          transition-duration: var(--tl-motion-fast);
+          transition-timing-function: var(--tl-ease-standard);
         }
 
         .tl-copy:hover {
