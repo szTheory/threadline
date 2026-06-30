@@ -8,7 +8,7 @@ status: milestone_complete
 stopped_at: Milestone complete (Phase 188 was final phase)
 last_updated: 2026-06-30T20:57:12.015Z
 last_activity: 2026-06-30
-last_activity_desc: Phase 188 plan 188-02 completed
+last_activity_desc: Phase 188 completed; v1.38 milestone complete
 progress:
   total_phases: 8
   completed_phases: 8
@@ -171,7 +171,7 @@ Last activity: 2026-06-30
 - **Milestone v1.37 roadmap created (2026-06-14):** Operator Surface Design-System Stress Test & Component System — phases 171-180 per the approved plan `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`, continued numbering. Largely linear fractal sequence: 171 (harness: `/audit/__stress` + DESIGN-SYSTEM.md v2 + scored ratchet ledger + ugly-data fixtures) → 172 (foundations/tokens, parity-gated) → 173 (primitive + overlay/disclosure components) → 174 (form components + page adoption + contract tests) → 175 (shell/nav + runtime theme picker, THEME-TOGGLE-01) → 176 (data display, flatten card-in-card) → 177 (component groups) → 178 (per-page stress, all 11 pages, kill footguns) → 179 (microcopy + IA sweep) → 180 (WCAG 2.2 AA + guardrails + adversarial closeout). 33/33 requirements mapped. Carried-todo phase tags: `theme-picker-idiomatic-ui`→175, `coverage-schema-card-declutter`→176, `transaction-page-left-push-desktop`→178. Invariants held: no public component API, zero new runtime deps, inline assets, brand-token parity green, capture/semantics untouched, fail-closed auth.
 - **Milestone v1.36 roadmap created (2026-06-12):** Operator Surface Light Mode — phases 166–170 per the approved 165 recommendation's pre-decided breakdown: 166 (unfreeze + 45-token light lane + `data-tl-theme` mechanism, contract amended same-wave) → 167 (component retune, largest) → 168 (accessibility AA mirror) ∥ 169 (`__light__` screenshots + example + docs) → 170 (brand alignment + closeout). 15/15 requirements mapped. Human gates: light-lane design review after 166; end-of-milestone UAT after 170.
 - **Milestone v1.38 roadmap created (2026-06-26):** Operator UI Page-by-Page IA & Design-System Polish — phases 181-187. Order is baseline guard repair → PhoenixStorybook example/dev lane → shell/home → Timeline → Coverage → detail/governance/export → accessibility/motion/docs/adversarial closeout. 24/24 requirements mapped, with former post-close todo pressure absorbed into phases 183, 185, and prior demo-login polish.
-- Phase 188 added: Close gap: v1.38 export queue and motion validation
+- Phase 188 completed: Close gap: v1.38 export queue and motion validation; v1.38 is milestone-complete and ready for archive.
 
 ### Decisions
 
@@ -346,8 +346,8 @@ Last activity: 2026-06-30
 - [Phase 187]: Phase 187 closeout treats targeted source/browser/stress proof as green while preserving standalone screenshot and broad CI failures as classified residuals; no real screen-reader certification or screenshot stability claim is made from non-green evidence. — CLOSE-01 requires exact evidence, residual ownership, and proof limits rather than assertion-only closure.
 - [Phase 188]: 188-01 queued export worker replay reuses FilterParams.parse/1 instead of a second parser — This preserves URL-shaped string-keyed ExportJob.query_params while ensuring from/to are DateTime filters before Threadline.Query runs and invalid params fail closed.
 - [Phase 188]: .tl-copy uses explicit transition-property source governance — 188-02 replaced token-only shorthand with color, border-color, background-color, and box-shadow declarations, and StyleContractTest now rejects token-only transition shorthand.
-- [Phase ?]: Phase 188 closeout used focused ExUnit/source evidence plus equivalent audit classification; no browser or screenshot proof was added because source contracts covered .tl-copy.
-- [Phase ?]: Phase 188 preserves legacy broad CI, screenshot, Hex auth/advisory, and older Nyquist residuals as explicit audit residuals instead of relabeling them green.
+- [Phase 188]: Phase 188 closeout used focused ExUnit/source evidence plus equivalent audit classification; no browser or screenshot proof was added because source contracts covered .tl-copy.
+- [Phase 188]: Phase 188 preserves legacy broad CI, screenshot, Hex auth/advisory, and older Nyquist residuals as explicit audit residuals instead of relabeling them green.
 
 ### Blockers
 
@@ -373,10 +373,10 @@ Last activity: 2026-06-30
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Initialized v1.38 requirements, roadmap, research, PROJECT, and STATE for page-by-page operator UI polish (2026-06-26).
-- **Next Step**: Start Phase 181 (`/gsd-discuss-phase` or `/gsd-plan-phase`) for baseline audit and guard repair.
+- **Last Action**: Completed Phase 188 close-gap validation and marked v1.38 milestone complete (2026-06-30).
+- **Next Step**: Archive v1.38 with `/gsd:complete-milestone` if the milestone closeout decision is approved.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Start Phase 181 for v1.38 baseline audit and guard repair.
+- Archive v1.38 with `/gsd:complete-milestone` if the milestone closeout decision is approved.

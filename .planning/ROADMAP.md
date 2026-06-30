@@ -12,7 +12,7 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phases 181-187 complete; Phase 188 close-gap work has been added after the milestone audit.
+**Status:** Phases 181-188 complete; v1.38 is milestone-complete and ready for archive.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
@@ -244,7 +244,7 @@ Plans:
 
 ## Current Planning State
 
-v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phases 181-187 are complete and Phase 188 is added for milestone-audit gap closure.
+v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phases 181-188 are complete and the milestone is ready for archival decision.
 
 ## Prior Milestones
 
