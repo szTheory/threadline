@@ -185,7 +185,7 @@ Plans:
 3. Export/download links and feature-gated controls are enabled/disabled correctly for pointer, keyboard, and assistive tech users.
 4. Retention destructive flow keeps type-to-confirm, auth re-check, audit-the-action, reconnect-safe disabled state, object/consequence copy, and focus restoration.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**

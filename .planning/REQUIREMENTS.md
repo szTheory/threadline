@@ -42,10 +42,10 @@
 
 ### Detail, Governance, and Export Surfaces
 
-- [ ] **DETAIL-01**: Transaction, row-history, and actor pages use the same detail-header, metadata, copy/ref, drawer, and state patterns as the cleaned Timeline flow.
-- [ ] **GOV-01**: Evidence, Exports, Redaction, and Retention pages read as focused operator workflows rather than dense metadata dumps.
-- [ ] **GOV-02**: Export/download affordances, feature-gated controls, and disabled states are correct for pointer, keyboard, and assistive-technology users.
-- [ ] **GOV-03**: Retention destructive actions keep the type-to-confirm, auth re-check, audit-the-action, reconnect-safe disabled state, focus restore, and object/consequence copy; the runtime redaction destructive flow remains deferred unless explicitly rescoped.
+- [x] **DETAIL-01**: Transaction, row-history, and actor pages use the same detail-header, metadata, copy/ref, drawer, and state patterns as the cleaned Timeline flow.
+- [x] **GOV-01**: Evidence, Exports, Redaction, and Retention pages read as focused operator workflows rather than dense metadata dumps.
+- [x] **GOV-02**: Export/download affordances, feature-gated controls, and disabled states are correct for pointer, keyboard, and assistive-technology users.
+- [x] **GOV-03**: Retention destructive actions keep the type-to-confirm, auth re-check, audit-the-action, reconnect-safe disabled state, focus restore, and object/consequence copy; the runtime redaction destructive flow remains deferred unless explicitly rescoped.
 
 ### Accessibility, Motion, Docs, and Closeout
 
@@ -101,10 +101,10 @@ Deferred to future milestones unless explicit adopter or maintainer demand appea
 | COV-01 | Phase 185 | Complete |
 | COV-02 | Phase 185 | Complete |
 | COV-03 | Phase 185 | Complete |
-| DETAIL-01 | Phase 186 | Pending |
-| GOV-01 | Phase 186 | Pending |
-| GOV-02 | Phase 186 | Pending |
-| GOV-03 | Phase 186 | Pending |
+| DETAIL-01 | Phase 186 | Complete |
+| GOV-01 | Phase 186 | Complete |
+| GOV-02 | Phase 186 | Complete |
+| GOV-03 | Phase 186 | Complete |
 | A11Y-01 | Phase 187 | Pending |
 | A11Y-02 | Phase 187 | Pending |
 | MOTION-01 | Phase 187 | Pending |
