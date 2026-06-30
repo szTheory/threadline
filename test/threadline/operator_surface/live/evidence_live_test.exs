@@ -156,8 +156,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Evidence"
         assert html =~ "Latest evidence is a projection over append-only evidence history"
+        assert count_occurrences(html, ~s(aria-label="Evidence workflow summary")) == 1
+        assert byte_index(html, ~s(class="tl-page__header")) <
+                 byte_index(html, ~s(aria-label="Evidence workflow summary"))
+
         assert html =~ ~s|href="/audit/evidence"|
-        assert html =~ "Evidence workflow"
+        assert html =~ "Evidence scope"
+        assert html =~ "Latest projection"
+        assert html =~ "All evidence subjects"
+        refute html =~ "tl-trust-rail"
+        refute html =~ ~s(aria-label="Evidence navigation")
         refute html =~ "What can Threadline prove right now?"
         refute html =~ "Proof chain"
         refute html =~ "proof state"
@@ -278,6 +286,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ ~s|href="/audit/exports?|
       end
 
+      test "hides carry-to-exports for invalid evidence context", %{conn: conn} do
+        insert_evidence(
+          subject: "export_delivery",
+          subject_ref: %{"export_id" => "export-123"},
+          summary_status: "completed",
+          detail: %{"status" => "completed"}
+        )
+
+        subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
+
+        {:ok, _view, html} = live(conn, "/audit/evidence?subject_ref_json=#{subject_ref_json}")
+
+        assert html =~ "subject_ref_json requires a subject filter."
+        refute html =~ "Carry to Exports"
+        refute html =~ ~s|href="/audit/exports?|
+      end
+
       test "subject query param narrows to one subject family", %{conn: conn} do
         insert_evidence(
           subject: "retention_run",
@@ -335,10 +360,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
         assert html =~ "No evidence records yet"
-        assert html =~ "mix threadline.evidence.show"
-        assert html =~ "Threadline.Evidence"
-        assert html =~ "current evidence record"
+        assert html =~
+                 "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
+
         refute html =~ "current proof state"
+      end
+    end
+
+    defp count_occurrences(html, needle) do
+      html
+      |> :binary.matches(needle)
+      |> length()
+    end
+
+    defp byte_index(html, needle) do
+      case :binary.match(html, needle) do
+        {index, _length} -> index
+        :nomatch -> flunk("expected #{inspect(needle)} in rendered HTML")
       end
     end
   end
