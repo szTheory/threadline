@@ -74,6 +74,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s|href="/audit/timeline"|
       assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12:30:00|
+      assert html =~ ~s|class="tl-drawer-container|
+      assert html =~ ~s|class="tl-drawer|
+      assert html =~ ~s|data-testid="row-history-drawer"|
+      assert html =~ ~s|phx-window-keydown=|
+      assert html =~ ~s|phx-key="escape"|
+      assert html =~ ~s|data-tl-initial-focus|
+      assert html =~ ~r/<a[^>]*>\s*(?:.|\n)*Close(?:.|\n)*<\/a>/
       refute html =~ "/audit/history/users/row-path-component"
     end
 

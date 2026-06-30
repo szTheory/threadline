@@ -174,6 +174,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
+    defp assert_single_h1(html, text) do
+      assert Regex.scan(~r/<h1\b[^>]*>\s*#{Regex.escape(text)}\s*<\/h1>/, html) |> length() == 1
+      assert Regex.scan(~r/<h1\b/, html) |> length() == 1
+    end
+
     test "first-class row-history route renders EF2 shell without a transaction id", %{conn: conn} do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
@@ -188,6 +193,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit/rows/ticket_replies/reply-1")
 
+      assert_single_h1(html, "Row history")
+      assert html =~ ~s|class="tl-detail-header|
+      assert html =~ "ticket_replies / reply-1"
+      assert html =~ ~s|href="/audit/timeline"|
       assert html =~ ~s|data-testid="row-history-drawer"|
       assert html =~ ~s|data-earned-flow="EF2"|
       assert html =~ ~s|data-persona="P1"|
