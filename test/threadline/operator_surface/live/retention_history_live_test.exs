@@ -187,9 +187,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Latest completed run"
       end
 
-      test "renders one focused retention window health summary without a duplicate trust rail", %{
-        conn: conn
-      } do
+      test "renders one focused retention window health summary without a duplicate trust rail",
+           %{
+             conn: conn
+           } do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
         %RetentionRun{}
@@ -283,7 +284,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         modal_html = open_prune_modal(view)
 
         assert modal_html =~ "Prune retention window permanently?"
-        assert modal_html =~ "This permanently deletes audit records older than the retention window"
+
+        assert modal_html =~
+                 "This permanently deletes audit records older than the retention window"
+
         assert modal_html =~ "it cannot be undone"
         assert modal_html =~ "Type the policy name <code>default</code> to confirm"
         assert modal_html =~ "Keep retention window"

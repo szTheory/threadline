@@ -92,7 +92,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply,
            socket
            |> assign(:prune_modal_open, false)
-           |> put_flash(:error, "Could not prune — confirmation did not match.")}
+           |> put_flash(:error, prune_modal_copy(@canonical_policy_name).mismatch_flash)}
       end
     end
 
@@ -126,6 +126,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def render(assigns) do
+      assigns =
+        assigns
+        |> assign(:retention_summary, retention_window_summary(assigns[:runs_summary]))
+        |> assign(:retention_actions, retention_contextual_actions(assigns))
+        |> assign(:prune_copy, prune_modal_copy(@canonical_policy_name))
+
       ~H"""
       <UI.shell
         theme={@threadline_theme}
@@ -141,65 +147,65 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @threadline_policy_enabled do %>
             <UI.page_header title="Retention window">
               <:lede>Review retention window pruning runs, failures, and evidence before triggering another destructive retention pass.</:lede>
+              <:actions>
+                <.link :if={@retention_actions.evidence_path} navigate={@retention_actions.evidence_path} class="tl-button tl-button--compact tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                  Review evidence
+                </.link>
+              </:actions>
             </UI.page_header>
 
-            <section class="tl-trust-rail" aria-label="Retention context">
-              <span class="tl-trust-rail__label">Retention window</span>
-              <span class="tl-chip tl-chip--warning">Permanent deletion</span>
-              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=retention_run"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                Review evidence
-              </.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                Open timeline
-              </.link>
-            </section>
+            <div :if={Phoenix.Flash.get(@flash, :error)} class="tl-alert tl-alert--error" role="alert">
+              <%= Phoenix.Flash.get(@flash, :error) %>
+            </div>
+            <div :if={Phoenix.Flash.get(@flash, :info)} class="tl-alert tl-alert--success" role="status">
+              <%= Phoenix.Flash.get(@flash, :info) %>
+            </div>
 
             <%= if not @has_runs do %>
-              <div class="tl-empty">
-                <h3 class="tl-empty__title">No retention runs yet</h3>
-                <p class="tl-empty__body">Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.</p>
-                <div class="tl-empty__actions">
+              <UI.empty_state variant="never" role="status">
+                <:title>No retention runs yet</:title>
+                Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.
+                <:actions>
                   <button
                     type="button"
                     class="tl-button tl-button--secondary tl-button--danger"
                     phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
                   >
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                    Run retention prune
+                    <%= @prune_copy.open_label %>
                   </button>
-                </div>
-              </div>
+                </:actions>
+              </UI.empty_state>
             <% else %>
-              <section class="tl-summary-grid" aria-label="Retention summary">
+              <section class="tl-summary-grid" aria-label="Retention window health">
                 <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Latest run</span>
-                  <strong class="tl-card__metric"><%= @runs_summary.latest_status %></strong>
+                  <strong class="tl-card__metric"><%= @retention_summary.latest_status %></strong>
                 </div>
                 <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Latest completed run</span>
-                  <strong class="tl-card__metric"><%= latest_completed_label(@runs_summary.latest_completed_at) %></strong>
+                  <strong class="tl-card__metric"><%= @retention_summary.latest_completed %></strong>
                 </div>
                 <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Rows deleted</span>
-                  <strong class="tl-card__metric"><%= @runs_summary.total_deleted %></strong>
+                  <strong class="tl-card__metric"><%= @retention_summary.total_deleted %></strong>
                 </div>
-                <div class="tl-card--metric" data-status={if @runs_summary.failure_count > 0, do: "danger"}>
+                <div class="tl-card--metric" data-status={if @retention_summary.failure_count > 0, do: "danger"}>
                   <span class="tl-card__metric-label">Failures</span>
                   <strong class="tl-card__metric">
-                    <%= if @runs_summary.first_failed_dom_id do %>
-                      <a href={"##{@runs_summary.first_failed_dom_id}"} class="tl-link tl-link--deep"><%= @runs_summary.failure_count %></a>
+                    <%= if @retention_summary.first_failed_dom_id do %>
+                      <a href={"##{@retention_summary.first_failed_dom_id}"} class="tl-link tl-link--deep"><%= @retention_summary.failure_count %></a>
                     <% else %>
-                      <%= @runs_summary.failure_count %>
+                      <%= @retention_summary.failure_count %>
                     <% end %>
                   </strong>
                 </div>
               </section>
 
-              <%= if @runs_summary.healthy? do %>
+              <%= if @retention_summary.healthy? do %>
                 <div class="tl-alert tl-alert--success" role="status">
-                  Latest run succeeded<%= if @runs_summary.latest_at do %> <%= Presentation.human_time(@runs_summary.latest_at) %><% end %> — the retention window is healthy. Pruning permanently deletes older audit records by policy, so review before running another.
+                  Latest run succeeded<%= if @retention_summary.latest_at do %> <%= Presentation.human_time(@retention_summary.latest_at) %><% end %> — the retention window is healthy. Pruning permanently deletes older audit records by policy, so review before running another.
                 </div>
               <% else %>
                 <div class="tl-alert tl-alert--warning" role="status">
@@ -215,7 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
                 >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                  Run retention prune
+                  <%= @prune_copy.open_label %>
                 </button>
               </div>
 
@@ -257,27 +263,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <% end %>
                   </:col>
                   <:action :let={{_dom_id, _run}}>
-                    <UI.dropdown id={"run-actions-#{System.unique_integer([:positive])}"} class="tl-table__actions">
-                      <:trigger>
-                        <span class="tl-button tl-button--compact tl-button--ghost" aria-label="Run actions">
-                          <Threadline.OperatorSurface.Components.Icon.icon name={:kebab} class="tl-button__icon" />
-                        </span>
-                      </:trigger>
-                      <.link :if={@threadline_evidence_enabled} navigate={"#{@base_path}/evidence?subject=retention_run"} role="menuitem" class="tl-button tl-button--compact tl-button--secondary">
-                        <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                        Review evidence
-                      </.link>
-                      <UI.divider />
-                      <button
-                        type="button"
-                        role="menuitem"
-                        class="tl-button tl-button--compact tl-button--danger"
-                        phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
-                      >
-                        <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                        Prune records permanently
-                      </button>
-                    </UI.dropdown>
+                    <.link :if={@retention_actions.evidence_path} navigate={@retention_actions.evidence_path} class="tl-button tl-button--compact tl-button--secondary">
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
+                      Review evidence
+                    </.link>
                   </:action>
                 </UI.data_table>
               </div>
@@ -290,14 +279,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   client-side comparison. The danger button copy names the
                   irreversible consequence (not "Continue"). --%>
             <UI.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
-              <h2 id="prune-confirm-title" class="tl-modal__title">Prune retention window permanently?</h2>
+              <h2 id="prune-confirm-title" class="tl-modal__title"><%= @prune_copy.title %></h2>
               <p id="prune-confirm-description" class="tl-modal__body">
-                This permanently deletes audit records older than the retention window for policy <code>default</code>; it cannot be undone.
-                To confirm, type the policy name <code>default</code> exactly.
+                <%= @prune_copy.consequence_prefix %> <code><%= @prune_copy.policy_name %></code>; it cannot be undone.
+                To confirm, type the policy name <code><%= @prune_copy.policy_name %></code> exactly.
               </p>
               <form phx-submit="prune_now" class="tl-form">
                 <label class="tl-field">
-                  <span class="tl-field__label">Type the policy name <code>default</code> to confirm</span>
+                  <span class="tl-field__label">Type the policy name <code><%= @prune_copy.policy_name %></code> to confirm</span>
                   <input
                     id="prune-confirm-input"
                     type="text"
@@ -310,11 +299,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </label>
                 <div class="tl-modal__actions">
                   <button type="button" class="tl-button tl-button--secondary" phx-click={JS.push("close_prune_modal")}>
-                    Cancel
+                    <%= @prune_copy.cancel_label %>
                   </button>
                   <button type="submit" class="tl-button tl-button--danger" data-tl-mutating>
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                    Prune records permanently
+                    <%= @prune_copy.submit_label %>
                   </button>
                 </div>
               </form>
@@ -420,6 +409,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         total_deleted: 0,
         failure_count: 0,
         first_failed_dom_id: nil
+      }
+    end
+
+    defp retention_window_summary(runs_summary) do
+      %{
+        latest_status: runs_summary.latest_status,
+        latest_at: runs_summary.latest_at,
+        latest_completed: latest_completed_label(runs_summary.latest_completed_at),
+        healthy?: runs_summary.healthy?,
+        total_deleted: runs_summary.total_deleted,
+        failure_count: runs_summary.failure_count,
+        first_failed_dom_id: runs_summary.first_failed_dom_id
+      }
+    end
+
+    defp retention_contextual_actions(assigns) do
+      evidence_path =
+        if assigns[:threadline_evidence_enabled] and assigns[:base_path] do
+          "#{assigns[:base_path]}/evidence?subject=retention_run"
+        end
+
+      %{evidence_path: evidence_path}
+    end
+
+    defp prune_modal_copy(policy_name) do
+      %{
+        open_label: "Run retention prune",
+        title: "Prune retention window permanently?",
+        consequence_prefix:
+          "This permanently deletes audit records older than the retention window for policy",
+        policy_name: policy_name,
+        cancel_label: "Keep retention window",
+        submit_label: "Prune records permanently",
+        mismatch_flash: "Could not prune - confirmation did not match."
       }
     end
 
