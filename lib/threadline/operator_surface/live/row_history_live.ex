@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
     use Phoenix.LiveView
 
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
 
     def mount(_params, _session, socket) do
@@ -49,14 +50,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         data-jtbd="J2"
       >
           <UI.page_header
-            title={"Row history · #{@table}"}
+            title="Row history"
             breadcrumbs={[
               %{label: "Timeline", href: "#{@base_path}/timeline"},
-              %{label: "Row history · #{@table}"}
+              %{label: "Row history - #{@table}"}
             ]}
           >
             <:lede>Inspect the captured state of one row over time, then jump back to the timeline.</:lede>
           </UI.page_header>
+          <UI.detail_header title={row_history_detail_title(@table, @record_id)}>
+            <:metadata key="Table"><code><%= @table %></code></:metadata>
+            <:metadata key="Row id">
+              <UI.ref value={@record_id} copy_label="Copy row id" />
+            </:metadata>
+            <:metadata :if={@as_of} key="Selected snapshot">
+              <time datetime={Presentation.exact_time(@as_of)} title={Presentation.exact_time(@as_of)}>
+                <%= Presentation.human_time(@as_of) %>
+              </time>
+            </:metadata>
+          </UI.detail_header>
           <.live_component
             module={Threadline.OperatorSurface.Live.RowHistoryComponent}
             id="row-history"
@@ -99,5 +111,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
+
+    defp row_history_detail_title(table, record_id) do
+      "#{table} / #{Presentation.short_id(record_id, 14)}"
+    end
   end
 end

@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
     use Phoenix.LiveComponent
 
+    alias Phoenix.LiveView.JS
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
 
@@ -68,15 +69,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <div class="tl-subview-shell" id={"#{@id}-shell"}>
-        <div class="tl-subview-backdrop" aria-hidden="true"></div>
-        <div
-          class="tl-subview"
+      <div id={"#{@id}-shell"}>
+        <UI.drawer
           id={@id}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={"#{@id}-title"}
-          tabindex="-1"
+          show
+          on_cancel={JS.patch(@close_path)}
+          class="tl-row-history-drawer"
           data-testid="row-history-drawer"
         >
           <div class="tl-subview__header">
@@ -84,8 +82,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <h3 class="tl-subview__title" id={"#{@id}-title"} title={"#{@table} / #{@record_id}"}>
                 Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>
               </h3>
+              <p id={"#{@id}-description"} class="tl-modal__body">
+                Inspect captured row state at the selected point in row history.
+              </p>
             </div>
-            <.link patch={@close_path} class="tl-button tl-button--secondary">
+            <.link patch={@close_path} class="tl-button tl-button--secondary" data-tl-initial-focus>
               <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
               Close
             </.link>
@@ -129,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </div>
           <% end %>
-        </div>
+        </UI.drawer>
       </div>
       """
     end
