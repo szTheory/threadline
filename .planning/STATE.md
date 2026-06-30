@@ -2,13 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
-current_phase: 186
-current_phase_name: Detail, governance, and export surfaces
 status: verifying
-stopped_at: Completed 185-01-PLAN.md
-last_updated: "2026-06-29T21:02:22.406Z"
-last_activity: 2026-06-29
-last_activity_desc: Phase 185 complete, transitioned to Phase 186
+stopped_at: Phase 186 context gathered
+last_updated: "2026-06-30T02:06:54.329Z"
+last_activity: 2026-06-29 — Phase 185 complete, transitioned to Phase 186
 progress:
   total_phases: 7
   completed_phases: 5
@@ -339,9 +336,9 @@ Last activity: 2026-06-29 — Phase 185 complete, transitioned to Phase 186
 
 ## Session Continuity
 
-**Last session:** 2026-06-29T20:24:28.949Z
-**Stopped at:** Completed 185-01-PLAN.md
-**Resume file:** None
+**Last session:** 2026-06-30T02:06:54.324Z
+**Stopped at:** Phase 186 context gathered
+**Resume file:** .planning/phases/186-detail-governance-and-export-surfaces/186-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
