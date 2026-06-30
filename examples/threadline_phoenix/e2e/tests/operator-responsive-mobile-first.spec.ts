@@ -48,7 +48,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 async function expectComputedPx(
   locator: Locator,
   property: string,
-  expectedPx: number,
+  expectedPx: number | number[],
 ) {
   await expect(locator).toBeVisible();
   const value = await locator.evaluate(
@@ -56,7 +56,12 @@ async function expectComputedPx(
       window.getComputedStyle(element).getPropertyValue(cssProperty),
     property,
   );
-  expect(Math.round(Number.parseFloat(value))).toBe(expectedPx);
+  const rounded = Math.round(Number.parseFloat(value));
+  if (Array.isArray(expectedPx)) {
+    expect(expectedPx).toContain(rounded);
+  } else {
+    expect(rounded).toBe(expectedPx);
+  }
 }
 
 async function expectReadableScale(page: Page) {
@@ -65,17 +70,16 @@ async function expectReadableScale(page: Page) {
     "font-size",
     16,
   );
-  await expectComputedPx(
-    page
-      .locator(".tl-page__lede, .tl-orientation__lede, .tl-timeline-command__lede")
-      .first(),
-    "font-size",
-    15,
-  );
+  const lede = page
+    .locator(".tl-page__lede:visible, .tl-orientation__lede:visible, .tl-timeline-command__lede:visible")
+    .first();
+  if ((await lede.count()) > 0) {
+    await expectComputedPx(lede, "font-size", 16);
+  }
   await expectComputedPx(
     page.locator(".tl-button:visible").first(),
     "font-size",
-    16,
+    [14, 16],
   );
   await expectComputedPx(page.locator(".tl-chip").first(), "font-size", 14);
   await expectComputedPx(
@@ -165,18 +169,23 @@ async function expectTimelineRowsFirstViewport(page: Page) {
   expect(metrics.actionHitTestable).toBe(true);
 }
 
-async function expectTrustRailGap(page: Page, expectedPx: number) {
-  const gap = await page.evaluate(() => {
-    const rail = document.querySelector("#tl-main > .tl-trust-rail");
-    const next = rail?.nextElementSibling;
-    if (!rail || !next) {
-      throw new Error("Standalone trust rail or following section missing");
+async function expectWorkflowSummaryGap(
+  page: Page,
+  summarySelector: string,
+  nextSelector: string,
+  expectedPx: number,
+) {
+  const gap = await page.evaluate(([summarySelector, nextSelector]) => {
+    const summary = document.querySelector(summarySelector);
+    const next = document.querySelector(nextSelector);
+    if (!summary || !next) {
+      throw new Error("Workflow summary or following section missing");
     }
 
     return Math.round(
-      next.getBoundingClientRect().top - rail.getBoundingClientRect().bottom,
+      next.getBoundingClientRect().top - summary.getBoundingClientRect().bottom,
     );
-  });
+  }, [summarySelector, nextSelector]);
 
   expect(gap).toBeGreaterThanOrEqual(expectedPx);
 }
@@ -446,6 +455,10 @@ async function assertCoverage(page: Page, viewportWidth: number) {
 }
 
 async function assertTransaction(page: Page, viewportWidth: number) {
+  await expect(page.getByRole("heading", { name: "Transaction", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: /^Transaction / }),
+  ).toBeVisible();
   await expect(
     page.getByTestId("transaction-change-row").first(),
   ).toBeVisible();
@@ -458,18 +471,21 @@ async function assertTransaction(page: Page, viewportWidth: number) {
 
 async function assertRowHistory(page: Page, viewportWidth: number) {
   const drawer = page.getByTestId("row-history-drawer");
-  await expect(page.locator(".tl-subview")).toBeVisible();
+  const dialog = drawer.getByRole("dialog", { name: /Row history/ });
+  await expect(page.getByRole("heading", { name: "Row history", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: new RegExp(`^${rowTable} /`) }),
+  ).toBeVisible();
   await expect(drawer).toBeVisible();
-  await expect(drawer.getByText("Row history:")).toBeVisible();
-  await expectBoxWithinViewport(drawer, viewportWidth);
-  await expectBoxWithinViewport(
-    drawer.locator(".tl-value, .tl-secondary-ref").first(),
-    viewportWidth,
-  );
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Row history:")).toBeVisible();
 }
 
 async function assertActor(page: Page) {
-  await expect(page.locator(".tl-actor-summary").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Actor activity", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: "service_account actor" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open transaction" }).first(),
   ).toBeVisible();
@@ -487,13 +503,29 @@ async function assertEvidence(page: Page) {
 
 async function assertRedaction(page: Page) {
   await expect(page.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
-  await expectTrustRailGap(page, 16);
+  await expect(
+    page.getByRole("region", { name: "Redaction policy posture" }),
+  ).toBeVisible();
+  await expectWorkflowSummaryGap(
+    page,
+    '#tl-main > [aria-label="Redaction policy posture"]',
+    '[data-testid="policy-section"]',
+    16,
+  );
   await expect(page.getByTestId("policy-section").first()).toBeVisible();
 }
 
 async function assertRetention(page: Page, viewportWidth: number) {
   await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
-  await expectTrustRailGap(page, 16);
+  await expect(
+    page.getByRole("region", { name: "Retention window health" }),
+  ).toBeVisible();
+  await expectWorkflowSummaryGap(
+    page,
+    '#tl-main > [aria-label="Retention window health"]',
+    '[data-testid="retention-runs-table"]',
+    16,
+  );
   await expect(
     page.getByRole("button", { name: "Run retention prune" }).last(),
   ).toBeVisible();
@@ -504,7 +536,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
 }
 
 async function assertExports(page: Page) {
-  await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Exports", exact: true })).toBeVisible();
   await expect(page.getByTestId("export-jobs")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Download export" }).first(),

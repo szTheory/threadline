@@ -185,23 +185,21 @@ test.describe("operator surface — pass-3 features", () => {
     ).toBeVisible();
   });
 
-  test("copy button copies the correlation id and confirms", async ({
+  test("copy button copies the full visible reference and confirms", async ({
     page,
     context,
   }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await login(page);
-    await page.goto(
-      `/audit/timeline?correlation_id=${encodeURIComponent(correlation)}`,
-    );
-    const copyBtn = page
-      .locator(`button.tl-copy[data-tl-copy="${correlation}"]`)
-      .first();
+    await page.goto(`/audit/timeline?table=${encodeURIComponent("ticket_replies")}`);
+    const copyBtn = page.locator("button.tl-copy[data-tl-copy]").first();
     await expect(copyBtn).toBeVisible();
+    const expectedCopy = await copyBtn.getAttribute("data-tl-copy");
+    expect(expectedCopy).toBeTruthy();
     await copyBtn.click();
     await expect(copyBtn).toHaveClass(/is-copied/);
     const clip = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clip).toBe(correlation);
+    expect(clip).toBe(expectedCopy);
   });
 
   test("support user sees a scoped-view chip", async ({ page }) => {
@@ -209,5 +207,41 @@ test.describe("operator surface — pass-3 features", () => {
     await page.goto("/audit/timeline");
     await expect(page.getByTestId("operator-scope")).toBeVisible();
     await expect(page.getByText("Scoped view")).toBeVisible();
+  });
+
+  test("support user sees governance and export surfaces as unavailable without enabled controls", async ({
+    page,
+  }) => {
+    await login(page, supportEmail);
+    await page.goto("/audit");
+
+    const nav = page.getByTestId("operator-nav-shell");
+    await expect(nav.getByTestId("operator-nav-evidence")).toHaveCount(0);
+    await expect(nav.getByTestId("operator-nav-policy")).toHaveCount(0);
+    await expect(nav.getByTestId("operator-nav-retention")).toHaveCount(0);
+    await expect(nav.getByTestId("operator-nav-exports")).toHaveCount(0);
+
+    await page.goto("/audit/evidence");
+    await expect(page.getByRole("alert").filter({ hasText: "Evidence unavailable" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Carry to Exports" })).toHaveCount(0);
+
+    await page.goto("/audit/policy/redaction");
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Redaction policy unavailable" }),
+    ).toBeVisible();
+    await expect(
+      page.locator("#tl-main").getByRole("button", { name: /redact|delete|apply/i }),
+    ).toHaveCount(0);
+
+    await page.goto("/audit/policy/retention");
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Retention history unavailable" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Run retention prune" })).toHaveCount(0);
+
+    await page.goto("/audit/exports");
+    await expect(page.getByRole("alert").filter({ hasText: "Export access needed" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Download export" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Queue Timeline export" })).toHaveCount(0);
   });
 });

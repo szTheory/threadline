@@ -155,10 +155,11 @@ test.describe("operator earned-flow browser UAT", () => {
       closeCorrelation,
     );
 
-    const carry = page
-      .locator('[data-earned-flow="EF3"]')
-      .filter({ hasText: "Carry to Exports" })
-      .first();
+    await page.getByRole("button", { name: "Filters" }).click();
+    const filterDrawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await expect(filterDrawer).toBeVisible();
+
+    const carry = filterDrawer.getByRole("link", { name: "Carry to Exports" });
     await expectEarnedFlow(carry, "EF3");
     await carry.click();
 
