@@ -35,7 +35,11 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
       # interpolation (`#{@base_path}` etc.), so `}` characters appear inside
       # the brace-block; the non-greedy `.+?` walks to the attribute-closing
       # brace that is actually followed by the bare `download` token.
-      download_anchors = Regex.scan(~r/<\.link\s+href=\{.+?\}\s+download[\s>]/, src)
+      download_anchors =
+        Regex.scan(
+          ~r/<\.link\s+(?=[^>]*href=\{.*?\/exports\/changes\.(csv|json|ndjson)\?)(?=[^>]*\bdownload\b)[^>]*>/s,
+          src
+        )
 
       assert length(download_anchors) >= 3,
              "expected at least 3 anchors with `download` attribute in #{@lv_path}, got #{length(download_anchors)}"

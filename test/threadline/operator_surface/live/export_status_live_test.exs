@@ -160,6 +160,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "shows empty state when no jobs exist", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/exports")
         assert html =~ "Exports"
+        assert html =~ ~s|aria-label="Export workflow summary"|
+        assert html =~ "No downloads ready"
+        refute html =~ "tl-trust-rail"
         refute html =~ "What&#39;s ready to hand off?"
         assert html =~ "No export jobs queued"
         assert html =~ "Open timeline"
@@ -356,7 +359,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "No export jobs queued"
         assert html =~ "Queued"
         assert html =~ "users"
-        assert html =~ "Preparing download"
+        refute html =~ "Preparing download"
       end
 
       test "does not display jobs for other actors", %{conn: conn} do
@@ -575,8 +578,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Needs attention"
         assert html =~ "Unavailable"
         assert html =~ "Download export"
-        assert html =~ "Preparing download"
-        assert html =~ "Export expired"
+        assert html =~ "Processing"
+        assert html =~ "Expired"
         assert html =~ "File unavailable"
         assert html =~ "tl-secondary-ref"
         assert html =~ long_correlation

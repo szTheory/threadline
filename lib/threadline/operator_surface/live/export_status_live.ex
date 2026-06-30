@@ -111,6 +111,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def render(assigns) do
+      assigns = assign(assigns, :workflow_summary, export_workflow_summary(assigns))
+
       ~H"""
       <UI.shell
         theme={@threadline_theme}
@@ -128,22 +130,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:lede>
                 Download completed Timeline packets, or reopen the source search when an export needs another pass.
               </:lede>
-              <:actions>
-                <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
             </UI.page_header>
 
-            <section class="tl-trust-rail" aria-label="Export workflow">
-              <span class="tl-trust-rail__label">Export workflow</span>
-              <span class="tl-chip tl-chip--info">Actor-owned jobs</span>
-              <span class="tl-chip tl-chip--neutral">Filtered timeline packets</span>
-              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                Open timeline
-              </.link>
+            <section class="tl-job tl-job--info" aria-label="Export workflow summary">
+              <div class="tl-job__main">
+                <div class="tl-job__summary">
+                  <span class="tl-chip tl-chip--info">Export workflow</span>
+                  <div class="tl-job__title">
+                    <strong><%= @workflow_summary.title %></strong>
+                    <span><%= @workflow_summary.body %></span>
+                  </div>
+                </div>
+                <div class="tl-job__actions">
+                  <span class="tl-hint" role="status"><%= @workflow_summary.status %></span>
+                </div>
+              </div>
             </section>
 
             <%= if @timeline_export_context do %>
@@ -289,17 +290,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <div class="tl-job__actions">
                           <%= if Presentation.export_downloadable?(job) do %>
                             <.link
-                              href={"#{@base_path}/exports/download/#{job.id}"}
-                              class="tl-button tl-button--primary tl-button--compact"
-                              data-tl-mutating
-                              aria-disabled="true"
-                              tabindex="-1"
+                              {download_link_attrs(%{base_path: @base_path, job: job})}
                             >
                               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
                               Download export
                             </.link>
                           <% else %>
-                            <span class="tl-hint" role="status"><%= Presentation.export_action_label(job) %></span>
+                            <span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>
                           <% end %>
                         </div>
                       </div>
@@ -400,6 +397,95 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:has_jobs, count > 0)
       |> assign(:jobs_count, count)
       |> assign(:default_limit, @default_limit)
+    end
+
+    defp export_workflow_summary(assigns) do
+      jobs = Map.get(assigns, :jobs, [])
+
+      ready_count = Enum.count(jobs, &Presentation.export_downloadable?/1)
+      processing_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :preparing))
+      attention_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :needs_attention))
+
+      cond do
+        match?(%{status: :invalid}, assigns[:timeline_export_context]) ->
+          %{
+            title: "Timeline context needs attention",
+            body: "Fix the Timeline filters before queuing another export.",
+            status: "Invalid context"
+          }
+
+        match?(%{status: :valid}, assigns[:timeline_export_context]) ->
+          %{
+            title: "Timeline search ready to queue",
+            body: "Queue this Timeline search here, then return for the completed export packet.",
+            status: "Ready to queue"
+          }
+
+        match?(%{status: :valid}, assigns[:evidence_export_context]) ->
+          %{
+            title: "Evidence handoff ready",
+            body: "Reopen the Evidence source view here while export jobs continue below.",
+            status: "Evidence context"
+          }
+
+        ready_count > 0 ->
+          %{
+            title: "Completed exports are ready",
+            body:
+              "#{ready_count} #{if ready_count == 1, do: "export job", else: "export jobs"} can be downloaded now.",
+            status: "Download ready"
+          }
+
+        processing_count > 0 ->
+          %{
+            title: "Exports are processing",
+            body:
+              "#{processing_count} #{if processing_count == 1, do: "export job", else: "export jobs"} queued or running. Reopen the source search from each job if filters need another pass.",
+            status: "Processing"
+          }
+
+        attention_count > 0 ->
+          %{
+            title: "Exports need attention",
+            body:
+              "#{attention_count} #{if attention_count == 1, do: "export job", else: "export jobs"} failed. Reopen the source search, adjust filters, and queue a new export.",
+            status: "Review failed jobs"
+          }
+
+        true ->
+          %{
+            title: "No downloads ready",
+            body:
+              "Queue an export from Timeline, then return here to download the completed packet.",
+            status: "No export jobs"
+          }
+      end
+    end
+
+    defp export_job_status_label(job) do
+      status = job |> Map.get(:status, Map.get(job, "status")) |> to_string()
+
+      expired? =
+        case Map.get(job, :expires_at, Map.get(job, "expires_at")) do
+          %DateTime{} = expires_at -> DateTime.compare(expires_at, DateTime.utc_now()) != :gt
+          _ -> false
+        end
+
+      cond do
+        status in ~w(pending queued) -> "Queued"
+        status in ~w(running processing) -> "Processing"
+        status in ~w(failed error) -> "Failed"
+        status == "completed" and expired? -> "Expired"
+        status == "completed" -> "File unavailable"
+        true -> Presentation.status_label(status)
+      end
+    end
+
+    defp download_link_attrs(%{base_path: base_path, job: job}) do
+      [
+        href: "#{base_path}/exports/download/#{job.id}",
+        class: "tl-button tl-button--primary tl-button--compact"
+      ]
     end
 
     defp group_jobs(jobs) do
