@@ -17,17 +17,17 @@ defmodule Threadline.V123CharterDocContractTest do
 
     assert String.contains?(
              doc,
-             "has now opened milestone **v1.37 Operator Surface Design-System Stress Test & Component System**"
+             "Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**"
            )
 
     assert String.contains?(
              doc,
-             "## Current Milestone: v1.37 Operator Surface Design-System Stress Test & Component System"
+             "## Current Milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish"
            )
 
     assert String.contains?(
              doc,
-             "## Latest Milestone Shipped: v1.36 Operator Surface Light Mode"
+             "## Latest Milestone Shipped: v1.37 Operator Surface Design-System Stress Test & Component System"
            )
 
     assert String.contains?(doc, "Threadline.Audit.transaction")
