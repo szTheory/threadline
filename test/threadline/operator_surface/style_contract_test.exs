@@ -424,6 +424,24 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  test "MOTION-01 keeps copy transitions explicit and bounded" do
+    src = File.read!(@style_path)
+    copy_block = selector_block!(src, ".tl-copy")
+
+    assert String.contains?(
+             copy_block,
+             "transition-property: color, border-color, background-color, box-shadow;"
+           )
+
+    assert String.contains?(copy_block, "transition-duration: var(--tl-motion-fast);")
+    assert String.contains?(copy_block, "transition-timing-function: var(--tl-ease-standard);")
+
+    refute Regex.match?(~r/\btransition\s*:\s*var\(--tl-transition-fast\)\s*;/, copy_block),
+           ".tl-copy must name governed transition properties before duration/easing tokens"
+
+    assert_transition_shorthands_name_properties!(src)
+  end
+
   test "phase 141 rejects ad-hoc motion and ungoverned duration drift" do
     src = File.read!(@style_path)
 
@@ -1895,6 +1913,17 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert Regex.match?(pattern, src),
            "#{selector} must use var(--tl-transition-fast) or named motion/ease tokens"
+  end
+
+  defp assert_transition_shorthands_name_properties!(src) do
+    for [declaration, value] <- Regex.scan(~r/(transition\s*:\s*([^;]+);)/, src) do
+      value
+      |> String.split(",", trim: true)
+      |> Enum.each(fn transition ->
+        refute Regex.match?(~r/^\s*(?:all\b|var\(--tl-[^)]+\))/, transition),
+               "transition shorthand must start with a governed property: #{String.trim(declaration)}"
+      end)
+    end
   end
 
   defp allowed_motion_duration_line?(line) do
