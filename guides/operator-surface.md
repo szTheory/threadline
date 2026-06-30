@@ -9,9 +9,12 @@ For the broader composition contract across `Threadline.Plug`, `Threadline.Job`,
 reference adapters, and operator-surface auth/export auth, see
 `guides/integration-contracts.md`.
 
-PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`.
+PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`
+and example-app dev/test maintainer tooling, not a root `threadline` dependency.
 `/audit/__stress` remains the authenticated operator-flow stress harness.
+`/audit/__stress` is not a production route or public component gallery.
 `/dev/storybook` is not a production route and is not part of the mounted `/audit` operator surface. Adopters do not add `phoenix_storybook` to host apps to use Threadline.
+The operator components remain private and are not a public component API.
 
 ## 1-Minute Mount
 
@@ -60,9 +63,9 @@ Keys in `schemas:` are PostgreSQL `table_name` values from capture; the map is r
 
 ### Theme
 
-The operator surface renders in one of three host-selected lanes via the
-optional `theme:` mount option, validated at compile time to one of
-`:dark | :light | :system` (default `:dark`):
+The operator surface renders in one of three lanes via the optional `theme:`
+mount option, validated at compile time to one of `:dark | :light | :system`
+(default `:dark`). That host option selects the default server-rendered lane:
 
 - `:dark` (default) — the brand-primary surface. Omit `theme:` entirely to get
   it; the canonical mount above stays dark with no extra configuration.
@@ -70,9 +73,20 @@ optional `theme:` mount option, validated at compile time to one of
   setting.
 - `:system` — auto-follows the visitor's OS preference through scoped CSS only
   (a `@media (prefers-color-scheme: light)` lane keyed on the rendered
-  `data-tl-theme` attribute). It is correct on the first paint / dead render —
-  there is no JavaScript, no `localStorage`, and no runtime theme toggle, so
-  there is no flash of the wrong theme.
+  `data-tl-theme` attribute). It is correct on the first paint / dead render.
+
+Operators can also choose a runtime server-posted dark/light/system theme picker
+from the shell. The form uses native radio controls with values `system`,
+`light`, and `dark`, includes a hidden `_csrf_token`, and submits through the
+`Apply theme` button with POST `{base_path}/theme`. The controller allowlists
+those values, stores the choice in the session and `tl_theme` cookie, then
+redirects back to the referring operator page. Subsequent LiveView mounts use
+session/cookie/plug resolution before falling back to the host `theme:` default,
+and the active lane renders server-side as `data-tl-theme`.
+
+The picker needs no JavaScript, no `localStorage`, and no CSP `script-src` requirement.
+The only script described later in this guide is the optional copy
+helper, not the theme picker.
 
 Dark stays the default and the brand; `:system` is the documented
 daytime-use recommendation. The light lane is a readability and accessibility choice for
@@ -90,9 +104,6 @@ threadline_operator_surface "/",
   repo: MyApp.Repo,
   theme: :system
 ```
-
-There is no runtime per-operator toggle in this version; the theme is a
-host-owned mount decision rendered server-side.
 
 Admin-first recipe:
 
@@ -159,8 +170,10 @@ error halts with plain-text `403`, not a LiveView redirect.
 
 If you use one shared `%{assigns: assigns}` export callback, Threadline also
 uses that result to hide export affordances in the timeline LiveView for denied
-operator scopes. HTTP export auth remains authoritative even if you choose a
-Conn-specific callback shape and keep the buttons visible.
+operator scopes. Direct HTTP export routes remain protected by server/controller auth
+through `Threadline.OperatorSurface.ExportAuthPlug`; LiveView hides affordances
+for denied scopes, but HTTP export auth remains authoritative even if you choose
+a Conn-specific callback shape and keep the buttons visible.
 
 Coverage and policy views are separate admin/global surfaces. Gate them with
 `coverage_authorize_fn` and `policy_authorize_fn`; denied sessions get an
@@ -416,6 +429,9 @@ If you enforce a Content-Security-Policy, the embedded assets require:
 
 - `style-src 'unsafe-inline'` (or a per-response nonce) for the inline styles and `@font-face` data-URIs.
 - `script-src 'unsafe-inline'` for the copy helper — **or** set `operator_surface_embed_scripts: false` and drop the `'unsafe-inline'` script allowance entirely.
+
+The theme picker does not require `script-src 'unsafe-inline'`; it is a native
+server-posted form with CSRF, not a client-side storage or scripting feature.
 
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
