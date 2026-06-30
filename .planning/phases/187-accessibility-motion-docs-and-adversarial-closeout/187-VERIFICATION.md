@@ -1,8 +1,14 @@
 ---
 phase: 187-accessibility-motion-docs-and-adversarial-closeout
 artifact: verification
-verified: 2026-06-30T16:00:22Z
-status: passed-with-classified-residuals
+verified: 2026-06-30T16:11:42Z
+status: passed
+score: "13/13 must-haves verified"
+behavior_unverified: 0
+overrides_applied: 0
+canonical_verification: true
+residuals_classified: true
+previous_status: passed-with-classified-residuals
 requirements:
   - A11Y-01
   - A11Y-02
@@ -12,6 +18,76 @@ requirements:
 ---
 
 # Phase 187 Verification
+
+## GSD Verifier Re-Check
+
+**Phase Goal:** Verify the full pass, update docs, and close with an adversarial review.
+**Verified:** 2026-06-30T16:11:42Z
+**Status:** passed
+**Re-verification:** No - initial goal-backward verification; existing report had no `gaps:` section.
+
+This section is the canonical verifier pass. The original command ledger below remains the durable Phase 187 evidence ledger.
+
+### Goal Achievement
+
+| # | Truth | Status | Evidence |
+|---|-------|--------|----------|
+| 1 | Primary investigation, readiness, export, and retention flows are keyboard-operable with visible, non-obscured focus and focus restoration. | VERIFIED | `operator-accessibility.spec.ts` contains focused tests for Home/skip link/nav, Coverage/theme picker, Timeline/Retention, Exports, row-history drawer, stress widgets, non-obscured focus, Escape, and focus return; the ledger records `mix verify.example_browser -- operator-accessibility.spec.ts operator-motion.spec.ts` PASS. |
+| 2 | Custom widgets follow APG expectations where applicable; native controls remain native where possible. | VERIFIED | `component_contract_test.exs` asserts dialog/modal, menu, tooltip/popover, listbox, accordion, segmented-control, and copy-control contracts while refuting native-control role inflation; the 131-test source/doc slice passed independently in this verifier run. |
+| 3 | Motion stays token-backed, transform/opacity-oriented, purposeful, and reduced-motion aware. | VERIFIED | `style_contract_test.exs` locks motion tokens, keyframes, reduced-motion blanket rules, no `transition: all`, and no ungoverned motion; `operator-motion.spec.ts` contains computed default and reduced-motion checks for Home, overlays, popovers, accordions/details, controls, and drawers. |
+| 4 | Operator docs match implementation for theme picker, Storybook dev lane, stress route, auth/export gates, schema selection, CSP, and production exclusions. | VERIFIED | `guides/operator-surface.md` documents POST `{base_path}/theme`, `_csrf_token`, `dark|light|system`, session/cookie/plug resolution, no JavaScript, no `localStorage`, Storybook/stress boundaries, export auth, Coverage schema, CSP, and production exclusions; doc-contract tests pin these literals. |
+| 5 | Closeout records verification evidence, residual failure ownership if any, screenshot/Playwright status, and adversarial review. | VERIFIED | This artifact records exact commands, non-green screenshot and CI residuals with owner/impact/scope/next action, proof limits, and Playwright/stress/screenshot status; `187-ADVERSARIAL-REVIEW.md` covers all four required lenses. |
+| 6 | Final verification maps every Phase 187 requirement to evidence. | VERIFIED | Requirement Closure table maps A11Y-01, A11Y-02, MOTION-01, DOC-01, and CLOSE-01 to source/browser/doc/closeout evidence. |
+| 7 | Phase 187 does not claim real assistive-technology certification. | VERIFIED | Proof Limits and adversarial review explicitly state that no NVDA, VoiceOver, JAWS, Narrator, TalkBack, or human AT UAT was run. |
+| 8 | Screenshot status is honest and no broad visual stability claim is made from the failed standalone command. | VERIFIED | Command #4 is recorded as FAIL before screenshot comparison; residual table says screenshot stability is not proven and forbids baseline/mask updates from that run. |
+| 9 | Broad CI is not represented as green. | VERIFIED | Command #5 is recorded as FAIL; residual table states `mix ci.all` remains non-green and release readiness cannot be inferred. |
+| 10 | No package, route, stable `data-testid`, UI source, CSS source, screenshot baseline, Playwright config, or design-ledger change entered through Phase 187. | VERIFIED | `git diff --name-only 18d0fd28..HEAD` shows only planning artifacts, docs, doc/source tests, and `operator-accessibility.spec.ts`; targeted diff over package files, UI/style/router/theme controller, screenshot spec/config, and design ledger returned no files. |
+| 11 | Residuals are classified rather than hidden or deferred without owner. | VERIFIED | Residual Classification names screenshot bootstrap, broad example-app CI, Hex auth-session, and dependency advisory residuals with owner, impact, scope, and next action. |
+| 12 | The adversarial review covers operator, keyboard/assistive-technology, OSS maintainer, and host-app DX/security lenses. | VERIFIED | `187-ADVERSARIAL-REVIEW.md` has the four-lens table plus D-187-23 risk coverage for route stability, auth/export, CSP, optional dependencies, docs truth, focus traps, obscured focus, color-only state, reduced motion, screenshot, and overclaim risk. |
+| 13 | Phase 187 has no later milestone phase to carry unresolved Phase-owned blockers. | VERIFIED | `roadmap.analyze` reports phases 181-187 only, `next_phase: null`, and Phase 187 is the final v1.38 phase; no Phase-owned blockers were found. |
+
+**Score:** 13/13 truths verified (0 present-but-behavior-unverified).
+
+### Required Artifacts And Links
+
+| Area | Status | Details |
+|------|--------|---------|
+| Plan 187-01 artifacts | VERIFIED | `verify.artifacts` passed 4/4: guide plus theme, operator-surface, and Coverage doc contracts. |
+| Plan 187-02 artifacts | VERIFIED | `verify.artifacts` passed 6/6: accessibility/motion specs, component/style contracts, and private UI/CSS source artifacts. Phase diff confirms `ui.ex` and `style.ex` were not changed. |
+| Plan 187-03 artifacts | VERIFIED | `verify.artifacts` passed 2/2: this verification artifact and adversarial review. |
+| Key links | VERIFIED | Plan 187-02 and 187-03 key links passed automatically. Plan 187-01 had one automated false negative on `File\\.read!\\(@guide_path\\)`; manual inspection verified `theme_doc_contract_test.exs` defines `@guide_path`, reads it with `File.read!`, and pins the runtime picker literals. |
+| Data flow | VERIFIED | Dynamic proof artifacts are tests/doc contracts. Browser specs target rendered routes and source doc contracts read the guide/source literals; closeout artifacts cite the summaries and command ledger rather than hardcoded empty data. |
+
+### Requirements Coverage
+
+| Requirement | Status | Evidence |
+|-------------|--------|----------|
+| A11Y-01 | SATISFIED | APG/native-control source contracts plus rendered accessibility spec coverage. |
+| A11Y-02 | SATISFIED | Keyboard, focus, non-obscured focus, focus restoration, primary-flow browser proof. |
+| MOTION-01 | SATISFIED | Source motion contracts plus computed browser default/reduced-motion proof. |
+| DOC-01 | SATISFIED | Guide text and doc-contract tests align runtime theme picker, Storybook/stress, auth/export, Coverage, CSP, and production exclusions. |
+| CLOSE-01 | SATISFIED | Command ledger, residual ownership, screenshot/Playwright status, proof limits, and adversarial review exist and are internally consistent. |
+
+### Behavioral Spot-Checks
+
+| Behavior | Command | Result | Status |
+|----------|---------|--------|--------|
+| Source/doc contract slice passes | `timeout 30s mix test test/threadline/operator_surface/theme_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/operator_surface/coverage_doc_contract_test.exs test/threadline/operator_surface/component_contract_test.exs test/threadline/operator_surface/style_contract_test.exs` | 131 tests, 0 failures | PASS |
+| Browser accessibility/motion proof exists and is recorded | Code inspection plus existing command ledger | Tests exercise the required behavior; ledger records 51 Playwright tests passed | PASS |
+| Screenshot residual is not overclaimed | Code/artifact inspection | Standalone screenshot command is recorded as FAIL before comparison | PASS |
+| Broad CI residual is not overclaimed | Code/artifact inspection | `mix ci.all` is recorded as FAIL in example-app verification | PASS |
+
+### Anti-Patterns Found
+
+| File | Line | Pattern | Severity | Impact |
+|------|------|---------|----------|--------|
+| `guides/operator-surface.md` | 382, 386 | `placeholder` | INFO | Legitimate redaction-policy terminology (`mask placeholder`), not a UI/data stub. |
+
+No unreferenced `TBD`, `FIXME`, or `XXX` debt markers were found in modified Phase 187 files.
+
+### Human Verification And Gaps
+
+No human verification items are required for Phase 187 closeout. Real assistive-technology UAT and green standalone screenshot/broad CI are explicitly not claimed; they remain proof limits or classified residuals, not silent blockers to the stated closeout goal.
 
 ## Verdict
 
