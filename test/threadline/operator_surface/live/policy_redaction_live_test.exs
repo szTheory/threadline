@@ -181,6 +181,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Redaction policy"
         assert html =~ "Compare the configured redaction policy"
+        assert count_occurrences(html, ~s(aria-label="Redaction policy posture")) == 1
+        refute html =~ ~s(class="tl-trust-rail")
+        refute html =~ ~s(class="tl-summary-grid")
         assert section_titles(html) == expected_section_titles(report)
 
         assert section_tables(html, section_heading(report, :drift_detected)) ==
@@ -196,6 +199,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Could not introspect"
         assert html =~ "Config matches deployed"
         assert html =~ "Redaction drift detected"
+        refute html =~ "Run redaction"
+        refute html =~ "Redact records permanently"
+        refute html =~ "Destroy redacted values"
 
         assert html =~ "Configured redaction does not match deployed trigger SQL."
         assert html =~ "Could not inspect deployed trigger SQL."
@@ -275,6 +281,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         refute html =~ "select-all"
         refute html =~ "select_all"
+      end
+    end
+
+    describe "Phase 186 focused governance posture" do
+      test "renders exact all-clear posture copy when configured policy matches deployed triggers",
+           %{
+             conn: conn
+           } do
+        Application.put_env(:threadline, :trigger_capture,
+          tables: %{
+            @alpha => [
+              exclude: ["password_hash"],
+              mask: ["email"],
+              mask_placeholder: "[MASKED]"
+            ]
+          }
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction")
+
+        assert html =~
+                 "Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record."
+      end
+
+      test "hides contextual Coverage and Evidence links when those features are disabled", %{
+        conn: conn
+      } do
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction")
+
+        refute html =~ ~s(href="/audit/coverage")
+        refute html =~ ~s(href="/audit/evidence?subject=redaction_policy")
       end
     end
 
@@ -360,5 +397,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp status_label(:drift_detected), do: "Drift detected"
     defp status_label(:could_not_introspect), do: "Could not introspect"
     defp status_label(:config_matches_deployed), do: "Config matches deployed"
+
+    defp count_occurrences(html, needle) do
+      html
+      |> :binary.matches(needle)
+      |> length()
+    end
   end
 end
