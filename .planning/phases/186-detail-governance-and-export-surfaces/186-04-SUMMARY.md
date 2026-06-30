@@ -45,7 +45,7 @@ key_files:
 decisions:
   - Completed exports use real HTTP links while direct download authorization remains in ExportController and ExportAuthPlug.
   - Disabled Exports route proof inspects router output directly instead of depending on endpoint error rendering.
-requirements:
+requirements-completed:
   - GOV-01
   - GOV-02
 metrics:

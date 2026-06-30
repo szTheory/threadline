@@ -48,7 +48,7 @@ key_files:
 decisions:
   - Browser proof stays inside existing operator lanes and uses current role/name contracts rather than adding routes, data-testid churn, screenshot matrices, dependencies, or public component API.
   - Source contracts pin Phase 186 behavior through ExUnit string checks because the plan closes governance/export surfaces without changing runtime modules.
-requirements:
+requirements-completed:
   - DETAIL-01
   - GOV-01
   - GOV-02
