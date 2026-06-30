@@ -158,16 +158,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
+    defp assert_single_h1(html, text) do
+      assert Regex.scan(~r/<h1\b[^>]*>\s*#{Regex.escape(text)}\s*<\/h1>/, html) |> length() == 1
+      assert Regex.scan(~r/<h1\b/, html) |> length() == 1
+    end
+
     test "Case 1: renders explicit not-found state for missing transaction ID", %{conn: conn} do
       uuid = Ecto.UUID.generate()
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{uuid}")
 
+      assert_single_h1(html, "Transaction")
       assert html =~ "Transaction not found"
 
       assert html =~
                "This database transaction may not exist, or it may have been pruned by the retention policy."
 
       assert html =~ "Return to Timeline and check the transaction id."
+      assert html =~ ~s|href="/audit/timeline"|
+      assert html =~ ~r/<a[^>]*>\s*(?:.|\n)*Open timeline(?:.|\n)*<\/a>/
       refute html =~ "Transaction Not Found"
     end
 
@@ -187,8 +195,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # For now just checking if the header renders, we can test more specifically when we add actor/action data.
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
-      assert html =~ "Transaction"
-      assert html =~ txn.id
+      assert_single_h1(html, "Transaction")
+      assert html =~ ~s|class="tl-detail-header|
+      assert html =~ "Transaction #{String.slice(txn.id, 0, 12)}"
+      assert html =~ ~s|title="#{txn.id}"|
+      assert html =~ ~s|data-tl-copy="#{txn.id}"|
     end
 
     test "Case 3: renders no-row-change state when bundle.changes is empty", %{
@@ -205,6 +216,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+      assert_single_h1(html, "Transaction")
+      assert html =~ ~s|class="tl-detail-header|
+      assert html =~ "Transaction #{String.slice(txn.id, 0, 12)}"
       assert html =~ "No row-level changes captured"
 
       assert html =~
