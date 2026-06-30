@@ -187,6 +187,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Latest completed run"
       end
 
+      test "renders one focused retention window health summary without a duplicate trust rail", %{
+        conn: conn
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "completed",
+          deleted_count: 100,
+          duration_ms: 1500,
+          started_at: DateTime.add(now, -10, :second),
+          completed_at: now
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        assert html =~ ~s|aria-label="Retention window health"|
+        assert html =~ "Latest run"
+        assert html =~ "Latest completed run"
+        assert html =~ "Rows deleted"
+        assert html =~ "Failures"
+        assert html =~ "Pruning permanently deletes older audit records by policy"
+        refute html =~ "tl-trust-rail"
+      end
+
       test "shows a success alert when latest run succeeded with no failures", %{conn: conn} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
@@ -244,6 +270,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert_eventually(fn ->
           Threadline.Test.Repo.aggregate(RetentionRun, :count) > 0
         end)
+      end
+
+      test "locks destructive flow labels, consequence copy, and modal focus affordances", %{
+        conn: conn
+      } do
+        {:ok, view, html} = live(conn, "/audit/policy/retention")
+
+        assert html =~ "Retention window"
+        assert html =~ "Run retention prune"
+
+        modal_html = open_prune_modal(view)
+
+        assert modal_html =~ "Prune retention window permanently?"
+        assert modal_html =~ "This permanently deletes audit records older than the retention window"
+        assert modal_html =~ "it cannot be undone"
+        assert modal_html =~ "Type the policy name <code>default</code> to confirm"
+        assert modal_html =~ "Keep retention window"
+        assert modal_html =~ "Prune records permanently"
+        assert modal_html =~ ~s|role="dialog"|
+        assert modal_html =~ ~s|aria-modal="true"|
+        assert modal_html =~ "data-tl-initial-focus"
+        assert modal_html =~ "data-tl-mutating"
+      end
+
+      test "renders only the page-level destructive retention prune entry", %{conn: conn} do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "completed",
+          deleted_count: 3,
+          duration_ms: 80,
+          started_at: DateTime.add(now, -5, :second),
+          completed_at: now
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+
+        assert occurrences(html, "Run retention prune") == 1
+        refute html =~ "Prune records permanently"
       end
 
       test "no bulk multi-select / select-all-over-destructive control exists (D-19)", %{
@@ -364,6 +431,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "a forged token must not produce a prune nor an audited destructive action"
       end
 
+      test "a forged confirmation token flashes the locked mismatch copy", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+
+        open_prune_modal(view)
+
+        html =
+          render_submit(form(view, "form[phx-submit=prune_now]"), %{
+            confirm: "not-the-policy-name"
+          })
+
+        assert html =~ "Could not prune - confirmation did not match."
+      end
+
       test "a forged phx-value scope fails closed", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
         open_prune_modal(view)
@@ -423,6 +503,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "phx-submit=\"prune_now\""
 
         html
+      end
+
+      defp occurrences(haystack, needle) do
+        haystack
+        |> String.split(needle)
+        |> length()
+        |> Kernel.-(1)
       end
     end
 
