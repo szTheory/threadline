@@ -49,4 +49,80 @@ defmodule Threadline.OperatorSurface.ThemeDocContractTest do
     assert String.contains?(src, "daytime-use recommendation"),
            "expected #{@guide_path} to carry the D-04 precedent phrasing `daytime-use recommendation`"
   end
+
+  test "guide documents the runtime server-posted picker route" do
+    section = theme_section()
+
+    assert String.contains?(section, "runtime server-posted dark/light/system theme picker"),
+           "expected #{@guide_path} Theme section to describe the implemented runtime picker"
+
+    assert String.contains?(section, "POST `{base_path}/theme`"),
+           "expected #{@guide_path} Theme section to document the server POST route"
+  end
+
+  test "guide documents native radio submission and CSRF" do
+    section = theme_section()
+
+    assert String.contains?(section, "native radio"),
+           "expected #{@guide_path} Theme section to document the native radio controls"
+
+    assert String.contains?(section, "`_csrf_token`"),
+           "expected #{@guide_path} Theme section to document the hidden CSRF token"
+
+    assert String.contains?(section, "`Apply theme`"),
+           "expected #{@guide_path} Theme section to document the submit button label"
+  end
+
+  test "guide documents runtime picker modes and server-side resolution" do
+    section = theme_section()
+
+    assert String.contains?(section, "`dark`"),
+           "expected #{@guide_path} Theme section to document the runtime dark picker value"
+
+    assert String.contains?(section, "`light`"),
+           "expected #{@guide_path} Theme section to document the runtime light picker value"
+
+    assert String.contains?(section, "`system`"),
+           "expected #{@guide_path} Theme section to document the runtime system picker value"
+
+    assert String.contains?(section, "session/cookie/plug resolution"),
+           "expected #{@guide_path} Theme section to document server-side session/cookie/plug resolution"
+  end
+
+  test "guide documents no client-side storage or script requirement for the picker" do
+    section = theme_section()
+
+    assert String.contains?(section, "The picker needs no JavaScript"),
+           "expected #{@guide_path} Theme section to document the no-JavaScript picker contract"
+
+    assert String.contains?(section, "no `localStorage`"),
+           "expected #{@guide_path} Theme section to document the no-localStorage picker contract"
+
+    assert String.contains?(section, "no CSP `script-src` requirement"),
+           "expected #{@guide_path} Theme section to document that the picker adds no CSP script requirement"
+  end
+
+  test "guide does not repeat stale host-only runtime theme language" do
+    section = theme_section()
+
+    refute String.contains?(section, "no runtime theme toggle"),
+           "expected #{@guide_path} Theme section to avoid stale host-only runtime theme language"
+
+    refute String.contains?(section, "There is no runtime per-operator toggle"),
+           "expected #{@guide_path} Theme section to avoid stale host-only per-operator wording"
+  end
+
+  defp theme_section do
+    @guide_path
+    |> File.read!()
+    |> guide_section("### Theme")
+  end
+
+  defp guide_section(markdown, heading) do
+    markdown
+    |> String.split(heading, parts: 2)
+    |> List.last()
+    |> String.split("\n## ", parts: 2)
+    |> List.first()
+  end
 end

@@ -106,6 +106,11 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, "operator_surface_embed_scripts: false")
     assert String.contains?(guide, "style-src 'unsafe-inline'")
     assert String.contains?(guide, "script-src 'unsafe-inline'")
+
+    assert String.contains?(
+             guide,
+             "The theme picker does not require `script-src 'unsafe-inline'`"
+           )
   end
 
   test "operator surface guide locks the default actor handoff story" do
@@ -127,7 +132,22 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(
              guide,
+             "example-app dev/test maintainer tooling"
+           )
+
+    assert String.contains?(
+             guide,
+             "not a root `threadline` dependency"
+           )
+
+    assert String.contains?(
+             guide,
              "`/audit/__stress` remains the authenticated operator-flow stress harness"
+           )
+
+    assert String.contains?(
+             guide,
+             "`/audit/__stress` is not a production route or public component gallery"
            )
 
     assert String.contains?(
@@ -140,8 +160,25 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
              "Adopters do not add `phoenix_storybook` to host apps to use Threadline"
            )
 
+    assert String.contains?(
+             guide,
+             "The operator components remain private and are not a public component API"
+           )
+
     refute String.contains?(guide, "{:phoenix_storybook")
     refute String.contains?(guide, "live_storybook")
+  end
+
+  test "operator surface guide documents direct export route authorization boundary" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(
+             guide,
+             "Direct HTTP export routes remain protected by server/controller auth"
+           )
+
+    assert String.contains?(guide, "LiveView hides affordances")
+    assert String.contains?(guide, "HTTP export auth remains authoritative")
   end
 
   test "operator surface guide locks mounted parity table and rejects overclaiming" do
