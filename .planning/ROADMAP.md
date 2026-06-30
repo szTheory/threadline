@@ -240,7 +240,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 188-03-PLAN.md - GOV-02 metadata repair and v1.38 closeout evidence
+- [x] 188-03-PLAN.md - GOV-02 metadata repair and v1.38 closeout evidence
 
 ## Current Planning State
 
