@@ -105,6 +105,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, "operator_surface_embed_fonts: false")
     assert String.contains?(guide, "operator_surface_embed_scripts: false")
     assert String.contains?(guide, "style-src 'unsafe-inline'")
+    assert String.contains?(guide, "font-src data:")
     assert String.contains?(guide, "script-src 'unsafe-inline'")
 
     assert String.contains?(

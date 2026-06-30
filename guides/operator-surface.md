@@ -81,8 +81,10 @@ from the shell. The form uses native radio controls with values `system`,
 `Apply theme` button with POST `{base_path}/theme`. The controller allowlists
 those values, stores the choice in the session and `tl_theme` cookie, then
 redirects back to the referring operator page. Subsequent LiveView mounts use
-session/cookie/plug resolution before falling back to the host `theme:` default,
-and the active lane renders server-side as `data-tl-theme`.
+the session-backed runtime choice before falling back to the host `theme:`
+default, and the active lane renders server-side as `data-tl-theme`. The
+`tl_theme` response cookie mirrors the selected value for the host to inspect;
+Threadline's mounted LiveViews treat the session value as authoritative.
 
 The picker needs no JavaScript, no `localStorage`, and no CSP `script-src` requirement.
 The only script described later in this guide is the optional copy
@@ -269,7 +271,7 @@ ready:
 ## Mounted workflow parity
 
 | Mounted workflow | Operator question | Fallback transport | Guarantee level |
-|------|-------|----------------|
+|------|-------|--------------------|-----------------|
 | `/audit/transactions/:id` | What changed in this one transaction? | `mix threadline.incident <transaction_id>` | Direct parity |
 | `/audit/actors/:kind/:id` | What did this actor drive recently? | `Threadline.actor_history/2` or `Threadline.timeline_page/2` | API parity |
 | `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | Mounted route exists; support-scoped row history / as-of is proven on the current tree |
@@ -428,6 +430,7 @@ Both inline embeds can be disabled — for example to satisfy a strict Content-S
 If you enforce a Content-Security-Policy, the embedded assets require:
 
 - `style-src 'unsafe-inline'` (or a per-response nonce) for the inline styles and `@font-face` data-URIs.
+- `font-src data:` for the default embedded `@font-face` data-URI fonts — **or** set `operator_surface_embed_fonts: false` and use your app's normal font stack.
 - `script-src 'unsafe-inline'` for the copy helper — **or** set `operator_surface_embed_scripts: false` and drop the `'unsafe-inline'` script allowance entirely.
 
 The theme picker does not require `script-src 'unsafe-inline'`; it is a native

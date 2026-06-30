@@ -651,5 +651,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ ~s|data-tl-theme="system"|
     end
+
+    test "posted runtime theme values drive subsequent LiveView mounts", %{conn: conn} do
+      for theme <- ~w(light system) do
+        posted_conn =
+          conn
+          |> Plug.Conn.put_req_header("referer", "/audit_system")
+          |> post("/audit_system/theme", %{"theme" => theme})
+
+        assert redirected_to(posted_conn) == "/audit_system"
+        assert posted_conn.resp_cookies["tl_theme"].value == theme
+
+        {:ok, _view, html} = posted_conn |> recycle() |> live("/audit_system")
+
+        assert html =~ ~s|data-tl-theme="#{theme}"|
+        assert html =~ ~r/name="theme" value="#{theme}" checked(="checked")?/
+      end
+    end
   end
 end

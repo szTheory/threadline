@@ -52,8 +52,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     - `:theme` (`:dark | :light | :system`, default `:dark`) — selects the
       default server-rendered operator-surface theme lane. `:system` follows the
       visitor's OS preference through scoped CSS only. A runtime dark/light/system
-      theme picker is available in the shell (cookie + plug, resolved
-      server-side); Threadline adds no JavaScript and no local storage.
+      theme picker is available in the shell (session-backed and resolved
+      server-side; a response cookie mirrors the choice); Threadline adds no
+      JavaScript and no local storage.
     """
 
     defmacro threadline_operator_surface(path, opts \\ []) do

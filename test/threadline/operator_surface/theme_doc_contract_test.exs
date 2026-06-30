@@ -85,8 +85,11 @@ defmodule Threadline.OperatorSurface.ThemeDocContractTest do
     assert String.contains?(section, "`system`"),
            "expected #{@guide_path} Theme section to document the runtime system picker value"
 
-    assert String.contains?(section, "session/cookie/plug resolution"),
-           "expected #{@guide_path} Theme section to document server-side session/cookie/plug resolution"
+    assert String.contains?(section, "session-backed runtime choice"),
+           "expected #{@guide_path} Theme section to document server-side session-backed resolution"
+
+    assert String.contains?(section, "`tl_theme` response cookie mirrors the selected value"),
+           "expected #{@guide_path} Theme section to document the response cookie without making it the LiveView authority"
   end
 
   test "guide documents no client-side storage or script requirement for the picker" do
@@ -119,10 +122,14 @@ defmodule Threadline.OperatorSurface.ThemeDocContractTest do
   end
 
   defp guide_section(markdown, heading) do
-    markdown
-    |> String.split(heading, parts: 2)
-    |> List.last()
-    |> String.split("\n## ", parts: 2)
-    |> List.first()
+    case String.split(markdown, heading, parts: 2) do
+      [_before, rest] ->
+        rest
+        |> String.split("\n## ", parts: 2)
+        |> List.first()
+
+      [_] ->
+        flunk("missing #{heading} in #{@guide_path}")
+    end
   end
 end

@@ -164,17 +164,9 @@ async function openOperatorNav(page: Page) {
   const panel = shell.locator(".tl-shell-nav__panel");
 
   if ((await toggle.isVisible()) && !(await panel.isVisible())) {
-    await toggle.click();
-  }
-
-  if (!(await panel.isVisible())) {
-    await disclosure.evaluate((element) => {
-      if (element instanceof HTMLDetailsElement) {
-        element.open = true;
-      } else {
-        element.setAttribute("open", "");
-      }
-    });
+    await toggle.focus();
+    await expectFocused(toggle);
+    await page.keyboard.press("Enter");
   }
 
   await expect(panel).toBeVisible();

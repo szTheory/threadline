@@ -176,8 +176,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp session_user(_session), do: nil
 
-    defp normalize_theme(:light), do: "light"
-    defp normalize_theme(:system), do: "system"
+    defp normalize_theme(theme) when theme in [:light, "light"], do: "light"
+    defp normalize_theme(theme) when theme in [:system, "system"], do: "system"
     defp normalize_theme(_theme), do: "dark"
 
     defp assign_exports_enabled(socket, opts) do
