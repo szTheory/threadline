@@ -213,6 +213,18 @@ Plans:
 4. Operator docs match implementation for theme picker, Storybook dev lane, stress route, auth/export gates, schema selection, CSP, and production exclusions.
 5. Closeout records verification evidence, residual failure ownership if any, screenshot/Playwright status, and adversarial review.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 187-01-PLAN.md - Runtime theme picker and operator docs truth repair
+- [ ] 187-02-PLAN.md - Accessibility and motion proof closure
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 187-03-PLAN.md - Verification evidence and adversarial closeout
+
 ## Current Planning State
 
 v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phase 181 is complete and Phase 182 is in progress.
