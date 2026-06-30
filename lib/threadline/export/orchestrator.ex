@@ -5,6 +5,7 @@ defmodule Threadline.Export.Orchestrator do
 
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
+  alias Threadline.OperatorSurface.Exports.FilterParams
   alias Threadline.StorageSchema
 
   @default_retention_ttl_hours 24 * 7
@@ -109,12 +110,10 @@ defmodule Threadline.Export.Orchestrator do
   end
 
   defp prepare_filters(query_params, repo) do
-    base =
-      Enum.map(query_params || %{}, fn {k, v} ->
-        {String.to_atom(k), v}
-      end)
-
-    Keyword.put_new(base, :repo, repo)
+    case FilterParams.parse(query_params || %{}) do
+      {:ok, filters} -> Keyword.put_new(filters, :repo, repo)
+      {:error, message} -> raise ArgumentError, message
+    end
   end
 
   defp terminal_expiry do
