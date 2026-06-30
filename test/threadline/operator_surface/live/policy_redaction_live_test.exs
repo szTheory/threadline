@@ -289,6 +289,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            %{
              conn: conn
            } do
+        reset_table!(@bravo)
+        reset_table!(@charlie)
+        reset_table!(@delta)
+
         Application.put_env(:threadline, :trigger_capture,
           tables: %{
             @alpha => [

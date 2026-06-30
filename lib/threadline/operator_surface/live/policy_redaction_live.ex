@@ -58,41 +58,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:lede>Compare the configured redaction policy with deployed database trigger policy before relying on sensitive Timeline captures.</:lede>
             </UI.page_header>
 
-            <section class="tl-trust-rail" aria-label="Redaction workflow">
-              <span class="tl-trust-rail__label">Redaction policy</span>
-              <span class="tl-chip tl-chip--warning">Redaction drift detected</span>
-              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
-                Check coverage
-              </.link>
-              <.link :if={@threadline_evidence_enabled and @base_path} navigate={"#{@base_path}/evidence?subject=redaction_policy"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                Review evidence
-              </.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                Open timeline
-              </.link>
-            </section>
-
-            <section class="tl-summary-grid" aria-label="Redaction drift summary">
-              <div class="tl-card--metric" data-status={if @report.summary.drift_detected > 0, do: "danger", else: "success"}>
-                <span class="tl-card__metric-label">Drift</span>
-                <strong class="tl-card__metric"><%= @report.summary.drift_detected %></strong>
-              </div>
-              <div class="tl-card--metric" data-status={if @report.summary.could_not_introspect > 0, do: "warning"}>
-                <span class="tl-card__metric-label">Introspection failures</span>
-                <strong class="tl-card__metric"><%= @report.summary.could_not_introspect %></strong>
-              </div>
-              <div class="tl-card--metric">
-                <span class="tl-card__metric-label">Deployed matches config</span>
-                <strong class="tl-card__metric"><%= @report.summary.config_matches_deployed %></strong>
-              </div>
-            </section>
-
-            <p :if={@report.summary.drift_detected == 0 and @report.summary.could_not_introspect == 0} class="tl-policy__success">
-              Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
-            </p>
+            <.redaction_policy_summary
+              report={@report}
+              base_path={@base_path}
+              coverage_enabled={@threadline_coverage_enabled}
+              evidence_enabled={@threadline_evidence_enabled}
+            />
 
             <%= for section <- @sections do %>
               <section class={["tl-section", "tl-policy__section", section_modifier(section.status)]} data-testid="policy-section">
@@ -120,7 +91,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                               View activity
                             </.link>
-                            <.link navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">
+                            <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--ghost">
                               <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
                               Check coverage
                             </.link>
@@ -184,6 +155,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp resolve_repo(socket) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
+    end
+
+    defp redaction_policy_summary(assigns) do
+      assigns =
+        assigns
+        |> assign(:all_clear?, redaction_all_clear?(assigns.report.summary))
+        |> assign(:actions, redaction_contextual_actions(assigns))
+
+      ~H"""
+      <section class="tl-section tl-policy__posture" aria-label="Redaction policy posture">
+        <header class="tl-section__header">
+          <h2 class="tl-section__title">
+            <%= if @all_clear?, do: "Configured policy matches deployed trigger policy", else: "Redaction drift detected" %>
+          </h2>
+        </header>
+
+        <p :if={@all_clear?} class="tl-policy__success">
+          Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
+        </p>
+
+        <UI.kv>
+          <:item key="Drift">
+            <span class={["tl-chip", if(@report.summary.drift_detected > 0, do: "tl-chip--warning", else: "tl-chip--success")]}>
+              <%= @report.summary.drift_detected %>
+            </span>
+          </:item>
+          <:item key="Introspection failures">
+            <span class={["tl-chip", if(@report.summary.could_not_introspect > 0, do: "tl-chip--warning", else: "tl-chip--success")]}>
+              <%= @report.summary.could_not_introspect %>
+            </span>
+          </:item>
+          <:item key="Deployed matches config">
+            <span class="tl-chip tl-chip--success"><%= @report.summary.config_matches_deployed %></span>
+          </:item>
+        </UI.kv>
+
+        <div :if={@actions != []} class="tl-cluster tl-cluster--start">
+          <.link
+            :for={action <- @actions}
+            navigate={action.path}
+            class="tl-button tl-button--compact tl-button--secondary"
+          >
+            <Threadline.OperatorSurface.Components.Icon.icon name={action.icon} class="tl-button__icon" />
+            <%= action.label %>
+          </.link>
+        </div>
+      </section>
+      """
+    end
+
+    defp redaction_all_clear?(summary) do
+      summary.drift_detected == 0 and summary.could_not_introspect == 0
+    end
+
+    defp redaction_contextual_actions(assigns) do
+      [
+        if(assigns.coverage_enabled and assigns.base_path,
+          do: %{path: "#{assigns.base_path}/coverage", icon: :shield, label: "Check coverage"}
+        ),
+        if(assigns.evidence_enabled and assigns.base_path,
+          do: %{
+            path: "#{assigns.base_path}/evidence?subject=redaction_policy",
+            icon: :evidence,
+            label: "Review evidence"
+          }
+        )
+      ]
+      |> Enum.reject(&is_nil/1)
     end
 
     defp section_modifier(:drift_detected), do: "tl-policy__section--drift"
