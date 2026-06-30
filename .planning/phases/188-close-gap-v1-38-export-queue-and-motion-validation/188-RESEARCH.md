@@ -479,22 +479,25 @@ The token contains duration/easing, not a property, so this shorthand relies on 
 
 All claims in this research are tagged with local verification, official documentation citation, user prompt provenance, or package registry/provenance results. [VERIFIED: codebase grep]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should invalid persisted queued export params fail the job or be ignored?**
    - What we know: The existing orchestrator marks rescued exceptions as failed jobs, and broad exports are the audit risk. [VERIFIED: codebase grep] [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md]
    - What's unclear: Whether the desired user-facing error should be `ArgumentError` text from the parser or a normalized export-specific error message. [VERIFIED: codebase grep]
    - Recommendation: Fail closed with a clear parser-derived message and add an assertion that invalid persisted datetime params mark the job failed. [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md]
+   - RESOLVED: Invalid persisted queued export params fail closed with parser-derived detail per D-188-09 and D-188-10. `188-01-PLAN.md` Task 1 requires the RED invalid persisted datetime regression and existing failed-row treatment proof; `188-01-PLAN.md` Task 2 requires the worker to record parser-derived detail in `ExportJob.error_message` and render it through the existing `Export failed.` row.
 
 2. **Should Phase 188 repair `186-04`/`186-05` summary frontmatter?**
    - What we know: The audit flags noncanonical `requirements:` instead of `requirements-completed:` for `GOV-02`. [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md]
    - What's unclear: Whether the planner should include this small doc metadata repair in Phase 188 or leave it to a separate validation catch-up phase. [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md]
    - Recommendation: Include the frontmatter repair if it is confined to those summaries; do not bundle broader Nyquist validation catch-up unless explicitly requested. [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md]
+   - RESOLVED: Phase 188 owns the targeted `186-04`/`186-05` GOV-02 metadata repair per D-188-20. `188-03-PLAN.md` Task 1 repairs only the summary frontmatter from `requirements` to `requirements-completed` while preserving the IDs and body evidence; `188-03-PLAN.md` Task 2 records the repair in closeout evidence.
 
 3. **Is source-contract motion proof enough, or is browser computed-style proof required?**
    - What we know: The audit gap is a source declaration and the existing source guard misses implicit `all`. [VERIFIED: .planning/v1.38-MILESTONE-AUDIT.md] [VERIFIED: codebase grep]
    - What's unclear: Whether final acceptance wants a Playwright computed-style assertion for `.tl-copy`. [VERIFIED: user prompt]
    - Recommendation: Plan source-contract proof as required and make a narrow Playwright `.tl-copy` computed-style assertion optional under the Phase 188 UI-SPEC. [VERIFIED: codebase grep] [CITED: Playwright page docs]
+   - RESOLVED: Source-contract proof is required, while browser proof remains optional and narrow per D-188-16, D-188-18, and D-188-19. `188-02-PLAN.md` Task 1 requires `style_contract_test.exs` proof for explicit `.tl-copy` transition properties and implicit-all rejection; `188-02-PLAN.md` Task 2 changes only `.tl-copy` CSS and adds browser computed-style proof only if source proof cannot validate the property list; `188-03-PLAN.md` Task 2 records `mix verify.example_browser` only if browser proof was actually added or changed.
 
 ## Environment Availability
 
