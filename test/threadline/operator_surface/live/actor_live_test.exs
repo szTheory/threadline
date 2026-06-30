@@ -131,6 +131,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
+    defp assert_single_h1(html, text) do
+      assert Regex.scan(~r/<h1\b[^>]*>\s*#{Regex.escape(text)}\s*<\/h1>/, html) |> length() == 1
+      assert Regex.scan(~r/<h1\b/, html) |> length() == 1
+    end
+
     defp insert_transaction(attrs) do
       defaults = %{
         txid: System.unique_integer([:positive]),
@@ -158,13 +163,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Case 1: renders invalid actor reference with next action", %{conn: conn} do
       assert {:ok, _lv, html} = live(conn, "/audit/actors/non_existent_kind_xyz/123")
+      assert_single_h1(html, "Actor activity")
       assert html =~ "Invalid actor reference"
 
       assert html =~
                "This actor kind and id could not be parsed as a Threadline actor reference."
 
       assert html =~ "Return to Timeline and check the actor reference."
+      assert html =~ ~r/<a[^>]*>\s*(?:.|\n)*Open timeline(?:.|\n)*<\/a>/
       refute html =~ "Invalid Actor Reference"
+    end
+
+    test "invalid actor kind route does not create atoms from untrusted input", %{conn: conn} do
+      kind = "untrusted_kind_#{System.unique_integer([:positive])}"
+
+      assert_raise ArgumentError, fn -> String.to_existing_atom(kind) end
+      assert {:ok, _lv, html} = live(conn, "/audit/actors/#{kind}/123")
+      assert html =~ "Invalid actor reference"
+      assert_raise ArgumentError, fn -> String.to_existing_atom(kind) end
+
+      source = File.read!("lib/threadline/operator_surface/live/actor_live.ex")
+      refute source =~ "String.to_atom("
     end
 
     test "Case 2: Renders distinct empty state if actor has NEVER recorded an event", %{
@@ -212,7 +231,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       assert {:ok, lv, html} = live(conn, "/audit/actors/user/tx_test")
-      assert html =~ "Actor: user / tx_test"
+      assert_single_h1(html, "Actor activity")
+      assert html =~ ~s|class="tl-detail-header|
+      assert html =~ "user actor"
+      assert html =~ "tx_test"
+      assert html =~ ~s|data-tl-copy="tx_test"|
       assert html =~ "phx-viewport-top"
       assert html =~ "phx-viewport-bottom"
       assert html =~ txn.id
