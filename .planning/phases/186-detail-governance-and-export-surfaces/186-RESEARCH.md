@@ -457,22 +457,16 @@ conn
 |---|-------|---------|---------------|
 | none | No `[ASSUMED]` claims are used in this research artifact. | All sections | None. |
 
-## Open Questions
+## Resolved Planning Decisions
 
-1. **Should Row history be converted fully to `UI.drawer` or patched for parity?**
-   - What we know: UI-SPEC prefers `UI.drawer`, and current markup is older `tl-subview` dialog-like markup. [CITED: 186-UI-SPEC.md] [VERIFIED: codebase grep]
-   - What's unclear: Whether a full conversion is low-risk within the implementation wave after preserving stable `data-testid`s. [CITED: 186-CONTEXT.md]
-   - Recommendation: Plan `UI.drawer` conversion as the default; allow a fallback task that preserves markup only if it adds Escape/focus-return parity tests. [CITED: 186-CONTEXT.md]
+1. **RESOLVED: Row history uses `UI.drawer/1` by default, with tested parity fallback only if conversion is unsafe.**
+   - Plan resolution: Executors should convert the row-history overlay to `UI.drawer/1` while preserving stable `data-testid`s, route encoding, visible close affordance, Escape behavior, focus entry, and focus return. If conversion proves unsafe during implementation, the old subview markup may remain only when LiveView/component or browser proof covers the same dialog, Escape, visible close, focus-in, and focus-return contract. [CITED: 186-UI-SPEC.md] [CITED: 186-CONTEXT.md] [VERIFIED: codebase grep]
 
-2. **Should the Retention row-menu prune action remain?**
-   - What we know: Context allows it only if it opens the same policy-level modal and does not imply row-specific deletion. [CITED: 186-CONTEXT.md]
-   - What's unclear: Whether the simplest GOV-03 proof is to remove the row-menu prune entry or relabel it to the page-level action. [VERIFIED: codebase grep]
-   - Recommendation: Prefer one visible page-level destructive action; if row-menu entry remains, copy must say `Run retention prune` and tests must assert policy-level modal copy. [CITED: 186-CONTEXT.md]
+2. **RESOLVED: Retention prefers a single visible page-level prune action.**
+   - Plan resolution: The Retention page should expose one visible destructive action labelled `Run retention prune`. The row-menu prune implication should be removed or neutralized. If implementation proves a row-menu entry can remain without implying row-specific deletion, it must use the same `Run retention prune` label and open the same policy-level modal with the locked UI-SPEC copy. [CITED: 186-CONTEXT.md] [VERIFIED: codebase grep]
 
-3. **Should Actor route parsing be hardened while touching the page?**
-   - What we know: `FilterParams` avoids atom creation with `String.to_existing_atom/1`, while `ActorLive` currently rescues into `String.to_atom(kind)` for unknown actor kinds. [VERIFIED: codebase grep]
-   - What's unclear: Whether this security-adjacent fix is considered UI/input validation within Phase 186 or a separate hardening phase. [CITED: 186-CONTEXT.md]
-   - Recommendation: If Actor parsing is touched, replace unsafe fallback with a bounded allowlist/source helper and add a narrow invalid-kind test; otherwise log as follow-up to avoid semantic scope creep. [VERIFIED: codebase grep]
+3. **RESOLVED: Actor kind parsing is hardened with an allowlist if the Actor page is touched.**
+   - Plan resolution: Because Phase 186 touches Actor activity anatomy, `ActorLive` should replace unsafe unknown-kind fallback with a bounded allowlist/source helper and a narrow invalid-kind test. The parser must not create atoms from untrusted route input. [CITED: 186-CONTEXT.md] [VERIFIED: codebase grep]
 
 ## Environment Availability
 
