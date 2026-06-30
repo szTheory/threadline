@@ -301,6 +301,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert theme_routes == ["/threadline/theme"]
 
         source = File.read!("lib/threadline/operator_surface/router.ex")
+        assert source =~ "pipeline :threadline_theme"
+        assert source =~ "plug(Threadline.OperatorSurface.ThemeAuthPlug"
+        assert_before(source, "pipeline :threadline_theme", "post(\"/theme\"")
         assert source =~ "pipeline :threadline_exports"
         assert source =~ "plug(Threadline.OperatorSurface.ExportAuthPlug"
         assert_before(source, "pipeline :threadline_exports", "get(\"/changes.csv\"")

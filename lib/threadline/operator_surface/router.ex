@@ -9,20 +9,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     2. An explicit `:authorize_fn` option.
     3. An explicit `:adopter_acknowledges_unauthenticated` option.
 
-    ## Export endpoints 
+    ## HTTP endpoints 
 
     When `phoenix` is available at compile time, the macro also emits a
-    sibling `scope <path>/exports` block with three GET routes —
+    sibling `POST <path>/theme` route guarded by
+    `Threadline.OperatorSurface.ThemeAuthPlug` plus a sibling
+    `scope <path>/exports` block with three GET routes —
     `/changes.csv`, `/changes.json`, `/changes.ndjson` — backed by
     `Threadline.OperatorSurface.Controllers.ExportController`. The export
     endpoints are guarded by `Threadline.OperatorSurface.ExportAuthPlug`
     (Conn-shaped twin of `Threadline.OperatorSurface.Auth.on_mount/4`).
 
-    The sibling scope is OUTSIDE the `live_session :threadline` block
-    because `live_session`'s `on_mount` callback does not apply to `get/3`
-    routes; the controller scope needs its own auth plug. LiveDashboard
-    `alias: false, as: false` hygiene is preserved so the host's alias
-    namespace is not polluted.
+    These sibling controller scopes are OUTSIDE the `live_session :threadline`
+    block because `live_session`'s `on_mount` callback does not apply to
+    controller routes; each controller scope needs its own auth plug.
+    LiveDashboard `alias: false, as: false` hygiene is preserved so the host's
+    alias namespace is not polluted.
 
     ## Options 
 
@@ -125,7 +127,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
 
         if Code.ensure_loaded?(Phoenix.Controller) do
+          pipeline :threadline_theme do
+            plug(Threadline.OperatorSurface.ThemeAuthPlug, unquote(opts))
+          end
+
           scope unquote(path), as: false do
+            pipe_through(:threadline_theme)
+
             post("/theme", Threadline.OperatorSurface.Controllers.ThemeController, :update)
           end
         end

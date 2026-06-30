@@ -571,7 +571,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         .tl-shell-nav__toggle:focus-visible {
-          outline: 2px solid var(--tl-color-focus);
+          outline: 2px solid var(--tl-color-border-focus);
           outline-offset: 2px;
         }
 
@@ -621,9 +621,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-weight: var(--tl-weight-medium);
         }
 
-        .tl-theme-picker__option:has(:focus-visible) {
-          outline: 2px solid var(--tl-color-focus);
+        .tl-theme-picker__option:has(:focus-visible),
+        .tl-theme-picker__option:focus-within {
+          outline: 2px solid var(--tl-color-border-focus);
           outline-offset: 2px;
+        }
+
+        .tl-theme-picker .tl-button {
+          scroll-margin-block: var(--tl-space-8);
         }
 
         .tl-shell-nav__overview {
@@ -4079,6 +4084,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         @media (max-width: 480px) {
+          .tl-shell-nav__panel {
+            gap: var(--tl-space-2);
+            padding: 0 var(--tl-space-2) var(--tl-space-2);
+          }
+
+          .tl-shell-nav__label {
+            padding: var(--tl-space-1);
+          }
+
+          .tl-theme-picker__form {
+            gap: var(--tl-space-1);
+          }
+
           .tl-toolbar.tl-timeline-command {
             gap: var(--tl-space-1);
             margin-bottom: var(--tl-space-2);

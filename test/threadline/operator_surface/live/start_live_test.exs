@@ -653,7 +653,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "posted runtime theme values drive subsequent LiveView mounts", %{conn: conn} do
-      for theme <- ~w(light system) do
+      for theme <- ~w(light dark system) do
         posted_conn =
           conn
           |> Plug.Conn.put_req_header("referer", "/audit_system")
@@ -666,6 +666,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ ~s|data-tl-theme="#{theme}"|
         assert html =~ ~r/name="theme" value="#{theme}" checked(="checked")?/
+      end
+    end
+
+    test "runtime theme redirect ignores off-surface referers", %{conn: conn} do
+      posted_conn =
+        conn
+        |> Plug.Conn.put_req_header("referer", "https://evil.example/audit_system/timeline")
+        |> post("/audit_system/theme", %{"theme" => "light"})
+
+      assert redirected_to(posted_conn) == "/audit_system"
+      assert posted_conn.resp_cookies["tl_theme"].value == "light"
+    end
+
+    test "runtime theme redirect falls back for Phoenix-unsafe local referers", %{conn: conn} do
+      for referer <- ["/audit_system/%09x", "/audit_system\\x", "/audit_system?next=/%09x"] do
+        posted_conn =
+          conn
+          |> Plug.Conn.put_req_header("referer", referer)
+          |> post("/audit_system/theme", %{"theme" => "light"})
+
+        assert redirected_to(posted_conn) == "/audit_system"
+        assert posted_conn.resp_cookies["tl_theme"].value == "light"
       end
     end
   end

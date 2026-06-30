@@ -80,8 +80,11 @@ from the shell. The form uses native radio controls with values `system`,
 `light`, and `dark`, includes a hidden `_csrf_token`, and submits through the
 `Apply theme` button with POST `{base_path}/theme`. The controller allowlists
 those values, stores the choice in the session and `tl_theme` cookie, then
-redirects back to the referring operator page. Subsequent LiveView mounts use
-the session-backed runtime choice before falling back to the host `theme:`
+redirects back to a same-origin referring operator page. The route is guarded by
+`Threadline.OperatorSurface.ThemeAuthPlug`, mirrors the mounted LiveView
+`authorize_fn`, and requires the host mount to run through a session-backed browser pipeline
+before session state can be mutated. Subsequent LiveView mounts
+use the session-backed runtime choice before falling back to the host `theme:`
 default, and the active lane renders server-side as `data-tl-theme`. The
 `tl_theme` response cookie mirrors the selected value for the host to inspect;
 Threadline's mounted LiveViews treat the session value as authoritative.

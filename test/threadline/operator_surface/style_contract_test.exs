@@ -86,6 +86,15 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "min-height: var(--tl-hit-area);"
     ])
 
+    assert_selector_contains(src, ".tl-theme-picker__option:focus-within", [
+      "outline: 2px solid var(--tl-color-border-focus);",
+      "outline-offset: 2px;"
+    ])
+
+    assert_selector_contains(src, ".tl-theme-picker .tl-button", [
+      "scroll-margin-block: var(--tl-space-8);"
+    ])
+
     assert_selector_contains(src, ".tl-tab", ["min-height: var(--tl-control-height-compact);"])
 
     assert_selector_contains(src, ~s(.tl-tab[aria-selected="true"]), [

@@ -92,6 +92,16 @@ defmodule Threadline.OperatorSurface.ThemeDocContractTest do
            "expected #{@guide_path} Theme section to document the response cookie without making it the LiveView authority"
   end
 
+  test "guide documents runtime picker auth and session guard" do
+    section = theme_section()
+
+    assert String.contains?(section, "Threadline.OperatorSurface.ThemeAuthPlug"),
+           "expected #{@guide_path} Theme section to document the theme route auth plug"
+
+    assert String.contains?(section, "session-backed browser pipeline"),
+           "expected #{@guide_path} Theme section to document the session-backed browser pipeline requirement"
+  end
+
   test "guide documents no client-side storage or script requirement for the picker" do
     section = theme_section()
 

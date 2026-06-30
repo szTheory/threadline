@@ -104,15 +104,56 @@ async function expectFocused(locator: Locator) {
   expect(hasFocusRing).toBe(true);
 }
 
+async function expectThemeOptionFocusVisible(radio: Locator) {
+  await expect(radio).toBeFocused();
+  const option = radio.locator(
+    "xpath=ancestor::label[contains(concat(' ', normalize-space(@class), ' '), ' tl-theme-picker__option ')][1]",
+  );
+  await expect(option).toBeVisible();
+
+  const focusStyle = await option.evaluate((element) => {
+    const style = window.getComputedStyle(element);
+
+    return {
+      matchesFocusVisible: element.matches(":has(:focus-visible)"),
+      matchesFocusWithin: element.matches(":focus-within"),
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+    };
+  });
+
+  const hasFocusRing =
+    focusStyle.outlineStyle !== "none" && focusStyle.outlineWidth !== "0px";
+
+  expect(
+    hasFocusRing,
+    `expected theme option focus ring, got ${JSON.stringify(focusStyle)}`,
+  ).toBe(true);
+}
+
+async function focusByKeyboard(page: Page, target: Locator, maxTabs = 40) {
+  for (let index = 0; index < maxTabs; index += 1) {
+    const isFocused = await target.evaluate(
+      (element) => element === document.activeElement,
+    );
+
+    if (isFocused) return;
+
+    await page.keyboard.press("Tab");
+  }
+
+  await expect(target).toBeFocused();
+}
+
 async function expectNonObscuredFocused(locator: Locator, page: Page) {
   await expectFocused(locator);
-  const visibleFocus = await locator.evaluate((element) => {
+  const focusVisibility = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const x = rect.left + Math.min(rect.width / 2, Math.max(1, rect.width - 1));
     const y = rect.top + Math.min(rect.height / 2, Math.max(1, rect.height - 1));
     const hit = document.elementFromPoint(x, y);
 
-    return (
+    const visible =
       rect.width > 0 &&
       rect.height > 0 &&
       rect.top >= 0 &&
@@ -120,11 +161,28 @@ async function expectNonObscuredFocused(locator: Locator, page: Page) {
       rect.bottom <= window.innerHeight + 1 &&
       rect.right <= window.innerWidth + 1 &&
       !!hit &&
-      (hit === element || element.contains(hit))
-    );
+      (hit === element || element.contains(hit));
+
+    return {
+      hitTag: hit?.tagName ?? null,
+      innerHeight: window.innerHeight,
+      innerWidth: window.innerWidth,
+      rect: {
+        bottom: rect.bottom,
+        height: rect.height,
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        width: rect.width,
+      },
+      visible,
+    };
   });
 
-  expect(visibleFocus).toBe(true);
+  expect(
+    focusVisibility.visible,
+    `expected non-obscured focus, got ${JSON.stringify(focusVisibility)}`,
+  ).toBe(true);
   await expectNoHorizontalOverflow(page);
 }
 
@@ -394,14 +452,23 @@ test.describe("operator accessibility baseline", () => {
     for (const theme of ["System", "Light", "Dark"]) {
       const radio = themeGroup.getByRole("radio", { name: theme });
       await expect(radio).toBeVisible();
-      await radio.focus();
-      await expect(radio).toBeFocused();
+    }
+
+    const checkedTheme = themeGroup.locator('input[name="theme"]:checked');
+    await focusByKeyboard(page, checkedTheme);
+    await expectThemeOptionFocusVisible(checkedTheme);
+
+    for (let index = 0; index < 2; index += 1) {
+      await page.keyboard.press("ArrowUp");
+      await expectThemeOptionFocusVisible(
+        themeGroup.locator('input[name="theme"]:focus'),
+      );
     }
 
     const applyTheme = themeGroup.getByRole("button", { name: "Apply theme" });
-    await applyTheme.focus();
+    await page.keyboard.press("Tab");
     await expect(applyTheme).toBeFocused();
-    await expectNoHorizontalOverflow(page);
+    await expectNonObscuredFocused(applyTheme, page);
   });
 
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({
