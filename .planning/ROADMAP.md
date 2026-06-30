@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.38 Operator UI Page-by-Page IA & Design-System Polish** - Phases 181-187 (active, started 2026-06-26)
+- [ ] **v1.38 Operator UI Page-by-Page IA & Design-System Polish** - Phases 181-188 (active, started 2026-06-26)
 - [x] **v1.37 Operator Surface Design-System Stress Test & Component System** - Phases 171-180 (shipped 2026-06-20). Archive: `.planning/milestones/v1.37-ROADMAP.md`
 - [x] **v1.36 Operator Surface Light Mode** - Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
 - [x] **v1.35 Unified Logo & Brand Book v2** - Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
@@ -12,11 +12,11 @@
 
 ### v1.38 Operator UI Page-by-Page IA & Design-System Polish
 
-**Status:** Phase 181 complete; Phase 182 PhoenixStorybook example/dev lane is complete with docs and verification closeout; Phase 183 shell navigation and Home orientation is complete; Phase 184 Timeline investigation flow is complete; Phase 185 Coverage and audit readiness is complete.
+**Status:** Phases 181-187 complete; Phase 188 close-gap work has been added after the milestone audit.
 
 **Milestone Goal:** Make the mounted `/audit` operator UI obvious, task-led, coherent, and highly polished page by page, while preserving v1.37's private component system, route stability, auth boundaries, stress harness, and regression guardrails.
 
-**Sequence:** Baseline and stale-guard repair first; Storybook dev lane second; Shell/Home/Timeline as the reference cleanup; Coverage next; remaining detail/governance pages after the reference patterns settle; accessibility/motion/docs/adversarial closeout last.
+**Sequence:** Baseline and stale-guard repair first; Storybook dev lane second; Shell/Home/Timeline as the reference cleanup; Coverage next; remaining detail/governance pages after the reference patterns settle; accessibility/motion/docs/adversarial closeout; close any milestone-audit gaps before archive.
 
 **Invariants:** root `threadline` keeps Phoenix/LiveView optional; PhoenixStorybook is example/dev-only; no capture/query/auth semantic changes; no public component API; no production stress/story route; no route or `data-testid` churn without explicit phase evidence.
 
@@ -225,9 +225,26 @@ Plans:
 
 - [x] 187-03-PLAN.md - Verification evidence and adversarial closeout
 
+### Phase 188: Close gap: v1.38 export queue and motion validation
+
+**Goal:** Close the v1.38 milestone audit gaps for queued Timeline current-view export replay, `.tl-copy` motion validation, GOV-02 traceability metadata, and final closeout evidence while preserving existing operator UI behavior.
+**Requirements**: TIME-01, GOV-02, A11Y-02, MOTION-01, CLOSE-01
+**Depends on:** Phase 187
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 188-01-PLAN.md - Queued Timeline export worker replay parsing
+- [ ] 188-02-PLAN.md - `.tl-copy` explicit transition source contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 188-03-PLAN.md - GOV-02 metadata repair and v1.38 closeout evidence
+
 ## Current Planning State
 
-v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phase 181 is complete and Phase 182 is in progress.
+v1.38 requirements are defined in `.planning/REQUIREMENTS.md`; Phases 181-187 are complete and Phase 188 is added for milestone-audit gap closure.
 
 ## Prior Milestones
 
