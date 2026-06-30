@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.ActorLiveTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -337,7 +337,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.ActorLiveScopedTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
