@@ -170,6 +170,22 @@ if Code.ensure_loaded?(Phoenix.Controller) do
                }
       end
 
+      test "case 6a3: export_authorize_fn denial takes precedence over authorize_fn grants" do
+        opts = [
+          authorize_fn: fn _ -> :ok end,
+          export_authorize_fn: fn %Plug.Conn{} -> {:error, :unauthorized} end
+        ]
+
+        conn_in = conn(:get, "/audit/exports/download/#{Ecto.UUID.generate()}")
+        conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
+
+        assert conn_out.halted
+        assert conn_out.status == 403
+        assert conn_out.resp_body == "forbidden"
+
+        assert_received {:telemetry_event, _, %{result: :denied}, _meta}
+      end
+
       test "case 6b: when :export_authorize_fn is absent, :authorize_fn is called with the synthetic %{assigns: conn.assigns} mirror" do
         ref = make_ref()
         pid = self()

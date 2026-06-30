@@ -542,6 +542,30 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert response(conn, 404) =~ "Export not found"
       end
 
+      test "returns 404 when no actor_ref is assigned for a completed job", %{
+        conn: conn,
+        export_dir: export_dir
+      } do
+        job_id = Ecto.UUID.generate()
+        file_name = "#{job_id}.csv"
+        file_path = Path.join(export_dir, file_name)
+        File.write!(file_path, "col1,col2\n1,2")
+
+        job =
+          @repo.insert!(%ExportJob{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: file_name,
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          })
+
+        conn = get(conn, "/audit/exports/download/#{job.id}")
+
+        assert conn.status == 404
+        assert response(conn, 404) =~ "Export not found"
+      end
+
       test "returns 422 if job is not completed", %{conn: conn} do
         job =
           @repo.insert!(%ExportJob{
