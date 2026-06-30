@@ -197,7 +197,7 @@ Plans:
 
 **Wave 2**
 
-- [ ] 186-05-PLAN.md - Targeted browser closeout proof
+- [x] 186-05-PLAN.md - Targeted browser closeout proof
 
 ### Phase 187: Accessibility, motion, docs, and adversarial closeout
 
