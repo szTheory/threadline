@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
+current_phase: 188
+current_phase_name: close-gap-v1-38-export-queue-and-motion-validation
 status: executing
-stopped_at: Phase 188 context gathered
-last_updated: "2026-06-30T20:17:40.572Z"
-last_activity: 2026-06-30 -- Phase 188 planning complete
+stopped_at: Completed 188-01-PLAN.md
+last_updated: "2026-06-30T20:27:42.865Z"
+last_activity: 2026-06-30
+last_activity_desc: Phase 188 execution started
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 34
-  completed_plans: 31
+  completed_plans: 32
   percent: 88
 ---
 
@@ -21,14 +24,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-30)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 188 — Close gap: v1.38 export queue and motion validation
+**Current focus:** Phase 188 — close-gap-v1-38-export-queue-and-motion-validation
 
 ## Current Position
 
-Phase: 188
-Plan: Not started
+Phase: 188 (close-gap-v1-38-export-queue-and-motion-validation) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-30 -- Phase 188 planning complete
+Last activity: 2026-06-30 -- Phase 188 execution started
 
 ## Performance Metrics
 
@@ -128,6 +131,7 @@ Last activity: 2026-06-30 -- Phase 188 planning complete
 | Phase 187 P01 | 5 min | 2 tasks | 3 files |
 | Phase 187 P02 | 35min | 2 tasks | 2 files |
 | Phase 187 P03 | 28 min | 2 tasks | 3 files |
+| Phase 188 P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -338,6 +342,7 @@ Last activity: 2026-06-30 -- Phase 188 planning complete
 - [Phase 187]: Plan 187-02 closed A11Y-01/A11Y-02 proof gaps with focused test-only coverage; no private UI or CSS repair was needed. — The new source/browser assertions passed against existing product behavior after proof-specific locator corrections.
 - [Phase 187]: Plan 187-02 made no MOTION-01 source changes because existing source and browser-computed proof already covered the Phase 187 contract. — style_contract_test.exs and operator-motion.spec.ts passed unchanged for token, keyframe, transition, and reduced-motion requirements.
 - [Phase 187]: Phase 187 closeout treats targeted source/browser/stress proof as green while preserving standalone screenshot and broad CI failures as classified residuals; no real screen-reader certification or screenshot stability claim is made from non-green evidence. — CLOSE-01 requires exact evidence, residual ownership, and proof limits rather than assertion-only closure.
+- [Phase 188]: 188-01 queued export worker replay reuses FilterParams.parse/1 instead of a second parser — This preserves URL-shaped string-keyed ExportJob.query_params while ensuring from/to are DateTime filters before Threadline.Query runs and invalid params fail closed.
 
 ### Blockers
 
@@ -345,9 +350,9 @@ Last activity: 2026-06-30 -- Phase 188 planning complete
 
 ## Session Continuity
 
-**Last session:** 2026-06-30T19:54:43.851Z
-**Stopped at:** Phase 188 context gathered
-**Resume file:** .planning/phases/188-close-gap-v1-38-export-queue-and-motion-validation/188-CONTEXT.md
+**Last session:** 2026-06-30T20:27:42.857Z
+**Stopped at:** Completed 188-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
