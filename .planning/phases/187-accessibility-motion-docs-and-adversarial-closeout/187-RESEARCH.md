@@ -444,17 +444,15 @@ refute String.contains?(src, "localStorage")
 |---|-------|---------|---------------|
 | - | No `[ASSUMED]` claims are used in this research. | All | Planner can proceed without user confirmation for assumed technical facts. [VERIFIED: self-audit] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should closeout use one artifact or split verification and adversarial review?**
+1. **RESOLVED: Should closeout use one artifact or split verification and adversarial review?**
    - What we know: Phase 180 used separate `180-VERIFICATION.md`, `180-RESIDUAL-CI.md`, and `180-ADVERSARIAL-REVIEW.md`. [VERIFIED: `.planning/milestones/v1.37-phases/180-accessibility-verification-guardrails-adversarial-closeout/`]
-   - What's unclear: D-187 discretion allows exact artifact names and plan slicing. [VERIFIED: `187-CONTEXT.md`]
-   - Recommendation: Use `187-VERIFICATION.md` plus `187-ADVERSARIAL-REVIEW.md`; include residuals in verification unless a non-green broad command needs a standalone residual file. [VERIFIED: `187-CONTEXT.md`; VERIFIED: prior closeout artifacts]
+   - Resolution: Use `187-VERIFICATION.md` plus `187-ADVERSARIAL-REVIEW.md`; include residuals in verification unless a non-green broad command needs a standalone residual file. This follows D-187 discretion while matching the proven Phase 180 closeout pattern. [VERIFIED: `187-CONTEXT.md`; VERIFIED: prior closeout artifacts]
 
-2. **Should Playwright be upgraded to latest?**
+2. **RESOLVED: Should Playwright be upgraded to latest?**
    - What we know: Existing lock is `@playwright/test@1.60.0`, latest is `1.61.1`, and package legitimacy flags the latest publish as SUS due recency. [VERIFIED: `npm ls`; VERIFIED: `npm view`; VERIFIED: package-legitimacy seam]
-   - What's unclear: No Phase 187 requirement requires a Playwright upgrade. [VERIFIED: `.planning/REQUIREMENTS.md`; VERIFIED: `187-CONTEXT.md`]
-   - Recommendation: Do not upgrade; if a plan proposes an install/upgrade, add `checkpoint:human-verify`. [VERIFIED: package-legitimacy seam]
+   - Resolution: Do not upgrade. No Phase 187 requirement needs a Playwright install or upgrade, and any future proposal to do so must add `checkpoint:human-verify`. [VERIFIED: `.planning/REQUIREMENTS.md`; VERIFIED: `187-CONTEXT.md`; VERIFIED: package-legitimacy seam]
 
 ## Environment Availability
 
