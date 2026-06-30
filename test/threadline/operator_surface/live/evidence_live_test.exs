@@ -319,8 +319,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/evidence?subject=retention_run")
 
-        assert html =~ "Back to latest for retention_run"
         assert html =~ "retention_run"
+        refute html =~ "Back to latest for retention_run"
         refute html =~ "redaction_policy"
       end
 
@@ -352,6 +352,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         assert html =~ "Viewing append-only proof history for one evidence subject reference."
+        assert html =~ "Back to latest for retention_run"
         assert html =~ "May 26, 12:05 PM UTC"
         assert html =~ "May 26, 12:00 PM UTC"
         assert html =~ "2026-05-26T12:05:00.000000Z"
