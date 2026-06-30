@@ -5,15 +5,15 @@ milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 current_phase: 187
 current_phase_name: Accessibility, motion, docs, and adversarial closeout
 status: executing
-stopped_at: Phase 187 planned and ready to execute
-last_updated: "2026-06-30T15:03:46.013Z"
+stopped_at: Completed 187-01-PLAN.md
+last_updated: "2026-06-30T15:12:51.358Z"
 last_activity: 2026-06-30
 last_activity_desc: Phase 187 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 31
-  completed_plans: 28
+  completed_plans: 29
   percent: 86
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-30)
 ## Current Position
 
 Phase: 187 — Accessibility, motion, docs, and adversarial closeout
-Plan: 1 of 3
-Status: Executing Phase 187
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-06-30 — Phase 187 execution started
 
 ## Performance Metrics
@@ -128,6 +128,7 @@ Last activity: 2026-06-30 — Phase 187 execution started
 | Phase 184 P02 | 9 min | 2 tasks | 5 files |
 | Phase 184 P03 | 49 min | 2 tasks | 5 files |
 | Phase 185 P01 | 19m | 3 tasks | 13 files |
+| Phase 187 P01 | 5 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -332,6 +333,8 @@ Last activity: 2026-06-30 — Phase 187 execution started
 - [Phase 184-03]: Classify broad-suite residuals honestly while treating targeted Phase 184 source and browser gates as the closeout authority.
 - [Phase 185]: Coverage now answers readiness through one selected-schema verdict and keeps table rows as triage/action detail. — Phase 185 COV-01/COV-02 required deleting repeated readiness signals while preserving row actions.
 - [Phase 185]: Phase 185 browser proof stays narrow in the existing light/system lane; non-public schema link truth remains owned by deterministic LiveViewTest setup. — The plan prohibited broad screenshot matrices and had no deterministic example non-public schema fixture.
+- [Phase 187]: DOC-01 source truth follows the current runtime server-posted theme picker, not older host-only theme prose. — Plan 187-01 repaired the operator guide and doc contracts against router, surface header, theme controller, and auth source truth.
+- [Phase 187]: Storybook remains example-app dev/test maintainer tooling; /audit/__stress remains authenticated stress proof, not production public component documentation. — Plan 187-01 preserved optional dependency, production exclusion, private component, and stress route boundaries in docs and doc contracts.
 
 ### Blockers
 
@@ -339,9 +342,9 @@ Last activity: 2026-06-30 — Phase 187 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-06-30T15:02:22.193Z
-**Stopped at:** Phase 187 planned and ready to execute
-**Resume file:** .planning/phases/187-accessibility-motion-docs-and-adversarial-closeout/187-01-PLAN.md
+**Last session:** 2026-06-30T15:12:51.349Z
+**Stopped at:** Completed 187-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
