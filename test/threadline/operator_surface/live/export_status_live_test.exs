@@ -523,6 +523,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "built-in export runtime is unavailable"
       end
 
+      test "failed queued Timeline replay keeps source recovery and parser detail", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
+        |> ExportJob.changeset(%{
+          status: "failed",
+          query_params: %{"from" => "not-a-date"},
+          actor_ref: actor_ref,
+          started_at: now,
+          error_message: "invalid datetime: not-a-date"
+        })
+        |> Threadline.Test.Repo.insert!()
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "Export failed."
+        assert html =~ "Reopen source search"
+        assert html =~ "invalid datetime: not-a-date"
+        assert html =~ ~s|href="/audit/timeline?from=not-a-date"|
+      end
+
       test "groups exports by readiness in operator order with secondary refs", %{
         conn: conn,
         actor_ref: actor_ref
