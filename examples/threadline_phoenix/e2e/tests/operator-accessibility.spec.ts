@@ -71,8 +71,8 @@ const d04RenderedStateCoverage = [
   {
     category: "tooltip/popover",
     evidence:
-      "Covered by APG/component semantics in Plan 180-02; no critical operator action is hover-only in current A11Y-01 flows",
-    status: "not-applicable",
+      "Stress tooltip relationship and popover dialog trigger are asserted in source/rendered proof",
+    status: "covered",
   },
 ];
 
@@ -344,6 +344,74 @@ test.describe("operator accessibility baseline", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("keeps Coverage readiness, schema recovery, and theme picker controls keyboard reachable", async ({
+    page,
+  }) => {
+    await page.goto("/audit/coverage");
+
+    const readiness = page.getByRole("region", {
+      name: "Selected schema readiness",
+    });
+    await expect(readiness).toBeVisible();
+    await expect(readiness).toContainText("selected schema");
+
+    const schemaSelect = page.locator("#coverage-schema");
+    await expect(schemaSelect).toBeVisible();
+    await expect(schemaSelect).toHaveAttribute("name", "schema");
+    await schemaSelect.focus();
+    await expectNonObscuredFocused(schemaSelect, page);
+
+    const applySchema = page.getByRole("button", { name: "Apply schema" });
+    await applySchema.focus();
+    await expectNonObscuredFocused(applySchema, page);
+
+    const refresh = page.getByRole("button", { name: "Refresh" });
+    await refresh.focus();
+    await expectNonObscuredFocused(refresh, page);
+
+    const rowAction = page.locator(".tl-row-action").first();
+    await expect(rowAction).toBeVisible();
+    const rowSummary = rowAction.locator("summary");
+    await rowSummary.focus();
+    await expectNonObscuredFocused(rowSummary, page);
+    await page.keyboard.press("Enter");
+    await expect(rowAction).toHaveAttribute("open", "");
+
+    const copyCommand = rowAction.getByRole("button", {
+      name: /Copy .* capture command/,
+    });
+    await expect(copyCommand).toBeVisible();
+    await copyCommand.focus();
+    await expectNonObscuredFocused(copyCommand, page);
+
+    await page.goto("/audit/coverage?schema=missing_schema_187");
+    const invalidSchema = page.locator(".tl-alert--error").first();
+    await expect(invalidSchema).toBeVisible();
+    await expect(invalidSchema).toContainText("missing_schema_187");
+    const usePublicSchema = page.getByRole("link", { name: "Use public schema" });
+    await usePublicSchema.focus();
+    await expectNonObscuredFocused(usePublicSchema, page);
+
+    await page.goto("/audit");
+    await openOperatorNav(page);
+    const themeGroup = page.getByTestId("operator-nav-group-theme");
+    await expect(themeGroup).toBeVisible();
+    await expect(themeGroup.locator('form[action="/audit/theme"]')).toBeVisible();
+    await expect(themeGroup.locator('input[name="_csrf_token"]')).toHaveCount(1);
+
+    for (const theme of ["System", "Light", "Dark"]) {
+      const radio = themeGroup.getByRole("radio", { name: theme });
+      await expect(radio).toBeVisible();
+      await radio.focus();
+      await expect(radio).toBeFocused();
+    }
+
+    const applyTheme = themeGroup.getByRole("button", { name: "Apply theme" });
+    await applyTheme.focus();
+    await expect(applyTheme).toBeFocused();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({
     page,
   }) => {
@@ -426,6 +494,58 @@ test.describe("operator accessibility baseline", () => {
     await page.keyboard.press("Escape");
     await expect(pruneModal).toBeHidden();
     await expectNonObscuredFocused(prune, page);
+
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("keeps Exports queue and download states named and keyboard reachable", async ({
+    page,
+  }) => {
+    await page.goto(`/audit/exports?table=${encodeURIComponent(rowTable)}`);
+
+    const exportContext = page.getByTestId("timeline-export-context");
+    await expect(exportContext).toBeVisible();
+    await expect(exportContext).toContainText("Timeline export context");
+
+    const queue = exportContext.getByRole("button", {
+      name: "Queue Timeline export",
+    });
+    await queue.focus();
+    await expectNonObscuredFocused(queue, page);
+
+    await page.goto("/audit/exports");
+    const exportJobs = page.getByTestId("export-jobs");
+
+    for (const label of [
+      "Ready to hand off",
+      "Preparing",
+      "Needs attention",
+      "Unavailable",
+    ]) {
+      await expect(
+        exportJobs.getByRole("heading", { name: label, exact: true }),
+      ).toBeVisible();
+    }
+
+    const download = exportJobs
+      .getByRole("link", { name: "Download export" })
+      .first();
+    await expect(download).toBeVisible();
+    await download.focus();
+    await expectNonObscuredFocused(download, page);
+
+    const reopen = exportJobs
+      .getByRole("link", { name: "Reopen source search" })
+      .first();
+    await expect(reopen).toBeVisible();
+    await reopen.focus();
+    await expectNonObscuredFocused(reopen, page);
+
+    await expect(exportJobs.getByText(/Queued|Processing/).first()).toBeVisible();
+    await expect(exportJobs.getByText("Export failed.").first()).toBeVisible();
+    await expect(
+      exportJobs.getByText(/Expired|File unavailable/).first(),
+    ).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
   });
@@ -522,6 +642,20 @@ test.describe("operator accessibility baseline", () => {
     const popoverTrigger = page.locator("#stress-popover-trigger");
     await expect(popoverTrigger).toHaveAttribute("aria-haspopup", "dialog");
     await expect(popoverTrigger).toHaveAttribute("aria-controls", "stress-popover");
+    await popoverTrigger.focus();
+    await expectNonObscuredFocused(popoverTrigger, page);
+    await popoverTrigger.click();
+    await expect(popoverTrigger).toHaveAttribute("aria-expanded", "true");
+    const popover = page.locator("#stress-popover");
+    await expect(popover).toBeVisible();
+    await expect(popover).toHaveAttribute("role", "dialog");
+    await expect(popover).toContainText("Popover content");
+    await popoverTrigger.click();
+    await expect(popover).toBeHidden();
+
+    const tooltipTrigger = page.getByText("Hover Tooltip");
+    await expect(tooltipTrigger).toBeVisible();
+    await expect(page.getByRole("tooltip")).toContainText("Tooltip content");
 
     const errorSummary = page.getByRole("alert", {
       name: "There is a problem",

@@ -372,6 +372,12 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert src =~ ~s(aria-haspopup="dialog"),
              "popover triggers must expose the dialog popup type"
 
+      assert src =~ ~s(role="tooltip"),
+             "tooltips must expose role=\"tooltip\" instead of hover-only anonymous content"
+
+      assert src =~ ~s(aria-describedby={@id}),
+             "tooltip triggers must describe their relationship to the tooltip body"
+
       assert src =~ ~s(aria-haspopup="listbox"),
              "combobox inputs must expose their listbox popup type"
 
@@ -380,6 +386,12 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       assert src =~ ~s(tabindex={if tab[:active], do: "0", else: "-1"}),
              "tabs must use a roving-tabindex contract instead of placing every tab in the tab order"
+
+      assert src =~ ~s(role="group"),
+             "segmented controls must expose a grouped control rather than unrelated buttons"
+
+      assert src =~ ~s(aria-pressed={if seg[:active], do: "true", else: "false"}),
+             "segmented controls must expose pressed state without relying on color alone"
     end
 
     test "native/non-applicable categories stay documented instead of gaining misleading ARIA roles" do
@@ -396,6 +408,31 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       refute src =~ ~s(role="grid"),
              "Threadline has no custom interactive grid widget in the current operator surface"
+    end
+
+    test "copy controls require explicit names and bind the complete value" do
+      src = File.read!(@ui_source_path)
+
+      assert src =~ ~s(attr(:copy_label, :string, required: true),
+             "UI.ref/1 must require a specific copy label at every call site"
+
+      assert src =~ ~s(aria-label={@copy_label}),
+             "copy controls must use caller-supplied accessible names, not a generic Copy label"
+
+      assert src =~ ~s(data-tl-copy={@r.full}),
+             "copy controls must bind the complete value, not the truncated visible label"
+
+      value = "audit-correlation-187-proof"
+      assigns = %{value: value}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.ref value={@value} kind="correlation" copy_label="Copy audit correlation id" />
+        """)
+
+      assert html =~ ~s(data-tl-copy="#{value}")
+      assert html =~ ~s(aria-label="Copy audit correlation id")
+      assert html =~ "tl-secondary-ref"
     end
   end
 
