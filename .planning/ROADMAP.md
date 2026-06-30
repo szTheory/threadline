@@ -236,7 +236,7 @@ Plans:
 **Wave 1**
 
 - [x] 188-01-PLAN.md - Queued Timeline export worker replay parsing
-- [ ] 188-02-PLAN.md - `.tl-copy` explicit transition source contract
+- [x] 188-02-PLAN.md - `.tl-copy` explicit transition source contract
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
