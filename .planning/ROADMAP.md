@@ -185,6 +185,18 @@ Plans:
 3. Export/download links and feature-gated controls are enabled/disabled correctly for pointer, keyboard, and assistive tech users.
 4. Retention destructive flow keeps type-to-confirm, auth re-check, audit-the-action, reconnect-safe disabled state, object/consequence copy, and focus restoration.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 186-01-PLAN.md - Detail surfaces for Transaction, Row history, and Actor activity
+- [ ] 186-02-PLAN.md - Governance, export, and redaction workflow controls
+
+**Wave 2**
+
+- [ ] 186-03-PLAN.md - Retention destructive flow and targeted closeout proof
+
 ### Phase 187: Accessibility, motion, docs, and adversarial closeout
 
 **Goal:** Verify the full pass, update docs, and close with an adversarial review.
