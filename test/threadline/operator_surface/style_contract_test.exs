@@ -462,6 +462,31 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  test "phase 186 touched page modules do not introduce ungoverned motion or new keyframes" do
+    page_sources =
+      [
+        "lib/threadline/operator_surface/live/transaction_live.ex",
+        "lib/threadline/operator_surface/live/row_history_live.ex",
+        "lib/threadline/operator_surface/live/row_history_component.ex",
+        "lib/threadline/operator_surface/live/actor_live.ex",
+        "lib/threadline/operator_surface/live/evidence_live.ex",
+        "lib/threadline/operator_surface/live/export_status_live.ex",
+        "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+        "lib/threadline/operator_surface/live/retention_history_live.ex"
+      ]
+      |> Enum.map(fn path -> {path, File.read!(path)} end)
+
+    for {path, source} <- page_sources do
+      refute Regex.match?(~r/@keyframes|transition:\s*all\b|animation:\s*(?!tl-)/, source),
+             "#{path} must not introduce page-local keyframes, transition: all, or ungoverned animation"
+
+      refute String.contains?(source, "framer-motion")
+      refute String.contains?(source, "animejs")
+      refute String.contains?(source, "gsap")
+      refute String.contains?(source, "lottie")
+    end
+  end
+
   test "phase 141 reduced-motion blanket covers animations, transitions, and transform reset" do
     src = File.read!(@style_path)
 

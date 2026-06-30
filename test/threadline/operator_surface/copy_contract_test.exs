@@ -112,6 +112,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Transaction Not Found"
     ]
     @long_correlation_id "corr_00000000-0000-4000-8000-000000000179-threadline-copy-contract"
+    @transaction_live_path "lib/threadline/operator_surface/live/transaction_live.ex"
+    @row_history_live_path "lib/threadline/operator_surface/live/row_history_live.ex"
+    @row_history_component_path "lib/threadline/operator_surface/live/row_history_component.ex"
+    @actor_live_path "lib/threadline/operator_surface/live/actor_live.ex"
+    @evidence_live_path "lib/threadline/operator_surface/live/evidence_live.ex"
+    @export_status_live_path "lib/threadline/operator_surface/live/export_status_live.ex"
+    @policy_redaction_live_path "lib/threadline/operator_surface/live/policy_redaction_live.ex"
     @retention_live_path "lib/threadline/operator_surface/live/retention_history_live.ex"
 
     setup_all do
@@ -364,6 +371,95 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "Phase 186 detail source locks H1/detail title distinctions and actor atom safety" do
+      transaction = source(@transaction_live_path)
+      row_route = source(@row_history_live_path)
+      row_drawer = source(@row_history_component_path)
+      actor = source(@actor_live_path)
+
+      assert transaction =~ ~s(title="Transaction")
+      assert transaction =~ ~s(<UI.detail_header title={transaction_title}>)
+      assert transaction =~ ~S|defp transaction_detail_title(%{id: id}) do|
+      assert transaction =~ ~S|"Transaction #{Presentation.short_id(id, 12)}"|
+      assert transaction =~ ~S|defp transaction_detail_title(_), do: "Transaction"|
+
+      assert row_route =~ ~s(title="Row history")
+
+      assert row_route =~
+               ~S|<UI.detail_header title={row_history_detail_title(@table, @record_id)}>|
+
+      assert row_route =~ ~S|defp row_history_detail_title(table, record_id) do|
+      assert row_route =~ ~S|"#{table} / #{Presentation.short_id(record_id, 14)}"|
+
+      assert row_drawer =~ ~s(data-testid="row-history-drawer")
+
+      assert row_drawer =~
+               ~S|Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>|
+
+      assert actor =~ ~s(title="Actor activity")
+      assert actor =~ ~S|<UI.detail_header title={actor_detail_title(@actor_ref)}>|
+      assert actor =~ ~S|defp safe_actor_kind(kind) when is_binary(kind) do|
+      assert actor =~ ~S|Enum.find(@actor_kinds, &(Atom.to_string(&1) == kind))|
+      refute actor =~ "String.to_atom("
+    end
+
+    test "Phase 186 governance source locks focused copy and redaction remains non-destructive" do
+      evidence = source(@evidence_live_path)
+      redaction = source(@policy_redaction_live_path)
+      retention = retention_source()
+
+      assert evidence =~ ~s(<:title>No evidence records yet</:title>)
+
+      assert evidence =~
+               "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
+
+      assert evidence =~ ~s(aria-label="Evidence workflow summary")
+      assert evidence =~ "Carry to Exports"
+
+      assert redaction =~ ~s(aria-label="Redaction policy posture")
+
+      assert redaction =~
+               "Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record."
+
+      assert redaction =~
+               ~S|defp empty_section_label(:drift_detected), do: "No redaction drift detected."|
+
+      for forbidden <- [
+            "Prune records permanently",
+            "Run retention prune",
+            "Apply redaction",
+            "Preview redaction",
+            "Test redaction"
+          ] do
+        refute redaction =~ forbidden
+      end
+
+      assert retention =~ ~s(mismatch_flash: "Could not prune - confirmation did not match.")
+    end
+
+    test "Phase 186 export source locks real completed downloads and non-ready status text" do
+      source = source(@export_status_live_path)
+      download_attrs = export_download_attrs_block(source)
+      actions_block = export_job_actions_block(source)
+      status_label_block = export_job_status_label_block(source)
+
+      assert download_attrs =~ ~s(href: "\#{base_path}/exports/download/\#{job.id}")
+      assert download_attrs =~ ~s(class: "tl-button tl-button--primary tl-button--compact")
+      refute download_attrs =~ "aria-disabled"
+      refute download_attrs =~ "tabindex"
+      refute download_attrs =~ "data-tl-mutating"
+
+      assert actions_block =~ "Presentation.export_downloadable?(job)"
+      assert actions_block =~ "Download export"
+
+      assert actions_block =~
+               ~S|<span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>|
+
+      for label <- ["Queued", "Processing", "Failed", "Expired", "File unavailable"] do
+        assert status_label_block =~ label
+      end
+    end
+
     test "presentation status labels keep evidence verdicts but use sentence-case fallback" do
       assert Presentation.status_label(:proven) == "Proven"
       assert Presentation.status_label(:inferred_posture) == "Inferred"
@@ -404,8 +500,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp retention_source do
-      File.read!(@retention_live_path)
+      source(@retention_live_path)
     end
+
+    defp source(path), do: File.read!(path)
 
     defp retention_table_action_block(source) do
       case String.split(source, ~s(<:action :let={{_dom_id, _run}}>), parts: 2) do
@@ -422,6 +520,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> String.split(needle)
       |> length()
       |> Kernel.-(1)
+    end
+
+    defp export_download_attrs_block(source) do
+      source
+      |> String.split("defp download_link_attrs", parts: 2)
+      |> List.last()
+      |> String.split("defp group_jobs", parts: 2)
+      |> List.first()
+    end
+
+    defp export_job_actions_block(source) do
+      [before_predicate, after_predicate] =
+        String.split(source, "Presentation.export_downloadable?(job)", parts: 2)
+
+      before_actions =
+        before_predicate
+        |> String.split(~s(<div class="tl-job__actions">))
+        |> List.last()
+
+      after_actions =
+        after_predicate
+        |> String.split("</div>", parts: 2)
+        |> List.first()
+
+      before_actions <> "Presentation.export_downloadable?(job)" <> after_actions
+    end
+
+    defp export_job_status_label_block(source) do
+      source
+      |> String.split("defp export_job_status_label", parts: 2)
+      |> List.last()
+      |> String.split("defp download_link_attrs", parts: 2)
+      |> List.first()
     end
 
     defp seed_timeline_change! do
