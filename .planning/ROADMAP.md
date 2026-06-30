@@ -219,7 +219,7 @@ Plans:
 **Wave 1**
 
 - [x] 187-01-PLAN.md - Runtime theme picker and operator docs truth repair
-- [ ] 187-02-PLAN.md - Accessibility and motion proof closure
+- [x] 187-02-PLAN.md - Accessibility and motion proof closure
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
