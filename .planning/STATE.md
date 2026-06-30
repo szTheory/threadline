@@ -4,13 +4,13 @@ milestone: v1.38
 milestone_name: Operator UI Page-by-Page IA & Design-System Polish
 status: executing
 stopped_at: Phase 186 context gathered
-last_updated: "2026-06-30T04:40:17.449Z"
-last_activity: 2026-06-30 -- Phase 186 planning complete
+last_updated: "2026-06-30T11:40:36.345Z"
+last_activity: 2026-06-30
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 28
-  completed_plans: 23
+  completed_plans: 27
   percent: 71
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-26)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 185 — coverage-and-audit-readiness
+**Current focus:** Phase 186 — detail-governance-and-export-surfaces
 
 ## Current Position
 
-Phase: 186 — Detail, governance, and export surfaces
-Plan: Not started
+Phase: 186 (detail-governance-and-export-surfaces) — EXECUTING
+Plan: 5 of 5
 Status: Ready to execute
-Last activity: 2026-06-30 -- Phase 186 planning complete
+Last activity: 2026-06-30
 
 ## Performance Metrics
 

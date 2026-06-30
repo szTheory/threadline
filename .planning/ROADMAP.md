@@ -190,10 +190,10 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 186-01-PLAN.md - Detail surfaces for Transaction, Row history, and Actor activity
-- [ ] 186-02-PLAN.md - Evidence and Redaction focused workflow controls
-- [ ] 186-03-PLAN.md - Retention destructive flow and source contracts
-- [ ] 186-04-PLAN.md - Exports workflow, downloads, and feature gates
+- [x] 186-01-PLAN.md - Detail surfaces for Transaction, Row history, and Actor activity
+- [x] 186-02-PLAN.md - Evidence and Redaction focused workflow controls
+- [x] 186-03-PLAN.md - Retention destructive flow and source contracts
+- [x] 186-04-PLAN.md - Exports workflow, downloads, and feature gates
 
 **Wave 2**
 
