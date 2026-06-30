@@ -6,69 +6,65 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Capture.AuditChange
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
+
+    @actor_kinds ~w(user admin service_account job system anonymous)a
 
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      type =
-        try do
-          String.to_existing_atom(kind)
-        rescue
-          ArgumentError -> String.to_atom(kind)
-        end
+      with {:ok, type} <- safe_actor_kind(kind),
+           {:ok, actor_ref} <- ActorRef.new(type, id) do
+        from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
-      case Threadline.Semantics.ActorRef.new(type, id) do
-        {:ok, actor_ref} ->
-          from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
+        page =
+          Threadline.actor_history(actor_ref,
+            repo: repo,
+            from: from_time,
+            scope: socket.assigns[:threadline_scope],
+            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+            surface: :actor_history,
+            params: %{actor_ref: actor_ref, from: from_time}
+          )
 
-          page =
-            Threadline.actor_history(actor_ref,
-              repo: repo,
-              from: from_time,
-              scope: socket.assigns[:threadline_scope],
-              scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-              surface: :actor_history,
-              params: %{actor_ref: actor_ref, from: from_time}
-            )
-
-          {has_ever_acted, last_activity} =
-            if Enum.empty?(page.entries) do
-              case Threadline.actor_history(actor_ref,
-                     repo: repo,
-                     limit: 1,
-                     scope: socket.assigns[:threadline_scope],
-                     scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-                     surface: :actor_history,
-                     params: %{actor_ref: actor_ref}
-                   ) do
-                %{entries: [latest | _]} -> {true, latest.occurred_at}
-                _ -> {false, nil}
-              end
-            else
-              {true, nil}
+        {has_ever_acted, last_activity} =
+          if Enum.empty?(page.entries) do
+            case Threadline.actor_history(actor_ref,
+                   repo: repo,
+                   limit: 1,
+                   scope: socket.assigns[:threadline_scope],
+                   scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+                   surface: :actor_history,
+                   params: %{actor_ref: actor_ref}
+                 ) do
+              %{entries: [latest | _]} -> {true, latest.occurred_at}
+              _ -> {false, nil}
             end
+          else
+            {true, nil}
+          end
 
-          actor_summaries = actor_summaries(page.entries, repo, socket.assigns[:threadline_scope])
+        actor_summaries = actor_summaries(page.entries, repo, socket.assigns[:threadline_scope])
 
-          {:ok,
-           socket
-           |> assign(:not_found, false)
-           |> assign(:actor_ref, actor_ref)
-           |> assign(:repo, repo)
-           |> assign(:actor_summaries, actor_summaries)
-           |> assign(:from_time, from_time)
-           |> assign(:time_window_hours, 24)
-           |> assign(:has_ever_acted, has_ever_acted)
-           |> assign(:last_activity, last_activity)
-           |> assign(:next_cursor, page.next_cursor)
-           |> assign(:prev_cursor, page.prev_cursor)
-           |> assign(:shown_count, length(page.entries))
-           |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
-           |> stream(:transactions, page.entries)}
-
-        {:error, _} ->
+        {:ok,
+         socket
+         |> assign(:not_found, false)
+         |> assign(:actor_ref, actor_ref)
+         |> assign(:repo, repo)
+         |> assign(:actor_summaries, actor_summaries)
+         |> assign(:from_time, from_time)
+         |> assign(:time_window_hours, 24)
+         |> assign(:has_ever_acted, has_ever_acted)
+         |> assign(:last_activity, last_activity)
+         |> assign(:next_cursor, page.next_cursor)
+         |> assign(:prev_cursor, page.prev_cursor)
+         |> assign(:shown_count, length(page.entries))
+         |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
+         |> stream(:transactions, page.entries)}
+      else
+        _ ->
           {:ok, assign(socket, :not_found, true)}
       end
     end
@@ -102,39 +98,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
         <%= if @not_found do %>
-          <UI.error_state>
-            <:title>Invalid actor reference</:title>
-            This actor kind and id could not be parsed as a Threadline actor reference.
-            Return to Timeline and check the actor reference.
-            <:actions>
-              <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                Timeline
-              </.link>
-            </:actions>
-          </UI.error_state>
+          <div class="tl-transaction">
+            <UI.page_header
+              title="Actor activity"
+              breadcrumbs={[
+                %{label: "Timeline", href: "#{@base_path}/timeline"},
+                %{label: "Actor activity"}
+              ]}
+            >
+              <:lede>Review what an actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
+            </UI.page_header>
+
+            <UI.error_state>
+              <:title>Invalid actor reference</:title>
+              This actor kind and id could not be parsed as a Threadline actor reference.
+              Return to Timeline and check the actor reference.
+              <:actions>
+                <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                  Open timeline
+                </.link>
+              </:actions>
+            </UI.error_state>
+          </div>
         <% else %>
           <div class="tl-transaction">
-            <UI.page_header breadcrumbs={[
-              %{label: "Timeline", href: "#{@base_path}/timeline"},
-              %{label: "Actor · #{@actor_ref.type}/#{@actor_ref.id}"}
-            ]}>
-              <:heading>Actor: <%= @actor_ref.type %> / <%= @actor_ref.id %></:heading>
+            <UI.page_header
+              title="Actor activity"
+              breadcrumbs={[
+                %{label: "Timeline", href: "#{@base_path}/timeline"},
+                %{label: "Actor - #{@actor_ref.type}/#{@actor_ref.id}"}
+              ]}
+            >
               <:lede>Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
-              <UI.kv aria-label="Actor detail">
-                <:item key="Kind"><%= @actor_ref.type %></:item>
-                <:item key="Id">
-                  <UI.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
-                </:item>
-              </UI.kv>
-              <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-link tl-link--deep">Open in timeline to filter and export →</a>
-              <UI.segmented_control aria-label="Actor activity window">
-                <:segment active={@time_window_hours == 1} phx-click="set-window" phx-value-hours="1">1h</:segment>
-                <:segment active={@time_window_hours == 24} phx-click="set-window" phx-value-hours="24">24h</:segment>
-                <:segment active={@time_window_hours == 168} phx-click="set-window" phx-value-hours="168">7d</:segment>
-                <:segment active={@time_window_hours == 720} phx-click="set-window" phx-value-hours="720">30d</:segment>
-              </UI.segmented_control>
             </UI.page_header>
+
+            <UI.detail_header title={actor_detail_title(@actor_ref)}>
+              <:metadata key="Kind"><%= @actor_ref.type %></:metadata>
+              <:metadata :if={@actor_ref.id} key="Actor id">
+                <UI.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
+              </:metadata>
+              <:metadata key="Window"><%= actor_window_label(@time_window_hours) %></:metadata>
+              <:metadata key="Transactions"><%= actor_transaction_count(@shown_count) %></:metadata>
+              <:metadata key="Visible scope"><%= actor_visible_scope(assigns[:threadline_scope]) %></:metadata>
+              <:actions>
+                <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--compact tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                  Open timeline
+                </a>
+              </:actions>
+            </UI.detail_header>
+
+            <UI.segmented_control aria-label="Actor activity window">
+              <:segment active={@time_window_hours == 1} phx-click="set-window" phx-value-hours="1">1h</:segment>
+              <:segment active={@time_window_hours == 24} phx-click="set-window" phx-value-hours="24">24h</:segment>
+              <:segment active={@time_window_hours == 168} phx-click="set-window" phx-value-hours="168">7d</:segment>
+              <:segment active={@time_window_hours == 720} phx-click="set-window" phx-value-hours="720">30d</:segment>
+            </UI.segmented_control>
           </div>
 
           <%= if not @has_ever_acted do %>
@@ -142,6 +162,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:title>No actor activity recorded</:title>
               No transactions or actions are linked to this actor yet.
               Run an audited transaction or record a semantic action for this actor, then return here.
+              <:actions>
+                <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                  Open timeline
+                </a>
+              </:actions>
             </UI.empty_state>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
@@ -157,7 +183,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </button>
                   <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--ghost">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                    Open in timeline
+                    Open timeline
                   </a>
                 </:actions>
               </UI.empty_state>
@@ -300,6 +326,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply, socket}
       end
     end
+
+    defp safe_actor_kind(kind) when is_binary(kind) do
+      case Enum.find(@actor_kinds, &(Atom.to_string(&1) == kind)) do
+        nil -> {:error, :unknown_actor_type}
+        actor_kind -> {:ok, actor_kind}
+      end
+    end
+
+    defp safe_actor_kind(_), do: {:error, :unknown_actor_type}
+
+    defp actor_detail_title(%ActorRef{type: type}), do: "#{type} actor"
+
+    defp actor_window_label(1), do: "1 hour"
+    defp actor_window_label(24), do: "24 hours"
+    defp actor_window_label(168), do: "7 days"
+    defp actor_window_label(720), do: "30 days"
+    defp actor_window_label(hours), do: "#{hours} hours"
+
+    defp actor_transaction_count(1), do: "1 transaction"
+    defp actor_transaction_count(count), do: "#{count} transactions"
+
+    defp actor_visible_scope(nil), do: "All visible activity"
+    defp actor_visible_scope(_scope), do: "Scoped activity"
 
     defp timeline_actor_path(base_path, actor_ref) do
       query =
