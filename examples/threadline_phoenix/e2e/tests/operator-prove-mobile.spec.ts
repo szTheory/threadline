@@ -54,10 +54,10 @@ test.describe("operator evidence and exports mobile UAT", () => {
       await expect(group.getByRole("link", { name: "Download export" })).toHaveCount(0);
     }
 
-    await expect(page.getByText("Preparing download").first()).toBeVisible();
+    await expect(page.getByText(/Queued|Processing/).first()).toBeVisible();
     await expect(page.getByText("Export failed.").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Reopen source search" }).first()).toBeVisible();
-    await expect(page.getByText("Export expired")).toBeVisible();
+    await expect(page.getByText(/Expired|File unavailable/).first()).toBeVisible();
 
     const secondaryRefs = page.locator(".tl-secondary-ref");
     await expect(secondaryRefs.first()).toBeVisible();
@@ -93,7 +93,10 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(
       modal.getByRole("button", { name: "Prune records permanently" }),
     ).toBeVisible();
-    await modal.getByRole("button", { name: "Cancel" }).click();
+    await expect(
+      modal.getByText("Type the policy name default to confirm"),
+    ).toBeVisible();
+    await modal.getByRole("button", { name: "Keep retention window" }).click();
 
     const failureMetric = page.locator(".tl-card--metric", { hasText: "Failures" });
     const failureLink = failureMetric.getByRole("link");

@@ -413,6 +413,12 @@ test.describe("operator accessibility baseline", () => {
     await expect(pruneModal).toContainText(
       "This permanently deletes audit records older than the retention window",
     );
+    await expect(
+      pruneModal.getByText("Type the policy name default to confirm"),
+    ).toBeVisible();
+    await expect(
+      pruneModal.getByRole("button", { name: "Keep retention window" }),
+    ).toBeVisible();
     const confirm = pruneModal.getByLabel("Policy name to confirm");
     await expect(confirm).toBeVisible();
     await expectNonObscuredFocused(confirm, page);
@@ -443,18 +449,19 @@ test.describe("operator accessibility baseline", () => {
 
     await page.goto(rowHistoryHref);
     const drawer = page.getByTestId("row-history-drawer");
+    const dialog = drawer.getByRole("dialog", { name: /Row history/ });
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveAttribute("role", "dialog");
-    await expect(drawer).toHaveAttribute("aria-modal", "true");
-    await expect(drawer).toHaveAttribute(
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    await expect(dialog).toHaveAttribute(
       "aria-labelledby",
       /row-history-title|row-history/,
     );
 
-    const close = drawer.getByRole("link", { name: "Close" });
+    const close = dialog.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
 
-    const snapshot = drawer.getByLabel("View snapshot at");
+    const snapshot = dialog.getByLabel("View snapshot at");
     await expect(snapshot).toBeVisible();
     await snapshot.focus();
     await expectNonObscuredFocused(snapshot, page);
@@ -641,6 +648,25 @@ test.describe("operator accessibility baseline", () => {
       body: rowHistorySnapshot,
       contentType: "text/plain",
     });
+
+    await page.goto("/audit/policy/retention");
+    await page.getByRole("button", { name: "Run retention prune" }).last().click();
+    const retentionSnapshot = await expectAriaSnapshotContains(
+      page.getByRole("dialog", { name: "Prune retention window permanently?" }),
+      [
+        'dialog "Prune retention window permanently?"',
+        'heading "Prune retention window permanently?" [level=2]',
+        'textbox "Policy name to confirm"',
+        'button "Keep retention window"',
+        'button "Prune records permanently"',
+      ],
+      { depth: 5 },
+    );
+    await testInfo.attach("retention-modal-aria-snapshot", {
+      body: retentionSnapshot,
+      contentType: "text/plain",
+    });
+    await page.keyboard.press("Escape");
 
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
     const dropdownTrigger = page.locator("#stress-dropdown-button");

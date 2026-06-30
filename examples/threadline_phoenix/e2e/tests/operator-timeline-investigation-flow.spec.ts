@@ -349,6 +349,10 @@ async function expectTimelineRouteTransition(page: Page, proof: CorrelatedPost) 
   await expect(transaction).toBeVisible();
   await transaction.click();
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "Transaction", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: /^Transaction / }),
+  ).toBeVisible();
 
   await page.goto(timelineUrl({ table: rowTable }));
   const historyRow = page
@@ -362,7 +366,18 @@ async function expectTimelineRouteTransition(page: Page, proof: CorrelatedPost) 
   expect(rowHistoryHref).toMatch(new RegExp(`/audit/rows/${rowTable}/[^?#/]+`));
   await rowHistory.click();
   await expect(page).toHaveURL(new RegExp(`/audit/rows/${rowTable}/[^?#/]+`));
+  await expect(page.getByRole("heading", { name: "Row history", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: new RegExp(`^${rowTable} /`) }),
+  ).toBeVisible();
   await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+
+  await page.goto("/audit/actors/service_account/zendesk-sync");
+  await expect(page.getByRole("heading", { name: "Actor activity", exact: true })).toBeVisible();
+  await expect(
+    page.locator(".tl-detail-header__title").filter({ hasText: "service_account actor" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open transaction" }).first()).toBeVisible();
 
   await page.goto(timelineUrl({ correlation: proof.correlation, table: proof.table }));
   await page.getByRole("button", { name: "Filters" }).click();
