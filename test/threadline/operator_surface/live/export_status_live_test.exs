@@ -402,27 +402,72 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Expires"
         assert html =~ "datetime="
         assert html =~ "/audit/exports/download/#{job.id}"
+
+        assert [download_link] =
+                 Regex.run(
+                   ~r/<a\b[^>]*href="\/audit\/exports\/download\/#{job.id}"[^>]*>.*?Download export.*?<\/a>/s,
+                   html
+                 )
+
+        refute download_link =~ "aria-disabled"
+        refute download_link =~ ~s(tabindex="-1")
+        refute download_link =~ "data-tl-mutating"
       end
 
-      test "shows preparing download placeholder for non-ready exports", %{
+      test "shows status text instead of fake download links for non-ready exports", %{
         conn: conn,
         actor_ref: actor_ref
       } do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-        %ExportJob{}
-        |> ExportJob.changeset(%{
-          status: "running",
-          query_params: %{"table" => "users"},
-          actor_ref: actor_ref,
-          started_at: now
-        })
-        |> Threadline.Test.Repo.insert!()
+        jobs =
+          [
+            %{
+              status: "pending",
+              query_params: %{"table" => "queued_users"},
+              actor_ref: actor_ref,
+              started_at: now
+            },
+            %{
+              status: "running",
+              query_params: %{"table" => "processing_users"},
+              actor_ref: actor_ref,
+              started_at: now
+            },
+            %{
+              status: "completed",
+              query_params: %{"table" => "expired_users"},
+              actor_ref: actor_ref,
+              started_at: now,
+              completed_at: now,
+              file_path: "expired-export.csv",
+              expires_at: DateTime.add(now, -60, :second)
+            },
+            %{
+              status: "failed",
+              query_params: %{"table" => "failed_users"},
+              actor_ref: actor_ref,
+              started_at: now,
+              error_message: "runtime unavailable"
+            }
+          ]
+          |> Enum.map(fn attrs ->
+            %ExportJob{}
+            |> ExportJob.changeset(attrs)
+            |> Threadline.Test.Repo.insert!()
+          end)
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "Preparing download"
+        assert html =~ "Queued"
+        assert html =~ "Processing"
+        assert html =~ "Expired"
+        assert html =~ "Failed"
         refute html =~ "Download export"
+
+        for job <- jobs do
+          refute html =~ "/audit/exports/download/#{job.id}"
+        end
       end
 
       test "hides the download action for expired completed exports", %{
@@ -446,7 +491,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         refute html =~ "Download export"
-        assert html =~ "Export expired"
+        assert html =~ "Expired"
       end
 
       test "shows the persisted failure reason for failed jobs", %{
