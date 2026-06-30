@@ -112,6 +112,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Transaction Not Found"
     ]
     @long_correlation_id "corr_00000000-0000-4000-8000-000000000179-threadline-copy-contract"
+    @retention_live_path "lib/threadline/operator_surface/live/retention_history_live.ex"
 
     setup_all do
       Application.put_env(:threadline, Threadline.OperatorSurface.CopyContractTest.Endpoint,
@@ -319,6 +320,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute denied_html =~ "Action Denied"
     end
 
+    test "Retention source locks Phase 186 destructive-flow labels and state copy" do
+      source = retention_source()
+
+      for expected <- [
+            ~s(open_label: "Run retention prune"),
+            ~s(title: "Prune retention window permanently?"),
+            ~s(cancel_label: "Keep retention window"),
+            ~s(submit_label: "Prune records permanently"),
+            ~s(mismatch_flash: "Could not prune - confirmation did not match."),
+            ~s|aria-label="Retention window health"|,
+            "Retention runtime is not started.",
+            "No retention runs yet",
+            "Configure a retention window",
+            "mix threadline.retention.purge --dry-run"
+          ] do
+        assert source =~ expected
+      end
+
+      refute source =~ "Could not prune — confirmation did not match."
+      refute source =~ ">Cancel<"
+      refute source =~ "data-confirm"
+    end
+
+    test "Retention source keeps one policy-level destructive action path" do
+      source = retention_source()
+      row_action_block = retention_table_action_block(source)
+
+      assert occurrences(source, ~s(open_label: "Run retention prune")) == 1
+      assert occurrences(source, ~s(submit_label: "Prune records permanently")) == 1
+      assert occurrences(source, ~s(phx-submit="prune_now")) == 1
+
+      refute row_action_block =~ "open_prune_modal"
+      refute row_action_block =~ "Prune records permanently"
+      refute row_action_block =~ "tl-button--danger"
+
+      assert row_action_block =~ "Review evidence"
+      assert source =~ ~s(data-testid="retention-runs-table")
+      assert source =~ ~s(data-testid="retention-runs-table-el")
+
+      for forbidden <- ["@tailwind", "shadcn", "Heroicons", ~s(phx-value-id=)] do
+        refute source =~ forbidden
+      end
+    end
+
     test "presentation status labels keep evidence verdicts but use sentence-case fallback" do
       assert Presentation.status_label(:proven) == "Proven"
       assert Presentation.status_label(:inferred_posture) == "Inferred"
@@ -356,6 +401,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp render_coverage(conn) do
       {:ok, _view, html} = live(conn, "/audit/coverage")
       html
+    end
+
+    defp retention_source do
+      File.read!(@retention_live_path)
+    end
+
+    defp retention_table_action_block(source) do
+      case String.split(source, ~s(<:action :let={{_dom_id, _run}}>), parts: 2) do
+        [_before, rest] ->
+          rest |> String.split("</:action>", parts: 2) |> hd()
+
+        _ ->
+          flunk("Retention table action block not found")
+      end
+    end
+
+    defp occurrences(haystack, needle) do
+      haystack
+      |> String.split(needle)
+      |> length()
+      |> Kernel.-(1)
     end
 
     defp seed_timeline_change! do

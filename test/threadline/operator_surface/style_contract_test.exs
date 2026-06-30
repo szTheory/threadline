@@ -435,6 +435,33 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
+  test "phase 186 Retention motion remains scoped to the governed run-row animation" do
+    src = File.read!(@style_path)
+
+    assert Regex.match?(
+             selector_block_pattern(
+               "#retention-runs > tr",
+               ~r/animation:\s*tl-rise-in\s+var\(--tl-motion-base\)\s+var\(--tl-ease-out\)\s+both;/
+             ),
+             src
+           ),
+           "Retention run rows must keep the existing tokenized tl-rise-in motion"
+
+    refute Regex.match?(~r/@keyframes\s+(?:tl-)?retention/i, src),
+           "Phase 186 must not introduce Retention-specific keyframes"
+
+    retention_blocks =
+      Regex.scan(~r/(#retention-runs[^{}]*\{[^}]*\}|\.tl-table--retention[^{}]*\{[^}]*\})/s, src)
+      |> Enum.map(fn [block | _captures] -> block end)
+
+    assert retention_blocks != []
+
+    for block <- retention_blocks do
+      refute Regex.match?(~r/transition:\s*all\b/, block),
+             "Retention selectors must not use transition: all"
+    end
+  end
+
   test "phase 141 reduced-motion blanket covers animations, transitions, and transform reset" do
     src = File.read!(@style_path)
 
