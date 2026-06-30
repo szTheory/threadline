@@ -157,6 +157,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Evidence"
         assert html =~ "Latest evidence is a projection over append-only evidence history"
         assert count_occurrences(html, ~s(aria-label="Evidence workflow summary")) == 1
+
         assert byte_index(html, ~s(class="tl-page__header")) <
                  byte_index(html, ~s(aria-label="Evidence workflow summary"))
 
@@ -164,7 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Evidence scope"
         assert html =~ "Latest projection"
         assert html =~ "All evidence subjects"
-        refute html =~ "tl-trust-rail"
+        refute html =~ ~s(class="tl-trust-rail")
         refute html =~ ~s(aria-label="Evidence navigation")
         refute html =~ "What can Threadline prove right now?"
         refute html =~ "Proof chain"
@@ -360,6 +361,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
         assert html =~ "No evidence records yet"
+
         assert html =~
                  "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
 

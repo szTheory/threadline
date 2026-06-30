@@ -75,53 +75,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:lede>
             </UI.page_header>
 
-            <section class="tl-trust-rail" aria-label="Evidence workflow">
-              <span class="tl-trust-rail__label">Evidence workflow</span>
-              <span class="tl-chip tl-chip--success">Append-only history</span>
-              <span class="tl-chip tl-chip--info">Latest projection</span>
-              <.link :if={@threadline_coverage_enabled and @base_path} navigate={"#{@base_path}/coverage"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
-                Check coverage
-              </.link>
-              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/redaction"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
-                Check redaction
-              </.link>
-              <.link :if={@threadline_policy_enabled and @base_path} navigate={"#{@base_path}/policy/retention"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
-                Review retention
-              </.link>
-              <.link :if={@threadline_exports_enabled and @base_path} navigate={"#{@base_path}/exports"} class="tl-button tl-button--compact tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-                Open exports
-              </.link>
-              <.link :if={@base_path} navigate={"#{@base_path}/timeline"} class="tl-button tl-button--compact tl-button--ghost">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                Open timeline
-              </.link>
-            </section>
-
-            <nav class="tl-nav" aria-label="Evidence navigation">
-              <.link patch={overview_path(@base_path)} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                Overview
-              </.link>
-              <.link :if={@request.subject} patch={subject_path(@base_path, @request.subject)} class="tl-button tl-button--ghost">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                Back to latest for <%= @request.subject %>
-              </.link>
-              <.link
-                :if={carry_to_exports_path(@base_path, @request, @threadline_exports_enabled)}
-                navigate={carry_to_exports_path(@base_path, @request, @threadline_exports_enabled)}
-                class="tl-button tl-button--ghost"
-                data-earned-flow="EF3"
-                data-persona="P3"
-                data-jtbd="J6"
-              >
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                Carry to Exports
-              </.link>
-            </nav>
+            <.evidence_workflow_summary
+              base_path={@base_path}
+              request={@request}
+              exports_enabled={@threadline_exports_enabled}
+              form_error={@form_error}
+            />
 
             <%= if @form_error do %>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
@@ -129,10 +88,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <%= if @groups == [] do %>
                 <UI.empty_state variant="no_data" role="status" icon={:funnel}>
                   <:title>No evidence records yet</:title>
-                  Threadline has not recorded evidence for this selection yet. Use
-                  <code>mix threadline.evidence.show</code> or the <code>Threadline.Evidence</code>
-                  API to confirm the current evidence record, then narrow by subject or date if
-                  needed.
+                  Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed.
                 </UI.empty_state>
               <% else %>
                 <section :for={group <- @groups} class="tl-section">
@@ -318,6 +274,68 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp show_history_link?(%{mode: :latest}), do: true
     defp show_history_link?(_request), do: false
 
+    defp evidence_workflow_summary(assigns) do
+      assigns =
+        assigns
+        |> assign(
+          :carry_path,
+          carry_to_exports_path(assigns.base_path, assigns.request, assigns.exports_enabled)
+        )
+        |> assign(:mode_label, evidence_mode_label(assigns.request.mode))
+        |> assign(:scope_label, evidence_scope_label(assigns.request))
+
+      ~H"""
+      <section class="tl-section tl-evidence__workflow-summary" aria-label="Evidence workflow summary">
+        <header class="tl-section__header">
+          <h2 class="tl-section__title">Evidence scope</h2>
+        </header>
+
+        <UI.kv>
+          <:item key="Mode"><span class="tl-chip tl-chip--info"><%= @mode_label %></span></:item>
+          <:item key="Subject"><%= @scope_label %></:item>
+          <:item :if={@request.subject_ref} key="Subject ref">
+            <UI.ref value={@request.subject_ref} copy_label="Copy subject ref" />
+          </:item>
+        </UI.kv>
+
+        <div class="tl-cluster tl-cluster--start">
+          <.link
+            :if={@request.mode == :history and @request.subject}
+            patch={subject_path(@base_path, @request.subject)}
+            class="tl-button tl-button--compact tl-button--secondary"
+          >
+            <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+            Back to latest for <%= @request.subject %>
+          </.link>
+          <.link
+            :if={@carry_path}
+            navigate={@carry_path}
+            class="tl-button tl-button--compact tl-button--secondary"
+            data-earned-flow="EF3"
+            data-persona="P3"
+            data-jtbd="J6"
+          >
+            <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+            Carry to Exports
+          </.link>
+          <span :if={@form_error} class="tl-hint" role="status">
+            Export handoff unavailable until Evidence has a valid subject context.
+          </span>
+          <span :if={!@exports_enabled} class="tl-hint" role="status">
+            Exports are disabled for this support lane.
+          </span>
+        </div>
+      </section>
+      """
+    end
+
+    defp evidence_mode_label(:history), do: "Append-only history"
+    defp evidence_mode_label(_mode), do: "Latest projection"
+
+    defp evidence_scope_label(%{subject: nil}), do: "All evidence subjects"
+    defp evidence_scope_label(%{subject: subject, subject_ref: nil}), do: subject
+    defp evidence_scope_label(%{subject: subject}), do: subject
+
     defp record_modifier(status) do
       case Presentation.status_modifier(status) do
         "tl-chip--success" -> "tl-record-card--success"
@@ -352,7 +370,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp support_action_icon("export_delivery"), do: :archive
     defp support_action_icon(_subject), do: :arrow_right
 
-    defp overview_path(base_path), do: "#{base_path}/evidence"
     defp subject_path(base_path, subject), do: "#{base_path}/evidence?subject=#{subject}"
 
     defp carry_to_exports_path(base_path, %{subject: nil}, true) when is_binary(base_path),
