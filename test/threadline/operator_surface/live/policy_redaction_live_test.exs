@@ -66,6 +66,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
     alias Threadline.Policy.RedactionPresenter
     alias Threadline.Semantics.AuditAction
+    alias Threadline.StorageSchema
     alias Threadline.Test.Repo
 
     @endpoint Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint
@@ -110,9 +111,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(AuditTransaction)
-      Repo.delete_all(AuditAction)
+      Repo.delete_all(AuditChange, StorageSchema.repo_opts())
+      Repo.delete_all(AuditTransaction, StorageSchema.repo_opts())
+      Repo.delete_all(AuditAction, StorageSchema.repo_opts())
 
       original = Application.get_env(:threadline, :trigger_capture)
 
@@ -245,6 +246,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "alice@example.com"
         refute html =~ "super-secret"
       end
+
+      test "selects support host schema and links Timeline with table_schema", %{conn: conn} do
+        prepare_support_tickets!()
+
+        Application.put_env(:threadline, :trigger_capture,
+          tables: %{
+            @alpha => [mask: ["email"]],
+            "support.tickets" => [
+              exclude: ["password_hash"],
+              mask: ["email"],
+              mask_placeholder: "[MASKED]"
+            ]
+          }
+        )
+
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction?schema=support")
+
+        assert html =~ "Redaction policy"
+        assert html =~ "Host schema"
+        assert html =~ "support"
+        assert html =~ "support.tickets"
+        assert html =~ ~s|name="schema"|
+        assert html =~ "Apply schema"
+        assert html =~ ~s|href="/audit/timeline?table_schema=support&amp;table=tickets"|
+        refute html =~ @alpha
+      end
+
+      test "invalid schema param renders explicit schema error", %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/policy/redaction?schema=Public")
+
+        assert html =~ "Could not load redaction policy for Public"
+        assert html =~ "Use public schema"
+        assert html =~ ~s|href="/audit/policy/redaction?schema=public"|
+        refute html =~ @alpha
+      end
+
+      test "schema picker patches to the selected host schema", %{conn: conn} do
+        {:ok, view, html} = live(conn, "/audit/policy/redaction")
+
+        assert html =~ ~s|id="policy-redaction-schema"|
+        assert html =~ ~s|name="schema"|
+        assert html =~ "Apply schema"
+
+        render_submit(view, "select-schema", %{"schema" => "public"})
+
+        assert_patch(view, "/audit/policy/redaction?schema=public")
+      end
     end
 
     # -----------------------------------------------------------------------
@@ -350,6 +398,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       FOR EACH ROW
       EXECUTE FUNCTION threadline_capture_changes_#{table}();
       """)
+    end
+
+    defp prepare_support_tickets! do
+      Repo.query!("DROP SCHEMA IF EXISTS support CASCADE")
+      Repo.query!("CREATE SCHEMA support")
+
+      Repo.query!("""
+      CREATE TABLE support.tickets (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        email text NOT NULL,
+        password_hash text NOT NULL,
+        subject text NOT NULL DEFAULT ''
+      )
+      """)
+
+      Repo.query!(
+        TriggerSQL.install_function_for_table("support.tickets",
+          exclude: ["password_hash"],
+          mask: ["email"],
+          mask_placeholder: "[MASKED]",
+          store_changed_from: true
+        )
+      )
+
+      Repo.query!(TriggerSQL.create_trigger("support.tickets", :per_table))
+
+      on_exit(fn ->
+        Repo.query!(TriggerSQL.drop_trigger("support.tickets"))
+        Repo.query!(TriggerSQL.drop_function_for_table("support.tickets"))
+        Repo.query!("DROP SCHEMA IF EXISTS support CASCADE")
+      end)
     end
 
     defp section_titles(html) do
