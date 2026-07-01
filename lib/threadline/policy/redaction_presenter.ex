@@ -9,6 +9,7 @@ defmodule Threadline.Policy.RedactionPresenter do
 
   alias Ecto.Adapters.SQL
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig}
+  alias Threadline.StorageSchema
 
   @group_order [:drift_detected, :could_not_introspect, :config_matches_deployed]
   @match_hint "Configured redaction matches deployed trigger redaction."
@@ -29,18 +30,28 @@ defmodule Threadline.Policy.RedactionPresenter do
     repo = Keyword.fetch!(opts, :repo)
     schema = Keyword.get(opts, :schema, "public")
 
-    build_report(TriggerCaptureConfig.load(), fetch_deployed(repo, schema))
+    build_report(TriggerCaptureConfig.load(), fetch_deployed(repo, schema), schema: schema)
   end
 
   @doc """
   Builds a redaction drift report from normalized config and deployed rows.
   """
-  def build_report(configured_tables, deployed_rows)
+  def build_report(configured_tables, deployed_rows, opts \\ [])
       when is_map(configured_tables) and is_list(deployed_rows) do
-    configured =
-      Map.new(configured_tables, fn {table, entry} -> {table, normalize_policy(entry)} end)
+    schema = opts |> Keyword.get(:schema, "public") |> StorageSchema.validate!()
 
-    deployed_by_table = Enum.group_by(deployed_rows, &to_string(Map.fetch!(&1, :table)))
+    configured =
+      configured_tables
+      |> Enum.flat_map(&configured_entry_for_schema(&1, schema))
+      |> Map.new()
+
+    deployed_by_table =
+      deployed_rows
+      |> Enum.map(fn row ->
+        table_name = to_string(Map.fetch!(row, :table))
+        {report_table_key(schema, table_name), row}
+      end)
+      |> Enum.group_by(fn {table, _row} -> table end, fn {_table, row} -> row end)
 
     tables =
       configured
@@ -63,7 +74,8 @@ defmodule Threadline.Policy.RedactionPresenter do
         config_matches_deployed: Enum.count(tables, &(&1.status == :config_matches_deployed))
       },
       tables: tables,
-      grouped: grouped
+      grouped: grouped,
+      schema: schema
     }
   end
 
@@ -100,6 +112,7 @@ defmodule Threadline.Policy.RedactionPresenter do
   end
 
   defp build_row(table, configured, deployed_by_table) do
+    %{schema: table_schema, table: table_name} = StorageSchema.parse_table_identifier(table)
     configured_policy = Map.get(configured, table, empty_policy())
     deployed_rows = Map.get(deployed_by_table, table, [])
 
@@ -114,6 +127,8 @@ defmodule Threadline.Policy.RedactionPresenter do
 
         %{
           table: table,
+          table_schema: table_schema,
+          table_name: table_name,
           status: status,
           configured: configured_policy,
           deployed: nil,
@@ -123,11 +138,13 @@ defmodule Threadline.Policy.RedactionPresenter do
         }
 
       [deployed_row] ->
-        classify_row(table, configured_policy, deployed_row)
+        classify_row(table, table_schema, table_name, configured_policy, deployed_row)
 
       _many ->
         %{
           table: table,
+          table_schema: table_schema,
+          table_name: table_name,
           status: :could_not_introspect,
           configured: configured_policy,
           deployed: nil,
@@ -138,7 +155,7 @@ defmodule Threadline.Policy.RedactionPresenter do
     end
   end
 
-  defp classify_row(table, configured_policy, deployed_row) do
+  defp classify_row(table, table_schema, table_name, configured_policy, deployed_row) do
     case parse_deployed_policy(deployed_row) do
       {:ok, deployed_policy} ->
         row_diff = diff(configured_policy, deployed_policy)
@@ -146,6 +163,8 @@ defmodule Threadline.Policy.RedactionPresenter do
 
         %{
           table: table,
+          table_schema: table_schema,
+          table_name: table_name,
           status: status,
           configured: configured_policy,
           deployed: deployed_policy,
@@ -157,6 +176,8 @@ defmodule Threadline.Policy.RedactionPresenter do
       {:error, {:unsupported_language, language}} ->
         %{
           table: table,
+          table_schema: table_schema,
+          table_name: table_name,
           status: :could_not_introspect,
           configured: configured_policy,
           deployed: nil,
@@ -168,6 +189,8 @@ defmodule Threadline.Policy.RedactionPresenter do
       {:error, reason} ->
         %{
           table: table,
+          table_schema: table_schema,
+          table_name: table_name,
           status: :could_not_introspect,
           configured: configured_policy,
           deployed: nil,
@@ -382,6 +405,19 @@ defmodule Threadline.Policy.RedactionPresenter do
   end
 
   defp normalize_policy(_), do: empty_policy()
+
+  defp configured_entry_for_schema({table, entry}, selected_schema) do
+    %{schema: schema, table: table_name} = StorageSchema.parse_table_identifier(to_string(table))
+
+    if schema == selected_schema do
+      [{report_table_key(schema, table_name), normalize_policy(entry)}]
+    else
+      []
+    end
+  end
+
+  defp report_table_key("public", table), do: table
+  defp report_table_key(schema, table), do: "#{schema}.#{table}"
 
   defp empty_policy do
     %{

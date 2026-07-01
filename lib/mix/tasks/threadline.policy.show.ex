@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
 
       mix threadline.policy.show
       mix threadline.policy.show --json
+      mix threadline.policy.show --schema=NAME
 
   Default output prints one summary line, one aligned table, and detail blocks
   only for `Drift detected` and `Could not introspect` rows.
@@ -21,16 +22,22 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
     * `config_matches_deployed`
     * `drift_detected`
     * `could_not_introspect`
+
+  `--schema=NAME` validates NAME at the edge (regex + `pg_namespace` lookup)
+  and selects the host schema whose redaction drift should be inspected.
+  It does not change Threadline's configured storage schema.
   """
 
   use Mix.Task
 
+  alias Threadline.Health.CoverageSchemas
   alias Threadline.Policy.RedactionPresenter
 
   @impl Mix.Task
   def run(argv) do
-    {opts, _, _} = OptionParser.parse(argv, strict: [json: :boolean])
+    {opts, _, _} = OptionParser.parse(argv, strict: [json: :boolean, schema: :string])
     json? = Keyword.get(opts, :json, false)
+    schema = Keyword.get(opts, :schema, "public")
 
     Mix.Task.run("app.config", [])
     {:ok, _} = Application.ensure_all_started(:ssl)
@@ -39,8 +46,9 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
 
     repo = resolve_repo!()
     ensure_repo_started!(repo)
+    validate_schema!(repo, schema)
 
-    report = RedactionPresenter.build(repo: repo, schema: "public")
+    report = RedactionPresenter.build(repo: repo, schema: schema)
 
     if json? do
       render_json(report)
@@ -71,8 +79,26 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
     end
   end
 
+  defp validate_schema!(repo, schema) do
+    case CoverageSchemas.validate(repo, schema) do
+      {:ok, _schema} ->
+        :ok
+
+      {:error, _message} ->
+        if schema =~ ~r/\A[a-z_][a-z0-9_]{0,62}\z/ do
+          Mix.raise("threadline.policy.show: schema #{inspect(schema)} not found.")
+        else
+          Mix.raise(
+            "threadline.policy.show: schema #{inspect(schema)} is not a valid PostgreSQL identifier. " <>
+              "Expected lowercase letters, digits, and underscores starting with a letter or underscore (max 63 chars)."
+          )
+        end
+    end
+  end
+
   defp render_human(report) do
     Mix.shell().info(summary_line(report.summary))
+    Mix.shell().info("Host schema: #{report.schema}")
     Mix.shell().info("")
 
     rows =
@@ -120,7 +146,7 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
 
   defp render_json(report) do
     payload = %{
-      "schema" => "public",
+      "schema" => report.schema,
       "total_tables" => length(report.tables),
       "drift_detected" => report.summary.drift_detected,
       "could_not_introspect" => report.summary.could_not_introspect,
