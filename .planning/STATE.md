@@ -6,15 +6,14 @@ current_phase: 190
 current_phase_name: storage-schema-confidence-and-host-schema-truth
 status: executing
 stopped_at: Phase 190 planned
-last_updated: "2026-07-01T19:33:56.623Z"
+last_updated: "2026-07-01T19:45:31.203Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 190 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 1
-  percent: 9
+  completed_plans: 2
+  percent: 18
 ---
 
 # Project State: Threadline
@@ -29,9 +28,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-01)
 ## Current Position
 
 Phase: 190 (storage-schema-confidence-and-host-schema-truth) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 190
-Last activity: 2026-07-01 — Phase 190 execution started
+Plan: 2 of 10
+Status: Ready to execute
+Last activity: 2026-07-01
 
 ## Performance Metrics
 
@@ -136,6 +135,7 @@ Last activity: 2026-07-01 — Phase 190 execution started
 | Phase 188 P02 | 3min | 2 tasks | 2 files |
 | Phase 188 P03 | 8 min | 2 tasks | 6 files |
 | Phase 189 P01 | 6 min | 3 tasks | 2 files |
+| Phase 190 P01 | 8m31s | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -356,6 +356,8 @@ Last activity: 2026-07-01 — Phase 190 execution started
 - [Phase 188]: Phase 188 preserves legacy broad CI, screenshot, Hex auth/advisory, and older Nyquist residuals as explicit audit residuals instead of relabeling them green.
 - [Phase 189]: Phase 189 routes custom storage-schema proof and fixes to Phase 190 based on public docs plus fixed-prefix source evidence.
 - [Phase 189]: Phase 189 treats screenshot, external pilot, and host staging claims as proof-boundary residuals instead of implementation scope.
+- [Phase 190]: [190-01]: Generated install migration SQL uses Threadline.StorageSchema quoted identifiers for every validated storage-schema table, function, and drop/index reference touched by SCHEMA-03.
+- [Phase 190]: [190-01]: Adopter docs now show storage_schema: "audit" before mix threadline.install and state that generated migration files freeze the configured schema name.
 
 ### Blockers
 
@@ -363,9 +365,9 @@ Last activity: 2026-07-01 — Phase 190 execution started
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T19:32:19.266Z
+**Last session:** 2026-07-01T19:45:12.121Z
 **Stopped at:** Phase 190 planned
-**Resume file:** .planning/phases/190-storage-schema-confidence-and-host-schema-truth/190-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
