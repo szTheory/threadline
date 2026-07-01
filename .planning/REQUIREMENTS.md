@@ -18,7 +18,7 @@
 
 ### Storage Schema Confidence
 
-- [ ] **SCHEMA-01**: A custom non-default `storage_schema`, using `audit` or an equivalent schema name, is proven end to end across Threadline-owned capture, query, evidence, governance, and operator-relevant paths, or uncovered gaps are fixed in the same milestone.
+- [x] **SCHEMA-01**: A custom non-default `storage_schema`, using `audit` or an equivalent schema name, is proven end to end across Threadline-owned capture, query, evidence, governance, and operator-relevant paths, or uncovered gaps are fixed in the same milestone.
 - [x] **SCHEMA-02**: Ecto schema prefix behavior is proven or corrected so configurable storage schemas do not silently read from or write to the hardcoded `threadline` prefix.
 - [x] **SCHEMA-03**: Generated migration SQL quotes validated storage-schema identifiers consistently, or the supported identifier contract is narrowed, documented, and test-locked.
 - [ ] **SCHEMA-04**: Non-public host-table support for continuity, policy/redaction inspection, and operator coverage is either implemented to match existing schema flags or explicitly documented and test-locked as intentionally public-only.
@@ -80,7 +80,7 @@ Deferred unless the v1.39 audit or real adopter pressure shows they materially r
 | QUAL-01 | Phase 189 | Complete |
 | QUAL-02 | Phase 189 | Complete |
 | QUAL-03 | Phase 189 | Complete |
-| SCHEMA-01 | Phase 190 | Pending |
+| SCHEMA-01 | Phase 190 | Complete |
 | SCHEMA-02 | Phase 190 | Complete |
 | SCHEMA-03 | Phase 190 | Complete |
 | SCHEMA-04 | Phase 190 | Pending |

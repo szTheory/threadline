@@ -22,7 +22,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | Phase | Name | Requirements | Status |
 |------:|------|--------------|--------|
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
-| 190 | 6/10 | In Progress|  |
+| 190 | 7/10 | In Progress|  |
 | 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
@@ -63,7 +63,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 190-04-PLAN.md — Make queued export, cleanup, and download storage-prefix aware.
-- [ ] 190-06-PLAN.md — Make operator storage reads and writes prefix-aware.
+- [x] 190-06-PLAN.md — Make operator storage reads and writes prefix-aware.
 - [ ] 190-08-PLAN.md — Add selected host-schema redaction CLI, presenter, and UI support.
 
 **Wave 4** *(blocked on Wave 3 completion)*
