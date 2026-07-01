@@ -134,7 +134,8 @@ defmodule Threadline.Audit do
       action_name: action_name,
       action_extra_opts: action_extra_opts,
       transaction_meta: Keyword.get(opts, :transaction_meta),
-      allow_missing_actor: Keyword.get(opts, :allow_missing_actor, false)
+      allow_missing_actor: Keyword.get(opts, :allow_missing_actor, false),
+      storage_schema: Keyword.get(opts, :storage_schema)
     }
   end
 
@@ -187,15 +188,15 @@ defmodule Threadline.Audit do
   defp finalize_success(repo, resolved, result) do
     case resolved.action_name do
       nil ->
-        with :ok <- apply_capture_meta(repo, resolved.transaction_meta),
-             result_with_id <- attach_audit_transaction_id(repo, result) do
+        with :ok <- apply_capture_meta(repo, resolved),
+             result_with_id <- attach_audit_transaction_id(repo, resolved, result) do
           result_with_id
         end
 
       action_name ->
         with {:ok, %AuditAction{id: action_id}} <- record_action(repo, resolved, action_name),
-             :ok <- link_action(repo, action_id, resolved.transaction_meta),
-             {:ok, audit_transaction_id} <- fetch_audit_transaction_id(repo) do
+             :ok <- link_action(repo, action_id, resolved),
+             {:ok, audit_transaction_id} <- fetch_audit_transaction_id(repo, resolved) do
           envelope(result, audit_transaction_id)
         end
     end
@@ -210,7 +211,10 @@ defmodule Threadline.Audit do
       job_id: resolved.job_id
     ]
 
-    opts = base ++ resolved.action_extra_opts
+    opts =
+      base
+      |> Keyword.merge(resolved.action_extra_opts)
+      |> Keyword.merge(storage_schema_opts(resolved))
 
     Threadline.record_action(action_name, opts)
     |> case do
@@ -219,25 +223,26 @@ defmodule Threadline.Audit do
     end
   end
 
-  defp apply_capture_meta(_repo, nil), do: :ok
+  defp apply_capture_meta(_repo, %{transaction_meta: nil}), do: :ok
 
-  defp apply_capture_meta(repo, transaction_meta) when is_map(transaction_meta) do
+  defp apply_capture_meta(repo, %{transaction_meta: transaction_meta} = resolved)
+       when is_map(transaction_meta) do
     {count, _} =
       repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
         [set: [meta: transaction_meta]],
-        StorageSchema.repo_opts()
+        repo_opts(resolved)
       )
 
     if count == 1, do: :ok, else: {:error, :missing_audit_transaction_for_link}
   end
 
-  defp link_action(repo, action_id, transaction_meta) do
+  defp link_action(repo, action_id, resolved) do
     {count, _} =
       repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-        [set: [action_id: action_id, meta: transaction_meta]],
-        StorageSchema.repo_opts()
+        [set: [action_id: action_id, meta: resolved.transaction_meta]],
+        repo_opts(resolved)
       )
 
     if count == 1 do
@@ -247,25 +252,32 @@ defmodule Threadline.Audit do
     end
   end
 
-  defp fetch_audit_transaction_id(repo) do
+  defp fetch_audit_transaction_id(repo, resolved) do
     query =
       from(at in AuditTransaction,
         where: at.txid == fragment("txid_current()"),
         select: at.id
       )
 
-    case repo.one(query, StorageSchema.repo_opts()) do
+    case repo.one(query, repo_opts(resolved)) do
       nil -> {:ok, nil}
       id -> {:ok, id}
     end
   end
 
-  defp attach_audit_transaction_id(repo, result) do
-    case fetch_audit_transaction_id(repo) do
+  defp attach_audit_transaction_id(repo, resolved, result) do
+    case fetch_audit_transaction_id(repo, resolved) do
       {:ok, nil} -> result
       {:ok, id} -> envelope(result, id)
     end
   end
+
+  defp repo_opts(resolved), do: StorageSchema.repo_opts(storage_schema_opts(resolved))
+
+  defp storage_schema_opts(%{storage_schema: nil}), do: []
+
+  defp storage_schema_opts(%{storage_schema: storage_schema}),
+    do: [storage_schema: storage_schema]
 
   defp envelope(result, audit_transaction_id) when is_map(result) do
     Map.put(result, :audit_transaction_id, audit_transaction_id)
