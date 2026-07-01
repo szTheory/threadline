@@ -344,6 +344,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
       correlation_id = Keyword.get(opts, :correlation_id)
+      table_schema = Keyword.get(opts, :table_schema, "public")
 
       action =
         if correlation_id do
@@ -373,7 +374,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo.insert!(
         Threadline.Capture.AuditChange.changeset(%{
           transaction_id: txn.id,
-          table_schema: "public",
+          table_schema: table_schema,
           table_name: Keyword.get(opts, :table, "posts"),
           table_pk: Keyword.get(opts, :table_pk, %{"id" => "1"}),
           op: Keyword.get(opts, :op, "insert"),
@@ -883,9 +884,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|aria-controls="timeline-filters-drawer"|
       assert html =~ "3 active"
       assert html =~ ~s|form="timeline-filters"|
-      assert html =~ "schema: public"
+      assert html =~ "host schema: public"
       assert html =~ "actor kind: user"
       assert html =~ "actor id: 42"
+    end
+
+    test "Timeline preserves non-public host schema in filters and export links", %{conn: conn} do
+      seed_change!(
+        table_schema: "support",
+        table: "tickets",
+        actor_ref: %{"type" => "user", "id" => "support-agent"}
+      )
+
+      seed_change!(
+        table_schema: "public",
+        table: "tickets",
+        actor_ref: %{"type" => "user", "id" => "public-agent"}
+      )
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table_schema=support&table=tickets"
+               )
+
+      assert html =~ "tickets"
+      assert html =~ "user/support-agent"
+      refute html =~ "user/public-agent"
+      assert html =~ "host schema: support"
+      assert html =~ ~s|href="/audit/exports?|
+      assert html =~ ~s|href="/audit/exports/changes.csv?|
+      assert html =~ "table_schema=support&amp;table=tickets"
     end
 
     # -------------------------------------------------------------------
@@ -1563,7 +1592,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
 
       {:ok, lv, _html} =
-        case live(conn, "/audit_scoped/timeline?table=support_posts") do
+        case live(conn, "/audit_scoped/timeline?table_schema=support&table=support_posts") do
           {:ok, _, _} = ok -> ok
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
@@ -1583,6 +1612,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       job = hd(jobs -- initial_jobs)
       assert job.status == "pending"
       assert job.query_params["table"] == "support_posts"
+      assert job.query_params["table_schema"] == "support"
       assert job.actor_ref.type == :user
       # the user_id mapped to actor_ref
       assert job.actor_ref.id == "op1"
