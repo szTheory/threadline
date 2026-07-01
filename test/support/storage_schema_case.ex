@@ -4,6 +4,8 @@ defmodule Threadline.StorageSchemaCase do
   """
 
   alias Ecto.Adapters.SQL
+  import Ecto.Query
+
   alias Threadline.Capture.TriggerSQL
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.{EvidenceRecord, ExportJob, RetentionRun, SavedView}
@@ -284,6 +286,34 @@ defmodule Threadline.StorageSchemaCase do
       export_jobs: repo.aggregate(ExportJob, :count, :id, opts),
       retention_runs: repo.aggregate(RetentionRun, :count, :id, opts),
       saved_views: repo.aggregate(SavedView, :count, :id, opts)
+    }
+  end
+
+  def operator_read_snapshot!(repo \\ Repo) do
+    opts = repo_opts(StorageSchema.get())
+
+    %{
+      saved_view_names:
+        SavedView
+        |> order_by([view], asc: view.name)
+        |> repo.all(opts)
+        |> Enum.map(& &1.name),
+      export_file_paths:
+        ExportJob
+        |> order_by([job], asc: job.file_path)
+        |> repo.all(opts)
+        |> Enum.map(& &1.file_path),
+      evidence_run_ids:
+        EvidenceRecord
+        |> where([record], record.subject == "retention_run")
+        |> order_by([record], asc: fragment("?->>'run_id'", record.subject_ref))
+        |> repo.all(opts)
+        |> Enum.map(&get_in(&1.subject_ref, ["run_id"])),
+      retention_statuses:
+        RetentionRun
+        |> order_by([run], asc: run.status)
+        |> repo.all(opts)
+        |> Enum.map(& &1.status)
     }
   end
 
