@@ -55,13 +55,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         %{status: :valid, query_params: query_params} when query_params != %{} ->
           repo = resolve_repo(socket)
 
+          storage_schema = StorageSchema.get()
+
           job =
             %ExportJob{
               status: "pending",
               query_params: query_params,
               actor_ref: socket.assigns[:threadline_actor_ref]
             }
-            |> repo.insert!(storage_opts(socket))
+            |> repo.insert!(StorageSchema.repo_opts(storage_schema: storage_schema))
 
           adapter =
             Application.get_env(
@@ -70,7 +72,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Threadline.ExportQueue.TaskAdapter
             )
 
-          case adapter.enqueue(job.id) do
+          case adapter.enqueue(job.id, storage_schema: storage_schema) do
             :ok ->
               {:noreply,
                socket

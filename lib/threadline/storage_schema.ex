@@ -9,6 +9,7 @@ defmodule Threadline.StorageSchema do
 
   @default "threadline"
   @identifier ~r/^[A-Za-z_][A-Za-z0-9_]*$/
+  @max_identifier_bytes 63
 
   @threadline_tables ~w(
     audit_transactions
@@ -28,23 +29,29 @@ defmodule Threadline.StorageSchema do
   end
 
   @doc "Validates a PostgreSQL identifier used as a schema, table, or function name."
+  def validate!(nil), do: invalid_identifier!(nil)
+  def validate!(value) when is_boolean(value), do: invalid_identifier!(value)
   def validate!(value) when is_atom(value), do: value |> Atom.to_string() |> validate!()
 
   def validate!(value) when is_binary(value) do
     value = String.trim(value)
 
-    if Regex.match?(@identifier, value) do
+    if Regex.match?(@identifier, value) and byte_size(value) <= @max_identifier_bytes do
       value
     else
-      raise ArgumentError,
-            "Threadline storage schema must be a non-empty PostgreSQL identifier " <>
-              "matching #{@identifier.source}, got: #{inspect(value)}"
+      invalid_identifier!(value)
     end
   end
 
   def validate!(value) do
+    invalid_identifier!(value)
+  end
+
+  defp invalid_identifier!(value) do
     raise ArgumentError,
-          "Threadline storage schema must be a string or atom, got: #{inspect(value)}"
+          "Threadline storage schema must be a non-empty PostgreSQL identifier " <>
+            "matching #{@identifier.source} and at most #{@max_identifier_bytes} bytes, " <>
+            "got: #{inspect(value)}"
   end
 
   @doc "Returns a safely double-quoted PostgreSQL identifier."

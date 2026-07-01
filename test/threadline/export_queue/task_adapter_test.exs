@@ -86,13 +86,14 @@ defmodule Threadline.ExportQueue.TaskAdapterTest do
   end
 
   defp insert_job!(job_id, storage_schema) do
-    %ExportJob{}
-    |> ExportJob.changeset(%{
-      id: job_id,
-      status: "pending",
-      query_params: %{"table" => "task_adapter_storage_schema_rows"}
-    })
-    |> Repo.insert!(repo_opts(storage_schema))
+    Repo.insert!(
+      %ExportJob{
+        id: job_id,
+        status: "pending",
+        query_params: %{"table" => "task_adapter_storage_schema_rows"}
+      },
+      repo_opts(storage_schema)
+    )
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:threadline, key)

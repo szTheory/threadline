@@ -42,7 +42,7 @@ defmodule Threadline.ApplicationTest do
     end
 
     @impl true
-    def enqueue(_job_id), do: :ok
+    def enqueue(_job_id, _opts \\ []), do: :ok
   end
 
   setup do

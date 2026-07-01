@@ -276,7 +276,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: socket.assigns[:threadline_actor_ref]
       }
 
-      job = repo.insert!(job, storage_opts(socket))
+      storage_schema = StorageSchema.get()
+      job = repo.insert!(job, StorageSchema.repo_opts(storage_schema: storage_schema))
 
       adapter =
         Application.get_env(
@@ -285,7 +286,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.ExportQueue.TaskAdapter
         )
 
-      case adapter.enqueue(job.id) do
+      case adapter.enqueue(job.id, storage_schema: storage_schema) do
         :ok ->
           {:noreply,
            socket

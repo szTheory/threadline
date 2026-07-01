@@ -649,7 +649,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert source =~ "defp storage_opts(_socket)"
         assert source =~ "|> repo.all(storage_opts(socket))"
-        assert source =~ "|> repo.insert!(storage_opts(socket))"
+        assert source =~ "storage_schema = StorageSchema.get()"
+
+        assert source =~
+                 "|> repo.insert!(StorageSchema.repo_opts(storage_schema: storage_schema))"
+
+        assert source =~ "adapter.enqueue(job.id, storage_schema: storage_schema)"
         assert source =~ "|> repo.update!(storage_opts(socket))"
       end
 

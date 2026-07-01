@@ -25,10 +25,11 @@ defmodule Threadline.ExportQueue.Oban do
     oban_name = Keyword.get(opts, :oban_name, Oban)
     worker_mod = Keyword.get(opts, :worker_mod, Threadline.ExportQueue.ObanWorker)
     queue = Keyword.get(opts, :queue, :threadline_exports)
+    storage_schema = Threadline.StorageSchema.get(opts)
 
     try do
       with :ok <- init(opts),
-           job <- worker_mod.new(%{job_id: job_id}, queue: queue),
+           job <- worker_mod.new(%{job_id: job_id, storage_schema: storage_schema}, queue: queue),
            result <- oban_mod.insert(oban_name, job) do
         case result do
           {:ok, _job} -> :ok
@@ -87,6 +88,10 @@ if Code.ensure_loaded?(Oban) do
     use Oban.Worker, queue: :threadline_exports, max_attempts: 3
 
     @impl Oban.Worker
+    def perform(%Oban.Job{args: %{"job_id" => job_id, "storage_schema" => storage_schema}}) do
+      Threadline.Export.Orchestrator.run(job_id, storage_schema: storage_schema)
+    end
+
     def perform(%Oban.Job{args: %{"job_id" => job_id}}) do
       Threadline.Export.Orchestrator.run(job_id)
     end

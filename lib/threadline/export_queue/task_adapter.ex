@@ -19,10 +19,11 @@ defmodule Threadline.ExportQueue.TaskAdapter do
   @impl true
   def enqueue(job_id, opts \\ []) do
     supervisor = Keyword.get(opts, :supervisor, Threadline.Export.TaskSupervisor)
+    storage_schema = Threadline.StorageSchema.get(opts)
 
     try do
       case Task.Supervisor.start_child(supervisor, fn ->
-             Threadline.Export.Orchestrator.run(job_id)
+             Threadline.Export.Orchestrator.run(job_id, storage_schema: storage_schema)
            end) do
         {:ok, _pid} -> :ok
         {:ok, _pid, _info} -> :ok

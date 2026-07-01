@@ -23,5 +23,5 @@ defmodule Threadline.ExportQueue do
 
   Takes the ID of the `threadline_export_jobs` record to process.
   """
-  @callback enqueue(job_id()) :: :ok | {:error, term()}
+  @callback enqueue(job_id(), keyword()) :: :ok | {:error, term()}
 end
