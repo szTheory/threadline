@@ -9,16 +9,20 @@ defmodule Threadline.Semantics.Migration do
   @doc "Returns the Ecto migration module content as a string for file generation."
   def migration_content do
     storage_schema = Threadline.StorageSchema.get()
+    storage_opts = [storage_schema: storage_schema]
+    quoted_schema = Threadline.StorageSchema.quote_ident(storage_schema)
+    audit_actions = Threadline.StorageSchema.table("audit_actions", storage_opts)
+    audit_transactions = Threadline.StorageSchema.table("audit_transactions", storage_opts)
 
     """
     defmodule ThreadlineSemanticsMigration do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{storage_schema}"
+        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
 
         execute(\"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.audit_actions (
+        CREATE TABLE IF NOT EXISTS #{audit_actions} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           name           text        NOT NULL,
           actor_ref      jsonb       NOT NULL,
@@ -36,30 +40,30 @@ defmodule Threadline.Semantics.Migration do
 
         execute(\"\"\"
         CREATE INDEX IF NOT EXISTS audit_actions_actor_ref_idx
-          ON #{storage_schema}.audit_actions USING GIN (actor_ref)
+          ON #{audit_actions} USING GIN (actor_ref)
         \"\"\")
 
         execute(\"\"\"
         CREATE INDEX IF NOT EXISTS audit_actions_inserted_at_idx
-          ON #{storage_schema}.audit_actions (inserted_at)
+          ON #{audit_actions} (inserted_at)
         \"\"\")
 
         execute(\"\"\"
         CREATE INDEX IF NOT EXISTS audit_actions_name_idx
-          ON #{storage_schema}.audit_actions (name)
+          ON #{audit_actions} (name)
         \"\"\")
 
         execute(\"\"\"
-        ALTER TABLE #{storage_schema}.audit_transactions
+        ALTER TABLE #{audit_transactions}
           ADD COLUMN IF NOT EXISTS actor_ref jsonb,
-          ADD COLUMN IF NOT EXISTS action_id uuid REFERENCES #{storage_schema}.audit_actions(id) ON DELETE SET NULL
+          ADD COLUMN IF NOT EXISTS action_id uuid REFERENCES #{audit_actions}(id) ON DELETE SET NULL
         \"\"\")
       end
 
       def down do
         execute("ALTER TABLE #{storage_schema}.audit_transactions DROP COLUMN IF EXISTS action_id")
         execute("ALTER TABLE #{storage_schema}.audit_transactions DROP COLUMN IF EXISTS actor_ref")
-        execute("DROP TABLE IF EXISTS #{storage_schema}.audit_actions")
+        execute("DROP TABLE IF EXISTS #{audit_actions}")
       end
     end
     """

@@ -12,16 +12,22 @@ defmodule Threadline.Governance.Migration do
   """
   def migration_content do
     storage_schema = Threadline.StorageSchema.get()
+    storage_opts = [storage_schema: storage_schema]
+    quoted_schema = Threadline.StorageSchema.quote_ident(storage_schema)
+    export_jobs = Threadline.StorageSchema.table("threadline_export_jobs", storage_opts)
+    retention_runs = Threadline.StorageSchema.table("threadline_retention_runs", storage_opts)
+    saved_views = Threadline.StorageSchema.table("threadline_saved_views", storage_opts)
+    evidence_records = Threadline.StorageSchema.table("threadline_evidence_records", storage_opts)
 
     """
     defmodule ThreadlineGovernanceSchema do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{storage_schema}"
+        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_export_jobs (
+        CREATE TABLE IF NOT EXISTS #{export_jobs} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           query_params   jsonb       NOT NULL,
@@ -37,7 +43,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_retention_runs (
+        CREATE TABLE IF NOT EXISTS #{retention_runs} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           deleted_count  integer,
@@ -51,7 +57,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_saved_views (
+        CREATE TABLE IF NOT EXISTS #{saved_views} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           name           text        NOT NULL,
           actor_ref      jsonb       NOT NULL,
@@ -62,7 +68,7 @@ defmodule Threadline.Governance.Migration do
         \"\"\"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.threadline_evidence_records (
+        CREATE TABLE IF NOT EXISTS #{evidence_records} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           subject        text        NOT NULL,
           subject_ref    jsonb       NOT NULL,
@@ -100,7 +106,7 @@ defmodule Threadline.Governance.Migration do
         execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_evidence_records"
         execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_saved_views"
         execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_retention_runs"
-        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_export_jobs"
+        execute "DROP TABLE IF EXISTS #{export_jobs}"
       end
     end
     """

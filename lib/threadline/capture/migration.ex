@@ -17,16 +17,20 @@ defmodule Threadline.Capture.Migration do
   """
   def migration_content do
     storage_schema = StorageSchema.get()
+    storage_opts = [storage_schema: storage_schema]
+    quoted_schema = StorageSchema.quote_ident(storage_schema)
+    audit_transactions = StorageSchema.table("audit_transactions", storage_opts)
+    audit_changes = StorageSchema.table("audit_changes", storage_opts)
 
     """
     defmodule ThreadlineAuditSchema do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{storage_schema}"
+        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.audit_transactions (
+        CREATE TABLE IF NOT EXISTS #{audit_transactions} (
           id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           txid        bigint      NOT NULL UNIQUE,
           occurred_at timestamptz NOT NULL DEFAULT now(),
@@ -35,12 +39,12 @@ defmodule Threadline.Capture.Migration do
         )
         \"\"\"
 
-        execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON #{storage_schema}.audit_transactions (txid)"
+        execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON #{audit_transactions} (txid)"
 
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{storage_schema}.audit_changes (
+        CREATE TABLE IF NOT EXISTS #{audit_changes} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-          transaction_id uuid        NOT NULL REFERENCES #{storage_schema}.audit_transactions(id) ON DELETE CASCADE,
+          transaction_id uuid        NOT NULL REFERENCES #{audit_transactions}(id) ON DELETE CASCADE,
           table_schema   text        NOT NULL,
           table_name     text        NOT NULL,
           table_pk       jsonb       NOT NULL,
@@ -62,7 +66,7 @@ defmodule Threadline.Capture.Migration do
       def down do
         execute #{inspect(TriggerSQL.drop_function())}
         execute "DROP TABLE IF EXISTS #{storage_schema}.audit_changes"
-        execute "DROP TABLE IF EXISTS #{storage_schema}.audit_transactions"
+        execute "DROP TABLE IF EXISTS #{audit_transactions}"
       end
     end
     """
