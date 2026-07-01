@@ -5,15 +5,15 @@ milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 current_phase: 190
 current_phase_name: storage-schema-confidence-and-host-schema-truth
 status: executing
-stopped_at: Phase 190 planned
-last_updated: "2026-07-01T19:45:31.203Z"
+stopped_at: Completed 190-02-PLAN.md
+last_updated: "2026-07-01T19:57:41.541Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 2
-  percent: 18
+  completed_plans: 3
+  percent: 20
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-01)
 ## Current Position
 
 Phase: 190 (storage-schema-confidence-and-host-schema-truth) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-07-01
 
@@ -136,6 +136,7 @@ Last activity: 2026-07-01
 | Phase 188 P03 | 8 min | 2 tasks | 6 files |
 | Phase 189 P01 | 6 min | 3 tasks | 2 files |
 | Phase 190 P01 | 8m31s | 3 tasks | 9 files |
+| Phase 190 P02 | 8min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -358,6 +359,8 @@ Last activity: 2026-07-01
 - [Phase 189]: Phase 189 treats screenshot, external pilot, and host staging claims as proof-boundary residuals instead of implementation scope.
 - [Phase 190]: [190-01]: Generated install migration SQL uses Threadline.StorageSchema quoted identifiers for every validated storage-schema table, function, and drop/index reference touched by SCHEMA-03.
 - [Phase 190]: [190-01]: Adopter docs now show storage_schema: "audit" before mix threadline.install and state that generated migration files freeze the configured schema name.
+- [Phase 190]: [190-02] Threadline-owned Ecto schemas now rely on Repo prefix options instead of fixed @schema_prefix attributes. — SCHEMA-02 requires configurable storage schemas not to silently read from or write to hardcoded threadline.
+- [Phase 190]: [190-02] Storage-schema test support is explicit and test-only; it does not add a production fallback or Repo hook. — Tests should make omitted prefix plumbing visible while later Phase 190 plans wire production Repo operations.
 
 ### Blockers
 
@@ -365,8 +368,8 @@ Last activity: 2026-07-01
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T19:45:12.121Z
-**Stopped at:** Phase 190 planned
+**Last session:** 2026-07-01T19:57:41.527Z
+**Stopped at:** Completed 190-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

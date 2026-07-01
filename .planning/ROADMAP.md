@@ -22,7 +22,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | Phase | Name | Requirements | Status |
 |------:|------|--------------|--------|
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
-| 190 | 1/10 | In Progress|  |
+| 190 | 2/10 | In Progress|  |
 | 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
@@ -52,7 +52,7 @@ Plans:
 **Wave 1**
 
 - [x] 190-01-PLAN.md — Quote storage-schema identifiers and freeze generated migration contracts.
-- [ ] 190-02-PLAN.md — Remove owned fixed prefixes and add explicit storage-schema test support.
+- [x] 190-02-PLAN.md — Remove owned fixed prefixes and add explicit storage-schema test support.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
