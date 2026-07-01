@@ -61,7 +61,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               query_params: query_params,
               actor_ref: socket.assigns[:threadline_actor_ref]
             }
-            |> repo.insert!(StorageSchema.repo_opts())
+            |> repo.insert!(storage_opts(socket))
 
           adapter =
             Application.get_env(
@@ -86,7 +86,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 error_message: error_message,
                 expires_at: terminal_export_expiry()
               })
-              |> repo.update!(StorageSchema.repo_opts())
+              |> repo.update!(storage_opts(socket))
 
               {:noreply, put_flash(socket, :error, error_message)}
           end
@@ -368,7 +368,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             order_by: [desc: j.inserted_at],
             limit: @default_limit
           )
-          |> repo.all(StorageSchema.repo_opts())
+          |> repo.all(storage_opts(socket))
         else
           []
         end
@@ -387,6 +387,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
     end
+
+    defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
 
     defp assign_jobs(socket, jobs) do
       count = length(jobs)

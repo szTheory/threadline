@@ -660,7 +660,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             file_path: "threadline-jobs.csv",
             expires_at: DateTime.add(now, 600, :second)
           })
-          |> Repo.insert!(repo_opts())
+          |> Repo.insert!(repo_opts("threadline"))
 
           {:ok, _view, html} = live(conn, "/audit/exports")
 

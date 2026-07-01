@@ -46,7 +46,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               where: v.actor_ref == ^actor_ref,
               order_by: [desc: v.inserted_at]
             ),
-            StorageSchema.repo_opts()
+            storage_opts(socket)
           )
         else
           []
@@ -172,7 +172,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 page =
                   page_task
                   |> Task.await(8_000)
-                  |> preload_visible_context(socket.assigns.repo)
+                  |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
 
                 filter_query = build_canonical_query(socket.assigns.filters_raw)
                 future_window_empty = future_window_empty?(filters, count, socket)
@@ -209,7 +209,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         changeset = Threadline.Governance.SavedView.changeset(attrs)
 
-        case socket.assigns.repo.insert(changeset, StorageSchema.repo_opts()) do
+        case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
           {:ok, view} ->
             saved_views = [view | socket.assigns.saved_views]
             {:noreply, assign(socket, :saved_views, saved_views)}
@@ -239,7 +239,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, socket}
 
         view ->
-          socket.assigns.repo.delete!(view, StorageSchema.repo_opts())
+          socket.assigns.repo.delete!(view, storage_opts(socket))
           saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
           {:noreply, assign(socket, :saved_views, saved_views)}
       end
@@ -276,7 +276,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: socket.assigns[:threadline_actor_ref]
       }
 
-      job = repo.insert!(job, StorageSchema.repo_opts())
+      job = repo.insert!(job, storage_opts(socket))
 
       adapter =
         Application.get_env(
@@ -304,7 +304,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             error_message: error_message,
             expires_at: terminal_export_expiry()
           })
-          |> repo.update!(StorageSchema.repo_opts())
+          |> repo.update!(storage_opts(socket))
 
           {:noreply, put_flash(socket, :error, error_message)}
       end
@@ -314,15 +314,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("next-page", _, socket) do
       if socket.assigns.cursor do
+        opts =
+          socket
+          |> scope_aware_opts()
+          |> Keyword.put(:cursor, socket.assigns.cursor)
+
         page =
           Query.timeline_page(
             socket.assigns.filters,
-            repo: scope_aware_opts(socket)[:repo] || default_repo(),
-            scope: socket.assigns[:threadline_scope],
-            page_size: 50,
-            cursor: socket.assigns.cursor
+            opts
           )
-          |> preload_visible_context(socket.assigns.repo)
+          |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
 
         {:noreply,
          socket
@@ -843,7 +845,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         scope: socket.assigns.scope,
         scope_query_fn: socket.assigns[:threadline_scope_query_fn],
         surface: :timeline,
-        params: %{filters: socket.assigns.filters}
+        params: %{filters: socket.assigns.filters},
+        storage_schema: StorageSchema.get()
       ]
     end
 
@@ -857,8 +860,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Application.get_env(:threadline, :ecto_repos) |> hd()
     end
 
-    defp preload_visible_context(%{entries: entries} = page, repo) do
-      %{page | entries: repo.preload(entries, transaction: :action)}
+    defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
+
+    defp preload_visible_context(%{entries: entries} = page, repo, opts) do
+      %{
+        page
+        | entries: repo.preload(entries, [transaction: :action], StorageSchema.repo_opts(opts))
+      }
     end
 
     defp actor_label(%{transaction: %{actor_ref: %{type: type, id: id}}}) when not is_nil(id),
