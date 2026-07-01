@@ -2,10 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
+current_phase: 189
+current_phase_name: Quality baseline and authority-surface audit
 status: planning
-stopped_at: Phase 189 context gathered
-last_updated: "2026-07-01T15:26:28.415Z"
-last_activity: 2026-07-01 — Milestone v1.39 roadmap created; Phase 189 ready to plan
+stopped_at: Phase 189 UI-SPEC approved
+last_updated: "2026-07-01T15:49:58.772Z"
+last_activity: 2026-07-01
+last_activity_desc: Milestone v1.39 roadmap created; Phase 189 ready to plan
 progress:
   total_phases: 5
   completed_phases: 0
@@ -357,9 +360,9 @@ Last activity: 2026-07-01 — Milestone v1.39 roadmap created; Phase 189 ready t
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T15:26:28.408Z
-**Stopped at:** Phase 189 context gathered
-**Resume file:** .planning/phases/189-quality-baseline-and-authority-surface-audit/189-CONTEXT.md
+**Last session:** 2026-07-01T15:49:58.764Z
+**Stopped at:** Phase 189 UI-SPEC approved
+**Resume file:** .planning/phases/189-quality-baseline-and-authority-surface-audit/189-UI-SPEC.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
