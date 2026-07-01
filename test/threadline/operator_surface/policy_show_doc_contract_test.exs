@@ -15,6 +15,7 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
   @live_view_path "lib/threadline/operator_surface/live/policy_redaction_live.ex"
   @mix_task_path "lib/mix/tasks/threadline.policy.show.ex"
   @presenter_path "lib/threadline/policy/redaction_presenter.ex"
+  @domain_reference_path "guides/domain-reference.md"
 
   describe "route literal" do
     test "router wires the policy redaction LiveView route" do
@@ -68,6 +69,20 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
                src,
                "Default output prints one summary line, one aligned table, and detail blocks"
              )
+    end
+
+    test "domain reference documents policy.show --schema as host schema, not storage schema" do
+      src = File.read!(@domain_reference_path)
+
+      for literal <- [
+            "mix threadline.policy.show --schema=NAME",
+            "mix threadline.policy.show --schema=support",
+            "`--schema=NAME` selects the audited host schema",
+            "does not change Threadline's storage schema"
+          ] do
+        assert String.contains?(src, literal),
+               "expected #{@domain_reference_path} to document #{inspect(literal)}"
+      end
     end
 
     test "shared presenter carries the rerun hint and Mix task renders shared hints" do

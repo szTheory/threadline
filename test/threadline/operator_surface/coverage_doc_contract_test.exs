@@ -189,6 +189,24 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       refute String.contains?(guide, "Which tables are covered right now?")
     end
 
+    test "operator guide documents storage-schema plus support host-schema happy path" do
+      guide = File.read!("guides/operator-surface.md")
+
+      for literal <- [
+            ~s|storage_schema: "audit"|,
+            "mix threadline.install",
+            "mix threadline.gen.triggers --tables support.tickets",
+            "mix threadline.verify_coverage --schema=support",
+            "mix threadline.policy.show --schema=support",
+            "/audit/timeline?table_schema=support&table=tickets",
+            ~s|"support.tickets" => MyApp.Support.Ticket|,
+            ~s|bare `"tickets"` key is public-schema shorthand|
+          ] do
+        assert String.contains?(guide, literal),
+               "expected operator guide to document #{inspect(literal)}"
+      end
+    end
+
     test "production checklist uses audit-readiness language instead of dashboard language" do
       checklist = File.read!("guides/production-checklist.md")
       coverage_section = guide_section(checklist, "## Coverage drift visibility")

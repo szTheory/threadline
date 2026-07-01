@@ -48,6 +48,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.SupportTicket do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    @schema_prefix "support"
+    schema "tickets" do
+      field(:title, :string)
+    end
+  end
+
   defmodule Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -68,7 +78,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_schema",
         schemas: %{
-          "routeable_rows" => Threadline.OperatorSurface.TimelineLiveTest.RouteableRow
+          "routeable_rows" => Threadline.OperatorSurface.TimelineLiveTest.RouteableRow,
+          "support.tickets" => Threadline.OperatorSurface.TimelineLiveTest.SupportTicket
         }
       )
     end
@@ -1343,6 +1354,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
     end
 
+    test "schema-qualified schemas key exposes row history for non-public duplicate table",
+         %{conn: conn} do
+      row_id = "ticket/with space"
+
+      seed_change!(
+        table_schema: "support",
+        table: "tickets",
+        table_pk: %{"id" => row_id}
+      )
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit_schema/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table_schema=support&table=tickets"
+               )
+
+      assert html =~ ~s|data-testid="timeline-row-history-link"|
+      assert html =~ ~s|href="/audit_schema/rows/support.tickets/ticket%2Fwith%20space"|
+      assert html =~ "Row history"
+    end
+
     defp clear_audit_rows! do
       Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
       Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
@@ -1358,6 +1390,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
       correlation_id = Keyword.get(opts, :correlation_id)
+      table_schema = Keyword.get(opts, :table_schema, "public")
 
       action =
         if correlation_id do
@@ -1387,7 +1420,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo.insert!(
         Threadline.Capture.AuditChange.changeset(%{
           transaction_id: txn.id,
-          table_schema: "public",
+          table_schema: table_schema,
           table_name: Keyword.fetch!(opts, :table),
           table_pk: Keyword.fetch!(opts, :table_pk),
           op: Keyword.get(opts, :op, "insert"),
