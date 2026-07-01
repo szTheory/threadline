@@ -195,6 +195,49 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "ecto_repos")
   end
 
+  test "getting-started documents custom storage schema before install generation" do
+    doc = read_rel!(@guide_path)
+
+    configure_section =
+      section_slice(doc, "### Configure Threadline", "## 3. Install the audit schema")
+
+    install_section =
+      section_slice(doc, "## 3. Install the audit schema", "## 4. Generate triggers for posts")
+
+    assert String.contains?(configure_section, ~S|storage_schema: "audit"|)
+    assert String.contains?(configure_section, "before you run `mix threadline.install`")
+
+    assert String.contains?(
+             install_section,
+             "Generated migration files carry the configured storage schema name"
+           )
+
+    assert String.contains?(
+             install_section,
+             "Changing `storage_schema` later does not rewrite existing migration files"
+           )
+
+    assert String.contains?(
+             doc,
+             "Threadline storage schema is separate from audited host-table schema"
+           )
+
+    assert String.contains?(
+             doc,
+             "Host tables can still live in `public`, `support`, or another app schema"
+           )
+
+    {configure_idx, _} = :binary.match(doc, ~S|storage_schema: "audit"|)
+    {install_idx, _} = :binary.match(doc, "mix threadline.install")
+
+    assert configure_idx < install_idx
+
+    refute String.contains?(
+             install_section,
+             "runtime-only config changes rewrite generated migrations"
+           )
+  end
+
   test "getting-started optional sigra-reference fence is scoped" do
     doc = read_rel!(@guide_path)
 

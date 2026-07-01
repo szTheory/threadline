@@ -244,6 +244,40 @@ defmodule Threadline.ReadmeDocContractTest do
     assert literal_idx < install_idx
   end
 
+  test "README Quick Start documents custom storage schema generation timing" do
+    readme = File.read!("README.md")
+    slice = section_slice(readme, @quick_start_start, @quick_start_end)
+
+    assert String.contains?(slice, ~S|storage_schema: "audit"|)
+    assert String.contains?(slice, "before you run `mix threadline.install`")
+
+    assert String.contains?(
+             slice,
+             "Generated migration files carry the configured storage schema name"
+           )
+
+    assert String.contains?(
+             slice,
+             "Changing `storage_schema` later does not rewrite existing migration files"
+           )
+
+    assert String.contains?(
+             slice,
+             "Threadline storage schema is separate from audited host-table schema"
+           )
+
+    assert String.contains?(
+             slice,
+             "Host tables can still live in `public`, `support`, or another app schema"
+           )
+
+    {audit_idx, _} = :binary.match(slice, ~S|storage_schema: "audit"|)
+    {install_idx, _} = :binary.match(slice, "mix threadline.install")
+
+    assert audit_idx < install_idx
+    refute String.contains?(slice, "set `storage_schema` after `mix threadline.install`")
+  end
+
   test "README Quick Start locks posts-only trigger step and SSOT cross-links" do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
