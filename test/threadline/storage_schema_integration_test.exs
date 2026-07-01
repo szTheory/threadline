@@ -193,6 +193,28 @@ defmodule Threadline.StorageSchemaIntegrationTest do
     end
   end
 
+  describe "operator-relevant configured storage reads" do
+    test "saved views, export jobs, evidence, and retention reads resolve from audit storage" do
+      prepare_dual_storage!()
+
+      insert_storage_sentinel!("threadline", label: "threadline-operator-sentinel")
+      insert_storage_sentinel!("audit", label: "audit-operator-sentinel")
+
+      with_storage_schema("audit", fn ->
+        snapshot = operator_read_snapshot!()
+
+        assert snapshot.saved_view_names == ["audit-operator-sentinel saved view"]
+        assert snapshot.export_file_paths == ["audit-operator-sentinel.csv"]
+        assert snapshot.evidence_run_ids == ["audit-operator-sentinel"]
+        assert snapshot.retention_statuses == ["completed"]
+
+        refute "threadline-operator-sentinel saved view" in snapshot.saved_view_names
+        refute "threadline-operator-sentinel.csv" in snapshot.export_file_paths
+        refute "threadline-operator-sentinel" in snapshot.evidence_run_ids
+      end)
+    end
+  end
+
   defp storage_table_exists?(schema, table) do
     %{rows: [[exists?]]} =
       SQL.query!(
