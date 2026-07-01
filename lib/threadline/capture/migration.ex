@@ -27,7 +27,9 @@ defmodule Threadline.Capture.Migration do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
+        execute \"\"\"
+        CREATE SCHEMA IF NOT EXISTS #{quoted_schema}
+        \"\"\"
 
         execute \"\"\"
         CREATE TABLE IF NOT EXISTS #{audit_transactions} (
@@ -39,7 +41,9 @@ defmodule Threadline.Capture.Migration do
         )
         \"\"\"
 
-        execute "CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON #{audit_transactions} (txid)"
+        execute \"\"\"
+        CREATE INDEX IF NOT EXISTS audit_transactions_txid_idx ON #{audit_transactions} (txid)
+        \"\"\"
 
         execute \"\"\"
         CREATE TABLE IF NOT EXISTS #{audit_changes} (
@@ -56,17 +60,31 @@ defmodule Threadline.Capture.Migration do
         )
         \"\"\"
 
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON #{storage_schema}.audit_changes (transaction_id)"
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON #{storage_schema}.audit_changes (table_name)"
-        execute "CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON #{storage_schema}.audit_changes (captured_at)"
+        execute \"\"\"
+        CREATE INDEX IF NOT EXISTS audit_changes_transaction_id_idx ON #{audit_changes} (transaction_id)
+        \"\"\"
+
+        execute \"\"\"
+        CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx ON #{audit_changes} (table_name)
+        \"\"\"
+
+        execute \"\"\"
+        CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON #{audit_changes} (captured_at)
+        \"\"\"
 
         execute #{inspect(TriggerSQL.install_function([]))}
       end
 
       def down do
         execute #{inspect(TriggerSQL.drop_function())}
-        execute "DROP TABLE IF EXISTS #{storage_schema}.audit_changes"
-        execute "DROP TABLE IF EXISTS #{audit_transactions}"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{audit_changes}
+        \"\"\"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{audit_transactions}
+        \"\"\"
       end
     end
     """

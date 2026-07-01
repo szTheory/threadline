@@ -19,12 +19,29 @@ defmodule Threadline.Governance.Migration do
     saved_views = Threadline.StorageSchema.table("threadline_saved_views", storage_opts)
     evidence_records = Threadline.StorageSchema.table("threadline_evidence_records", storage_opts)
 
+    evidence_subject_idx =
+      Threadline.StorageSchema.qualify(storage_schema, "threadline_evidence_records_subject_idx")
+
+    evidence_recorded_at_idx =
+      Threadline.StorageSchema.qualify(
+        storage_schema,
+        "threadline_evidence_records_recorded_at_idx"
+      )
+
+    evidence_subject_ref_idx =
+      Threadline.StorageSchema.qualify(
+        storage_schema,
+        "threadline_evidence_records_subject_ref_idx"
+      )
+
     """
     defmodule ThreadlineGovernanceSchema do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
+        execute \"\"\"
+        CREATE SCHEMA IF NOT EXISTS #{quoted_schema}
+        \"\"\"
 
         execute \"\"\"
         CREATE TABLE IF NOT EXISTS #{export_jobs} (
@@ -84,29 +101,49 @@ defmodule Threadline.Governance.Migration do
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_idx
-          ON #{storage_schema}.threadline_evidence_records (subject)
+          ON #{evidence_records} (subject)
         \"\"\"
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_recorded_at_idx
-          ON #{storage_schema}.threadline_evidence_records (recorded_at)
+          ON #{evidence_records} (recorded_at)
         \"\"\"
 
         execute \"\"\"
         CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_ref_idx
-          ON #{storage_schema}.threadline_evidence_records
+          ON #{evidence_records}
           USING gin (subject_ref)
         \"\"\"
       end
 
       def down do
-        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_subject_ref_idx"
-        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_recorded_at_idx"
-        execute "DROP INDEX IF EXISTS #{storage_schema}.threadline_evidence_records_subject_idx"
-        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_evidence_records"
-        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_saved_views"
-        execute "DROP TABLE IF EXISTS #{storage_schema}.threadline_retention_runs"
-        execute "DROP TABLE IF EXISTS #{export_jobs}"
+        execute \"\"\"
+        DROP INDEX IF EXISTS #{evidence_subject_ref_idx}
+        \"\"\"
+
+        execute \"\"\"
+        DROP INDEX IF EXISTS #{evidence_recorded_at_idx}
+        \"\"\"
+
+        execute \"\"\"
+        DROP INDEX IF EXISTS #{evidence_subject_idx}
+        \"\"\"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{evidence_records}
+        \"\"\"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{saved_views}
+        \"\"\"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{retention_runs}
+        \"\"\"
+
+        execute \"\"\"
+        DROP TABLE IF EXISTS #{export_jobs}
+        \"\"\"
       end
     end
     """

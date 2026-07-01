@@ -19,7 +19,9 @@ defmodule Threadline.Semantics.Migration do
       use Ecto.Migration
 
       def up do
-        execute "CREATE SCHEMA IF NOT EXISTS #{quoted_schema}"
+        execute \"\"\"
+        CREATE SCHEMA IF NOT EXISTS #{quoted_schema}
+        \"\"\"
 
         execute(\"\"\"
         CREATE TABLE IF NOT EXISTS #{audit_actions} (
@@ -61,9 +63,17 @@ defmodule Threadline.Semantics.Migration do
       end
 
       def down do
-        execute("ALTER TABLE #{storage_schema}.audit_transactions DROP COLUMN IF EXISTS action_id")
-        execute("ALTER TABLE #{storage_schema}.audit_transactions DROP COLUMN IF EXISTS actor_ref")
-        execute("DROP TABLE IF EXISTS #{audit_actions}")
+        execute(\"\"\"
+        ALTER TABLE #{audit_transactions} DROP COLUMN IF EXISTS action_id
+        \"\"\")
+
+        execute(\"\"\"
+        ALTER TABLE #{audit_transactions} DROP COLUMN IF EXISTS actor_ref
+        \"\"\")
+
+        execute(\"\"\"
+        DROP TABLE IF EXISTS #{audit_actions}
+        \"\"\")
       end
     end
     """
