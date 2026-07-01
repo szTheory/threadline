@@ -72,10 +72,17 @@ defmodule Threadline.StorageSchema do
   Plain names resolve to `public`. Qualified names must be `schema.table`.
   """
   def parse_table_identifier(value) when is_binary(value) do
-    case String.split(value, ".", trim: true) do
-      [table] -> %{schema: "public", table: validate!(table)}
-      [schema, table] -> %{schema: validate!(schema), table: validate!(table)}
-      _ -> raise ArgumentError, "table must be NAME or SCHEMA.NAME, got: #{inspect(value)}"
+    value = String.trim(value)
+
+    case String.split(value, ".", trim: false) do
+      [table] when table != "" ->
+        %{schema: "public", table: validate!(table)}
+
+      [schema, table] when schema != "" and table != "" ->
+        %{schema: validate!(schema), table: validate!(table)}
+
+      _ ->
+        raise ArgumentError, "table must be NAME or SCHEMA.NAME, got: #{inspect(value)}"
     end
   end
 

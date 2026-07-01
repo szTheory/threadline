@@ -86,7 +86,11 @@ defmodule Threadline.VerifyCoverageTaskTest do
         coverage = Threadline.Health.trigger_coverage(repo: @repo, schema: "support")
 
         assert {:covered, "tickets"} in coverage
-        refute Enum.any?(coverage, fn {_status, table} -> table == "threadline_ci_coverage_canary" end)
+
+        refute Enum.any?(coverage, fn {_status, table} ->
+                 table == "threadline_ci_coverage_canary"
+               end)
+
         assert Application.get_env(:threadline, :storage_schema) == "audit"
       end)
     end
