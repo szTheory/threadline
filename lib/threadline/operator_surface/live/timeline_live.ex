@@ -1129,7 +1129,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp pad2(value) when is_integer(value) and value < 10, do: "0#{value}"
     defp pad2(value) when is_integer(value), do: Integer.to_string(value)
 
-    defp filter_label("table_schema"), do: "schema"
+    defp filter_label("table_schema"), do: "host schema"
     defp filter_label("actor_kind"), do: "actor kind"
     defp filter_label("actor_id"), do: "actor id"
     defp filter_label("correlation_id"), do: "correlation id"
@@ -1146,7 +1146,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         String.contains?(message, "correlation_id") -> "correlation id"
         String.contains?(message, "actor_kind") -> "actor kind"
         String.contains?(message, "actor_id") -> "actor id"
-        String.contains?(message, "table_schema") -> "schema"
+        String.contains?(message, "table_schema") -> "host schema"
         String.contains?(message, "table") -> "table"
         String.contains?(message, "from") or String.contains?(message, "to") -> "time window"
         true -> "named"
