@@ -22,7 +22,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | Phase | Name | Requirements | Status |
 |------:|------|--------------|--------|
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
-| 190 | 9/10 | In Progress|  |
+| 190 | 10/10 | Complete   | 2026-07-01 |
 | 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
@@ -72,7 +72,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 190-10-PLAN.md — Prove custom `audit` storage with real dual-schema PostgreSQL sentinels.
+- [x] 190-10-PLAN.md — Prove custom `audit` storage with real dual-schema PostgreSQL sentinels.
 
 **Success criteria:**
 
