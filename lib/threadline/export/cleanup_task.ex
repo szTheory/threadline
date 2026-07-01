@@ -24,6 +24,7 @@ defmodule Threadline.Export.CleanupTask do
   def init(opts) do
     repo = Keyword.fetch!(opts, :repo)
     interval_ms = Keyword.get(opts, :interval_ms, @default_interval_ms)
+    storage_schema = StorageSchema.get(opts)
 
     stale_running_cutoff_hours =
       Keyword.get(opts, :stale_running_cutoff_hours, @default_stale_running_cutoff_hours)
@@ -35,14 +36,19 @@ defmodule Threadline.Export.CleanupTask do
      %{
        repo: repo,
        interval_ms: interval_ms,
-       stale_running_cutoff_hours: stale_running_cutoff_hours
+       stale_running_cutoff_hours: stale_running_cutoff_hours,
+       storage_schema: storage_schema
      }}
   end
 
   @impl true
   def handle_info(:bootstrap_reconcile, state) do
     if repo_started?(state.repo) do
-      reconcile_abandoned_runs(state.repo, state.stale_running_cutoff_hours)
+      reconcile_abandoned_runs(
+        state.repo,
+        state.stale_running_cutoff_hours,
+        storage_schema_from_state(state)
+      )
     else
       Process.send_after(self(), :bootstrap_reconcile, @bootstrap_retry_ms)
     end
@@ -53,12 +59,13 @@ defmodule Threadline.Export.CleanupTask do
   @impl true
   def handle_info(:run_cleanup, state) do
     %{repo: repo, interval_ms: interval_ms} = state
+    storage_schema = storage_schema_from_state(state)
 
     if repo_started?(repo) do
       repo.checkout(fn ->
         if acquire_lock(repo) do
           try do
-            perform_cleanup(repo)
+            perform_cleanup(repo, storage_schema)
           after
             release_lock(repo)
           end
@@ -72,8 +79,9 @@ defmodule Threadline.Export.CleanupTask do
     {:noreply, state}
   end
 
-  defp perform_cleanup(repo) do
+  defp perform_cleanup(repo, storage_schema) do
     cutoff = now()
+    storage_opts = StorageSchema.repo_opts(storage_schema: storage_schema)
 
     query =
       from(j in ExportJob,
@@ -81,7 +89,7 @@ defmodule Threadline.Export.CleanupTask do
         where: not is_nil(j.expires_at) and j.expires_at < ^cutoff
       )
 
-    expired_jobs = repo.all(query, StorageSchema.repo_opts())
+    expired_jobs = repo.all(query, storage_opts)
 
     for job <- expired_jobs do
       if job.file_path do
@@ -91,7 +99,7 @@ defmodule Threadline.Export.CleanupTask do
         storage_adapter.delete(job.file_path)
       end
 
-      repo.delete!(job, StorageSchema.repo_opts())
+      repo.delete!(job, storage_opts)
     end
   end
 
@@ -99,8 +107,9 @@ defmodule Threadline.Export.CleanupTask do
     Process.send_after(self(), :run_cleanup, interval_ms)
   end
 
-  defp reconcile_abandoned_runs(repo, stale_running_cutoff_hours) do
+  defp reconcile_abandoned_runs(repo, stale_running_cutoff_hours, storage_schema) do
     cutoff = now() |> DateTime.add(-stale_running_cutoff_hours, :hour)
+    storage_opts = StorageSchema.repo_opts(storage_schema: storage_schema)
 
     from(j in ExportJob,
       where: j.status == "running" and j.started_at < ^cutoff
@@ -114,7 +123,7 @@ defmodule Threadline.Export.CleanupTask do
           updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
         ]
       ],
-      StorageSchema.repo_opts()
+      storage_opts
     )
   end
 
@@ -143,6 +152,9 @@ defmodule Threadline.Export.CleanupTask do
   defp repo_started?(repo) do
     is_atom(repo) and is_pid(Process.whereis(repo))
   end
+
+  defp storage_schema_from_state(state),
+    do: Map.get(state, :storage_schema) || StorageSchema.get()
 
   defp now, do: DateTime.utc_now(:microsecond)
 end

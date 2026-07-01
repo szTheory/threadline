@@ -16,9 +16,11 @@ defmodule Threadline.Export.Orchestrator do
   """
   def run(job_id, opts \\ []) do
     repo = Keyword.get(opts, :repo) || default_repo()
+    storage_schema = StorageSchema.get(opts)
+    storage_opts = StorageSchema.repo_opts(storage_schema: storage_schema)
     storage = Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
 
-    case fetch_and_mark_running(repo, job_id) do
+    case fetch_and_mark_running(repo, job_id, storage_opts) do
       {:ok, job} ->
         temp_path =
           Path.join(
@@ -35,7 +37,7 @@ defmodule Threadline.Export.Orchestrator do
 
                 filters = prepare_filters(job.query_params, repo)
 
-                Export.stream_export_rows(filters, repo: repo)
+                Export.stream_export_rows(filters, repo: repo, storage_schema: storage_schema)
                 |> Stream.chunk_every(1000)
                 |> Enum.each(fn chunk ->
                   iodata = Export.format_changes_iodata(chunk, :csv)
@@ -56,17 +58,17 @@ defmodule Threadline.Export.Orchestrator do
 
           case res do
             {:ok, file_path} ->
-              mark_completed(repo, job, file_path)
+              mark_completed(repo, job, file_path, storage_opts)
               :ok
 
             {:error, reason} ->
-              mark_failed(repo, job, inspect(reason))
+              mark_failed(repo, job, inspect(reason), storage_opts)
               {:error, reason}
           end
         rescue
           e ->
             if File.exists?(temp_path), do: File.rm(temp_path)
-            mark_failed(repo, job, Exception.message(e))
+            mark_failed(repo, job, Exception.message(e), storage_opts)
             {:error, e}
         end
 
@@ -79,34 +81,34 @@ defmodule Threadline.Export.Orchestrator do
     Application.get_env(:threadline, :ecto_repos, []) |> List.first()
   end
 
-  defp fetch_and_mark_running(repo, job_id) do
-    job = repo.get!(ExportJob, job_id, StorageSchema.repo_opts())
+  defp fetch_and_mark_running(repo, job_id, storage_opts) do
+    job = repo.get!(ExportJob, job_id, storage_opts)
 
     Ecto.Changeset.change(job, %{
       status: "running",
       started_at: now(),
       error_message: nil
     })
-    |> repo.update(StorageSchema.repo_opts())
+    |> repo.update(storage_opts)
   end
 
-  defp mark_completed(repo, job, file_path) do
+  defp mark_completed(repo, job, file_path, storage_opts) do
     Ecto.Changeset.change(job, %{
       status: "completed",
       file_path: file_path,
       completed_at: now(),
       expires_at: terminal_expiry()
     })
-    |> repo.update!(StorageSchema.repo_opts())
+    |> repo.update!(storage_opts)
   end
 
-  defp mark_failed(repo, job, error_message) do
+  defp mark_failed(repo, job, error_message, storage_opts) do
     Ecto.Changeset.change(job, %{
       status: "failed",
       error_message: error_message,
       expires_at: terminal_expiry()
     })
-    |> repo.update!(StorageSchema.repo_opts())
+    |> repo.update!(storage_opts)
   end
 
   defp prepare_filters(query_params, repo) do
