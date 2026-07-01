@@ -12,9 +12,9 @@
 
 ### Quality Baseline
 
-- [ ] **QUAL-01**: Maintainers can read a repo-evidence software-quality audit that identifies the weakest quality dimensions, scores confidence, explains practical consequences, and ranks the highest-leverage fixes.
-- [ ] **QUAL-02**: The audit separates must-fix adoption/operations/maintainer risks from good-enough, low-priority, or N/A dimensions; it does not flatten every checklist item into generic consulting advice.
-- [ ] **QUAL-03**: Open residuals and seeds that affect quality trust are triaged, including SEED-005 reconnect/offline banner, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
+- [x] **QUAL-01**: Maintainers can read a repo-evidence software-quality audit that identifies the weakest quality dimensions, scores confidence, explains practical consequences, and ranks the highest-leverage fixes.
+- [x] **QUAL-02**: The audit separates must-fix adoption/operations/maintainer risks from good-enough, low-priority, or N/A dimensions; it does not flatten every checklist item into generic consulting advice.
+- [x] **QUAL-03**: Open residuals and seeds that affect quality trust are triaged, including SEED-005 reconnect/offline banner, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
 
 ### Storage Schema Confidence
 
@@ -77,9 +77,9 @@ Deferred unless the v1.39 audit or real adopter pressure shows they materially r
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QUAL-01 | Phase 189 | Pending |
-| QUAL-02 | Phase 189 | Pending |
-| QUAL-03 | Phase 189 | Pending |
+| QUAL-01 | Phase 189 | Complete |
+| QUAL-02 | Phase 189 | Complete |
+| QUAL-03 | Phase 189 | Complete |
 | SCHEMA-01 | Phase 190 | Pending |
 | SCHEMA-02 | Phase 190 | Pending |
 | SCHEMA-03 | Phase 190 | Pending |

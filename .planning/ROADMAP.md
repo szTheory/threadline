@@ -21,7 +21,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 
 | Phase | Name | Requirements | Status |
 |------:|------|--------------|--------|
-| 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Pending |
+| 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
 | 190 | Storage schema confidence and host-schema truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Pending |
 | 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
