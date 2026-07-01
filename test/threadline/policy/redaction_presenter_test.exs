@@ -278,4 +278,59 @@ defmodule Threadline.Policy.RedactionPresenterTest do
       end)
     end
   end
+
+  describe "build_report/3 selected host schema" do
+    test "matches schema-qualified configured tables to deployed rows in selected host schema" do
+      report =
+        RedactionPresenter.build_report(
+          %{
+            "public.tickets" => [mask: ["email"]],
+            "support.tickets" => [
+              exclude: ["password_hash"],
+              mask: ["email"],
+              mask_placeholder: RedactionPolicy.default_placeholder()
+            ]
+          },
+          [
+            %{
+              table: "tickets",
+              trigger_name: "threadline_audit_support_tickets",
+              function_name: "threadline_capture_changes_support_tickets",
+              function_language: "plpgsql",
+              function_source:
+                TriggerSQL.install_function_for_table("support.tickets",
+                  exclude: ["password_hash"],
+                  mask: ["email"],
+                  store_changed_from: true
+                )
+            }
+          ],
+          schema: "support"
+        )
+
+      assert [
+               %{
+                 table: "support.tickets",
+                 table_schema: "support",
+                 table_name: "tickets",
+                 status: :config_matches_deployed
+               }
+             ] = report.tables
+    end
+
+    test "keeps bare configured table names as public-schema shorthand" do
+      report =
+        RedactionPresenter.build_report(
+          %{
+            "tickets" => [mask: ["email"]],
+            "support.tickets" => [mask: ["email"]]
+          },
+          [],
+          schema: "support"
+        )
+
+      assert [%{table: "support.tickets", table_schema: "support", table_name: "tickets"}] =
+               report.tables
+    end
+  end
 end

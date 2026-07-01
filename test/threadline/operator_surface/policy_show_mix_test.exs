@@ -193,6 +193,69 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
       refute output =~ "alice@example.com"
       refute output =~ "hunter2"
     end
+
+    test "--schema=support renders selected host schema JSON without changing storage schema" do
+      prepare_support_tickets!()
+
+      original_storage_schema = Application.get_env(:threadline, :storage_schema)
+      original_trigger_capture = Application.get_env(:threadline, :trigger_capture)
+
+      Application.put_env(:threadline, :storage_schema, "audit")
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{
+          @match_table => [mask: ["email"]],
+          "support.tickets" => [
+            exclude: ["password_hash"],
+            mask: ["email"],
+            mask_placeholder: "[REDACTED]"
+          ]
+        }
+      )
+
+      Repo.query!(
+        TriggerSQL.install_function_for_table("support.tickets",
+          exclude: ["password_hash"],
+          mask: ["email"],
+          mask_placeholder: "[REDACTED]",
+          store_changed_from: true
+        )
+      )
+
+      Repo.query!(TriggerSQL.create_trigger("support.tickets", :per_table))
+      Mix.Task.reenable("threadline.policy.show")
+
+      on_exit(fn ->
+        Repo.query!(TriggerSQL.drop_trigger("support.tickets"))
+        Repo.query!(TriggerSQL.drop_function_for_table("support.tickets"))
+        Repo.query!("DROP SCHEMA IF EXISTS support CASCADE")
+        restore_env(:storage_schema, original_storage_schema)
+        restore_env(:trigger_capture, original_trigger_capture)
+      end)
+
+      output =
+        capture_io(fn ->
+          Mix.Tasks.Threadline.Policy.Show.run(["--schema=support", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+      rows_by_table = Map.new(parsed["tables"], &{&1["table"], &1})
+
+      assert parsed["schema"] == "support"
+      assert Application.get_env(:threadline, :storage_schema) == "audit"
+      assert rows_by_table["support.tickets"]["status"] == "config_matches_deployed"
+      refute Map.has_key?(rows_by_table, @match_table)
+    end
+
+    test "--schema validates host schema before catalog inspection" do
+      Mix.Task.reenable("threadline.policy.show")
+
+      assert_raise Mix.Error,
+                   ~r/threadline\.policy\.show: schema "Public" is not a valid PostgreSQL identifier/,
+                   fn ->
+                     Mix.Tasks.Threadline.Policy.Show.run(["--schema=Public"])
+                   end
+    end
   end
 
   defp byte_index(haystack, needle) do
@@ -201,4 +264,21 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
       :nomatch -> flunk("expected #{inspect(needle)} in output")
     end
   end
+
+  defp prepare_support_tickets! do
+    Repo.query!("DROP SCHEMA IF EXISTS support CASCADE")
+    Repo.query!("CREATE SCHEMA support")
+
+    Repo.query!("""
+    CREATE TABLE support.tickets (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      email text NOT NULL,
+      password_hash text NOT NULL,
+      subject text NOT NULL DEFAULT ''
+    )
+    """)
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:threadline, key)
+  defp restore_env(key, value), do: Application.put_env(:threadline, key, value)
 end

@@ -51,7 +51,7 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
   end
 
   describe "Mix-task help and rerun guidance" do
-    test "mix threadline.policy.show source documents default and --json usage" do
+    test "mix threadline.policy.show source documents default, --json, and --schema usage" do
       src = File.read!(@mix_task_path)
 
       assert String.contains?(
@@ -61,6 +61,8 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
 
       assert String.contains?(src, "mix threadline.policy.show")
       assert String.contains?(src, "mix threadline.policy.show --json")
+      assert String.contains?(src, "mix threadline.policy.show --schema=NAME")
+      assert String.contains?(src, "`--schema=NAME` validates NAME at the edge")
 
       assert String.contains?(
                src,
