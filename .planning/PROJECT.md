@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is actively planning **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). The milestone is a consolidation pass: rank the repo's weakest software-quality dimensions with evidence, prove or fix configurable PostgreSQL storage-schema behavior beyond the default `threadline` schema, repair public version/docs/upgrade drift, and make CI/CD faster and more deterministic without weakening release trust.
+Threadline is executing **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). Phase 189 is complete: the repo now has an evidence-backed quality baseline and authority-surface audit that ranks the weakest current risks and routes them to phases 190-193, future, external, or none. Phase 190 is next and starts from the audit's top finding: prove or fix configurable PostgreSQL `storage_schema` behavior beyond the default `threadline` schema.
 
 Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, and v1.38 page-by-page `/audit` polish. v1.39 is not another UI/product expansion milestone; it is the quality baseline pass that makes the current scope easier to trust, adopt, operate, upgrade, and maintain.
 
@@ -21,7 +21,7 @@ Core capture/query/auth semantics stay out of scope unless a storage-schema or d
 **Goal:** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
 
 **Target features:**
-- **Quality baseline audit** — repo-evidence ranking of weakest software-quality dimensions, practical consequences, confidence, and top fixes, including missing dimensions discovered during the audit.
+- **Quality baseline audit** — complete in Phase 189: repo-evidence ranking of weakest software-quality dimensions, practical consequences, confidence, and top fixes, including required residual and seed triage.
 - **Custom storage-schema confidence** — end-to-end proof for `storage_schema: "audit"` or equivalent custom schemas; Ecto prefix behavior, generated migrations, and host-schema assumptions are proven, fixed, or honestly documented.
 - **Release/version/docs trust repair** — README, guides, evaluator docs, upgrade path, adoption backlog, and doc contracts agree on the current `0.9.0` package truth or intentionally explain older examples.
 - **CI/CD measurement and low-risk efficiency** — current pipeline baseline, critical-path bottlenecks, deterministic cache/setup improvements, PgBouncer image alignment, release concurrency fix, branch-protection docs alignment, and explicit compatibility policy.
