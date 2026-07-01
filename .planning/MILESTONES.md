@@ -24,6 +24,7 @@
 - Roadmap: `.planning/milestones/v1.38-ROADMAP.md`
 - Requirements: `.planning/milestones/v1.38-REQUIREMENTS.md`
 - Audit: `.planning/milestones/v1.38-MILESTONE-AUDIT.md`
+- Phase execution tree: `.planning/milestones/v1.38-phases/`
 
 ---
 

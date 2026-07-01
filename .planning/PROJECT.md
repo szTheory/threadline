@@ -28,7 +28,7 @@ The project is now awaiting fresh requirements for the next milestone.
 - **Detail, governance, and export surfaces** — transaction, actor, row history, redaction, retention, evidence, and export pages reviewed as coherent operator workflows.
 - **A11y, motion, docs, and closeout** — keyboard/focus/reduced-motion checks, visual QA matrix, docs alignment, and an adversarial review that prevents regressions.
 
-**Archives:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`, `.planning/milestones/v1.38-MILESTONE-AUDIT.md`
+**Archives:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`, `.planning/milestones/v1.38-MILESTONE-AUDIT.md`, `.planning/milestones/v1.38-phases/`
 
 **Next milestone goals:** Define fresh requirements with `/gsd-new-milestone`; otherwise hold per the no-signal default.
 
