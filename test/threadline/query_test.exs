@@ -11,12 +11,16 @@ defmodule Threadline.QueryTest do
 
   # ── Helpers ──────────────────────────────────────────────────────────────
 
-  defp insert_transaction(attrs \\ %{}) do
+  defp insert_transaction(attrs \\ %{}, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
-    @repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)), repo_opts())
+
+    @repo.insert!(
+      AuditTransaction.changeset(Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
   end
 
-  defp insert_change(transaction, attrs \\ %{}) do
+  defp insert_change(transaction, attrs \\ %{}, storage_schema \\ "threadline") do
     defaults = %{
       table_schema: "public",
       table_name: "users",
@@ -28,7 +32,26 @@ defmodule Threadline.QueryTest do
       transaction_id: transaction.id
     }
 
-    @repo.insert!(AuditChange.changeset(Map.merge(defaults, Map.new(attrs))), repo_opts())
+    @repo.insert!(
+      AuditChange.changeset(Map.merge(defaults, Map.new(attrs))),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp insert_action(attrs, storage_schema) do
+    actor = actor!(:user, "query-storage-action")
+
+    defaults = %{
+      name: "query.storage",
+      actor_ref: ActorRef.to_map(actor),
+      status: :ok,
+      correlation_id: "query-storage-correlation"
+    }
+
+    @repo.insert!(
+      AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
   end
 
   defp actor!(type, id) do
@@ -542,6 +565,61 @@ defmodule Threadline.QueryTest do
   # ── timeline/1 ────────────────────────────────────────────────────────────
 
   describe "timeline/1 — QUERY-03" do
+    test "storage_schema option scopes timeline correlation joins to selected storage" do
+      ensure_storage_schema!("audit")
+      actor = actor!(:user, "query-storage-actor")
+      actor_map = ActorRef.to_map(actor)
+      tname = "query_storage_#{System.unique_integer([:positive])}"
+
+      default_action =
+        insert_action(%{correlation_id: "query-storage-correlation"}, "threadline")
+
+      default_txn =
+        insert_transaction(%{actor_ref: actor_map, action_id: default_action.id})
+
+      default_change =
+        insert_change(default_txn, %{
+          table_name: tname,
+          table_pk: %{"id" => "default-storage"}
+        })
+
+      audit_action = insert_action(%{correlation_id: "query-storage-correlation"}, "audit")
+      audit_txn = insert_transaction(%{actor_ref: actor_map, action_id: audit_action.id}, "audit")
+
+      audit_change =
+        insert_change(
+          audit_txn,
+          %{table_name: tname, table_pk: %{"id" => "audit-storage"}},
+          "audit"
+        )
+
+      audit_results =
+        Threadline.timeline(
+          [repo: @repo, table: tname, correlation_id: "query-storage-correlation"],
+          storage_schema: "audit"
+        )
+
+      assert Enum.map(audit_results, & &1.id) == [audit_change.id]
+      refute default_change.id in Enum.map(audit_results, & &1.id)
+
+      default_results =
+        Threadline.timeline(
+          repo: @repo,
+          table: tname,
+          correlation_id: "query-storage-correlation"
+        )
+
+      assert Enum.map(default_results, & &1.id) == [default_change.id]
+    end
+
+    test "query preload call sites pass resolved storage options" do
+      source = File.read!("lib/threadline/query.ex")
+
+      assert source =~ "repo.preload(changes, transaction: :action, storage_opts([], opts))"
+      assert source =~ "repo.preload(transaction, preloads, storage_opts([], opts))"
+      assert source =~ "repo.preload(results, preloads, storage_opts([], opts))"
+    end
+
     test "rejects unknown filter keys with ArgumentError" do
       assert_raise ArgumentError, ~r/allowed|repo/, fn ->
         Threadline.timeline([repo: @repo, not_a_real_filter: true], [])

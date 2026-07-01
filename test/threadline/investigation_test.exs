@@ -25,12 +25,16 @@ defmodule Threadline.InvestigationTest do
     end
   end
 
-  defp insert_transaction(attrs \\ %{}) do
+  defp insert_transaction(attrs \\ %{}, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
-    @repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+
+    @repo.insert!(
+      AuditTransaction.changeset(Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
   end
 
-  defp insert_change(transaction, attrs) do
+  defp insert_change(transaction, attrs, storage_schema \\ "threadline") do
     defaults = %{
       table_schema: "public",
       table_name: "users",
@@ -42,10 +46,13 @@ defmodule Threadline.InvestigationTest do
       transaction_id: transaction.id
     }
 
-    @repo.insert!(AuditChange.changeset(Map.merge(defaults, Map.new(attrs))))
+    @repo.insert!(
+      AuditChange.changeset(Map.merge(defaults, Map.new(attrs))),
+      repo_opts(storage_schema)
+    )
   end
 
-  defp insert_action(attrs) do
+  defp insert_action(attrs, storage_schema \\ "threadline") do
     actor = actor!(:user, "investigator")
 
     defaults = %{
@@ -55,7 +62,10 @@ defmodule Threadline.InvestigationTest do
       correlation_id: "corr-default"
     }
 
-    @repo.insert!(AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)))
+    @repo.insert!(
+      AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
   end
 
   defp actor!(type, id) do
@@ -328,6 +338,54 @@ defmodule Threadline.InvestigationTest do
   end
 
   describe "transaction_context/2" do
+    test "uses storage_schema option for transaction and action preloads" do
+      ensure_storage_schema!("audit")
+
+      action =
+        insert_action(
+          %{correlation_id: "audit-storage-context", name: "audit.storage.context"},
+          "audit"
+        )
+
+      default_action =
+        insert_action(
+          %{correlation_id: "audit-storage-context", name: "default.storage.context"},
+          "threadline"
+        )
+
+      default_txn = insert_transaction(%{action_id: default_action.id})
+
+      insert_change(default_txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "default-context"},
+        captured_at: ~U[2026-09-04 08:00:00.000000Z]
+      })
+
+      txn = insert_transaction(%{action_id: action.id}, "audit")
+
+      change =
+        insert_change(
+          txn,
+          %{
+            table_name: "users",
+            table_pk: %{"id" => "audit-context"},
+            captured_at: ~U[2026-09-04 09:00:00.000000Z]
+          },
+          "audit"
+        )
+
+      result = Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
+
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+      assert [%LinkedChange{} = linked_change] = result.changes
+      assert linked_change.audit_change.id == change.id
+      assert linked_change.transaction.id == txn.id
+      assert linked_change.action.id == action.id
+
+      assert Threadline.transaction_context(txn.id, repo: @repo).transaction == nil
+    end
+
     test "packages one transaction drill-down with linked change, transaction, and action context" do
       action = insert_action(%{correlation_id: "corr-transaction", name: "incident.reviewed"})
       txn = insert_transaction(%{action_id: action.id})

@@ -7,12 +7,16 @@ defmodule Threadline.ExportTest do
 
   @repo Threadline.Test.Repo
 
-  defp insert_transaction(attrs \\ %{}) do
+  defp insert_transaction(attrs \\ %{}, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
-    @repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+
+    @repo.insert!(
+      AuditTransaction.changeset(Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
   end
 
-  defp insert_change(transaction, attrs) do
+  defp insert_change(transaction, attrs, storage_schema \\ "threadline") do
     defaults = %{
       table_schema: "public",
       table_name: "users",
@@ -24,7 +28,7 @@ defmodule Threadline.ExportTest do
       transaction_id: transaction.id
     }
 
-    @repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+    @repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts(storage_schema))
   end
 
   defp actor!(type, id) do
@@ -151,6 +155,47 @@ defmodule Threadline.ExportTest do
   end
 
   describe "to_json_document/2" do
+    test "storage_schema option exports only rows from the selected storage schema" do
+      ensure_storage_schema!("audit")
+      tname = table_name("storage")
+
+      default_txn = insert_transaction(%{}, "threadline")
+
+      default_change =
+        insert_change(
+          default_txn,
+          %{table_name: tname, table_pk: %{"id" => "default-export"}},
+          "threadline"
+        )
+
+      audit_txn = insert_transaction(%{}, "audit")
+
+      audit_change =
+        insert_change(
+          audit_txn,
+          %{table_name: tname, table_pk: %{"id" => "audit-export"}},
+          "audit"
+        )
+
+      assert {:ok, %{data: data, returned_count: 1}} =
+               Export.to_json_document([repo: @repo, table: tname], storage_schema: "audit")
+
+      doc = data |> IO.iodata_to_binary() |> Jason.decode!()
+      assert [%{"id" => id, "table_pk" => %{"id" => "audit-export"}}] = doc["changes"]
+      assert id == to_string(audit_change.id)
+      refute to_string(default_change.id) in Enum.map(doc["changes"], & &1["id"])
+
+      assert {:ok, %{count: 1}} =
+               Export.count_matching([repo: @repo, table: tname], storage_schema: "audit")
+
+      streamed =
+        [repo: @repo, table: tname]
+        |> Export.stream_export_rows(storage_schema: "audit", page_size: 1)
+        |> Enum.to_list()
+
+      assert Enum.map(streamed, & &1.id) == [audit_change.id]
+    end
+
     test "happy path JSON wrapped document" do
       tname = table_name("json")
       actor = actor!(:user, "u-json")
@@ -214,7 +259,10 @@ defmodule Threadline.ExportTest do
         correlation_id: "loop01-cid"
       }
 
-      @repo.insert!(AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)))
+      @repo.insert!(
+        AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)),
+        repo_opts()
+      )
     end
 
     test "JSON export change ids match timeline with :correlation_id filter" do
