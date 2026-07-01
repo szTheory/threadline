@@ -923,20 +923,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp safe_row_history_path(base_path, change, schemas)
          when is_binary(base_path) and is_map(schemas) do
-      case routeable_row_identity(change) do
-        {table, record_id} ->
-          if schema_for_table(schemas, table) do
-            "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
-          end
-
-        nil ->
+      with {table, record_id} <- routeable_row_identity(change),
+           route_table when is_binary(route_table) <-
+             row_history_route_table(schemas, table, host_table_schema(change)) do
+        "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
+      else
+        _ ->
           nil
       end
     end
 
     defp safe_row_history_path(_base_path, _change, _schemas), do: nil
 
-    defp schema_for_table(schemas, table) when is_map(schemas) do
+    defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do
+      schema = normalize_host_table_schema(table_schema)
+      table = String.trim(table)
+
+      case row_history_schema_for_table(schemas, table, schema) do
+        nil -> nil
+        _schema -> row_history_table_identity(table, schema)
+      end
+    end
+
+    defp row_history_schema_for_table(_schemas, "", _schema), do: nil
+
+    defp row_history_schema_for_table(schemas, table, "public") do
+      schema_for_public_table(schemas, table)
+    end
+
+    defp row_history_schema_for_table(schemas, table, schema) do
+      Map.get(schemas, "#{schema}.#{table}")
+    end
+
+    defp row_history_table_identity(table, "public"), do: table
+    defp row_history_table_identity(table, schema), do: "#{schema}.#{table}"
+
+    defp schema_for_public_table(schemas, table) when is_map(schemas) do
       case Map.fetch(schemas, table) do
         {:ok, schema} ->
           schema
@@ -951,6 +973,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end)
       end
     end
+
+    defp host_table_schema(%{table_schema: table_schema}),
+      do: normalize_host_table_schema(table_schema)
+
+    defp host_table_schema(%{change_diff: %{} = diff}) do
+      diff
+      |> Map.get("table_schema", Map.get(diff, :table_schema))
+      |> normalize_host_table_schema()
+    end
+
+    defp host_table_schema(_change), do: "public"
+
+    defp normalize_host_table_schema(schema) when is_binary(schema) do
+      case String.trim(schema) do
+        "" -> "public"
+        value -> value
+      end
+    end
+
+    defp normalize_host_table_schema(_schema), do: "public"
 
     defp routeable_row_identity(%{table_name: table, table_pk: table_pk}),
       do: routeable_row_identity(table, table_pk)

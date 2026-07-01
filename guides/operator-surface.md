@@ -53,13 +53,21 @@ defmodule MyAppWeb.Router do
     threadline_operator_surface "/",
       actor_fn: &MyApp.Audit.current_actor/1,
       authorize_fn: &MyApp.Audit.authorize_operator/1,
-      schemas: %{"posts" => MyApp.Post, "users" => MyApp.Accounts.User},
+      schemas: %{
+        "posts" => MyApp.Post,
+        "users" => MyApp.Accounts.User,
+        "support.tickets" => MyApp.Support.Ticket
+      },
       repo: MyApp.Repo
   end
 end
 ```
 
-Keys in `schemas:` are PostgreSQL `table_name` values from capture; the map is required for row-history and as-of reification in transaction drill-down.
+Keys in `schemas:` are host table identities from capture; the map is required
+for row-history and as-of reification in transaction drill-down. A bare `"tickets"` key is public-schema shorthand. For non-public host schemas or
+duplicate table names, use schema-qualified keys such as
+`"support.tickets" => MyApp.Support.Ticket`. This does not change Threadline's
+storage schema.
 
 ### Theme
 
@@ -271,6 +279,31 @@ ready:
 4. Run `mix threadline.policy.show` and compare it with
    `/audit/policy/redaction`.
 
+### Storage schema vs host schema quick path
+
+Threadline's `storage_schema` controls where Threadline stores audit tables.
+The host table schema remains the schema where your application tables live:
+
+```elixir
+config :threadline, storage_schema: "audit"
+```
+
+Install Threadline storage objects, generate capture for a non-public host
+table, then verify the same host schema across the fallback transports and the
+mounted Timeline:
+
+```bash
+mix threadline.install
+mix threadline.gen.triggers --tables support.tickets
+mix threadline.verify_coverage --schema=support
+mix threadline.policy.show --schema=support
+```
+
+Coverage and redaction links into Timeline preserve the host-table identity as
+`table_schema=support&table=tickets`, for example:
+
+    /audit/timeline?table_schema=support&table=tickets
+
 ## Mounted workflow parity
 
 | Mounted workflow | Operator question | Fallback transport | Guarantee level |
@@ -396,6 +429,8 @@ Capture-only adopters can inspect the same facts without Phoenix:
 
     mix threadline.policy.show
     mix threadline.policy.show --json
+    mix threadline.policy.show --schema=NAME
+    mix threadline.policy.show --schema=support
 
 Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / DEPLOYED / HINT` table, then extra detail blocks only for `Drift detected` and `Could not introspect`. `--json` exposes the same top-level states as stable machine values:
 
