@@ -5,6 +5,8 @@ defmodule Threadline.AuditTransactionTest do
 
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.ActorRef
+  alias Threadline.Semantics.AuditAction
+  alias Threadline.StorageSchema
 
   setup_all do
     Repo.query!("""
@@ -26,12 +28,23 @@ defmodule Threadline.AuditTransactionTest do
 
   setup do
     Repo.query!("TRUNCATE test_audit_helper_target CASCADE")
-    Repo.delete_all(AuditTransaction)
+    clean_storage_schemas!()
     :ok
   end
 
   defp insert_row!(name) do
     Repo.query!("INSERT INTO test_audit_helper_target (name) VALUES ($1)", [name])
+  end
+
+  defp insert_current_audit_transaction!(storage_schema) do
+    Repo.query!(
+      """
+      INSERT INTO #{StorageSchema.table("audit_transactions", storage_schema: storage_schema)}
+        (id, txid, occurred_at, actor_ref)
+      VALUES (gen_random_uuid(), txid_current(), clock_timestamp(), NULL)
+      """,
+      []
+    )
   end
 
   describe "Threadline.Audit.transaction/3" do
@@ -49,7 +62,7 @@ defmodule Threadline.AuditTransactionTest do
                )
 
       assert %ActorRef{type: :user, id: "audit-helper-1"} =
-               Repo.get!(AuditTransaction, id).actor_ref
+               Repo.get!(AuditTransaction, id, repo_opts()).actor_ref
     end
 
     test "strict correlation_id timeline matches when action linked" do
@@ -122,7 +135,7 @@ defmodule Threadline.AuditTransactionTest do
                  end
                )
 
-      assert [%AuditTransaction{actor_ref: nil}] = Repo.all(AuditTransaction)
+      assert [%AuditTransaction{actor_ref: nil}] = Repo.all(AuditTransaction, repo_opts())
     end
 
     test "map callback merges audit_transaction_id into return map" do
@@ -171,7 +184,7 @@ defmodule Threadline.AuditTransactionTest do
                  end
                )
 
-      assert Repo.get!(AuditTransaction, id).meta == %{"organization_id" => "org-1"}
+      assert Repo.get!(AuditTransaction, id, repo_opts()).meta == %{"organization_id" => "org-1"}
     end
 
     test "transaction_meta stored on capture-only audit_transaction" do
@@ -191,9 +204,78 @@ defmodule Threadline.AuditTransactionTest do
                  end
                )
 
-      at = Repo.get!(AuditTransaction, id)
+      at = Repo.get!(AuditTransaction, id, repo_opts())
       assert at.meta == %{"organization_id" => "org-capture-only"}
       assert is_nil(at.action_id)
+    end
+
+    test "storage_schema option links action, metadata, and lookup in selected storage" do
+      ensure_storage_schema!("audit")
+      {:ok, actor} = ActorRef.new(:user, "audit-helper-storage")
+
+      sentinel_action =
+        Repo.insert!(
+          AuditAction.changeset(%AuditAction{}, %{
+            name: "audit_helper_storage_schema",
+            actor_ref: ActorRef.to_map(actor),
+            status: :ok,
+            correlation_id: "default-storage-sentinel"
+          }),
+          repo_opts()
+        )
+
+      assert {:ok, %{result: :done, audit_transaction_id: id}} =
+               Threadline.Audit.transaction(
+                 Repo,
+                 [
+                   actor_ref: actor,
+                   action: :audit_helper_storage_schema,
+                   correlation_id: "audit-storage-correlation",
+                   transaction_meta: %{"storage" => "audit"},
+                   storage_schema: "audit"
+                 ],
+                 fn ->
+                   insert_current_audit_transaction!("audit")
+                   :done
+                 end
+               )
+
+      audit_transaction = Repo.get!(AuditTransaction, id, repo_opts("audit"))
+      assert audit_transaction.meta == %{"storage" => "audit"}
+      assert audit_transaction.action_id
+
+      audit_action = Repo.get!(AuditAction, audit_transaction.action_id, repo_opts("audit"))
+      assert audit_action.name == "audit_helper_storage_schema"
+      assert audit_action.correlation_id == "audit-storage-correlation"
+
+      assert Repo.get(AuditTransaction, id, repo_opts()) == nil
+      assert Repo.get(AuditAction, audit_action.id, repo_opts()) == nil
+      assert Repo.get!(AuditAction, sentinel_action.id, repo_opts()).id == sentinel_action.id
+    end
+
+    test "capture-only storage_schema option updates metadata and returns selected transaction id" do
+      ensure_storage_schema!("audit")
+      {:ok, actor} = ActorRef.new(:user, "audit-helper-storage-capture-only")
+
+      assert {:ok, %{result: :done, audit_transaction_id: id}} =
+               Threadline.Audit.transaction(
+                 Repo,
+                 [
+                   actor_ref: actor,
+                   capture_only: true,
+                   transaction_meta: %{"storage" => "audit-capture-only"},
+                   storage_schema: "audit"
+                 ],
+                 fn ->
+                   insert_current_audit_transaction!("audit")
+                   :done
+                 end
+               )
+
+      audit_transaction = Repo.get!(AuditTransaction, id, repo_opts("audit"))
+      assert audit_transaction.meta == %{"storage" => "audit-capture-only"}
+      assert is_nil(audit_transaction.action_id)
+      assert Repo.get(AuditTransaction, id, repo_opts()) == nil
     end
   end
 end

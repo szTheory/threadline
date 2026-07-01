@@ -32,8 +32,39 @@ defmodule Threadline.Semantics.AuditActionTest do
           repo: @repo
         )
 
-      found = @repo.get!(AuditAction, action.id)
+      found = @repo.get!(AuditAction, action.id, repo_opts())
       assert found.name == "test_action"
+    end
+  end
+
+  describe "record_action/2 — storage_schema option" do
+    test "inserts actions into the selected Threadline storage schema" do
+      ensure_storage_schema!("audit")
+      actor = actor!(:user, "storage-action-user")
+
+      sentinel =
+        @repo.insert!(
+          AuditAction.changeset(%AuditAction{}, %{
+            name: "storage_schema_sentinel",
+            actor_ref: ActorRef.to_map(actor),
+            status: :ok
+          }),
+          repo_opts()
+        )
+
+      assert {:ok, action} =
+               Threadline.record_action(:storage_schema_sentinel,
+                 actor: actor,
+                 repo: @repo,
+                 storage_schema: "audit"
+               )
+
+      assert %AuditAction{name: "storage_schema_sentinel"} =
+               @repo.get!(AuditAction, action.id, repo_opts("audit"))
+
+      assert @repo.get(AuditAction, action.id, repo_opts()) == nil
+      assert %AuditAction{id: sentinel_id} = @repo.get!(AuditAction, sentinel.id, repo_opts())
+      assert sentinel_id == sentinel.id
     end
   end
 
@@ -94,7 +125,7 @@ defmodule Threadline.Semantics.AuditActionTest do
                  repo: @repo
                )
 
-      db_action = @repo.get!(AuditAction, action.id)
+      db_action = @repo.get!(AuditAction, action.id, repo_opts())
       assert db_action.actor_ref.type == :anonymous
       assert db_action.actor_ref.id == nil
     end
@@ -102,7 +133,14 @@ defmodule Threadline.Semantics.AuditActionTest do
 
   describe "record_action/2 — CTX-04: audit_transactions.actor_ref is nullable" do
     test "capture still works when no action or actor is linked to a transaction" do
-      count = @repo.aggregate(Threadline.Capture.AuditTransaction, :count, :id)
+      count =
+        @repo.aggregate(
+          Threadline.Capture.AuditTransaction,
+          :count,
+          :id,
+          repo_opts()
+        )
+
       assert is_integer(count)
     end
   end
@@ -112,7 +150,12 @@ defmodule Threadline.Semantics.AuditActionTest do
       import Ecto.Query
       {:ok, action} = Threadline.record_action(:user_signed_up, actor: actor!(), repo: @repo)
 
-      raw = @repo.one!(from(a in AuditAction, where: a.id == ^action.id, select: a.name))
+      raw =
+        @repo.one!(
+          from(a in AuditAction, where: a.id == ^action.id, select: a.name),
+          repo_opts()
+        )
+
       assert raw == "user_signed_up"
     end
   end
