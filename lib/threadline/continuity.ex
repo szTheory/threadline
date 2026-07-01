@@ -17,6 +17,9 @@ defmodule Threadline.Continuity do
   compliance notes.
   """
 
+  alias Threadline.Health.CoverageSchemas
+  alias Threadline.StorageSchema
+
   @doc """
   Returns a human-readable explanation of brownfield cutover steps (read-only).
 
@@ -45,49 +48,83 @@ defmodule Threadline.Continuity do
   end
 
   @doc """
-  Asserts that `table_name` exists in `public` and has a Threadline capture trigger.
+  Asserts that `table_name` exists and has a Threadline capture trigger.
+
+  Bare table names resolve to the public host schema by default. Pass
+  `schema: "support"` for a selected host schema, or pass a schema-qualified
+  identifier such as `"support.tickets"`.
 
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
+  - `:schema` — optional selected host schema for bare table names
 
   Raises `ArgumentError` if the table is unknown or not covered.
   """
   def assert_capture_ready!(table_name, opts) when is_binary(table_name) do
     repo = Keyword.fetch!(opts, :repo)
-    table_name = String.trim(table_name)
+    parsed = StorageSchema.parse_table_identifier(table_name)
+    schema = selected_schema!(parsed, opts)
+    table_name = parsed.table
 
-    if table_name == "" do
-      raise ArgumentError, "table_name must be a non-empty string"
+    validate_schema!(repo, schema)
+
+    unless table_exists?(repo, schema, table_name) do
+      raise ArgumentError, missing_table_message(schema, table_name)
     end
 
-    unless public_table_exists?(repo, table_name) do
-      raise ArgumentError,
-            "table #{inspect(table_name)} does not exist in schema public"
-    end
-
-    coverage = Threadline.Health.trigger_coverage(repo: repo)
+    coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
 
     if {:covered, table_name} in coverage do
       :ok
     else
       raise ArgumentError,
-            "table #{inspect(table_name)} is not covered by Threadline capture triggers"
+            "table #{inspect(display_table(schema, table_name))} is not covered by Threadline capture triggers"
     end
   end
 
-  defp public_table_exists?(repo, table_name) do
+  defp selected_schema!(%{schema: parsed_schema}, opts) do
+    selected = Keyword.get(opts, :schema, parsed_schema)
+    selected = StorageSchema.validate!(selected)
+
+    if parsed_schema != "public" and selected != parsed_schema do
+      raise ArgumentError,
+            "table schema #{inspect(parsed_schema)} does not match selected host schema #{inspect(selected)}"
+    end
+
+    selected
+  end
+
+  defp validate_schema!(repo, schema) do
+    case CoverageSchemas.validate(repo, schema) do
+      {:ok, schema} -> schema
+      {:error, _message} -> raise ArgumentError, "schema #{inspect(schema)} was not found"
+    end
+  end
+
+  defp table_exists?(repo, schema, table_name) do
     %{rows: rows} =
       Ecto.Adapters.SQL.query!(
         repo,
         """
         SELECT 1 FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = $1
+        WHERE table_schema = $1 AND table_name = $2
         LIMIT 1
         """,
-        [table_name]
+        [schema, table_name]
       )
 
     rows != []
   end
+
+  defp missing_table_message("public", table_name) do
+    "table #{inspect(table_name)} does not exist in schema public"
+  end
+
+  defp missing_table_message(schema, table_name) do
+    "table #{inspect(display_table(schema, table_name))} does not exist"
+  end
+
+  defp display_table("public", table_name), do: table_name
+  defp display_table(schema, table_name), do: "#{schema}.#{table_name}"
 end

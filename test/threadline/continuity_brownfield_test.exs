@@ -64,7 +64,11 @@ defmodule Threadline.ContinuityBrownfieldTest do
     end
 
     test "accepts explicit host schema option for bare table names" do
-      assert :ok = Threadline.Continuity.assert_capture_ready!("tickets", repo: Repo, schema: "support")
+      assert :ok =
+               Threadline.Continuity.assert_capture_ready!("tickets",
+                 repo: Repo,
+                 schema: "support"
+               )
     end
 
     test "public shorthand remains the default for bare table names" do
