@@ -11,7 +11,7 @@ defmodule Threadline.EvidenceTest do
     # `function_exported?/3` returns false for a not-yet-loaded module, so the
     # record_* export assertions below were seed-order flaky. Force the load.
     Code.ensure_loaded!(Evidence)
-    Repo.delete_all(EvidenceRecord)
+    Repo.delete_all(EvidenceRecord, repo_opts())
     :ok
   end
 
@@ -33,7 +33,7 @@ defmodule Threadline.EvidenceTest do
 
     %EvidenceRecord{}
     |> EvidenceRecord.changeset(Map.merge(defaults, Map.new(attrs)))
-    |> Repo.insert!()
+    |> Repo.insert!(repo_opts())
   end
 
   describe "record_* helpers" do

@@ -80,7 +80,7 @@ defmodule Threadline.StorageSchemaCase do
         repo,
         """
         CREATE TABLE IF NOT EXISTS #{StorageSchema.qualify(storage_schema, table)}
-        (LIKE #{StorageSchema.qualify("threadline", table)} INCLUDING DEFAULTS)
+        (LIKE #{StorageSchema.qualify("threadline", table)} INCLUDING ALL)
         """,
         []
       )
@@ -109,10 +109,72 @@ defmodule Threadline.StorageSchemaCase do
     :ok
   end
 
+  def prepare_support_tickets_table!(opts \\ []) do
+    repo = Keyword.get(opts, :repo, Repo)
+    storage_schema = Keyword.get(opts, :storage_schema, StorageSchema.get())
+
+    SQL.query!(repo, "DROP SCHEMA IF EXISTS #{StorageSchema.quote_ident("support")} CASCADE", [])
+    SQL.query!(repo, "CREATE SCHEMA #{StorageSchema.quote_ident("support")}", [])
+
+    SQL.query!(
+      repo,
+      """
+      CREATE TABLE #{StorageSchema.qualify("support", "tickets")} (
+        id text PRIMARY KEY,
+        subject text NOT NULL,
+        status text NOT NULL DEFAULT 'open',
+        updated_at timestamptz NOT NULL DEFAULT now()
+      )
+      """,
+      []
+    )
+
+    install_capture_function!(storage_schema, repo)
+
+    SQL.query!(
+      repo,
+      TriggerSQL.create_trigger("support.tickets", :default, storage_schema: storage_schema),
+      []
+    )
+
+    :ok
+  end
+
+  def insert_support_ticket!(id, opts \\ []) do
+    repo = Keyword.get(opts, :repo, Repo)
+    subject = Keyword.get(opts, :subject, "Support ticket #{id}")
+    status = Keyword.get(opts, :status, "open")
+
+    SQL.query!(
+      repo,
+      """
+      INSERT INTO #{StorageSchema.qualify("support", "tickets")} (id, subject, status)
+      VALUES ($1, $2, $3)
+      """,
+      [id, subject, status]
+    )
+  end
+
+  def update_support_ticket!(id, opts \\ []) do
+    repo = Keyword.get(opts, :repo, Repo)
+    status = Keyword.fetch!(opts, :status)
+
+    SQL.query!(
+      repo,
+      """
+      UPDATE #{StorageSchema.qualify("support", "tickets")}
+      SET status = $2, updated_at = now()
+      WHERE id = $1
+      """,
+      [id, status]
+    )
+  end
+
   def insert_storage_sentinel!(storage_schema, opts \\ []) do
     storage_schema = StorageSchema.validate!(storage_schema)
     label = Keyword.fetch!(opts, :label)
-    now = DateTime.utc_now()
+    now = Keyword.get(opts, :occurred_at, DateTime.utc_now(:microsecond))
+    captured_at = Keyword.get(opts, :captured_at, now)
     repo_opts = repo_opts(storage_schema)
     actor_ref = actor_ref!("storage-schema-sentinel-#{storage_schema}")
 
@@ -149,7 +211,7 @@ defmodule Threadline.StorageSchemaCase do
         op: "insert",
         data_after: %{"id" => label, "subject" => "#{label} subject"},
         changed_fields: ["id", "subject"],
-        captured_at: now
+        captured_at: captured_at
       }
       |> AuditChange.changeset()
       |> Repo.insert!(repo_opts)

@@ -116,7 +116,16 @@ defmodule Threadline.StorageSchemaIntegrationTest do
       assert change.table_schema == "support"
       assert change.table_name == "tickets"
       assert change.table_pk == %{"id" => "ticket-action-link"}
-      assert change.transaction.action.correlation_id == "audit-correlation"
+
+      context =
+        Threadline.transaction_context(audit_transaction_id,
+          repo: Repo,
+          storage_schema: "audit"
+        )
+
+      assert context.action.correlation_id == "audit-correlation"
+      assert [%{audit_change: %{id: change_id}}] = context.changes
+      assert change_id == change.id
 
       assert Threadline.timeline(repo: Repo, correlation_id: "audit-correlation") == []
     end
@@ -149,9 +158,8 @@ defmodule Threadline.StorageSchemaIntegrationTest do
                )
 
       assert [%{id: evidence_id}] =
-               Evidence.list_history([repo: Repo, subject: :retention_run],
-                 storage_schema: "audit",
-                 limit: 1
+               Evidence.list_history([repo: Repo, subject: :retention_run, limit: 1],
+                 storage_schema: "audit"
                )
 
       assert evidence_id == evidence.id
