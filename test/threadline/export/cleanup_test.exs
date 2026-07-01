@@ -4,8 +4,36 @@ defmodule Threadline.Export.CleanupTest do
   alias Threadline.Governance.ExportJob
   alias Threadline.Test.Repo
 
+  defmodule FlipToDefaultOnDeleteStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []), do: Threadline.Storage.Local.put(content, opts)
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      Application.put_env(:threadline, :storage_schema, "threadline")
+      Threadline.Storage.Local.delete(file_id)
+    end
+  end
+
   setup do
     {:ok, _} = Application.ensure_all_started(:threadline)
+    previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
+    previous_storage_schema = Application.get_env(:threadline, :storage_schema)
 
     # Ensure test storage directory is clean
     test_storage_dir = Path.join(System.tmp_dir!(), "threadline_test_exports_cleanup")
@@ -14,6 +42,8 @@ defmodule Threadline.Export.CleanupTest do
 
     on_exit(fn ->
       File.rm_rf(test_storage_dir)
+      restore_env(:storage_adapter, previous_storage_adapter)
+      restore_env(:storage_schema, previous_storage_schema)
     end)
 
     Application.put_env(:threadline, :storage_dir, test_storage_dir)
@@ -29,7 +59,7 @@ defmodule Threadline.Export.CleanupTest do
       stuck_started_at = DateTime.add(now, -25, :hour)
 
       stuck_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "running",
           query_params: %{},
           started_at: stuck_started_at
@@ -39,7 +69,7 @@ defmodule Threadline.Export.CleanupTest do
       recent_started_at = DateTime.add(now, -2, :hour)
 
       recent_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "running",
           query_params: %{},
           started_at: recent_started_at
@@ -55,12 +85,12 @@ defmodule Threadline.Export.CleanupTest do
           stale_running_cutoff_hours: 24
         })
 
-      stuck_job = Repo.get!(ExportJob, stuck_job.id)
+      stuck_job = Repo.get!(ExportJob, stuck_job.id, repo_opts())
       assert stuck_job.status == "failed"
       assert stuck_job.error_message == "Abandoned"
       assert %DateTime{} = stuck_job.expires_at
 
-      assert Repo.get(ExportJob, recent_job.id).status == "running"
+      assert Repo.get(ExportJob, recent_job.id, repo_opts()).status == "running"
     end
   end
 
@@ -73,7 +103,7 @@ defmodule Threadline.Export.CleanupTest do
       Threadline.Storage.Local.put("some data", file_id: expired_file_id)
 
       expired_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "completed",
           query_params: %{},
           file_path: expired_file_id,
@@ -81,7 +111,7 @@ defmodule Threadline.Export.CleanupTest do
         })
 
       failed_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "failed",
           query_params: %{},
           expires_at: DateTime.add(now, -1, :hour)
@@ -92,7 +122,7 @@ defmodule Threadline.Export.CleanupTest do
       Threadline.Storage.Local.put("some data", file_id: valid_file_id)
 
       valid_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "completed",
           query_params: %{},
           file_path: valid_file_id,
@@ -101,7 +131,7 @@ defmodule Threadline.Export.CleanupTest do
         })
 
       running_job =
-        Repo.insert!(%ExportJob{
+        insert_job!(%{
           status: "running",
           query_params: %{},
           expires_at: DateTime.add(now, -1, :hour)
@@ -113,14 +143,66 @@ defmodule Threadline.Export.CleanupTest do
       {:noreply, _new_state} = CleanupTask.handle_info(:run_cleanup, state)
 
       # Expired job should be deleted from DB and disk
-      refute Repo.get(ExportJob, expired_job.id)
-      refute Repo.get(ExportJob, failed_job.id)
+      refute Repo.get(ExportJob, expired_job.id, repo_opts())
+      refute Repo.get(ExportJob, failed_job.id, repo_opts())
       assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
 
       # Valid job should remain
-      assert Repo.get(ExportJob, valid_job.id)
-      assert Repo.get(ExportJob, running_job.id)
+      assert Repo.get(ExportJob, valid_job.id, repo_opts())
+      assert Repo.get(ExportJob, running_job.id, repo_opts())
       assert {:ok, _} = Threadline.Storage.Local.path(valid_file_id)
     end
+
+    test "deletes expired jobs only from the configured storage schema" do
+      ensure_storage_schema!("audit")
+      Application.put_env(:threadline, :storage_adapter, FlipToDefaultOnDeleteStorage)
+
+      now = DateTime.utc_now()
+      job_id = Ecto.UUID.generate()
+      expired_file_id = "audit_expired_job.csv"
+      Threadline.Storage.Local.put("some data", file_id: expired_file_id)
+
+      insert_job!(
+        %{
+          id: job_id,
+          status: "completed",
+          query_params: %{},
+          file_path: expired_file_id,
+          expires_at: DateTime.add(now, -1, :hour)
+        },
+        "audit"
+      )
+
+      insert_job!(
+        %{
+          id: job_id,
+          status: "completed",
+          query_params: %{},
+          file_path: "default_sentinel.csv",
+          expires_at: DateTime.add(now, -1, :hour)
+        },
+        "threadline"
+      )
+
+      state = %{repo: Repo, interval_ms: :timer.hours(1), storage_schema: "audit"}
+
+      with_storage_schema("audit", fn ->
+        {:noreply, _new_state} = CleanupTask.handle_info(:run_cleanup, state)
+      end)
+
+      refute Repo.get(ExportJob, job_id, repo_opts("audit"))
+      assert Repo.get(ExportJob, job_id, repo_opts())
+      assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
+    end
   end
+
+  defp insert_job!(attrs, storage_schema \\ "threadline") do
+    Repo.insert!(
+      struct(ExportJob, attrs),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:threadline, key)
+  defp restore_env(key, value), do: Application.put_env(:threadline, key, value)
 end

@@ -8,17 +8,49 @@ defmodule Threadline.Export.OrchestratorTest do
 
   @test_priv "priv/threadline_exports"
 
+  defmodule FlipToDefaultStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []) do
+      Application.put_env(:threadline, :storage_schema, "threadline")
+      Threadline.Storage.Local.put(content, opts)
+    end
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id), do: Threadline.Storage.Local.delete(file_id)
+  end
+
   setup do
+    previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
+    previous_storage_schema = Application.get_env(:threadline, :storage_schema)
+
+    on_exit(fn ->
+      restore_env(:storage_adapter, previous_storage_adapter)
+      restore_env(:storage_schema, previous_storage_schema)
+    end)
+
     if File.exists?(@test_priv) do
       File.rm_rf!(@test_priv)
     end
 
-    # We need to insert a row to `threadline_export_jobs`. Wait, is this table available in Test.Repo?
-    # Yes, it should be migrated.
-    Repo.delete_all(ExportJob)
+    Repo.delete_all(ExportJob, repo_opts())
 
     job =
-      Repo.insert!(%ExportJob{
+      insert_job!(%{
         status: "pending",
         query_params: %{"table" => "some_table"}
       })
@@ -30,7 +62,7 @@ defmodule Threadline.Export.OrchestratorTest do
        %{job: job} do
     assert :ok = Orchestrator.run(job.id, repo: Repo)
 
-    updated_job = Repo.get!(ExportJob, job.id)
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
     assert updated_job.status == "completed"
     assert %DateTime{} = updated_job.started_at
     assert %DateTime{} = updated_job.completed_at
@@ -49,7 +81,7 @@ defmodule Threadline.Export.OrchestratorTest do
     insert_change!("outside-after", ~U[2026-05-07 00:00:00Z])
 
     job =
-      Repo.insert!(%ExportJob{
+      insert_job!(%{
         status: "pending",
         query_params: %{
           "table" => "threadline_export_replay_rows",
@@ -60,7 +92,7 @@ defmodule Threadline.Export.OrchestratorTest do
 
     assert :ok = Orchestrator.run(job.id, repo: Repo)
 
-    updated_job = Repo.get!(ExportJob, job.id)
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
     assert updated_job.status == "completed"
     assert {:ok, csv} = Local.get(updated_job.file_path)
     assert csv =~ "inside-start"
@@ -71,14 +103,14 @@ defmodule Threadline.Export.OrchestratorTest do
 
   test "invalid persisted datetime params fail closed with parser detail", %{job: _job} do
     bad_job =
-      Repo.insert!(%ExportJob{
+      insert_job!(%{
         status: "pending",
         query_params: %{"from" => "not-a-date"}
       })
 
     assert {:error, _} = Orchestrator.run(bad_job.id, repo: Repo)
 
-    updated_job = Repo.get!(ExportJob, bad_job.id)
+    updated_job = Repo.get!(ExportJob, bad_job.id, repo_opts())
     assert updated_job.status == "failed"
     assert %DateTime{} = updated_job.started_at
     assert is_binary(updated_job.error_message)
@@ -93,25 +125,95 @@ defmodule Threadline.Export.OrchestratorTest do
     refute source =~ ~r/String\.to_atom\s*\(/
   end
 
-  defp insert_change!(row_id, captured_at) do
+  test "configured storage schema remains fixed across queued export status and stream work" do
+    ensure_storage_schema!("audit")
+    Application.put_env(:threadline, :storage_adapter, FlipToDefaultStorage)
+
+    job_id = Ecto.UUID.generate()
+    table = "queued_export_storage_#{System.unique_integer([:positive])}"
+    captured_at = ~U[2026-06-01 00:00:00Z]
+
+    insert_job!(
+      %{
+        id: job_id,
+        status: "pending",
+        query_params: %{"table" => table}
+      },
+      "threadline"
+    )
+
+    insert_job!(
+      %{
+        id: job_id,
+        status: "pending",
+        query_params: %{"table" => table}
+      },
+      "audit"
+    )
+
+    default_change =
+      insert_change!("default-storage", captured_at,
+        table: table,
+        storage_schema: "threadline"
+      )
+
+    audit_change =
+      insert_change!("audit-storage", captured_at,
+        table: table,
+        storage_schema: "audit"
+      )
+
+    with_storage_schema("audit", fn ->
+      assert :ok = Orchestrator.run(job_id, repo: Repo)
+    end)
+
+    audit_job = Repo.get!(ExportJob, job_id, repo_opts("audit"))
+    default_job = Repo.get!(ExportJob, job_id, repo_opts())
+
+    assert audit_job.status == "completed"
+    assert default_job.status == "pending"
+
+    assert {:ok, csv} = Local.get(audit_job.file_path)
+    assert csv =~ to_string(audit_change.id)
+    assert csv =~ "audit-storage"
+    refute csv =~ to_string(default_change.id)
+    refute csv =~ "default-storage"
+  end
+
+  defp insert_job!(attrs, storage_schema \\ "threadline") do
+    Repo.insert!(
+      struct(ExportJob, attrs),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp insert_change!(row_id, captured_at, opts \\ []) do
+    storage_schema = Keyword.get(opts, :storage_schema, "threadline")
+    table = Keyword.get(opts, :table, "threadline_export_replay_rows")
+
     txn =
       Repo.insert!(
         AuditTransaction.changeset(%{
           txid: :rand.uniform(1_000_000_000),
           occurred_at: captured_at
-        })
+        }),
+        repo_opts(storage_schema)
       )
 
     Repo.insert!(
       AuditChange.changeset(%{
         transaction_id: txn.id,
         table_schema: "public",
-        table_name: "threadline_export_replay_rows",
+        table_name: table,
         table_pk: %{"id" => row_id},
         op: "insert",
         data_after: %{"id" => row_id},
         captured_at: captured_at
-      })
+      }),
+      repo_opts(storage_schema)
     )
   end
+
+  defp restore_env(key, nil), do: Application.delete_env(:threadline, key)
+  defp restore_env(key, value), do: Application.put_env(:threadline, key, value)
 end
