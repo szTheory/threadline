@@ -72,13 +72,19 @@ read [guides/domain-reference.md](guides/domain-reference.md).
    ```elixir
    config :threadline,
      ecto_repos: [MyApp.Repo],
-     storage_schema: "threadline"
+     storage_schema: "audit"
    ```
 
    `storage_schema` defaults to `"threadline"` and keeps Threadline-owned
-   tables/functions out of `public`. Set it to `"public"` explicitly if you want
-   the historical public-schema footprint, or to another PostgreSQL schema such
-   as `"audit"`.
+   tables/functions out of `public`. Set `storage_schema: "audit"` before you run `mix threadline.install` when you want a custom Threadline storage
+   schema. Generated migration files carry the configured storage schema name.
+   Changing `storage_schema` later does not rewrite existing migration files;
+   deliberate migration work is required to move Threadline-owned objects.
+
+   Threadline storage schema is separate from audited host-table schema. Host tables can still live in `public`, `support`, or another app schema while
+   Threadline-owned tables/functions live in `audit`. Set
+   `storage_schema: "public"` explicitly only if you want the historical
+   public-schema footprint.
 
    See [Getting started §2 — Configure Threadline](guides/getting-started-saas.md#configure-threadline) for dual-repo rationale.
 

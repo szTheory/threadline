@@ -41,18 +41,23 @@ Threadline Mix tasks and operator-surface fallbacks resolve the Ecto repo from *
 ```elixir
 config :threadline,
   ecto_repos: [MyApp.Repo],
-  storage_schema: "threadline"
+  storage_schema: "audit"
 ```
 
 `mix threadline.install` (next section) still uses your host app's `config :my_app, ecto_repos` for migration paths — the two config keys serve different surfaces.
 
 If you host audit data on a dedicated database, put that repo **first** in the list. Threadline uses only the **first** entry (`List.first/1`), unlike Ecto Mix tasks which may run against every repo in the list. For mount and APIs you can still pass `repo: MyApp.Repo` explicitly (see `guides/operator-surface.md`).
 
-`storage_schema` defaults to `"threadline"`. That schema stores Threadline-owned
-tables and trigger functions (`audit_changes`, `audit_transactions`,
-`audit_actions`, governance/evidence tables), while your audited app tables can
-remain in `public` or another host schema. Use `storage_schema: "public"` only
-when you intentionally want the older public-schema footprint.
+`storage_schema` defaults to `"threadline"`. Set `storage_schema: "audit"`
+before you run `mix threadline.install` when you want a custom Threadline
+storage schema. That schema stores Threadline-owned tables and trigger functions
+(`audit_changes`, `audit_transactions`, `audit_actions`, governance/evidence
+tables).
+
+Threadline storage schema is separate from audited host-table schema. Host tables can still live in `public`, `support`, or another app schema while
+Threadline-owned tables/functions live in `audit`. Use
+`storage_schema: "public"` only when you intentionally want the older
+public-schema footprint.
 
 For the full mix-task inventory and multi-database notes, see [`guides/production-checklist.md`](production-checklist.md#host-repo-wiring-prerequisite).
 
@@ -66,7 +71,8 @@ mix ecto.migrate
 ```
 
 The generated install migration creates the configured storage schema before it
-creates Threadline-owned objects.
+creates Threadline-owned objects. Generated migration files carry the configured storage schema name. Changing `storage_schema` later does not rewrite existing migration files; deliberate migration work is required to move Threadline-owned
+objects.
 
 ## 4. Generate triggers for posts
 

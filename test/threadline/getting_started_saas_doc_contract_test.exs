@@ -171,11 +171,11 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert fence_idx < sigra_actor_idx
   end
 
-  test "getting-started documents threadline ecto_repos before resolve_repo consumers" do
+  test "getting-started documents Threadline ecto_repos before resolve_repo consumers" do
     doc = read_rel!(@guide_path)
 
     literal =
-      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "threadline"/
+      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "audit"/
 
     assert String.contains?(doc, "### Configure Threadline")
 

@@ -228,12 +228,12 @@ defmodule Threadline.ReadmeDocContractTest do
            )
   end
 
-  test "README Quick Start locks threadline ecto_repos literal and ordering" do
+  test "README Quick Start locks Threadline ecto_repos and storage schema ordering" do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
 
     literal =
-      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "threadline"/
+      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "audit"/
 
     assert slice =~ literal
     assert String.contains?(slice, "getting-started-saas.md#configure-threadline")
