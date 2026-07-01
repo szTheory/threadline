@@ -135,10 +135,16 @@ All tasks are in one plan because they intentionally modify the same file.
     .planning/phases/189-quality-baseline-and-authority-surface-audit/189-PATTERNS.md
     .planning/phases/189-quality-baseline-and-authority-surface-audit/189-VALIDATION.md
     .planning/phases/189-quality-baseline-and-authority-surface-audit/189-UI-SPEC.md
+    .planning/milestones/v1.38-phases/181-baseline-audit-and-guard-repair/181-BASELINE-AUDIT.md
   </read_first>
-  <action>Create `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` with YAML frontmatter containing `phase: 189`, `artifact: quality-audit`, `audited: 2026-07-01`, `requirements: [QUAL-01, QUAL-02, QUAL-03]`, `status: draft`, and a `source_precedence` list for runtime/source proof, release/package truth, public docs, CI/gates, and planning/residual history. Add a title, one scope sentence stating this is an audit and routing artifact only, a score rubric for D-189-01 D-189-02 D-189-03, the exact priority taxonomy from D-189-13, and an evidence inventory grouped by current source/tests, release/package/docs, CI/gates, residual/UI proof, external/host proof, and planning history. Do not add implementation TODOs or rows that claim final scores before evidence is inspected.</action>
+  <action>Create `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` with YAML frontmatter containing `phase: 189`, `artifact: quality-audit`, `audited: 2026-07-01`, `requirements: [QUAL-01, QUAL-02, QUAL-03]`, `status: draft`, and a `source_precedence` list for runtime/source proof, release/package truth, public docs, CI/gates, and planning/residual history. Add a title, one scope sentence stating this is an audit and routing artifact only, a score rubric for D-189-01 D-189-02 D-189-03, the exact priority taxonomy from D-189-13, and an evidence inventory grouped by current source/tests, release/package/docs, CI/gates, residual/UI proof, external/host proof, and planning history. Follow the mapped analog `.planning/milestones/v1.38-phases/181-baseline-audit-and-guard-repair/181-BASELINE-AUDIT.md` for frontmatter shape, scope/no-scope-creep language, evidence taxonomy setup, residual table style, and later-phase ownership pattern. Do not add implementation TODOs or rows that claim final scores before evidence is inspected.</action>
   <verify>
-    <automated>test -f .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "artifact: quality-audit|QUAL-01|QUAL-02|QUAL-03|source_precedence|Ranked Evidence Ledger|Score|Confidence|Blocker|Must fix before publish|Prove before claim|External-owned|Maintenance note|Backlog cleanup|Future seed|Good enough|N/A" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md</automated>
+    <automated>bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+test -f "$f"
+for p in "artifact: quality-audit" "QUAL-01" "QUAL-02" "QUAL-03" "source_precedence" "runtime/source proof" "release/package truth" "public docs" "CI/gates" "planning/residual history" "Ranked Evidence Ledger" "Score" "Confidence" "0" "1" "2" "3" "4" "High" "Medium" "Low"; do rg -q -F "$p" "$f"; done
+for p in "Blocker" "Must fix before publish" "Prove before claim" "External-owned" "Maintenance note" "Backlog cleanup" "Future seed" "Good enough" "N/A"; do rg -q -F "$p" "$f"; done
+'</automated>
   </verify>
   <acceptance_criteria>
     - The artifact exists at `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md`.
@@ -178,7 +184,12 @@ All tasks are in one plan because they intentionally modify the same file.
   </read_first>
   <action>Fill `## Ranked Evidence Ledger` as one Markdown table sorted weakest/highest-risk first. Use exactly these columns: `Rank`, `Quality dimension`, `Score`, `Confidence`, `Evidence refs`, `Practical consequence`, `Highest-leverage fix`, `Priority`, `Route bucket`, and `Owner phase`. Include repo-backed dimensions for storage-schema confidence routed to Phase 190, release/version/docs trust routed to Phase 191, CI/CD measurement and gate trust routed to Phase 192, closeout traceability routed to Phase 193 when applicable, and evidence-boundary dimensions for reconnect, screenshots, external pilot, host staging, Hex/dependency, and legacy planning residuals. For D-189-06 through D-189-12, runtime/source claims must cite source/tests or named Mix proof; release/package claims must reconcile `mix.exs`, `.release-please-manifest.json`, Release Please config, CHANGELOG, docs, and doc contracts; CI claims must cite job ids or `mix ci.*`; planning prose may define scope but not prove shipped behavior. For D-189-14 through D-189-22, assign only one locked priority label per row. For D-189-27 through D-189-31, keep dimensions domain-specific and use plain consequence/action language for adopter, operator, maintainer, release owner, or host integrator.</action>
   <verify>
-    <automated>rg -n "Ranked Evidence Ledger" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "Rank \\| Quality dimension \\| Score \\| Confidence \\| Evidence refs \\| Practical consequence \\| Highest-leverage fix \\| Priority \\| Route bucket \\| Owner phase" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "190|191|192|193|storage_schema|Release Please|ci\\.all|screenshot|SEED-005|host staging|external pilot" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md</automated>
+    <automated>bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+for p in "Ranked Evidence Ledger" "Rank" "Quality dimension" "Score" "Confidence" "Evidence refs" "Practical consequence" "Highest-leverage fix" "Priority" "Route bucket" "Owner phase"; do rg -q -F "$p" "$f"; done
+for p in "190" "191" "192" "193" "storage_schema" "Release Please" "ci.all" "screenshot" "SEED-005" "host staging" "external pilot"; do rg -q -F "$p" "$f"; done
+awk -F"|" "/^\\| [0-9]+ \\|/ { rows++; if (NF < 11) exit 1; if (\$4 !~ / [0-4] /) exit 1; if (\$5 !~ / (High|Medium|Low) /) exit 1 } END { exit rows > 0 ? 0 : 1 }" "$f"
+'</automated>
   </verify>
   <acceptance_criteria>
     - The ledger is sorted by weakest/highest-risk first, not by subsystem convenience.
@@ -208,14 +219,21 @@ All tasks are in one plan because they intentionally modify the same file.
   </read_first>
   <action>Add `## QUAL-03 Residuals` with rows for `SEED-005/reconnect`, `screenshot-regression confidence`, `external pilot boundaries`, `host staging ownership`, `known CI/example-app residuals`, `Hex/dependency notes`, and `legacy Nyquist/planning residuals`. Each residual row must include current evidence, classification, owner, why it matters, and trigger to reopen. Add `## Good Enough / N/A Appendix` so proven or intentionally unclaimed surfaces are visible. Add `## v1.39 Narrowing` that lists findings routed to `190`, `191`, `192`, `193`, `future`, `external`, and `none`, with a one-line reason per route. Apply D-189-20 by not calling SEED-005 missing unless current reconnect proof fails or mutating affordances are unsafe. Apply D-189-21 by keeping broad screenshot stability as `Prove before claim` unless the intended local runner/bootstrap passed and the claim is narrowed to that runner. Apply D-189-25 and D-189-26 by using the ledger as downstream input without adding UI/product/compliance/source expansion. Run static validation; if any ledger or residual row cites fresh command evidence, rerun the exact command named in that row or reduce the row confidence.</action>
   <verify>
-    <automated>git diff --check && test -f .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "QUAL-03 Residuals|SEED-005|reconnect|screenshot-regression confidence|external pilot boundaries|host staging ownership|known CI/example-app residuals|Hex/dependency notes|legacy Nyquist/planning residuals|Good Enough / N/A Appendix|v1\\.39 Narrowing" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && test "$(git diff --name-only -- . | awk '$0 != \".planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md\" {print}' | wc -l | tr -d ' ')" = "0"</automated>
+    <automated>bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+git diff --check
+test -f "$f"
+for p in "QUAL-03 Residuals" "SEED-005/reconnect" "screenshot-regression confidence" "external pilot boundaries" "host staging ownership" "known CI/example-app residuals" "Hex/dependency notes" "legacy Nyquist/planning residuals" "Good Enough / N/A Appendix" "v1.39 Narrowing" "190" "191" "192" "193" "future" "external" "none"; do rg -q -F "$p" "$f"; done
+allowed=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+git status --short --untracked-files=all -- . | awk -v a="$allowed" "{ p=substr(\$0,4); if (p != a) { print; bad=1 } } END { exit bad ? 1 : 0 }"
+'</automated>
   </verify>
   <acceptance_criteria>
     - `## QUAL-03 Residuals` covers all seven required residuals exactly: SEED-005/reconnect, screenshot-regression confidence, external pilot boundaries, host staging ownership, known CI/example-app residuals, Hex/dependency notes, and legacy Nyquist/planning residuals.
     - `## Good Enough / N/A Appendix` is visible and contains rows rather than burying good-enough or not-applicable dimensions in prose.
     - `## v1.39 Narrowing` lists route outcomes for `190`, `191`, `192`, `193`, `future`, `external`, and `none`.
     - The artifact contains no planned edits to source code, README/guides, CI workflows, schemas, UI, screenshots, release automation, or package metadata.
-    - `git diff --name-only -- .` shows only `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` after execution.
+    - `git status --short --untracked-files=all -- .` shows only `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` after execution.
   </acceptance_criteria>
   <done>QUAL-03 is covered, good-enough/N/A dimensions are visible, v1.39 is narrowed to evidence-backed authority-surface work, and validation proves the phase remained audit-only.</done>
 </task>
@@ -249,10 +267,10 @@ All tasks are in one plan because they intentionally modify the same file.
 Overall phase checks:
 
 1. `test -f .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md`
-2. `rg -n "Ranked Evidence Ledger|Score|Confidence|Practical consequence|Highest-leverage fix|Owner phase|QUAL-03 Residuals|Good Enough / N/A Appendix|v1\\.39 Narrowing" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md`
-3. `rg -n "Blocker|Must fix before publish|Prove before claim|External-owned|Maintenance note|Backlog cleanup|Future seed|Good enough|N/A|SEED-005|reconnect|screenshot|external pilot|host staging|CI/example|Hex|dependency|Nyquist|planning residual" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md`
+2. `bash -lc 'set -euo pipefail; f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md; for p in "Ranked Evidence Ledger" "Rank" "Quality dimension" "Score" "Confidence" "Evidence refs" "Practical consequence" "Highest-leverage fix" "Priority" "Route bucket" "Owner phase" "QUAL-03 Residuals" "Good Enough / N/A Appendix" "v1.39 Narrowing"; do rg -q -F "$p" "$f"; done'`
+3. `bash -lc 'set -euo pipefail; f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md; for p in "Blocker" "Must fix before publish" "Prove before claim" "External-owned" "Maintenance note" "Backlog cleanup" "Future seed" "Good enough" "N/A" "SEED-005/reconnect" "screenshot-regression confidence" "external pilot boundaries" "host staging ownership" "known CI/example-app residuals" "Hex/dependency notes" "legacy Nyquist/planning residuals"; do rg -q -F "$p" "$f"; done'`
 4. `git diff --check`
-5. `test "$(git diff --name-only -- . | awk '$0 != \".planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md\" {print}' | wc -l | tr -d ' ')" = "0"`
+5. `bash -lc 'set -euo pipefail; allowed=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md; git status --short --untracked-files=all -- . | awk -v a="$allowed" "{ p=substr(\$0,4); if (p != a) { print; bad=1 } } END { exit bad ? 1 : 0 }"'`
 6. If the audit cites fresh command evidence, rerun the exact command named in that row or lower confidence for that row.
 </verification>
 

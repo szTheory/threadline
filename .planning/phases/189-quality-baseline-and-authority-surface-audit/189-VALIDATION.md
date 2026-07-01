@@ -19,8 +19,8 @@ created: 2026-07-01
 |----------|-------|
 | **Framework** | Static Markdown validation with `rg`, plus targeted Mix/ExUnit proof only when the audit cites fresh command evidence. |
 | **Config file** | `.planning/config.json` |
-| **Quick run command** | `test -f .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "Ranked Evidence Ledger|Score|Confidence|Practical consequence|Highest-leverage fix|Owner phase|QUAL-03|Good Enough|N/A|v1.39" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` |
-| **Full suite command** | `git diff --check && rg -n "Blocker|Must fix before publish|Prove before claim|External-owned|Maintenance note|Backlog cleanup|Future seed|Good enough|N/A|SEED-005|reconnect|screenshot|external pilot|host staging|CI/example|Hex|dependency|Nyquist|planning residual" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` |
+| **Quick run command** | See `## Static Validation Commands` below. |
+| **Full suite command** | See `## Static Validation Commands` below. |
 | **Estimated runtime** | ~10 seconds for static checks; targeted Mix commands vary by cited evidence. |
 
 ---
@@ -38,12 +38,92 @@ created: 2026-07-01
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 189-01-01 | 01 | 0 | QUAL-01 | T-189-01 | Audit rows cite concrete evidence before scoring adoption, release, operations, or maintainer trust. | static artifact | `rg -n "Ranked Evidence Ledger|Score|Confidence|Practical consequence|Highest-leverage fix|Owner phase" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | missing W0 | pending |
-| 189-01-02 | 01 | 0 | QUAL-02 | T-189-01 | Priority buckets separate must-fix risks from good-enough, maintenance, external-owned, backlog, future, and N/A items. | static artifact | `rg -n "Blocker|Must fix before publish|Prove before claim|External-owned|Maintenance note|Backlog cleanup|Future seed|Good enough|N/A" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | missing W0 | pending |
-| 189-01-03 | 01 | 0 | QUAL-03 | T-189-02 / T-189-03 | Residuals do not overclaim reconnect, screenshot, external pilot, host staging, CI/example, dependency, or legacy planning proof. | static artifact | `rg -n "SEED-005|reconnect|screenshot|external pilot|host staging|CI/example|Hex|dependency|Nyquist|planning residual" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | missing W0 | pending |
+| 189-01-01 | 01 | 0 | QUAL-01 | T-189-01 | Audit rows cite concrete evidence before scoring adoption, release, operations, or maintainer trust. | static artifact | `quick-artifact-contract` from `## Static Validation Commands` | missing W0 | pending |
+| 189-01-02 | 01 | 0 | QUAL-02 | T-189-01 | Priority buckets separate must-fix risks from good-enough, maintenance, external-owned, backlog, future, and N/A items. | static artifact | `priority-taxonomy-contract` from `## Static Validation Commands` | missing W0 | pending |
+| 189-01-03 | 01 | 0 | QUAL-03 | T-189-02 / T-189-03 | Residuals do not overclaim reconnect, screenshot, external pilot, host staging, CI/example, dependency, or legacy planning proof. | static artifact | `residual-coverage-contract` from `## Static Validation Commands` | missing W0 | pending |
 | 189-01-04 | 01 | 1 | QUAL-01/02/03 | T-189-01 / T-189-02 / T-189-03 | Any fresh command evidence cited in the audit is reproducible from named commands, not implied by prose. | targeted proof | `mix verify.doc_contract && mix test test/threadline/ci_topology_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/release_artifact_contract_test.exs` when those surfaces are cited as current proof | existing | pending |
 
 *Status: pending, green, red, flaky.*
+
+---
+
+## Static Validation Commands
+
+These commands intentionally use separate assertions. A single `A|B|C` pattern is not sufficient because it can pass when only one required token exists.
+
+### quick-artifact-contract
+
+```bash
+bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+test -f "$f"
+for p in \
+  "Ranked Evidence Ledger" \
+  "Rank" \
+  "Quality dimension" \
+  "Score" \
+  "Confidence" \
+  "Evidence refs" \
+  "Practical consequence" \
+  "Highest-leverage fix" \
+  "Priority" \
+  "Route bucket" \
+  "Owner phase" \
+  "QUAL-03 Residuals" \
+  "Good Enough / N/A Appendix" \
+  "v1.39 Narrowing"; do
+  rg -q -F "$p" "$f"
+done
+awk -F"|" "/^\\| [0-9]+ \\|/ { rows++; if (NF < 11) exit 1 } END { exit rows > 0 ? 0 : 1 }" "$f"
+'
+```
+
+### priority-taxonomy-contract
+
+```bash
+bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+for p in \
+  "Blocker" \
+  "Must fix before publish" \
+  "Prove before claim" \
+  "External-owned" \
+  "Maintenance note" \
+  "Backlog cleanup" \
+  "Future seed" \
+  "Good enough" \
+  "N/A"; do
+  rg -q -F "$p" "$f"
+done
+'
+```
+
+### residual-coverage-contract
+
+```bash
+bash -lc 'set -euo pipefail
+f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+for p in \
+  "SEED-005/reconnect" \
+  "screenshot-regression confidence" \
+  "external pilot boundaries" \
+  "host staging ownership" \
+  "known CI/example-app residuals" \
+  "Hex/dependency notes" \
+  "legacy Nyquist/planning residuals"; do
+  rg -q -F "$p" "$f"
+done
+'
+```
+
+### audit-only-allowlist-contract
+
+```bash
+bash -lc 'set -euo pipefail
+allowed=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md
+git status --short --untracked-files=all -- . | awk -v a="$allowed" "{ p=substr(\$0,4); if (p != a) { print; bad=1 } } END { exit bad ? 1 : 0 }"
+'
+```
 
 ---
 

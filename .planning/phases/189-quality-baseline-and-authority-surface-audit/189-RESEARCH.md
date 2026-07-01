@@ -429,17 +429,19 @@ Else:
 
 All recommendations in this research are based on current repo inspection, local tool probes, GSD init output, or cited official ASVS project pages. [VERIFIED: codebase grep; VERIFIED: shell; CITED: https://owasp.org/www-project-application-security-verification-standard/]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the executor run heavy proof bundles during Phase 189 or only cite existing evidence?**
+1. **Should the executor run heavy proof bundles during Phase 189 or only cite existing evidence? (RESOLVED)**
    - What we know: `mix ci.all`, `mix verify.release`, `mix verify.example_browser`, and `mix verify.doc_contract` exist as named gates. [VERIFIED: codebase grep]
    - What's unclear: The user requested an audit artifact, not a full gate rerun. [CITED: .planning/ROADMAP.md]
    - Recommendation: Plan lightweight artifact/static validation first, then run targeted proof only for rows whose classification depends on current command results. [CITED: .planning/phases/189-quality-baseline-and-authority-surface-audit/189-CONTEXT.md]
+   - Resolved answer: Phase 189 should use static artifact validation as the default and require exact command reruns only for audit rows that cite fresh command evidence; otherwise confidence must be lowered or the claim narrowed.
 
-2. **Should the Phase 189 artifact include preliminary row scores for known likely findings?**
+2. **Should the Phase 189 artifact include preliminary row scores for known likely findings? (RESOLVED)**
    - What we know: Current repo inspection already shows likely release/docs and storage-schema audit candidates. [VERIFIED: codebase grep]
    - What's unclear: The executor still owns the actual audit scoring and should inspect evidence in execution order. [CITED: .planning/ROADMAP.md]
    - Recommendation: The plan should task the executor to score from evidence, not blindly copy this research's examples as final verdicts. [CITED: .planning/phases/189-quality-baseline-and-authority-surface-audit/189-CONTEXT.md]
+   - Resolved answer: The plan should require evidence-first scoring by the executor; research examples may guide likely surfaces but are not final verdicts.
 
 ## Environment Availability
 
@@ -469,16 +471,16 @@ Nyquist validation is enabled because `.planning/config.json` has `workflow.nyqu
 |----------|-------|
 | Framework | Static Markdown validation with shell/`rg`, plus optional ExUnit/Mix proof bundles when classifications depend on current behavior. [VERIFIED: codebase grep] |
 | Config file | `.planning/config.json` enables Nyquist; no Phase 189 validation file exists yet. [VERIFIED: codebase grep] |
-| Quick run command | `test -f .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md && rg -n "Ranked Evidence Ledger|QUAL-03|Good Enough|N/A|v1.39" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` [VERIFIED: shell] |
+| Quick run command | `bash -lc 'set -euo pipefail; f=.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md; test -f "$f"; for p in "Ranked Evidence Ledger" "Score" "Confidence" "Practical consequence" "Highest-leverage fix" "Owner phase" "QUAL-03 Residuals" "Good Enough / N/A Appendix" "v1.39 Narrowing"; do rg -q -F "$p" "$f"; done'` [VERIFIED: shell] |
 | Full suite command | `mix verify.doc_contract && mix test test/threadline/ci_topology_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/release_artifact_contract_test.exs` when the audit closes doc/release/CI claims from current command evidence. [VERIFIED: codebase grep] |
 
 ### Phase Requirements -> Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|--------------|
-| QUAL-01 | Audit artifact ranks weakest quality dimensions with score, confidence, consequence, highest-leverage fix, priority, route, and owner. | static artifact check | `rg -n "Ranked Evidence Ledger|Score|Confidence|Practical consequence|Highest-leverage fix|Owner phase" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | no - Wave 0 artifact task. [VERIFIED: shell] |
-| QUAL-02 | Artifact separates must-fix from good-enough, low-priority, external-owned, maintenance, backlog cleanup, and N/A. | static artifact check | `rg -n "Blocker|Must fix before publish|Prove before claim|External-owned|Maintenance note|Backlog cleanup|Good enough|N/A" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | no - Wave 0 artifact task. [VERIFIED: shell] |
-| QUAL-03 | Residual table covers SEED-005/reconnect, screenshot regression, external pilot, host staging, CI/example-app, Hex/dependencies, and legacy Nyquist/planning residuals. | static artifact check | `rg -n "SEED-005|reconnect|screenshot|external pilot|host staging|CI/example|Hex|dependency|Nyquist|planning residual" .planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` | no - Wave 0 artifact task. [VERIFIED: shell] |
+| QUAL-01 | Audit artifact ranks weakest quality dimensions with score, confidence, consequence, highest-leverage fix, priority, route, and owner. | static artifact check | one `rg -q -F` assertion per required ledger column plus an `awk -F'|'` row-shape check | no - Wave 0 artifact task. [VERIFIED: shell] |
+| QUAL-02 | Artifact separates must-fix from good-enough, low-priority, external-owned, maintenance, backlog cleanup, and N/A. | static artifact check | one `rg -q -F` assertion per locked priority label and route concept | no - Wave 0 artifact task. [VERIFIED: shell] |
+| QUAL-03 | Residual table covers SEED-005/reconnect, screenshot regression, external pilot, host staging, CI/example-app, Hex/dependencies, and legacy Nyquist/planning residuals. | static artifact check | one `rg -q -F` assertion per required residual row label | no - Wave 0 artifact task. [VERIFIED: shell] |
 
 ### Sampling Rate
 
