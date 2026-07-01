@@ -373,7 +373,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             from(j in ExportJob, where: j.status == "failed" and j.actor_ref == ^actor_ref),
             :count,
             :id,
-            StorageSchema.repo_opts()
+            storage_opts(socket)
           )
         rescue
           _ -> nil
@@ -388,7 +388,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         try do
           case repo.one(
                  from(r in RetentionRun, order_by: [desc: r.started_at], limit: 1),
-                 StorageSchema.repo_opts()
+                 storage_opts(socket)
                ) do
             %{status: "failed"} -> true
             _ -> false
@@ -405,6 +405,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first()
     end
+
+    defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
 
     # ------------------------------------------------------------------
     # Recent/saved fast-path (A4) — returning operators skip re-filtering.
@@ -423,7 +425,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               order_by: [desc: v.inserted_at],
               limit: 6
             ),
-            StorageSchema.repo_opts()
+            storage_opts(socket)
           )
         rescue
           _ -> []

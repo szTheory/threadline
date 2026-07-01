@@ -20,24 +20,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
         page =
-          Threadline.actor_history(actor_ref,
-            repo: repo,
-            from: from_time,
-            scope: socket.assigns[:threadline_scope],
-            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-            surface: :actor_history,
-            params: %{actor_ref: actor_ref, from: from_time}
+          Threadline.actor_history(
+            actor_ref,
+            [
+              repo: repo,
+              from: from_time,
+              scope: socket.assigns[:threadline_scope],
+              scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+              surface: :actor_history,
+              params: %{actor_ref: actor_ref, from: from_time}
+            ] ++ storage_schema_opts(socket)
           )
 
         {has_ever_acted, last_activity} =
           if Enum.empty?(page.entries) do
-            case Threadline.actor_history(actor_ref,
-                   repo: repo,
-                   limit: 1,
-                   scope: socket.assigns[:threadline_scope],
-                   scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-                   surface: :actor_history,
-                   params: %{actor_ref: actor_ref}
+            case Threadline.actor_history(
+                   actor_ref,
+                   [
+                     repo: repo,
+                     limit: 1,
+                     scope: socket.assigns[:threadline_scope],
+                     scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+                     surface: :actor_history,
+                     params: %{actor_ref: actor_ref}
+                   ] ++ storage_schema_opts(socket)
                  ) do
               %{entries: [latest | _]} -> {true, latest.occurred_at}
               _ -> {false, nil}
@@ -46,7 +52,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {true, nil}
           end
 
-        actor_summaries = actor_summaries(page.entries, repo, socket.assigns[:threadline_scope])
+        actor_summaries =
+          actor_summaries(
+            page.entries,
+            repo,
+            socket.assigns[:threadline_scope],
+            storage_schema_opts(socket)
+          )
 
         {:ok,
          socket
@@ -236,17 +248,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
 
       page =
-        Threadline.actor_history(socket.assigns.actor_ref,
-          repo: socket.assigns.repo,
-          from: from_time,
-          scope: socket.assigns[:threadline_scope],
-          scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-          surface: :actor_history,
-          params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
+        Threadline.actor_history(
+          socket.assigns.actor_ref,
+          [
+            repo: socket.assigns.repo,
+            from: from_time,
+            scope: socket.assigns[:threadline_scope],
+            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+            surface: :actor_history,
+            params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
+          ] ++ storage_schema_opts(socket)
         )
 
       actor_summaries =
-        actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+        actor_summaries(
+          page.entries,
+          socket.assigns.repo,
+          socket.assigns[:threadline_scope],
+          storage_schema_opts(socket)
+        )
 
       {:noreply,
        socket
@@ -262,24 +282,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("next-page", _, socket) do
       if socket.assigns.next_cursor do
         page =
-          Threadline.actor_history(socket.assigns.actor_ref,
-            repo: socket.assigns.repo,
-            from: socket.assigns.from_time,
-            after: socket.assigns.next_cursor,
-            scope: socket.assigns[:threadline_scope],
-            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-            surface: :actor_history,
-            params: %{
-              actor_ref: socket.assigns.actor_ref,
+          Threadline.actor_history(
+            socket.assigns.actor_ref,
+            [
+              repo: socket.assigns.repo,
               from: socket.assigns.from_time,
-              after: socket.assigns.next_cursor
-            }
+              after: socket.assigns.next_cursor,
+              scope: socket.assigns[:threadline_scope],
+              scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+              surface: :actor_history,
+              params: %{
+                actor_ref: socket.assigns.actor_ref,
+                from: socket.assigns.from_time,
+                after: socket.assigns.next_cursor
+              }
+            ] ++ storage_schema_opts(socket)
           )
 
         actor_summaries =
           Map.merge(
             socket.assigns.actor_summaries,
-            actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+            actor_summaries(
+              page.entries,
+              socket.assigns.repo,
+              socket.assigns[:threadline_scope],
+              storage_schema_opts(socket)
+            )
           )
 
         {:noreply,
@@ -296,24 +324,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("prev-page", _, socket) do
       if socket.assigns.prev_cursor do
         page =
-          Threadline.actor_history(socket.assigns.actor_ref,
-            repo: socket.assigns.repo,
-            from: socket.assigns.from_time,
-            before: socket.assigns.prev_cursor,
-            scope: socket.assigns[:threadline_scope],
-            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-            surface: :actor_history,
-            params: %{
-              actor_ref: socket.assigns.actor_ref,
+          Threadline.actor_history(
+            socket.assigns.actor_ref,
+            [
+              repo: socket.assigns.repo,
               from: socket.assigns.from_time,
-              before: socket.assigns.prev_cursor
-            }
+              before: socket.assigns.prev_cursor,
+              scope: socket.assigns[:threadline_scope],
+              scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+              surface: :actor_history,
+              params: %{
+                actor_ref: socket.assigns.actor_ref,
+                from: socket.assigns.from_time,
+                before: socket.assigns.prev_cursor
+              }
+            ] ++ storage_schema_opts(socket)
           )
 
         actor_summaries =
           Map.merge(
             socket.assigns.actor_summaries,
-            actor_summaries(page.entries, socket.assigns.repo, socket.assigns[:threadline_scope])
+            actor_summaries(
+              page.entries,
+              socket.assigns.repo,
+              socket.assigns[:threadline_scope],
+              storage_schema_opts(socket)
+            )
           )
 
         {:noreply,
@@ -360,11 +396,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "#{base_path}/timeline?#{query}"
     end
 
-    defp actor_summaries(_transactions, _repo, scope)
+    defp storage_schema_opts(_socket), do: [storage_schema: StorageSchema.get()]
+
+    defp actor_summaries(_transactions, _repo, scope, _storage_schema_opts)
          when not is_nil(scope),
          do: %{}
 
-    defp actor_summaries(transactions, repo, _scope) do
+    defp actor_summaries(transactions, repo, _scope, storage_schema_opts) do
       ids = transactions |> Enum.map(& &1.id) |> Enum.reject(&is_nil/1)
 
       if ids == [] do
@@ -373,7 +411,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         AuditChange
         |> where([ac], ac.transaction_id in ^ids)
         |> order_by([ac], asc: ac.transaction_id, desc: ac.captured_at, desc: ac.table_name)
-        |> repo.all(StorageSchema.repo_opts())
+        |> repo.all(StorageSchema.repo_opts(storage_schema_opts))
         |> Enum.group_by(& &1.transaction_id)
         |> Map.new(fn {transaction_id, changes} ->
           {transaction_id,

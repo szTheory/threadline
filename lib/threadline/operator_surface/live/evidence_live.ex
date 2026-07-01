@@ -10,6 +10,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.StorageSchema
 
     @evidence_source_query "source=evidence"
 
@@ -30,7 +31,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if socket.assigns[:threadline_evidence_enabled] do
         case parse_request(params) do
           {:ok, request} ->
-            records = fetch_records(request, resolve_repo(socket))
+            records = fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))
 
             {:noreply,
              socket
@@ -212,23 +213,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:error, "History drill-down requires a subject filter."}
     end
 
-    defp fetch_records(%{subject: nil, subject_ref: nil, mode: :latest}, repo) do
-      Evidence.list_overview([], repo: repo)
+    defp fetch_records(
+           %{subject: nil, subject_ref: nil, mode: :latest},
+           repo,
+           storage_schema_opts
+         ) do
+      Evidence.list_overview([], evidence_opts(repo, storage_schema_opts))
     end
 
-    defp fetch_records(%{subject: subject, subject_ref: nil, mode: :latest}, repo) do
-      Evidence.list_latest_subject_refs(subject, repo: repo)
+    defp fetch_records(
+           %{subject: subject, subject_ref: nil, mode: :latest},
+           repo,
+           storage_schema_opts
+         ) do
+      Evidence.list_latest_subject_refs(subject, evidence_opts(repo, storage_schema_opts))
     end
 
-    defp fetch_records(%{subject: subject, subject_ref: subject_ref, mode: :latest}, repo) do
-      case Evidence.get_latest_subject_ref(subject, subject_ref, repo: repo) do
+    defp fetch_records(
+           %{subject: subject, subject_ref: subject_ref, mode: :latest},
+           repo,
+           storage_schema_opts
+         ) do
+      case Evidence.get_latest_subject_ref(
+             subject,
+             subject_ref,
+             evidence_opts(repo, storage_schema_opts)
+           ) do
         nil -> []
         record -> [record]
       end
     end
 
-    defp fetch_records(%{subject: subject, subject_ref: subject_ref, mode: :history}, repo) do
-      Evidence.list_subject_ref_history(subject, subject_ref, repo: repo)
+    defp fetch_records(
+           %{subject: subject, subject_ref: subject_ref, mode: :history},
+           repo,
+           storage_schema_opts
+         ) do
+      Evidence.list_subject_ref_history(
+        subject,
+        subject_ref,
+        evidence_opts(repo, storage_schema_opts)
+      )
     end
 
     defp build_groups(records) do
@@ -267,6 +292,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
     end
+
+    defp storage_schema_opts(_socket), do: [storage_schema: StorageSchema.get()]
+
+    defp evidence_opts(repo, storage_schema_opts),
+      do: Keyword.put(storage_schema_opts, :repo, repo)
 
     defp show_subject_link?(%{subject: nil, mode: :latest}), do: true
     defp show_subject_link?(_request), do: false

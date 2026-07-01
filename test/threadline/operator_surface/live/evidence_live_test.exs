@@ -378,16 +378,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert source =~
                  "fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))"
 
-        assert source =~ "Evidence.list_overview(storage_schema_opts, repo: repo)"
+        assert source =~ "Evidence.list_overview([], evidence_opts(repo, storage_schema_opts))"
 
         assert source =~
-                 "Evidence.list_latest_subject_refs(subject, storage_schema_opts, repo: repo)"
+                 "Evidence.list_latest_subject_refs(subject, evidence_opts(repo, storage_schema_opts))"
 
-        assert source =~
-                 "Evidence.get_latest_subject_ref(subject, subject_ref, storage_schema_opts, repo: repo)"
-
-        assert source =~
-                 "Evidence.list_subject_ref_history(subject, subject_ref, storage_schema_opts, repo: repo)"
+        assert source =~ "Evidence.get_latest_subject_ref("
+        assert source =~ "Evidence.list_subject_ref_history("
+        assert source =~ "evidence_opts(repo, storage_schema_opts)"
       end
 
       test "shows configured-storage evidence and ignores default-storage sentinels", %{
@@ -398,7 +396,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         with_storage_schema("audit", fn ->
           insert_evidence(
             storage_schema: "audit",
-            subject: "audit_evidence_subject",
+            subject: "retention_run",
             subject_ref: %{"run_id" => "audit-evidence"},
             summary_status: "completed",
             detail: %{"deleted_count" => 2}
@@ -406,7 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           insert_evidence(
             storage_schema: "threadline",
-            subject: "threadline_evidence_subject",
+            subject: "retention_run",
             subject_ref: %{"run_id" => "threadline-evidence"},
             summary_status: "failed",
             detail: %{"deleted_count" => 99}
@@ -414,8 +412,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           {:ok, _view, html} = live(conn, "/audit/evidence")
 
-          assert html =~ "audit_evidence_subject"
-          refute html =~ "threadline_evidence_subject"
+          assert html =~ "audit-evidence"
+          refute html =~ "threadline-evidence"
         end)
       end
     end

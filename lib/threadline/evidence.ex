@@ -131,10 +131,11 @@ defmodule Threadline.Evidence do
     repo = evidence_repo!(filters, opts)
     limit = Keyword.get(filters, :limit)
     subject_filters = Keyword.delete(filters, :limit)
+    subject_opts = Keyword.put(opts, :repo, repo)
 
     Subject.supported_subjects()
     |> Enum.flat_map(fn subject ->
-      list_latest_subject_refs(subject, subject_filters, repo: repo)
+      list_latest_subject_refs(subject, subject_filters, subject_opts)
     end)
     |> Enum.sort_by(
       fn record -> {DateTime.to_unix(record.recorded_at, :microsecond), record.id} end,

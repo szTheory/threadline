@@ -339,7 +339,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Threadline.record_action(:"retention.pruned",
         repo: resolve_repo(socket),
         actor: actor,
-        comment: "Operator-triggered retention prune for policy #{policy_name}"
+        comment: "Operator-triggered retention prune for policy #{policy_name}",
+        storage_schema: StorageSchema.get()
       )
     end
 
@@ -350,7 +351,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         repo = resolve_repo(socket)
 
         from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
-        |> repo.all(StorageSchema.repo_opts())
+        |> repo.all(storage_opts(socket))
       end
     end
 
@@ -359,7 +360,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         false
       else
         repo = resolve_repo(socket)
-        repo.exists?(from(r in RetentionRun), StorageSchema.repo_opts())
+        repo.exists?(from(r in RetentionRun), storage_opts(socket))
       end
     end
 
@@ -375,6 +376,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket.assigns[:threadline_repo] ||
         Application.get_env(:threadline, :ecto_repos, []) |> List.first() || Threadline.Repo
     end
+
+    defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
 
     defp assign_runs(socket, runs) do
       socket
