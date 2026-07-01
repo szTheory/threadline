@@ -42,6 +42,7 @@ Create the Phase 189 audit-only plan for QUAL-01, QUAL-02, and QUAL-03.
 
 Purpose: Produce the blunt, repo-evidence quality ranking requested by the milestone so v1.39 narrows toward the weakest current adoption, production, support, release, and maintainer trust risks.
 Output: `.planning/phases/189-quality-baseline-and-authority-surface-audit/189-QUALITY-AUDIT.md` only.
+Decision coverage: D-189-01, D-189-02, D-189-03, D-189-04, D-189-05, D-189-06, D-189-07, D-189-08, D-189-09, D-189-10, D-189-11, D-189-12, D-189-13, D-189-14, D-189-15, D-189-16, D-189-17, D-189-18, D-189-19, D-189-20, D-189-21, D-189-22, D-189-23, D-189-24, D-189-25, D-189-26, D-189-27, D-189-28, D-189-29, D-189-30, D-189-31.
 </objective>
 
 <execution_context>
@@ -117,6 +118,40 @@ All tasks are in one plan because they intentionally modify the same file.
 | CONTEXT | D-189-27 D-189-28 D-189-29 D-189-30 D-189-31 | Verification as product surface, Threadline domain separation, boring Elixir idioms, ecosystem lessons, and Threadline microcopy. | 01 | COVERED | Tasks 1-3 enforce named proof bundles, domain-specific dimensions, and plain consequence/action language. |
 | CONTEXT | Deferred Ideas | External pilot proof, host staging depth, broad screenshot promotion, reconnect UX expansion, observability, runtime redaction, compliance, WAL/CDC, public Storybook/API. | 01 | EXCLUDED | The plan records these only as residual/future/external classifications when evidence warrants; no implementation tasks are added. |
 </source_audit>
+
+<decision_coverage_index>
+- D-189-01: Task 1 and Task 2 create one ranked Markdown audit artifact with YAML frontmatter and a weakest-first evidence ledger.
+- D-189-02: Task 1 defines score `0-4` and keeps confidence separate as `High`, `Medium`, or `Low`.
+- D-189-03: Task 2 requires every ranked row to include quality dimension, evidence refs, confidence, practical consequence, highest-leverage fix, priority, route bucket, and owner phase.
+- D-189-04: Task 3 adds a visible `Good Enough / N/A Appendix` and prevents manufactured checklist concerns.
+- D-189-05: Task 3 adds `## QUAL-03 Residuals` covering SEED-005/reconnect, screenshot-regression confidence, external pilot boundaries, host staging ownership, known CI/example-app residuals, Hex/dependency notes, and legacy Nyquist/planning residuals.
+- D-189-06: Task 1 and Task 2 use evidence-first, scope-aware authority ordering where planning defines audit scope but current-tree proof decides truth.
+- D-189-07: Task 2 requires runtime/source behavior claims to cite source code, focused tests, named `mix verify.*` / `mix ci.*` bundles, current CI job behavior, or clean-tree verification evidence before prose.
+- D-189-08: Task 2 requires release/version/package claims to reconcile `mix.exs`, `.release-please-manifest.json`, Release Please config, CHANGELOG, docs, Hex/package truth, and doc-contract tests.
+- D-189-09: Task 2 treats README/guides/HexDocs as adopter-facing drift surfaces that must be repaired or honestly narrowed, not as overrides for current-tree proof.
+- D-189-10: Task 2 treats GitHub Actions required checks, stable CI job ids, `mix ci.*`, and branch-protection docs as gate-readiness evidence only after residual ownership is explicit.
+- D-189-11: Task 1 and Task 2 use `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, milestone audits, and retrospectives for scope, priority, residual history, and owner phase, not shipped truth.
+- D-189-12: Task 2 and Task 3 prefer named rerun bundles plus `VERIFICATION.md` / `VALIDATION.md` proof over audit prose when closing claims.
+- D-189-13: Task 1 defines the exact trust-boundary taxonomy.
+- D-189-14: Task 2 reserves `Blocker` for false public claims, red required gates, broken correctness/security invariants, or proof gaps that prevent honest requirement closure.
+- D-189-15: Task 2 uses `Must fix before publish` when a defect would make a Hex release, README promise, upgrade story, or v1.39 closeout misleading.
+- D-189-16: Task 2 and Task 3 use `Prove before claim` for screenshot stability, broad visual regression, assistive-technology certification, external staging/pilot claims, and any narrower-than-tempting proof.
+- D-189-17: Task 2 and Task 3 classify host staging and real adopter pilot evidence as `External-owned` unless named integrator-controlled evidence exists.
+- D-189-18: Task 2 and Task 3 classify Hex auth-session warnings, dependency advisory output, and tool-environment notes as `Maintenance note` unless they affect shipped code, package installability, or required release gates.
+- D-189-19: Task 2 and Task 3 classify legacy planning/Nyquist/frontmatter residuals as `Backlog cleanup` unless active v1.39 traceability depends on them.
+- D-189-20: Task 3 does not treat SEED-005/reconnect as missing unless current socket-drop proof fails, mutating affordances are unsafe, or current operator behavior is trust-impacting.
+- D-189-21: Task 3 keeps screenshot regression confidence as `Prove before claim` unless the intended local runner/bootstrap passes and the claim is narrowed to that runner.
+- D-189-22: Task 2 and Task 3 block broad CI/example-app residuals only when they are required release gates or current-code regressions.
+- D-189-23: Task 3 applies the authority-surface gate so findings constrain phases 190-193 only when backed by repo evidence and tied to current v1.39 authority surfaces.
+- D-189-24: Task 3 routes findings as `Must-fix now`, `Phase-owned`, `Future seed`, `Good enough`, `N/A`, `External-owned`, `Maintenance note`, or `Backlog cleanup` with owner phase values `190`, `191`, `192`, `193`, `future`, `external`, or `none`.
+- D-189-25: Task 3 prevents Phase 189 from broadening v1.39 into a UI/product/compliance milestone.
+- D-189-26: Task 3 makes the Phase 189 ledger the closeout input for Phase 193.
+- D-189-27: Task 2 treats verification entrypoints, doc contracts, release checks, and example-app proof as adopter UX surfaces.
+- D-189-28: Task 2 preserves Threadline audit-domain separation across capture, semantics, exploration/operations, operator evidence, and compliance claims.
+- D-189-29: Task 2 favors explicit Elixir/Phoenix library idioms: optional dependencies stay optional, public claims are doc-contract guarded, current source/test proof beats stale prose, and host-owned seams stay host-owned.
+- D-189-30: Task 2 applies audit-library ecosystem lessons by favoring explicit actor/context metadata, queryable storage, migration/upgrade honesty, disable/maintenance paths, and human-readable history while avoiding callback-only missed writes, opaque blobs, fragile process/thread/connection-local context, delete-lost record history, and unsupported association magic.
+- D-189-31: Task 2 and Task 3 use Threadline microcopy guidance: say what failed, why it matters, and the next action; avoid vague marketing and severity theater.
+</decision_coverage_index>
 
 <tasks>
 
