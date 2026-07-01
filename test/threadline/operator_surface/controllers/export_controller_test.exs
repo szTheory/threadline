@@ -140,6 +140,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     import Phoenix.ConnTest
     import Plug.Conn, only: [get_resp_header: 2, assign: 3]
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
     alias Threadline.Governance.ExportJob
@@ -186,14 +187,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     setup do
-      # Honest cleanup — same as DataCase, FK order. Threadline does NOT use
-      # SQL Sandbox; cleanup happens in setup before each test.
-      @repo.delete_all(AuditChange)
-      @repo.delete_all(AuditTransaction)
+      previous_storage_schema = Application.get_env(:threadline, :storage_schema)
 
-      if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        @repo.delete_all(Threadline.Semantics.AuditAction)
-      end
+      on_exit(fn ->
+        restore_env(:storage_schema, previous_storage_schema)
+      end)
+
+      clean_storage_schemas!()
 
       {:ok, conn: build_conn()}
     end
@@ -373,7 +373,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -388,7 +389,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             op: "insert",
             data_after: %{"i" => i},
             captured_at: now
-          })
+          }),
+          repo_opts()
         )
       end
     end
@@ -404,7 +406,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -425,14 +428,17 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       changes
       |> Enum.chunk_every(1_000)
-      |> Enum.each(fn chunk -> @repo.insert_all(AuditChange, chunk) end)
+      |> Enum.each(fn chunk -> @repo.insert_all(AuditChange, chunk, repo_opts()) end)
     end
+
+    defp restore_env(key, nil), do: Application.delete_env(:threadline, key)
+    defp restore_env(key, value), do: Application.put_env(:threadline, key, value)
 
     # ---- Download path ----
 
     describe "GET /audit/exports/download/:job_id" do
       setup do
-        @repo.delete_all(ExportJob)
+        @repo.delete_all(ExportJob, repo_opts())
         previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
         previous_remote_opts = Application.get_env(:threadline, RemoteStorageStub)
 
@@ -461,6 +467,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         {:ok, export_dir: export_dir}
       end
 
+      test "download lookup source resolves storage schema before fetching export jobs" do
+        source = File.read!("lib/threadline/operator_surface/controllers/export_controller.ex")
+
+        assert source =~ "storage_schema = StorageSchema.get()"
+        assert source =~ "fetch_export_job(repo, uuid, storage_schema)"
+      end
+
       test "returns 200 and serves the file if valid and authorized", %{
         conn: conn,
         export_dir: export_dir
@@ -471,7 +484,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         File.write!(file_path, "col1,col2\n1,2")
 
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             id: job_id,
             status: "completed",
             query_params: %{"format" => "csv"},
@@ -494,7 +507,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         Application.put_env(:threadline, :storage_adapter, RemoteStorageStub)
 
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             status: "completed",
             query_params: %{"format" => "csv"},
             file_path: "remote-export.csv",
@@ -525,7 +538,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         File.write!(file_path, "col1,col2\n1,2")
 
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             id: job_id,
             status: "completed",
             query_params: %{"format" => "csv"},
@@ -552,7 +565,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         File.write!(file_path, "col1,col2\n1,2")
 
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             id: job_id,
             status: "completed",
             query_params: %{"format" => "csv"},
@@ -568,7 +581,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       test "returns 422 if job is not completed", %{conn: conn} do
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             status: "processing",
             query_params: %{"format" => "csv"},
             actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
@@ -585,7 +598,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       test "returns 404 if file does not exist locally", %{conn: conn} do
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             status: "completed",
             query_params: %{"format" => "csv"},
             file_path: "non_existent.csv",
@@ -606,7 +619,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         Application.put_env(:threadline, RemoteStorageStub, test_download_result: :error)
 
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             status: "completed",
             query_params: %{"format" => "csv"},
             file_path: "remote-export.csv",
@@ -636,7 +649,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       test "returns 410 when a completed export has expired", %{conn: conn} do
         job =
-          @repo.insert!(%ExportJob{
+          insert_export_job!(%{
             status: "completed",
             query_params: %{"format" => "csv"},
             file_path: "expired.csv",
@@ -653,6 +666,94 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert conn.status == 410
         assert response(conn, 410) =~ "no longer available"
       end
+
+      test "serves the configured storage export and ignores a default-schema sentinel", %{
+        conn: conn,
+        export_dir: export_dir
+      } do
+        ensure_storage_schema!("audit")
+        Application.put_env(:threadline, :storage_schema, "audit")
+
+        job_id = Ecto.UUID.generate()
+        audit_file = "#{job_id}-audit.csv"
+        default_file = "#{job_id}-default.csv"
+        File.write!(Path.join(export_dir, audit_file), "schema,row\naudit,1")
+        File.write!(Path.join(export_dir, default_file), "schema,row\nthreadline,1")
+
+        insert_export_job!(
+          %{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: default_file,
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          },
+          "threadline"
+        )
+
+        insert_export_job!(
+          %{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: audit_file,
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          },
+          "audit"
+        )
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job_id}")
+
+        assert conn.status == 200
+        assert response(conn, 200) == "schema,row\naudit,1"
+      end
+
+      test "wrong actor remains denied when a default-schema sentinel would match", %{conn: conn} do
+        ensure_storage_schema!("audit")
+        Application.put_env(:threadline, :storage_schema, "audit")
+
+        job_id = Ecto.UUID.generate()
+
+        insert_export_job!(
+          %{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "default-visible.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"}
+          },
+          "threadline"
+        )
+
+        insert_export_job!(
+          %{
+            id: job_id,
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "audit-hidden.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "999"}
+          },
+          "audit"
+        )
+
+        conn =
+          conn
+          |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{type: :user, id: "123"})
+          |> get("/audit/exports/download/#{job_id}")
+
+        assert conn.status == 404
+        assert response(conn, 404) =~ "Export not found"
+      end
+    end
+
+    defp insert_export_job!(attrs, storage_schema \\ "threadline") do
+      @repo.insert!(
+        struct(ExportJob, attrs),
+        repo_opts(storage_schema)
+      )
     end
   end
 
@@ -661,6 +762,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -679,8 +781,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     setup do
-      @repo.delete_all(AuditChange)
-      @repo.delete_all(AuditTransaction)
+      clean_storage_schemas!()
       {:ok, conn: build_conn()}
     end
 
@@ -707,7 +808,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             source: source
-          })
+          }),
+          repo_opts()
         )
 
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -722,7 +824,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             op: "insert",
             data_after: %{"i" => i},
             captured_at: now
-          })
+          }),
+          repo_opts()
         )
       end
     end
