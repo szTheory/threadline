@@ -51,6 +51,7 @@ defmodule Threadline.Retention do
     max_batches = Keyword.get(opts, :max_batches, 10_000)
     dry_run? = Keyword.get(opts, :dry_run, false)
     sleep_ms = Keyword.get(opts, :sleep_ms, 50)
+    storage_opts = StorageSchema.repo_opts(opts)
 
     retention_kw = Application.get_env(:threadline, :retention) || []
     policy = Policy.resolve!(retention_kw)
@@ -62,7 +63,7 @@ defmodule Threadline.Retention do
       cutoff = resolve_cutoff(Keyword.get(opts, :cutoff), policy_cutoff)
 
       if dry_run? do
-        dry_run_result(repo, cutoff, policy)
+        dry_run_result(repo, cutoff, policy, storage_opts)
       else
         run_with_tracking(
           repo,
@@ -70,13 +71,22 @@ defmodule Threadline.Retention do
           batch_size,
           max_batches,
           policy.delete_empty_transactions,
-          sleep_ms
+          sleep_ms,
+          storage_opts
         )
       end
     end
   end
 
-  defp run_with_tracking(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms) do
+  defp run_with_tracking(
+         repo,
+         cutoff,
+         batch_size,
+         max_batches,
+         delete_empty?,
+         sleep_ms,
+         storage_opts
+       ) do
     started_at = DateTime.utc_now(:microsecond)
 
     run_record =
@@ -85,10 +95,11 @@ defmodule Threadline.Retention do
           status: "running",
           started_at: started_at
         }),
-        StorageSchema.repo_opts()
+        storage_opts
       )
 
-    result = purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms)
+    result =
+      purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts)
 
     completed_at = DateTime.utc_now(:microsecond)
     duration_ms = DateTime.diff(completed_at, started_at, :millisecond)
@@ -100,7 +111,7 @@ defmodule Threadline.Retention do
         duration_ms: duration_ms,
         completed_at: completed_at
       }),
-      StorageSchema.repo_opts()
+      storage_opts
     )
 
     result
@@ -117,11 +128,11 @@ defmodule Threadline.Retention do
     requested
   end
 
-  defp dry_run_result(repo, cutoff, policy) do
+  defp dry_run_result(repo, cutoff, policy, storage_opts) do
     eligible_changes =
       repo.one(
         from(ac in AuditChange, where: ac.captured_at < ^cutoff, select: count(ac.id)),
-        StorageSchema.repo_opts()
+        storage_opts
       )
 
     eligible_txns =
@@ -138,7 +149,7 @@ defmodule Threadline.Retention do
               ),
             select: count(at.id)
           ),
-          StorageSchema.repo_opts()
+          storage_opts
         )
       else
         0
@@ -152,14 +163,14 @@ defmodule Threadline.Retention do
     }
   end
 
-  defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms) do
+  defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts) do
     {total_changes, total_txns, batches} =
       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
-        n1 = delete_change_batch(repo, cutoff, batch_size)
+        n1 = delete_change_batch(repo, cutoff, batch_size, storage_opts)
 
         n2 =
           if delete_empty? do
-            drain_orphan_batches(repo, batch_size)
+            drain_orphan_batches(repo, batch_size, storage_opts)
           else
             0
           end
@@ -191,7 +202,7 @@ defmodule Threadline.Retention do
     %{deleted_changes: total_changes, deleted_transactions: total_txns, batches_run: batches}
   end
 
-  defp delete_change_batch(repo, cutoff, batch_size) do
+  defp delete_change_batch(repo, cutoff, batch_size, storage_opts) do
     subq =
       from(ac in AuditChange,
         where: ac.captured_at < ^cutoff,
@@ -204,15 +215,17 @@ defmodule Threadline.Retention do
         from(ac in AuditChange,
           where: ac.id in subquery(subq)
         ),
-        StorageSchema.repo_opts()
+        storage_opts
       )
 
     n
   end
 
-  defp drain_orphan_batches(repo, batch_size), do: drain_orphans(0, repo, batch_size)
+  defp drain_orphan_batches(repo, batch_size, storage_opts) do
+    drain_orphans(0, repo, batch_size, storage_opts)
+  end
 
-  defp drain_orphans(acc, repo, batch_size) do
+  defp drain_orphans(acc, repo, batch_size, storage_opts) do
     subq =
       from(at in AuditTransaction,
         as: :audit_transaction,
@@ -229,10 +242,10 @@ defmodule Threadline.Retention do
 
     case repo.delete_all(
            from(at in AuditTransaction, where: at.id in subquery(subq)),
-           StorageSchema.repo_opts()
+           storage_opts
          ) do
       {0, _} -> acc
-      {n, _} -> drain_orphans(acc + n, repo, batch_size)
+      {n, _} -> drain_orphans(acc + n, repo, batch_size, storage_opts)
     end
   end
 end
