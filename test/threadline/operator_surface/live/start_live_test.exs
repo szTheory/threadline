@@ -238,9 +238,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView)
-      Threadline.Test.Repo.delete_all(ExportJob)
-      Threadline.Test.Repo.delete_all(RetentionRun)
+      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
+      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
+      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
 
@@ -346,7 +346,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         completed_at: now,
         deleted_count: 0
       })
-      |> Threadline.Test.Repo.insert!()
+      |> Threadline.Test.Repo.insert!(repo_opts())
 
       {:ok, _view, html} = live(conn, "/audit")
 
@@ -390,6 +390,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute html =~ "Other actor scope"
       refute html =~ "secrets"
+    end
+
+    test "source contract: Home health and resume reads use resolved storage opts" do
+      source = File.read!("lib/threadline/operator_surface/live/start_live.ex")
+
+      assert source =~ "defp storage_opts(_socket)"
+      assert source =~ "StorageSchema.repo_opts(storage_schema: StorageSchema.get())"
+      assert source =~ "storage_opts(socket)"
+    end
+
+    test "shows configured-storage Home signals and ignores default-storage sentinels", %{
+      conn: conn,
+      actor_ref: actor_ref
+    } do
+      ensure_storage_schema!("audit")
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      with_storage_schema("audit", fn ->
+        insert_export!(actor_ref, "failed", now, "audit")
+        insert_export!(actor_ref, "failed", now, "threadline")
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "failed",
+          started_at: now,
+          completed_at: now,
+          deleted_count: 0
+        })
+        |> Threadline.Test.Repo.insert!(repo_opts("audit"))
+
+        insert_view!(actor_ref, "Audit resume", %{"table" => "audit_rows"}, "audit")
+
+        insert_view!(
+          actor_ref,
+          "Threadline resume",
+          %{"table" => "threadline_rows"},
+          "threadline"
+        )
+
+        {:ok, _view, html} = live(conn, "/audit")
+
+        assert html =~ "1 failed export needs attention"
+        assert html =~ "Latest retention run failed"
+        assert html =~ "Audit resume"
+        refute html =~ "2 failed exports"
+        refute html =~ "Threadline resume"
+      end)
     end
 
     test "renders earned record-first lookup without Timeline filter builder controls", %{
@@ -524,7 +571,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp insert_export!(actor_ref, status, started_at) do
+    defp insert_export!(actor_ref, status, started_at, storage_schema \\ "threadline") do
       %ExportJob{}
       |> ExportJob.changeset(%{
         status: status,
@@ -532,17 +579,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: actor_ref,
         started_at: started_at
       })
-      |> Threadline.Test.Repo.insert!()
+      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
     end
 
-    defp insert_view!(actor_ref, name, filters) do
+    defp insert_view!(actor_ref, name, filters, storage_schema \\ "threadline") do
       %SavedView{}
       |> SavedView.changeset(%{
         name: name,
         actor_ref: actor_ref,
         filters: filters
       })
-      |> Threadline.Test.Repo.insert!()
+      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
     end
 
     defp home_health(html) do

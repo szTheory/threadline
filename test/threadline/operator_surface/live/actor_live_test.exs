@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.ActorLiveTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -136,16 +136,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Regex.scan(~r/<h1\b/, html) |> length() == 1
     end
 
-    defp insert_transaction(attrs) do
+    defp insert_transaction(attrs, storage_schema \\ "threadline") do
       defaults = %{
         txid: System.unique_integer([:positive]),
         occurred_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditTransaction.changeset(Map.merge(defaults, attrs)),
+        repo_opts(storage_schema)
+      )
     end
 
-    defp insert_change(transaction, attrs) do
+    defp insert_change(transaction, attrs, storage_schema \\ "threadline") do
       defaults = %{
         transaction_id: transaction.id,
         table_schema: "public",
@@ -158,7 +161,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: transaction.occurred_at || DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditChange.changeset(Map.merge(defaults, attrs)),
+        repo_opts(storage_schema)
+      )
     end
 
     test "Case 1: renders invalid actor reference with next action", %{conn: conn} do
@@ -205,7 +211,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now() |> DateTime.add(-48, :hour),
           actor_ref: %{"type" => "user", "id" => "window_test"}
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/actors/user/window_test")
@@ -227,7 +234,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             actor_ref: %{"type" => "user", "id" => "tx_test"}
-          })
+          }),
+          repo_opts()
         )
 
       assert {:ok, lv, html} = live(conn, "/audit/actors/user/tx_test")
@@ -320,6 +328,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Open transaction"
     end
 
+    test "source contract: actor history and summaries use resolved storage opts" do
+      source = File.read!("lib/threadline/operator_surface/live/actor_live.ex")
+
+      assert source =~ "defp storage_schema_opts(_socket)"
+      assert source =~ "storage_schema: StorageSchema.get()"
+      assert source =~ "StorageSchema.repo_opts(storage_schema_opts)"
+    end
+
+    test "shows configured-storage actor rows and ignores default-storage sentinels", %{
+      conn: conn
+    } do
+      ensure_storage_schema!("audit")
+      actor_id = "schema_actor_#{System.unique_integer([:positive])}"
+      now = DateTime.utc_now()
+
+      with_storage_schema("audit", fn ->
+        audit_txn =
+          insert_transaction(
+            %{
+              actor_ref: %{"type" => "user", "id" => actor_id},
+              occurred_at: now
+            },
+            "audit"
+          )
+
+        insert_change(audit_txn, %{table_name: "audit_actor_rows"}, "audit")
+
+        threadline_txn =
+          insert_transaction(
+            %{
+              actor_ref: %{"type" => "user", "id" => actor_id},
+              occurred_at: DateTime.add(now, -1, :second)
+            },
+            "threadline"
+          )
+
+        insert_change(threadline_txn, %{table_name: "threadline_actor_rows"}, "threadline")
+
+        {:ok, _lv, html} = live(conn, "/audit/actors/user/#{actor_id}")
+
+        assert html =~ "audit_actor_rows"
+        refute html =~ "threadline_actor_rows"
+      end)
+    end
+
     describe "surface header (Phase 66)" do
       test "does not render the surface badge linking to /audit/coverage when coverage is disabled",
            %{
@@ -337,7 +390,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.ActorLiveScopedTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -360,16 +413,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
-    defp insert_transaction(attrs) do
+    defp insert_transaction(attrs, storage_schema \\ "threadline") do
       defaults = %{
         txid: System.unique_integer([:positive]),
         occurred_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditTransaction.changeset(Map.merge(defaults, attrs)),
+        repo_opts(storage_schema)
+      )
     end
 
-    defp insert_change(transaction, attrs) do
+    defp insert_change(transaction, attrs, storage_schema \\ "threadline") do
       defaults = %{
         transaction_id: transaction.id,
         table_schema: "public",
@@ -382,7 +438,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: transaction.occurred_at || DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditChange.changeset(Map.merge(defaults, attrs)),
+        repo_opts(storage_schema)
+      )
     end
 
     test "scoped actor history hides out-of-scope actor events", %{conn: conn} do
@@ -394,7 +453,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           occurred_at: DateTime.utc_now(),
           actor_ref: %{"type" => "user", "id" => "scoped_actor"},
           source: "admin"
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/actors/user/scoped_actor")

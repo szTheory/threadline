@@ -64,7 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest do
-    use Threadline.DataCase
+    use Threadline.DataCase, async: false
 
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
@@ -88,11 +88,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Repo.delete_all(EvidenceRecord)
+      Repo.delete_all(EvidenceRecord, repo_opts())
       {:ok, conn: build_conn()}
     end
 
     defp insert_evidence(attrs) do
+      storage_schema = Keyword.get(attrs, :storage_schema, "threadline")
+      attrs = Keyword.delete(attrs, :storage_schema)
+
       defaults = %{
         subject: "retention_run",
         subject_ref: %{"run_id" => Ecto.UUID.generate()},
@@ -105,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       %EvidenceRecord{}
       |> EvidenceRecord.changeset(Map.merge(defaults, Map.new(attrs)))
-      |> Repo.insert!()
+      |> Repo.insert!(repo_opts(storage_schema))
     end
 
     describe "mount /audit/evidence" do
@@ -367,6 +370,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
 
         refute html =~ "current proof state"
+      end
+
+      test "source contract: Evidence reads pass resolved storage schema opts" do
+        source = File.read!("lib/threadline/operator_surface/live/evidence_live.ex")
+
+        assert source =~
+                 "fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))"
+
+        assert source =~ "Evidence.list_overview(storage_schema_opts, repo: repo)"
+
+        assert source =~
+                 "Evidence.list_latest_subject_refs(subject, storage_schema_opts, repo: repo)"
+
+        assert source =~
+                 "Evidence.get_latest_subject_ref(subject, subject_ref, storage_schema_opts, repo: repo)"
+
+        assert source =~
+                 "Evidence.list_subject_ref_history(subject, subject_ref, storage_schema_opts, repo: repo)"
+      end
+
+      test "shows configured-storage evidence and ignores default-storage sentinels", %{
+        conn: conn
+      } do
+        ensure_storage_schema!("audit")
+
+        with_storage_schema("audit", fn ->
+          insert_evidence(
+            storage_schema: "audit",
+            subject: "audit_evidence_subject",
+            subject_ref: %{"run_id" => "audit-evidence"},
+            summary_status: "completed",
+            detail: %{"deleted_count" => 2}
+          )
+
+          insert_evidence(
+            storage_schema: "threadline",
+            subject: "threadline_evidence_subject",
+            subject_ref: %{"run_id" => "threadline-evidence"},
+            summary_status: "failed",
+            detail: %{"deleted_count" => 99}
+          )
+
+          {:ok, _view, html} = live(conn, "/audit/evidence")
+
+          assert html =~ "audit_evidence_subject"
+          refute html =~ "threadline_evidence_subject"
+        end)
       end
     end
 
