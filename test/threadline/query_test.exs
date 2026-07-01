@@ -13,7 +13,7 @@ defmodule Threadline.QueryTest do
 
   defp insert_transaction(attrs \\ %{}) do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
-    @repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+    @repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)), repo_opts())
   end
 
   defp insert_change(transaction, attrs \\ %{}) do
@@ -28,7 +28,7 @@ defmodule Threadline.QueryTest do
       transaction_id: transaction.id
     }
 
-    @repo.insert!(AuditChange.changeset(Map.merge(defaults, Map.new(attrs))))
+    @repo.insert!(AuditChange.changeset(Map.merge(defaults, Map.new(attrs))), repo_opts())
   end
 
   defp actor!(type, id) do
@@ -794,7 +794,10 @@ defmodule Threadline.QueryTest do
         correlation_id: "loop01-cid"
       }
 
-      @repo.insert!(AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)))
+      @repo.insert!(
+        AuditAction.changeset(%AuditAction{}, Map.merge(defaults, attrs)),
+        repo_opts()
+      )
     end
 
     test "validate_timeline_filters!/1 accepts correlation_id" do
@@ -897,7 +900,8 @@ defmodule Threadline.QueryTest do
             actor_ref: ActorRef.to_map(actor),
             status: :ok,
             correlation_id: "compat-correlation"
-          })
+          }),
+          repo_opts()
         )
 
       txn =

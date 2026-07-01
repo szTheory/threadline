@@ -18,12 +18,10 @@ defmodule Threadline.DataCase do
       alias Threadline.Capture.{AuditChange, AuditTransaction}
       import Ecto.Query
       import Threadline.AsyncHelpers
+      import Threadline.StorageSchemaCase
 
       setup do
-        # FK order: changes first, then transactions, then actions
-        Repo.delete_all(AuditChange)
-        Repo.delete_all(AuditTransaction)
-        Repo.delete_all(Threadline.Semantics.AuditAction)
+        Threadline.StorageSchemaCase.clean_storage_schemas!()
         :ok
       end
     end
