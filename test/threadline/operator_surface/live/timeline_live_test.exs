@@ -293,7 +293,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -321,8 +321,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
-      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -341,6 +339,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp seed_change!(opts) do
       repo = Threadline.Test.Repo
+      storage_schema = Keyword.get(opts, :storage_schema, "threadline")
+      storage_opts = repo_opts(storage_schema)
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
       correlation_id = Keyword.get(opts, :correlation_id)
@@ -353,7 +353,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               actor_ref: actor_ref,
               status: "ok",
               correlation_id: correlation_id
-            })
+            }),
+            storage_opts
           )
         end
 
@@ -365,7 +366,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             actor_ref: actor_ref,
             source: Keyword.get(opts, :source, "support"),
             action_id: action && action.id
-          })
+          }),
+          storage_opts
         )
 
       repo.insert!(
@@ -378,7 +380,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data_after: %{"title" => "x"},
           changed_fields: nil,
           captured_at: occurred_at
-        })
+        }),
+        storage_opts
       )
     end
 
@@ -393,13 +396,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp bulk_seed_changes!(n, opts) when n > 0 and is_list(opts) do
       repo = Threadline.Test.Repo
       table = Keyword.fetch!(opts, :table)
+      storage_opts = repo_opts(Keyword.get(opts, :storage_schema, "threadline"))
 
       txn =
         repo.insert!(
           Threadline.Capture.AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          storage_opts
         )
 
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -421,7 +426,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Insert in batches of 1_000 to stay under PG's bind-parameter limit.
       changes
       |> Enum.chunk_every(1_000)
-      |> Enum.each(fn chunk -> repo.insert_all(Threadline.Capture.AuditChange, chunk) end)
+      |> Enum.each(fn chunk ->
+        repo.insert_all(Threadline.Capture.AuditChange, chunk, storage_opts)
+      end)
     end
 
     # -------------------------------------------------------------------
@@ -790,8 +797,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "invalid Timeline filters carry the rejected query but do not expose export downloads or queue",
          %{conn: conn} do
-      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
-
       assert {:ok, lv, html} = live(conn, "/audit/timeline?from=not-a-date&table=posts")
 
       assert html =~ "invalid datetime: not-a-date"
@@ -801,7 +806,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob) == []
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
@@ -1154,12 +1159,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Saved Views:"
     end
 
+    test "source contract: visible Timeline preloads pass selected storage opts" do
+      source = File.read!("lib/threadline/operator_surface/live/timeline_live.ex")
+
+      assert source =~ "preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))"
+      assert source =~ "defp preload_visible_context(%{entries: entries} = page, repo, opts)"
+
+      assert source =~
+               "repo.preload(entries, [transaction: :action], StorageSchema.repo_opts(opts))"
+    end
+
+    test "configured storage Timeline rows preload actor context and ignore default sentinels", %{
+      conn: conn
+    } do
+      ensure_storage_schema!("audit")
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      with_storage_schema("audit", fn ->
+        seed_change!(
+          storage_schema: "audit",
+          table: "audit_timeline_rows",
+          actor_ref: %{"type" => "user", "id" => "audit-operator"},
+          occurred_at: now
+        )
+
+        seed_change!(
+          storage_schema: "threadline",
+          table: "threadline_timeline_rows",
+          actor_ref: %{"type" => "user", "id" => "threadline-operator"},
+          occurred_at: now
+        )
+
+        {:ok, _lv, html} =
+          live(
+            conn,
+            "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=audit_timeline_rows"
+          )
+
+        assert html =~ "audit_timeline_rows"
+        assert html =~ "user/audit-operator"
+        refute html =~ "threadline_timeline_rows"
+        refute html =~ "threadline-operator"
+      end)
+    end
+
     defp clear_audit_rows! do
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange)
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       end
     end
 
@@ -1216,7 +1265,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveSchemaBackedTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -1266,16 +1315,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp clear_audit_rows! do
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange)
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       end
     end
 
     defp seed_change!(opts) do
       repo = Threadline.Test.Repo
+      storage_opts = repo_opts()
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
       correlation_id = Keyword.get(opts, :correlation_id)
@@ -1288,7 +1338,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               actor_ref: actor_ref,
               status: "ok",
               correlation_id: correlation_id
-            })
+            }),
+            storage_opts
           )
         end
 
@@ -1300,7 +1351,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             actor_ref: actor_ref,
             source: Keyword.get(opts, :source, "support"),
             action_id: action && action.id
-          })
+          }),
+          storage_opts
         )
 
       repo.insert!(
@@ -1313,13 +1365,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data_after: %{"title" => "x"},
           changed_fields: nil,
           captured_at: occurred_at
-        })
+        }),
+        storage_opts
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveActorBackedTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -1337,8 +1390,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
-      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -1361,8 +1412,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert render(lv) =~ "Actor View"
 
       view =
-        Threadline.Test.Repo.get_by!(Threadline.Governance.SavedView,
-          name: "Actor View"
+        Threadline.Test.Repo.get_by!(
+          Threadline.Governance.SavedView,
+          [name: "Actor View"],
+          repo_opts()
         )
 
       assert view.name == "Actor View"
@@ -1378,7 +1431,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   # -------------------------------------------------------------------
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveScopedTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -1396,13 +1449,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(Threadline.Governance.SavedView)
-      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
     defp seed_change!(opts) do
       repo = Threadline.Test.Repo
+      storage_opts = repo_opts()
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
 
@@ -1413,7 +1465,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             occurred_at: occurred_at,
             actor_ref: actor_ref,
             source: Keyword.get(opts, :source, "support")
-          })
+          }),
+          storage_opts
         )
 
       repo.insert!(
@@ -1426,7 +1479,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data_after: %{"title" => "x"},
           changed_fields: nil,
           captured_at: occurred_at
-        })
+        }),
+        storage_opts
       )
     end
 
@@ -1463,8 +1517,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Apply view
       # Since we don't have a specific ID, let's pull it from the DB
       view =
-        Threadline.Test.Repo.get_by!(Threadline.Governance.SavedView,
-          name: "My Support View"
+        Threadline.Test.Repo.get_by!(
+          Threadline.Governance.SavedView,
+          [name: "My Support View"],
+          repo_opts()
         )
 
       assert view.name == "My Support View"
@@ -1481,7 +1537,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Ensure it's deleted
       refute render(lv) =~ "My Support View"
-      refute Threadline.Test.Repo.get_by(Threadline.Governance.SavedView, name: "My Support View")
+
+      refute Threadline.Test.Repo.get_by(
+               Threadline.Governance.SavedView,
+               [name: "My Support View"],
+               repo_opts()
+             )
     end
 
     test "Case 12: Request Background Export enqueues job and redirects", %{conn: conn} do
@@ -1508,7 +1569,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
 
       # Initial state
-      initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+      initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
       # Click the export button
       lv |> element("button", "Queue export") |> render_click()
@@ -1517,7 +1578,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_redirect(lv, "/audit_scoped/exports")
 
       # Job is inserted
-      jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+      jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
       assert length(jobs) == length(initial_jobs) + 1
       job = hd(jobs -- initial_jobs)
       assert job.status == "pending"
@@ -1552,7 +1613,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       _html = lv |> element("button", "Queue export") |> render_click()
 
-      [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob)
+      [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
       assert job.status == "failed"
       assert job.error_message =~ "built-in export runtime is unavailable"
       assert %DateTime{} = job.expires_at
@@ -1565,7 +1626,7 @@ end
 
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TimelineLiveExportVisibilityTest do
-    use ExUnit.Case, async: false
+    use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -1583,7 +1644,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(Threadline.Governance.ExportJob)
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -1613,7 +1673,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob) == []
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end
 end

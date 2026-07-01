@@ -110,7 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(ExportJob)
+      Repo.delete_all(ExportJob, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "123")
       session_actor = Jason.encode!(ActorRef.to_map(actor_ref))
@@ -206,7 +206,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           view |> element("button", "Queue Timeline export") |> render_click()
         end
 
-        assert Threadline.Test.Repo.all(ExportJob) == []
+        assert Repo.all(ExportJob, repo_opts()) == []
       end
 
       test "denied exports ignore forged Timeline context queue events", %{conn: conn} do
@@ -221,7 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         render_click(view, "queue_timeline_export_context", %{})
 
-        assert Threadline.Test.Repo.all(ExportJob) == []
+        assert Repo.all(ExportJob, repo_opts()) == []
       end
 
       test "renders carried Evidence export context separately from Timeline exports", %{
@@ -280,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           refute html =~ "Queue Timeline export"
         end
 
-        assert Threadline.Test.Repo.all(ExportJob) == []
+        assert Repo.all(ExportJob, repo_opts()) == []
       end
 
       test "does not pass Evidence context params into Timeline file export hrefs", %{conn: conn} do
@@ -330,7 +330,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert_redirect(view, "/audit/exports")
 
-        [job] = Threadline.Test.Repo.all(ExportJob)
+        [job] = Repo.all(ExportJob, repo_opts())
         assert job.status == "pending"
         assert job.actor_ref == actor_ref
 
@@ -352,7 +352,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           actor_ref: actor_ref,
           started_at: now
         })
-        |> Threadline.Test.Repo.insert!()
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -374,7 +374,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           actor_ref: other_actor,
           started_at: now
         })
-        |> Threadline.Test.Repo.insert!()
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -395,7 +395,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             file_path: "users-export.csv",
             expires_at: DateTime.add(now, 600, :second)
           })
-          |> Threadline.Test.Repo.insert!()
+          |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -457,7 +457,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> Enum.map(fn attrs ->
             %ExportJob{}
             |> ExportJob.changeset(attrs)
-            |> Threadline.Test.Repo.insert!()
+            |> Repo.insert!(repo_opts())
           end)
 
         {:ok, _view, html} = live(conn, "/audit/exports")
@@ -489,7 +489,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           file_path: "expired-export.csv",
           expires_at: DateTime.add(now, -60, :second)
         })
-        |> Threadline.Test.Repo.insert!()
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -512,7 +512,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           error_message:
             "Background export could not start because the built-in export runtime is unavailable."
         })
-        |> Threadline.Test.Repo.insert!()
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -537,7 +537,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: now,
           error_message: "invalid datetime: not-a-date"
         })
-        |> Threadline.Test.Repo.insert!()
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
@@ -592,7 +592,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> Enum.each(fn attrs ->
           %ExportJob{}
           |> ExportJob.changeset(Map.put(attrs, :actor_ref, actor_ref))
-          |> Threadline.Test.Repo.insert!()
+          |> Repo.insert!(repo_opts())
         end)
 
         {:ok, _view, html} = live(conn, "/audit/exports")
@@ -619,6 +619,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  String.contains?(html, "Preparing") and
                  String.contains?(html, "Needs attention") and
                  String.contains?(html, "Unavailable")
+      end
+
+      test "source contract: export status reads and queued writes use resolved storage opts" do
+        source = File.read!("lib/threadline/operator_surface/live/export_status_live.ex")
+
+        assert source =~ "defp storage_opts(_socket)"
+        assert source =~ "|> repo.all(storage_opts(socket))"
+        assert source =~ "|> repo.insert!(storage_opts(socket))"
+        assert source =~ "|> repo.update!(storage_opts(socket))"
+      end
+
+      test "shows configured-storage jobs and ignores default-storage sentinels", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        ensure_storage_schema!("audit")
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        with_storage_schema("audit", fn ->
+          %ExportJob{}
+          |> ExportJob.changeset(%{
+            status: "completed",
+            query_params: %{"table" => "audit_jobs"},
+            actor_ref: actor_ref,
+            started_at: now,
+            completed_at: now,
+            file_path: "audit-jobs.csv",
+            expires_at: DateTime.add(now, 600, :second)
+          })
+          |> Repo.insert!(repo_opts("audit"))
+
+          %ExportJob{}
+          |> ExportJob.changeset(%{
+            status: "completed",
+            query_params: %{"table" => "threadline_jobs"},
+            actor_ref: actor_ref,
+            started_at: now,
+            completed_at: now,
+            file_path: "threadline-jobs.csv",
+            expires_at: DateTime.add(now, 600, :second)
+          })
+          |> Repo.insert!(repo_opts())
+
+          {:ok, _view, html} = live(conn, "/audit/exports")
+
+          assert html =~ "audit_jobs"
+          refute html =~ "threadline_jobs"
+        end)
       end
     end
   end
