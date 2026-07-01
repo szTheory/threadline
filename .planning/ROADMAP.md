@@ -22,7 +22,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | Phase | Name | Requirements | Status |
 |------:|------|--------------|--------|
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
-| 190 | 2/10 | In Progress|  |
+| 190 | 3/10 | In Progress|  |
 | 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
@@ -56,7 +56,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 190-03-PLAN.md — Wire core API, query, preload, and export reads to selected storage.
+- [x] 190-03-PLAN.md — Wire core API, query, preload, and export reads to selected storage.
 - [ ] 190-05-PLAN.md — Make retention and pruning storage-prefix safe.
 - [ ] 190-07-PLAN.md — Prove `support.tickets` trigger, coverage, verify, and continuity behavior.
 
