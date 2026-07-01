@@ -30,7 +30,17 @@ defmodule Threadline.StorageSchemaTest do
   end
 
   test "rejects unsafe storage schema identifiers before SQL generation" do
-    for invalid <- ["", "   ", "foo.bar", "bad-name", "threadline;drop schema public"] do
+    for invalid <- [
+          nil,
+          true,
+          false,
+          "",
+          "   ",
+          "foo.bar",
+          "bad-name",
+          "threadline;drop schema public",
+          String.duplicate("a", 64)
+        ] do
       assert_raise ArgumentError, fn ->
         StorageSchema.get(storage_schema: invalid)
       end

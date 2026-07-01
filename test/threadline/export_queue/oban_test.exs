@@ -37,10 +37,13 @@ defmodule Threadline.ExportQueue.ObanTest do
                Threadline.ExportQueue.Oban.enqueue("job_123",
                  oban_mod: MockOban,
                  oban_name: :threadline_oban,
-                 queue: :exports
+                 queue: :exports,
+                 storage_schema: "audit"
                )
 
-      assert_received {:oban_insert, %Ecto.Changeset{changes: %{args: %{job_id: "job_123"}}}}
+      assert_received {:oban_insert, %Ecto.Changeset{changes: %{args: args}}}
+      assert args.job_id == "job_123"
+      assert args.storage_schema == "audit"
     end
 
     test "normalizes enqueue failures into stable messages" do

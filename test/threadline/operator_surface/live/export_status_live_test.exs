@@ -50,6 +50,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def enqueue(_job_id, _opts \\ []), do: :ok
   end
 
+  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.CapturingQueueAdapter do
+    @behaviour Threadline.ExportQueue
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def enqueue(job_id, opts \\ []) do
+      if pid = Application.get_env(:threadline, :test_queue_notify_pid) do
+        send(pid, {:threadline_export_enqueued, job_id, opts})
+      end
+
+      :ok
+    end
+  end
+
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
     use Phoenix.Endpoint, otp_app: :threadline
 
@@ -309,8 +325,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.put_env(
           :threadline,
           :export_queue_adapter,
-          Threadline.OperatorSurface.ExportStatusLiveTest.SuccessfulQueueAdapter
+          Threadline.OperatorSurface.ExportStatusLiveTest.CapturingQueueAdapter
         )
+
+        Application.put_env(:threadline, :test_queue_notify_pid, self())
 
         on_exit(fn ->
           if original_adapter do
@@ -318,6 +336,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           else
             Application.delete_env(:threadline, :export_queue_adapter)
           end
+
+          Application.delete_env(:threadline, :test_queue_notify_pid)
         end)
 
         {:ok, view, _html} =
@@ -333,6 +353,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [job] = Repo.all(ExportJob, repo_opts())
         assert job.status == "pending"
         assert job.actor_ref == actor_ref
+        job_id = job.id
+        assert_receive {:threadline_export_enqueued, ^job_id, enqueue_opts}
+        assert enqueue_opts[:storage_schema] == "threadline"
 
         assert job.query_params == %{
                  "from" => "2026-05-01T00:00",

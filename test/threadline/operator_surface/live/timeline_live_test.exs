@@ -303,6 +303,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def enqueue(_job_id, _opts \\ []), do: :ok
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.CapturingQueueAdapter do
+    @behaviour Threadline.ExportQueue
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def enqueue(job_id, opts \\ []) do
+      if pid = Application.get_env(:threadline, :test_queue_notify_pid) do
+        send(pid, {:threadline_export_enqueued, job_id, opts})
+      end
+
+      :ok
+    end
+  end
+
   defmodule Threadline.OperatorSurface.Live.TimelineLiveTest do
     use Threadline.DataCase, async: false
     import Phoenix.ConnTest
@@ -1613,8 +1629,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Application.put_env(
         :threadline,
         :export_queue_adapter,
-        Threadline.OperatorSurface.TimelineLiveTest.SuccessfulQueueAdapter
+        Threadline.OperatorSurface.TimelineLiveTest.CapturingQueueAdapter
       )
+
+      Application.put_env(:threadline, :test_queue_notify_pid, self())
 
       on_exit(fn ->
         if original_adapter do
@@ -1622,6 +1640,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         else
           Application.delete_env(:threadline, :export_queue_adapter)
         end
+
+        Application.delete_env(:threadline, :test_queue_notify_pid)
       end)
 
       {:ok, lv, _html} =
@@ -1649,6 +1669,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert job.actor_ref.type == :user
       # the user_id mapped to actor_ref
       assert job.actor_ref.id == "op1"
+      job_id = job.id
+      assert_receive {:threadline_export_enqueued, ^job_id, enqueue_opts}
+      assert enqueue_opts[:storage_schema] == "threadline"
     end
 
     test "background export failure preserves the row and surfaces the error", %{conn: conn} do
