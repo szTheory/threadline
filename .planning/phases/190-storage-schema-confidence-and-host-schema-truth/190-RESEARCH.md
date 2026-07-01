@@ -449,22 +449,25 @@ end
 | A3 | Async schema movement after config changes is a realistic failure mode, not yet proven by a current test. | Common Pitfalls / Open Questions | Planner may need a focused queued-job test before choosing global-only or persisted schema behavior. |
 | A4 | Warning signs listed for pitfalls are inferred test smells, not current failing tests. | Common Pitfalls | Planner should treat them as guide rails, not existing bug evidence. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Async export schema contract**
    - What we know: Export queue adapters pass only `job_id`, and orchestrator uses current `StorageSchema.repo_opts()` to fetch/update the job row. [VERIFIED: codebase grep]
    - What's unclear: Whether Phase 190 should document global-config-only behavior or strengthen queue args to carry storage schema. [VERIFIED: 190-CONTEXT.md]
    - Recommendation: Use global configured storage schema for Phase 190, add tests for `config :threadline, storage_schema: "audit"` export/retention paths, and document that changing storage schema after queueing requires draining/rerunning jobs. [ASSUMED]
+   - **Selected decision:** Async export and retention use the global configured storage schema contract for Phase 190. Changing storage schema after queueing requires draining/rerunning jobs unless later scope persists schema in job args.
 
 2. **Redaction LiveView schema selector depth**
    - What we know: Coverage LiveView has selected-schema UI; PolicyRedactionLive currently uses default public presenter and Timeline links omit `table_schema`. [VERIFIED: codebase grep]
    - What's unclear: Whether to add a schema picker to redaction now or test-lock redaction as public-only. [VERIFIED: 190-CONTEXT.md]
    - Recommendation: Add selected-schema redaction support by reusing `CoverageSchemas` validation and coverage selector patterns, because SCHEMA-04 names redaction inspection as a host-schema proof target. [VERIFIED: 190-CONTEXT.md]
+   - **Selected decision:** Redaction gets selected host-schema support now, reusing `CoverageSchemas` and `CoverageLive` patterns.
 
 3. **Duplicate host table names beyond Timeline**
    - What we know: `Threadline.timeline/2` already filters by both `table_schema` and `table` when duplicate table names exist. [VERIFIED: test/threadline/query_test.exs]
    - What's unclear: Whether every row-history/operator path can disambiguate duplicate names without broader API changes. [VERIFIED: 190-CONTEXT.md]
    - Recommendation: Fix the low-blast-radius paths; document/test-lock any remaining duplicate-name limit explicitly. [VERIFIED: 190-CONTEXT.md]
+   - **Selected decision:** Duplicate host-table handling should be fixed where low-blast-radius via schema-qualified keys; any remaining limit must be documented and test-locked.
 
 ## Environment Availability
 

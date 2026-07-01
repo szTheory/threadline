@@ -34,6 +34,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 **Requirements:** QUAL-01, QUAL-02, QUAL-03
 
 **Success criteria:**
+
 - A durable quality-audit artifact ranks dimensions from weakest/highest-risk to strongest/lowest-risk with evidence, confidence, consequence, highest-leverage fix, and priority.
 - The audit explicitly marks good-enough, low-priority, and N/A dimensions instead of manufacturing fake concerns.
 - Open residuals and seeds that can affect trust are triaged, including SEED-005, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
@@ -45,7 +46,36 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 
 **Requirements:** SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04
 
+**Plans:** 10 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 190-01-PLAN.md — Quote storage-schema identifiers and freeze generated migration contracts.
+- [ ] 190-02-PLAN.md — Remove owned fixed prefixes and add explicit storage-schema test support.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 190-03-PLAN.md — Wire core API, query, preload, and export reads to selected storage.
+- [ ] 190-05-PLAN.md — Make retention and pruning storage-prefix safe.
+- [ ] 190-07-PLAN.md — Prove `support.tickets` trigger, coverage, verify, and continuity behavior.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 190-04-PLAN.md — Make queued export, cleanup, and download storage-prefix aware.
+- [ ] 190-06-PLAN.md — Make operator storage reads and writes prefix-aware.
+- [ ] 190-08-PLAN.md — Add selected host-schema redaction CLI, presenter, and UI support.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 190-09-PLAN.md — Preserve host-schema identity through Timeline, filters, row-history, and docs.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 190-10-PLAN.md — Prove custom `audit` storage with real dual-schema PostgreSQL sentinels.
+
 **Success criteria:**
+
 - `storage_schema: "audit"` or equivalent non-default schema is covered through capture/query/evidence/governance/operator-relevant paths.
 - Fixed `@schema_prefix` interactions are removed, overridden safely, or proven harmless with tests that would fail if reads/writes silently hit `threadline`.
 - Generated migration SQL safely quotes validated storage-schema identifiers, or docs/tests narrow the supported identifier contract.
@@ -58,6 +88,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 **Requirements:** ADOPT-01, ADOPT-02, ADOPT-03
 
 **Success criteria:**
+
 - README, guides, evaluator docs, adoption backlog, CHANGELOG/package metadata, and install snippets agree on current `0.9.0` truth or explicitly justify older examples.
 - Upgrade guidance covers 0.6.x through 0.9.x adopter effects: storage-schema default, operator surface/theming, release lanes, and migration expectations.
 - README/ExDoc guide routing gives evaluators, first-hour adopters, operators, and maintainers a short next-step path.
@@ -70,6 +101,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 **Requirements:** CI-01, CI-02, CI-03, CI-04
 
 **Success criteria:**
+
 - Current CI critical path, duplicated setup/deps work, browser lane cost, cache state, and flaky/rerun signals are recorded from GitHub/local evidence or explicitly marked unavailable.
 - Cache/setup changes are precise, reversible, and safe across OS/OTP/Elixir/MIX_ENV boundaries.
 - PgBouncer image pinning, release concurrency, branch-protection docs, job names, and local `mix ci.*` expectations align.
@@ -82,6 +114,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 **Requirements:** CLOSE-01
 
 **Success criteria:**
+
 - Requirements traceability and verification evidence are current.
 - Before/after CI data is captured where possible; if not, the no-measure reason is explicit.
 - Remaining software-quality risks are ranked with owner/follow-up and no vague "polish later" bucket.
