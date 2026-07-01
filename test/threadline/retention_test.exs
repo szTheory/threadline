@@ -5,6 +5,43 @@ defmodule Threadline.RetentionTest do
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention
 
+  defp insert_transaction(storage_schema, attrs) do
+    defaults = %{
+      txid: System.unique_integer([:positive]),
+      occurred_at: DateTime.utc_now(:microsecond)
+    }
+
+    Repo.insert!(
+      AuditTransaction.changeset(%AuditTransaction{}, Map.merge(defaults, Map.new(attrs))),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp insert_change(storage_schema, transaction, attrs) do
+    defaults = %{
+      transaction_id: transaction.id,
+      table_schema: "public",
+      table_name: "purge_fixture",
+      table_pk: %{"id" => Ecto.UUID.generate()},
+      op: "insert",
+      captured_at: DateTime.add(DateTime.utc_now(:microsecond), -10, :day),
+      data_after: %{"n" => 1}
+    }
+
+    Repo.insert!(
+      AuditChange.changeset(%AuditChange{}, Map.merge(defaults, Map.new(attrs))),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp count_changes(storage_schema) do
+    Repo.aggregate(AuditChange, :count, :id, repo_opts(storage_schema))
+  end
+
+  defp count_transactions(storage_schema) do
+    Repo.aggregate(AuditTransaction, :count, :id, repo_opts(storage_schema))
+  end
+
   setup do
     prev = Application.get_env(:threadline, :retention)
 
@@ -18,7 +55,7 @@ defmodule Threadline.RetentionTest do
       delete_empty_transactions: true
     )
 
-    Repo.delete_all(RetentionRun)
+    Repo.delete_all(RetentionRun, repo_opts())
 
     :ok
   end
@@ -45,29 +82,12 @@ defmodule Threadline.RetentionTest do
     past = DateTime.add(cutoff, -10, :day)
 
     for _i <- 1..6 do
-      {:ok, tx} =
-        Repo.insert(
-          AuditTransaction.changeset(%AuditTransaction{}, %{
-            txid: System.unique_integer([:positive]),
-            occurred_at: cutoff
-          })
-        )
-
-      Repo.insert!(
-        AuditChange.changeset(%AuditChange{}, %{
-          transaction_id: tx.id,
-          table_schema: "public",
-          table_name: "purge_fixture",
-          table_pk: %{"id" => Ecto.UUID.generate()},
-          op: "insert",
-          captured_at: past,
-          data_after: %{"n" => 1}
-        })
-      )
+      tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", tx, captured_at: past)
     end
 
-    assert Repo.aggregate(AuditChange, :count) == 6
-    assert Repo.aggregate(AuditTransaction, :count) == 6
+    assert count_changes("threadline") == 6
+    assert count_transactions("threadline") == 6
 
     summary =
       Retention.purge(repo: Repo, batch_size: 2, max_batches: 20)
@@ -76,8 +96,8 @@ defmodule Threadline.RetentionTest do
     assert summary.deleted_transactions == 6
     assert summary.batches_run >= 2
 
-    assert Repo.aggregate(AuditChange, :count) == 0
-    assert Repo.aggregate(AuditTransaction, :count) == 0
+    assert count_changes("threadline") == 0
+    assert count_transactions("threadline") == 0
 
     again = Retention.purge(repo: Repo, batch_size: 2, max_batches: 10)
     assert again.deleted_changes == 0
@@ -88,30 +108,13 @@ defmodule Threadline.RetentionTest do
     cutoff = DateTime.utc_now(:microsecond)
     past = DateTime.add(cutoff, -10, :day)
 
-    {:ok, tx} =
-      Repo.insert(
-        AuditTransaction.changeset(%AuditTransaction{}, %{
-          txid: System.unique_integer([:positive]),
-          occurred_at: cutoff
-        })
-      )
-
-    Repo.insert!(
-      AuditChange.changeset(%AuditChange{}, %{
-        transaction_id: tx.id,
-        table_schema: "public",
-        table_name: "purge_fixture",
-        table_pk: %{"id" => Ecto.UUID.generate()},
-        op: "insert",
-        captured_at: past,
-        data_after: %{"tracked" => true}
-      })
-    )
+    tx = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", tx, captured_at: past, data_after: %{"tracked" => true})
 
     assert %{deleted_changes: 1, deleted_transactions: 1} =
              Retention.purge(repo: Repo, batch_size: 10, max_batches: 5)
 
-    [run] = Repo.all(RetentionRun)
+    [run] = Repo.all(RetentionRun, repo_opts())
     assert run.status == "completed"
     assert run.deleted_count == 2
     assert is_integer(run.duration_ms)
@@ -130,25 +133,8 @@ defmodule Threadline.RetentionTest do
     cutoff = DateTime.utc_now(:microsecond)
     past = DateTime.add(cutoff, -10, :day)
 
-    {:ok, tx} =
-      Repo.insert(
-        AuditTransaction.changeset(%AuditTransaction{}, %{
-          txid: System.unique_integer([:positive]),
-          occurred_at: cutoff
-        })
-      )
-
-    Repo.insert!(
-      AuditChange.changeset(%AuditChange{}, %{
-        transaction_id: tx.id,
-        table_schema: "public",
-        table_name: "purge_fixture",
-        table_pk: %{"id" => Ecto.UUID.generate()},
-        op: "insert",
-        captured_at: past,
-        data_after: %{}
-      })
-    )
+    tx = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", tx, captured_at: past, data_after: %{})
 
     tx_id = tx.id
 
@@ -157,6 +143,83 @@ defmodule Threadline.RetentionTest do
              deleted_transactions: 0
            } = Retention.purge(repo: Repo, batch_size: 10, max_batches: 5)
 
-    assert Repo.get(AuditTransaction, tx_id) != nil
+    assert Repo.get(AuditTransaction, tx_id, repo_opts()) != nil
+  end
+
+  test "dry-run counts only the selected storage schema" do
+    ensure_storage_schema!("audit")
+
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    audit_tx = insert_transaction("audit", occurred_at: cutoff)
+    insert_change("audit", audit_tx, captured_at: past)
+    insert_transaction("audit", occurred_at: cutoff)
+
+    for _ <- 1..2 do
+      threadline_tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", threadline_tx, captured_at: past)
+    end
+
+    for _ <- 1..3 do
+      insert_transaction("threadline", occurred_at: cutoff)
+    end
+
+    result =
+      Retention.purge(
+        repo: Repo,
+        storage_schema: "audit",
+        dry_run: true,
+        batch_size: 10,
+        max_batches: 5
+      )
+
+    assert result.deleted_changes == 1
+    assert result.deleted_transactions == 1
+    assert result.batches_run == 0
+    assert result.dry_run == true
+
+    assert count_changes("audit") == 1
+    assert count_transactions("audit") == 2
+    assert count_changes("threadline") == 2
+    assert count_transactions("threadline") == 5
+  end
+
+  test "purge deletes selected storage rows and records the run in the selected schema" do
+    ensure_storage_schema!("audit")
+
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    audit_tx = insert_transaction("audit", occurred_at: cutoff)
+    insert_change("audit", audit_tx, captured_at: past)
+    insert_transaction("audit", occurred_at: cutoff)
+
+    threadline_tx = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", threadline_tx, captured_at: past)
+    insert_transaction("threadline", occurred_at: cutoff)
+
+    result =
+      Retention.purge(
+        repo: Repo,
+        storage_schema: "audit",
+        batch_size: 1,
+        max_batches: 10,
+        sleep_ms: 0
+      )
+
+    assert result.deleted_changes == 1
+    assert result.deleted_transactions == 2
+    assert result.batches_run >= 1
+
+    assert count_changes("audit") == 0
+    assert count_transactions("audit") == 0
+    assert count_changes("threadline") == 1
+    assert count_transactions("threadline") == 2
+
+    assert [%RetentionRun{status: "completed", deleted_count: 3}] =
+             Repo.all(RetentionRun, repo_opts("audit"))
+
+    assert Repo.all(RetentionRun, repo_opts()) == []
   end
 end
