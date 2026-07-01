@@ -5,15 +5,15 @@ milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 current_phase: 190
 current_phase_name: storage-schema-confidence-and-host-schema-truth
 status: executing
-stopped_at: Completed 190-05-PLAN.md
-last_updated: "2026-07-01T20:22:04.416Z"
+stopped_at: Completed 190-07-PLAN.md
+last_updated: "2026-07-01T20:34:37.952Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 5
-  percent: 20
+  completed_plans: 6
+  percent: 55
 ---
 
 # Project State: Threadline
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-01)
 ## Current Position
 
 Phase: 190 (storage-schema-confidence-and-host-schema-truth) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-07-01
 
@@ -139,6 +139,7 @@ Last activity: 2026-07-01
 | Phase 190 P02 | 8min | 2 tasks | 11 files |
 | Phase 190 P03 | 7m17s | 2 tasks | 8 files |
 | Phase 190 P05 | 9 min | 2 tasks | 5 files |
+| Phase 190 P07 | 8 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -367,6 +368,8 @@ Last activity: 2026-07-01
 - [Phase 190]: [190-03]: Query and investigation preloads must pass resolved storage options explicitly so association reads cannot fall back to the default threadline schema.
 - [Phase 190]: [190-05]: Retention direct runs and pruner runtimes resolve storage_schema from explicit opts with global config as the default. — This preserves the Phase 190 global configured storage contract while making selected-storage sentinel proof deterministic for retention/pruner paths.
 - [Phase 190]: [190-05]: Retention and pruner tests use audit/threadline dual-storage sentinels for destructive governance paths. — SCHEMA-01 requires wrong-prefix deletes, counts, inserts, and updates to be caught by tests, not inferred from source strings.
+- [Phase 190]: [190-07]: Malformed host table identifiers now fail before SQL generation. — Empty or ambiguous dot segments could collapse into valid-looking identifiers and weaken host-schema trigger confidence.
+- [Phase 190]: [190-07]: Continuity readiness treats selected support schema values as host table identity only. — `support.tickets` and `schema: "support"` select the host table for readiness checks without changing Threadline storage-schema reads.
 
 ### Blockers
 
@@ -374,8 +377,8 @@ Last activity: 2026-07-01
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T20:22:04.408Z
-**Stopped at:** Completed 190-05-PLAN.md
+**Last session:** 2026-07-01T20:34:37.943Z
+**Stopped at:** Completed 190-07-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
