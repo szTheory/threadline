@@ -201,7 +201,7 @@ defmodule Threadline.Investigation do
     repo = Query.timeline_repo!([], opts)
 
     changes
-    |> Query.preload_investigation_context(repo)
+    |> Query.preload_investigation_context(repo, opts)
     |> to_linked_changes()
   end
 

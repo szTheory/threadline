@@ -102,9 +102,10 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  @spec preload_investigation_context([AuditChange.t()], module()) :: [AuditChange.t()]
-  def preload_investigation_context(changes, repo) when is_list(changes) and is_atom(repo) do
-    repo.preload(changes, transaction: :action)
+  @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
+  def preload_investigation_context(changes, repo, opts \\ [])
+      when is_list(changes) and is_atom(repo) and is_list(opts) do
+    repo.preload(changes, [transaction: :action], storage_opts([], opts))
   end
 
   @doc """
@@ -128,7 +129,7 @@ defmodule Threadline.Query do
         transaction
 
       preloads when is_list(preloads) or is_atom(preloads) ->
-        repo.preload(transaction, preloads)
+        repo.preload(transaction, preloads, storage_opts([], opts))
 
       other ->
         raise ArgumentError,
@@ -666,7 +667,7 @@ defmodule Threadline.Query do
         results
 
       preloads when is_list(preloads) ->
-        repo.preload(results, preloads)
+        repo.preload(results, preloads, storage_opts([], opts))
 
       other ->
         raise ArgumentError,

@@ -615,7 +615,7 @@ defmodule Threadline.QueryTest do
     test "query preload call sites pass resolved storage options" do
       source = File.read!("lib/threadline/query.ex")
 
-      assert source =~ "repo.preload(changes, transaction: :action, storage_opts([], opts))"
+      assert source =~ "repo.preload(changes, [transaction: :action], storage_opts([], opts))"
       assert source =~ "repo.preload(transaction, preloads, storage_opts([], opts))"
       assert source =~ "repo.preload(results, preloads, storage_opts([], opts))"
     end
