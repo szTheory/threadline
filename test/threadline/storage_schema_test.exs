@@ -46,4 +46,12 @@ defmodule Threadline.StorageSchemaTest do
     assert StorageSchema.qualified_host_table("support.tickets") == ~s("support"."tickets")
     assert StorageSchema.host_table_suffix("support.tickets") == "support_tickets"
   end
+
+  test "rejects malformed host table identifiers instead of falling back to public" do
+    for invalid <- ["", "   ", ".tickets", "support.", "support..tickets", "a.b.c"] do
+      assert_raise ArgumentError, fn ->
+        StorageSchema.parse_table_identifier(invalid)
+      end
+    end
+  end
 end

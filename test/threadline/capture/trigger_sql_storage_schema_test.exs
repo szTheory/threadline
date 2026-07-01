@@ -27,6 +27,14 @@ defmodule Threadline.Capture.TriggerSQLStorageSchemaTest do
     assert sql =~ ~S|EXECUTE FUNCTION "threadline"."threadline_capture_changes"()|
   end
 
+  test "qualified host tables call the configured Threadline storage function" do
+    sql = TriggerSQL.create_trigger("support.tickets", :default, storage_schema: "audit")
+
+    assert sql =~ ~S|ON "support"."tickets"|
+    assert sql =~ ~S|EXECUTE FUNCTION "audit"."threadline_capture_changes"()|
+    refute sql =~ ~S|"support"."threadline_capture_changes"|
+  end
+
   test "per-table functions include host schema in the function suffix" do
     sql = TriggerSQL.install_function_for_table("support.tickets", store_changed_from: true)
 
