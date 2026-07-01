@@ -4,7 +4,7 @@ artifact: quality-audit
 audited: 2026-07-01
 scope: v1.39-authority-surface-baseline
 requirements: [QUAL-01, QUAL-02, QUAL-03]
-status: draft
+status: complete
 source_precedence:
   - runtime/source proof
   - release/package truth
@@ -114,12 +114,41 @@ Confidence is named separately as `High`, `Medium`, or `Low`. Do not encode conf
 
 ## QUAL-03 Residuals
 
-Pending Task 3 population.
+| Residual | Current evidence | Classification | Owner | Why it matters | Trigger to reopen |
+|---|---|---|---|---|---|
+| SEED-005/reconnect | `examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts` contains a real socket-drop test; `lib/threadline/operator_surface/ui.ex` mounts one shell-level reconnect banner and documents `[data-tl-mutating]`; `DESIGN-SYSTEM.md` includes `group.offline.current`. | Good enough | none | Operators get a visible reconnect state and mutating controls dim during a held socket drop; treating this as absent would invent UI work. | Reopen if the real socket-drop spec fails, mutating controls stay actionable while disconnected, or field reports show the current banner is trust-impacting. |
+| screenshot-regression confidence | `operator-screenshot-regression.spec.ts` skips in CI and names the guard local-only; `.planning/milestones/v1.38-MILESTONE-AUDIT.md` records standalone screenshot regression as non-green. | Prove before claim | future | The repo has useful local visual proof, but not broad release-quality screenshot stability. | Reopen when a future UI-regression lane fixes local bootstrap, chooses supported platforms, and records passing command evidence for the exact runner claimed. |
+| external pilot boundaries | `.planning/REQUIREMENTS.md` defers `EXT-PILOT-01`; `.planning/PROJECT.md` and `.planning/STATE.md` keep external pilot signal-gated; in-repo demo evidence is not real adopter evidence. | External-owned | external | Adopters should not mistake demo/app-maintainer proof for proof from a named external host. | Reopen only with named adopter/integrator evidence or an explicit future external-pilot milestone. |
+| host staging ownership | `CONTRIBUTING.md` says host staging and pooler parity are integrator-owned attestation; `test/threadline/ci_topology_contract_test.exs` checks STG template/rubric markers. | External-owned | external | Threadline can offer templates but cannot claim third-party staging topology is verified by maintainers. | Reopen if a named host contributes redacted staging evidence, or if in-repo docs imply maintainer-operated host STG proof. |
+| known CI/example-app residuals | `.planning/milestones/v1.38-MILESTONE-AUDIT.md` preserves broad `mix ci.all` and example-app residuals; `mix.exs` and `.github/workflows/ci.yml` show the actual gate shape. | Prove before claim | 192 | Release readiness depends on distinguishing current red required gates from historical or broad-suite residuals. | Reopen in Phase 192 if current CI evidence shows red required checks or if v1.39 tries to claim faster/deterministic CI without baseline data. |
+| Hex/dependency notes | `.planning/milestones/v1.38-MILESTONE-AUDIT.md` classifies expired Hex auth-session and dependency advisory output as environment/dependency maintenance; `mix hex.info threadline` was rerun on 2026-07-01 and reported latest `0.9.0`. | Maintenance note | none | Maintainers should refresh auth/advisory posture, but Phase 189 found no package installability or release-gate break. | Reopen if `mix hex.info threadline`, `mix hex.audit`, or release preflight shows a current package/install/advisory blocker. |
+| legacy Nyquist/planning residuals | `.planning/milestones/v1.38-MILESTONE-AUDIT.md` names partial legacy validation metadata; `.planning/RETROSPECTIVE.md` warns closeout metadata can lag runtime proof. | Backlog cleanup | 193 | Old planning metadata should stay visible without being promoted into runtime defects. | Reopen in Phase 193 if active v1.39 traceability, requirements closure, or summary frontmatter depends on those residuals. |
 
 ## Good Enough / N/A Appendix
 
-Pending Task 3 population.
+| Surface | Classification | Evidence | Reason |
+|---|---|---|---|
+| Optional Phoenix/LiveView root dependency boundary | Good enough | `mix.exs`; `.github/workflows/ci.yml` job `verify-compile-no-optional`; `test/threadline/ci_topology_contract_test.exs`; `README.md` | Phoenix and LiveView remain optional root deps, and CI has an explicit no-optional compile lane. |
+| Private operator component/design-system boundary | Good enough | `DESIGN-SYSTEM.md`; `.planning/MILESTONES.md`; `.planning/REQUIREMENTS.md` | The operator design system is internal/example-maintainer tooling, not a public component API. |
+| SEED-005 current reconnect behavior | Good enough | `operator-phase-178-uat.spec.ts`; `lib/threadline/operator_surface/ui.ex`; `.planning/design-system-ledger.json` | Current source and representative browser proof cover the stated claim; no product expansion is justified by Phase 189. |
+| Broad compliance platform claims | N/A | `.planning/REQUIREMENTS.md`; `README.md`; `189-CONTEXT.md` | Legal hold, immutable archive, compliance packs, SIEM replacement, and WAL/CDC are intentionally unclaimed. |
+| Runtime destructive redaction | N/A | `.planning/STATE.md`; `.planning/REQUIREMENTS.md`; `.planning/milestones/v1.38-MILESTONE-AUDIT.md` | Runtime destructive redaction was explicitly deferred because it would change capture/storage semantics. |
+| Public Storybook/component API | N/A | `.planning/REQUIREMENTS.md`; `.planning/MILESTONES.md`; `DESIGN-SYSTEM.md` | Example-app Storybook/design-system work is maintainer-only and does not create a root package API. |
 
 ## v1.39 Narrowing
 
-Pending Task 3 population.
+| Route | Findings | Reason |
+|---|---|---|
+| 190 | Configurable `storage_schema` confidence beyond default `threadline` | Repo evidence shows public custom-schema claims but fixed Ecto prefixes and partial proof; Phase 190 owns executable custom-schema proof and fixes. |
+| 191 | Release/version/docs authority surface | Package truth is `0.9.0`, while public docs and doc contracts still preserve older 0.6-era framing; Phase 191 owns repair or explicit narrowing. |
+| 192 | CI/CD measurement and gate-trust baseline; known CI/example-app residuals | Stable job ids and aliases exist, but efficiency, cache/setup cost, PgBouncer image pinning, and release-readiness residual separation need measured Phase 192 work. |
+| 193 | Closeout traceability and residual ownership | Phase 193 should consume this ledger, verify fixed rows, preserve deferred residuals, and recommend CI depth, external adopter proof, observability, or hold. |
+| future | Screenshot-regression confidence; optional future observability or reconnect UX beyond current proof | These are real quality candidates only if later evidence makes them top risks; Phase 189 does not expand v1.39 into UI-regression or observability work. |
+| external | Host staging ownership; external pilot boundaries | The repo can publish templates and indexes, but third-party staging and real pilot proof require named external evidence. |
+| none | SEED-005 current behavior; optional Phoenix/private UI boundary; compliance/public-component/WAL/redaction exclusions; Hex/dependency maintenance notes without current gate break | Current evidence is good enough or the dimension is intentionally unclaimed, so no phases 190-193 work is created. |
+
+## Validation Notes
+
+- Static artifact validation passed for required headings, ledger columns, score/confidence shape, priority labels, residual names, and route tokens.
+- The only fresh command evidence cited in this audit is `mix hex.info threadline`; it was rerun on 2026-07-01 and reported `threadline` latest `0.9.0`.
+- No source code, README/guides, CI workflows, schemas, UI, screenshots, release automation, or package metadata were edited by Phase 189.
