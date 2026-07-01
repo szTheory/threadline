@@ -10,13 +10,15 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is in milestone **v1.38 Operator UI Page-by-Page IA & Design-System Polish**, opened on 2026-06-26. Phase 181 established the current `/audit` baseline packet, refreshed stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Phase 182 added the PhoenixStorybook example/dev lane as maintainer-only component documentation in `examples/threadline_phoenix`, with root optional-dependency hygiene preserved and `/audit/__stress` still the canonical runtime stress harness. Phase 183 completed the shell navigation and `/audit` Home orientation pass. Phase 184 completed Timeline investigation flow polish. Phase 185 completed Coverage audit-readiness with a selected-schema verdict, contextual row actions, schema/stale safety, clean code review, threat verification, Nyquist validation, and a 24/24 UI review. Phase 186 completed the detail, governance, export, retention, redaction, and evidence surface polish with 30/30 verification must-haves, targeted browser proof, and a green root regression suite. Phase 187 completed accessibility, motion, docs, visual QA, and adversarial closeout evidence with proof limits and residuals classified. Phase 188 closed the final v1.38 audit gaps for queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and milestone closeout evidence.
+Threadline has shipped **v1.38 Operator UI Page-by-Page IA & Design-System Polish** (2026-06-30). The mounted `/audit` operator UI now has a refreshed baseline packet, example-app-only PhoenixStorybook maintainer lane, clearer shell/Home/Timeline/Coverage workflows, aligned detail/governance/export/retention surfaces, and closeout evidence for accessibility, motion, docs, and adversarial review. Phase 188 closed the final audit gaps for queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and milestone evidence.
 
-v1.38 is milestone-complete and ready for archive. Core capture/query/auth semantics remained out of scope, and broad CI/example-app/screenshot/environment residuals remain explicitly classified rather than relabeled green.
+Core capture/query/auth semantics stayed out of scope. The root package kept Phoenix/LiveView optional, PhoenixStorybook stayed example/dev-only, no public component API was introduced, and broad CI/example-app/screenshot/environment residuals remain explicitly classified rather than relabeled green.
 
-## Current Milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish
+The project is now awaiting fresh requirements for the next milestone.
 
-**Goal:** Make the operator UI feel deliberate, navigable, and task-led page by page while preserving v1.37's internal design-system substrate and the host-app-friendly library boundary.
+## Latest Milestone Shipped: v1.38 Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
+
+**Goal (achieved):** Make the operator UI feel deliberate, navigable, and task-led page by page while preserving v1.37's internal design-system substrate and the host-app-friendly library boundary.
 
 **Target features:**
 - **Baseline audit and guard repair** — current screenshots, route/selector inventory, stale planning cleanup, and any broken guardrail repair before page edits.
@@ -26,7 +28,11 @@ v1.38 is milestone-complete and ready for archive. Core capture/query/auth seman
 - **Detail, governance, and export surfaces** — transaction, actor, row history, redaction, retention, evidence, and export pages reviewed as coherent operator workflows.
 - **A11y, motion, docs, and closeout** — keyboard/focus/reduced-motion checks, visual QA matrix, docs alignment, and an adversarial review that prevents regressions.
 
-## Latest Milestone Shipped: v1.37 Operator Surface Design-System Stress Test & Component System (2026-06-20)
+**Archives:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`, `.planning/milestones/v1.38-MILESTONE-AUDIT.md`
+
+**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone`; otherwise hold per the no-signal default.
+
+## Prior shipped milestone: v1.37 Operator Surface Design-System Stress Test & Component System (2026-06-20)
 
 **Goal (achieved):** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system, verified fractally from foundations through primitives, groups, pages, flows, copy, accessibility, motion, and final adversarial closeout.
 
@@ -38,7 +44,7 @@ v1.38 is milestone-complete and ready for archive. Core capture/query/auth seman
 
 **Archives:** `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-REQUIREMENTS.md`, `.planning/milestones/v1.37-MILESTONE-AUDIT.md`, `.planning/milestones/v1.37-phases/`
 
-**Next milestone goals:** Superseded by active v1.38 page-by-page operator UI polish.
+**Next milestone goals:** Superseded by shipped v1.38 page-by-page operator UI polish.
 
 ## Prior shipped milestone: v1.36 Operator Surface Light Mode (2026-06-14)
 
@@ -512,15 +518,16 @@ v1.38 is milestone-complete and ready for archive. Core capture/query/auth seman
 - [x] **v1.37 Operator Surface Design-System Stress Test & Component System** — DS, COMP, NAV, DATA, GROUP, PAGE, COPY, A11Y, and MOTION requirements all complete. Archives: `.planning/milestones/v1.37-REQUIREMENTS.md`, `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-MILESTONE-AUDIT.md`. Validated in v1.37 closeout (2026-06-20).
 - [x] **BASE-01 through BASE-03 (Phase 181)** — Established current rendered `/audit` evidence, refreshed the UI issue inventory, repaired stale guardrails, preserved the v1.37 ratchet, and classified remaining full-suite residuals. Validated in Phase 181 (2026-06-26).
 - [x] **STORY-01 through STORY-03 (Phase 182)** — Added PhoenixStorybook only to the Phoenix example app as dev/test maintainer component documentation; preserved the root package boundary, production route absence, private component API posture, and `/audit/__stress` as the authenticated operator-flow stress harness. Validated in Phase 182 (2026-06-27).
-
-### Active
-
-- [x] **SHELL-01 through SHELL-03 (Phase 183)** — Reworked operator shell, home orientation, navigation visibility, active/current state, and mobile IA around user jobs.
-- [x] **TIME-01 through TIME-03 (Phase 184)** — Streamline Timeline filters, investigation flow, result states, copy, and responsive scanning behavior.
-- [x] **COV-01 through COV-03 (Phase 185)** — Clean up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, and contextual Timeline affordances.
+- [x] **SHELL-01 through SHELL-03 (Phase 183)** — Reworked operator shell, home orientation, navigation visibility, active/current state, and mobile IA around user jobs. Validated in Phase 183 (2026-06-29).
+- [x] **TIME-01 through TIME-03 (Phase 184)** — Streamlined Timeline filters, investigation flow, result states, copy, responsive scanning behavior, route transitions, export handoff, and reduced-motion proof. Validated in Phase 184 (2026-06-29).
+- [x] **COV-01 through COV-03 (Phase 185)** — Cleaned up Coverage as an audit-readiness workflow with clear schema scope, duplicate remediation, contextual Timeline affordances, schema URL safety, and narrow browser proof. Validated in Phase 185 (2026-06-30).
 - [x] **DETAIL-01 and GOV-01 through GOV-03 (Phase 186)** — Transaction, actor, row history, redaction, retention, evidence, and export surfaces now read as coherent task groups with risk-aware actions. Validated in Phase 186 (2026-06-30).
 - [x] **A11Y-01, A11Y-02, MOTION-01, DOC-01, CLOSE-01 (Phase 187)** — Locked accessibility, motion, docs, visual QA, and adversarial closeout evidence with proof limits and residuals classified. Validated in Phase 187 (2026-06-30).
 - [x] **TIME-01, GOV-02, A11Y-02, MOTION-01, CLOSE-01 close-gap validation (Phase 188)** — Closed queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and v1.38 audit/verification evidence. Validated in Phase 188 (2026-06-30).
+
+### Active
+
+- _(None. Fresh requirements should be defined with `/gsd-new-milestone`.)_
 
 ### Out of Scope
 
@@ -612,8 +619,8 @@ v1.38 is milestone-complete and ready for archive. Core capture/query/auth seman
 | Light tokens designed, not recolored; status tints redesigned as one coherent decision | Mechanically inverting dark values produces the "Grafana lesson" — dark-tuned content shipped unreviewed into light. Data-viz-adjacent surfaces got an explicit light review. | ✓ Good (v1.36) |
 | Source-first contract: `style.ex` + `style_contract_test.exs` amended in the same wave | The style contract reads `style.ex` directly; amending both together keeps the seven light refutes → theme-aware assertions atomic and the dark phase-143 contract byte-stable. | ✓ Good (v1.36) |
 | Entangled `style.ex` light source committed at v1.36 close (resolves audit Finding F1) | COMP-01/02 were built and verified live but their source sat uncommitted in a broader operator-surface working tree; committing it at close (commit `b9f8fc1`, suite green at 912 tests) made the parity gate green on a clean checkout. | ✓ Resolved (v1.36, 2026-06-14) |
-| v1.38 scopes PhoenixStorybook to the Phoenix example/dev lane | Storybook is valuable for component/state review, but making it a root dependency or public component API would violate the optional-Phoenix and host-app-friendly library boundary. `/audit/__stress` remains the canonical operator-flow stress harness. | — Active (v1.38, 2026-06-26) |
-| v1.38 cleans pages in operator-value order: shell/home/timeline, then coverage, then detail/governance/export | The current user pain is orientation and task flow, not missing primitives. Starting with shell/home/timeline fixes the common path and creates patterns that later pages can adopt without re-litigating the design language. | — Active (v1.38, 2026-06-26) |
+| v1.38 scopes PhoenixStorybook to the Phoenix example/dev lane | Storybook is valuable for component/state review, but making it a root dependency or public component API would violate the optional-Phoenix and host-app-friendly library boundary. `/audit/__stress` remains the canonical operator-flow stress harness. | ✓ Validated (v1.38, 2026-06-30) |
+| v1.38 cleans pages in operator-value order: shell/home/timeline, then coverage, then detail/governance/export | The current user pain is orientation and task flow, not missing primitives. Starting with shell/home/timeline fixed the common path and created patterns that later pages adopted without re-litigating the design language. | ✓ Validated (v1.38, 2026-06-30) |
 
 ## Evolution
 
@@ -635,4 +642,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-30 — Phase 188 close-gap validation complete; v1.38 is milestone-complete and ready for archive*
+*Last updated: 2026-06-30 — v1.38 milestone archived; awaiting fresh requirements*

@@ -1,5 +1,32 @@
 # Project milestones: Threadline
 
+## v1.38 Operator UI Page-by-Page IA & Design-System Polish (Shipped: 2026-06-30)
+
+**Delivered:** A page-by-page operator UI polish pass that made `/audit` more obvious, task-led, and internally coherent while preserving the private component system, route stability, auth boundaries, optional Phoenix boundary, and capture/query semantics.
+
+**Phases completed:** 8 phases (181-188), 34 plans, 51 tasks. Requirements: 24/24 satisfied.
+
+**Stats:** 296 files changed, 39,999 insertions, 1,235 deletions across 262 commits from `v1.37` to `715e0da3`.
+
+**Key accomplishments:**
+
+- **Baseline and guard repair** - refreshed rendered `/audit` evidence, screenshot inventory, stale selector/prose ledger, source contracts, and local screenshot baseline classification before page edits.
+- **PhoenixStorybook dev lane** - added example-app-only PhoenixStorybook stories for private operator components and representative states while keeping root `threadline` dependency, route, and public API surfaces clean.
+- **Shell, Home, Timeline, and Coverage polish** - made navigation, home task launch, investigation flow, selected-schema readiness, responsive layouts, copy, route transitions, and row actions clearer and regression-guarded.
+- **Detail, governance, export, and retention workflows** - aligned transaction, row-history, actor, evidence, redaction, exports, and retention pages around coherent task surfaces with risk-aware disabled/destructive states.
+- **Accessibility, motion, docs, and closeout** - recorded keyboard/focus/reduced-motion proof, docs truth repair, adversarial review, and explicit residual classifications without overclaiming screenshots or assistive-technology certification.
+- **Audit-gap closure** - Phase 188 closed queued Timeline export replay parsing, `.tl-copy` motion governance, GOV-02 traceability metadata, and final v1.38 audit evidence.
+
+**Known residuals at close:** Broad CI/example-app, standalone screenshot regression, Hex auth/advisory, and legacy Nyquist validation residuals remain classified in `.planning/milestones/v1.38-MILESTONE-AUDIT.md`; none reopen the v1.38 requirements.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.38-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.38-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.38-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.37 Operator Surface Design-System Stress Test & Component System (Shipped: 2026-06-20)
 
 **Delivered:** Converted the mounted `/audit` operator surface from a page-level class-soup UI into an internally-componentized, stress-tested design system. The milestone shipped the `/audit/__stress` harness, scored idempotency ledger, hardened foundations, private primitives/forms/data/meta-components, shell/navigation and runtime theme picker, per-page stress coverage, microcopy/IA normalization, WCAG/APG/motion guardrails, bounded accessibility-tree evidence, screenshot regression, residual CI classification, and adversarial closeout.

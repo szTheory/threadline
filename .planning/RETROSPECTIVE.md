@@ -996,8 +996,56 @@ First-class light mode for the operator surface without disturbing the dark defa
 
 ---
 
+## Milestone: v1.38 — Operator UI Page-by-Page IA & Design-System Polish
+
+**Shipped:** 2026-06-30
+**Phases:** 8 (181-188) | **Plans:** 34
+
+### What was built
+
+- Current rendered `/audit` baseline, stale guard repair, source contracts, and bounded screenshot inventory for page-by-page polish.
+- Example-app-only PhoenixStorybook maintainer lane for private operator components and ugly-state review.
+- Task-led shell/Home/Timeline/Coverage workflows with clearer navigation, page hierarchy, URL state, row actions, copy, and responsive proof.
+- Detail/governance/export/retention pages aligned to the same operator IA patterns, with risk-aware destructive and disabled states.
+- Accessibility, motion, docs, adversarial closeout, queued export replay, `.tl-copy` motion governance, and GOV-02 traceability closure.
+
+### What worked
+
+- Starting with baseline and stale-guard repair prevented polish work from inheriting dead selectors or outdated visual evidence.
+- Shell/Home/Timeline became the reference pattern before lower-traffic pages were retuned, which kept later work more mechanical.
+- Keeping PhoenixStorybook example/dev-only preserved the root package boundary while still improving maintainer design review.
+
+### What was inefficient
+
+- Generated milestone accomplishments were noisy and needed manual cleanup before becoming archive history.
+- Several broad-suite, screenshot, and environment residuals had to be reclassified carefully so closeout did not imply broader green status than the evidence supported.
+- GOV-02 traceability metadata lagged behind implementation evidence until the Phase 188 close-gap pass.
+
+### Patterns established
+
+- Use the mounted UI's job-to-be-done order as the page cleanup sequence: orientation first, investigation second, readiness third, detail/governance after patterns settle.
+- Prefer source contracts for narrow motion governance fixes when browser proof would add little signal.
+- Keep residual classifications explicit in milestone audits instead of converting unrelated non-green evidence into blocker-free language.
+
+### Key lessons
+
+1. Closeout phases should verify traceability frontmatter as carefully as runtime behavior; planning metadata can block archive readiness.
+2. Storybook can be useful without changing the public package contract when it is scoped to a maintained example app.
+3. Screenshot and browser proof need named boundaries; archived milestones should state exactly which visual claims are and are not made.
+
+### Cost observations
+
+- Timeline: 2026-06-26 -> 2026-06-30; 8 phases; 34 plans; 51 tasks.
+- Git range: `v1.37` -> `715e0da3` before archive; 262 commits; 296 files changed.
+- Model mix is not instrumented in-repo.
+
+---
+
 ## Cross-Milestone Trends
 
+- v1.38 confirms the v1.37 lesson that generated archive text needs editorial review before it becomes durable project history.
+- Baseline-first UI milestones reduce drift: rendered evidence, source contracts, and stale-test repair should precede visual or IA changes.
+- Example-app dev tooling is the right place for maintainer-only UI review aids when the root library has an optional-dependency promise.
 - v1.37 reinforces the v1.36 lesson: archive-ready evidence must be clean against the current working tree, not only locally remembered phase context.
 - Planning tools can misread stale roadmap metadata; closeout should include a manual sanity pass over phase counts, requirement traceability, and state frontmatter before tagging.
 - **Commit keystone source in the wave it's verified.** v1.36's Finding F1 (entangled uncommitted `style.ex`) echoes the recurring "verified-live but source-pending" hazard — it hides doc-contract drift and makes quality gates green only against a dirty tree. Treat a clean-checkout green as the bar.
