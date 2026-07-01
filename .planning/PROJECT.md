@@ -10,11 +10,24 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline has shipped **v1.38 Operator UI Page-by-Page IA & Design-System Polish** (2026-06-30). The mounted `/audit` operator UI now has a refreshed baseline packet, example-app-only PhoenixStorybook maintainer lane, clearer shell/Home/Timeline/Coverage workflows, aligned detail/governance/export/retention surfaces, and closeout evidence for accessibility, motion, docs, and adversarial review. Phase 188 closed the final audit gaps for queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and milestone evidence.
+Threadline is actively planning **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). The milestone is a consolidation pass: rank the repo's weakest software-quality dimensions with evidence, prove or fix configurable PostgreSQL storage-schema behavior beyond the default `threadline` schema, repair public version/docs/upgrade drift, and make CI/CD faster and more deterministic without weakening release trust.
 
-Core capture/query/auth semantics stayed out of scope. The root package kept Phoenix/LiveView optional, PhoenixStorybook stayed example/dev-only, no public component API was introduced, and broad CI/example-app/screenshot/environment residuals remain explicitly classified rather than relabeled green.
+Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, and v1.38 page-by-page `/audit` polish. v1.39 is not another UI/product expansion milestone; it is the quality baseline pass that makes the current scope easier to trust, adopt, operate, upgrade, and maintain.
 
-The project is now awaiting fresh requirements for the next milestone.
+Core capture/query/auth semantics stay out of scope unless a storage-schema or docs-truth fix proves they are already inconsistent with published behavior. The root package keeps Phoenix/LiveView optional, PhoenixStorybook stays example/dev-only, no public component API is introduced, and external pilot/compliance expansion remains signal-gated.
+
+## Current Milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (opened 2026-07-01)
+
+**Goal:** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
+
+**Target features:**
+- **Quality baseline audit** — repo-evidence ranking of weakest software-quality dimensions, practical consequences, confidence, and top fixes, including missing dimensions discovered during the audit.
+- **Custom storage-schema confidence** — end-to-end proof for `storage_schema: "audit"` or equivalent custom schemas; Ecto prefix behavior, generated migrations, and host-schema assumptions are proven, fixed, or honestly documented.
+- **Release/version/docs trust repair** — README, guides, evaluator docs, upgrade path, adoption backlog, and doc contracts agree on the current `0.9.0` package truth or intentionally explain older examples.
+- **CI/CD measurement and low-risk efficiency** — current pipeline baseline, critical-path bottlenecks, deterministic cache/setup improvements, PgBouncer image alignment, release concurrency fix, branch-protection docs alignment, and explicit compatibility policy.
+- **Closeout evidence and next-step decision** — traceability, verification, before/after CI evidence where measurable, and a ranked decision on whether v1.40 should be CI/CD depth, external adopter proof, observability, or hold.
+
+**Non-goals:** new operator pages, public component API, Storybook public distribution, compliance pack/legal hold/immutable archive, external pilot without real signal, runtime destructive redaction, WAL/CDC backend, or clever CI matrix/sharding before measurement.
 
 ## Latest Milestone Shipped: v1.38 Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
 
@@ -527,10 +540,29 @@ The project is now awaiting fresh requirements for the next milestone.
 
 ### Active
 
-- _(None. Fresh requirements should be defined with `/gsd-new-milestone`.)_
+- [ ] **QUAL-01 — Quality dimension ranking** — Produce a repo-evidence software-quality audit that identifies the weakest dimensions, scores confidence, explains practical consequences, and ranks the highest-leverage fixes.
+- [ ] **QUAL-02 — Prioritized, not generic** — Separate must-fix adoption/operations/maintainer risks from good-enough, low-priority, or N/A dimensions; do not treat every checklist item as equally important.
+- [ ] **QUAL-03 — Residual and seed triage** — Triage open residuals and seeds that affect quality trust, including SEED-005 reconnect/offline banner, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
+- [ ] **SCHEMA-01 — Custom storage-schema E2E proof** — Prove `storage_schema: "audit"` or an equivalent non-default schema through Threadline-owned capture/query/evidence/governance/operator-relevant paths, or fix gaps in the same milestone.
+- [ ] **SCHEMA-02 — Ecto prefix truth** — Prove or correct Ecto schema prefix behavior so configurable storage schemas do not silently read/write the hardcoded `threadline` prefix.
+- [ ] **SCHEMA-03 — Safe generated migration identifiers** — Quote validated storage-schema identifiers consistently in generated migration SQL, or narrow/document/test the supported identifier contract.
+- [ ] **SCHEMA-04 — Host-schema boundary truth** — Implement non-public host-table support for continuity, policy/redaction inspection, and operator coverage when it matches existing schema flags, or document and test-lock any intentional public-only behavior.
+- [ ] **ADOPT-01 — Current version/docs truth** — Align public install snippets, evaluator docs, upgrade guidance, README, adoption backlog, and package metadata with current `0.9.0` truth, or explicitly explain any older pinned line.
+- [ ] **ADOPT-02 — 0.6 to 0.9 upgrade guidance** — Cover adopter-visible changes from the 0.6.x through 0.9.x era, including storage schema default, operator surface/theming, release proof lanes, and migration expectations.
+- [ ] **ADOPT-03 — Reader-first docs routing** — Give evaluators, first-hour adopters, operators, and maintainers a shorter next-step path across README and ExDoc guides without adding a giant new guide.
+- [ ] **CI-01 — Pipeline baseline** — Measure or explicitly infer current PR/main wall-clock, critical path, repeated setup/deps cost, browser lane cost, cache state, and flaky/rerun signals.
+- [ ] **CI-02 — Low-risk cache/setup efficiency** — Reduce repeated dependency/build work with precise, reversible cache/setup changes that do not restore incompatible `_build` artifacts or mask warnings.
+- [ ] **CI-03 — CI/local/release contract alignment** — Align PgBouncer image pinning, release concurrency, branch-protection docs, CI job names, and local `mix ci.*` expectations.
+- [ ] **CI-04 — Compatibility policy** — Make min/current Elixir/OTP/Postgres support explicit and implement only the compatibility lanes that protect stated support without blowing up PR feedback.
+- [ ] **CLOSE-01 — Evidence closeout and next-step call** — Close v1.39 with traceability, verification evidence, before/after CI data or explicit no-measure rationale, ranked remaining risks, and a clear v1.40/hold recommendation.
 
 ### Out of Scope
 
+- **New operator UI product expansion in v1.39** — v1.38 just shipped page-by-page polish. v1.39 may add quality evidence or fix proven trust gaps, but not new pages, new workflow breadth, or a public component API.
+- **Public Storybook/component-system distribution** — PhoenixStorybook remains example/dev-only; root `threadline` keeps optional Phoenix/LiveView deps and no public UI component contract.
+- **External adopter pilot without real signal** — still signal-gated. v1.39 can audit pilot readiness and docs truth, but not invent a synthetic pilot.
+- **Compliance platform expansion** — compliance packs, legal hold, immutable archive guarantees, and runtime destructive redaction remain deferred until procurement or adopter pressure justifies the support burden.
+- **CI cleverness before measurement** — no broad sharding, matrix explosion, flaky retries as a cure, or heavyweight release ceremony unless the baseline proves it reduces real risk.
 - **SIEM / security information and event management** — different product category, different buyers, different infrastructure
 - **Full event sourcing / CQRS** — Threadline captures audit facts; it does not drive application state reconstruction
 - **pgAudit replacement** — statement-level DB auditing is a separate concern; Threadline is application-level
@@ -557,11 +589,15 @@ The project is now awaiting fresh requirements for the next milestone.
 
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
-**Hex distribution (2026-05-28):** **threadline 0.6.0** published on hex.pm; adoption-pilot and evaluator surfaces honest about version (v1.27 DIST-01–03).
+**Hex distribution (2026-07-01):** **threadline 0.9.0** is the current in-repo and hex.pm package line (tag `v0.9.0`, published 2026-06-03). v1.39 treats any remaining `~> 0.6` or 0.6-era adopter docs as a public trust bug unless the older pin is explicitly intentional.
 
 **Path-to-done posture (2026-05-29):** **~92–95% done** for stated narrow audit-platform scope. v1.29 closed remaining first-hour doc footguns and verify/planning hygiene. **Default hold** — no adopter signal today; v1.28 only on sustained signal. Assessment: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`; roadmap: `.planning/MILESTONE-ARC.md` § Path to done.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
+
+**Storage-schema posture (2026-07-01):** Threadline already defaults its owned tables to the PostgreSQL schema `threadline`, with `public` available only by explicit choice. v1.39 is the confidence pass: custom non-default schemas, Ecto prefix precedence, generated migration quoting, and non-public host table assumptions must be proven or made honest before public adoption claims lean on the feature.
+
+**CI/CD posture (2026-07-01):** The current CI topology is broad and valuable, but setup/cache/version-policy efficiency is not yet measured enough to optimize confidently. v1.39 should baseline first, then make boring low-risk improvements: precise BEAM caches, pinned service images, release serialization, branch-protection docs, and compatibility lanes only where they protect stated support.
 
 ## Constraints
 
@@ -621,6 +657,9 @@ The project is now awaiting fresh requirements for the next milestone.
 | Entangled `style.ex` light source committed at v1.36 close (resolves audit Finding F1) | COMP-01/02 were built and verified live but their source sat uncommitted in a broader operator-surface working tree; committing it at close (commit `b9f8fc1`, suite green at 912 tests) made the parity gate green on a clean checkout. | ✓ Resolved (v1.36, 2026-06-14) |
 | v1.38 scopes PhoenixStorybook to the Phoenix example/dev lane | Storybook is valuable for component/state review, but making it a root dependency or public component API would violate the optional-Phoenix and host-app-friendly library boundary. `/audit/__stress` remains the canonical operator-flow stress harness. | ✓ Validated (v1.38, 2026-06-30) |
 | v1.38 cleans pages in operator-value order: shell/home/timeline, then coverage, then detail/governance/export | The current user pain is orientation and task flow, not missing primitives. Starting with shell/home/timeline fixed the common path and created patterns that later pages adopted without re-litigating the design language. | ✓ Validated (v1.38, 2026-06-30) |
+| v1.39 is a consolidation milestone, not a new product/UI expansion | Recent milestones created a lot of surface area. The highest leverage now is finding the weakest quality dimension, proving schema behavior, repairing docs/version drift, and making CI trustworthy/efficient. New pages, public component APIs, compliance packs, and synthetic pilots would add support burden before the current adoption contract is fully trusted. | Active (v1.39, 2026-07-01) |
+| Custom PostgreSQL storage schemas are a public trust boundary | The project already defaults owned tables to `threadline` rather than `public`; that is the right host-app-respectful posture. But the feature only earns adoption trust if custom schemas work end to end, Ecto prefix behavior is not misleading, generated migrations quote supported identifiers safely, and host-schema assumptions are explicit. | Active (v1.39, 2026-07-01) |
+| CI/CD optimization must be measured and boring | Faster CI is only useful if merge/release gates stay trustworthy. v1.39 should baseline wall-clock/critical path/flakiness first, then prefer precise cache/setup/service/version-policy fixes over matrix explosion, broad sharding, flaky retries, or clever required-check topology. | Active (v1.39, 2026-07-01) |
 
 ## Evolution
 
@@ -642,4 +681,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-06-30 — v1.38 milestone archived; awaiting fresh requirements*
+*Last updated: 2026-07-01 — v1.39 milestone opened for quality baseline, schema confidence, and CI efficiency*
