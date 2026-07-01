@@ -10,7 +10,6 @@ defmodule Threadline.Governance.SavedView do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @schema_prefix "threadline"
 
   schema "threadline_saved_views" do
     field(:name, :string)

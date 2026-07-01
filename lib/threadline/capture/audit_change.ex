@@ -42,7 +42,6 @@ defmodule Threadline.Capture.AuditChange do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @schema_prefix "threadline"
 
   schema "audit_changes" do
     belongs_to(:transaction, Threadline.Capture.AuditTransaction, foreign_key: :transaction_id)

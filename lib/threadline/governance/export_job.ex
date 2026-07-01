@@ -10,7 +10,6 @@ defmodule Threadline.Governance.ExportJob do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @schema_prefix "threadline"
 
   schema "threadline_export_jobs" do
     field(:status, :string)
