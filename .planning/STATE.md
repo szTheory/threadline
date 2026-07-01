@@ -5,14 +5,14 @@ milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 current_phase: 190
 current_phase_name: storage-schema-confidence-and-host-schema-truth
 status: executing
-stopped_at: Completed 190-08-PLAN.md
-last_updated: "2026-07-01T22:47:23.975Z"
+stopped_at: Completed 190-09-PLAN.md
+last_updated: "2026-07-01T23:02:05.739Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-01)
 ## Current Position
 
 Phase: 190 (storage-schema-confidence-and-host-schema-truth) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-07-01
 
@@ -142,6 +142,7 @@ Last activity: 2026-07-01
 | Phase 190 P05 | 9 min | 2 tasks | 5 files |
 | Phase 190 P07 | 8 min | 2 tasks | 6 files |
 | Phase 190 P08 | 9 min | 2 tasks | 8 files |
+| Phase 190 P09 | 9m17s | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -375,6 +376,8 @@ Last activity: 2026-07-01
 - [Phase 190]: [190-07]: Malformed host table identifiers now fail before SQL generation. — Empty or ambiguous dot segments could collapse into valid-looking identifiers and weaken host-schema trigger confidence.
 - [Phase 190]: [190-07]: Continuity readiness treats selected support schema values as host table identity only. — `support.tickets` and `schema: "support"` select the host table for readiness checks without changing Threadline storage-schema reads.
 - [Phase 190-08]: Selected redaction schema is host-schema only — Policy CLI and LiveView validate --schema/?schema with CoverageSchemas and pass it only to redaction catalog inspection; Threadline-owned storage_schema remains governed separately by repo opts.
+- [Phase 190]: Timeline renders table_schema as host schema so operators do not confuse audited host schemas with Threadline storage_schema.
+- [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
 
 ### Blockers
 
@@ -382,8 +385,8 @@ Last activity: 2026-07-01
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T22:47:01.465Z
-**Stopped at:** Completed 190-08-PLAN.md
+**Last session:** 2026-07-01T23:02:05.731Z
+**Stopped at:** Completed 190-09-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
