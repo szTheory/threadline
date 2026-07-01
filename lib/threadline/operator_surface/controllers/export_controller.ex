@@ -39,6 +39,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     import Plug.Conn
 
     alias Threadline.Export
+    alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Exports.Filename
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.StorageSchema
@@ -57,10 +58,11 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     def download(conn, %{"job_id" => job_id}) do
       repo = conn.assigns[:threadline_repo] || default_repo()
       actor_ref = conn.assigns[:threadline_actor_ref]
+      storage_schema = StorageSchema.get()
 
       case Ecto.UUID.cast(job_id) do
         {:ok, uuid} ->
-          job = repo.get(Threadline.Governance.ExportJob, uuid, StorageSchema.repo_opts())
+          job = fetch_export_job(repo, uuid, storage_schema)
 
           if job && job.actor_ref == actor_ref do
             deliver_export(conn, job)
@@ -75,6 +77,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> put_resp_header("content-type", "text/plain; charset=utf-8")
           |> send_resp(400, "Invalid job ID")
       end
+    end
+
+    defp fetch_export_job(repo, uuid, storage_schema) do
+      repo.get(ExportJob, uuid, StorageSchema.repo_opts(storage_schema: storage_schema))
     end
 
     defp deliver_export(conn, %{status: "completed", file_path: file_path} = job)
