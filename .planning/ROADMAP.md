@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- [ ] **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** - Phases 189-193 (active; opened 2026-07-01).
 - [x] **v1.38 Operator UI Page-by-Page IA & Design-System Polish** - Phases 181-188 (shipped 2026-06-30). Archive: `.planning/milestones/v1.38-ROADMAP.md`
 - [x] **v1.37 Operator Surface Design-System Stress Test & Component System** - Phases 171-180 (shipped 2026-06-20). Archive: `.planning/milestones/v1.37-ROADMAP.md`
 - [x] **v1.36 Operator Surface Light Mode** - Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
@@ -10,7 +11,81 @@
 
 ## Current Planning State
 
-No active milestone is open. Start the next milestone with `/gsd-new-milestone` to define fresh requirements and roadmap phases.
+Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency**.
+
+**Goal:** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable PostgreSQL storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
+
+**Execution posture:** audit first, then fix high-confidence gaps. Do not expand product/UI scope unless the audit proves a current trust issue. CI changes should be measured, boring, and reversible.
+
+## Current Milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
+
+| Phase | Name | Requirements | Status |
+|------:|------|--------------|--------|
+| 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Pending |
+| 190 | Storage schema confidence and host-schema truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Pending |
+| 191 | Release/version and docs trust repair | ADOPT-01, ADOPT-02, ADOPT-03 | Pending |
+| 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
+| 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
+
+### Phase 189: Quality Baseline and Authority-Surface Audit
+
+**Goal:** Produce the blunt, repo-evidence quality ranking requested by the prompt and use it to keep v1.39 focused on the weakest adoption, production, support, and maintenance risks.
+
+**Requirements:** QUAL-01, QUAL-02, QUAL-03
+
+**Success criteria:**
+- A durable quality-audit artifact ranks dimensions from weakest/highest-risk to strongest/lowest-risk with evidence, confidence, consequence, highest-leverage fix, and priority.
+- The audit explicitly marks good-enough, low-priority, and N/A dimensions instead of manufacturing fake concerns.
+- Open residuals and seeds that can affect trust are triaged, including SEED-005, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
+- The audit narrows the remaining v1.39 implementation work instead of broadening into unrelated product or UI expansion.
+
+### Phase 190: Storage Schema Confidence and Host-Schema Truth
+
+**Goal:** Make the `storage_schema` story trustworthy beyond the default `threadline` schema, including custom-schema Ecto behavior, migration SQL, and host-schema assumptions.
+
+**Requirements:** SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04
+
+**Success criteria:**
+- `storage_schema: "audit"` or equivalent non-default schema is covered through capture/query/evidence/governance/operator-relevant paths.
+- Fixed `@schema_prefix` interactions are removed, overridden safely, or proven harmless with tests that would fail if reads/writes silently hit `threadline`.
+- Generated migration SQL safely quotes validated storage-schema identifiers, or docs/tests narrow the supported identifier contract.
+- Continuity, policy/redaction inspection, and operator coverage either support non-public host schemas consistently or clearly document/test-lock public-only behavior.
+
+### Phase 191: Release/Version and Docs Trust Repair
+
+**Goal:** Remove public-version drift and sharpen the adoption path so a stranger can trust the README, Hex line, evaluator docs, and upgrade story without maintainer context.
+
+**Requirements:** ADOPT-01, ADOPT-02, ADOPT-03
+
+**Success criteria:**
+- README, guides, evaluator docs, adoption backlog, CHANGELOG/package metadata, and install snippets agree on current `0.9.0` truth or explicitly justify older examples.
+- Upgrade guidance covers 0.6.x through 0.9.x adopter effects: storage-schema default, operator surface/theming, release lanes, and migration expectations.
+- README/ExDoc guide routing gives evaluators, first-hour adopters, operators, and maintainers a short next-step path.
+- Doc-contract tests fail on future install/version/upgrade drift.
+
+### Phase 192: CI/CD Measurement and Efficiency Hardening
+
+**Goal:** Baseline the CI/CD pipeline, then make low-risk improvements that improve feedback speed, determinism, and maintainer DX without weakening gates.
+
+**Requirements:** CI-01, CI-02, CI-03, CI-04
+
+**Success criteria:**
+- Current CI critical path, duplicated setup/deps work, browser lane cost, cache state, and flaky/rerun signals are recorded from GitHub/local evidence or explicitly marked unavailable.
+- Cache/setup changes are precise, reversible, and safe across OS/OTP/Elixir/MIX_ENV boundaries.
+- PgBouncer image pinning, release concurrency, branch-protection docs, job names, and local `mix ci.*` expectations align.
+- Compatibility policy for Elixir/OTP/Postgres support is explicit, with only justified min/current lanes added to PR/main/scheduled workflows.
+
+### Phase 193: Quality Closeout and Next-Step Decision
+
+**Goal:** Close v1.39 with evidence, traceability, ranked remaining risk, and a concrete recommendation for what should happen next.
+
+**Requirements:** CLOSE-01
+
+**Success criteria:**
+- Requirements traceability and verification evidence are current.
+- Before/after CI data is captured where possible; if not, the no-measure reason is explicit.
+- Remaining software-quality risks are ranked with owner/follow-up and no vague "polish later" bucket.
+- The next milestone recommendation is clear: CI/CD depth, external adopter proof, observability, or hold.
 
 ## Prior Milestones
 

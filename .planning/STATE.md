@@ -2,11 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
+current_phase: 189
+current_phase_name: Quality baseline and authority-surface audit
 status: planning
-last_updated: "2026-07-01T14:32:26.234Z"
+last_updated: "2026-07-01T14:40:00Z"
 last_activity: 2026-07-01
+last_activity_desc: Milestone v1.39 roadmap created; Phase 189 ready to plan
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,20 +20,21 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-30)
+See: `.planning/PROJECT.md` (updated 2026-07-01)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Awaiting next milestone
+**Current focus:** v1.39 quality baseline, schema confidence, and CI efficiency
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 189 — Quality baseline and authority-surface audit
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-01 — Milestone v1.39 started
+Status: Pending phase planning
+Last activity: 2026-07-01 — Milestone v1.39 roadmap created; Phase 189 ready to plan
 
 ## Performance Metrics
 
+- **Active Milestone**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (Phases 189-193)
 - **Last Milestone Shipped**: v1.38 — Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
@@ -168,9 +172,13 @@ Last activity: 2026-07-01 — Milestone v1.39 started
 - **Milestone v1.36 roadmap created (2026-06-12):** Operator Surface Light Mode — phases 166–170 per the approved 165 recommendation's pre-decided breakdown: 166 (unfreeze + 45-token light lane + `data-tl-theme` mechanism, contract amended same-wave) → 167 (component retune, largest) → 168 (accessibility AA mirror) ∥ 169 (`__light__` screenshots + example + docs) → 170 (brand alignment + closeout). 15/15 requirements mapped. Human gates: light-lane design review after 166; end-of-milestone UAT after 170.
 - **Milestone v1.38 roadmap created (2026-06-26):** Operator UI Page-by-Page IA & Design-System Polish — phases 181-187. Order is baseline guard repair → PhoenixStorybook example/dev lane → shell/home → Timeline → Coverage → detail/governance/export → accessibility/motion/docs/adversarial closeout. 24/24 requirements mapped, with former post-close todo pressure absorbed into phases 183, 185, and prior demo-login polish.
 - **Milestone v1.38 archived (2026-06-30):** Operator UI Page-by-Page IA & Design-System Polish shipped with phases 181-188 complete, 24/24 requirements satisfied, and residual CI/screenshot/environment/Nyquist items explicitly classified in the archive audit.
+- **Milestone v1.39 roadmap created (2026-07-01):** Quality Baseline, Schema Confidence, and CI Efficiency — phases 189-193. Order is quality audit → storage-schema proof/fixes → release/version docs trust → CI/CD measurement and efficiency → closeout/next-step decision. 15/15 requirements mapped. Invariants held: no new operator product scope, no public component API, no compliance expansion, no synthetic external pilot, no runtime destructive redaction, no WAL/CDC backend, and no broad CI cleverness before measurement.
 
 ### Decisions
 
+- [v1.39-01]: v1.39 is a consolidation milestone. Recent work already built the demo, brand, light/system theme, design system, and page-by-page UI polish; the next trust risk is quality evidence, schema confidence, docs/version drift, and CI efficiency.
+- [v1.39-02]: `storage_schema: "threadline"` remains the respectful default, with `public` requiring explicit opt-in. v1.39 must prove or fix custom-schema behavior before leaning on that posture publicly.
+- [v1.39-03]: CI/CD changes must be measured, boring, and reversible. Baseline first; then fix cache/setup/service/release/version-policy gaps without hiding risk.
 - [v1.38-01]: PhoenixStorybook is scoped to `examples/threadline_phoenix` for development/design review only. Root `threadline` keeps optional Phoenix/LiveView dependencies, no public component API, and `/audit/__stress` remains the canonical flow stress harness.
 - [v1.38-02]: Page cleanup order starts shell/home/timeline, then Coverage, then detail/governance/export, then closeout. This fixes orientation and task flow first and reuses patterns on lower-traffic pages.
 - [176-05] (checkpoint, human-approved option 1): T3 destructive pattern ships via "prune now" ONLY this phase; the redact destructive flow is DEFERRED. Redact has no runtime backend (codegen-time only); building one would touch the capture layer (v1.37 invariant violation). Prune is enforced server-side: secure_compare(typed, server-canonical policy name) + authz re-check + scope fail-closed + audit-the-action; client-only `data-confirm` deleted.
