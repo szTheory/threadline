@@ -53,6 +53,8 @@ defmodule Threadline.Retention.Pruner do
     repo = Keyword.fetch!(opts, :repo)
     interval_ms = Keyword.get(opts, :interval_ms, @default_interval_ms)
     sleep_ms = Keyword.get(opts, :sleep_ms, @default_sleep_ms)
+    storage_schema = StorageSchema.get(opts)
+    storage_opts = StorageSchema.repo_opts(storage_schema: storage_schema)
 
     # Clean up any abandoned runs (e.g. from node crashes)
     cutoff = DateTime.utc_now() |> DateTime.add(-24, :hour) |> DateTime.truncate(:microsecond)
@@ -68,12 +70,18 @@ defmodule Threadline.Retention.Pruner do
           updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
         ]
       ],
-      StorageSchema.repo_opts()
+      storage_opts
     )
 
     schedule_next(interval_ms)
 
-    {:ok, %{repo: repo, interval_ms: interval_ms, sleep_ms: sleep_ms}}
+    {:ok,
+     %{
+       repo: repo,
+       interval_ms: interval_ms,
+       sleep_ms: sleep_ms,
+       storage_schema: storage_schema
+     }}
   end
 
   @impl true
@@ -85,12 +93,17 @@ defmodule Threadline.Retention.Pruner do
 
   @impl true
   def handle_info(:run_purge, state) do
-    %{repo: repo, interval_ms: interval_ms, sleep_ms: sleep_ms} = state
+    %{repo: repo, interval_ms: interval_ms, sleep_ms: sleep_ms, storage_schema: storage_schema} =
+      state
 
     repo.checkout(fn ->
       if acquire_lock(repo) do
         try do
-          Threadline.Retention.purge(repo: repo, sleep_ms: sleep_ms)
+          Threadline.Retention.purge(
+            repo: repo,
+            sleep_ms: sleep_ms,
+            storage_schema: storage_schema
+          )
         after
           release_lock(repo)
         end
