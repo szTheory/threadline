@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 status: executing
-stopped_at: Phase 191 context gathered
-last_updated: "2026-07-02T15:51:22.361Z"
-last_activity: 2026-07-02 — Phase 190 complete, transitioned to Phase 191
+stopped_at: Phase 191 planned (3 plans, 2 waves — plan-checker PASS)
+last_updated: "2026-07-02T16:45:00.000Z"
+last_activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, plan-checker PASS)
 progress:
   total_phases: 5
   completed_phases: 2
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 ## Current Position
 
 Phase: 191 — Release/Version and Docs Trust Repair
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-02 — Phase 190 complete, transitioned to Phase 191
+Plan: 3 plans created (2 waves) — 191-01 (ADOPT-02 upgrade guide), 191-02 (ADOPT-03 verb-lane routing), 191-03 (ADOPT-01 version-truth + drift guard)
+Status: Planned — ready to execute (`/gsd-execute-phase 191`)
+Last activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, plan-checker PASS)
 
 ## Performance Metrics
 
