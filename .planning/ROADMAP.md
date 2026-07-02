@@ -115,9 +115,17 @@ Plans:
 **Plans:** 4 plans (3 waves)
 
 Plans:
+**Wave 1**
+
 - [ ] 192-01-PLAN.md — Wave 1: CI-01 read-only baseline (192-BASELINE.md from gh-api run history; observer-effect ordering)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 192-02-PLAN.md — Wave 2: ci.yml deps/Playwright/npm caches + min/current matrix + PR concurrency + pgbouncer pin; flake-detection deps cache
 - [ ] 192-03-PLAN.md — Wave 2: release.yml publish concurrency + CONTRIBUTING two-list repair + README/mix.exs compatibility contract
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard + human-gated branch-protection/throwaway-run checklist
 
 **Success criteria:**

@@ -203,11 +203,14 @@ Recommend **(a)**. Flag this as the one decision the plan must resolve concretel
 | A1 | `elixir 1.15 / otp 26` resolves on `ubuntu-22.04` via setup-beam | M5 / D-17 | Min lane can't provision → pick a different runner or OTP patch; already gated behind D-17 throwaway run |
 | A2 | `include`-only matrix keys do not contribute to the check-name suffix (only base axes do) | M1 | If wrong, construction (A) yields ugly names; construction (B) name-interpolation is the safe fallback and should be preferred if any doubt |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Dep-floor guard mechanism (D-16).** `mix.lock` cannot express Elixir floors statically. Recommend option (a): post-`deps.get` inspection of `deps/*/mix.exs`. The plan must specify this concretely, not defer it. (See Validation Architecture.)
+   - RESOLVED: Plan 192-04 Task 2 commits to option (a) — a `dep_floor_guard_test.exs` that reads `deps/*/mix.exs` `elixir:` requirements after `mix deps.get` and asserts none floor above 1.15.
 2. **Baseline event-type filter (D-02).** Choose `push` or `pull_request` for the p50/p95 sample and page to ~15 green — recent window is red-heavy. Recommend `push` on `main` (most stable, and honors the path-filter+main invariant that main always runs the full set).
+   - RESOLVED: Plan 192-01 Task 1 commits to `event=push` on `main`, paging past the red-heavy window to collect ~15 GREEN runs.
 3. **deps/ cache key lane isolation.** `runner.os` is `Linux` for both lanes, so the base key does not separate min/current. Source is identical so sharing is safe; add `matrix.lane` to the key only if per-lane cache-hit metrics are wanted in Phase 193.
+   - RESOLVED: Plan 192-02 uses the shared source-only `deps/` key (identical source across lanes → safe); per-lane `matrix.lane` keying deferred to Phase 193 if cache-hit metrics are wanted.
 
 ## Sources
 
