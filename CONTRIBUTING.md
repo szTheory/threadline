@@ -124,6 +124,8 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
+| `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
+| `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
@@ -176,7 +178,8 @@ In GitHub repository settings, require these checks on `main` (names match the w
 
 - Check formatting (`verify-format`)
 - Run Credo (strict) (`verify-credo`)
-- Run test suite (`verify-test`)
+- Run test suite (min) (`verify-test` min lane)
+- Run test suite (current) (`verify-test` current lane)
 - PgBouncer transaction topology (`verify-pgbouncer-topology`)
 - Build ExDoc (dev) (`verify-docs`)
 - Hex package tarball (`verify-hex-package`)
