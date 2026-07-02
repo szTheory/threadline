@@ -25,7 +25,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
 | 191 | 3/3 | Complete    | 2026-07-02 |
 | 192 | 4/4 | Complete    | 2026-07-02 |
-| 193 | 3/3 | Complete   | 2026-07-02 |
+| 193 | 3/3 | Complete    | 2026-07-02 |
 
 ### Phase 189: Quality Baseline and Authority-Surface Audit
 
@@ -148,7 +148,7 @@ Plans:
 - Remaining software-quality risks are ranked with owner/follow-up and no vague "polish later" bucket.
 - The next milestone recommendation is clear: CI/CD depth, external adopter proof, observability, or hold.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
