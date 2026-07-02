@@ -51,11 +51,11 @@
       "assessment_supersedes_prior_thread": true
     },
     "nyquist_validation": true,
-    "use_worktrees": false
+    "use_worktrees": true
   },
   "model_profile": "balanced",
   "granularity": "coarse",
-  "runtime": "cursor",
+  "runtime": "claude",
   "model_profile_overrides": {
     "cursor": {
       "opus": "inherit",
