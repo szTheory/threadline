@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 status: executing
-stopped_at: "Phase 193 plan 01 complete (CLOSE-01 clauses 1 & 2). Plans 02-03 remain."
-last_updated: "2026-07-02T22:55:00.000Z"
+stopped_at: "Phase 193 plan 02 complete (CLOSE-01 clauses 3 & 4). Plan 03 (closeout verification) remains."
+last_updated: "2026-07-02T23:30:00.000Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 193 plan 01 complete — traceability + evidence index committed
+last_activity_desc: Phase 193 plan 02 complete — ranked risk register + v1.40 HOLD next-step recommendation committed
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 90
 current_phase: 193
 current_phase_name: "quality-closeout-and-next-step-decision"
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 ## Current Position
 
 Phase: 193 — Quality Closeout and Next-Step Decision — EXECUTING
-Plan: 1 of 3 complete (193-01: CLOSE-01 clauses 1 & 2 — traceability rollup + verification/CI evidence index). Plans 02 (risk register + next-step) and 03 (closeout verification) remain.
+Plan: 2 of 3 complete (193-02: CLOSE-01 clauses 3 & 4 — ranked residual-risk register + v1.40 HOLD/thin-polish next-step recommendation). Plan 03 (closeout verification + boundary check) remains.
 Status: Executing Phase 193
-Last activity: 2026-07-02 — Phase 193 plan 01 complete (193-TRACEABILITY.md + 193-EVIDENCE-INDEX.md committed)
+Last activity: 2026-07-02 — Phase 193 plan 02 complete (193-RISK-REGISTER.md + 193-NEXT-STEP.md committed)
 
 ## Performance Metrics
 
@@ -192,6 +192,7 @@ Last activity: 2026-07-02 — Phase 193 plan 01 complete (193-TRACEABILITY.md + 
 
 ### Decisions
 
+- [193-02]: CLOSE-01 clauses 3 & 4 delivered as `193-RISK-REGISTER.md` + `193-NEXT-STEP.md`. Register is a verify-and-refresh of the 189 ledger (rows 1-3 CLOSED by 190/191/192, rows 6-12 preserved) ranked on the adoption/ops/maintainer lens (D-10/D-12); four post-189 residuals folded in with Owner + reopen-trigger — R-A ship-gated D-17/D-19 (rank 1, ops), R-B/WR-01 alt-schema FK-fixture gap (rank 2), R-C charter-test drift (rank 3), R-D ~81 local failures framed as maintainer-friction NOT a regression (rank 4, below R-A/R-B). Next-step is a single HOLD/thin-polish recommendation backed by three converging gates + config policy (`no_auto_new_milestone` → recommends, does not open v1.40) with five armed flip-triggers (EXT-PILOT-01, OBS-01, UI-REG-01, RECONNECT-01 + CI-depth track). No `/gsd-audit-milestone` run, no `v1.39-MILESTONE-AUDIT.md`, no version/tag change (D-01/D-02/D-03). Commits `92fcb932`, `04dd00e8`.
 - [192-03]: Release publish-race serialization scoped to the `publish-hex` job (`group: release-publish-${{ github.ref }}`, `cancel-in-progress: false`); the workflow-level `run_id`-embedding no-op group was removed so release-please bookkeeping stays independent of long publishes (D-24). `gate-ci-green` + the idempotency skip remain the real race guards; no `run_id` in the publish group; no `:latest`.
 - [192-03]: CONTRIBUTING two lists reconciled without conflating them — List 1 "Stable job keys" table 8→10 (adds `verify-hex-evaluator`, `verify-example-browser`) mirroring the ci.yml header contract (D-25); List 2 branch-protection required checks renamed `Run test suite (verify-test)` → `Run test suite (min)` / `Run test suite (current)` (D-19) while staying a deliberate subset. The GitHub branch-protection reconfig itself is the human step in Plan 04.
 - [192-03]: Version support contract made explicit (Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current, PostgreSQL 14 min / 16 current) in README "Supported versions" + a `mix.exs` comment; `elixir: "~> 1.15"` string unchanged — the floor is honored by the CI min lane, never by raising the requirement (D-13/D-14).

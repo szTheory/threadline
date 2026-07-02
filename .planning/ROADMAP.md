@@ -153,8 +153,8 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 193-01-PLAN.md — Requirements traceability rollup + verification/CI evidence index (CLOSE-01 clauses 1-2)
-- [ ] 193-02-PLAN.md — Ranked residual-risk register + v1.40 next-step recommendation (CLOSE-01 clauses 3-4)
+- [x] 193-01-PLAN.md — Requirements traceability rollup + verification/CI evidence index (CLOSE-01 clauses 1-2)
+- [x] 193-02-PLAN.md — Ranked residual-risk register + v1.40 next-step recommendation (CLOSE-01 clauses 3-4)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
