@@ -178,4 +178,47 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert :binary.match(guide, "CHANGELOG.md", scope: scope) != :nomatch
     assert :binary.match(guide, "[0.6.0]", scope: scope) != :nomatch
   end
+
+  test "upgrade-path guide covers the four ADOPT-02 themes for the 0.6.x to 0.9.x era" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    for theme <- [
+          "storage-schema default",
+          "operator surface/theming",
+          "release proof lanes",
+          "migration expectations"
+        ] do
+      assert String.contains?(guide, theme),
+             "expected upgrade-path guide to name the ADOPT-02 theme #{inspect(theme)}"
+    end
+  end
+
+  test "upgrade-path guide covers each 0.6.x to 0.9.x per-minor bump" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    for {arrow_form, ascii_form} <- [
+          {"0.6.x → 0.7.x", "0.6.x -> 0.7.x"},
+          {"0.7.x → 0.8.x", "0.7.x -> 0.8.x"},
+          {"0.8.x → 0.9.x", "0.8.x -> 0.9.x"}
+        ] do
+      assert String.contains?(guide, arrow_form) or String.contains?(guide, ascii_form),
+             "expected upgrade-path guide to cover the #{ascii_form} bump"
+    end
+
+    # Each bump must carry the mandatory "nothing required" reassurance (D-191-10).
+    assert String.contains?(guide, "nothing required"),
+           "expected upgrade-path guide to carry a mandatory nothing-required reassurance"
+  end
+
+  test "upgrade-path guide refutes aspirational and product-milestone tokens" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    refute String.contains?(guide, "coming soon")
+    refute String.contains?(guide, "forthcoming")
+
+    # semver_adopter guards only v1.2x; this guide narrates the v1.3x era, so
+    # lock out product-milestone labels here (Hex semver only, D-191-12).
+    refute Regex.match?(~r/v1\.3[0-9]/, guide),
+           "expected no product-milestone v1.3x label in the upgrade-path guide"
+  end
 end
