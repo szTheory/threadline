@@ -114,6 +114,11 @@ None - no external service configuration required.
 - CLOSE-01 clauses 1 and 2 are satisfied and committed. Plan 02 can now build `193-RISK-REGISTER.md` (clause 3, seeded from the 189 ledger + the four post-189 residuals R-A..R-D surfaced in the evidence index) and `193-NEXT-STEP.md` (clause 4, HOLD + armed triggers).
 - No product/workflow/version/tag change; milestone archive, `v1.39-MILESTONE-AUDIT.md`, and the ship-gated D-17/D-19 run remain correctly out of scope (D-02/D-03/D-04).
 
+## Self-Check: PASSED
+
+- Files: 193-TRACEABILITY.md, 193-EVIDENCE-INDEX.md, 193-01-SUMMARY.md all present on disk.
+- Commits: e5492297 (traceability), fbb2b195 (evidence index), f60cfc55 (summary) all in git history.
+
 ---
 *Phase: 193-quality-closeout-and-next-step-decision*
 *Completed: 2026-07-02*
