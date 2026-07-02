@@ -71,11 +71,14 @@ public ship action are explicitly OUT of this phase (see D-01).
   already used in `192-BASELINE.md`.
 
 ### Risk-register sourcing & ranking (safe-to-default)
-- **D-10:** Method = **hybrid, manual-synthesis-dominant.** Run `/gsd-audit-milestone` ONCE (it
-  supplies the cross-phase integration check, E2E re-verification, and traceability refresh CLOSE-01
-  needs regardless, in the proven `v1.38-MILESTONE-AUDIT.md` format), then **hand-rank** the register
-  on top of it. **Skip `/gsd-audit-uat`** — v1.39 introduced no `*-UAT.md` files; it would only
-  re-surface the already-deferred v1.36 rows.
+- **D-10:** Method = **hand-synthesis in the audit format** (OQ-1 resolved). Phase 193 does **NOT**
+  run `/gsd-audit-milestone` inline — that would collide with D-01/D-03 (193 must not produce
+  `v1.39-MILESTONE-AUDIT.md`; the formal skill run is a follow-on). Instead, 193 hand-assembles the
+  cross-phase integration/E2E/traceability evidence **in the proven `v1.38-MILESTONE-AUDIT.md`
+  structure** by reading the existing phase VERIFICATION/BASELINE/deferred artifacts, then hand-ranks
+  the register on top. The formal `/gsd-audit-milestone` run (producing the milestone-audit artifact)
+  happens **after** 193 per D-03. **Skip `/gsd-audit-uat`** — v1.39 introduced no `*-UAT.md` files;
+  it would only re-surface the already-deferred v1.36 rows.
 - **D-11:** Register seed = Phase 189's `189-QUALITY-AUDIT.md` ranked ledger (which already names 193
   as its consumer and already carries **Owner + Trigger-to-reopen** per row), refreshed by verifying
   rows 1–3 as CLOSED (by phases 190/191/192) and folding in new post-189 items.
