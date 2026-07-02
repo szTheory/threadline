@@ -23,7 +23,7 @@ Add Threadline to `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:threadline, "~> 0.6"}
+    {:threadline, "~> 0.9.0"}
   ]
 end
 ```
@@ -137,7 +137,7 @@ unless you adopt the optional sigra-reference lane.
 
 ## 6. Exercise the first audited write
 
-### Recommended path (0.6.0+)
+### Recommended path
 
 For new integrations, `Threadline.Audit.transaction/3` is the **recommended write path** —
 it replaces the manual `set_config` → domain writes → `record_action/2` → `action_id`

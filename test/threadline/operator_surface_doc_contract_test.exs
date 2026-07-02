@@ -55,7 +55,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "guides/upgrade-path.md")
     assert String.contains?(guide, "guides/integration-contracts.md")
-    assert String.contains?(guide, "{:threadline, \"~> 0.6\"}")
+    assert String.contains?(guide, "{:threadline, \"~> 0.9.0\"}")
     refute String.contains?(guide, "{:threadline, \"~> 0.5\"}")
     refute String.contains?(guide, "{:threadline, \"~> 0.3.0\"}")
     refute String.contains?(guide, "{:phoenix, \"~> 1.7\"}")

@@ -24,7 +24,7 @@ defmodule HexEvaluator.MixProject do
 
   defp deps do
     [
-      {:threadline, "~> 0.6"},
+      {:threadline, "~> 0.9.0"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"}
     ]

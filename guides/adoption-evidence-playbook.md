@@ -12,7 +12,7 @@ This is **not** a substitute for integrator-owned staging evidence. See [evaluat
    DB_PORT=5433 MIX_ENV=test mix ci.all
    ```
 
-2. **Hex install smoke** — `mix verify.hex_evaluator` (depends on `{:threadline, "~> 0.6"}` from hex.pm, not a path dep).
+2. **Hex install smoke** — `mix verify.hex_evaluator` (depends on `{:threadline, "~> 0.9.0"}` from hex.pm, not a path dep).
 
 3. **Reference app (ConnCase)** — `mix verify.example` runs `examples/threadline_phoenix` tests including:
    - `walkthrough_happy_path_test.exs` — WALKTHROUGH §1–§4
