@@ -126,7 +126,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard + human-gated branch-protection/throwaway-run checklist
+- [ ] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard DONE (tasks 01+02 committed); human-gated branch-protection/throwaway-run checklist (task 03) PENDING MAINTAINER
 
 **Success criteria:**
 
