@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
+current_phase: 191
+current_phase_name: release-version-and-docs-trust-repair
 status: executing
-stopped_at: Phase 191 planned (3 plans, 2 waves — plan-checker PASS)
-last_updated: "2026-07-02T16:45:00.000Z"
-last_activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, plan-checker PASS)
+stopped_at: Completed 191-01 (upgrade-path 0.6.x->0.9.x era + backport policy, ADOPT-02)
+last_updated: "2026-07-02T17:24:40.786Z"
+last_activity: 2026-07-02
+last_activity_desc: Completed Phase 191 Plan 01
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 40
 ---
 
@@ -21,14 +24,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 191 — Release/Version and Docs Trust Repair
+**Current focus:** Phase 191 — release-version-and-docs-trust-repair
 
 ## Current Position
 
-Phase: 191 — Release/Version and Docs Trust Repair
-Plan: 3 plans created (2 waves) — 191-01 (ADOPT-02 upgrade guide), 191-02 (ADOPT-03 verb-lane routing), 191-03 (ADOPT-01 version-truth + drift guard)
-Status: Planned — ready to execute (`/gsd-execute-phase 191`)
-Last activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, plan-checker PASS)
+Phase: 191 (release-version-and-docs-trust-repair) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute (191-01 complete)
+Last activity: 2026-07-02 — Completed Phase 191 Plan 01 (ADOPT-02: upgrade-path 0.6.x->0.9.x era)
 
 ## Performance Metrics
 
@@ -142,6 +145,7 @@ Last activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, 
 | Phase 190 P08 | 9 min | 2 tasks | 8 files |
 | Phase 190 P09 | 9m17s | 2 tasks | 6 files |
 | Phase 190 P10 | 7m23s | 3 tasks | 3 files |
+| Phase 191 P01 | 12min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -184,6 +188,7 @@ Last activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, 
 
 ### Decisions
 
+- [191-01]: The 0.6.x->0.9.x era was surface/DX/proof-lane only (zero host-DB migrations), so the upgrade guide's affirmative "nothing required" is the factually-correct default per bump. The one migration-shaped expectation is storage-schema freeze-at-generation (Phase 190 D-190-14), kept distinct from host `table_schema`. Backport policy (patch on current minor; minor-crossing is deliberate) now stated in both `guides/upgrade-path.md` and `CONTRIBUTING.md`. Structural doc-contract test owns the theme/per-minor axis; version_truth (plan 03) owns the derived current-minor check.
 - [v1.39-01]: v1.39 is a consolidation milestone. Recent work already built the demo, brand, light/system theme, design system, and page-by-page UI polish; the next trust risk is quality evidence, schema confidence, docs/version drift, and CI efficiency.
 - [v1.39-02]: `storage_schema: "threadline"` remains the respectful default, with `public` requiring explicit opt-in. v1.39 must prove or fix custom-schema behavior before leaning on that posture publicly.
 - [v1.39-03]: CI/CD changes must be measured, boring, and reversible. Baseline first; then fix cache/setup/service/release/version-policy gaps without hiding risk.
@@ -384,9 +389,9 @@ Last activity: 2026-07-02 — Phase 191 planned (research + patterns + 3 plans, 
 
 ## Session Continuity
 
-**Last session:** 2026-07-02T15:51:22.354Z
+**Last session:** 2026-07-02T17:24:40.782Z
 **Stopped at:** Phase 191 context gathered
-**Resume file:** .planning/phases/191-release-version-and-docs-trust-repair/191-CONTEXT.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
