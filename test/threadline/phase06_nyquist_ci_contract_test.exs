@@ -122,4 +122,156 @@ defmodule Threadline.Phase06NyquistCIContractTest do
              )
     end
   end
+
+  # --- Phase 192 Plan 04 Task 1 (D-26): additive alignment assertions ---------
+  # These lock the Wave-2 constructs (matrix, caches, concurrency, pins,
+  # doc alignment) with static-parse guards. Green-by-construction: they land
+  # AFTER the Wave-2 workflow/doc edits, so no test is born red (D-27).
+
+  @workflow_files [
+    [".github", "workflows", "ci.yml"],
+    [".github", "workflows", "release.yml"],
+    [".github", "workflows", "flake-detection.yml"],
+    [".github", "workflows", "hex-publish.yml"]
+  ]
+
+  # 10 canonical stable job keys (order-independent set).
+  defp ci_job_keys do
+    read_rel!([".github", "workflows", "ci.yml"])
+    |> String.split("\n")
+    |> Enum.flat_map(fn line ->
+      case Regex.run(~r/^  (verify-[a-z0-9-]+):\s*$/, line) do
+        [_, key] -> [key]
+        _ -> []
+      end
+    end)
+    |> Enum.uniq()
+    |> MapSet.new()
+  end
+
+  # verify-* tokens named in the ci.yml leading `#` comment header (lines 1-2).
+  defp ci_header_comment_keys do
+    read_rel!([".github", "workflows", "ci.yml"])
+    |> String.split("\n")
+    |> Enum.take_while(&String.starts_with?(&1, "#"))
+    |> Enum.join("\n")
+    |> then(&Regex.scan(~r/verify-[a-z0-9-]+/, &1))
+    |> List.flatten()
+    |> MapSet.new()
+  end
+
+  # verify-* tokens in CONTRIBUTING List 1 (the "Job key | Purpose" table).
+  defp contributing_list1_keys do
+    lines = read_rel!(["CONTRIBUTING.md"]) |> String.split("\n")
+
+    start = Enum.find_index(lines, &String.contains?(&1, "| Job key | Purpose |"))
+    assert is_integer(start), "expected a '| Job key | Purpose |' table in CONTRIBUTING.md"
+
+    lines
+    |> Enum.drop(start + 1)
+    |> Enum.take_while(&String.starts_with?(String.trim(&1), "|"))
+    |> Enum.join("\n")
+    |> then(&Regex.scan(~r/verify-[a-z0-9-]+/, &1))
+    |> List.flatten()
+    |> MapSet.new()
+  end
+
+  describe "CI-03/CI-04 (Plan 192-04 Task 1, D-26): job-key parity" do
+    test "ci.yml jobs == header comment == CONTRIBUTING List 1 (all 10 keys)" do
+      jobs = ci_job_keys()
+      header = ci_header_comment_keys()
+      list1 = contributing_list1_keys()
+
+      assert MapSet.size(jobs) == 10,
+             "expected exactly 10 ci.yml job keys, got: #{inspect(Enum.sort(jobs))}"
+
+      assert MapSet.equal?(jobs, header),
+             "ci.yml jobs vs header comment drift: " <>
+               "only-in-jobs=#{inspect(MapSet.difference(jobs, header) |> Enum.sort())} " <>
+               "only-in-header=#{inspect(MapSet.difference(header, jobs) |> Enum.sort())}"
+
+      assert MapSet.equal?(jobs, list1),
+             "ci.yml jobs vs CONTRIBUTING List 1 drift: " <>
+               "only-in-jobs=#{inspect(MapSet.difference(jobs, list1) |> Enum.sort())} " <>
+               "only-in-list1=#{inspect(MapSet.difference(list1, jobs) |> Enum.sort())}"
+    end
+
+    test "verify-compile-no-optional is a standalone job key (not folded into the matrix)" do
+      assert MapSet.member?(ci_job_keys(), "verify-compile-no-optional")
+    end
+  end
+
+  describe "CI-02 (Plan 192-04 Task 1, D-26): no mutable rolling image tags" do
+    test "no workflow file pins a service image to the mutable :latest tag" do
+      for segments <- @workflow_files do
+        content = read_rel!(segments)
+
+        refute String.contains?(content, ":latest"),
+               "#{Path.join(segments)} must not pin any image to the rolling :latest tag"
+      end
+    end
+  end
+
+  describe "CI-04 (Plan 192-04 Task 1, D-26): concurrency contracts" do
+    test "ci.yml has a top-level concurrency block gated on pull_request" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert Regex.match?(
+               ~r/^concurrency:\n\s*group:[^\n]*\n\s*cancel-in-progress:\s*\$\{\{\s*github\.event_name == 'pull_request'\s*\}\}/m,
+               yaml
+             ),
+             "ci.yml must declare a PR-scoped concurrency block whose cancel-in-progress is gated on github.event_name == 'pull_request'"
+    end
+
+    test "release.yml publish-hex concurrency group is present and free of run_id" do
+      yaml = read_rel!([".github", "workflows", "release.yml"])
+
+      assert [_, group] =
+               Regex.run(~r/concurrency:\s*\n\s*group:\s*(release-publish-[^\n]*)\n/, yaml),
+             "release.yml publish-hex must declare a `release-publish-` concurrency group"
+
+      refute String.contains?(group, "run_id"),
+             "publish concurrency group must NOT contain run_id (would defeat serialization): #{inspect(group)}"
+    end
+  end
+
+  describe "CI-03/CI-04 (Plan 192-04 Task 1, D-26): verify-test matrix construction" do
+    test "ci.yml declares static name + lane axis [min, current] (construction A)" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert Regex.match?(~r/^\s*name: Run test suite\s*$/m, yaml),
+             "verify-test must declare the static `name: Run test suite` (GitHub composes the lane suffix)"
+
+      assert Regex.match?(~r/^\s*lane:\s*\[min,\s*current\]\s*$/m, yaml),
+             "verify-test matrix must declare base axis `lane: [min, current]`"
+    end
+
+    test "CONTRIBUTING List 2 carries both composed required-check names" do
+      doc = read_rel!(["CONTRIBUTING.md"])
+
+      assert String.contains?(doc, "Run test suite (min)")
+      assert String.contains?(doc, "Run test suite (current)")
+    end
+  end
+
+  describe "CI-02 (Plan 192-04 Task 1, D-26): dependency cache contract" do
+    test "ci.yml caches deps + e2e lockfile and never caches _build" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert String.contains?(yaml, "actions/cache@v4"),
+             "ci.yml must use actions/cache@v4 for the deps cache"
+
+      assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
+             "ci.yml must cache the `deps` directory"
+
+      assert String.contains?(
+               yaml,
+               "cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json"
+             ),
+             "ci.yml must key the e2e node cache off the example lockfile"
+
+      refute Regex.match?(~r/^\s*path:\s*_build\s*$/m, yaml),
+             "ci.yml must NOT cache _build (compile artifacts are not shared across matrix lanes)"
+    end
+  end
 end
