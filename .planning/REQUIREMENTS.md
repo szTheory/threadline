@@ -38,7 +38,7 @@
 
 ### Closeout
 
-- [ ] **CLOSE-01**: v1.39 closes with requirements traceability, verification evidence, before/after CI data or explicit no-measure rationale, ranked remaining risks, and a clear recommendation for v1.40 or hold.
+- [x] **CLOSE-01**: v1.39 closes with requirements traceability, verification evidence, before/after CI data or explicit no-measure rationale, ranked remaining risks, and a clear recommendation for v1.40 or hold.
 
 ## Future Requirements
 
@@ -91,7 +91,7 @@ Deferred unless the v1.39 audit or real adopter pressure shows they materially r
 | CI-02 | Phase 192 | Complete |
 | CI-03 | Phase 192 | Complete |
 | CI-04 | Phase 192 | Complete |
-| CLOSE-01 | Phase 193 | Pending |
+| CLOSE-01 | Phase 193 | Complete |
 
 **Coverage:**
 

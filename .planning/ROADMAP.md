@@ -25,7 +25,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
 | 191 | 3/3 | Complete    | 2026-07-02 |
 | 192 | 4/4 | Complete    | 2026-07-02 |
-| 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
+| 193 | 3/3 | Complete   | 2026-07-02 |
 
 ### Phase 189: Quality Baseline and Authority-Surface Audit
 
@@ -158,7 +158,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 193-03-PLAN.md — Closeout verification of all four clauses + boundary check (CLOSE-01)
+- [x] 193-03-PLAN.md — Closeout verification of all four clauses + boundary check (CLOSE-01)
 
 ## Prior Milestones
 
