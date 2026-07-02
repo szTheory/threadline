@@ -100,3 +100,17 @@ User selected **all four** gray areas and requested full subagent-backed researc
 - A standalone "start here"/"where to go next" guide → forbidden by ADOPT-03 (refute-tested).
 - Full Diátaxis reorganization of guide content → only ExDoc lane grouping now.
 - Post-1.0 two-segment pin convention → revisit at 1.0.
+
+---
+
+## Validation Round (Update pass, 2026-07-02)
+
+User re-ran `/gsd-discuss-phase 191`, chose **Update it**, and asked to adversarially pressure-test the three most opinionated decisions with subagent research (reaffirm-or-overturn). First confirmed no new drift surface exists (package metadata, README badges, example app, bench are all already SSOT-derived / path-dep — clean). Then three researchers ran:
+
+| Decision under test | Verdict | Change folded in |
+|---|---|---|
+| Pin granularity (D-191-02) | **REAFFIRM** `~> 0.9.0` | + D-191-02a backport policy (patch-backport on current minor; minor-crossing deliberate). Carbonite now `~> 0.16.1`; CHANGELOG audit shows 0 host-breaking 0.6→0.9. |
+| Injection / born-red (D-191-05) | **OVERTURN (source-level)** | release-please `generic.ts` has no sticky `major.minor.0` scope → injecting a pin born-reds every *patch* release. Split: prose claims injected; **pins test-enforced only** with `.0` derivation. Dropped fenced-block isolation (unneeded — co-located deps are two-segment). |
+| Persona routing (D-191-13..17) | **OVERTURN (targeted)** | persona nouns → intent **verbs** (Evaluate/Adopt/Operate/Contribute); **replace** flat index with collapsed `<details>` (not delete); `upgrade-path`→Adopt, `adoption-evidence-playbook`→Operate; Contribute then-hop = `adoption-pilot-backlog`; label (not rewrite) the SaaS-titled Adopt guide; + D-191-18 brand-voice row microcopy. |
+
+Note: the two overturn researchers initially died on an API `ConnectionRefused` and were retried successfully. All three verdicts are reflected in `191-CONTEXT.md`.
