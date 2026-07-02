@@ -2,8 +2,8 @@
 phase: 192
 slug: ci-cd-measurement-and-efficiency-hardening
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-02
 ---
 
@@ -43,7 +43,16 @@ created: 2026-07-02
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 192-XX-XX | XX | X | CI-XX | — | {planner fills} | static-parse | `mix test test/threadline/phase06_nyquist_ci_contract_test.exs` | ✅ | ⬜ pending |
+| 192-01-01 | 01 | 1 | CI-01 | T-192-B01/B02 | Read-only run-history aggregation; no workflow perturbed | shell (gh/jq) | `bash .planning/phases/192-ci-cd-measurement-and-efficiency-hardening/scripts/aggregate-ci-baseline.sh \| grep -Eiq 'verify-test\|Run test suite'` | ⬜ (created by task) | ⬜ pending |
+| 192-01-02 | 01 | 1 | CI-01 | T-192-B02 | Honest-unavailable rows carry reopen triggers | grep artifact | `grep -q 'requirements: \[CI-01\]' .../192-BASELINE.md && grep -Eiq 'reopen trigger' .../192-BASELINE.md` | ⬜ (created by task) | ⬜ pending |
+| 192-02-01 | 02 | 2 | CI-02 | T-192-01/05 | deps/ source-only cache, no _build; nested keys e2e-scoped | grep YAML | `grep -c 'uses: actions/cache@v4' .github/workflows/ci.yml \| grep -qx 9` | ✅ ci.yml | ⬜ pending |
+| 192-02-02 | 02 | 2 | CI-04/CI-03 | T-192-01/02/03/04 | Min lane keeps gates; pin removes :latest; PR concurrency | grep YAML | `grep -q 'lane: \[min, current\]' .github/workflows/ci.yml && grep -q 'edoburu/pgbouncer:v1.25.2-p0' .github/workflows/ci.yml` | ✅ ci.yml | ⬜ pending |
+| 192-03-01 | 03 | 2 | CI-03 | T-192-06 | Publish-only concurrency; bookkeeping independent | grep YAML | `grep -q 'group: release-publish-${{ github.ref }}' .github/workflows/release.yml` | ✅ release.yml | ⬜ pending |
+| 192-03-02 | 03 | 2 | CI-03 | T-192-07 | List 1 8→10; List 2 rename, stays subset | grep doc | `grep -q '\`verify-hex-evaluator\`' CONTRIBUTING.md && grep -q 'Run test suite (min)' CONTRIBUTING.md` | ✅ CONTRIBUTING.md | ⬜ pending |
+| 192-03-03 | 03 | 2 | CI-04 | T-192-08 | Explicit contract; floor NOT raised | grep doc | `grep -Eiq '1\.15.*floor\|Supported versions' README.md && grep -q 'elixir: "~> 1.15"' mix.exs` | ✅ README/mix.exs | ⬜ pending |
+| 192-04-01 | 04 | 3 | CI-02/03/04 | T-192-09 | Durable alignment lock (no :latest, PR/publish concurrency, matrix names, no _build cache) | static-parse ExUnit | `mix test test/threadline/phase06_nyquist_ci_contract_test.exs` | ✅ (extended) | ⬜ pending |
+| 192-04-02 | 04 | 3 | CI-04 | T-192-10 | Dep floor >1.15 fails loudly at the lock | ExUnit (reads deps/) | `mix deps.get && mix test test/threadline/dep_floor_guard_test.exs` | ⬜ (created by task) | ⬜ pending |
+| 192-04-03 | 04 | 3 | CI-03/04 | T-192-04 | Branch-protection reconfig + min-lane resolution | human-gated | manual — maintainer checklist (D-17 throwaway run + D-19 required-checks reconfig) | n/a | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -69,11 +78,11 @@ created: 2026-07-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s (contract test)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (only 192-04-03 is the sanctioned human-gated checkpoint: D-17 throwaway run + D-19 branch-protection reconfig)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (phase06 contract test pre-exists; extended in Plan 04)
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s (static-parse contract test)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (planner) — one intentional human-gated task (192-04-03) per D-17/D-19; all other tasks carry automated verify.

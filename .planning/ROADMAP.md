@@ -112,6 +112,14 @@ Plans:
 
 **Requirements:** CI-01, CI-02, CI-03, CI-04
 
+**Plans:** 4 plans (3 waves)
+
+Plans:
+- [ ] 192-01-PLAN.md — Wave 1: CI-01 read-only baseline (192-BASELINE.md from gh-api run history; observer-effect ordering)
+- [ ] 192-02-PLAN.md — Wave 2: ci.yml deps/Playwright/npm caches + min/current matrix + PR concurrency + pgbouncer pin; flake-detection deps cache
+- [ ] 192-03-PLAN.md — Wave 2: release.yml publish concurrency + CONTRIBUTING two-list repair + README/mix.exs compatibility contract
+- [ ] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard + human-gated branch-protection/throwaway-run checklist
+
 **Success criteria:**
 
 - Current CI critical path, duplicated setup/deps work, browser lane cost, cache state, and flaky/rerun signals are recorded from GitHub/local evidence or explicitly marked unavailable.
