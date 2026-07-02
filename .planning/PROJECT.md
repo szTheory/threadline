@@ -10,7 +10,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is executing **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). Phase 189 is complete: the repo now has an evidence-backed quality baseline and authority-surface audit that ranks the weakest current risks and routes them to phases 190-193, future, external, or none. Phase 190 is next and starts from the audit's top finding: prove or fix configurable PostgreSQL `storage_schema` behavior beyond the default `threadline` schema.
+Threadline is executing **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). Phases 189 and 190 are complete: the repo now has an evidence-backed quality baseline and a verified custom-storage-schema proof beyond the default `threadline` schema. Phase 191 is next and repairs release, version, and docs trust for evaluators and adopters.
 
 Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, and v1.38 page-by-page `/audit` polish. v1.39 is not another UI/product expansion milestone; it is the quality baseline pass that makes the current scope easier to trust, adopt, operate, upgrade, and maintain.
 
@@ -22,7 +22,7 @@ Core capture/query/auth semantics stay out of scope unless a storage-schema or d
 
 **Target features:**
 - **Quality baseline audit** — complete in Phase 189: repo-evidence ranking of weakest software-quality dimensions, practical consequences, confidence, and top fixes, including required residual and seed triage.
-- **Custom storage-schema confidence** — end-to-end proof for `storage_schema: "audit"` or equivalent custom schemas; Ecto prefix behavior, generated migrations, and host-schema assumptions are proven, fixed, or honestly documented.
+- **Custom storage-schema confidence** — complete in Phase 190: end-to-end proof for `storage_schema: "audit"` or equivalent custom schemas; Ecto prefix behavior, generated migrations, and host-schema assumptions are proven, fixed, or honestly documented.
 - **Release/version/docs trust repair** — README, guides, evaluator docs, upgrade path, adoption backlog, and doc contracts agree on the current `0.9.0` package truth or intentionally explain older examples.
 - **CI/CD measurement and low-risk efficiency** — current pipeline baseline, critical-path bottlenecks, deterministic cache/setup improvements, PgBouncer image alignment, release concurrency fix, branch-protection docs alignment, and explicit compatibility policy.
 - **Closeout evidence and next-step decision** — traceability, verification, before/after CI evidence where measurable, and a ranked decision on whether v1.40 should be CI/CD depth, external adopter proof, observability, or hold.
@@ -537,16 +537,13 @@ Core capture/query/auth semantics stay out of scope unless a storage-schema or d
 - [x] **DETAIL-01 and GOV-01 through GOV-03 (Phase 186)** — Transaction, actor, row history, redaction, retention, evidence, and export surfaces now read as coherent task groups with risk-aware actions. Validated in Phase 186 (2026-06-30).
 - [x] **A11Y-01, A11Y-02, MOTION-01, DOC-01, CLOSE-01 (Phase 187)** — Locked accessibility, motion, docs, visual QA, and adversarial closeout evidence with proof limits and residuals classified. Validated in Phase 187 (2026-06-30).
 - [x] **TIME-01, GOV-02, A11Y-02, MOTION-01, CLOSE-01 close-gap validation (Phase 188)** — Closed queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and v1.38 audit/verification evidence. Validated in Phase 188 (2026-06-30).
+- [x] **SCHEMA-01 through SCHEMA-04 (Phase 190)** — Proved custom `storage_schema: "audit"` behavior across capture/query/evidence/governance/operator-relevant paths; removed fixed owned Ecto prefixes; safely validated and quoted generated migration identifiers; and separated Threadline storage schema from non-public host-schema behavior in continuity, coverage, redaction, Timeline, and docs. Validated in Phase 190 (2026-07-02).
 
 ### Active
 
 - [ ] **QUAL-01 — Quality dimension ranking** — Produce a repo-evidence software-quality audit that identifies the weakest dimensions, scores confidence, explains practical consequences, and ranks the highest-leverage fixes.
 - [ ] **QUAL-02 — Prioritized, not generic** — Separate must-fix adoption/operations/maintainer risks from good-enough, low-priority, or N/A dimensions; do not treat every checklist item as equally important.
 - [ ] **QUAL-03 — Residual and seed triage** — Triage open residuals and seeds that affect quality trust, including SEED-005 reconnect/offline banner, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
-- [ ] **SCHEMA-01 — Custom storage-schema E2E proof** — Prove `storage_schema: "audit"` or an equivalent non-default schema through Threadline-owned capture/query/evidence/governance/operator-relevant paths, or fix gaps in the same milestone.
-- [ ] **SCHEMA-02 — Ecto prefix truth** — Prove or correct Ecto schema prefix behavior so configurable storage schemas do not silently read/write the hardcoded `threadline` prefix.
-- [ ] **SCHEMA-03 — Safe generated migration identifiers** — Quote validated storage-schema identifiers consistently in generated migration SQL, or narrow/document/test the supported identifier contract.
-- [ ] **SCHEMA-04 — Host-schema boundary truth** — Implement non-public host-table support for continuity, policy/redaction inspection, and operator coverage when it matches existing schema flags, or document and test-lock any intentional public-only behavior.
 - [ ] **ADOPT-01 — Current version/docs truth** — Align public install snippets, evaluator docs, upgrade guidance, README, adoption backlog, and package metadata with current `0.9.0` truth, or explicitly explain any older pinned line.
 - [ ] **ADOPT-02 — 0.6 to 0.9 upgrade guidance** — Cover adopter-visible changes from the 0.6.x through 0.9.x era, including storage schema default, operator surface/theming, release proof lanes, and migration expectations.
 - [ ] **ADOPT-03 — Reader-first docs routing** — Give evaluators, first-hour adopters, operators, and maintainers a shorter next-step path across README and ExDoc guides without adding a giant new guide.
@@ -681,4 +678,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-07-01 — v1.39 milestone opened for quality baseline, schema confidence, and CI efficiency*
+*Last updated: 2026-07-02 — Phase 190 completed storage-schema confidence and host-schema truth verification*
