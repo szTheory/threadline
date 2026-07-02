@@ -2,13 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
-current_phase: 191
-current_phase_name: Release/Version and Docs Trust Repair
 status: executing
-stopped_at: Completed 190-10-PLAN.md
-last_updated: "2026-07-02T12:35:54.250Z"
-last_activity: 2026-07-02
-last_activity_desc: Phase 190 complete, transitioned to Phase 191
+stopped_at: Phase 191 context gathered
+last_updated: "2026-07-02T15:51:22.361Z"
+last_activity: 2026-07-02 — Phase 190 complete, transitioned to Phase 191
 progress:
   total_phases: 5
   completed_phases: 2
@@ -387,9 +384,9 @@ Last activity: 2026-07-02 — Phase 190 complete, transitioned to Phase 191
 
 ## Session Continuity
 
-**Last session:** 2026-07-01T23:16:37.665Z
-**Stopped at:** Completed 190-10-PLAN.md
-**Resume file:** None
+**Last session:** 2026-07-02T15:51:22.354Z
+**Stopped at:** Phase 191 context gathered
+**Resume file:** .planning/phases/191-release-version-and-docs-trust-repair/191-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
