@@ -2,18 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
-current_phase: 192
-current_phase_name: CI/CD Measurement and Efficiency Hardening — EXECUTING
 status: executing
-stopped_at: Phase 192 Plan 02 complete — CI efficiency/matrix/pin (ci.yml + flake-detection.yml); Wave 2 of 3 done
-last_updated: "2026-07-02T21:18:32.584Z"
+stopped_at: Phase 192 — 192-03 complete (release concurrency + doc/version alignment); next is 192-04
+last_updated: "2026-07-02T21:23:12.057Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 192-02 complete — deps/Playwright/npm caches, verify-test min/current matrix, PR concurrency, pgbouncer pin
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 18
   percent: 60
 ---
 
@@ -29,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 ## Current Position
 
 Phase: 192 — CI/CD Measurement and Efficiency Hardening — EXECUTING
-Plan: 2 of 4 complete (192-01 CI-01 baseline, 192-02 CI efficiency/matrix/pin); next is 192-03 (Wave 3)
-Status: Executing — Wave 2 workflow edits landed (ci.yml + flake-detection.yml); Wave 3 (contract tests + docs) pending
-Last activity: 2026-07-02 — Phase 192-02 complete — deps/Playwright/npm caches, verify-test min/current matrix, PR concurrency, pgbouncer pin
+Plan: 3 of 4 complete (192-01 CI-01 baseline, 192-02 CI efficiency/matrix/pin, 192-03 release concurrency + doc/version alignment); next is 192-04 (Wave 3 closeout contract test)
+Status: Ready to execute
+Last activity: 2026-07-02
 
 ## Performance Metrics
 
@@ -149,6 +146,7 @@ Last activity: 2026-07-02 — Phase 192-02 complete — deps/Playwright/npm cach
 | Phase 191 P02 | ~14min | 3 tasks | 4 files |
 | Phase 191 P03 | 22min | 3 tasks | 15 files |
 | Phase 192 P02 | 15m | 2 tasks | 2 files |
+| Phase 192 P03 | 8min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -191,6 +189,9 @@ Last activity: 2026-07-02 — Phase 192-02 complete — deps/Playwright/npm cach
 
 ### Decisions
 
+- [192-03]: Release publish-race serialization scoped to the `publish-hex` job (`group: release-publish-${{ github.ref }}`, `cancel-in-progress: false`); the workflow-level `run_id`-embedding no-op group was removed so release-please bookkeeping stays independent of long publishes (D-24). `gate-ci-green` + the idempotency skip remain the real race guards; no `run_id` in the publish group; no `:latest`.
+- [192-03]: CONTRIBUTING two lists reconciled without conflating them — List 1 "Stable job keys" table 8→10 (adds `verify-hex-evaluator`, `verify-example-browser`) mirroring the ci.yml header contract (D-25); List 2 branch-protection required checks renamed `Run test suite (verify-test)` → `Run test suite (min)` / `Run test suite (current)` (D-19) while staying a deliberate subset. The GitHub branch-protection reconfig itself is the human step in Plan 04.
+- [192-03]: Version support contract made explicit (Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current, PostgreSQL 14 min / 16 current) in README "Supported versions" + a `mix.exs` comment; `elixir: "~> 1.15"` string unchanged — the floor is honored by the CI min lane, never by raising the requirement (D-13/D-14).
 - [192-02]: Cache `deps/` (source only) never `_build`; caches change speed only so `mix ci.all` still reproduces CI byte-identically and every gate keeps its teeth (D-06/D-10/D-12). Playwright/npm caches keyed to the e2e subtree lockfile, never folded into the root `mix.lock` key (D-09).
 - [192-02]: `verify-test` gains a base-axis `lane: [min, current]` matrix + `include` (elixir/otp/pg/runner), so GitHub posts exactly `Run test suite (min)`/`(current)` (RESEARCH M1 construction A); min lane = 1.15/otp26/pg14/ubuntu-22.04 runs compile-strict + `mix test` only, heavier steps gated `if: matrix.lane == 'current'` (D-15/D-18/D-19). Branch-protection rename is a human-gated step in Plan 04.
 - [192-02]: Pinned `edoburu/pgbouncer:v1.25.2-p0` (no `:latest` in ci.yml) + PR-scoped `concurrency` cancelling only superseded pull_request runs (push-to-main and release-PR dispatch land in distinct groups) (D-22/D-23).
@@ -397,9 +398,9 @@ Last activity: 2026-07-02 — Phase 192-02 complete — deps/Playwright/npm cach
 
 ## Session Continuity
 
-**Last session:** 2026-07-02T21:16:11.794Z
+**Last session:** 2026-07-02T21:23:12.054Z
 **Stopped at:** Phase 192 planned — 4 plans / 3 waves, ready to execute
-**Resume file:** .planning/phases/192-ci-cd-measurement-and-efficiency-hardening/192-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
