@@ -2,7 +2,7 @@
 
 This guide is the canonical support-matrix and lifecycle reference for Threadline's named adoption lanes. `guides/integration-contracts.md` defines the reusable seams, and `guides/operator-surface.md` covers mount, auth, and screens. This guide answers a different set of questions: which lane you are on, what compatibility is actually supported, and how surface-only changes move between Threadline minors.
 
-Threadline **0.6.0** packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
+Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
 ## Who this guide is for
 
@@ -65,6 +65,8 @@ Support claims in this table come from current in-repo proof only:
 
 Threadline does not claim support for Phoenix, LiveView, HTML, PubSub, or Sigra combinations outside these named proofs. The `{:sigra, "~> 0.2", optional: true}` declaration is a host install shape, not a blanket promise covering every Sigra `0.2.x` host. If your lockfile resolves to different versions within the declared ranges, or your host auth/layout differs from the reference path, treat that as your responsibility to verify locally unless and until the Threadline repo updates its own declared ranges, lock resolution references, docs, and CI coverage accordingly.
 
+**Backport policy.** Security and critical fixes are backported as patch releases on the current minor (e.g. `0.9.1`), which any `~> 0.9.0`-style three-segment pin picks up automatically; crossing a minor stays a deliberate, changelog-reading act. This is why a tight three-segment pin never strands an install-once audit adopter on an unpatched line.
+
 ## Upgrade by Threadline minor
 
 When you upgrade by Threadline minor:
@@ -76,11 +78,41 @@ When you upgrade by Threadline minor:
 5. if you are following the `sigra-reference` lane, compare your host against the current example-app proof path before widening anything
 6. run the lane-appropriate verification entrypoints in the upgraded application
 
+`CHANGELOG.md` and this guide have different jobs. `CHANGELOG.md` is chronological and complete — the source of truth for *what shipped* in each release. This guide is curated and incomplete by design — it answers only *"I'm bumping N → M — must I act, and how?"* A no-action change appears in `CHANGELOG.md` in full and here only inside a "nothing required" line; every bump bullet below links its `[x.y.0]` anchor instead of restating the feature list.
+
+### What changed across the 0.6.x → 0.9.x era, by theme
+
+Every adopter-visible change from 0.6.x through 0.9.x fell into one of four themes. None of them required a host migration or a config change for existing adopters — this table names where each theme landed and the action (if any) for you:
+
+| Theme | Where it landed | Adopter action |
+| --- | --- | --- |
+| **storage-schema default** | The `threadline` storage-schema default keeps Threadline-owned tables/functions out of `public`; it applies to **new** installs only. | None for existing installs — you keep the schema you generated. New installs set `storage_schema` before `mix threadline.install` (see the migration callout below). |
+| **operator surface/theming** | `[0.8.0]` operator-surface overhaul (dark "night infrastructure" theme, Home task-launcher, copy-to-clipboard, evidence verdicts) and `[0.9.0]` first-class positioning + accessibility pass. | Nothing required — `capture-only` is unaffected and `phoenix-surface` gets the improved `/audit` surface with no mount-shape change. |
+| **release proof lanes** | `[0.7.0]` through `[0.9.0]` hardened the release/proof pipeline (flake-detection gate, doc-contract locks, release-please publishing). | Nothing required — these are maintainer/CI proofs, not host code. |
+| **migration expectations** | No host-DB migration shipped in the 0.6.x → 0.9.x era; the only migration-shaped expectation is the storage-schema freeze described below. | Nothing required for existing adopters — see the storage-schema callout. |
+
+### At a glance, per minor
+
+| Bump | Breaking? | Migration required | Config touch | Reassurance |
+| --- | --- | --- | --- | --- |
+| 0.6.x → 0.7.x | No | None | None | Nothing required — first-hour DX + reference-lane docs only. |
+| 0.7.x → 0.8.x | No | None | None | Nothing required — operator-surface/theming + CI proof-lane work only. |
+| 0.8.x → 0.9.x | No | None | None | Nothing required — operator-surface positioning + accessibility only. |
+
 Current guidance by minor:
 
 - **0.5.x → 0.6.x**: Evidence plane (`Threadline.Evidence`, `mix threadline.evidence.show`, `/audit/evidence`), recommended audited write path (`Threadline.Audit.transaction/3`); see `CHANGELOG.md` `[0.6.0]` for deprecated manual GUC + `record_action/2` recipe.
+- **0.6.x → 0.7.x**: First-hour DX and reference-lane docs — a Configure Threadline subsection, `:schemas` mount wiring, and the `phx-gen-auth-reference` lane. Breaking changes: **None**. Required migration: **None**. Config changes: **None**. For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.7.0]`.
+- **0.7.x → 0.8.x**: Operator-surface overhaul (dark "night infrastructure" theme, Home task-launcher, copy-to-clipboard, evidence verdicts) plus CI/quality hardening. Breaking changes: **None**. Required migration: **None**. Config changes: **None** (optional `operator_surface_embed_scripts: false` opts out of the embedded copy helper). For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.8.0]`.
+- **0.8.x → 0.9.x**: Operator-surface first-class positioning and an accessibility pass. Breaking changes: **None**. Required migration: **None**. Config changes: **None**. For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.9.0]`.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
+
+### Storage-schema migration expectation
+
+`storage_schema` is frozen at generation time — set it before `mix threadline.install`. Changing it later is deliberate migration work (move or recreate the Threadline-owned tables, functions, and triggers in the new schema and re-run `mix threadline.gen.triggers`), not a runtime config edit. This is the one migration-shaped expectation in the 0.6.x → 0.9.x era, and it only affects you if you deliberately move schemas.
+
+Threadline-owned `storage_schema` is separate from the host `table_schema` (`--schema`) of your audited application tables: host tables can stay in `public`, `support`, or another app schema while Threadline-owned objects live in `threadline` (the default) or a schema you choose. Existing adopters keep whatever schema they generated; only **new** installs pick up the `threadline` default.
 
 ## What breaks when Phoenix/LiveView floors move
 
