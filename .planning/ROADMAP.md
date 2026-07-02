@@ -23,7 +23,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 |------:|------|--------------|--------|
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
-| 191 | 3/3 | Complete   | 2026-07-02 |
+| 191 | 3/3 | Complete    | 2026-07-02 |
 | 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
 
@@ -87,7 +87,7 @@ Plans:
 
 **Requirements:** ADOPT-01, ADOPT-02, ADOPT-03
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
