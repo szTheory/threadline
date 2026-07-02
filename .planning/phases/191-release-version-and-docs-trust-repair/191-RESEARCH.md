@@ -272,14 +272,14 @@ This is a docs/config/test phase — no stored data, live-service config, OS-reg
 | A2 | The suggested per-lane guide split sums to all 20 extras with each in exactly one lane | ExDoc Routing Grounding | Miscount would leave a guide ungrouped in the sidebar. Planner must recount against the mix.exs extras list before finalizing. LOW risk (list is enumerated). |
 | A3 | release-please generic updater behavior (three-segment VERSION_REGEX, no sticky `.0`) is as CONTEXT's source-read describes | Central Test / release-please Wiring | This drives the pins-are-test-enforced split. CONTEXT read `generic.ts` at source; not re-verified this session. If wrong, the injection strategy would differ. Treated as CONTEXT-locked (D-191-05). LOW-MEDIUM. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the `evaluating-threadline.md:9` heading change?**
+1. **Should the `evaluating-threadline.md:9` heading change?** — RESOLVED: executor's discretion, encoded in `191-03` Task 2 ("Optionally reframe the line-9 heading"). Either form is acceptable; line 13 stays verbatim so `evaluating_threadline_doc_contract_test.exs:35` stays green.
    - What we know: Line 11 (SSOT claim) must become `0.9.0`. Line 9 heading `## What Threadline 0.6.0 packages` reads as historical-ish.
    - What's unclear: Whether "0.6.0" in the heading is a "current" claim or a "what 0.6.0 packaged" historical claim.
    - Recommendation: Leave the heading as historical OR reframe to remove the version; either way keep line 13 verbatim so `evaluating_threadline_doc_contract_test.exs:35` stays green. Low stakes; executor's call.
 
-2. **Does the new upgrade test refute `v1.3x` labels?**
+2. **Does the new upgrade test refute `v1.3x` labels?** — RESOLVED: yes; encoded in `191-01` Task 3 ("add refute on the `v1.3x` family") so the product-milestone ban is enforced for the v1.34→v1.39 era this guide narrates.
    - What we know: `semver_adopter` only guards `v1.2x`. The narrated milestone is v1.34→v1.39.
    - Recommendation: Add `refute ~r/v1\.3[0-9]/` (or broaden the shared semver guard) so the product-milestone ban is actually enforced for the era this guide covers.
 
