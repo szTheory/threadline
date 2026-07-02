@@ -29,16 +29,20 @@ decisions:
 metrics:
   duration: ~15m
   completed: 2026-07-02
-status: in-progress
+status: complete (task 03 deferred — ship-gated)
 ---
 
 # Phase 192 Plan 04: Wave-3 Contract Lock & Dep-Floor Guard Summary
 
 Extended the phase06 CI contract test with the D-26 alignment assertions and added
 a D-16 dep-floor guard — both green-by-construction over the Wave-2/Wave-3 edits (D-27).
-Tasks 01 and 02 are complete and committed; Task 03 is a human-gated checkpoint
-(branch-protection reconfig + throwaway min-lane resolution run) and is **NOT** performed
-by the executor.
+Tasks 01 and 02 are complete and committed. Task 03 (branch-protection reconfig D-19 +
+throwaway min-lane resolution run D-17) is a human-gated, inherently-external checkpoint
+and was **deferred at the operator's decision (2026-07-02)** to the moment these CI changes
+ship to the public `origin/main` — see `192-SHIP-CHECKLIST.md`. Deferring (not forcing) is
+correct: pushing local `main` would leak `.planning/` history, and requiring never-posted
+matrix checks would brick future PRs. The two new check names are already locked in-repo by
+the D-26 contract test.
 
 ## Status
 

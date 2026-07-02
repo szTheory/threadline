@@ -24,7 +24,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
 | 191 | 3/3 | Complete    | 2026-07-02 |
-| 192 | 3/4 | In Progress|  |
+| 192 | 4/4 | Complete    | 2026-07-02 |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
 
 ### Phase 189: Quality Baseline and Authority-Surface Audit
@@ -126,7 +126,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard DONE (tasks 01+02 committed); human-gated branch-protection/throwaway-run checklist (task 03) PENDING MAINTAINER
+- [x] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard (tasks 01+02 committed, green); task 03 (branch-protection reconfig D-19 + throwaway min-lane run D-17) DEFERRED — ship-gated, see 192-SHIP-CHECKLIST.md
 
 **Success criteria:**
 
