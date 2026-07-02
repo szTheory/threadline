@@ -184,6 +184,10 @@ In GitHub repository settings, require these checks on `main` (names match the w
 
 Exact labels depend on GitHub’s UI; map them to the job keys above.
 
+## Backport policy (maintainers)
+
+Security and critical fixes are backported as patch releases on the current minor (e.g. `0.9.1`), which any `~> 0.9.0`-style three-segment pin picks up automatically; crossing a minor stays a deliberate, changelog-reading act. This keeps an install-once audit adopter on a tight pin from being stranded on an unpatched line. This mirrors the backport policy stated for adopters in [`guides/upgrade-path.md`](guides/upgrade-path.md).
+
 ## Hex publish (maintainers)
 
 **Canonical path:** [`.github/workflows/release.yml`](.github/workflows/release.yml) — Release Please on `main` (0.6.1+) or **`workflow_dispatch`** bootstrap/recovery (e.g. first **`v0.6.0`** cut).
