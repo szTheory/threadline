@@ -25,7 +25,7 @@
 - **D-09:** Runtime timing (wall-clock), billed minutes, and cache-hit rate are recorded as **explicit no-measure** rows with rationale: the new matrix/cache config has never run on public GitHub because it is ship-gated (D-04). This IS the honest "no-measure reason" CLOSE-01 anticipates — reuse the DNA Nyquist-debt row style (owner / date / superseding-evidence pointer / reopen trigger) already used in `192-BASELINE.md`.
 
 **Risk-register sourcing & ranking**
-- **D-10:** Method = **hybrid, manual-synthesis-dominant.** Run `/gsd-audit-milestone` ONCE (it supplies the cross-phase integration check, E2E re-verification, and traceability refresh CLOSE-01 needs regardless, in the proven `v1.38-MILESTONE-AUDIT.md` format), then **hand-rank** the register on top of it. **Skip `/gsd-audit-uat`** — v1.39 introduced no `*-UAT.md` files; it would only re-surface the already-deferred v1.36 rows.
+- **D-10 (OQ-1 RESOLVED):** Method = **hand-synthesis in the audit format.** 193 does **NOT** run `/gsd-audit-milestone` inline (that would create the `v1.39-MILESTONE-AUDIT.md` artifact D-02/D-03 forbid 193 from producing). Instead it mirrors the proven `v1.38-MILESTONE-AUDIT.md` structure while hand-assembling the cross-phase integration / E2E / traceability evidence from the existing phase VERIFICATION artifacts, then **hand-ranks** the register on top. The formal `/gsd-audit-milestone` run happens **post-193** per D-03. **Skip `/gsd-audit-uat`** — v1.39 introduced no `*-UAT.md` files; it would only re-surface the already-deferred v1.36 rows.
 - **D-11:** Register seed = Phase 189's `189-QUALITY-AUDIT.md` ranked ledger (which already names 193 as its consumer and already carries **Owner + Trigger-to-reopen** per row), refreshed by verifying rows 1–3 as CLOSED (by phases 190/191/192) and folding in new post-189 items.
 - **D-12:** Ranking dimension = the project-native **adoption / operations / maintainer-risk** lens (matches REQUIREMENTS.md Future-Requirements framing and QUAL-02's must-fix-vs-good-enough split), NOT generic severity×likelihood. A one-line severity note per row is allowed as secondary color. Every row keeps **Owner + concrete follow-up/reopen-trigger** — this structurally forbids a "polish later" bucket.
 
@@ -398,9 +398,11 @@ both are already out of scope per D-02 and reinforced in the boundary check.
 **Note:** No `[ASSUMED]`-tagged package or compliance claims exist — this phase installs nothing and
 sets no policy. All substantive claims are `[VERIFIED: repo file]` from this session's reads.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **OQ-1 — D-10↔D-03 wording tension: run `/gsd-audit-milestone` inline or after 193?**
+> All three resolved during plan-phase and locked in CONTEXT.md: OQ-1 → D-10 (hand-synthesize in audit format, do NOT run the skill inline); OQ-2 → split into four clause-mapped files; OQ-3 → skip `/gsd-audit-uat`.
+
+1. **OQ-1 (RESOLVED — see D-10) — D-10↔D-03 wording tension: run `/gsd-audit-milestone` inline or after 193?**
    - What we know: D-03 sequences the audit AFTER 193 and says 193 must NOT produce
      `v1.39-MILESTONE-AUDIT.md`; D-10 describes running it ONCE as the register method.
    - What's unclear: whether "run once" means literally invoke the skill during 193, or mirror its
