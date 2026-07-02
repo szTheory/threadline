@@ -16,6 +16,13 @@ on:
 permissions:
   contents: read
 
+# Cancel only superseded pull_request runs. push-to-main and the release-PR
+# `workflow_dispatch` land in distinct groups (github.ref differs) and are never
+# cancelled, so gate-ci-green (keyed on head_sha) is unaffected (D-23).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   verify-format:
     name: Check formatting
@@ -90,14 +97,35 @@ jobs:
         run: mix verify.compile_no_optional
 
   verify-test:
+    # Base axis `lane` drives the check-name suffix → GitHub posts exactly
+    # "Run test suite (min)" and "Run test suite (current)". Keys carried only
+    # via `include` (elixir/otp/pg/runner) do NOT append to that suffix, so the
+    # static `name:` yields the two documented required checks (D-15/D-19,
+    # RESEARCH M1 construction A). Min lane = elixir 1.15 / otp 26 / pg14 /
+    # ubuntu-22.04 proving the declared floor; current lane = the full payload.
     name: Run test suite
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [min, current]
+        include:
+          - lane: min
+            elixir: "1.15"
+            otp: "26"
+            pg: "14"
+            runner: "ubuntu-22.04"
+          - lane: current
+            elixir: "1.17.3"
+            otp: "27"
+            pg: "16"
+            runner: "ubuntu-24.04"
+    runs-on: ${{ matrix.runner }}
     env:
       DB_HOST: localhost
       MIX_ENV: test
     services:
       postgres:
-        image: postgres:16
+        image: postgres:${{ matrix.pg }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -114,8 +142,8 @@ jobs:
 
       - uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
 
       - name: Cache deps
         uses: actions/cache@v4
@@ -134,18 +162,22 @@ jobs:
         run: mix verify.test
 
       - name: Verify Threadline trigger coverage
+        if: matrix.lane == 'current'
         run: mix verify.threadline
 
       - name: Ensure threadline_phoenix_test database exists
+        if: matrix.lane == 'current'
         env:
           PGPASSWORD: postgres
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
 
       - name: Verify Threadline Phoenix example
+        if: matrix.lane == 'current'
         run: mix verify.example
 
       - name: Doc contract tests
+        if: matrix.lane == 'current'
         run: mix verify.doc_contract
 
   verify-hex-evaluator:
@@ -266,7 +298,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       pgbouncer:
-        image: edoburu/pgbouncer:latest
+        image: edoburu/pgbouncer:v1.25.2-p0
         env:
           DATABASE_URL: postgres://postgres:postgres@postgres:5432/threadline_test
           AUTH_TYPE: scram-sha-256
