@@ -36,9 +36,9 @@ permissions:
   pull-requests: write
   issues: write
 
-concurrency:
-  group: release-${{ github.event_name }}-${{ github.run_id }}
-  cancel-in-progress: false
+# No workflow-level concurrency group: the frequent release-please bookkeeping job
+# must stay independent and never queue behind a long-running publish. Publish-race
+# serialization is scoped to the publish-hex job (see its job-level `concurrency`).
 
 jobs:
   release-please:
@@ -278,6 +278,11 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [release-ref, gate-ci-green]
     if: always() && needs.release-ref.result == 'success' && needs.gate-ci-green.result == 'success'
+    # Serialize concurrent publishes on the same ref (no run_id, or this is a no-op).
+    # gate-ci-green + the idempotency skip below remain the real publish-race guards.
+    concurrency:
+      group: release-publish-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: read
     outputs:
