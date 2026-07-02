@@ -27,7 +27,7 @@
 
 - [ ] **ADOPT-01**: Public install snippets, evaluator docs, upgrade guidance, README, adoption backlog, and package metadata agree on the current `0.9.0` package truth, or any older pinned line is explicitly justified.
 - [x] **ADOPT-02**: Upgrade guidance covers adopter-visible changes from the 0.6.x through 0.9.x era, including storage-schema default, operator surface/theming, release proof lanes, and migration expectations.
-- [ ] **ADOPT-03**: README and ExDoc guide routing give evaluators, first-hour adopters, operators, and maintainers a shorter next-step path without creating a giant new guide.
+- [x] **ADOPT-03**: README and ExDoc guide routing give evaluators, first-hour adopters, operators, and maintainers a shorter next-step path without creating a giant new guide.
 
 ### CI/CD Efficiency and Trust
 
@@ -86,7 +86,7 @@ Deferred unless the v1.39 audit or real adopter pressure shows they materially r
 | SCHEMA-04 | Phase 190 | Complete |
 | ADOPT-01 | Phase 191 | Pending |
 | ADOPT-02 | Phase 191 | Complete |
-| ADOPT-03 | Phase 191 | Pending |
+| ADOPT-03 | Phase 191 | Complete |
 | CI-01 | Phase 192 | Pending |
 | CI-02 | Phase 192 | Pending |
 | CI-03 | Phase 192 | Pending |

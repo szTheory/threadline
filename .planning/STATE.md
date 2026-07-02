@@ -5,15 +5,15 @@ milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 current_phase: 191
 current_phase_name: release-version-and-docs-trust-repair
 status: executing
-stopped_at: Completed 191-01 (upgrade-path 0.6.x->0.9.x era + backport policy, ADOPT-02)
-last_updated: "2026-07-02T17:24:40.786Z"
+stopped_at: Completed 191-02 (intent-verb routing table + <details> all-guides index + persona_routing test, ADOPT-03)
+last_updated: "2026-07-02T20:24:40.786Z"
 last_activity: 2026-07-02
-last_activity_desc: Completed Phase 191 Plan 01
+last_activity_desc: Completed Phase 191 Plan 02
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 40
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 ## Current Position
 
 Phase: 191 (release-version-and-docs-trust-repair) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute (191-01 complete)
-Last activity: 2026-07-02 — Completed Phase 191 Plan 01 (ADOPT-02: upgrade-path 0.6.x->0.9.x era)
+Plan: 3 of 3
+Status: Ready to execute (191-02 complete)
+Last activity: 2026-07-02 — Completed Phase 191 Plan 02 (ADOPT-03: intent-verb routing over existing guides)
 
 ## Performance Metrics
 
@@ -146,6 +146,7 @@ Last activity: 2026-07-02 — Completed Phase 191 Plan 01 (ADOPT-02: upgrade-pat
 | Phase 190 P09 | 9m17s | 2 tasks | 6 files |
 | Phase 190 P10 | 7m23s | 3 tasks | 3 files |
 | Phase 191 P01 | 12min | 3 tasks | 3 files |
+| Phase 191 P02 | ~14min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,7 @@ Last activity: 2026-07-02 — Completed Phase 191 Plan 01 (ADOPT-02: upgrade-pat
 
 ### Decisions
 
+- [191-02]: ADOPT-03 routing uses intent VERBS (Evaluate/Adopt/Operate/Contribute), split by medium (Option C): README `## Start here` owns the routing prose (a three-column "I want to... / Start here / Then read" intent table), ExDoc `groups_for_extras` owns the sidebar structure (four matching verb lanes, explicit per-file regexes, all 20 extras in exactly one lane). The flat `## Documentation` dump is replaced (not deleted) by a collapsed `<details>` all-guides index grouped by the four verbs — no new guide (ADOPT-03/D-191-17 refute holds). New `persona_routing_doc_contract_test` asserts the subset (four keys + each README landing) + refutes start-here/where-to-go-next; `release_artifact_contract_test` owns the exact groups-key equality, updated in lockstep so `verify.release` stays green. P1–P5 operator-UI personas + ia_lock untouched.
 - [191-01]: The 0.6.x->0.9.x era was surface/DX/proof-lane only (zero host-DB migrations), so the upgrade guide's affirmative "nothing required" is the factually-correct default per bump. The one migration-shaped expectation is storage-schema freeze-at-generation (Phase 190 D-190-14), kept distinct from host `table_schema`. Backport policy (patch on current minor; minor-crossing is deliberate) now stated in both `guides/upgrade-path.md` and `CONTRIBUTING.md`. Structural doc-contract test owns the theme/per-minor axis; version_truth (plan 03) owns the derived current-minor check.
 - [v1.39-01]: v1.39 is a consolidation milestone. Recent work already built the demo, brand, light/system theme, design system, and page-by-page UI polish; the next trust risk is quality evidence, schema confidence, docs/version drift, and CI efficiency.
 - [v1.39-02]: `storage_schema: "threadline"` remains the respectful default, with `public` requiring explicit opt-in. v1.39 must prove or fix custom-schema behavior before leaning on that posture publicly.
