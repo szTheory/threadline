@@ -50,7 +50,8 @@
       "record_path_to_done_in_arc": true,
       "assessment_supersedes_prior_thread": true
     },
-    "nyquist_validation": true
+    "nyquist_validation": true,
+    "use_worktrees": false
   },
   "model_profile": "balanced",
   "granularity": "coarse",

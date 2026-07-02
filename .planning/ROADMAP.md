@@ -24,7 +24,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
 | 191 | 3/3 | Complete    | 2026-07-02 |
-| 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | Pending |
+| 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | In progress (1/4 plans) |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
 
 ### Phase 189: Quality Baseline and Authority-Surface Audit
@@ -117,7 +117,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 192-01-PLAN.md — Wave 1: CI-01 read-only baseline (192-BASELINE.md from gh-api run history; observer-effect ordering)
+- [x] 192-01-PLAN.md — Wave 1: CI-01 read-only baseline (192-BASELINE.md from gh-api run history; observer-effect ordering)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

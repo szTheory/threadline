@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
-status: planned
-stopped_at: Phase 192 planned — 4 plans across 3 waves, ready to execute
-last_updated: "2026-07-02T19:25:40.604Z"
-last_activity: 2026-07-02 — Phase 192 planned (4 plans / 3 waves), research + Nyquist validation + plan-check passed
+status: executing
+stopped_at: Phase 192 Plan 01 complete — CI-01 read-only baseline (192-BASELINE.md); Wave 1 of 3 done
+last_updated: "2026-07-02T21:02:41.696Z"
+last_activity: 2026-07-02
+last_activity_desc: Phase 192-01 complete — CI-01 read-only baseline authored (192-BASELINE.md + throwaway aggregator)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 18
+  completed_plans: 15
   percent: 60
 ---
 
@@ -25,10 +26,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 
 ## Current Position
 
-Phase: 192 — CI/CD Measurement and Efficiency Hardening
-Plan: Planned — 4 plans across 3 waves (ready to execute)
-Status: Ready to execute — plan-check PASSED (0 blockers), 27/27 decisions + CI-01..CI-04 covered
-Last activity: 2026-07-02 — Phase 192 planned (4 plans / 3 waves), research + Nyquist validation + plan-check passed
+Phase: 192 — CI/CD Measurement and Efficiency Hardening — EXECUTING
+Plan: 1 of 4 complete (192-01 CI-01 baseline); next is 192-02 (Wave 2)
+Status: Executing — Wave 1 read-only baseline landed; Wave 2 workflow edits pending
+Last activity: 2026-07-02 — Phase 192-01 complete — CI-01 read-only baseline (192-BASELINE.md)
 
 ## Performance Metrics
 

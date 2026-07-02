@@ -31,7 +31,7 @@
 
 ### CI/CD Efficiency and Trust
 
-- [ ] **CI-01**: The current CI/CD pipeline has a recorded baseline for PR/main wall-clock time, critical path, repeated setup/dependency cost, browser lane cost, cache state, and flaky/rerun signals using local or GitHub evidence where available.
+- [x] **CI-01**: The current CI/CD pipeline has a recorded baseline for PR/main wall-clock time, critical path, repeated setup/dependency cost, browser lane cost, cache state, and flaky/rerun signals using local or GitHub evidence where available.
 - [ ] **CI-02**: Low-risk cache/setup improvements reduce repeated dependency/build work without restoring incompatible `_build` artifacts, hiding warnings, or making local reproduction harder.
 - [ ] **CI-03**: PgBouncer image pinning, release concurrency, branch-protection docs, CI job names, and local `mix ci.*` expectations are aligned and testable.
 - [ ] **CI-04**: Min/current Elixir, OTP, and PostgreSQL compatibility policy is explicit, and CI implements only the compatibility lanes that protect the stated support contract without blowing up PR feedback.
@@ -87,7 +87,7 @@ Deferred unless the v1.39 audit or real adopter pressure shows they materially r
 | ADOPT-01 | Phase 191 | Complete |
 | ADOPT-02 | Phase 191 | Complete |
 | ADOPT-03 | Phase 191 | Complete |
-| CI-01 | Phase 192 | Pending |
+| CI-01 | Phase 192 | Complete |
 | CI-02 | Phase 192 | Pending |
 | CI-03 | Phase 192 | Pending |
 | CI-04 | Phase 192 | Pending |
