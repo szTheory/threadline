@@ -87,6 +87,18 @@ Plans:
 
 **Requirements:** ADOPT-01, ADOPT-02, ADOPT-03
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 191-01-PLAN.md — Extend upgrade-path.md for the 0.6.x->0.9.x adopter era + backport policy (ADOPT-02).
+- [ ] 191-02-PLAN.md — Verb-lane routing over README prose + ExDoc structure, no new guide (ADOPT-03).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 191-03-PLAN.md — Reconcile all install/version references to 0.9.0 + central drift-guard test (ADOPT-01).
+
 **Success criteria:**
 
 - README, guides, evaluator docs, adoption backlog, CHANGELOG/package metadata, and install snippets agree on current `0.9.0` truth or explicitly justify older examples.
