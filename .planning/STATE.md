@@ -4,17 +4,17 @@ milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
 current_phase: 191
 current_phase_name: release-version-and-docs-trust-repair
-status: executing
-stopped_at: Completed 191-02 (intent-verb routing table + <details> all-guides index + persona_routing test, ADOPT-03)
-last_updated: "2026-07-02T20:24:40.786Z"
+status: verifying
+stopped_at: Completed 191-03 (ADOPT-01: seven install pins -> ~> 0.9.0 + evaluating-threadline SSOT correction + central version_truth_doc_contract_test); phase ready for verification
+last_updated: "2026-07-02T17:41:36.259Z"
 last_activity: 2026-07-02
-last_activity_desc: Completed Phase 191 Plan 02
+last_activity_desc: Completed Phase 191 Plan 03
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 13
-  percent: 40
+  completed_plans: 14
+  percent: 60
 ---
 
 # Project State: Threadline
@@ -28,10 +28,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 
 ## Current Position
 
-Phase: 191 (release-version-and-docs-trust-repair) — EXECUTING
+Phase: 191 (release-version-and-docs-trust-repair) — READY FOR VERIFICATION
 Plan: 3 of 3
-Status: Ready to execute (191-02 complete)
-Last activity: 2026-07-02 — Completed Phase 191 Plan 02 (ADOPT-03: intent-verb routing over existing guides)
+Status: Phase complete — ready for verification
+Last activity: 2026-07-02 — Completed Phase 191 Plan 03 (ADOPT-01 version/install-truth reconciliation)
 
 ## Performance Metrics
 
@@ -147,6 +147,7 @@ Last activity: 2026-07-02 — Completed Phase 191 Plan 02 (ADOPT-03: intent-verb
 | Phase 190 P10 | 7m23s | 3 tasks | 3 files |
 | Phase 191 P01 | 12min | 3 tasks | 3 files |
 | Phase 191 P02 | ~14min | 3 tasks | 4 files |
+| Phase 191 P03 | 22min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -384,6 +385,7 @@ Last activity: 2026-07-02 — Completed Phase 191 Plan 02 (ADOPT-03: intent-verb
 - [Phase 190-08]: Selected redaction schema is host-schema only — Policy CLI and LiveView validate --schema/?schema with CoverageSchemas and pass it only to redaction catalog inspection; Threadline-owned storage_schema remains governed separately by repo opts.
 - [Phase 190]: Timeline renders table_schema as host schema so operators do not confuse audited host schemas with Threadline storage_schema.
 - [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
+- [191-03]: ADOPT-01 install/version reconciliation — seven install pins flipped to three-segment ~> 0.9.0 (co-committed with four guard tests, no CI/release reddening); evaluating-threadline.md false 0.6.0 SSOT corrected to 0.9.0 + release-please marker/extra-files wiring (historical lines preserved); version_truth_doc_contract_test derives Families A/B/C from mix.exs @version and is registered in verify.doc_contract. Pre-existing v1_23_charter failure left deferred (charter truth out of this plan's task scope).
 
 ### Blockers
 

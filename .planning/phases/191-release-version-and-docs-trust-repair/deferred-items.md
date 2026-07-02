@@ -22,3 +22,19 @@ Out-of-scope discoveries logged during execution. Not fixed (SCOPE BOUNDARY: onl
   the new `persona_routing_doc_contract_test.exs`). `mix verify.doc_contract` now runs
   114 tests with this single pre-existing failure; the new persona-routing test passes
   3/3. Still owned by the ADOPT-01 version-truth / charter work, not ADOPT-03 routing.
+
+## From 191-03 (2026-07-02)
+
+- **Same `v1_23_charter_doc_contract_test.exs` failure remains — out of THIS plan's
+  declared task scope.** 191-03's declared scope (frontmatter `files_modified` +
+  Tasks 1-3) is install-pin / SSOT-prose / upgrade-coverage reconciliation (ROADMAP
+  criteria 1 & 4): the seven `~> 0.9.0` pin flips, the evaluating-threadline.md SSOT
+  correction, and the new `version_truth_doc_contract_test.exs`. It does **not** include
+  `PROJECT.md` or `v1_23_charter_doc_contract_test.exs`, and none of the three tasks
+  touch milestone-charter truth. The `version_truth` guard covers install pins,
+  `x-release-please-version` current-version prose, and current-minor upgrade coverage —
+  a distinct axis from the milestone-charter literal the charter test asserts. Per the
+  SCOPE BOUNDARY rule, left as logged. `mix verify.doc_contract` now runs 117 tests with
+  this single pre-existing failure; the new `version_truth_doc_contract_test.exs` passes
+  3/3. Fix belongs to a plan that owns `PROJECT.md` / charter-test milestone truth
+  (refresh the expected `v1.38` literal to the active milestone, or bind it to a SSOT).
