@@ -276,11 +276,22 @@ defmodule Threadline.MixProject do
         "CONTRIBUTING.md",
         "CHANGELOG.md"
       ],
+      # Routing sidebar lanes (Phase 191, D-191-16). Intent VERBS — the sidebar
+      # lane names equal the README `## Start here` intent columns. Order is
+      # load-bearing: ExDoc groups each extra by FIRST matching regex, so
+      # Overview (README) and Integrations (guides/integrations/**) precede the
+      # verb lanes to keep the two integration guides out of a verb lane. Each
+      # lane uses an explicit per-file regex (not a greedy `^guides/`); every one
+      # of the 20 extras lands in exactly one lane.
       groups_for_extras: [
         Overview: ~r/README/,
         Integrations: ~r{^guides/integrations/},
-        Reference: ~r{^guides/},
-        Project: ~r/(CONTRIBUTING|CHANGELOG)/
+        Evaluate: ~r{^guides/(evaluating-threadline|how-threadline-works|domain-reference)\.md$},
+        Adopt:
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path)\.md$},
+        Operate:
+          ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook)\.md$},
+        Contribute: ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$}
       ],
       groups_for_modules: [
         "Core API": [

@@ -36,12 +36,14 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "CHANGELOG.md" in extras
   end
 
-  test "ExDoc extras keep integrations ahead of the general reference bucket" do
+  test "ExDoc extras keep integrations ahead of the verb routing lanes" do
     assert Keyword.keys(docs_config()[:groups_for_extras]) == [
              :Overview,
              :Integrations,
-             :Reference,
-             :Project
+             :Evaluate,
+             :Adopt,
+             :Operate,
+             :Contribute
            ]
   end
 
