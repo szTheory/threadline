@@ -24,7 +24,7 @@ Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
 | 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
 | 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
 | 191 | 3/3 | Complete    | 2026-07-02 |
-| 192 | CI/CD measurement and efficiency hardening | CI-01, CI-02, CI-03, CI-04 | In progress (1/4 plans) |
+| 192 | 2/4 | In Progress|  |
 | 193 | Quality closeout and next-step decision | CLOSE-01 | Pending |
 
 ### Phase 189: Quality Baseline and Authority-Surface Audit
@@ -121,7 +121,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 192-02-PLAN.md — Wave 2: ci.yml deps/Playwright/npm caches + min/current matrix + PR concurrency + pgbouncer pin; flake-detection deps cache
+- [x] 192-02-PLAN.md — Wave 2: ci.yml deps/Playwright/npm caches + min/current matrix + PR concurrency + pgbouncer pin; flake-detection deps cache
 - [ ] 192-03-PLAN.md — Wave 2: release.yml publish concurrency + CONTRIBUTING two-list repair + README/mix.exs compatibility contract
 
 **Wave 3** *(blocked on Wave 2 completion)*

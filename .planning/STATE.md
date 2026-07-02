@@ -2,16 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.39
 milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
+current_phase: 192
+current_phase_name: CI/CD Measurement and Efficiency Hardening — EXECUTING
 status: executing
-stopped_at: Phase 192 Plan 01 complete — CI-01 read-only baseline (192-BASELINE.md); Wave 1 of 3 done
-last_updated: "2026-07-02T21:02:41.696Z"
+stopped_at: Phase 192 Plan 02 complete — CI efficiency/matrix/pin (ci.yml + flake-detection.yml); Wave 2 of 3 done
+last_updated: "2026-07-02T21:18:32.584Z"
 last_activity: 2026-07-02
-last_activity_desc: Phase 192-01 complete — CI-01 read-only baseline authored (192-BASELINE.md + throwaway aggregator)
+last_activity_desc: Phase 192-02 complete — deps/Playwright/npm caches, verify-test min/current matrix, PR concurrency, pgbouncer pin
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 60
 ---
 
@@ -27,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-02)
 ## Current Position
 
 Phase: 192 — CI/CD Measurement and Efficiency Hardening — EXECUTING
-Plan: 1 of 4 complete (192-01 CI-01 baseline); next is 192-02 (Wave 2)
-Status: Executing — Wave 1 read-only baseline landed; Wave 2 workflow edits pending
-Last activity: 2026-07-02 — Phase 192-01 complete — CI-01 read-only baseline (192-BASELINE.md)
+Plan: 2 of 4 complete (192-01 CI-01 baseline, 192-02 CI efficiency/matrix/pin); next is 192-03 (Wave 3)
+Status: Executing — Wave 2 workflow edits landed (ci.yml + flake-detection.yml); Wave 3 (contract tests + docs) pending
+Last activity: 2026-07-02 — Phase 192-02 complete — deps/Playwright/npm caches, verify-test min/current matrix, PR concurrency, pgbouncer pin
 
 ## Performance Metrics
 
@@ -146,6 +148,7 @@ Last activity: 2026-07-02 — Phase 192-01 complete — CI-01 read-only baseline
 | Phase 191 P01 | 12min | 3 tasks | 3 files |
 | Phase 191 P02 | ~14min | 3 tasks | 4 files |
 | Phase 191 P03 | 22min | 3 tasks | 15 files |
+| Phase 192 P02 | 15m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -188,6 +191,9 @@ Last activity: 2026-07-02 — Phase 192-01 complete — CI-01 read-only baseline
 
 ### Decisions
 
+- [192-02]: Cache `deps/` (source only) never `_build`; caches change speed only so `mix ci.all` still reproduces CI byte-identically and every gate keeps its teeth (D-06/D-10/D-12). Playwright/npm caches keyed to the e2e subtree lockfile, never folded into the root `mix.lock` key (D-09).
+- [192-02]: `verify-test` gains a base-axis `lane: [min, current]` matrix + `include` (elixir/otp/pg/runner), so GitHub posts exactly `Run test suite (min)`/`(current)` (RESEARCH M1 construction A); min lane = 1.15/otp26/pg14/ubuntu-22.04 runs compile-strict + `mix test` only, heavier steps gated `if: matrix.lane == 'current'` (D-15/D-18/D-19). Branch-protection rename is a human-gated step in Plan 04.
+- [192-02]: Pinned `edoburu/pgbouncer:v1.25.2-p0` (no `:latest` in ci.yml) + PR-scoped `concurrency` cancelling only superseded pull_request runs (push-to-main and release-PR dispatch land in distinct groups) (D-22/D-23).
 - [191-02]: ADOPT-03 routing uses intent VERBS (Evaluate/Adopt/Operate/Contribute), split by medium (Option C): README `## Start here` owns the routing prose (a three-column "I want to... / Start here / Then read" intent table), ExDoc `groups_for_extras` owns the sidebar structure (four matching verb lanes, explicit per-file regexes, all 20 extras in exactly one lane). The flat `## Documentation` dump is replaced (not deleted) by a collapsed `<details>` all-guides index grouped by the four verbs — no new guide (ADOPT-03/D-191-17 refute holds). New `persona_routing_doc_contract_test` asserts the subset (four keys + each README landing) + refutes start-here/where-to-go-next; `release_artifact_contract_test` owns the exact groups-key equality, updated in lockstep so `verify.release` stays green. P1–P5 operator-UI personas + ia_lock untouched.
 - [191-01]: The 0.6.x->0.9.x era was surface/DX/proof-lane only (zero host-DB migrations), so the upgrade guide's affirmative "nothing required" is the factually-correct default per bump. The one migration-shaped expectation is storage-schema freeze-at-generation (Phase 190 D-190-14), kept distinct from host `table_schema`. Backport policy (patch on current minor; minor-crossing is deliberate) now stated in both `guides/upgrade-path.md` and `CONTRIBUTING.md`. Structural doc-contract test owns the theme/per-minor axis; version_truth (plan 03) owns the derived current-minor check.
 - [v1.39-01]: v1.39 is a consolidation milestone. Recent work already built the demo, brand, light/system theme, design system, and page-by-page UI polish; the next trust risk is quality evidence, schema confidence, docs/version drift, and CI efficiency.
@@ -391,7 +397,7 @@ Last activity: 2026-07-02 — Phase 192-01 complete — CI-01 read-only baseline
 
 ## Session Continuity
 
-**Last session:** 2026-07-02T19:25:40.598Z
+**Last session:** 2026-07-02T21:16:11.794Z
 **Stopped at:** Phase 192 planned — 4 plans / 3 waves, ready to execute
 **Resume file:** .planning/phases/192-ci-cd-measurement-and-efficiency-hardening/192-01-PLAN.md
 
