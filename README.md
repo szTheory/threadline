@@ -10,6 +10,8 @@
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
 **CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions).
 
+**Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **14 min / 16 current**. The floor is a promise, not a suggestion: the CI `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 14 so the floor stays honored and is never raised out from under adopters.
+
 Auditing for Phoenix.
 
 Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.Audit.transaction/3`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.incident_bundle/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.

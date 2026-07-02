@@ -25,6 +25,10 @@ defmodule Threadline.MixProject do
     [
       app: :threadline,
       version: @version,
+      # Support contract: Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current,
+      # PostgreSQL 14 min / 16 current. The floor is honored by the CI `min` lane (full
+      # suite on 1.15/OTP26/PG14) — NOT by raising this requirement. Do not bump "~> 1.15"
+      # to a newer minor: that would strand 1.15 adopters (D-14).
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
