@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-status: awaiting_verification
-stopped_at: Phase 194 executed — awaiting CI/UAT verification (human_needed)
+status: phase_verified
+stopped_at: Phase 194 verified & complete — both UAT items shifted left to CI (0 human); next: plan Phase 195
 last_updated: "2026-07-03T00:00:00.000Z"
-last_activity: 2026-07-03 -- Phase 194 executed (3/3 plans); verification human_needed (MECH-04 CI-pending)
+last_activity: 2026-07-03 -- Phase 194 verified passed (10/10); Tier A capture executed + mechanical gates automated into CI (verify-capture + verify-mechanical)
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
   completed_plans: 3
-  percent: 0
+  percent: 25
 ---
 
 # Project State: Threadline
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 194 — deterministic-scorecard-cube-ledger-mechanical-capture-found
+**Current focus:** Phase 195 — Validated Adversarial Critic Runner & Panel (next — not started; Phase 194 complete)
 
 ## Current Position
 
-Phase: 194 (deterministic-scorecard-cube-ledger-mechanical-capture-found) — AWAITING VERIFICATION
+Phase: 194 (deterministic-scorecard-cube-ledger-mechanical-capture-found) — VERIFIED & COMPLETE
 Plan: 3 of 3 executed
-Status: Phase 194 executed (3/3 plans) — verification human_needed; MECH-04 capture E2E is CI-pending. Run `/gsd-verify-work 194` after CI capture.
-Last activity: 2026-07-03 -- Phase 194 executed; VERIFICATION.md = human_needed (9/10 verified, 1 CI-pending)
+Status: Phase 194 verified passed (10/10). Both former CI-pending UAT items shifted left into recurring CI gates (verify-capture + verify-mechanical) — 0 human verification. Next: `/gsd-plan-phase 195`.
+Last activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
 
-Progress: [██████████] 100% plans executed (phase pending CI/UAT verification)
+Progress: [██████████] Phase 194 complete & verified (1/4 phases)
 
 ## Performance Metrics
 
