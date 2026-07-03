@@ -179,6 +179,80 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      ["timezone_boundary"]}
   ]
 
+  # Phase 195 Plan 03 (CRITIC-02): D-03 refute-twin catalog.
+  # Each entry: {id, fixture_key, scenario, twin_atom, pole_atom, summary}.
+  # 6 gestalt twins (each = polished + injected flaw that PASSES all mechanical gates).
+  # 1 veto-ordering twin (off-token raw-hex trips --tl-* token-parity veto at panel layer;
+  # the flawed pole is NOT added to the capture band, so no committed scorecard is generated
+  # for it and verify.mechanical stays green).
+  # Partition rule (D-03): every gestalt flaw PASSES MODE A (no hard-block) and MODE B
+  # (within ratchet floor). If a flaw trips mechanics, it is a mechanical test, never a critic one.
+  @refute_twin_stories [
+    # 1. Rhythm: doubled padding (token-step to token-step: --tl-space-4 → --tl-space-8, on-grid)
+    {"refute.rhythm.doubled-padding.polished", "refute.rhythm.doubled_padding.polished",
+     "Rhythm – correct section spacing", :rhythm, :polished,
+     "Correct section spacing: single token-step --tl-space-4 (16 px) between content sections."},
+    {"refute.rhythm.doubled-padding.flawed", "refute.rhythm.doubled_padding.flawed",
+     "Rhythm – doubled section padding [gestalt flaw]", :rhythm, :flawed,
+     "Gestalt flaw: --tl-space-8 (32 px) between sections (token-step, on-grid, passes mechanics; cadence broken)."},
+
+    # 2. Density: card wrapping a section (nesting depth 2, below the depth-3 ceiling)
+    {"refute.density.card-section-wrap.polished", "refute.density.card_section_wrap.polished",
+     "Density – section as section", :density_card, :polished,
+     "Correct: grouped content uses a plain section element, not a card (brand card-rule: cards for repeated items)."},
+    {"refute.density.card-section-wrap.flawed", "refute.density.card_section_wrap.flawed",
+     "Density – card wrapping a section [gestalt flaw]", :density_card, :flawed,
+     "Gestalt flaw: content section wrapped in .tl-card (nesting depth 2, below ceiling 3; violates brand card-rule)."},
+
+    # 3. Hierarchy: flattened (equal weights/sizes; type-size count still above floor)
+    {"refute.hierarchy.flattened.polished", "refute.hierarchy.flattened.polished",
+     "Hierarchy – clear visual weight progression", :hierarchy, :polished,
+     "Correct: title/label/body have distinct weights and sizes; one dominant entry-point per scan."},
+    {"refute.hierarchy.flattened.flawed", "refute.hierarchy.flattened.flawed",
+     "Hierarchy – flattened visual weights [gestalt flaw]", :hierarchy, :flawed,
+     "Gestalt flaw: title/label/body share font-weight:500, near-equal sizes (type-size count above floor; no scan-path anchor)."},
+
+    # 4. Typography: scale collapse (two roles 1 px apart; count remains above floor)
+    {"refute.typography.scale-collapse.polished", "refute.typography.scale_collapse.polished",
+     "Typography – distinct type scale", :typography, :polished,
+     "Correct: heading/body/label/meta use distinct, widely-spaced steps from the --tl-font-size-* scale."},
+    {"refute.typography.scale-collapse.flawed", "refute.typography.scale_collapse.flawed",
+     "Typography – collapsed type scale [gestalt flaw]", :typography, :flawed,
+     "Gestalt flaw: two primary roles differ by 1 px (--tl-font-size-sm 13 px vs --tl-font-size-label 14 px); count above floor."},
+
+    # 5. Brand fidelity: mis-jobbed accent (real --tl-* token, wrong semantic job)
+    {"refute.brand-fidelity.mis-jobbed-accent.polished",
+     "refute.brand_fidelity.mis_jobbed_accent.polished",
+     "Brand fidelity – correct accent jobs", :brand_fidelity, :polished,
+     "Correct: Thread Blue (--tl-color-thread-blue) for actions; Ember (--tl-color-ember) for diff-emphasis only."},
+    {"refute.brand-fidelity.mis-jobbed-accent.flawed",
+     "refute.brand_fidelity.mis_jobbed_accent.flawed",
+     "Brand fidelity – Ember as default action [gestalt flaw]", :brand_fidelity, :flawed,
+     "Gestalt flaw: --tl-color-ember applied to the primary action button (real --tl-* token, wrong job; no token-parity veto fires)."},
+
+    # 6. Density: chrome bloat (redundant help copy; resists verbosity bias)
+    {"refute.density.chrome-bloat.polished", "refute.density.chrome_bloat.polished",
+     "Density – task-primary chrome", :density_chrome, :polished,
+     "Correct: form labels only; no redundant explanatory copy beside each field."},
+    {"refute.density.chrome-bloat.flawed", "refute.density.chrome_bloat.flawed",
+     "Density – chrome bloat: redundant help copy [gestalt flaw]", :density_chrome, :flawed,
+     "Gestalt flaw: each field carries verbose help text re-stating what the label already names (chrome costs task nothing)."},
+
+    # 7. Veto-ordering: off-token raw-hex accent (trips --tl-* token-parity veto at panel layer).
+    # The FLAWED pole is NOT added to the capture band (no committed scorecard) so
+    # verify.mechanical is never asked to judge it and stays green.
+    # The POLISHED pole is captured normally.
+    {"refute.veto-ordering.off-token-accent.polished",
+     "refute.veto_ordering.off_token_accent.polished",
+     "Veto-ordering – on-token diff-emphasis (polished)", :veto_ordering, :polished,
+     "Correct: var(--tl-color-ember) for diff-emphasis (on-token; veto passes; aesthetic scoring proceeds)."},
+    {"refute.veto-ordering.off-token-accent.flawed",
+     "refute.veto_ordering.off_token_accent.flawed",
+     "Veto-ordering – raw hex #e8a246 accent [trips --tl-* token-parity veto]", :veto_ordering,
+     :flawed,
+     "Veto flaw: raw hex #e8a246 (Ember-alike) instead of var(--tl-color-ember); trips token-parity veto, no aesthetic score emitted (panel layer, Plan 06 only)."}
+  ]
+
   @reserved_copy "This baseline records the current issue; do not fix it in Phase 171."
 
   @doc """
@@ -251,6 +325,19 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      }}
   end
 
+  def assigns_for(%{category: "refute"} = story) do
+    {:ok,
+     %{
+       title: story.scenario,
+       body: Map.get(story.data, :summary, "Refute twin fixture for #{story.id}."),
+       twin: Map.get(story.data, :twin),
+       pole: Map.get(story.data, :pole),
+       fallback_label: "Refute fixture",
+       fallback_value: story.fixture_key,
+       base_path: "/audit"
+     }}
+  end
+
   def assigns_for(%{status: "reserved"} = story) do
     phase = story.metadata.reserved_for_phase
 
@@ -288,7 +375,8 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       state_story_maps(),
       data_display_story_maps(),
       permission_denied_story(),
-      folded_todo_stories()
+      folded_todo_stories(),
+      refute_twin_story_maps()
     ]
     |> List.flatten()
     |> Enum.sort_by(& &1.id)
@@ -597,6 +685,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
 
   defp category_for("form_control"), do: "form_control"
   defp category_for("future_reserved"), do: "future_reserved"
+  defp category_for("refute"), do: "refute"
   defp category_for(kind), do: kind
 
   defp synthetic_values(cases) do
@@ -737,6 +826,37 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       cases: cases,
       summary: "Synthetic per-page path fixture for #{id} (PAGE-01 Tier A structural cell)."
     }
+  end
+
+  # Phase 195 Plan 03: builds the 14 refute-twin stories (7 twins × 2 poles) from
+  # @refute_twin_stories. Category "refute", status "current", owner_phase 195.
+  # Polished poles = the well-designed reference; flawed poles = the injected flaw.
+  defp refute_twin_story_maps do
+    Enum.map(
+      @refute_twin_stories,
+      fn {id, fixture_key, scenario, twin, pole, summary} ->
+        story(%{
+          id: id,
+          kind: "refute",
+          category: "refute",
+          scenario: scenario,
+          fixture_key: fixture_key,
+          cases: ["one"],
+          status: "current",
+          owner_phase: 195,
+          data: %{
+            twin: twin,
+            pole: pole,
+            summary: summary
+          },
+          metadata: %{
+            twin: twin,
+            pole: pole,
+            owner_phase: 195
+          }
+        })
+      end
+    )
   end
 
   defp synthetic_change(index, operation) do

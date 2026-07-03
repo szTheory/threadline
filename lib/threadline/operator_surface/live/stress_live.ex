@@ -208,6 +208,126 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= preview_copy(@selected_story, @selected_assigns) %>
                 </div>
 
+                <div :if={show_refute_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-6" data-testid="refute-matrix">
+                  <h3 class="tl-text-label tl-color-muted">Phase 195 Refute Twin — design principle under test</h3>
+
+                  <%!-- Twin 1: Rhythm — section spacing --%>
+                  <div :if={refute_twin(@selected_story) == :rhythm} class="tl-space-y-0">
+                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Audit activity</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">24 changes captured in the last 30 days for this schema.</p>
+                    </section>
+                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Evidence status</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">Proof records current as of 2026-07-01.</p>
+                    </section>
+                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Retention</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">Retention window: 90 days. Next prune: 2026-09-30.</p>
+                    </section>
+                  </div>
+
+                  <%!-- Twin 2: Density (card-section-wrap) — card doctrine --%>
+                  <div :if={refute_twin(@selected_story) == :density_card}>
+                    <div style={refute_card_wrap_style(@selected_story)}>
+                      <h2 style="font-size: var(--tl-font-size-title); font-weight: 700; margin-bottom: var(--tl-space-3);">Coverage summary</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);">3 of 12 tables have trigger coverage. 9 tables are uncovered.</p>
+                      <ul style="font-size: var(--tl-font-size-body); color: var(--tl-color-muted); padding-left: var(--tl-space-4);">
+                        <li>audit_transactions — covered</li>
+                        <li>audit_changes — covered</li>
+                        <li>users — uncovered</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <%!-- Twin 3: Hierarchy — visual weight progression --%>
+                  <div :if={refute_twin(@selected_story) == :hierarchy} class="tl-space-y-3">
+                    <div style={"padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);"}>
+                      <p style={refute_hierarchy_meta_style(@selected_story)}>Operator / Timeline</p>
+                      <h1 style={refute_hierarchy_title_style(@selected_story)}>Audit timeline</h1>
+                      <h2 style={refute_hierarchy_subtitle_style(@selected_story)}>Last 30 days</h2>
+                      <p style={refute_hierarchy_body_style(@selected_story)}>View, filter, and export change records for audited tables in this schema.</p>
+                    </div>
+                  </div>
+
+                  <%!-- Twin 4: Typography — type scale variety --%>
+                  <div :if={refute_twin(@selected_story) == :typography} class="tl-space-y-3">
+                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
+                      <p style={refute_typography_display_style(@selected_story)}>Display heading</p>
+                      <p style={refute_typography_title_style(@selected_story)}>Section title</p>
+                      <p style={refute_typography_heading_style(@selected_story)}>Subsection heading</p>
+                      <p style={refute_typography_body_style(@selected_story)}>Body text for operator scan. Changes captured last 30 days.</p>
+                      <p style={refute_typography_label_style(@selected_story)}>Label / metadata</p>
+                      <p style={refute_typography_meta_style(@selected_story)}>Meta / timestamp</p>
+                    </div>
+                  </div>
+
+                  <%!-- Twin 5: Brand fidelity — accent job discipline --%>
+                  <div :if={refute_twin(@selected_story) == :brand_fidelity} class="tl-space-y-3">
+                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-3);">Export audit records</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-4);">Download a CSV of audit changes for the last 90 days.</p>
+                      <div style="display: flex; gap: var(--tl-space-3); align-items: center;">
+                        <button style={refute_action_button_style(@selected_story)} type="button">Export CSV</button>
+                        <button style="background: transparent; color: var(--tl-color-muted); border: 1px solid var(--tl-color-border); padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); cursor: pointer;" type="button">Cancel</button>
+                        <span style="font-size: var(--tl-font-size-sm); color: var(--tl-color-ember); padding: var(--tl-space-1) var(--tl-space-2); border-radius: var(--tl-radius-xs); background: rgba(232,162,70,0.12);">3 changes since last export</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%!-- Twin 6: Density (chrome-bloat) — signal-to-chrome ratio --%>
+                  <div :if={refute_twin(@selected_story) == :density_chrome} class="tl-space-y-3">
+                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-4);">Retention settings</h2>
+                      <div class="tl-space-y-4">
+                        <div>
+                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Retention window</label>
+                          <input type="text" value="90" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body);" />
+                          <%= if refute_pole(@selected_story) == :flawed do %>
+                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-top: var(--tl-space-1);">Enter the number of days to retain audit records. Records older than this value will be permanently deleted when the next prune runs. The minimum is 7 days and the maximum is 3650 days (10 years).</p>
+                          <% end %>
+                        </div>
+                        <div>
+                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Prune schedule</label>
+                          <input type="text" value="weekly" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body);" />
+                          <%= if refute_pole(@selected_story) == :flawed do %>
+                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-top: var(--tl-space-1);">Choose how often to run automatic pruning. Daily runs every night at 2 AM UTC. Weekly runs every Sunday at 2 AM UTC. Monthly runs on the first of each month at 2 AM UTC.</p>
+                          <% end %>
+                        </div>
+                        <div>
+                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Notify on prune</label>
+                          <input type="checkbox" style="margin-right: var(--tl-space-2);" />
+                          <%= if refute_pole(@selected_story) == :flawed do %>
+                            <span style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted);">When enabled, an email notification is sent to all operator-role users after each prune operation completes, listing the number of records deleted and the tables affected.</span>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%!-- Twin 7: Veto-ordering — off-token raw-hex accent --%>
+                  <div :if={refute_twin(@selected_story) == :veto_ordering} class="tl-space-y-3">
+                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-3);">Row diff</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-3);">Changed field values for this audit event.</p>
+                      <div style="display: flex; gap: var(--tl-space-3); flex-direction: column;">
+                        <div style="display: flex; gap: var(--tl-space-3);">
+                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); width: 120px;">email</span>
+                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">before@example.invalid</span>
+                          <span style="font-size: var(--tl-font-size-body);">→</span>
+                          <span style={refute_veto_accent_style(@selected_story)}>after@example.invalid</span>
+                        </div>
+                        <div style="display: flex; gap: var(--tl-space-3);">
+                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); width: 120px;">role</span>
+                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">member</span>
+                          <span style="font-size: var(--tl-font-size-body);">→</span>
+                          <span style={refute_veto_accent_style(@selected_story)}>admin</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div :if={show_ui_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
                   <h3>Phase 173 Primitives Matrix</h3>
                   
@@ -655,5 +775,171 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          do: true
 
     defp show_ui_matrix?(_story), do: false
+
+    # Phase 195 Plan 03: refute-twin render helpers.
+    # Each twin pair (polished + flawed) renders via show_refute_matrix? + a per-twin block.
+
+    defp show_refute_matrix?(%{category: "refute"}), do: true
+    defp show_refute_matrix?(_story), do: false
+
+    defp refute_twin(%{data: data}) when is_map(data), do: Map.get(data, :twin)
+    defp refute_twin(_), do: nil
+
+    defp refute_pole(%{data: data}) when is_map(data), do: Map.get(data, :pole)
+    defp refute_pole(_), do: nil
+
+    # Twin 1: Rhythm — section padding: polished uses --tl-space-4 (16 px), flaw uses --tl-space-8 (32 px).
+    # Both are on-grid token values; the cadence break is the gestalt flaw (passes MODE A + B).
+    defp refute_rhythm_style(story) do
+      padding =
+        case refute_pole(story) do
+          :flawed -> "var(--tl-space-8)"
+          _ -> "var(--tl-space-4)"
+        end
+
+      "padding: #{padding}; border-bottom: 1px solid var(--tl-color-border);"
+    end
+
+    # Twin 2: Density (card-section-wrap) — polished is a plain div, flaw wraps in .tl-card styles.
+    # Nesting depth stays ≤ 2 (content in card); passes the depth-3 ceiling.
+    defp refute_card_wrap_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "padding: var(--tl-space-4); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md); background: var(--tl-color-bg);"
+
+        _ ->
+          "padding: var(--tl-space-4);"
+      end
+    end
+
+    # Twin 3: Hierarchy — polished has clear weight/size progression; flaw shares font-weight:500.
+    # Type-size count stays above the floor in both poles (three distinct sizes used).
+    defp refute_hierarchy_meta_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-label); font-weight: 500; color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+
+        _ ->
+          "font-size: var(--tl-font-size-xs); font-weight: 400; color: var(--tl-color-muted); margin-bottom: var(--tl-space-1); text-transform: uppercase; letter-spacing: 0.04em;"
+      end
+    end
+
+    defp refute_hierarchy_title_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-title); font-weight: 500; color: var(--tl-color-text); margin-bottom: var(--tl-space-1);"
+
+        _ ->
+          "font-size: var(--tl-font-size-title); font-weight: 700; color: var(--tl-color-text); margin-bottom: var(--tl-space-1);"
+      end
+    end
+
+    defp refute_hierarchy_subtitle_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+
+        _ ->
+          "font-size: var(--tl-font-size-body); font-weight: 500; color: var(--tl-color-muted); margin-bottom: var(--tl-space-2);"
+      end
+    end
+
+    defp refute_hierarchy_body_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text);"
+
+        _ ->
+          "font-size: var(--tl-font-size-body); font-weight: 400; color: var(--tl-color-text);"
+      end
+    end
+
+    # Twin 4: Typography — polished uses 4 distinct scale steps; flaw uses two roles 1 px apart.
+    # Both poles keep type-size count above the minimum floor (≥ 3 distinct sizes total).
+    defp refute_typography_display_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+
+        _ ->
+          "font-size: var(--tl-font-size-display); font-weight: 700; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+      end
+    end
+
+    defp refute_typography_title_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+
+        _ ->
+          "font-size: var(--tl-font-size-title); font-weight: 600; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+      end
+    end
+
+    defp refute_typography_heading_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+
+        _ ->
+          "font-size: var(--tl-font-size-heading); font-weight: 600; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+      end
+    end
+
+    defp refute_typography_body_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+
+        _ ->
+          "font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+      end
+    end
+
+    defp refute_typography_label_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+
+        _ ->
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+      end
+    end
+
+    defp refute_typography_meta_style(story) do
+      case refute_pole(story) do
+        :flawed ->
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted);"
+
+        _ ->
+          "font-size: var(--tl-font-size-xs); color: var(--tl-color-muted);"
+      end
+    end
+
+    # Twin 5: Brand fidelity — polished uses Thread Blue for actions; flaw uses Ember (--tl-color-ember)
+    # for the action button. Ember IS a real --tl-* token (no token-parity veto fires here).
+    defp refute_action_button_style(story) do
+      accent =
+        case refute_pole(story) do
+          :flawed -> "var(--tl-color-ember)"
+          _ -> "var(--tl-color-thread-blue)"
+        end
+
+      "background: #{accent}; color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"
+    end
+
+    # Twin 7: Veto-ordering — polished uses var(--tl-color-ember); flaw uses raw hex #e8a246.
+    # The raw hex trips the --tl-* token-parity veto at the panel layer (Plan 06); NOT a
+    # MODE-A hard-block in the current mechanical checker (WCAG contrast still passes).
+    defp refute_veto_accent_style(story) do
+      color =
+        case refute_pole(story) do
+          # off-token raw hex (Ember-alike; not a CSS variable reference)
+          :flawed -> "#e8a246"
+          _ -> "var(--tl-color-ember)"
+        end
+
+      "font-size: var(--tl-font-size-body); color: #{color}; font-weight: 600;"
+    end
   end
 end

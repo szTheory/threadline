@@ -59,6 +59,27 @@ const BAND_2_STORIES = ["transaction", "coverage", "retention"].flatMap(
     ["empty", "error", "permission"].map((state) => `page.${subject}.${state}`),
 );
 
+// Band R (refute): gestalt-twin polished + flawed poles for the 6 gestalt lenses
+// (Plan 195-03 / CRITIC-02 D-03 partition rule). Band 1 depth (no aria.yml capture).
+// The veto-ordering twin's FLAWED pole is intentionally excluded: the off-token raw-hex
+// accent is exercised at the panel layer in Plan 06, not via a committed MODE-A scorecard.
+// The veto-ordering POLISHED pole is included so its on-token reference scorecard exists.
+const REFUTE_STORIES = [
+  "refute.rhythm.doubled-padding.polished",
+  "refute.rhythm.doubled-padding.flawed",
+  "refute.density.card-section-wrap.polished",
+  "refute.density.card-section-wrap.flawed",
+  "refute.hierarchy.flattened.polished",
+  "refute.hierarchy.flattened.flawed",
+  "refute.typography.scale-collapse.polished",
+  "refute.typography.scale-collapse.flawed",
+  "refute.brand-fidelity.mis-jobbed-accent.polished",
+  "refute.brand-fidelity.mis-jobbed-accent.flawed",
+  "refute.density.chrome-bloat.polished",
+  "refute.density.chrome-bloat.flawed",
+  "refute.veto-ordering.off-token-accent.polished",
+];
+
 function themeForProject(projectName: string): "dark" | "light" {
   return projectName.endsWith("-light") ? "light" : "dark";
 }
@@ -383,6 +404,15 @@ test.describe("operator Tier A deterministic capture", () => {
     for (const ledgerId of BAND_2_STORIES) {
       for (const bp of BREAKPOINTS) {
         await captureCell(page, ledgerId, theme, bp, true);
+      }
+    }
+
+    // Band R: refute-twin gestalt poles (Plan 195-03, CRITIC-02).
+    // Shallow Band 1 depth (no aria.yml). Committed scorecards prove the partition rule:
+    // verify.mechanical passes for all gestalt twins even with the injected design flaw.
+    for (const ledgerId of REFUTE_STORIES) {
+      for (const bp of BREAKPOINTS) {
+        await captureCell(page, ledgerId, theme, bp, false);
       }
     }
   });
