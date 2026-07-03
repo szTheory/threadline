@@ -383,19 +383,32 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   # --- MODE-B: ratchet-floor metrics + far ceilings ---
 
-  defp check_mode_b(scorecard, floors) do
-    cell_id = scorecard["cell_id"]
-    ledger_id = scorecard["ledger_id"]
-    theme_bp = "#{scorecard["theme"]}_#{scorecard["breakpoint"]}"
+  @doc """
+  Returns the measured MODE-B metric values for a decoded scorecard as a map
+  keyed by the `@mode_b_metrics` names.
+
+  This is the single source of truth for MODE-B measurement: `check_mode_b/2`
+  ratchets these values against the recorded floors, and the betterer-floor
+  seeder writes these same values into the ledger's `mechanical_floors` block,
+  so committed floors can never drift from what the checker computes.
+  """
+  def measure_mode_b(scorecard) do
     mode_b = scorecard["mode_b"] || %{}
 
-    measured = %{
+    %{
       "type_size_count" => num(mode_b["type_size_count"]),
       "interactive_control_count" => num(mode_b["interactive_control_count"]),
       "card_nesting_depth" => num(mode_b["card_nesting_depth"]),
       "scroll_cost" => num(mode_b["scroll_cost"]),
       "distinct_accent_hue_count" => distinct_accent_hue_count(scorecard["applied_colors"] || [])
     }
+  end
+
+  defp check_mode_b(scorecard, floors) do
+    cell_id = scorecard["cell_id"]
+    ledger_id = scorecard["ledger_id"]
+    theme_bp = "#{scorecard["theme"]}_#{scorecard["breakpoint"]}"
+    measured = measure_mode_b(scorecard)
 
     Enum.flat_map(@mode_b_metrics, fn metric ->
       current = Map.fetch!(measured, metric)

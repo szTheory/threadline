@@ -330,6 +330,25 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     )
   end
 
+  # ---------------------------------------------------------------------------
+  # Recurring integration gate: run/1 over the REAL committed Tier A evidence.
+  # The blocks above prove the checker's teeth on synthetic fixtures; this block
+  # asserts the committed .planning/scorecards/*.json are actually clean, so a
+  # real MODE-A/B regression (or stale mechanical_floors) blocks CI. On a fresh
+  # clone with no committed capture the dir is empty and run/1 is vacuously
+  # {:ok, []} — still a valid pass.
+  # ---------------------------------------------------------------------------
+
+  test "run/1 is clean over the committed Tier A scorecards (real-evidence gate)" do
+    committed = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
+
+    assert {:ok, []} == MechanicalChecker.run(),
+           "MechanicalChecker.run/1 must be clean over the #{length(committed)} committed " <>
+             "Tier A scorecards (0 = fresh clone, vacuously clean). Regenerate with " <>
+             "`mix verify.capture` or fix the offending token/style source — never loosen " <>
+             "the checker's LOCKED constants."
+  end
+
   defp write_fixtures(scorecards) do
     dir = Path.join(System.tmp_dir!(), "mech_fixtures_#{System.unique_integer([:positive])}")
     File.mkdir_p!(dir)

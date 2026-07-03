@@ -132,7 +132,10 @@ async function resolvedTokens(page: Page): Promise<Record<string, string>> {
 // Elixir (Plan 03). We only observe resolved computed styles and structural counts.
 async function rawInputs(page: Page, cardSelector: string) {
   return page.evaluate((cardSel) => {
-    const main = document.querySelector("#tl-main");
+    // Scope evidence to the product surface under test (the rendered story),
+    // NOT the /audit/__stress harness chrome (sidebar category-nav, filters,
+    // metric labels) which shares the #tl-main region but never ships in prod.
+    const main = document.querySelector('[data-testid="stress-preview"]');
     if (!main) {
       return {
         color_pairs: [],
@@ -345,8 +348,9 @@ async function captureCell(
   writeJson(scorecardPath(id), scorecard);
 
   if (deepBand) {
-    // Scope to #tl-main to exclude dynamic header/timestamp content (Pitfall 6).
-    const ariaYaml = await page.locator("#tl-main").ariaSnapshot();
+    // Scope to the product preview surface (excludes the app-shell header/timestamp
+    // AND the /audit/__stress harness sidebar chrome). (Pitfall 6.)
+    const ariaYaml = await page.locator('[data-testid="stress-preview"]').ariaSnapshot();
     writeFileSync(
       ariaSnapshotPath(id),
       ariaYaml.endsWith("\n") ? ariaYaml : `${ariaYaml}\n`,
