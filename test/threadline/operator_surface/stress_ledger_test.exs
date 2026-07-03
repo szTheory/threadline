@@ -59,8 +59,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Groups",
       "Pages",
       "Known Footguns",
-      "Future Reserved Cases"
+      "Future Reserved Cases",
+      "Scorecard Cube"
     ]
+
+    @scorecard_personas ~w(P1 P2 P3 P4 P5)
 
     @forbidden_terms [
       "---",
@@ -223,6 +226,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "Scorecard Cube projection is fresh for every page-entry × persona row" do
+      markdown = design_system()
+
+      for entry <- entries(), entry["kind"] == "page", persona <- @scorecard_personas do
+        row = scorecard_row(entry, persona)
+
+        assert String.contains?(markdown, row),
+               "#{@design_system_path} Scorecard Cube is stale for #{entry["id"]} × #{persona}; missing row #{inspect(row)}"
+      end
+    end
+
     test "ledger and markdown avoid frontmatter and banned external/service copy" do
       ledger_source = File.read!(@ledger_path)
       markdown = design_system()
@@ -349,6 +363,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp inventory_row(entry) do
       "| `#{entry["id"]}` | #{entry["status"]} | #{entry["current_score"]} | #{entry["target_score"]} |"
+    end
+
+    defp scorecard_row(entry, persona) do
+      scores = entry["scores"] || %{}
+
+      cell = fn key ->
+        case scores[key] do
+          %{"current" => current} when not is_nil(current) -> to_string(current)
+          _ -> "—"
+        end
+      end
+
+      "| `#{entry["id"]}` | #{persona} | #{cell.("#{persona}.hierarchy")} | #{cell.("#{persona}.density")} | #{cell.("all.rhythm")} | #{cell.("all.typography")} | #{cell.("all.color_contrast")} | #{cell.("all.brand_fidelity")} | #{entry["current_score"]} |"
     end
 
     defp valid_cell_keys(cube_axes) do
