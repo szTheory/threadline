@@ -38,7 +38,15 @@ created: 2026-07-03
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| _(planner fills per task)_ | — | — | LEDGER-01..05 / MECH-01..05 | — | dev/test-only, `/audit/__stress` raises in `:prod` | unit / e2e | `mix test …` / `mix verify.mechanical` / `mix verify.capture` | ✅ extend / ❌ W0 | ⬜ pending |
+| 01-T1 migrate ledger v2 + guard attrs | 194-01 | 1 | LEDGER-01 | T-194-01 | trusted repo artifact | unit | `mix test test/threadline/operator_surface/stress_ledger_test.exs` | ✅ extend | ⬜ pending |
+| 01-T2 five cube guard blocks | 194-01 | 1 | LEDGER-01/02/03 | T-194-01/02 | trusted repo artifact | unit | `mix test test/threadline/operator_surface/stress_ledger_test.exs` | ✅ extend | ⬜ pending |
+| 01-T3 DESIGN-SYSTEM cube projection | 194-01 | 1 | LEDGER-04/05 | T-194-03 | no LLM/network | unit + integration | `mix test …/stress_ledger_test.exs` + `mix ci.all` | ✅ extend | ⬜ pending |
+| 02-T1 viewport/project/gitignore | 194-02 | 2 | MECH-04 | T-194-06 | `/audit/__stress` fail-closed | config | `mix test …/stress_ledger_test.exs` | ❌ W0 | ⬜ pending |
+| 02-T2 capture spec + 120 scorecards | 194-02 | 2 | MECH-04 | T-194-04/05 | dev/test-only capture | e2e | `mix verify.capture` | ❌ W0 | ⬜ pending |
+| 02-T3 verify.capture + matrix doc | 194-02 | 2 | MECH-05 | — | local-only, not in ci.all | contract | `mix verify.capture` + `mix test …/stress_ledger_test.exs` | ❌ W0 | ⬜ pending |
+| 03-T1 MechanicalChecker module | 194-03 | 3 | MECH-01/02 | T-194-09 | pure Elixir, no browser | unit | `mix verify.mechanical` | ❌ W0 | ⬜ pending |
+| 03-T2 checker meta-test + unit | 194-03 | 3 | MECH-01/02/03 | T-194-07 | LOCKED-constant pin | unit | `mix verify.mechanical` | ❌ W0 | ⬜ pending |
+| 03-T3 ci.all wiring + floor seed | 194-03 | 3 | MECH-03 | T-194-08 | no LLM in gate | integration | `mix ci.all` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
