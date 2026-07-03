@@ -1,163 +1,63 @@
-# Research Summary: Threadline v1.21 - Scoped Support / Operator Proof (Option 2)
+# Project Research Summary — v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness
 
-**Domain:** Phoenix-hosted support/operator adoption lane
-**Researched:** 2026-05-24
-**Overall confidence:** HIGH
+**Synthesized:** 2026-07-02
+**Inputs:** STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md (4 parallel researchers)
+**Confidence:** HIGH on the internal substrate and the local-vs-CI boundary; MEDIUM on exact numeric thresholds (ensemble N, noise band, restraint budgets) — deliberately deferred to phase-level spikes.
 
-## Executive Summary
+---
 
-Option 2 is the right v1.21 shape if the milestone is framed as **proof plus limited productization**, not as "Threadline now ships a full support console." The repo already contains the essential primitives: a secure mount boundary, shared `%{assigns: assigns}` authorization, an opaque host-owned `scope`, a `scope_query_fn` seam, support-vs-admin example wiring, export denial parity, and focused scope tests for timeline, actor, transaction, and export flows. The highest-leverage work is to turn that from "callback pattern plus prose" into a first-party lane with clearer recipes, tighter proof, and fewer adopter footguns.
+## The one-sentence finding
 
-The core thesis is simple: **productize the mount contract, not the auth model**. Threadline should make the support-safe `/audit` lane easy to mount, reason about, and verify, while keeping tenancy, RBAC, org membership, impersonation, and page-policy semantics host-owned. In Phoenix terms, that means leaning further into the idiomatic split Phoenix itself recommends: authenticate in plugs, authorize again in LiveView `on_mount`, keep HTTP export auth separate, and push domain-specific visibility into Ecto query composition rather than UI-only branching.
-
-The main reason to choose Option 2 now is adoption leverage. This repo's remaining Phoenix SaaS question is no longer "can `/audit` exist?" but "can support staff use `/audit` safely enough that adopters will trust the pattern?" First-party mount recipes, clearer denial/fallback UX, a polished example app, and one or two narrow API affordances can answer that without opening a second product surface.
-
-The main reason **not** to overextend Option 2 is that the repo is still one step away from an honest "fully productized support lane" claim. The biggest current gap is row-history/as-of support: `RowHistoryComponent` calls `Threadline.history/3` and `Threadline.as_of/4` directly, without the support scope seam. That means v1.21 should either scope that path, disable it for support, or explicitly exclude it from the support-lane promise. Anything broader than that starts drifting into a Threadline-owned tenancy/RBAC DSL, which would be a strategic mistake.
+**This is ~80% integration, not a greenfield build:** Threadline already ships the monotonic ratchet (`.planning/design-system-ledger.json` + `stress_ledger_test.exs`, in `mix ci.all`), the deterministic critique target (`/audit/__stress`), dark/light Playwright screenshot lanes with committed baselines, accessibility-tree evidence, the source-first `style.ex` token system, brand token-parity tests, the locked personas (`v1.31-PERSONAS-IA.md`), and even the anti-flattery doctrine (`brandbook/pressure-test.md`: "self-assessment is banned; every score cites a mechanical output"). v1.40's genuinely new work is (1) a **page × persona × lens scorecard cube**, (2) one **critic runner** (`e2e/critic/`, Claude vision, dev-only dependency), and (3) a **net-positive-across-lenses gate** on top of the existing ratchet.
 
 ## Key Findings
 
-**Thesis:** Choose Option 2 only as a narrow adopter-proof milestone: make the support lane runnable, documented, and testable, but keep all authorization semantics and tenant meaning host-owned.
+1. **Reuse the ratchet; do not rebuild it.** `design-system-ledger.json` already enforces upward-only scores (unless an explicit reset+rationale), locked IDs, and minimum-score floors via pure-Elixir `stress_ledger_test.exs` in CI. Extend it with `lens_scores` / `persona` / `evidence_ref`.
 
-**Stack:** Keep the existing optional Phoenix/LiveView stack and current Plug/Ecto patterns. No new required runtime dependencies are justified for this milestone.
+2. **The decisive design call: MECHANICAL vs LLM-VISION-JUDGED split.** Deterministic code computes token-grid conformance, WCAG contrast, control-count, card-nesting depth, scroll-cost, accent-count, type-size count (the ratchet floor). The vision model judges *only* gestalt it is actually good at — visual hierarchy, spacing rhythm, elegance-vs-accidental, restraint, information scent, brand feel. This neutralizes the #1 footgun (VLMs mis-measure pixels/spacing) **and** verbosity bias (which would otherwise push an operator UI toward *more* chrome).
 
-**Architecture:** Standardize one support-safe composition pattern around `pipe_through` + `authorize_fn` + `scope_query_fn`, with HTTP export auth kept separate and row visibility enforced in queries, not UI-only checks.
+3. **Validate the critic before it drives anything (the linchpin).** A golden set (~30–50 hand-labeled Threadline states), 75–90% human agreement, and refute-tests: it must score the seeded footgun fixtures (already `25/35`) *low* and polished primitives *high*, prefer the known-better of a curated A/B pair, and catch an injected regression. The stress harness fixtures are ready-made known-good/known-bad anchors. An un-validated critic just optimizes toward a broken oracle — this phase gates everything downstream.
 
-**Critical pitfall:** Do not claim a general support lane until row-history/as-of is either scoped or disabled for scoped operators.
+4. **Local-vs-CI boundary is the invariant-defining line.** LLM calls stay local/on-demand (`mix verify.ui_critique`, excluded from `ci.all` — the `verify.flake` precedent). CI runs only deterministic guards: ledger monotonicity, pixel allowlist, a11y coverage, `style_contract_test`. "CI verifies the ledger; the LLM feeds the ledger." The nondeterministic critic can never regress the deterministic floor.
 
-## Requested Evaluation
+5. **Determinism without a temperature knob** (Opus 4.8 removed `temperature`/`top_p`/prefill): JSON-schema structured output + a frozen, prompt-cached, versioned rubric + few-shot anchors + N-sample self-consistency (median + variance-flag) + band-quantized score bumps. The critic is advisory; humans ratify every bump.
 
-### 1. Thesis
+6. **Forward-only failure modes are real and Threadline-specific.** Whack-a-mole via shared tokens/primitives (v1.38 "page polish" = 262 commits from shared-surface blast radius) → full-panel re-eval + blast-radius gating. Goodharting → a first-class held-out "true-north" set + multi-critic panel + human spot-audit. Silent ratchet loosening → append-only diffable ledger, guard-the-guards, pixel-diff kept advisory (never a quality-bar change).
 
-Choose Option 2 if v1.21 is explicitly about **adoption proof and support-lane ergonomics**, not deeper operator product scope. "Limited productization" should mean:
+7. **Anti-slop + brand veto.** Anchor to named reference systems, not adjectives; a brand critic vetoes any change that drifts `--tl-*` tokens or reads as "recolored not designed" (the Grafana lesson), gated on the existing token-parity test.
 
-1. Ship canonical first-party mount recipes for admin-only, shared `/audit`, and optional separate support tree.
-2. Tighten denial/fallback behavior so allowed, denied, and out-of-scope states are predictable across LiveView and HTTP.
-3. Polish docs and the example app until adopters can copy one honest path.
-4. Add only narrow surface controls that keep the support claim honest, such as `exports: false`-style switches for any unscoped workflow.
+8. **Biggest value risk (SCOPE-1):** an elaborate eval machine that never improves the real UI. Every phase is gated on "≥N fixtures advanced toward target on the real surface," not "harness built."
 
-It should **not** mean Threadline learns roles, org hierarchies, impersonation semantics, policy DSLs, or page-by-page authorization rules.
+## Locked decisions (this milestone)
 
-### 2. Pros
+- **Scope:** Build + validate the harness, then prove the loop by driving real improvement on the 2–3 lowest-scoring pages. No full 11-page sweep (avoids the churn the milestone exists to escape).
+- **Automation:** Auto-apply deterministic mechanical fixes **and** a *narrow, spike-proven* low-risk-structural whitelist — behind the full-panel net-positive gate, with a first-class held-out true-north set and human sign-off on score-bar bumps.
+- **Reference bar:** **Linear = primary model** (dark-native, single-accent, restraint, lead-answer-first hierarchy, calm-but-dense — spans all five personas' JTBD and matches Threadline's brand values). Secondary surface-specific anchors: **Vercel** (dark grid discipline — shell/Home), **Stripe dashboard** (dense tables + export/artifact polish — Prove cluster/P3), **Grafana-done-right** (cautionary "dense data-viz that stays legible" — Timeline/Coverage/diff only).
 
-- High leverage on the biggest remaining Phoenix adoption gap.
-- Builds on already-shipped seams instead of inventing a second architecture.
-- Fits Phoenix/Plug/LiveView best practices: plug auth first, mount auth second, query scoping in Ecto.
-- Improves adopter trust more than another generic feature family would.
-- Keeps the package-boundary story clean: better lane proof, no new package, no new hard deps.
+## Implications for the Roadmap
 
-### 3. Cons / Risks
+Dependency-ordered, ~6 phases (continues numbering from v1.39 → starts Phase 194):
 
-- Easy to overclaim and accidentally imply Threadline owns support authorization.
-- Row-history/as-of is not yet honestly support-safe on the current seam.
-- Same-tree admin/support mounts can confuse adopters unless denial rules are very explicit.
-- Docs and example app can drift into Sigra-specific or one-host-specific storytelling if not kept narrowly framed.
+- **A — Ledger → scorecard-cube foundation** (Elixir, deterministic, lands in `ci.all`). Depends on nothing; unblocks everything that writes scores.
+- **B — Deterministic evidence extractors + tiered capture matrix** (Node/Playwright; token-grid/contrast/control-count/nesting/scroll metrics + evidence bundles: screenshot + DOM + a11y tree + tokens + meta). No LLM yet.
+- **C — Critic validation & golden set + versioned anchored rubrics** (the linchpin; must precede the automated ratchet).
+- **D — Critic runner + adversarial panel** (`e2e/critic/`, Claude vision, structured output, self-consistency; per-persona + graphic-design + brand-veto; `mix verify.ui_critique`, local-only).
+- **E — Evidence/scorecard artifacts + net-positive gate wiring + ONE proven real iteration** on the weakest page (improve target, show no regressions, human-ratified bump).
+- **F — Coverage growth on the 2–3 weakest pages + v1.37-style 8-lens adversarial closeout + residual design-debt register** (owner + reopen-trigger per item).
 
-### 4. Architectural Implications
+## Invariants preserved
 
-- Treat `scope_query_fn` as the only row-visibility seam. Do not fork authorization logic per page.
-- Keep `authorize_fn` about allow/deny plus opaque scope handoff; keep `scope_query_fn` about query narrowing.
-- Preserve the Phoenix split between LiveView auth and sibling HTTP export auth.
-- Add support-lane proof only for surfaces that actually participate in scoped query enforcement.
+No root (`mix.exs`) runtime dependency (Anthropic SDK is an `examples/threadline_phoenix/e2e` devDependency only); no public component API; dev/test-only fail-closed harness (the `/audit/__stress` pattern); LLM out of `ci.all`; capture/query/auth semantics untouched; PhoenixStorybook stays example/dev-only; no external SaaS visual-diff tool names in committed ledger copy (the ledger's `@forbidden_terms` guard).
 
-### 5. DX / UX Implications
+## Open questions (phase-level, not blockers)
 
-- Adopters need a copy-pasteable recipe, not a concept lecture.
-- Support operators need predictable UX:
-  pipeline denial = host-owned redirect/403,
-  mount denial = fail closed,
-  out-of-scope resource = hidden/not found,
-  export denial = hidden button plus HTTP `403`.
-- Example app should show both the happy admin path and the constrained support path with realistic fixtures.
-
-### 6. Recommended Phase Shape If Chosen
-
-1. **Lane Contract and Scope Inventory**
-   - Freeze the exact support-lane claim.
-   - Inventory which screens are truly scope-aware today.
-   - Decide whether row-history is scoped in this milestone or disabled for support.
-
-2. **First-Party Mount Recipes**
-   - Canonicalize shared-tree and separate-support-tree recipes.
-   - Keep one shared `%{assigns: assigns}` authorizer story.
-   - Document when to use `export_authorize_fn` versus `exports: false`.
-
-3. **Denial / Fallback UX Closure**
-   - Align LiveView denial, export denial, hidden affordances, and out-of-scope states.
-   - Add only narrow API affordances needed for least surprise.
-
-4. **Example App and Docs Proof**
-   - Make the example app the runnable support-lane proof, not just a mention.
-   - Add fixture-backed support scenarios and route-level verification.
-
-5. **Final Proof and Lifecycle Docs**
-   - Upgrade-path, operator-surface, SaaS quickstart, and example README all teach the same lane.
-   - Verification should name what is supported and what remains intentionally host-owned.
-
-## Implications for Roadmap
-
-Based on research, suggested phase structure:
-
-1. **Claim Narrowing and Surface Audit** - lock the support-lane promise before adding code.
-   - Addresses: lane definition, support-safe screen inventory, row-history gap.
-   - Avoids: overclaiming broad support-safe access.
-
-2. **Mount Recipes and Minimal API Controls** - make the host composition path copy-pasteable.
-   - Addresses: first-party mount recipes, any `exports: false`-style support switches.
-   - Avoids: accidental drift into policy DSL territory.
-
-3. **Denial Semantics and UX Proof** - make failure behavior unsurprising.
-   - Addresses: LiveView deny path, export `403`, hidden affordances, out-of-scope not-found behavior.
-   - Avoids: leaking identifiers or confusing operators.
-
-4. **Example-App Proof and Docs Closure** - make the lane runnable and staging-honest.
-   - Addresses: example fixtures, tests, guide alignment, adoption proof.
-   - Avoids: docs that outrun repo evidence.
-
-**Phase ordering rationale:**
-- The lane claim must be narrowed before UX polish, or the team will polish the wrong surface.
-- Mount recipes and small API controls come before doc polish because the docs should describe the final copy-paste path.
-- Example proof comes after semantics are locked so the repo only proves one coherent story.
-
-**Research flags for phases:**
-- Phase 1: needs explicit review of which screens are safe to claim for support.
-- Phase 2: likely needs one narrow public-option decision; keep it additive.
-- Phase 3: standard Phoenix/Plug patterns, low research risk.
-- Phase 4: low technical risk, but high wording-drift risk.
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | This milestone should reuse the current stack and idioms rather than change infrastructure. |
-| Features | HIGH | The repo already points to this exact adopter gap and already contains most of the seam. |
-| Architecture | HIGH | Phoenix LiveView security guidance and the current repo converge on the same split of concerns. |
-| Pitfalls | HIGH | The row-history scope gap and RBAC-overreach risk are concrete, repo-visible issues. |
-
-## Gaps to Address
-
-- Decide whether support-lane row history is in or out for v1.21.
-- Decide whether one narrow public option is needed for unavailable workflows on support mounts.
-- Confirm whether LiveView mount denial should stay rooted at `/` or become mount-configurable for better host ergonomics.
+- Exact ensemble N and ratchet noise-band width — measure empirically against the golden anchor set (Phase C/D spike), not desk research.
+- The precise "low-risk structural" auto-apply whitelist — a spike against real `style.ex`/`ui.ex` usage before anything auto-applies (Phase E).
+- Full-page vs section-cropped screenshots for the graphic-design critic (image-token/signal tradeoff) — settle on the Phase E seed page.
+- Confirm the exact Claude vision model id / image input format / pricing against the `claude-api` skill at Phase D implementation time (do not hardcode from memory).
 
 ## Sources
 
-- Local repo:
-  - `guides/operator-surface.md`
-  - `guides/integration-contracts.md`
-  - `guides/upgrade-path.md`
-  - `examples/threadline_phoenix/README.md`
-  - `examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex`
-  - `lib/threadline/operator_surface/auth.ex`
-  - `lib/threadline/operator_surface/export_auth_plug.ex`
-  - `lib/threadline/operator_surface/router.ex`
-  - `lib/threadline/operator_surface/live/row_history_component.ex`
-  - `lib/threadline/operator_surface/scope.ex`
-  - `test/threadline/operator_surface/auth_test.exs`
-  - `test/threadline/operator_surface/export_auth_plug_test.exs`
-  - `examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs`
-- Official docs:
-  - Phoenix LiveView security model: https://hexdocs.pm/phoenix_live_view/security-model.html
-  - Phoenix LiveView router: https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.Router.html
-  - Phoenix routing: https://hexdocs.pm/phoenix/routing.html
-  - Plug.Conn: https://hexdocs.pm/plug/Plug.Conn.html
-  - Ecto.Query: https://hexdocs.pm/ecto/Ecto.Query.html
+Internal (HIGH): `.planning/design-system-ledger.json`, `test/threadline/operator_surface/stress_ledger_test.exs`, `DESIGN-SYSTEM.md`, `lib/threadline/operator_surface/{style.ex,ui.ex,stress_fixtures.ex,stress_router.ex,live/stress_live.ex}`, `.planning/milestones/v1.31-PERSONAS-IA.md`, `brandbook/{pressure-test.md,brand-book.md,tokens.json}`, `examples/threadline_phoenix/e2e/`, `CLAUDE.md`.
+
+External (MEDIUM–HIGH): see per-report Sources in STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md — LLM-as-visual-judge reliability (UICrit UIST 2024; WebVR; eugeneyan; Appen), bias/Goodhart/homogenization literature (2024–2026), Claude API surface (bundled `claude-api` reference), and design-craft references (Linear/Vercel/Stripe/Grafana).
