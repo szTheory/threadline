@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "model_pin": "claude-opus-4-8",
+  "rubric_rev": null,
+  "held_out_ids": [],
+  "items": []
+}

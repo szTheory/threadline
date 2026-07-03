@@ -8,6 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @design_system_path "DESIGN-SYSTEM.md"
 
     @top_level_keys ~w(
+      critic_trust
       cube_axes
       entries
       mechanical_floors

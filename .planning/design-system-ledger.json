@@ -12871,5 +12871,67 @@
       }
     ]
   },
-  "version": 2
+  "version": 2,
+  "critic_trust": {
+    "hierarchy": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    },
+    "density": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    },
+    "rhythm": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    },
+    "typography": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    },
+    "color_contrast": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    },
+    "brand_fidelity": {
+      "alpha": null,
+      "raw_agreement": null,
+      "pairwise_acc": null,
+      "n": 0,
+      "ci95": null,
+      "golden_rubric_version": null,
+      "model_id": "claude-opus-4-8",
+      "validated": false
+    }
+  }
 }
