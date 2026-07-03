@@ -209,30 +209,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <div :if={show_refute_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-6" data-testid="refute-matrix">
-                  <h3 class="tl-text-label tl-color-muted">Phase 195 Refute Twin — design principle under test</h3>
+                  <p style="font-size: var(--tl-font-size-label); font-weight: 600; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;">Phase 195 Refute Twin — design principle under test</p>
 
                   <%!-- Twin 1: Rhythm — section spacing --%>
                   <div :if={refute_twin(@selected_story) == :rhythm} class="tl-space-y-0">
                     <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Audit activity</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">24 changes captured in the last 30 days for this schema.</p>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Audit activity</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">24 changes captured in the last 30 days for this schema.</p>
                     </section>
                     <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Evidence status</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">Proof records current as of 2026-07-01.</p>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Evidence status</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">Proof records current as of 2026-07-01.</p>
                     </section>
                     <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-2);">Retention</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">Retention window: 90 days. Next prune: 2026-09-30.</p>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Retention</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">Retention window: 90 days. Next prune: 2026-09-30.</p>
                     </section>
                   </div>
 
                   <%!-- Twin 2: Density (card-section-wrap) — card doctrine --%>
                   <div :if={refute_twin(@selected_story) == :density_card}>
                     <div style={refute_card_wrap_style(@selected_story)}>
-                      <h2 style="font-size: var(--tl-font-size-title); font-weight: 700; margin-bottom: var(--tl-space-3);">Coverage summary</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);">3 of 12 tables have trigger coverage. 9 tables are uncovered.</p>
-                      <ul style="font-size: var(--tl-font-size-body); color: var(--tl-color-muted); padding-left: var(--tl-space-4);">
+                      <h2 style="font-size: var(--tl-font-size-title); font-weight: 700; margin: 0 0 var(--tl-space-3) 0;">Coverage summary</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;">3 of 12 tables have trigger coverage. 9 tables are uncovered.</p>
+                      <ul style="font-size: var(--tl-font-size-body); color: var(--tl-color-muted); padding-left: var(--tl-space-4); margin: 0;">
                         <li>audit_transactions — covered</li>
                         <li>audit_changes — covered</li>
                         <li>users — uncovered</li>
@@ -262,15 +262,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                   </div>
 
-                  <%!-- Twin 5: Brand fidelity — accent job discipline --%>
+                  <%!-- Twin 5: Brand fidelity — accent job discipline.
+                       Polished: standard card (no structural accent stripe — thread-blue is
+                       the default action color and needs no extra signaling).
+                       Flawed: ember left-border accent on the action card — ember belongs to
+                       diff-emphasis, not primary-action structure (wrong semantic job). --%>
                   <div :if={refute_twin(@selected_story) == :brand_fidelity} class="tl-space-y-3">
-                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-3);">Export audit records</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-4);">Download a CSV of audit changes for the last 90 days.</p>
-                      <div style="display: flex; gap: var(--tl-space-3); align-items: center;">
-                        <button style={refute_action_button_style(@selected_story)} type="button">Export CSV</button>
+                    <div style={refute_action_card_style(@selected_story)}>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-3) 0; color: var(--tl-color-text);">Export audit records</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-4) 0;">Download a CSV of audit changes for the last 90 days.</p>
+                      <div style="display: flex; gap: var(--tl-space-3);">
+                        <button style="background: var(--tl-color-thread-blue); color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;" type="button">Export CSV</button>
                         <button style="background: transparent; color: var(--tl-color-muted); border: 1px solid var(--tl-color-border); padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); cursor: pointer;" type="button">Cancel</button>
-                        <span style="font-size: var(--tl-font-size-sm); color: var(--tl-color-ember); padding: var(--tl-space-1) var(--tl-space-2); border-radius: var(--tl-radius-xs); background: rgba(232,162,70,0.12);">3 changes since last export</span>
                       </div>
                     </div>
                   </div>
@@ -278,25 +281,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%!-- Twin 6: Density (chrome-bloat) — signal-to-chrome ratio --%>
                   <div :if={refute_twin(@selected_story) == :density_chrome} class="tl-space-y-3">
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-4);">Retention settings</h2>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-4) 0;">Retention settings</h2>
                       <div class="tl-space-y-4">
                         <div>
                           <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Retention window</label>
-                          <input type="text" value="90" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body);" />
+                          <input type="text" value="90" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body); margin: 0;" />
                           <%= if refute_pole(@selected_story) == :flawed do %>
-                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-top: var(--tl-space-1);">Enter the number of days to retain audit records. Records older than this value will be permanently deleted when the next prune runs. The minimum is 7 days and the maximum is 3650 days (10 years).</p>
+                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: var(--tl-space-1) 0 0 0;">Enter the number of days to retain audit records. Records older than this value will be permanently deleted when the next prune runs. The minimum is 7 days and the maximum is 3650 days (10 years).</p>
                           <% end %>
                         </div>
                         <div>
                           <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Prune schedule</label>
-                          <input type="text" value="weekly" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body);" />
+                          <input type="text" value="weekly" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body); margin: 0;" />
                           <%= if refute_pole(@selected_story) == :flawed do %>
-                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-top: var(--tl-space-1);">Choose how often to run automatic pruning. Daily runs every night at 2 AM UTC. Weekly runs every Sunday at 2 AM UTC. Monthly runs on the first of each month at 2 AM UTC.</p>
+                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: var(--tl-space-1) 0 0 0;">Choose how often to run automatic pruning. Daily runs every night at 2 AM UTC. Weekly runs every Sunday at 2 AM UTC. Monthly runs on the first of each month at 2 AM UTC.</p>
                           <% end %>
                         </div>
                         <div>
                           <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Notify on prune</label>
-                          <input type="checkbox" style="margin-right: var(--tl-space-2);" />
+                          <input type="checkbox" style="margin: 0 var(--tl-space-2) 0 0;" />
                           <%= if refute_pole(@selected_story) == :flawed do %>
                             <span style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted);">When enabled, an email notification is sent to all operator-role users after each prune operation completes, listing the number of records deleted and the tables affected.</span>
                           <% end %>
@@ -305,23 +308,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                   </div>
 
-                  <%!-- Twin 7: Veto-ordering — off-token raw-hex accent --%>
+                  <%!-- Twin 7: Veto-ordering — off-token raw-hex accent.
+                       The diff rows use a border-left accent in ember (token) vs #e8a246 (raw hex).
+                       Border colors are not captured in color_pairs; no WCAG contrast violation.
+                       Plan 06 token-parity veto detects the raw-hex in the flawed pole's DOM. --%>
                   <div :if={refute_twin(@selected_story) == :veto_ordering} class="tl-space-y-3">
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin-bottom: var(--tl-space-3);">Row diff</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-3);">Changed field values for this audit event.</p>
-                      <div style="display: flex; gap: var(--tl-space-3); flex-direction: column;">
-                        <div style="display: flex; gap: var(--tl-space-3);">
-                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); width: 120px;">email</span>
-                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">before@example.invalid</span>
-                          <span style="font-size: var(--tl-font-size-body);">→</span>
-                          <span style={refute_veto_accent_style(@selected_story)}>after@example.invalid</span>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-3) 0; color: var(--tl-color-text);">Row diff</h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-3) 0;">Changed field values for this audit event.</p>
+                      <div style="display: flex; gap: var(--tl-space-2); flex-direction: column;">
+                        <div style={refute_veto_accent_style(@selected_story)}>
+                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); min-width: 80px;">email</span>
+                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">before@example.invalid → after@example.invalid</span>
                         </div>
-                        <div style="display: flex; gap: var(--tl-space-3);">
-                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); width: 120px;">role</span>
-                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">member</span>
-                          <span style="font-size: var(--tl-font-size-body);">→</span>
-                          <span style={refute_veto_accent_style(@selected_story)}>admin</span>
+                        <div style={refute_veto_accent_style(@selected_story)}>
+                          <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); min-width: 80px;">role</span>
+                          <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);">member → admin</span>
                         </div>
                       </div>
                     </div>
@@ -817,129 +819,161 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refute_hierarchy_meta_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-label); font-weight: 500; color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+          # label (14px): browser default p margin = 14px (off spacing scale) — zero top explicitly
+          "font-size: var(--tl-font-size-label); font-weight: 500; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-xs); font-weight: 400; color: var(--tl-color-muted); margin-bottom: var(--tl-space-1); text-transform: uppercase; letter-spacing: 0.04em;"
+          # xs (12px): browser default p margin = 12px (on scale), still zero for consistency
+          "font-size: var(--tl-font-size-xs); font-weight: 400; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0; text-transform: uppercase; letter-spacing: 0.04em;"
       end
     end
 
     defp refute_hierarchy_title_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-title); font-weight: 500; color: var(--tl-color-text); margin-bottom: var(--tl-space-1);"
+          # h1 title (24px): browser default h1 margin-top ~16px — zero explicitly
+          "font-size: var(--tl-font-size-title); font-weight: 500; color: var(--tl-color-text); margin: 0 0 var(--tl-space-1) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-title); font-weight: 700; color: var(--tl-color-text); margin-bottom: var(--tl-space-1);"
+          "font-size: var(--tl-font-size-title); font-weight: 700; color: var(--tl-color-text); margin: 0 0 var(--tl-space-1) 0;"
       end
     end
 
     defp refute_hierarchy_subtitle_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # h2 heading (20px): browser default margin-top = 0.83em = 16.6px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-body); font-weight: 500; color: var(--tl-color-muted); margin-bottom: var(--tl-space-2);"
+          # h2 body (16px): browser default margin-top = 0.83em = 13.28px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-body); font-weight: 500; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-2) 0;"
       end
     end
 
     defp refute_hierarchy_body_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text);"
+          # p heading (20px): browser default p margin = 20px (on scale) — passes, but zero for clarity
+          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin: 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-body); font-weight: 400; color: var(--tl-color-text);"
+          # p body (16px): browser default p margin = 16px (on scale) — passes, but zero for clarity
+          "font-size: var(--tl-font-size-body); font-weight: 400; color: var(--tl-color-text); margin: 0;"
       end
     end
 
     # Twin 4: Typography — polished uses 4 distinct scale steps; flaw uses two roles 1 px apart.
     # Both poles keep type-size count above the minimum floor (≥ 3 distinct sizes total).
+    # All p elements use explicit 4-value margin shorthand to zero browser default margin-top.
+    # At label (14px) and sm (13px) font-sizes, 1em browser margin is off the spacing scale.
     defp refute_typography_display_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-display); font-weight: 700; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # display (~32px): browser default p margin = 32px (on scale) — zero for predictability
+          "font-size: var(--tl-font-size-display); font-weight: 700; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
       end
     end
 
     defp refute_typography_title_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-title); font-weight: 600; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # title (24px): browser default p margin = 24px (on scale) — zero for predictability
+          "font-size: var(--tl-font-size-title); font-weight: 600; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
       end
     end
 
     defp refute_typography_heading_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-heading); font-weight: 600; color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # heading (20px): browser default p margin = 20px (on scale) — zero for predictability
+          "font-size: var(--tl-font-size-heading); font-weight: 600; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
       end
     end
 
     defp refute_typography_body_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # sm (13px): browser default p margin-top = 13px (off spacing scale [4,8,12,16...]) — zero
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin-bottom: var(--tl-space-2);"
+          # body (16px): browser default p margin = 16px (on scale) — zero for predictability
+          "font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
       end
     end
 
     defp refute_typography_label_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+          # sm (13px): browser default p margin = 13px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-muted); margin-bottom: var(--tl-space-1);"
+          # label (14px): browser default p margin = 14px (off scale) — zero explicitly
+          "font-size: var(--tl-font-size-label); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
       end
     end
 
     defp refute_typography_meta_style(story) do
       case refute_pole(story) do
         :flawed ->
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted);"
+          # sm (13px): browser default p margin = 13px (off scale) — zero all sides (last item)
+          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0;"
 
         _ ->
-          "font-size: var(--tl-font-size-xs); color: var(--tl-color-muted);"
+          # xs (12px): browser default p margin = 12px (on scale) — still zero for clarity
+          "font-size: var(--tl-font-size-xs); color: var(--tl-color-muted); margin: 0;"
       end
     end
 
-    # Twin 5: Brand fidelity — polished uses Thread Blue for actions; flaw uses Ember (--tl-color-ember)
-    # for the action button. Ember IS a real --tl-* token (no token-parity veto fires here).
-    defp refute_action_button_style(story) do
-      accent =
-        case refute_pole(story) do
-          :flawed -> "var(--tl-color-ember)"
-          _ -> "var(--tl-color-thread-blue)"
-        end
+    # Twin 5: Brand fidelity — accent job discipline.
+    # Polished: standard action card (no structural accent stripe). Thread-blue is the
+    # default action color and needs no additional accent signaling.
+    # Flawed: ember left-border stripe on the action card. Ember (--tl-color-ember) belongs
+    # to diff-emphasis / change-signal jobs, not primary-action structure. Wrong semantic job.
+    # Border-left color is not captured in color_pairs, so no MODE-A WCAG violation fires.
+    # The semantic-role flaw is visible to the gestalt lens but passes all mechanical gates.
+    defp refute_action_card_style(story) do
+      base =
+        "padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);"
 
-      "background: #{accent}; color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"
+      case refute_pole(story) do
+        :flawed ->
+          # Ember accent on the left border — wrong job for a primary action card
+          base <> " border-left: 3px solid var(--tl-color-ember);"
+
+        _ ->
+          base
+      end
     end
 
-    # Twin 7: Veto-ordering — polished uses var(--tl-color-ember); flaw uses raw hex #e8a246.
-    # The raw hex trips the --tl-* token-parity veto at the panel layer (Plan 06); NOT a
-    # MODE-A hard-block in the current mechanical checker (WCAG contrast still passes).
+    # Twin 7: Veto-ordering — off-token raw-hex accent.
+    # Each diff row is wrapped in a div with a left-border accent: ember token (polished) vs
+    # raw hex #e8a246 (flawed). Border-left is not in the color_pairs selector so no WCAG
+    # contrast MODE-A violation fires here. The raw hex trips the token-parity veto at the
+    # panel layer (Plan 06), which fires AFTER mechanical gates pass (correct veto ordering).
     defp refute_veto_accent_style(story) do
-      color =
-        case refute_pole(story) do
-          # off-token raw hex (Ember-alike; not a CSS variable reference)
-          :flawed -> "#e8a246"
-          _ -> "var(--tl-color-ember)"
-        end
+      case refute_pole(story) do
+        :flawed ->
+          # off-token raw hex (Ember-alike; not a CSS variable reference) — veto fires in Plan 06
+          "display: flex; gap: var(--tl-space-3); align-items: center; padding-left: var(--tl-space-2); border-left: 3px solid #e8a246; margin-bottom: var(--tl-space-2);"
 
-      "font-size: var(--tl-font-size-body); color: #{color}; font-weight: 600;"
+        _ ->
+          "display: flex; gap: var(--tl-space-3); align-items: center; padding-left: var(--tl-space-2); border-left: 3px solid var(--tl-color-ember); margin-bottom: var(--tl-space-2);"
+      end
     end
   end
 end

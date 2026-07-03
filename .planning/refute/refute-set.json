@@ -1,0 +1,68 @@
+{
+  "version": "195.03.0",
+  "items": [
+    {
+      "twin_id": "refute.rhythm.doubled-padding",
+      "polished_cell_id": "refute.rhythm.doubled-padding.polished",
+      "flawed_cell_id": "refute.rhythm.doubled-padding.flawed",
+      "target_lens": "rhythm",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole uses doubled section padding (--tl-space-8 vs --tl-space-4) — a cadence break visible in gestalt but within the token grid; all mechanical checks pass."
+    },
+    {
+      "twin_id": "refute.density.card-section-wrap",
+      "polished_cell_id": "refute.density.card-section-wrap.polished",
+      "flawed_cell_id": "refute.density.card-section-wrap.flawed",
+      "target_lens": "density",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole wraps the section content in a card (double-card anti-pattern) — adds chrome overhead visible via gestalt density evaluation; card nesting depth stays under the MODE-B ceiling (depth <= 3)."
+    },
+    {
+      "twin_id": "refute.hierarchy.flattened",
+      "polished_cell_id": "refute.hierarchy.flattened.polished",
+      "flawed_cell_id": "refute.hierarchy.flattened.flawed",
+      "target_lens": "hierarchy",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole collapses all heading weights to font-weight: 500, losing the polished pole's strong/medium/weak weight progression; type-size count floor still met."
+    },
+    {
+      "twin_id": "refute.typography.scale-collapse",
+      "polished_cell_id": "refute.typography.scale-collapse.polished",
+      "flawed_cell_id": "refute.typography.scale-collapse.flawed",
+      "target_lens": "typography",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole collapses six type roles to two sizes 1 px apart (label 14 px and sm 13 px), destroying the polished pole's 4-step scale; MODE-B type_size_count floor still met."
+    },
+    {
+      "twin_id": "refute.brand-fidelity.mis-jobbed-accent",
+      "polished_cell_id": "refute.brand-fidelity.mis-jobbed-accent.polished",
+      "flawed_cell_id": "refute.brand-fidelity.mis-jobbed-accent.flawed",
+      "target_lens": "brand_fidelity",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole uses an ember (--tl-color-ember) left-border accent on a primary action card — ember belongs to diff-emphasis/change-signal jobs, not primary-action structure; wrong semantic job visible to gestalt review, no mechanical token or contrast violation."
+    },
+    {
+      "twin_id": "refute.density.chrome-bloat",
+      "polished_cell_id": "refute.density.chrome-bloat.polished",
+      "flawed_cell_id": "refute.density.chrome-bloat.flawed",
+      "target_lens": "density",
+      "expected_direction": "polished > flawed",
+      "class": "gestalt",
+      "evidence_note": "Flawed pole adds verbose help copy after each input (multi-sentence explanations vs terse labels), raising signal-to-chrome ratio visible via gestalt density evaluation; no mechanical density metric (scroll_cost, interactive_control_count) violates its floor."
+    },
+    {
+      "twin_id": "refute.veto-ordering.off-token-accent",
+      "polished_cell_id": "refute.veto-ordering.off-token-accent.polished",
+      "flawed_cell_id": "refute.veto-ordering.off-token-accent.flawed",
+      "target_lens": "brand_fidelity",
+      "expected_direction": "polished > flawed (veto fires — no aesthetic score emitted)",
+      "class": "veto_ordering",
+      "evidence_note": "Flawed pole uses raw hex #e8a246 (Ember-alike) as border-left accent on diff rows instead of var(--tl-color-ember); the --tl-* token-parity brand veto (Plan 06 panel.ts) fires and short-circuits scoring to a veto result, exercising the veto-before-scoring ordering invariant."
+    }
+  ]
+}

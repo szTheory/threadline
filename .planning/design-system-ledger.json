@@ -1703,7 +1703,7 @@
       "id": "group.data-panel.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1792,7 +1792,7 @@
       "id": "group.detail-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1881,7 +1881,7 @@
       "id": "group.drawer-form.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface — Phase 177 GROUP-01 Drawer + form; no live page this phase (D-07).",
+      "notes": "reference-only surface \u2014 Phase 177 GROUP-01 Drawer + form; no live page this phase (D-07).",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1970,7 +1970,7 @@
       "id": "group.empty-cta.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2059,7 +2059,7 @@
       "id": "group.modal-destructive.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Modal confirm + destructive action; retention prune.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Modal confirm + destructive action; retention prune.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2148,7 +2148,7 @@
       "id": "group.offline.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Reconnect / offline banner + disabled actions; shell-level.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Reconnect / offline banner + disabled actions; shell-level.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2237,7 +2237,7 @@
       "id": "group.page-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Page header + actions + breadcrumbs; every page.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Page header + actions + breadcrumbs; every page.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2326,7 +2326,7 @@
       "id": "group.permission-denied.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Permission denied group; scoped pages.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Permission denied group; scoped pages.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2415,7 +2415,7 @@
       "id": "group.stats-chart-table.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Stat cards + chart + table (absorbs status-strip); coverage.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Stat cards + chart + table (absorbs status-strip); coverage.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2504,7 +2504,7 @@
       "id": "group.tabs-subviews.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface — Phase 177 GROUP-01 Tabs + subviews; no live page this phase (D-07).",
+      "notes": "reference-only surface \u2014 Phase 177 GROUP-01 Tabs + subviews; no live page this phase (D-07).",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2593,7 +2593,7 @@
       "id": "group.toast-update.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Toast + state update; export/prune toasts.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Toast + state update; export/prune toasts.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2682,7 +2682,7 @@
       "id": "group.toolbar.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
+      "notes": "live surface \u2014 Phase 177 GROUP-01 Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -9981,6 +9981,1252 @@
       "target_score": 90
     },
     {
+      "id": "refute.brand-fidelity.mis-jobbed-accent.flawed",
+      "fixture_key": "refute.brand_fidelity.mis_jobbed_accent.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: Ember (--tl-color-ember) applied to primary action (real --tl-* token, wrong job). Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.brand-fidelity.mis-jobbed-accent.flawed",
+      "stress_path": "/audit/__stress?story=refute.brand-fidelity.mis-jobbed-accent.flawed"
+    },
+    {
+      "id": "refute.brand-fidelity.mis-jobbed-accent.polished",
+      "fixture_key": "refute.brand_fidelity.mis_jobbed_accent.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: Thread Blue for actions, Ember for diff-emphasis only (correct accent jobs).",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.brand-fidelity.mis-jobbed-accent.polished",
+      "stress_path": "/audit/__stress?story=refute.brand-fidelity.mis-jobbed-accent.polished"
+    },
+    {
+      "id": "refute.density.card-section-wrap.flawed",
+      "fixture_key": "refute.density.card_section_wrap.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: content section wrapped in card (nesting depth 2, below ceiling 3). Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.density.card-section-wrap.flawed",
+      "stress_path": "/audit/__stress?story=refute.density.card-section-wrap.flawed"
+    },
+    {
+      "id": "refute.density.card-section-wrap.polished",
+      "fixture_key": "refute.density.card_section_wrap.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: content section as plain section (brand card-rule: cards for repeated items, not sections).",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.density.card-section-wrap.polished",
+      "stress_path": "/audit/__stress?story=refute.density.card-section-wrap.polished"
+    },
+    {
+      "id": "refute.density.chrome-bloat.flawed",
+      "fixture_key": "refute.density.chrome_bloat.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: verbose help text on every field (chrome bloat; removal costs task nothing). Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.density.chrome-bloat.flawed",
+      "stress_path": "/audit/__stress?story=refute.density.chrome-bloat.flawed"
+    },
+    {
+      "id": "refute.density.chrome-bloat.polished",
+      "fixture_key": "refute.density.chrome_bloat.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: form with labels only, no redundant help copy (task-primary chrome).",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.density.chrome-bloat.polished",
+      "stress_path": "/audit/__stress?story=refute.density.chrome-bloat.polished"
+    },
+    {
+      "id": "refute.hierarchy.flattened.flawed",
+      "fixture_key": "refute.hierarchy.flattened.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: flattened weights (all font-weight:500, minimal size difference). Type-size count above floor. Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.hierarchy.flattened.flawed",
+      "stress_path": "/audit/__stress?story=refute.hierarchy.flattened.flawed"
+    },
+    {
+      "id": "refute.hierarchy.flattened.polished",
+      "fixture_key": "refute.hierarchy.flattened.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: clear title/subtitle/body weight and size progression; one dominant entry-point.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.hierarchy.flattened.polished",
+      "stress_path": "/audit/__stress?story=refute.hierarchy.flattened.polished"
+    },
+    {
+      "id": "refute.rhythm.doubled-padding.flawed",
+      "fixture_key": "refute.rhythm.doubled_padding.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: doubled section padding (--tl-space-8, on-grid token; cadence broken). Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.rhythm.doubled-padding.flawed",
+      "stress_path": "/audit/__stress?story=refute.rhythm.doubled-padding.flawed"
+    },
+    {
+      "id": "refute.rhythm.doubled-padding.polished",
+      "fixture_key": "refute.rhythm.doubled_padding.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: correct single-step section spacing (--tl-space-4). Partition proof: gestalt flaw pole PASSES all mechanical gates.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.rhythm.doubled-padding.polished",
+      "stress_path": "/audit/__stress?story=refute.rhythm.doubled-padding.polished"
+    },
+    {
+      "id": "refute.typography.scale-collapse.flawed",
+      "fixture_key": "refute.typography.scale_collapse.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin gestalt-flaw pole: two primary roles 1 px apart (sm 13 px vs label 14 px); count above floor. Passes MODE A + B \u2014 gestalt flaw only.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.typography.scale-collapse.flawed",
+      "stress_path": "/audit/__stress?story=refute.typography.scale-collapse.flawed"
+    },
+    {
+      "id": "refute.typography.scale-collapse.polished",
+      "fixture_key": "refute.typography.scale_collapse.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute twin polished pole: distinct type scale across 4+ steps (display, title, body, label, xs).",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.typography.scale-collapse.polished",
+      "stress_path": "/audit/__stress?story=refute.typography.scale-collapse.polished"
+    },
+    {
+      "id": "refute.veto-ordering.off-token-accent.flawed",
+      "fixture_key": "refute.veto_ordering.off_token_accent.flawed",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute veto-ordering flaw pole: raw hex #e8a246 instead of var(--tl-color-ember). Trips --tl-* token-parity veto at panel layer (Plan 06 only). NO committed scorecard; verify.mechanical stays green.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.veto-ordering.off-token-accent.flawed",
+      "stress_path": "/audit/__stress?story=refute.veto-ordering.off-token-accent.flawed"
+    },
+    {
+      "id": "refute.veto-ordering.off-token-accent.polished",
+      "fixture_key": "refute.veto_ordering.off_token_accent.polished",
+      "kind": "refute",
+      "category": "refute",
+      "status": "current",
+      "owner_phase": 195,
+      "notes": "Refute veto-ordering polished pole: var(--tl-color-ember) for diff-emphasis (on-token; veto passes). Reference for Plan 06 panel veto-ordering test.",
+      "current_score": null,
+      "legacy_score": null,
+      "ratchet_score": 0,
+      "target_score": 90,
+      "scores": {
+        "P1.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P1.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P2.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P3.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P4.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.density": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "P5.hierarchy": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.brand_fidelity": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.color_contrast": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.rhythm": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        },
+        "all.typography": {
+          "current": null,
+          "floor": 0,
+          "status": "unrated"
+        }
+      },
+      "screenshot_baseline_refs": [],
+      "source": "Threadline.OperatorSurface.StressFixtures",
+      "story_id": "refute.veto-ordering.off-token-accent.polished",
+      "stress_path": "/audit/__stress?story=refute.veto-ordering.off-token-accent.polished"
+    },
+    {
       "category": "state",
       "current_score": 62,
       "fixture_key": "state.data_table.current",
@@ -11411,7 +12657,7 @@
       "id": "state.unavailable-down",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — source down data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 source down data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -11500,7 +12746,7 @@
       "id": "state.unavailable-pruned",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — pruned data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 pruned data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -11589,7 +12835,7 @@
       "id": "state.unavailable-redacted",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — redacted data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 redacted data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -11699,12 +12945,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11741,12 +12987,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11783,12 +13029,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11825,12 +13071,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11867,12 +13113,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11909,12 +13155,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11951,12 +13197,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -11993,12 +13239,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.454,
-        "dark_375": 17.528,
-        "dark_768": 17.164,
-        "light_1280": 16.454,
-        "light_375": 17.528,
-        "light_768": 17.164
+        "dark_1280": 18.697,
+        "dark_375": 19.77,
+        "dark_768": 18.984,
+        "light_1280": 18.697,
+        "light_375": 19.77,
+        "light_768": 18.984
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12035,12 +13281,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12077,12 +13323,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12119,12 +13365,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12161,12 +13407,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12203,12 +13449,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12245,12 +13491,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12287,12 +13533,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12329,12 +13575,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12371,12 +13617,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12413,12 +13659,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12455,12 +13701,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.218,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.218
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.038,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.038
       },
       "type_size_count": {
         "dark_1280": 4,
@@ -12497,12 +13743,12 @@
         "light_768": 0
       },
       "scroll_cost": {
-        "dark_1280": 16.561,
-        "dark_375": 17.608,
-        "dark_768": 17.244,
-        "light_1280": 16.561,
-        "light_375": 17.608,
-        "light_768": 17.244
+        "dark_1280": 18.803,
+        "dark_375": 19.85,
+        "dark_768": 19.064,
+        "light_1280": 18.803,
+        "light_375": 19.85,
+        "light_768": 19.064
       },
       "type_size_count": {
         "dark_1280": 4,
