@@ -8,11 +8,25 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
+## Current Milestone: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness
+
+**Goal:** Make evaluating and improving the `/audit` operator UI fast and *monotonic* — an adversarial, multi-lens critic panel (per-persona/JTBD + a graphic-design critic + a brand veto) over deterministic capture, feeding the design-system ledger's existing ratchet so award-winning, on-brand, Linear-grade improvements land and regressions are blocked — with far less human review time.
+
+**Target features:**
+- **Scorecard cube** — decompose the design-system ledger's single opaque score into `page × persona × lens`; self-assessment banned (every score cites a screenshot or a mechanical output).
+- **Mechanical / vision split** — deterministic checks (token-grid, WCAG contrast, control-count, card-nesting depth, scroll-cost, accent/type-size budgets) are the ratchet floor; the LLM judges only gestalt (visual hierarchy, spacing rhythm, elegance-vs-accidental, restraint, information scent, brand feel).
+- **Critic validation & golden set** (the linchpin) — hand-labeled anchors + refute-tests + 75–90% human agreement, gated *before* the critic drives the ratchet.
+- **Critic runner** — `examples/threadline_phoenix/e2e/critic/`, Claude Opus 4.8 vision, structured output + cached versioned rubrics + N-sample self-consistency; `mix verify.ui_critique`, **local-only, never in `ci.all`**.
+- **Forward-only gate** — accept a change only if it improves the target lens AND no other page/persona/lens/a11y/screenshot baseline regresses; auto-apply mechanical fixes + a *narrow, spike-proven* low-risk-structural whitelist; full-panel re-eval; human ratifies score bumps at phase gates; first-class held-out "true-north" set against Goodharting.
+- **Proof, not just tooling** — drive real improvement on the 2–3 lowest-scoring pages; v1.37-style 8-lens adversarial closeout + residual design-debt register (owner + reopen-trigger).
+
+**Locked decisions:** Reuse the existing ledger/ratchet, `/audit/__stress`, Playwright dark/light lanes, a11y evidence, brand pressure-test method, and locked personas — do not rebuild. Reference bar: **Linear (primary)** + Vercel/Stripe/Grafana-cautionary (secondary, surface-specific). Invariants held: no root runtime dep (Anthropic SDK is an `e2e` devDependency), no public component API, dev/test-only fail-closed harness, LLM out of CI, capture/query/auth untouched. Phase numbering continues from v1.39 (starts at Phase 194).
+
 ## Current State
 
 Threadline shipped **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** on 2026-07-03 (Phases 189–193, 15/15 requirements, all phases verified). It was a consolidation milestone: an evidence-backed quality-risk ranking followed by high-confidence fixes to the three weakest surfaces — configurable custom PostgreSQL `storage_schema` behavior proven end to end, release/docs version truth reconciled to `0.9.0`, and measured CI/CD efficiency work — with no product/UI scope expansion and no version bump/Hex publish.
 
-**No active milestone.** Next step is `/gsd-new-milestone`. The v1.39 closeout ranked remaining risk and recommended v1.40 be one of CI/CD depth, external adopter proof, observability, or hold (default hold absent real adopter signal); see `.planning/milestones/v1.39-MILESTONE-AUDIT.md` and the phase 193 risk register.
+**Active milestone: v1.40** (opened 2026-07-02, defining requirements). Rather than the closeout's CI/hold defaults, v1.40 re-opens UI iteration deliberately — but as *tooling that makes iteration safe and fast*, not another big-bang polish pass. It automates adversarial multi-lens critique (persona/JTBD + graphic-design + brand veto) over the existing `/audit/__stress` capture, wiring it into the already-shipped design-system ledger ratchet so the operator UI moves monotonically toward Linear-grade craft. See `.planning/research/SUMMARY.md`; the v1.39 next-step options are preserved in `.planning/milestones/v1.39-MILESTONE-AUDIT.md` and the phase 193 risk register.
 
 Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, v1.38 page-by-page `/audit` polish, and now v1.39 quality/schema/CI consolidation. Core capture/query/auth semantics stay out of scope unless a storage-schema or docs-truth fix proves they are already inconsistent with published behavior. The root package keeps Phoenix/LiveView optional, PhoenixStorybook stays example/dev-only, no public component API is introduced, and external pilot/compliance expansion remains signal-gated.
 

@@ -1,41 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.39
-milestone_name: Quality Baseline, Schema Confidence, and CI Efficiency
-current_phase: 39
-status: Awaiting next milestone
-stopped_at: Phase 193 context gathered
-last_updated: "2026-07-03T00:33:14.272Z"
+milestone: v1.40
+milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
+status: planning
+last_updated: "2026-07-03T01:33:45.174Z"
 last_activity: 2026-07-03
-last_activity_desc: Milestone v1.39 completed and archived
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
-current_phase_name: quality-closeout-and-next-step-decision
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-03 after v1.39)
+See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone (`/gsd-new-milestone`) — v1.39 shipped 2026-07-03; v1.40 recommendation is CI/CD depth, external adopter proof, observability, or hold (default hold absent signal)
+**Current focus:** v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (defining requirements → roadmap)
 
 ## Current Position
 
-Phase: Milestone v1.39 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-03 — Milestone v1.39 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-03 — Milestone v1.40 started
 
 ## Performance Metrics
 
-- **Active Milestone**: none — awaiting next milestone (`/gsd-new-milestone`)
+- **Active Milestone**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (opened 2026-07-02, defining requirements)
 - **Last Milestone Shipped**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03, Phases 189-193, 15/15 requirements)
 - **Prior Milestone Shipped**: v1.38 — Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
