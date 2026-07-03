@@ -8,7 +8,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @design_system_path "DESIGN-SYSTEM.md"
 
     @top_level_keys ~w(
+      cube_axes
       entries
+      mechanical_floors
       phase
       ratchet
       ratchet_rule
@@ -23,9 +25,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       fixture_key
       id
       kind
+      legacy_score
       notes
       owner_phase
       ratchet_score
+      scores
       screenshot_baseline_refs
       source
       status
@@ -34,7 +38,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       target_score
     )
 
-    @optional_entry_keys ~w(reset_rationale reserved_for_phase)
+    @optional_entry_keys ~w(evidence_ref reset_rationale reserved_for_phase)
 
     @allowed_kinds ~w(
       form_control
@@ -65,6 +69,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Chromatic",
       "Percy",
       "Applitools",
+      "Lost Pixel",
       "immutable ledger"
     ]
 
