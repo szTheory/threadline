@@ -13,6 +13,7 @@ defmodule Threadline.MixProject do
         "verify.doc_contract": :test,
         "verify.release": :dev,
         "verify.test": :test,
+        "verify.capture": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
         "verify.example": :test,
@@ -91,6 +92,7 @@ defmodule Threadline.MixProject do
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.operator_stress": &verify_operator_stress/1,
+      "verify.capture": &verify_capture/1,
       "verify.phase177_uat": &verify_phase177_uat/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
@@ -194,6 +196,18 @@ defmodule Threadline.MixProject do
   # Source contract: defp verify_operator_stress(args), do: verify_example_browser(["operator-stress.spec.ts" | args])
   defp verify_operator_stress(args),
     do: verify_example_browser(["operator-stress.spec.ts" | args])
+
+  # Tier A deterministic capture-lane regeneration (Phase 194, MECH-04). Runs BOTH
+  # theme projects so a single `mix verify.capture` reproduces all 120 committed
+  # scorecards (66 Band-1 + 54 Band-2). Local-only regeneration — deliberately NOT
+  # in ci.all (CI gates the committed scorecard JSON via verify.mechanical, Plan 03).
+  defp verify_capture(args),
+    do:
+      verify_example_browser([
+        "--project=tier-a-capture",
+        "--project=tier-a-capture-light",
+        "operator-tier-a-capture.spec.ts" | args
+      ])
 
   # Targeted runner for the Phase 177 UAT browser spec (viewport reflow + motion +
   # reconnect CSS contract). Convenience for local runs; CI runs it as part of the
