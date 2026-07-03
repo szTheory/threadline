@@ -54,6 +54,13 @@ tmp/
 # diffable evidence (scorecard JSON + aria YAML) is committed under .planning/scorecards/.
 /examples/threadline_phoenix/e2e/artifacts/tier-a/
 
+# Critic runner: nondeterministic LLM verdict cache (gitignored; regenerate with mix verify.ui_critique).
+# The oracle (.planning/golden/) and committed skeleton manifests are NOT gitignored.
+/examples/threadline_phoenix/e2e/critic-verdict-cache/
+# Nondeterministic LLM critic-score outputs — regenerable; keep .gitkeep tracked for dir structure.
+/.planning/critic-scores/*
+!/.planning/critic-scores/.gitkeep
+
 # Local agent/session config
 /.claude/
 /.git-commit-task*.sh
