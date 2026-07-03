@@ -179,6 +179,49 @@ Keep `brandbook/tokens.json` strict to primitive brand tokens. Map primitives to
 
 For `prefers-reduced-motion: reduce`, do not use universal 0ms. Zero out positional transitions but preserve opacity fades (`120ms ease`). This explicitly respects user accessibility preferences without jarring UI cuts.
 
+## Capture Matrix
+
+Design-system evidence is captured in three tiers (MECH-05). Each tier has a
+distinct authority and cost; only Tier A gates CI, and it does so over committed,
+diffable evidence — never a live browser at assert time.
+
+**Tier A — deterministic (CI-gated, all 120 cells).** The `operator-tier-a-capture`
+Playwright lane drives `/audit/__stress` and emits, per cell, a committed RAW-inputs
+scorecard (`.planning/scorecards/<cell-id>.json`) plus, for the deep band, a
+committed `#tl-main` ARIA snapshot (`.aria.yml`); binaries (PNG/DOM/raw a11y) stay
+gitignored under `examples/threadline_phoenix/e2e/artifacts/tier-a/`. Cell-id =
+`{ledger_id}__{theme}-{breakpoint}`. Regenerate with `mix verify.capture`
+(→ `npm run capture:tier-a`); the mechanical checker (Plan 03, `mix verify.mechanical`)
+reads the committed JSON. Determinism stack: `deviceScaleFactor:1` (project-level) +
+global `reducedMotion:"reduce"` + `scale:"css"` + `dynamicMasks` + `#tl-main` aria
+subtree + DB-free static fixtures — a re-run leaves `git diff` on the scorecards empty.
+
+The Tier A matrix is `page × state × breakpoint × theme`:
+
+- **Breakpoints:** 375 (mobile) · 768 (tablet) · 1280 (desktop).
+- **Themes:** dark · light (both, non-negotiable — captured via the
+  `tier-a-capture` / `tier-a-capture-light` projects).
+- **Band 1 (floor smoke):** all 11 operator pages × `happy` × 3 breakpoints ×
+  2 themes = **66 cells**. Pages: `actor`, `coverage`, `evidence`, `exports`,
+  `home`, `redaction`, `retention`, `row-history`, `shell`, `timeline`,
+  `transaction` (ledger ids `page.<page>.happy`).
+- **Band 2 (deep, + ARIA YAML):** the 3 lowest-scoring target pages
+  (`transaction`, `coverage`, `retention`) × `{empty, error, permission-denied}`
+  × 3 breakpoints × 2 themes = **54 cells** (ledger `permission` path). Deep-band
+  cells additionally commit a `<cell-id>.aria.yml`.
+- **Total: 120 cells** (66 Band 1 + 54 Band 2).
+
+**Tier B — LLM sample (local-only, Phase 195).** A curated subset of Tier A cells
+handed to the Claude-vision critic for judged lenses (`hierarchy`, and the critic
+side of the hybrid lenses). Local-only, never a committed CI number — Linear is the
+critic's reference bar only, not a gate.
+
+**Tier C — pixel allowlist (advisory).** The 3 existing `1024` screenshot baselines
+in `screenshot_allowlist.ci` (`operator-stress.spec.ts`), pixel-diffed at capture
+time. Bounded at exactly 3 entries and kept at 1024 (not rebaselined to 1280) so the
+committed baselines stay stable; advisory pixel coverage, distinct from the Tier A
+mechanical gate.
+
 ## Scorecard Cube
 
 Per-persona × per-lens projection of the v2 scorecard cube (`scores` in the ledger), covering page-kind surfaces only. Lens columns follow the D-01 frozen order. Cells render `—` while unrated; the `Score` column is the entry `current_score` rollup. Regenerate this table from the ledger whenever a cube cell changes.

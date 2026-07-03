@@ -60,6 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Pages",
       "Known Footguns",
       "Future Reserved Cases",
+      "Capture Matrix",
       "Scorecard Cube"
     ]
 
@@ -194,6 +195,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert sorted_keys(allowlist) == ["ci", "local_review"],
              "#{@ledger_path} screenshot_allowlist must contain ci and local_review arrays"
+
+      # Tier C pixel allowlist stays bounded at exactly 3 (MECH-05). Tier A mechanical
+      # coverage grows via committed scorecards, NOT by expanding the pixel-diff lane.
+      assert length(allowlist["ci"]) == 3,
+             "#{@ledger_path} Tier C ci screenshot allowlist must stay bounded at exactly 3 entries, got #{length(allowlist["ci"])}"
 
       for lane <- ["ci", "local_review"], item <- allowlist[lane] do
         assert Map.has_key?(by_id, item["ledger_id"]),
