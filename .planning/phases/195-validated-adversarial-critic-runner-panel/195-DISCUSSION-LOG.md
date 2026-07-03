@@ -5,9 +5,9 @@
 
 **Date:** 2026-07-03
 **Phase:** 195-Validated Adversarial Critic Runner & Panel
-**Areas discussed:** Golden set & verdict format, Trust bar & agreement metric, Refute-test battery, Self-consistency N & cost budget (round 1 → D-01..D-04); Per-lens rubric design, Panel orchestration & cube merge, Runner architecture & schema, Critic report surface & JTBD (round 2 → D-05..D-08).
+**Areas discussed:** Golden set & verdict format, Trust bar & agreement metric, Refute-test battery, Self-consistency N & cost budget (round 1 → D-01..D-04); Per-lens rubric design, Panel orchestration & cube merge, Runner architecture & schema, Critic report surface & JTBD (round 2 → D-05..D-08); Authoring/labeling DX, Score→band & ratchet coupling, Prompt architecture & bias hardening (round 3 → D-09..D-11).
 
-**Method:** Two rounds of deep parallel research (subagents), each round dispatching four `gsd-advisor-researcher` agents grounded in the locked 194/195 decisions + `prompts/`/current-brandbook + external best practice, then synthesized into one coherent set. Round 1 (oracle/trust side) → D-01..D-04. Round 2 (build/DX side) → D-05..D-08, grounded in the round-1 locks so everything coheres. Everything already locked by Phase 194 (critic↔lens map, cube, cell-ids, invariants, reference bar) was carried forward, not re-asked.
+**Method:** Three rounds of deep parallel research (subagents), each round grounded in the prior rounds' locks + `prompts/`/current-brandbook + external best practice, then synthesized into one coherent set. Round 1 (oracle/trust) → D-01..D-04. Round 2 (build/DX) → D-05..D-08. Round 3 (authoring/coupling/prompt) → D-09..D-11 — the last genuinely-additive, cross-cutting decisions; after this, remaining choices (α-library, CI wave sequencing) are legitimately planner territory. Everything already locked by Phase 194 was carried forward, not re-asked.
 
 ---
 
@@ -109,6 +109,38 @@
 | Render null as 0 or `—` | "Unknown" reads as "bad"; maintainer ratchets on noise | |
 
 **User's choice:** Research-and-recommend → D-08. **Notes:** each finding suggests a direction, never an auto-fix (that's Phase 196); no-flattery microcopy; unstable/vetoed/untrusted signals are symbol+word+reason, never color-only; deltas always state their baseline.
+
+## Authoring/labeling DX (input side) — round 3
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Guided `critic label` CLI: masked IDs, keyboard-driven, separate blind-round files, `--bootstrap` empty state | Fast defensible solo labeling; terminal-first; blindness physically enforced | ✓ |
+| Hand-edit golden-set.json | Can't mask IDs or enforce blind rounds; unreviewable at ~120 judgments | |
+| Throwaway LiveView/HTML labeler | Violates no-public-surface / terminal-first; re-creates the banned dashboard | |
+
+**User's choice:** Research-and-recommend → D-09. **Notes:** Prodigy single-annotator doctrine; r1 in a separate file r2 never reads; `critic rubric bump` prints invalidation blast radius; `critic refute --check` runs $0 mechanical-only; held_out_ids refused from the queue.
+
+## Score→band & ratchet coupling — round 3
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 5 bands from committed anchors (20/25/35/62/72/90); band-of-median point, band-mode stability, raw-IQR/range variance; floor snaps to band lower-cut | Data-driven; jitter can't fake a bump; min() stays coherent | ✓ |
+| Floor = raw median | Sub-band jitter fakes regression/progress both directions | |
+| Median-of-bands | Destroys raw variance signal; can report the wrong band | |
+| Widen bands to avoid boundary-hugging anchors | Collapses 62/72 into one band; destroys ratchet resolution | |
+
+**User's choice:** Research-and-recommend → D-10. **Notes:** 62 = center of `ok`; 62→72→90 = ok→strong→exemplary; 90 = exemplary = Linear-grade. Near-boundary (±2 of a cut) triggers N=3→7 escalation.
+
+## Prompt architecture & bias hardening — round 3
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| 3 strata (system/cached-prefix/suffix); cite-before-score field order; adaptive-thinking summarized; forced disjunction; ~1092px image; pole exemplars as images | High critic accuracy; evidence forced at token level; anti-sycophancy structural | ✓ |
+| Score-first, rationale-after | Loses token-level cite-before-score enforcement | |
+| Send 2576px hi-res screenshots | Invites pixel-measurement (VLM weakness); ~3× tokens for zero gestalt gain | |
+| Text-only rubric prefix | Sits under the 4096-token cache floor → silently un-caches | |
+
+**User's choice:** Research-and-recommend → D-11. **Notes:** persona clause after cache boundary (D-06 coherence); pole IMAGES are the anti-flattery anchor + the cache-floor padding; forced disjunction (located failure OR explicit no-failure+why) counters verbosity bias.
 
 ## Claude's Discretion
 
