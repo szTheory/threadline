@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: verifying
-stopped_at: Phase 195 context gathered
-last_updated: "2026-07-03T15:41:15.274Z"
+stopped_at: Phase 195 context expanded (D-01..D-08)
+last_updated: "2026-07-03T15:49:21.326Z"
 last_activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
 progress:
   total_phases: 4
@@ -402,8 +402,8 @@ Progress: [██████████] Phase 194 complete & verified (1/4 ph
 
 ## Session Continuity
 
-**Last session:** 2026-07-03T15:41:15.269Z
-**Stopped at:** Phase 195 context gathered
+**Last session:** 2026-07-03T15:49:21.322Z
+**Stopped at:** Phase 195 context expanded (D-01..D-08)
 **Resume file:** .planning/phases/195-validated-adversarial-critic-runner-panel/195-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
