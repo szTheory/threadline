@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-status: phase_verified
-stopped_at: Phase 194 verified & complete — both UAT items shifted left to CI (0 human); next: plan Phase 195
-last_updated: "2026-07-03T00:00:00.000Z"
-last_activity: 2026-07-03 -- Phase 194 verified passed (10/10); Tier A capture executed + mechanical gates automated into CI (verify-capture + verify-mechanical)
+status: verifying
+stopped_at: Phase 195 context gathered
+last_updated: "2026-07-03T15:41:15.274Z"
+last_activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
 progress:
   total_phases: 4
   completed_phases: 1
@@ -402,9 +402,9 @@ Progress: [██████████] Phase 194 complete & verified (1/4 ph
 
 ## Session Continuity
 
-**Last session:** 2026-07-03T08:19:20.887Z
-**Stopped at:** Phase 194 context gathered
-**Resume file:** .planning/phases/194-deterministic-scorecard-cube-ledger-mechanical-capture-found/194-CONTEXT.md
+**Last session:** 2026-07-03T15:41:15.269Z
+**Stopped at:** Phase 195 context gathered
+**Resume file:** .planning/phases/195-validated-adversarial-critic-runner-panel/195-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
