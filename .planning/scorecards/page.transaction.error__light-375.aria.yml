@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Transaction page error path" [level=2]
+  - text: light / 375px
+  - term: Fixture key
+  - definition: page.transaction.error
+  - term: Ledger item
+  - definition: page.transaction.error
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.transaction.error (PAGE-01 Tier A structural cell).

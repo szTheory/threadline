@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Coverage page error path" [level=2]
+  - text: light / 375px
+  - term: Fixture key
+  - definition: page.coverage.error
+  - term: Ledger item
+  - definition: page.coverage.error
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.coverage.error (PAGE-01 Tier A structural cell).

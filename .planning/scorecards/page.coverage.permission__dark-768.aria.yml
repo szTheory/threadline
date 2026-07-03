@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Coverage page permission path" [level=2]
+  - text: dark / 768px
+  - term: Fixture key
+  - definition: page.coverage.permission
+  - term: Ledger item
+  - definition: page.coverage.permission
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.coverage.permission (PAGE-01 Tier A structural cell).

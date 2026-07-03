@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Retention page permission path" [level=2]
+  - text: light / 768px
+  - term: Fixture key
+  - definition: page.retention.permission
+  - term: Ledger item
+  - definition: page.retention.permission
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.retention.permission (PAGE-01 Tier A structural cell).

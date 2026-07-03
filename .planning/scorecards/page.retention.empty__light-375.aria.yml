@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Retention page empty path" [level=2]
+  - text: light / 375px
+  - term: Fixture key
+  - definition: page.retention.empty
+  - term: Ledger item
+  - definition: page.retention.empty
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.retention.empty (PAGE-01 Tier A structural cell).

@@ -1,0 +1,13 @@
+- region "Selected stress story preview":
+  - paragraph: page / current
+  - heading "Retention page error path" [level=2]
+  - text: dark / 1280px
+  - term: Fixture key
+  - definition: page.retention.error
+  - term: Ledger item
+  - definition: page.retention.error
+  - term: Owner phase
+  - definition: "178"
+  - term: Status
+  - definition: current
+  - text: Synthetic per-page path fixture for page.retention.error (PAGE-01 Tier A structural cell).
