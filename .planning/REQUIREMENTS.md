@@ -37,8 +37,8 @@
 - [ ] **RUNNER-01**: A Node critic runner in `examples/threadline_phoenix/e2e/critic/` calls Claude vision with JSON-schema structured output, a prompt-cached rubric+anchor prefix, and one dimension per call.
 - [ ] **RUNNER-02**: The runner performs N-sample self-consistency (median + variance), flags high-variance cells as unstable (not ratcheted), and stamps model id + rubric version on every scorecard.
 - [ ] **RUNNER-03**: The panel runs one critic per persona (P1–P5) + a graphic-design critic + a brand-veto critic; a `--tl-*` token / parity violation vetoes a change before aesthetic scoring.
-- [ ] **RUNNER-04**: `mix verify.ui_critique` wraps the runner as a named entrypoint, requires `ANTHROPIC_API_KEY`, no-ops without it, is excluded from `mix ci.all`, and is documented as local-only under a doc-contract lock.
-- [ ] **RUNNER-05**: The Anthropic SDK is a `devDependency` of `e2e/package.json` only; `verify.compile_no_optional` still proves root `threadline` stays Phoenix-optional with no new runtime dependency.
+- [x] **RUNNER-04**: `mix verify.ui_critique` wraps the runner as a named entrypoint, requires `ANTHROPIC_API_KEY`, no-ops without it, is excluded from `mix ci.all`, and is documented as local-only under a doc-contract lock.
+- [x] **RUNNER-05**: The Anthropic SDK is a `devDependency` of `e2e/package.json` only; `verify.compile_no_optional` still proves root `threadline` stays Phoenix-optional with no new runtime dependency.
 
 ### Forward-Only Gate & Iteration (GATE)
 
@@ -101,8 +101,8 @@ Which phases cover which requirements. Every v1 requirement maps to exactly one 
 | RUNNER-01 | Phase 195 | Pending |
 | RUNNER-02 | Phase 195 | Pending |
 | RUNNER-03 | Phase 195 | Pending |
-| RUNNER-04 | Phase 195 | Pending |
-| RUNNER-05 | Phase 195 | Pending |
+| RUNNER-04 | Phase 195 | Complete |
+| RUNNER-05 | Phase 195 | Complete |
 | GATE-01 | Phase 196 | Pending |
 | GATE-02 | Phase 196 | Pending |
 | GATE-03 | Phase 196 | Pending |
@@ -114,6 +114,7 @@ Which phases cover which requirements. Every v1 requirement maps to exactly one 
 | PROOF-04 | Phase 197 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 29 total
 - Mapped to phases: 29 (Phase 194: 10 · Phase 195: 10 · Phase 196: 6 · Phase 197: 3)
 - Unmapped: 0 ✓

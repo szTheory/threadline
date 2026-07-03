@@ -69,7 +69,7 @@
 **Plans**: 7 plans (3 waves)
 **Wave 1**
 
-- [ ] 195-01-PLAN.md — Foundations, named entrypoints & CI wiring (RUNNER-04, RUNNER-05) [wave 1]
+- [x] 195-01-PLAN.md — Foundations, named entrypoints & CI wiring (RUNNER-04, RUNNER-05) [wave 1]
 - [ ] 195-02-PLAN.md — Versioned anchored per-lens rubrics (CRITIC-04) [wave 1]
 - [ ] 195-03-PLAN.md — Refute-twin fixtures & partition proof (CRITIC-02) [wave 1]
 
@@ -120,7 +120,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
-| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 0/TBD | Not started | - |
+| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 1/7 | In Progress|  |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 0/TBD | Not started | - |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
 

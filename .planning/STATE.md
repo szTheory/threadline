@@ -2,15 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-status: verifying
-stopped_at: Phase 195 planned (7 plans, 3 waves) — ready to execute
-last_updated: "2026-07-03T16:56:28.000Z"
-last_activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
+current_phase: 195
+current_phase_name: validated-adversarial-critic-runner-panel
+status: executing
+stopped_at: Completed 195-01-PLAN.md
+last_updated: "2026-07-03T17:13:09.421Z"
+last_activity: 2026-07-03
+last_activity_desc: Phase 195 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 10
+  completed_plans: 4
   percent: 25
 ---
 
@@ -21,14 +24,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 195 — Validated Adversarial Critic Runner & Panel (PLANNED — 7 plans in 3 waves; ready to execute)
+**Current focus:** Phase 195 — validated-adversarial-critic-runner-panel
 
 ## Current Position
 
-Phase: 195 (validated-adversarial-critic-runner-panel) — PLANNED (ready to execute)
-Plan: 0 of 7 executed (7 plans across 3 waves)
-Status: Phase 195 planned — research + pattern-map + plan-checker (0 blockers) complete. 7 plans, 3 waves; all 10 REQ-IDs + D-01..D-11 covered (decision-coverage gate parse-failure overridden — coverage confirmed via plans + checker). Next: `/gsd-execute-phase 195`.
-Last activity: 2026-07-03 -- Phase 195 planned (7 plans, 3 waves); RESEARCH/PATTERNS/VALIDATION produced; plan-checker passed with 0 blockers (2 warnings fixed via targeted revision).
+Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-07-03 -- Phase 195 execution started
 
 Progress: [██████████] Phase 194 complete & verified · Phase 195 planned (1/4 phases complete)
 
@@ -150,6 +153,7 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 | Phase 191 P03 | 22min | 3 tasks | 15 files |
 | Phase 192 P02 | 15m | 2 tasks | 2 files |
 | Phase 192 P03 | 8min | 3 tasks | 4 files |
+| Phase 195 P01 | 4m | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -395,6 +399,7 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 - [Phase 190]: Timeline renders table_schema as host schema so operators do not confuse audited host schemas with Threadline storage_schema.
 - [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
 - [191-03]: ADOPT-01 install/version reconciliation — seven install pins flipped to three-segment ~> 0.9.0 (co-committed with four guard tests, no CI/release reddening); evaluating-threadline.md false 0.6.0 SSOT corrected to 0.9.0 + release-please marker/extra-files wiring (historical lines preserved); version_truth_doc_contract_test derives Families A/B/C from mix.exs @version and is registered in verify.doc_contract. Pre-existing v1_23_charter failure left deferred (charter truth out of this plan's task scope).
+- [Phase ?]: [195-01]: verify.ui_critique is local-only (excluded from ci.all, exits 0 when ANTHROPIC_API_KEY absent, RUNNER-04). verify.critic_trust is pure-Elixir in ci.all before verify.mechanical. All 6 critic lenses seed validated:false. critic-scores/ tree is gitignored; .planning/golden/ is committed oracle.
 
 ### Blockers
 
@@ -402,9 +407,9 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 
 ## Session Continuity
 
-**Last session:** 2026-07-03T16:56:28.000Z
-**Stopped at:** Phase 195 planned (7 plans, 3 waves) — ready to execute
-**Resume file:** .planning/phases/195-validated-adversarial-critic-runner-panel/195-01-PLAN.md
+**Last session:** 2026-07-03T17:13:09.416Z
+**Stopped at:** Completed 195-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
