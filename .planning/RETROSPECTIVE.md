@@ -1041,8 +1041,53 @@ First-class light mode for the operator surface without disturbing the dark defa
 
 ---
 
+## Milestone: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency
+
+**Shipped:** 2026-07-03
+**Phases:** 5 (189-193) | **Plans:** 21 | **Tasks:** 42 | **Requirements:** 15/15
+
+### What was built
+
+- A repo-evidence software-quality audit that ranked the weakest adoption/ops/maintainer dimensions and deliberately narrowed the milestone to schema confidence, docs/version truth, and CI efficiency rather than new product scope.
+- End-to-end proof that a custom non-default `storage_schema` (`audit`) threads correctly through capture, query, evidence, governance, retention, queued export, and every operator LiveView — with prefix-free Ecto schemas source-locked against the fixed default, quoted generated migration identifiers, and a real dual-schema PostgreSQL integration test.
+- Version/docs truth reconciled to `0.9.0` behind a central drift-guard doc-contract test, a 0.6.x→0.9.x upgrade path, and verb-lane README/ExDoc routing.
+- A measured CI/CD efficiency pass (baseline first, then deps/Playwright/npm caches, min/current compatibility matrix, PR + publish concurrency, pinned PgBouncer) behind contract + dep-floor guards.
+- A closeout that gave every carried residual an owner and a concrete reopen-trigger, plus a v1.40/hold recommendation.
+
+### What worked
+
+- **Audit-first, then fix.** Phase 189 ranked risk from repo evidence before any code changed, so the four implementation phases spent effort only on proven-weak surfaces and the invariants (no product scope, no version bump) held cleanly through close.
+- **Measure-before-optimize on CI.** Recording a read-only baseline first (Phase 192) kept the efficiency changes boring and reversible and avoided speculative matrix/sharding cleverness.
+- **Residuals with reopen-triggers, not a polish bucket.** The 193 risk register ranked each carried item (WR-01 fixture, health.ex filter, R-C charter test, R-D local test-DB env) with an owner and a concrete condition to reopen — measured tech debt instead of accumulated-and-unreviewed.
+
+### What was inefficient
+
+- Several 191/192/193 plan SUMMARY one-liners were empty or carried a code-review artifact (`[Rule 3 - Blocking] …`), so the CLI-generated MILESTONES.md accomplishments needed manual editorial repair at close — the recurring "generated archive text needs review" lesson again.
+- Nyquist validation is partial: 191 and 193 shipped docs-only with no VALIDATION.md, flagged (not blocked) and left as optional retroactive `/gsd-validate-phase`.
+
+### Patterns established
+
+- A quality milestone can be a legitimate ship: rank risk, fix the top few high-confidence gaps, and close with a ranked residual register — no feature surface required.
+- Storage-schema threading is now proven by a dual-schema integration test with default-`threadline` sentinels; future schema work should extend that fixture (and harden it past `LIKE ... INCLUDING ALL` per WR-01) rather than re-proving from scratch.
+
+### Key lessons
+
+- Ship-gated externals (D-17 min-lane run, D-19 branch-protection reconfig) are real tech debt even when accepted; tracking them in a checklist with an explicit trigger (the clean push landing the new matrix on public `main`) keeps them from silently lapsing.
+- Local `mix test` `(undefined_table)` failures are an environment/search_path artifact, not a regression — CI is green; reopen only on a CI failure with the same signature.
+
+### Cost observations
+
+- Timeline: 2026-06-30 -> 2026-07-02; 5 phases; 21 plans; 42 tasks.
+- Git range: `v1.38` -> `57a6aacb` before archive; 154 commits; 359 files changed, +19,596 / -717.
+- Model mix is not instrumented in-repo.
+
+---
+
 ## Cross-Milestone Trends
 
+- v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
+- Measure-before-optimize generalizes beyond UI: the CI baseline-first discipline mirrors the baseline-first UI lesson from v1.38.
+- Generated archive text (SUMMARY one-liners → MILESTONES accomplishments) has now needed editorial cleanup at v1.37, v1.38, and v1.39 closes — treat CLI-generated milestone prose as a draft, always review before it becomes durable history.
 - v1.38 confirms the v1.37 lesson that generated archive text needs editorial review before it becomes durable project history.
 - Baseline-first UI milestones reduce drift: rendered evidence, source contracts, and stale-test repair should precede visual or IA changes.
 - Example-app dev tooling is the right place for maintainer-only UI review aids when the root library has an optional-dependency promise.

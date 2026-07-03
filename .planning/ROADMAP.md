@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** - Phases 189-193 (active; opened 2026-07-01).
+- [x] **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** - Phases 189-193 (shipped 2026-07-03). Archive: `.planning/milestones/v1.39-ROADMAP.md`
 - [x] **v1.38 Operator UI Page-by-Page IA & Design-System Polish** - Phases 181-188 (shipped 2026-06-30). Archive: `.planning/milestones/v1.38-ROADMAP.md`
 - [x] **v1.37 Operator Surface Design-System Stress Test & Component System** - Phases 171-180 (shipped 2026-06-20). Archive: `.planning/milestones/v1.37-ROADMAP.md`
 - [x] **v1.36 Operator Surface Light Mode** - Phases 166-170 (shipped 2026-06-14). Archive: `.planning/milestones/v1.36-ROADMAP.md`
@@ -11,156 +11,18 @@
 
 ## Current Planning State
 
-Active milestone: **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency**.
+No active milestone. v1.39 shipped 2026-07-03.
 
-**Goal:** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable PostgreSQL storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
-
-**Execution posture:** audit first, then fix high-confidence gaps. Do not expand product/UI scope unless the audit proves a current trust issue. CI changes should be measured, boring, and reversible.
-
-## Current Milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency
-
-| Phase | Name | Requirements | Status |
-|------:|------|--------------|--------|
-| 189 | Quality baseline and authority-surface audit | QUAL-01, QUAL-02, QUAL-03 | Complete (1/1, 2026-07-01) |
-| 190 | Storage Schema Confidence and Host-Schema Truth | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | Complete (10/10, 2026-07-02) |
-| 191 | 3/3 | Complete    | 2026-07-02 |
-| 192 | 4/4 | Complete    | 2026-07-02 |
-| 193 | 3/3 | Complete    | 2026-07-02 |
-
-### Phase 189: Quality Baseline and Authority-Surface Audit
-
-**Goal:** Produce the blunt, repo-evidence quality ranking requested by the prompt and use it to keep v1.39 focused on the weakest adoption, production, support, and maintenance risks.
-
-**Requirements:** QUAL-01, QUAL-02, QUAL-03
-
-**Success criteria:**
-
-- A durable quality-audit artifact ranks dimensions from weakest/highest-risk to strongest/lowest-risk with evidence, confidence, consequence, highest-leverage fix, and priority.
-- The audit explicitly marks good-enough, low-priority, and N/A dimensions instead of manufacturing fake concerns.
-- Open residuals and seeds that can affect trust are triaged, including SEED-005, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
-- The audit narrows the remaining v1.39 implementation work instead of broadening into unrelated product or UI expansion.
-
-### Phase 190: Storage Schema Confidence and Host-Schema Truth
-
-**Goal:** Make the `storage_schema` story trustworthy beyond the default `threadline` schema, including custom-schema Ecto behavior, migration SQL, and host-schema assumptions.
-
-**Requirements:** SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04
-
-**Plans:** 10/10 plans complete
-
-Plans:
-**Wave 1**
-
-- [x] 190-01-PLAN.md — Quote storage-schema identifiers and freeze generated migration contracts.
-- [x] 190-02-PLAN.md — Remove owned fixed prefixes and add explicit storage-schema test support.
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 190-03-PLAN.md — Wire core API, query, preload, and export reads to selected storage.
-- [x] 190-05-PLAN.md — Make retention and pruning storage-prefix safe.
-- [x] 190-07-PLAN.md — Prove `support.tickets` trigger, coverage, verify, and continuity behavior.
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 190-04-PLAN.md — Make queued export, cleanup, and download storage-prefix aware.
-- [x] 190-06-PLAN.md — Make operator storage reads and writes prefix-aware.
-- [x] 190-08-PLAN.md — Add selected host-schema redaction CLI, presenter, and UI support.
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 190-09-PLAN.md — Preserve host-schema identity through Timeline, filters, row-history, and docs.
-
-**Wave 5** *(blocked on Wave 4 completion)*
-
-- [x] 190-10-PLAN.md — Prove custom `audit` storage with real dual-schema PostgreSQL sentinels.
-
-**Success criteria:**
-
-- `storage_schema: "audit"` or equivalent non-default schema is covered through capture/query/evidence/governance/operator-relevant paths.
-- Fixed `@schema_prefix` interactions are removed, overridden safely, or proven harmless with tests that would fail if reads/writes silently hit `threadline`.
-- Generated migration SQL safely quotes validated storage-schema identifiers, or docs/tests narrow the supported identifier contract.
-- Continuity, policy/redaction inspection, and operator coverage either support non-public host schemas consistently or clearly document/test-lock public-only behavior.
-
-### Phase 191: Release/Version and Docs Trust Repair
-
-**Goal:** Remove public-version drift and sharpen the adoption path so a stranger can trust the README, Hex line, evaluator docs, and upgrade story without maintainer context.
-
-**Requirements:** ADOPT-01, ADOPT-02, ADOPT-03
-
-**Plans:** 3/3 plans complete
-
-Plans:
-**Wave 1**
-
-- [x] 191-01-PLAN.md — Extend upgrade-path.md for the 0.6.x->0.9.x adopter era + backport policy (ADOPT-02).
-- [x] 191-02-PLAN.md — Verb-lane routing over README prose + ExDoc structure, no new guide (ADOPT-03).
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 191-03-PLAN.md — Reconcile all install/version references to 0.9.0 + central drift-guard test (ADOPT-01).
-
-**Success criteria:**
-
-- README, guides, evaluator docs, adoption backlog, CHANGELOG/package metadata, and install snippets agree on current `0.9.0` truth or explicitly justify older examples.
-- Upgrade guidance covers 0.6.x through 0.9.x adopter effects: storage-schema default, operator surface/theming, release lanes, and migration expectations.
-- README/ExDoc guide routing gives evaluators, first-hour adopters, operators, and maintainers a short next-step path.
-- Doc-contract tests fail on future install/version/upgrade drift.
-
-### Phase 192: CI/CD Measurement and Efficiency Hardening
-
-**Goal:** Baseline the CI/CD pipeline, then make low-risk improvements that improve feedback speed, determinism, and maintainer DX without weakening gates.
-
-**Requirements:** CI-01, CI-02, CI-03, CI-04
-
-**Plans:** 4 plans (3 waves)
-
-Plans:
-**Wave 1**
-
-- [x] 192-01-PLAN.md — Wave 1: CI-01 read-only baseline (192-BASELINE.md from gh-api run history; observer-effect ordering)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 192-02-PLAN.md — Wave 2: ci.yml deps/Playwright/npm caches + min/current matrix + PR concurrency + pgbouncer pin; flake-detection deps cache
-- [x] 192-03-PLAN.md — Wave 2: release.yml publish concurrency + CONTRIBUTING two-list repair + README/mix.exs compatibility contract
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 192-04-PLAN.md — Wave 3: phase06 contract-test extensions + dep-floor guard (tasks 01+02 committed, green); task 03 (branch-protection reconfig D-19 + throwaway min-lane run D-17) DEFERRED — ship-gated, see 192-SHIP-CHECKLIST.md
-
-**Success criteria:**
-
-- Current CI critical path, duplicated setup/deps work, browser lane cost, cache state, and flaky/rerun signals are recorded from GitHub/local evidence or explicitly marked unavailable.
-- Cache/setup changes are precise, reversible, and safe across OS/OTP/Elixir/MIX_ENV boundaries.
-- PgBouncer image pinning, release concurrency, branch-protection docs, job names, and local `mix ci.*` expectations align.
-- Compatibility policy for Elixir/OTP/Postgres support is explicit, with only justified min/current lanes added to PR/main/scheduled workflows.
-
-### Phase 193: Quality Closeout and Next-Step Decision
-
-**Goal:** Close v1.39 with evidence, traceability, ranked remaining risk, and a concrete recommendation for what should happen next.
-
-**Requirements:** CLOSE-01
-
-**Success criteria:**
-
-- Requirements traceability and verification evidence are current.
-- Before/after CI data is captured where possible; if not, the no-measure reason is explicit.
-- Remaining software-quality risks are ranked with owner/follow-up and no vague "polish later" bucket.
-- The next milestone recommendation is clear: CI/CD depth, external adopter proof, observability, or hold.
-
-**Plans:** 3/3 plans complete
-
-Plans:
-**Wave 1**
-
-- [x] 193-01-PLAN.md — Requirements traceability rollup + verification/CI evidence index (CLOSE-01 clauses 1-2)
-- [x] 193-02-PLAN.md — Ranked residual-risk register + v1.40 next-step recommendation (CLOSE-01 clauses 3-4)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 193-03-PLAN.md — Closeout verification of all four clauses + boundary check (CLOSE-01)
+**Next step:** `/gsd-new-milestone` — questioning → research → requirements → roadmap. The v1.39 closeout recommendation for v1.40 (CI/CD depth, external adopter proof, observability, or hold) is recorded in `.planning/milestones/v1.39-phases`/`193-RISK-REGISTER.md` and the v1.39 audit.
 
 ## Prior Milestones
+
+<details>
+<summary>v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (Phases 189-193) - SHIPPED 2026-07-03</summary>
+
+Repo-evidence quality-risk ranking followed by high-confidence fixes to the three weakest surfaces: configurable PostgreSQL `storage_schema` behavior proven end-to-end for a custom `audit` schema (capture/query/evidence/governance/retention/export/operator, quoted migration identifiers, dual-schema integration test), release/docs version truth reconciled to `0.9.0` behind a drift-guard test with an extended 0.6.x→0.9.x upgrade path, and measured CI/CD efficiency work (caches, min/current compatibility matrix, concurrency, pinned PgBouncer) behind contract guards. Closed with 15/15 requirements traceability and a ranked residual-risk register (owner + reopen-trigger per item). No product/UI scope expansion, no version bump/Hex publish. Archive: `.planning/milestones/v1.39-ROADMAP.md`.
+
+</details>
 
 <details>
 <summary>v1.38 Operator UI Page-by-Page IA & Design-System Polish (Phases 181-188) - SHIPPED 2026-06-30</summary>

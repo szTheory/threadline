@@ -10,26 +10,28 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline is executing **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** (opened 2026-07-01). Phases 189 and 190 are complete: the repo now has an evidence-backed quality baseline and a verified custom-storage-schema proof beyond the default `threadline` schema. Phase 191 is next and repairs release, version, and docs trust for evaluators and adopters.
+Threadline shipped **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** on 2026-07-03 (Phases 189–193, 15/15 requirements, all phases verified). It was a consolidation milestone: an evidence-backed quality-risk ranking followed by high-confidence fixes to the three weakest surfaces — configurable custom PostgreSQL `storage_schema` behavior proven end to end, release/docs version truth reconciled to `0.9.0`, and measured CI/CD efficiency work — with no product/UI scope expansion and no version bump/Hex publish.
 
-Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, and v1.38 page-by-page `/audit` polish. v1.39 is not another UI/product expansion milestone; it is the quality baseline pass that makes the current scope easier to trust, adopt, operate, upgrade, and maintain.
+**No active milestone.** Next step is `/gsd-new-milestone`. The v1.39 closeout ranked remaining risk and recommended v1.40 be one of CI/CD depth, external adopter proof, observability, or hold (default hold absent real adopter signal); see `.planning/milestones/v1.39-MILESTONE-AUDIT.md` and the phase 193 risk register.
 
-Core capture/query/auth semantics stay out of scope unless a storage-schema or docs-truth fix proves they are already inconsistent with published behavior. The root package keeps Phoenix/LiveView optional, PhoenixStorybook stays example/dev-only, no public component API is introduced, and external pilot/compliance expansion remains signal-gated.
+Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, v1.38 page-by-page `/audit` polish, and now v1.39 quality/schema/CI consolidation. Core capture/query/auth semantics stay out of scope unless a storage-schema or docs-truth fix proves they are already inconsistent with published behavior. The root package keeps Phoenix/LiveView optional, PhoenixStorybook stays example/dev-only, no public component API is introduced, and external pilot/compliance expansion remains signal-gated.
 
-## Current Milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (opened 2026-07-01)
+## Latest Milestone Shipped: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03)
 
-**Goal:** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
+**Goal (achieved):** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
 
-**Target features:**
-- **Quality baseline audit** — complete in Phase 189: repo-evidence ranking of weakest software-quality dimensions, practical consequences, confidence, and top fixes, including required residual and seed triage.
-- **Custom storage-schema confidence** — complete in Phase 190: end-to-end proof for `storage_schema: "audit"` or equivalent custom schemas; Ecto prefix behavior, generated migrations, and host-schema assumptions are proven, fixed, or honestly documented.
-- **Release/version/docs trust repair** — README, guides, evaluator docs, upgrade path, adoption backlog, and doc contracts agree on the current `0.9.0` package truth or intentionally explain older examples.
-- **CI/CD measurement and low-risk efficiency** — current pipeline baseline, critical-path bottlenecks, deterministic cache/setup improvements, PgBouncer image alignment, release concurrency fix, branch-protection docs alignment, and explicit compatibility policy.
-- **Closeout evidence and next-step decision** — traceability, verification, before/after CI evidence where measurable, and a ranked decision on whether v1.40 should be CI/CD depth, external adopter proof, observability, or hold.
+**Delivered features:**
+- **Quality baseline audit (Phase 189)** — repo-evidence ranking of the weakest software-quality dimensions with confidence, consequence, and top fixes; separated must-fix from good-enough/N-A; triaged open residuals and seeds; narrowed the milestone instead of broadening scope.
+- **Custom storage-schema confidence (Phase 190)** — end-to-end proof for `storage_schema: "audit"` across capture/query/evidence/governance/retention/export/operator paths; prefix-free Ecto schemas source-locked against the fixed default; quoted generated migration identifiers; real dual-schema PostgreSQL integration test; non-public host-schema support for `support.tickets` and redaction inspection.
+- **Release/version/docs trust repair (Phase 191)** — README, guides, evaluator docs, upgrade path, adoption backlog, and package metadata reconciled to `0.9.0` behind a central drift-guard doc-contract test; 0.6.x→0.9.x upgrade path; verb-lane README/ExDoc routing.
+- **CI/CD measurement and low-risk efficiency (Phase 192)** — recorded baseline, then deps/Playwright/npm caches, min/current compatibility matrix, PR + publish concurrency, pinned PgBouncer, aligned job names/CONTRIBUTING lists/`mix ci.*`, behind contract + dep-floor guards.
+- **Closeout evidence and next-step decision (Phase 193)** — 15/15 traceability + verification/CI evidence index, ranked residual-risk register (owner + reopen-trigger per item), and a clear v1.40/hold recommendation.
 
-**Non-goals:** new operator pages, public component API, Storybook public distribution, compliance pack/legal hold/immutable archive, external pilot without real signal, runtime destructive redaction, WAL/CDC backend, or clever CI matrix/sharding before measurement.
+**Archives:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`, `.planning/milestones/v1.39-MILESTONE-AUDIT.md`
 
-## Latest Milestone Shipped: v1.38 Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
+**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone`; otherwise hold per the no-signal default.
+
+## Prior shipped milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
 
 **Goal (achieved):** Make the operator UI feel deliberate, navigable, and task-led page by page while preserving v1.37's internal design-system substrate and the host-app-friendly library boundary.
 
@@ -538,26 +540,19 @@ Core capture/query/auth semantics stay out of scope unless a storage-schema or d
 - [x] **A11Y-01, A11Y-02, MOTION-01, DOC-01, CLOSE-01 (Phase 187)** — Locked accessibility, motion, docs, visual QA, and adversarial closeout evidence with proof limits and residuals classified. Validated in Phase 187 (2026-06-30).
 - [x] **TIME-01, GOV-02, A11Y-02, MOTION-01, CLOSE-01 close-gap validation (Phase 188)** — Closed queued Timeline export replay, `.tl-copy` motion governance, GOV-02 traceability metadata, and v1.38 audit/verification evidence. Validated in Phase 188 (2026-06-30).
 - [x] **SCHEMA-01 through SCHEMA-04 (Phase 190)** — Proved custom `storage_schema: "audit"` behavior across capture/query/evidence/governance/operator-relevant paths; removed fixed owned Ecto prefixes; safely validated and quoted generated migration identifiers; and separated Threadline storage schema from non-public host-schema behavior in continuity, coverage, redaction, Timeline, and docs. Validated in Phase 190 (2026-07-02).
+- [x] **QUAL-01 through QUAL-03 (Phase 189)** — Repo-evidence software-quality audit ranking weakest dimensions with confidence/consequence/top-fix, separating must-fix from good-enough/N-A, and triaging open residuals/seeds (SEED-005, screenshot-regression confidence, pilot boundaries, host staging, CI/example-app residuals). Validated in v1.39 (2026-07-01).
+- [x] **ADOPT-01 through ADOPT-03 (Phase 191)** — Reconciled install/version/README/evaluator/package references to `0.9.0` behind a central drift-guard doc-contract test; extended `guides/upgrade-path.md` for the 0.6.x→0.9.x adopter era; added verb-lane README/ExDoc routing without a new giant guide. Validated in v1.39 (2026-07-02).
+- [x] **CI-01 through CI-04 (Phase 192)** — Recorded a read-only CI baseline, then added reversible deps/Playwright/npm caches, a min/current Elixir·OTP·Postgres compatibility matrix, PR + publish concurrency, a pinned PgBouncer image, and aligned job names/CONTRIBUTING/`mix ci.*` behind contract + dep-floor guards (no `_build` cache, no hidden warnings). Validated in v1.39 (2026-07-02).
+- [x] **CLOSE-01 (Phase 193)** — Closed v1.39 with 15/15 requirements traceability, verification/CI evidence index, a ranked residual-risk register (owner + reopen-trigger per item, no vague polish bucket), and a clear v1.40/hold recommendation. Validated in v1.39 (2026-07-02).
 
 ### Active
 
-- [ ] **QUAL-01 — Quality dimension ranking** — Produce a repo-evidence software-quality audit that identifies the weakest dimensions, scores confidence, explains practical consequences, and ranks the highest-leverage fixes.
-- [ ] **QUAL-02 — Prioritized, not generic** — Separate must-fix adoption/operations/maintainer risks from good-enough, low-priority, or N/A dimensions; do not treat every checklist item as equally important.
-- [ ] **QUAL-03 — Residual and seed triage** — Triage open residuals and seeds that affect quality trust, including SEED-005 reconnect/offline banner, screenshot-regression confidence, external pilot boundaries, host staging ownership, and known CI/example-app residuals.
-- [ ] **ADOPT-01 — Current version/docs truth** — Align public install snippets, evaluator docs, upgrade guidance, README, adoption backlog, and package metadata with current `0.9.0` truth, or explicitly explain any older pinned line.
-- [ ] **ADOPT-02 — 0.6 to 0.9 upgrade guidance** — Cover adopter-visible changes from the 0.6.x through 0.9.x era, including storage schema default, operator surface/theming, release proof lanes, and migration expectations.
-- [ ] **ADOPT-03 — Reader-first docs routing** — Give evaluators, first-hour adopters, operators, and maintainers a shorter next-step path across README and ExDoc guides without adding a giant new guide.
-- [ ] **CI-01 — Pipeline baseline** — Measure or explicitly infer current PR/main wall-clock, critical path, repeated setup/deps cost, browser lane cost, cache state, and flaky/rerun signals.
-- [ ] **CI-02 — Low-risk cache/setup efficiency** — Reduce repeated dependency/build work with precise, reversible cache/setup changes that do not restore incompatible `_build` artifacts or mask warnings.
-- [ ] **CI-03 — CI/local/release contract alignment** — Align PgBouncer image pinning, release concurrency, branch-protection docs, CI job names, and local `mix ci.*` expectations.
-- [ ] **CI-04 — Compatibility policy** — Make min/current Elixir/OTP/Postgres support explicit and implement only the compatibility lanes that protect stated support without blowing up PR feedback.
-- [ ] **CLOSE-01 — Evidence closeout and next-step call** — Close v1.39 with traceability, verification evidence, before/after CI data or explicit no-measure rationale, ranked remaining risks, and a clear v1.40/hold recommendation.
+_No active requirements. v1.39 shipped 2026-07-03; define the next milestone with `/gsd-new-milestone`._
 
 ### Out of Scope
 
-- **New operator UI product expansion in v1.39** — v1.38 just shipped page-by-page polish. v1.39 may add quality evidence or fix proven trust gaps, but not new pages, new workflow breadth, or a public component API.
 - **Public Storybook/component-system distribution** — PhoenixStorybook remains example/dev-only; root `threadline` keeps optional Phoenix/LiveView deps and no public UI component contract.
-- **External adopter pilot without real signal** — still signal-gated. v1.39 can audit pilot readiness and docs truth, but not invent a synthetic pilot.
+- **External adopter pilot without real signal** — still signal-gated. Milestones can audit pilot readiness and docs truth, but not invent a synthetic pilot.
 - **Compliance platform expansion** — compliance packs, legal hold, immutable archive guarantees, and runtime destructive redaction remain deferred until procurement or adopter pressure justifies the support burden.
 - **CI cleverness before measurement** — no broad sharding, matrix explosion, flaky retries as a cure, or heavyweight release ceremony unless the baseline proves it reduces real risk.
 - **SIEM / security information and event management** — different product category, different buyers, different infrastructure
@@ -654,9 +649,9 @@ Core capture/query/auth semantics stay out of scope unless a storage-schema or d
 | Entangled `style.ex` light source committed at v1.36 close (resolves audit Finding F1) | COMP-01/02 were built and verified live but their source sat uncommitted in a broader operator-surface working tree; committing it at close (commit `b9f8fc1`, suite green at 912 tests) made the parity gate green on a clean checkout. | ✓ Resolved (v1.36, 2026-06-14) |
 | v1.38 scopes PhoenixStorybook to the Phoenix example/dev lane | Storybook is valuable for component/state review, but making it a root dependency or public component API would violate the optional-Phoenix and host-app-friendly library boundary. `/audit/__stress` remains the canonical operator-flow stress harness. | ✓ Validated (v1.38, 2026-06-30) |
 | v1.38 cleans pages in operator-value order: shell/home/timeline, then coverage, then detail/governance/export | The current user pain is orientation and task flow, not missing primitives. Starting with shell/home/timeline fixed the common path and created patterns that later pages adopted without re-litigating the design language. | ✓ Validated (v1.38, 2026-06-30) |
-| v1.39 is a consolidation milestone, not a new product/UI expansion | Recent milestones created a lot of surface area. The highest leverage now is finding the weakest quality dimension, proving schema behavior, repairing docs/version drift, and making CI trustworthy/efficient. New pages, public component APIs, compliance packs, and synthetic pilots would add support burden before the current adoption contract is fully trusted. | Active (v1.39, 2026-07-01) |
-| Custom PostgreSQL storage schemas are a public trust boundary | The project already defaults owned tables to `threadline` rather than `public`; that is the right host-app-respectful posture. But the feature only earns adoption trust if custom schemas work end to end, Ecto prefix behavior is not misleading, generated migrations quote supported identifiers safely, and host-schema assumptions are explicit. | Active (v1.39, 2026-07-01) |
-| CI/CD optimization must be measured and boring | Faster CI is only useful if merge/release gates stay trustworthy. v1.39 should baseline wall-clock/critical path/flakiness first, then prefer precise cache/setup/service/version-policy fixes over matrix explosion, broad sharding, flaky retries, or clever required-check topology. | Active (v1.39, 2026-07-01) |
+| v1.39 is a consolidation milestone, not a new product/UI expansion | Recent milestones created a lot of surface area. The highest leverage now is finding the weakest quality dimension, proving schema behavior, repairing docs/version drift, and making CI trustworthy/efficient. New pages, public component APIs, compliance packs, and synthetic pilots would add support burden before the current adoption contract is fully trusted. | ✓ Validated (v1.39, 2026-07-03) — 15/15 requirements, no scope expansion, no version bump |
+| Custom PostgreSQL storage schemas are a public trust boundary | The project already defaults owned tables to `threadline` rather than `public`; that is the right host-app-respectful posture. But the feature only earns adoption trust if custom schemas work end to end, Ecto prefix behavior is not misleading, generated migrations quote supported identifiers safely, and host-schema assumptions are explicit. | ✓ Validated (Phase 190, v1.39, 2026-07-02) — dual-schema `audit` integration proof; WR-01 fixture residual tracked with reopen-trigger |
+| CI/CD optimization must be measured and boring | Faster CI is only useful if merge/release gates stay trustworthy. v1.39 should baseline wall-clock/critical path/flakiness first, then prefer precise cache/setup/service/version-policy fixes over matrix explosion, broad sharding, flaky retries, or clever required-check topology. | ✓ Validated (Phase 192, v1.39, 2026-07-02) — baseline-first; D-17/D-19 ship-gated externals tracked in 192-SHIP-CHECKLIST.md |
 
 ## Evolution
 
@@ -678,4 +673,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-07-02 — Phase 190 completed storage-schema confidence and host-schema truth verification*
+*Last updated: 2026-07-03 after v1.39 milestone — Quality Baseline, Schema Confidence, and CI Efficiency shipped (Phases 189–193, 15/15 requirements)*

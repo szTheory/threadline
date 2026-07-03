@@ -1,5 +1,32 @@
 # Project milestones: Threadline
 
+## v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (Shipped: 2026-07-03)
+
+**Delivered:** A quality-consolidation milestone that ranked Threadline's real adoption/operations/maintainer risks from repo evidence, then hardened the three weakest surfaces — configurable PostgreSQL storage-schema behavior, release/docs version truth, and CI/CD efficiency — without expanding product scope or hiding risk.
+
+**Phases completed:** 5 phases (189-193), 21 plans, 42 tasks. Requirements: 15/15 satisfied.
+
+**Stats:** 359 files changed, 19,596 insertions, 717 deletions across 154 commits from `v1.38` to `57a6aacb`.
+
+**Key accomplishments:**
+
+- **Quality baseline audit (189)** — a repo-evidence software-quality ranking that separated must-fix adoption/ops/maintainer risks from good-enough/N-A dimensions, triaged open residuals and seeds (SEED-005, screenshot-regression confidence, pilot boundaries, host staging, CI/example-app residuals), and narrowed the milestone instead of broadening into UI/product scope.
+- **Storage-schema confidence (190)** — a custom non-default `storage_schema` (`audit`) is now proven end to end across capture, query, evidence, governance, retention, queued export, and operator LiveView paths; Threadline-owned Ecto schemas are prefix-free and source-locked against the fixed default prefix; generated migration SQL validates and double-quotes configured identifiers; and a real dual-schema PostgreSQL integration test proves reads/writes never silently fall back to `threadline`.
+- **Non-public host-schema support (190)** — `support.tickets` gained executable trigger/coverage/verify/continuity proof and redaction inspection supports selected non-public host schemas across CLI, shared presenter, and operator LiveView, without changing Threadline-owned storage semantics.
+- **Release/docs trust repair (191)** — reconciled all install/version/README/evaluator/package references to the current `0.9.0` truth behind a central drift-guard doc-contract test; extended `guides/upgrade-path.md` to cover the 0.6.x→0.9.x adopter era; and added verb-lane README/ExDoc routing for evaluators, first-hour adopters, operators, and maintainers without a giant new guide.
+- **CI/CD measurement & efficiency (192)** — recorded a read-only CI baseline first, then added deps/Playwright/npm caches, a min/current Elixir·OTP·Postgres compatibility matrix, PR + publish-job concurrency, a pinned PgBouncer image, and aligned job names/CONTRIBUTING lists/`mix ci.*` expectations behind contract + dep-floor guard tests — measured, boring, and reversible, with no `_build` cache and no hidden warnings.
+- **Quality closeout (193)** — 15/15 requirements traceability + verification/CI evidence index, a ranked residual-risk register giving every carried item an owner and a concrete reopen-trigger (no vague "polish later" bucket), and a static docs-integrity closeout gate; plus a clear v1.40 next-step recommendation.
+
+**Known residuals at close:** All carried tech debt is ranked with owner + reopen-trigger in `.planning/milestones/v1.39-MILESTONE-AUDIT.md` and `193-RISK-REGISTER.md` — ship-gated D-17/D-19 external branch-protection/min-lane run (192), WR-01 alt-schema fixture using `LIKE ... INCLUDING ALL` (190), the pre-existing name-only `health.ex` coverage filter, R-C stale charter doc-contract literal (191, outside `ci.all`), and R-D ~81 local test-DB `search_path` failures (CI green). None reopen the v1.39 requirements. Nyquist coverage is partial: 191/193 are docs-only phases (optional `/gsd-validate-phase 191` / `193` to close retroactively).
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.39-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.39-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.39-MILESTONE-AUDIT.md`
+
+---
+
 ## v1.38 Operator UI Page-by-Page IA & Design-System Polish (Shipped: 2026-06-30)
 
 **Delivered:** A page-by-page operator UI polish pass that made `/audit` more obvious, task-led, and internally coherent while preserving the private component system, route stability, auth boundaries, optional Phoenix boundary, and capture/query semantics.
