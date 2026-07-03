@@ -44,9 +44,9 @@
   3. Deterministic checkers compute, from real `/audit` source/computed styles, the full mechanical metric set — token-grid conformance, spacing-on-scale, type-size count, radius/shadow/motion token conformance, WCAG contrast (dark + light), interactive-control count, card-nesting depth, scroll-cost per breakpoint, and distinct-accent-hue count — and a violation blocks a proposed change independently of any LLM judgment. (MECH-01, MECH-02, MECH-03)
   4. The Playwright capture lane emits a complete evidence bundle per cell (screenshot + rendered DOM + ARIA/a11y tree + resolved `--tl-*` tokens + meta) driven from `/audit/__stress`, under a documented and explicit tiered matrix — Tier A deterministic (all cells, CI) / Tier B LLM sample (curated subset, local) / Tier C pixel allowlist (CI) across page × state × breakpoint × theme. (MECH-04, MECH-05)
 **Plans**: 3 plans (3 waves — guard-before-producer spine)
-- [ ] 194-01-PLAN.md — Ledger v1→v2 scorecard-cube migration + guard extension + DESIGN-SYSTEM per-lens projection (Wave 1; LEDGER-01..05)
-- [ ] 194-02-PLAN.md — Tier A Playwright capture lane + committed evidence bundles + tiered matrix doc (Wave 2; MECH-04, MECH-05)
-- [ ] 194-03-PLAN.md — MechanicalChecker (WCAG + MODE-A/B) + verify.mechanical folded into ci.all (Wave 3; MECH-01, MECH-02, MECH-03)
+- [x] 194-01-PLAN.md — Ledger v1→v2 scorecard-cube migration + guard extension + DESIGN-SYSTEM per-lens projection (Wave 1; LEDGER-01..05)
+- [x] 194-02-PLAN.md — Tier A Playwright capture lane + committed evidence bundles + tiered matrix doc (Wave 2; MECH-04, MECH-05)
+- [x] 194-03-PLAN.md — MechanicalChecker (WCAG + MODE-A/B) + verify.mechanical folded into ci.all (Wave 3; MECH-01, MECH-02, MECH-03)
 
 ### Phase 195: Validated Adversarial Critic Runner & Panel
 **Goal**: A local-only Claude-vision critic panel (one critic per persona P1–P5 + a graphic-design critic + a brand-veto critic) exists, cites concrete evidence for every score, runs behind `mix verify.ui_critique`, and is *proven trustworthy* against a hand-labeled golden set (refute-tests + documented 75–90% human agreement) before it is allowed to drive any ratchet — all while the Anthropic SDK stays an `e2e` devDependency and root `threadline` gains no runtime dependency.
@@ -90,7 +90,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 0/3 | Not started | - |
+| 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | Verify (CI/UAT) | - |
 | 195. Validated Adversarial Critic Runner & Panel | v1.40 | 0/TBD | Not started | - |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 0/TBD | Not started | - |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
