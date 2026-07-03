@@ -16,6 +16,31 @@ const projects = [
   { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
   { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
+  // Tier A deterministic capture lane (Phase 194, MECH-04). Two projects — one per
+  // theme — drive operator-tier-a-capture.spec.ts at the 1280 desktop breakpoint;
+  // the spec resizes to 375/768 per cell via page.setViewportSize. deviceScaleFactor:1
+  // is set at PROJECT level (never global) so it does not perturb the 3 existing
+  // Tier C 1024 baselines (Pitfall 5). reducedMotion:"reduce" is already global.
+  {
+    name: "tier-a-capture",
+    testMatch: /operator-tier-a-capture\.spec\.ts/,
+    use: {
+      ...devices["Desktop Chrome"],
+      viewport: { width: 1280, height: 900 },
+      deviceScaleFactor: 1,
+      colorScheme: "dark" as const,
+    },
+  },
+  {
+    name: "tier-a-capture-light",
+    testMatch: /operator-tier-a-capture\.spec\.ts/,
+    use: {
+      ...devices["Desktop Chrome"],
+      viewport: { width: 1280, height: 900 },
+      deviceScaleFactor: 1,
+      colorScheme: "light" as const,
+    },
+  },
   ...(lightLane
     ? [
         {

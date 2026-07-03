@@ -158,7 +158,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "theme modes and viewport matrix are fixed" do
       assert StressFixtures.theme_modes() == ["dark", "light", "system"]
-      assert StressFixtures.viewports() == [320, 375, 768, 1024, 1440]
+      assert StressFixtures.viewports() == [320, 375, 768, 1024, 1280, 1440]
     end
 
     test "every story exposes the canonical fixture contract" do

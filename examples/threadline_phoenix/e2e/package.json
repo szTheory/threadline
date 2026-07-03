@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
-    "test:headed": "playwright test --headed"
+    "test:headed": "playwright test --headed",
+    "capture:tier-a": "playwright test --project=tier-a-capture --project=tier-a-capture-light operator-tier-a-capture.spec.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0"

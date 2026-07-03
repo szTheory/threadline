@@ -50,6 +50,9 @@ tmp/
 /examples/threadline_phoenix/e2e/test-results/
 /examples/threadline_phoenix/e2e/playwright-report/
 /examples/threadline_phoenix/e2e/blob-report/
+# Tier A capture binaries (Phase 194) — regenerated deterministically; the
+# diffable evidence (scorecard JSON + aria YAML) is committed under .planning/scorecards/.
+/examples/threadline_phoenix/e2e/artifacts/tier-a/
 
 # Local agent/session config
 /.claude/

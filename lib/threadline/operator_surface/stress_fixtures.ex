@@ -22,7 +22,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   )
 
   @theme_modes ["dark", "light", "system"]
-  @viewports [320, 375, 768, 1024, 1440]
+  @viewports [320, 375, 768, 1024, 1280, 1440]
 
   @foundation_stories [
     {"foundation.color", "foundation.color.tokens", "Color token groups", ["mixed_severity"]},
