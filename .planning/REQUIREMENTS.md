@@ -28,7 +28,7 @@
 
 - [ ] **CRITIC-01**: A golden set of hand-labeled Threadline states (known-good primitives + known-bad footgun fixtures) exists with the maintainer's good/bad/rank verdicts.
 - [ ] **CRITIC-02**: The critic passes refute-tests before it may drive the ratchet — scores footgun fixtures low, polished primitives high, prefers the known-better of a curated A/B pair, and detects an injected regression (e.g. doubled padding, added nested card).
-- [ ] **CRITIC-03**: Critic↔human agreement is measured on the golden set and meets a documented threshold (target 75–90%); below threshold blocks automated ratcheting.
+- [x] **CRITIC-03**: Critic↔human agreement is measured on the golden set and meets a documented threshold (target 75–90%); below threshold blocks automated ratcheting.
 - [x] **CRITIC-04**: Versioned, anchored rubrics exist per lens (one per persona/JTBD + graphic-design + brand), each dimension phrased as an adversarial pass/fail with a written pass condition and a reference-bar anchor (Linear primary; Vercel/Stripe/Grafana secondary by surface).
 - [ ] **CRITIC-05**: Self-assessment is banned — every score cites a screenshot region/DOM selector or a mechanical output line; a finding that cannot be located is discarded.
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Every v1 requirement maps to exactly one 
 | MECH-05 | Phase 194 | Pending |
 | CRITIC-01 | Phase 195 | Pending |
 | CRITIC-02 | Phase 195 | Pending |
-| CRITIC-03 | Phase 195 | Pending |
+| CRITIC-03 | Phase 195 | Complete |
 | CRITIC-04 | Phase 195 | Complete |
 | CRITIC-05 | Phase 195 | Pending |
 | RUNNER-01 | Phase 195 | Pending |
