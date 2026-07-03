@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: planning
-last_updated: "2026-07-03T01:33:45.174Z"
+last_updated: "2026-07-03T02:10:00.000Z"
 last_activity: 2026-07-03
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,18 +20,20 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (defining requirements → roadmap)
+**Current focus:** v1.40 Phase 194 — Deterministic Scorecard-Cube Ledger & Mechanical Capture Foundation (roadmap complete, ready to plan)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-03 — Milestone v1.40 started
+Phase: 194 of 197 (Deterministic Scorecard-Cube Ledger & Mechanical Capture Foundation) — first of 4 v1.40 phases
+Plan: — of TBD
+Status: Ready to plan
+Last activity: 2026-07-03 — v1.40 ROADMAP created (Phases 194-197, 29/29 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (opened 2026-07-02, defining requirements)
+- **Active Milestone**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (opened 2026-07-02; roadmap complete — Phases 194-197, coarse granularity, 29/29 requirements mapped)
 - **Last Milestone Shipped**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03, Phases 189-193, 15/15 requirements)
 - **Prior Milestone Shipped**: v1.38 — Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)

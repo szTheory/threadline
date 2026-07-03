@@ -79,22 +79,46 @@
 
 ## Traceability
 
-Which phases cover which requirements. Populated during roadmap creation.
+Which phases cover which requirements. Every v1 requirement maps to exactly one phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LEDGER-01..05 | TBD | Pending |
-| MECH-01..05 | TBD | Pending |
-| CRITIC-01..05 | TBD | Pending |
-| RUNNER-01..05 | TBD | Pending |
-| GATE-01..05 | TBD | Pending |
-| PROOF-01..04 | TBD | Pending |
+| LEDGER-01 | Phase 194 | Pending |
+| LEDGER-02 | Phase 194 | Pending |
+| LEDGER-03 | Phase 194 | Pending |
+| LEDGER-04 | Phase 194 | Pending |
+| LEDGER-05 | Phase 194 | Pending |
+| MECH-01 | Phase 194 | Pending |
+| MECH-02 | Phase 194 | Pending |
+| MECH-03 | Phase 194 | Pending |
+| MECH-04 | Phase 194 | Pending |
+| MECH-05 | Phase 194 | Pending |
+| CRITIC-01 | Phase 195 | Pending |
+| CRITIC-02 | Phase 195 | Pending |
+| CRITIC-03 | Phase 195 | Pending |
+| CRITIC-04 | Phase 195 | Pending |
+| CRITIC-05 | Phase 195 | Pending |
+| RUNNER-01 | Phase 195 | Pending |
+| RUNNER-02 | Phase 195 | Pending |
+| RUNNER-03 | Phase 195 | Pending |
+| RUNNER-04 | Phase 195 | Pending |
+| RUNNER-05 | Phase 195 | Pending |
+| GATE-01 | Phase 196 | Pending |
+| GATE-02 | Phase 196 | Pending |
+| GATE-03 | Phase 196 | Pending |
+| GATE-04 | Phase 196 | Pending |
+| GATE-05 | Phase 196 | Pending |
+| PROOF-01 | Phase 196 | Pending |
+| PROOF-02 | Phase 197 | Pending |
+| PROOF-03 | Phase 197 | Pending |
+| PROOF-04 | Phase 197 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29 (Phase 194: 10 · Phase 195: 10 · Phase 196: 6 · Phase 197: 3)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-02*
-*Last updated: 2026-07-02 after initial definition*
+*Last updated: 2026-07-03 after roadmap creation (traceability populated, Phases 194-197)*
+</content>
