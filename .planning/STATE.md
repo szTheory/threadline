@@ -6,14 +6,14 @@ current_phase: 195
 current_phase_name: validated-adversarial-critic-runner-panel
 status: executing
 stopped_at: Completed 195-01-PLAN.md
-last_updated: "2026-07-03T17:13:09.421Z"
+last_updated: "2026-07-03T17:24:56.652Z"
 last_activity: 2026-07-03
 last_activity_desc: Phase 195 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 4
+  completed_plans: 5
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 ## Current Position
 
 Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-07-03 -- Phase 195 execution started
 
@@ -154,6 +154,7 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 | Phase 192 P02 | 15m | 2 tasks | 2 files |
 | Phase 192 P03 | 8min | 3 tasks | 4 files |
 | Phase 195 P01 | 4m | 3 tasks | 11 files |
+| Phase 195 P02 | 4m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -196,6 +197,7 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 
 ### Decisions
 
+- [195-02]: Rubric Anchors pole cell-ids use page-level Tier-A scorecard cells (`page.*__theme-breakpoint` format); `footgun.*` and `primitive.*` are conceptual quality labels in the ledger only, not committed scorecard files. All 11 pole cell-ids (pass + fail across 6 lenses) verified against `.planning/scorecards/`. sha8 placeholder `00000000` is intentional — Plan-04 rubric-hash guard recomputes from disk.
 - [193-02]: CLOSE-01 clauses 3 & 4 delivered as `193-RISK-REGISTER.md` + `193-NEXT-STEP.md`. Register is a verify-and-refresh of the 189 ledger (rows 1-3 CLOSED by 190/191/192, rows 6-12 preserved) ranked on the adoption/ops/maintainer lens (D-10/D-12); four post-189 residuals folded in with Owner + reopen-trigger — R-A ship-gated D-17/D-19 (rank 1, ops), R-B/WR-01 alt-schema FK-fixture gap (rank 2), R-C charter-test drift (rank 3), R-D ~81 local failures framed as maintainer-friction NOT a regression (rank 4, below R-A/R-B). Next-step is a single HOLD/thin-polish recommendation backed by three converging gates + config policy (`no_auto_new_milestone` → recommends, does not open v1.40) with five armed flip-triggers (EXT-PILOT-01, OBS-01, UI-REG-01, RECONNECT-01 + CI-depth track). No `/gsd-audit-milestone` run, no `v1.39-MILESTONE-AUDIT.md`, no version/tag change (D-01/D-02/D-03). Commits `92fcb932`, `04dd00e8`.
 - [192-03]: Release publish-race serialization scoped to the `publish-hex` job (`group: release-publish-${{ github.ref }}`, `cancel-in-progress: false`); the workflow-level `run_id`-embedding no-op group was removed so release-please bookkeeping stays independent of long publishes (D-24). `gate-ci-green` + the idempotency skip remain the real race guards; no `run_id` in the publish group; no `:latest`.
 - [192-03]: CONTRIBUTING two lists reconciled without conflating them — List 1 "Stable job keys" table 8→10 (adds `verify-hex-evaluator`, `verify-example-browser`) mirroring the ci.yml header contract (D-25); List 2 branch-protection required checks renamed `Run test suite (verify-test)` → `Run test suite (min)` / `Run test suite (current)` (D-19) while staying a deliberate subset. The GitHub branch-protection reconfig itself is the human step in Plan 04.
@@ -407,7 +409,7 @@ Progress: [██████████] Phase 194 complete & verified · Phas
 
 ## Session Continuity
 
-**Last session:** 2026-07-03T17:13:09.416Z
+**Last session:** 2026-07-03T17:24:56.647Z
 **Stopped at:** Completed 195-01-PLAN.md
 **Resume file:** None
 
