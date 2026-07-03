@@ -113,6 +113,29 @@ mix verify.flake                              # full suite, 50 repeats (fresh se
 workflow ([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml));
 it is intentionally kept out of `mix ci.all` so per-PR CI stays fast.
 
+## Local-only critic (verify.ui_critique)
+
+`mix verify.ui_critique` runs the adversarial critic runner against the
+operator-surface scorecard cells. It calls an external AI API and is therefore
+**local-only** — it requires an API key set in the environment (`ANTHROPIC_API_KEY`)
+and is **excluded from `ci.all`** (same precedent as `verify.flake`).
+
+```bash
+ANTHROPIC_API_KEY="sk-ant-..." mix verify.ui_critique
+```
+
+When `ANTHROPIC_API_KEY` is absent or empty, `mix verify.ui_critique` exits 0
+with a skip message. Contributors and CI without a key are completely unaffected.
+
+The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
+AI), runs in `ci.all` before `verify.mechanical`, and asserts that every validated
+critic lens meets its statistical trust bar (Krippendorff α ≥ 0.67, N ≥ 20,
+raw agreement ≥ 0.80). All lenses seed as `validated: false` until the trust run
+promotes them; the gate passes vacuously on the empty skeleton.
+
+> **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
+> the environment only; `mix verify.ui_critique` never writes it to files.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):

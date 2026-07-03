@@ -14,6 +14,7 @@ defmodule Threadline.MixProject do
         "verify.release": :dev,
         "verify.test": :test,
         "verify.mechanical": :test,
+        "verify.critic_trust": :test,
         "verify.capture": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
@@ -98,6 +99,16 @@ defmodule Threadline.MixProject do
       # violation or MODE-B ratchet regression blocks the change. Folded into ci.all
       # BEFORE verify.example_browser (fail fast, no browser cost).
       "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
+      # Critic trust gate (Phase 195, CRITIC-03). Pure-Elixir guard over the committed
+      # design-system-ledger.json critic_trust block and golden-set.json — NO browser,
+      # NO network, NO LLM. Asserts validated lenses meet the bar; seeds validated:false
+      # until Plan 04 lands the real α gate. Folded into ci.all BEFORE verify.mechanical.
+      "verify.critic_trust": ["test test/threadline/operator_surface/critic_trust_test.exs"],
+      # Local-only adversarial critic runner (Phase 195, RUNNER-04). Requires ANTHROPIC_API_KEY
+      # (maintainer-local only — never committed, never in CI). Excluded from ci.all (same
+      # precedent as verify.flake). When ANTHROPIC_API_KEY is absent, exits 0 with a skip
+      # message so contributors without a key are unaffected. See CONTRIBUTING.md.
+      "verify.ui_critique": &verify_ui_critique/1,
       "verify.capture": &verify_capture/1,
       "verify.phase177_uat": &verify_phase177_uat/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
@@ -116,6 +127,9 @@ defmodule Threadline.MixProject do
         "verify.threadline",
         "verify.example",
         "verify.doc_contract",
+        # Deterministic critic trust gate (reads committed ledger + golden JSON, no browser, no LLM).
+        # Runs BEFORE verify.mechanical so a ratchet tamper or lens-trust gap fails fast.
+        "verify.critic_trust",
         # Deterministic mechanical gate (reads committed scorecard JSON, no browser).
         # Runs BEFORE the browser lane so a token/contrast/ratchet violation fails fast.
         "verify.mechanical",
@@ -224,6 +238,35 @@ defmodule Threadline.MixProject do
   # light/system theme lane). Mirrors verify.operator_stress.
   defp verify_phase177_uat(args),
     do: verify_example_browser(["operator-phase-177-uat.spec.ts" | args])
+
+  # Local-only adversarial critic runner (Phase 195, RUNNER-04).
+  # Requires ANTHROPIC_API_KEY (maintainer-local; never CI).
+  # When the key is absent (empty or unset), prints a skip notice and returns :ok
+  # so `mix verify.ui_critique` exits 0 on any contributor machine. See CONTRIBUTING.md.
+  # NOT in ci.all — the same local-only precedent as verify.flake.
+  defp verify_ui_critique(args) do
+    case System.get_env("ANTHROPIC_API_KEY") do
+      key when is_nil(key) or key == "" ->
+        IO.puts("mix verify.ui_critique: ANTHROPIC_API_KEY not set — skipping (local-only, requires maintainer key)")
+        :ok
+
+      _key ->
+        e2e_dir = Path.expand("examples/threadline_phoenix/e2e")
+
+        env =
+          System.get_env()
+          |> Enum.map(fn {k, v} -> {k, v} end)
+
+        case System.cmd("npm", ["run", "critic:score" | args],
+               cd: e2e_dir,
+               env: env,
+               into: IO.stream(:stdio, :line)
+             ) do
+          {_output, 0} -> :ok
+          {_output, status} -> Mix.raise("verify.ui_critique failed (#{status})")
+        end
+    end
+  end
 
   defp verify_hex_evaluator(_args) do
     cmd =
