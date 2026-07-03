@@ -13,6 +13,7 @@ defmodule Threadline.MixProject do
         "verify.doc_contract": :test,
         "verify.release": :dev,
         "verify.test": :test,
+        "verify.mechanical": :test,
         "verify.capture": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
@@ -92,6 +93,11 @@ defmodule Threadline.MixProject do
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.operator_stress": &verify_operator_stress/1,
+      # Deterministic mechanical gate (Phase 194, MECH-03). Pure-Elixir arithmetic over
+      # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
+      # violation or MODE-B ratchet regression blocks the change. Folded into ci.all
+      # BEFORE verify.example_browser (fail fast, no browser cost).
+      "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
       "verify.capture": &verify_capture/1,
       "verify.phase177_uat": &verify_phase177_uat/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
@@ -110,6 +116,9 @@ defmodule Threadline.MixProject do
         "verify.threadline",
         "verify.example",
         "verify.doc_contract",
+        # Deterministic mechanical gate (reads committed scorecard JSON, no browser).
+        # Runs BEFORE the browser lane so a token/contrast/ratchet violation fails fast.
+        "verify.mechanical",
         # Browser e2e last (slowest; needs Node + Playwright) so `mix ci.all`
         # locally runs the same gate CI does, including the operator surface.
         "verify.example_browser"
