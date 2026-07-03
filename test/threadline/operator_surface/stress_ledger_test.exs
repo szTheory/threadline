@@ -237,6 +237,106 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "current_score is the min of rated cells, else the ratchet watermark (rollup integrity)" do
+      for entry <- entries() do
+        id = entry["id"]
+        scores = entry["scores"] || %{}
+
+        rated_currents =
+          scores
+          |> Map.values()
+          |> Enum.map(& &1["current"])
+          |> Enum.reject(&is_nil/1)
+
+        if rated_currents == [] do
+          assert entry["current_score"] == entry["ratchet_score"],
+                 "#{id} has no rated cells; current_score #{entry["current_score"]} must equal ratchet_score #{entry["ratchet_score"]} (scalar is the watermark, no unearned gain)"
+        else
+          assert entry["current_score"] == Enum.min(rated_currents),
+                 "#{id} current_score #{entry["current_score"]} must equal min of rated cell currents #{inspect(rated_currents)}"
+        end
+      end
+    end
+
+    test "per-cell scores can only ratchet upward unless the entry has an explicit reset" do
+      ledger = ledger()
+      reset_ids = Map.keys(Map.get(ledger["ratchet"], "resets", %{}))
+
+      for entry <- ledger["entries"] do
+        id = entry["id"]
+        scores = entry["scores"] || %{}
+
+        for {cell_key, cell} <- scores do
+          current = cell["current"]
+          floor = cell["floor"] || 0
+
+          if not is_nil(current) and current < floor do
+            assert id in reset_ids,
+                   "#{id} cell #{cell_key}: current #{current} is below floor #{floor} without a ratchet reset"
+
+            assert is_binary(entry["reset_rationale"]) and entry["reset_rationale"] != "",
+                   "#{id} cell #{cell_key}: current #{current} below floor #{floor} without a non-empty reset_rationale"
+          end
+        end
+      end
+    end
+
+    test "a score increase carries a File.exists?-true evidence_ref for every cited cell" do
+      ledger = ledger()
+      valid_cell_keys = valid_cell_keys(ledger["cube_axes"])
+
+      for entry <- ledger["entries"], entry["current_score"] > entry["ratchet_score"] do
+        id = entry["id"]
+        ref = entry["evidence_ref"]
+
+        assert is_map(ref) and map_size(ref) > 0,
+               "#{id} has a score increase but evidence_ref is not a non-empty cell-keyed map"
+
+        for {cell_key, path} <- ref do
+          assert cell_key in valid_cell_keys,
+                 "#{id} evidence_ref cell key #{inspect(cell_key)} is not declared in cube_axes"
+
+          assert is_binary(path) and path != "",
+                 "#{id} evidence_ref[#{cell_key}] must be a non-empty repo-relative path string"
+
+          assert File.exists?(path),
+                 "#{id} evidence_ref[#{cell_key}] path does not exist: #{inspect(path)}"
+        end
+      end
+    end
+
+    test "cube_axes declares the frozen lens order and every entry carries the valid cell set" do
+      ledger = ledger()
+      cube_axes = ledger["cube_axes"]
+      cube_lenses = Enum.map(cube_axes["lenses"], & &1["slug"])
+
+      assert cube_lenses == ~w(hierarchy density rhythm typography color_contrast brand_fidelity),
+             "cube_axes lenses must match the D-01 frozen vocabulary in fixed order, got #{inspect(cube_lenses)}"
+
+      valid_cell_keys = valid_cell_keys(cube_axes)
+
+      for entry <- ledger["entries"] do
+        id = entry["id"]
+        cell_keys = entry["scores"] |> Map.keys() |> Enum.sort()
+
+        assert cell_keys == valid_cell_keys,
+               "#{id} cube cell keys #{inspect(cell_keys)} do not match the cube_axes valid set #{inspect(valid_cell_keys)}"
+      end
+    end
+
+    test "mechanical-authority cells do not carry signoff floor bumps" do
+      ledger = ledger()
+      auto_lenses = ~w(density rhythm typography color_contrast brand_fidelity)
+      signoffs = Map.get(ledger["ratchet"], "signoffs", [])
+
+      for signoff <- signoffs do
+        lens = signoff["cell_key"] |> String.split(".") |> List.last()
+
+        refute lens in auto_lenses,
+               "signoff for #{signoff["cell_key"]} targets a mechanical-authority lens; auto lenses ratchet automatically, not via signoff"
+      end
+    end
+
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp design_system, do: File.read!(@design_system_path)
     defp entries, do: ledger()["entries"]
@@ -249,6 +349,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp inventory_row(entry) do
       "| `#{entry["id"]}` | #{entry["status"]} | #{entry["current_score"]} | #{entry["target_score"]} |"
+    end
+
+    defp valid_cell_keys(cube_axes) do
+      personas = Enum.map(cube_axes["personas"], & &1["slug"])
+      lenses = Enum.map(cube_axes["lenses"], & &1["slug"])
+      invariant_lenses = ~w(rhythm typography color_contrast brand_fidelity)
+
+      persona_keyed =
+        for p <- personas, l <- lenses, l not in invariant_lenses, do: "#{p}.#{l}"
+
+      invariant_keyed = for l <- invariant_lenses, do: "all.#{l}"
+
+      Enum.sort(persona_keyed ++ invariant_keyed)
     end
   end
 end
