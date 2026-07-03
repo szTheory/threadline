@@ -24,6 +24,7 @@ defmodule Threadline.CriticTrust.KrippendorffAlphaTest do
     # α < 0 is a valid signal — never clamp.
     pairs = [{1, 3}, {1, 3}, {1, 3}, {1, 3}]
     assert {:ok, alpha} = KrippendorffAlpha.compute(pairs)
+
     assert alpha < 0,
            "systematic disagreement must produce alpha < 0, got #{inspect(alpha)}"
   end

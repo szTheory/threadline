@@ -222,8 +222,8 @@ defmodule Threadline.OperatorSurface.StressFixtures do
 
     # 5. Brand fidelity: mis-jobbed accent (real --tl-* token, wrong semantic job)
     {"refute.brand-fidelity.mis-jobbed-accent.polished",
-     "refute.brand_fidelity.mis_jobbed_accent.polished",
-     "Brand fidelity – correct accent jobs", :brand_fidelity, :polished,
+     "refute.brand_fidelity.mis_jobbed_accent.polished", "Brand fidelity – correct accent jobs",
+     :brand_fidelity, :polished,
      "Correct: Thread Blue (--tl-color-thread-blue) for actions; Ember (--tl-color-ember) for diff-emphasis only."},
     {"refute.brand-fidelity.mis-jobbed-accent.flawed",
      "refute.brand_fidelity.mis_jobbed_accent.flawed",

@@ -41,6 +41,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              "#{@refute_manifest} not found — run plan 195-03 Task 2 to create it"
 
       m = manifest()
+
       assert is_binary(m["version"]) and m["version"] != "",
              "#{@refute_manifest} must have a non-empty version string"
 
@@ -95,7 +96,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # distinct_accent_hue_count > 3). A violation here means the flaw bleeds into
       # mechanical territory — that would make it a mechanical test, not a critic test
       # (D-03 breach).
-      tmp_dir = Path.join(System.tmp_dir!(), "refute-partition-#{System.unique_integer([:positive])}")
+      tmp_dir =
+        Path.join(System.tmp_dir!(), "refute-partition-#{System.unique_integer([:positive])}")
+
       File.mkdir_p!(tmp_dir)
 
       try do
@@ -118,6 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 "These flaws must pass all mechanical gates (they test what the critic catches, not mechanics).\n\n" <>
                 Enum.map_join(violations, "\n", fn v ->
                   v = if is_struct(v), do: Map.from_struct(v), else: v
+
                   "  #{v[:cell_id]}: MODE #{v[:mode]} #{v[:metric]} #{v[:selector]}\n" <>
                     "    expected: #{v[:expected]}, got: #{v[:observed]}\n" <>
                     "    fix: #{v[:fix]}"
@@ -170,6 +174,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert item != nil, "veto_ordering item missing from manifest"
 
       note = item["evidence_note"]
+
       assert is_binary(note) and note != "",
              "veto-ordering twin must have a non-empty evidence_note"
 
@@ -191,6 +196,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         golden_text = File.read!(@golden_set)
         golden = Jason.decode!(golden_text)
+
         golden_cell_ids =
           (golden["items"] || [])
           |> Enum.flat_map(fn item ->

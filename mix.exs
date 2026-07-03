@@ -247,7 +247,10 @@ defmodule Threadline.MixProject do
   defp verify_ui_critique(args) do
     case System.get_env("ANTHROPIC_API_KEY") do
       key when is_nil(key) or key == "" ->
-        IO.puts("mix verify.ui_critique: ANTHROPIC_API_KEY not set — skipping (local-only, requires maintainer key)")
+        IO.puts(
+          "mix verify.ui_critique: ANTHROPIC_API_KEY not set — skipping (local-only, requires maintainer key)"
+        )
+
         :ok
 
       _key ->

@@ -5,7 +5,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @ledger_path ".planning/design-system-ledger.json"
     @golden_set_path ".planning/golden/golden-set.json"
     @scorecards_dir ".planning/scorecards"
+    @critic_scores_dir ".planning/critic-scores"
     @critique_path "CRITIQUE.md"
+    @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
     @critic_lenses ~w(
       hierarchy
@@ -40,10 +42,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Happo"
     ]
 
+    # Persona labels used in CRITIQUE.md rows (one row per cell × persona).
+    @scorecard_personas ~w(p1 p2 p3 p4 p5 all)
+
     # ── Ledger critic_trust block shape ──────────────────────────────────────────
 
     test "design-system-ledger.json has a critic_trust top-level block" do
       ledger = ledger()
+
       assert Map.has_key?(ledger, "critic_trust"),
              "#{@ledger_path} is missing top-level 'critic_trust' block"
     end
@@ -70,10 +76,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    test "every validated critic_trust lens meets the statistical trust bar" do
+    test "every validated critic_trust lens meets the full statistical trust bar" do
       # Vacuously passes while all lenses have validated: false.
-      # When a lens is promoted to validated: true (Plan 04+), this gate enforces
-      # Krippendorff α ≥ 0.67, N ≥ 20, raw_agreement ≥ 0.80, model_id == "claude-opus-4-8".
+      # When a lens is promoted to validated: true (after running `critic validate`),
+      # this gate enforces the full per-lens bar:
+      #   alpha >= 0.67  — chance-corrected agreement (Krippendorff's ordinal α)
+      #   n >= 20        — minimum sample size
+      #   raw_agreement >= 0.80 — recorded companion (non-gating alone)
+      #   model_id == "claude-opus-4-8" — single model pin
+      #   golden_rubric_version == "<lens>@<semver>+<sha8>" where sha8 is recomputed
+      #     from the current disk bytes of rubrics/<lens>.md (rubric-hash freshness)
       critic_trust = ledger()["critic_trust"]
 
       for lens <- @critic_lenses do
@@ -84,6 +96,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           n = lens_data["n"]
           raw_agreement = lens_data["raw_agreement"]
           model_id = lens_data["model_id"]
+          golden_rubric_version = lens_data["golden_rubric_version"]
 
           assert is_number(alpha) and alpha >= 0.67,
                  "critic_trust[#{lens}] validated but alpha #{inspect(alpha)} < 0.67 (Krippendorff bar)"
@@ -96,6 +109,69 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           assert model_id == "claude-opus-4-8",
                  "critic_trust[#{lens}] model_id mismatch: expected \"claude-opus-4-8\", got #{inspect(model_id)}"
+
+          # Rubric-hash freshness: the sha8 in golden_rubric_version must match
+          # the sha8 computed from current rubric bytes. A rubric bump
+          # auto-invalidates the lens until it is re-scored.
+          assert is_binary(golden_rubric_version),
+                 "critic_trust[#{lens}] validated but golden_rubric_version is nil"
+
+          rubric_path = Path.join(@rubrics_dir, "#{lens}.md")
+
+          if File.exists?(rubric_path) do
+            stamped_sha8 = extract_sha8_from_version(golden_rubric_version)
+            disk_sha8 = sha8_of_file(rubric_path)
+
+            assert stamped_sha8 == disk_sha8,
+                   "critic_trust[#{lens}] rubric-hash mismatch: " <>
+                     "golden_rubric_version stamped sha8 #{inspect(stamped_sha8)} " <>
+                     "!= recomputed sha8 from disk #{inspect(disk_sha8)}. " <>
+                     "The rubric has changed since validation — set validated:false " <>
+                     "and re-score (T-195-11)."
+          end
+        end
+      end
+    end
+
+    # ── Rubric-hash freshness guard ───────────────────────────────────────────────
+    # Recomputes each rubric's sha8 from disk and asserts it matches the sha8
+    # stamped in the rubric file header. This guard fires for EVERY existing
+    # rubric file (not just validated lenses) — a header sha8 mismatch means
+    # the file was edited but the header was not re-stamped by `critic rubric bump`.
+
+    test "each rubric file's header sha8 matches the sha8 of its disk bytes" do
+      # The header format is: <!-- lens: <l> | version: <v> | sha8: <h> -->
+      # The sha8 in the header is computed from the file bytes with the sha8
+      # field set to the placeholder 00000000 (so the hash is stable).
+      # Plan-05 lands `critic rubric lint` which stamps the real hash;
+      # Plan-04 implements the guard that will catch drift after stamping.
+      # While all sha8 values are 00000000 (placeholder), this test is vacuous
+      # for actual hash verification but asserts the header is parseable and
+      # the format is correct.
+      for lens <- @critic_lenses do
+        rubric_path = Path.join(@rubrics_dir, "#{lens}.md")
+
+        if File.exists?(rubric_path) do
+          content = File.read!(rubric_path)
+
+          # Parse the header: <!-- lens: X | version: Y | sha8: Z -->
+          header_sha8 = extract_header_sha8(content)
+
+          assert is_binary(header_sha8),
+                 "rubric #{rubric_path} is missing a parseable sha8 in the header comment"
+
+          # When sha8 is a real hash (not the 00000000 placeholder), verify it
+          # matches the sha8 computed from the file bytes (with the sha8 field
+          # normalised to 00000000 so the hash is self-consistent).
+          if header_sha8 != "00000000" do
+            normalised_content = normalise_sha8(content, "00000000")
+            disk_sha8 = sha8_of_string(normalised_content)
+
+            assert header_sha8 == disk_sha8,
+                   "rubric #{lens}.md header sha8 #{inspect(header_sha8)} does not match " <>
+                     "the sha8 of disk bytes (with placeholder) #{inspect(disk_sha8)}. " <>
+                     "Run `critic rubric lint` to re-stamp (T-195-11)."
+          end
         end
       end
     end
@@ -141,6 +217,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # ── Held-out guard ────────────────────────────────────────────────────────────
+    # held_out_ids are the Phase-196 true-north slice — they must never appear
+    # in golden-set items (the labeling + agreement pool). Contamination would
+    # teach-to-the-test (FWD-2 from PITFALLS.md).
+
+    test "no held_out_id appears in golden-set items (frozen true-north must stay separate)" do
+      gs = golden_set()
+      held_out_ids = gs["held_out_ids"]
+      item_cell_ids = Enum.map(gs["items"], & &1["cell_id"])
+
+      for held_out <- held_out_ids do
+        refute held_out in item_cell_ids,
+               "golden-set held_out_id #{inspect(held_out)} was found in 'items' — " <>
+                 "held-out cells are the Phase-196 true-north slice and must never " <>
+                 "be included in the labeling pool (FWD-2)"
+      end
+    end
+
+    # ── Prefix-exemplar disjointness guard ───────────────────────────────────────
+    # Each rubric's ## Anchors block names one pass-pole and one fail-pole
+    # (by cell-id) that are embedded in the prompt's cached prefix as few-shot
+    # calibration examples. These poles must NEVER overlap with golden mid-range
+    # items or held_out_ids — teaching-to-the-test would inflate α (D-05, T-195-12).
+
+    test "rubric pole cell-ids are disjoint from golden mid-range items and held_out_ids" do
+      gs = golden_set()
+      held_out_ids = gs["held_out_ids"]
+      mid_range_ids = Enum.map(gs["items"], & &1["cell_id"])
+      forbidden_ids = MapSet.new(held_out_ids ++ mid_range_ids)
+
+      for lens <- @critic_lenses do
+        rubric_path = Path.join(@rubrics_dir, "#{lens}.md")
+
+        if File.exists?(rubric_path) do
+          pole_ids = extract_pole_ids(rubric_path)
+
+          for pole_id <- pole_ids do
+            refute MapSet.member?(forbidden_ids, pole_id),
+                   "rubric #{lens} pole #{inspect(pole_id)} appears in golden mid-range " <>
+                     "or held_out_ids — this teaches-to-the-test and inflates α (D-05, T-195-12)"
+          end
+        end
+      end
+    end
+
     # ── Separation of concerns: critic-scores vs scorecards ──────────────────────
 
     test "no scorecard file in .planning/scorecards/ references .planning/critic-scores" do
@@ -159,11 +280,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # ── CRITIQUE.md freshness guard (vacuous until Plan 07 lands report.ts) ──────
+    # ── CRITIQUE.md guards ────────────────────────────────────────────────────────
 
     test "CRITIQUE.md does not contain forbidden external tool names" do
-      # TODO(Plan-07): upgrade to row-per-(cell_id × persona) freshness assertion
-      # after report.ts lands and CRITIQUE.md is generated from critic-scores/.
       # Guard with File.exists? so the absence of CRITIQUE.md is a vacuous pass.
       if File.exists?(@critique_path) do
         critique = File.read!(@critique_path)
@@ -175,27 +294,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # ── Rubric-hash freshness guard (vacuous until Plan 05 lands rubrics/) ────────
+    test "CRITIQUE.md has one row per (cell_id × persona) for every scored cell (vacuous until Plan 07)" do
+      # Vacuously passes while CRITIQUE.md does not exist (Plan 07 creates it via report.ts).
+      # When CRITIQUE.md exists AND critic-scores/ is non-empty, assert one row
+      # per (cell_id × persona) is a substring — mirrors the DESIGN-SYSTEM.md
+      # freshness guard in stress_ledger_test.exs.
+      if File.exists?(@critique_path) and File.dir?(@critic_scores_dir) do
+        critique = File.read!(@critique_path)
 
-    test "validated lens golden_rubric_version matches rubric file hash (vacuous when no rubric files)" do
-      # TODO(Plan-05): replace with real rubric hash check once critic/rubrics/*.md land.
-      # For now: any lens with validated: true and a non-nil golden_rubric_version should
-      # have a matching rubric file. Guarded by File.exists? so absence is a vacuous pass.
-      critic_trust = ledger()["critic_trust"]
+        scored_cell_ids =
+          Path.wildcard(Path.join(@critic_scores_dir, "*/"))
+          |> Enum.map(&Path.basename/1)
+          |> Enum.sort()
 
-      for lens <- @critic_lenses do
-        lens_data = Map.fetch!(critic_trust, lens)
+        for cell_id <- scored_cell_ids, persona <- @scorecard_personas do
+          # Each row begins with the cell_id and persona columns
+          row_prefix = "| `#{cell_id}` | #{persona} |"
 
-        if lens_data["validated"] == true do
-          rubric_path = "examples/threadline_phoenix/e2e/critic/rubrics/#{lens}.md"
-          golden_rubric_version = lens_data["golden_rubric_version"]
-
-          if File.exists?(rubric_path) and not is_nil(golden_rubric_version) do
-            # Rubric version format: "<lens>@<semver>+<sha8>" — sha8 is the hash of the file's bytes.
-            # The full assertion (sha8 match) is deferred to Plan 05 when the rubric lint CLI lands.
-            assert is_binary(golden_rubric_version) and String.contains?(golden_rubric_version, lens),
-                   "critic_trust[#{lens}] golden_rubric_version #{inspect(golden_rubric_version)} does not reference #{lens}"
-          end
+          assert String.contains?(critique, row_prefix),
+                 "#{@critique_path} is stale: missing row for #{cell_id} × #{persona}. " <>
+                   "Run `mix verify.ui_critique` to regenerate."
         end
       end
     end
@@ -204,5 +322,52 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp golden_set, do: @golden_set_path |> File.read!() |> Jason.decode!()
+
+    # Extract the sha8 from a golden_rubric_version string like "hierarchy@1.0.0+ab3f1234"
+    defp extract_sha8_from_version(version) when is_binary(version) do
+      case String.split(version, "+") do
+        [_prefix, sha8] -> sha8
+        _ -> nil
+      end
+    end
+
+    defp extract_sha8_from_version(_), do: nil
+
+    # Compute sha8 (first 8 hex chars of SHA-256) of a file's bytes.
+    defp sha8_of_file(path) do
+      path |> File.read!() |> sha8_of_string()
+    end
+
+    # Compute sha8 of a binary string.
+    defp sha8_of_string(content) when is_binary(content) do
+      :crypto.hash(:sha256, content)
+      |> Base.encode16(case: :lower)
+      |> String.slice(0, 8)
+    end
+
+    # Replace the sha8 value in a rubric header with a normalised placeholder.
+    # This allows computing a self-consistent hash (the hash of the file content
+    # with the sha8 field zeroed out).
+    defp normalise_sha8(content, placeholder) when is_binary(content) do
+      Regex.replace(~r/(\|\s*sha8:\s*)[0-9a-f]{8}/, content, "\\1#{placeholder}")
+    end
+
+    # Parse the sha8 value from the rubric file's HTML comment header:
+    # <!-- lens: X | version: Y | sha8: HHHHHHHH -->
+    defp extract_header_sha8(content) when is_binary(content) do
+      case Regex.run(~r/<!--.*sha8:\s*([0-9a-f]+).*-->/, content) do
+        [_, sha8] -> sha8
+        _ -> nil
+      end
+    end
+
+    # Parse the pass-pole and fail-pole cell-ids from a rubric's ## Anchors block.
+    # Pattern: **Pass pole:** `<cell_id>`  or  **Fail pole:** `<cell_id>`
+    defp extract_pole_ids(rubric_path) do
+      content = File.read!(rubric_path)
+
+      Regex.scan(~r/\*\*(?:Pass|Fail) pole:\*\*\s+`([^`]+)`/, content)
+      |> Enum.map(fn [_, cell_id] -> cell_id end)
+    end
   end
 end
