@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: verifying
-stopped_at: Phase 195 context complete (D-01..D-11)
-last_updated: "2026-07-03T15:57:54.722Z"
+stopped_at: Phase 195 planned (7 plans, 3 waves) — ready to execute
+last_updated: "2026-07-03T16:56:28.000Z"
 last_activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
 progress:
   total_phases: 4
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 195 — Validated Adversarial Critic Runner & Panel (next — not started; Phase 194 complete)
+**Current focus:** Phase 195 — Validated Adversarial Critic Runner & Panel (PLANNED — 7 plans in 3 waves; ready to execute)
 
 ## Current Position
 
-Phase: 194 (deterministic-scorecard-cube-ledger-mechanical-capture-found) — VERIFIED & COMPLETE
-Plan: 3 of 3 executed
-Status: Phase 194 verified passed (10/10). Both former CI-pending UAT items shifted left into recurring CI gates (verify-capture + verify-mechanical) — 0 human verification. Next: `/gsd-plan-phase 195`.
-Last activity: 2026-07-03 -- Phase 194 verified; Tier A capture executed (120 scorecards + 54 aria, byte-stable), mechanical_floors seeded, MechanicalChecker.run/1 clean over real evidence.
+Phase: 195 (validated-adversarial-critic-runner-panel) — PLANNED (ready to execute)
+Plan: 0 of 7 executed (7 plans across 3 waves)
+Status: Phase 195 planned — research + pattern-map + plan-checker (0 blockers) complete. 7 plans, 3 waves; all 10 REQ-IDs + D-01..D-11 covered (decision-coverage gate parse-failure overridden — coverage confirmed via plans + checker). Next: `/gsd-execute-phase 195`.
+Last activity: 2026-07-03 -- Phase 195 planned (7 plans, 3 waves); RESEARCH/PATTERNS/VALIDATION produced; plan-checker passed with 0 blockers (2 warnings fixed via targeted revision).
 
-Progress: [██████████] Phase 194 complete & verified (1/4 phases)
+Progress: [██████████] Phase 194 complete & verified · Phase 195 planned (1/4 phases complete)
 
 ## Performance Metrics
 
@@ -402,9 +402,9 @@ Progress: [██████████] Phase 194 complete & verified (1/4 ph
 
 ## Session Continuity
 
-**Last session:** 2026-07-03T15:57:54.718Z
-**Stopped at:** Phase 195 context complete (D-01..D-11)
-**Resume file:** .planning/phases/195-validated-adversarial-critic-runner-panel/195-CONTEXT.md
+**Last session:** 2026-07-03T16:56:28.000Z
+**Stopped at:** Phase 195 planned (7 plans, 3 waves) — ready to execute
+**Resume file:** .planning/phases/195-validated-adversarial-critic-runner-panel/195-01-PLAN.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
