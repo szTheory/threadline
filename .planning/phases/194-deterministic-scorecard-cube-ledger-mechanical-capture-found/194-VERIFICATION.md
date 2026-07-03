@@ -1,22 +1,20 @@
 ---
 phase: 194-deterministic-scorecard-cube-ledger-mechanical-capture-found
 verified: 2026-07-03T00:00:00Z
-status: human_needed
-score: 9/10 must-haves verified (PASS-WITH-CI-PENDING)
-behavior_unverified: 1
+status: passed
+score: 10/10 must-haves verified
+behavior_unverified: 0
 overrides_applied: 0
-behavior_unverified_items:
-  - truth: "MECH-04 — the Tier A capture lane emits a complete evidence bundle per cell (120 scorecards + deep-band ARIA YAML) driven from /audit/__stress, byte-stable on re-run."
-    test: "In CI (or a local env with a migrated example-app DB), run `mix verify.capture`; then re-run it and confirm `git diff` on `.planning/scorecards/` is empty."
-    expected: "Exactly 120 committed `.planning/scorecards/*.json` (66 Band-1 + 54 Band-2) + 54 `.aria.yml`; second run leaves git diff empty (byte-stable)."
-    why_human: "The capture spec + 2 Playwright projects + `verify.capture` runner are code-complete and reviewed, but the lane has NEVER executed here — `.planning/scorecards/` is absent/empty (0/120). Local execution is blocked by the pre-existing storage_schema/search_path DB issue (`relation \"audit_transactions\" does not exist`) during example-app seeding — a documented env limitation, not a code defect. Byte-stability and real evidence-bundle emission are only observable by running the lane against a migrated DB + real browser."
-human_verification:
-  - test: "Run `mix verify.capture` in CI (migrated example DB + browser), then re-run and confirm empty git diff on `.planning/scorecards/`."
-    expected: "120 scorecard JSON + 54 aria.yml generated; regeneration byte-stable."
-    why_human: "MECH-04 capture lane never executed locally (DB env limitation); evidence bundles do not yet exist."
-  - test: "After scorecards are captured, run `mix verify.mechanical` (and full `mix ci.all`) over the real committed `.planning/scorecards/*.json`; seed `mechanical_floors` from that first capture and confirm the Plan-01 monotonicity guard stays green."
-    expected: "`MechanicalChecker.run/1` returns `{:ok, []}` over real evidence (any MODE-A finding is snapped to nearest token); `mechanical_floors` seeded; `ci.all` green end-to-end."
-    why_human: "The capture→check E2E has never run against real evidence — locally `run/1` is vacuously `{:ok, []}` over an empty dir. Checker correctness is proven by 12 committed fixture-driven PASS+RED tests, but real-evidence cleanliness + floor seeding are CI-only."
+# Both former CI-pending items were shifted left into automated gates (2026-07-03).
+# The Tier A capture executed against a migrated example DB; 120 scorecards + 54
+# aria.yml committed, byte-stable; MechanicalChecker.run/1 is {:ok, []} over the
+# real evidence; mechanical_floors seeded. See 194-UAT.md (both tests pass).
+automated_verification:
+  - test: "MECH-04 — Tier A capture emits 120 byte-stable evidence bundles from /audit/__stress."
+    covered_by: "CI job verify-capture (.github/workflows/ci.yml) — regenerates the lane on a fresh migrated DB and asserts the 120 json + 54 aria.yml count AND byte-stable regeneration (git status --porcelain .planning/scorecards/ empty). Local: mix verify.capture. Genesis evidence committed in f0990a2f; byte-stability proven twice locally."
+  - test: "Capture→check E2E clean over real evidence + mechanical_floors seeded."
+    covered_by: "CI job verify-mechanical + the real-evidence gate in mechanical_checker_test.exs — asserts MechanicalChecker.run/1 == {:ok, []} over the committed scorecards on every run (mix verify.mechanical). mechanical_floors seeded with 600 values via measure_mode_b/1; stress_ledger_test 16/16 + mechanical_checker_test 18/18 green."
+    follow_up: "A capture-scoping defect (the /audit/__stress harness sidebar chrome leaked into evidence, producing 120 spurious 1:1 WCAG findings) was found and fixed in ab2fb7f7 — the real product surface is fully conformant. LEDGER-02/03 committed-teeth recommendation from the notes below still applies at Phase 195 when cells are first rated."
 ---
 
 # Phase 194: Deterministic Scorecard-Cube Ledger & Mechanical Capture Foundation — Verification Report
