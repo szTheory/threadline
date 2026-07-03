@@ -5,9 +5,9 @@
 
 **Date:** 2026-07-03
 **Phase:** 195-Validated Adversarial Critic Runner & Panel
-**Areas discussed:** Golden set & verdict format, Trust bar & agreement metric, Refute-test battery, Self-consistency N & cost budget
+**Areas discussed:** Golden set & verdict format, Trust bar & agreement metric, Refute-test battery, Self-consistency N & cost budget (round 1 → D-01..D-04); Per-lens rubric design, Panel orchestration & cube merge, Runner architecture & schema, Critic report surface & JTBD (round 2 → D-05..D-08).
 
-**Method:** User selected all 4 gray areas and requested deep parallel research (subagents) per area — pros/cons/tradeoffs, Elixir/Phoenix ecosystem idioms, lessons from analogous libs/apps, DX/UX and design lenses, `prompts/`+current-brandbook grounding — then one coherent, cohesive recommendation set. Four `gsd-advisor-researcher` agents ran in parallel; findings synthesized into D-01..D-04 with one cross-decision reconciliation. Everything already locked by Phase 194 (critic↔lens map, cube, cell-ids, invariants, reference bar) was carried forward, not re-asked.
+**Method:** Two rounds of deep parallel research (subagents), each round dispatching four `gsd-advisor-researcher` agents grounded in the locked 194/195 decisions + `prompts/`/current-brandbook + external best practice, then synthesized into one coherent set. Round 1 (oracle/trust side) → D-01..D-04. Round 2 (build/DX side) → D-05..D-08, grounded in the round-1 locks so everything coheres. Everything already locked by Phase 194 (critic↔lens map, cube, cell-ids, invariants, reference bar) was carried forward, not re-asked.
 
 ---
 
@@ -66,6 +66,49 @@
 **Notes:** Pricing verified against live docs. Footgun: cache prefix must exceed Opus's 4,096-token minimum or it silently won't cache; watch 5-min TTL on slow sweeps. Critic reads the curated Tier-B subset locally.
 
 ---
+
+## Per-lens rubric design (CRITIC-04) — round 2
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Markdown rubric/lens, 2–3 gestalt dimensions (13 total), adversarial pass conditions, prose + 2-pole anchors, per-lens semver+hash | Tight, anchorable, cache-coherent, per-lens auto-invalidation | ✓ |
+| One dimension per lens | Too coarse; can't isolate what regressed | |
+| Global rubric version | Editing one lens needlessly re-invalidates all → violates per-lens D-02 | |
+| Embed mid-range/held-out golden cells as few-shot | Leaks the agreement metric / true-north set | |
+
+**User's choice:** Research-and-recommend → D-05. **Notes:** dimensions target only gestalt the mechanics can't measure (no duplication); poles-only few-shot doubles as anti-flattery anchor + pushes prefix past the 4096-token cache floor.
+
+## Panel orchestration & cube merge (RUNNER-03) — round 2
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Blind cell-writers; brand-veto is mechanical pre-gate that nulls + skips vision; preserve persona disagreement via min() | Honest, no averaging, no poisoning of min() | ✓ |
+| Aggregate/average persona critics into one score | Destroys the JTBD divergence the cube exists to expose | |
+| Let critics read each other's cells | Re-introduces anchoring/averaging; breaks independence | |
+| Write vetoed cell as 0 | Registers as a monotonicity drop; poisons min() | |
+
+**User's choice:** Research-and-recommend → D-06. **Notes:** persona clause sits after the cache boundary so all 5 personas reuse one cached lens prefix; veto and unstable both write null, distinguished by a flag.
+
+## Runner architecture & schema (RUNNER-01) — round 2
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| TS CLI in e2e/critic/; messages.parse() structured output; evidence required at schema layer; scores land in SEPARATE .planning/critic-scores/ | Coheres with capture lane; keeps deterministic bundle pristine; CRITIC-05 enforced structurally | ✓ |
+| Write LLM scores into the committed .planning/scorecards/ | Churns byte-stable diffs; nondeterministic producer mutates the CI-guarded bundle | |
+| Plain JS, no schema-level evidence enforcement | Loses the single-source-of-truth + CRITIC-05 guarantee | |
+
+**User's choice:** Research-and-recommend → D-07. **Notes:** SDK strips numeric bounds → clamp score client-side; verdict cache {cell,dimension,rubric_hash,model_id} gives resumability; guard asserts critic never writes under scorecards/.
+
+## Critic report surface & JTBD — round 2
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Three surfaces: JSON truth + terminal glance + committed CRITIQUE.md projection (primary, reuses DESIGN-SYSTEM.md mechanic); Betterer idiom; symbol+text signals | Reviewable in PRs, accessible, no new surface invented | ✓ |
+| Build a LiveView/HTML dashboard | Violates dev/test-only + no-public-surface invariant | |
+| Terminal output only | No diffable audit trail for the ratchet decision | |
+| Render null as 0 or `—` | "Unknown" reads as "bad"; maintainer ratchets on noise | |
+
+**User's choice:** Research-and-recommend → D-08. **Notes:** each finding suggests a direction, never an auto-fix (that's Phase 196); no-flattery microcopy; unstable/vetoed/untrusted signals are symbol+word+reason, never color-only; deltas always state their baseline.
 
 ## Claude's Discretion
 
