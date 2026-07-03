@@ -58,7 +58,14 @@
   3. Self-assessment is banned: every score cites a screenshot region/DOM selector or a mechanical output line, and a finding that cannot be located is discarded. (CRITIC-05)
   4. A Node critic runner in `examples/threadline_phoenix/e2e/critic/` calls Claude vision with JSON-schema structured output, a prompt-cached rubric+anchor prefix, and one dimension per call; performs N-sample self-consistency (median + variance), flags high-variance cells as unstable/not-ratcheted, and stamps model id + rubric version on every scorecard; the panel runs one critic per persona (P1–P5) + a graphic-design critic + a brand-veto critic, and a `--tl-*` token / parity violation vetoes a change before aesthetic scoring. (RUNNER-01, RUNNER-02, RUNNER-03)
   5. `mix verify.ui_critique` wraps the runner as a named entrypoint, requires `ANTHROPIC_API_KEY`, no-ops without it, is excluded from `mix ci.all`, and is documented as local-only under a doc-contract lock; the Anthropic SDK is a `devDependency` of `e2e/package.json` only and `verify.compile_no_optional` still proves root `threadline` stays Phoenix-optional with no new runtime dependency. (RUNNER-04, RUNNER-05)
-**Plans**: TBD
+**Plans**: 7 plans (3 waves)
+- [ ] 195-01-PLAN.md — Foundations, named entrypoints & CI wiring (RUNNER-04, RUNNER-05) [wave 1]
+- [ ] 195-02-PLAN.md — Versioned anchored per-lens rubrics (CRITIC-04) [wave 1]
+- [ ] 195-03-PLAN.md — Refute-twin fixtures & partition proof (CRITIC-02) [wave 1]
+- [ ] 195-04-PLAN.md — Trust gate: Krippendorff α + full guards (CRITIC-03, CRITIC-04) [wave 2]
+- [ ] 195-05-PLAN.md — Node runner core call path (RUNNER-01, RUNNER-02, CRITIC-05) [wave 2]
+- [ ] 195-06-PLAN.md — Panel orchestration, veto & refute battery (RUNNER-03, CRITIC-02) [wave 3]
+- [ ] 195-07-PLAN.md — Report projection, authoring lane & local validation (CRITIC-01) [wave 3]
 
 ### Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration
 **Goal**: The validated critic feeds a forward-only gate that accepts a change only if it improves the targeted lens with no regression anywhere across the full panel; mechanical fixes plus a narrow spike-proven low-risk-structural whitelist auto-apply strictly behind that gate; Goodhart, silent-loosening, and pixel-diff-as-quality-bar are all blocked; and the whole loop is wired end-to-end, documented as a runbook, and proven by one real human-ratified improvement on the weakest `/audit` page.
