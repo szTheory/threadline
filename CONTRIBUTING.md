@@ -136,6 +136,135 @@ promotes them; the gate passes vacuously on the empty skeleton.
 > **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
 > the environment only; `mix verify.ui_critique` never writes it to files.
 
+## Maintainer: building and validating the golden oracle (CRITIC-01)
+
+This section is **maintainer-only** — it requires `ANTHROPIC_API_KEY` and human judgment.
+Contributors do not need to run any of these steps; the `ci.all` gate (`verify.critic_trust`)
+runs without an API key and passes vacuously until the maintainer has populated the golden set.
+
+### Prerequisites
+
+- `ANTHROPIC_API_KEY` set in the local environment (never committed)
+- Postgres running for `mix ci.all` verification at the end
+- All `npm` dependencies installed: `cd examples/threadline_phoenix/e2e && npm install`
+
+### Step 1 — Seed and label the oracle (blind test-retest)
+
+The `critic label` CLI guides you through the golden-set authoring lane. IDs are masked
+behind ephemeral tokens so each round is genuinely blind.
+
+```bash
+cd examples/threadline_phoenix/e2e
+
+# Seed the labeling queue (pole anchors first, then mid-range from transaction/coverage/retention)
+npm run critic:label -- --bootstrap
+
+# Label round 1 (keystroke-driven: g=good, o=borderline, a=bad, x=broken; evidence required)
+npm run critic:label -- --round r1
+
+# Commit r1 BEFORE running r2 (enforces a time gap for honest blind test-retest)
+git add .planning/golden/rounds/r1.json
+git commit -m "chore: golden set round 1 labels"
+
+# Label round 2 (reshuffled, re-tokenized — never sees r1 content)
+npm run critic:label -- --round r2
+
+# Reconcile: keep r1==r2 agreements; you tiebreak disagreements
+npm run critic:label -- --reconcile
+
+# Check progress — target ≥20 per lens for validated status
+npm run critic:label -- --status
+```
+
+Lenses under the 20-judgment bar stay `provisional` and cannot ratchet. That is acceptable
+for this phase; add more cells with `--add <cell-id>` or run `--bootstrap --lens <lens>`.
+
+**Key invariant:** `--reconcile` is the ONLY writer of `golden-set.json`. Never hand-edit it.
+Held-out IDs (in `held_out_ids`) are refused at queue time — they are the Phase-196 true-north
+and must never be rubric-tuned.
+
+### Step 2 — Prove the critic (refute battery)
+
+The refute battery verifies that the critic can correctly identify sign/attribution on synthetic
+extremes. This is separate from the golden-set agreement metric.
+
+```bash
+# Runs only verify.mechanical on refute fixtures ($0 LLM)
+mix verify.ui_critique --refute-only
+```
+
+All gates must pass: binary directional (correct rank), margin gate (delta > noise floor),
+metamorphic invariance (verdict stable under reshuffling), and veto-ordering (off-token accent
+trips the veto, no aesthetic score emitted). Failure bars the critic from any ledger bump.
+
+### Step 3 — Score the golden cells and record critic_trust
+
+```bash
+# Score the golden oracle cells (bills the API — see dry-run for cost estimate first)
+npm run critic:score -- --dry-run    # check cost before running
+ANTHROPIC_API_KEY="sk-ant-..." mix verify.ui_critique
+```
+
+After scoring, `verify.ui_critique` (or `npm run critic:score` directly) recomputes
+per-lens Krippendorff's α, raw agreement, and pairwise accuracy against the golden labels.
+The results are written to the `critic_trust` block in `.planning/design-system-ledger.json`.
+
+A lens is set `validated: true` only if α ≥ 0.67 AND n ≥ 20 AND raw_agreement ≥ 80% at the
+current rubric version + model ID.
+
+### Step 4 — Regenerate the reviewable CRITIQUE.md
+
+```bash
+npm run critic:score   # scores + regenerates .planning/CRITIQUE.md at the end
+# Or regenerate separately without re-scoring:
+npm run critic:rubric -- report   # (if added as a script alias)
+```
+
+Verify `.planning/CRITIQUE.md` is fresh — it should show scored cells with Betterer flags
+(▲ new for first scores, ▲/▽ gain/regression on subsequent runs).
+
+### Step 5 — Confirm CI stays honest
+
+```bash
+mix ci.all
+```
+
+`mix verify.critic_trust` (part of `ci.all`) enforces whatever was recorded in
+`critic_trust`. All other gates (`verify.mechanical`, `verify.test`, etc.) must stay green.
+`mix verify.ui_critique` itself is excluded from `ci.all` — it is local-only.
+
+### Step 6 — Commit as one reviewed commit
+
+```bash
+git add .planning/golden/golden-set.json
+git add .planning/golden/rounds/r2.json
+git add .planning/critic-scores/
+git add .planning/CRITIQUE.md
+git add .planning/design-system-ledger.json  # critic_trust block updated
+git commit -m "chore: golden oracle scored + critic_trust measured (CRITIC-01)"
+```
+
+This commit should never be auto-generated — it represents the maintainer's reviewed judgment.
+
+### Rubric maintenance
+
+To check rubric integrity (hash, dimension count, pole references):
+
+```bash
+npm run critic:rubric -- lint
+```
+
+To bump a rubric version after editing it (recomputes sha8, prints invalidation blast radius):
+
+```bash
+npm run critic:rubric -- bump hierarchy --patch   # wording tweak
+npm run critic:rubric -- bump density --minor     # new dimension added
+npm run critic:rubric -- bump typography --major  # lens semantics redefined
+```
+
+After a bump, `critic_trust` for that lens is auto-invalidated (the rubric version no longer
+matches the stored `golden_rubric_version`). Re-run the golden-set scoring to restore trust.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
