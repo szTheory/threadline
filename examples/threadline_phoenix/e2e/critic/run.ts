@@ -32,6 +32,7 @@ import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
 import { lookupCache, writeCache } from "./cache.js";
 import { MODEL_ID, SCHEMA_VERSION, type LensName } from "./schema.js";
+import { generateReport } from "./report.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../../../..");
@@ -354,6 +355,16 @@ async function runScore(argv: string[]): Promise<void> {
     `\n[critic score] Done: ${scored} scored, ${skipped} cache-skipped, ${errored} errored`,
   );
   if (errored > 0) process.exit(1);
+
+  // Regenerate CRITIQUE.md projection after each scoring run (D-08)
+  try {
+    const count = generateReport();
+    if (count > 0) {
+      console.log(`[critic score] CRITIQUE.md regenerated (${count} cells).`);
+    }
+  } catch (err) {
+    console.warn(`[critic score] WARNING: CRITIQUE.md regeneration failed: ${String(err)}`);
+  }
 }
 
 // ─── CLI dispatcher ─────────────────────────────────────────────────────────
@@ -363,6 +374,23 @@ const [subcommand, ...rest] = process.argv.slice(2);
 switch (subcommand) {
   case "score":
     await runScore(rest);
+    break;
+
+  case "report":
+    // Regenerate CRITIQUE.md projection from .planning/critic-scores/ (D-08, Plan 07)
+    try {
+      const { runReport } = await import("./report.js");
+      await runReport(rest);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
+        console.error(
+          `[critic report] Module not found — report.ts lands in Plan 07.\n` +
+            `Error: ${String(err)}`,
+        );
+        process.exit(1);
+      }
+      throw err;
+    }
     break;
 
   case "validate":
@@ -421,11 +449,12 @@ switch (subcommand) {
   default:
     console.error(`Unknown subcommand: ${subcommand ?? "(none)"}`);
     console.error(`Usage: critic <subcommand> [options]`);
-    console.error(`Subcommands: score, validate, label, rubric`);
+    console.error(`Subcommands: score, validate, label, rubric, report`);
     console.error(`  score --dry-run        Print budget estimate`);
     console.error(`  score --page <id>      Score a specific page`);
     console.error(`  score --lens <lens>    Score a specific lens`);
     console.error(`  score --theme <theme>  Score a specific theme (dark|light)`);
     console.error(`  score --force          Re-score even on cache hit`);
+    console.error(`  report                 Regenerate CRITIQUE.md from critic-scores`);
     process.exit(1);
 }
