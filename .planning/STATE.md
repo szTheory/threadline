@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 195-06 complete; 195-07 PAUSED at human-verify checkpoint (Task 3 — maintainer golden-set validation)
+stopped_at: 195-08 gap-closure complete (trust-measurement writer); 195-07 PAUSED at human-verify checkpoint (maintainer golden-set validation)
 last_updated: "2026-07-04T01:21:19.220Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 10
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
   percent: 25
 ---
 
@@ -26,11 +26,13 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 ## Current Position
 
 Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING (PAUSED at checkpoint)
-Plan: 7 of 7
-Status: 195-07 Tasks 1-2 committed & green; PAUSED at Task 3 blocking human-verify checkpoint
-        (maintainer-local golden-set labeling + billed critic scoring; needs ANTHROPIC_API_KEY + human judgment).
-        Resume: run the runbook in CONTRIBUTING.md / 195-07-PLAN.md Task 3, then re-invoke
-        /gsd-execute-phase 195 (or reply "approved") to finish 195-07, write its SUMMARY, and verify the phase.
+Plan: 7 of 8 (195-08 gap-closure complete; 195-07 paused)
+Status: 195-08 gap-closure landed — `mix critic.measure` now measures + writes the per-lens
+        critic_trust block (the previously-missing trust recompute), plus critic score --golden
+        and the reconciled runbook. 195-07 remains PAUSED at its blocking human-verify checkpoint:
+        the maintainer runs the labeling + billed scoring loop, then I run mix critic.measure +
+        ci.all and close 195-07. Resume: follow CONTRIBUTING.md "building and validating the golden
+        oracle", then reply "approved" (or re-invoke /gsd-execute-phase 195).
 Last activity: 2026-07-04
 
 Progress: [█████████░] 90%
