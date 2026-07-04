@@ -27,7 +27,7 @@
 ### Critic Validation & Rubrics (CRITIC)
 
 - [ ] **CRITIC-01**: A golden set of hand-labeled Threadline states (known-good primitives + known-bad footgun fixtures) exists with the maintainer's good/bad/rank verdicts.
-- [ ] **CRITIC-02**: The critic passes refute-tests before it may drive the ratchet — scores footgun fixtures low, polished primitives high, prefers the known-better of a curated A/B pair, and detects an injected regression (e.g. doubled padding, added nested card).
+- [x] **CRITIC-02**: The critic passes refute-tests before it may drive the ratchet — scores footgun fixtures low, polished primitives high, prefers the known-better of a curated A/B pair, and detects an injected regression (e.g. doubled padding, added nested card).
 - [x] **CRITIC-03**: Critic↔human agreement is measured on the golden set and meets a documented threshold (target 75–90%); below threshold blocks automated ratcheting.
 - [x] **CRITIC-04**: Versioned, anchored rubrics exist per lens (one per persona/JTBD + graphic-design + brand), each dimension phrased as an adversarial pass/fail with a written pass condition and a reference-bar anchor (Linear primary; Vercel/Stripe/Grafana secondary by surface).
 - [ ] **CRITIC-05**: Self-assessment is banned — every score cites a screenshot region/DOM selector or a mechanical output line; a finding that cannot be located is discarded.
@@ -36,7 +36,7 @@
 
 - [ ] **RUNNER-01**: A Node critic runner in `examples/threadline_phoenix/e2e/critic/` calls Claude vision with JSON-schema structured output, a prompt-cached rubric+anchor prefix, and one dimension per call.
 - [ ] **RUNNER-02**: The runner performs N-sample self-consistency (median + variance), flags high-variance cells as unstable (not ratcheted), and stamps model id + rubric version on every scorecard.
-- [ ] **RUNNER-03**: The panel runs one critic per persona (P1–P5) + a graphic-design critic + a brand-veto critic; a `--tl-*` token / parity violation vetoes a change before aesthetic scoring.
+- [x] **RUNNER-03**: The panel runs one critic per persona (P1–P5) + a graphic-design critic + a brand-veto critic; a `--tl-*` token / parity violation vetoes a change before aesthetic scoring.
 - [x] **RUNNER-04**: `mix verify.ui_critique` wraps the runner as a named entrypoint, requires `ANTHROPIC_API_KEY`, no-ops without it, is excluded from `mix ci.all`, and is documented as local-only under a doc-contract lock.
 - [x] **RUNNER-05**: The Anthropic SDK is a `devDependency` of `e2e/package.json` only; `verify.compile_no_optional` still proves root `threadline` stays Phoenix-optional with no new runtime dependency.
 
@@ -94,13 +94,13 @@ Which phases cover which requirements. Every v1 requirement maps to exactly one 
 | MECH-04 | Phase 194 | Pending |
 | MECH-05 | Phase 194 | Pending |
 | CRITIC-01 | Phase 195 | Pending |
-| CRITIC-02 | Phase 195 | Pending |
+| CRITIC-02 | Phase 195 | Complete |
 | CRITIC-03 | Phase 195 | Complete |
 | CRITIC-04 | Phase 195 | Complete |
 | CRITIC-05 | Phase 195 | Pending |
 | RUNNER-01 | Phase 195 | Pending |
 | RUNNER-02 | Phase 195 | Pending |
-| RUNNER-03 | Phase 195 | Pending |
+| RUNNER-03 | Phase 195 | Complete |
 | RUNNER-04 | Phase 195 | Complete |
 | RUNNER-05 | Phase 195 | Complete |
 | GATE-01 | Phase 196 | Pending |

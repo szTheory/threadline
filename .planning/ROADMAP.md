@@ -80,7 +80,7 @@
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 195-06-PLAN.md — Panel orchestration, veto & refute battery (RUNNER-03, CRITIC-02) [wave 3]
+- [x] 195-06-PLAN.md — Panel orchestration, veto & refute battery (RUNNER-03, CRITIC-02) [wave 3]
 - [ ] 195-07-PLAN.md — Report projection, authoring lane & local validation (CRITIC-01) [wave 3]
 
 ### Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration
@@ -120,7 +120,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
-| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 5/7 | In Progress|  |
+| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 6/7 | In Progress|  |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 0/TBD | Not started | - |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
 
