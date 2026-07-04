@@ -76,7 +76,7 @@
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 195-04-PLAN.md — Trust gate: Krippendorff α + full guards (CRITIC-03, CRITIC-04) [wave 2]
-- [ ] 195-05-PLAN.md — Node runner core call path (RUNNER-01, RUNNER-02, CRITIC-05) [wave 2]
+- [x] 195-05-PLAN.md — Node runner core call path (RUNNER-01, RUNNER-02, CRITIC-05) [wave 2]
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -120,7 +120,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
-| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 4/7 | In Progress|  |
+| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 5/7 | In Progress|  |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 0/TBD | Not started | - |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: Completed 195-01-PLAN.md
+stopped_at: Completed 195-05-PLAN.md
 last_updated: "2026-07-03T18:48:46.031Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 ---
 
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 ## Current Position
 
 Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING
-Plan: 5 of 7
-Status: Ready to execute
+Plan: 6 of 7
+Status: Ready to execute (Wave 3 — 195-06 next)
 Last activity: 2026-07-03
 
 Progress: [███████░░░] 70%
@@ -409,7 +409,7 @@ Progress: [███████░░░] 70%
 ## Session Continuity
 
 **Last session:** 2026-07-03T18:48:46.027Z
-**Stopped at:** Completed 195-01-PLAN.md
+**Stopped at:** Completed 195-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
