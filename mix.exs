@@ -260,7 +260,10 @@ defmodule Threadline.MixProject do
           System.get_env()
           |> Enum.map(fn {k, v} -> {k, v} end)
 
-        case System.cmd("npm", ["run", "critic:score" | args],
+        # `--` separates npm's own args from the ones forwarded to run.ts. Without it
+        # npm v7+ swallows leading `--flags` (e.g. --dry-run, --page, --golden) as its
+        # own config instead of forwarding them to the score subcommand.
+        case System.cmd("npm", ["run", "critic:score", "--" | args],
                cd: e2e_dir,
                env: env,
                into: IO.stream(:stdio, :line)

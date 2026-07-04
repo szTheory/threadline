@@ -11,7 +11,7 @@
  *   --page <ledger_id>     Score only cells for this page ledger ID
  *   --lens <lens>          Score only this lens
  *   --theme <dark|light>   Score only this theme (default: dark)
- *   --changed              Score only cells changed since last commit (requires git)
+ *   --golden               Score only the labeled golden-set (cell, lens) pairs (cheap; for trust measurement)
  *   --refute-only          Score only refute-twin cells
  *   --dry-run              Print budget estimate without billing any API calls
  *   --force                Re-score even if verdict cache has a hit
@@ -90,6 +90,7 @@ interface ScoreArgs {
   page?: string;
   lens?: LensName;
   theme: "dark" | "light";
+  golden: boolean;
   refuteOnly: boolean;
   dryRun: boolean;
   force: boolean;
@@ -102,6 +103,7 @@ interface ScoreArgs {
 function parseScoreArgs(argv: string[]): ScoreArgs {
   const args: ScoreArgs = {
     theme: "dark",
+    golden: false,
     refuteOnly: false,
     dryRun: false,
     force: false,
@@ -130,6 +132,9 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
         args.theme = themeArg;
         break;
       }
+      case "--golden":
+        args.golden = true;
+        break;
       case "--refute-only":
         args.refuteOnly = true;
         break;
@@ -155,6 +160,28 @@ function loadGoldenSet(): { items: unknown[] } | null {
     items: unknown[];
   };
   return gs;
+}
+
+/**
+ * Derive the labeled (cell, lens) scope from the golden set. Used by `--golden`
+ * to score exactly the cells the maintainer labeled — for cheap, correct trust
+ * measurement — instead of every committed scorecard cell.
+ */
+interface GoldenScopeItem {
+  cell_id: string;
+  lens: LensName;
+  kept?: boolean;
+}
+
+function goldenScope(): { cellIds: string[]; lensByCell: Map<string, Set<LensName>> } {
+  const gs = loadGoldenSet() as { items: GoldenScopeItem[] } | null;
+  const lensByCell = new Map<string, Set<LensName>>();
+  for (const it of gs?.items ?? []) {
+    if (it.kept === false) continue; // only reconciled items
+    if (!lensByCell.has(it.cell_id)) lensByCell.set(it.cell_id, new Set());
+    lensByCell.get(it.cell_id)!.add(it.lens);
+  }
+  return { cellIds: [...lensByCell.keys()], lensByCell };
 }
 
 /**
@@ -209,8 +236,12 @@ function dryRun(args: ScoreArgs): void {
  * Determine the set of cell IDs to score based on the score args.
  */
 function getScopedCellIds(args: ScoreArgs): string[] {
-  const all = committedCellIds();
-  return all.filter((cellId) => {
+  const committed = new Set(committedCellIds());
+  // --golden restricts the base set to labeled golden cells; otherwise all committed cells.
+  const base = args.golden ? goldenScope().cellIds : committedCellIds();
+  return base.filter((cellId) => {
+    // T-195-17: a golden cell must resolve to a committed scorecard (no path traversal)
+    if (args.golden && !committed.has(cellId)) return false;
     // Theme filter
     if (!cellId.includes(`__${args.theme}-`)) return false;
     // Page filter
@@ -255,6 +286,8 @@ async function runScore(argv: string[]): Promise<void> {
   }
 
   const lenses = args.lens ? [args.lens] : ALL_LENSES;
+  // Under --golden, score only the lenses each cell was actually labeled on.
+  const goldenLensMap = args.golden ? goldenScope().lensByCell : null;
   const client = createClient();
 
   console.log(`[critic score] Scoring ${cellIds.length} cells × ${lenses.length} lenses`);
@@ -264,7 +297,10 @@ async function runScore(argv: string[]): Promise<void> {
   let errored = 0;
 
   for (const cellId of cellIds) {
-    for (const lens of lenses) {
+    const cellLenses = goldenLensMap
+      ? lenses.filter((l) => goldenLensMap.get(cellId)?.has(l))
+      : lenses;
+    for (const lens of cellLenses) {
       const rubricVersion = getRubricVersion(lens);
       const rubricHash = getRubricHash(rubricVersion);
       const dimensions = LENS_DIMENSIONS[lens];
