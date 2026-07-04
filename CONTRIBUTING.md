@@ -144,7 +144,11 @@ runs without an API key and passes vacuously until the maintainer has populated 
 
 ### Prerequisites
 
-- `ANTHROPIC_API_KEY` set in the local environment (never committed)
+- `ANTHROPIC_API_KEY` available in the shell (never committed). Nothing auto-loads
+  `.env`, so source it into the shell first — this makes the key reach both `npm` and `mix`:
+  ```bash
+  set -a; source .env; set +a    # .env holds: export ANTHROPIC_API_KEY='sk-ant-...'
+  ```
 - Postgres running for `mix ci.all` verification at the end
 - All `npm` dependencies installed: `cd examples/threadline_phoenix/e2e && npm install`
 
@@ -189,8 +193,9 @@ The refute battery verifies that the critic can correctly identify sign/attribut
 extremes. This is separate from the golden-set agreement metric.
 
 ```bash
-# Runs only verify.mechanical on refute fixtures ($0 LLM)
-mix verify.ui_critique --refute-only
+cd examples/threadline_phoenix/e2e
+npm run critic:validate -- --dry-run    # preview the twins + cost first
+npm run critic:validate                 # runs the battery (~$1–3: 6 gestalt twins; veto-ordering twin is $0)
 ```
 
 All gates must pass: binary directional (correct rank), margin gate (delta > noise floor),
@@ -200,24 +205,29 @@ trips the veto, no aesthetic score emitted). Failure bars the critic from any le
 ### Step 3 — Score the golden cells and record critic_trust
 
 ```bash
-# Score the golden oracle cells (bills the API — see dry-run for cost estimate first)
-npm run critic:score -- --dry-run    # check cost before running
-ANTHROPIC_API_KEY="sk-ant-..." mix verify.ui_critique
+cd examples/threadline_phoenix/e2e
+# Score EXACTLY the labeled golden (cell, lens) pairs — cheap and correct for measurement.
+npm run critic:score -- --golden --dry-run    # check cost before running
+npm run critic:score -- --golden              # bills the API for the golden cells only
+
+# Measure per-lens trust and write the critic_trust block (separate, reviewed step):
+cd ../../.. && mix critic.measure
 ```
 
-After scoring, `verify.ui_critique` (or `npm run critic:score` directly) recomputes
-per-lens Krippendorff's α, raw agreement, and pairwise accuracy against the golden labels.
-The results are written to the `critic_trust` block in `.planning/design-system-ledger.json`.
+`npm run critic:score -- --golden` writes the per-dimension scores under `.planning/critic-scores/`.
+`mix critic.measure` then computes per-lens Krippendorff's α, raw agreement, and n against the
+golden labels and writes the `critic_trust` block in `.planning/design-system-ledger.json`.
+It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
 
 A lens is set `validated: true` only if α ≥ 0.67 AND n ≥ 20 AND raw_agreement ≥ 80% at the
-current rubric version + model ID.
+current rubric version + model ID. (`pairwise_acc` is recorded as `null` until the label CLI
+persists pair margins — it never gates promotion.)
 
 ### Step 4 — Regenerate the reviewable CRITIQUE.md
 
 ```bash
-npm run critic:score   # scores + regenerates .planning/CRITIQUE.md at the end
-# Or regenerate separately without re-scoring:
-npm run critic:rubric -- report   # (if added as a script alias)
+# CRITIQUE.md auto-regenerates at the end of `critic:score`. To regenerate standalone:
+cd examples/threadline_phoenix/e2e && node --import tsx critic/run.ts report
 ```
 
 Verify `.planning/CRITIQUE.md` is fresh — it should show scored cells with Betterer flags
