@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: Completed 195-05-PLAN.md
+stopped_at: 195-06 complete; 195-07 PAUSED at human-verify checkpoint (Task 3 — maintainer golden-set validation)
 last_updated: "2026-07-04T01:21:19.220Z"
 last_activity: 2026-07-04
 progress:
@@ -25,9 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING
+Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING (PAUSED at checkpoint)
 Plan: 7 of 7
-Status: Ready to execute
+Status: 195-07 Tasks 1-2 committed & green; PAUSED at Task 3 blocking human-verify checkpoint
+        (maintainer-local golden-set labeling + billed critic scoring; needs ANTHROPIC_API_KEY + human judgment).
+        Resume: run the runbook in CONTRIBUTING.md / 195-07-PLAN.md Task 3, then re-invoke
+        /gsd-execute-phase 195 (or reply "approved") to finish 195-07, write its SUMMARY, and verify the phase.
 Last activity: 2026-07-04
 
 Progress: [█████████░] 90%
