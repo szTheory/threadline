@@ -37,8 +37,8 @@ Stripe (secondary): Stripe's dashboard distinguishes primary CTA (blue), danger 
 
 ## Anchors
 
-**Pass pole:** `page.actor.happy__dark-1280`
-The actor view uses Thread Blue only for interactive links to related actions and the primary navigation selection state. Signal Cyan appears only on correlation trace indicators. Fog is used for all informational prose. No accent hue appears as decoration; each occurrence maps to one documented role.
+**Pass pole:** `refute.brand-fidelity.mis-jobbed-accent.polished__dark-1280`
+The polished twin reserves the accent hue for its one documented job, so color reads as meaningful signal rather than decoration. (Stand-in pole: no dedicated `color_contrast` refute twin exists yet — the mis-jobbed-accent twin isolates an accent/color-signal failure.)
 
-**Fail pole:** `page.coverage.error__dark-1280`
-The coverage error state can render an error-state indicator (red) alongside a low-coverage warning metric (amber) in the same visual zone. Two accent hues with similar semantic weight — error severity and warning severity — appear in proximity without clear visual priority between them. The signal roles exist (one is error, one is warning) but their simultaneous presence without resolution makes the signal hierarchy ambiguous.
+**Fail pole:** `refute.brand-fidelity.mis-jobbed-accent.flawed__dark-1280`
+The flawed twin mis-jobs the accent — applying the signal color to a role it does not own — so color stops mapping to meaning and the signal hierarchy blurs. (Stand-in pole; see the note on the pass pole.)

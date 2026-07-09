@@ -37,8 +37,8 @@ Grafana (cautionary): A Grafana dashboard with multiple panel rows can have irre
 
 ## Anchors
 
-**Pass pole:** `page.home.happy__dark-1280`
-The home shell view maintains consistent vertical rhythm across summary cards and navigation zones. The gap between card groups is visually larger than the gap between a card's title and its value. Section boundaries are legible; the cadence does not break.
+**Pass pole:** `refute.rhythm.doubled-padding.polished__dark-1280`
+The polished rhythm twin holds a consistent vertical cadence: gaps between sections are proportional and legible, and grouping by proximity is clear.
 
-**Fail pole:** `page.retention.error__dark-1280`
-The retention error state introduces an error callout block with a materially larger vertical margin than the surrounding content sections. The cadence break — a double gap before and after the error block — is not proportional to the semantic weight of the error and disrupts the expected vertical period without a structural justification.
+**Fail pole:** `refute.rhythm.doubled-padding.flawed__dark-1280`
+The flawed twin doubles a section's padding, breaking the vertical cadence with a disproportionate gap that is not justified by the semantic weight of the content.

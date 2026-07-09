@@ -37,8 +37,8 @@ Grafana (cautionary): A Grafana dashboard builder can surface panel titles, data
 
 ## Anchors
 
-**Pass pole:** `page.timeline.happy__dark-1280`
-The timeline at desktop renders audit rows with action name, actor, and timestamp. The filter bar is visually restrained. No explanatory copy appears inline — the row content speaks for itself. Every element on the page either is the data or navigates the data.
+**Pass pole:** `refute.density.card-section-wrap.polished__dark-1280`
+The polished density twin lets the data speak for itself: primary content is prominent with minimal chrome and no self-describing copy. Every element either is the data or navigates it.
 
-**Fail pole:** `page.coverage.empty__dark-1280`
-The coverage empty state presents a section heading, a body paragraph explaining the absence of data, and a contextual callout with technical background — all at similar visual weight. The primary task (understand coverage status) is achievable from the heading alone for an informed operator. The explanatory block costs the task nothing and is the anti-model for density discipline.
+**Fail pole:** `refute.density.card-section-wrap.flawed__dark-1280`
+The flawed twin wraps the same content in extra card/section chrome that adds visual weight and nesting without task value, burying the primary content under structural packaging.

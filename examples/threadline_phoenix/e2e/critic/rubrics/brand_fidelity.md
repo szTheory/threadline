@@ -37,8 +37,8 @@ Vercel (secondary): Vercel's deployment detail pages use domain-consistent langu
 
 ## Anchors
 
-**Pass pole:** `page.home.happy__dark-1280`
-The home page renders with Threadline Black background, Graphite surface cards for repeated data items (not sections), Slate Line dividers, and Fog primary text. Card content is operational: audit activity counts, coverage status, and navigation. No marketing copy appears. The layout reads as purpose-built for the audit operator surface — its structural choices (summary stats, recent activity, coverage signal) would not transfer unchanged to a generic product.
+**Pass pole:** `refute.brand-fidelity.mis-jobbed-accent.polished__dark-1280`
+The polished twin keeps the brand's token discipline: accent and surface tokens are used per their documented roles, reading as purpose-built audit UI rather than a generic recolor.
 
-**Fail pole:** `page.transaction.permission__dark-1280`
-The permission-denied transaction view risks reverting to a generic access-denied pattern: boilerplate messaging about insufficient permissions rather than Threadline-voice operational guidance about what the permission protects, what the role gate is, and what the operator should do. A generic "you don't have access to this resource" treatment reads as a recolored template, not as purpose-built audit UI.
+**Fail pole:** `refute.brand-fidelity.mis-jobbed-accent.flawed__dark-1280`
+The flawed twin mis-jobs the accent token, applying the brand signal color to a role it does not own, so the surface reads as a recolored/generic template rather than the intended brand register.

@@ -417,21 +417,21 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
   }
   console.log(`  ${items.length} pole items queued.`);
 
-  // ── Phase 2: Mid-range cells from the 3 target pages ─────────────────────
-  console.log(
-    `\n[bootstrap] Phase 2: Mid-range cells (${BOOTSTRAP_TARGET_PAGES.join(", ")})...`,
-  );
-  const pages = opts.page ? [opts.page] : BOOTSTRAP_TARGET_PAGES;
-  for (const page of pages) {
-    const pageCells = allCells.filter((c) => {
-      // Filter: cell belongs to this page + dark theme + 1280bp (primary capture)
-      return c.startsWith(`page.${page}.`) && c.includes("__dark-1280");
-    });
-    for (const cellId of pageCells.slice(0, 4)) {
-      // Up to 4 mid-range cells per target page per lens
-      for (const lens of lensesToQueue) {
-        addItem(cellId, lens, "bootstrap_midrange");
-      }
+  // ── Phase 2: Mid-range cells from the Storybook real-UI stories ──────────
+  // The critic judges REAL rendered components/patterns (Storybook `story.*`
+  // cells), not the text-only `/audit/__stress` page.* fixtures. Enqueue the
+  // primary-breakpoint (1280) story cells; `--lens` narrows lenses, `--page`
+  // narrows to a story path substring.
+  console.log("\n[bootstrap] Phase 2: Mid-range cells (Storybook real-UI stories)...");
+  const storyCells = allCells.filter((c) => {
+    if (!c.startsWith("story.")) return false;
+    if (!c.includes("-1280")) return false; // primary breakpoint
+    if (opts.page && !c.includes(opts.page)) return false;
+    return true;
+  });
+  for (const cellId of storyCells) {
+    for (const lens of lensesToQueue) {
+      addItem(cellId, lens, "bootstrap_midrange");
     }
   }
 

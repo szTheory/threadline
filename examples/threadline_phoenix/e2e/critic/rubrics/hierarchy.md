@@ -47,8 +47,8 @@ Grafana (cautionary): A Grafana alert overview can present multiple panel titles
 
 ## Anchors
 
-**Pass pole:** `page.timeline.happy__dark-1280`
-The timeline happy-path view at desktop resolves to a single dominant signal: the audit entry row action name at primary weight. Actor and timestamp follow at visually lower weight. The filter bar and pagination chrome sit at the periphery of the scan path and do not compete with the first visual stop.
+**Pass pole:** `refute.hierarchy.flattened.polished__dark-1280`
+The polished hierarchy twin establishes one dominant entry point: a single primary-weight heading anchors the section with supporting content at visibly lower weight, so the eye lands in one place and the scan path is clear. Emphasis is reserved for one element class.
 
-**Fail pole:** `page.coverage.permission__dark-1280`
-The coverage permission-denied view presents competing signals: a permission-denied callout block and the absent coverage table structure share visual territory. Neither the denial reason nor the recommended next action achieves unambiguous visual dominance at cold glance. Multiple elements of similar weight compete for first attention.
+**Fail pole:** `refute.hierarchy.flattened.flawed__dark-1280`
+The flawed twin flattens the hierarchy: heading and body render at near-equal visual weight, so no single element wins first attention and the reading order collapses. Cold-glance entry point is indeterminate.

@@ -37,8 +37,8 @@ Stripe (secondary): Stripe's dashboard tables treat data values as primary and c
 
 ## Anchors
 
-**Pass pole:** `page.actor.happy__dark-1280`
-The actor happy-path view differentiates the actor name (heading weight, Geist SemiBold), role metadata (muted label, IBM Plex Mono), timestamps (small mono, visually lighter), and action descriptions (body weight, Geist Regular). Each role is distinguishable by at least two properties. Metadata does not compete with primary content in visual weight; the scale is legible as a rank order.
+**Pass pole:** `refute.typography.scale-collapse.polished__dark-1280`
+The polished typography twin differentiates roles: heading, body, and label are distinguishable by size and weight, and the scale expresses a legible rank order.
 
-**Fail pole:** `page.coverage.empty__dark-1280`
-The coverage empty state renders heading copy, body paragraph, and callout text at similar weights. No mono treatment distinguishes machine-readable identifiers from prose. When the page carries no data, the typographic scale has no natural anchor, and all text approximates the same visual prominence.
+**Fail pole:** `refute.typography.scale-collapse.flawed__dark-1280`
+The flawed twin collapses the type scale: heading and body approximate the same size and weight, so size no longer signals importance and the roles blur together.
