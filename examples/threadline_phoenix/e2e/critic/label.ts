@@ -1120,6 +1120,7 @@ export async function runLabel(argv: string[]): Promise<void> {
   let pairs = false;
   let resume = false;
   let brief = false;
+  let web = false;
 
   for (let i = 0; i < argv.length; i++) {
     switch (argv[i]) {
@@ -1168,6 +1169,9 @@ export async function runLabel(argv: string[]): Promise<void> {
       case "--brief":
         brief = true;
         break;
+      case "--web":
+        web = true;
+        break;
     }
   }
 
@@ -1198,6 +1202,12 @@ export async function runLabel(argv: string[]): Promise<void> {
 
   if (reconcile) {
     await runReconcile();
+    return;
+  }
+
+  if (round && web) {
+    const { startWebLabeling } = await import("./label_web.js");
+    await startWebLabeling(round, pairs, lens);
     return;
   }
 
