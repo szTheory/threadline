@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 195-08 gap-closure complete (trust-measurement writer); 195-07 PAUSED at human-verify checkpoint (maintainer golden-set validation)
+stopped_at: 195-09 Storybook real-UI capture lane + golden-set repoint complete; 195-07 PAUSED awaiting maintainer labeling of the (now real-UI) golden set
 last_updated: "2026-07-04T01:21:19.220Z"
-last_activity: 2026-07-04
+last_activity: 2026-07-09
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 11
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 25
 ---
 
@@ -26,13 +26,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 ## Current Position
 
 Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING (PAUSED at checkpoint)
-Plan: 7 of 8 (195-08 gap-closure complete; 195-07 paused)
-Status: 195-08 gap-closure landed — `mix critic.measure` now measures + writes the per-lens
-        critic_trust block (the previously-missing trust recompute), plus critic score --golden
-        and the reconciled runbook. 195-07 remains PAUSED at its blocking human-verify checkpoint:
-        the maintainer runs the labeling + billed scoring loop, then I run mix critic.measure +
-        ci.all and close 195-07. Resume: follow CONTRIBUTING.md "building and validating the golden
-        oracle", then reply "approved" (or re-invoke /gsd-execute-phase 195).
+Plan: 195-09 complete (capture pivot); 195-07 paused awaiting maintainer labeling
+Status: FOUNDATIONAL FIX LANDED (195-09). The golden set was sourced from /audit/__stress
+        page.* cells that render only a text summary (not real UI) — so labeling them was
+        meaningless. 195-09 adds a Storybook capture lane (`capture:storybook`) over the REAL
+        OperatorSurface.UI components (deterministic, no DB/auth), commits 24 story.* scorecards,
+        and repoints all 6 rubric poles (→ refute twins) + the golden bootstrap (→ story cells)
+        to real UI. The golden queue now holds 60 items across 18 real-UI cells, zero page.*.
+        NEXT (maintainer): `cd examples/threadline_phoenix/e2e && npm run critic:label -- --round r1`
+        now shows REAL component images. Then r2 → reconcile → critic:validate → critic:score
+        --golden → mix critic.measure → close 195-07. Deferred: full-page (not component) critique
+        needs page-level Storybook stories or seeded real-route capture. Dev server was on :4211
+        (test mode) for capture; stopped after — reboot recipe in run-e2e.sh (MIX_ENV=test
+        THREADLINE_E2E=1 DB_PORT=5433) if re-capturing.
 Last activity: 2026-07-04
 
 Progress: [█████████░] 90%
