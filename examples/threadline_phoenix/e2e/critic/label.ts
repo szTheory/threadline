@@ -403,26 +403,12 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
 
   const lensesToQueue = opts.lens ? [opts.lens] : ALL_LENSES;
 
-  // ── Phase 1: Pole anchors (one pass + one fail per lens, dark-1280) ──────
-  console.log("\n[bootstrap] Phase 1: Pole anchors (6 rubrics × 2 poles)...");
-  for (const lens of lensesToQueue) {
-    const poles = parseRubricPoles(lens);
-    if (!poles) {
-      console.warn(`  [skip] No rubric found for lens: ${lens}`);
-      continue;
-    }
-    // Queue the fail pole first (builds adversarial calibration)
-    addItem(poles.fail, lens, "bootstrap_pole");
-    addItem(poles.pass, lens, "bootstrap_pole");
-  }
-  console.log(`  ${items.length} pole items queued.`);
-
-  // ── Phase 2: Mid-range cells from the Storybook real-UI stories ──────────
+  // ── Phase 1: Storybook real-UI story cells (clean captures — labeled first) ──
   // The critic judges REAL rendered components/patterns (Storybook `story.*`
-  // cells), not the text-only `/audit/__stress` page.* fixtures. Enqueue the
-  // primary-breakpoint (1280) story cells; `--lens` narrows lenses, `--page`
-  // narrows to a story path substring.
-  console.log("\n[bootstrap] Phase 2: Mid-range cells (Storybook real-UI stories)...");
+  // cells), not the text-only `/audit/__stress` page.* fixtures. These are clean
+  // clipped captures, so they are enqueued FIRST. `--lens` narrows lenses,
+  // `--page` narrows to a story path substring.
+  console.log("\n[bootstrap] Phase 1: Real-UI story cells (Storybook)...");
   const storyCells = allCells.filter((c) => {
     if (!c.startsWith("story.")) return false;
     if (!c.includes("-1280")) return false; // primary breakpoint
@@ -434,10 +420,23 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
       addItem(cellId, lens, "bootstrap_midrange");
     }
   }
+  console.log(`  ${items.length} story items queued.`);
 
-  const preBootstrap = items.length;
-  const midRangeAdded = preBootstrap - (lensesToQueue.length * 2);
-  console.log(`  ${midRangeAdded} mid-range items queued.`);
+  // ── Phase 2: Rubric pole anchors (adversarial calibration) ──────────────
+  // NOTE: pole cells (refute twins) are still captured full-page from
+  // /audit/__stress and carry stress-lab chrome — enqueued LAST so the clean
+  // story cells are labeled first. A clean pole re-capture is a follow-up.
+  console.log("\n[bootstrap] Phase 2: Pole anchors (6 rubrics × 2 poles)...");
+  for (const lens of lensesToQueue) {
+    const poles = parseRubricPoles(lens);
+    if (!poles) {
+      console.warn(`  [skip] No rubric found for lens: ${lens}`);
+      continue;
+    }
+    addItem(poles.fail, lens, "bootstrap_pole");
+    addItem(poles.pass, lens, "bootstrap_pole");
+  }
+  console.log(`  ${items.length} total items queued.`);
 
   if (items.length === 0) {
     console.log(
