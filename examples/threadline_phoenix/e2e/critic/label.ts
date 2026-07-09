@@ -14,6 +14,7 @@
  *   --page <ledger_id>    Scope to a specific page
  *   --pairs               Label A/B pairs (better/worse + clear/subtle margin)
  *   --resume              Resume an incomplete round at the last unlabeled item
+ *   --brief               Collapse the per-item lens guidance to a one-line legend
  *
  * Blind enforcement (D-09):
  *   r1 writes to .planning/golden/rounds/r1.json (tokens generated per session)
@@ -62,6 +63,91 @@ const ALL_LENSES: LensName[] = [
   "color_contrast",
   "brand_fidelity",
 ];
+
+// Plain-English per-lens guidance shown inline during labeling (grounded in the
+// rubric dimensions + reference bar). good/bad are lens-specific; borderline/broken
+// are shared (VERDICT_SCALE). This is what tells the labeler what they are judging.
+const LENS_GUIDE: Record<LensName, { q: string; good: string; bad: string }> = {
+  hierarchy: {
+    q: "does your eye land on one main content thing first?",
+    good: "one clear anchor; the eye knows where to go",
+    bad: "two+ things fight, or chrome (nav/filter) is loudest",
+  },
+  density: {
+    q: "is the real data prominent — not buried in chrome or self-describing copy?",
+    good: "the data speaks for itself; the primary task stands out",
+    bad: "clutter / explanatory copy / chrome drowns the task",
+  },
+  rhythm: {
+    q: "are related things grouped, with even, consistent spacing?",
+    good: "consistent vertical rhythm; clear grouping by proximity",
+    bad: "uneven gaps; unrelated things crammed or scattered",
+  },
+  typography: {
+    q: "are text roles clearly distinct, and does size match importance?",
+    good: "heading / body / label clearly differ; size tracks importance",
+    bad: "everything similar weight & size; size doesn't signal importance",
+  },
+  color_contrast: {
+    q: "is color a meaningful signal, accent reserved for its job, and readable?",
+    good: "color means something; accent used sparingly; good contrast",
+    bad: "decorative / random color; accent overused; low contrast",
+  },
+  brand_fidelity: {
+    q: "does it feel designed in a terse, operational voice — not generically recolored?",
+    good: "intentional design; precise, operational copy",
+    bad: "generic / recolored; chatty, vague, or apologetic copy",
+  },
+};
+
+// Shared meanings for the middle/bottom of the single-verdict scale.
+const VERDICT_SCALE = {
+  borderline: "mostly there, one notable flaw",
+  broken: "empty / error / unusable / can't tell",
+} as const;
+
+// Single canonical key→verdict map for single (non-pair) items.
+const SINGLE_VERDICTS: Record<string, RoundItem["verdict"]> = {
+  g: "good",
+  o: "borderline",
+  a: "bad",
+  x: "broken",
+};
+
+/**
+ * Print plain-English guidance for the current lens above the verdict prompt, so
+ * the labeler knows exactly what they are judging. `brief` collapses it to a
+ * one-line legend for experienced labelers (--brief).
+ */
+function renderLensGuide(lens: LensName, pairs: boolean, brief: boolean): void {
+  if (brief) {
+    console.log(
+      pairs
+        ? "  Verdict: b=better  w=worse   then  c=clear  s=subtle"
+        : "  Verdict: g=good  o=borderline  a=bad  x=broken",
+    );
+    return;
+  }
+
+  const g = LENS_GUIDE[lens];
+  const name = lens.toUpperCase();
+
+  if (pairs) {
+    console.log(`  Comparing for ${name} — ${g.q}`);
+    console.log("    b better    this screenshot serves the lens better");
+    console.log("    w worse     this one is weaker");
+    console.log("    then  c clear (obvious)  /  s subtle (slight)");
+    console.log("  Glance ~2s, trust your gut.");
+    return;
+  }
+
+  console.log(`  Judging ${name} — ${g.q}`);
+  console.log(`    g good        ${g.good}`);
+  console.log(`    o borderline  ${VERDICT_SCALE.borderline}`);
+  console.log(`    a bad         ${g.bad}`);
+  console.log(`    x broken      ${VERDICT_SCALE.broken}`);
+  console.log("  Glance ~2s, trust your gut, then one key.");
+}
 
 // The 3 target pages for mid-range bootstrap sampling (transaction/coverage/retention)
 const BOOTSTRAP_TARGET_PAGES = ["transaction", "coverage", "retention"];
@@ -427,7 +513,7 @@ function isR1Committed(): boolean {
 
 async function runRound(
   round: "r1" | "r2",
-  opts: { lens?: LensName; page?: string; pairs: boolean; resume: boolean },
+  opts: { lens?: LensName; page?: string; pairs: boolean; resume: boolean; brief: boolean },
 ): Promise<void> {
   // Blind enforcement: r2 refuses until r1 is committed
   if (round === "r2") {
@@ -522,6 +608,13 @@ async function runRound(
   console.log(
     `\n[critic label] Round ${round.toUpperCase()} — ${toLabel.length} items to label`,
   );
+  console.log("");
+  console.log("  How this works: you're building the answer key the AI critic is graded against.");
+  console.log("  For each screenshot you judge ONE quality (the \"lens\"), press one key, add a few words.");
+  console.log("  Trust your first-glance gut — that is exactly what's being measured; don't overthink it.");
+  console.log("  Progress saves after every item — Ctrl+C anytime and re-run to resume where you left off.");
+  console.log("  Tip: do one lens at a time with  --lens hierarchy  to avoid switching gears each item.");
+  console.log("");
   if (round === "r1") {
     console.log(
       "  IDs are masked — you will see tokens (A001, A002, ...), not cell names.",
@@ -536,12 +629,7 @@ async function runRound(
     );
   }
 
-  const verdictKeys =
-    opts.pairs ? ["b", "w"] : ["g", "o", "a", "x"];
-  const verdictLabels = opts.pairs
-    ? { b: "better", w: "worse" }
-    : { g: "good", o: "borderline", a: "bad", x: "broken" };
-  const marginKeys = opts.pairs ? ["c", "s"] : null;
+  const verdictKeys = opts.pairs ? ["b", "w"] : ["g", "o", "a", "x"];
 
   for (let idx = 0; idx < toLabel.length; idx++) {
     const qItem = toLabel[idx];
@@ -556,6 +644,10 @@ async function runRound(
     }
     console.log("");
 
+    // Plain-English guidance for THIS lens — what you're judging + what good/bad looks like.
+    renderLensGuide(qItem.lens, opts.pairs, opts.brief);
+    console.log("");
+
     // Show screenshot (masked — no cell_id displayed)
     const screenshotPath = getScreenshotPath(qItem.cell_id);
     if (screenshotPath) {
@@ -568,41 +660,28 @@ async function runRound(
     let margin: "clear" | "subtle" | undefined;
 
     if (opts.pairs) {
-      console.log(
-        "  Verdict: b=better  w=worse   [Ctrl+C = quit]",
-      );
-      process.stdout.write("  > ");
+      process.stdout.write("  Better? [b/w]  (Ctrl+C = quit)\n  > ");
       verdictChar = await promptKeystroke(verdictKeys);
       verdict = (verdictChar === "b" ? "better" : "worse") as RoundItem["verdict"];
 
       // Margin for pairs
-      console.log("  Margin:  c=clear   s=subtle  [Ctrl+C = quit]");
-      process.stdout.write("  > ");
+      process.stdout.write("  Margin? [c=clear / s=subtle]\n  > ");
       const marginChar = await promptKeystroke(["c", "s"]);
       margin = marginChar === "c" ? "clear" : "subtle";
     } else {
-      console.log(
-        "  Verdict: g=good  o=borderline  a=bad  x=broken   [Ctrl+C = quit]",
-      );
-      process.stdout.write("  > ");
+      process.stdout.write("  Verdict? [g/o/a/x]  (Ctrl+C = quit)\n  > ");
       verdictChar = await promptKeystroke(verdictKeys);
-      const verdictMap: Record<string, RoundItem["verdict"]> = {
-        g: "good",
-        o: "borderline",
-        a: "bad",
-        x: "broken",
-      };
-      verdict = verdictMap[verdictChar] ?? "borderline";
+      verdict = SINGLE_VERDICTS[verdictChar] ?? "borderline";
     }
 
     // Evidence (required — CRITIC-05 applies to oracle too, D-01)
     let evidence = "";
     while (!evidence) {
       evidence = await promptLine(
-        "  Evidence (required — cite a region/selector/observation): ",
+        '  Why? a few words on what you saw (e.g. "eye hit the big action row"): ',
       );
       if (!evidence) {
-        console.log("  Evidence is required. A finding without a locator is discarded.");
+        console.log("  Just a few words is fine — what did you notice? (required)");
       }
     }
 
@@ -1040,6 +1119,7 @@ export async function runLabel(argv: string[]): Promise<void> {
   let page: string | undefined;
   let pairs = false;
   let resume = false;
+  let brief = false;
 
   for (let i = 0; i < argv.length; i++) {
     switch (argv[i]) {
@@ -1085,6 +1165,9 @@ export async function runLabel(argv: string[]): Promise<void> {
       case "--resume":
         resume = true;
         break;
+      case "--brief":
+        brief = true;
+        break;
     }
   }
 
@@ -1119,7 +1202,7 @@ export async function runLabel(argv: string[]): Promise<void> {
   }
 
   if (round) {
-    await runRound(round, { lens, page, pairs, resume });
+    await runRound(round, { lens, page, pairs, resume, brief });
     return;
   }
 
