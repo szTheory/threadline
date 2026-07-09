@@ -41,6 +41,19 @@ const projects = [
       colorScheme: "light" as const,
     },
   },
+  // Storybook capture lane (Phase 195-09) — the critic's real-UI golden-set source.
+  // Captures the `.threadline-ui` sandbox of each `:page` story (dark; stories render
+  // through <.threadline_preview theme="dark">). deviceScaleFactor:1 at project level.
+  {
+    name: "storybook-capture",
+    testMatch: /operator-storybook-capture\.spec\.ts/,
+    use: {
+      ...devices["Desktop Chrome"],
+      viewport: { width: 1280, height: 900 },
+      deviceScaleFactor: 1,
+      colorScheme: "dark" as const,
+    },
+  },
   ...(lightLane
     ? [
         {
