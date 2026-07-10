@@ -157,20 +157,28 @@ runs without an API key and passes vacuously until the maintainer has populated 
 The `critic label` CLI guides you through the golden-set authoring lane. IDs are masked
 behind ephemeral tokens so each round is genuinely blind.
 
+The images come from two capture lanes (run once, before labeling): `npm run capture:storybook`
+emits the real-UI Storybook `story.*` cells, and `npm run capture:refute` re-emits the refute-twin
+pole cells clipped to the twin content (both need the dev server — see `e2e/run-e2e.sh`).
+
 ```bash
 cd examples/threadline_phoenix/e2e
 
-# Seed the labeling queue (pole anchors first, then mid-range from transaction/coverage/retention)
+# Seed the labeling queue (clean Storybook story.* cells first, then the refute poles)
 npm run critic:label -- --bootstrap
 
-# Label round 1 (keystroke-driven: g=good, o=borderline, a=bad, x=broken; evidence required)
+# Label round 1 — RECOMMENDED: the local web page (one always-current clean image at a time;
+# opens http://127.0.0.1:4399; g/o/a/x + a few words of evidence; Ctrl+C stops, progress saved)
+npm run critic:label -- --round r1 --web
+
+# ...or the keystroke CLI in the terminal (g=good, o=borderline, a=bad, x=broken; evidence required)
 npm run critic:label -- --round r1
 
 # Commit r1 BEFORE running r2 (enforces a time gap for honest blind test-retest)
 git add .planning/golden/rounds/r1.json
 git commit -m "chore: golden set round 1 labels"
 
-# Label round 2 (reshuffled, re-tokenized — never sees r1 content)
+# Label round 2 (reshuffled, re-tokenized — never sees r1 content; add --web for the page)
 npm run critic:label -- --round r2
 
 # Reconcile: keep r1==r2 agreements; you tiebreak disagreements
