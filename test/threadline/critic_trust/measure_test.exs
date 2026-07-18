@@ -7,7 +7,8 @@ defmodule Threadline.CriticTrust.MeasureTest do
   @pin "claude-opus-4-8"
 
   @matched %{"good" => "strong", "borderline" => "ok", "bad" => "weak", "broken" => "fail"}
-  @required ~w(alpha ci95 golden_rubric_version model_id n pairwise_acc raw_agreement validated)
+  @band_score %{"fail" => 20, "weak" => 40, "ok" => 60, "strong" => 80, "exemplary" => 95}
+  @required ~w(alpha auc ci95 golden_rubric_version model_id n pairwise_acc raw_agreement spearman validated)
 
   defp gitem(cell, lens, verdict, kept \\ true) do
     %{
@@ -24,6 +25,7 @@ defmodule Threadline.CriticTrust.MeasureTest do
   defp dim(band, opts \\ []) do
     %{
       band: band,
+      score: Keyword.get(opts, :score, @band_score[band]),
       stable: Keyword.get(opts, :stable, true),
       model_id: Keyword.get(opts, :model, @pin),
       rubric_version: Keyword.get(opts, :ver, @ver)
@@ -47,7 +49,7 @@ defmodule Threadline.CriticTrust.MeasureTest do
 
   defp versions, do: %{"hierarchy" => @ver}
 
-  test "every lens emits exactly the guard's 8-field key set" do
+  test "every lens emits exactly the guard's field key set" do
     block = Measure.build_block(%{"items" => []}, %{}, %{})
 
     assert Map.keys(block) |> Enum.sort() == Enum.sort(Measure.lenses())
@@ -63,6 +65,8 @@ defmodule Threadline.CriticTrust.MeasureTest do
 
     for lens <- Measure.lenses() do
       d = block[lens]
+      assert d["spearman"] == nil
+      assert d["auc"] == nil
       assert d["alpha"] == nil
       assert d["raw_agreement"] == nil
       assert d["pairwise_acc"] == nil
@@ -74,12 +78,16 @@ defmodule Threadline.CriticTrust.MeasureTest do
     end
   end
 
-  test "promotes a lens that clears the full bar (α≥0.67 ∧ n≥20 ∧ raw≥0.80 ∧ fresh)" do
+  test "promotes a lens that clears the full bar (ρ≥0.7 ∧ n≥20 ∧ pin ∧ fresh)" do
     {golden, scores} = agreeing_24()
     block = Measure.build_block(golden, scores, versions())
     h = block["hierarchy"]
 
     assert h["n"] == 24
+    # Perfect monotonic score→verdict ⇒ ρ = 1.0 and AUC = 1.0 (the gate + companion).
+    assert is_number(h["spearman"]) and h["spearman"] >= 0.7
+    assert h["auc"] == 1.0
+    # Legacy companions still computed (perfect agreement here).
     assert is_number(h["alpha"]) and h["alpha"] >= 0.67
     assert h["raw_agreement"] == 1.0
     assert h["model_id"] == @pin
@@ -90,6 +98,34 @@ defmodule Threadline.CriticTrust.MeasureTest do
     # Lenses with no labels stay provisional.
     assert block["density"]["validated"] == false
     assert block["density"]["n"] == 0
+  end
+
+  test "a compressing-but-ranking critic validates on ρ even when α/raw are low" do
+    # The whole point of the ρ pivot: the critic ranks severity correctly but compresses
+    # every cell into the ok/weak band range (never fail/strong). Agreement (α/raw) sinks,
+    # yet the continuous score is perfectly monotonic with severity, so ρ = 1.0 → validated.
+    spec = %{
+      "good" => {"ok", 70},
+      "borderline" => {"ok", 60},
+      "bad" => {"weak", 45},
+      "broken" => {"weak", 35}
+    }
+
+    verdicts = for i <- 0..23, do: Enum.at(~w(good borderline bad broken), rem(i, 4))
+    items = for {v, i} <- Enum.with_index(verdicts), do: gitem("h#{i}", "hierarchy", v)
+
+    scores =
+      Map.new(Enum.with_index(verdicts), fn {v, i} ->
+        {band, sc} = spec[v]
+        {{"h#{i}", "hierarchy"}, [dim(band, score: sc)]}
+      end)
+
+    h = Measure.build_block(%{"items" => items}, scores, versions())["hierarchy"]
+
+    assert h["n"] == 24
+    assert h["spearman"] == 1.0
+    assert h["raw_agreement"] < 0.8, "agreement should be poor under band compression"
+    assert h["validated"] == true, "ranking (ρ) must validate despite low agreement"
   end
 
   test "n < 20 stays provisional even at perfect agreement" do
@@ -129,7 +165,7 @@ defmodule Threadline.CriticTrust.MeasureTest do
     items = [gitem("c0", "hierarchy", "good"), gitem("c1", "hierarchy", "good")]
 
     scores = %{
-      # c0: min(strong=4, ok=3) = 3 → mismatch vs human good=4
+      # c0: min(strong=4, ok=3) = 3 → mismatch vs oracle good=4
       {"c0", "hierarchy"} => [dim("strong"), dim("ok")],
       # c1: strong=4 stable; a fail=1 dim is unstable and must be ignored → 4 → match
       {"c1", "hierarchy"} => [dim("strong"), dim("fail", stable: false)]

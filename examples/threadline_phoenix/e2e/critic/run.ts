@@ -37,6 +37,7 @@ import { generateReport } from "./report.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../../../..");
 const goldenSetPath = resolve(repoRoot, ".planning/golden/golden-set.json");
+const syntheticSetPath = resolve(repoRoot, ".planning/golden/synthetic-set.json");
 const rubricDir = resolve(here, "rubrics");
 
 // Pinned constants
@@ -91,10 +92,15 @@ interface ScoreArgs {
   lens?: LensName;
   theme: "dark" | "light";
   golden: boolean;
+  synthetic: boolean;
   refuteOnly: boolean;
   dryRun: boolean;
   force: boolean;
 }
+
+// The active oracle set path: synthetic-set.json under --synthetic (D-12), else the
+// human golden-set.json. Set once at the top of runScore/dryRun.
+let activeSetPath = goldenSetPath;
 
 /**
  * Parse CLI args into a ScoreArgs object.
@@ -104,6 +110,7 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
   const args: ScoreArgs = {
     theme: "dark",
     golden: false,
+    synthetic: false,
     refuteOnly: false,
     dryRun: false,
     force: false,
@@ -135,6 +142,11 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
       case "--golden":
         args.golden = true;
         break;
+      case "--synthetic":
+        // D-12: score exactly the synthetic-set (cell, lens) pairs (graded twin oracle).
+        args.synthetic = true;
+        args.golden = true;
+        break;
       case "--refute-only":
         args.refuteOnly = true;
         break;
@@ -155,8 +167,8 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
  * Returns the parsed object or null if empty.
  */
 function loadGoldenSet(): { items: unknown[] } | null {
-  if (!existsSync(goldenSetPath)) return null;
-  const gs = JSON.parse(readFileSync(goldenSetPath, "utf8")) as {
+  if (!existsSync(activeSetPath)) return null;
+  const gs = JSON.parse(readFileSync(activeSetPath, "utf8")) as {
     items: unknown[];
   };
   return gs;
@@ -248,8 +260,9 @@ function getScopedCellIds(args: ScoreArgs): string[] {
     if (args.page && !cellId.startsWith(args.page + "__")) return false;
     // Refute-only filter
     if (args.refuteOnly && !cellId.startsWith("refute.")) return false;
-    // Normal run excludes refute cells (they're scored via --refute-only)
-    if (!args.refuteOnly && cellId.startsWith("refute.")) return false;
+    // Normal run excludes refute cells (scored via --refute-only / --synthetic);
+    // the graded oracle cells are refute.*-prefixed but explicitly in scope under --synthetic.
+    if (!args.refuteOnly && !args.synthetic && cellId.startsWith("refute.")) return false;
     return true;
   });
 }
@@ -259,6 +272,7 @@ function getScopedCellIds(args: ScoreArgs): string[] {
  */
 async function runScore(argv: string[]): Promise<void> {
   const args = parseScoreArgs(argv);
+  activeSetPath = args.synthetic ? syntheticSetPath : goldenSetPath;
 
   if (args.dryRun) {
     dryRun(args);

@@ -8,6 +8,7 @@
     "capture:tier-a": "playwright test --project=tier-a-capture --project=tier-a-capture-light operator-tier-a-capture.spec.ts",
     "capture:storybook": "playwright test --project=storybook-capture operator-storybook-capture.spec.ts",
     "capture:refute": "playwright test --project=refute-capture operator-refute-capture.spec.ts",
+    "capture:graded": "playwright test --project=graded-capture operator-graded-capture.spec.ts",
     "critic:score": "tsx critic/run.ts score",
     "critic:validate": "tsx critic/run.ts validate",
     "critic:label": "tsx critic/run.ts label",

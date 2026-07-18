@@ -34,7 +34,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       {ledger_entries, ledger_error} = load_ledger_entries()
-      stories = ledger_stories(ledger_entries)
+      # Ledger-backed product stories PLUS the graded-ladder oracle fixtures (D-12).
+      # The latter are dev/test-only validation cells with no ledger entry — surfaced
+      # here purely so the graded capture lane can render + screenshot them.
+      stories =
+        (ledger_stories(ledger_entries) ++ StressFixtures.graded_stories())
+        |> Enum.uniq_by(& &1.id)
+        |> Enum.sort_by(& &1.id)
+
       categories = stories |> Enum.map(& &1.category) |> Enum.uniq() |> Enum.sort()
 
       filter_category = allow(params["category"], @category_allowlist)
@@ -211,19 +218,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <div :if={show_refute_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-6" data-testid="refute-matrix">
                   <p style="font-size: var(--tl-font-size-label); font-weight: 600; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;">Phase 195 Refute Twin — design principle under test</p>
 
-                  <%!-- Twin 1: Rhythm — section spacing --%>
+                  <%!-- Twin 1: Rhythm — section spacing (graded ladder; scenario content) --%>
                   <div :if={refute_twin(@selected_story) == :rhythm} class="tl-space-y-0">
-                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Audit activity</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">24 changes captured in the last 30 days for this schema.</p>
-                    </section>
-                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Evidence status</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">Proof records current as of 2026-07-01.</p>
-                    </section>
-                    <section style={refute_rhythm_style(@selected_story)} class="tl-stress-refute__section">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;">Retention</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;">Retention window: 90 days. Next prune: 2026-09-30.</p>
+                    <section
+                      :for={{{heading, body}, i} <- Enum.with_index(refute_rhythm_sections(@selected_story))}
+                      style={refute_rhythm_style(@selected_story, i)}
+                      class="tl-stress-refute__section"
+                    >
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-2) 0;"><%= heading %></h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0;"><%= body %></p>
                     </section>
                   </div>
 
@@ -250,15 +253,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                   </div>
 
-                  <%!-- Twin 4: Typography — type scale variety --%>
+                  <%!-- Twin 4: Typography — graded type-scale collapse (scenario copy) --%>
                   <div :if={refute_twin(@selected_story) == :typography} class="tl-space-y-3">
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
-                      <p style={refute_typography_display_style(@selected_story)}>Display heading</p>
-                      <p style={refute_typography_title_style(@selected_story)}>Section title</p>
-                      <p style={refute_typography_heading_style(@selected_story)}>Subsection heading</p>
-                      <p style={refute_typography_body_style(@selected_story)}>Body text for operator scan. Changes captured last 30 days.</p>
-                      <p style={refute_typography_label_style(@selected_story)}>Label / metadata</p>
-                      <p style={refute_typography_meta_style(@selected_story)}>Meta / timestamp</p>
+                      <p
+                        :for={{role, text} <- refute_typography_lines(@selected_story)}
+                        style={refute_typography_role_style(@selected_story, role)}
+                      ><%= text %></p>
                     </div>
                   </div>
 
@@ -268,13 +269,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                        Flawed: ember left-border accent on the action card — ember belongs to
                        diff-emphasis, not primary-action structure (wrong semantic job). --%>
                   <div :if={refute_twin(@selected_story) == :brand_fidelity} class="tl-space-y-3">
+                    <% {brand_heading, brand_body, brand_note} = refute_brand_lines(@selected_story) %>
                     <div style={refute_action_card_style(@selected_story)}>
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-3) 0; color: var(--tl-color-text);">Export audit records</h2>
-                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-4) 0;">Download a CSV of audit changes for the last 90 days.</p>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-3) 0; color: var(--tl-color-text);"><%= brand_heading %></h2>
+                      <p style="font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-4) 0;"><%= brand_body %></p>
+                      <p :if={brand_note} style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;"><%= brand_note %></p>
                       <div style="display: flex; gap: var(--tl-space-3);">
-                        <button style="background: var(--tl-color-thread-blue); color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;" type="button">Export CSV</button>
+                        <button style={refute_brand_button_style(@selected_story)} type="button">Export CSV</button>
                         <button style="background: transparent; color: var(--tl-color-muted); border: 1px solid var(--tl-color-border); padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); cursor: pointer;" type="button">Cancel</button>
                       </div>
+                    </div>
+                  </div>
+
+                  <%!-- Twin (new): Color contrast — one-hue-one-job discipline (graded) --%>
+                  <div :if={refute_twin(@selected_story) == :color_contrast} class="tl-space-y-3">
+                    <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
+                      <div
+                        :for={{label, text, role} <- refute_color_rows(@selected_story)}
+                        style={"display: flex; gap: var(--tl-space-3); align-items: center; padding: var(--tl-space-2) 0 var(--tl-space-2) var(--tl-space-3); border-left: 3px solid #{refute_color_accent(@selected_story, role)}; margin-bottom: var(--tl-space-2);"}
+                      >
+                        <div style={"width: 10px; height: 10px; border-radius: 2px; background: #{refute_color_accent(@selected_story, role)};"}></div>
+                        <span style="font-size: var(--tl-font-size-label); color: var(--tl-color-muted); min-width: 72px;"><%= label %></span>
+                        <span style="font-size: var(--tl-font-size-body); color: var(--tl-color-text);"><%= text %></span>
+                      </div>
+                      <button style={"margin-top: var(--tl-space-2); background: #{refute_color_accent(@selected_story, :action)}; color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"} type="button">Apply</button>
                     </div>
                   </div>
 
@@ -790,16 +808,88 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refute_pole(%{data: data}) when is_map(data), do: Map.get(data, :pole)
     defp refute_pole(_), do: nil
 
-    # Twin 1: Rhythm — section padding: polished uses --tl-space-4 (16 px), flaw uses --tl-space-8 (32 px).
-    # Both are on-grid token values; the cadence break is the gestalt flaw (passes MODE A + B).
-    defp refute_rhythm_style(story) do
-      padding =
-        case refute_pole(story) do
-          :flawed -> "var(--tl-space-8)"
-          _ -> "var(--tl-space-4)"
-        end
+    # Phase 195 D-12: severity rung for a graded-ladder story. Binary twins carry no
+    # :rung, so they map back to the two extremes (flawed → :r2 "bad", polished → :r4)
+    # keeping the existing pole render byte-identical.
+    defp refute_rung(%{data: %{rung: rung}}) when not is_nil(rung), do: rung
+    defp refute_rung(%{data: %{pole: :flawed}}), do: :r2
+    defp refute_rung(_), do: :r4
 
-      "padding: #{padding}; border-bottom: 1px solid var(--tl-color-border);"
+    # Twin 1: Rhythm — the flaw is UNEVEN vertical cadence, NOT spacing magnitude.
+    # Uniform spacing at any size still reads as coherent rhythm (the critic correctly
+    # rates it fine), so severity is graded by how ERRATIC the between-section gaps are:
+    #   r4 even (coherent) → r3 one gap off → r2 alternating → r1 wildly erratic.
+    # Erratic gaps break BOTH vertical_cadence_coherence AND grouping_by_proximity
+    # (related items no longer consistently closer than unrelated). All gaps are on-grid
+    # --tl-space-* tokens, so every rung passes MODE A + MODE B (gestalt flaw only).
+    defp refute_rhythm_style(story, index) do
+      gap = rhythm_gap(refute_rung(story), rem(index, 3))
+
+      "padding: var(--tl-space-3) 0 0 0; margin-bottom: #{gap}; border-bottom: 1px solid var(--tl-color-border);"
+    end
+
+    # Per-(rung, section-index) between-section gap. Variance across the sequence is the
+    # cadence signal, spread so all four rungs separate (the critic saturates to "fail"
+    # if bad ≈ broken, so bad must stay readable):
+    #   r4 [16,16,16] even · r3 [16,24,16] one mild bump · r2 [12,32,16] one clear
+    #   deviation (still breathable) · r1 [4,48,8] cramped-then-floating (broken).
+    defp rhythm_gap(:r4, _), do: "var(--tl-space-4)"
+    defp rhythm_gap(:r3, 1), do: "var(--tl-space-6)"
+    defp rhythm_gap(:r3, _), do: "var(--tl-space-4)"
+    defp rhythm_gap(:r2, 0), do: "var(--tl-space-3)"
+    defp rhythm_gap(:r2, 1), do: "var(--tl-space-8)"
+    defp rhythm_gap(:r2, _), do: "var(--tl-space-4)"
+    defp rhythm_gap(:r1, 0), do: "var(--tl-space-1)"
+    defp rhythm_gap(:r1, 1), do: "var(--tl-space-12)"
+    defp rhythm_gap(:r1, _), do: "var(--tl-space-2)"
+
+    # Distinct per-scenario content for the graded rhythm ladder (avoids pseudo-
+    # replication: each scenario is genuinely different operator copy). Binary twins and
+    # any unlisted scenario fall back to the original three-section reference content.
+    defp refute_rhythm_sections(story) do
+      case Map.get(story.data, :scenario) do
+        "coverage" ->
+          [
+            {"Trigger coverage", "3 of 12 audited tables have live trigger coverage."},
+            {"Uncovered", "9 tables have no capture wired — enable before the next audit."},
+            {"Last checked", "Coverage recomputed 2026-07-01 during the nightly sweep."}
+          ]
+
+        "retention" ->
+          [
+            {"Retention window", "Audit records are retained for 90 days by policy."},
+            {"Next prune", "The scheduled prune runs 2026-09-30 at 02:00 UTC."},
+            {"Redaction", "2 fields are masked at rest under the current redaction rule."}
+          ]
+
+        "exports" ->
+          [
+            {"Recent exports", "4 CSV exports generated in the last 30 days."},
+            {"Largest", "The March export covered 18,204 change records."},
+            {"Delivery", "Exports are delivered to the operator inbox, never emailed."}
+          ]
+
+        "evidence" ->
+          [
+            {"Evidence status", "Proof records are current as of 2026-07-01."},
+            {"Open chains", "1 evidence chain awaits a countersignature."},
+            {"Integrity", "All captured hashes verified on the last integrity run."}
+          ]
+
+        "actor" ->
+          [
+            {"Actor", "Changes attributed to admin@example.com via the console."},
+            {"Intent", "Role change recorded with an explicit operator reason."},
+            {"Correlation", "Tied to request req_9f2 across the job boundary."}
+          ]
+
+        _ ->
+          [
+            {"Audit activity", "24 changes captured in the last 30 days for this schema."},
+            {"Evidence status", "Proof records current as of 2026-07-01."},
+            {"Retention", "Retention window: 90 days. Next prune: 2026-09-30."}
+          ]
+      end
     end
 
     # Twin 2: Density (card-section-wrap) — polished is a plain div, flaw wraps in .tl-card styles.
@@ -863,80 +953,87 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # Twin 4: Typography — polished uses 4 distinct scale steps; flaw uses two roles 1 px apart.
-    # Both poles keep type-size count above the minimum floor (≥ 3 distinct sizes total).
-    # All p elements use explicit 4-value margin shorthand to zero browser default margin-top.
-    # At label (14px) and sm (13px) font-sizes, 1em browser margin is off the spacing scale.
-    defp refute_typography_display_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
+    # Twin 4: Typography — graded type-scale collapse. r4 renders a full 6-step scale
+    # (distinct roles, size tracks importance); worse rungs progressively collapse the
+    # scale so BOTH scored dimensions degrade together — role_differentiation AND
+    # scale_expresses_hierarchy — keeping min()-rollup signal on both dims (the rhythm
+    # lesson: never leave a dimension as a noise floor). r1 is near-flat (no hierarchy).
+    # Every size is a --tl-font-size-* token (type-size count stays above the MODE-B floor).
+    @typo_scale %{
+      r4: %{
+        display: {"display", 700},
+        title: {"title", 600},
+        heading: {"heading", 600},
+        body: {"body", 400},
+        label: {"label", 500},
+        meta: {"xs", 400}
+      },
+      r3: %{
+        display: {"title", 700},
+        title: {"title", 600},
+        heading: {"heading", 500},
+        body: {"body", 400},
+        label: {"label", 500},
+        meta: {"sm", 400}
+      },
+      r2: %{
+        display: {"heading", 600},
+        title: {"heading", 500},
+        heading: {"body", 500},
+        body: {"body", 400},
+        label: {"sm", 500},
+        meta: {"sm", 400}
+      },
+      r1: %{
+        display: {"body", 500},
+        title: {"body", 500},
+        heading: {"body", 500},
+        body: {"body", 400},
+        label: {"sm", 400},
+        meta: {"sm", 400}
+      }
+    }
 
-        _ ->
-          # display (~32px): browser default p margin = 32px (on scale) — zero for predictability
-          "font-size: var(--tl-font-size-display); font-weight: 700; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
-      end
+    defp refute_typography_role_style(story, role) do
+      {size, weight} = @typo_scale |> Map.fetch!(refute_rung(story)) |> Map.fetch!(role)
+
+      "font-size: var(--tl-font-size-#{size}); font-weight: #{weight}; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
     end
 
-    defp refute_typography_title_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
+    # Distinct per-scenario copy across the six type roles (pseudo-replication honesty).
+    defp refute_typography_lines(story) do
+      {display, body, meta} =
+        case Map.get(story.data, :scenario) do
+          "coverage" ->
+            {"Coverage", "3 of 12 audited tables have live trigger coverage.",
+             "Recomputed 2026-07-01"}
 
-        _ ->
-          # title (24px): browser default p margin = 24px (on scale) — zero for predictability
-          "font-size: var(--tl-font-size-title); font-weight: 600; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
-      end
-    end
+          "retention" ->
+            {"Retention", "Records are retained for 90 days; next prune 2026-09-30.", "Policy v4"}
 
-    defp refute_typography_heading_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # label (14px): browser default p margin-top = 14px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
+          "exports" ->
+            {"Exports", "4 CSV exports generated in the last 30 days.", "Largest 18,204 rows"}
 
-        _ ->
-          # heading (20px): browser default p margin = 20px (on scale) — zero for predictability
-          "font-size: var(--tl-font-size-heading); font-weight: 600; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
-      end
-    end
+          "evidence" ->
+            {"Evidence", "Proof records current; 1 chain awaits countersignature.",
+             "Integrity OK"}
 
-    defp refute_typography_body_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # sm (13px): browser default p margin-top = 13px (off spacing scale [4,8,12,16...]) — zero
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
+          "actor" ->
+            {"Actor", "Change attributed to admin@example.com via console.", "req_9f2"}
 
-        _ ->
-          # body (16px): browser default p margin = 16px (on scale) — zero for predictability
-          "font-size: var(--tl-font-size-body); color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
-      end
-    end
+          _ ->
+            {"Audit activity", "24 changes captured in the last 30 days for this schema.",
+             "Updated 2026-07-01"}
+        end
 
-    defp refute_typography_label_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # sm (13px): browser default p margin = 13px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
-
-        _ ->
-          # label (14px): browser default p margin = 14px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-label); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
-      end
-    end
-
-    defp refute_typography_meta_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # sm (13px): browser default p margin = 13px (off scale) — zero all sides (last item)
-          "font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0;"
-
-        _ ->
-          # xs (12px): browser default p margin = 12px (on scale) — still zero for clarity
-          "font-size: var(--tl-font-size-xs); color: var(--tl-color-muted); margin: 0;"
-      end
+      [
+        {:display, display},
+        {:title, "Operator surface"},
+        {:heading, "Last 30 days"},
+        {:body, body},
+        {:label, "STATUS"},
+        {:meta, meta}
+      ]
     end
 
     # Twin 5: Brand fidelity — accent job discipline.
@@ -946,17 +1043,147 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # to diff-emphasis / change-signal jobs, not primary-action structure. Wrong semantic job.
     # Border-left color is not captured in color_pairs, so no MODE-A WCAG violation fires.
     # The semantic-role flaw is visible to the gestalt lens but passes all mechanical gates.
+    # Graded card frame: worse rungs pile brand accent tokens onto jobs they don't own
+    # (ember = diff-emphasis, iris = secondary highlight — neither is action-card chrome).
     defp refute_action_card_style(story) do
       base =
         "padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);"
 
-      case refute_pole(story) do
-        :flawed ->
-          # Ember accent on the left border — wrong job for a primary action card
+      case refute_rung(story) do
+        :r4 ->
+          base
+
+        :r3 ->
           base <> " border-left: 3px solid var(--tl-color-ember);"
 
+        :r2 ->
+          base <> " border-left: 3px solid var(--tl-color-ember);"
+
+        :r1 ->
+          base <>
+            " border-left: 5px solid var(--tl-color-ember); border-top: 3px solid var(--tl-color-iris);"
+      end
+    end
+
+    # Primary action button: thread-blue owns the action job; worse rungs mis-job ember onto it.
+    defp refute_brand_button_style(story) do
+      bg =
+        case refute_rung(story) do
+          :r4 -> "var(--tl-color-thread-blue)"
+          :r3 -> "var(--tl-color-thread-blue)"
+          _ -> "var(--tl-color-ember)"
+        end
+
+      "background: #{bg}; color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"
+    end
+
+    # Copy voice by (rung, scenario): r4/r3 operational; r2 adds a chatty line; r1 is
+    # marketing/apologetic + emoji (off the Threadline register). Drives register_voice_fit.
+    defp refute_brand_lines(story) do
+      {heading, body} =
+        case Map.get(story.data, :scenario) do
+          "coverage" ->
+            {"Coverage summary", "3 of 12 audited tables have trigger coverage."}
+
+          "retention" ->
+            {"Retention settings", "Records retained 90 days; next prune 2026-09-30."}
+
+          "evidence" ->
+            {"Evidence chain", "Proof records current as of 2026-07-01."}
+
+          "actor" ->
+            {"Actor detail", "Change attributed to admin@example.com via console."}
+
+          "timeline" ->
+            {"Audit timeline", "24 changes captured in the last 30 days."}
+
+          _ ->
+            {"Export audit records", "Download a CSV of audit changes for the last 90 days."}
+        end
+
+      note =
+        case refute_rung(story) do
+          :r2 ->
+            "This should only take a moment — thanks for your patience!"
+
+          :r1 ->
+            "You're all set! Everything looks great. 🎉 Powerful, seamless audit exports await."
+
+          _ ->
+            nil
+        end
+
+      {heading, body, note}
+    end
+
+    # Twin (new): Color contrast — one-hue-one-job discipline (graded). Degrades BOTH scored
+    # dims together: color_as_signal (does colour map to meaning?) AND accent_job_discipline
+    # (is each hue reserved for its documented job?). r4 = one hue per job (blue=action,
+    # ember=change, cyan=info); r3 mild creep; r2 reuses one hue across two jobs; r1 scrambles
+    # every hue so colour stops meaning anything. Accents are border-left + a plain <div>
+    # swatch (neither is in the color_pairs text selector) so every rung passes WCAG MODE-A —
+    # this is a gestalt colour-semantics flaw, not a contrast violation (D-03 partition).
+    defp refute_color_accent(story, role) do
+      case {refute_rung(story), role} do
+        {:r4, :action} -> "var(--tl-color-thread-blue)"
+        {:r4, :change} -> "var(--tl-color-ember)"
+        {:r4, :info} -> "var(--tl-color-signal-cyan)"
+        {:r3, :action} -> "var(--tl-color-thread-blue)"
+        {:r3, :change} -> "var(--tl-color-ember)"
+        {:r3, :info} -> "var(--tl-color-iris)"
+        {:r2, :action} -> "var(--tl-color-thread-blue)"
+        {:r2, :change} -> "var(--tl-color-ember)"
+        {:r2, :info} -> "var(--tl-color-thread-blue)"
+        {:r1, :action} -> "var(--tl-color-signal-cyan)"
+        {:r1, :change} -> "var(--tl-color-iris)"
+        {:r1, :info} -> "var(--tl-color-ember)"
+      end
+    end
+
+    # Distinct per-scenario rows for the colour-signal twin (pseudo-replication honesty).
+    defp refute_color_rows(story) do
+      case Map.get(story.data, :scenario) do
+        "coverage" ->
+          [
+            {"Action", "Enable trigger coverage", :action},
+            {"Change", "3 tables newly covered", :change},
+            {"Info", "9 tables remain uncovered", :info}
+          ]
+
+        "retention" ->
+          [
+            {"Action", "Run prune now", :action},
+            {"Change", "Window 120 → 90 days", :change},
+            {"Info", "Next prune 2026-09-30", :info}
+          ]
+
+        "diff" ->
+          [
+            {"Action", "Approve change", :action},
+            {"Change", "role: member → admin", :change},
+            {"Info", "Actor admin@example.com", :info}
+          ]
+
+        "evidence" ->
+          [
+            {"Action", "Countersign chain", :action},
+            {"Change", "Hash re-verified", :change},
+            {"Info", "1 chain pending", :info}
+          ]
+
+        "actor" ->
+          [
+            {"Action", "Attribute change", :action},
+            {"Change", "Intent recorded", :change},
+            {"Info", "Correlation req_9f2", :info}
+          ]
+
         _ ->
-          base
+          [
+            {"Action", "Export audit records", :action},
+            {"Change", "24 changes captured", :change},
+            {"Info", "Retention window 90 days", :info}
+          ]
       end
     end
 

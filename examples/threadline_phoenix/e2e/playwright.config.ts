@@ -54,6 +54,19 @@ const projects = [
       colorScheme: "dark" as const,
     },
   },
+  // Graded-ladder capture lane (Phase 195 D-12 — synthetic twin oracle). Captures each
+  // graded refute story (lens × scenario × severity rung) clipped to the twin content,
+  // emitting the committed scorecard + gitignored PNG the critic scores against.
+  {
+    name: "graded-capture",
+    testMatch: /operator-graded-capture\.spec\.ts/,
+    use: {
+      ...devices["Desktop Chrome"],
+      viewport: { width: 1280, height: 900 },
+      deviceScaleFactor: 1,
+      colorScheme: "dark" as const,
+    },
+  },
   // Refute-pole clean re-capture lane (Phase 195-09 follow-up). Re-emits the 10
   // refute pole `screenshot.png` binaries clipped to the twin content (excludes the
   // /audit/__stress lab chrome) so the golden-set labeler shows a clean twin.

@@ -253,6 +253,35 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Veto flaw: raw hex #e8a246 (Ember-alike) instead of var(--tl-color-ember); trips token-parity veto, no aesthetic score emitted (panel layer, Plan 06 only)."}
   ]
 
+  # Phase 195 D-12: graded severity ladder — the synthetic twin oracle.
+  # Each (lens, scenario) renders at 4 severity rungs mapping onto the human ordinal
+  # scale: r4=good(4), r3=borderline(3), r2=bad(2), r1=broken(1). Cell-ids are DISTINCT
+  # from the rubric anchor poles (refute.<lens>.<twin>.polished/flawed) so validation is
+  # on held-out cells, and each scenario carries DISTINCT content so ~6 scenarios × 4
+  # rungs nets ≥20 low-correlation cells per lens (D-12 pseudo-replication honesty).
+  # The twin atom drives the render block; the lens tags the cell for measurement.
+  @graded_rungs [:r4, :r3, :r2, :r1]
+
+  # {lens, twin_atom_for_render, [scenario_key, ...]}. 6 scenarios × 4 rungs = 24 cells
+  # per lens (over-provisions the n≥20 stable floor). The graphic-design lenses (1
+  # persona) are cheap to score; hierarchy/density (5 personas) are added later.
+  @graded_ladder [
+    {"rhythm", :rhythm, ~w(activity coverage retention exports evidence actor)},
+    {"typography", :typography, ~w(activity coverage retention exports evidence actor)},
+    {"brand_fidelity", :brand_fidelity, ~w(export coverage retention evidence actor timeline)},
+    {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)}
+  ]
+
+  @graded_twin_stories (for {lens, twin, scenarios} <- @graded_ladder,
+                            scenario <- scenarios,
+                            rung <- @graded_rungs do
+                          id = "refute.#{lens}.graded.#{scenario}.#{rung}"
+                          fixture_key = "refute.#{lens}_graded.#{scenario}.#{rung}"
+
+                          {id, fixture_key, "#{lens} graded ladder — #{scenario} @ #{rung}", twin,
+                           lens, scenario, rung}
+                        end)
+
   @reserved_copy "This baseline records the current issue; do not fix it in Phase 171."
 
   @doc """
@@ -332,6 +361,9 @@ defmodule Threadline.OperatorSurface.StressFixtures do
        body: Map.get(story.data, :summary, "Refute twin fixture for #{story.id}."),
        twin: Map.get(story.data, :twin),
        pole: Map.get(story.data, :pole),
+       rung: Map.get(story.data, :rung),
+       scenario: Map.get(story.data, :scenario),
+       lens: Map.get(story.data, :lens),
        fallback_label: "Refute fixture",
        fallback_value: story.fixture_key,
        base_path: "/audit"
@@ -376,7 +408,8 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       data_display_story_maps(),
       permission_denied_story(),
       folded_todo_stories(),
-      refute_twin_story_maps()
+      refute_twin_story_maps(),
+      graded_twin_story_maps()
     ]
     |> List.flatten()
     |> Enum.sort_by(& &1.id)
@@ -858,6 +891,73 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       end
     )
   end
+
+  # Phase 195 D-12: builds the graded-ladder refute stories (lens × scenario × 4 rungs)
+  # from @graded_twin_stories. Same category/status as the binary twins so the capture
+  # + veto pipeline treat them identically; the extra rung/lens/scenario keys drive the
+  # rung-aware render helpers and the synthetic-set generator (mix critic.synth).
+  defp graded_twin_story_maps do
+    Enum.map(
+      @graded_twin_stories,
+      fn {id, fixture_key, scenario_desc, twin, lens, scenario, rung} ->
+        story(%{
+          id: id,
+          kind: "refute",
+          category: "refute",
+          scenario: scenario_desc,
+          fixture_key: fixture_key,
+          cases: ["one"],
+          status: "current",
+          owner_phase: 195,
+          data: %{
+            twin: twin,
+            lens: lens,
+            rung: rung,
+            scenario: scenario,
+            pole: rung_to_pole(rung),
+            summary: "Graded #{lens} twin — #{scenario} content at severity #{rung}."
+          },
+          metadata: %{
+            twin: twin,
+            rung: rung,
+            lens: lens,
+            owner_phase: 195
+          }
+        })
+      end
+    )
+  end
+
+  @doc """
+  The severity rungs of the graded ladder, best-to-worst: r4, r3, r2, r1.
+  """
+  def graded_rungs, do: @graded_rungs
+
+  @doc """
+  Every graded-ladder story (the synthetic twin oracle, D-12), sorted by id. These
+  are dev/test-only oracle fixtures — NOT product surfaces — so they are surfaced in
+  the stress lab for capture without a design-system-ledger entry (they never enter
+  the product ratchet).
+  """
+  def graded_stories do
+    all()
+    |> Enum.filter(fn s -> s.category == "refute" and Map.get(s.data, :rung) != nil end)
+    |> Enum.sort_by(& &1.id)
+  end
+
+  @doc """
+  Maps a severity rung to the human verdict bucket the synthetic oracle records
+  (`mix critic.synth`): r4→good, r3→borderline, r2→bad, r1→broken.
+  """
+  def rung_verdict(:r4), do: "good"
+  def rung_verdict(:r3), do: "borderline"
+  def rung_verdict(:r2), do: "bad"
+  def rung_verdict(:r1), do: "broken"
+
+  # r4 renders as the polished pole; every worse rung renders through the flawed path
+  # (the rung atom then selects the injected severity in the refute_*_style helpers).
+  defp rung_to_pole(:r4), do: :polished
+  defp rung_to_pole(_), do: :flawed
 
   defp synthetic_change(index, operation) do
     padded = index |> Integer.to_string() |> String.pad_leading(4, "0")

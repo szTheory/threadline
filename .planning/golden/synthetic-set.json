@@ -1,0 +1,1739 @@
+{
+  "golden_source": "synthetic",
+  "held_out_ids": [],
+  "items": [
+    {
+      "cell_id": "refute.brand_fidelity.graded.actor.r1__dark-1280",
+      "id": "syn_001",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.actor.r2__dark-1280",
+      "id": "syn_002",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.actor.r3__dark-1280",
+      "id": "syn_003",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.actor.r4__dark-1280",
+      "id": "syn_004",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.coverage.r1__dark-1280",
+      "id": "syn_005",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.coverage.r2__dark-1280",
+      "id": "syn_006",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.coverage.r3__dark-1280",
+      "id": "syn_007",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.coverage.r4__dark-1280",
+      "id": "syn_008",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.evidence.r1__dark-1280",
+      "id": "syn_009",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.evidence.r2__dark-1280",
+      "id": "syn_010",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.evidence.r3__dark-1280",
+      "id": "syn_011",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.evidence.r4__dark-1280",
+      "id": "syn_012",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.export.r1__dark-1280",
+      "id": "syn_013",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.export.r2__dark-1280",
+      "id": "syn_014",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.export.r3__dark-1280",
+      "id": "syn_015",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.export.r4__dark-1280",
+      "id": "syn_016",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"export\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.retention.r1__dark-1280",
+      "id": "syn_017",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.retention.r2__dark-1280",
+      "id": "syn_018",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.retention.r3__dark-1280",
+      "id": "syn_019",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.retention.r4__dark-1280",
+      "id": "syn_020",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.timeline.r1__dark-1280",
+      "id": "syn_021",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.timeline.r2__dark-1280",
+      "id": "syn_022",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.timeline.r3__dark-1280",
+      "id": "syn_023",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.brand_fidelity.graded.timeline.r4__dark-1280",
+      "id": "syn_024",
+      "kept": true,
+      "kind": "single",
+      "lens": "brand_fidelity",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: brand_fidelity \"timeline\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.actor.r1__dark-1280",
+      "id": "syn_025",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.actor.r2__dark-1280",
+      "id": "syn_026",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.actor.r3__dark-1280",
+      "id": "syn_027",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.actor.r4__dark-1280",
+      "id": "syn_028",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.coverage.r1__dark-1280",
+      "id": "syn_029",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.coverage.r2__dark-1280",
+      "id": "syn_030",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.coverage.r3__dark-1280",
+      "id": "syn_031",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.coverage.r4__dark-1280",
+      "id": "syn_032",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.diff.r1__dark-1280",
+      "id": "syn_033",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.diff.r2__dark-1280",
+      "id": "syn_034",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.diff.r3__dark-1280",
+      "id": "syn_035",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.diff.r4__dark-1280",
+      "id": "syn_036",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"diff\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.evidence.r1__dark-1280",
+      "id": "syn_037",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.evidence.r2__dark-1280",
+      "id": "syn_038",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.evidence.r3__dark-1280",
+      "id": "syn_039",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.evidence.r4__dark-1280",
+      "id": "syn_040",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.retention.r1__dark-1280",
+      "id": "syn_041",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.retention.r2__dark-1280",
+      "id": "syn_042",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.retention.r3__dark-1280",
+      "id": "syn_043",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.retention.r4__dark-1280",
+      "id": "syn_044",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.status.r1__dark-1280",
+      "id": "syn_045",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.status.r2__dark-1280",
+      "id": "syn_046",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.status.r3__dark-1280",
+      "id": "syn_047",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.color_contrast.graded.status.r4__dark-1280",
+      "id": "syn_048",
+      "kept": true,
+      "kind": "single",
+      "lens": "color_contrast",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: color_contrast \"status\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.activity.r1__dark-1280",
+      "id": "syn_049",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.activity.r2__dark-1280",
+      "id": "syn_050",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.activity.r3__dark-1280",
+      "id": "syn_051",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.activity.r4__dark-1280",
+      "id": "syn_052",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.actor.r1__dark-1280",
+      "id": "syn_053",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.actor.r2__dark-1280",
+      "id": "syn_054",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.actor.r3__dark-1280",
+      "id": "syn_055",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.actor.r4__dark-1280",
+      "id": "syn_056",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.coverage.r1__dark-1280",
+      "id": "syn_057",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.coverage.r2__dark-1280",
+      "id": "syn_058",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.coverage.r3__dark-1280",
+      "id": "syn_059",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.coverage.r4__dark-1280",
+      "id": "syn_060",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.evidence.r1__dark-1280",
+      "id": "syn_061",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.evidence.r2__dark-1280",
+      "id": "syn_062",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.evidence.r3__dark-1280",
+      "id": "syn_063",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.evidence.r4__dark-1280",
+      "id": "syn_064",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.exports.r1__dark-1280",
+      "id": "syn_065",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.exports.r2__dark-1280",
+      "id": "syn_066",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.exports.r3__dark-1280",
+      "id": "syn_067",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.exports.r4__dark-1280",
+      "id": "syn_068",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.retention.r1__dark-1280",
+      "id": "syn_069",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.retention.r2__dark-1280",
+      "id": "syn_070",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.retention.r3__dark-1280",
+      "id": "syn_071",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.retention.r4__dark-1280",
+      "id": "syn_072",
+      "kept": true,
+      "kind": "single",
+      "lens": "rhythm",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: rhythm \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.activity.r1__dark-1280",
+      "id": "syn_073",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.activity.r2__dark-1280",
+      "id": "syn_074",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.activity.r3__dark-1280",
+      "id": "syn_075",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.activity.r4__dark-1280",
+      "id": "syn_076",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.actor.r1__dark-1280",
+      "id": "syn_077",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.actor.r2__dark-1280",
+      "id": "syn_078",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.actor.r3__dark-1280",
+      "id": "syn_079",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.actor.r4__dark-1280",
+      "id": "syn_080",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.coverage.r1__dark-1280",
+      "id": "syn_081",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.coverage.r2__dark-1280",
+      "id": "syn_082",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.coverage.r3__dark-1280",
+      "id": "syn_083",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.coverage.r4__dark-1280",
+      "id": "syn_084",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.evidence.r1__dark-1280",
+      "id": "syn_085",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.evidence.r2__dark-1280",
+      "id": "syn_086",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.evidence.r3__dark-1280",
+      "id": "syn_087",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.evidence.r4__dark-1280",
+      "id": "syn_088",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.exports.r1__dark-1280",
+      "id": "syn_089",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.exports.r2__dark-1280",
+      "id": "syn_090",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.exports.r3__dark-1280",
+      "id": "syn_091",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.exports.r4__dark-1280",
+      "id": "syn_092",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.retention.r1__dark-1280",
+      "id": "syn_093",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.retention.r2__dark-1280",
+      "id": "syn_094",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.retention.r3__dark-1280",
+      "id": "syn_095",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.typography.graded.retention.r4__dark-1280",
+      "id": "syn_096",
+      "kept": true,
+      "kind": "single",
+      "lens": "typography",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: typography \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    }
+  ],
+  "model_pin": "claude-opus-4-8",
+  "oracle_note": "Constructed graded-twin severity labels (D-12). Proves the critic tracks known-severity injected flaws monotonically on held-out interpolation rungs — NOT that it matches human taste on ambiguous real UI.",
+  "rubric_rev": null,
+  "set_version": "195.12.0",
+  "version": 1
+}

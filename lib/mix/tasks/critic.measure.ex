@@ -7,7 +7,9 @@ defmodule Mix.Tasks.Critic.Measure do
 
   This is the measurement/writer half of CRITIC-03. It reads:
 
-    * `.planning/golden/golden-set.json` — the reconciled human labels (oracle)
+    * the **oracle set** — `.planning/golden/golden-set.json` (reconciled human labels)
+      by default, or `.planning/golden/synthetic-set.json` under `--source synthetic`
+      (the D-12 graded twin oracle: constructed severity labels, zero human labeling)
     * `.planning/critic-scores/<cell>/<lens>/<dim>.json` — the critic's scores
     * `examples/threadline_phoenix/e2e/critic/rubrics/<lens>.md` — for the
       versioned rubric hash stamped into `golden_rubric_version`
@@ -21,7 +23,11 @@ defmodule Mix.Tasks.Critic.Measure do
 
   ## Usage
 
-      mix critic.measure
+      mix critic.measure                     # human golden-set oracle
+      mix critic.measure --source synthetic  # D-12 graded twin oracle (labeling-free)
+
+  Also writes the sibling `critic_trust_provenance` block (`oracle`, `set_version`,
+  `generated_from`) so every promotion honestly records which oracle produced it.
 
   Local-only and **excluded from `ci.all`** (it mutates a committed file). It
   **never** runs git — the maintainer reviews the diff and commits the golden set,
@@ -39,36 +45,78 @@ defmodule Mix.Tasks.Critic.Measure do
 
   @ledger ".planning/design-system-ledger.json"
   @golden ".planning/golden/golden-set.json"
+  @synthetic ".planning/golden/synthetic-set.json"
   @critic_scores ".planning/critic-scores"
   @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
   @impl Mix.Task
-  def run(_argv) do
+  def run(argv) do
     {:ok, _} = Application.ensure_all_started(:crypto)
 
-    golden = read_golden()
+    source = parse_source(argv)
+    golden = read_golden(source)
     scores = read_scores()
     rubric_versions = read_rubric_versions()
 
     block = Measure.build_block(golden, scores, rubric_versions)
+    provenance = provenance_for(source, golden)
 
     ledger_text = File.read!(@ledger)
 
-    case LedgerSplice.replace(ledger_text, block) do
-      {:ok, new_text} ->
-        File.write!(@ledger, new_text)
-        print_summary(block)
-
+    with {:ok, t1} <- LedgerSplice.replace(ledger_text, block),
+         {:ok, t2} <- LedgerSplice.replace_provenance(t1, provenance) do
+      File.write!(@ledger, t2)
+      print_summary(block, source)
+    else
       {:error, reason} ->
-        Mix.raise("critic.measure: could not splice critic_trust block (#{inspect(reason)})")
+        Mix.raise("critic.measure: could not splice ledger block (#{inspect(reason)})")
     end
+  end
+
+  # ── Source + provenance (D-12) ───────────────────────────────────────────────
+
+  # `--source synthetic` reads the graded-twin oracle; default reads the human golden set.
+  defp parse_source(argv) do
+    case OptionParser.parse(argv, strict: [source: :string]) do
+      {[source: "synthetic"], _, _} -> :synthetic
+      {[source: "human"], _, _} -> :human
+      {[], _, _} -> :human
+      {opts, _, _} -> Mix.raise("critic.measure: unknown --source #{inspect(opts)}")
+    end
+  end
+
+  # The sibling critic_trust_provenance block. `oracle` is only stamped when the set
+  # actually carries items (an empty run stays a null/no-op) so the honest-label guard
+  # never sees an unlabeled promotion.
+  defp provenance_for(source, golden) do
+    has_items = length(Map.get(golden, "items", []) || []) > 0
+
+    oracle =
+      cond do
+        not has_items -> nil
+        source == :synthetic -> "synthetic"
+        true -> "human"
+      end
+
+    %{
+      "oracle" => oracle,
+      "set_version" => if(has_items, do: Map.get(golden, "set_version"), else: nil),
+      "generated_from" =>
+        cond do
+          not has_items -> nil
+          source == :synthetic -> "graded-twin-ladder"
+          true -> "human-blind-test-retest"
+        end
+    }
   end
 
   # ── Readers ──────────────────────────────────────────────────────────────────
 
-  defp read_golden do
-    if File.exists?(@golden) do
-      @golden |> File.read!() |> Jason.decode!()
+  defp read_golden(source) do
+    path = if source == :synthetic, do: @synthetic, else: @golden
+
+    if File.exists?(path) do
+      path |> File.read!() |> Jason.decode!()
     else
       %{"items" => []}
     end
@@ -83,6 +131,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
       dim = %{
         band: score["band"],
+        score: score["score"],
         stable: score["stable"] == true,
         model_id: score["model_id"],
         rubric_version: score["rubric_version"]
@@ -92,9 +141,13 @@ defmodule Mix.Tasks.Critic.Measure do
     end)
   end
 
-  # For each lens: "<lens>@<semver>+<sha8>" where sha8 is the first 8 hex chars of
-  # SHA-256 of the raw rubric bytes (matches the guard's sha8_of_file), and semver
-  # is parsed from the rubric header. nil when the rubric file is absent.
+  # For each lens: the header-declared "<lens>@<semver>+<sha8>", read straight from the
+  # rubric's `<!-- lens: X | version: V | sha8: S -->` comment — the SAME source the
+  # scorer (run.ts getRubricVersion) stamps into each score's rubric_version. Reading
+  # (not recomputing) keeps score-time and measure-time versions identical, so `fresh`
+  # holds while a rubric is unchanged. The dedicated rubric-hash guard (in
+  # critic_trust_test) separately asserts the header sha8 tracks the file bytes once a
+  # rubric is stamped (placeholder "00000000" = uninitialized). nil when absent/malformed.
   defp read_rubric_versions do
     Map.new(Measure.lenses(), fn lens ->
       path = Path.join(@rubrics_dir, "#{lens}.md")
@@ -102,31 +155,29 @@ defmodule Mix.Tasks.Critic.Measure do
       version =
         if File.exists?(path) do
           content = File.read!(path)
-          semver = extract_semver(content)
 
-          sha8 =
-            :crypto.hash(:sha256, content) |> Base.encode16(case: :lower) |> String.slice(0, 8)
-
-          if semver, do: "#{lens}@#{semver}+#{sha8}", else: nil
+          case Regex.run(
+                 ~r/<!--\s*lens:\s*\S+\s*\|\s*version:\s*(\S+)\s*\|\s*sha8:\s*(\S+)\s*-->/,
+                 content
+               ) do
+            [_, semver, sha8] -> "#{lens}@#{semver}+#{sha8}"
+            _ -> nil
+          end
         end
 
       {lens, version}
     end)
   end
 
-  defp extract_semver(content) do
-    case Regex.run(~r/version:\s*(\d+\.\d+\.\d+)/, content) do
-      [_, semver] -> semver
-      _ -> nil
-    end
-  end
-
   # ── Output ───────────────────────────────────────────────────────────────────
 
-  defp print_summary(block) do
-    Mix.shell().info("\ncritic_trust measured (design-system-ledger.json updated):\n")
-    Mix.shell().info("  lens             n   alpha    raw    validated")
-    Mix.shell().info("  ---------------  --  -------  -----  ---------")
+  defp print_summary(block, source) do
+    Mix.shell().info(
+      "\ncritic_trust measured (design-system-ledger.json updated) — oracle: #{source}:\n"
+    )
+
+    Mix.shell().info("  lens             n   spearman   auc    (alpha)  validated")
+    Mix.shell().info("  ---------------  --  --------  -----  -------  ---------")
 
     for lens <- Measure.lenses() do
       d = Map.fetch!(block, lens)
@@ -137,9 +188,11 @@ defmodule Mix.Tasks.Critic.Measure do
           "  " <>
           String.pad_leading(to_string(d["n"]), 2) <>
           "  " <>
-          String.pad_leading(fmt(d["alpha"]), 7) <>
+          String.pad_leading(fmt(d["spearman"]), 8) <>
           "  " <>
-          String.pad_leading(fmt(d["raw_agreement"]), 5) <>
+          String.pad_leading(fmt(d["auc"]), 5) <>
+          "  " <>
+          String.pad_leading(fmt(d["alpha"]), 7) <>
           "  " <>
           if(d["validated"], do: "  ✓ validated", else: "    provisional")
       )

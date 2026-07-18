@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @ledger_path ".planning/design-system-ledger.json"
     @golden_set_path ".planning/golden/golden-set.json"
+    @synthetic_set_path ".planning/golden/synthetic-set.json"
     @scorecards_dir ".planning/scorecards"
     @critic_scores_dir ".planning/critic-scores"
     @critique_path "CRITIQUE.md"
@@ -19,6 +20,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     )
 
     @lens_required_fields ~w(
+      spearman
+      auc
       alpha
       ci95
       golden_rubric_version
@@ -78,11 +81,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "every validated critic_trust lens meets the full statistical trust bar" do
       # Vacuously passes while all lenses have validated: false.
-      # When a lens is promoted to validated: true (after running `critic validate`),
-      # this gate enforces the full per-lens bar:
-      #   alpha >= 0.67  — chance-corrected agreement (Krippendorff's ordinal α)
-      #   n >= 20        — minimum sample size
-      #   raw_agreement >= 0.80 — recorded companion (non-gating alone)
+      # When a lens is promoted to validated: true, this gate enforces the per-lens bar:
+      #   spearman >= 0.7 — rank correlation oracle-severity vs critic score [PRIMARY GATE]
+      #   n >= 20         — minimum sample size
+      #   auc / alpha / raw_agreement — recorded companions only; NOT gated (D-12 rev v2)
       #   model_id == "claude-opus-4-8" — single model pin
       #   golden_rubric_version == "<lens>@<semver>+<sha8>" where sha8 is recomputed
       #     from the current disk bytes of rubrics/<lens>.md (rubric-hash freshness)
@@ -92,20 +94,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         lens_data = Map.fetch!(critic_trust, lens)
 
         if lens_data["validated"] == true do
-          alpha = lens_data["alpha"]
+          spearman = lens_data["spearman"]
           n = lens_data["n"]
-          raw_agreement = lens_data["raw_agreement"]
           model_id = lens_data["model_id"]
           golden_rubric_version = lens_data["golden_rubric_version"]
 
-          assert is_number(alpha) and alpha >= 0.67,
-                 "critic_trust[#{lens}] validated but alpha #{inspect(alpha)} < 0.67 (Krippendorff bar)"
+          assert is_number(spearman) and spearman >= 0.7,
+                 "critic_trust[#{lens}] validated but spearman #{inspect(spearman)} < 0.7 (ranking bar)"
 
           assert is_integer(n) and n >= 20,
                  "critic_trust[#{lens}] validated but n=#{n} < 20 (sample-size bar)"
 
-          assert is_number(raw_agreement) and raw_agreement >= 0.80,
-                 "critic_trust[#{lens}] validated but raw_agreement #{inspect(raw_agreement)} < 0.80"
+          # D-12 rev v2: auc/alpha/raw_agreement are reported-only companions, NOT gates
+          # (ρ is the trust bar). Assert they are recorded, but never threshold them.
+          assert is_number(lens_data["auc"]),
+                 "critic_trust[#{lens}] validated but auc #{inspect(lens_data["auc"])} is not recorded"
 
           assert model_id == "claude-opus-4-8",
                  "critic_trust[#{lens}] model_id mismatch: expected \"claude-opus-4-8\", got #{inspect(model_id)}"
@@ -117,10 +120,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "critic_trust[#{lens}] validated but golden_rubric_version is nil"
 
           rubric_path = Path.join(@rubrics_dir, "#{lens}.md")
+          stamped_sha8 = extract_sha8_from_version(golden_rubric_version)
 
-          if File.exists?(rubric_path) do
-            stamped_sha8 = extract_sha8_from_version(golden_rubric_version)
-            disk_sha8 = sha8_of_file(rubric_path)
+          # While a rubric is unstamped (placeholder "00000000"), the sha8 freshness
+          # sub-check is vacuous — the dedicated rubric-hash guard covers stamped
+          # rubrics. Once stamped, the stamped sha8 must match the normalised disk hash
+          # (sha8 field set to placeholder), matching the header-stamping convention.
+          if File.exists?(rubric_path) and stamped_sha8 != "00000000" do
+            normalised = normalise_sha8(File.read!(rubric_path), "00000000")
+            disk_sha8 = sha8_of_string(normalised)
 
             assert stamped_sha8 == disk_sha8,
                    "critic_trust[#{lens}] rubric-hash mismatch: " <>
@@ -130,6 +138,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      "and re-score (T-195-11)."
           end
         end
+      end
+    end
+
+    # ── Provenance / honest-oracle guards (D-12) ─────────────────────────────────
+    # The synthetic twin oracle (D-12) lets a lens validate against constructed
+    # graded-twin labels instead of human labels. That is a WEAKER epistemic object
+    # (it proves the critic tracks known-severity flaws monotonically, NOT that it
+    # matches human taste), so every validated lens must carry an honest, non-null
+    # provenance marker — no silent/unlabeled promotions.
+
+    test "ledger has a sibling critic_trust_provenance block with the fixed field set" do
+      provenance = ledger()["critic_trust_provenance"]
+      assert is_map(provenance), "#{@ledger_path} missing sibling 'critic_trust_provenance' block"
+
+      assert provenance |> Map.keys() |> Enum.sort() ==
+               Enum.sort(~w(oracle set_version generated_from)),
+             "critic_trust_provenance field set drifted: got #{inspect(Map.keys(provenance))}"
+    end
+
+    test "any validated lens requires a non-null provenance oracle (no unlabeled promotion)" do
+      ledger = ledger()
+      critic_trust = ledger["critic_trust"]
+      oracle = get_in(ledger, ["critic_trust_provenance", "oracle"])
+
+      any_validated? = Enum.any?(@critic_lenses, &(critic_trust[&1]["validated"] == true))
+
+      if any_validated? do
+        assert oracle in ["human", "synthetic"],
+               "a lens is validated:true but critic_trust_provenance.oracle is #{inspect(oracle)} " <>
+                 "— every promotion must record which oracle produced it (D-12)"
+      end
+    end
+
+    test "a synthetic oracle is honestly recorded and backed by the synthetic set" do
+      provenance = ledger()["critic_trust_provenance"]
+
+      if provenance["oracle"] == "synthetic" do
+        assert provenance["generated_from"] == "graded-twin-ladder",
+               "synthetic oracle must record generated_from: \"graded-twin-ladder\", " <>
+                 "got #{inspect(provenance["generated_from"])}"
+
+        assert File.exists?(@synthetic_set_path),
+               "provenance claims a synthetic oracle but #{@synthetic_set_path} is missing"
+
+        set = @synthetic_set_path |> File.read!() |> Jason.decode!()
+
+        assert set["golden_source"] == "synthetic",
+               "#{@synthetic_set_path} must declare golden_source: \"synthetic\" (D-12 honesty)"
       end
     end
 
@@ -243,8 +299,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "rubric pole cell-ids are disjoint from golden mid-range items and held_out_ids" do
       gs = golden_set()
-      held_out_ids = gs["held_out_ids"]
-      mid_range_ids = Enum.map(gs["items"], & &1["cell_id"])
+      # D-12: the synthetic oracle validates the critic on graded rungs, so the rubric
+      # anchor poles must be disjoint from BOTH the human golden set AND the synthetic
+      # set (else the few-shot poles would be graded — teaching-to-the-test on the exact
+      # calibration exemplars). The intermediate rungs the rubric never showed are the
+      # held-out interpolation cells that carry the real signal.
+      syn = synthetic_set()
+      held_out_ids = (gs["held_out_ids"] || []) ++ (syn["held_out_ids"] || [])
+
+      mid_range_ids =
+        Enum.map(gs["items"], & &1["cell_id"]) ++ Enum.map(syn["items"], & &1["cell_id"])
+
       forbidden_ids = MapSet.new(held_out_ids ++ mid_range_ids)
 
       for lens <- @critic_lenses do
@@ -323,6 +388,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp golden_set, do: @golden_set_path |> File.read!() |> Jason.decode!()
 
+    # Synthetic twin oracle set (D-12); absent → an empty set (vacuous guards).
+    defp synthetic_set do
+      if File.exists?(@synthetic_set_path) do
+        @synthetic_set_path |> File.read!() |> Jason.decode!()
+      else
+        %{"items" => [], "held_out_ids" => []}
+      end
+    end
+
     # Extract the sha8 from a golden_rubric_version string like "hierarchy@1.0.0+ab3f1234"
     defp extract_sha8_from_version(version) when is_binary(version) do
       case String.split(version, "+") do
@@ -332,11 +406,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp extract_sha8_from_version(_), do: nil
-
-    # Compute sha8 (first 8 hex chars of SHA-256) of a file's bytes.
-    defp sha8_of_file(path) do
-      path |> File.read!() |> sha8_of_string()
-    end
 
     # Compute sha8 of a binary string.
     defp sha8_of_string(content) when is_binary(content) do

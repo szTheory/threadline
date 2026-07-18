@@ -24,8 +24,23 @@ defmodule Threadline.CriticTrust.LedgerSplice do
   """
   @spec replace(binary(), map()) :: {:ok, binary()} | {:error, atom()}
   def replace(ledger_text, block) when is_binary(ledger_text) and is_map(block) do
-    key = ~s("critic_trust":)
+    splice_object(ledger_text, ~s("critic_trust":), render_block(block))
+  end
 
+  @doc """
+  Replace the sibling `critic_trust_provenance` object in `ledger_text` with the
+  rendered `provenance` map (Phase 195 D-12). The object must already exist as a
+  sibling of `critic_trust` (seeded once in the committed ledger) so the byte-stable
+  splice has a target; keys not in `provenance` are dropped, so pass the full map.
+  """
+  @spec replace_provenance(binary(), map()) :: {:ok, binary()} | {:error, atom()}
+  def replace_provenance(ledger_text, provenance)
+      when is_binary(ledger_text) and is_map(provenance) do
+    splice_object(ledger_text, ~s("critic_trust_provenance":), render_provenance(provenance))
+  end
+
+  # Brace-match the object value after `key` and splice `rendered` over exactly its bytes.
+  defp splice_object(ledger_text, key, rendered) do
     with {ks, kl} <- match(ledger_text, key),
          rest_start = ks + kl,
          rest = binary_part(ledger_text, rest_start, byte_size(ledger_text) - rest_start),
@@ -34,9 +49,9 @@ defmodule Threadline.CriticTrust.LedgerSplice do
          {:ok, close} <- find_close(ledger_text, open) do
       prefix = binary_part(ledger_text, 0, open)
       suffix = binary_part(ledger_text, close + 1, byte_size(ledger_text) - close - 1)
-      {:ok, prefix <> render_block(block) <> suffix}
+      {:ok, prefix <> rendered <> suffix}
     else
-      :nomatch -> {:error, :critic_trust_not_found}
+      :nomatch -> {:error, :object_key_not_found}
       :error -> {:error, :unbalanced_braces}
     end
   end
@@ -60,6 +75,20 @@ defmodule Threadline.CriticTrust.LedgerSplice do
       end)
 
     "{\n" <> Enum.join(lens_strs, ",\n") <> "\n  }"
+  end
+
+  @doc """
+  Render the sibling `critic_trust_provenance` value object with the ledger's exact
+  indentation (fields at 4 spaces, close at 2). Fixed field order for a stable diff.
+  """
+  @spec render_provenance(map()) :: binary()
+  def render_provenance(provenance) do
+    field_strs =
+      Enum.map(~w(oracle set_version generated_from), fn f ->
+        "    #{Jason.encode!(f)}: #{Jason.encode!(Map.get(provenance, f))}"
+      end)
+
+    "{\n" <> Enum.join(field_strs, ",\n") <> "\n  }"
   end
 
   # :binary.match/2 wrapper returning {start, len} | :nomatch.

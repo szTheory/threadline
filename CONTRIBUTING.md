@@ -152,10 +152,33 @@ runs without an API key and passes vacuously until the maintainer has populated 
 - Postgres running for `mix ci.all` verification at the end
 - All `npm` dependencies installed: `cd examples/threadline_phoenix/e2e && npm install`
 
-### Step 1 — Seed and label the oracle (blind test-retest)
+### Step 1 — Build the oracle
+
+The critic must be validated against an oracle before its scores may drive the ratchet.
+There are two oracles; the **synthetic** one is the default (no human labeling).
+
+#### Step 1a (recommended) — Synthetic twin oracle (labeling-free, D-12)
+
+The synthetic oracle is a graded severity ladder of twins (lens × scenario × 4 rungs)
+whose verdicts are known *by construction*, so the trust gate reaches n≥20/lens with **zero
+labeling**. It proves the critic tracks known-severity flaws monotonically on held-out rungs
+(a *calibration* claim), which is sufficient to drive the **forward-only** ratchet. It does
+NOT claim taste-agreement on ambiguous UI — that's what Step 1b's human oracle is for.
+
+```bash
+mix critic.synth                                   # generate synthetic-set.json from the ladder
+cd examples/threadline_phoenix/e2e
+npm run capture:graded                             # shoot the graded rung cells (needs dev server)
+npm run critic:score -- --synthetic                # score exactly the graded (cell, lens) pairs
+cd ../../.. && mix critic.measure --source synthetic  # α + n + raw per lens; writes honest provenance
+mix verify.critic_trust                            # gate re-asserts what was recorded
+```
+
+#### Step 1b (optional, stronger claim) — Human golden set (blind test-retest)
 
 The `critic label` CLI guides you through the golden-set authoring lane. IDs are masked
-behind ephemeral tokens so each round is genuinely blind.
+behind ephemeral tokens so each round is genuinely blind. Use this when you want a
+taste-agreement claim on real UI beyond the synthetic calibration claim.
 
 The images come from two capture lanes (run once, before labeling): `npm run capture:storybook`
 emits the real-UI Storybook `story.*` cells, and `npm run capture:refute` re-emits the refute-twin

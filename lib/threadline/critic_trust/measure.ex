@@ -1,7 +1,15 @@
 defmodule Threadline.CriticTrust.Measure do
   @moduledoc """
-  Pure engine that turns the maintainer's golden-set labels + the critic's scores
-  into the per-lens `critic_trust` block written to `.planning/design-system-ledger.json`.
+  Pure engine that turns an **oracle set** + the critic's scores into the per-lens
+  `critic_trust` block written to `.planning/design-system-ledger.json`.
+
+  The oracle is label-source-agnostic (this engine only needs items carrying an
+  `r1.verdict`): either the maintainer's human `golden-set.json`, or — under D-12 —
+  the constructed `synthetic-set.json` (a graded twin-severity ladder, verdicts known
+  by construction). Synthetic validation proves the critic tracks known-severity
+  flaws monotonically on held-out rungs; it is NOT a claim of taste-agreement on
+  ambiguous UI. The oracle used is recorded honestly in the sibling
+  `critic_trust_provenance` ledger block (written by `mix critic.measure`).
 
   This is the measurement/writer half of CRITIC-03: `mix critic.measure` (the IO
   shell in `Mix.Tasks.Critic.Measure`) reads the files, calls `build_block/4`, and
@@ -10,42 +18,54 @@ defmodule Threadline.CriticTrust.Measure do
 
   Kept pure (no file IO) so it is unit-testable in memory.
 
-  ## Agreement metric
+  ## Trust metric (ranking, not agreement)
 
-  Both raters are placed on a shared 1..4 ordinal scale and fed to
-  `Threadline.CriticTrust.KrippendorffAlpha.compute/1`:
+  Per resolved cell we take:
 
-    * Human verdict bucket — `broken → 1, bad → 2, borderline → 3, good → 4`
-      (single-kind golden items; pairwise verdicts are excluded from α).
-    * Critic — the `min()` band across a lens's stable dimension scorecards
-      (D-06 "only as good as the worst-served"), crosswalked
-      `fail → 1, weak → 2, ok → 3, strong → 4, exemplary → 4`.
+    * Oracle ordinal — the set's `r1.verdict` bucketed `broken → 1, bad → 2,
+      borderline → 3, good → 4`. The oracle is either a human label (golden-set.json) or
+      a **constructed** graded-twin label (synthetic-set.json, D-12) — this engine does
+      not care which. Single-kind items only.
+    * Critic score — the **mean of the stable dimensions' median scores** (0..100), the
+      continuous ranking signal. (A legacy `min()` band, crosswalked
+      `fail → 1 … strong/exemplary → 4`, is also kept for the companion α.)
 
-  `raw_agreement` is the exact-bucket match rate over the `n` resolved pairs.
-  `pairwise_acc` is emitted as `nil` — the label CLI does not yet persist pair
-  margins, so no clear-margin pairs resolve (the guard never gates on it).
+  The **primary trust metric is Spearman's ρ** between the oracle ordinal and the critic
+  score (`RankMetrics.spearman/2`) — it rewards correct *ordering* of severity, which is
+  what a forward-only ratchet needs, and tolerates the critic's scale *compression*.
+  `auc` (`RankMetrics.auc/1`) reports good-vs-bad separation. `alpha` (Krippendorff
+  band-agreement) and `raw_agreement` (exact-bucket match) are retained as reported-only
+  companions — they sink on a compressing critic even when its ranking is strong, so they
+  no longer gate. `pairwise_acc` stays `nil`.
 
   ## Promotion
 
-  A lens is `validated: true` only when **all** hold: `alpha >= 0.67`, `n >= 20`,
-  `raw_agreement >= 0.80`, `model_id == "claude-opus-4-8"`, and every contributing
-  score was produced at the current rubric version (auto-invalidation on a rubric
-  or model bump). Otherwise the measured numbers are still written (honest
-  provisional). All 6 lenses are emitted every run.
+  A lens is `validated: true` only when **all** hold: `spearman >= 0.7`,
+  `n >= 20`, `model_id == "claude-opus-4-8"`, and every contributing score was produced
+  at the current rubric version (auto-invalidation on a rubric or model bump). Otherwise
+  the measured numbers are still written (honest provisional). All 6 lenses are emitted
+  every run.
   """
 
-  alias Threadline.CriticTrust.KrippendorffAlpha
+  alias Threadline.CriticTrust.{KrippendorffAlpha, RankMetrics}
 
   @lenses ~w(hierarchy density rhythm typography color_contrast brand_fidelity)
   @model_pin "claude-opus-4-8"
 
-  # Human verdict bucket → ordinal (single-kind items only).
-  @human %{"broken" => 1, "bad" => 2, "borderline" => 3, "good" => 4}
-  # Critic band → ordinal (strong and exemplary both fold to "good" to match human granularity).
+  # Primary trust bar: Spearman's ρ between oracle severity and the critic's continuous
+  # per-cell score (ranking, not agreement — the critic ranks well but compresses the scale).
+  @spearman_bar 0.7
+
+  # Oracle verdict bucket → ordinal (single-kind items only). "Oracle" = the set's
+  # r1.verdict, whether human-labeled or constructed by the graded-twin ladder (D-12).
+  @oracle %{"broken" => 1, "bad" => 2, "borderline" => 3, "good" => 4}
+  # Critic band → ordinal (strong and exemplary both fold to "good" to match oracle granularity).
   @band %{"fail" => 1, "weak" => 2, "ok" => 3, "strong" => 4, "exemplary" => 4}
 
   # Fixed field order — matches the committed ledger block for a minimal diff.
-  @field_order ~w(alpha raw_agreement pairwise_acc n ci95 golden_rubric_version model_id validated)
+  # `spearman` (primary gate) + `auc` (companion) lead; `alpha`/`raw_agreement` are
+  # retained as reported-only companions (D-12 gate revision v2 — ranking, not agreement).
+  @field_order ~w(spearman auc alpha raw_agreement pairwise_acc n ci95 golden_rubric_version model_id validated)
 
   @default_seed 424_242
 
@@ -89,17 +109,28 @@ defmodule Threadline.CriticTrust.Measure do
       end)
       |> Enum.flat_map(&resolve(&1, lens, scores, current_version))
 
-    pairs = Enum.map(resolved, &{&1.human, &1.critic})
-    n = length(pairs)
+    n = length(resolved)
 
-    {alpha, ci95} = alpha_and_ci(pairs)
+    # Primary gate: Spearman's ρ (oracle severity vs the critic's continuous score).
+    spearman =
+      case RankMetrics.spearman(Enum.map(resolved, & &1.oracle), Enum.map(resolved, & &1.score)) do
+        {:ok, r} -> r
+        {:error, _} -> nil
+      end
+
+    # Companion: good-vs-bad separation over the continuous score.
+    auc =
+      case RankMetrics.auc(Enum.map(resolved, &{&1.score, &1.oracle})) do
+        {:ok, a} -> a
+        {:error, _} -> nil
+      end
+
+    # Legacy companions (reported, never gate): band-agreement α + raw exact-match.
+    band_pairs = Enum.map(resolved, &{&1.oracle, &1.band})
+    {alpha, ci95} = alpha_and_ci(band_pairs)
 
     raw =
-      if n > 0 do
-        Enum.count(resolved, &(&1.human == &1.critic)) / n
-      else
-        nil
-      end
+      if n > 0, do: Enum.count(resolved, &(&1.oracle == &1.band)) / n, else: nil
 
     model_id =
       case resolved do
@@ -109,11 +140,17 @@ defmodule Threadline.CriticTrust.Measure do
 
     fresh = resolved != [] and Enum.all?(resolved, & &1.fresh)
 
+    # D-12 gate revision v2: the trust bar is a RANKING correlation, not agreement. A
+    # forward-only ratchet asks "did this get worse?" (ordering) — and the critic ranks
+    # severity well (ρ) even though it compresses the exact scale (which sank α/raw). α +
+    # raw_agreement stay as reported-only companions; auc is a separation sanity check.
     validated =
-      is_number(alpha) and alpha >= 0.67 and n >= 20 and
-        is_number(raw) and raw >= 0.80 and model_id == @model_pin and fresh
+      is_number(spearman) and spearman >= @spearman_bar and n >= 20 and
+        model_id == @model_pin and fresh
 
     %{
+      "spearman" => spearman,
+      "auc" => auc,
       "alpha" => alpha,
       "raw_agreement" => raw,
       "pairwise_acc" => nil,
@@ -125,9 +162,11 @@ defmodule Threadline.CriticTrust.Measure do
     }
   end
 
-  # Resolve one golden item into zero or one {human, critic} pair with provenance.
+  # Resolve one oracle item into zero or one record with the oracle ordinal, the critic's
+  # continuous per-cell score (mean of stable dims' median scores — the ranking signal),
+  # the min-band (legacy α companion), and provenance.
   defp resolve(item, lens, scores, current_version) do
-    human = Map.get(@human, get_in(item, ["r1", "verdict"]))
+    oracle = Map.get(@oracle, get_in(item, ["r1", "verdict"]))
     dims = Map.get(scores, {item["cell_id"], lens}, [])
     stable_dims = Enum.filter(dims, & &1.stable)
 
@@ -136,7 +175,9 @@ defmodule Threadline.CriticTrust.Measure do
       |> Enum.map(&Map.get(@band, &1.band))
       |> Enum.reject(&is_nil/1)
 
-    if human == nil or bands == [] do
+    dim_scores = stable_dims |> Enum.map(& &1.score) |> Enum.filter(&is_number/1)
+
+    if oracle == nil or bands == [] or dim_scores == [] do
       []
     else
       fresh =
@@ -146,8 +187,9 @@ defmodule Threadline.CriticTrust.Measure do
 
       [
         %{
-          human: human,
-          critic: Enum.min(bands),
+          oracle: oracle,
+          score: Enum.sum(dim_scores) / length(dim_scores),
+          band: Enum.min(bands),
           model_id: List.first(stable_dims).model_id,
           fresh: fresh
         }

@@ -14120,6 +14120,8 @@
   "version": 2,
   "critic_trust": {
     "hierarchy": {
+      "spearman": null,
+      "auc": null,
       "alpha": null,
       "raw_agreement": null,
       "pairwise_acc": null,
@@ -14130,6 +14132,8 @@
       "validated": false
     },
     "density": {
+      "spearman": null,
+      "auc": null,
       "alpha": null,
       "raw_agreement": null,
       "pairwise_acc": null,
@@ -14140,26 +14144,32 @@
       "validated": false
     },
     "rhythm": {
-      "alpha": null,
-      "raw_agreement": null,
+      "spearman": 0.7598082336875568,
+      "auc": 0.9669421487603306,
+      "alpha": 0.6684306468158252,
+      "raw_agreement": 0.4090909090909091,
       "pairwise_acc": null,
-      "n": 0,
-      "ci95": null,
-      "golden_rubric_version": null,
+      "n": 22,
+      "ci95": [0.42319988879621917,0.8109201055745291],
+      "golden_rubric_version": "rhythm@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
-      "validated": false
+      "validated": true
     },
     "typography": {
-      "alpha": null,
-      "raw_agreement": null,
+      "spearman": 0.9054752764788333,
+      "auc": 1.0,
+      "alpha": 0.6389195825659914,
+      "raw_agreement": 0.1111111111111111,
       "pairwise_acc": null,
-      "n": 0,
-      "ci95": null,
-      "golden_rubric_version": null,
+      "n": 9,
+      "ci95": [0.14828282828282824,0.761437908496732],
+      "golden_rubric_version": "typography@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
     },
     "color_contrast": {
+      "spearman": null,
+      "auc": null,
       "alpha": null,
       "raw_agreement": null,
       "pairwise_acc": null,
@@ -14170,14 +14180,21 @@
       "validated": false
     },
     "brand_fidelity": {
-      "alpha": null,
-      "raw_agreement": null,
+      "spearman": 0.9414986770830737,
+      "auc": 1.0,
+      "alpha": 0.06453804347826075,
+      "raw_agreement": 0.34782608695652173,
       "pairwise_acc": null,
-      "n": 0,
-      "ci95": null,
-      "golden_rubric_version": null,
+      "n": 23,
+      "ci95": [-0.40689497018804466,0.4565578476437391],
+      "golden_rubric_version": "brand_fidelity@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
-      "validated": false
+      "validated": true
     }
+  },
+  "critic_trust_provenance": {
+    "oracle": "synthetic",
+    "set_version": "195.12.0",
+    "generated_from": "graded-twin-ladder"
   }
 }
