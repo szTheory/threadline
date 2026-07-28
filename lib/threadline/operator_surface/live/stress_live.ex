@@ -904,11 +904,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # --tl-font-size-* token and ≥2 distinct sizes render at every rung, so all four rungs pass
     # MODE A + MODE B (gestalt flaw only). Binary twins map flawed→r2, polished→r4 via
     # refute_rung/1, so the polished/flawed poles remain gestalt-flaw-only as before.
+    # WIDENED 2026-07-28 (rescue attempt): the first ladder crushed the critic into a 65-75
+    # band (ρ0.086) — rungs too subtle to grade in a clipped card. This spreads the rungs to the
+    # maximum on-token contrast range so separability is unambiguous: r4 is a commanding
+    # display(32px)/700 title over a full 4-size descent; r1's "title" is NOT larger than body
+    # (both 16px, weight 500 vs 400) with only meta(xs) breaking the flat — near-zero hierarchy.
+    # If the critic still can't order THIS, it's a capability ceiling, not ladder subtlety.
+    # Every rung still renders >=2 distinct --tl-font-size-* tokens (MODE-B floor).
     @hierarchy_scale %{
-      r4: %{meta: {"xs", 400}, title: {"title", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
-      r3: %{meta: {"xs", 400}, title: {"heading", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
-      r2: %{meta: {"label", 500}, title: {"heading", 600}, subtitle: {"body", 500}, body: {"body", 500}},
-      r1: %{meta: {"sm", 400}, title: {"body", 600}, subtitle: {"body", 500}, body: {"body", 500}}
+      r4: %{meta: {"xs", 400}, title: {"display", 700}, subtitle: {"heading", 600}, body: {"body", 400}},
+      r3: %{meta: {"xs", 400}, title: {"title", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
+      r2: %{meta: {"label", 500}, title: {"heading", 600}, subtitle: {"body", 500}, body: {"body", 400}},
+      r1: %{meta: {"xs", 400}, title: {"body", 500}, subtitle: {"body", 400}, body: {"body", 400}}
     }
 
     defp refute_hierarchy_role_style(story, role) do

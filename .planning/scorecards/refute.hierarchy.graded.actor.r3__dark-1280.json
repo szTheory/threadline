@@ -73,7 +73,7 @@
       "selector": "h1",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
-      "font_size": "20px",
+      "font_size": "24px",
       "font_weight": "700"
     },
     {
@@ -121,7 +121,7 @@
       "border_radius": "0px",
       "box_shadow": "none",
       "transition_duration": "0s",
-      "font_size": "20px",
+      "font_size": "24px",
       "font_weight": "700",
       "margin_top": "0px",
       "margin_bottom": "8px",
@@ -158,15 +158,16 @@
     "rgb(215, 222, 234)"
   ],
   "mode_b": {
-    "type_size_count": 4,
+    "type_size_count": 5,
     "interactive_control_count": 0,
     "card_nesting_depth": 0,
-    "scroll_cost": 36.85,
+    "scroll_cost": 40.29,
     "font_sizes": [
       "12px",
       "14px",
       "16px",
-      "20px"
+      "20px",
+      "24px"
     ]
   },
   "a11y_summary": {

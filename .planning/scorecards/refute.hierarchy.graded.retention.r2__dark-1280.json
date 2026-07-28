@@ -88,7 +88,7 @@
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
       "font_size": "16px",
-      "font_weight": "500"
+      "font_weight": "400"
     }
   ],
   "element_styles": [
@@ -146,7 +146,7 @@
       "box_shadow": "none",
       "transition_duration": "0s",
       "font_size": "16px",
-      "font_weight": "500",
+      "font_weight": "400",
       "margin_top": "0px",
       "margin_bottom": "8px",
       "padding_top": "0px",
@@ -161,7 +161,7 @@
     "type_size_count": 3,
     "interactive_control_count": 0,
     "card_nesting_depth": 0,
-    "scroll_cost": 36.85,
+    "scroll_cost": 40.29,
     "font_sizes": [
       "14px",
       "16px",
