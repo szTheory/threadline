@@ -14132,16 +14132,16 @@
       "validated": false
     },
     "density": {
-      "spearman": 0.5516702123451843,
-      "auc": 0.6893939393939394,
-      "alpha": 0.412046609168242,
-      "raw_agreement": 0.391304347826087,
+      "spearman": 0.8393763988388873,
+      "auc": 1.0,
+      "alpha": 0.8218480048343636,
+      "raw_agreement": 0.5416666666666666,
       "pairwise_acc": null,
-      "n": 23,
-      "ci95": [-0.2399329804009911,0.7589792060491494],
+      "n": 24,
+      "ci95": [0.6523578811369509,0.8953048443180022],
       "golden_rubric_version": "density@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
-      "validated": false
+      "validated": true
     },
     "rhythm": {
       "spearman": 0.7609059442471288,
@@ -14150,22 +14150,22 @@
       "raw_agreement": 0.4166666666666667,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [0.4046862011637572,0.8088488471061591],
+      "ci95": [0.4303391634829672,0.8140815596667246],
       "golden_rubric_version": "rhythm@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
     },
     "typography": {
-      "spearman": 0.7669244555226972,
-      "auc": 0.9375,
-      "alpha": 0.4140549405494055,
-      "raw_agreement": 0.2,
+      "spearman": 0.7720961913107276,
+      "auc": 0.9208333333333333,
+      "alpha": 0.4019184652278178,
+      "raw_agreement": 0.22727272727272727,
       "pairwise_acc": null,
-      "n": 15,
-      "ci95": [-0.09100241545893706,0.6670899196683078],
+      "n": 22,
+      "ci95": [0.008259020724960764,0.6335227272727273],
       "golden_rubric_version": "typography@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
-      "validated": false
+      "validated": true
     },
     "color_contrast": {
       "spearman": 0.6881941761880714,
@@ -14174,7 +14174,7 @@
       "raw_agreement": 0.2857142857142857,
       "pairwise_acc": null,
       "n": 21,
-      "ci95": [-0.6450726514170624,0.06932664268691635],
+      "ci95": [-0.6462873284907187,0.0758307957103137],
       "golden_rubric_version": "color_contrast@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14186,7 +14186,7 @@
       "raw_agreement": 0.3333333333333333,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.446394596651446,0.4056623277182234],
+      "ci95": [-0.4560076515936027,0.42906616049631563],
       "golden_rubric_version": "brand_fidelity@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true

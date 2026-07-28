@@ -70,6 +70,13 @@
       "font_weight": "600"
     },
     {
+      "selector": "p",
+      "color": "rgb(163, 175, 194)",
+      "background_color": "rgba(0, 0, 0, 0)",
+      "font_size": "13px",
+      "font_weight": "400"
+    },
+    {
       "selector": "label",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
@@ -108,7 +115,7 @@
       "selector": "button",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgb(27, 37, 58)",
-      "font_size": "14px",
+      "font_size": "13px",
       "font_weight": "500"
     },
     {
@@ -145,6 +152,18 @@
       "padding_bottom": "0px"
     },
     {
+      "selector": "p",
+      "border_radius": "0px",
+      "box_shadow": "none",
+      "transition_duration": "0s",
+      "font_size": "13px",
+      "font_weight": "400",
+      "margin_top": "0px",
+      "margin_bottom": "16px",
+      "padding_top": "0px",
+      "padding_bottom": "0px"
+    },
+    {
       "selector": "label",
       "border_radius": "0px",
       "box_shadow": "none",
@@ -245,7 +264,7 @@
       "border_radius": "4px",
       "box_shadow": "none",
       "transition_duration": "0s",
-      "font_size": "14px",
+      "font_size": "13px",
       "font_weight": "500",
       "margin_top": "0px",
       "margin_bottom": "0px",

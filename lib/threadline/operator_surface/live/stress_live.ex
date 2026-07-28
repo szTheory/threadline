@@ -303,6 +303,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <% dform = refute_density_fields(@selected_story) %>
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
                       <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-4) 0;"><%= dform.title %></h2>
+                      <p :if={dcfg.intro_chrome} style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;">This settings panel controls how Threadline handles the options below. Review each field carefully before saving; changes take effect immediately and apply to every audited table in the current schema. Contact your administrator if you are unsure which values suit your retention and compliance requirements.</p>
                       <div class="tl-space-y-4">
                         <div :for={{{label, value, help}, i} <- Enum.with_index(dform.rows)}>
                           <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);"><%= label %></label>
@@ -960,11 +961,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # rhythm lesson: never leave a dimension a noise floor). All sizes/spacing stay on --tl-*
     # tokens so every rung passes MODE A + MODE B (gestalt flaw only). Binary twins map
     # flawed→r2, polished→r4 via refute_rung/1.
+    # WIDENED 2026-07-28 (rescue): the first ladder scored ρ0.55 — separable but not enough.
+    # Amplify both dims to their extremes so good-vs-bad density is unambiguous. signal_to_chrome:
+    # r4 is pure signal (0 help, no intro) while r1/r2 add a verbose intro-chrome paragraph ON TOP
+    # of per-field help. task_primary_prominence: the Save CTA collapses from a commanding accent
+    # fill (label/700) to a thin ghost peer of Cancel (sm/400). `intro_chrome` gates the extra
+    # top-of-form chrome block in the render.
     @density_ladder %{
-      r4: %{help_fields: 0, primary_size: "label", primary_weight: 700},
-      r3: %{help_fields: 1, primary_size: "label", primary_weight: 600},
-      r2: %{help_fields: 2, primary_size: "label", primary_weight: 500},
-      r1: %{help_fields: 3, primary_size: "sm", primary_weight: 500}
+      r4: %{help_fields: 0, intro_chrome: false, primary_size: "label", primary_weight: 700},
+      r3: %{help_fields: 1, intro_chrome: false, primary_size: "label", primary_weight: 600},
+      r2: %{help_fields: 2, intro_chrome: true, primary_size: "sm", primary_weight: 500},
+      r1: %{help_fields: 3, intro_chrome: true, primary_size: "sm", primary_weight: 400}
     }
 
     defp refute_density_config(story), do: Map.fetch!(@density_ladder, refute_rung(story))
