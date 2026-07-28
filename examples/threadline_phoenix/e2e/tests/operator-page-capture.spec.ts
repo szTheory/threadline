@@ -47,10 +47,43 @@ const CONTENT = "#tl-main";
 const ADMIN_EMAIL = "admin@example.com";
 const ADMIN_PASSWORD = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 
-// The curated real operator routes. ledger id → authed route path. One route for
-// the proof; the shape scales to timeline/coverage/retention/actors/evidence.
-const ROUTES: { id: string; path: string }[] = [
+// Ranking trust-test (Phase 196): a deliberately-DEGRADED twin of the same page,
+// same data — off-brand generic font, garish clashing recolor of every accent,
+// a collapsed single type size, flattened weight, and destroyed vertical rhythm.
+// It targets the exact properties the trusted lenses (brand_fidelity, rhythm) and
+// typography/color_contrast judge. A working critic must RANK the real page above
+// this twin — that's the validated strength (ranking), not absolute per-page finds.
+const DEGRADE_CSS = `
+  #tl-main, #tl-main * { font-family: "Times New Roman", Times, serif !important; }
+  #tl-main * {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    border-radius: 0 !important;
+  }
+  /* Garish off-brand recolor of every accent/badge/chip/action — clashing,
+     undocumented, uniform: exactly what designed_not_recolored penalizes. */
+  #tl-main [class*="op-"], #tl-main [class*="badge"], #tl-main [class*="chip"],
+  #tl-main [class*="tag"], #tl-main [class*="fact"], #tl-main button, #tl-main a {
+    background-color: #ff2ec4 !important;
+    color: #39ff14 !important;
+    border-color: #ff2ec4 !important;
+  }
+  /* Destroy vertical cadence: cram every row/list/table gap to 1px. */
+  #tl-main [class*="row"], #tl-main [class*="event"], #tl-main [class*="timeline"],
+  #tl-main li, #tl-main tr, #tl-main [class*="fact"] {
+    margin: 1px !important;
+    padding: 1px !important;
+    gap: 1px !important;
+  }
+`;
+
+// The curated real operator routes. ledger id → authed route path. `degrade` marks
+// the ranking-test twin. One route (+ its degraded twin) for the proof; the shape
+// scales to timeline/coverage/retention/actors/evidence.
+const ROUTES: { id: string; path: string; degrade?: boolean }[] = [
   { id: "route.timeline", path: "/audit/timeline" },
+  { id: "route.timeline.degraded", path: "/audit/timeline", degrade: true },
 ];
 
 function cellId(ledgerId: string, theme: string, breakpoint: number): string {
@@ -238,7 +271,13 @@ async function rawInputs(page: Page, cardSelector: string) {
   );
 }
 
-async function captureCell(page: Page, ledgerId: string, path: string, breakpoint: number) {
+async function captureCell(
+  page: Page,
+  ledgerId: string,
+  path: string,
+  breakpoint: number,
+  degrade = false,
+) {
   await page.setViewportSize({ width: breakpoint, height: 900 });
   await page.goto(path, { waitUntil: "load" });
 
@@ -248,6 +287,13 @@ async function captureCell(page: Page, ledgerId: string, path: string, breakpoin
   await content.waitFor({ state: "visible", timeout: 15_000 });
   // Let the LiveView settle (rows/table stream in) so the hero shot is populated.
   await page.waitForLoadState("networkidle");
+
+  // Ranking-test twin: inject the degradation stylesheet AFTER the page settles,
+  // so it recolors/reflows the real rendered content in place.
+  if (degrade) {
+    await page.addStyleTag({ content: DEGRADE_CSS });
+    await page.waitForTimeout(200);
+  }
 
   const theme = (await root.getAttribute("data-tl-theme")) ?? "dark";
   const id = cellId(ledgerId, theme, breakpoint);
@@ -322,7 +368,7 @@ test.describe("operator real-route deterministic capture", () => {
 
     for (const route of ROUTES) {
       for (const bp of BREAKPOINTS) {
-        await captureCell(page, route.id, route.path, bp);
+        await captureCell(page, route.id, route.path, bp, route.degrade ?? false);
       }
     }
   });
