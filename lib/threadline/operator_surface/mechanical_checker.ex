@@ -195,11 +195,19 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     end
   end
 
-  # bg fully transparent -> fall back to the resolved page background token.
+  # Resolve the effective (opaque) background a text pair renders against. A translucent
+  # element fill (e.g. a chip/tab tint at 0.15–0.18 alpha) must be COMPOSITED over the page
+  # background before contrast is judged — otherwise its raw RGB is treated as opaque and a
+  # faint same-hue tint reads as a false low-contrast failure (thread-blue text on an 18%
+  # thread-blue fill scored 1.26:1 as if blue-on-blue, when it renders as blue-on-dark). A
+  # fully/near-transparent bg falls back to the page background token.
   defp resolve_background(raw, page_bg) do
     case parse_color(raw) do
-      {:ok, {r, g, b, a}} when a >= 0.1 -> {:ok, {r, g, b}}
-      _ -> to_rgb(page_bg)
+      {:ok, {_r, _g, _b, a} = bg_rgba} when a >= 0.1 ->
+        with {:ok, page_rgb} <- to_rgb(page_bg), do: {:ok, composite(bg_rgba, page_rgb)}
+
+      _ ->
+        to_rgb(page_bg)
     end
   end
 
