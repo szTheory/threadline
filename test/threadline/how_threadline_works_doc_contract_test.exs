@@ -4,118 +4,85 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
 
   @guide_path "guides/how-threadline-works.md"
 
-  test "mental model guide locks the architecture, personas, and next-work map" do
+  test "architecture guide follows the two end-to-end journeys in reader order" do
     doc = File.read!(@guide_path)
 
-    headings = [
+    assert_ordered(doc, [
       "# How Threadline works",
-      "## The short version",
-      "## The flow",
-      "## Architecture layers",
-      "## The SaaS Builder's JTBD Map",
-      "## Public API surface",
-      "## Evolution so far",
-      "## Natural next work",
+      "## Threadline in one picture",
+      "## Vocabulary for the trip",
+      "## Journey 1: installation creates host-owned database machinery",
+      "## Journey 2: an audited request becomes an investigation trail",
+      "## The data model is the architecture",
+      "## Safety properties",
+      "## Cross-cutting operations",
+      "## Module atlas",
+      "## Code-reading routes",
+      "## Changing Threadline safely",
       "## Where to go next"
-    ]
+    ])
 
-    Enum.each(headings, &assert(String.contains?(doc, &1)))
-
-    Enum.each(
-      [
-        "DB truth",
-        "app intent",
-        "operator tooling",
-        "Threadline.Plug",
-        "Threadline.record_action/2",
-        "Threadline.timeline/2",
-        "Threadline.timeline_page/2",
-        "Threadline.incident_bundle/2",
-        "Threadline.as_of/4",
-        "Threadline.export_json/2",
-        "Threadline-owned RBAC platform",
-        "legal hold",
-        "immutable-storage",
-        "generic compliance",
-        "vendor-specific",
-        "tenancy DSL"
-      ],
-      &assert(String.contains?(doc, &1))
-    )
-
-    Enum.each(
-      [
-        "Silent Witness",
-        "Who Did This?",
-        "3 AM Support Ticket",
-        "Data Handoff",
-        "retention admin",
-        "saved views",
-        "queued or scheduled exports",
-        "threadline_web"
-      ],
-      &assert(String.contains?(doc, &1))
-    )
-
-    Enum.each(
-      [
-        "integration-contracts.md",
-        "operator-surface.md",
-        "domain-reference.md",
-        "getting-started-saas.md",
-        "upgrade-path.md"
-      ],
-      &assert(String.contains?(doc, &1))
-    )
+    refute String.contains?(doc, "## The SaaS Builder's JTBD Map")
+    refute String.contains?(doc, "## Evolution so far")
+    refute String.contains?(doc, "## Natural next work")
   end
 
-  test "mental model guide locks recommended audited write path (NARR-03)" do
+  test "architecture guide contains four accessible Mermaid diagrams" do
     doc = File.read!(@guide_path)
 
-    assert String.contains?(doc, "Threadline.Audit.transaction/3")
-    assert String.contains?(doc, "recommended audited write path")
+    assert length(Regex.scan(~r/^```mermaid$/m, doc)) == 4
+    assert length(Regex.scan(~r/^    accTitle:/m, doc)) == 4
+    assert length(Regex.scan(~r/^    accDescr:/m, doc)) == 4
 
-    {idx_write, _} = :binary.match(doc, "### Write-side")
-    write_len = byte_size(doc) - idx_write
-    scope = {idx_write, write_len}
-
-    {idx_tx, _} = :binary.match(doc, "Threadline.Audit.transaction/3", scope: scope)
-    {idx_ra, _} = :binary.match(doc, "Threadline.record_action/2", scope: scope)
-    assert idx_tx < idx_ra
-
-    assert String.contains?(doc, "getting-started-saas.md")
-    assert String.contains?(doc, "§6")
+    for title <- [
+          "Threadline end-to-end audit flow",
+          "Threadline installation ownership boundary",
+          "Runtime capture and correlation journey",
+          "Threadline data relationships"
+        ] do
+      assert String.contains?(doc, title)
+    end
   end
 
-  test "mental model guide locks Evolution semver chronology (DOC-02/DOC-03)" do
+  test "architecture guide locks source-backed ownership and safety boundaries" do
     doc = File.read!(@guide_path)
 
-    assert String.contains?(doc, "## Evolution so far")
-    assert String.contains?(doc, "`0.5.0`")
-    assert String.contains?(doc, "`0.6.0`")
-    assert String.contains?(doc, "0.6.0` packaged the Evidence plane")
-    assert String.contains?(doc, "Threadline.Audit.transaction/3")
+    for claim <- [
+          "PostgreSQL records what changed. The host supplies who and why.",
+          "Threadline.Audit.transaction/3",
+          "recommended audited write path",
+          "transaction-local",
+          "txid_current()",
+          "Capture-only",
+          "Correlation-ready",
+          "Strict correlation",
+          "PgBouncer transaction pooling",
+          "host-owned",
+          "exclude",
+          "mask",
+          "except_columns",
+          "before_audit_horizon",
+          "advisory lock",
+          "host-written"
+        ] do
+      assert String.contains?(doc, claim), "missing architecture claim: #{claim}"
+    end
 
-    {idx_evolution, _} = :binary.match(doc, "## Evolution so far")
-    {idx_next, _} = :binary.match(doc, "## Natural next work")
-    scope = {idx_evolution, idx_next - idx_evolution}
-
-    {idx_05, _} = :binary.match(doc, "`0.5.0`", scope: scope)
-    {idx_06, _} = :binary.match(doc, "`0.6.0`", scope: scope)
-    assert idx_05 < idx_06
+    assert String.contains?(doc, "[Code walkthrough](code-walkthrough.md)")
+    assert String.contains?(doc, "Threadline.OperatorSurface.Scope")
+    assert String.contains?(doc, "Threadline.Export.Orchestrator")
+    assert String.contains?(doc, "Threadline.Evidence")
   end
 
-  test "mental model guide locks host-written evidence framing (DOC-04)" do
+  test "architecture guide keeps host-written evidence framing" do
     doc = File.read!(@guide_path)
 
     refute String.contains?(doc, "Threadline may persist evidence")
-    assert String.contains?(doc, "domain-reference.md")
-
-    assert String.contains?(doc, "host-written") or
-             String.contains?(doc, "host apps write")
+    assert String.contains?(doc, "Host code calls those entrypoints deliberately")
+    assert String.contains?(doc, "does not auto-populate compliance claims")
   end
 
-  test "domain-reference locks evidence host-write boundary before proof contract (DOC-04)" do
+  test "domain reference keeps evidence host-write boundary before proof contract" do
     domain_ref = File.read!("guides/domain-reference.md")
 
     assert String.contains?(domain_ref, "EVIDENCE-HOST-WRITE-BOUNDARY")
@@ -123,11 +90,20 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
 
     {idx_marker, _} = :binary.match(domain_ref, "EVIDENCE-HOST-WRITE-BOUNDARY")
     {idx_proof, _} = :binary.match(domain_ref, "## Evidence proof contract")
-    slice_len = idx_proof - idx_marker
-    slice = :binary.part(domain_ref, idx_marker, slice_len)
+    slice = :binary.part(domain_ref, idx_marker, idx_proof - idx_marker)
 
     assert String.contains?(slice, "does not auto-populate")
     assert String.contains?(slice, "record_redaction_policy")
     assert String.contains?(slice, "threadline_retention_runs")
+  end
+
+  defp assert_ordered(doc, markers) do
+    positions =
+      Enum.map(markers, fn marker ->
+        assert {position, _length} = :binary.match(doc, marker), "missing marker: #{marker}"
+        position
+      end)
+
+    assert positions == Enum.sort(positions)
   end
 end

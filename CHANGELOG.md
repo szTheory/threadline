@@ -42,6 +42,10 @@ Operator-surface release: the `/audit` admin UI matured into a coherent, branded
 
 ## [Unreleased]
 
+### Added
+
+- **Architecture documentation** — rewrote How Threadline Works as an end-to-end visual architecture guide and added a source-driven Code Walkthrough, with dark/light Mermaid rendering and the Threadline mark as the HexDocs favicon.
+
 ## [0.6.0] - 2026-05-27
 
 Threadline 0.6.0 is the adopter-ready release: it packages the in-repo stack since 0.5.0 — the Evidence plane (`Threadline.Evidence`, proof vocabulary, `/audit/evidence`), the blessed audited write path (`Threadline.Audit.transaction/3`), and operator/demo surfaces from the realistic walkthrough — so Hex evaluators and pilot hosts see the same truth the library already ships in-tree.

@@ -86,7 +86,7 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs"
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/v1_23_charter_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
       "verify.topology": ["threadline.verify_topology"],
@@ -321,7 +321,7 @@ defmodule Threadline.MixProject do
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
       files:
-        ~w(lib priv/fonts guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+        ~w(lib priv/fonts guides brandbook/favicon.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
 
@@ -330,9 +330,13 @@ defmodule Threadline.MixProject do
       main: "Threadline",
       source_ref: doc_source_ref(),
       source_url: @source_url,
+      favicon: "brandbook/favicon.svg",
+      before_closing_head_tag: &before_closing_head_tag/1,
+      before_closing_body_tag: &before_closing_body_tag/1,
       extras: [
         "README.md",
         "guides/how-threadline-works.md",
+        "guides/code-walkthrough.md",
         "guides/integration-contracts.md",
         "guides/performance.md",
         "guides/domain-reference.md",
@@ -358,11 +362,12 @@ defmodule Threadline.MixProject do
       # Overview (README) and Integrations (guides/integrations/**) precede the
       # verb lanes to keep the two integration guides out of a verb lane. Each
       # lane uses an explicit per-file regex (not a greedy `^guides/`); every one
-      # of the 20 extras lands in exactly one lane.
+      # of the 21 extras lands in exactly one lane.
       groups_for_extras: [
         Overview: ~r/README/,
         Integrations: ~r{^guides/integrations/},
-        Evaluate: ~r{^guides/(evaluating-threadline|how-threadline-works|domain-reference)\.md$},
+        Evaluate:
+          ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
           ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path)\.md$},
         Operate:
@@ -422,4 +427,122 @@ defmodule Threadline.MixProject do
       ]
     ]
   end
+
+  defp before_closing_head_tag(:html) do
+    """
+    <style>
+      .threadline-mermaid {
+        margin: 1.5rem 0;
+        max-width: 100%;
+        overflow-x: auto;
+        text-align: center;
+      }
+
+      .threadline-mermaid svg {
+        display: inline-block;
+        height: auto;
+        max-width: 100%;
+      }
+
+      body.dark .threadline-mermaid {
+        color-scheme: dark;
+      }
+    </style>
+    """
+  end
+
+  defp before_closing_head_tag(:epub), do: ""
+
+  defp before_closing_body_tag(:html) do
+    """
+    <script id="threadline-mermaid-script"
+            defer
+            src="https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js"
+            integrity="sha384-T/0lMUdJpd2S1ZHtRiofG3htU3xPCrFVeAQ1UUE2TJwlEJSV5NUwn30kP28n238E"
+            crossorigin="anonymous"></script>
+    <script>
+      (() => {
+        let graphSequence = 0;
+        let renderQueue = Promise.resolve();
+
+        const currentTheme = () =>
+          document.body.classList.contains("dark") ? "dark" : "default";
+
+        const renderDiagrams = async () => {
+          if (!window.mermaid) return;
+
+          const theme = currentTheme();
+
+          window.mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "strict",
+            theme,
+            darkMode: theme === "dark"
+          });
+
+          const diagrams = document.querySelectorAll("pre > code.mermaid");
+
+          for (const code of diagrams) {
+            const sourceBlock = code.parentElement;
+            const source = sourceBlock.dataset.threadlineMermaidSource || code.textContent;
+            const rendered = sourceBlock.nextElementSibling;
+
+            sourceBlock.dataset.threadlineMermaidSource = source;
+
+            if (
+              sourceBlock.dataset.threadlineMermaidTheme === theme &&
+              rendered?.classList.contains("threadline-mermaid")
+            ) {
+              continue;
+            }
+
+            if (rendered?.classList.contains("threadline-mermaid")) rendered.remove();
+            sourceBlock.hidden = false;
+
+            try {
+              const id = `threadline-mermaid-${++graphSequence}`;
+              const {svg, bindFunctions} = await window.mermaid.render(id, source);
+              const container = document.createElement("div");
+
+              container.className = "threadline-mermaid";
+              container.dataset.mermaidTheme = theme;
+              container.innerHTML = svg;
+              sourceBlock.after(container);
+              if (bindFunctions) bindFunctions(container);
+
+              sourceBlock.dataset.threadlineMermaidTheme = theme;
+              sourceBlock.hidden = true;
+            } catch (error) {
+              sourceBlock.hidden = false;
+              console.warn("Threadline docs could not render a Mermaid diagram", error);
+            }
+          }
+        };
+
+        const scheduleRender = () => {
+          renderQueue = renderQueue.then(renderDiagrams, renderDiagrams);
+        };
+
+        window.addEventListener("exdoc:loaded", scheduleRender);
+
+        const mermaidScript = document.getElementById("threadline-mermaid-script");
+        mermaidScript.addEventListener("load", scheduleRender);
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", scheduleRender, {once: true});
+        } else {
+          scheduleRender();
+        }
+
+        new MutationObserver((mutations) => {
+          if (mutations.some((mutation) => mutation.attributeName === "class")) {
+            scheduleRender();
+          }
+        }).observe(document.body, {attributes: true, attributeFilter: ["class"]});
+      })();
+    </script>
+    """
+  end
+
+  defp before_closing_body_tag(:epub), do: ""
 end

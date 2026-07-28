@@ -1,242 +1,359 @@
 # How Threadline works
 
-This is the crash-course guide. Read it when you want the mental model first and the API details second. For the exact seam contracts, keep using the [integration contracts](integration-contracts.md), [operator surface](operator-surface.md), [domain reference](domain-reference.md), and [Phoenix SaaS getting-started guide](getting-started-saas.md).
+Threadline is embedded audit infrastructure for Phoenix, Ecto, and PostgreSQL applications. Read this guide when you need to trace one audited write end to end, decide which guarantees Threadline provides, and identify which decisions remain with the host application.
 
-## The short version
+The architectural promise is simple:
 
-Threadline is embedded audit infrastructure for Phoenix, Ecto, and PostgreSQL apps.
+> PostgreSQL records what changed. The host supplies who and why. Threadline keeps those facts linked and investigable.
 
-The memorable formula is:
+That becomes a useful shorthand:
 
-`DB truth` + `app intent` + `operator tooling`
+`database truth` + `application intent` + `host-owned policy`
 
-- `DB truth` = trigger-captured `AuditTransaction` + `AuditChange`
-- `app intent` = semantic `AuditAction` records — normally via `Threadline.Audit.transaction/3`
-  with `:action` (implemented by `Threadline.record_action/2` inside the helper)
-- `operator tooling` = timelines, actor windows, incident bundles, exports, and the optional `/audit` surface
+Threadline is not event sourcing, a remote audit SaaS, an authentication framework, or a write-capable admin backend. It records and presents evidence about ordinary database writes without taking ownership of the application's domain model or security boundary.
 
-Threadline is:
+## Threadline in one picture
 
-- a library you embed into your app
-- a read-heavy investigation surface with a small write-side semantic helper
-- host-owned on auth, tenancy, and roles
+```mermaid
+flowchart LR
+    accTitle: Threadline end-to-end audit flow
+    accDescr: A host Phoenix and Ecto application supplies identity and intent, PostgreSQL triggers capture row changes, and Threadline query surfaces make the linked facts investigable under host authorization and scope.
 
-Threadline is not:
+    H["Host Phoenix and Ecto application"]
+    A["Threadline.Audit.transaction"]
+    P[("PostgreSQL transaction")]
+    C["Trigger-captured audit facts"]
+    Q["Threadline query and investigation APIs"]
+    O["Host-authorized operator, export, or evidence surface"]
 
-- event sourcing
-- a remote SaaS
-- an auth framework
-- a write-capable admin backend
-
-The evidence plane stays just as narrow. Host apps write **host-written**
-attestations deliberately via `Threadline.Evidence` `record_*` for closed
-governance subjects such as redaction posture, trigger coverage, retention
-runs, export delivery, and support-scope posture. See
-[Evidence write boundary (host-written)](domain-reference.md#evidence-write-boundary-host-written)
-for read surfaces, the six `record_*` entrypoints, and what Threadline does
-not auto-populate.
-
-Canonical public non-goals for the evidence plane:
-
-- legal hold workflows
-- immutable-storage guarantees beyond the host runtime/storage contract
-- generic compliance packs
-- vendor-specific reporting suites
-- a Threadline-owned RBAC platform
-- a Threadline-owned tenancy DSL
-- approval workflows
-
-## The flow
-
-The common loop is:
-
-1. A request enters the host app.
-2. `Threadline.Plug` attaches request-scoped audit context and the host decides the actor.
-3. Domain writes run inside `Threadline.Audit.transaction/3` — the **recommended audited write path** — so capture and optional semantics share one database transaction.
-4. PostgreSQL triggers capture the physical row changes from that transaction.
-5. When you pass `:action`, the helper records semantic intent via `Threadline.record_action/2` and links `audit_transactions.action_id` for correlation filters.
-6. Operators inspect the result through the query APIs, Mix tasks, or the mounted `/audit` surface.
-
-Request headers can populate audit context at the edge, but queryable correlation requires an audit_actions row linked in the same transaction — use Audit.transaction/3 with :action when filters must match intent. Omit `:action` or pass `capture_only: true` for capture-only writes.
-
-That makes Threadline useful in both of these shapes:
-
-```elixir
-plug Threadline.Plug, actor_fn: &MyApp.Audit.current_actor/1
-
-{:ok, %{post: post}} =
-  Threadline.Audit.transaction(
-    MyApp.Repo,
-    [audit_context: audit_context, action: :post_created],
-    fn ->
-      case MyApp.Repo.insert(Post.changeset(%Post{}, attrs)) do
-        {:ok, post} -> %{post: post}
-        {:error, changeset} -> MyApp.Repo.rollback(changeset)
-      end
-    end
-  )
+    H -->|"actor, intent, domain writes"| A
+    A -->|"one database transaction"| P
+    P -->|"row triggers"| C
+    C -->|"linked facts"| Q
+    Q -->|"scoped reads"| O
+    H -.->|"auth, tenancy, retention policy"| O
 ```
 
-## Architecture layers
+There are two planes in this picture:
 
-### 1. Capture substrate
+- The **capture plane** is PostgreSQL-first. Triggers create `Threadline.Capture.AuditTransaction` and `Threadline.Capture.AuditChange` rows from writes that actually reached audited tables.
+- The **meaning and operations plane** is application-aware. `Threadline.Semantics.AuditAction`, investigations, exports, retention runs, saved views, and evidence records make captured facts useful without replacing host policy.
 
-PostgreSQL triggers write the durable audit rows. The core facts are `AuditTransaction` and `AuditChange`; the audit tables are the source of truth for row-level history.
+The optional operator surface reads through the same public query and investigation layers. It is not a second source of truth.
 
-This layer answers:
+## Vocabulary for the trip
 
-- What actually changed?
-- In which transaction?
-- At what time?
+| Term | Meaning |
+|---|---|
+| `ActorRef` | A validated typed identity such as a user, administrator, job, service account, system process, or anonymous actor. |
+| `AuditContext` | Transient request or job context containing the actor and correlation metadata. It is not itself a database record. |
+| `AuditAction` | Application intent: what the host says the operation meant, plus correlation and request identifiers. |
+| `AuditTransaction` | One PostgreSQL transaction that touched at least one audited table. The trigger groups its changes by `txid_current()`. |
+| `AuditChange` | One inserted, updated, or deleted row captured by a trigger. |
+| Capture-only | Physical changes exist, but no semantic action is linked. Strict correlation filters intentionally exclude them. |
+| Correlation-ready | An action was created and linked to the capture transaction in the same audited-write helper call. |
+| Evidence record | A host-written, append-only attestation about a closed governance subject such as trigger coverage or export delivery. |
 
-It does not answer ownership or policy questions on its own.
+The distinction between transient context and durable facts matters. `Threadline.Plug` can extract a correlation ID, but that ID becomes queryable through strict correlation only when `Threadline.Audit.transaction/3` records and links an action.
 
-### 2. Host-owned seams
+## Journey 1: installation creates host-owned database machinery
 
-Threadline intentionally keeps auth and tenancy on the host side.
+Threadline ships generators, not a remotely managed schema. Configuration is read when the generators run, and the resulting migration files belong to the host repository.
 
-- `Threadline.Plug` owns request-path capture context.
-- `Threadline.Job` owns serialized job-path context.
-- `Threadline.Integrations.*` owns soft-loaded reference adapters.
-- `threadline_operator_surface/2` owns the mount boundary for the optional operator UI.
+```mermaid
+flowchart TB
+    accTitle: Threadline installation ownership boundary
+    accDescr: Threadline code and host configuration generate migration files in the host application, which reviews and runs them against PostgreSQL to create Threadline storage and triggers on selected host tables.
 
-The host decides who the actor is, which request context matters, and whether support access is admin-only or read-only.
+    subgraph Package["Threadline package"]
+      I["mix threadline.install"]
+      G["mix threadline.gen.triggers"]
+      SQL["Migration and trigger SQL generators"]
+    end
 
-### 3. Investigation layer
+    subgraph Host["Host application owns"]
+      CFG["Threadline configuration"]
+      MIG["Generated Ecto migrations"]
+      APP["Selected application tables"]
+    end
 
-These are the read APIs most adopters use first:
+    DB[("Host PostgreSQL database")]
 
-- `Threadline.history/3` for a row's history
-- `Threadline.timeline/2` for an eager slice
-- `Threadline.timeline_page/2` for larger windows
-- `Threadline.incident_bundle/2` for a single-transaction drill-down
-- `Threadline.as_of/4` for point-in-time reconstruction
-- `Threadline.export_json/2` for a machine-friendly export
+    CFG --> I
+    CFG --> G
+    I --> SQL
+    G --> SQL
+    SQL --> MIG
+    MIG -->|"host reviews and migrates"| DB
+    APP -->|"trigger targets"| G
+    G -->|"AFTER row triggers"| DB
+```
 
-Rule of thumb: use the eager helpers when the window is small enough to read in one shot, and the paged helper when it is not.
+### Configure before generating
 
-### 4. Operator surface
+The storage schema defaults to `threadline`. A host can choose another valid PostgreSQL identifier, but it must do so before generation because the generated SQL carries that schema name.
 
-The `/audit` surface is optional and lives in-tree for now. It gives you a host-mounted UI for the same investigation questions as the library APIs and Mix tasks.
+```elixir
+config :threadline,
+  ecto_repos: [MyApp.Repo],
+  storage_schema: "audit"
+```
 
-That means the library and the UI answer the same questions:
+The Threadline storage schema and audited host-table schemas are separate ideas. Threadline tables may live in `audit` while an audited table lives in `public`, `support`, or another host schema. Changing the setting later does not rewrite migrations already generated or applied; moving the storage schema is a deliberate host migration.
 
-- `timeline` and `/audit`
-- `incident_bundle/2` and `mix threadline.incident`
-- `export_json/2` and `mix threadline.export`
-- `trigger_coverage/1` and `mix threadline.health.coverage`
-- policy drift checks and `mix threadline.policy.show`
+### Generate three storage families, then table triggers
 
-## The SaaS Builder's JTBD Map
+```bash
+mix threadline.install
+mix ecto.migrate
+mix threadline.gen.triggers --tables public.posts,support.tickets
+mix ecto.migrate
+```
 
-If you are dropping Threadline into your SaaS, you are hiring it to do four very specific jobs.
+`mix threadline.install` creates missing migration families without overwriting a family already present:
 
-### Job 1: The "Silent Witness" (Compliance & Baseline)
-* **The Scenario:** A SOC2 auditor wants proof of data lineage, or a customer is screaming, "I never deleted that invoice!" You need to know that no matter what happens, the truth is recorded.
-* **The Flow:** You run `mix threadline.gen.triggers` to attach PostgreSQL triggers to your tables. You don't touch your Elixir contexts. Even if a junior dev opens an `iex` shell and runs `MyApp.Repo.delete_all()`, the triggers catch it.
-* **The JTBD:** *"Give me an airtight, DB-level audit trail without forcing me to rewrite my application code to use special `audit_insert` functions."*
+- **Capture:** `audit_transactions`, `audit_changes`, and the global trigger function.
+- **Semantics:** `audit_actions` and the action/actor linkage fields.
+- **Governance:** export jobs, retention runs, saved views, and evidence records.
 
-### Job 2: The "Who Did This?" (Attribution & Intent)
-* **The Scenario:** A database trigger only knows that the `postgres` database user modified a row. That’s useless for a SaaS. You need to know that `user_id: 42` did it via the `/billing/refund` endpoint.
-* **The Flow:** You drop `plug Threadline.Plug` into your router and configure it to pull the current user from the session. Wrap business writes in `Threadline.Audit.transaction/3` with `:action` when intent and correlation matter — the helper records semantic intent and links `audit_transactions.action_id` in the same database transaction as the row changes.
-* **The JTBD:** *"Bridge the gap between physical database mutations and human application semantics so the logs actually make sense."*
+`mix threadline.gen.triggers` then creates an `AFTER INSERT OR UPDATE OR DELETE` trigger for each selected host table. It rejects every Threadline-owned table, even under a custom schema, because auditing the audit tables would recurse.
 
-### Job 3: The "3 AM Support Ticket" (Investigation & Ops UI)
-* **The Scenario:** A customer writes into Zendesk: "My dashboard looks weird since yesterday." Your ops team needs to figure out what state changed without bugging an engineer to write custom SQL.
-* **The Flow:** You mount the `/audit` LiveView dashboard in your host app. Support staff log in (using your app's existing auth). They filter the timeline by the customer's `actor_id` or the specific `record_id` and get a visual diff of exactly what fields changed, when, and by whom.
-* **The JTBD:** *"Give my support and ops team a safe, read-only window into historical data state so they can unblock customers autonomously."*
+### Capture policy becomes database code
 
-### Job 4: The "Data Handoff" (Egress & Reporting)
-* **The Scenario:** Legal needs a CSV of every permission change in the `Enterprise` workspace over the last 30 days.
-* **The Flow:** Your ops team uses the filter form on the LiveView timeline, hits "Export", and downloads the results. Alternatively, you run `mix threadline.export` in your deployment console.
-* **The JTBD:** *"Get the data out of the system in a standard, machine-readable format quickly and safely."*
+Most tables use the shared trigger function. A table receives its own function when it opts into sparse prior values or capture-time redaction.
 
-The library exists to make those personas overlap cleanly instead of forcing each one to build a different audit story.
+```elixir
+config :threadline, :trigger_capture,
+  tables: %{
+    "public.users" => [
+      exclude: ["password_hash"],
+      mask: ["email"],
+      store_changed_from: true,
+      except_columns: ["updated_at"]
+    ]
+  }
+```
 
-## What already landed around the core
+These controls have intentionally different meanings:
 
-The core capture + semantics + investigation loop is no longer standing alone.
-Threadline already ships the governance and operator-lifecycle layer that used
-to sit on the near-term roadmap:
+- `exclude` removes keys from stored row JSON and change detection.
+- `mask` stores a stable placeholder instead of the value, including in prior values when enabled.
+- `store_changed_from` stores sparse prior values for changed fields on updates.
+- `except_columns` removes fields from `changed_fields` and `changed_from`; it does **not** remove them from `data_after` and is not a secrecy control.
 
-- **Lifecycle & Pruning:** retention admin with visible purge history and safe batched cleanup.
-- **Async Export Delivery:** queued or scheduled exports with status visibility, expiry cleanup, and backend-aware delivery seams.
-- **Operator Ergonomics:** saved views for repeated investigations without inventing a Threadline-owned auth model.
+Because redaction happens inside the trigger before the audit insert, excluded secrets never enter Threadline's row snapshot. The generated migration is the durable record of the policy that PostgreSQL actually runs; changing application configuration alone does not change an already deployed trigger function.
 
-Those capabilities matter because they keep the investigation surface usable
-once an adopter moves beyond a single incident and starts operating Threadline
-as recurring support infrastructure.
+## Journey 2: an audited request becomes an investigation trail
 
-## The Line of Diminishing Returns
+The recommended audited write path is `Threadline.Audit.transaction/3`. It puts actor publication, domain writes, optional action creation, and linkage inside one `Repo.transaction/1`.
 
-A great library knows what it *isn't*. Threadline hits the point of diminishing returns—and starts turning into bloated software—if we cross these lines:
+```mermaid
+sequenceDiagram
+    accTitle: Runtime capture and correlation journey
+    accDescr: A request receives transient audit context, the audited transaction publishes its actor locally, domain writes fire triggers, and the helper links semantic intent before commit so later reads can investigate the result.
 
-1. **Becoming a SIEM:** We are embedded infrastructure. We provide the facts. We will not build anomaly detection ML, chart builders, or pie-graph dashboards.
-2. **Owning Auth/RBAC:** Threadline relies on the host app to say "this user is an admin." We will not build user tables or role-permission matrices.
-3. **UI-Based Policy Mutation:** Security rules (like "don't log the `passwords` table" or "redact the `ssn` column") must live in code/config. We will not build a UI toggle to turn off logging, as that creates a vector for a rogue admin to disable logging, do something bad, and turn it back on.
+    participant R as Request or job
+    participant P as Threadline.Plug or Job
+    participant A as Threadline.Audit.transaction
+    participant D as Host domain code
+    participant T as PostgreSQL trigger
+    participant Q as Query or investigation API
 
-## Public API surface
+    R->>P: actor and correlation metadata
+    P->>A: transient AuditContext
+    A->>A: begin Repo transaction and set local actor GUC
+    A->>D: run domain callback
+    D->>T: insert, update, or delete audited rows
+    T->>T: upsert AuditTransaction by txid_current
+    T->>T: insert one AuditChange per row
+    A->>A: record AuditAction and link current transaction
+    A-->>R: commit result with audit_transaction_id
+    Q->>T: read linked transaction, action, and changes
+```
 
-If you only remember one thing, remember this grouping:
+### 1. The edge builds transient context
 
-### Write-side
+`Threadline.Plug` resolves the actor through a host callback, reads request and correlation identifiers, formats the remote IP, and assigns an `AuditContext` to the connection. It performs no database call and never sets session state, so merely passing through the Plug cannot leak identity between pooled connections.
 
-- `Threadline.Audit.transaction/3` — **recommended audited write path** (capture + optional semantics in one transaction)
-- `Threadline.Plug` for request capture context
-- `Threadline.Job` for serialized job-path context
-- `Threadline.record_action/2` — semantic primitive; prefer `Audit.transaction/3` for new code
+Background jobs use `Threadline.Job` to serialize and restore the same kind of context at a different edge.
 
-Manual `set_config` + `record_action/2` linkage recipes are deprecated — see [Integration contracts](integration-contracts.md) § Audited write path via `Threadline.Audit`.
+### 2. The helper creates the atomic boundary
 
-### Read-side
+```elixir
+{:ok, result} =
+  Threadline.Audit.transaction(
+    MyApp.Repo,
+    [
+      audit_context: audit_context,
+      action: :ticket_replied_and_closed,
+      transaction_meta: %{"organization_id" => organization_id}
+    ],
+    fn ->
+      ticket = MyApp.Support.reply_to_ticket!(ticket, reply_attrs)
+      ticket = MyApp.Support.close_ticket!(ticket)
+      %{ticket: ticket}
+    end
+  )
 
-- `Threadline.history/3`
-- `Threadline.timeline/2`
-- `Threadline.timeline_page/2`
-- `Threadline.incident_bundle/2`
-- `Threadline.as_of/4`
-- `Threadline.export_json/2`
+result.audit_transaction_id
+```
 
-### Operator parity
+Before the callback writes, the helper serializes the validated `ActorRef` and calls PostgreSQL `set_config` with the transaction-local flag. The trigger reads that value with `current_setting`. This is safe under PgBouncer transaction pooling because neither side relies on session-local state.
 
-- `mix threadline.incident`
-- `mix threadline.export`
-- `mix threadline.health.coverage`
-- `mix threadline.policy.show`
-- `threadline_operator_surface/2`
+The callback may perform ordinary domain inserts, updates, and deletes, and may call `Repo.rollback/1`. It must not open a nested transaction, set the Threadline GUC itself, or call `Threadline.record_action/2`; those operations would split responsibility for the atomic linkage.
 
-The read-side APIs are the stable core. The operator surface and Mix tasks are convenience layers on top of the same investigation model.
+### 3. PostgreSQL records what reached the tables
 
-## Evolution so far
+The first audited row mutation in a transaction upserts one `AuditTransaction` keyed by `txid_current()`. Every audited row mutation then inserts an `AuditChange` pointing to that transaction. Multiple domain writes in the callback therefore share one capture transaction without depending on call order in Elixir.
 
-- `0.1.x` established the capture substrate and semantics layer.
-- `0.2.x` hardened the query, continuity, and retention story.
-- `0.3.x` brought the first serious host-integration seams and example-app path.
-- `0.4.x` added the optional operator surface and its first investigation screens.
-- `0.5.0` tightened the breadth story: honest support lanes, shared host-owned auth seams, and a clearer optional-in-tree position for the UI.
-- `0.6.0` packaged the Evidence plane and `Threadline.Audit.transaction/3` as the recommended audited write path.
+The trigger records the actual table schema, table name, primary-key map, operation, post-change snapshot, changed field names, optional prior values, and capture timestamp. Deletes have no post-change snapshot.
 
-That evolution matters because the library did not start as a product-console project. It became one as the investigation path matured.
+### 4. The helper links application meaning
 
-## Natural next work
+After the callback succeeds, an `:action` option causes the helper to create `AuditAction`, update the current `AuditTransaction.action_id`, apply transaction metadata, and fetch the audit transaction ID. If the expected capture transaction cannot be linked, the helper rolls the entire database transaction back.
 
-The next chunks that feel naturally adjacent are:
+Omitting `:action`, or setting `capture_only: true`, keeps physical capture but creates no semantic row. Missing actors fail by default; an explicitly allowed missing actor is available only for capture-only paths.
 
-- broader first-party host adapters beyond the current Sigra reference path
-- deeper proof around how different hosts expose the support lane without widening Threadline into its own auth product
-- extraction pressure checks for whether a separate UI package is ever worth the maintenance cost
-- a `threadline_web` split only if objective extraction triggers show up
+### 5. Reads reconstruct the trail
 
-Those are the kinds of problems that usually belong in future releases once adopters start using the current surface for real.
+Public query helpers return captured Ecto structs or higher-level investigation structures:
+
+- `Threadline.history/3` and `Threadline.Investigation.row_history/4` follow one application row.
+- `Threadline.timeline/2` reads a bounded eager slice; `Threadline.timeline_page/2` uses keyset pages ordered by `(captured_at, id)`.
+- `Threadline.Investigation.actor_window/3` and `correlation_bundle/3` add linked context.
+- `Threadline.incident_bundle/2` packages one transaction, its optional action, all changes, and deterministic diffs.
+- `Threadline.as_of/4` returns the latest stored snapshot, `:deleted_record`, or `:before_audit_horizon`; it does not invent history before capture began.
+- `Threadline.export_csv/2` and `Threadline.export_json/2` reuse the timeline filter vocabulary.
+
+A correlation filter is deliberately strict: it inner-joins through the linked action. Request headers alone and capture-only writes do not match it.
+
+## The data model is the architecture
+
+```mermaid
+flowchart LR
+    accTitle: Threadline data relationships
+    accDescr: An optional semantic action can describe multiple capture transactions, each capture transaction owns one or more row changes, and governance records remain a separate operational plane read alongside the core audit facts.
+
+    subgraph Core["Correlated audit facts"]
+      A["AuditAction: who and why"]
+      T["AuditTransaction: one PostgreSQL txid"]
+      C["AuditChange: one row mutation"]
+      A -->|"zero or many transactions"| T
+      T -->|"one or many changes"| C
+    end
+
+    Q["Query and investigation APIs"]
+
+    subgraph Governance["Operational and evidence plane"]
+      X["Export jobs"]
+      R["Retention runs"]
+      V["Saved views"]
+      E["Host-written evidence records"]
+    end
+
+    C --> Q
+    T --> Q
+    A --> Q
+    Q -.-> X
+    Q -.-> V
+    R -.-> Q
+    E -.-> Q
+```
+
+An action is not a row change, and a request is not necessarily a database transaction. Keeping those concepts separate preserves useful truth:
+
+- A single semantic action may describe multiple capture transactions when a host deliberately links them.
+- One capture transaction may contain many row changes across many audited tables.
+- A capture-only transaction remains valid physical evidence even when application intent is unavailable.
+- Governance records describe operation of the audit system; they do not replace the captured facts.
+
+## Safety properties
+
+The design concentrates important guarantees at boundaries that can enforce them:
+
+- **Atomic linkage:** domain writes, actor publication, optional action creation, metadata, and action linkage share one database transaction. Linkage failure rolls back the domain writes.
+- **Database-level observation:** triggers see writes made through ordinary Ecto calls, scripts, or direct SQL as long as they reach an audited table with triggers installed.
+- **Transaction-local identity:** the actor GUC is local to the transaction, and transaction grouping uses `txid_current()`, preserving PgBouncer transaction-pooling safety.
+- **Actor posture:** correlation-ready writes require a validated actor. Anonymous is an explicit actor type; absent is a separate, narrowly opt-in capture-only state.
+- **Capture-time secrecy:** `exclude` and `mask` transform values before the audit insert. `except_columns` only reduces change-detail noise.
+- **Recursion prevention:** trigger generation rejects Threadline's own storage tables.
+- **Strict correlation:** correlation filters return only changes connected through `AuditTransaction.action_id` to a matching action.
+- **Truthful reconstruction:** `as_of/4` distinguishes deleted records and the pre-audit horizon instead of guessing.
+- **Host security ownership:** operator authorization, capability gates, tenant scope, actor extraction, and exposed routes remain host decisions. Threadline passes opaque scope through the configured query callback.
+- **Conservative lifecycle:** retention is disabled by default, purges in batches, records runs, and uses a PostgreSQL advisory lock to avoid concurrent pruners.
+
+No audit library can protect a value that was captured before its redaction policy was deployed, prove trigger coverage without checking the live database, or turn an unauthenticated mount into a secure one. Those are deployment facts the host must verify.
+
+## Cross-cutting operations
+
+### Query, investigation, and optional UI
+
+`Threadline.Query` owns filter validation, joins, total ordering, cursors, and host scope application. `Threadline.Investigation` composes those primitives into operator questions and linked diffs. The optional `threadline_operator_surface/2` macro mounts LiveViews and export routes inside the host router, where the host supplies pipelines and authorization callbacks.
+
+Coverage, policy, and evidence capabilities have separate fail-closed gates. A host scope is opaque to Threadline: the configured three-argument callback receives the Ecto query, scope value, and a surface/params context, then returns the narrowed query.
+
+### Exports
+
+Small synchronous exports share the timeline query. Asynchronous exports persist a job, stream keyset-ordered rows to a temporary CSV, hand the file to a `Threadline.Storage` adapter, and finish in a completed or failed terminal state. The default queue uses an OTP task supervisor; hosts can provide durable queue and multi-node storage adapters through the published behaviours.
+
+### Retention
+
+Retention is an explicit operational policy, not an invisible cleanup. When enabled, the supervised pruner acquires a database advisory lock, deletes eligible changes in bounded batches, yields between batches, and records the run. Capture and retention answer different questions: capture records what happened; retention decides how long those facts remain available.
+
+### Evidence
+
+`Threadline.Evidence` exposes six subject-specific write entrypoints for redaction policy, trigger coverage, retention runs, retention policy, export delivery, and support-scope posture. Host code calls those entrypoints deliberately. Threadline does not auto-populate compliance claims, provide legal holds, promise immutable storage beyond the configured backend, or own an RBAC or tenancy model.
+
+### Runtime ownership
+
+Ecto, Postgrex, Jason, NimbleCSV, Plug, and telemetry support the core. Phoenix, LiveView, Phoenix HTML/PubSub, Oban, and S3-related libraries are optional. At application start, Threadline validates configured adapters and only supervises export and retention processes when the required host repository and settings are present.
+
+## Module atlas
+
+| Question | Start with |
+|---|---|
+| How is storage named and generated? | `Threadline.StorageSchema`, `Mix.Tasks.Threadline.Install`, `Mix.Tasks.Threadline.Gen.Triggers` |
+| What exactly does the trigger write? | `Threadline.Capture.TriggerSQL`, `Threadline.Capture.AuditTransaction`, `Threadline.Capture.AuditChange` |
+| How does identity enter the write? | `Threadline.Semantics.ActorRef`, `Threadline.Semantics.AuditContext`, `Threadline.Plug`, `Threadline.Job` |
+| What is the supported audited-write boundary? | `Threadline.Audit` |
+| How are physical and semantic facts linked? | `Threadline.Semantics.AuditAction`, `Threadline.Capture.AuditTransaction` |
+| How do filters, pages, and scopes work? | `Threadline.Query`, `Threadline.OperatorSurface.Scope` |
+| How is an incident assembled? | `Threadline.Investigation`, `Threadline.ChangeDiff` |
+| How is the UI mounted securely? | `Threadline.OperatorSurface.Router`, `Threadline.OperatorSurface.Auth` |
+| How do large exports leave the process? | `Threadline.Export`, `Threadline.ExportQueue`, `Threadline.Storage`, `Threadline.Export.Orchestrator` |
+| How are lifecycle and attestations represented? | `Threadline.Retention`, `Threadline.Retention.Pruner`, `Threadline.Evidence` |
+
+## Code-reading routes
+
+Choose a route based on the question you are answering:
+
+1. **Audited write:** `Threadline.Plug` → `Threadline.Audit` → `Threadline.Capture.TriggerSQL` → the three core schemas → `Threadline.Investigation`.
+2. **Capture policy:** `Threadline.StorageSchema` → the two Mix generators → `Threadline.Capture.RedactionPolicy` → `Threadline.Capture.TriggerSQL` → trigger and redaction tests.
+3. **Operator security:** `Threadline.OperatorSurface.Router` → `Threadline.OperatorSurface.Auth` → `Threadline.OperatorSurface.Scope` → query scope tests.
+4. **Operational lifecycle:** `Threadline.Export` and its queue/storage behaviours → `Threadline.Export.Orchestrator`; then `Threadline.Retention.Pruner` and `Threadline.Evidence`.
+
+The [Code walkthrough](code-walkthrough.md) follows these routes with short excerpts from the implementation and names the tests that prove each seam.
+
+## Changing Threadline safely
+
+When changing the system, preserve the ownership boundary before optimizing a local function:
+
+1. State whether the change affects capture, semantic linkage, reads, or governance.
+2. Keep generated SQL and migrations deterministic; a host must be able to review what will run.
+3. Treat capture redaction and recursion guards as secrecy and availability controls, not presentation details.
+4. Preserve the single-transaction audited-write invariant and strict correlation semantics.
+5. Keep query order total and cursor-compatible whenever pagination changes.
+6. Pass authorization and tenant scope back to the host instead of inventing Threadline-owned policy.
+7. Prove the change at the lowest useful layer, then add an end-to-end test for the boundary it crosses.
+
+For release work, verify source contracts, generated docs, the Hex package, and any PostgreSQL-backed capture behavior. Do not update documentation to describe a more convenient architecture than the code actually ships.
 
 ## Where to go next
 
-Adoption discovery order:
-
-1. [README](../README.md) — top-level map and version quick start
-2. This guide — mental model, formula, and flow
-3. [Getting started with Phoenix SaaS](getting-started-saas.md) §6 — canonical runnable `Audit.transaction/3` snippet
-4. [Domain reference](domain-reference.md) — vocabulary and API routing
-5. [Integration contracts](integration-contracts.md) — host seams and audited write path contracts
-6. [Operator surface](operator-surface.md) — mount, auth, and screens
-7. [Support lanes and upgrade path](upgrade-path.md) — support matrix
+- [Code walkthrough](code-walkthrough.md) — read the implementation in the same order as this guide.
+- [Getting started with Phoenix SaaS](getting-started-saas.md) — install and exercise the supported write path.
+- [Domain reference](domain-reference.md) — exact vocabulary and public API routing.
+- [Integration contracts](integration-contracts.md) — host-owned identity, jobs, scope, and adapters.
+- [Operator surface](operator-surface.md) — secure mounting and operator capabilities.
+- [Production checklist](production-checklist.md) — deployment and live-database verification.
+- [Incident playbook](incident-playbook.md) — use the captured trail during an investigation.

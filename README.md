@@ -200,6 +200,7 @@ compatibility from the README.
 **Evaluate**
 
 - [How Threadline works](guides/how-threadline-works.md)
+- [Code walkthrough](guides/code-walkthrough.md)
 - [Evaluating Threadline](guides/evaluating-threadline.md)
 - [Domain reference](guides/domain-reference.md)
 
