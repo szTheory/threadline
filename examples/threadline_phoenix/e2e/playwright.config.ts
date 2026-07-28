@@ -80,6 +80,20 @@ const projects = [
       colorScheme: "dark" as const,
     },
   },
+  // Real operator-route capture lane (Phase 196) — the critic's realistic-page
+  // source. Drives operator-page-capture.spec.ts against the seeded, authed
+  // /audit/* routes and clips to #tl-main (assembled page, no sidebar chrome).
+  // deviceScaleFactor:1 at project level; dark hero view.
+  {
+    name: "route-capture",
+    testMatch: /operator-page-capture\.spec\.ts/,
+    use: {
+      ...devices["Desktop Chrome"],
+      viewport: { width: 1280, height: 900 },
+      deviceScaleFactor: 1,
+      colorScheme: "dark" as const,
+    },
+  },
   ...(lightLane
     ? [
         {

@@ -53,6 +53,12 @@ tmp/
 # Tier A capture binaries (Phase 194) — regenerated deterministically; the
 # diffable evidence (scorecard JSON + aria YAML) is committed under .planning/scorecards/.
 /examples/threadline_phoenix/e2e/artifacts/tier-a/
+# Real operator-route capture PNGs (Phase 196) — regenerable, not byte-stable
+# (live server + data). Both the PNGs and the route.* scorecards stay out of git:
+# live-data-derived values aren't byte-stable, so they must NOT feed the
+# committed-scorecard mechanical gate. They stay on disk for local critic scoring.
+/examples/threadline_phoenix/e2e/artifacts/routes/
+/.planning/scorecards/route.*.json
 
 # Critic runner: nondeterministic LLM verdict cache (gitignored; regenerate with mix verify.ui_critique).
 # The oracle (.planning/golden/) and committed skeleton manifests are NOT gitignored.
