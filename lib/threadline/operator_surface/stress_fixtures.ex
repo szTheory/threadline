@@ -273,7 +273,10 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     # D-12 follow-up (Phase 196): hierarchy joins the graded ladder — the :hierarchy twin now
     # renders a rung-graded weight/size cascade (see @hierarchy_scale in stress_live.ex). Scored
     # with 1 persona (probe 2026-07-28 proved p1-p5 redundant on hierarchy); oracle ρ is the backstop.
-    {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)}
+    {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)},
+    # density joins too — the :density_chrome twin renders a rung-graded help-text-chrome +
+    # primary-prominence collapse (see @density_ladder). Also 1-persona (same probe basis).
+    {"density", :density_chrome, ~w(retention coverage exports evidence actor activity)}
   ]
 
   @graded_twin_stories (for {lens, twin, scenarios} <- @graded_ladder,

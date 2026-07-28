@@ -297,32 +297,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                   </div>
 
-                  <%!-- Twin 6: Density (chrome-bloat) — signal-to-chrome ratio --%>
+                  <%!-- Twin 6: Density (chrome-bloat) — graded signal-to-chrome + primary prominence --%>
                   <div :if={refute_twin(@selected_story) == :density_chrome} class="tl-space-y-3">
+                    <% dcfg = refute_density_config(@selected_story) %>
+                    <% dform = refute_density_fields(@selected_story) %>
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
-                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-4) 0;">Retention settings</h2>
+                      <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-4) 0;"><%= dform.title %></h2>
                       <div class="tl-space-y-4">
-                        <div>
-                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Retention window</label>
-                          <input type="text" value="90" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body); margin: 0;" />
-                          <%= if refute_pole(@selected_story) == :flawed do %>
-                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: var(--tl-space-1) 0 0 0;">Enter the number of days to retain audit records. Records older than this value will be permanently deleted when the next prune runs. The minimum is 7 days and the maximum is 3650 days (10 years).</p>
-                          <% end %>
+                        <div :for={{{label, value, help}, i} <- Enum.with_index(dform.rows)}>
+                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);"><%= label %></label>
+                          <input type="text" value={value} style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body); margin: 0;" />
+                          <p :if={i < dcfg.help_fields} style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: var(--tl-space-1) 0 0 0;"><%= help %></p>
                         </div>
-                        <div>
-                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Prune schedule</label>
-                          <input type="text" value="weekly" style="width: 100%; padding: var(--tl-space-2) var(--tl-space-3); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-sm); background: var(--tl-color-bg); color: var(--tl-color-text); font-size: var(--tl-font-size-body); margin: 0;" />
-                          <%= if refute_pole(@selected_story) == :flawed do %>
-                            <p style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted); margin: var(--tl-space-1) 0 0 0;">Choose how often to run automatic pruning. Daily runs every night at 2 AM UTC. Weekly runs every Sunday at 2 AM UTC. Monthly runs on the first of each month at 2 AM UTC.</p>
-                          <% end %>
-                        </div>
-                        <div>
-                          <label style="display: block; font-size: var(--tl-font-size-label); font-weight: 600; margin-bottom: var(--tl-space-1); color: var(--tl-color-text);">Notify on prune</label>
-                          <input type="checkbox" style="margin: 0 var(--tl-space-2) 0 0;" />
-                          <%= if refute_pole(@selected_story) == :flawed do %>
-                            <span style="font-size: var(--tl-font-size-sm); color: var(--tl-color-muted);">When enabled, an email notification is sent to all operator-role users after each prune operation completes, listing the number of records deleted and the tables affected.</span>
-                          <% end %>
-                        </div>
+                      </div>
+                      <div style="display: flex; gap: var(--tl-space-3); margin-top: var(--tl-space-4);">
+                        <button style={refute_density_primary_style(@selected_story)} type="button">Save changes</button>
+                        <button style="background: transparent; color: var(--tl-color-muted); border: 1px solid var(--tl-color-border); padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); cursor: pointer;" type="button">Cancel</button>
                       </div>
                     </div>
                   </div>
@@ -954,6 +944,93 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         _ ->
           %{meta: "Operator / Timeline", title: "Audit timeline", subtitle: "Last 30 days",
             body: "View, filter, and export change records for audited tables in this schema."}
+      end
+    end
+
+    # Twin 6: Density (chrome-bloat) graded ladder. Worse rungs pile help-text chrome onto more
+    # fields (signal_to_chrome falls) AND flatten the primary "Save changes" button toward the
+    # secondary Cancel (task_primary_prominence falls) — both scored dims degrade together (the
+    # rhythm lesson: never leave a dimension a noise floor). All sizes/spacing stay on --tl-*
+    # tokens so every rung passes MODE A + MODE B (gestalt flaw only). Binary twins map
+    # flawed→r2, polished→r4 via refute_rung/1.
+    @density_ladder %{
+      r4: %{help_fields: 0, primary_size: "label", primary_weight: 700},
+      r3: %{help_fields: 1, primary_size: "label", primary_weight: 600},
+      r2: %{help_fields: 2, primary_size: "label", primary_weight: 500},
+      r1: %{help_fields: 3, primary_size: "sm", primary_weight: 500}
+    }
+
+    defp refute_density_config(story), do: Map.fetch!(@density_ladder, refute_rung(story))
+
+    # r4 is a filled accent primary that clearly outranks Cancel; worse rungs desaturate it
+    # toward a plain bordered control until r1 is visually a peer of Cancel (prominence lost).
+    # Fills pair accent/surface backgrounds with bg-/text-color foregrounds (documented safe
+    # pairings) so contrast holds at every rung.
+    defp refute_density_primary_style(story) do
+      cfg = refute_density_config(story)
+
+      {bg, color, border} =
+        case refute_rung(story) do
+          r when r in [:r4, :r3] -> {"var(--tl-color-accent)", "var(--tl-color-bg)", "none"}
+          :r2 -> {"var(--tl-color-surface-raised)", "var(--tl-color-text)", "1px solid var(--tl-color-border)"}
+          :r1 -> {"transparent", "var(--tl-color-muted)", "1px solid var(--tl-color-border)"}
+        end
+
+      "background: #{bg}; color: #{color}; border: #{border}; padding: var(--tl-space-2) var(--tl-space-4); " <>
+        "border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-#{cfg.primary_size}); font-weight: #{cfg.primary_weight}; cursor: pointer;"
+    end
+
+    # Distinct per-scenario form content (pseudo-replication honesty). Each row is
+    # {label, value, help}; help renders only on the first `help_fields` rows per rung.
+    defp refute_density_fields(story) do
+      case Map.get(story.data, :scenario) do
+        "coverage" ->
+          %{title: "Coverage settings",
+            rows: [
+              {"Watched schema", "public", "Choose which database schema Threadline monitors for trigger coverage across every audited table."},
+              {"Uncovered alert", "on", "Alert operator-role users whenever an audited table is found without live trigger coverage during the nightly sweep."},
+              {"Recheck cadence", "nightly", "How often coverage is recomputed. Nightly recomputes every table at 02:00 UTC; hourly suits high-churn schemas."}
+            ]}
+
+        "exports" ->
+          %{title: "Export settings",
+            rows: [
+              {"Default format", "CSV", "The format new exports use. CSV is portable to spreadsheets; JSON preserves nested change payloads verbatim."},
+              {"Delivery target", "operator inbox", "Where finished exports are delivered. Exports stay inside Threadline and are never emailed to external addresses."},
+              {"Row cap", "50000", "The maximum rows a single export may contain. Larger result sets are split across sequential export jobs."}
+            ]}
+
+        "evidence" ->
+          %{title: "Evidence settings",
+            rows: [
+              {"Hash algorithm", "SHA-256", "The digest used to seal each captured change into its evidence chain. SHA-256 is the audited default."},
+              {"Countersign", "required", "Whether an evidence chain must be countersigned by a second operator before it is treated as closed."},
+              {"Integrity sweep", "daily", "How often stored hashes are re-verified against the change records to detect tampering at rest."}
+            ]}
+
+        "actor" ->
+          %{title: "Actor settings",
+            rows: [
+              {"Attribution source", "console", "Where actor identity is read from for console-initiated changes: the authenticated session user."},
+              {"Require reason", "on", "Whether an explicit operator reason must accompany privileged actions such as role changes."},
+              {"Correlation window", "15m", "How long related requests and jobs are tied to one actor across the job boundary before a new correlation begins."}
+            ]}
+
+        "activity" ->
+          %{title: "Activity settings",
+            rows: [
+              {"Window", "30 days", "The span of change activity summarized on the operator home surface for this schema."},
+              {"Group by", "table", "How captured changes are grouped in the activity roll-up: by audited table, by actor, or by day."},
+              {"Idle notice", "off", "Whether to surface a notice when an audited table records no changes across the full activity window."}
+            ]}
+
+        _ ->
+          %{title: "Retention settings",
+            rows: [
+              {"Retention window", "90", "The number of days audit records are retained. Records older than this are permanently deleted on the next prune (min 7, max 3650)."},
+              {"Prune schedule", "weekly", "How often automatic pruning runs. Daily runs nightly at 02:00 UTC; weekly runs Sundays; monthly runs on the first."},
+              {"Notify on prune", "on", "When enabled, operator-role users receive an email after each prune listing the records deleted and tables affected."}
+            ]}
       end
     end
 
