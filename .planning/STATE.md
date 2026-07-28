@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 195-09 Storybook real-UI capture lane + golden-set repoint complete; 195-07 PAUSED awaiting maintainer labeling of the (now real-UI) golden set
-last_updated: "2026-07-04T01:21:19.220Z"
-last_activity: 2026-07-09
+stopped_at: 195 validation achieved via synthetic twin oracle + ranking gate (2 lenses trusted); 195-07 human-labeling checkpoint RETIRED not satisfied; real-UI capture + ranking trust-test landed (feat(196)); 196 gate-shape awaiting maintainer ratification (see thread 2026-07-27)
+last_updated: "2026-07-27T23:30:00.000Z"
+last_activity: 2026-07-27
 progress:
   total_phases: 4
   completed_phases: 1
@@ -21,23 +21,27 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 195 — validated-adversarial-critic-runner-panel
+**Current focus:** Phase 196 — forward-only net-positive gate (gate-shape ratification pending)
 
 ## Current Position
 
-Phase: 195 (validated-adversarial-critic-runner-panel) — EXECUTING (PAUSED at checkpoint)
-Plan: 195-09 complete (capture pivot); 195-07 paused awaiting maintainer labeling
-Status: FOUNDATIONAL FIX LANDED (195-09). The golden set was sourced from /audit/__stress
-        page.* cells that render only a text summary (not real UI) — so labeling them was
-        meaningless. 195-09 adds a Storybook capture lane (`capture:storybook`) over the REAL
-        OperatorSurface.UI components (deterministic, no DB/auth), commits 24 story.* scorecards,
-        and repoints all 6 rubric poles (→ refute twins) + the golden bootstrap (→ story cells)
-        to real UI. The golden queue now holds 60 items across 18 real-UI cells, zero page.*.
-        NEXT (maintainer): `cd examples/threadline_phoenix/e2e && npm run critic:label -- --round r1`
-        now shows REAL component images. Then r2 → reconcile → critic:validate → critic:score
-        --golden → mix critic.measure → close 195-07. Deferred: full-page (not component) critique
-        needs page-level Storybook stories or seeded real-route capture. Dev server was on :4211
-        (test mode) for capture; stopped after — reboot recipe in run-e2e.sh (MIX_ENV=test
+Phase: 195 effectively CLOSED via a validation-approach pivot (recorded, not silently) → 196 next.
+Plan: validation done by synthetic oracle (aef9e655), not human labeling; 195-07 checkpoint retired.
+Status: PIVOT ON THE RECORD (see `.planning/threads/2026-07-27-critic-validation-pivot-and-196-gate.md`).
+        The roadmap's CRITIC-01 mechanism (hand-labeled golden set + 75–90% Krippendorff-α human
+        agreement, 195-07-03 manual checkpoint) was DELIBERATELY SUPERSEDED — not completed — by a
+        synthetic twin oracle + Spearman ρ ranking gate (zero human labeling). Trust reality now
+        lives in `design-system-ledger.json → critic_trust`: brand_fidelity (ρ0.94) + rhythm (ρ0.76)
+        validated=true; typography (ρ0.905/AUC1.0) blocked only by n=9<20 (cheapest promotion);
+        hierarchy/density/color_contrast advisory (n=0, hallucinate absolutes). Real-UI proof landed
+        ahead of GSD as feat(196): real operator-route capture lane (a465c03c) + degraded-twin
+        ranking trust-test (11df1f8c) — critic ranks clean > wrecked on every stable lens.
+        NEXT (maintainer): ratify the Phase-196 gate shape — RECOMMENDED (A) trusted-lens *ranking*
+        gate + Phase-194 deterministic floor as hard block + advisory lenses non-blocking; vs (B)
+        hold for fuller-panel trust. Then run gsd-plan-phase 196 on the ratified premise. Named 196
+        risks: rhythm real-page instability; advisory-lens hallucination (never blocks; verify vs
+        ground truth). `.planning/CRITIQUE.md` stays uncommitted by design (regenerated projection
+        over gitignored route.* cells). Dev-server reboot recipe unchanged in run-e2e.sh (MIX_ENV=test
         THREADLINE_E2E=1 DB_PORT=5433) if re-capturing.
 Last activity: 2026-07-04
 
