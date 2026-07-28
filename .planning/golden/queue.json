@@ -1,0 +1,546 @@
+{
+  "version": 1,
+  "created_at": "2026-07-09T21:28:36.864Z",
+  "items": [
+    {
+      "id": "q_001",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 0,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_002",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 1,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_003",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 2,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_004",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 3,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_005",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 4,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_006",
+      "cell_id": "story.data_display.data_table__system-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 5,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_007",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 6,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_008",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 7,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_009",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 8,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_010",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 9,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_011",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 10,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_012",
+      "cell_id": "story.forms.field__light-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 11,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_013",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 12,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_014",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 13,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_015",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 14,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_016",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 15,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_017",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 16,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_018",
+      "cell_id": "story.foundations.index__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 17,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_019",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 18,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_020",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 19,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_021",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 20,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_022",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 21,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_023",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 22,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_024",
+      "cell_id": "story.groups.operator_groups__light-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 23,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_025",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 24,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_026",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 25,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_027",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 26,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_028",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 27,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_029",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 28,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_030",
+      "cell_id": "story.overlays.modal__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 29,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_031",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 30,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_032",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 31,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_033",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 32,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_034",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 33,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_035",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 34,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_036",
+      "cell_id": "story.patterns.operator_patterns__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 35,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_037",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 36,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_038",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 37,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_039",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 38,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_040",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 39,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_041",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 40,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_042",
+      "cell_id": "story.primitives.button__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 41,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_043",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 42,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_044",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 43,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_045",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 44,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_046",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 45,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_047",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 46,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_048",
+      "cell_id": "story.states.data_state__system-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 47,
+      "source": "bootstrap_midrange"
+    },
+    {
+      "id": "q_049",
+      "cell_id": "refute.hierarchy.flattened.flawed__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 48,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_050",
+      "cell_id": "refute.hierarchy.flattened.polished__dark-1280",
+      "lens": "hierarchy",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 49,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_051",
+      "cell_id": "refute.density.card-section-wrap.flawed__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 50,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_052",
+      "cell_id": "refute.density.card-section-wrap.polished__dark-1280",
+      "lens": "density",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 51,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_053",
+      "cell_id": "refute.rhythm.doubled-padding.flawed__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 52,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_054",
+      "cell_id": "refute.rhythm.doubled-padding.polished__dark-1280",
+      "lens": "rhythm",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 53,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_055",
+      "cell_id": "refute.typography.scale-collapse.flawed__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 54,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_056",
+      "cell_id": "refute.typography.scale-collapse.polished__dark-1280",
+      "lens": "typography",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 55,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_057",
+      "cell_id": "refute.brand-fidelity.mis-jobbed-accent.flawed__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 56,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_058",
+      "cell_id": "refute.brand-fidelity.mis-jobbed-accent.polished__dark-1280",
+      "lens": "color_contrast",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 57,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_059",
+      "cell_id": "refute.brand-fidelity.mis-jobbed-accent.flawed__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 58,
+      "source": "bootstrap_pole"
+    },
+    {
+      "id": "q_060",
+      "cell_id": "refute.brand-fidelity.mis-jobbed-accent.polished__dark-1280",
+      "lens": "brand_fidelity",
+      "kind": "single",
+      "pair_with": null,
+      "queue_order": 59,
+      "source": "bootstrap_pole"
+    }
+  ]
+}

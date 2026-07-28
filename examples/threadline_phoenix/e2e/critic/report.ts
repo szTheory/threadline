@@ -40,12 +40,12 @@ import { scoreToBand, type LensName } from "./schema.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 // critic/ → e2e/ → threadline_phoenix/ → examples/ → repo root
-const repoRoot = resolve(here, "../../../..");
-const criticScoresDir = resolve(repoRoot, ".planning/critic-scores");
+export const repoRoot = resolve(here, "../../../..");
+export const criticScoresDir = resolve(repoRoot, ".planning/critic-scores");
 const critiqueOutputPath = resolve(repoRoot, ".planning/CRITIQUE.md");
 const floorsPath = resolve(repoRoot, ".planning/critic-floors.json");
 
-const ALL_LENSES: LensName[] = [
+export const ALL_LENSES: LensName[] = [
   "hierarchy",
   "density",
   "rhythm",
@@ -77,7 +77,7 @@ interface DimScoreFile {
   scored_at: string;
 }
 
-interface LensResult {
+export interface LensResult {
   score: number | null; // min() of stable dimension scores; null if all unstable
   band: string | null;
   stable: boolean; // true if at least one stable dimension exists
@@ -88,11 +88,11 @@ interface LensResult {
 }
 
 /** Per-cell score floors committed from a previous run. cellId → lens → floor */
-type FloorMap = Record<string, Record<string, number>>;
+export type FloorMap = Record<string, Record<string, number>>;
 
 // ─── Floor management ────────────────────────────────────────────────────────
 
-function readFloors(): FloorMap {
+export function readFloors(): FloorMap {
   if (!existsSync(floorsPath)) return {};
   try {
     return JSON.parse(readFileSync(floorsPath, "utf8")) as FloorMap;
@@ -107,7 +107,7 @@ function readFloors(): FloorMap {
  * Read all dimension score files for a cell and aggregate per lens.
  * Returns a partial record (only lenses that have been scored).
  */
-function readCellLensScores(
+export function readCellLensScores(
   cellDir: string,
 ): Partial<Record<LensName, LensResult>> {
   const results: Partial<Record<LensName, LensResult>> = {};
@@ -193,7 +193,7 @@ function readCellLensScores(
  * Compute the cell rollup: min() across all scored (stable, not-vetoed) lens scores.
  * Returns null if no stable scores exist.
  */
-function computeRollup(
+export function computeRollup(
   lenses: Partial<Record<LensName, LensResult>>,
 ): number | null {
   const scores: number[] = [];

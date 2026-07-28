@@ -90,6 +90,7 @@ const ALL_LENSES: LensName[] = [
 interface ScoreArgs {
   page?: string;
   lens?: LensName;
+  breakpoint?: string;
   theme: "dark" | "light";
   golden: boolean;
   synthetic: boolean;
@@ -120,6 +121,9 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
     switch (argv[i]) {
       case "--page":
         args.page = argv[++i];
+        break;
+      case "--breakpoint":
+        args.breakpoint = argv[++i];
         break;
       case "--lens": {
         const lensArg = argv[++i];
@@ -256,6 +260,8 @@ function getScopedCellIds(args: ScoreArgs): string[] {
     if (args.golden && !committed.has(cellId)) return false;
     // Theme filter
     if (!cellId.includes(`__${args.theme}-`)) return false;
+    // Breakpoint filter (e.g. --breakpoint 1280 → only the __<theme>-1280 cell)
+    if (args.breakpoint && !cellId.endsWith(`-${args.breakpoint}`)) return false;
     // Page filter
     if (args.page && !cellId.startsWith(args.page + "__")) return false;
     // Refute-only filter
@@ -279,18 +285,19 @@ async function runScore(argv: string[]): Promise<void> {
     process.exit(0);
   }
 
-  // Empty-golden check (D-09 first-run empty state)
-  const goldenSet = loadGoldenSet();
-  if (!goldenSet || goldenSet.items.length === 0) {
-    console.log(`\n[critic score] No golden-set items found.`);
-    console.log(`\nTo get started with the critic:`);
-    console.log(`  1. Run: npm run critic:label -- --bootstrap`);
-    console.log(`     (Opens the blind-labeling CLI to build your golden set)`);
-    console.log(`  2. After labeling ≥20 items per lens, re-run:`);
-    console.log(`     npm run critic:score`);
-    console.log(`\nThe golden set is required before the critic may drive any ratchet.`);
-    console.log(`See .planning/golden/golden-set.json for the current state.`);
-    process.exit(0);
+  // Empty-oracle check (D-09) — only when the run is SCOPED to an oracle set
+  // (--golden / --synthetic), which needs items to measure trust. Plain scoring of
+  // committed cells (e.g. --page for the CRITIQUE / HTML projection) needs no oracle.
+  if (args.golden || args.synthetic) {
+    const oracleSet = loadGoldenSet();
+    if (!oracleSet || oracleSet.items.length === 0) {
+      console.log(`\n[critic score] No ${args.synthetic ? "synthetic" : "golden"}-set items found.`);
+      console.log(`\nThe oracle set is required for --golden/--synthetic trust scoping.`);
+      console.log(`  synthetic: run \`mix critic.synth\` (D-12 graded twin oracle)`);
+      console.log(`  human:     run \`npm run critic:label -- --bootstrap\``);
+      console.log(`See .planning/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
+      process.exit(0);
+    }
   }
 
   const cellIds = getScopedCellIds(args);
@@ -427,10 +434,15 @@ switch (subcommand) {
     break;
 
   case "report":
-    // Regenerate CRITIQUE.md projection from .planning/critic-scores/ (D-08, Plan 07)
+    // `--html` → self-contained visual critique viewer; otherwise the CRITIQUE.md projection.
     try {
-      const { runReport } = await import("./report.js");
-      await runReport(rest);
+      if (rest.includes("--html")) {
+        const { generateHtmlReport } = await import("./report_html.js");
+        generateHtmlReport();
+      } else {
+        const { runReport } = await import("./report.js");
+        await runReport(rest);
+      }
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
         console.error(

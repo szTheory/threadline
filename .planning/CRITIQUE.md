@@ -1,6 +1,6 @@
 <!-- GENERATED — do not hand-edit. Regenerate: npm run critic:score -->
 <!-- Baseline: @v1.37 → @HEAD -->
-<!-- Last regenerated: 2026-07-18 -->
+<!-- Last regenerated: 2026-07-28 -->
 
 # CRITIQUE.md — Adversarial Critic Projection
 
@@ -105,6 +105,10 @@ Per finding: score + band + delta vs floor + cited evidence locator + suggested 
 | `refute.typography.graded.actor.r4__dark-1280` | ▲ new 75 [strong] | — | — | — | ▲ new 75 [strong] | — | — |
 | `refute.typography.graded.coverage.r1__dark-1280` | ▲ new 40 [weak] | — | — | — | ▲ new 40 [weak] | — | — |
 | `refute.typography.graded.coverage.r2__dark-1280` | — | — | — | — | ~ unstable (IQR 15.0) | — | — |
+| `story.foundations.index__dark-1280` | ▲ new 12 [fail] | ▲ new 22 [fail] | ▲ new 12 [fail] | ▲ new 22 [fail] | ▲ new 66 [ok] | ▲ new 24 [fail] | ▲ new 29 [fail] |
+| `story.overlays.modal__dark-1280` | ▲ new 28 [fail] | ▲ new 62 [ok] | ▲ new 28 [fail] | ▲ new 64 [ok] | ▲ new 64 [ok] | ▲ new 72 [strong] | ▲ new 61 [ok] |
+| `story.patterns.operator_patterns__dark-1280` | ▲ new 18 [fail] | ▲ new 18 [fail] | ▲ new 18 [fail] | ▲ new 66 [ok] | ▲ new 65 [ok] | ~ unstable (IQR 24.0) | ▲ new 74 [strong] |
+| `story.primitives.button__dark-1280` | ▲ new 12 [fail] | ▲ new 18 [fail] | ▲ new 12 [fail] | ▲ new 29 [fail] | ▲ new 63 [ok] | ▲ new 24 [fail] | ▲ new 69 [ok] |
 
 ---
 

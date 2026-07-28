@@ -12,7 +12,8 @@
     "critic:score": "tsx critic/run.ts score",
     "critic:validate": "tsx critic/run.ts validate",
     "critic:label": "tsx critic/run.ts label",
-    "critic:rubric": "tsx critic/run.ts rubric"
+    "critic:rubric": "tsx critic/run.ts rubric",
+    "critic:report:html": "tsx critic/run.ts report --html"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
