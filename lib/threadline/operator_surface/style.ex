@@ -357,6 +357,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font: inherit;
         }
 
+        /* Native checkbox/radio inputs (incl. the switch, which shares .tl-checkbox)
+           otherwise carry a user-agent-default 3px margin — off the spacing scale, so it
+           trips the MODE-A grid check. Their spacing is owned by the wrapping row/label
+           gap, so reset the control's own margin to zero (0 is on-scale). */
+        .threadline-ui .tl-checkbox,
+        .threadline-ui .tl-radio__input {
+          margin: 0;
+        }
+
         .threadline-ui button,
         .threadline-ui [role="button"],
         .threadline-ui input,

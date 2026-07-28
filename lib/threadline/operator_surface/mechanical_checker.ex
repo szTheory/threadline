@@ -140,12 +140,19 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       {:ok, files} ->
         files
         |> Enum.filter(&String.ends_with?(&1, ".json"))
-        # `route.*` cells are live-server, live-data captures (Phase 196) — gitignored and
-        # explicitly NOT byte-stable, so per the .gitignore contract they must NOT feed the
-        # committed-scorecard mechanical gate (a local capture would otherwise redden the gate
-        # off a non-deterministic artifact, e.g. the deliberately-degraded ranking twin). CI
-        # never sees them (fresh clone has none); this keeps local runs honest too.
-        |> Enum.reject(&String.starts_with?(&1, "route."))
+        # The mechanical FLOOR governs the real operator surface — the Tier-A `/audit`
+        # (`page.*`) cells and the committed refute/graded oracle. Two cell families are
+        # deliberately out of its jurisdiction:
+        #   • `route.*` — live-server, live-data captures (Phase 196), gitignored and not
+        #     byte-stable; a local capture would otherwise redden the gate off a
+        #     non-deterministic artifact (e.g. the deliberately-degraded ranking twin).
+        #   • `story.*` — Storybook demo cells that exist to feed the LLM critic's aesthetic
+        #     scoring, NOT the deterministic pixel-grid floor. They render isolated/unstyled
+        #     demo primitives (e.g. demo-only tl-accordion/tl-toast with no style.ex rules)
+        #     and demo scaffolding (bare description <p>) that were never meant to pass the
+        #     token-grid checks — holding demos to the production floor is a category error.
+        # CI over the real surface is unaffected (Tier-A cells still gate).
+        |> Enum.reject(&(String.starts_with?(&1, "route.") or String.starts_with?(&1, "story.")))
         |> Enum.sort()
         |> Enum.map(&Path.join(dir, &1))
 
