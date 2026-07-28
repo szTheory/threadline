@@ -54,16 +54,15 @@ const LENS_DIMENSIONS: Record<LensName, string[]> = {
 };
 
 // Persona → lenses map (D-06 / critic→lens map frozen from Phase 194)
-// P1-P5 each score hierarchy + density (persona-weighted)
-// Graphic-design critic scores rhythm, typography, color_contrast (lens: "all")
-// Brand-veto scores brand_fidelity (lens: "all")
+// Persona fan-out. The divergence probe (2026-07-28) proved p1-p5 are REDUNDANT on
+// hierarchy/density — 15/15 unanimous rank agreement clean>degraded, ±3 absolute spread,
+// zero inversions — so all six lenses are now scored by the single "all" critic (the
+// most-demanding cross-persona standard, PERSONA_CLAUSES.all). This is the ~5x cost lever
+// on the two persona lenses, and keeps validation == deployment (one critic per lens).
+// Oracle rho is the backstop: if one critic proves too noisy on finer rungs, rho fails the
+// trust gate and personas are added back. (p1-p5 clauses remain defined in prompt.ts.)
 const PERSONA_LENSES: Record<string, LensName[]> = {
-  p1: ["hierarchy", "density"],
-  p2: ["hierarchy", "density"],
-  p3: ["hierarchy", "density"],
-  p4: ["hierarchy", "density"],
-  p5: ["hierarchy", "density"],
-  all: ["rhythm", "typography", "color_contrast", "brand_fidelity"],
+  all: ["rhythm", "typography", "color_contrast", "brand_fidelity", "hierarchy", "density"],
 };
 
 // Budget estimate bands for --dry-run (D-07)
