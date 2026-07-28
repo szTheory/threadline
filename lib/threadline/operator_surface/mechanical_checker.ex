@@ -41,8 +41,11 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   @font_size_scale_px [12, 13, 14, 15, 16, 20, 24, 32]
 
   # box-shadow token geometry signatures (offset-x, offset-y, blur) in px, derived
-  # from --tl-shadow-border/subtle/popover/raised in style.ex.
-  @shadow_token_signatures [[0, 0, 0], [0, 1, 2], [0, 1, 3], [0, 10, 28], [0, 18, 48]]
+  # from --tl-shadow-border/subtle/popover/raised in style.ex. [3, 0, 0] is the status
+  # stripe — `inset var(--tl-status-stripe-width) 0 0 <color>` with --tl-status-stripe-width:
+  # 3px — a tokenized inset left-edge indicator (cards/facts with data-status), not a stray
+  # drop shadow; it was previously (incorrectly) flagged as off-token geometry.
+  @shadow_token_signatures [[0, 0, 0], [0, 1, 2], [0, 1, 3], [0, 10, 28], [0, 18, 48], [3, 0, 0]]
 
   # MODE-B metrics keyed as they appear in mechanical_floors[ledger_id][metric][theme_bp].
   @mode_b_metrics ~w(
