@@ -243,13 +243,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </div>
                   </div>
 
-                  <%!-- Twin 3: Hierarchy — visual weight progression --%>
+                  <%!-- Twin 3: Hierarchy — graded visual-weight/size cascade (scenario content) --%>
                   <div :if={refute_twin(@selected_story) == :hierarchy} class="tl-space-y-3">
+                    <% h = refute_hierarchy_lines(@selected_story) %>
                     <div style={"padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);"}>
-                      <p style={refute_hierarchy_meta_style(@selected_story)}>Operator / Timeline</p>
-                      <h1 style={refute_hierarchy_title_style(@selected_story)}>Audit timeline</h1>
-                      <h2 style={refute_hierarchy_subtitle_style(@selected_story)}>Last 30 days</h2>
-                      <p style={refute_hierarchy_body_style(@selected_story)}>View, filter, and export change records for audited tables in this schema.</p>
+                      <p style={refute_hierarchy_role_style(@selected_story, :meta)}><%= h.meta %></p>
+                      <h1 style={refute_hierarchy_role_style(@selected_story, :title)}><%= h.title %></h1>
+                      <h2 style={refute_hierarchy_role_style(@selected_story, :subtitle)}><%= h.subtitle %></h2>
+                      <p style={refute_hierarchy_role_style(@selected_story, :body)}><%= h.body %></p>
                     </div>
                   </div>
 
@@ -904,52 +905,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # Twin 3: Hierarchy — polished has clear weight/size progression; flaw shares font-weight:500.
-    # Type-size count stays above the floor in both poles (three distinct sizes used).
-    defp refute_hierarchy_meta_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # label (14px): browser default p margin = 14px (off spacing scale) — zero top explicitly
-          "font-size: var(--tl-font-size-label); font-weight: 500; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0;"
+    # Twin 3: Hierarchy — graded visual-weight/size cascade (mirrors the @typo_scale shape,
+    # D-12). r4 gives a clear meta < body < subtitle < title size+weight progression so ONE
+    # element (the title) owns the emphasis budget; worse rungs progressively flatten the
+    # cascade until r1 is near-uniform (nothing dominates). Both scored dims degrade together
+    # — entry_point_clarity/scan_path AND emphasis_discipline — keeping min()-rollup signal on
+    # each (the rhythm lesson: never leave a dimension a noise floor). Every size is a
+    # --tl-font-size-* token and ≥2 distinct sizes render at every rung, so all four rungs pass
+    # MODE A + MODE B (gestalt flaw only). Binary twins map flawed→r2, polished→r4 via
+    # refute_rung/1, so the polished/flawed poles remain gestalt-flaw-only as before.
+    @hierarchy_scale %{
+      r4: %{meta: {"xs", 400}, title: {"title", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
+      r3: %{meta: {"xs", 400}, title: {"heading", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
+      r2: %{meta: {"label", 500}, title: {"heading", 600}, subtitle: {"body", 500}, body: {"body", 500}},
+      r1: %{meta: {"sm", 400}, title: {"body", 600}, subtitle: {"body", 500}, body: {"body", 500}}
+    }
 
-        _ ->
-          # xs (12px): browser default p margin = 12px (on scale), still zero for consistency
-          "font-size: var(--tl-font-size-xs); font-weight: 400; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-1) 0; text-transform: uppercase; letter-spacing: 0.04em;"
-      end
+    defp refute_hierarchy_role_style(story, role) do
+      {size, weight} = @hierarchy_scale |> Map.fetch!(refute_rung(story)) |> Map.fetch!(role)
+      color = if role == :meta, do: "var(--tl-color-muted)", else: "var(--tl-color-text)"
+
+      "font-size: var(--tl-font-size-#{size}); font-weight: #{weight}; color: #{color}; margin: 0 0 var(--tl-space-2) 0;"
     end
 
-    defp refute_hierarchy_title_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # h1 title (24px): browser default h1 margin-top ~16px — zero explicitly
-          "font-size: var(--tl-font-size-title); font-weight: 500; color: var(--tl-color-text); margin: 0 0 var(--tl-space-1) 0;"
+    # Distinct per-scenario hierarchy copy (pseudo-replication honesty; mirrors the rhythm ladder).
+    defp refute_hierarchy_lines(story) do
+      case Map.get(story.data, :scenario) do
+        "coverage" ->
+          %{meta: "Operator / Coverage", title: "Trigger coverage", subtitle: "3 of 12 tables",
+            body: "9 audited tables have no capture wired — enable before the next audit."}
+
+        "retention" ->
+          %{meta: "Operator / Retention", title: "Retention policy", subtitle: "90-day window",
+            body: "The next scheduled prune runs 2026-09-30 at 02:00 UTC."}
+
+        "exports" ->
+          %{meta: "Operator / Exports", title: "Recent exports", subtitle: "Last 30 days",
+            body: "4 CSV exports generated; the largest covered 18,204 change records."}
+
+        "evidence" ->
+          %{meta: "Operator / Evidence", title: "Evidence status", subtitle: "As of 2026-07-01",
+            body: "Proof records are current; 1 evidence chain awaits a countersignature."}
+
+        "actor" ->
+          %{meta: "Operator / Actor", title: "Change attribution", subtitle: "admin@example.com",
+            body: "Role change recorded with an explicit operator reason via the console."}
 
         _ ->
-          "font-size: var(--tl-font-size-title); font-weight: 700; color: var(--tl-color-text); margin: 0 0 var(--tl-space-1) 0;"
-      end
-    end
-
-    defp refute_hierarchy_subtitle_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # h2 heading (20px): browser default margin-top = 0.83em = 16.6px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin: 0 0 var(--tl-space-2) 0;"
-
-        _ ->
-          # h2 body (16px): browser default margin-top = 0.83em = 13.28px (off scale) — zero explicitly
-          "font-size: var(--tl-font-size-body); font-weight: 500; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-2) 0;"
-      end
-    end
-
-    defp refute_hierarchy_body_style(story) do
-      case refute_pole(story) do
-        :flawed ->
-          # p heading (20px): browser default p margin = 20px (on scale) — passes, but zero for clarity
-          "font-size: var(--tl-font-size-heading); font-weight: 500; color: var(--tl-color-text); margin: 0;"
-
-        _ ->
-          # p body (16px): browser default p margin = 16px (on scale) — passes, but zero for clarity
-          "font-size: var(--tl-font-size-body); font-weight: 400; color: var(--tl-color-text); margin: 0;"
+          %{meta: "Operator / Timeline", title: "Audit timeline", subtitle: "Last 30 days",
+            body: "View, filter, and export change records for audited tables in this schema."}
       end
     end
 

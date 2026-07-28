@@ -867,8 +867,440 @@
       }
     },
     {
-      "cell_id": "refute.rhythm.graded.activity.r1__dark-1280",
+      "cell_id": "refute.hierarchy.graded.activity.r1__dark-1280",
       "id": "syn_049",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.activity.r2__dark-1280",
+      "id": "syn_050",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.activity.r3__dark-1280",
+      "id": "syn_051",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.activity.r4__dark-1280",
+      "id": "syn_052",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"activity\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.actor.r1__dark-1280",
+      "id": "syn_053",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.actor.r2__dark-1280",
+      "id": "syn_054",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.actor.r3__dark-1280",
+      "id": "syn_055",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.actor.r4__dark-1280",
+      "id": "syn_056",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"actor\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.coverage.r1__dark-1280",
+      "id": "syn_057",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.coverage.r2__dark-1280",
+      "id": "syn_058",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.coverage.r3__dark-1280",
+      "id": "syn_059",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.coverage.r4__dark-1280",
+      "id": "syn_060",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"coverage\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.evidence.r1__dark-1280",
+      "id": "syn_061",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.evidence.r2__dark-1280",
+      "id": "syn_062",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.evidence.r3__dark-1280",
+      "id": "syn_063",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.evidence.r4__dark-1280",
+      "id": "syn_064",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"evidence\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.exports.r1__dark-1280",
+      "id": "syn_065",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.exports.r2__dark-1280",
+      "id": "syn_066",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.exports.r3__dark-1280",
+      "id": "syn_067",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.exports.r4__dark-1280",
+      "id": "syn_068",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"exports\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.retention.r1__dark-1280",
+      "id": "syn_069",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r1 (broken); held-out interpolation rung, label is definitional",
+        "verdict": "broken"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.retention.r2__dark-1280",
+      "id": "syn_070",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r2 (bad); held-out interpolation rung, label is definitional",
+        "verdict": "bad"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.retention.r3__dark-1280",
+      "id": "syn_071",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r3 (borderline); held-out interpolation rung, label is definitional",
+        "verdict": "borderline"
+      }
+    },
+    {
+      "cell_id": "refute.hierarchy.graded.retention.r4__dark-1280",
+      "id": "syn_072",
+      "kept": true,
+      "kind": "single",
+      "lens": "hierarchy",
+      "pair_with": null,
+      "r1": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      },
+      "r2": {
+        "blind": true,
+        "evidence": "constructed: hierarchy \"retention\" at severity r4 (good); held-out interpolation rung, label is definitional",
+        "verdict": "good"
+      }
+    },
+    {
+      "cell_id": "refute.rhythm.graded.activity.r1__dark-1280",
+      "id": "syn_073",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -886,7 +1318,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.activity.r2__dark-1280",
-      "id": "syn_050",
+      "id": "syn_074",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -904,7 +1336,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.activity.r3__dark-1280",
-      "id": "syn_051",
+      "id": "syn_075",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -922,7 +1354,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.activity.r4__dark-1280",
-      "id": "syn_052",
+      "id": "syn_076",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -940,7 +1372,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.actor.r1__dark-1280",
-      "id": "syn_053",
+      "id": "syn_077",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -958,7 +1390,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.actor.r2__dark-1280",
-      "id": "syn_054",
+      "id": "syn_078",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -976,7 +1408,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.actor.r3__dark-1280",
-      "id": "syn_055",
+      "id": "syn_079",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -994,7 +1426,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.actor.r4__dark-1280",
-      "id": "syn_056",
+      "id": "syn_080",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1012,7 +1444,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.coverage.r1__dark-1280",
-      "id": "syn_057",
+      "id": "syn_081",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1030,7 +1462,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.coverage.r2__dark-1280",
-      "id": "syn_058",
+      "id": "syn_082",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1048,7 +1480,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.coverage.r3__dark-1280",
-      "id": "syn_059",
+      "id": "syn_083",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1066,7 +1498,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.coverage.r4__dark-1280",
-      "id": "syn_060",
+      "id": "syn_084",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1084,7 +1516,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.evidence.r1__dark-1280",
-      "id": "syn_061",
+      "id": "syn_085",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1102,7 +1534,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.evidence.r2__dark-1280",
-      "id": "syn_062",
+      "id": "syn_086",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1120,7 +1552,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.evidence.r3__dark-1280",
-      "id": "syn_063",
+      "id": "syn_087",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1138,7 +1570,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.evidence.r4__dark-1280",
-      "id": "syn_064",
+      "id": "syn_088",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1156,7 +1588,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.exports.r1__dark-1280",
-      "id": "syn_065",
+      "id": "syn_089",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1174,7 +1606,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.exports.r2__dark-1280",
-      "id": "syn_066",
+      "id": "syn_090",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1192,7 +1624,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.exports.r3__dark-1280",
-      "id": "syn_067",
+      "id": "syn_091",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1210,7 +1642,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.exports.r4__dark-1280",
-      "id": "syn_068",
+      "id": "syn_092",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1228,7 +1660,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.retention.r1__dark-1280",
-      "id": "syn_069",
+      "id": "syn_093",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1246,7 +1678,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.retention.r2__dark-1280",
-      "id": "syn_070",
+      "id": "syn_094",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1264,7 +1696,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.retention.r3__dark-1280",
-      "id": "syn_071",
+      "id": "syn_095",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1282,7 +1714,7 @@
     },
     {
       "cell_id": "refute.rhythm.graded.retention.r4__dark-1280",
-      "id": "syn_072",
+      "id": "syn_096",
       "kept": true,
       "kind": "single",
       "lens": "rhythm",
@@ -1300,7 +1732,7 @@
     },
     {
       "cell_id": "refute.typography.graded.activity.r1__dark-1280",
-      "id": "syn_073",
+      "id": "syn_097",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1318,7 +1750,7 @@
     },
     {
       "cell_id": "refute.typography.graded.activity.r2__dark-1280",
-      "id": "syn_074",
+      "id": "syn_098",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1336,7 +1768,7 @@
     },
     {
       "cell_id": "refute.typography.graded.activity.r3__dark-1280",
-      "id": "syn_075",
+      "id": "syn_099",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1354,7 +1786,7 @@
     },
     {
       "cell_id": "refute.typography.graded.activity.r4__dark-1280",
-      "id": "syn_076",
+      "id": "syn_100",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1372,7 +1804,7 @@
     },
     {
       "cell_id": "refute.typography.graded.actor.r1__dark-1280",
-      "id": "syn_077",
+      "id": "syn_101",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1390,7 +1822,7 @@
     },
     {
       "cell_id": "refute.typography.graded.actor.r2__dark-1280",
-      "id": "syn_078",
+      "id": "syn_102",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1408,7 +1840,7 @@
     },
     {
       "cell_id": "refute.typography.graded.actor.r3__dark-1280",
-      "id": "syn_079",
+      "id": "syn_103",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1426,7 +1858,7 @@
     },
     {
       "cell_id": "refute.typography.graded.actor.r4__dark-1280",
-      "id": "syn_080",
+      "id": "syn_104",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1444,7 +1876,7 @@
     },
     {
       "cell_id": "refute.typography.graded.coverage.r1__dark-1280",
-      "id": "syn_081",
+      "id": "syn_105",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1462,7 +1894,7 @@
     },
     {
       "cell_id": "refute.typography.graded.coverage.r2__dark-1280",
-      "id": "syn_082",
+      "id": "syn_106",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1480,7 +1912,7 @@
     },
     {
       "cell_id": "refute.typography.graded.coverage.r3__dark-1280",
-      "id": "syn_083",
+      "id": "syn_107",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1498,7 +1930,7 @@
     },
     {
       "cell_id": "refute.typography.graded.coverage.r4__dark-1280",
-      "id": "syn_084",
+      "id": "syn_108",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1516,7 +1948,7 @@
     },
     {
       "cell_id": "refute.typography.graded.evidence.r1__dark-1280",
-      "id": "syn_085",
+      "id": "syn_109",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1534,7 +1966,7 @@
     },
     {
       "cell_id": "refute.typography.graded.evidence.r2__dark-1280",
-      "id": "syn_086",
+      "id": "syn_110",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1552,7 +1984,7 @@
     },
     {
       "cell_id": "refute.typography.graded.evidence.r3__dark-1280",
-      "id": "syn_087",
+      "id": "syn_111",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1570,7 +2002,7 @@
     },
     {
       "cell_id": "refute.typography.graded.evidence.r4__dark-1280",
-      "id": "syn_088",
+      "id": "syn_112",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1588,7 +2020,7 @@
     },
     {
       "cell_id": "refute.typography.graded.exports.r1__dark-1280",
-      "id": "syn_089",
+      "id": "syn_113",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1606,7 +2038,7 @@
     },
     {
       "cell_id": "refute.typography.graded.exports.r2__dark-1280",
-      "id": "syn_090",
+      "id": "syn_114",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1624,7 +2056,7 @@
     },
     {
       "cell_id": "refute.typography.graded.exports.r3__dark-1280",
-      "id": "syn_091",
+      "id": "syn_115",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1642,7 +2074,7 @@
     },
     {
       "cell_id": "refute.typography.graded.exports.r4__dark-1280",
-      "id": "syn_092",
+      "id": "syn_116",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1660,7 +2092,7 @@
     },
     {
       "cell_id": "refute.typography.graded.retention.r1__dark-1280",
-      "id": "syn_093",
+      "id": "syn_117",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1678,7 +2110,7 @@
     },
     {
       "cell_id": "refute.typography.graded.retention.r2__dark-1280",
-      "id": "syn_094",
+      "id": "syn_118",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1696,7 +2128,7 @@
     },
     {
       "cell_id": "refute.typography.graded.retention.r3__dark-1280",
-      "id": "syn_095",
+      "id": "syn_119",
       "kept": true,
       "kind": "single",
       "lens": "typography",
@@ -1714,7 +2146,7 @@
     },
     {
       "cell_id": "refute.typography.graded.retention.r4__dark-1280",
-      "id": "syn_096",
+      "id": "syn_120",
       "kept": true,
       "kind": "single",
       "lens": "typography",

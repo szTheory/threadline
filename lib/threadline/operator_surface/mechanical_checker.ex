@@ -137,6 +137,12 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       {:ok, files} ->
         files
         |> Enum.filter(&String.ends_with?(&1, ".json"))
+        # `route.*` cells are live-server, live-data captures (Phase 196) — gitignored and
+        # explicitly NOT byte-stable, so per the .gitignore contract they must NOT feed the
+        # committed-scorecard mechanical gate (a local capture would otherwise redden the gate
+        # off a non-deterministic artifact, e.g. the deliberately-degraded ranking twin). CI
+        # never sees them (fresh clone has none); this keeps local runs honest too.
+        |> Enum.reject(&String.starts_with?(&1, "route."))
         |> Enum.sort()
         |> Enum.map(&Path.join(dir, &1))
 

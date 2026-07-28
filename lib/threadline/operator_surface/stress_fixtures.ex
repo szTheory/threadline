@@ -269,7 +269,11 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"rhythm", :rhythm, ~w(activity coverage retention exports evidence actor)},
     {"typography", :typography, ~w(activity coverage retention exports evidence actor)},
     {"brand_fidelity", :brand_fidelity, ~w(export coverage retention evidence actor timeline)},
-    {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)}
+    {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)},
+    # D-12 follow-up (Phase 196): hierarchy joins the graded ladder — the :hierarchy twin now
+    # renders a rung-graded weight/size cascade (see @hierarchy_scale in stress_live.ex). Scored
+    # with 1 persona (probe 2026-07-28 proved p1-p5 redundant on hierarchy); oracle ρ is the backstop.
+    {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)}
   ]
 
   @graded_twin_stories (for {lens, twin, scenarios} <- @graded_ladder,
