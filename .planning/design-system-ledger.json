@@ -14076,21 +14076,42 @@
         "ledger_id": "page.home.happy",
         "story_id": "page.home.happy",
         "theme": "dark",
-        "viewport": 1024
+        "viewport": 1024,
+        "semantic_guard_stamp": {
+          "mechanical_ok": true,
+          "blocking_panel_no_regress": true,
+          "scorecard_ref": "page.home.happy",
+          "stamped_at": "2026-07-28T00:00:00Z",
+          "evidence_ref": "verify.mechanical green over mechanical_floors[page.home.happy]; 196-CONTEXT.md#196-D6"
+        }
       },
       {
         "baseline_ref": "stress-page-timeline-empty-dark-1024.png",
         "ledger_id": "page.timeline.empty",
         "story_id": "page.timeline.empty",
         "theme": "dark",
-        "viewport": 1024
+        "viewport": 1024,
+        "semantic_guard_stamp": {
+          "mechanical_ok": true,
+          "blocking_panel_no_regress": true,
+          "scorecard_ref": "page.timeline.happy",
+          "stamped_at": "2026-07-28T00:00:00Z",
+          "evidence_ref": "verify.mechanical green over mechanical_floors[page.timeline.happy] (page.* mechanical twin of the timeline.empty baseline); 196-CONTEXT.md#196-D6"
+        }
       },
       {
         "baseline_ref": "stress-footgun-transaction-desktop-centering-dark-1024.png",
         "ledger_id": "footgun.transaction-page-left-push-desktop",
         "story_id": "footgun.transaction-page-left-push-desktop",
         "theme": "dark",
-        "viewport": 1024
+        "viewport": 1024,
+        "semantic_guard_stamp": {
+          "mechanical_ok": true,
+          "blocking_panel_no_regress": true,
+          "scorecard_ref": "page.transaction.happy",
+          "stamped_at": "2026-07-28T00:00:00Z",
+          "evidence_ref": "verify.mechanical green over mechanical_floors[page.transaction.happy] (page.* mechanical twin of the transaction-centering footgun baseline); 196-CONTEXT.md#196-D6"
+        }
       }
     ],
     "local_review": [
@@ -14211,5 +14232,8 @@
       "held_out_ids": []
     },
     "signoff_ref": "196-CONTEXT.md#196-D2"
+  },
+  "mechanical_auto_apply": {
+    "structural_whitelist": []
   }
 }

@@ -440,6 +440,73 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # ── GATE-02: structural auto-apply whitelist starts EMPTY (196-D3) ────────────
+    # No un-spiked structural auto-apply ships this phase. The whitelist is asserted
+    # empty unless a `structural_whitelist_add` signoff records the spike evidence that
+    # justified each addition. Vacuous-safe: seeded structural_whitelist == [].
+
+    test "structural auto-apply whitelist is empty unless a structural_whitelist_add signoff exists (GATE-02, 196-D3)" do
+      ledger = ledger()
+      mechanical_auto_apply = ledger["mechanical_auto_apply"]
+
+      assert is_map(mechanical_auto_apply),
+             "#{@ledger_path} is missing the 'mechanical_auto_apply' block (GATE-02 baseline)."
+
+      whitelist = mechanical_auto_apply["structural_whitelist"]
+
+      assert is_list(whitelist),
+             "mechanical_auto_apply.structural_whitelist must be an array (GATE-02)."
+
+      signoffs = get_in(ledger, ["ratchet", "signoffs"]) || []
+
+      unless whitelist == [] do
+        assert Enum.any?(signoffs, &(&1["kind"] == "structural_whitelist_add")),
+               "mechanical_auto_apply.structural_whitelist is non-empty (#{inspect(whitelist)}) but no " <>
+                 "structural_whitelist_add signoff exists — no un-spiked structural auto-apply ships " <>
+                 "this phase (GATE-02, 196-D3)."
+      end
+    end
+
+    # ── GATE-05: screenshot refresh gated by a fresh clean semantic stamp (196-D6) ─
+    # A pixel baseline is never the quality bar. Every screenshot_allowlist.ci entry
+    # must carry a semantic_guard_stamp whose scorecard_ref resolves to a COMMITTED
+    # page.* Tier-A twin (never a gitignored route.* cell — the GATE-05 landmine) and
+    # whose mechanical + blocking-panel verdicts are clean. A refresh therefore cannot
+    # land on a raw pixel delta alone. Vacuous-safe: each seeded stamp references a
+    # committed page.* twin that already passes verify.mechanical.
+
+    test "every screenshot_allowlist.ci entry has a fresh clean semantic_guard_stamp over a committed page.* twin (GATE-05, 196-D6)" do
+      ci = get_in(ledger(), ["screenshot_allowlist", "ci"]) || []
+
+      for entry <- ci do
+        id = entry["ledger_id"]
+        stamp = entry["semantic_guard_stamp"]
+
+        assert is_map(stamp),
+               "screenshot_allowlist.ci entry #{inspect(id)} has no semantic_guard_stamp — a baseline " <>
+                 "refresh cannot land without a fresh clean semantic stamp (GATE-05, 196-D6)."
+
+        ref = stamp["scorecard_ref"]
+
+        assert is_binary(ref) and String.starts_with?(ref, "page."),
+               "semantic_guard_stamp.scorecard_ref #{inspect(ref)} for #{inspect(id)} must be a committed " <>
+                 "page.* Tier-A twin, never a route.* cell (GATE-05 landmine, 196-D6)."
+
+        assert scorecard_resolves?(ref),
+               "semantic_guard_stamp.scorecard_ref #{inspect(ref)} for #{inspect(id)} does not resolve to a " <>
+                 "committed scorecard under #{@scorecards_dir} — the stamp must be tied to a real page.* " <>
+                 "twin scorecard (GATE-05, 196-D6)."
+
+        assert stamp["mechanical_ok"] == true,
+               "semantic_guard_stamp for #{inspect(id)} has mechanical_ok != true — a baseline cannot " <>
+                 "refresh while the mechanical floor is dirty (GATE-05, 196-D6)."
+
+        assert stamp["blocking_panel_no_regress"] == true,
+               "semantic_guard_stamp for #{inspect(id)} has blocking_panel_no_regress != true — a baseline " <>
+                 "cannot refresh while a blocking lens regresses (GATE-05, 196-D6)."
+      end
+    end
+
     # ── Provenance / honest-oracle guards (D-12) ─────────────────────────────────
     # The synthetic twin oracle (D-12) lets a lens validate against constructed
     # graded-twin labels instead of human labels. That is a WEAKER epistemic object
@@ -715,6 +782,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         id in (s["targets"] || []) or
         id in (s["removed_ids"] || [])
     end
+
+    # A scorecard_ref "resolves" if a committed scorecard exists for it under
+    # @scorecards_dir — either as the exact `<ref>.json` or any theme/viewport-suffixed
+    # `<ref>__*.json` capture (the committed page.* Tier-A twin naming convention).
+    defp scorecard_resolves?(ref) when is_binary(ref) do
+      File.exists?(Path.join(@scorecards_dir, "#{ref}.json")) or
+        Path.wildcard(Path.join(@scorecards_dir, "#{ref}__*.json")) != []
+    end
+
+    defp scorecard_resolves?(_), do: false
 
     # Synthetic twin oracle set (D-12); absent → an empty set (vacuous guards).
     defp synthetic_set do
