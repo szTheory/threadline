@@ -79,11 +79,22 @@ const DEGRADE_CSS = `
 `;
 
 // The curated real operator routes. ledger id → authed route path. `degrade` marks
-// the ranking-test twin. One route (+ its degraded twin) for the proof; the shape
-// scales to timeline/coverage/retention/actors/evidence.
+// the ranking-test twin. The five weakest-page candidates (196-D8), each backed by a
+// committed `page.<x>.happy` twin in `mechanical_floors` for the deterministic floor
+// the forward-only gate gates on (see CONTRIBUTING.md → route ↔ page twin table).
+//
+// Paths are the REAL router mounts (lib/threadline/operator_surface/router.ex):
+//   /timeline, /coverage, /evidence are direct; retention lives under
+//   /policy/retention; an actor page needs a concrete kind/id — we point at the
+//   deterministic seeded `service_account/zendesk-sync` actor (demo Manifest), a
+//   valid `@actor_kinds` member so the page renders under the seeded-login flow.
 const ROUTES: { id: string; path: string; degrade?: boolean }[] = [
   { id: "route.timeline", path: "/audit/timeline" },
   { id: "route.timeline.degraded", path: "/audit/timeline", degrade: true },
+  { id: "route.coverage", path: "/audit/coverage" },
+  { id: "route.retention", path: "/audit/policy/retention" },
+  { id: "route.actor", path: "/audit/actors/service_account/zendesk-sync" },
+  { id: "route.evidence", path: "/audit/evidence" },
 ];
 
 function cellId(ledgerId: string, theme: string, breakpoint: number): string {
