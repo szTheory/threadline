@@ -27,6 +27,150 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @blocking_panel ~w(brand_fidelity density typography rhythm)
     @advisory_panel ~w(hierarchy color_contrast)
 
+    # ── Frozen ratchet baselines (GATE-04, 196-D4/196-D5) ────────────────────────
+    # Committed snapshot of the quality-bar floors. A DOWNWARD move of any value
+    # below its baseline (or removal of a guarded id) requires a matching appended
+    # `ratchet.signoffs` entry — a silent target/floor drop fails the no-silent-drop
+    # clause below. Upward moves are always allowed (>=). Vacuous-safe: baseline ==
+    # current == seeded values, signoffs [] → every `>=` holds, no signoff required.
+    @baseline_trust_floors %{
+      "brand_fidelity" => 0.85,
+      "density" => 0.78,
+      "typography" => 0.72,
+      "rhythm" => 0.72
+    }
+
+    # Frozen snapshot of ratchet.minimum_scores (committed baseline). Silent lowering
+    # of any id below these — or deletion of an id — trips the no-silent-drop clause
+    # unless a target_change/ratchet_bump signoff records the exact new value.
+    @baseline_minimum_scores %{
+      "footgun.coverage-schema-card-declutter" => 25,
+      "footgun.transaction-page-left-push-desktop" => 25,
+      "form-control.checkbox.current" => 35,
+      "form-control.date-range.current" => 35,
+      "form-control.input.current" => 35,
+      "form-control.radio.current" => 35,
+      "form-control.search.current" => 35,
+      "form-control.select.current" => 35,
+      "form-control.textarea.current" => 35,
+      "foundation.color" => 62,
+      "foundation.density" => 62,
+      "foundation.motion" => 62,
+      "foundation.radius" => 62,
+      "foundation.shadow" => 62,
+      "foundation.spacing" => 62,
+      "foundation.typography" => 62,
+      "foundation.z-index" => 62,
+      "future.theme-picker-idiomatic-ui" => 20,
+      "group.data-panel.current" => 62,
+      "group.detail-header.current" => 62,
+      "group.drawer-form.reference" => 62,
+      "group.empty-cta.current" => 62,
+      "group.modal-destructive.current" => 62,
+      "group.offline.current" => 62,
+      "group.page-header.current" => 62,
+      "group.permission-denied.current" => 62,
+      "group.stats-chart-table.current" => 62,
+      "group.tabs-subviews.reference" => 62,
+      "group.toast-update.current" => 62,
+      "group.toolbar.current" => 62,
+      "page.actor.advanced" => 62,
+      "page.actor.boundary" => 62,
+      "page.actor.empty" => 62,
+      "page.actor.error" => 62,
+      "page.actor.happy" => 62,
+      "page.actor.loading" => 62,
+      "page.actor.permission" => 62,
+      "page.coverage.advanced" => 62,
+      "page.coverage.boundary" => 62,
+      "page.coverage.empty" => 62,
+      "page.coverage.error" => 62,
+      "page.coverage.happy" => 62,
+      "page.coverage.loading" => 62,
+      "page.coverage.permission" => 62,
+      "page.evidence.advanced" => 62,
+      "page.evidence.boundary" => 62,
+      "page.evidence.empty" => 62,
+      "page.evidence.error" => 62,
+      "page.evidence.happy" => 62,
+      "page.evidence.loading" => 62,
+      "page.evidence.permission" => 62,
+      "page.exports.advanced" => 62,
+      "page.exports.boundary" => 62,
+      "page.exports.empty" => 62,
+      "page.exports.error" => 62,
+      "page.exports.happy" => 62,
+      "page.exports.loading" => 62,
+      "page.exports.permission" => 62,
+      "page.home.advanced" => 62,
+      "page.home.boundary" => 62,
+      "page.home.empty" => 62,
+      "page.home.error" => 62,
+      "page.home.happy" => 72,
+      "page.home.loading" => 62,
+      "page.home.permission" => 62,
+      "page.redaction.advanced" => 62,
+      "page.redaction.boundary" => 62,
+      "page.redaction.empty" => 62,
+      "page.redaction.error" => 62,
+      "page.redaction.happy" => 62,
+      "page.redaction.loading" => 62,
+      "page.redaction.permission" => 62,
+      "page.retention.advanced" => 62,
+      "page.retention.boundary" => 62,
+      "page.retention.empty" => 62,
+      "page.retention.error" => 62,
+      "page.retention.happy" => 62,
+      "page.retention.loading" => 62,
+      "page.retention.permission" => 62,
+      "page.row-history.advanced" => 62,
+      "page.row-history.boundary" => 62,
+      "page.row-history.empty" => 62,
+      "page.row-history.error" => 62,
+      "page.row-history.happy" => 62,
+      "page.row-history.loading" => 62,
+      "page.row-history.permission" => 62,
+      "page.shell.advanced" => 62,
+      "page.shell.boundary" => 62,
+      "page.shell.empty" => 62,
+      "page.shell.error" => 62,
+      "page.shell.happy" => 62,
+      "page.shell.loading" => 62,
+      "page.shell.permission" => 62,
+      "page.timeline.advanced" => 62,
+      "page.timeline.boundary" => 62,
+      "page.timeline.empty" => 72,
+      "page.timeline.error" => 62,
+      "page.timeline.happy" => 62,
+      "page.timeline.loading" => 62,
+      "page.timeline.permission" => 62,
+      "page.transaction.advanced" => 62,
+      "page.transaction.boundary" => 62,
+      "page.transaction.empty" => 62,
+      "page.transaction.error" => 62,
+      "page.transaction.happy" => 62,
+      "page.transaction.loading" => 62,
+      "page.transaction.permission" => 62,
+      "primitive.icon.reserved" => 35,
+      "primitive.logo.reserved" => 35,
+      "primitive.surface-header.current" => 72,
+      "primitive.unsupported-view.reserved" => 35,
+      "state.empty" => 62,
+      "state.many" => 62,
+      "state.mixed-severity" => 62,
+      "state.null-fields" => 62,
+      "state.one" => 62,
+      "state.pagination-boundary" => 62,
+      "state.permission-denied" => 62,
+      "state.stale-reconnecting" => 62,
+      "state.timezone-boundary" => 62
+    }
+
+    # Append-only pin of the known-good ratchet.signoffs set (currently empty). Every
+    # object listed here must remain present in the live array — signoffs are never
+    # rewritten or dropped. When a real signoff is appended, add it here too.
+    @known_signoffs []
+
     @lens_required_fields ~w(
       spearman
       auc
@@ -185,6 +329,114 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert critic_trust[lens]["validated"] == false,
                "advisory lens #{lens} must be validated:false in critic_trust (GATE-04): " <>
                  "a validated lens must not sit on the advisory panel without a sign-off."
+      end
+    end
+
+    # ── GATE-04 append-only guards: no silent target/floor drop (196-D5) ──────────
+    # The quality bar can only move DOWN behind a recorded, append-only signoff.
+    # For every frozen baseline floor (critic_panel.trust_floors + ratchet.minimum_scores),
+    # the current value must be >= its committed baseline UNLESS a matching
+    # target_change/ratchet_bump signoff records the exact new (lower) value. A silent
+    # drop — or the outright removal of a guarded id — turns this clause red.
+    # Vacuous-safe: at seed, current == baseline and signoffs == [], so every >= holds.
+
+    test "no silent trust-floor drop below the committed baseline without a signoff (GATE-04, 196-D5)" do
+      ledger = ledger()
+      trust_floors = get_in(ledger, ["critic_panel", "trust_floors"]) || %{}
+      signoffs = get_in(ledger, ["ratchet", "signoffs"]) || []
+
+      for {lens, baseline} <- @baseline_trust_floors do
+        current = trust_floors[lens]
+
+        assert is_number(current),
+               "critic_panel.trust_floors[#{lens}] is missing (baseline #{baseline}) — a blocking-lens " <>
+                 "floor was removed; this needs a target_change/ratchet_bump signoff (GATE-04, 196-D5)."
+
+        unless current >= baseline do
+          assert signoff_records_drop?(signoffs, ~w(target_change ratchet_bump), lens, current),
+                 "critic_panel.trust_floors[#{lens}] dropped from committed baseline #{baseline} to " <>
+                   "#{current} with no matching target_change/ratchet_bump signoff whose after=#{current}. " <>
+                   "A silent quality-bar drop is blocked (GATE-04, 196-D5)."
+        end
+      end
+    end
+
+    test "no silent ratchet.minimum_scores drop below the committed baseline without a signoff (GATE-04, 196-D5)" do
+      ledger = ledger()
+      minimum_scores = get_in(ledger, ["ratchet", "minimum_scores"]) || %{}
+      signoffs = get_in(ledger, ["ratchet", "signoffs"]) || []
+
+      for {id, baseline} <- @baseline_minimum_scores do
+        current = minimum_scores[id]
+
+        assert is_number(current),
+               "ratchet.minimum_scores[#{id}] is missing (baseline #{baseline}) — a guarded score floor " <>
+                 "was removed; a downward/removal move needs a target_change/ratchet_bump signoff (GATE-04, 196-D5)."
+
+        unless current >= baseline do
+          assert signoff_records_drop?(signoffs, ~w(target_change ratchet_bump), id, current),
+                 "ratchet.minimum_scores[#{id}] dropped from committed baseline #{baseline} to #{current} " <>
+                   "with no matching target_change/ratchet_bump signoff whose after=#{current}. " <>
+                   "A silent quality-bar drop is blocked (GATE-04, 196-D5)."
+        end
+      end
+    end
+
+    # ── GATE-04 append-only guard: no fixture/oracle-cell removal (196-D4) ────────
+    # The synthetic true-north oracle can only shrink behind a recorded fixture_removal
+    # signoff. Guards: (a) the synthetic set's item count never drops below the recorded
+    # oracle_inventory.synthetic_item_count, and (b) every recorded held_out_id stays
+    # present in the synthetic set. Vacuous-safe: recorded count == 144 == actual,
+    # held_out_ids == [] at seed.
+
+    test "no silent oracle/fixture removal below the recorded inventory without a signoff (GATE-04, 196-D4)" do
+      ledger = ledger()
+      oracle_inventory = get_in(ledger, ["critic_panel", "oracle_inventory"]) || %{}
+      recorded_count = oracle_inventory["synthetic_item_count"]
+      recorded_held_out = oracle_inventory["held_out_ids"] || []
+      signoffs = get_in(ledger, ["ratchet", "signoffs"]) || []
+
+      assert is_integer(recorded_count),
+             "critic_panel.oracle_inventory.synthetic_item_count is missing or non-integer (GATE-04, 196-D4)."
+
+      assert File.exists?(@synthetic_set_path),
+             "critic_panel.oracle_inventory records #{recorded_count} synthetic items but " <>
+               "#{@synthetic_set_path} is missing — the true-north oracle cannot silently vanish (GATE-04, 196-D4)."
+
+      syn = synthetic_set()
+      actual_count = length(syn["items"] || [])
+
+      unless actual_count >= recorded_count do
+        assert Enum.any?(signoffs, &(&1["kind"] == "fixture_removal")),
+               "synthetic-set item count #{actual_count} < recorded oracle_inventory.synthetic_item_count " <>
+                 "#{recorded_count} with no fixture_removal signoff — the oracle inventory cannot silently " <>
+                 "shrink (GATE-04, 196-D4)."
+      end
+
+      actual_held_out = syn["held_out_ids"] || []
+
+      for held_out <- recorded_held_out do
+        unless held_out in actual_held_out do
+          assert signoff_records_removal?(signoffs, held_out),
+                 "recorded held_out_id #{inspect(held_out)} is no longer present in the synthetic set " <>
+                   "held_out_ids with no fixture_removal signoff recording it — the frozen true-north " <>
+                   "slice cannot silently lose cells (GATE-04, 196-D4)."
+        end
+      end
+    end
+
+    # ── GATE-04 append-only enforcement: signoffs never rewritten/dropped ─────────
+
+    test "ratchet.signoffs is append-only — every pinned known-good signoff is still present (GATE-04)" do
+      signoffs = get_in(ledger(), ["ratchet", "signoffs"]) || []
+
+      assert is_list(signoffs),
+             "ratchet.signoffs must be an array (the append-only sign-off home)."
+
+      for pinned <- @known_signoffs do
+        assert pinned in signoffs,
+               "a previously-committed ratchet.signoffs entry disappeared: #{inspect(pinned)}. " <>
+                 "Sign-offs are append-only and must never be rewritten or dropped (GATE-04)."
       end
     end
 
@@ -434,6 +686,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp golden_set, do: @golden_set_path |> File.read!() |> Jason.decode!()
+
+    # True iff some append-only signoff justifies a downward move: its `kind` is one of
+    # the accepted kinds, it targets `id`, and its recorded `after` equals the new value.
+    defp signoff_records_drop?(signoffs, kinds, id, new_value) when is_list(signoffs) do
+      Enum.any?(signoffs, fn s ->
+        s["kind"] in kinds and signoff_targets?(s, id) and s["after"] == new_value
+      end)
+    end
+
+    defp signoff_records_drop?(_, _, _, _), do: false
+
+    # True iff some fixture_removal signoff records the removal of `id` (via a single
+    # `id`/`target` field or a `removed_ids`/`ids` list).
+    defp signoff_records_removal?(signoffs, id) when is_list(signoffs) do
+      Enum.any?(signoffs, fn s ->
+        s["kind"] == "fixture_removal" and signoff_targets?(s, id)
+      end)
+    end
+
+    defp signoff_records_removal?(_, _), do: false
+
+    # A signoff "targets" `id` if it names it in any of the accepted single-value or
+    # list-valued target fields.
+    defp signoff_targets?(s, id) do
+      id in [s["id"], s["target"], s["lens"]] or
+        id in (s["ids"] || []) or
+        id in (s["targets"] || []) or
+        id in (s["removed_ids"] || [])
+    end
 
     # Synthetic twin oracle set (D-12); absent → an empty set (vacuous guards).
     defp synthetic_set do
