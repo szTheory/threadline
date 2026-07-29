@@ -100,7 +100,13 @@
   3. A held-out "true-north" fixture set is scored for validity only and never optimized against (training-vs-held-out divergence halts the loop); score-bar changes (ratchet bumps, target changes, panel-membership changes) require human sign-off recorded in the append-only ledger with a guard-the-guards test blocking silent target drops or fixture removal; and pixel-diff stays advisory — a screenshot baseline refresh requires the new render to have already passed the semantic guards. (GATE-03, GATE-04, GATE-05)
   4. The full loop (capture → critique → propose → re-evaluate → guard) is wired end-to-end and documented as a repeatable runbook, and is proven by one real, human-ratified improvement on the lowest-scoring page — target lens advanced with no regressions and a committed evidence trail. (PROOF-01)
 
-**Plans**: TBD
+**Plans**: 6 plans (tracer-first; waves 1→5)
+- [ ] 196-01-PLAN.md — TRACER: thinnest end-to-end gate (one lens × route.timeline) + critic_panel baseline + first vacuous-safe GATE-04 clause
+- [ ] 196-02-PLAN.md — Guard-the-guards: GATE-04 no-silent-drop/no-fixture-removal + GATE-02 empty structural whitelist + GATE-05 semantic-guard stamp
+- [ ] 196-03-PLAN.md — Full 4-lens blast-radius ranking gate + GATE-03 divergence halt + GATE-02 MODE-A fix-surfacing
+- [ ] 196-04-PLAN.md — Wire the loop: expand route.* capture lane + CONTRIBUTING.md runbook + ρ-line fix + doc-contract pin
+- [ ] 196-05-PLAN.md — First proven iteration: select weakest page + author one real presentation improvement (floor green)
+- [ ] 196-06-PLAN.md — Mid-phase human ratification (checkpoint:decision) + commit evidence trail + append ratchet.signoffs
 **UI hint**: yes
 
 ### Phase 197: Coverage Growth, Adversarial Closeout & Design-Debt Register
