@@ -66,6 +66,12 @@ and countable**; it ceilings when it asks the critic to grade subtle "goodness."
   (snap-to-token, fix contrast, remove off-grid px) may **auto-apply strictly behind GATE-01**. The
   "narrow low-risk-structural whitelist" (GATE-02) **starts EMPTY** and may expand **only** via
   explicit spike evidence — no structural auto-apply ships un-spiked this phase.
+  **[GATE-02 application scope — confirmed 2026-07-28, post-plan-check maintainer sign-off]:**
+  mechanical fixes are delivered **surface-a-diff** (the loop computes the exact located fix — snap-to-token,
+  raise-contrast, remove off-grid px — and presents it as a diff; a human applies it behind the gate),
+  **NOT** an automated source rewriter. Rationale: don't let a brand-new gate auto-mutate the shared
+  `style.ex` token file before it has one proven iteration. True auto-write to source is deferred to
+  **Phase 197**'s first escalation. Recorded here per GATE-04 (a scope decision on the record, not inferred).
 
 - **[196-D4] The synthetic twin oracle is the held-out "true-north" set (GATE-03).**
   `.planning/golden/synthetic-set.json` (graded severity ladders, zero human labeling) is scored for

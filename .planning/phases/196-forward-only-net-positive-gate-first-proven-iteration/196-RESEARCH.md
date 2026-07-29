@@ -368,20 +368,23 @@ const metamorphicGate = polished.stable && flawed.stable;   // instability voids
 | A4 | `critic_panel` trust_floor values (0.88/0.80/0.72/0.72) are placeholders | GATE-04 | MEDIUM — planner/maintainer must set real floors from the recorded ρ at sign-off time |
 | A5 | The weakest page is data-driven (must score the route.* panel), not pre-known | PROOF-01 | LOW — flagged as discretion; do not hard-code a page |
 
-## Open Questions
+## Open Questions (RESOLVED 2026-07-28)
 
 1. **Exact divergence threshold + halt semantics (GATE-03).**
    - Known: recompute via `critic.measure --source synthetic`; compare to recorded ρ floor.
    - Unclear: absolute Δ vs. crossing the 0.7 bar; whether halt is per-lens or panel-aggregate.
    - Recommendation: per-blocking-lens floor in `critic_panel.trust_floors`; halt if any drops below its floor; tolerance a maintainer knob (A2). Confirm at plan.
+   - **RESOLVED (2026-07-28):** adopted in 196-03 (per-lens `trust_floors`, halt if any blocking lens drops below its floor). Floors seeded 0.85/0.78/0.72/0.72 (recorded ρ − ~0.05, floored at 0.70) and guarded against silent drop by 196-02 (GATE-04). Tolerance stays a maintainer knob, confirmable at the GATE-04 sign-off.
 2. **Automated mechanical-fix application vs. human-applied (GATE-02).**
    - Known: fixes are exact and located; whitelist empty.
    - Unclear: does "auto-apply" mean the tool rewrites source, or surfaces a diff?
    - Recommendation: surface-a-diff this phase (A3); reserve automated rewrite for a future spike.
+   - **RESOLVED (2026-07-28, maintainer):** surface-a-diff confirmed as the GATE-02 scope for Phase 196 — the loop computes the exact located mechanical fix and presents it as a diff; a human applies it behind the gate. True auto-write to source is deferred to Phase 197's first escalation, once the gate has one proven iteration. Recorded in 196-CONTEXT.md [196-D3].
 3. **How much of the route panel to capture for the weakest-page pick (PROOF-01).**
    - Known: D8 names timeline/coverage/retention/actors/evidence; all have `page.*` twins.
    - Unclear: score all five (cost ~5×$0.45) or a cheaper subset first.
    - Recommendation: capture + score the five candidates on the 4 blocking lenses (~$2–3), pick lowest; bounded per D9.
+   - **RESOLVED (2026-07-28):** adopted in 196-04 (expand `ROUTES` to the five candidates, score on the 4 blocking lenses, pick lowest); bounded per D9.
 
 ## Environment Availability
 
