@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 196 EXECUTING — Waves 1-2 ✓ (196-01 tracer, 196-02 guard-the-guards, 196-03 full 4-lens ranking gate); Wave 3 next (196-04 wire route.* lane + CONTRIBUTING runbook). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline: 11 pre-existing mix-test failures (Phase-195 StressLedger fixture gap + 4), 0 introduced.
+stopped_at: 196 EXECUTING — Waves 1-3 ✓ (196-01 tracer, 196-02 guards, 196-03 full 4-lens gate, 196-04 wired loop+runbook); Wave 4 next = 196-05 PROOF-01 CHECKPOINT (pick weakest page + make ONE improvement). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline: 11 pre-existing mix-test failures (Phase-195 StressLedger fixture gap + 4), 0 introduced.
 last_updated: "2026-07-29T02:26:39.316Z"
 last_activity: 2026-07-29 -- Phase 196 execution started
 progress:
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 ## Current Position
 
 Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — EXECUTING
-Plan: Waves 1-2 complete (196-01/02/03 ✓); Wave 3 next (196-04)
-Status: Executing Phase 196 — sequential-on-main; orchestrator owns STATE/ROADMAP writes. Post-Wave-2 gate green (compile-strict, critic_trust 22/0, mechanical 18/0)
+Plan: Waves 1-3 complete (196-01/02/03/04 ✓); Wave 4 next = 196-05 PROOF-01 checkpoint
+Status: Executing Phase 196 — sequential-on-main; orchestrator owns STATE/ROADMAP writes. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0)
         Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
         ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
 

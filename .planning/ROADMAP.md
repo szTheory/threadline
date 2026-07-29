@@ -104,7 +104,7 @@
 - [x] 196-01-PLAN.md — TRACER: thinnest end-to-end gate (one lens × route.timeline) + critic_panel baseline + first vacuous-safe GATE-04 clause
 - [x] 196-02-PLAN.md — Guard-the-guards: GATE-04 no-silent-drop/no-fixture-removal + GATE-02 empty structural whitelist + GATE-05 semantic-guard stamp
 - [x] 196-03-PLAN.md — Full 4-lens blast-radius ranking gate + GATE-03 divergence halt + GATE-02 MODE-A fix-surfacing
-- [ ] 196-04-PLAN.md — Wire the loop: expand route.* capture lane + CONTRIBUTING.md runbook + ρ-line fix + doc-contract pin
+- [x] 196-04-PLAN.md — Wire the loop: expand route.* capture lane + CONTRIBUTING.md runbook + ρ-line fix + doc-contract pin
 - [ ] 196-05-PLAN.md — First proven iteration: select weakest page + author one real presentation improvement (floor green)
 - [ ] 196-06-PLAN.md — Mid-phase human ratification (checkpoint:decision) + commit evidence trail + append ratchet.signoffs
 **UI hint**: yes
@@ -132,7 +132,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 |-------|-----------|----------------|--------|-----------|
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
 | 195. Validated Adversarial Critic Runner & Panel | v1.40 | 8/9 | In Progress|  |
-| 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 3/6 | In Progress|  |
+| 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 4/6 | In Progress|  |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
 
 ## Prior Milestones
