@@ -11,6 +11,7 @@
     "capture:graded": "playwright test --project=graded-capture operator-graded-capture.spec.ts",
     "capture:pages": "playwright test --project=route-capture operator-page-capture.spec.ts",
     "critic:score": "tsx critic/run.ts score",
+    "critic:gate": "tsx critic/run.ts gate",
     "critic:validate": "tsx critic/run.ts validate",
     "critic:label": "tsx critic/run.ts label",
     "critic:rubric": "tsx critic/run.ts rubric",

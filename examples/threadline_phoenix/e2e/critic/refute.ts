@@ -213,7 +213,7 @@ function extractLensScore(
  * each call is blind (no sibling output), each cell is scored independently,
  * and the delta between them is the signal.
  */
-async function scoreCellLens(
+export async function scoreCellLens(
   cellId: string,
   lens: LensName,
   dimensions: string[],
@@ -256,7 +256,7 @@ async function scoreCellLens(
 }
 
 /** Lens → dimensions map (mirrors panel.ts). */
-const LENS_DIMENSIONS: Record<string, string[]> = {
+export const LENS_DIMENSIONS: Record<string, string[]> = {
   hierarchy: ["entry_point_clarity", "scan_path_reading_order", "emphasis_discipline"],
   density: ["signal_to_chrome", "task_primary_prominence"],
   rhythm: ["grouping_by_proximity", "vertical_cadence_coherence"],

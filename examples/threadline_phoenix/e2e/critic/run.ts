@@ -454,6 +454,23 @@ switch (subcommand) {
     }
     break;
 
+  case "gate":
+    // Lazy import — Phase 196 forward-only gate (local-only LLM; never in CI, 196-D9)
+    try {
+      const { runGate } = await import("./gate.js");
+      await runGate(rest);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
+        console.error(
+          `[critic gate] Module not found — gate.ts is the Phase 196 forward-only gate.\n` +
+            `Error: ${String(err)}`,
+        );
+        process.exit(1);
+      }
+      throw err;
+    }
+    break;
+
   case "validate":
     // Lazy import — Plan 06 (refute.ts / panel.ts)
     try {
@@ -510,12 +527,13 @@ switch (subcommand) {
   default:
     console.error(`Unknown subcommand: ${subcommand ?? "(none)"}`);
     console.error(`Usage: critic <subcommand> [options]`);
-    console.error(`Subcommands: score, validate, label, rubric, report`);
+    console.error(`Subcommands: score, gate, validate, label, rubric, report`);
     console.error(`  score --dry-run        Print budget estimate`);
     console.error(`  score --page <id>      Score a specific page`);
     console.error(`  score --lens <lens>    Score a specific lens`);
     console.error(`  score --theme <theme>  Score a specific theme (dark|light)`);
     console.error(`  score --force          Re-score even on cache hit`);
+    console.error(`  gate --page <id> --lens <lens> --dry-run  Forward-only net-positive gate (local-only)`);
     console.error(`  report                 Regenerate CRITIQUE.md from critic-scores`);
     process.exit(1);
 }
