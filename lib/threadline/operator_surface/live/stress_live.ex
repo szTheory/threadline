@@ -1226,9 +1226,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:r3, :action} -> "var(--tl-color-thread-blue)"
         {:r3, :change} -> "var(--tl-color-ember)"
         {:r3, :info} -> "var(--tl-color-iris)"
+        # WIDENED 2026-07-28: r2 was only ~1-wrong (info collided with action), too close to r3.
+        # Now r2 is a clean 2-wrong — change AND info both mis-jobbed to iris (a hue collision that
+        # also breaks color_as_signal), giving a monotonic mis-job gradient r4=0 < r3=1 < r2=2 < r1=3.
         {:r2, :action} -> "var(--tl-color-thread-blue)"
-        {:r2, :change} -> "var(--tl-color-ember)"
-        {:r2, :info} -> "var(--tl-color-thread-blue)"
+        {:r2, :change} -> "var(--tl-color-iris)"
+        {:r2, :info} -> "var(--tl-color-iris)"
         {:r1, :action} -> "var(--tl-color-signal-cyan)"
         {:r1, :change} -> "var(--tl-color-iris)"
         {:r1, :info} -> "var(--tl-color-ember)"

@@ -14168,13 +14168,13 @@
       "validated": true
     },
     "color_contrast": {
-      "spearman": 0.6881941761880714,
-      "auc": 0.7824074074074074,
-      "alpha": -0.2998455350451923,
-      "raw_agreement": 0.2857142857142857,
+      "spearman": 0.6977329094381269,
+      "auc": 0.796875,
+      "alpha": -0.47265625,
+      "raw_agreement": 0.3,
       "pairwise_acc": null,
-      "n": 21,
-      "ci95": [-0.6462873284907187,0.0758307957103137],
+      "n": 20,
+      "ci95": [-0.6962328767123291,-0.29238281249999964],
       "golden_rubric_version": "color_contrast@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14186,7 +14186,7 @@
       "raw_agreement": 0.3333333333333333,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.4560076515936027,0.42906616049631563],
+      "ci95": [-0.46485598939503503,0.41521990740740744],
       "golden_rubric_version": "brand_fidelity@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
