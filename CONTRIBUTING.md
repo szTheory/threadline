@@ -129,9 +129,12 @@ with a skip message. Contributors and CI without a key are completely unaffected
 
 The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
 AI), runs in `ci.all` before `verify.mechanical`, and asserts that every validated
-critic lens meets its statistical trust bar (Krippendorff α ≥ 0.67, N ≥ 20,
-raw agreement ≥ 0.80). All lenses seed as `validated: false` until the trust run
-promotes them; the gate passes vacuously on the empty skeleton.
+critic lens meets its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
+correlation of oracle severity vs critic score, the Phase-195 validation pivot);
+with n ≥ 20. Krippendorff α, AUC, and raw agreement are recorded as reported-only
+companions and never gate (the lenses rank well even where their absolute scale is
+compressed). All lenses seed as `validated: false` until the trust run promotes
+them; the gate passes vacuously on the empty skeleton.
 
 > **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
 > the environment only; `mix verify.ui_critique` never writes it to files.
@@ -305,6 +308,78 @@ npm run critic:rubric -- bump typography --major  # lens semantics redefined
 
 After a bump, `critic_trust` for that lens is auto-invalidated (the rubric version no longer
 matches the stored `golden_rubric_version`). Re-run the golden-set scoring to restore trust.
+
+## Forward-only gate — run one iteration
+
+**Maintainer-only.** This is the repeatable loop that turns the validated critic (above)
+into a **forward-only net-positive gate**: a proposed change to a real `/audit` page is
+accepted only if it moves the targeted **blocking** lens in the right direction with **no
+regression** anywhere on the blocking panel, and only after the deterministic mechanical /
+a11y floor still passes. Like the oracle steps above it is **local-only** (needs
+`ANTHROPIC_API_KEY`) and **never runs in CI** — CI runs only the deterministic guards
+(`verify.critic_trust`, `verify.mechanical`).
+
+The loop operates on the real seeded `route.*` cells (Phase-196 D8), never the `page.*`
+stress-lab chrome and never the isolated `story.*` fixtures. Each `route.*` cell has a
+committed `page.<x>.happy` twin in `mechanical_floors`; that twin is the deterministic floor
+the gate gates on.
+
+### Route ↔ page twin mapping
+
+| route cell (live, gitignored) | route path | committed `page.*` twin (mechanical floor) |
+|---|---|---|
+| `route.timeline` | `/audit/timeline` | `page.timeline.happy` |
+| `route.coverage` | `/audit/coverage` | `page.coverage.happy` |
+| `route.retention` | `/audit/policy/retention` | `page.retention.happy` |
+| `route.actor` | `/audit/actors/service_account/zendesk-sync` | `page.actor.happy` |
+| `route.evidence` | `/audit/evidence` | `page.evidence.happy` |
+
+### Steps (capture → score → gate → floor → ratify → commit)
+
+```bash
+cd examples/threadline_phoenix/e2e
+
+# 1. Capture the live route lane (needs the seeded dev server — see e2e/run-e2e.sh).
+#    Writes route.* PNG + scorecard JSON; these stay LOCAL (gitignored) by design.
+npm run capture:pages
+
+# 2. Score the four BLOCKING lenses on the candidate routes to pick the weakest
+#    (page, lens) — this is the propose target. Records the "before" snapshot.
+npm run critic:score -- --page route.coverage
+
+# 3. Make the proposed change, re-capture (step 1), then run the accept/reject gate
+#    on the targeted blocking lens. The gate is RELATIVE (ranking Δ vs IQR noise
+#    floor), blast-radius-aware, and never uses an absolute score threshold.
+npm run critic:gate -- --page route.coverage --lens brand_fidelity
+```
+
+```bash
+# 4. The deterministic hard floor: the mechanical / a11y checker over the COMMITTED
+#    page.<x>.happy twin (WCAG contrast + off-grid px hard-fail; ratchet floors).
+cd ../../.. && mix verify.mechanical
+```
+
+```bash
+# 5. Ratify + commit the evidence trail: append the human sign-off to
+#    ratchet.signoffs in the append-only ledger, then commit the reviewed diff.
+git add .planning/design-system-ledger.json   # ratchet.signoffs + any twin bump
+git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regressions"
+```
+
+### Invariants (do not violate)
+
+- **LLM stays local-only and out of CI** (196-D9). The gate's scoring/re-eval calls the
+  external AI API; only the deterministic `verify.critic_trust` + `verify.mechanical` guards
+  run in `ci.all`.
+- **Only the four validated lenses block**: `brand_fidelity`, `density`, `typography`,
+  `rhythm`. `hierarchy` and `color_contrast` are **advisory only** — reported under an
+  advisory badge, **never** auto-block, and their findings must be **verified against ground
+  truth** before anyone acts on them (they confidently hallucinate specifics).
+- **The gate is relative, not absolute** — accept iff the targeted lens improves AND no
+  blocking lens regresses below its floor AND the mechanical floor still passes; compare
+  rank/Δ direction, never absolute thresholds.
+- **`route.*` cells and `.planning/CRITIQUE.md` stay uncommitted** (gitignored, regenerated
+  per run). Only the reviewed ledger sign-off + any twin bump is committed.
 
 ## CI parity and `act`
 
