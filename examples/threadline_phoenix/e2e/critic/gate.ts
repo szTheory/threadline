@@ -1,37 +1,43 @@
 /**
- * gate.ts — Forward-only net-positive gate orchestrator (Phase 196 tracer).
+ * gate.ts — Forward-only net-positive gate orchestrator (Phase 196).
  *
- * The thinnest PRODUCTION-QUALITY end-to-end slice of the forward-only gate:
- * one blocking lens (brand_fidelity) × one real route cell (route.timeline) run
- * through the whole propose → re-evaluate → guard loop, returning an accept/reject
- * verdict. This proves the architecture CLOSES before any multi-cell expansion
- * (that is Plan 03). It is written for keeps, not as a prototype.
+ * The full forward-only ranking gate. A proposed UI edit on a real `/audit` route is
+ * ACCEPTED only if the targeted blocking lens improves beyond the critic's own noise
+ * floor AND no blocking lens regresses on ANY blast-radius cell AND the deterministic
+ * mechanical floor still passes. Advisory lenses are scored and printed but never gate.
  *
- * The loop is four ordered steps, each a separate function so Plan 03 can expand it:
- *   1. blastRadius(page)      — deterministic re-capture diff over route.* scorecards
- *                               (Pattern 2): the affected set = route.* cells whose bytes
- *                               changed vs their prior copy. With no edit applied → 0 cells.
- *   2. mechanicalFloor(cell)  — resolve the route cell to its committed page.* Tier-A twin
- *                               (route.timeline → page.timeline.happy) and gate the
- *                               deterministic `mix verify.mechanical` on that COMMITTED twin,
- *                               NOT on the gitignored, non-byte-stable route.* cell
- *                               (Pattern 3 / Pitfall 1 — resolves the route.* jurisdiction gap).
- *   3. rankReeval(cell, lens) — the LLM ranking re-eval (196-D1): the targeted blocking lens
- *                               must move up beyond the noise floor AND no blocking lens may
- *                               regress below −noise_floor. Reuses `scoreCellLens` from refute.ts
- *                               (two blind single-cell scores, median+IQR) — does NOT reimplement.
- *   4. verdict()              — combine the three into ACCEPT / REJECT / VOID and print.
+ * The loop is an ordered pipeline, each step a separate function:
+ *   1. blastRadius(page)          — deterministic re-capture diff (Pattern 2): every
+ *                                    `route.*__dark-*` scorecard whose bytes changed vs the
+ *                                    prior copy after the edit. Under --dry-run it reports the
+ *                                    in-scope set that a recapture WOULD touch ($0, no browser).
+ *   2. mechanicalFloor(page)      — resolve the route cell to its committed page.* Tier-A twin
+ *                                    (route.timeline → page.timeline.happy) and gate the
+ *                                    deterministic `mix verify.mechanical` on that COMMITTED twin,
+ *                                    NOT on the gitignored route.* cell (Pattern 3 / Pitfall 1).
+ *   3. rankReeval(cells, lens)    — the LLM ranking re-eval (196-D1) fanned out over
+ *                                    affectedCells × the 4 BLOCKING lenses. Composes the existing
+ *                                    `scoreCellLens` / `runNSamples` primitives (N=3→7 escalation,
+ *                                    median + IQR noise floor) — does NOT reimplement scoring.
+ *                                    ACCEPT iff Δ_target > noise on the edited cell AND every
+ *                                    blocking lens holds (Δ ≥ −noise) on EVERY affected cell.
+ *   4. advisoryReport(cells)      — score hierarchy + color_contrast, print under an
+ *                                    "ADVISORY — verify vs ground truth" badge; NEVER gate (D2).
+ *   5. verdict()                  — combine floor → ranking into ACCEPT / REJECT / VOID / DRY-RUN.
  *
- * Cost & determinism (196-D9): the LLM step is strictly local. `--dry-run` bills ZERO API
- * calls and never throws when ANTHROPIC_API_KEY is absent — it degrades to the dry plan.
- * This command is NEVER wired into any `mix` alias or `ci.all`; only the deterministic
- * guards (`verify.critic_trust`, `verify.mechanical`) run in CI.
+ * (Plan 03 Task 2 inserts the GATE-03 held-out divergence halt and the GATE-02 MODE-A
+ *  fix-surfacing step into this pipeline.)
  *
- * GATE-01 / 196-D1 / 196-D9
+ * Cost & determinism (196-D9): every LLM step is strictly local. `--dry-run` bills ZERO API
+ * calls and never throws when ANTHROPIC_API_KEY is absent — it degrades to the dry plan. This
+ * command is NEVER wired into any `mix` alias or `ci.all`; only the deterministic guards
+ * (`verify.critic_trust`, `verify.mechanical`) run in CI.
+ *
+ * GATE-01 / 196-D1 / 196-D2 / 196-D9
  */
 
 import { execSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { committedCellIds } from "./bundle.js";
@@ -41,21 +47,26 @@ import type { LensName } from "./schema.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "../../../..");
 const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
+const criticScoresDir = resolve(repoRoot, ".planning/critic-scores");
 
-// The blocking panel (196-D2). A ranking regression on ANY blocking lens rejects.
-// This constant mirrors the frozen `critic_panel.blocking` ledger block (GATE-04); the
-// deterministic guard `verify.critic_trust` is what pins it. Advisory lenses
-// (hierarchy, color_contrast) never appear here — they never block (196-D2).
-const BLOCKING_PANEL: LensName[] = ["brand_fidelity", "density", "typography", "rhythm"];
+// The blocking panel (196-D2, mirroring the frozen `critic_panel.blocking` ledger block,
+// guarded by GATE-04 / verify.critic_trust). A ranking regression on ANY blocking lens rejects.
+const BLOCKING_LENSES: LensName[] = ["brand_fidelity", "density", "typography", "rhythm"];
+
+// The advisory panel (196-D2). Scored + printed with an advisory badge; findings must be
+// verified against ground truth before a human acts (they confidently hallucinate specifics —
+// [[critic-advisory-lenses-hallucinate-specifics]]). Advisory lenses NEVER gate accept/reject.
+const ADVISORY_LENSES: LensName[] = ["hierarchy", "color_contrast"];
 
 // Route → committed page.* Tier-A twin. The mechanical floor is asserted on the twin,
-// never on the gitignored route.* cell (Pattern 3 / Pitfall 1). One entry for the tracer;
-// Plan 03 expands this map as the route lane grows.
+// never on the gitignored route.* cell (Pattern 3 / Pitfall 1). Expand this map as the
+// route lane grows (196-04 adds coverage/retention/actor/evidence twins).
 const ROUTE_PAGE_TWIN: Record<string, string> = {
   "route.timeline": "page.timeline.happy",
 };
 
-// The tracer is scoped to exactly one theme/breakpoint. Plan 03 fans out.
+// The primary edited cell's theme/breakpoint. The targeted-lens improvement rule is asserted
+// on this cell; blast radius fans out over every `route.*__dark-*` cell that changed.
 const CELL_SUFFIX = "__dark-1280";
 
 interface GateArgs {
@@ -117,47 +128,88 @@ function parseGateArgs(argv: string[]): GateArgs {
   return args;
 }
 
+/** The dark-theme blast-radius cells for a page currently on disk (gitignored route.* cells). */
+function pageDarkCells(page: string): string[] {
+  if (!existsSync(scorecardsDir)) return [];
+  return readdirSync(scorecardsDir)
+    .filter((f) => f.startsWith(`${page}`) && f.includes("__dark-") && f.endsWith(".json"))
+    .map((f) => f.replace(/\.json$/, ""))
+    .sort();
+}
+
 // ─── Step 1: blast radius ──────────────────────────────────────────────────────
 
 interface BlastRadius {
-  changed: string[];
+  changed: string[]; // route.* cells whose bytes changed after recapture
+  inScope: string[]; // all route.* cells a recapture would touch (the diff surface)
   scanned: number;
   note: string;
 }
 
 /**
  * Deterministic re-capture diff (Pattern 2). The affected set is the subset of
- * `route.*` scorecards whose bytes changed vs the prior/committed copy after an edit.
+ * `route.*__dark-*` scorecards whose bytes changed vs the prior/committed copy after an edit.
  *
- * Under `--dry-run` we do NOT shell `npm run capture:pages` (no browser, no billing) —
- * we report the intended diff surface (the route.* cells the recapture WOULD touch) and,
- * with no edit applied, report "0 cells changed" cleanly. Plan 03 wires the real
- * before/after byte diff over a recapture.
+ * Live: snapshot the prior bytes, run `npm run capture:pages` (deterministic, $0 LLM), then diff.
+ * A shared token/primitive edit changes many cells → many re-score; a page-local template edit
+ * changes one → one re-scores (196-D1d). Cells whose bytes are unchanged after recapture are NOT
+ * in the blast radius — this reverts scroll_cost jitter false-positives for rhythm (R2 / Pitfall 2).
+ *
+ * Under `--dry-run` we do NOT shell the capture (no browser, no billing) — we report the in-scope
+ * diff surface (the route.* cells the recapture WOULD touch); with no edit applied → 0 changed.
  */
 function blastRadius(page: string, dryRun: boolean): BlastRadius {
-  const routeCells = existsSync(scorecardsDir)
-    ? readdirSync(scorecardsDir)
-        .filter((f) => f.startsWith(`${page}`) && f.endsWith(".json"))
-        .map((f) => f.replace(/\.json$/, ""))
-        .sort()
-    : [];
+  const inScope = pageDarkCells(page);
 
   if (dryRun) {
     return {
       changed: [],
-      scanned: routeCells.length,
+      inScope,
+      scanned: inScope.length,
       note:
-        `dry-run: skipped \`npm run capture:pages\`; would diff ${routeCells.length} ` +
-        `${page}.* scorecard(s) byte-for-byte vs their prior copy. No edit applied → 0 cells changed.`,
+        `dry-run: skipped \`npm run capture:pages\`; would diff ${inScope.length} ` +
+        `${page}.*__dark-* scorecard(s) byte-for-byte vs their prior copy. No edit applied → 0 changed.`,
     };
   }
 
-  // Non-dry-run (Plan 03 expands this to a real recapture + byte diff). For the tracer
-  // with no edit staged, the changed set is empty by construction.
+  // Live: snapshot before-bytes → recapture → diff. Cells with identical bytes are reverted
+  // out of the blast radius (unchanged = not affected), which drops scroll_cost jitter (R2).
+  const before = new Map<string, string>();
+  for (const cell of inScope) {
+    before.set(cell, readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8"));
+  }
+
+  try {
+    execSync(`npm run capture:pages`, {
+      cwd: resolve(repoRoot, "examples/threadline_phoenix/e2e"),
+      stdio: "pipe",
+    });
+  } catch (err) {
+    return {
+      changed: [],
+      inScope,
+      scanned: inScope.length,
+      note: `capture:pages failed — cannot compute blast radius (${String(err)}). Treat as VOID.`,
+    };
+  }
+
+  const afterCells = pageDarkCells(page);
+  const changed = afterCells.filter((cell) => {
+    const priorBytes = before.get(cell);
+    const nowBytes = existsSync(resolve(scorecardsDir, `${cell}.json`))
+      ? readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8")
+      : null;
+    // A brand-new cell (no prior) or a byte-changed cell is in the blast radius.
+    return priorBytes === undefined || (nowBytes !== null && nowBytes !== priorBytes);
+  });
+
   return {
-    changed: [],
-    scanned: routeCells.length,
-    note: `${routeCells.length} ${page}.* scorecard(s) in scope; 0 changed (no edit staged).`,
+    changed,
+    inScope: afterCells,
+    scanned: afterCells.length,
+    note:
+      `${afterCells.length} ${page}.*__dark-* scorecard(s) recaptured; ` +
+      `${changed.length} changed (byte-diff vs prior): ${changed.join(", ") || "(none)"}.`,
   };
 }
 
@@ -172,11 +224,8 @@ interface MechanicalFloor {
 /**
  * Resolve the route cell to its committed page.* Tier-A twin and gate the deterministic
  * `mix verify.mechanical` on THAT twin — never on the gitignored route.* cell (Pattern 3 /
- * Pitfall 1). A non-zero exit is a hard REJECT (196-D1c / GATE-01): a route "fix" can never
+ * Pitfall 1). A non-zero exit is a hard REJECT (196-D3 / GATE-01c): a route "fix" can never
  * bypass the deterministic floor because the floor is enforced on the committed twin.
- *
- * Under `--dry-run` we report the resolved twin and the command that would run, without
- * shelling it (keeps dry-run offline and fast).
  */
 function mechanicalFloor(page: string, dryRun: boolean): MechanicalFloor {
   const twin = ROUTE_PAGE_TWIN[page];
@@ -212,13 +261,24 @@ function mechanicalFloor(page: string, dryRun: boolean): MechanicalFloor {
   }
 }
 
-// ─── Step 3: LLM ranking re-eval ───────────────────────────────────────────────
+// ─── Step 3: LLM ranking re-eval (multi-cell × 4 blocking lenses) ───────────────
+
+interface CellLensDelta {
+  cell: string;
+  lens: LensName;
+  delta: number | null;
+  noiseFloor: number;
+  stable: boolean;
+  regressed: boolean; // delta < −noiseFloor
+}
 
 interface RankReeval {
   ran: boolean;
-  targetDelta: number | null;
-  noiseFloor: number;
-  stable: boolean;
+  editedCell: string;
+  targetLens: LensName;
+  deltas: CellLensDelta[];
+  targetImproved: boolean;
+  anyRegression: boolean;
   accepted: boolean;
   void: boolean;
   note: string;
@@ -226,97 +286,204 @@ interface RankReeval {
 
 /** The accept/reject rule, as prose — printed under dry-run so the plan is self-documenting. */
 const ACCEPT_REJECT_RULE =
-  `ACCEPT iff the targeted lens improves beyond the noise floor ` +
-  `(Δ_target > noise_floor(IQR)) AND every blocking lens holds ` +
-  `(Δ_blocking ≥ −noise_floor). An unstable targeted-lens verdict is VOID, not a pass (196-D1).`;
+  `ACCEPT iff the targeted lens improves beyond the noise floor on the edited cell ` +
+  `(Δ_target > noise_floor(IQR)) AND every blocking lens holds on EVERY affected cell ` +
+  `(Δ_blocking ≥ −noise_floor). An unstable targeted-lens verdict is VOID, not a pass (196-D1). ` +
+  `Only Δ direction vs the per-cell IQR is compared — never an absolute-score threshold.`;
 
 /**
- * The LLM ranking re-eval (196-D1). Composes the EXISTING `scoreCellLens` primitive from
- * refute.ts (two blind single-cell scores, median + IQR noise floor) — does NOT reimplement
- * per-cell scoring. Under `--dry-run` (or a missing key) it prints the rule and skips billing.
- *
- * For the tracer there is no staged edit, so before/after are the same cell → Δ = 0, which
- * fails the strict `Δ > noise_floor` bar (an honest non-accept). Plan 03 supplies the real
- * post-edit recapture as the "after" pole.
+ * Read the pre-edit ("before") per-lens score for a cell from the committed critic-scores
+ * snapshot (`.planning/critic-scores/<cell>/<lens>/<dim>.json`, written by an earlier
+ * `npm run critic:score --page <page>` the maintainer runs BEFORE editing). This is the
+ * before pole the RESEARCH flow specifies ("reuse scoreCellLens OR the committed critic-scores").
+ * Returns null when no before-snapshot exists (→ the caller voids and asks for a pre-edit score).
+ */
+function beforeLensScore(cell: string, lens: LensName): { score: number | null; stable: boolean } | null {
+  const dir = resolve(criticScoresDir, cell, lens);
+  if (!existsSync(dir)) return null;
+  const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
+  if (files.length === 0) return null;
+
+  const scores: number[] = [];
+  let stable = true;
+  for (const f of files) {
+    const j = JSON.parse(readFileSync(resolve(dir, f), "utf8")) as { score: number | null; stable: boolean };
+    if (j.score === null || j.stable !== true) {
+      stable = false;
+      continue;
+    }
+    scores.push(j.score);
+  }
+  if (scores.length === 0) return { score: null, stable: false };
+
+  const sorted = [...scores].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const med = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  return { score: Math.round(med), stable };
+}
+
+/**
+ * The LLM ranking re-eval (196-D1), fanned out over affectedCells × the 4 BLOCKING lenses.
+ * Composes the EXISTING `scoreCellLens` primitive (which itself uses `runNSamples`' N=3→7
+ * escalation + IQR noise floor) — does NOT reimplement per-cell scoring. Under `--dry-run`
+ * (or a missing key) it prints the fan-out plan + rule and skips billing.
  */
 async function rankReeval(
   page: string,
-  lens: LensName,
+  affectedCells: string[],
+  targetLens: LensName,
   n: number,
   dryRun: boolean,
 ): Promise<RankReeval> {
-  const skeleton: RankReeval = {
+  const editedCell = `${page}${CELL_SUFFIX}`;
+  const base: RankReeval = {
     ran: false,
-    targetDelta: null,
-    noiseFloor: 0,
-    stable: false,
+    editedCell,
+    targetLens,
+    deltas: [],
+    targetImproved: false,
+    anyRegression: false,
     accepted: false,
     void: false,
     note: "",
   };
 
+  // The cells actually re-scored: the changed blast-radius set, always including the edited cell.
+  const cells = affectedCells.length > 0 ? affectedCells : [editedCell];
+
   if (dryRun || !process.env.ANTHROPIC_API_KEY) {
+    const plan = cells
+      .map((c) => `${c} × [${BLOCKING_LENSES.join(", ")}]`)
+      .join("\n          ");
     return {
-      ...skeleton,
+      ...base,
       note:
         (dryRun ? "dry-run" : "no ANTHROPIC_API_KEY") +
-        `: skipping LLM billing (N=${n}). Rule: ${ACCEPT_REJECT_RULE}`,
+        `: skipping LLM billing (N=${n}, escalates to 7 on unstable cells).\n` +
+        `        Would re-score (targeted lens=${targetLens}):\n          ${plan}\n` +
+        `        Rule: ${ACCEPT_REJECT_RULE}`,
     };
   }
 
-  const cell = `${page}${CELL_SUFFIX}`;
-  if (!committedCellIds().includes(cell)) {
-    return {
-      ...skeleton,
-      void: true,
-      note: `Cell "${cell}" has no scorecard on disk — capture it (\`npm run capture:pages\`) before gating.`,
-    };
+  const deltas: CellLensDelta[] = [];
+  for (const cell of cells) {
+    if (!committedCellIds().includes(cell)) {
+      return {
+        ...base,
+        void: true,
+        note: `Cell "${cell}" has no scorecard on disk — capture it (\`npm run capture:pages\`) before gating.`,
+      };
+    }
+    for (const lens of BLOCKING_LENSES) {
+      const dims = LENS_DIMENSIONS[lens] ?? [];
+      const after = await scoreCellLens(cell, lens, dims);
+      const before = beforeLensScore(cell, lens);
+
+      if (before === null) {
+        return {
+          ...base,
+          ran: true,
+          void: true,
+          note:
+            `No before-snapshot for ${cell}/${lens}. Run \`npm run critic:score -- --page ${page}\` ` +
+            `BEFORE editing to record the pre-edit poles, then re-run the gate.`,
+        };
+      }
+
+      const stable = before.stable && after.stable;
+      const delta =
+        before.score !== null && after.score !== null ? after.score - before.score : null;
+      const noiseFloor = after.iqr;
+      deltas.push({
+        cell,
+        lens,
+        delta,
+        noiseFloor,
+        stable,
+        regressed: delta !== null && delta < -noiseFloor,
+      });
+    }
   }
 
-  const dims = LENS_DIMENSIONS[lens] ?? [];
-  // Before / after (tracer: same cell, no staged edit → Δ = 0). Plan 03 diffs a real edit.
-  const before = await scoreCellLens(cell, lens, dims);
-  const after = await scoreCellLens(cell, lens, dims);
-
-  const stable = before.stable && after.stable;
-  const targetDelta =
-    before.score !== null && after.score !== null ? after.score - before.score : null;
-  const noiseFloor = after.iqr;
-
-  if (!stable || targetDelta === null) {
+  const targetRecord = deltas.find((d) => d.cell === editedCell && d.lens === targetLens);
+  // An unstable or null targeted-lens verdict is VOID, not a pass (R2 / 196-D1).
+  if (!targetRecord || !targetRecord.stable || targetRecord.delta === null) {
     return {
-      ...skeleton,
+      ...base,
       ran: true,
-      noiseFloor,
-      stable,
+      deltas,
       void: true,
-      note: `Targeted-lens verdict is unstable → VOID (not a pass), per 196-D1.`,
+      note: `Targeted-lens verdict (${editedCell}/${targetLens}) is unstable or null → VOID (not a pass), per 196-D1.`,
     };
   }
 
-  const accepted = targetDelta > noiseFloor;
+  const targetImproved = targetRecord.delta > targetRecord.noiseFloor;
+  const anyRegression = deltas.some((d) => d.regressed);
+  const accepted = targetImproved && !anyRegression;
+
+  const regressionNote = anyRegression
+    ? ` Blocking regression(s): ${deltas
+        .filter((d) => d.regressed)
+        .map((d) => `${d.cell}/${d.lens} Δ=${d.delta}<−${d.noiseFloor.toFixed(1)}`)
+        .join("; ")}.`
+    : " No blocking regression on any affected cell.";
+
   return {
     ran: true,
-    targetDelta,
-    noiseFloor,
-    stable,
+    editedCell,
+    targetLens,
+    deltas,
+    targetImproved,
+    anyRegression,
     accepted,
     void: false,
-    note: accepted
-      ? `Δ_target=${targetDelta} > noise_floor=${noiseFloor.toFixed(1)} — targeted lens improved.`
-      : `Δ_target=${targetDelta} ≤ noise_floor=${noiseFloor.toFixed(1)} — no net improvement.`,
+    note:
+      `Δ_target(${editedCell}/${targetLens})=${targetRecord.delta} ` +
+      `${targetImproved ? ">" : "≤"} noise_floor=${targetRecord.noiseFloor.toFixed(1)}.` +
+      regressionNote,
   };
 }
 
-// ─── Step 4: verdict ───────────────────────────────────────────────────────────
+// ─── Step 4: advisory report (NEVER gates) ─────────────────────────────────────
+
+/**
+ * Score hierarchy + color_contrast and print under an "ADVISORY — verify vs ground truth" badge.
+ * These lenses are ρ≤0.698 and confidently hallucinate specifics (Pitfall 3 / 196-D2). Their
+ * output is print-only — it is NEVER an input to the accept/reject verdict.
+ */
+async function advisoryReport(affectedCells: string[], targetPage: string, dryRun: boolean): Promise<void> {
+  const cells = affectedCells.length > 0 ? affectedCells : [`${targetPage}${CELL_SUFFIX}`];
+
+  console.log(`\n  [4/5] ADVISORY — verify vs ground truth (NEVER gates, 196-D2):`);
+  if (dryRun || !process.env.ANTHROPIC_API_KEY) {
+    console.log(
+      `        ${dryRun ? "dry-run" : "no ANTHROPIC_API_KEY"}: would score ${ADVISORY_LENSES.join(", ")} on ` +
+        `${cells.length} cell(s); printed with an advisory badge, never fed to accept/reject.`,
+    );
+    return;
+  }
+
+  for (const cell of cells) {
+    for (const lens of ADVISORY_LENSES) {
+      const dims = LENS_DIMENSIONS[lens] ?? [];
+      const scored = await scoreCellLens(cell, lens, dims);
+      console.log(
+        `        ⚠ ADVISORY ${cell}/${lens}: score=${scored.score ?? "null"} ` +
+          `(stable=${scored.stable}) — verify against the committed scorecard/DOM before acting.`,
+      );
+    }
+  }
+}
+
+// ─── Step 5: verdict ───────────────────────────────────────────────────────────
 
 type Verdict = "ACCEPT" | "REJECT" | "VOID" | "DRY-RUN";
 
-function verdict(
-  floor: MechanicalFloor,
-  reeval: RankReeval,
-  dryRun: boolean,
-): Verdict {
+/**
+ * Combine the pipeline into a verdict. Ordering: mechanical floor → ranking.
+ * Advisory results are print-only and are NEVER an input here (D2).
+ */
+function verdict(floor: MechanicalFloor, reeval: RankReeval, dryRun: boolean): Verdict {
   if (dryRun) return "DRY-RUN";
   if (!floor.passed) return "REJECT"; // deterministic floor is the hard block (196-D3)
   if (reeval.void) return "VOID";
@@ -326,41 +493,48 @@ function verdict(
 // ─── Orchestrator ──────────────────────────────────────────────────────────────
 
 /**
- * runGate — the propose → re-evaluate → guard loop for one lens × one route cell.
- * Exits 0 under `--dry-run` (no key required); exits non-zero on a REJECT/VOID in a
- * real (keyed) run so a caller/CI-adjacent script can branch on the verdict.
+ * runGate — the propose → re-evaluate → guard loop (blast radius → floor → 4-lens ranking →
+ * advisory report → verdict). Exits 0 under `--dry-run` (no key required); exits non-zero on a
+ * REJECT/VOID in a real (keyed) run so a caller/CI-adjacent script can branch on the verdict.
  */
 export async function runGate(argv: string[]): Promise<void> {
   const args = parseGateArgs(argv);
-  const cell = `${args.page}${CELL_SUFFIX}`;
+  const editedCell = `${args.page}${CELL_SUFFIX}`;
 
-  console.log(`\n[critic gate] Forward-only net-positive gate — one lens × one route cell`);
-  console.log(`  Page (ledger id):   ${args.page}  →  cell ${cell}`);
-  console.log(`  Targeted lens:      ${args.lens}  (blocking panel: ${BLOCKING_PANEL.join(", ")})`);
-  console.log(`  Mode:               ${args.dryRun ? "dry-run (no billing, no key required)" : "live"}`);
+  console.log(`\n[critic gate] Forward-only net-positive gate (4 blocking lenses, blast-radius aware)`);
+  console.log(`  Page (ledger id):   ${args.page}  →  edited cell ${editedCell}`);
+  console.log(`  Targeted lens:      ${args.lens}  (blocking: ${BLOCKING_LENSES.join(", ")})`);
+  console.log(`  Advisory (no gate): ${ADVISORY_LENSES.join(", ")}`);
+  console.log(`  Mode:               ${args.dryRun ? "dry-run (no billing, no key required)" : "live"}  (N=${args.n})`);
 
   // Step 1 — blast radius (deterministic re-capture diff)
   const blast = blastRadius(args.page, args.dryRun);
-  console.log(`\n  [1/4] Blast radius:  ${blast.changed.length} cell(s) changed of ${blast.scanned} scanned`);
+  console.log(`\n  [1/5] Blast radius: ${blast.changed.length} changed of ${blast.scanned} scanned`);
+  console.log(`        In-scope cells: ${blast.inScope.join(", ") || "(none on disk)"}`);
   console.log(`        ${blast.note}`);
 
   // Step 2 — deterministic mechanical floor on the committed page.* twin
   const floor = mechanicalFloor(args.page, args.dryRun);
-  console.log(`\n  [2/4] Mechanical floor twin: ${floor.twin}${CELL_SUFFIX}`);
+  console.log(`\n  [2/5] Mechanical floor twin: ${floor.twin}${CELL_SUFFIX}`);
   console.log(`        ${floor.note}`);
 
-  // Step 3 — LLM ranking re-eval (local-only, bounded, blast-radius scoped)
-  const reeval = await rankReeval(args.page, args.lens, args.n, args.dryRun);
-  console.log(`\n  [3/4] Ranking re-eval (${args.lens}):`);
+  // Step 3 — LLM ranking re-eval fanned out over affected cells × 4 blocking lenses
+  const affected = args.dryRun ? blast.inScope : blast.changed;
+  const reeval = await rankReeval(args.page, affected, args.lens, args.n, args.dryRun);
+  console.log(`\n  [3/5] Ranking re-eval (targeted lens ${args.lens}, blocking panel × affected cells):`);
   console.log(`        ${reeval.note}`);
 
-  // Step 4 — verdict
+  // Step 4 — advisory report (never gates)
+  await advisoryReport(affected, args.page, args.dryRun);
+
+  // Step 5 — verdict
   const v = verdict(floor, reeval, args.dryRun);
-  console.log(`\n  [4/4] Verdict: ${v}`);
+  console.log(`\n  [5/5] Verdict: ${v}`);
+
   if (args.dryRun) {
     console.log(
-      `\n  Dry plan wired end-to-end (propose → re-evaluate → guard). No API calls billed.` +
-        `\n  Run without --dry-run (with ANTHROPIC_API_KEY) to bill the ranking re-eval.\n`,
+      `\n  Dry plan wired end-to-end (blast radius → floor → 4-lens ranking → advisory).` +
+        `\n  No API calls billed. Run without --dry-run (with ANTHROPIC_API_KEY) to bill the ranking re-eval.\n`,
     );
     process.exit(0);
   }

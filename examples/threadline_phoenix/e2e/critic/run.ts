@@ -533,7 +533,10 @@ switch (subcommand) {
     console.error(`  score --lens <lens>    Score a specific lens`);
     console.error(`  score --theme <theme>  Score a specific theme (dark|light)`);
     console.error(`  score --force          Re-score even on cache hit`);
-    console.error(`  gate --page <id> --lens <lens> --dry-run  Forward-only net-positive gate (local-only)`);
+    console.error(`  gate --page <id> --lens <lens>            Forward-only net-positive gate (local-only, 4 blocking lenses)`);
+    console.error(`       [--dry-run]                          Print the wired plan; $0, no ANTHROPIC_API_KEY required`);
+    console.error(`       [--n <3>]                            Base N samples per cell/lens (escalates to 7 on unstable)`);
+    console.error(`       (advisory lenses hierarchy/color_contrast are reported with a badge, never gate)`);
     console.error(`  report                 Regenerate CRITIQUE.md from critic-scores`);
     process.exit(1);
 }
