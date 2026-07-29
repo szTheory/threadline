@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 195 validation achieved via synthetic twin oracle + ranking gate (2 lenses trusted); 195-07 human-labeling checkpoint RETIRED not satisfied; real-UI capture + ranking trust-test landed (feat(196)); 196 gate-shape awaiting maintainer ratification (see thread 2026-07-27)
-last_updated: "2026-07-27T23:30:00.000Z"
-last_activity: 2026-07-27
+stopped_at: 196 PLANNED (6 plans, tracer-first, waves 1-5) — gate shape ratified 2026-07-28; plan-check 0 blockers; ready for /gsd-execute-phase 196
+last_updated: "2026-07-28T00:00:00.000Z"
+last_activity: 2026-07-28
 progress:
   total_phases: 4
   completed_phases: 1
@@ -25,25 +25,22 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 195 effectively CLOSED via a validation-approach pivot (recorded, not silently) → 196 next.
-Plan: validation done by synthetic oracle (aef9e655), not human labeling; 195-07 checkpoint retired.
-Status: PIVOT ON THE RECORD (see `.planning/threads/2026-07-27-critic-validation-pivot-and-196-gate.md`).
-        The roadmap's CRITIC-01 mechanism (hand-labeled golden set + 75–90% Krippendorff-α human
-        agreement, 195-07-03 manual checkpoint) was DELIBERATELY SUPERSEDED — not completed — by a
-        synthetic twin oracle + Spearman ρ ranking gate (zero human labeling). Trust reality now
-        lives in `design-system-ledger.json → critic_trust`: brand_fidelity (ρ0.94) + rhythm (ρ0.76)
-        validated=true; typography (ρ0.905/AUC1.0) blocked only by n=9<20 (cheapest promotion);
-        hierarchy/density/color_contrast advisory (n=0, hallucinate absolutes). Real-UI proof landed
-        ahead of GSD as feat(196): real operator-route capture lane (a465c03c) + degraded-twin
-        ranking trust-test (11df1f8c) — critic ranks clean > wrecked on every stable lens.
-        NEXT (maintainer): ratify the Phase-196 gate shape — RECOMMENDED (A) trusted-lens *ranking*
-        gate + Phase-194 deterministic floor as hard block + advisory lenses non-blocking; vs (B)
-        hold for fuller-panel trust. Then run gsd-plan-phase 196 on the ratified premise. Named 196
-        risks: rhythm real-page instability; advisory-lens hallucination (never blocks; verify vs
-        ground truth). `.planning/CRITIQUE.md` stays uncommitted by design (regenerated projection
-        over gitignored route.* cells). Dev-server reboot recipe unchanged in run-e2e.sh (MIX_ENV=test
-        THREADLINE_E2E=1 DB_PORT=5433) if re-capturing.
-Last activity: 2026-07-04
+Phase: 196 PLANNED (6 plans, tracer-first, waves 1-5) → ready for /gsd-execute-phase 196.
+Plan: gate-shape ratified 2026-07-28; 196-CONTEXT/RESEARCH/VALIDATION + 6 PLAN.md committed; plan-check 0 blockers, 3 warnings resolved.
+Status: Phase 195 CLOSED via validation pivot (synthetic oracle + ρ ranking, zero human labeling).
+        Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
+        ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
+        + hierarchy ρ0.42 = advisory (never block; verify vs ground truth — they hallucinate specifics).
+        Phase 196 = forward-only net-positive gate, ratified as: GATE-01 RELATIVE/ranking gate on the
+        4-lens panel; MechanicalChecker (`verify.mechanical`) = deterministic hard floor, gates on the
+        `page.*` Tier-A twin (route.* excluded, mechanical_checker.ex:155); synthetic oracle = held-out
+        true-north (GATE-03 divergence halt); GATE-04 guard-the-guards in critic_trust_test.exs
+        (`ratchet.signoffs` append-only); GATE-02 mechanical fixes = surface-a-diff this phase (true
+        auto-write → 197); PROOF-01 = wire loop + CONTRIBUTING.md runbook + ONE real human-ratified
+        improvement on the weakest /audit page (mid-phase checkpoint:decision). Deferred to 197:
+        PROOF-02 (2-3 pages), PROOF-03 (adversarial closeout), PROOF-04 (debt register). Locked
+        decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
+Last activity: 2026-07-28
 
 Progress: [█████████░] 90%
 
