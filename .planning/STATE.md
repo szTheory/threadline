@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 196 EXECUTING — Waves 1-3 ✓ (196-01 tracer, 196-02 guards, 196-03 full 4-lens gate, 196-04 wired loop+runbook); Wave 4 next = 196-05 PROOF-01 CHECKPOINT (pick weakest page + make ONE improvement). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline: 11 pre-existing mix-test failures (Phase-195 StressLedger fixture gap + 4), 0 introduced.
+stopped_at: 196 PAUSED at PROOF-01 checkpoint — Waves 1-3 ✓ (plans 01-04, all gate machinery wired+verified, 4/6). BLOCKED at 196-05 Task-1 (checkpoint:human-action, blocking, [196-D9]): maintainer must run the paid forward-only loop LOCALLY (ANTHROPIC_API_KEY + seeded dev server on DB_PORT 5433) to pick the single weakest /audit page + its weakest blocking lens + record 4-lens before-scores. Runbook verified known-good (gate dry-run runs the full 7-step pipeline, all 4 ρ floors clear). RESUME: maintainer replies with {weakest page, target lens, before-scores, source file to edit, 1-line improvement} → orchestrator spawns 196-05 Task-2 (author edit, mechanical floor stays green) → 196-06 (re-run gate, ratify accept/reject, commit evidence + append-only ratchet.signoffs). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline: 11 pre-existing mix-test failures, 0 introduced.
 last_updated: "2026-07-29T02:26:39.316Z"
-last_activity: 2026-07-29 -- Phase 196 execution started
+last_activity: 2026-07-29 -- Phase 196 Waves 1-3 executed (plans 01-04); paused at 196-05 PROOF-01 human-action checkpoint
 progress:
   total_phases: 4
   completed_phases: 1
@@ -25,9 +25,19 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — EXECUTING
-Plan: Waves 1-3 complete (196-01/02/03/04 ✓); Wave 4 next = 196-05 PROOF-01 checkpoint
-Status: Executing Phase 196 — sequential-on-main; orchestrator owns STATE/ROADMAP writes. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0)
+Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — PAUSED at PROOF-01 checkpoint (4/6 plans)
+Plan: Waves 1-3 complete (196-01/02/03/04 ✓, all gate machinery wired+verified); BLOCKED at 196-05 Task-1
+Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear).
+
+## Awaiting (PROOF-01 first-iteration checkpoint)
+
+The maintainer runs the local forward-only loop (CONTRIBUTING.md → "Forward-only gate — run one iteration"), then reports back:
+1. the single weakest `/audit` page (route.timeline | route.coverage | route.retention | route.actor | route.evidence)
+2. its weakest blocking lens (brand_fidelity | density | typography | rhythm)
+3. the 4-blocking-lens before-scores snapshot
+4. the exact operator-surface source file to edit
+5. a one-line description of the intended presentation improvement
+Resume: reply in-session with that selection; orchestrator continues 196-05 Task-2 → 196-06.
         Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
         ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
 
