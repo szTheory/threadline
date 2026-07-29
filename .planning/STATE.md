@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: 196 PLANNED (6 plans, tracer-first, waves 1-5) — gate shape ratified 2026-07-28; plan-check 0 blockers; ready for /gsd-execute-phase 196
-last_updated: "2026-07-28T00:00:00.000Z"
-last_activity: 2026-07-28
+stopped_at: 196 EXECUTING — Wave 1 ✓ (196-01 tracer); Wave 2 next (196-02 ratchet + 196-03 full 4-lens gate). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD)
+last_updated: "2026-07-29T02:26:39.316Z"
+last_activity: 2026-07-29 -- Phase 196 execution started
 progress:
   total_phases: 4
   completed_phases: 1
@@ -21,15 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 196 — forward-only net-positive gate (gate-shape ratification pending)
+**Current focus:** Phase 196 — forward-only-net-positive-gate-first-proven-iteration
 
 ## Current Position
 
-Phase: 196 PLANNED (6 plans, tracer-first, waves 1-5) → ready for /gsd-execute-phase 196.
-Plan: gate-shape ratified 2026-07-28; 196-CONTEXT/RESEARCH/VALIDATION + 6 PLAN.md committed; plan-check 0 blockers, 3 warnings resolved.
-Status: Phase 195 CLOSED via validation pivot (synthetic oracle + ρ ranking, zero human labeling).
+Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — EXECUTING
+Plan: Wave 1 complete (196-01 tracer ✓); Wave 2 next (196-02 + 196-03)
+Status: Executing Phase 196 — sequential-on-main; orchestrator owns STATE/ROADMAP writes
         Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
         ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
+
         + hierarchy ρ0.42 = advisory (never block; verify vs ground truth — they hallucinate specifics).
         Phase 196 = forward-only net-positive gate, ratified as: GATE-01 RELATIVE/ranking gate on the
         4-lens panel; MechanicalChecker (`verify.mechanical`) = deterministic hard floor, gates on the
@@ -40,7 +41,7 @@ Status: Phase 195 CLOSED via validation pivot (synthetic oracle + ρ ranking, ze
         improvement on the weakest /audit page (mid-phase checkpoint:decision). Deferred to 197:
         PROOF-02 (2-3 pages), PROOF-03 (adversarial closeout), PROOF-04 (debt register). Locked
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
-Last activity: 2026-07-28
+Last activity: 2026-07-29 -- Phase 196 execution started
 
 Progress: [█████████░] 90%
 
