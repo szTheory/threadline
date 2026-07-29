@@ -19,6 +19,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       brand_fidelity
     )
 
+    # ── Frozen gate panel membership (GATE-04, 196-D2) ────────────────────────────
+    # The blocking panel = the 4 validated lenses; hierarchy/color_contrast are advisory
+    # only (never auto-block). This is the recorded human sign-off (196-CONTEXT.md#196-D2):
+    # a silent membership change fails the frozen-constant equality below and requires
+    # both editing these constants AND an appended ledger sign-off.
+    @blocking_panel ~w(brand_fidelity density typography rhythm)
+    @advisory_panel ~w(hierarchy color_contrast)
+
     @lens_required_fields ~w(
       spearman
       auc
@@ -138,6 +146,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      "and re-score (T-195-11)."
           end
         end
+      end
+    end
+
+    # ── Panel-membership freeze (GATE-04, 196-D2) ────────────────────────────────
+    # The critic_panel block is the append-only recorded sign-off of which lenses block
+    # vs advise. Freeze membership against the module constants and cross-check it against
+    # the per-lens critic_trust validated flags: every blocking lens must be validated,
+    # every advisory lens must not be. A silent panel change (promotion/demotion) without
+    # a matching ledger edit + sign-off fails here. Vacuous-safe: the seeded block already
+    # matches the frozen constants and the current validated flags.
+
+    test "critic_panel block freezes blocking/advisory membership and agrees with validated flags" do
+      ledger = ledger()
+      critic_panel = ledger["critic_panel"]
+
+      assert is_map(critic_panel),
+             "#{@ledger_path} is missing top-level 'critic_panel' block (GATE-04 baseline)"
+
+      assert critic_panel["blocking"] == @blocking_panel,
+             "critic_panel.blocking drifted: expected #{inspect(@blocking_panel)}, " <>
+               "got #{inspect(critic_panel["blocking"])}. A panel-membership change requires " <>
+               "editing @blocking_panel AND an appended ledger sign-off (GATE-04, 196-D2)."
+
+      assert critic_panel["advisory"] == @advisory_panel,
+             "critic_panel.advisory drifted: expected #{inspect(@advisory_panel)}, " <>
+               "got #{inspect(critic_panel["advisory"])}."
+
+      critic_trust = ledger["critic_trust"]
+
+      for lens <- @blocking_panel do
+        assert critic_trust[lens]["validated"] == true,
+               "blocking lens #{lens} must be validated:true in critic_trust (GATE-04): " <>
+                 "an unvalidated lens cannot block."
+      end
+
+      for lens <- @advisory_panel do
+        assert critic_trust[lens]["validated"] == false,
+               "advisory lens #{lens} must be validated:false in critic_trust (GATE-04): " <>
+                 "a validated lens must not sit on the advisory panel without a sign-off."
       end
     end
 

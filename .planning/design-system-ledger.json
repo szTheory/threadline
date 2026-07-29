@@ -14196,5 +14196,20 @@
     "oracle": "synthetic",
     "set_version": "195.12.0",
     "generated_from": "graded-twin-ladder"
+  },
+  "critic_panel": {
+    "blocking": ["brand_fidelity", "density", "typography", "rhythm"],
+    "advisory": ["hierarchy", "color_contrast"],
+    "trust_floors": {
+      "brand_fidelity": 0.85,
+      "density": 0.78,
+      "typography": 0.72,
+      "rhythm": 0.72
+    },
+    "oracle_inventory": {
+      "synthetic_item_count": 144,
+      "held_out_ids": []
+    },
+    "signoff_ref": "196-CONTEXT.md#196-D2"
   }
 }
