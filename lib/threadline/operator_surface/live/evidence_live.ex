@@ -106,8 +106,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           </span>
                           <span><%= row.proof_label %></span>
                         </h4>
+                        <%!-- Density: the section header already names the subject for every card in
+                        the group (groups are keyed by subject), so it is not repeated as an inline
+                        label here — each fact renders once (196-05, signal-to-chrome). --%>
                         <div class="tl-record-card__meta">
-                          <span class="tl-evidence__meta"><%= row.subject %></span>
                           <UI.ref value={row.subject_ref} copy_label="Copy subject ref" />
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                             <%= Presentation.human_time(row.recorded_at) %>
