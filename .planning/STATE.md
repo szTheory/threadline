@@ -5,7 +5,7 @@ milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 current_phase: 196
 current_phase_name: forward-only-net-positive-gate-first-proven-iteration
 status: executing
-stopped_at: "196 at PROOF-01 ratification — 5/6 plans ✓. 196-05 COMPLETE 2026-08-26: Task-1 checkpoint resolved from CLEAN mask-fixed re-score (maintainer ratified route.evidence + density; before-scores brand 81 / density 24 / typo 63 / rhythm 66); Task-2 edit landed (f6c40b6c: evidence_live.ex de-duplicates subject header repeated as per-card inline label; SUMMARY ca71225e; verify.mechanical 18/0, page.evidence.happy twin green; ci.all = only the 3 pre-existing doc-contract baseline failures). BLOCKED at 196-06 Task-1 (checkpoint:decision): maintainer re-runs the gate LOCALLY (ANTHROPIC_API_KEY; seeded dev server DB_PORT 5433; MUST rm .planning/critic-verdict-cache/route.evidence__*.json first — cache is not keyed on screenshot hash, stale verdicts would fake the after-measurement) and ratifies accept/reject per [196-D1] (accept iff density ↑ beyond noise, no blocking regression, divergence-halt clear, floor green). Then 196-06 Task-2: commit evidence trail + append-only ratchet.signoffs if a bar moved. Worktree isolation re-enabled via worktree.baseRef=head in .claude/settings.local.json (stale-base risk neutralized)."
+stopped_at: "196 PROOF-01 COMPLETE 2026-08-26 — 6/6 plans. Maintainer authorized running the paid loop in-session ('do the fixes'). Evidence+density candidate honestly REJECTED by the gate (3 variants, Δ within noise, v3 VOID); maintainer ratified pivot → route.retention+density: banner/self-label duplication removed (c6f9355e) → gate ACCEPT (Δ +7 > noise 4.5, no blocking regression, floor green, oracle stable). First ratchet.signoffs entry (forward_only_accept) + append-only pin (f1610d87). Loop hardening: ROUTE_PAGE_TWIN all-5-routes + dark maskColor (83db3918); evidence cleanup kept unratified (2eca4208). Guards: critic_trust 22/0, mechanical 18/0. REMAINING: confirm final mix ci.all, then phase verifier + phase.complete. Worktree isolation re-enabled via worktree.baseRef=head."
 last_updated: "2026-08-26T18:30:00.000Z"
 last_activity: 2026-08-26
 last_activity_desc: 196-05 complete (evidence density edit f6c40b6c, floor green); awaiting 196-06 maintainer ratification (re-run gate, cache-busted)
@@ -14,8 +14,8 @@ progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 18
-  completed_plans: 17
-  percent: 94
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -29,20 +29,17 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — at PROOF-01 ratification (5/6 plans)
-Plan: 196-01..05 complete (gate machinery + evidence density edit f6c40b6c); BLOCKED at 196-06 Task-1 (decision checkpoint: maintainer re-runs gate + ratifies)
+Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — PROOF-01 complete (6/6 plans; verifier pending)
+Plan: 196-01..06 complete. First gate-ACCEPTED improvement: route.retention density (Δ +7 > noise 4.5, c6f9355e); first ratchet.signoffs entry pinned (f1610d87); evidence candidate honestly rejected and kept as unratified cleanup (2eca4208)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear). Phase 195 is now fully COMPLETE (re-verified 6/6, 2026-08-26).
 
-## Awaiting (PROOF-01 ratification — 196-06 Task-1 decision checkpoint)
+## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
-196-05 is DONE (selection ratified from the clean mask-fixed re-score: route.evidence + density; edit f6c40b6c). The maintainer now re-runs the gate locally (CONTRIBUTING.md → "Forward-only gate — run one iteration"):
-
-1. `rm .planning/critic-verdict-cache/route.evidence__*.json` — REQUIRED: the verdict cache is not keyed on screenshot content; skipping this fakes the after-measurement with stale verdicts.
-2. Seeded dev server up (DB_PORT 5433 via run-e2e.sh); `cd examples/threadline_phoenix/e2e && npm run capture:pages` then `npm run critic:score -- --page route.evidence` (and `npm run critic:gate`).
-3. Ratify per [196-D1]: ACCEPT iff density ↑ beyond noise (before 24), no blocking-lens regression on any affected cell (before: brand 81 / typo 63 / rhythm 66), divergence-halt clear, mechanical floor green.
-
-Resume: reply in-session with accept/reject + the after-scores; orchestrator runs 196-06 Task-2 (evidence trail commit + append-only ratchet.signoffs if a bar moved), then phase.complete + verifier.
+- **REJECT (evidence + density)**: three edit variants never beat the noise floor (Δ −1/−2; v3 targeted verdict unstable = VOID per [196-D1]). Edits kept as ordinary unratified UI cleanup (2eca4208) — no signoff claim.
+- **ACCEPT (retention + density, pivot)**: duplicated status banner + destructive self-label removed (c6f9355e) → Δ +7 > noise 4.5, no blocking regression, page.retention.happy floor green, oracle stable. First `ratchet.signoffs` forward_only_accept entry + append-only pin (f1610d87).
+- Loop hardening: ROUTE_PAGE_TWIN all five routes, dark route-lane maskColor (83db3918).
+- Deferred to 197 debt register: verdict cache not screenshot-keyed; score-after-edit overwrites the before pole; Tier-A recapture drift (36k-px fullPage shots vs clipped refute poles); evidence structural density (IA pass).
         Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
         ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
 
