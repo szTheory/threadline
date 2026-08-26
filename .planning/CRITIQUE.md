@@ -1,6 +1,6 @@
 <!-- GENERATED — do not hand-edit. Regenerate: npm run critic:score -->
 <!-- Baseline: @v1.37 → @HEAD -->
-<!-- Last regenerated: 2026-07-28 -->
+<!-- Last regenerated: 2026-07-29 -->
 
 # CRITIQUE.md — Adversarial Critic Projection
 
@@ -72,6 +72,78 @@ Per finding: score + band + delta vs floor + cited evidence locator + suggested 
 | `refute.brand_fidelity.graded.timeline.r2__dark-1280` | ▲ new 18 [fail] | — | — | — | — | — | ▲ new 18 [fail] |
 | `refute.brand_fidelity.graded.timeline.r3__dark-1280` | ▲ new 22 [fail] | — | — | — | — | — | ▲ new 22 [fail] |
 | `refute.brand_fidelity.graded.timeline.r4__dark-1280` | ▲ new 22 [fail] | — | — | — | — | — | ▲ new 22 [fail] |
+| `refute.color_contrast.graded.actor.r1__dark-1280` | ▲ new 15 [fail] | — | — | — | — | ▲ new 15 [fail] | — |
+| `refute.color_contrast.graded.actor.r2__dark-1280` | ▲ new 24 [fail] | — | — | — | — | ▲ new 24 [fail] | — |
+| `refute.color_contrast.graded.actor.r3__dark-1280` | ▲ new 24 [fail] | — | — | — | — | ▲ new 24 [fail] | — |
+| `refute.color_contrast.graded.actor.r4__dark-1280` | — | — | — | — | — | ~ unstable (IQR 27.0) | — |
+| `refute.color_contrast.graded.coverage.r1__dark-1280` | ▲ new 18 [fail] | — | — | — | — | ▲ new 18 [fail] | — |
+| `refute.color_contrast.graded.coverage.r2__dark-1280` | ▲ new 27 [fail] | — | — | — | — | ▲ new 27 [fail] | — |
+| `refute.color_contrast.graded.coverage.r3__dark-1280` | — | — | — | — | — | ~ unstable (IQR 35.0) | — |
+| `refute.color_contrast.graded.coverage.r4__dark-1280` | ▲ new 24 [fail] | — | — | — | — | ▲ new 24 [fail] | — |
+| `refute.color_contrast.graded.diff.r1__dark-1280` | ▲ new 16 [fail] | — | — | — | — | ▲ new 16 [fail] | — |
+| `refute.color_contrast.graded.diff.r2__dark-1280` | ▲ new 22 [fail] | — | — | — | — | ▲ new 22 [fail] | — |
+| `refute.color_contrast.graded.diff.r3__dark-1280` | ▲ new 26 [fail] | — | — | — | — | ▲ new 26 [fail] | — |
+| `refute.color_contrast.graded.diff.r4__dark-1280` | ▲ new 22 [fail] | — | — | — | — | ▲ new 22 [fail] | — |
+| `refute.color_contrast.graded.evidence.r1__dark-1280` | ▲ new 13 [fail] | — | — | — | — | ▲ new 13 [fail] | — |
+| `refute.color_contrast.graded.evidence.r2__dark-1280` | ▲ new 22 [fail] | — | — | — | — | ▲ new 22 [fail] | — |
+| `refute.color_contrast.graded.evidence.r3__dark-1280` | ▲ new 24 [fail] | — | — | — | — | ▲ new 24 [fail] | — |
+| `refute.color_contrast.graded.evidence.r4__dark-1280` | ▲ new 29 [fail] | — | — | — | — | ▲ new 29 [fail] | — |
+| `refute.color_contrast.graded.retention.r1__dark-1280` | ▲ new 18 [fail] | — | — | — | — | ▲ new 18 [fail] | — |
+| `refute.color_contrast.graded.retention.r2__dark-1280` | ▲ new 24 [fail] | — | — | — | — | ▲ new 24 [fail] | — |
+| `refute.color_contrast.graded.retention.r3__dark-1280` | — | — | — | — | — | ~ unstable (IQR 26.0) | — |
+| `refute.color_contrast.graded.retention.r4__dark-1280` | — | — | — | — | — | ~ unstable (IQR 16.0) | — |
+| `refute.color_contrast.graded.status.r1__dark-1280` | ▲ new 12 [fail] | — | — | — | — | ▲ new 12 [fail] | — |
+| `refute.color_contrast.graded.status.r2__dark-1280` | ▲ new 22 [fail] | — | — | — | — | ▲ new 22 [fail] | — |
+| `refute.color_contrast.graded.status.r3__dark-1280` | ▲ new 22 [fail] | — | — | — | — | ▲ new 22 [fail] | — |
+| `refute.color_contrast.graded.status.r4__dark-1280` | ▲ new 16 [fail] | — | — | — | — | ▲ new 16 [fail] | — |
+| `refute.density.graded.activity.r1__dark-1280` | ▲ new 28 [fail] | — | ▲ new 28 [fail] | — | — | — | — |
+| `refute.density.graded.activity.r2__dark-1280` | ▲ new 26 [fail] | — | ▲ new 26 [fail] | — | — | — | — |
+| `refute.density.graded.activity.r3__dark-1280` | ▲ new 42 [weak] | — | ▲ new 42 [weak] | — | — | — | — |
+| `refute.density.graded.activity.r4__dark-1280` | ▲ new 67 [ok] | — | ▲ new 67 [ok] | — | — | — | — |
+| `refute.density.graded.actor.r1__dark-1280` | ▲ new 24 [fail] | — | ▲ new 24 [fail] | — | — | — | — |
+| `refute.density.graded.actor.r2__dark-1280` | ▲ new 28 [fail] | — | ▲ new 28 [fail] | — | — | — | — |
+| `refute.density.graded.actor.r3__dark-1280` | ▲ new 74 [strong] | — | ▲ new 74 [strong] | — | — | — | — |
+| `refute.density.graded.actor.r4__dark-1280` | ▲ new 80 [strong] | — | ▲ new 80 [strong] | — | — | — | — |
+| `refute.density.graded.coverage.r1__dark-1280` | ▲ new 24 [fail] | — | ▲ new 24 [fail] | — | — | — | — |
+| `refute.density.graded.coverage.r2__dark-1280` | ▲ new 22 [fail] | — | ▲ new 22 [fail] | — | — | — | — |
+| `refute.density.graded.coverage.r3__dark-1280` | ▲ new 74 [strong] | — | ▲ new 74 [strong] | — | — | — | — |
+| `refute.density.graded.coverage.r4__dark-1280` | ▲ new 74 [strong] | — | ▲ new 74 [strong] | — | — | — | — |
+| `refute.density.graded.evidence.r1__dark-1280` | ▲ new 28 [fail] | — | ▲ new 28 [fail] | — | — | — | — |
+| `refute.density.graded.evidence.r2__dark-1280` | ▲ new 24 [fail] | — | ▲ new 24 [fail] | — | — | — | — |
+| `refute.density.graded.evidence.r3__dark-1280` | ▲ new 69 [ok] | — | ▲ new 69 [ok] | — | — | — | — |
+| `refute.density.graded.evidence.r4__dark-1280` | ▲ new 74 [strong] | — | ▲ new 74 [strong] | — | — | — | — |
+| `refute.density.graded.exports.r1__dark-1280` | ▲ new 22 [fail] | — | ▲ new 22 [fail] | — | — | — | — |
+| `refute.density.graded.exports.r2__dark-1280` | ▲ new 24 [fail] | — | ▲ new 24 [fail] | — | — | — | — |
+| `refute.density.graded.exports.r3__dark-1280` | ▲ new 74 [strong] | — | ▲ new 74 [strong] | — | — | — | — |
+| `refute.density.graded.exports.r4__dark-1280` | ▲ new 76 [strong] | — | ▲ new 76 [strong] | — | — | — | — |
+| `refute.density.graded.retention.r1__dark-1280` | ▲ new 28 [fail] | — | ▲ new 28 [fail] | — | — | — | — |
+| `refute.density.graded.retention.r2__dark-1280` | ▲ new 22 [fail] | — | ▲ new 22 [fail] | — | — | — | — |
+| `refute.density.graded.retention.r3__dark-1280` | ▲ new 66 [ok] | — | ▲ new 66 [ok] | — | — | — | — |
+| `refute.density.graded.retention.r4__dark-1280` | ▲ new 77 [strong] | — | ▲ new 77 [strong] | — | — | — | — |
+| `refute.hierarchy.graded.activity.r1__dark-1280` | ▲ new 63 [ok] | ▲ new 63 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.activity.r2__dark-1280` | ▲ new 71 [strong] | ▲ new 71 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.activity.r3__dark-1280` | ▲ new 63 [ok] | ▲ new 63 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.activity.r4__dark-1280` | ▲ new 66 [ok] | ▲ new 66 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.actor.r1__dark-1280` | ▲ new 67 [ok] | ▲ new 67 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.actor.r2__dark-1280` | ▲ new 74 [strong] | ▲ new 74 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.actor.r3__dark-1280` | ▲ new 74 [strong] | ▲ new 74 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.actor.r4__dark-1280` | ▲ new 66 [ok] | ▲ new 66 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.coverage.r1__dark-1280` | ▲ new 60 [ok] | ▲ new 60 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.coverage.r2__dark-1280` | ▲ new 76 [strong] | ▲ new 76 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.coverage.r3__dark-1280` | ▲ new 68 [ok] | ▲ new 68 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.coverage.r4__dark-1280` | ▲ new 68 [ok] | ▲ new 68 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.evidence.r1__dark-1280` | ▲ new 68 [ok] | ▲ new 68 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.evidence.r2__dark-1280` | ▲ new 76 [strong] | ▲ new 76 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.evidence.r3__dark-1280` | ▲ new 68 [ok] | ▲ new 68 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.evidence.r4__dark-1280` | ▲ new 77 [strong] | ▲ new 77 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.exports.r1__dark-1280` | ▲ new 66 [ok] | ▲ new 66 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.exports.r2__dark-1280` | ▲ new 76 [strong] | ▲ new 76 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.exports.r3__dark-1280` | ▲ new 64 [ok] | ▲ new 64 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.exports.r4__dark-1280` | ▲ new 66 [ok] | ▲ new 66 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.retention.r1__dark-1280` | ▲ new 61 [ok] | ▲ new 61 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.retention.r2__dark-1280` | ▲ new 74 [strong] | ▲ new 74 [strong] | — | — | — | — | — |
+| `refute.hierarchy.graded.retention.r3__dark-1280` | ▲ new 68 [ok] | ▲ new 68 [ok] | — | — | — | — | — |
+| `refute.hierarchy.graded.retention.r4__dark-1280` | ▲ new 74 [strong] | ▲ new 74 [strong] | — | — | — | — | — |
 | `refute.rhythm.graded.activity.r1__dark-1280` | ▲ new 28 [fail] | — | — | ▲ new 28 [fail] | — | — | — |
 | `refute.rhythm.graded.activity.r2__dark-1280` | ▲ new 69 [ok] | — | — | ▲ new 69 [ok] | — | — | — |
 | `refute.rhythm.graded.activity.r3__dark-1280` | ▲ new 70 [strong] | — | — | ▲ new 70 [strong] | — | — | — |
@@ -79,8 +151,9 @@ Per finding: score + band + delta vs floor + cited evidence locator + suggested 
 | `refute.rhythm.graded.actor.r1__dark-1280` | ▲ new 25 [fail] | — | — | ▲ new 25 [fail] | — | — | — |
 | `refute.rhythm.graded.actor.r2__dark-1280` | ▲ new 34 [fail] | — | — | ▲ new 34 [fail] | — | — | — |
 | `refute.rhythm.graded.actor.r3__dark-1280` | ▲ new 69 [ok] | — | — | ▲ new 69 [ok] | — | — | — |
+| `refute.rhythm.graded.actor.r4__dark-1280` | ▲ new 70 [strong] | — | — | ▲ new 70 [strong] | — | — | — |
 | `refute.rhythm.graded.coverage.r1__dark-1280` | ▲ new 68 [ok] | — | — | ▲ new 68 [ok] | — | — | — |
-| `refute.rhythm.graded.coverage.r2__dark-1280` | — | — | — | ~ unstable (IQR 13.0) | — | — | — |
+| `refute.rhythm.graded.coverage.r2__dark-1280` | ▲ new 69 [ok] | — | — | ▲ new 69 [ok] | — | — | — |
 | `refute.rhythm.graded.coverage.r3__dark-1280` | ▲ new 76 [strong] | — | — | ▲ new 76 [strong] | — | — | — |
 | `refute.rhythm.graded.coverage.r4__dark-1280` | ▲ new 74 [strong] | — | — | ▲ new 74 [strong] | — | — | — |
 | `refute.rhythm.graded.evidence.r1__dark-1280` | ▲ new 28 [fail] | — | — | ▲ new 28 [fail] | — | — | — |
@@ -104,7 +177,23 @@ Per finding: score + band + delta vs floor + cited evidence locator + suggested 
 | `refute.typography.graded.actor.r3__dark-1280` | ▲ new 74 [strong] | — | — | — | ▲ new 74 [strong] | — | — |
 | `refute.typography.graded.actor.r4__dark-1280` | ▲ new 75 [strong] | — | — | — | ▲ new 75 [strong] | — | — |
 | `refute.typography.graded.coverage.r1__dark-1280` | ▲ new 40 [weak] | — | — | — | ▲ new 40 [weak] | — | — |
-| `refute.typography.graded.coverage.r2__dark-1280` | — | — | — | — | ~ unstable (IQR 15.0) | — | — |
+| `refute.typography.graded.coverage.r2__dark-1280` | ▲ new 66 [ok] | — | — | — | ▲ new 66 [ok] | — | — |
+| `refute.typography.graded.coverage.r3__dark-1280` | ▲ new 63 [ok] | — | — | — | ▲ new 63 [ok] | — | — |
+| `refute.typography.graded.coverage.r4__dark-1280` | ▲ new 44 [weak] | — | — | — | ▲ new 44 [weak] | — | — |
+| `refute.typography.graded.evidence.r1__dark-1280` | — | — | — | — | ~ unstable (IQR 21.0) | — | — |
+| `refute.typography.graded.evidence.r2__dark-1280` | ▲ new 64 [ok] | — | — | — | ▲ new 64 [ok] | — | — |
+| `refute.typography.graded.evidence.r3__dark-1280` | ▲ new 62 [ok] | — | — | — | ▲ new 62 [ok] | — | — |
+| `refute.typography.graded.evidence.r4__dark-1280` | ▲ new 68 [ok] | — | — | — | ▲ new 68 [ok] | — | — |
+| `refute.typography.graded.exports.r1__dark-1280` | — | — | — | — | ~ unstable (IQR 23.0) | — | — |
+| `refute.typography.graded.exports.r2__dark-1280` | ▲ new 65 [ok] | — | — | — | ▲ new 65 [ok] | — | — |
+| `refute.typography.graded.exports.r3__dark-1280` | ▲ new 64 [ok] | — | — | — | ▲ new 64 [ok] | — | — |
+| `refute.typography.graded.exports.r4__dark-1280` | ▲ new 66 [ok] | — | — | — | ▲ new 66 [ok] | — | — |
+| `refute.typography.graded.retention.r1__dark-1280` | ▲ new 40 [weak] | — | — | — | ▲ new 40 [weak] | — | — |
+| `refute.typography.graded.retention.r2__dark-1280` | ▲ new 58 [ok] | — | — | — | ▲ new 58 [ok] | — | — |
+| `refute.typography.graded.retention.r3__dark-1280` | ▲ new 63 [ok] | — | — | — | ▲ new 63 [ok] | — | — |
+| `refute.typography.graded.retention.r4__dark-1280` | ▲ new 64 [ok] | — | — | — | ▲ new 64 [ok] | — | — |
+| `route.timeline.degraded__dark-1280` | ▲ new 4 [fail] | ▲ new 6 [fail] | ▲ new 8 [fail] | ~ unstable (IQR 27.0) | ▲ new 12 [fail] | ▲ new 4 [fail] | ▲ new 66 [ok] |
+| `route.timeline__dark-1280` | ▲ new 12 [fail] | ▲ new 12 [fail] | ▲ new 23 [fail] | ~ unstable (IQR 16.0) | ▲ new 42 [weak] | ▲ new 18 [fail] | ▲ new 77 [strong] |
 | `story.foundations.index__dark-1280` | ▲ new 12 [fail] | ▲ new 22 [fail] | ▲ new 12 [fail] | ▲ new 22 [fail] | ▲ new 66 [ok] | ▲ new 24 [fail] | ▲ new 29 [fail] |
 | `story.overlays.modal__dark-1280` | ▲ new 28 [fail] | ▲ new 62 [ok] | ▲ new 28 [fail] | ▲ new 64 [ok] | ▲ new 64 [ok] | ▲ new 72 [strong] | ▲ new 61 [ok] |
 | `story.patterns.operator_patterns__dark-1280` | ▲ new 18 [fail] | ▲ new 18 [fail] | ▲ new 18 [fail] | ▲ new 66 [ok] | ▲ new 65 [ok] | ~ unstable (IQR 24.0) | ▲ new 74 [strong] |
