@@ -1703,7 +1703,7 @@
       "id": "group.data-panel.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
+      "notes": "live surface — Phase 177 GROUP-01 Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1792,7 +1792,7 @@
       "id": "group.detail-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
+      "notes": "live surface — Phase 177 GROUP-01 Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1881,7 +1881,7 @@
       "id": "group.drawer-form.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface \u2014 Phase 177 GROUP-01 Drawer + form; no live page this phase (D-07).",
+      "notes": "reference-only surface — Phase 177 GROUP-01 Drawer + form; no live page this phase (D-07).",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -1970,7 +1970,7 @@
       "id": "group.empty-cta.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
+      "notes": "live surface — Phase 177 GROUP-01 Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2059,7 +2059,7 @@
       "id": "group.modal-destructive.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Modal confirm + destructive action; retention prune.",
+      "notes": "live surface — Phase 177 GROUP-01 Modal confirm + destructive action; retention prune.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2148,7 +2148,7 @@
       "id": "group.offline.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Reconnect / offline banner + disabled actions; shell-level.",
+      "notes": "live surface — Phase 177 GROUP-01 Reconnect / offline banner + disabled actions; shell-level.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2237,7 +2237,7 @@
       "id": "group.page-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Page header + actions + breadcrumbs; every page.",
+      "notes": "live surface — Phase 177 GROUP-01 Page header + actions + breadcrumbs; every page.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2326,7 +2326,7 @@
       "id": "group.permission-denied.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Permission denied group; scoped pages.",
+      "notes": "live surface — Phase 177 GROUP-01 Permission denied group; scoped pages.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2415,7 +2415,7 @@
       "id": "group.stats-chart-table.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Stat cards + chart + table (absorbs status-strip); coverage.",
+      "notes": "live surface — Phase 177 GROUP-01 Stat cards + chart + table (absorbs status-strip); coverage.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2504,7 +2504,7 @@
       "id": "group.tabs-subviews.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface \u2014 Phase 177 GROUP-01 Tabs + subviews; no live page this phase (D-07).",
+      "notes": "reference-only surface — Phase 177 GROUP-01 Tabs + subviews; no live page this phase (D-07).",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2593,7 +2593,7 @@
       "id": "group.toast-update.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Toast + state update; export/prune toasts.",
+      "notes": "live surface — Phase 177 GROUP-01 Toast + state update; export/prune toasts.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -2682,7 +2682,7 @@
       "id": "group.toolbar.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface \u2014 Phase 177 GROUP-01 Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
+      "notes": "live surface — Phase 177 GROUP-01 Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
       "owner_phase": 177,
       "ratchet_score": 62,
       "scores": {
@@ -9987,7 +9987,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: Ember (--tl-color-ember) applied to primary action (real --tl-* token, wrong job). Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: Ember (--tl-color-ember) applied to primary action (real --tl-* token, wrong job). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -10165,7 +10165,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: content section wrapped in card (nesting depth 2, below ceiling 3). Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: content section wrapped in card (nesting depth 2, below ceiling 3). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -10343,7 +10343,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: verbose help text on every field (chrome bloat; removal costs task nothing). Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: verbose help text on every field (chrome bloat; removal costs task nothing). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -10521,7 +10521,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: flattened weights (all font-weight:500, minimal size difference). Type-size count above floor. Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: flattened weights (all font-weight:500, minimal size difference). Type-size count above floor. Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -10699,7 +10699,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: doubled section padding (--tl-space-8, on-grid token; cadence broken). Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: doubled section padding (--tl-space-8, on-grid token; cadence broken). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -10877,7 +10877,7 @@
       "category": "refute",
       "status": "current",
       "owner_phase": 195,
-      "notes": "Refute twin gestalt-flaw pole: two primary roles 1 px apart (sm 13 px vs label 14 px); count above floor. Passes MODE A + B \u2014 gestalt flaw only.",
+      "notes": "Refute twin gestalt-flaw pole: two primary roles 1 px apart (sm 13 px vs label 14 px); count above floor. Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -12657,7 +12657,7 @@
       "id": "state.unavailable-down",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 source down data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — source down data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -12746,7 +12746,7 @@
       "id": "state.unavailable-pruned",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 pruned data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — pruned data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -12835,7 +12835,7 @@
       "id": "state.unavailable-redacted",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable \u2014 redacted data-state.",
+      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — redacted data-state.",
       "owner_phase": 176,
       "ratchet_score": 62,
       "scores": {
@@ -14007,7 +14007,30 @@
       "state.timezone-boundary": 62
     },
     "resets": {},
-    "signoffs": []
+    "signoffs": [
+      {
+        "kind": "forward_only_accept",
+        "target": "route.retention__dark-1280",
+        "lens": "density",
+        "delta": 7,
+        "noise_floor": 4.5,
+        "before": {
+          "signal_to_chrome": 32,
+          "task_primary_prominence": 67,
+          "panel": {
+            "brand_fidelity": 80,
+            "density": 32,
+            "typography": 67,
+            "rhythm": 68
+          }
+        },
+        "verdict": "ACCEPT",
+        "date": "2026-08-26",
+        "ratified_by": "maintainer (in-session PROOF-01 ratification, phase 196-06)",
+        "commit": "c6f9355e",
+        "notes": "Removed the status banner duplicating stat-card status/failures and the 'Retention window destructive action' self-label; the type-to-confirm prune modal owns the destructive warning at point of action. Gate: no blocking regression on any affected cell, page.retention.happy mechanical floor green, held-out oracle rho holds on all four blocking lenses."
+      }
+    ]
   },
   "ratchet_rule": "Scores may only stay level or increase unless an explicit reset with rationale is recorded in ratchet.resets and reset_rationale.",
   "required_inventory": {
@@ -14147,7 +14170,10 @@
       "raw_agreement": 0.2916666666666667,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.5409511784511785,0.15082125603864738],
+      "ci95": [
+        -0.5409511784511785,
+        0.15082125603864738
+      ],
       "golden_rubric_version": "hierarchy@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14159,7 +14185,10 @@
       "raw_agreement": 0.5416666666666666,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [0.6523578811369509,0.8953048443180022],
+      "ci95": [
+        0.6523578811369509,
+        0.8953048443180022
+      ],
       "golden_rubric_version": "density@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14171,7 +14200,10 @@
       "raw_agreement": 0.4166666666666667,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [0.4303391634829672,0.8140815596667246],
+      "ci95": [
+        0.4303391634829672,
+        0.8140815596667246
+      ],
       "golden_rubric_version": "rhythm@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14183,7 +14215,10 @@
       "raw_agreement": 0.22727272727272727,
       "pairwise_acc": null,
       "n": 22,
-      "ci95": [0.008259020724960764,0.6335227272727273],
+      "ci95": [
+        0.008259020724960764,
+        0.6335227272727273
+      ],
       "golden_rubric_version": "typography@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14195,7 +14230,10 @@
       "raw_agreement": 0.3,
       "pairwise_acc": null,
       "n": 20,
-      "ci95": [-0.6962328767123291,-0.29238281249999964],
+      "ci95": [
+        -0.6962328767123291,
+        -0.29238281249999964
+      ],
       "golden_rubric_version": "color_contrast@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14207,7 +14245,10 @@
       "raw_agreement": 0.3333333333333333,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.46485598939503503,0.41521990740740744],
+      "ci95": [
+        -0.46485598939503503,
+        0.41521990740740744
+      ],
       "golden_rubric_version": "brand_fidelity@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14219,8 +14260,16 @@
     "generated_from": "graded-twin-ladder"
   },
   "critic_panel": {
-    "blocking": ["brand_fidelity", "density", "typography", "rhythm"],
-    "advisory": ["hierarchy", "color_contrast"],
+    "blocking": [
+      "brand_fidelity",
+      "density",
+      "typography",
+      "rhythm"
+    ],
+    "advisory": [
+      "hierarchy",
+      "color_contrast"
+    ],
     "trust_floors": {
       "brand_fidelity": 0.85,
       "density": 0.78,

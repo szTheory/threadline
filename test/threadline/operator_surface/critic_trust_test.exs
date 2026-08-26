@@ -166,10 +166,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "state.timezone-boundary" => 62
     }
 
-    # Append-only pin of the known-good ratchet.signoffs set (currently empty). Every
+    # Append-only pin of the known-good ratchet.signoffs set. Every
     # object listed here must remain present in the live array — signoffs are never
     # rewritten or dropped. When a real signoff is appended, add it here too.
-    @known_signoffs []
+    @known_signoffs [
+      %{
+        "kind" => "forward_only_accept",
+        "target" => "route.retention__dark-1280",
+        "lens" => "density",
+        "delta" => 7,
+        "noise_floor" => 4.5,
+        "before" => %{
+          "signal_to_chrome" => 32,
+          "task_primary_prominence" => 67,
+          "panel" => %{
+            "brand_fidelity" => 80,
+            "density" => 32,
+            "typography" => 67,
+            "rhythm" => 68
+          }
+        },
+        "verdict" => "ACCEPT",
+        "date" => "2026-08-26",
+        "ratified_by" => "maintainer (in-session PROOF-01 ratification, phase 196-06)",
+        "commit" => "c6f9355e",
+        "notes" =>
+          "Removed the status banner duplicating stat-card status/failures and the " <>
+            "'Retention window destructive action' self-label; the type-to-confirm prune " <>
+            "modal owns the destructive warning at point of action. Gate: no blocking " <>
+            "regression on any affected cell, page.retention.happy mechanical floor green, " <>
+            "held-out oracle rho holds on all four blocking lenses."
+      }
+    ]
 
     @lens_required_fields ~w(
       spearman
