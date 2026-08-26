@@ -29,7 +29,7 @@
 ### Phases
 
 - [x] **Phase 194: Deterministic Scorecard-Cube Ledger & Mechanical Capture Foundation** - Extend the ledger to a `page × persona × lens` cube with per-lens monotonicity + evidence-referenced bumps, and land deterministic mechanical checkers + a tiered evidence-capture matrix — all in `mix ci.all`, no LLM, no network.
-- [ ] **Phase 195: Validated Adversarial Critic Runner & Panel** - Author the golden set + versioned anchored rubrics, build the local-only `e2e/critic/` Claude-vision panel (per-persona + graphic-design + brand-veto), and prove it against the golden set (refute-tests + 75–90% human agreement) before it may drive anything — with no new root runtime dep.
+- [x] **Phase 195: Validated Adversarial Critic Runner & Panel** - Author the golden set + versioned anchored rubrics, build the local-only `e2e/critic/` Claude-vision panel (per-persona + graphic-design + brand-veto), and prove it against the golden set (refute-tests + 75–90% human agreement) before it may drive anything — with no new root runtime dep. (completed 2026-08-26)
 - [ ] **Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration** - Wire the full loop (capture → critique → propose → re-evaluate → guard) behind a full-panel net-positive gate with auto-apply + Goodhart/guard-the-guards protections, and prove it end-to-end with one real human-ratified improvement on the weakest page.
 - [ ] **Phase 197: Coverage Growth, Adversarial Closeout & Design-Debt Register** - Drive real ratified improvement across the 2–3 lowest-scoring operator pages, run a v1.37-style multi-lens adversarial closeout confirming the loop can't regress the deterministic floor and all invariants hold, and register residual design-debt with owner + reopen-trigger.
 
@@ -102,12 +102,14 @@
   4. The full loop (capture → critique → propose → re-evaluate → guard) is wired end-to-end and documented as a repeatable runbook, and is proven by one real, human-ratified improvement on the lowest-scoring page — target lens advanced with no regressions and a committed evidence trail. (PROOF-01)
 
 **Plans**: 6 plans (tracer-first; waves 1→5)
+
 - [x] 196-01-PLAN.md — TRACER: thinnest end-to-end gate (one lens × route.timeline) + critic_panel baseline + first vacuous-safe GATE-04 clause
 - [x] 196-02-PLAN.md — Guard-the-guards: GATE-04 no-silent-drop/no-fixture-removal + GATE-02 empty structural whitelist + GATE-05 semantic-guard stamp
 - [x] 196-03-PLAN.md — Full 4-lens blast-radius ranking gate + GATE-03 divergence halt + GATE-02 MODE-A fix-surfacing
 - [x] 196-04-PLAN.md — Wire the loop: expand route.* capture lane + CONTRIBUTING.md runbook + ρ-line fix + doc-contract pin
 - [ ] 196-05-PLAN.md — First proven iteration: select weakest page + author one real presentation improvement (floor green)
 - [ ] 196-06-PLAN.md — Mid-phase human ratification (checkpoint:decision) + commit evidence trail + append ratchet.signoffs
+
 **UI hint**: yes
 
 ### Phase 197: Coverage Growth, Adversarial Closeout & Design-Debt Register
@@ -132,7 +134,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
-| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 8/9 | In Progress|  |
+| 195. Validated Adversarial Critic Runner & Panel | v1.40 | 9/9 | Complete    | 2026-08-26 |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 4/6 | In Progress|  |
 | 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 0/TBD | Not started | - |
 
