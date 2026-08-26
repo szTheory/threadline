@@ -6,11 +6,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @ledger_path ".planning/design-system-ledger.json"
     @design_system_path "DESIGN-SYSTEM.md"
+    @synthetic_set_path ".planning/golden/synthetic-set.json"
 
     @top_level_keys ~w(
+      critic_panel
       critic_trust
+      critic_trust_provenance
       cube_axes
       entries
+      mechanical_auto_apply
       mechanical_floors
       phase
       ratchet
@@ -49,6 +53,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       group
       page
       primitive
+      refute
       state
     )
 
@@ -112,7 +117,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ledger = ledger()
       reset_ids = Map.get(ledger["ratchet"], "resets", [])
 
-      for entry <- ledger["entries"] do
+      # Refute twins carry null scores by contract (D-04) and are covered by the
+      # dedicated refute sub-contract test below — never silently exempt.
+      for entry <- ledger["entries"], entry["kind"] != "refute" do
         id = entry["id"]
 
         assert is_integer(entry["current_score"]), "#{id} current_score must be an integer"
@@ -135,6 +142,57 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "refute entries carry null scores (D-04) and never leak into the ratchet" do
+      ledger = ledger()
+      refute_entries = Enum.filter(ledger["entries"], &(&1["kind"] == "refute"))
+      refute_ids = MapSet.new(refute_entries, & &1["id"])
+
+      assert refute_entries != [],
+             "#{@ledger_path} must carry the Phase 195 refute-twin entries"
+
+      for entry <- refute_entries do
+        id = entry["id"]
+
+        # D-04: an unscored/vetoed fixture is null, NEVER 0 — a 0 would poison
+        # min() rollups and read as "scored bad" instead of "not scored".
+        assert is_nil(entry["current_score"]),
+               "#{id} refute current_score must be null (D-04 null-never-0), got #{inspect(entry["current_score"])}"
+
+        assert is_nil(entry["legacy_score"]),
+               "#{id} refute legacy_score must be null (D-04 null-never-0), got #{inspect(entry["legacy_score"])}"
+
+        assert entry["ratchet_score"] == 0,
+               "#{id} refute ratchet_score must be 0, got #{inspect(entry["ratchet_score"])}"
+
+        assert is_integer(entry["target_score"]),
+               "#{id} refute target_score must be an integer"
+
+        assert entry["status"] == "current",
+               "#{id} refute status must be \"current\", got #{inspect(entry["status"])}"
+
+        assert entry["owner_phase"] == 195,
+               "#{id} refute owner_phase must be 195, got #{inspect(entry["owner_phase"])}"
+      end
+
+      # The null-score allowance can never leak into the ratchet.
+      ratchet = ledger["ratchet"]
+
+      for id <- ratchet["locked_ids"] do
+        refute MapSet.member?(refute_ids, id),
+               "refute entry #{id} must not appear in ratchet.locked_ids"
+      end
+
+      for {id, _minimum} <- ratchet["minimum_scores"] do
+        refute MapSet.member?(refute_ids, id),
+               "refute entry #{id} must not appear in ratchet.minimum_scores"
+      end
+
+      for signoff <- Map.get(ratchet, "signoffs", []), id <- refute_ids do
+        refute String.starts_with?(signoff["cell_key"], id),
+               "refute entry #{id} must not appear in any ratchet.signoffs cell_key"
+      end
+    end
+
     test "locked IDs and minimum scores are enforced" do
       ledger = ledger()
       by_id = entries_by_id(ledger["entries"])
@@ -153,14 +211,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "fixture registry stories are present in the ledger and link back by story and fixture key" do
       by_id = entries_by_id(entries())
+      graded_ids = MapSet.new(StressFixtures.graded_stories(), & &1.id)
 
-      for story <- StressFixtures.all() do
+      # Graded-ladder stories are dev/test-only oracle fixtures — registered in the
+      # synthetic oracle set (guard below), never in the product ratchet ledger.
+      # Binary refute twins stay ledger-registered and round-trip like every story.
+      for story <- StressFixtures.all(), not MapSet.member?(graded_ids, story.id) do
         assert Map.has_key?(by_id, story.ledger_id),
                "stress story #{story.id} ledger_id #{story.ledger_id} is missing from #{@ledger_path}"
 
         entry = by_id[story.ledger_id]
         assert entry["story_id"] == story.id, "#{entry["id"]} story_id must match #{story.id}"
         assert entry["fixture_key"] == story.fixture_key
+      end
+    end
+
+    test "graded-ladder stories are registered in the synthetic oracle set" do
+      synthetic_set = @synthetic_set_path |> File.read!() |> Jason.decode!()
+      cell_ids = Enum.map(synthetic_set["items"], & &1["cell_id"])
+      graded = StressFixtures.graded_stories()
+
+      assert graded != [], "StressFixtures.graded_stories/0 must not be empty"
+
+      # D-12: the graded ladder's registry is the synthetic oracle set, not the
+      # ledger — every graded story must back at least one oracle cell
+      # ({story_id}__{theme}-{breakpoint}).
+      for story <- graded do
+        assert Enum.any?(cell_ids, &String.starts_with?(&1, "#{story.id}__")),
+               "graded story #{story.id} has no #{@synthetic_set_path} item with a cell_id prefixed #{story.id}__"
       end
     end
 
@@ -225,7 +303,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "DESIGN-SYSTEM projection is fresh for every ledger row" do
       markdown = design_system()
 
-      for entry <- entries() do
+      # Refute twins are capture substrate, not design-system inventory —
+      # DESIGN-SYSTEM.md deliberately carries no refute rows.
+      for entry <- entries(), entry["kind"] != "refute" do
         row = inventory_row(entry)
 
         assert String.contains?(markdown, row),
@@ -259,7 +339,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "current_score is the min of rated cells, else the ratchet watermark (rollup integrity)" do
-      for entry <- entries() do
+      # Refute twins are all-null by contract (D-04) — rollup covered by the refute
+      # sub-contract test (current_score must be nil, never a watermark integer).
+      for entry <- entries(), entry["kind"] != "refute" do
         id = entry["id"]
         scores = entry["scores"] || %{}
 
@@ -306,7 +388,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ledger = ledger()
       valid_cell_keys = valid_cell_keys(ledger["cube_axes"])
 
-      for entry <- ledger["entries"], entry["current_score"] > entry["ratchet_score"] do
+      # is_integer/1 is load-bearing: under Elixir term ordering `nil > 0` is true,
+      # so a null current_score (refute twins, D-04) would masquerade as a score
+      # increase without it. Refute twins are additionally excluded by kind — their
+      # null-score contract lives in the refute sub-contract test.
+      for entry <- ledger["entries"],
+          entry["kind"] != "refute",
+          is_integer(entry["current_score"]),
+          entry["current_score"] > entry["ratchet_score"] do
         id = entry["id"]
         ref = entry["evidence_ref"]
 
