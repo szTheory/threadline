@@ -187,9 +187,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "refute entry #{id} must not appear in ratchet.minimum_scores"
       end
 
+      # Signoffs come in two shapes: the 194-era floor-bump shape ("cell_key") and the
+      # 196 forward_only_accept shape ("target", a route.* cell). A refute fixture must
+      # not leak into either (196-06).
       for signoff <- Map.get(ratchet, "signoffs", []), id <- refute_ids do
-        refute String.starts_with?(signoff["cell_key"], id),
-               "refute entry #{id} must not appear in any ratchet.signoffs cell_key"
+        cell_ref = signoff["cell_key"] || signoff["target"] || ""
+
+        refute String.starts_with?(cell_ref, id),
+               "refute entry #{id} must not appear in any ratchet.signoffs cell_key/target"
       end
     end
 
@@ -439,7 +444,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       auto_lenses = ~w(density rhythm typography color_contrast brand_fidelity)
       signoffs = Map.get(ledger["ratchet"], "signoffs", [])
 
-      for signoff <- signoffs do
+      # Scoped to the floor-bump signoff shape ("cell_key"). A 196 forward_only_accept
+      # signoff records an ACCEPTED forward-only iteration (its "lens" names the improved
+      # blocking lens, e.g. density) — it is not a floor bump and does not move any
+      # mechanical-authority ratchet value, so it is exempt from this rule (196-06).
+      for signoff <- signoffs, is_binary(signoff["cell_key"]) do
         lens = signoff["cell_key"] |> String.split(".") |> List.last()
 
         refute lens in auto_lenses,
