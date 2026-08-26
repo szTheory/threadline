@@ -6,9 +6,9 @@ current_phase: 196
 current_phase_name: forward-only-net-positive-gate-first-proven-iteration
 status: executing
 stopped_at: "196 PAUSED at PROOF-01 checkpoint — Waves 1-3 ✓ (plans 01-04, all gate machinery wired+verified, 4/6). BLOCKED at 196-05 Task-1 (checkpoint:human-action, blocking, [196-D9]): maintainer must run the paid forward-only loop LOCALLY (ANTHROPIC_API_KEY + seeded dev server on DB_PORT 5433) to pick the single weakest /audit page + its weakest blocking lens + record 4-lens before-scores. Runbook verified known-good (gate dry-run runs the full 7-step pipeline, all 4 ρ floors clear). RESUME: maintainer replies with {weakest page, target lens, before-scores, source file to edit, 1-line improvement} → orchestrator spawns 196-05 Task-2 (author edit, mechanical floor stays green) → 196-06 (re-run gate, ratify accept/reject, commit evidence + append-only ratchet.signoffs). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline: 11 pre-existing mix-test failures, 0 introduced."
-last_updated: "2026-08-26T15:28:36.920Z"
+last_updated: "2026-08-26T15:42:00.000Z"
 last_activity: 2026-08-26
-last_activity_desc: Phase 195 gap-closure plan 195-10 created (ci.all suite-green reconciliation); Phase 196 still paused at PROOF-01
+last_activity_desc: Phase 195 gap-closure plan 195-10 EXECUTED (ci.all suite-green restored, 8→0 target failures); Phase 196 still paused at PROOF-01
 state_head: 6b0585428069afcd71971a48d4e1c77cd3e92846
 progress:
   total_phases: 4
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — PAUSED at PROOF-01 checkpoint (4/6 plans)
 Plan: Waves 1-3 complete (196-01/02/03/04 ✓, all gate machinery wired+verified); BLOCKED at 196-05 Task-1
-Side-track: Phase 195 gap-closure plan 195-10 planned + checker-passed (closes the 8 StressLedger/LedgerSplice failures) — READY: `/gsd-execute-phase 195 --gaps-only`. Note: plan-phase decision-coverage gate overridden (parser false-positive `could-not-parse` on legacy 195-CONTEXT.md format; 0 decisions extracted, not a real gap).
+Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear).
 
 ## Awaiting (PROOF-01 first-iteration checkpoint)

@@ -66,7 +66,7 @@
   4. A Node critic runner in `examples/threadline_phoenix/e2e/critic/` calls Claude vision with JSON-schema structured output, a prompt-cached rubric+anchor prefix, and one dimension per call; performs N-sample self-consistency (median + variance), flags high-variance cells as unstable/not-ratcheted, and stamps model id + rubric version on every scorecard; the panel runs one critic per persona (P1–P5) + a graphic-design critic + a brand-veto critic, and a `--tl-*` token / parity violation vetoes a change before aesthetic scoring. (RUNNER-01, RUNNER-02, RUNNER-03)
   5. `mix verify.ui_critique` wraps the runner as a named entrypoint, requires `ANTHROPIC_API_KEY`, no-ops without it, is excluded from `mix ci.all`, and is documented as local-only under a doc-contract lock; the Anthropic SDK is a `devDependency` of `e2e/package.json` only and `verify.compile_no_optional` still proves root `threadline` stays Phoenix-optional with no new runtime dependency. (RUNNER-04, RUNNER-05)
 
-**Plans**: 9 plans (7 planned + 2 gap-closure)
+**Plans**: 10 plans (7 planned + 3 gap-closure)
 **Wave 1**
 
 - [x] 195-01-PLAN.md — Foundations, named entrypoints & CI wiring (RUNNER-04, RUNNER-05) [wave 1]
@@ -87,7 +87,7 @@
 
 - [x] 195-08-PLAN.md — Trust-measurement writer (mix critic.measure) + CLI wiring gap-closure (CRITIC-03) [gap]
 - [x] 195-09 — Storybook real-UI capture lane + golden-set repoint (page.* text cells → real components) [gap]
-- [ ] 195-10-PLAN.md — Suite-green reconciliation: extend stress_ledger/ledger_splice contracts to the ratified D-12 ledger shape + REQUIREMENTS traceability flip (closes the 195-VERIFICATION ci.all gap) [gap]
+- [x] 195-10-PLAN.md — Suite-green reconciliation: extend stress_ledger/ledger_splice contracts to the ratified D-12 ledger shape + REQUIREMENTS traceability flip (closes the 195-VERIFICATION ci.all gap) [gap] — executed 2026-08-26 (8→0 target failures; contracts extended, never weakened)
 
 ### Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration
 
