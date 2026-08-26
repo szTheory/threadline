@@ -5,16 +5,16 @@ milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 current_phase: 196
 current_phase_name: forward-only-net-positive-gate-first-proven-iteration
 status: executing
-stopped_at: "196 PAUSED at PROOF-01 checkpoint — Waves 1-3 ✓ (plans 01-04, all gate machinery wired+verified, 4/6). BLOCKED at 196-05 Task-1 (checkpoint:human-action, blocking, [196-D9]): maintainer must run the paid forward-only loop LOCALLY (ANTHROPIC_API_KEY + seeded dev server on DB_PORT 5433) to pick the single weakest /audit page + its weakest blocking lens + record 4-lens before-scores. Runbook verified known-good (gate dry-run runs the full 7-step pipeline, all 4 ρ floors clear). RESUME: maintainer replies with {weakest page, target lens, before-scores, source file to edit, 1-line improvement} → orchestrator spawns 196-05 Task-2 (author edit, mechanical floor stays green) → 196-06 (re-run gate, ratify accept/reject, commit evidence + append-only ratchet.signoffs). Sequential-on-main (worktrees degraded: origin/main 514 behind HEAD). Baseline now: 3 pre-existing doc-contract mix-test failures, 0 introduced (195-10 closed the 8 StressLedger/LedgerSplice failures)."
-last_updated: "2026-08-26T15:52:38.436Z"
+stopped_at: "196 at PROOF-01 ratification — 5/6 plans ✓. 196-05 COMPLETE 2026-08-26: Task-1 checkpoint resolved from CLEAN mask-fixed re-score (maintainer ratified route.evidence + density; before-scores brand 81 / density 24 / typo 63 / rhythm 66); Task-2 edit landed (f6c40b6c: evidence_live.ex de-duplicates subject header repeated as per-card inline label; SUMMARY ca71225e; verify.mechanical 18/0, page.evidence.happy twin green; ci.all = only the 3 pre-existing doc-contract baseline failures). BLOCKED at 196-06 Task-1 (checkpoint:decision): maintainer re-runs the gate LOCALLY (ANTHROPIC_API_KEY; seeded dev server DB_PORT 5433; MUST rm .planning/critic-verdict-cache/route.evidence__*.json first — cache is not keyed on screenshot hash, stale verdicts would fake the after-measurement) and ratifies accept/reject per [196-D1] (accept iff density ↑ beyond noise, no blocking regression, divergence-halt clear, floor green). Then 196-06 Task-2: commit evidence trail + append-only ratchet.signoffs if a bar moved. Worktree isolation re-enabled via worktree.baseRef=head in .claude/settings.local.json (stale-base risk neutralized)."
+last_updated: "2026-08-26T18:30:00.000Z"
 last_activity: 2026-08-26
-last_activity_desc: Phase 195 COMPLETE (gap 195-10 executed + re-verified 6/6 passed); Phase 196 still paused at PROOF-01 human checkpoint
+last_activity_desc: 196-05 complete (evidence density edit f6c40b6c, floor green); awaiting 196-06 maintainer ratification (re-run gate, cache-busted)
 state_head: 50e6d65df14a98622d396887bc49652b46cedb2c
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 13
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
   percent: 50
 ---
 
@@ -29,22 +29,20 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — PAUSED at PROOF-01 checkpoint (4/6 plans)
-Plan: Waves 1-3 complete (196-01/02/03/04 ✓, all gate machinery wired+verified); BLOCKED at 196-05 Task-1
+Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — at PROOF-01 ratification (5/6 plans)
+Plan: 196-01..05 complete (gate machinery + evidence density edit f6c40b6c); BLOCKED at 196-06 Task-1 (decision checkpoint: maintainer re-runs gate + ratifies)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear). Phase 195 is now fully COMPLETE (re-verified 6/6, 2026-08-26).
 
-## Awaiting (PROOF-01 first-iteration checkpoint)
+## Awaiting (PROOF-01 ratification — 196-06 Task-1 decision checkpoint)
 
-The maintainer runs the local forward-only loop (CONTRIBUTING.md → "Forward-only gate — run one iteration"), then reports back:
+196-05 is DONE (selection ratified from the clean mask-fixed re-score: route.evidence + density; edit f6c40b6c). The maintainer now re-runs the gate locally (CONTRIBUTING.md → "Forward-only gate — run one iteration"):
 
-1. the single weakest `/audit` page (route.timeline | route.coverage | route.retention | route.actor | route.evidence)
-2. its weakest blocking lens (brand_fidelity | density | typography | rhythm)
-3. the 4-blocking-lens before-scores snapshot
-4. the exact operator-surface source file to edit
-5. a one-line description of the intended presentation improvement
+1. `rm .planning/critic-verdict-cache/route.evidence__*.json` — REQUIRED: the verdict cache is not keyed on screenshot content; skipping this fakes the after-measurement with stale verdicts.
+2. Seeded dev server up (DB_PORT 5433 via run-e2e.sh); `cd examples/threadline_phoenix/e2e && npm run capture:pages` then `npm run critic:score -- --page route.evidence` (and `npm run critic:gate`).
+3. Ratify per [196-D1]: ACCEPT iff density ↑ beyond noise (before 24), no blocking-lens regression on any affected cell (before: brand 81 / typo 63 / rhythm 66), divergence-halt clear, mechanical floor green.
 
-Resume: reply in-session with that selection; orchestrator continues 196-05 Task-2 → 196-06.
+Resume: reply in-session with accept/reject + the after-scores; orchestrator runs 196-06 Task-2 (evidence trail commit + append-only ratchet.signoffs if a bar moved), then phase.complete + verifier.
         Final trust panel (`design-system-ledger.json → critic_trust`): brand_fidelity ρ0.93, density
         ρ0.84, typography ρ0.77, rhythm ρ0.76 = 4 VALIDATED (the blocking panel); color_contrast ρ0.698
 
