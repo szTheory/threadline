@@ -203,18 +203,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </section>
 
-              <%= if @retention_summary.healthy? do %>
-                <div class="tl-alert tl-alert--success" role="status">
-                  Latest run succeeded<%= if @retention_summary.latest_at do %> <%= Presentation.human_time(@retention_summary.latest_at) %><% end %> — the retention window is healthy. Pruning permanently deletes older audit records by policy, so review before running another.
-                </div>
-              <% else %>
-                <div class="tl-alert tl-alert--warning" role="status">
-                  Review the latest status and failure count before running another prune. Pruning permanently deletes older audit records by policy.
-                </div>
-              <% end %>
-
+              <%!-- Density (196-06, signal-to-chrome): no status alert and no
+              "destructive action" self-label here. The stat cards above already carry
+              latest status + failure count (with a danger state and a deep link), and
+              the type-to-confirm prune modal delivers the destructive warning at the
+              point of action — restating either as banner prose is chrome. --%>
               <div class="tl-page__actions">
-                <span class="tl-hint">Retention window destructive action</span>
                 <button
                   type="button"
                   class="tl-button tl-button--secondary tl-button--danger"

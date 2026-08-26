@@ -210,11 +210,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Latest completed run"
         assert html =~ "Rows deleted"
         assert html =~ "Failures"
-        assert html =~ "Pruning permanently deletes older audit records by policy"
+        # Density (196-06): the banner restatement of the destructive warning is gone;
+        # the type-to-confirm modal owns that copy at the point of action.
+        refute html =~ "Pruning permanently deletes older audit records by policy"
         refute html =~ "tl-trust-rail"
       end
 
-      test "shows a success alert when latest run succeeded with no failures", %{conn: conn} do
+      # Density (196-06): the success/warning status alerts and the "Retention window
+      # destructive action" self-label were removed — the stat cards carry the health
+      # signal (status + failure count with danger state) and the type-to-confirm modal
+      # carries the destructive warning at the point of action.
+      test "carries run health in the stat cards, not a status alert (healthy)", %{conn: conn} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
         %RetentionRun{}
@@ -229,13 +235,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
-        assert html =~ "Latest run succeeded"
-        assert html =~ "retention window is healthy"
-        assert html =~ "Pruning permanently deletes older audit records by policy"
+        assert html =~ "Retention window health"
+        assert html =~ "Failures"
+        refute html =~ "retention window is healthy"
+        refute html =~ "Latest run succeeded"
         refute html =~ "Review the latest status and failure count"
+        refute html =~ "Retention window destructive action"
       end
 
-      test "shows a warning alert when a run has failed", %{conn: conn} do
+      test "carries run health in the stat cards, not a status alert (failed run)", %{conn: conn} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
         %RetentionRun{}
@@ -247,9 +255,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
-        assert html =~ "Review the latest status and failure count"
-        assert html =~ "Pruning permanently deletes older audit records by policy"
+        assert html =~ ~s(data-status="danger")
+        refute html =~ "Review the latest status and failure count"
         refute html =~ "Latest run succeeded"
+        refute html =~ "Retention window destructive action"
       end
 
       test "Run retention prune CTA triggers the supervised runtime path", %{conn: conn} do
