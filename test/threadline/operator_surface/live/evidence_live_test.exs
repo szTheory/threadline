@@ -158,7 +158,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
         assert html =~ "Evidence"
-        assert html =~ "Latest evidence is a projection over append-only evidence history"
+        # Density (196-06): the latest-mode lede prose is gone — the "Latest projection"
+        # Mode chip in the Evidence scope card carries the projection semantics instead.
+        refute html =~ "Latest evidence is a projection over append-only evidence history"
         assert count_occurrences(html, ~s(aria-label="Evidence workflow summary")) == 1
 
         assert byte_index(html, ~s(class="tl-page__header")) <

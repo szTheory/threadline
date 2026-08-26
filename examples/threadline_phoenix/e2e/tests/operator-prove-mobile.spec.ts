@@ -120,9 +120,9 @@ test.describe("operator evidence and exports mobile UAT", () => {
   test("evidence and redaction dense states keep evidence/status owners readable", async ({ page }) => {
     await page.goto("/audit/evidence");
     await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
-    await expect(
-      page.getByText("Latest evidence is a projection over append-only evidence history"),
-    ).toBeVisible();
+    // Density (196-06): the latest-mode lede prose was removed; the "Latest projection"
+    // Mode chip in the Evidence scope card is the stable projection-semantics anchor.
+    await expect(page.getByText("Latest projection").first()).toBeVisible();
 
     const firstEvidenceCard = page.locator(".tl-record-card").first();
     const verdict = await box(firstEvidenceCard.locator(".tl-chip").first());
