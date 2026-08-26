@@ -318,6 +318,10 @@ async function captureCell(
     path: resolve(artifactDir, "screenshot.png"),
     scale: "css",
     mask: dynamicMasks(page),
+    // Playwright's default mask color is #FF00FF, which the LLM critic scores as
+    // the most salient element on the page (a harness artifact, not the UI).
+    // Mask with the dark surface token instead so masked regions stay non-salient.
+    maskColor: "#0B1020",
   });
   writeFileSync(resolve(artifactDir, "dom.html"), await content.innerHTML(), "utf8");
   let rawA11y: unknown = null;

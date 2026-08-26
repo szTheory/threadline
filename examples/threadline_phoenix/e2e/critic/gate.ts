@@ -68,6 +68,10 @@ const ADVISORY_LENSES: LensName[] = ["hierarchy", "color_contrast"];
 // route lane grows (196-04 adds coverage/retention/actor/evidence twins).
 const ROUTE_PAGE_TWIN: Record<string, string> = {
   "route.timeline": "page.timeline.happy",
+  "route.coverage": "page.coverage.happy",
+  "route.retention": "page.retention.happy",
+  "route.actor": "page.actor.happy",
+  "route.evidence": "page.evidence.happy",
 };
 
 // The primary edited cell's theme/breakpoint. The targeted-lens improvement rule is asserted
