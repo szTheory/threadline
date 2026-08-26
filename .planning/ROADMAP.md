@@ -81,7 +81,7 @@
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 195-06-PLAN.md — Panel orchestration, veto & refute battery (RUNNER-03, CRITIC-02) [wave 3]
-- [ ] 195-07-PLAN.md — Report projection, authoring lane & local validation (CRITIC-01) [wave 3] — PAUSED at human-verify checkpoint (maintainer golden-set validation)
+- [x] 195-07-PLAN.md — Report projection, authoring lane & local validation (CRITIC-01) [wave 3] — checkpoint closed 2026-08-26 (fulfilled via D-12 synthetic-oracle pivot + 195-08/09)
 
 **Gap closure** *(found during 195-07 validation prep)*
 
