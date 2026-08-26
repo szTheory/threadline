@@ -4,7 +4,7 @@ milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 current_phase: 196
 current_phase_name: forward-only-net-positive-gate-first-proven-iteration
-status: executing
+status: phase_complete
 stopped_at: "196 PROOF-01 COMPLETE 2026-08-26 — 6/6 plans. Maintainer authorized running the paid loop in-session ('do the fixes'). Evidence+density candidate honestly REJECTED by the gate (3 variants, Δ within noise, v3 VOID); maintainer ratified pivot → route.retention+density: banner/self-label duplication removed (c6f9355e) → gate ACCEPT (Δ +7 > noise 4.5, no blocking regression, floor green, oracle stable). First ratchet.signoffs entry (forward_only_accept) + append-only pin (f1610d87). Loop hardening: ROUTE_PAGE_TWIN all-5-routes + dark maskColor (83db3918); evidence cleanup kept unratified (2eca4208). Guards: critic_trust 22/0, mechanical 18/0. REMAINING: confirm final mix ci.all, then phase verifier + phase.complete. Worktree isolation re-enabled via worktree.baseRef=head."
 last_updated: "2026-08-26T18:30:00.000Z"
 last_activity: 2026-08-26
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — PROOF-01 complete (6/6 plans; verifier pending)
+Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — COMPLETE (6/6 plans; verification passed 6/6, report 2c105dc7). Next: Phase 197 (coverage growth, adversarial closeout, design-debt register — debt seeds listed in 196-06-SUMMARY)
 Plan: 196-01..06 complete. First gate-ACCEPTED improvement: route.retention density (Δ +7 > noise 4.5, c6f9355e); first ratchet.signoffs entry pinned (f1610d87); evidence candidate honestly rejected and kept as unratified cleanup (2eca4208)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear). Phase 195 is now fully COMPLETE (re-verified 6/6, 2026-08-26).
