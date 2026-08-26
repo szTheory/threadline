@@ -913,9 +913,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # If the critic still can't order THIS, it's a capability ceiling, not ladder subtlety.
     # Every rung still renders >=2 distinct --tl-font-size-* tokens (MODE-B floor).
     @hierarchy_scale %{
-      r4: %{meta: {"xs", 400}, title: {"display", 700}, subtitle: {"heading", 600}, body: {"body", 400}},
-      r3: %{meta: {"xs", 400}, title: {"title", 700}, subtitle: {"heading", 500}, body: {"body", 400}},
-      r2: %{meta: {"label", 500}, title: {"heading", 600}, subtitle: {"body", 500}, body: {"body", 400}},
+      r4: %{
+        meta: {"xs", 400},
+        title: {"display", 700},
+        subtitle: {"heading", 600},
+        body: {"body", 400}
+      },
+      r3: %{
+        meta: {"xs", 400},
+        title: {"title", 700},
+        subtitle: {"heading", 500},
+        body: {"body", 400}
+      },
+      r2: %{
+        meta: {"label", 500},
+        title: {"heading", 600},
+        subtitle: {"body", 500},
+        body: {"body", 400}
+      },
       r1: %{meta: {"xs", 400}, title: {"body", 500}, subtitle: {"body", 400}, body: {"body", 400}}
     }
 
@@ -930,28 +945,52 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refute_hierarchy_lines(story) do
       case Map.get(story.data, :scenario) do
         "coverage" ->
-          %{meta: "Operator / Coverage", title: "Trigger coverage", subtitle: "3 of 12 tables",
-            body: "9 audited tables have no capture wired — enable before the next audit."}
+          %{
+            meta: "Operator / Coverage",
+            title: "Trigger coverage",
+            subtitle: "3 of 12 tables",
+            body: "9 audited tables have no capture wired — enable before the next audit."
+          }
 
         "retention" ->
-          %{meta: "Operator / Retention", title: "Retention policy", subtitle: "90-day window",
-            body: "The next scheduled prune runs 2026-09-30 at 02:00 UTC."}
+          %{
+            meta: "Operator / Retention",
+            title: "Retention policy",
+            subtitle: "90-day window",
+            body: "The next scheduled prune runs 2026-09-30 at 02:00 UTC."
+          }
 
         "exports" ->
-          %{meta: "Operator / Exports", title: "Recent exports", subtitle: "Last 30 days",
-            body: "4 CSV exports generated; the largest covered 18,204 change records."}
+          %{
+            meta: "Operator / Exports",
+            title: "Recent exports",
+            subtitle: "Last 30 days",
+            body: "4 CSV exports generated; the largest covered 18,204 change records."
+          }
 
         "evidence" ->
-          %{meta: "Operator / Evidence", title: "Evidence status", subtitle: "As of 2026-07-01",
-            body: "Proof records are current; 1 evidence chain awaits a countersignature."}
+          %{
+            meta: "Operator / Evidence",
+            title: "Evidence status",
+            subtitle: "As of 2026-07-01",
+            body: "Proof records are current; 1 evidence chain awaits a countersignature."
+          }
 
         "actor" ->
-          %{meta: "Operator / Actor", title: "Change attribution", subtitle: "admin@example.com",
-            body: "Role change recorded with an explicit operator reason via the console."}
+          %{
+            meta: "Operator / Actor",
+            title: "Change attribution",
+            subtitle: "admin@example.com",
+            body: "Role change recorded with an explicit operator reason via the console."
+          }
 
         _ ->
-          %{meta: "Operator / Timeline", title: "Audit timeline", subtitle: "Last 30 days",
-            body: "View, filter, and export change records for audited tables in this schema."}
+          %{
+            meta: "Operator / Timeline",
+            title: "Audit timeline",
+            subtitle: "Last 30 days",
+            body: "View, filter, and export change records for audited tables in this schema."
+          }
       end
     end
 
@@ -985,9 +1024,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {bg, color, border} =
         case refute_rung(story) do
-          r when r in [:r4, :r3] -> {"var(--tl-color-accent)", "var(--tl-color-bg)", "none"}
-          :r2 -> {"var(--tl-color-surface-raised)", "var(--tl-color-text)", "1px solid var(--tl-color-border)"}
-          :r1 -> {"transparent", "var(--tl-color-muted)", "1px solid var(--tl-color-border)"}
+          r when r in [:r4, :r3] ->
+            {"var(--tl-color-accent)", "var(--tl-color-bg)", "none"}
+
+          :r2 ->
+            {"var(--tl-color-surface-raised)", "var(--tl-color-text)",
+             "1px solid var(--tl-color-border)"}
+
+          :r1 ->
+            {"transparent", "var(--tl-color-muted)", "1px solid var(--tl-color-border)"}
         end
 
       "background: #{bg}; color: #{color}; border: #{border}; padding: var(--tl-space-2) var(--tl-space-4); " <>
@@ -999,52 +1044,82 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refute_density_fields(story) do
       case Map.get(story.data, :scenario) do
         "coverage" ->
-          %{title: "Coverage settings",
+          %{
+            title: "Coverage settings",
             rows: [
-              {"Watched schema", "public", "Choose which database schema Threadline monitors for trigger coverage across every audited table."},
-              {"Uncovered alert", "on", "Alert operator-role users whenever an audited table is found without live trigger coverage during the nightly sweep."},
-              {"Recheck cadence", "nightly", "How often coverage is recomputed. Nightly recomputes every table at 02:00 UTC; hourly suits high-churn schemas."}
-            ]}
+              {"Watched schema", "public",
+               "Choose which database schema Threadline monitors for trigger coverage across every audited table."},
+              {"Uncovered alert", "on",
+               "Alert operator-role users whenever an audited table is found without live trigger coverage during the nightly sweep."},
+              {"Recheck cadence", "nightly",
+               "How often coverage is recomputed. Nightly recomputes every table at 02:00 UTC; hourly suits high-churn schemas."}
+            ]
+          }
 
         "exports" ->
-          %{title: "Export settings",
+          %{
+            title: "Export settings",
             rows: [
-              {"Default format", "CSV", "The format new exports use. CSV is portable to spreadsheets; JSON preserves nested change payloads verbatim."},
-              {"Delivery target", "operator inbox", "Where finished exports are delivered. Exports stay inside Threadline and are never emailed to external addresses."},
-              {"Row cap", "50000", "The maximum rows a single export may contain. Larger result sets are split across sequential export jobs."}
-            ]}
+              {"Default format", "CSV",
+               "The format new exports use. CSV is portable to spreadsheets; JSON preserves nested change payloads verbatim."},
+              {"Delivery target", "operator inbox",
+               "Where finished exports are delivered. Exports stay inside Threadline and are never emailed to external addresses."},
+              {"Row cap", "50000",
+               "The maximum rows a single export may contain. Larger result sets are split across sequential export jobs."}
+            ]
+          }
 
         "evidence" ->
-          %{title: "Evidence settings",
+          %{
+            title: "Evidence settings",
             rows: [
-              {"Hash algorithm", "SHA-256", "The digest used to seal each captured change into its evidence chain. SHA-256 is the audited default."},
-              {"Countersign", "required", "Whether an evidence chain must be countersigned by a second operator before it is treated as closed."},
-              {"Integrity sweep", "daily", "How often stored hashes are re-verified against the change records to detect tampering at rest."}
-            ]}
+              {"Hash algorithm", "SHA-256",
+               "The digest used to seal each captured change into its evidence chain. SHA-256 is the audited default."},
+              {"Countersign", "required",
+               "Whether an evidence chain must be countersigned by a second operator before it is treated as closed."},
+              {"Integrity sweep", "daily",
+               "How often stored hashes are re-verified against the change records to detect tampering at rest."}
+            ]
+          }
 
         "actor" ->
-          %{title: "Actor settings",
+          %{
+            title: "Actor settings",
             rows: [
-              {"Attribution source", "console", "Where actor identity is read from for console-initiated changes: the authenticated session user."},
-              {"Require reason", "on", "Whether an explicit operator reason must accompany privileged actions such as role changes."},
-              {"Correlation window", "15m", "How long related requests and jobs are tied to one actor across the job boundary before a new correlation begins."}
-            ]}
+              {"Attribution source", "console",
+               "Where actor identity is read from for console-initiated changes: the authenticated session user."},
+              {"Require reason", "on",
+               "Whether an explicit operator reason must accompany privileged actions such as role changes."},
+              {"Correlation window", "15m",
+               "How long related requests and jobs are tied to one actor across the job boundary before a new correlation begins."}
+            ]
+          }
 
         "activity" ->
-          %{title: "Activity settings",
+          %{
+            title: "Activity settings",
             rows: [
-              {"Window", "30 days", "The span of change activity summarized on the operator home surface for this schema."},
-              {"Group by", "table", "How captured changes are grouped in the activity roll-up: by audited table, by actor, or by day."},
-              {"Idle notice", "off", "Whether to surface a notice when an audited table records no changes across the full activity window."}
-            ]}
+              {"Window", "30 days",
+               "The span of change activity summarized on the operator home surface for this schema."},
+              {"Group by", "table",
+               "How captured changes are grouped in the activity roll-up: by audited table, by actor, or by day."},
+              {"Idle notice", "off",
+               "Whether to surface a notice when an audited table records no changes across the full activity window."}
+            ]
+          }
 
         _ ->
-          %{title: "Retention settings",
+          %{
+            title: "Retention settings",
             rows: [
-              {"Retention window", "90", "The number of days audit records are retained. Records older than this are permanently deleted on the next prune (min 7, max 3650)."},
-              {"Prune schedule", "weekly", "How often automatic pruning runs. Daily runs nightly at 02:00 UTC; weekly runs Sundays; monthly runs on the first."},
-              {"Notify on prune", "on", "When enabled, operator-role users receive an email after each prune listing the records deleted and tables affected."}
-            ]}
+              {"Retention window", "90",
+               "The number of days audit records are retained. Records older than this are permanently deleted on the next prune (min 7, max 3650)."},
+              {"Prune schedule", "weekly",
+               "How often automatic pruning runs. Daily runs nightly at 02:00 UTC; weekly runs Sundays; monthly runs on the first."},
+              {"Notify on prune", "on",
+               "When enabled, operator-role users receive an email after each prune listing the records deleted and tables affected."}
+            ]
+          }
       end
     end
 
