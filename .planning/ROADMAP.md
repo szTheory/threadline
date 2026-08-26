@@ -87,6 +87,7 @@
 
 - [x] 195-08-PLAN.md — Trust-measurement writer (mix critic.measure) + CLI wiring gap-closure (CRITIC-03) [gap]
 - [x] 195-09 — Storybook real-UI capture lane + golden-set repoint (page.* text cells → real components) [gap]
+- [ ] 195-10-PLAN.md — Suite-green reconciliation: extend stress_ledger/ledger_splice contracts to the ratified D-12 ledger shape + REQUIREMENTS traceability flip (closes the 195-VERIFICATION ci.all gap) [gap]
 
 ### Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration
 
