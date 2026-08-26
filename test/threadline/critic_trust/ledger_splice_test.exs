@@ -74,6 +74,10 @@ defmodule Threadline.CriticTrust.LedgerSpliceTest do
   end
 
   test "returns an error when the block is absent" do
-    assert {:error, :critic_trust_not_found} = LedgerSplice.replace(~s({"a": 1}), vacuous_block())
+    # LedgerSplice splices any object key (aef9e655) — the error atom is key-agnostic.
+    assert {:error, :object_key_not_found} = LedgerSplice.replace(~s({"a": 1}), vacuous_block())
+
+    assert {:error, :object_key_not_found} =
+             LedgerSplice.replace_provenance(~s({"a": 1}), %{})
   end
 end
