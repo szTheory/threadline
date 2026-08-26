@@ -55,12 +55,5 @@
   },
   "model_profile": "balanced",
   "granularity": "coarse",
-  "runtime": "claude",
-  "model_profile_overrides": {
-    "cursor": {
-      "opus": "inherit",
-      "sonnet": "composer-2.5-fast",
-      "haiku": "composer-2.5-fast"
-    }
-  }
+  "runtime": "claude"
 }
