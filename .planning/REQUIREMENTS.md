@@ -119,17 +119,86 @@ Deferred; tracked but not in this roadmap.
 
 ## Traceability
 
-Populated during roadmap creation.
+Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to exactly one phase; no orphans, no duplicates. Phase boundaries follow the category names with four deliberate exceptions, verified individually:
+
+- **GREEN-02** (Credo per-check histogram) and **GREEN-03** (mechanical-sensitivity probe) are *measurement* requirements executed in Phase 198 that **size** Phases 203 and 201 respectively. They belong to 198, where the measurement happens — not to the phases they inform.
+- **GREEN-09** (paid scoring structurally untriggerable) and **GREEN-10** (exactly one publish path) concern release safety but are workflow changes made in Phase 198, before anything is published. Leaving them to Phase 202 would mean the ungated publish path survives right up to the moment it could fire.
+- **DECOUPLE-07** / **DECOUPLE-08** are dialyzer *adoption* (gate wiring, PLT, measured cold-build cost, ratcheting ignore ceiling), landed in Phase 199 so dialyzer typechecks the 201/203/204 refactors. Draining the findings surfaced by the gates is covered by **GATE-02**'s "fix or register with an exact count and a named successor milestone" discipline in Phase 203.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending roadmap) | — | Pending |
+| GREEN-01 | Phase 198 | Pending |
+| GREEN-02 | Phase 198 | Pending |
+| GREEN-03 | Phase 198 | Pending |
+| GREEN-04 | Phase 198 | Pending |
+| GREEN-05 | Phase 198 | Pending |
+| GREEN-06 | Phase 198 | Pending |
+| GREEN-07 | Phase 198 | Pending |
+| GREEN-08 | Phase 198 | Pending |
+| GREEN-09 | Phase 198 | Pending |
+| GREEN-10 | Phase 198 | Pending |
+| GREEN-11 | Phase 198 | Pending |
+| GREEN-12 | Phase 198 | Pending |
+| DECOUPLE-01 | Phase 199 | Pending |
+| DECOUPLE-02 | Phase 199 | Pending |
+| DECOUPLE-03 | Phase 199 | Pending |
+| DECOUPLE-04 | Phase 199 | Pending |
+| DECOUPLE-05 | Phase 199 | Pending |
+| DECOUPLE-06 | Phase 199 | Pending |
+| DECOUPLE-07 | Phase 199 | Pending |
+| DECOUPLE-08 | Phase 199 | Pending |
+| SURFACE-01 | Phase 200 | Pending |
+| SURFACE-02 | Phase 200 | Pending |
+| SURFACE-03 | Phase 200 | Pending |
+| SURFACE-04 | Phase 200 | Pending |
+| SURFACE-05 | Phase 200 | Pending |
+| SURFACE-06 | Phase 200 | Pending |
+| SURFACE-07 | Phase 200 | Pending |
+| SURFACE-08 | Phase 200 | Pending |
+| SURFACE-09 | Phase 200 | Pending |
+| SURFACE-10 | Phase 200 | Pending |
+| SURFACE-11 | Phase 200 | Pending |
+| RENDER-01 | Phase 201 | Pending |
+| RENDER-02 | Phase 201 | Pending |
+| RENDER-03 | Phase 201 | Pending |
+| RENDER-04 | Phase 201 | Pending |
+| RENDER-05 | Phase 201 | Pending |
+| RENDER-06 | Phase 201 | Pending |
+| RELEASE-01 | Phase 202 | Pending |
+| RELEASE-02 | Phase 202 | Pending |
+| RELEASE-03 | Phase 202 | Pending |
+| RELEASE-04 | Phase 202 | Pending |
+| RELEASE-05 | Phase 202 | Pending |
+| GATE-01 | Phase 203 | Pending |
+| GATE-02 | Phase 203 | Pending |
+| GATE-03 | Phase 203 | Pending |
+| GATE-04 | Phase 203 | Pending |
+| GATE-05 | Phase 203 | Pending |
+| STRUCT-01 | Phase 204 | Pending |
+| STRUCT-02 | Phase 204 | Pending |
+| STRUCT-03 | Phase 204 | Pending |
+| STRUCT-04 | Phase 204 | Pending |
+| STRUCT-05 | Phase 204 | Pending |
+| STRUCT-06 | Phase 204 | Pending |
 
 **Coverage:**
 - v1.41 requirements: 53 total (GREEN 12, DECOUPLE 8, SURFACE 11, RENDER 6, RELEASE 5, GATE 5, STRUCT 6)
-- Mapped to phases: 0
-- Unmapped: 53 ⚠️
+- Mapped to phases: 53 ✓
+- Unmapped: 0
+
+**Per-phase distribution:**
+
+| Phase | Name | Requirements | Count |
+|-------|------|--------------|-------|
+| 198 | Green Bringup | GREEN-01..GREEN-12 | 12 |
+| 199 | Decouple | DECOUPLE-01..DECOUPLE-08 | 8 |
+| 200 | Public Surface | SURFACE-01..SURFACE-11 | 11 |
+| 201 | Rendered Output | RENDER-01..RENDER-06 | 6 |
+| 202 | Release 0.10.0 | RELEASE-01..RELEASE-05 | 5 |
+| 203 | Real Gates | GATE-01..GATE-05 | 5 |
+| 204 | Structure | STRUCT-01..STRUCT-06 | 6 |
+| | **Total** | | **53** |
 
 ---
 *Requirements defined: 2026-08-27*
-*Last updated: 2026-08-27 at milestone open*
+*Last updated: 2026-08-27 at roadmap creation (Phases 198-204 mapped, 53/53)*

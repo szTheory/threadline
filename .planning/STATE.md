@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-status: planning
-last_updated: "2026-08-27T18:33:47.374Z"
+status: roadmap_complete
+last_updated: "2026-08-27T19:20:00.000Z"
 last_activity: 2026-08-27
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.41 Green, Clean, and Honest (Phases 198–204) — defining requirements, then roadmap
+**Current focus:** v1.41 Green, Clean, and Honest (Phases 198–204) — roadmap complete, ready to plan Phase 198
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 198 — Green Bringup (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-27 — Milestone v1.41 started
+Status: Roadmap complete — next `/gsd-plan-phase 198`
+Last activity: 2026-08-27 — v1.41 roadmap created (Phases 198–204, coarse granularity, 53/53 requirements mapped)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -50,13 +50,13 @@ Last activity: 2026-08-27 — Milestone v1.41 started
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (opened 2026-07-02; roadmap complete — Phases 194-197, coarse granularity, 29/29 requirements mapped)
-- **Last Milestone Shipped**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03, Phases 189-193, 15/15 requirements)
-- **Prior Milestone Shipped**: v1.38 — Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
+- **Active Milestone**: v1.41 — Green, Clean, and Honest (opened 2026-08-27; roadmap complete — Phases 198-204, coarse granularity, 53/53 requirements mapped, est. 26-33 plans)
+- **Last Milestone Shipped**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27, Phases 194-197, 28/29 requirements; PROOF-02 ratified shortfall)
+- **Prior Milestone Shipped**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03, Phases 189-193, 15/15 requirements)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.9.0** (tag `v0.9.0`, published 2026-06-03; prior `v0.8.0` 2026-06-03, `v0.7.0` 2026-05-30)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -231,6 +231,7 @@ Progress: [██████████] 100%
 - **Milestone v1.38 roadmap created (2026-06-26):** Operator UI Page-by-Page IA & Design-System Polish — phases 181-187. Order is baseline guard repair → PhoenixStorybook example/dev lane → shell/home → Timeline → Coverage → detail/governance/export → accessibility/motion/docs/adversarial closeout. 24/24 requirements mapped, with former post-close todo pressure absorbed into phases 183, 185, and prior demo-login polish.
 - **Milestone v1.38 archived (2026-06-30):** Operator UI Page-by-Page IA & Design-System Polish shipped with phases 181-188 complete, 24/24 requirements satisfied, and residual CI/screenshot/environment/Nyquist items explicitly classified in the archive audit.
 - **Milestone v1.39 roadmap created (2026-07-01):** Quality Baseline, Schema Confidence, and CI Efficiency — phases 189-193. Order is quality audit → storage-schema proof/fixes → release/version docs trust → CI/CD measurement and efficiency → closeout/next-step decision. 15/15 requirements mapped. Invariants held: no new operator product scope, no public component API, no compliance expansion, no synthetic external pilot, no runtime destructive redaction, no WAL/CDC backend, and no broad CI cleverness before measurement.
+- **Milestone v1.41 roadmap created (2026-08-27):** Green, Clean, and Honest — phases 198-204 per the approved plan `~/.claude/plans/so-i-don-t-really-have-quirky-wilkinson.md`, continued numbering. Order is green bringup → decouple (dialyxir lands here) → public surface → rendered output → **release 0.10.0 (deliberately mid-milestone: hex.pm has no undo, so publish once the permanent and rendered surfaces are clean, before the invisible internal work)** → real gates → structure. 53/53 requirements mapped, coarse granularity, est. 26-33 plans. Two workloads are deliberately unmeasured at roadmap time — the full-default Credo backlog (measured in 198 Plan 01) and the dialyzer finding count (measured in 199) — with a pre-committed sizing rule for Phase 203 (<150 → one phase; 150-600 → split mechanical from judgment; >600 or one dominating check → adopt defaults with that check as a counted register row plus a named successor milestone). Phase 201's cost depends on 198 Plan 01's mechanical-sensitivity probe. Highest-variance risk: the `min` CI lane (Elixir 1.15 / OTP 26 / pg14 / ubuntu-22.04) has never executed on origin. Invariants: no operator-UI design/IA/visual change, no Tier-A scorecard regeneration, paid critic scoring stays structurally untriggerable, `.planning/` stays tracked, no git history rewrite, no capture/query/auth semantic change, no version-floor bump; `git mv`/`git rm` for every move/removal, one file per commit where contract tests are involved.
 
 ### Decisions
 
