@@ -36,7 +36,7 @@ import { loadBundle } from "./bundle.js";
 import { runNSamples } from "./client.js";
 import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
-import { lookupCache, writeCache } from "./cache.js";
+import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
 import { MODEL_ID, type LensName, type BandName } from "./schema.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -384,10 +384,21 @@ async function scoreOneDimension(
   force: boolean,
 ): Promise<{ score: number | null; stable: boolean }> {
   const rubricHash = getRubricHash(rubricVersion);
+  // sha8 of the screenshot being scored (197-01): binds the verdict to the exact pixels,
+  // so a re-captured screenshot MISSES instead of returning a stale cached verdict.
+  const screenshotHash = sha8OfFile(
+    resolve(bundle.repoRoot, bundle.scorecard.artifacts.screenshot),
+  );
 
   // Verdict cache check (D-07: free resume/replay without re-billing)
   if (!force) {
-    const cached = lookupCache(cellId, `${lens}.${dimension}.${persona}`, rubricHash, MODEL_ID);
+    const cached = lookupCache(
+      cellId,
+      `${lens}.${dimension}.${persona}`,
+      rubricHash,
+      MODEL_ID,
+      screenshotHash,
+    );
     if (cached) {
       return { score: cached.stable ? cached.score : null, stable: cached.stable };
     }
@@ -416,12 +427,13 @@ async function scoreOneDimension(
     rationale: result.rationale,
   });
 
-  // Write to verdict cache for resume/replay
+  // Write to verdict cache for resume/replay (bound to the scored screenshot, 197-01)
   writeCache({
     cell_id: cellId,
     dimension: `${lens}.${dimension}.${persona}`,
     rubric_hash: rubricHash,
     model_id: MODEL_ID,
+    screenshot_hash: screenshotHash,
     result: {
       evidence: result.evidence,
       pass: result.pass,

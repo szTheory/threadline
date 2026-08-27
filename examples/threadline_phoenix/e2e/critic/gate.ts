@@ -40,7 +40,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { committedCellIds } from "./bundle.js";
@@ -135,6 +135,55 @@ function parseGateArgs(argv: string[]): GateArgs {
   }
 
   return args;
+}
+
+// ─── Before-pole overwrite guard (197-01, OQ-3 debt #2) ────────────────────────
+
+export interface PoleGuardBlocked {
+  cell: string;
+  lens: string;
+  files: number; // existing before-pole score files that would be clobbered
+}
+
+export interface PoleGuardResult {
+  blocked: PoleGuardBlocked[];
+  cleared: string[]; // pole dirs deleted under --fresh-before (deliberate new iteration)
+}
+
+/**
+ * Refuse to let `critic:score` silently clobber a stamped before pole (197-01).
+ *
+ * The before pole IS the set of score JSONs under `.planning/critic-scores/<cell>/<lens>/`
+ * written by the pre-edit `npm run critic:score` — the gate's Δ baseline. Re-running
+ * critic:score AFTER an edit would overwrite it and fake the before/after evidence
+ * (T-197-02). For each (cell, lens) pair about to be scored:
+ *   - pole exists + !freshBefore → BLOCKED (caller aborts with the gate-only instruction)
+ *   - pole exists + freshBefore  → the old pole dir is DELETED deliberately (brand-new
+ *     iteration on the same cell), and scoring proceeds
+ *   - no pole → nothing to guard
+ *
+ * The gate's own missing-before VOID path (rankReeval) is untouched — this guard only
+ * protects an EXISTING pole from the score command.
+ */
+export function guardBeforePole(
+  pairs: Array<{ cell: string; lens: string }>,
+  freshBefore: boolean,
+): PoleGuardResult {
+  const blocked: PoleGuardBlocked[] = [];
+  const cleared: string[] = [];
+  for (const { cell, lens } of pairs) {
+    const dir = resolve(criticScoresDir, cell, lens);
+    if (!existsSync(dir)) continue;
+    const files = readdirSync(dir).filter((f) => f.endsWith(".json")).length;
+    if (files === 0) continue;
+    if (freshBefore) {
+      rmSync(dir, { recursive: true, force: true });
+      cleared.push(`${cell}/${lens}`);
+    } else {
+      blocked.push({ cell, lens, files });
+    }
+  }
+  return { blocked, cleared };
 }
 
 /** The dark-theme blast-radius cells for a page currently on disk (gitignored route.* cells). */
