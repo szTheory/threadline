@@ -43,18 +43,29 @@ Task IDs are assigned by the planner; this table carries the requirement→comma
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | GREEN-01 | — | N/A | artifact check | `test -f .planning/audits/198-ci-run-28214113903-logs.md` | ❌ W0 | ⬜ pending |
-| TBD | 01 | 1 | GREEN-02 | — | N/A | script + diff | `git diff --exit-code .credo.exs && test -f .planning/audits/198-credo-histogram.json` | ❌ W0 | ⬜ pending |
-| TBD | 01 | 1 | GREEN-03 | — | N/A | probe + finding | scorecard-free probe; output committed to `.planning/audits/198-mechanical-sensitivity.md` | ❌ W0 | ⬜ pending |
-| TBD | — | — | GREEN-04 | — | N/A | full suite + guard | `mix test` exit 0 **and** the D-05 zero-exclusions assertion test | ❌ W0 | ⬜ pending |
-| TBD | — | — | GREEN-05 | — | N/A | unit | D-07 `@ui_form_policy` exhaustive-scan test (replaces `formless_pages_test.exs:47-54`) | ❌ W0 | ⬜ pending |
-| TBD | — | — | GREEN-06 | — | N/A | static YAML contract | `timeout-minutes:` count vs. job count across all 5 workflows; `--max-failures` present | ❌ W0 | ⬜ pending |
-| TBD | — | — | GREEN-07 | — | N/A | git + `gh run view` | `git log origin/main..main` empty; `gh run view <id> --json conclusion,startedAt,updatedAt` ≤ 20 min | ❌ W0 (post-push) | ⬜ pending |
-| TBD | — | — | GREEN-08 | — | N/A | committed script | `bin/verify-branch-protection` (D-12: contexts diff **and** proof-of-emission) | ❌ W0 | ⬜ pending |
-| TBD | — | — | GREEN-09 | T-198-01 | Paid path structurally unreachable from CI | contract test | D-25 assertions in `test/threadline/ci_topology_contract_test.exs`: zero `ANTHROPIC_API_KEY` refs in `.github/workflows/` | ⚠️ additive | ⬜ pending |
-| TBD | — | — | GREEN-10 | T-198-02 | Exactly one gated publish path | contract test | same file: `mix hex.publish` occurrence count across `.github/workflows/*.yml` == 1 | ⚠️ additive | ⬜ pending |
-| TBD | — | — | GREEN-11 | — | N/A | live workflow | `workflow_dispatch` dry-run — see Manual-Only below | N/A | ⬜ pending |
-| TBD | — | — | GREEN-12 | — | N/A | git + register check | `git worktree list \| wc -l` == 1; no non-`main`/`archive/*` branches; `test -f .planning/ARCHIVE-REGISTER.md` | ❌ W0 | ⬜ pending |
+| 01-T1 | 01 | 1 | GREEN-01 | T-198-01-01 | Preserved logs pass the pre-push credential sweep | artifact check | `test -f .planning/audits/198-ci-run-28214113903-logs.md` | ❌ W0 | ⬜ pending |
+| 01-T2 | 01 | 1 | GREEN-02 | T-198-01-02 | Measurement never mutates the gate config | script + diff | `git diff --exit-code .credo.exs && test -f .planning/audits/198-credo-histogram.md` | ❌ W0 | ⬜ pending |
+| 01-T3 | 01 | 1 | GREEN-03 | T-198-01-03 | Probe cannot manufacture the Phase 201 floor | probe + finding | `test -z "$(git status --porcelain .planning/scorecards/)" && grep -q '^## Finding' .planning/audits/198-mechanical-sensitivity.md` | ❌ W0 | ⬜ pending |
+| 02-T1 | 02 | 1 | GREEN-07 (push gate) | T-198-02-01, T-198-02-02 | Full-history scan, redacted reports | scanner sweep | `test -f .planning/audits/198-gitleaks-history.json && test -f .planning/audits/198-trufflehog-verified.json` | ❌ W0 | ⬜ pending |
+| 02-T2 | 02 | 1 | GREEN-07 (push gate) | T-198-02-05 | Every finding classed in writing | register check | `grep -qE '^## VERDICT: (PROCEED\|ABORT)' .planning/audits/198-credential-audit.md` | ❌ W0 | ⬜ pending |
+| 02-T3 | 02 | 1 | GREEN-07 (push gate) | T-198-02-03 | Push protection live before first push | CLI + artifact | `grep -q '"secret_scanning_push_protection"' .planning/audits/198-credential-audit.md` | ❌ W0 | ⬜ pending |
+| 03-T1 | 03 | 2 | GREEN-08 | T-198-03-01, T-198-03-05 | Skipped-on-dependency-failure cannot score as pass | YAML contract + live API | `grep -q 'name: CI required' .github/workflows/ci.yml` and check-runs API returns ≥1 `CI required` | ⚠️ additive | ⬜ pending |
+| 03-T2 | 03 | 2 | GREEN-08 | T-198-03-05 | Required-check identity matches emitted name | observation artifact | `grep -q '^## Verdict' .planning/audits/198-matrix-name-observation.md` | ❌ W0 | ⬜ pending |
+| 03-T3 | 03 | 2 | GREEN-07 | — | Floor lane not downgraded | live run + grep | `grep -c 'continue-on-error' .github/workflows/ci.yml` == 0 | ⚠️ additive | ⬜ pending |
+| 04-T1 | 04 | 3 | GREEN-04 | T-198-04-03, T-198-04-05 | Stale DB fails once, loudly | full suite (fresh DB) | `mix test.reset` | ❌ W0 | ⬜ pending |
+| 04-T2 | 04 | 3 | GREEN-04 | T-198-04-01, T-198-04-02 | Zero laundering; guard not self-invalidating | unit | `mix test test/threadline/zero_skips_contract_test.exs` | ❌ W0 | ⬜ pending |
+| 04-T3 | 04 | 3 | GREEN-05 | T-198-04-04 | New page cannot be silently unguarded | unit | `mix test test/threadline/operator_surface/ui_form_policy_contract_test.exs` | ❌ W0 | ⬜ pending |
+| 05-T1 | 05 | 3 | GREEN-06 | T-198-05-05 | Broken suite aborts, traces retained | config + list | `grep -c 'name: "chromium"' examples/threadline_phoenix/e2e/playwright.config.ts` == 0 | ⚠️ additive | ⬜ pending |
+| 05-T2 | 05 | 3 | GREEN-06 | T-198-05-03 | Moved coverage is stated and asserted | doc contract | `mix test test/threadline/ci_coverage_doc_contract_test.exs` | ❌ W0 | ⬜ pending |
+| 05-T3 | 05 | 3 | GREEN-06 | T-198-05-02 | No job can hang unbounded | static YAML contract | job count == `timeout-minutes` count in ci.yml, release.yml, browser-full.yml | ⚠️ additive | ⬜ pending |
+| 05-T4 | 05 | 3 | GREEN-07 | T-198-05-01 | Lanes cannot share a cache entry | static YAML contract | `grep -c 'runner.os' .github/workflows/ci.yml` == 0 | ⚠️ additive | ⬜ pending |
+| 06-T1 | 06 | 4 | GREEN-12 | T-198-06-04 | Nothing deleted before its tag resolves | git + register check | `git worktree list \| wc -l` == 1; every `archive/*` tag resolves; `test -f .planning/ARCHIVE-REGISTER.md` | ❌ W0 | ⬜ pending |
+| 06-T2 | 06 | 4 | GREEN-10 | T-198-06-01, T-198-06-03 | One-way publish decision recorded | artifact check | `grep -q '^## Publish-path and secret-store decisions' .planning/phases/198-green-bringup/198-TRIAGE.md` | ❌ W0 | ⬜ pending |
+| 06-T3 | 06 | 4 | GREEN-09, GREEN-10 | T-198-06-01, T-198-06-02, T-198-06-06 | Paid path unreachable; one gated publish path | contract test | `mix test test/threadline/ci_topology_contract_test.exs` | ⚠️ additive | ⬜ pending |
+| 06-T4 | 06 | 4 | GREEN-11 | T-198-06-05 | Broken never mislabelled as flaky | live workflow + YAML | every job in flake-detection.yml bounded; classification branch present — dispatch verification see Manual-Only | ⚠️ additive | ⬜ pending |
+| 07-T1 | 07 | 5 | GREEN-07, GREEN-12 | T-198-07-04 | Irreversible step gated on steps 1–4 | artifact check | `grep -q '^## D-34 step 5 authorization' .planning/audits/198-branch-protection-migration.md` | ❌ W0 | ⬜ pending |
+| 07-T2 | 07 | 5 | GREEN-08 | T-198-07-01, T-198-07-02, T-198-07-03, T-198-07-05 | Contexts diff AND proof-of-emission | committed script | `bash bin/verify-branch-protection` | ❌ W0 | ⬜ pending |
+| 07-T3 | 07 | 5 | GREEN-07, GREEN-12 | T-198-07-04, T-198-07-06 | Green inside budget; tags durable off-laptop | git + `gh run view` | `git log origin/main..main` empty; run elapsed ≤ 20 min; `git ls-remote --tags origin 'refs/tags/archive/*'` non-empty | ❌ W0 (post-merge) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -70,7 +81,12 @@ Task IDs are assigned by the planner; this table carries the requirement→comma
 - [ ] D-03 stale-schema tripwire in `test/test_helper.exs` (after `:13`) — scoped to `Threadline.Test.Repo`'s own database, never in `lib/`
 - [ ] Tracked evidence artifacts (not test files, but the mechanical evidence GREEN-01/02/03/12 point at): `198-TRIAGE.md`, `.planning/ARCHIVE-REGISTER.md`, `.planning/audits/*`
 
+- [ ] `bin/verify-branch-protection` — new committed script (D-12), assigned to task **07-T2**
+- [ ] `.github/workflows/branch-protection.yml` — deliberately its own workflow, NOT a conditionally-skipped job inside the aggregate's `needs:` list
+
 **Constraint carried from CONTEXT.md `<code_context>`:** Phase 199 / DECOUPLE-01 requires `mix ci.all` to pass with `.planning/` renamed away — **no gate may read any artifact under `.planning/`.** Evidence artifacts are outputs, never test inputs.
+
+**Verified against the plan set (2026-08-27):** every `<automated>` command across Plans 01–07 targets `git`, `gh`, `mix`, `yq`/`jq`, `bash`, or a path under `.github/`, `bin/`, `test/`, `lib/`, `examples/` — the only `.planning/` paths appearing in a verify command are `test -f` / `grep` **artifact-existence** assertions inside plan-local task verification, none of which is wired into `mix ci.all` or any CI job. No gate reads `.planning/`.
 
 ---
 

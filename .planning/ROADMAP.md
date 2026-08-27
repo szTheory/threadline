@@ -89,7 +89,16 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: TBD (est. 5 — measurement sweep · red-baseline retirement · CI cost surgery · staging-PR bringup · triage)
+**Plans**: 7 plans
+
+Plans:
+- [ ] 198-01-PLAN.md — Read-only measurement sweep: preserve run 28214113903's logs, Credo full-default histogram + per-file concentration, scorecard-free mechanical-sensitivity probe (wave 1)
+- [ ] 198-02-PLAN.md — Full-history credential audit, Class A/B/C disposition, secret scanning + push protection, one-way publication authorization (wave 1)
+- [ ] 198-03-PLAN.md — **Tracer:** `ci-required` aggregate gate live on a real staging PR; matrix check-name observation; min-lane rehearsal (wave 2)
+- [ ] 198-04-PLAN.md — Red-baseline retirement: stale-schema tripwire, `test.reset`, triage artifact with zero-exclusions cap, self-declaring `@ui_form_policy` guard (wave 3)
+- [ ] 198-05-PLAN.md — CI cost surgery: browser fan-out cut, fail-fast with retained traces, browser-lane split + CI coverage doc contract, `timeout-minutes` everywhere, cache-key recomposition (wave 3)
+- [ ] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
+- [ ] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
 
 **Notes carried from the approved plan:**
 - Plan 01 is read-only and runs first because it sizes Phases 201 and 203. The 2026-06-26 run log is ~62 days old against a 90-day purge — preserving it is a ~4-week window, not a nice-to-have.
