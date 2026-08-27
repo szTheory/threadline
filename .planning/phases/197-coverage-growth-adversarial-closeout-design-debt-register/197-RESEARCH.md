@@ -260,11 +260,14 @@ This phase adds no attack surface: no new deps, no public API, no capture/query/
 | A2 | Local route.* score medians are representative enough to pre-rank candidates | Score landscape | Selection must be re-ratified from a fresh cache-busted score run anyway (mitigated by checkpoint) |
 | A3 | Register/closeout artifacts live in `.planning/phases/197-*/` (like 180/193 precedents) | PROOF-03/04 | Cosmetic; planner's discretion |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **OQ-1 — Is GATE-02 "true auto-write to source" in 197 scope?** 196-D3 deferred it to "Phase 197's first escalation," but 197's requirements are only PROOF-02/03/04 and the structural whitelist is `[]` with a signoff-gated add. *Recommendation:* do NOT build it; register it as a debt row with a concrete reopen-trigger (e.g. "≥N accepted iterations where the surfaced diff was applied verbatim with zero human modification"). Confirm with maintainer at discuss/checkpoint.
+   **RESOLVED:** Register-as-debt. GATE-02 auto-write is NOT built in Phase 197; it lands as a debt-register row with a concrete reopen-trigger, implemented by Plan 197-05.
 2. **OQ-2 — Does retention (already advanced in 196) count toward the "2–3 pages"?** 196-D7 says PROOF-01 "pulls one page's worth of PROOF-02 forward." *Recommendation:* plan for 2–3 NEW accepted improvements in 197 (actor, evidence-or-timeline, +1 stretch), counting retention as bonus coverage only — satisfies the requirement under either reading.
+   **RESOLVED:** 2–3 NEW accepted improvements in 197; retention counts as bonus coverage only. Implemented by Plans 197-02 through 197-04 (candidate ratification, iterations 1–2, accept-count closure).
 3. **OQ-3 — Fix loop-debt items #1/#2 (cache key, before-pole) inside 197, or register only?** They directly threaten PROOF-02 measurement integrity and are small, local, deterministic (cache.ts key + a pole-protection guard). *Recommendation:* fix #1 and #2 as a Wave-1 hardening plan before running iterations (cheap, de-risks every paid run); register #3 (Tier-A drift) and the rest.
+   **RESOLVED:** Fix-in-phase. The cache-key and before-pole fixes land in Plan 197-01 (Wave-1 hardening, before any paid iteration); remaining loop-debt items (#3+) are registered only, via Plan 197-05.
 
 ## Sources
 
