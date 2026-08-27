@@ -8,9 +8,9 @@
 
 ### Green Bringup
 
-- [ ] **GREEN-01**: Maintainer can see the last red CI run's failing logs preserved in-repo before GitHub purges them at 90 days (run `28214113903`, ~62 days old at milestone open).
-- [ ] **GREEN-02**: Maintainer can read a measured per-check Credo finding histogram and a per-file concentration table, produced from a full-default config held outside the repo, without `.credo.exs` being modified.
-- [ ] **GREEN-03**: Maintainer can state, from evidence rather than inference, whether `verify.mechanical` is sensitive to rendered text content and text width or only to tokens, contrast, and element geometry.
+- [x] **GREEN-01**: Maintainer can see the last red CI run's failing logs preserved in-repo before GitHub purges them at 90 days (run `28214113903`, ~62 days old at milestone open).
+- [x] **GREEN-02**: Maintainer can read a measured per-check Credo finding histogram and a per-file concentration table, produced from a full-default config held outside the repo, without `.credo.exs` being modified.
+- [x] **GREEN-03**: Maintainer can state, from evidence rather than inference, whether `verify.mechanical` is sensitive to rendered text content and text width or only to tokens, contrast, and element geometry.
 - [ ] **GREEN-04**: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone.
 - [ ] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
 - [ ] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
@@ -127,9 +127,9 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GREEN-01 | Phase 198 | Pending |
-| GREEN-02 | Phase 198 | Pending |
-| GREEN-03 | Phase 198 | Pending |
+| GREEN-01 | Phase 198 | Complete |
+| GREEN-02 | Phase 198 | Complete |
+| GREEN-03 | Phase 198 | Complete |
 | GREEN-04 | Phase 198 | Pending |
 | GREEN-05 | Phase 198 | Pending |
 | GREEN-06 | Phase 198 | Pending |
@@ -182,6 +182,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | STRUCT-06 | Phase 204 | Pending |
 
 **Coverage:**
+
 - v1.41 requirements: 53 total (GREEN 12, DECOUPLE 8, SURFACE 11, RENDER 6, RELEASE 5, GATE 5, STRUCT 6)
 - Mapped to phases: 53 ✓
 - Unmapped: 0
