@@ -32,6 +32,7 @@ jobs:
   verify-format:
     name: Check formatting
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -56,6 +57,7 @@ jobs:
   verify-credo:
     name: Run Credo (strict)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -80,6 +82,7 @@ jobs:
   verify-compile-no-optional:
     name: Compile without optional deps
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -125,6 +128,7 @@ jobs:
             pg: "16"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
     env:
       DB_HOST: localhost
       MIX_ENV: test
@@ -188,6 +192,7 @@ jobs:
   verify-hex-evaluator:
     name: Hex evaluator smoke (threadline from hex.pm)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     env:
       DB_HOST: localhost
       MIX_ENV: test
@@ -225,6 +230,13 @@ jobs:
   verify-example-browser:
     name: Example app browser E2E (Playwright)
     runs-on: ubuntu-24.04
+    # 18 is a BUDGET (D-16), not a multiple of an observed green p95 — this lane
+    # has no observed green duration to size against. Its two recorded runs are
+    # 1h33m38s while systemically broken (run 28214113903) and 2m04s while
+    # fast-failing (run 33113148222). 18 is therefore a deliberate ceiling: it
+    # will fail a lane that regresses back toward the 1h33m case rather than
+    # silently absorbing it. Re-derive from a real green run when one exists.
+    timeout-minutes: 18
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -290,7 +302,11 @@ jobs:
       # This job's `name:` is byte-identical to its pre-split value on purpose —
       # GitHub matches required checks on NAME, and this job stays inside
       # `ci-required`'s needs list and continues to vote.
+      # Strictly less than the job-level 18 so the STEP fails first — a job-level
+      # timeout kills the runner outright and the failure-artifact upload below
+      # never executes. 14 < 18 keeps the diagnosis path alive.
       - name: Run example Playwright suite
+        timeout-minutes: 14
         run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
 
       # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
@@ -320,6 +336,7 @@ jobs:
   verify-mechanical:
     name: Mechanical checker (committed scorecards)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -349,6 +366,7 @@ jobs:
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
+    timeout-minutes: 35
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -438,6 +456,7 @@ jobs:
   verify-pgbouncer-topology:
     name: PgBouncer transaction topology
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     env:
       MIX_ENV: test
     services:
@@ -511,6 +530,7 @@ jobs:
   verify-docs:
     name: Build ExDoc (dev)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     env:
       MIX_ENV: dev
     steps:
@@ -537,6 +557,7 @@ jobs:
   verify-hex-package:
     name: Hex package tarball
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -600,6 +621,7 @@ jobs:
   verify-release-shape:
     name: Release metadata (version / changelog)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
