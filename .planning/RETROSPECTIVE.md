@@ -1083,6 +1083,55 @@ First-class light mode for the operator surface without disturbing the dark defa
 
 ---
 
+## Milestone: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness
+
+**Shipped:** 2026-08-27
+**Phases:** 4 (194-197) | **Plans:** 21 | **Tasks:** 34 | **Requirements:** 28/29 (PROOF-02 ratified shortfall)
+
+### What was built
+
+- A deterministic `page × persona × lens` scorecard-cube ledger (v1→v2 migration, 130 entries) with per-lens monotonic ratchet, evidence-referenced score bumps, and a freshness-tested `DESIGN-SYSTEM.md` per-lens projection — all guards inside `mix ci.all`, no LLM, no network.
+- A pure-Elixir `MechanicalChecker` computing all 9 mechanical metrics (WCAG dark+light contrast, token conformance, type-size/control/card-nesting/scroll-cost/accent-hue budgets) behind `mix verify.mechanical`, plus a Tier A/B/C Playwright evidence-capture matrix from `/audit/__stress`.
+- A local-only 7-critic Claude-vision panel (personas P1–P5 + graphic-design + brand-veto) with versioned anchored rubrics, a two-tier refute battery, and a synthetic-twin golden oracle — trust-gated on Spearman-ρ ranking before it may influence any ratchet; Anthropic SDK stayed an `e2e` devDependency.
+- A forward-only net-positive gate (`critic:gate` / `gate.ts`): blast-radius-aware full-panel re-eval, Goodhart divergence halt against held-out oracle floors, guard-the-guards tests against silent floor/target/fixture drift, and a fully wired $0 dry-run path.
+- Proof iterations: the first gate-ACCEPTED, human-ratified improvements (retention + Evidence-page density, Δ+7; first `ratchet.signoffs` entry), then loop-measurement hardening and an adversarial closeout + design-debt register with owner + reopen-trigger per row.
+
+### What worked
+
+- **Guard-before-producer spine.** Landing the deterministic cube/ratchet (194) before any nondeterministic scorer, and validating the critic (195) before the gate (196), meant no phase ever optimized toward an unproven oracle.
+- **Synthetic-twin oracle + ranking gate.** Graded severity ladders gave zero-human-labeling validation, and gating on Spearman ρ (not Krippendorff α) survived the critic's scale compression (brand_fidelity α=0.065 but ρ=0.94).
+- **Honest rejection.** The gate proved its worth in both directions: it accepted the density edit and honestly rejected the evidence candidate in the same phase — forward-only means blocked regressions, not rubber-stamped proposals.
+- **Ratified shortfall over fake completion.** When per-iteration spend outweighed observed score value, parking the paid loop and human-ratifying the PROOF-02 shortfall (2/3) was recorded as an explicit verdict, not papered over.
+
+### What was inefficient
+
+- Persona fan-out was 5× more expensive than needed on hierarchy/density — a probe showed P1–P5 unanimous on ranking (15/15), so the panel collapsed to 1 persona per those lenses late instead of early.
+- The critic-verdict cache was keyed by cell+rubric+model but not screenshot, silently faking before/after measurements after re-captures until manually purged — cost a debugging cycle.
+- Advisory (unvalidated) lenses confidently fabricated specifics on real pages (an invented hex value that exists nowhere), reinforcing that only ranking-validated lenses may be trusted.
+- The 120-cell Tier A capture could not run locally due to the pre-existing example-app DB seeding issue; the gap was documented rather than fabricated, but it left MECH evidence thinner than planned.
+
+### Patterns established
+
+- Mechanical/vision split: deterministic checks are the ratchet floor and gate independently; the LLM judges only gestalt and never gates CI.
+- Validate a critic with a synthetic twin oracle + ranking correlation before letting it drive anything; keep a held-out true-north set that is scored but never optimized against.
+- Storybook-derived clean-clipped cells (story.*) are the only valid critic input; full-page stress-lab chrome (page.*) judges the dev harness, not the UI.
+- Paid-loop economics are a first-class gate: park on spend/value with an explicit ratified verdict and a reopen-trigger, rather than letting a harness idle half-used.
+
+### Key lessons
+
+- An un-validated critic driving a ratchet optimizes toward a broken oracle — the phase-ordering constraint was the single most load-bearing decision of the milestone.
+- Judge scale-compression makes agreement coefficients (α) misleading; ranking correlation is the honest trust metric for LLM critics.
+- Before/after proofs should test RANKING, not absolute findings — advisory lenses hallucinate specifics with confidence.
+- Clear the verdict cache on every re-capture (rm .planning/critic-verdict-cache/<cell>__*.json) or measurements are silently stale.
+
+### Cost observations
+
+- Timeline: 2026-07-02 -> 2026-08-27; 4 phases; 21 plans; 34 tasks.
+- Git range: `v1.39` -> `6b279cf7` before archive; 163 commits; 660 files changed, +126,780 / -841.
+- Paid critic scoring parked at close on spend/value; deterministic lanes remain $0 in CI. Model mix is not instrumented in-repo.
+
+---
+
 ## Cross-Milestone Trends
 
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
