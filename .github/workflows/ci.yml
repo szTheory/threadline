@@ -5,6 +5,27 @@
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
 # extension point for future lanes: a new verify-* job becomes blocking by being
 # added to `ci-required`'s `needs:` list — with zero branch-protection edits.
+#
+# ---------------------------------------------------------------------------
+# NO TRIGGER-LEVEL PATH FILTERS — a decision, not an omission (Phase 198, D-10 /
+# D-20). This workflow deliberately carries no `paths:` key under `on:`.
+#
+# Why: a workflow filtered out at the trigger level never reports AT ALL, and a
+# pull request whose required check never reports sits on "Expected — Waiting
+# for status to be reported" forever. `ci-required` is the single required
+# check, so trigger-level filtering here would deadlock every doc-only PR. With
+# five workflows and a library-shaped repository the saving would be small
+# anyway, and path filters additionally risk `main` divergence (something that
+# never ran on a PR merges unverified).
+#
+# If filtering is ever genuinely wanted, the SANCTIONED mechanism is: a
+# dedicated change-detection job plus JOB-LEVEL `if:` conditions, each carrying
+# `|| github.ref == 'refs/heads/main'` so expensive jobs still run on main (the
+# CLAUDE.md "path filters + main" convention). Note the consequence for the
+# aggregate: the first conditionally-skipped job added to `ci-required`'s
+# `needs:` MUST also be registered in that job's `allowed-skips` input, or the
+# gate will correctly fail on its skip.
+# ---------------------------------------------------------------------------
 
 name: CI
 
@@ -41,12 +62,41 @@ jobs:
           elixir-version: "1.17.3"
           otp-version: "27.0"
 
+      # CACHE KEY CONTRACT (Phase 198, D-19) — read before adding any cache.
+      #
+      # Every key is composed of: runner label + OTP version + Elixir version +
+      # lockfile hash. NEVER compose a key from the OS-family context value of
+      # the runner: it resolves to the literal `Linux` on every ubuntu image, so
+      # a 22.04 lane and a 24.04 lane silently share one entry. (An anti-
+      # regression grep asserts that expression appears nowhere in this file,
+      # which is why it is not spelled out here.) For non-matrix jobs the
+      # runner/OTP/Elixir
+      # segments are the literals that job already pins above; for the
+      # verify-test matrix they come from the matrix values.
+      #
+      # There is currently NO `_build` cache in this workflow — only `deps` and
+      # the Playwright browser download. If one is ever added, two rules apply:
+      #   * it gets NO `restore-keys`. A partial restore across a changed
+      #     mix.lock is the stale-compiled-artifact footgun; a cold build is
+      #     cheaper than a wrong one.
+      #   * add `rm -rf _build/$MIX_ENV/lib/threadline` before the compile step,
+      #     so a restored cache can never serve a stale copy of the code under
+      #     test.
+      #
+      # FORWARD REQUIREMENT FOR PHASE 199 (dialyzer PLT cache) — do not build a
+      # key shape 199 has to redo. The PLT key must ADDITIONALLY include:
+      #   * `hashFiles('mix.exs')` — mix.exs is where `plt_add_apps` for the
+      #     optional dependencies lives, so a PLT built before that list changed
+      #     is wrong, not merely stale.
+      #   * the OTP version — PLTs are not portable across OTP.
+      # Unlike `_build`, PLT `restore-keys` ARE correct: PLTs update
+      # incrementally, so a near-miss restore is a genuine speedup.
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -70,8 +120,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -95,8 +145,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -154,12 +204,20 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
+      # THE bug this key shape fixes (D-19): the previous key led with the
+      # OS-family context value of the runner, which is the literal string
+      # `Linux` on BOTH ubuntu-22.04 and ubuntu-24.04 and carries no OTP or
+      # Elixir at all. The min lane (elixir
+      # 1.15 / otp 26 / ubuntu-22.04) and the current lane (1.17.3 / 27 /
+      # ubuntu-24.04) therefore shared ONE cache entry — the min lane could be
+      # "verified" against dependencies compiled for current, which is a false
+      # green on the Elixir 1.15 floor promise, not merely a slow build.
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -272,15 +330,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-playwright-
+          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
         run: mix deps.get
@@ -349,8 +407,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -402,15 +460,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-playwright-
+          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
         run: mix deps.get
@@ -496,8 +554,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Wait for Postgres and PgBouncer
         env:
@@ -545,8 +603,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -570,8 +628,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
