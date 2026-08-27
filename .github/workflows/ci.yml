@@ -279,8 +279,19 @@ jobs:
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
 
+      # Reduced pull-request lane (Phase 198, D-17). Runs ONLY the two
+      # interactive Chromium projects. The remaining projects (the capture
+      # lanes) run on push-to-main and nightly in browser-full.yml, which is
+      # deliberately NOT part of `ci-required`. This is a real coverage/latency
+      # trade, not a free win: what moved is stated verbatim in CONTRIBUTING.md
+      # under "## CI Coverage" and asserted by
+      # test/threadline/ci_coverage_doc_contract_test.exs.
+      #
+      # This job's `name:` is byte-identical to its pre-split value on purpose —
+      # GitHub matches required checks on NAME, and this job stays inside
+      # `ci-required`'s needs list and continues to vote.
       - name: Run example Playwright suite
-        run: mix verify.example_browser
+        run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
 
       # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
       # this step is what makes that abort useful: it preserves the retained
