@@ -135,7 +135,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     [".github", "workflows", "hex-publish.yml"]
   ]
 
-  # 10 canonical stable job keys (order-independent set).
+  # The canonical stable job keys, derived from ci.yml (order-independent set).
   defp ci_job_keys do
     read_rel!([".github", "workflows", "ci.yml"])
     |> String.split("\n")
@@ -177,13 +177,21 @@ defmodule Threadline.Phase06NyquistCIContractTest do
   end
 
   describe "CI-03/CI-04 (Plan 192-04 Task 1, D-26): job-key parity" do
-    test "ci.yml jobs == header comment == CONTRIBUTING List 1 (all 10 keys)" do
+    test "ci.yml jobs == header comment == CONTRIBUTING List 1" do
       jobs = ci_job_keys()
       header = ci_header_comment_keys()
       list1 = contributing_list1_keys()
 
-      assert MapSet.size(jobs) == 10,
-             "expected exactly 10 ci.yml job keys, got: #{inspect(Enum.sort(jobs))}"
+      # Phase 198 (D-05): this assertion used to hardcode `== 10`. That literal
+      # rotted the moment ci.yml legitimately grew jobs, and it failed for a
+      # reason unrelated to the invariant actually worth guarding — three-way
+      # parity between the workflow, its header comment, and CONTRIBUTING List 1.
+      # The count is derived from ci.yml rather than restated, so the guard tracks
+      # the source of truth instead of drifting away from it. Non-emptiness is
+      # still asserted so a broken scan cannot pass vacuously.
+      assert MapSet.size(jobs) > 0,
+             "no verify-* job keys found in ci.yml — the scan is broken, which would " <>
+               "let this parity guard pass vacuously."
 
       assert MapSet.equal?(jobs, header),
              "ci.yml jobs vs header comment drift: " <>

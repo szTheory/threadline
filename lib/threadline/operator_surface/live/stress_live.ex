@@ -4,6 +4,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
+    # GREEN-05 / D-07: has-forms. This is the dev/test-only design-system stress
+    # harness, not a shipped operator page — it renders form controls as component
+    # fixtures. It was in NO list under the superseded @formless_pages allowlist, i.e.
+    # silently unguarded; that gap is the concrete reason the allowlist was replaced.
+    # Relocation out of live/ is a live candidate but is Phase 204 structure work, not
+    # this phase's — the declaration is what makes it guarded in the meantime.
+    Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
+    @ui_form_policy {:has_forms, "stress harness renders form controls as fixtures"}
+
     alias Phoenix.LiveView.JS
     alias Threadline.OperatorSurface.StressFixtures
 

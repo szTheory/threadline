@@ -3,6 +3,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
 
     use Phoenix.LiveView
+
+    # GREEN-05 / D-07: declared has-forms since Phase 176 (DATA-04 / D-20) — the
+    # destructive "Prune now" action is a server-enforced type-to-confirm flow whose
+    # modal hosts a single form plus the confirmation text input.
+    Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
+    @ui_form_policy {:has_forms, "type-to-confirm prune modal (security-mandated)"}
+
     import Ecto.Query
 
     alias Phoenix.LiveView.JS

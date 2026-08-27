@@ -3,6 +3,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
 
     use Phoenix.LiveView
+
+    # GREEN-05 / D-07: has-forms — the home page hosts the record-lookup and
+    # correlation-lookup entry points that jump the operator into row history.
+    Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
+    @ui_form_policy {:has_forms, "record and correlation lookup entry points"}
+
     import Ecto.Query
 
     alias Threadline.Governance.ExportJob
