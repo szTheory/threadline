@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-current_phase: 196
-current_phase_name: forward-only-net-positive-gate-first-proven-iteration
+current_phase: 197
+current_phase_name: Coverage Growth, Adversarial Closeout & Design-Debt Register
 status: phase_complete
 stopped_at: "196 PROOF-01 COMPLETE 2026-08-26 — 6/6 plans. Maintainer authorized running the paid loop in-session ('do the fixes'). Evidence+density candidate honestly REJECTED by the gate (3 variants, Δ within noise, v3 VOID); maintainer ratified pivot → route.retention+density: banner/self-label duplication removed (c6f9355e) → gate ACCEPT (Δ +7 > noise 4.5, no blocking regression, floor green, oracle stable). First ratchet.signoffs entry (forward_only_accept) + append-only pin (f1610d87). Loop hardening: ROUTE_PAGE_TWIN all-5-routes + dark maskColor (83db3918); evidence cleanup kept unratified (2eca4208). Guards: critic_trust 22/0, mechanical 18/0. REMAINING: confirm final mix ci.all, then phase verifier + phase.complete. Worktree isolation re-enabled via worktree.baseRef=head."
-last_updated: "2026-08-26T18:30:00.000Z"
+last_updated: "2026-08-27T01:20:26.403Z"
 last_activity: 2026-08-26
 last_activity_desc: 196-05 complete (evidence density edit f6c40b6c, floor green); awaiting 196-06 maintainer ratification (re-run gate, cache-busted)
-state_head: 50e6d65df14a98622d396887bc49652b46cedb2c
+state_head: f0edb368b8839605456e6fa2bc0bdbcecb74d75a
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 18
+  completed_phases: 3
+  total_plans: 23
   completed_plans: 18
-  percent: 100
+  percent: 78
 ---
 
 # Project State: Threadline
@@ -25,11 +25,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 196 — forward-only-net-positive-gate-first-proven-iteration
+**Current focus:** Phase 197 — Coverage Growth, Adversarial Closeout & Design-Debt Register (planned 2026-08-26, 5 plans, ready to execute)
 
 ## Current Position
 
-Phase: 196 (forward-only-net-positive-gate-first-proven-iteration) — COMPLETE (6/6 plans; verification passed 6/6, report 2c105dc7). Next: Phase 197 (coverage growth, adversarial closeout, design-debt register — debt seeds listed in 196-06-SUMMARY)
+Phase: 197 (Coverage Growth, Adversarial Closeout & Design-Debt Register) — READY TO EXECUTE
 Plan: 196-01..06 complete. First gate-ACCEPTED improvement: route.retention density (Δ +7 > noise 4.5, c6f9355e); first ratchet.signoffs entry pinned (f1610d87); evidence candidate honestly rejected and kept as unratified cleanup (2eca4208)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-action. The forward-only gate's LLM re-eval is maintainer-local & paid ([196-D9]); the executor has no API key and CI never runs the LLM, so the weakest-page selection cannot be automated. Gates green through Wave 3 (compile-strict, critic_trust 22/0, mechanical 18/0, forward_only_gate doc-contract 6/0). Runbook verified (gate dry-run: 7-step pipeline clean, 4 ρ floors clear). Phase 195 is now fully COMPLETE (re-verified 6/6, 2026-08-26).
@@ -53,9 +53,9 @@ Status: Awaiting maintainer — 196-05 Task-1 is a blocking checkpoint:human-act
         improvement on the weakest /audit page (mid-phase checkpoint:decision). Deferred to 197:
         PROOF-02 (2-3 pages), PROOF-03 (adversarial closeout), PROOF-04 (debt register). Locked
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
-Last activity: 2026-08-26 — Phase 195 complete, transitioned to Phase 196
+Last activity: 2026-08-26 — Phase 197 planned (5 plans, plan-checker verification passed)
 
-Progress: [█████████░] 90%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 

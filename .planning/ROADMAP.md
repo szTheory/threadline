@@ -126,10 +126,24 @@
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 197-01-PLAN.md — Loop-measurement hardening: screenshot-keyed verdict cache + before-pole overwrite guard, proven by a gate dry-run
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 197-02-PLAN.md — PROOF-02 iteration 1: fresh cache-busted candidate ranking (≥4), edit on the ratified weakest cell, maintainer gate verdict
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 197-03-PLAN.md — Book iteration-1 (atomic signoff+pin or pivot) + PROOF-02 iteration 2 (evidence IA restructure or timeline) + gate verdict
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 197-04-PLAN.md — Book iteration-2, pivot/stretch loop until 2–3 NEW accepts (decision checkpoint), final PROOF-02 sweep
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 197-05-PLAN.md — PROOF-03 adversarial closeout (four tamper probes + 197-ADVERSARIAL-REVIEW.md) + PROOF-04 design-debt register (197-DESIGN-DEBT-REGISTER.md)
 
 **UI hint**: yes
