@@ -108,6 +108,40 @@ which additionally fails `stress_router_test.exs`).
 
 ---
 
+## Post-plan measurement (the honest number)
+
+Measured after all three of Plan 198-04's commits, on a freshly recreated database
+(`mix test.reset`):
+
+```
+1376 tests, 80 failures (1 excluded)
+```
+
+Reconciliation against the 82-failure fresh-database baseline:
+
+| Change | Δ failures | Δ tests |
+|---|---|---|
+| `v1_23_charter_doc_contract_test.exs` deleted | −1 | −2 |
+| `formless_pages_test.exs` deleted (superseded) | −1 | −6 |
+| `zero_skips_contract_test.exs` added | 0 | +2 |
+| `ui_form_policy_contract_test.exs` added | 0 | +1 |
+| **Total** | **82 → 80** | **1381 → 1376** |
+
+The remaining **80** are the 79 deferred test-side defects plus the one
+`phase06_nyquist_ci_contract_test.exs` parity failure, which is now red for the real
+reason (CONTRIBUTING List 1 drift) rather than for a rotted count literal. **No failure
+was skipped, excluded, tagged out, or asserted away to reach this number.** Two runs of
+the suite produced the same 80 and the same failing modules.
+
+One instability worth recording rather than hiding: an intermediate run reported
+`175 failures, 8 invalid`. It did not reproduce — the two runs either side both reported
+exactly 80 with an identical module breakdown. The likely cause is contention on the
+shared `threadline_test` database from a concurrently executing sibling plan, since this
+suite deliberately does not use the Ecto SQL Sandbox (triggers fire below sandbox
+awareness). Flagged as a real risk to CI determinism, not silently averaged away.
+
+---
+
 ## Deferred: the 79
 
 **Remediation shape (not applied by this plan).** Every one of the 79 needs the audit tables
