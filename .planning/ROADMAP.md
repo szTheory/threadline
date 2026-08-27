@@ -92,15 +92,30 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 **Plans**: 7 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 198-01-PLAN.md — Read-only measurement sweep: preserve run 28214113903's logs, Credo full-default histogram + per-file concentration, scorecard-free mechanical-sensitivity probe (wave 1)
 - [ ] 198-02-PLAN.md — Full-history credential audit, Class A/B/C disposition, secret scanning + push protection, one-way publication authorization (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 198-03-PLAN.md — **Tracer:** `ci-required` aggregate gate live on a real staging PR; matrix check-name observation; min-lane rehearsal (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 198-04-PLAN.md — Red-baseline retirement: stale-schema tripwire, `test.reset`, triage artifact with zero-exclusions cap, self-declaring `@ui_form_policy` guard (wave 3)
 - [ ] 198-05-PLAN.md — CI cost surgery: browser fan-out cut, fail-fast with retained traces, browser-lane split + CI coverage doc contract, `timeout-minutes` everywhere, cache-key recomposition (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
 
 **Notes carried from the approved plan:**
+
 - Plan 01 is read-only and runs first because it sizes Phases 201 and 203. The 2026-06-26 run log is ~62 days old against a 90-day purge — preserving it is a ~4-week window, not a nice-to-have.
 - The bringup validates on `ci/v1_41-green-bringup` → PR before `main` is touched, because `ci.yml` triggers on `pull_request: [main]` with `cancel-in-progress`, making iterations cancellable.
 - **Hard gate before publishing:** the 54 MB of `.planning/` has never been audited for credentials and is about to become fully public.
@@ -124,6 +139,7 @@ Plans:
 **Plans**: TBD (est. 4 — fixture relocation · dead-artifact removal and root-script cleanup · ignore/format hygiene · dialyxir adoption and finding triage)
 
 **Notes carried from the approved plan:**
+
 - `test/fixtures/`, **not** `priv/`: none of it is runtime library data and 3.2 MB must not enter the Hex tarball. Grep every literal (`scorecards`, `design-system-ledger`, `golden-set`, `refute-set`, `critic-scores`) across `lib/`, `test/`, `mix.exs`, `.github/`, and `examples/` before moving, and verify `package.files` still excludes the destination.
 - `plt_add_apps` must list **all 9 optional deps explicitly** — they are not in the runtime tree, so every `Phoenix.Component`/`Oban`/`ExAws` call would otherwise become `unknown_function`. Analyse the full build only, never `--no-optional-deps` (`style.ex:1` is `if Code.ensure_loaded?(Phoenix.LiveView)`, so the module set genuinely differs). PLT cache keyed on `otp-${{matrix.otp}}` — PLTs are not portable across OTP versions. Run on the `current` lane only.
 - Triage every dialyzer finding: `:unmatched_returns`/`:extra_return` surface real bugs. Fix what is real; only irreducible residue goes in `.dialyzer_ignore.exs`, one commented entry each, **no wildcards**, under a ratchet-down-only ceiling test (same idiom as the MODE-B floors).
@@ -146,6 +162,7 @@ Plans:
 **Plans**: TBD (est. 5 — moduledoc/mix.exs vocabulary strip · ExDoc grouping and extras · docs-graph repair and link fixes · config/alias/`search_path` documentation and deduplication · `.github/` templates and CONTRIBUTING rewrite)
 
 **Notes carried from the approved plan:**
+
 - Known offenders: `capture/trigger_sql.ex:7,10`, `export_auth_plug.ex:12`, `coverage/snapshot.ex:8`, `coverage/on_mount.ex:36,38`, `evidence/subject.ex:28`, `router.ex:40`, `threadline.gen.triggers.ex:52`, `ui.ex:402,510,794`; `mix/tasks/critic.synth.ex:19` points at a directory that is not in the tarball; `mix.exs` comments at :34/:97/:102/:107/:194/:223/:235/:359 plus the function name `verify_phase177_uat`.
 - Six accidentally-public maintainer-only modules need `@moduledoc false`: `critic_trust/{measure,rank_metrics,ledger_splice,krippendorff_alpha}` and `mix/tasks/critic.{measure,synth}`.
 - The docs graph is a star with dead ends — **13 of 19 guides link to nothing**. Broken links at `guides/getting-started-saas.md:345` (wrong `guides/` prefix, also :49 and :380) and `domain-reference.md:88` (`Threadline.Proof` → `Threadline.Evidence.Proof`).
@@ -169,6 +186,7 @@ Plans:
 **Plans**: TBD (est. 3 — Tier 1 attribute/comment/filename removal · Tier 2 text-only renames · whitelist-or-narrow resolution if the probe says text matters)
 
 **Notes carried from the approved plan:**
+
 - **Tier 1 lands alone, first,** because attributes and CSS comments provably cannot move layout: remove `data-jtbd` (`evidence_live.ex:359`, `row_history_live.ex:50`, `timeline_live.ex:750`, `export_status_live.ex:158,201`, `start_live.ex:221,261`) and their 7 test assertions; delete CSS comments (`style.ex:20,166,310,1745`); `git mv` the test filenames (`phase06_nyquist_ci_`, `ia_lock_`, `forward_only_gate_`).
 - **Tier 2 is text-only and element-preserving.** `Phase 173 Primitives Matrix` → `Primitives Matrix`; `Phase 176 Data States (DATA-03 taxonomy)` → `Data States`; `stress_fixtures.ex:292,513,582,694`. **Rule: rename, never delete an element.**
 - Whether Tier 2 moves a scorecard is answered by 198 Plan 01, not guessed here. If it does: **do not attempt a Tier-A recapture** — v1.40 Seed #3 established that recapture is not reproducible in this environment and the committed `page.*` scorecards *are* the floor. A documented, bounded weakening is honest; a fabricated recapture is not.
@@ -192,6 +210,7 @@ Plans:
 **Plans**: TBD (est. 3 — version-literal wiring before merge · merge and publish · changelog highlights and post-publish sync)
 
 **Notes carried from the approved plan:**
+
 - Verified since `v0.9.0`: 1275 commits — 210 `feat`, 86 `fix`, 1 `perf`, 747 `docs`, 172 `test`, **zero breaking changes**. `0.9.0 → 0.10.0` is correct.
 - **Version literals are the real gap.** Only 2 files carry `x-release-please-version` and appear in `release-please-config.json` `extra-files`. `README.md:69`, `getting-started-saas.md:26`, `operator-surface.md:30`, `upgrade-path.md`, `CONTRIBUTING.md:460` and — sharpest — **`priv/ci/hex_evaluator/mix.exs:27`** are unmanaged. That last one pins `{:threadline, "~> 0.9.0"}` *from hex.pm*: after 0.10.0 publishes it would keep validating the previous release forever and silently stop proving the new one. Annotate and wire every version-bearing line **before** merging.
 - **CHANGELOG honesty:** release-please emits ~296 bullets. Let it, then hand-write a 5-10 line Highlights block above it (matching the existing hand-written `## [0.8.0]` section) as a follow-up `docs(changelog):` commit on `main`, so it cannot race regeneration.
@@ -215,6 +234,7 @@ Plans:
 **Plans**: TBD (est. 4-6 — **plan count is sized by 198 Plan 01's histogram under the pre-committed rule**, not chosen here)
 
 **Notes carried from the approved plan:**
+
 - Rebuild `.credo.exs` from `deps/credo/.credo.exs` verbatim, then express adjustments as deltas.
 - Defensible tuning only: keep `Design.TagTODO` at `exit_status: 0` while `Design.TagFIXME` stays blocking (the honest asymmetry); consider `Design.AliasUsage` `if_called_more_often_than: 2` — but **never disable it**, it is the check that surfaces the layer inversions. `Readability.MaxLineLength` needs no adjustment (`ignore_heredocs`/`ignore_sigils` are already defaults). Do **not** enable the opt-in set (`Readability.Specs` etc.) in the same change — one ratchet click at a time; that is deferred to TYPES-01.
 - **Hard rule:** any finding whose fix requires extracting a module or splitting a function is *filed* to Phase 204, not fixed here — otherwise 203 swallows 204.
@@ -238,6 +258,7 @@ Plans:
 **Plans**: TBD (est. 5 — CSS hash freeze · style-source test indirection · mechanical style split · render-monster extraction and banner-comment removal · shared case templates and `verify.doc_contract` deletion)
 
 **Notes carried from the approved plan:**
+
 - **Reframed:** the mechanics pass verified in Credo 1.7.18 source that **no Credo check forces the `style.ex` split** — `LongQuoteBlocks` matches only `:quote` nodes (never `sigil_H`), `css/1` has cyclomatic complexity **1**, Credo has no function-length check, and `MaxLineLength` ignores heredocs and sigils by default. This is a *legibility* goal (a 4,510-line file with one 4,493-line function), not a gate requirement — which lowers its urgency and means it must be done only if it can be done provably safely.
 - **The split, in four independently revertible commits:** (1) **freeze the bytes first** — commit a SHA-256 test over `Style.css/1`'s rendered output across the full theme matrix *before touching anything*, pinning or stubbing `Fonts.face_css()` for determinism; this converts "byte-stable frozen" from a milestone convention into an executable gate, strictly stronger than today's source-text assertions. **If the hash cannot be made stable, stop** — that means the frozen invariant was never verifiable, which is itself the finding. (2) Introduce `style_source/0` in `style_contract_test.exs` with `@style_sources` still one element, proving the suite green, isolating the test refactor from the code refactor and avoiding a rewrite of 40+ `File.read!(@style_path)` sites. (3) Split mechanically into ordered `defp` segments returning plain heredocs — everything after `{@fonts_html}<style>` is static, no `:for`, no `:if`, one interpolation point — **splitting at the existing section markers**, because assertions at lines 198-200, 215-217, 265-267, 291-293, 522-524, 1259-1261 slice on them and assume adjacency; use an explicit ordered list, never `Path.wildcard` ordering. (4) Prove the hash and the suite.
 - Render monsters: `stress_live.ex:79` (540 lines), `export_status_live.ex:115` (244), `timeline_live.ex:636` (201), and six more ≥135. 33 banner comments stand in for module boundaries. 17 test files hand-roll `Phoenix.Endpoint` and 19 hand-roll `Phoenix.Router` — migrate one file per commit, since a per-file config difference may be load-bearing.

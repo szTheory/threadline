@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
-current_phase_name: Green Bringup
-status: roadmap_complete
-stopped_at: Phase 198 context gathered
-last_updated: "2026-08-27T18:59:19.514Z"
+current_phase_name: green-bringup
+status: phase_planned
+stopped_at: Phase 198 planned (7 plans, 5 waves)
+last_updated: "2026-08-27T19:43:55.239Z"
 last_activity: 2026-08-27
-last_activity_desc: v1.41 roadmap created (Phases 198–204, coarse granularity, 53/53 requirements mapped)
-state_head: 4a17d742a52995b850637a272640892b0be0aabc
+last_activity_desc: Phase 198 planned — 7 plans in 5 waves, 12/12 requirements and 38/38 decisions covered, plan-checker PASSED
+state_head: fd862db1e0403939cffdac6d521c9f3f99b9c1c0
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 7
   completed_plans: 0
   percent: 0
 ---
@@ -25,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.41 Green, Clean, and Honest (Phases 198–204) — roadmap complete, ready to plan Phase 198
+**Current focus:** v1.41 Green, Clean, and Honest (Phases 198–204) — Phase 198 planned, ready to execute
 
 ## Current Position
 
-Phase: 198 — Green Bringup (not started)
-Plan: —
-Status: Roadmap complete — next `/gsd-plan-phase 198`
-Last activity: 2026-08-27 — v1.41 roadmap created (Phases 198–204, coarse granularity, 53/53 requirements mapped)
+Phase: 198 (green-bringup) — READY TO EXECUTE
+Plan: 0/7 complete (5 waves)
+Status: Planned — next `/gsd-execute-phase 198`. Plans 02, 06, 07 are `autonomous: false` (blocking `checkpoint:decision` on one-way actions: publishing 587 commits of `.planning/` history, collapsing to a single Hex publish path, merging to main + pushing archive tags).
+Last activity: 2026-08-27 — Phase 198 planned: 7 plans / 5 waves, 12/12 GREEN requirements + 38/38 CONTEXT decisions covered, plan-checker VERIFICATION PASSED
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 

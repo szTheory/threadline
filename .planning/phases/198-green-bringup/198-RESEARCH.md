@@ -44,6 +44,12 @@ D-01..D-38 as defined in `198-CONTEXT.md` `<decisions>`. This RESEARCH.md does n
 
 Phase 198 is almost entirely **verification and gate-wiring against a repo whose actual state was already read in the preceding `/gsd-discuss-phase` session** — `198-CONTEXT.md`'s `<ground_truth>` and 38 decisions are `[VERIFIED]`-grade research in their own right. This research pass re-confirms the highest-leverage file contents by reading them directly this session (not re-deriving conclusions CONTEXT.md already reached), and closes the ten open questions the orchestrator flagged: the `alls-green` YAML shape, the matrix-static-name emission question, the ruleset write-API payload, `bin/verify-branch-protection`'s two `gh api` halves, Credo's `--config-file` replace semantics, the `@ui_form_policy` persisted-attribute idiom, the Playwright `--max-failures` + chromium-baseline orphan risk (now settled with a concrete answer — see below), `gitleaks`/`trufflehog` invocation flags, and the deduplicated-issue pattern.
 
+> **⚠ SUPERSEDED — this paragraph is WRONG. Do not act on it.** `198-PATTERNS.md` opened both spec
+> files and found each already `test.skip`s itself out of the bare `chromium` project. The count below
+> is a glob-substring false alarm: `*-chromium.png` also matches `*-desktop-chromium.png`, and all 13
+> files are desktop/mobile-suffixed. **Deleting the `chromium` project is safe — zero coverage loss,
+> zero orphaned baselines, no pre-condition.** Kept unedited as the honest record of a corrected finding.
+
 **One correction to a stated assumption in the orchestrator's critical_constraints:** open question 8 asked "is any baseline actually on disk for [the `chromium` project]?" — it is. `git grep`/`find` for `-chromium.png` snapshot files found **13 committed baselines** across `operator-stress.spec.ts` and `operator-screenshot-regression.spec.ts` that resolve to the `chromium` project name (not `desktop-chromium`). D-15 step 1 (delete the `chromium` project) will orphan these 13 files unless those tests are also re-pointed at `desktop-chromium` or the baselines are regenerated/deleted in the same commit. This is a **new, concrete pre-condition for D-15 step 1** that CONTEXT.md flagged as a risk to check but did not resolve with a number.
 
 **Primary recommendation:** Do not deviate from the CONTEXT.md decision record. Use this document to (a) execute D-15 step 1 with the 13-file baseline list in hand, (b) implement `alls-green` and the ruleset payload from the verified shapes below, (c) treat the matrix-static-name question as **empirically unverified until the matrix is pushed and observed** (do not hard-code an assumption about GitHub's behavior into any committed doc beyond "TBD, see D-11 observation record"), and (d) use the Credo/gitleaks/trufflehog CLI flag shapes below directly in Plan 01/05 scripts.
@@ -361,7 +367,13 @@ Actually the correct invocation form is `mix credo --config-file <path>` (the pa
 
 ## Common Pitfalls
 
-### Pitfall 1: Deleting the `chromium` Playwright project orphans 13 committed baselines
+### Pitfall 1: ~~Deleting the `chromium` Playwright project orphans 13 committed baselines~~ (NOT A PITFALL — disproved)
+
+> **⚠ SUPERSEDED.** This pitfall does not exist. Option (b) below is the one that holds: both spec
+> files already exclude themselves from the bare `chromium` project via explicit `test.skip` guards,
+> and the 13 matched files are all `*-desktop-chromium.png` / `*-mobile-chromium.png` — the `find`
+> pattern's substring matched them spuriously. D-15 step 1 needs **no** pre-condition step. Verified in
+> `198-PATTERNS.md`. Text kept unedited below as the record of the corrected finding.
 **What goes wrong:** D-15 step 1 deletes the `chromium` project at `playwright.config.ts:16`. `snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}-{projectName}{ext}"` (`playwright.config.ts:123`) means every committed `*-chromium.png` baseline is keyed to that exact project name.
 **Why it happens:** The three unscoped projects (`chromium`, `desktop-chromium`, `mobile-chromium`) look redundant by viewport diff alone (1280×720 vs 1280×900), but two spec files (`operator-stress.spec.ts`, `operator-screenshot-regression.spec.ts`) currently run against `chromium` specifically and have committed golden images for it.
 **How to avoid:** Before deleting the project, `find examples/threadline_phoenix/e2e/tests -iname "*-chromium.png"` (this research ran that exact command — **13 files found**, all under `operator-stress.spec.ts-snapshots/` and `operator-screenshot-regression.spec.ts-snapshots/`). Either (a) `git rm` those 13 files in the same commit that deletes the project, accepting the coverage gap is absorbed by `desktop-chromium`'s equivalent tests running the same assertions at a near-identical viewport, or (b) confirm those two spec files also run under `desktop-chromium`/`mobile-chromium` (if so, the `chromium`-suffixed baselines are pure redundant coverage and safe to delete) — check via `grep -n "projects\|test(" operator-stress.spec.ts operator-screenshot-regression.spec.ts` for any `test.describe.configure` or per-file `use.testMatch` restricting them to `chromium` only. This is a **new, execution-time-checkable pre-condition** the planner should encode as an explicit verification step in the D-15-step-1 task, not left implicit.
@@ -456,22 +468,30 @@ fi
 | A6 | `MechanicalChecker.run/1`'s function signature accepts an arbitrary path/data argument (not hard-coded to `.planning/scorecards/`) | Pattern 6 | Medium — if hard-coded, the GREEN-03 probe design needs a temp-copy-and-restore wrapper instead of a direct scratch-path call; this session did not re-open `mechanical_checker.ex` to confirm the signature (relied on CONTEXT.md's canonical_refs citation of `mechanical_checker.ex:155`). **Recommend the planner's Plan 01 task explicitly opens this file first**, before designing the probe script. |
 | A7 | `release-please-config.json`'s `extra-files` mechanism (referenced in canonical_refs, not re-read this session) is unaffected by any Phase 198 change | (not directly researched — noted as an assumption of non-interference) | Low — Phase 198 touches no version-bearing files; flagged only for completeness. |
 
-## Open Questions
+## Open Questions (RESOLVED — see resolutions inline)
+
+> **All three were resolved after this document was written.** Questions 2 and 3 were answered
+> definitively by `198-PATTERNS.md` reading the source files directly; question 1 is handled by an
+> explicit empirical-first strategy in Plan 07 Task 2. Read the `**RESOLVED**` line under each before
+> acting on the "what's unclear" text above it.
 
 1. **Is `RELEASE_PLEASE_TOKEN` a GitHub App install token or a classic/fine-grained PAT, and does that change the ruleset bypass-actor model entirely?**
    - What we know: `release.yml:96` comment self-describes it as "a fine-grained PAT."
    - What's unclear: Whether a fine-grained PAT's pushes are even subject to ruleset enforcement the same way a GitHub App's are, and whether `bypass_actors` with `actor_type: "Integration"` is the right primitive at all versus e.g. `actor_type: "OrganizationAdmin"` or simply not needing a bypass actor if the PAT's repo permissions already satisfy the ruleset's `pull_request`-target rules (rulesets typically target PR merges, and release-please's own commits are typically made via a PR that then gets merged like any other, in which case NO bypass may be needed at all — the "release-please app only" bypass may be solving a problem that doesn't exist if release-please's workflow already goes through a normal PR+merge).
    - Recommendation: Verify empirically in Plan 03/04 execution — attempt the ruleset without a bypass actor first, and only add one if a real release-please PR is observed being blocked.
+   - **RESOLVED (strategy, not fact):** the recommendation was adopted. **Plan 07 Task 2** attempts the ruleset with **no bypass actor** and adds one only if a real release PR is observed blocked. Carried in Plan 07's `flagged_assumptions`. The underlying platform question remains genuinely open and is answered at execution time, by observation.
 
 2. **Does the reduced PR-lane browser job (D-17, `desktop-chromium` + `mobile-chromium` only) still exercise `operator-stress.spec.ts` and `operator-screenshot-regression.spec.ts`'s `chromium`-only assertions, or do those specs need updating to run under the retained projects?**
    - What we know: 13 `*-chromium.png` baselines exist; the two spec files were not opened this session to check if they restrict themselves to the `chromium` project via `test.describe.configure({ mode: ... })` or per-file project scoping.
    - What's unclear: Whether removing `chromium` silently drops real test coverage (if those specs run ONLY under `chromium` today) or is purely redundant (if they already run under all three/two remaining projects and the `chromium`-suffixed baseline is an accidental extra).
    - Recommendation: Open both spec files as a first sub-step of the D-15-step-1 task, before touching `playwright.config.ts`.
+   - **RESOLVED — and this document's "13 baselines" finding was WRONG.** `198-PATTERNS.md` opened both spec files: each already excludes itself from the bare `chromium` project via an explicit `test.skip` guard. The "13 committed baselines" count was a **glob-substring false alarm** — the pattern `*-chromium.png` also matches `*-desktop-chromium.png`, and all 13 files are in fact desktop/mobile-suffixed. **Deleting the `chromium` project (D-15 step 1) is safe: zero coverage loss, zero orphaned baselines, no pre-condition work required.** See the correction banners at §"One correction to a stated assumption" and §"Pitfall 1".
 
 3. **What does `MechanicalChecker.run/1`'s actual function signature look like, and does it hard-code `.planning/scorecards/`?**
    - What we know: `ci.yml:280-286` comments describe its role; `mechanical_checker_test.exs` invokes it via the `mix verify.mechanical` alias.
    - What's unclear: The exact input contract needed to design a non-scorecard-touching synthetic probe (Pattern 6 above).
    - Recommendation: Open `lib/threadline/operator_surface/mechanical_checker.ex` directly in Plan 01 before writing probe code.
+   - **RESOLVED:** `MechanicalChecker.run/1` (`lib/threadline/operator_surface/mechanical_checker.ex:92`) takes `opts \\ []` with `:scorecard_dir` defaulting to `.planning/scorecards` — it is **path-parameterized, not hard-coded**. A scorecard-free GREEN-03 probe is therefore directly possible via `MechanicalChecker.run(scorecard_dir: "/tmp/scratch")`, satisfying D-38's "no scorecard touched" without any source change.
 
 ## Environment Availability
 
