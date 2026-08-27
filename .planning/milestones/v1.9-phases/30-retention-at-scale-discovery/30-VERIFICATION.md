@@ -2,6 +2,10 @@
 phase: 30-retention-at-scale-discovery
 status: human_needed
 verified: 2026-04-24
+audit_acknowledged:
+  milestone: v1.40
+  at: 2026-08-27
+  status: human_needed
 ---
 
 # Phase 30 verification

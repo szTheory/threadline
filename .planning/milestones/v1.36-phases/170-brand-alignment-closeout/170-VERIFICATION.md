@@ -5,9 +5,14 @@ status: human_needed
 score: 4/4 must-haves verified
 overrides_applied: 0
 human_verification:
+
   - test: "End-of-milestone UAT gate — walk the operator surface in dark, light, and system modes; confirm brand posture, docs, and example app match shipped behavior."
     expected: "User confirms light/dark/system render correctly live; closeout_readiness flips from pending-uat to green; COMP-01/COMP-02 source-uncommitted entanglement (Finding F1) resolves when the nav-overhaul lane lands."
     why_human: "Live visual + interaction verification across three theme modes; this is the milestone-level human gate declared in ROADMAP that runs AFTER phase 170 and gates milestone archival. It is NOT a phase-170 deliverable gap — phase 170 correctly records it as pending."
+audit_acknowledged:
+  milestone: v1.40
+  at: 2026-08-27
+  status: human_needed
 ---
 
 # Phase 170: brand-alignment-closeout Verification Report

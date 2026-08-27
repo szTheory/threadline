@@ -2,6 +2,9 @@
 
 ## Pre-existing example-app demo-seed timeout (discovered during 177-05)
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **File:** `examples/threadline_phoenix/test/mix/tasks/threadline_evidence_show_example_test.exs:20`
 - **Symptom:** `mix verify.example` (and `mix ci.all`) reports 1 failure: the test setup
   (`ThreadlinePhoenix.Demo.Seed.run/0` → `Demo.Seed.Exports.run/1` `insert_all`) exceeds the

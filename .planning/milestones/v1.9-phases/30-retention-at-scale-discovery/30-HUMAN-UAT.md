@@ -4,6 +4,10 @@ phase: 30-retention-at-scale-discovery
 source: [30-VERIFICATION.md]
 started: 2026-04-24T00:00:00Z
 updated: 2026-04-24T00:00:00Z
+audit_acknowledged:
+  milestone: v1.40
+  at: 2026-08-27
+  gap_snapshot: "partial::scenarios=0"
 ---
 
 ## Current test

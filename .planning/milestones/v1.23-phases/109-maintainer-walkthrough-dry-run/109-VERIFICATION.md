@@ -2,6 +2,10 @@
 phase: 109-maintainer-walkthrough-dry-run
 status: gaps_found
 verified: 2026-05-27T19:20:00Z
+audit_acknowledged:
+  milestone: v1.40
+  at: 2026-08-27
+  status: gaps_found
 ---
 
 # Phase 109 Verification

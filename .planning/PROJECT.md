@@ -8,29 +8,28 @@ Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-## Current Milestone: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness
-
-**Goal:** Make evaluating and improving the `/audit` operator UI fast and *monotonic* — an adversarial, multi-lens critic panel (per-persona/JTBD + a graphic-design critic + a brand veto) over deterministic capture, feeding the design-system ledger's existing ratchet so award-winning, on-brand, Linear-grade improvements land and regressions are blocked — with far less human review time.
-
-**Target features:**
-- **Scorecard cube** — decompose the design-system ledger's single opaque score into `page × persona × lens`; self-assessment banned (every score cites a screenshot or a mechanical output).
-- **Mechanical / vision split** — deterministic checks (token-grid, WCAG contrast, control-count, card-nesting depth, scroll-cost, accent/type-size budgets) are the ratchet floor; the LLM judges only gestalt (visual hierarchy, spacing rhythm, elegance-vs-accidental, restraint, information scent, brand feel).
-- **Critic validation & golden set** (the linchpin) — hand-labeled anchors + refute-tests + 75–90% human agreement, gated *before* the critic drives the ratchet.
-- **Critic runner** — `examples/threadline_phoenix/e2e/critic/`, Claude Opus 4.8 vision, structured output + cached versioned rubrics + N-sample self-consistency; `mix verify.ui_critique`, **local-only, never in `ci.all`**.
-- **Forward-only gate** — accept a change only if it improves the target lens AND no other page/persona/lens/a11y/screenshot baseline regresses; auto-apply mechanical fixes + a *narrow, spike-proven* low-risk-structural whitelist; full-panel re-eval; human ratifies score bumps at phase gates; first-class held-out "true-north" set against Goodharting.
-- **Proof, not just tooling** — drive real improvement on the 2–3 lowest-scoring pages; v1.37-style 8-lens adversarial closeout + residual design-debt register (owner + reopen-trigger).
-
-**Locked decisions:** Reuse the existing ledger/ratchet, `/audit/__stress`, Playwright dark/light lanes, a11y evidence, brand pressure-test method, and locked personas — do not rebuild. Reference bar: **Linear (primary)** + Vercel/Stripe/Grafana-cautionary (secondary, surface-specific). Invariants held: no root runtime dep (Anthropic SDK is an `e2e` devDependency), no public component API, dev/test-only fail-closed harness, LLM out of CI, capture/query/auth untouched. Phase numbering continues from v1.39 (starts at Phase 194).
-
 ## Current State
 
-Threadline shipped **v1.39 Quality Baseline, Schema Confidence, and CI Efficiency** on 2026-07-03 (Phases 189–193, 15/15 requirements, all phases verified). It was a consolidation milestone: an evidence-backed quality-risk ranking followed by high-confidence fixes to the three weakest surfaces — configurable custom PostgreSQL `storage_schema` behavior proven end to end, release/docs version truth reconciled to `0.9.0`, and measured CI/CD efficiency work — with no product/UI scope expansion and no version bump/Hex publish.
+Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness** on 2026-08-27 (Phases 194–197, 28/29 requirements; PROOF-02 closed as a human-ratified shortfall). The milestone built and validated the full critique loop: a deterministic `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet, mechanical checkers + tiered Playwright evidence capture inside `mix ci.all`, a golden-set-validated local-only Claude-vision critic panel, and a forward-only net-positive gate that landed the first human-ratified improvement (Evidence page density, Δ+7). The paid critic loop is **parked** on spend/value grounds — do not run paid scoring unless explicitly un-parked; residual design debt lives in `197-DESIGN-DEBT-REGISTER.md` with owners + reopen-triggers.
 
-**Active milestone: v1.40** (opened 2026-07-02, defining requirements). Rather than the closeout's CI/hold defaults, v1.40 re-opens UI iteration deliberately — but as *tooling that makes iteration safe and fast*, not another big-bang polish pass. It automates adversarial multi-lens critique (persona/JTBD + graphic-design + brand veto) over the existing `/audit/__stress` capture, wiring it into the already-shipped design-system ledger ratchet so the operator UI moves monotonically toward Linear-grade craft. See `.planning/research/SUMMARY.md`; the v1.39 next-step options are preserved in `.planning/milestones/v1.39-MILESTONE-AUDIT.md` and the phase 193 risk register.
+**No active milestone.** Next focus candidate per the v1.40 closeout: a quality-mapping milestone. Core capture/query/auth semantics stay out of scope unless a truth/schema inconsistency forces it. The root package keeps Phoenix/LiveView optional, the Anthropic SDK remains an `e2e` devDependency only, no public component API exists, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
 
-Recent work already built substantial surface area: v1.34 local Docker demo DX, v1.35 unified brand, v1.36 light/system theming, v1.37 internal operator design system, v1.38 page-by-page `/audit` polish, and now v1.39 quality/schema/CI consolidation. Core capture/query/auth semantics stay out of scope unless a storage-schema or docs-truth fix proves they are already inconsistent with published behavior. The root package keeps Phoenix/LiveView optional, PhoenixStorybook stays example/dev-only, no public component API is introduced, and external pilot/compliance expansion remains signal-gated.
+## Latest Milestone Shipped: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
 
-## Latest Milestone Shipped: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03)
+**Goal (achieved with one ratified gap):** Make evaluating and improving the `/audit` operator UI fast and *monotonic* — an adversarial multi-lens critic panel over deterministic capture, feeding the design-system ledger's ratchet so on-brand improvements land and regressions are blocked, with far less human review time.
+
+**Delivered:**
+- **Scorecard-cube ledger (Phase 194)** — ledger v2 records `page × persona × lens` with per-lens monotonicity, evidence-referenced bumps, and a freshness-tested `DESIGN-SYSTEM.md` per-lens projection; all guards deterministic inside `mix ci.all`.
+- **Mechanical floor + tiered capture (Phase 194)** — deterministic checkers (token-grid, spacing, type-size, radius/shadow/motion, WCAG dark+light contrast, control count, card nesting, scroll cost, accent hues) behind `mix verify.mechanical`; Tier A/B/C capture matrix emitting full per-cell evidence bundles from `/audit/__stress`.
+- **Validated critic panel (Phase 195)** — local-only `e2e/critic/` Claude-vision runner (per-persona P1–P5 + graphic-design + brand-veto), versioned anchored rubrics, refute-test battery, and a synthetic-twin golden oracle gated on Spearman-ρ ranking (rhythm + brand validated) before any ratchet influence; Anthropic SDK stayed an `e2e` devDependency.
+- **Forward-only gate + first proven iteration (Phase 196)** — full loop (capture → critique → propose → re-evaluate → guard) behind a full-panel net-positive gate with Goodhart/guard-the-guards protections; first human-ratified improvement (retention+density ACCEPT Δ+7) with the first `ratchet.signoffs` entry; maintainer gates automated (zero-UAT).
+- **Coverage growth, closeout & debt register (Phase 197)** — one further ratified iteration, loop-measurement hardening (critic-verdict cache, persona-fanout collapse), adversarial closeout confirming the deterministic floor can't regress and all invariants hold, and a residual design-debt register with owner + reopen-trigger per row. **PROOF-02 shortfall ratified:** the paid loop was parked on spend/value before the full 2–3-page sweep completed (2/3 verified; see `197-VERIFICATION.md`).
+
+**Archives:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`, `.planning/milestones/v1.40-phases/`
+
+**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone` (quality-mapping milestone is the standing candidate); paid critic scoring stays parked until explicitly un-parked.
+
+## Prior shipped milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03)
 
 **Goal (achieved):** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
 
@@ -471,6 +470,7 @@ Recent work already built substantial surface area: v1.34 local Docker demo DX, 
 
 ### Validated
 
+- [x] **Automated operator-UI critique & forward-only iteration harness (Phases 194–197)** — `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet + evidence-referenced bumps; deterministic mechanical checkers (`mix verify.mechanical`) and Tier A/B/C evidence capture inside `mix ci.all`; golden-set-validated local-only Claude-vision critic panel (`mix verify.ui_critique`, e2e devDependency only); forward-only net-positive gate with Goodhart/guard-the-guards protections; first human-ratified improvements landed; adversarial closeout + design-debt register. 28/29 requirements (LEDGER-01–05, MECH-01–05, CRITIC-01–05, RUNNER-01–05, GATE-01–05, PROOF-01/03/04; **PROOF-02 ratified shortfall** — paid loop parked on spend/value). Validated in v1.40 (2026-08-27).
 - [x] **Microcopy and information architecture sweep (Phase 179)** — Added guard-first rendered copy contracts; relabeled shell/Home IA while preserving routes, atoms, ids, data-testids, and workflows; normalized shared state grammar, investigation/readiness pages, Timeline, Evidence/Exports, Redaction, Retention, and stress-route copy evidence. Requirements COPY-01, COPY-02, COPY-03. Validated in Phase 179 (2026-06-19).
 - [x] **Primitive components (Phase 173)** — Extracted class-soup primitive and overlay/disclosure set into internal private function components, each audited in isolation with a full interaction-state matrix and correct a11y semantics. Requirements COMP-01, COMP-02, COMP-03. Validated in Phase 173 (2026-06-16).
 - ✓ **Operator surface light mode (Phases 166–170)** — `theme: :dark | :light | :system` host config rendered server-side as `data-tl-theme` over a pure-CSS 45-token light lane (no JS/FOUC, CSP-proof); component retune of the ~9 dark-effect families + data-viz surfaces; light/system WCAG-AA contrast mirror with alpha-aware compositing; `__light__` screenshot lane + `theme:` docs; brand token parity + dual-mode pressure-test. 15/15 requirements (THEME-01–04, TOKEN-01–03, COMP-01/02, A11Y-01/02, EVID-01/02, BRAND-01/02). Validated in v1.36 (2026-06-14).
@@ -561,7 +561,7 @@ Recent work already built substantial surface area: v1.34 local Docker demo DX, 
 
 ### Active
 
-_No active requirements. v1.39 shipped 2026-07-03; define the next milestone with `/gsd-new-milestone`._
+_No active requirements. v1.40 shipped 2026-08-27; define the next milestone with `/gsd-new-milestone`._
 
 ### Out of Scope
 
@@ -666,6 +666,10 @@ _No active requirements. v1.39 shipped 2026-07-03; define the next milestone wit
 | v1.39 is a consolidation milestone, not a new product/UI expansion | Recent milestones created a lot of surface area. The highest leverage now is finding the weakest quality dimension, proving schema behavior, repairing docs/version drift, and making CI trustworthy/efficient. New pages, public component APIs, compliance packs, and synthetic pilots would add support burden before the current adoption contract is fully trusted. | ✓ Validated (v1.39, 2026-07-03) — 15/15 requirements, no scope expansion, no version bump |
 | Custom PostgreSQL storage schemas are a public trust boundary | The project already defaults owned tables to `threadline` rather than `public`; that is the right host-app-respectful posture. But the feature only earns adoption trust if custom schemas work end to end, Ecto prefix behavior is not misleading, generated migrations quote supported identifiers safely, and host-schema assumptions are explicit. | ✓ Validated (Phase 190, v1.39, 2026-07-02) — dual-schema `audit` integration proof; WR-01 fixture residual tracked with reopen-trigger |
 | CI/CD optimization must be measured and boring | Faster CI is only useful if merge/release gates stay trustworthy. v1.39 should baseline wall-clock/critical path/flakiness first, then prefer precise cache/setup/service/version-policy fixes over matrix explosion, broad sharding, flaky retries, or clever required-check topology. | ✓ Validated (Phase 192, v1.39, 2026-07-02) — baseline-first; D-17/D-19 ship-gated externals tracked in 192-SHIP-CHECKLIST.md |
+| v1.40 splits quality judgment: deterministic mechanical checks are the ratchet floor, the LLM judges only gestalt | Nondeterministic + paid scoring must never gate CI; a violation blocks independently of any LLM opinion | ✓ Shipped (Phases 194–197, v1.40) |
+| Critic must be validated against a golden set before driving any ratchet | An un-validated critic driving a ratchet optimizes toward a broken oracle; synthetic-twin oracle + Spearman-ρ ranking gate (not Krippendorff α — the critic compresses its scale) | ✓ Shipped (Phase 195, v1.40) |
+| Persona fan-out collapsed to 1 persona for hierarchy/density lenses | Probe proved P1–P5 unanimous on ranking (15/15); 5× cheaper with the oracle ρ as backstop | ✓ Shipped (Phase 197, v1.40) |
+| Paid critic loop PARKED at v1.40 close | Spend/value shortfall on PROOF-02 human-ratified; deterministic floor + guards remain in CI, paid scoring only on explicit un-park | ✓ Ratified (197-02, 2026-08-27) |
 
 ## Evolution
 
@@ -687,4 +691,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-07-03 after v1.39 milestone — Quality Baseline, Schema Confidence, and CI Efficiency shipped (Phases 189–193, 15/15 requirements)*
+*Last updated: 2026-08-27 after v1.40 milestone — Automated Operator-UI Critique & Forward-Only Iteration Harness shipped (Phases 194–197, 28/29 requirements, PROOF-02 ratified shortfall)*

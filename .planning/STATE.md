@@ -2,17 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-status: executing
+status: Awaiting next milestone
 stopped_at: "Completed 197-05-PLAN.md 2026-08-27 — PROOF-03/04 closeout: four tamper probes tripped+reverted (verify.critic_trust FAIL under each, 22/0 after), 197-ADVERSARIAL-REVIEW.md (status passed, 6 lenses) + 197-DESIGN-DEBT-REGISTER.md (12 ranked rows, all 9 seeds accounted; rank 1 = parked PROOF-02 loop, rank 2 = copy_contract stale pin from 842bd737, seed #9 re-measured 0 undefined_table). Phase 197: 01/02/05 done, 03/04 WAIVED by maintainer-ratified PROOF-02 shortfall (197-02-SUMMARY). REMAINING: phase verifier (PROOF-02 gap is explicit) + phase.complete."
-last_updated: "2026-08-27T21:30:00.000Z"
-last_activity: 2026-08-26
-state_head: 635394f75b4474d596bd8e44b9e4466294c9c430
+last_updated: "2026-08-27T17:52:36.527Z"
+last_activity: 2026-08-27
+last_activity_desc: Milestone v1.40 completed and archived
+state_head: 6b279cf71c36b95bb24e3905382b810cec2f75cf
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  completed_phases: 3
+  total_plans: 21
+  completed_plans: 21
+  percent: 75
 ---
 
 # Project State: Threadline
@@ -26,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: 197 (coverage-growth-adversarial-closeout-design-debt-register) — COMPLETE 2026-08-27, verified achieved-with-ratified-gap (VERIFICATION.md; PROOF-02 = ratified shortfall, PROOF-03/04 verified)
-Plan: 5 of 5 executed (01/02/05 complete; 03/04 waived by ratified PROOF-02 shortfall)
-Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
-Status: Phase 197 complete — milestone v1.40 closeout ready
+Phase: Milestone v1.40 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-27 — Milestone v1.40 completed and archived
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -178,6 +179,22 @@ Progress: [██████████] 100%
 | Phase 195 P04 | 11m | 2 tasks | 7 files |
 | Phase 195 P06 | 13m | 2 tasks | 2 files |
 | Phase 197 P05 | ~50min | 3 tasks | 4 files |
+| uat_gap (v1.40 close 2026-08-27) | 169-HUMAN-UAT.md — 1 pending scenario (archived v1.36) | partial — acknowledged & deferred |
+| uat_gap (v1.40 close 2026-08-27) | 170-HUMAN-UAT.md — 1 pending scenario (archived v1.36) | partial — acknowledged & deferred |
+| uat_gap (v1.40 close 2026-08-27) | 30-HUMAN-UAT.md — 0 pending scenarios (archived v1.9) | partial — acknowledged & deferred |
+| verification_gap (v1.40 close 2026-08-27) | 197-VERIFICATION.md — PROOF-02 shortfall ratified at phase seal (achieved-with-ratified-gap) | gaps_found — acknowledged & deferred |
+| verification_gap (v1.40 close 2026-08-27) | 170-VERIFICATION.md (archived v1.36) | human_needed — acknowledged & deferred |
+| verification_gap (v1.40 close 2026-08-27) | 109-VERIFICATION.md (archived v1.23) | gaps_found — acknowledged & deferred |
+| verification_gap (v1.40 close 2026-08-27) | 30-VERIFICATION.md (archived v1.9) | human_needed — acknowledged & deferred |
+| deferred_items (v1.40 close 2026-08-27) | Phase 196 deferred-items.md — 1 entry (pre-existing full-suite failures: StressLedgerTest fixture-registry gap, LedgerSplice, FormlessPages, Phase06Nyquist, V123Charter) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 197 deferred-items.md — 1 entry (copy_contract eyebrow red from 197-02 = debt rank 2; 3-module doc-contract baseline = debt rank 8; search_path fix confirmed) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 191 deferred-items.md (archived v1.39) — 3 entries (v1_23_charter_doc_contract_test milestone-literal drift) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 181 deferred-items.md (archived v1.38) — 1 entry (root CI residuals: formless coverage, charter drift, example demo-seed) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 182 deferred-items.md (archived v1.38) — 1 entry (example precommit demo-seed/walkthrough failures) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 176 deferred-items.md (archived v1.37) — 3 entries (format-clean drift ×2, card-nesting coverage RED; table converted to heading entries to carry status) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 177 deferred-items.md (archived v1.37) — 1 entry (example demo-seed 60s setup timeout) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 179 deferred-items.md (archived v1.37) — 5 entries (charter doc-contract + example demo-seed/walkthrough residuals per plan 01/03/04/05/06) | acknowledged in-file (status: acknowledged) |
+| deferred_items (v1.40 close 2026-08-27) | Phase 180 deferred-items.md (archived v1.37) — 1 entry (mix precommit demo-seed failures; Status field repurposed, scope note kept) | acknowledged in-file (status: acknowledged) |
 
 ## Accumulated Context
 

@@ -5,6 +5,9 @@ plan that logged them. Per the executor scope boundary, these are recorded, not 
 
 ## Discovered during 196-02 (2026-07-28)
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 Running the full `mix test` suite surfaced 11 pre-existing failures. All were verified
 present on the pre-196-02 ledger/tree (`HEAD~2`) and live in files this plan never
 touched. They are unrelated to the GATE-02/04/05 guards this plan added.

@@ -7,6 +7,7 @@ behavior_unverified: 0
 overrides_applied: 0
 verdict: achieved-with-ratified-gap
 gaps:
+
   - truth: "Real, ratified improvement landed on the 2–3 lowest-scoring operator pages (PROOF-02)"
     status: failed
     reason: >
@@ -19,12 +20,19 @@ gaps:
       becomes a PROOF-02 gap for the phase verifier, never silently papered over").
       NOT an unratified failure; NOT silently passed.
     artifacts:
+
       - path: ".planning/phases/197-coverage-growth-adversarial-closeout-design-debt-register/197-02-SUMMARY.md"
         issue: "status: complete-with-ratified-shortfall — ratification rationale recorded (spend/value economics), resume fuel staged"
     missing:
+
       - "2–3 NEW accepted iterations on lowest-scoring operator pages (retention accept from 196 stands; nothing new this phase)"
       - "Resume path is owned: design-debt register rank 1 (D-197-A), owner=maintainer, reopen-trigger = one critic:gate command against the standing 5-candidate list"
+
 human_verification: []
+audit_acknowledged:
+  milestone: v1.40
+  at: 2026-08-27
+  status: gaps_found
 ---
 
 # Phase 197 Verification Report

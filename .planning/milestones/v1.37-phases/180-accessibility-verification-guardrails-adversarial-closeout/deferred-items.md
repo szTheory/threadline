@@ -4,7 +4,9 @@
 
 - **Found during:** Plan 180-01 final AGENTS.md verification
 - **Command:** `mix precommit` from `examples/threadline_phoenix`
-- **Status:** Out of scope for Plan 180-01
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+- **Scope:** Out of scope for Plan 180-01
 - **Evidence:** 95 tests ran, 7 failed in demo seed/walkthrough coverage:
   - `ThreadlinePhoenixWeb.WalkthroughEvidenceTest` missing #4521 close/redaction evidence transaction.
   - `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` #4518 deleter hard-delete timestamp assertion failed.

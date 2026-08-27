@@ -4,6 +4,9 @@ Out-of-scope discoveries logged during execution. Not fixed (SCOPE BOUNDARY: onl
 
 ## From 191-01 (2026-07-02)
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **`v1_23_charter_doc_contract_test.exs` fails** — asserts PROJECT.md contains the
   v1.38 milestone strings ("Threadline is in milestone **v1.38 ...**" and
   "## Current Milestone: v1.38 ..."), but PROJECT.md was updated to v1.39 when the
@@ -16,6 +19,9 @@ Out-of-scope discoveries logged during execution. Not fixed (SCOPE BOUNDARY: onl
 
 ## From 191-02 (2026-07-02)
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **Same `v1_23_charter_doc_contract_test.exs` failure still present.** Re-confirmed
   failing on clean `b8547d73` BEFORE the 191-02 Task 3 change, so it is not caused by
   the routing reshape (mix.exs `groups_for_extras`/alias, README `## Start here`, or
@@ -24,6 +30,9 @@ Out-of-scope discoveries logged during execution. Not fixed (SCOPE BOUNDARY: onl
   3/3. Still owned by the ADOPT-01 version-truth / charter work, not ADOPT-03 routing.
 
 ## From 191-03 (2026-07-02)
+
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
 
 - **Same `v1_23_charter_doc_contract_test.exs` failure remains — out of THIS plan's
   declared task scope.** 191-03's declared scope (frontmatter `files_modified` +

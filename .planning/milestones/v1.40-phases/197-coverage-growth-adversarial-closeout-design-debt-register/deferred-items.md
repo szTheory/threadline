@@ -5,6 +5,9 @@ boundary — each is registered in 197-DESIGN-DEBT-REGISTER.md).
 
 ## 197-05 (2026-08-27)
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **`test/threadline/operator_surface/copy_contract_test.exs:249` red** — expects
   the "Selected schema readiness" eyebrow that the landed 197-02 coverage edit
   (842bd737) removed. Caused by 197-02's changes, not this plan's; the 197-02

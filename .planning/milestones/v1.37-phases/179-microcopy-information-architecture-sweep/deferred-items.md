@@ -2,6 +2,9 @@
 
 ## 179-01 Out-of-Scope Verification Failures
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **Found during:** Final `mix ci.all` verification for 179-01.
 - **Scope decision:** Out of scope for 179-01. The failures are in root/project doc-contract and example demo seed/audit-row tests, not in the shell/Home copy files touched by this plan.
 - **Observed failures:**
@@ -11,6 +14,9 @@
 - **Plan-owned verification that passed:** Targeted Phase 179 ExUnit contracts and `operator-home-nav-mobile.spec.ts`.
 
 ## 179-03 Out-of-Scope Verification Failures
+
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
 
 - **Found during:** Final `mix ci.all` verification for 179-03 after plan-caused stale coverage and transaction-copy assertions were fixed.
 - **Scope decision:** Out of scope for 179-03. Remaining failures are in milestone charter documentation, prior evidence-surface example copy, and example demo seed/walkthrough data, not in actor, transaction, row-history, or coverage implementation paths owned by this plan.
@@ -25,6 +31,9 @@
 
 ## 179-04 Out-of-Scope Verification Failures
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **Found during:** Final `mix ci.all` verification for 179-04 after Timeline copy and browser assertions passed.
 - **Scope decision:** Out of scope for 179-04. Remaining failures are in milestone charter documentation, prior evidence-surface example copy, and example demo seed/walkthrough data, not in Timeline copy, filter handling, URL-backed disclosure, or Timeline e2e assertions owned by this plan.
 - **Observed failures:**
@@ -37,6 +46,9 @@
 
 ## 179-05 Out-of-Scope Verification Failures
 
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
+
 - **Found during:** Final `mix ci.all` verification for 179-05 after governance copy, plan-owned browser assertions, root copy/live contracts, and copy-caused example assertions passed.
 - **Scope decision:** Out of scope for 179-05. Remaining failures are in milestone charter documentation and example demo seed/audit-row data, not in Evidence, Export, Redaction, or Retention governance copy, handoff URLs, permission distinctions, or destructive-retention copy owned by this plan.
 - **Observed failures:**
@@ -47,6 +59,9 @@
 - **Plan-owned verification that passed:** Governance LiveView ExUnit suite, `operator-prove-mobile.spec.ts`, `operator-earned-flows.spec.ts`, root copy/live/doc-contract sweep, and copy-caused example assertion updates.
 
 ## 179-06 Out-of-Scope Verification Failures
+
+- **Status:** acknowledged
+- **Acknowledged at:** v1.40 milestone close, 2026-08-27
 
 - **Found during:** Final `mix ci.all` verification for 179-06 after stress fixture, ledger, browser stress route, and ledger screenshot assertions passed.
 - **Scope decision:** Out of scope for 179-06. Remaining failures are in milestone charter documentation and example demo seed/audit-row data, not in stress fixture copy, stress route rendering, story/ledger parity, or browser stress assertions owned by this plan.

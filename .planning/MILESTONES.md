@@ -1,5 +1,29 @@
 # Project milestones: Threadline
 
+## v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (Shipped: 2026-08-27)
+
+**Phases completed:** 4 phases, 21 plans, 34 tasks. Requirements: 28/29 satisfied.
+
+**Known verification overrides:** 24 newly acknowledged, 0 carried forward from a prior close (see STATE.md Deferred Items). Closeout type: override_closeout — Phase 197 sealed as achieved-with-ratified-gap.
+
+**Known gaps:**
+
+- **PROOF-02** (Phase 197): "Real, ratified improvement landed on the 2–3 lowest-scoring operator pages" closed as a human-ratified shortfall — the paid critic loop was parked on spend/value grounds after the first iterations (2/3 success criteria verified; see `milestones/v1.40-phases/197-*/197-VERIFICATION.md` and 197-02-SUMMARY). Deterministic floor, guards, and the full dry-run loop remain in CI.
+
+**Key accomplishments:**
+
+- Migrated the design-system ledger from flat v1 single-score to a v2 page × persona × lens scorecard cube (14 cells across 130 entries), added 5 mechanical cube-invariant guard blocks with proven teeth, and projected a per-lens Scorecard Cube table into DESIGN-SYSTEM.md — all deterministic in mix ci.all, no LLM, no network.
+- Authored the deterministic Playwright Tier A capture lane (operator-tier-a-capture.spec.ts) that drives /audit/__stress and emits per-cell RAW-inputs scorecard JSON + deep-band #tl-main ARIA YAML under a documented, guard-asserted Tier A/B/C matrix — with WCAG/hue/conformance math deliberately left to Elixir (Plan 03). The 120-cell capture could not be executed in this local environment due to the pre-existing example-app DB seeding issue and was not fabricated.
+- Built `Threadline.OperatorSurface.MechanicalChecker` — a pure-Elixir gate that reads the committed Tier A scorecard JSON and computes all 9 mechanical metrics (MODE-A WCAG contrast dark+light via the 2.4-gamma piecewise formula plus radius/shadow/motion/font-size/spacing token conformance; MODE-B type-size/interactive/card-nesting/scroll-cost/distinct-accent-hue with betterer-style floors and >3 far ceilings) — and wired `mix verify.mechanical` into `ci.all` before the browser lane so a violation blocks a change with no LLM in the loop.
+- 7-critic blind panel with brand-veto ordering (RUNNER-03) and two-tier refute battery (directional + noise-floor margin + metamorphic gates, CRITIC-02).
+- Extended (never weakened) the two frozen deterministic guards to the ratified D-12 ledger shape — 8 target failures → 0, ledger byte-untouched, traceability current for all 10 Phase-195 IDs
+- A single `critic:gate` command runs the whole propose→re-evaluate→guard loop for brand_fidelity × route.timeline under dry-run — resolving the page.timeline.happy mechanical twin and printing a verdict with zero API billing — plus the committed critic_panel GATE-04 baseline and its vacuous-safe membership-freeze guard.
+- Four additive, pure-Elixir, vacuous-safe clauses in `critic_trust_test.exs` — backed by two append-only ledger blocks — that make a silent trust-floor/target drop, a synthetic-oracle fixture removal, an un-spiked structural auto-apply whitelist, and an un-stamped screenshot-baseline refresh each turn `verify.critic_trust` red, while the honest committed ledger stays green.
+- `gate.ts` now runs the complete forward-only decision engine — a blast-radius-aware re-eval of every affected route cell on the 4 blocking lenses (targeted-up + no-regress, Δ-vs-IQR only), an advisory report that never gates, a GATE-03 Goodhart divergence halt against the held-out oracle floors, and GATE-02 MODE-A fix-surfacing as a human-applied diff — all with a fully-wired $0 `--dry-run` path.
+- De-duplicated the /audit evidence page's section-header-repeated-as-inline-label pattern (density lens, weakest page route.evidence) — each card no longer re-prints its section's subject, and the page.evidence.happy mechanical twin stays green
+
+---
+
 ## v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (Shipped: 2026-07-03)
 
 **Delivered:** A quality-consolidation milestone that ranked Threadline's real adoption/operations/maintainer risks from repo evidence, then hardened the three weakest surfaces — configurable PostgreSQL storage-schema behavior, release/docs version truth, and CI/CD efficiency — without expanding product scope or hiding risk.
