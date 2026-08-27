@@ -13,6 +13,11 @@ defmodule Threadline.MixProject do
         "verify.doc_contract": :test,
         "verify.release": :dev,
         "verify.test": :test,
+        # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
+        # exists on the :test compile path (see elixirc_paths/1) — without this it
+        # fails with `Could not load Threadline.Test.Repo, error: :nofile`.
+        "test.reset": :test,
+        "test.setup": :test,
         "verify.mechanical": :test,
         "verify.critic_trust": :test,
         "verify.capture": :test,
@@ -118,6 +123,18 @@ defmodule Threadline.MixProject do
       # uses a fresh seed). Opt-in / nightly — not part of `ci.all` so per-PR CI
       # stays fast. See the "Deterministic tests" section in CONTRIBUTING.md.
       "verify.flake": ["test --repeat-until-failure 50"],
+      # Prepare a fresh clone's test environment, then run the suite (Phase 198, D-04).
+      # The example app's deps are fetched because the library suite itself shells into
+      # examples/threadline_phoenix (test/threadline/operator_surface/stress_router_test.exs)
+      # and cannot boot that router without them. Everything else the suite needs —
+      # creating and migrating the test database — test/test_helper.exs already does.
+      "test.setup": ["cmd --cd examples/threadline_phoenix mix deps.get", "test"],
+      # Restore a recreate-by-default posture (Phase 198, D-04). Threadline's effective
+      # default is --keepdb with NO staleness check, which is exactly how a database
+      # predating the storage-schema migration produced ~81 misleading failures. Only the
+      # drop is needed here: test/test_helper.exs already calls storage_up/1 and runs the
+      # migrator on the next run, and its D-03 tripwire catches the stale case.
+      "test.reset": ["ecto.drop --quiet -r Threadline.Test.Repo", "test.setup"],
       "ci.all": [
         "verify.format",
         "verify.credo",
