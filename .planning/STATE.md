@@ -10,20 +10,20 @@ last_activity_desc: Milestone v1.40 completed and archived
 state_head: 6b279cf71c36b95bb24e3905382b810cec2f75cf
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 21
   completed_plans: 21
-  percent: 75
+  percent: 100
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
+See: `.planning/PROJECT.md` (updated 2026-08-27 after v1.40 close)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Milestone v1.40 complete — next: quality-mapping milestone (maintainer directive 2026-08-27)
+**Current focus:** Planning next milestone (quality-mapping candidate, maintainer directive 2026-08-27) — start with /gsd-new-milestone
 
 ## Current Position
 
