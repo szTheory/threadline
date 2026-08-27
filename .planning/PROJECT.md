@@ -12,7 +12,22 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness** on 2026-08-27 (Phases 194–197, 28/29 requirements; PROOF-02 closed as a human-ratified shortfall). The milestone built and validated the full critique loop: a deterministic `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet, mechanical checkers + tiered Playwright evidence capture inside `mix ci.all`, a golden-set-validated local-only Claude-vision critic panel, and a forward-only net-positive gate that landed the first human-ratified improvement (Evidence page density, Δ+7). The paid critic loop is **parked** on spend/value grounds — do not run paid scoring unless explicitly un-parked; residual design debt lives in `197-DESIGN-DEBT-REGISTER.md` with owners + reopen-triggers.
 
-**No active milestone.** Next focus candidate per the v1.40 closeout: a quality-mapping milestone. Core capture/query/auth semantics stay out of scope unless a truth/schema inconsistency forces it. The root package keeps Phoenix/LiveView optional, the Anthropic SDK remains an `e2e` devDependency only, no public component API exists, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
+**Active milestone: v1.41 Green, Clean, and Honest** (opened 2026-08-27). The quality-mapping candidate resolved into a repo-hygiene-and-quality-ratchet milestone: publish and green `origin/main`, decouple the test suite from `.planning/`, purge planning vocabulary from every shipped surface, cut 0.10.0, then turn on real lint/type gates and fix the structural debt they expose. Core capture/query/auth semantics stay out of scope unless a truth/schema inconsistency forces it. The root package keeps Phoenix/LiveView optional, the Anthropic SDK remains an `e2e` devDependency only, no public component API exists, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
+
+## Current Milestone: v1.41 Green, Clean, and Honest
+
+**Goal:** Get the repository into a genuinely clean, green, publishable state — then ratchet software quality across every technical stakeholder lens (architecture, engineering, DX, CI/CD, code quality, docs) wherever the improvement can be made mechanical and gated.
+
+**Target features:**
+- **Green bringup** — publish the 584 unpushed commits, fix the single Playwright job responsible for the 5m52s → 1h33m CI regression, retire the never-re-measured red-test baseline on its merits, repair branch protection before the matrix permanently blocks every PR, and triage worktrees/branches/locks.
+- **Decouple** — `git mv` the five load-bearing datasets out of `.planning/` into `test/fixtures/` so `mix ci.all` no longer reads a planning directory; `git rm` the dead artifacts; land dialyxir.
+- **Public surface** — strip planning vocabulary from every `@moduledoc`, `mix.exs` comment and shipped identifier; group the ~90 ungrouped ExDoc modules; repair the star-shaped docs graph and its broken links; document the orphan config keys, aliases and the `search_path` fix; fill the empty `.github/`.
+- **Rendered output** — remove `data-jtbd` DOM attributes, phase-numbered UI headings and CSS provenance comments with zero design/IA/visual change, in two tiers separated by scorecard blast radius.
+- **Release 0.10.0** — merge PR #26 with every version-bearing literal wired into release-please, one publish path instead of two, and hand-written highlights over the machine changelog.
+- **Real gates** — full Credo defaults expressed as `extra:`/`disabled:` deltas (never an `enabled:` list), dialyzer in `ci.all`, and the layer inversions + Capture↔Semantics cycle fixed.
+- **Structure** — split `style.ex` behind an executable byte-hash lock, extract the render monsters, add shared test case templates, and delete the redundant `verify.doc_contract` alias.
+
+**Key context:** `mix credo --strict` currently runs 2 checks on 253 files in 0.1s because `.credo.exs` uses `checks: %{enabled: [...]}`, which replaces Credo's defaults rather than extending them — the gate in `ci.all` lints almost nothing. `origin/main` has been red since 2026-06-26 and PR #26 is blocked by branch protection, not by `gate-ci-green`. Two backlogs (full-Credo findings, dialyzer findings) are deliberately unmeasured at roadmap time and are sized by a measurement plan in the first phase. Operator-surface work is cleanup-only: no design, IA, layout, or visual change. Paid critic scoring stays PARKED and is being made structurally impossible to trigger, not merely discouraged.
 
 ## Latest Milestone Shipped: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
 
@@ -561,7 +576,14 @@ Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iterati
 
 ### Active
 
-_No active requirements. v1.40 shipped 2026-08-27; define the next milestone with `/gsd-new-milestone`._
+**v1.41 Green, Clean, and Honest** (Phases 198–204) — see `.planning/REQUIREMENTS.md` for the full REQ-ID set.
+
+- [ ] **Green bringup** — `origin/main` carries all local commits and is green in ≤ 20 min; the red-test baseline is retired on its merits; branch protection matches the checks CI actually emits; Flake Detection is a trustworthy signal again.
+- [ ] **Decoupled gates** — `mix ci.all` passes with `.planning/` renamed away; dead planning artifacts removed; dialyzer landed and gating.
+- [ ] **Clean public surface** — no planning vocabulary in HexDocs, the Hex tarball, or any rendered page; docs graph navigable with zero broken links; `.github/` community files present.
+- [ ] **0.10.0 released** — PR #26 merged and published with every version literal release-please-managed and a single publish path.
+- [ ] **Real quality gates** — Credo running full defaults, dialyzer clean in `ci.all`, layer inversions and the Capture↔Semantics cycle resolved.
+- [ ] **Legible structure** — `style.ex` split behind a byte-hash lock, render monsters extracted, shared test case templates in `test/support/`.
 
 ### Out of Scope
 
@@ -670,6 +692,11 @@ _No active requirements. v1.40 shipped 2026-08-27; define the next milestone wit
 | Critic must be validated against a golden set before driving any ratchet | An un-validated critic driving a ratchet optimizes toward a broken oracle; synthetic-twin oracle + Spearman-ρ ranking gate (not Krippendorff α — the critic compresses its scale) | ✓ Shipped (Phase 195, v1.40) |
 | Persona fan-out collapsed to 1 persona for hierarchy/density lenses | Probe proved P1–P5 unanimous on ranking (15/15); 5× cheaper with the oracle ρ as backstop | ✓ Shipped (Phase 197, v1.40) |
 | Paid critic loop PARKED at v1.40 close | Spend/value shortfall on PROOF-02 human-ratified; deterministic floor + guards remain in CI, paid scoring only on explicit un-park | ✓ Ratified (197-02, 2026-08-27) |
+| v1.41 publishes local `main` to `origin` and makes the public repo genuinely green | "Main green" is only true if the public repo is green. `origin/main` has been red since 2026-06-26 with the local tree 584 commits ahead; `.planning/` was already tracked and public up to that point, so publishing the remainder changes degree, not kind. Supersedes the local-only convention for `main` (milestone *tags* remain local). | — Active (v1.41, opened 2026-08-27) |
+| The test suite must not read `.planning/` | Nine test files reached into the planning directory at runtime, two of them (`verify.mechanical`, `verify.critic_trust`) inside `ci.all` — so the library's gates depended on planning prose. Load-bearing datasets move to `test/fixtures/`; `.planning/` stays tracked as history but load-bearing on nothing. Proof is `mix ci.all` green with `.planning/` renamed away. | — Active (v1.41, opened 2026-08-27) |
+| A quality gate that passes vacuously is worse than no gate | `.credo.exs` used `checks: %{enabled: [...]}`, which replaces Credo's defaults (verified in `config_file.ex:377-385` — `merge_checks/2` binds `checks_base` and never uses it). The result ran 2 checks on 253 files in 0.1s inside `ci.all` and always passed. Config must be expressed as `extra:`/`disabled:` deltas so a future Credo release cannot silently re-create the hole; any check that must stay off ships as a register row with an exact finding count. | — Active (v1.41, opened 2026-08-27) |
+| Carried "known red baselines" must be re-derived, not restated | The v1.39 R-C / v1.40 Seed #8 "stable 3-module red baseline" was carried unchanged for four phases while its membership drifted (`coverage_live` → `policy_redaction_live`) and one member became green. A baseline nobody re-measures becomes a blindfold; every register row asserting a measurement must record when it was last re-derived. | — Active (v1.41, opened 2026-08-27) |
+| Planning vocabulary is a public-surface defect, not a cosmetic one | Phase numbers, `D-NN` decision IDs, `REQ-`/`J[0-9]` identifiers and milestone literals had reached rendered HTML, DOM attributes, CSS, public `@moduledoc`s on HexDocs, and the shipped `mix.exs` (including the function name `verify_phase177_uat`). hex.pm has no undo, so the purge must complete before 0.10.0 publishes. | — Active (v1.41, opened 2026-08-27) |
 
 ## Evolution
 
@@ -691,4 +718,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-08-27 after v1.40 milestone — Automated Operator-UI Critique & Forward-Only Iteration Harness shipped (Phases 194–197, 28/29 requirements, PROOF-02 ratified shortfall)*
+*Last updated: 2026-08-27 after opening milestone v1.41 — Green, Clean, and Honest (Phases 198–204)*

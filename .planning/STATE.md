@@ -1,36 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.40
-milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
-status: Awaiting next milestone
-stopped_at: "Completed 197-05-PLAN.md 2026-08-27 — PROOF-03/04 closeout: four tamper probes tripped+reverted (verify.critic_trust FAIL under each, 22/0 after), 197-ADVERSARIAL-REVIEW.md (status passed, 6 lenses) + 197-DESIGN-DEBT-REGISTER.md (12 ranked rows, all 9 seeds accounted; rank 1 = parked PROOF-02 loop, rank 2 = copy_contract stale pin from 842bd737, seed #9 re-measured 0 undefined_table). Phase 197: 01/02/05 done, 03/04 WAIVED by maintainer-ratified PROOF-02 shortfall (197-02-SUMMARY). REMAINING: phase verifier (PROOF-02 gap is explicit) + phase.complete."
-last_updated: "2026-08-27T17:52:36.527Z"
+milestone: v1.41
+milestone_name: Green, Clean, and Honest
+status: planning
+last_updated: "2026-08-27T18:33:47.374Z"
 last_activity: 2026-08-27
-last_activity_desc: Milestone v1.40 completed and archived
-state_head: 6b279cf71c36b95bb24e3905382b810cec2f75cf
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-08-27 after v1.40 close)
+See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone (quality-mapping candidate, maintainer directive 2026-08-27) — start with /gsd-new-milestone
+**Current focus:** v1.41 Green, Clean, and Honest (Phases 198–204) — defining requirements, then roadmap
 
 ## Current Position
 
-Phase: Milestone v1.40 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-27 — Milestone v1.40 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-27 — Milestone v1.41 started
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
