@@ -52,8 +52,8 @@
 
 - [ ] **PROOF-01**: The full loop (capture → critique → propose → re-evaluate → guard) is wired end-to-end and documented as a repeatable runbook.
 - [ ] **PROOF-02**: Real, ratified improvement is landed on the 2–3 lowest-scoring operator pages — each targeted lens advanced toward `target_score` with no regressions — proving the loop drives real UI change, not just tooling.
-- [ ] **PROOF-03**: A v1.37-style multi-lens adversarial closeout confirms the loop cannot regress the deterministic floor and all invariants hold (no root runtime dep, no public API, dev/test-only, LLM out of CI, capture/query/auth untouched).
-- [ ] **PROOF-04**: A residual design-debt register lists remaining items with owner + reopen-trigger (the v1.39 risk-register shape).
+- [x] **PROOF-03**: A v1.37-style multi-lens adversarial closeout confirms the loop cannot regress the deterministic floor and all invariants hold (no root runtime dep, no public API, dev/test-only, LLM out of CI, capture/query/auth untouched).
+- [x] **PROOF-04**: A residual design-debt register lists remaining items with owner + reopen-trigger (the v1.39 risk-register shape).
 
 ## Future Requirements (deferred)
 
@@ -110,8 +110,8 @@ Which phases cover which requirements. Every v1 requirement maps to exactly one 
 | GATE-05 | Phase 196 | Pending |
 | PROOF-01 | Phase 196 | Pending |
 | PROOF-02 | Phase 197 | Pending |
-| PROOF-03 | Phase 197 | Pending |
-| PROOF-04 | Phase 197 | Pending |
+| PROOF-03 | Phase 197 | Complete |
+| PROOF-04 | Phase 197 | Complete |
 
 **Coverage:**
 
