@@ -103,8 +103,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 198-04-PLAN.md — Red-baseline retirement: stale-schema tripwire, `test.reset`, triage artifact with zero-exclusions cap, self-declaring `@ui_form_policy` guard (wave 3)
-- [ ] 198-05-PLAN.md — CI cost surgery: browser fan-out cut, fail-fast with retained traces, browser-lane split + CI coverage doc contract, `timeout-minutes` everywhere, cache-key recomposition (wave 3)
+- [x] 198-04-PLAN.md — Red-baseline retirement: stale-schema tripwire, `test.reset`, triage artifact with zero-exclusions cap, self-declaring `@ui_form_policy` guard (wave 3)
+- [x] 198-05-PLAN.md — CI cost surgery: browser fan-out cut, fail-fast with retained traces, browser-lane split + CI coverage doc contract, `timeout-minutes` everywhere, cache-key recomposition (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
