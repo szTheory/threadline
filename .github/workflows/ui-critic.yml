@@ -1,0 +1,130 @@
+# Job id contract — stable YAML `jobs:` key relied on by docs: critic-before-pole
+#
+# Paid LLM critic lane. Runs the full BEFORE-pole measurement (seeded example
+# app → fresh Tier-B route capture → cache-busted blocking-panel scoring) with
+# zero manual steps. Spend control: push-triggered runs are ALWAYS capture-only
+# (free — fresh screenshots as artifacts, no API calls). Paid scoring runs ONLY
+# on manual workflow_dispatch with score=true, and only when the
+# ANTHROPIC_API_KEY secret is present; absent secret degrades to capture-only,
+# so the job is never red for lack of a key.
+
+name: UI Critic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/threadline_phoenix/lib/**"
+      - "examples/threadline_phoenix/assets/**"
+      - "examples/threadline_phoenix/e2e/**"
+      - "lib/threadline/operator/**"
+      - ".github/workflows/ui-critic.yml"
+  workflow_dispatch:
+    inputs:
+      routes:
+        description: "Space-separated route names (default: all five)"
+        required: false
+        default: "timeline coverage retention actor evidence"
+      score:
+        description: "Run paid LLM scoring (bills the Anthropic API)"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  critic-before-pole:
+    name: Critic BEFORE poles (capture + blocking panel)
+    runs-on: ubuntu-24.04
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ROUTES: ${{ inputs.routes }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-deps-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      - name: Install root dependencies
+        run: mix deps.get
+
+      - name: Ensure threadline_phoenix_test database exists
+        env:
+          PGPASSWORD: postgres
+        run: |
+          createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      - name: Run BEFORE-pole pipeline
+        env:
+          SCORE_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.score && 'yes' || '' }}
+        run: |
+          if [ -z "$SCORE_REQUESTED" ]; then
+            echo "::notice::Capture-only run (paid scoring runs only via manual dispatch with score=true)."
+            examples/threadline_phoenix/e2e/critic-before-pole.sh --capture-only
+          elif [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice::score=true but ANTHROPIC_API_KEY secret absent — capture-only run (no billing)."
+            examples/threadline_phoenix/e2e/critic-before-pole.sh --capture-only
+          else
+            examples/threadline_phoenix/e2e/critic-before-pole.sh
+          fi
+
+      - name: Render critic HTML report
+        if: github.event_name == 'workflow_dispatch' && inputs.score && env.ANTHROPIC_API_KEY != ''
+        working-directory: examples/threadline_phoenix/e2e
+        run: npm run critic:report:html || true
+
+      - name: Upload critic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critic-before-pole-${{ github.run_number }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            examples/threadline_phoenix/e2e/artifacts/routes/**
+            .planning/critic-verdict-cache/*.json
+            examples/threadline_phoenix/e2e/artifacts/report/**
