@@ -23,7 +23,7 @@ Basis:
 
 **This verdict covers credentials only.** Per D-30, content disclosure is explicitly *not* a gate: the `.planning/` history publishes as-is, including LLM spend figures and internal quality assessments. See `## Known disclosure surface (D-30, accepted)` below for what that means concretely. The maintainer's one-way authorization for that publication is a separate gate, recorded under `## D-30 authorization`.
 
-**One judgment call is flagged for the maintainer** rather than settled silently — findings F-002 and F-003 (the example app's dev/test `secret_key_base` literals). See the register reason column and the note beneath it.
+**One judgment call is flagged for the maintainer** rather than settled silently — findings F-002 and F-003 (the example app's dev/test `secret_key_base` literals). See the register reason column and the note beneath it. **RESOLVED at the Task 3 gate on 2026-08-27: Class C stands, no rotation.** See the rider under `## D-30 authorization`.
 
 ---
 
@@ -49,7 +49,9 @@ The case for C, which is what was applied: a `secret_key_base` is a real cryptog
 
 The case a maintainer might make for A: rotation is nearly free (`mix phx.gen.secret`, replace two literals), and "rotate anything secret-shaped" is a defensible blanket policy for an audit vendor's own repository.
 
-**This is surfaced at the Task 3 decision gate.** If the maintainer prefers the blanket policy, F-002/F-003 are re-dispositioned as Class A, rotated before any push, and this register updated with real rotation timestamps — which D-29 permits without changing the PROCEED verdict, since Class A rotation proceeds to push.
+**This was surfaced at the Task 3 decision gate.** If the maintainer had preferred the blanket policy, F-002/F-003 would have been re-dispositioned as Class A, rotated before any push, and this register updated with real rotation timestamps — which D-29 permits without changing the PROCEED verdict, since Class A rotation proceeds to push.
+
+**Outcome (2026-08-27T20:15:04Z): the blanket policy was NOT applied. Class C stands for both; neither value was rotated.** The maintainer delegated this call at the gate. Full rationale is recorded under `## D-30 authorization` → *Rider — F-002 / F-003*. Class counts are unchanged: **A = 0 (rotated: 0) · B = 0 · C = 5.**
 
 ---
 
@@ -108,14 +110,60 @@ Both matches are filename-glob hits, not credential hits — dispositioned as F-
 
 ## D-30 authorization
 
-_Pending — Task 3 (`checkpoint:decision`, `gate="blocking-human"`). Not yet taken._
+**Decision: `proceed`. Publication of `.planning/` history is AUTHORIZED.**
 
-The one-way publication decision has **not** been made, and nothing in this phase may push until it is. See `.planning/phases/198-green-bringup/198-02-SUMMARY.md` for the halt record.
+**Taken:** 2026-08-27T20:15:04Z
+**Gate:** Task 3, `<task type="checkpoint:decision" gate="blocking-human">` — resolved by the maintainer at an explicit, recorded checkpoint. Not auto-approved; `blocking-human` gates are never auto-selected in any mode.
+
+**Maintainer's confirmation, verbatim:**
+
+> auto foolow ur recs proceed
+
+The maintainer was presented with the verdict line, the five-row finding register with class counts (A=0 rotated 0, B=0, C=5), the disclosure surface being published (2175 tracked `.planning/` files, 51 containing dollar figures down to `$0.015`, plus vendor and model names and internal quality assessments that in places contradict the repository's own documentation), and the explicit statement that this action is **one-way**: after the first push this history is public and mirrorable, and D-30's accepted posture forbids a history rewrite as the remedy.
+
+The reply authorizes publication and directs that the recommendations be followed, which includes enabling secret scanning and push protection (recorded below).
+
+### Rider — F-002 / F-003 disposition stands as Class C (no rotation)
+
+The one open judgment call flagged in the register above — the example app's `dev.exs` / `test.exs` `secret_key_base` literals — was delegated by the maintainer along with the rest of the recommendation. **Decision: do NOT rotate. Class C stands.**
+
+Rationale, recorded because this is a disposition a reasonable maintainer could decide differently:
+
+- These values guard nothing. They belong to a bundled example application with **no deployed instance** — it runs on localhost and in CI only.
+- Production is env-sourced: `examples/threadline_phoenix/config/runtime.exs:64` reads `System.get_env("SECRET_KEY_BASE")` and raises if absent. The dev/test defaults are checked in by upstream Phoenix's own `mix phx.new` design, and `runtime.exs` says so in its own comment.
+- The example app's demo login credentials are printed on its login page **by design**. There is no confidentiality for a session cookie to protect.
+- Rotating would stamp a misleading `rotated on 2026-08-27` incident row into a register that is **about to be published**, describing something that was never an exposure. That is precisely the laundering this phase's artifacts exist to prevent. Class C is the honest classification.
+
+This rider does **not** change the verdict. `## VERDICT: PROCEED` stands, with class counts unchanged: **A = 0 (rotated: 0) · B = 0 · C = 5.**
 
 ---
 
 ## Push protection enabled
 
-_Pending — Task 3. GitHub secret scanning and push protection have **not** been enabled, and no repository setting was changed by this plan._
+**Enabled and verified:** 2026-08-27T20:15:23Z
+**Repository:** `szTheory/threadline` (public)
 
-**Standing D-29 invariant for every later plan in this phase:** push protection blocking a push is a **Class A/B signal**. The "allow secret" bypass is **forbidden** under all circumstances. A blocked push returns to this artifact's finding register for disposition — it is never clicked through.
+Command run (verbatim):
+
+```
+gh api --method PATCH repos/:owner/:repo -f 'security_and_analysis[secret_scanning][status]=enabled' -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled'
+```
+
+Verification command (verbatim) and its returned JSON, pasted verbatim:
+
+```
+$ gh api repos/:owner/:repo --jq .security_and_analysis
+{"dependabot_security_updates":{"status":"disabled"},"secret_scanning":{"status":"enabled"},"secret_scanning_non_provider_patterns":{"status":"disabled"},"secret_scanning_push_protection":{"status":"enabled"},"secret_scanning_validity_checks":{"status":"disabled"}}
+```
+
+**`secret_scanning`: `enabled`. `secret_scanning_push_protection`: `enabled`.** Both required settings are live.
+
+**Recorded honestly: both settings were ALREADY `enabled` before the PATCH ran.** A read of `gh api repos/:owner/:repo --jq .security_and_analysis` taken at 2026-08-27T20:15:04Z, before any modification, returned the identical JSON above. GitHub enables secret scanning and push protection by default on public repositories, and this repository has been public throughout. The PATCH was executed anyway — per the plan's action — and succeeded as a no-op confirmation rather than a state change.
+
+This corrects, in the honest direction, the halt record's statement in `198-02-SUMMARY.md` that the settings were "NOT enabled". That statement was accurate about **what the plan had done** (it had changed no setting) but was never a verified read of the remote. The remote state was already correct. No credit is claimed here for enabling something that was already on.
+
+Two related settings remain `disabled` and were deliberately **not** changed, because the plan's constraint is to touch only the two settings it names: `secret_scanning_non_provider_patterns` and `secret_scanning_validity_checks`. `dependabot_security_updates` is likewise untouched. Enabling any of these is out of scope for this plan.
+
+**Standing D-29 invariant for every later plan in this phase:** push protection blocking a push is a **Class A/B signal**. The "allow secret" bypass is **forbidden** under all circumstances — it must not be clicked, invoked, or passed as a flag. A blocked push does not get retried around; it returns to this artifact's `## Finding register` and is dispositioned under the D-29 Class A/B/C rule before any further push attempt. A Class A finding is rotated before the push retries; a Class B finding aborts the phase.
+
+**This plan pushed nothing.** Enabling push protection and authorizing publication are the gate; the first actual push of these commits is Plan 03's staging-branch push. `git log origin/main..main` remains non-empty.
