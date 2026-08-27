@@ -95,7 +95,7 @@ Plans:
 **Wave 1**
 
 - [x] 198-01-PLAN.md — Read-only measurement sweep: preserve run 28214113903's logs, Credo full-default histogram + per-file concentration, scorecard-free mechanical-sensitivity probe (wave 1)
-- [ ] 198-02-PLAN.md — Full-history credential audit, Class A/B/C disposition, secret scanning + push protection, one-way publication authorization (wave 1) — ⏸ HALTED at Task 3 blocking-human gate
+- [x] 198-02-PLAN.md — Full-history credential audit, Class A/B/C disposition, secret scanning + push protection, one-way publication authorization (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
