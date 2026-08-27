@@ -64,7 +64,12 @@ defmodule Threadline.CiTopologyContractTest do
            )
 
     assert String.contains?(mix_exs, "test/threadline/example_phoenix_readme_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/v1_23_charter_doc_contract_test.exs")
+
+    # v1_23_charter_doc_contract_test.exs was deleted in Phase 198 (D-06) as
+    # genuinely obsolete, and dropped from the verify.doc_contract alias in the
+    # same commit. Asserting a deleted file is still listed would have forced the
+    # alias to reference a path that no longer exists.
+    refute String.contains?(mix_exs, "test/threadline/v1_23_charter_doc_contract_test.exs")
   end
 
   test "ci.all keeps capture-only and phoenix-surface proof steps in order" do
