@@ -31,7 +31,7 @@
 - [x] **Phase 194: Deterministic Scorecard-Cube Ledger & Mechanical Capture Foundation** - Extend the ledger to a `page × persona × lens` cube with per-lens monotonicity + evidence-referenced bumps, and land deterministic mechanical checkers + a tiered evidence-capture matrix — all in `mix ci.all`, no LLM, no network.
 - [x] **Phase 195: Validated Adversarial Critic Runner & Panel** - Author the golden set + versioned anchored rubrics, build the local-only `e2e/critic/` Claude-vision panel (per-persona + graphic-design + brand-veto), and prove it against the golden set (refute-tests + 75–90% human agreement) before it may drive anything — with no new root runtime dep. (completed 2026-08-26)
 - [x] **Phase 196: Forward-Only Net-Positive Gate & First Proven Iteration** - Wire the full loop (capture → critique → propose → re-evaluate → guard) behind a full-panel net-positive gate with auto-apply + Goodhart/guard-the-guards protections, and prove it end-to-end with one real human-ratified improvement on the weakest page.
-- [ ] **Phase 197: Coverage Growth, Adversarial Closeout & Design-Debt Register** - Drive real ratified improvement across the 2–3 lowest-scoring operator pages, run a v1.37-style multi-lens adversarial closeout confirming the loop can't regress the deterministic floor and all invariants hold, and register residual design-debt with owner + reopen-trigger.
+- [x] **Phase 197: Coverage Growth, Adversarial Closeout & Design-Debt Register** - Drive real ratified improvement across the 2–3 lowest-scoring operator pages, run a v1.37-style multi-lens adversarial closeout confirming the loop can't regress the deterministic floor and all invariants hold, and register residual design-debt with owner + reopen-trigger.
 
 ## Phase Details
 
@@ -158,7 +158,7 @@ Phases execute in numeric order: 194 → 195 → 196 → 197
 | 194. Scorecard-Cube Ledger & Mechanical Capture Foundation | v1.40 | 3/3 | ✅ Complete | 2026-07-03 |
 | 195. Validated Adversarial Critic Runner & Panel | v1.40 | 9/9 | Complete    | 2026-08-26 |
 | 196. Forward-Only Net-Positive Gate & First Proven Iteration | v1.40 | 4/6 | In Progress|  |
-| 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 3/5 (03/04 waived — ratified PROOF-02 shortfall) | In Progress | - |
+| 197. Coverage Growth, Adversarial Closeout & Design-Debt Register | v1.40 | 3/5 (03/04 waived — ratified PROOF-02 shortfall) | Complete (verified 2026-08-27, achieved-with-ratified-gap) | 2026-08-27 |
 
 ## Prior Milestones
 

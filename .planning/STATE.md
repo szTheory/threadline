@@ -9,10 +9,10 @@ last_activity: 2026-08-26
 state_head: 635394f75b4474d596bd8e44b9e4466294c9c430
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 21
-  percent: 91
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -22,14 +22,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase null
+**Current focus:** Milestone v1.40 complete — next: quality-mapping milestone (maintainer directive 2026-08-27)
 
 ## Current Position
 
-Phase: 197 (coverage-growth-adversarial-closeout-design-debt-register) — EXECUTED, verifier pending
+Phase: 197 (coverage-growth-adversarial-closeout-design-debt-register) — COMPLETE 2026-08-27, verified achieved-with-ratified-gap (VERIFICATION.md; PROOF-02 = ratified shortfall, PROOF-03/04 verified)
 Plan: 5 of 5 executed (01/02/05 complete; 03/04 waived by ratified PROOF-02 shortfall)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
-Status: Executing Phase null
+Status: Phase 197 complete — milestone v1.40 closeout ready
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -52,7 +52,7 @@ Status: Executing Phase null
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [█████████░] 91%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
