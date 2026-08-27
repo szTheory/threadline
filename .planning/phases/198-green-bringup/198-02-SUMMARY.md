@@ -10,13 +10,16 @@ provides:
   - Full-history credential scan (2381 commits, two engines) with committed raw reports
   - Dispositioned finding register under the D-29 Class A/B/C rule, verdict PROCEED
   - Re-measured `.planning/` disclosure surface (2175 tracked files, 51 with dollar figures)
-  - The D-34 step 4 push gate, satisfied on its credential half and blocked on its authorization half
+  - The D-34 step 4 push gate, SATISFIED on both halves — credential audit complete and maintainer authorization recorded
+  - Recorded D-30 authorization to publish `.planning/` history (one-way, maintainer-confirmed)
+  - GitHub secret scanning and push protection verified enabled on szTheory/threadline
+  - The standing D-29 invariant for every later plan: a blocked push is a Class A/B signal, the allow-secret bypass is forbidden
 affects: [198-03 staging-branch push, 198-07 main push, any plan in this phase that pushes to origin]
 
 actuals:
-  tokens: 4700
-  tasks: 2
-  commits: 2
+  tokens: 7400
+  tasks: 3
+  commits: 5
 
 tech-stack:
   added: [gitleaks 8.30.1, trufflehog 3.97.1]
@@ -33,7 +36,9 @@ key-files:
   modified: []
 
 key-decisions:
-  - "F-002/F-003 (example app dev/test secret_key_base) classed C (example value), not A — production is env-sourced and the example app has no deployed instance; the judgment call is surfaced at the Task 3 gate rather than settled silently"
+  - "F-002/F-003 (example app dev/test secret_key_base) classed C (example value), not A — production is env-sourced and the example app has no deployed instance; surfaced at the Task 3 gate rather than settled silently, and CONFIRMED there: Class C stands, neither value rotated"
+  - "D-30 authorization taken: maintainer confirmed publication of `.planning/` history at the blocking-human gate; the confirmation is recorded verbatim in the audit artifact rather than paraphrased"
+  - "Push protection recorded honestly as ALREADY enabled before the PATCH (GitHub public-repo default) — the PATCH ran and succeeded as a no-op confirmation, and the plan claims no credit for enabling what was already on"
   - "Disclosure-surface figures re-measured rather than copied from 198-CONTEXT.md, which had drifted (2159→2175, 49→51) because of this phase's own planning commits"
   - "trufflehog's 0-byte output recorded as an empty result corroborated by run statistics, explicitly not as a failed run"
 
@@ -41,7 +46,7 @@ patterns-established:
   - "Scanner availability is established and recorded before scanning; an absent scanner is an UNAVAILABLE row, never a silent clean read"
   - "--exit-code 0 on the gating scan so a finding cannot abort the sweep before later engines run; the verdict lives in the register, not in an exit code"
 
-requirements-completed: []
+requirements-completed: [GREEN-07]
 
 coverage:
   - id: D1
@@ -68,31 +73,52 @@ coverage:
     requirement: GREEN-07
     verification: []
     human_judgment: true
-    rationale: "A defensible maintainer could apply a blanket rotate-anything-secret-shaped policy instead. Deliberately surfaced at the Task 3 gate rather than settled by the executor; no test can adjudicate a policy posture."
+    rationale: "A defensible maintainer could apply a blanket rotate-anything-secret-shaped policy instead. Deliberately surfaced at the Task 3 gate rather than settled by the executor; no test can adjudicate a policy posture. RESOLVED at that gate on 2026-08-27: Class C stands, neither value rotated. The rationale is recorded in the artifact under '## D-30 authorization' so a later reader can re-open the call on the reasoning, not on a bare verdict."
   - id: D4
-    description: "Push protection enabled and the one-way publication of 587 commits of `.planning/` history authorized"
+    description: "The one-way publication of `.planning/` history authorized by the maintainer at a recorded checkpoint (D-30)"
     requirement: GREEN-07
     verification: []
     human_judgment: true
-    rationale: "NOT DELIVERED — Task 3 is a gate='blocking-human' decision checkpoint and was not executed. Irreversible and outward-facing; requires explicit human authorization that can never be auto-approved."
+    rationale: "Irreversible and outward-facing; requires explicit human authorization that can never be auto-approved. DELIVERED — the gate was resolved by the maintainer and the confirmation is recorded verbatim under '## D-30 authorization' in .planning/audits/198-credential-audit.md. human_judgment stays true because the deliverable IS a human decision; no test can attest to it and a verifier should read the recorded confirmation rather than trust a green check."
+  - id: D5
+    description: "GitHub secret scanning and push protection live on szTheory/threadline before any push of these commits"
+    requirement: GREEN-07
+    verification:
+      - kind: integration
+        ref: "gh api repos/:owner/:repo --jq .security_and_analysis reports secret_scanning=enabled and secret_scanning_push_protection=enabled"
+        status: pass
+      - kind: integration
+        ref: "grep -q '^## Push protection enabled' .planning/audits/198-credential-audit.md && grep -q '\"secret_scanning_push_protection\"' .planning/audits/198-credential-audit.md"
+        status: pass
+    human_judgment: false
+  - id: D6
+    description: "This plan pushed nothing — the gate is recorded but no commit reached origin on any ref"
+    requirement: GREEN-07
+    verification:
+      - kind: integration
+        ref: "git log origin/main..main is non-empty (606 commits); git rev-parse origin/main unchanged at 67998e0b"
+        status: pass
+    human_judgment: false
 
 # Metrics
-duration: 8 min
+duration: 11 min
 completed: 2026-08-27
-status: halted
+status: complete
 ---
 
 # Phase 198 Plan 02: Credential Audit and Push Gate Summary
 
-**Two-engine full-history credential scan over 2381 commits found five findings, all Class C, verdict PROCEED — then halted at the blocking-human gate without enabling push protection or authorizing publication.**
+**Two-engine full-history credential scan over 2381 commits found five findings, all Class C, verdict PROCEED — and the maintainer's one-way authorization to publish `.planning/` history is now recorded, with secret scanning and push protection verified live and nothing pushed.**
 
 ## Performance
 
-- **Duration:** 8 min
+- **Duration:** 11 min of executor time (8 min for Tasks 1–2, 3 min for Task 3), excluding the wall-clock wait at the blocking-human gate
 - **Started:** 2026-08-27T19:55:40Z
-- **Completed:** 2026-08-27T20:03:49Z (halted at Task 3)
-- **Tasks:** 2 of 3 completed; 1 halted by design
-- **Files created:** 4
+- **Halted at gate:** 2026-08-27T20:03:49Z
+- **Gate resolved / resumed:** 2026-08-27T20:15:04Z
+- **Completed:** 2026-08-27T20:16Z
+- **Tasks:** 3 of 3 completed
+- **Files created:** 4; **modified:** 1 (this summary)
 
 ## Accomplishments
 
@@ -100,13 +126,18 @@ status: halted
 - **Ran all four D-28 sweeps** over 2381 commits / 38.42 MB of history, the untracked working tree, verified-mode liveness checks, and the ever-added-then-removed filename sweep — with versions, verbatim command lines, and exit statuses recorded.
 - **Dispositioned every finding under D-29** into a five-row register: **A=0, B=0, C=5**. Verdict `## VERDICT: PROCEED`.
 - **Confirmed the highest-value negative result:** no `.env`, `.pem`, `id_rsa`, or `.netrc` file was **ever added** in the repository's history. This is precisely what a HEAD-only grep structurally cannot show, and the reason D-28 mandates full history.
-- **Halted cleanly at the one-way gate** with nothing pushed and no repository setting changed.
+- **Halted cleanly at the one-way gate** with nothing pushed and no repository setting changed — then **resumed after the maintainer resolved it**, and recorded the `proceed` authorization verbatim.
+- **Verified secret scanning and push protection are live** on `szTheory/threadline`, and recorded the honest finding that **both were already enabled before the PATCH** (GitHub's public-repo default), so the plan claims no credit for enabling them.
+- **Wrote the standing D-29 invariant into the published artifact** so every later plan inherits it: a blocked push is a Class A/B signal, and the "allow secret" bypass is forbidden.
+- **Still pushed nothing.** `origin/main` remains `67998e0b`; 606 commits remain unpushed. The gate is now open; walking through it is Plan 03's job.
 
 ## Task Commits
 
 1. **Task 1: Full-history credential scan** — `c02d02cd` (docs)
 2. **Task 2: Finding register and push verdict** — `12b153ed` (docs)
-3. **Task 3: One-way decision gate** — NOT EXECUTED (halted, see below)
+3. **Task 3: One-way decision gate — authorization and push protection** — `475246b7` (docs)
+
+**Plan metadata:** `85a2fb8c` (halt record), plus the commit updating this summary to its completed form.
 
 ## Files Created/Modified
 
@@ -114,6 +145,10 @@ status: halted
 - `.planning/audits/198-gitleaks-history.json` — full-history gitleaks report, redacted
 - `.planning/audits/198-gitleaks-worktree.json` — untracked-tree gitleaks report, redacted
 - `.planning/audits/198-trufflehog-verified.json` — verified-mode trufflehog output (0 bytes: zero verified findings)
+
+Modified in Task 3:
+
+- `.planning/audits/198-credential-audit.md` — `## D-30 authorization` (maintainer confirmation verbatim, timestamp, F-002/F-003 rider) and `## Push protection enabled` (verbatim `gh api` JSON, the already-enabled disclosure, the standing D-29 invariant)
 
 ## Findings Summary
 
@@ -159,29 +194,33 @@ trufflehog verified mode — the only engine that tests liveness against the iss
 
 ## Issues Encountered
 
-None. Both scanners installed cleanly and all four sweeps completed.
+None blocking. Both scanners installed cleanly, all four sweeps completed, and the `gh api` PATCH succeeded on the first attempt.
 
-## HALT: Task 3 not executed (by design)
+One discrepancy worth recording rather than smoothing over: **the earlier halt record stated that secret scanning and push protection were "NOT enabled", and the remote said otherwise.** Both were already `enabled` when Task 3 read the repository. The halt record's claim was accurate about the plan's own actions — it had changed no setting — but it was never a verified read, and it was written as though it were a statement about the world. Task 3 corrected it in the artifact and here. The lesson is narrow and worth keeping: in an audit artifact, "we did not do X" and "X is not the case" are different claims and must not be written in the same sentence.
 
-Task 3 is `<task type="checkpoint:decision" gate="blocking-human">`. Per the checkpoint protocol, `gate="blocking-human"` is **never** auto-approved or auto-selected in any mode, including the auto-advance mode active in this project's config. It was not executed.
+## Task 3: the blocking-human gate, halted then resolved
 
-**Specifically NOT done, and requiring explicit human authorization:**
+Task 3 is `<task type="checkpoint:decision" gate="blocking-human">`. Per the checkpoint protocol, `gate="blocking-human"` is **never** auto-approved or auto-selected in any mode, including the auto-advance mode active in this project's config. The first execution therefore halted at it rather than proceeding — that halt was correct behavior, not a failure.
 
-- GitHub secret scanning and push protection are **NOT enabled**. No repository setting was changed.
-- Nothing was pushed. `origin/main` remains `67998e0b`; `main` remains `20d3fead` with 595 unpushed commits.
-- `## D-30 authorization` and `## Push protection enabled` in the audit artifact are marked pending.
+**The gate was then resolved by the maintainer** and this plan resumed to complete Task 3.
 
-**Verified at halt:** `git rev-parse origin/main` → `67998e0b29ebe8455d29183c4a71d2837d5b507e` (unchanged, matching CONTEXT.md ground truth).
+**Decision: `proceed`.** Publication of `.planning/` history is authorized, and secret scanning with push protection is to be enabled. The maintainer's reply is recorded verbatim in the audit artifact under `## D-30 authorization` — not paraphrased, because a paraphrase of a one-way authorization is the wrong artifact to leave behind.
+
+**The one open judgment call was resolved as part of the same answer.** The maintainer delegated the F-002/F-003 call (the example app's `dev.exs` / `test.exs` `secret_key_base` literals). **Class C stands; neither value was rotated.** They guard nothing — a bundled example app with no deployed instance, production sourcing `SECRET_KEY_BASE` from the environment at `runtime.exs:64`, and demo login credentials printed on the page by design. Rotating would have stamped a misleading "rotated on 2026-08-27" incident row into a register about to be published, describing something that was never an exposure. The PROCEED verdict and class counts (**A=0 rotated 0 · B=0 · C=5**) are unchanged.
+
+**Push protection — the honest version.** Both settings verify as `enabled`, satisfying the gate. But a read taken **before** the PATCH already returned `secret_scanning: enabled` and `secret_scanning_push_protection: enabled`. GitHub enables both by default on public repositories, and this repo has been public throughout. The PATCH was run as the plan specifies and succeeded, but **as a no-op confirmation, not a state change.** This is recorded plainly in the artifact and corrects, in the honest direction, the earlier halt record's line that the settings were "NOT enabled" — that line was true about what the plan had *done* but was never a verified read of the remote. No credit is claimed for turning on something already on.
+
+**Nothing was pushed, and no other repository setting was touched.** `secret_scanning_non_provider_patterns`, `secret_scanning_validity_checks`, and `dependabot_security_updates` remain `disabled` and are out of scope for this plan. No branch, PR, tag, or release was created.
+
+**Verified after Task 3:** `git rev-parse origin/main` → `67998e0b29ebe8455d29183c4a71d2837d5b507e` (unchanged); `git log origin/main..main` → **606 commits**, non-empty, exactly as the plan's verification requires.
 
 ## Next Phase Readiness
 
-**BLOCKED — and this blocks more than it appears to.** The credential half of the D-34 step 4 gate is satisfied and recorded. The authorization half is not.
+**UNBLOCKED.** Both halves of the D-34 step 4 gate are now satisfied and recorded: the credential audit ran over full history with two engines and every finding is dispositioned, and the maintainer's one-way authorization is on the record.
 
-Per the plan's `key_links`: this gate covers the **first push of these commits on any ref** — that is **Plan 03's staging-branch push**, not only Plan 07's `main` push, because publishing `.planning/` history is the disclosure event regardless of which branch carries it. **Plan 03 must not run until Task 3 is resolved.**
+Per the plan's `key_links`, this gate covers the **first push of these commits on any ref** — Plan 03's staging-branch push as much as Plan 07's `main` push, because publishing `.planning/` history is the disclosure event regardless of which branch carries it. **Plan 03 may now proceed.**
 
-To unblock, the maintainer must answer the Task 3 decision. On `proceed`: enable secret scanning and push protection via `gh api`, record the returned JSON and the confirmation verbatim in the artifact, then downstream plans may push. On `abort`: the artifact's verdict is overridden to `## VERDICT: ABORT` and no plan pushes.
-
-**Standing invariant for every later plan:** push protection blocking a push is a Class A/B signal. The "allow secret" bypass is forbidden; a blocked push returns to the finding register for disposition.
+**Standing invariant inherited by every later plan in this phase:** push protection blocking a push is a **Class A/B signal**. The "allow secret" bypass is **forbidden** — not clicked, not invoked, not flagged around. A blocked push returns to `.planning/audits/198-credential-audit.md`'s finding register for disposition under D-29 before any retry. Class A rotates before the retry; Class B aborts the phase.
 
 ## Self-Check
 
@@ -191,16 +230,20 @@ To unblock, the maintainer must answer the Task 3 decision. On `proceed`: enable
 - `.planning/audits/198-trufflehog-verified.json` — FOUND
 - Commit `c02d02cd` — FOUND
 - Commit `12b153ed` — FOUND
+- Commit `475246b7` — FOUND
 - Task 1 automated verify — PASS
 - Task 2 automated verify — PASS
-- Task 2 no-pasted-secret grep — PASS (no match)
-- Task 3 automated verify — NOT RUN (task halted by design; `## Push protection enabled` is present but marked pending, and the `secret_scanning_push_protection` JSON is intentionally absent)
-- Nothing pushed to origin — VERIFIED
+- Task 2 no-pasted-secret grep — PASS (no match, re-run after the Task 3 edits)
+- Task 3 automated verify (`## Push protection enabled` + `"secret_scanning_push_protection"` present) — PASS
+- `## D-30 authorization` heading present with verbatim confirmation and timestamp — PASS
+- `gh api repos/:owner/:repo --jq .security_and_analysis` shows both settings `enabled` — PASS
+- `git log origin/main..main` non-empty (606) — PASS, nothing pushed
+- STATE.md and ROADMAP.md untouched — VERIFIED (`git status --short` showed only the audit artifact before commit)
 
 ## Self-Check: PASSED
 
-Passed for the two executed tasks. Task 3's criteria are unmet **by design**, not by failure — hence `status: halted` and `requirements-completed: []`. GREEN-07 is **not** complete: its push-protection and authorization clauses remain open.
+All three tasks executed and verified. `status: complete`, `requirements-completed: [GREEN-07]` — the requirement's scan, disposition, push-protection, and authorization clauses are all now closed.
 
 ---
 *Phase: 198-green-bringup*
-*Halted at Task 3 (blocking-human gate): 2026-08-27*
+*Halted at Task 3 (blocking-human gate) 2026-08-27T20:03:49Z; gate resolved and plan completed 2026-08-27*
