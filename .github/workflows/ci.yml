@@ -1,5 +1,10 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape
+# verify-format, verify-credo, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, ci-required
+#
+# `ci-required` (name: "CI required") is the SINGLE required status check on
+# `main` (D-08). Branch protection points at it and at nothing else. It is the
+# extension point for future lanes: a new verify-* job becomes blocking by being
+# added to `ci-required`'s `needs:` list — with zero branch-protection edits.
 
 name: CI
 
@@ -571,3 +576,44 @@ jobs:
 
       - name: Verify CHANGELOG and @version alignment
         run: bin/verify-release-shape
+
+  # The single required status check on `main` (D-08). Collapses every job above
+  # into one pass/fail signal so branch protection names one context, not twelve,
+  # and so no required-check name carries a matrix axis that could rot.
+  #
+  # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
+  # itself marked *skipped*, and GitHub scores a skipped required check as
+  # PASSING. Without `always()` this gate would go green on exactly the failures
+  # it exists to catch. `jobs: ${{ toJSON(needs) }}` then inspects every result
+  # value (success|failure|cancelled|skipped) rather than grepping result
+  # strings — do NOT replace it with a hand-rolled result-string containment
+  # expression over the needs results, which scores skipped-on-dependency-
+  # failure as a pass.
+  ci-required:
+    name: CI required
+    if: always()
+    needs:
+      - verify-format
+      - verify-credo
+      - verify-compile-no-optional
+      - verify-test
+      - verify-hex-evaluator
+      - verify-example-browser
+      - verify-mechanical
+      - verify-capture
+      - verify-pgbouncer-topology
+      - verify-docs
+      - verify-hex-package
+      - verify-release-shape
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Decide whether all needed jobs succeeded
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+          # Extension point: the first `needs:` job that becomes conditionally
+          # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
+          # or this gate will correctly fail on its skip. Deliberately absent
+          # today — all twelve jobs above run unconditionally, so neither
+          # `allowed-skips` nor `allowed-failures` applies yet.
