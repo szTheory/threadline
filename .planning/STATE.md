@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Automated Operator-UI Critique & Forward-Only Iteration Harness
 status: executing
-stopped_at: "196 PROOF-01 COMPLETE 2026-08-26 — 6/6 plans. Maintainer authorized running the paid loop in-session ('do the fixes'). Evidence+density candidate honestly REJECTED by the gate (3 variants, Δ within noise, v3 VOID); maintainer ratified pivot → route.retention+density: banner/self-label duplication removed (c6f9355e) → gate ACCEPT (Δ +7 > noise 4.5, no blocking regression, floor green, oracle stable). First ratchet.signoffs entry (forward_only_accept) + append-only pin (f1610d87). Loop hardening: ROUTE_PAGE_TWIN all-5-routes + dark maskColor (83db3918); evidence cleanup kept unratified (2eca4208). Guards: critic_trust 22/0, mechanical 18/0. REMAINING: confirm final mix ci.all, then phase verifier + phase.complete. Worktree isolation re-enabled via worktree.baseRef=head."
-last_updated: "2026-08-27T01:22:02.419Z"
+stopped_at: "Completed 197-05-PLAN.md 2026-08-27 — PROOF-03/04 closeout: four tamper probes tripped+reverted (verify.critic_trust FAIL under each, 22/0 after), 197-ADVERSARIAL-REVIEW.md (status passed, 6 lenses) + 197-DESIGN-DEBT-REGISTER.md (12 ranked rows, all 9 seeds accounted; rank 1 = parked PROOF-02 loop, rank 2 = copy_contract stale pin from 842bd737, seed #9 re-measured 0 undefined_table). Phase 197: 01/02/05 done, 03/04 WAIVED by maintainer-ratified PROOF-02 shortfall (197-02-SUMMARY). REMAINING: phase verifier (PROOF-02 gap is explicit) + phase.complete."
+last_updated: "2026-08-27T21:30:00.000Z"
 last_activity: 2026-08-26
 state_head: 635394f75b4474d596bd8e44b9e4466294c9c430
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 23
-  completed_plans: 18
-  percent: 75
+  completed_plans: 21
+  percent: 91
 ---
 
 # Project State: Threadline
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-02 after v1.40 open)
 
 ## Current Position
 
-Phase: null — EXECUTING
-Plan: 1 of ?
+Phase: 197 (coverage-growth-adversarial-closeout-design-debt-register) — EXECUTED, verifier pending
+Plan: 5 of 5 executed (01/02/05 complete; 03/04 waived by ratified PROOF-02 shortfall)
 Side-track: Phase 195 gap-closure plan 195-10 EXECUTED 2026-08-26 (commits 998915d8/a21a2869/4da4b4e9 + style c117a8a3) — the 8 StressLedger/LedgerSplice failures are closed by contract EXTENSION (refute sub-contract, exact-match keys kept, graded-story synthetic-set registry guard); CRITIC-01/05 + RUNNER-01/02 traceability flipped Complete; verify.format/credo green; full-suite failures now only the 3-module doc-contract baseline (V123Charter/FormlessPages/Phase06Nyquist — pre-existing, out of scope). The failed 195 truth "mix ci.all stays green" is restored.
 Status: Executing Phase null
 
@@ -50,9 +50,9 @@ Status: Executing Phase null
         improvement on the weakest /audit page (mid-phase checkpoint:decision). Deferred to 197:
         PROOF-02 (2-3 pages), PROOF-03 (adversarial closeout), PROOF-04 (debt register). Locked
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
-Last activity: 2026-08-26
+Last activity: 2026-08-27
 
-Progress: [████████░░] 78%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -177,6 +177,7 @@ Progress: [████████░░] 78%
 | Phase 195 P3 | multi-session | 2 tasks | 205 files |
 | Phase 195 P04 | 11m | 2 tasks | 7 files |
 | Phase 195 P06 | 13m | 2 tasks | 2 files |
+| Phase 197 P05 | ~50min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,9 @@ Progress: [████████░░] 78%
 
 ### Decisions
 
+- [197-05]: Debt seed #9 re-measured fresh (2026-08-27 full mix test): (undefined_table) count = 0 — the ALTER DATABASE search_path fix is in effect; register row closed-in-environment with a CI reopen-trigger, not an open ~81-failure row.
+- [197-05]: copy_contract_test.exs:249 red (stale "Selected schema readiness" pin vs landed 842bd737) discovered and registered rank 2, not auto-fixed (caused by 197-02, out of 197-05 scope); Phase-185 coverage doc-contract copy lock registered rank 5 with owner + concrete trigger.
+- [197-05]: GATE-02 true auto-write stays register-as-debt per OQ-1 with trigger N=3 consecutive accepted iterations where the surfaced mechanical diff was applied verbatim with zero human modification.
 - [195-02]: Rubric Anchors pole cell-ids use page-level Tier-A scorecard cells (`page.*__theme-breakpoint` format); `footgun.*` and `primitive.*` are conceptual quality labels in the ledger only, not committed scorecard files. All 11 pole cell-ids (pass + fail across 6 lenses) verified against `.planning/scorecards/`. sha8 placeholder `00000000` is intentional — Plan-04 rubric-hash guard recomputes from disk.
 - [193-02]: CLOSE-01 clauses 3 & 4 delivered as `193-RISK-REGISTER.md` + `193-NEXT-STEP.md`. Register is a verify-and-refresh of the 189 ledger (rows 1-3 CLOSED by 190/191/192, rows 6-12 preserved) ranked on the adoption/ops/maintainer lens (D-10/D-12); four post-189 residuals folded in with Owner + reopen-trigger — R-A ship-gated D-17/D-19 (rank 1, ops), R-B/WR-01 alt-schema FK-fixture gap (rank 2), R-C charter-test drift (rank 3), R-D ~81 local failures framed as maintainer-friction NOT a regression (rank 4, below R-A/R-B). Next-step is a single HOLD/thin-polish recommendation backed by three converging gates + config policy (`no_auto_new_milestone` → recommends, does not open v1.40) with five armed flip-triggers (EXT-PILOT-01, OBS-01, UI-REG-01, RECONNECT-01 + CI-depth track). No `/gsd-audit-milestone` run, no `v1.39-MILESTONE-AUDIT.md`, no version/tag change (D-01/D-02/D-03). Commits `92fcb932`, `04dd00e8`.
 - [192-03]: Release publish-race serialization scoped to the `publish-hex` job (`group: release-publish-${{ github.ref }}`, `cancel-in-progress: false`); the workflow-level `run_id`-embedding no-op group was removed so release-please bookkeeping stays independent of long publishes (D-24). `gate-ci-green` + the idempotency skip remain the real race guards; no `run_id` in the publish group; no `:latest`.
