@@ -1,0 +1,160 @@
+# Full browser lane (Phase 198, D-17). The pull-request lane in ci.yml
+# (`verify-example-browser`) was reduced to `desktop-chromium` + `mobile-chromium`
+# so per-PR feedback stays inside a usable loop; THIS workflow runs the whole
+# Playwright project set — unrestricted, no per-project flags — on push-to-main
+# and on a nightly schedule.
+#
+# Job id is stable (relied on by docs/CI conventions); evolve `name:` freely.
+#
+# Deliberately NOT in `ci-required`'s `needs:` list in ci.yml: it is not a
+# required check and does not block a pull request. That is the honest cost of
+# the split, and the trade is stated verbatim in CONTRIBUTING.md under
+# "## CI Coverage" and asserted by test/threadline/ci_coverage_doc_contract_test.exs.
+#
+# A `schedule:` run emails nobody, so a nightly failure that only lives in the
+# Actions tab is the same as having no lane at all. The `if: failure()` step
+# below opens or updates ONE deduplicated tracking issue.
+name: Browser (full project set)
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 05:00 UTC nightly — offset from Flake Detection's 07:00 so the two heavy
+    # scheduled lanes do not contend for runners.
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-example-browser-full:
+    name: Example app browser E2E — full project set
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      # Only the issue-write scope the failure path actually needs (T-198-05-04);
+      # never the broad workflow default.
+      issues: write
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ubuntu-24.04-playwright-
+
+      - name: Install root dependencies
+        run: mix deps.get
+
+      - name: Ensure threadline_phoenix_test database exists
+        env:
+          PGPASSWORD: postgres
+        run: |
+          createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      # Unrestricted (no per-project flags): the whole registered project set.
+      # Adding a flag here without adding the corresponding CONTRIBUTING.md
+      # "## CI Coverage" row turns ci_coverage_doc_contract_test.exs red.
+      - name: Run example Playwright suite (all projects)
+        timeout-minutes: 45
+        run: mix verify.example_browser
+
+      - name: Upload Playwright traces and e2e boot log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-full-e2e-diagnostics
+          path: |
+            examples/threadline_phoenix/e2e/test-results
+            examples/threadline_phoenix/e2e/playwright-report
+            /tmp/threadline_phoenix_e2e.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Create-or-update ONE tracking issue, never a new issue per run. The label
+      # is deliberately distinct from Flake Detection's dedup stream so the two
+      # do not collide into a single issue and mask each other.
+      - name: Open or update the nightly browser-lane tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Browser (full project set) is failing"
+          LABEL: ci-browser-full
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # The label must exist before it can be applied or searched on.
+          gh label create "$LABEL" \
+            --description "Failures of the full-project-set browser lane (browser-full.yml)" \
+            --color B60205 2>/dev/null || true
+
+          existing=$(gh issue list \
+            --state open \
+            --label "$LABEL" \
+            --search "$TITLE_PREFIX in:title" \
+            --json number \
+            --jq '.[0].number // empty')
+
+          body="The full-project-set browser lane failed on \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME}).
+
+          Run: ${RUN_URL}
+
+          This lane is NOT a required check — it runs the Playwright projects that the
+          reduced pull-request lane (\`verify-example-browser\`) no longer runs. See
+          \"## CI Coverage\" in CONTRIBUTING.md for exactly which projects those are.
+          Diagnostics (traces + boot log) are attached to the run as
+          \`browser-full-e2e-diagnostics\`."
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create \
+              --title "$TITLE_PREFIX" \
+              --label "$LABEL" \
+              --body "$body"
+          fi

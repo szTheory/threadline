@@ -45,6 +45,7 @@ jobs:
     name: Release Please
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       release_created: ${{ steps.release.outputs.release_created || 'false' }}
       tag_name: ${{ steps.release.outputs.tag_name || '' }}
@@ -100,6 +101,7 @@ jobs:
   bootstrap-release-pr-ci:
     name: Bootstrap CI on Release PR
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     needs: release-please
     if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
     permissions:
@@ -115,6 +117,7 @@ jobs:
     name: Bootstrap release ref (dispatch)
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       checkout_ref: ${{ steps.bootstrap.outputs.checkout_ref }}
       release_sha: ${{ steps.bootstrap.outputs.release_sha }}
@@ -172,6 +175,7 @@ jobs:
   release-ref:
     name: Select release ref
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     needs: [release-please, dispatch-bootstrap]
     if: |
       always() &&
@@ -221,6 +225,12 @@ jobs:
   gate-ci-green:
     name: Verify CI is green on release SHA
     runs-on: ubuntu-24.04
+    # This job is INHERENTLY long-running: the poll below is 60 attempts x 30s
+    # = 30 minutes by construction. The bound must sit strictly ABOVE its own
+    # poll window or it would truncate a legitimate wait and turn a slow-but-
+    # green CI run into a failed release. 45 leaves 15 minutes of headroom for
+    # checkout, API latency, and retries; the poll still self-fails at 30.
+    timeout-minutes: 45
     needs: release-ref
     if: always() && needs.release-ref.result == 'success'
     steps:
@@ -276,6 +286,8 @@ jobs:
   publish-hex:
     name: Publish to Hex.pm
     runs-on: ubuntu-24.04
+    # deps.get + hex.build + publish + a 36 x 10s (6 min) Hex-index poll.
+    timeout-minutes: 30
     needs: [release-ref, gate-ci-green]
     if: always() && needs.release-ref.result == 'success' && needs.gate-ci-green.result == 'success'
     # Serialize concurrent publishes on the same ref (no run_id, or this is a no-op).
@@ -376,6 +388,8 @@ jobs:
   distribution-sync:
     name: Post-publish distribution sync
     runs-on: ubuntu-24.04
+    # A second 36 x 10s (6 min) Hex-registry poll, then a doc edit and PR.
+    timeout-minutes: 20
     needs: [release-ref, publish-hex]
     if: |
       always() &&

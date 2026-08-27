@@ -5,6 +5,27 @@
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
 # extension point for future lanes: a new verify-* job becomes blocking by being
 # added to `ci-required`'s `needs:` list — with zero branch-protection edits.
+#
+# ---------------------------------------------------------------------------
+# NO TRIGGER-LEVEL PATH FILTERS — a decision, not an omission (Phase 198, D-10 /
+# D-20). This workflow deliberately carries no `paths:` key under `on:`.
+#
+# Why: a workflow filtered out at the trigger level never reports AT ALL, and a
+# pull request whose required check never reports sits on "Expected — Waiting
+# for status to be reported" forever. `ci-required` is the single required
+# check, so trigger-level filtering here would deadlock every doc-only PR. With
+# five workflows and a library-shaped repository the saving would be small
+# anyway, and path filters additionally risk `main` divergence (something that
+# never ran on a PR merges unverified).
+#
+# If filtering is ever genuinely wanted, the SANCTIONED mechanism is: a
+# dedicated change-detection job plus JOB-LEVEL `if:` conditions, each carrying
+# `|| github.ref == 'refs/heads/main'` so expensive jobs still run on main (the
+# CLAUDE.md "path filters + main" convention). Note the consequence for the
+# aggregate: the first conditionally-skipped job added to `ci-required`'s
+# `needs:` MUST also be registered in that job's `allowed-skips` input, or the
+# gate will correctly fail on its skip.
+# ---------------------------------------------------------------------------
 
 name: CI
 
@@ -32,6 +53,7 @@ jobs:
   verify-format:
     name: Check formatting
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -40,12 +62,41 @@ jobs:
           elixir-version: "1.17.3"
           otp-version: "27.0"
 
+      # CACHE KEY CONTRACT (Phase 198, D-19) — read before adding any cache.
+      #
+      # Every key is composed of: runner label + OTP version + Elixir version +
+      # lockfile hash. NEVER compose a key from the OS-family context value of
+      # the runner: it resolves to the literal `Linux` on every ubuntu image, so
+      # a 22.04 lane and a 24.04 lane silently share one entry. (An anti-
+      # regression grep asserts that expression appears nowhere in this file,
+      # which is why it is not spelled out here.) For non-matrix jobs the
+      # runner/OTP/Elixir
+      # segments are the literals that job already pins above; for the
+      # verify-test matrix they come from the matrix values.
+      #
+      # There is currently NO `_build` cache in this workflow — only `deps` and
+      # the Playwright browser download. If one is ever added, two rules apply:
+      #   * it gets NO `restore-keys`. A partial restore across a changed
+      #     mix.lock is the stale-compiled-artifact footgun; a cold build is
+      #     cheaper than a wrong one.
+      #   * add `rm -rf _build/$MIX_ENV/lib/threadline` before the compile step,
+      #     so a restored cache can never serve a stale copy of the code under
+      #     test.
+      #
+      # FORWARD REQUIREMENT FOR PHASE 199 (dialyzer PLT cache) — do not build a
+      # key shape 199 has to redo. The PLT key must ADDITIONALLY include:
+      #   * `hashFiles('mix.exs')` — mix.exs is where `plt_add_apps` for the
+      #     optional dependencies lives, so a PLT built before that list changed
+      #     is wrong, not merely stale.
+      #   * the OTP version — PLTs are not portable across OTP.
+      # Unlike `_build`, PLT `restore-keys` ARE correct: PLTs update
+      # incrementally, so a near-miss restore is a genuine speedup.
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -56,6 +107,7 @@ jobs:
   verify-credo:
     name: Run Credo (strict)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -68,8 +120,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -80,6 +132,7 @@ jobs:
   verify-compile-no-optional:
     name: Compile without optional deps
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -92,8 +145,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -125,6 +178,7 @@ jobs:
             pg: "16"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
     env:
       DB_HOST: localhost
       MIX_ENV: test
@@ -150,12 +204,20 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
+      # THE bug this key shape fixes (D-19): the previous key led with the
+      # OS-family context value of the runner, which is the literal string
+      # `Linux` on BOTH ubuntu-22.04 and ubuntu-24.04 and carries no OTP or
+      # Elixir at all. The min lane (elixir
+      # 1.15 / otp 26 / ubuntu-22.04) and the current lane (1.17.3 / 27 /
+      # ubuntu-24.04) therefore shared ONE cache entry — the min lane could be
+      # "verified" against dependencies compiled for current, which is a false
+      # green on the Elixir 1.15 floor promise, not merely a slow build.
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -188,6 +250,7 @@ jobs:
   verify-hex-evaluator:
     name: Hex evaluator smoke (threadline from hex.pm)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     env:
       DB_HOST: localhost
       MIX_ENV: test
@@ -225,6 +288,13 @@ jobs:
   verify-example-browser:
     name: Example app browser E2E (Playwright)
     runs-on: ubuntu-24.04
+    # 18 is a BUDGET (D-16), not a multiple of an observed green p95 — this lane
+    # has no observed green duration to size against. Its two recorded runs are
+    # 1h33m38s while systemically broken (run 28214113903) and 2m04s while
+    # fast-failing (run 33113148222). 18 is therefore a deliberate ceiling: it
+    # will fail a lane that regresses back toward the 1h33m case rather than
+    # silently absorbing it. Re-derive from a real green run when one exists.
+    timeout-minutes: 18
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -260,15 +330,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-playwright-
+          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
         run: mix deps.get
@@ -279,8 +349,41 @@ jobs:
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
 
+      # Reduced pull-request lane (Phase 198, D-17). Runs ONLY the two
+      # interactive Chromium projects. The remaining projects (the capture
+      # lanes) run on push-to-main and nightly in browser-full.yml, which is
+      # deliberately NOT part of `ci-required`. This is a real coverage/latency
+      # trade, not a free win: what moved is stated verbatim in CONTRIBUTING.md
+      # under "## CI Coverage" and asserted by
+      # test/threadline/ci_coverage_doc_contract_test.exs.
+      #
+      # This job's `name:` is byte-identical to its pre-split value on purpose —
+      # GitHub matches required checks on NAME, and this job stays inside
+      # `ci-required`'s needs list and continues to vote.
+      # Strictly less than the job-level 18 so the STEP fails first — a job-level
+      # timeout kills the runner outright and the failure-artifact upload below
+      # never executes. 14 < 18 keeps the diagnosis path alive.
       - name: Run example Playwright suite
-        run: mix verify.example_browser
+        timeout-minutes: 14
+        run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
+
+      # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
+      # this step is what makes that abort useful: it preserves the retained
+      # traces (playwright.config.ts `trace: "retain-on-failure"`) for the
+      # failures that DID occur, plus the phx.server boot log that explains a
+      # preflight abort. Ordered AFTER the Playwright step and guarded on
+      # failure() so it runs precisely when the run died early.
+      - name: Upload Playwright traces and e2e boot log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-browser-e2e-diagnostics
+          path: |
+            examples/threadline_phoenix/e2e/test-results
+            examples/threadline_phoenix/e2e/playwright-report
+            /tmp/threadline_phoenix_e2e.log
+          if-no-files-found: warn
+          retention-days: 14
 
   # Deterministic mechanical gate over the committed Tier A evidence. Pure
   # Elixir — no DB, no browser — so it runs fast on every PR and blocks a change
@@ -291,6 +394,7 @@ jobs:
   verify-mechanical:
     name: Mechanical checker (committed scorecards)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -303,8 +407,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -320,6 +424,7 @@ jobs:
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
+    timeout-minutes: 35
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -355,15 +460,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-playwright-
+          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+          restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
         run: mix deps.get
@@ -409,6 +514,7 @@ jobs:
   verify-pgbouncer-topology:
     name: PgBouncer transaction topology
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     env:
       MIX_ENV: test
     services:
@@ -448,8 +554,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Wait for Postgres and PgBouncer
         env:
@@ -482,6 +588,7 @@ jobs:
   verify-docs:
     name: Build ExDoc (dev)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     env:
       MIX_ENV: dev
     steps:
@@ -496,8 +603,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -508,6 +615,7 @@ jobs:
   verify-hex-package:
     name: Hex package tarball
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -520,8 +628,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ runner.os }}-mix-deps-
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -571,6 +679,7 @@ jobs:
   verify-release-shape:
     name: Release metadata (version / changelog)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 

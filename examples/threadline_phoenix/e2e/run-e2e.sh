@@ -41,6 +41,37 @@ server_ready() {
   port_listening "${port}"
 }
 
+# Single log-tail diagnostic mechanism for every preflight failure path. Phase
+# 198 (D-18) added a second preflight check; factoring this out keeps ONE way to
+# fail loudly with the boot log rather than two copies drifting apart.
+fail_with_log() {
+  echo "$1" >&2
+  tail -80 "$LOG_FILE" >&2 || true
+  exit 1
+}
+
+# Operator-surface mount preflight (Phase 198, D-18). /audit sits behind the
+# example app's :operator_auth pipeline, so an unauthenticated request is
+# EXPECTED to redirect (3xx) to the login page — that redirect proves the mount
+# is routed and alive. A 4xx/5xx (or no response) means the operator surface is
+# broken, and without this check hundreds of Playwright tests would each burn
+# their own 120s timeout discovering the same thing.
+operator_surface_ready() {
+  local code
+
+  command -v curl >/dev/null 2>&1 || return 0
+
+  code=$(curl --max-time 30 -o /dev/null -sS -w '%{http_code}' "${BASE_URL}/audit" 2>/dev/null || echo "000")
+
+  case "$code" in
+    2??|3??) return 0 ;;
+    *)
+      echo "GET ${BASE_URL}/audit returned HTTP ${code} (expected 2xx or a 3xx redirect to login)." >&2
+      return 1
+      ;;
+  esac
+}
+
 port_owner() {
   if command -v lsof >/dev/null 2>&1; then
     lsof -nP -iTCP:"${1}" -sTCP:LISTEN 2>/dev/null || true
@@ -132,21 +163,24 @@ for _ in $(seq 1 120); do
     break
   fi
   if ! kill -0 "$PHX_PID" 2>/dev/null; then
-    echo "phx.server exited before port ${PORT} opened; log follows:" >&2
-    tail -80 "$LOG_FILE" >&2 || true
-    exit 1
+    fail_with_log "phx.server exited before port ${PORT} opened; log follows:"
   fi
   sleep 1
 done
 
 if [[ "$ready" -ne 1 ]]; then
-  echo "Timed out waiting for port ${PORT}; log follows:" >&2
-  tail -80 "$LOG_FILE" >&2 || true
-  exit 1
+  fail_with_log "Timed out waiting for port ${PORT}; log follows:"
 fi
 
 sleep 2
 curl --max-time 60 -fsS "${BASE_URL}/users/log_in" >/dev/null
+
+# Second preflight (Phase 198, D-18): the login page being up only proves the
+# HOST app booted. The suite under test is the operator surface, so refuse to
+# start if /audit is not mounted.
+if ! operator_surface_ready; then
+  fail_with_log "Operator surface preflight failed at ${BASE_URL}/audit; log follows:"
+fi
 
 cd "$E2E_DIR"
 if [ "${THREADLINE_E2E_THEME:-}" = "system" ]; then

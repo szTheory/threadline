@@ -381,6 +381,52 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 - **`route.*` cells and `.planning/CRITIQUE.md` stay uncommitted** (gitignored, regenerated
   per run). Only the reviewed ledger sign-off + any twin bump is committed.
 
+## CI Coverage
+
+Browser coverage is **split** across two workflows. Pull requests run a reduced
+Playwright project set so per-PR feedback stays inside a usable loop; the full
+set runs on `main` and nightly. **This is a real trade, not a free speedup** —
+four projects that used to run on every pull request now run only after merge.
+They are named below.
+
+| Playwright project | Pull request | `main` | Nightly | Runs via |
+|---|---|---|---|---|
+| `desktop-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
+| `mobile-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
+| `tier-a-capture` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
+| `tier-a-capture-light` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
+| `storybook-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `graded-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `refute-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `route-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
+
+**The `main` and nightly columns are the same lane, not two lanes.** Job
+`verify-example-browser-full` in
+[`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml)
+triggers on both push-to-`main` and a nightly `schedule`, plus manual dispatch.
+The pull-request set and the full set **overlap** — `desktop-chromium` and
+`mobile-chromium` run in both; the table is not a partition.
+
+**What stopped running on pull requests in v1.41 (Phase 198):**
+
+- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture` —
+  moved to `main` + nightly only.
+- The bare `chromium` project was **deleted outright**, not moved. It was
+  `Desktop Chrome` at 1280×720 with no scoped `testMatch`, and both
+  snapshot-bearing specs already excluded it by name, so it carried zero
+  baselines and added zero coverage over `desktop-chromium`.
+
+`verify-example-browser-full` is **not** a required check and does not block a
+pull request. Because a `schedule:` run notifies nobody, a failure of that lane
+opens (or comments on) a single deduplicated tracking issue labelled
+`ci-browser-full` — distinct from Flake Detection's own dedup stream.
+
+This table is not documentation-on-trust:
+`test/threadline/ci_coverage_doc_contract_test.exs` derives the project list from
+the actual `--project` flags in the workflows and fails if a project a workflow
+really runs is missing from this table.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
