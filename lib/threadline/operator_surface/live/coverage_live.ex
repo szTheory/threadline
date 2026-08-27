@@ -272,17 +272,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp coverage_verdict(assigns) do
       ~H"""
       <section class={["tl-coverage-verdict", "tl-coverage-verdict--#{verdict_status(@snapshot)}"]} aria-label="Selected schema readiness">
-        <p class="tl-coverage-verdict__eyebrow">Selected schema readiness</p>
+        <%!-- Density (197-02, signal-to-chrome): no "Selected schema readiness" eyebrow
+        and no "selected schema: … · Checked …" meta line here. The section is already
+        marked by its aria-label and status chip, the verdict heading names the schema
+        and readiness, and the page-header meta above owns schema + last-checked —
+        restating any of them inside the verdict is chrome. --%>
         <span class={["tl-coverage-verdict__status", "tl-chip", verdict_chip_class(@snapshot)]}>
           <%= verdict_label(@snapshot) %>
         </span>
         <h2 class="tl-coverage-verdict__title"><%= verdict_heading(@snapshot, @schema) %></h2>
-        <p class="tl-coverage-verdict__meta">
-          selected schema: <code><%= @schema %></code>
-          <%= if @snapshot.last_checked_at do %>
-            · Checked <%= Presentation.human_time(@snapshot.last_checked_at) %>
-          <% end %>
-        </p>
         <dl class="tl-coverage-verdict__counts">
           <div class="tl-coverage-verdict__count">
             <dt>Covered</dt>
