@@ -252,8 +252,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       for expected <- [
             "Audit coverage",
-            "Selected schema readiness",
-            "selected schema",
+            # 197-02 density edit: the verdict panel's "Selected schema readiness"
+            # eyebrow and "selected schema: …" meta line were removed; readiness
+            # naming lives in the page subtitle and the header's "Schema:" meta.
+            "Selected-schema audit readiness",
+            "Schema:",
             "Needs capture",
             "Expected gap",
             "Add capture",
