@@ -30,7 +30,8 @@ import { createClient, runNSamples } from "./client.js";
 import { loadBundle, committedCellIds } from "./bundle.js";
 import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
-import { lookupCache, writeCache } from "./cache.js";
+import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
+import { guardBeforePole } from "./gate.js";
 import { MODEL_ID, SCHEMA_VERSION, type LensName } from "./schema.js";
 import { generateReport } from "./report.js";
 
@@ -96,6 +97,7 @@ interface ScoreArgs {
   refuteOnly: boolean;
   dryRun: boolean;
   force: boolean;
+  freshBefore: boolean;
 }
 
 // The active oracle set path: synthetic-set.json under --synthetic (D-12), else the
@@ -114,6 +116,7 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
     refuteOnly: false,
     dryRun: false,
     force: false,
+    freshBefore: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -158,6 +161,11 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
         break;
       case "--force":
         args.force = true;
+        break;
+      case "--fresh-before":
+        // 197-01: deliberate escape hatch — delete an existing before pole to start a
+        // brand-new gate iteration on the same cell (see the before-pole guard below).
+        args.freshBefore = true;
         break;
     }
   }
@@ -218,6 +226,23 @@ function getRubricVersion(lens: LensName): string {
 function getRubricHash(rubricVersion: string): string {
   const match = rubricVersion.match(/\+([a-f0-9]+)$/);
   return match ? match[1] : "00000000";
+}
+
+/**
+ * sha8 of the cell's screenshot PNG bytes (197-01): the verdict-cache key component that
+ * makes a re-captured screenshot MISS instead of returning a stale verdict. Returns null
+ * when the scorecard/screenshot is unreadable — the cache is then bypassed (treated as a
+ * miss) and the scoring attempt surfaces the real error via loadBundle.
+ */
+function screenshotSha8(cellId: string): string | null {
+  try {
+    const scorecard = JSON.parse(
+      readFileSync(resolve(repoRoot, ".planning/scorecards", `${cellId}.json`), "utf8"),
+    ) as { artifacts: { screenshot: string } };
+    return sha8OfFile(resolve(repoRoot, scorecard.artifacts.screenshot));
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -308,6 +333,41 @@ async function runScore(argv: string[]): Promise<void> {
   const lenses = args.lens ? [args.lens] : ALL_LENSES;
   // Under --golden, score only the lenses each cell was actually labeled on.
   const goldenLensMap = args.golden ? goldenScope().lensByCell : null;
+
+  // Before-pole overwrite guard (197-01, OQ-3 debt #2). Oracle runs (--golden /
+  // --synthetic, incl. `mix critic.measure`) and refute.* cells are exempt — they are
+  // trust measurement, not gate poles. For everything else, an existing before pole
+  // must not be silently clobbered: after an edit, the gate is the only scorer.
+  if (!args.golden && !args.synthetic) {
+    const pairs: Array<{ cell: string; lens: string }> = [];
+    for (const cellId of cellIds) {
+      if (cellId.startsWith("refute.")) continue;
+      for (const lens of lenses) pairs.push({ cell: cellId, lens });
+    }
+    const guard = guardBeforePole(pairs, args.freshBefore);
+    if (guard.cleared.length > 0) {
+      console.log(
+        `[critic score] --fresh-before: deleted ${guard.cleared.length} existing before pole(s) ` +
+          `(${guard.cleared.join(", ")}) — starting a brand-new iteration.`,
+      );
+    }
+    if (guard.blocked.length > 0) {
+      const first = guard.blocked[0];
+      const page = first.cell.split("__")[0];
+      console.error(
+        `\n[critic score] REFUSED — a stamped before pole already exists for:\n` +
+          guard.blocked
+            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in .planning/critic-scores/)`)
+            .join("\n") +
+          `\n\nOverwriting it would fake the gate's before/after evidence (T-197-02).\n` +
+          `\`npm run critic:gate -- --page ${page} --lens <lens>\` is the ONLY post-edit scoring command.\n` +
+          `To deliberately start a brand-new iteration on this cell (discarding the old pole),\n` +
+          `re-run with --fresh-before.`,
+      );
+      process.exit(1);
+    }
+  }
+
   const client = createClient();
 
   console.log(`[critic score] Scoring ${cellIds.length} cells × ${lenses.length} lenses`);
@@ -317,6 +377,8 @@ async function runScore(argv: string[]): Promise<void> {
   let errored = 0;
 
   for (const cellId of cellIds) {
+    // sha8 of the cell's current screenshot (197-01): null → cache bypassed (miss).
+    const screenshotHash = screenshotSha8(cellId);
     const cellLenses = goldenLensMap
       ? lenses.filter((l) => goldenLensMap.get(cellId)?.has(l))
       : lenses;
@@ -332,9 +394,15 @@ async function runScore(argv: string[]): Promise<void> {
 
       for (const dimension of dimensions) {
         for (const persona of personas) {
-          // Verdict cache check
-          if (!args.force) {
-            const cached = lookupCache(cellId, `${lens}.${dimension}.${persona}`, rubricHash, MODEL_ID);
+          // Verdict cache check (screenshot-keyed: a re-capture MISSES, 197-01)
+          if (!args.force && screenshotHash !== null) {
+            const cached = lookupCache(
+              cellId,
+              `${lens}.${dimension}.${persona}`,
+              rubricHash,
+              MODEL_ID,
+              screenshotHash,
+            );
             if (cached) {
               skipped++;
               continue;
@@ -366,12 +434,15 @@ async function runScore(argv: string[]): Promise<void> {
               rationale: result.rationale,
             });
 
-            // Write to verdict cache for resume/replay
+            // Write to verdict cache for resume/replay (bound to the scored screenshot)
             writeCache({
               cell_id: cellId,
               dimension: `${lens}.${dimension}.${persona}`,
               rubric_hash: rubricHash,
               model_id: MODEL_ID,
+              screenshot_hash:
+                screenshotHash ??
+                sha8OfFile(resolve(repoRoot, bundle.scorecard.artifacts.screenshot)),
               result: {
                 ...result.evidence,
                 score: result.score ?? 0,
@@ -533,6 +604,9 @@ switch (subcommand) {
     console.error(`  score --lens <lens>    Score a specific lens`);
     console.error(`  score --theme <theme>  Score a specific theme (dark|light)`);
     console.error(`  score --force          Re-score even on cache hit`);
+    console.error(`  score --fresh-before   Deliberately delete an existing before pole and re-score`);
+    console.error(`                         (without it, score REFUSES to clobber a stamped before pole;`);
+    console.error(`                          critic:gate is the only post-edit scoring command)`);
     console.error(`  gate --page <id> --lens <lens>            Forward-only net-positive gate (local-only, 4 blocking lenses)`);
     console.error(`       [--dry-run]                          Print the wired plan; $0, no ANTHROPIC_API_KEY required`);
     console.error(`       [--n <3>]                            Base N samples per cell/lens (escalates to 7 on unstable)`);

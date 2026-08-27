@@ -1,15 +1,21 @@
 /**
  * cache.ts — Verdict cache for the adversarial critic runner.
  *
- * Keyed on {cell_id}__{dimension}__{rubric_hash}__{model_id} → fs JSON.
+ * Keyed on {cell_id}__{dimension}__{rubric_hash}__{model_id}__{screenshot_hash} → fs JSON.
  * Enables free resume/replay of completed cells without re-billing (D-07/D-04).
  *
  * The rubric_hash is the sha8 component of the rubric version string (e.g. "ab3f1234"),
  * so a rubric edit auto-invalidates the cache for affected cells.
  *
+ * The screenshot_hash is the sha8 of the cell's screenshot PNG bytes (197-01, OQ-3
+ * debt #1), so a re-capture auto-invalidates the cache for the affected cell — a
+ * stale verdict can never masquerade as a fresh score after the pixels changed.
+ * Old-format (4-part) entries simply MISS under the 5-part key; no migration.
+ *
  * Cache location: .planning/critic-verdict-cache/ (gitignored)
  */
 
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +30,7 @@ export interface CachedVerdict {
   dimension: string;
   rubric_hash: string;
   model_id: string;
+  screenshot_hash: string;
   result: CriticDimensionResult;
   n: number;
   scores_raw: number[];
@@ -40,15 +47,24 @@ function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+/**
+ * Compute the sha8 of a file's bytes (first 8 hex chars of sha256). Used to bind a
+ * cached verdict to the exact screenshot PNG it was scored against (197-01).
+ */
+export function sha8OfFile(path: string): string {
+  return createHash("sha256").update(readFileSync(path)).digest("hex").slice(0, 8);
+}
+
 function cacheKey(
   cellId: string,
   dimension: string,
   rubricHash: string,
   modelId: string,
+  screenshotHash: string,
 ): string {
   // Sanitize key components to prevent path traversal
   const safe = (s: string) => s.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `${safe(cellId)}__${safe(dimension)}__${safe(rubricHash)}__${safe(modelId)}`;
+  return `${safe(cellId)}__${safe(dimension)}__${safe(rubricHash)}__${safe(modelId)}__${safe(screenshotHash)}`;
 }
 
 function cachePath(key: string): string {
@@ -56,16 +72,18 @@ function cachePath(key: string): string {
 }
 
 /**
- * Look up a cached verdict by (cellId, dimension, rubricHash, modelId).
- * Returns the cached verdict if found, or null on miss.
+ * Look up a cached verdict by (cellId, dimension, rubricHash, modelId, screenshotHash).
+ * Returns the cached verdict if found, or null on miss. A re-captured screenshot
+ * changes screenshotHash, so the lookup MISSES — never a stale verdict (197-01).
  */
 export function lookupCache(
   cellId: string,
   dimension: string,
   rubricHash: string,
   modelId: string,
+  screenshotHash: string,
 ): CachedVerdict | null {
-  const key = cacheKey(cellId, dimension, rubricHash, modelId);
+  const key = cacheKey(cellId, dimension, rubricHash, modelId, screenshotHash);
   const path = cachePath(key);
   if (!existsSync(path)) return null;
   try {
@@ -87,6 +105,7 @@ export function writeCache(verdict: CachedVerdict): void {
     verdict.dimension,
     verdict.rubric_hash,
     verdict.model_id,
+    verdict.screenshot_hash,
   );
   writeJson(cachePath(key), verdict);
 }
