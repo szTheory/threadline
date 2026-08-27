@@ -123,9 +123,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Selected-schema audit readiness and table-level capture gaps."
         assert html =~ ~s|aria-label="Selected schema readiness"|
         assert html =~ ~s|class="tl-coverage-verdict|
+        # Density (197-02): "Selected schema readiness" now lives only in the section's
+        # aria-label — the visible eyebrow self-label was removed.
         assert html =~ "Selected schema readiness"
+        refute html =~ ~s|class="tl-coverage-verdict__eyebrow"|
         assert html =~ "public"
+        # Density (197-02): schema + last-checked live in the page-header meta only;
+        # the verdict's "selected schema: … · Checked …" meta line was removed.
+        assert html =~ "Schema: public"
         assert html =~ "Checked"
+        refute html =~ "selected schema:"
+        refute html =~ ~s|class="tl-coverage-verdict__meta"|
         assert html =~ "Covered"
         assert html =~ "Needs capture"
         assert html =~ "Expected gaps"
@@ -200,6 +208,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute expected_row =~ "Add capture"
         refute expected_row =~ "tl-row-action--capture"
         refute expected_row =~ "mix threadline.gen.triggers --tables"
+      end
+
+      # Density (197-02, signal-to-chrome): the verdict's visible "Selected schema
+      # readiness" eyebrow self-label and its "selected schema: … · Checked …" meta
+      # line were removed. The not-ready state is carried by the semantic modifier +
+      # danger chip and the heading; the section name lives in the aria-label; schema
+      # and last-checked live in the page-header meta.
+      test "carries not-ready state in the verdict modifier and danger chip, not restated labels",
+           %{conn: conn} do
+        {:ok, _view, html} = live(conn, "/audit/coverage")
+
+        # Surviving semantic carriers of the danger state.
+        assert html =~ "tl-coverage-verdict--not-ready"
+        assert html =~ "tl-chip--danger"
+        assert html =~ ~r/Not ready for public: \d+ tables? need/
+
+        # Removed restatements, and where each duty now lives:
+        # - eyebrow self-label -> section aria-label
+        refute html =~ ~s|class="tl-coverage-verdict__eyebrow"|
+        # - verdict meta line (schema + Checked) -> page-header meta
+        refute html =~ "selected schema:"
+        refute html =~ ~s|class="tl-coverage-verdict__meta"|
+        assert html =~ "Schema: public"
+        assert html =~ "Checked"
       end
 
       test "expected-gap metric remains present without footer repetition", %{conn: conn} do
