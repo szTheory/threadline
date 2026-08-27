@@ -1,6 +1,13 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.ActorLive do
     use Phoenix.LiveView
+
+    # GREEN-05 / D-07: this page declares its own form policy, so a change that adds
+    # a form control fails the guard in the same diff. See
+    # test/threadline/operator_surface/ui_form_policy_contract_test.exs.
+    Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
+    @ui_form_policy :formless
+
     import Ecto.Query
 
     alias Threadline.Capture.AuditChange

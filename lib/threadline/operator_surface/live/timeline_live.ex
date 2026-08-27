@@ -2,6 +2,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TimelineLive do
     @moduledoc false
     use Phoenix.LiveView
+
+    # GREEN-05 / D-07: has-forms — the timeline is the surface's primary query page
+    # (filter toolbar) and also hosts the save-view form.
+    Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
+    @ui_form_policy {:has_forms, "filter toolbar and saved-view form"}
+
     import Ecto.Query
 
     alias Phoenix.LiveView.JS
