@@ -282,6 +282,24 @@ jobs:
       - name: Run example Playwright suite
         run: mix verify.example_browser
 
+      # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
+      # this step is what makes that abort useful: it preserves the retained
+      # traces (playwright.config.ts `trace: "retain-on-failure"`) for the
+      # failures that DID occur, plus the phx.server boot log that explains a
+      # preflight abort. Ordered AFTER the Playwright step and guarded on
+      # failure() so it runs precisely when the run died early.
+      - name: Upload Playwright traces and e2e boot log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-browser-e2e-diagnostics
+          path: |
+            examples/threadline_phoenix/e2e/test-results
+            examples/threadline_phoenix/e2e/playwright-report
+            /tmp/threadline_phoenix_e2e.log
+          if-no-files-found: warn
+          retention-days: 14
+
   # Deterministic mechanical gate over the committed Tier A evidence. Pure
   # Elixir — no DB, no browser — so it runs fast on every PR and blocks a change
   # if the committed .planning/scorecards/*.json breach any MODE-A (WCAG /

@@ -12,8 +12,14 @@ const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:4002";
 // lane (use `mix verify.example_browser_light`).
 const lightLane = process.env.THREADLINE_E2E_THEME === "system";
 
+// The bare `chromium` project was deleted in Phase 198 (D-15 step 1). It was
+// `devices["Desktop Chrome"]` with no viewport override — i.e. desktop-chromium
+// at 1280x720 instead of 1280x900 — and it carried ZERO snapshot baselines: both
+// specs that assert on snapshots already excluded it by name
+// (operator-screenshot-regression.spec.ts:83 `test.skip(... === "chromium")`,
+// operator-stress.spec.ts:268 `!== "desktop-chromium"`). Deleting it removes ~a
+// third of the browser lane's serialized invocations for zero coverage loss.
 const projects = [
-  { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
   { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
   // Tier A deterministic capture lane (Phase 194, MECH-04). Two projects — one per
@@ -123,6 +129,16 @@ export default defineConfig({
   snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}-{projectName}{ext}",
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
+  // Systemic-break bound (Phase 198, D-18). A broken operator mount used to make
+  // every one of ~382 serialized invocations burn its own 120s timeout, which is
+  // where the ~1h33m CI wall clock came from. Abort after 5 failures on CI;
+  // unbounded (0) locally, where a developer wants the whole picture.
+  //
+  // Deliberately maxFailures, NOT `-x`/bail-on-first-failure: the `trace:`
+  // setting below only pays off if more than one failure is allowed to happen.
+  // Failing fast and DIAGNOSING fast are different requirements — five retained
+  // traces are a diagnostic sample, one is an anecdote.
+  maxFailures: process.env.CI ? 5 : 0,
   workers: 1,
   reporter: process.env.CI ? [["github"], ["list"]] : [["list"]],
   use: {
