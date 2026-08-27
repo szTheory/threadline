@@ -99,7 +99,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 198-03-PLAN.md — **Tracer:** `ci-required` aggregate gate live on a real staging PR; matrix check-name observation; min-lane rehearsal (wave 2)
+- [x] 198-03-PLAN.md — **Tracer:** `ci-required` aggregate gate live on a real staging PR; matrix check-name observation; min-lane rehearsal (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
