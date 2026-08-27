@@ -128,7 +128,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 197-01-PLAN.md — Loop-measurement hardening: screenshot-keyed verdict cache + before-pole overwrite guard, proven by a gate dry-run
+- [x] 197-01-PLAN.md — Loop-measurement hardening: screenshot-keyed verdict cache + before-pole overwrite guard, proven by a gate dry-run
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
