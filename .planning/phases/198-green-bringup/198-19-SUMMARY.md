@@ -147,6 +147,17 @@ None - no external service configuration required.
 - GREEN-04 is **NOT** marked Complete by this plan — per the plan's own success criteria, that verdict awaits the measured CI run in plan 198-21.
 - Ready for plan 198-20 (decision checkpoint) and 198-21 (push + measured CI run).
 
+## Self-Check: PASSED
+
+- `.github/workflows/ci.yml` — FOUND
+- `test/threadline/storage_schema_call_site_contract_test.exs` — FOUND
+- `.planning/phases/198-green-bringup/198-CI-MEASUREMENT.md` — FOUND
+- `.planning/phases/198-green-bringup/198-19-SUMMARY.md` — FOUND
+- Commit `aff59c5a` (Task 1) — FOUND in `git log --oneline --all`
+- Commit `584e41cc` (Task 2) — FOUND
+- Commit `0a408a50` (Task 3) — FOUND
+- Commit `f1af9a68` (Summary) — FOUND
+
 ---
 *Phase: 198-green-bringup*
 *Completed: 2026-08-28*
