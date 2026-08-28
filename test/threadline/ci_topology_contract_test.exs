@@ -183,4 +183,156 @@ defmodule Threadline.CiTopologyContractTest do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
     assert String.contains?(doc, "STG-AUDITED-PATH-RUBRIC")
   end
+
+  # --- Phase 198-21 / D-42 merge-gate self-guarding contracts ---------------
+  #
+  # `.github/rulesets/main.json` names only the single aggregate context
+  # `CI required`, so it structurally cannot detect a lane quietly dropped
+  # from `ci-required`'s `needs:` list — the ruleset stays byte-identical
+  # while the guarantee behind it shrinks. These two tests derive the merge
+  # gate's real membership and its required-context singleton from source, in
+  # both directions, so that narrowing is a red test rather than an invisible
+  # YAML edit.
+
+  @ci_required_roster_heading "### `ci-required` needs: roster"
+
+  # Isolates the `ci-required:` job block. `ci-required` is the final job in
+  # `ci.yml`'s `jobs:` map, so everything after the marker belongs to it.
+  defp ci_required_block do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    case String.split(yaml, "\n  ci-required:\n", parts: 2) do
+      [_, tail] ->
+        tail
+
+      _ ->
+        flunk(
+          "could not find a \"  ci-required:\" job in .github/workflows/ci.yml — " <>
+            "the derive source for the merge-gate roster contract is broken"
+        )
+    end
+  end
+
+  defp ci_required_needs do
+    block = ci_required_block()
+
+    case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, block) do
+      [_, items] ->
+        items
+        |> String.split("\n", trim: true)
+        |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("- ")))
+
+      nil ->
+        []
+    end
+  end
+
+  defp strip_comment_lines(block) do
+    block
+    |> String.split("\n")
+    |> Enum.reject(&String.match?(&1, ~r/^\s*#/))
+    |> Enum.join("\n")
+  end
+
+  defp documented_needs_section do
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert String.contains?(contributing, @ci_required_roster_heading),
+           "CONTRIBUTING.md has no \"#{@ci_required_roster_heading}\" heading — the " <>
+             "documented side of the merge-gate roster contract is missing entirely."
+
+    contributing
+    |> String.split(@ci_required_roster_heading, parts: 2)
+    |> List.last()
+    |> String.split(~r/\n#+ /, parts: 2)
+    |> List.first()
+  end
+
+  defp documented_needs_roster do
+    documented_needs_section()
+    |> then(&Regex.scan(~r/^- `([a-z0-9-]+)`$/m, &1))
+    |> Enum.map(fn [_, id] -> id end)
+  end
+
+  test "ci-required's needs: roster matches CONTRIBUTING.md in both drift directions and stays non-vacuous" do
+    actual = ci_required_needs()
+    documented = documented_needs_roster()
+
+    assert length(actual) >= 10,
+           "ci-required's derived needs: list has only #{length(actual)} entr" <>
+             "#{if length(actual) == 1, do: "y", else: "ies"} (#{inspect(actual)}) — fewer " <>
+             "than ten is a broken derive, not a real narrowing, and must fail loudly rather " <>
+             "than silently asserting nothing while still reporting success."
+
+    missing_from_docs = actual -- documented
+
+    assert missing_from_docs == [],
+           "ci-required requires #{inspect(missing_from_docs)} but CONTRIBUTING.md's " <>
+             "\"#{@ci_required_roster_heading}\" roster omits it — the docs have drifted " <>
+             "behind the pipeline."
+
+    undocumented_extra = documented -- actual
+
+    assert undocumented_extra == [],
+           "CONTRIBUTING.md's \"#{@ci_required_roster_heading}\" roster claims " <>
+             "#{inspect(undocumented_extra)} but ci-required no longer requires it in " <>
+             ".github/workflows/ci.yml — this is the silent-narrowing case D-42 exists to " <>
+             "catch: a needs: entry was removed without a matching documented roster edit."
+
+    stripped = strip_comment_lines(ci_required_block())
+
+    if Regex.match?(~r/^\s*allowed-skips:/m, stripped) or
+         Regex.match?(~r/^\s*allowed-failures:/m, stripped) do
+      section = documented_needs_section()
+
+      assert String.contains?(section, "allowed-skips decision:") or
+               String.contains?(section, "allowed-failures decision:"),
+             "ci-required's alls-green step now carries allowed-skips or allowed-failures, " <>
+               "but the \"#{@ci_required_roster_heading}\" section records no decision " <>
+               "citation for it — an allowed failure launders a red lane into a green gate " <>
+               "(D-09) and must be documented, not silently introduced."
+    end
+  end
+
+  test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
+    ruleset =
+      [".github", "rulesets", "main.json"]
+      |> read_rel!()
+      |> Jason.decode!()
+
+    required_status_checks_rule =
+      Enum.find(ruleset["rules"], fn rule -> rule["type"] == "required_status_checks" end)
+
+    refute is_nil(required_status_checks_rule),
+           ".github/rulesets/main.json has no required_status_checks rule at all"
+
+    contexts = required_status_checks_rule["parameters"]["required_status_checks"]
+
+    assert length(contexts) == 1,
+           "expected exactly one required status check context in " <>
+             ".github/rulesets/main.json, found #{length(contexts)}: #{inspect(contexts)}. " <>
+             "A second required context reintroduces the enumeration hazard D-08 replaced " <>
+             "with a single aggregate gate."
+
+    [%{"context" => context}] = contexts
+
+    assert context === "CI required",
+           "expected the ruleset's required status check context to be the exact literal " <>
+             "\"CI required\", got #{inspect(context)} — GitHub matches required checks on " <>
+             "exact string, never case-insensitively or trimmed."
+
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    job_name =
+      case Regex.run(~r/\n  ci-required:\n    name: (.+)\n/, yaml) do
+        [_, name] -> name
+        nil -> flunk("could not find ci-required's \"    name:\" line in ci.yml")
+      end
+
+    assert job_name === context,
+           "ci-required's emitted name: (#{inspect(job_name)}) no longer matches the " <>
+             "ruleset's sole required context (#{inspect(context)}) — GitHub matches " <>
+             "required checks on the exact emitted job name (D-08), so this mismatch would " <>
+             "make the required check permanently unsatisfiable."
+  end
 end
