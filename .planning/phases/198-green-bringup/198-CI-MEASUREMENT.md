@@ -194,4 +194,237 @@ diagnosis was right.
 
 ## Task 2 — Push, watch the run, record it
 
-See below.
+### Push
+
+Pushed the worktree's HEAD (`f748e43d`, which carries all of 198-14, 198-15,
+198-16, 198-17, and Task 1's own commit) to the existing `ci/198-gap-closure`
+branch, per the maintainer's explicit authorization for this round and PR #29's
+existing open state:
+
+```
+$ git push origin HEAD:ci/198-gap-closure
+   ffcff0d1..f748e43d  HEAD -> ci/198-gap-closure
+```
+
+`main` was never touched; `git diff --exit-code .github/rulesets/
+.github/workflows/branch-protection.yml` was clean both before and after the
+push, and the live ruleset (`gh api repos/szTheory/threadline/rulesets/21702804`)
+reported `{"bypass_actors":[],"enforcement":"active"}` identically before and
+after. No bypass actor was added. No direct push to `main` was attempted.
+
+### The run
+
+```
+$ gh run list --branch ci/198-gap-closure --limit 1 --json conclusion,databaseId,headSha,createdAt,updatedAt
+[{"conclusion":"failure","databaseId":33197493051,"headSha":"f748e43d...","createdAt":"2026-08-28T18:02:46Z","updatedAt":"2026-08-28T18:16:15Z"}]
+```
+
+- **Run ID:** `33197493051`
+- **Head SHA:** `f748e43d7e4c1e63a0142569a55f57c7187e5cb1`
+- **Conclusion:** `failure`
+- **Wall clock:** `18:02:46Z` → `18:16:15Z` = **13m29s** (well inside the ≤20-minute
+  clause on its own; the *other* GREEN-07 clause — `CI required` must conclude
+  `success` — is what fails this run, not time)
+- Watched to completion in the foreground (`gh run watch 33197493051
+  --exit-status`); no re-run was issued at any point in this task.
+
+### Per-check table (all 14 checks the run reported, `CI required` called out
+separately)
+
+| Check | Conclusion | Duration |
+|---|---|---|
+| Check formatting | ✓ success | 19s |
+| Run Credo (strict) | ✓ success | 1m16s |
+| Compile without optional deps | ✓ success | 1m8s |
+| Run test suite (min) | ✓ success | 4m26s |
+| Run test suite (current) | ✗ **failure** | 7m2s |
+| Hex evaluator smoke (threadline from hex.pm) | ✓ success | 1m7s |
+| PgBouncer transaction topology | ✓ success | 1m57s |
+| Mechanical checker (committed scorecards) | ✓ success | 1m34s |
+| Tier A capture lane (byte-stable evidence) | ✗ **failure** | 6m16s |
+| Example app browser E2E (Playwright) | ✗ **failure** | 13m20s |
+| Build ExDoc (dev) | ✓ success | 1m26s |
+| Hex package tarball | ✓ success | 17s |
+| Release metadata (version / changelog) | ✓ success | 8s |
+| **`CI required` (aggregate)** | **✗ failure** | 3s |
+
+`CI required`'s own `re-actors/alls-green` step ("Decide whether all needed jobs
+succeeded") failed because 3 of its 12 `needs:` dependencies concluded `failure`
+(`Run test suite (current)`, `Tier A capture lane`, `Example app browser E2E`).
+No dependency was `skipped` or `cancelled` — every job actually ran to completion.
+
+### Prediction scorecard (Task 1's prediction vs. the actual run)
+
+| Check | Predicted | Actual | Right? |
+|---|---|---|---|
+| Check formatting | GREEN | success | ✓ |
+| Run Credo (strict) | GREEN | success | ✓ |
+| Compile without optional deps | GREEN | success | ✓ |
+| Run test suite (min) | GREEN (uncertain) | success | ✓ |
+| Run test suite (current) | GREEN (uncertain) | **failure** | ✗ — see below |
+| Hex evaluator smoke | GREEN | success | ✓ |
+| PgBouncer transaction topology | GREEN (uncertain) | success | ✓ |
+| Mechanical checker | GREEN | success | ✓ |
+| Tier A capture lane | RED (expected) | failure | ✓ |
+| Example app browser E2E | RED (expected) | failure | ✓ |
+| Build ExDoc (dev) | GREEN | success | ✓ |
+| Hex package tarball | GREEN | success | ✓ |
+| Release metadata | GREEN | success | ✓ |
+| CI required | RED (expected) | failure | ✓ |
+
+**11 of 14 predictions correct.** The one wrong prediction —
+`Run test suite (current)` — is explained below with its own root-cause evidence,
+not merely marked wrong.
+
+**Why the `Run test suite (current)` prediction was wrong.** The prediction
+correctly anticipated that 198-14's and 198-15's fixes (the pgbouncer file's
+`repo_opts()` port, and retiring `stress_router_test.exs`'s ambient
+`examples/threadline_phoenix` dependency) would let `mix verify.test` itself pass
+inside this job — and it did (confirmed by the job's own `mix verify.test` step,
+which is the same command both matrix lanes run and which is what `Run test suite
+(min)` — now green — depends on exclusively). What the prediction could not
+anticipate, because no local task in this round or 198-16/198-17 ran it, is that
+`Run test suite (current)`'s job carries **three** additional `if: matrix.lane
+== 'current'`-gated steps after `mix verify.test`: `mix verify.threadline`, then
+`mix verify.example` (the example app's own `ThreadlinePhoenix` ExUnit suite,
+including `ThreadlinePhoenixWeb.WalkthroughHappyPathTest`), then
+`mix verify.doc_contract`. In every prior CI run (baseline `33138291361`
+and prior round `33183920952`), this job's earlier `mix verify.test` step failed
+first (on the pgbouncer/stress-router defects), which — by GitHub Actions' default
+sequential-step semantics — meant `mix verify.example` never ran at all in this
+job. Fixing `mix verify.test` did not turn the lane green; it advanced the job far
+enough to reach a distinct, previously-masked third defect underneath: **this
+job's own database-preparation step (`.github/workflows/ci.yml:235-240`, "Ensure
+threadline_phoenix_test database exists") runs `createdb` but — unlike the
+equivalent preparation step in the `verify-example-browser` job
+(`ci.yml:346-355`) and the `verify-capture` job (`ci.yml:500-509`) — never runs
+the `ALTER DATABASE threadline_phoenix_test SET search_path TO "$user", public,
+threadline;` statement those two other jobs both carry.** Without that ALTER,
+`mix verify.example`'s `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` queries
+`audit_transactions` on the default `public`-only search path and gets
+`** (Postgrex.Error) ERROR 42P01 (undefined_table) relation "audit_transactions"
+does not exist"` — the exact GREEN-04 defect class this phase exists to close,
+now measured in a fourth location. This is new information this round's local
+tasks had no way to surface locally (`mix ci.all` on this machine hits
+`verify.example` too, but through its OWN db-prep path in `mix.exs`'s
+`verify_example/1`, which is a different code path from this CI job's inline
+`createdb`-only step — the local reproduction in Task 1 above used the shared
+local Postgres, which already had `threadline_phoenix_test`'s search_path altered
+from prior 198-16/198-17 work, so it could not have caught this).
+
+### Three-way job comparison — "N of 7 now green"
+
+Baseline run `33138291361` (`main` @ `a97f527e`) had **7 non-aggregate red
+jobs**. Comparing all three runs directly (job conclusions fetched fresh via
+`gh api .../actions/runs/<id>/jobs` for all three, not carried from any prior
+summary):
+
+| Job | Baseline (33138291361) | Round 1 (33183920952) | Round 2 (33197493051, this run) |
+|---|---|---|---|
+| Compile without optional deps | ✗ failure | ✓ success | ✓ success |
+| Mechanical checker (committed scorecards) | ✗ failure | ✓ success | ✓ success |
+| PgBouncer transaction topology | ✗ failure | ✗ failure | **✓ success** |
+| Run test suite (min) | ✗ failure | ✗ failure | **✓ success** |
+| Run test suite (current) | ✗ failure | ✗ failure | ✗ failure (new cause — see above) |
+| Tier A capture lane (byte-stable evidence) | ✗ failure | ✗ failure | ✗ failure (unchanged — 198-16's diagnosed, forbidden-remedy cause) |
+| Example app browser E2E (Playwright) | ✗ failure | ✗ failure | ✗ failure (unchanged — 198-17's diagnosed, out-of-scope 28-failure discovery) |
+| **`CI required` (aggregate)** | ✗ failure | ✗ failure | ✗ failure |
+
+**4 of the 7 originally-red jobs are green now: `Compile without optional deps`,
+`Mechanical checker`, `PgBouncer transaction topology`, and `Run test suite
+(min)`.** Round 1 fixed 2 (`Compile without optional deps`,
+`Mechanical checker`); this round (198-14/198-15) fixed 2 more (`PgBouncer
+transaction topology`, `Run test suite (min)`). **3 of the 7 remain red:**
+`Run test suite (current)` (a newly-measured, previously-masked third cause, not
+yet diagnosed or authorized for a fix in this plan's scope), `Tier A capture
+lane` (198-16's diagnosed-but-forbidden-remedy halt, unchanged), and `Example app
+browser E2E` (198-17's diagnosed 5-of-33 fix plus the 28-failure discovery,
+unchanged — this run's 5 failures are exactly 5 of that 28-failure set, confirmed
+by name below).
+
+### Verbatim failure output for every still-red check
+
+**`Run test suite (current)`** (`job 98938250341`) — 9 tests failed, all the
+identical `undefined_table` cause (one representative shown; all 9 share the
+same query and stacktrace shape):
+```
+1) test §2 onboarding (WALK-01-05..07) WALK-01-06 support user reaches org-scoped audit timeline (ThreadlinePhoenixWeb.WalkthroughHappyPathTest)
+   test/threadline_phoenix_web/walkthrough_happy_path_test.exs:43
+   ** (Postgrex.Error) ERROR 42P01 (undefined_table) relation "audit_transactions" does not exist
+
+       query: SELECT a0."id" FROM "audit_transactions" AS a0 WHERE (a0."txid" = txid_current())
+   stacktrace:
+     (ecto_sql 3.13.5) lib/ecto/adapters/sql.ex:1113: Ecto.Adapters.SQL.raise_sql_call_error/1
+     ...
+     (threadline_phoenix 0.1.0) lib/threadline_phoenix/demo/seed/personas.ex:106: anonymous fn/4 in ThreadlinePhoenix.Demo.Seed.Personas.seed_memberships/1
+```
+All 9 failing test names: `WALK-01-06`, `WALK-03-04`, `WALK-03-01`, `WALK-02-02`,
+`WALK-02-01`, `WALK-03-03`, `WALK-03-02`, `WALK-02-03 (admin export status)`,
+`WALK-01-07` — the entirety of `ThreadlinePhoenixWeb.WalkthroughHappyPathTest`
+that touches seeded audit data, all failing at the same `seed_memberships`
+setup call, all with the identical `undefined_table` cause.
+
+**`Tier A capture lane (byte-stable evidence)`** (`job 98938250050`) — the
+capture itself passed (`2 passed (4.0m)`), then the byte-stability assertion
+failed exactly as 198-16 diagnosed and predicted:
+```
+##[error]Tier A capture is not byte-stable, or committed evidence is stale.
+-    "scroll_cost": 18.803,
++    "scroll_cost": 40.8,
+-    "scroll_cost": 19.85,
++    "scroll_cost": 41.953,
+-    "scroll_cost": 19.038,
++    "scroll_cost": 36.504,
+```
+(repeated across all 6 `page.coverage.error__*` cells, matching
+`.planning/audits/198-tier-a-byte-stability.md`'s own reproduction values within
+measurement noise — 40.8/41.953/36.504 here vs. 40.37/41.417/36.478 in the local
+reproduction, both far from the committed 18.803/19.85/19.038 and both far above
+the correctly-scoped ~0.558 the audit computed).
+
+**`Example app browser E2E (Playwright)`** (`job 98938250110`) — `5 failed`,
+`305 did not run`, `50 passed (10.8m)` (`maxFailures: 5` ceiling hit, per
+`playwright.config.ts:141`). All 5 failing tests, by name:
+```
+[desktop-chromium] › operator-find-mobile.spec.ts:48:3 › transaction mobile opens from Timeline with semantic values and copy controls
+[desktop-chromium] › operator-find-mobile.spec.ts:66:3 › row-history mobile opens from a Transaction row with formatted values
+[desktop-chromium] › operator-find-mobile.spec.ts:103:3 › coverage mobile shows Add capture remediation without horizontal overflow
+[desktop-chromium] › operator-phase-135-uat.spec.ts:76:3 › support user is denied admin-only Coverage
+[desktop-chromium] › operator-phase-173-uat.spec.ts:74:3 › dropdown: opens and exposes aria-expanded state
+```
+All 5 are members of the 28-failure set 198-17 already discovered, diagnosed as
+out-of-scope, and logged in `deferred-items.md` (Plan 198-17 entry) and
+`.planning/WINDOWS.md` entry #8 — confirmed by name match against that entry's
+own list (`operator-find-mobile.spec.ts`, `operator-phase-135-uat.spec.ts`,
+`operator-phase-173-uat.spec.ts` are all named there). Neither of the two specs
+198-17 fixed (`operator-coverage-readiness.spec.ts`,
+`operator-accessibility.spec.ts`) appears anywhere in this run's failures —
+confirming 198-17's fix held on the real CI run. The two fixed specs' tests
+(coverage-readiness viewports 11-15 and accessibility test 10 in the run's own
+numbered output above) all show `✓` in this run.
+
+### Re-run discipline
+
+No check in this run was re-run for any reason — this section is present per the
+plan's acceptance criteria to state that explicitly. `gh run watch` observed the
+single run to its single, natural completion.
+
+### Branch protection — before/after
+
+```
+$ git diff --exit-code .github/rulesets/ .github/workflows/branch-protection.yml
+(exit 0, both before and after the push)
+
+$ gh api repos/szTheory/threadline/rulesets/21702804 --jq '{enforcement, bypass_actors}'
+{"bypass_actors":[],"enforcement":"active"}
+(identical before and after)
+```
+
+### PR #29 mergeability
+
+```
+$ gh pr view 29 --json mergeStateStatus,state
+{"mergeStateStatus":"BLOCKED","state":"OPEN"}
+```
+Unchanged from before this run — `CI required` is red, so the branch protection
+gate correctly still blocks the merge, exactly as designed.
