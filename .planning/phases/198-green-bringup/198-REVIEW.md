@@ -1,237 +1,270 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-08-28T14:52:19Z
+reviewed: 2026-08-28T18:29:14Z
 depth: standard
-files_reviewed: 25
+files_reviewed: 6
 files_reviewed_list:
-  - .github/workflows/ci.yml
-  - .github/workflows/flake-detection.yml
-  - CONTRIBUTING.md
-  - bin/classify-flake-run
-  - lib/threadline/operator_surface/controllers/theme_controller.ex
-  - lib/threadline/operator_surface/ui.ex
-  - test/mix/tasks/threadline.evidence_show_test.exs
-  - test/mix/tasks/threadline.incident_test.exs
-  - test/mix/tasks/threadline/export_test.exs
-  - test/threadline/capture/trigger_changed_from_test.exs
-  - test/threadline/capture/trigger_context_test.exs
-  - test/threadline/capture/trigger_redaction_test.exs
-  - test/threadline/capture/trigger_test.exs
-  - test/threadline/evidence/proof_test.exs
-  - test/threadline/flake_classifier_contract_test.exs
-  - test/threadline/governance/evidence_record_test.exs
-  - test/threadline/operator_surface/breadcrumb_test.exs
-  - test/threadline/operator_surface/component_contract_test.exs
-  - test/threadline/operator_surface/copy_contract_test.exs
-  - test/threadline/operator_surface/exports_mix_parity_test.exs
-  - test/threadline/operator_surface/live/row_history_live_test.exs
-  - test/threadline/operator_surface/row_history_component_test.exs
-  - test/threadline/operator_surface/transaction_live_test.exs
-  - test/threadline/optional_deps_contract_test.exs
-  - test/threadline/storage_schema_prefix_contract_test.exs
+  - test/support/storage_schema_case.ex
+  - test/threadline/pgbouncer_topology_test.exs
+  - test/threadline/storage_schema_call_site_contract_test.exs
+  - test/threadline/operator_surface/stress_router_test.exs
+  - examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts
+  - examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts
 findings:
-  critical: 0
-  warning: 2
+  critical: 2
+  warning: 1
   info: 1
-  total: 3
+  total: 4
 status: issues_found
-resolution: WR-01 fixed; WR-02 rejected as false positive; IN-01 accepted as-is
 ---
 
-# Phase 198: Code Review Report (Gap-Closure Plans 08-13)
+# Phase 198: Code Review Report — Gap-Closure Round 2 (Plans 14, 15, 17)
 
-**Reviewed:** 2026-08-28T14:52:19Z
+**Reviewed:** 2026-08-28T18:29:14Z
 **Depth:** standard
-**Files Reviewed:** 25 (diff `02e6070a..HEAD`)
-**Status:** issues_found (2 Warning, 1 Info — no Blockers)
+**Files Reviewed:** 6 (diff `74db148a..HEAD`)
+**Status:** issues_found (2 Critical, 1 Warning, 1 Info)
 
-## Summary
+This file supersedes only the **scope of the diff reviewed**; it does not
+discard round 1's findings. Round 1 (diff `02e6070a..HEAD` at the time,
+covering plans 08–13) is preserved verbatim below under "Round 1 Findings
+(preserved)", including the orchestrator's disposition on each. Round 2's
+new findings (plans 14, 15, 17) follow immediately under "Round 2 Findings
+(new)".
 
-This review targeted the gap-closure work that drove `mix test` from 80 real
-test-side defects (unprefixed `Repo` calls against the non-default
-`threadline` schema) to 0, plus the CI/flake-detection reachability fixes.
-Special attention was paid to whether any change *laundered* a failure
-instead of fixing it (restored `search_path`, a repo-level default prefix, a
-hardcoded `prefix: "threadline"` literal, a weakened assertion, a skip/
-exclude, or a vacuous new test).
+## Summary — Round 2
 
-**No laundering was found.** Specifically verified:
+This round reviewed the PgBouncer-topology port + a new static call-site
+sweep (198-14), the retirement of an ambient-dependency shell-out in
+`stress_router_test.exs` (198-15), and the diagnosis-then-fix of two rotted
+Playwright assertions (198-17).
 
-- All 14 ported test files (plans 198-08, 198-12) have a 1:1 count match
-  between Ecto call sites (`Repo.all/delete_all/insert!/aggregate/one!`) and
-  `repo_opts()` mentions — no call site was silently skipped, and the
-  `import Threadline.StorageSchemaCase` addition was applied only to the
-  5 files that genuinely needed it (bare `use ExUnit.Case`, not
-  `Threadline.DataCase`).
-- `test/threadline/storage_schema_prefix_contract_test.exs`'s new
-  `Threadline.StorageSchemaMaskContractTest` (D-02 guard) is genuinely
-  non-vacuous: it pairs a load-bearing behavioural assertion (unprefixed read
-  raises `undefined_table`) with a positive control (the same read with
-  `repo_opts()` succeeds), plus two source-refutation tests against
-  `test/support/repo.ex` and `config/*.exs`. The 198-08 SUMMARY's recorded
-  RED-then-GREEN rehearsal against `test/support/repo.ex` is consistent with
-  this design.
-- `test/threadline/optional_deps_contract_test.exs`'s roster is
-  filesystem-derived (`Path.wildcard` + regex over `use|import|require
-  Phoenix.X`), not a hand-maintained allowlist, and carries an explicit
-  non-vacuity assertion (roster must be non-empty) plus a negative-control
-  test (`coverage/snapshot.ex`'s moduledoc-only mention must NOT classify as
-  needing a guard) that defeats over-matching on prose.
-- `lib/threadline/operator_surface/ui.ex` and `.../theme_controller.ex`: diffed
-  against a whitespace-normalized copy of the pre-change file — the only
-  substantive changes are the added `if Code.ensure_loaded?(Phoenix.X) do
-  ... end` wrapper (+ matching `end`) and one line that `mix format`
-  re-wrapped due to the extra indentation level. No logic changed.
-- `.github/workflows/ci.yml` and `.github/workflows/flake-detection.yml`: no
-  `id:` field changed anywhere in either diff; no `name:` field on
-  `verify-mechanical` or `verify-capture` changed — the `CI required`
-  aggregate's required-context surface is provably unchanged, matching the
-  198-10/198-11 SUMMARY claims.
-- `bin/classify-flake-run`'s six-way behavior table is reachable exactly as
-  documented: `flaky` is gated behind an explicit `-ge 2` branch, `unknown`
-  is the true default on every other path (empty/non-numeric exit code,
-  empty/non-numeric header count, zero headers) — CR-02's fall-through bug
-  is genuinely closed for the inputs this script actually receives.
+**198-15 and 198-17 hold up.** The ambient shell-out removal is genuinely
+replaced by a named, teeth-proven successor guard already inside
+`ci-required`; the rewritten `toContainText("public")` assertions target the
+correct DOM region (`<section aria-label="Selected schema readiness">`,
+`coverage_live.ex:279-304`) and are provably non-vacuous for the branch of
+`verdict_heading/2` these tests actually exercise (confirmed by reading
+`coverage_live.ex`: the schema `<select>` lives in a separate `schema_form/1`
+section outside the asserted container, so the new assertion cannot pass by
+picking up the dropdown's own `<option value="public">` text).
 
-Two Warning-level robustness gaps and one Info-level test-design note remain,
-detailed below.
+**198-14's new static sweep does not deliver the guarantee its own moduledoc
+and SUMMARY claim.** The moduledoc states "There is no permitted-file
+collection, no opt-out source marker, and no skipped-path constant" and the
+198-14-SUMMARY claims "any future Threadline-owned schema call site added
+anywhere under `test/` ... is caught." Both claims are false as written: the
+detector's receiver-matching regex and its Ecto-function roster each have a
+provable, reproducible blind spot that lets a real call-site shape slip
+through with **zero detection, no failure, no visible signal** — precisely
+the "matches nothing, silently" failure mode the review brief warns is worse
+than no guard. See CR-01 and CR-02 below, both reproduced against the real
+tree, not hypothetical.
 
-## Warnings
+## Round 2 Findings (new)
+
+### CR-01: The call-site sweep's receiver regex cannot see `Threadline.Test.Repo.*` — the fully-qualified form used in 9 real test files (73 call sites)
+
+**File:** `test/threadline/storage_schema_call_site_contract_test.exs:56-66` (the
+`@call_regex` definition, in particular the `(?<![\w.])` negative lookbehind
+in front of the `Repo|@repo|repo` receiver alternation)
+
+**Issue:** The negative lookbehind is meant to stop `MyRepo.insert(` or
+`some_repo.insert(` from matching mid-identifier. It also, as an unintended
+side effect, blocks the receiver whenever `Repo` is preceded by a `.` from a
+fully-qualified module path — e.g. `Threadline.Test.Repo.delete_all(...)`,
+which is the receiver form actually used at 73 call sites across 9 real
+files in this codebase (`row_history_component_test.exs`,
+`transaction_live_test.exs`, `copy_contract_test.exs`,
+`breadcrumb_test.exs`, and 5 others — confirmed by
+`grep -rn "Threadline\.Test\.Repo\." test/`).
+
+Reproduced directly against the detector's own compiled regex:
+
+```elixir
+iex> Regex.scan(~r/(?<![\w.])(?:Repo|@repo|repo)\.(?:insert!|insert|delete_all)\(/x,
+...>   "Threadline.Test.Repo.delete_all(AuditChange)")
+[]
+iex> Regex.scan(same_regex, "Repo.delete_all(AuditChange)")
+[["Repo.delete_all("]]
+```
+
+Every one of those 73 call sites is invisible to `scan_call_sites/2` —
+neither `in_scope` nor `offense`, regardless of whether it carries
+`repo_opts()`. Today they all happen to carry `repo_opts()` (or the older
+`storage_opts` binding), so there is no live defect. But the sweep's entire
+premise — a run-independent, file-blind, tag-blind static net that catches
+*any future* unprefixed owned-schema call anywhere in `test/` — is false for
+this receiver shape. A future contributor who writes
+`Threadline.Test.Repo.delete_all(AuditChange)` with no `repo_opts()` inside
+any of these 9 files (or a new one using the same fully-qualified style) will
+get a green `mix test test/threadline/storage_schema_call_site_contract_test.exs`
+and a real, silent, undetected regression — the exact class of bug
+`pgbouncer_topology_test.exs` demonstrated actually reaches production
+undetected. The `in_scope_count > 0` non-vacuity assertion at the bottom of
+the "real tree sweep" test does not catch this, because it only proves the
+detector matches *something* (208 sites via the aliased `Repo.`/`repo.`
+forms), not that it matches *everything* real.
+
+**Fix:** Drop the `.` from the excluded lookbehind class so a receiver
+preceded by another identifier segment (`Test.Repo`) is still recognized,
+while still rejecting a receiver that is itself part of a longer identifier
+(`MyRepo`, `some_repo`):
+
+```elixir
+@call_regex ~r/
+  (?<![\w])
+  (?:(?:[A-Z][A-Za-z0-9_]*\.)*Repo|@repo|repo)
+  \.
+  (?:#{Enum.join(@ecto_functions, "|")})
+  \(
+/x
+```
+i.e. permit an arbitrary chain of `CamelCase.` segments before the literal
+`Repo`, and only require that `Repo`/`@repo`/`repo` itself isn't glued to a
+preceding word character (blocking `MyRepo.` while allowing `Test.Repo.` and
+`Threadline.Test.Repo.`). Add a behaviour test asserting
+`Threadline.Test.Repo.delete_all(AuditChange)` is `in_scope: true,
+offense: true`, and a real-tree assertion that `in_scope_count` after the fix
+increases by at least 73 (or assert the fully-qualified form is represented
+at all, e.g. via a fixture drawn from an actual file in the roster) so this
+regression class has its own teeth going forward.
+
+### CR-02: `Repo.insert_all/3` is entirely absent from `@ecto_functions` — unprefixed bulk inserts against owned schemas are invisible to the sweep
+
+**File:** `test/threadline/storage_schema_call_site_contract_test.exs:38-52`
+(`@ecto_functions` list)
+
+**Issue:** `insert_all` is not in the roster, and — because the call regex
+requires the function-name alternation to be immediately followed by a
+literal `(` — the `insert` alternative present in the list cannot partially
+match `insert_all(` either (the character after `insert` is `_`, not `(`).
+Confirmed against the two real `insert_all` call sites in the tree:
+
+```
+test/threadline/operator_surface/live/timeline_live_test.exs:458:
+  repo.insert_all(Threadline.Capture.AuditChange, chunk, storage_opts)
+test/threadline/operator_surface/controllers/export_controller_test.exs:431:
+  @repo.insert_all(AuditChange, chunk, repo_opts())
+```
+
+Both currently carry a correct opts argument, so there is no live defect
+today — but the sweep produces **zero matches** at either line (verified by
+running the detector's own `@call_regex` against both lines), meaning a
+future unprefixed `Repo.insert_all(AuditChange, entries)` anywhere in
+`test/` — including a straightforward copy-paste of one of these two
+existing call sites with the trailing opts argument dropped — passes the
+sweep silently. `insert_or_update`/`insert_or_update!` and `Repo.stream/2`
+are likewise absent from the roster (not currently used against owned
+schemas, but equally invisible if they ever are).
+
+**Fix:** Add the missing Ecto.Repo callback names to `@ecto_functions`:
+```elixir
+@ecto_functions ~w(
+  insert_all
+  insert_or_update! insert_or_update
+  insert! insert
+  update! update
+  delete_all update_all
+  delete! delete
+  all
+  stream
+  one! one
+  get_by! get_by
+  get! get
+  aggregate
+  exists?
+  reload! reload
+  preload
+)
+```
+Add a behaviour-test fixture proving `repo.insert_all(AuditChange, [...])`
+with no opts is detected as `in_scope: true, offense: true`, matching the
+existing coverage pattern for every other function name.
+
+## Info
+
+### IN-02: `expected_failure_context?`'s "unclosed `assert_raise`/`try do`" check uses a literal `"end"` substring match, not a syntactic scan
+
+**File:** `test/threadline/storage_schema_call_site_contract_test.exs:170-192`
+**Issue:** `contains_unclosed?/3` decides whether a call site sits inside an
+open `assert_raise` lambda or `try do` block by checking whether the literal
+substring `"end"` appears anywhere in the text between the last
+`assert_raise`/`try do` occurrence and the call site — not by tracking `do`/
+`end` nesting depth. Because Elixir syntactically requires every
+`assert_raise ... fn -> ... end` and `try do ... rescue ... end` to close
+with a literal `end` token, this is hard to trigger in practice with today's
+code (confirmed: the real-tree sweep is 0 offenses, and the exemption's own
+behaviour tests, including the "does not leak past its own end" case, all
+pass). But the check is substring-based, not token-based: an intervening
+word merely *containing* `end` as a substring (`append`, `depends`,
+`extended`, a comment mentioning "backend") between an `assert_raise` and an
+unrelated later call within the 300-byte window would cause
+`contains_unclosed?` to report "closed" when it structurally isn't, in
+either direction depending on phrasing. This is a robustness gap in a
+detector whose stated design goal is "no escape hatch," not a currently
+demonstrated false result.
+
+**Fix:** Match `\bend\b` (word-boundary) rather than a bare substring, or
+better, track `do`/`fn`/`end` balance the same way `walk_balanced/4` already
+tracks paren balance, so the exemption is syntactic rather than lexical.
+Not blocking — no false result reproduced against real code — but worth
+hardening given the phase's own "no escape hatch" bar.
+
+---
+
+## Round 1 Findings (preserved)
+
+_Reviewed: 2026-08-28T14:52:19Z — diff `02e6070a..HEAD`, plans 08–13._
+_All three round-1 findings were already dispositioned by the orchestrator
+before round 2 began; reproduced verbatim below for the record, unchanged._
 
 ### WR-01: `is_integer()` in `bin/classify-flake-run` accepts malformed strings with an interior dash
 
 **File:** `bin/classify-flake-run:53-61`
-**Issue:** The POSIX integer-validation helper is supposed to be the safety
-net that makes `unknown` the true default whenever `EXIT_CODE` or the header
-count isn't a clean number (this is the exact property CR-02 was fixed to
-guarantee). Its character-class check (`*[!0-9-]*`) allows `-` anywhere in
-the string, and the subsequent `-*` case only special-cases strings that
-*start* with `-`; anything else falls through to the final `*)` arm and is
-accepted. Reproduced directly:
+**Issue:** The POSIX integer-validation helper's character-class check
+(`*[!0-9-]*`) allows `-` anywhere in the string, and the subsequent `-*`
+case only special-cases strings that *start* with `-`; anything else falls
+through to the final `*)` arm and is accepted (`EXIT_CODE="1-2"` was
+classified `flaky`). Not reachable in the wired workflow today (`EXIT_CODE`
+and `headers_raw` are always clean digit strings), but a real defect in a
+function whose stated purpose is being the last line of defense against
+malformed input.
 
-```
-$ EXIT_CODE="1-2" bin/classify-flake-run /tmp/fixture.log
-flaky
-```
-
-A value like `"1-2"` is nonsensical as an exit code, but the script silently
-treats it as a valid non-zero exit code and proceeds to classify by header
-count instead of reporting `unknown`. The same bug applies to `headers_raw`
-validation (also routed through `is_integer`).
-
-This is not reachable today — `EXIT_CODE` is always `${PIPESTATUS[0]}` (a
-clean digit string) and `headers_raw` is always the output of `grep -c` (also
-always a clean digit string) — so it does not currently cause a
-misclassification in the wired workflow. But it is a real defect in a
-function whose entire purpose, per its own comment ("POSIX-portable ...
-integer check"), is to be the last line of defense against exactly this
-class of malformed input, and the function is unit-relied-upon by
-`test/threadline/flake_classifier_contract_test.exs` without this case being
-covered.
-
-**Fix:**
-```sh
-is_integer() {
-  case "$1" in
-    '' ) return 1 ;;
-    -[0-9]* ) case "$1" in *[!0-9]*) return 1 ;; esac; return 0 ;;
-    [0-9]* ) case "$1" in *[!0-9]*) return 1 ;; esac; return 0 ;;
-    * ) return 1 ;;
-  esac
-}
-```
-(i.e. after the optional leading `-`, require every remaining character to
-be a digit — reject any embedded non-digit, including a second `-`.)
+**Status: FIXED** (orchestrator, 2026-08-28). `is_integer()` now accepts `-`
+only in leading position; locked in by a new case in
+`flake_classifier_contract_test.exs` covering `1-2`, `-1-2`, `-`, and `1 2`,
+verified non-vacuous (red when the fix is reverted).
 
 ### WR-02: Evidence-bundle completeness check in `ci.yml` is one-directional
 
 **File:** `.github/workflows/ci.yml` (verify-capture, "Assert complete
 evidence bundle" step)
-**Issue:** The new shape assertion (replacing the rotted `120`/`54` pinned
-literal) checks that every `*.aria.yml` has a matching `*.json` sibling, but
-does not check the reverse — an orphan `*.json` scorecard with no matching
-`*.aria.yml` would not be flagged. The step's own count check
-(`json -eq 0` / `aria -eq 0`) only guards against a totally empty bundle, not
-against the two counts silently diverging (e.g. stale JSON scorecards never
-cleaned up by a future capture-generator bug, or a partial regeneration that
-drops some `aria.yml` files but leaves old `json` files in place). This
-weakens the "complete bundle" claim in the step's own name relative to what
-it verified before (an exact `120`/`54` pair, which was at least internally
-consistent even though it rotted).
+**Issue:** Proposed making the check symmetric (every scorecard JSON must
+have a matching `aria.yml`), on the premise that an orphan JSON scorecard
+would go undetected.
 
-**Fix:** Add the symmetric check, or fold it into one loop:
-```sh
-for f in .planning/scorecards/*.json; do
-  stem=$(basename "$f" .json)
-  if [ ! -f ".planning/scorecards/${stem}.aria.yml" ]; then
-    orphan_json="${orphan_json} ${stem}"
-  fi
-done
-if [ -n "$orphan_json" ]; then
-  echo "::error::orphan scorecard JSON with no matching aria.yml:${orphan_json}"
-  exit 1
-fi
-```
-
-## Info
+**Status: REJECTED as a false positive** (orchestrator, 2026-08-28).
+Measured on the committed evidence: 372 JSON / 54 aria.yml, with 318 JSON
+files legitimately having no `aria.yml` (aria.yml covers only story cells;
+scorecards exist for many more subjects). A symmetric assertion would fail
+`verify-capture` on its first run. The existing one-directional check is
+correct as written. No change made.
 
 ### IN-01: `optional_deps_contract_test.exs`'s `guarded?/1` checks only the file's first line, not that the guard actually wraps the offending directive
 
 **File:** `test/threadline/optional_deps_contract_test.exs:76-81`
 **Issue:** `guarded?/1` asserts the file's first non-blank line starts with
-the literal string `"if Code.ensure_loaded?("`. It does not verify that (a)
-the `Code.ensure_loaded?` argument names the same optional module the file
-actually references, or (b) the guard's `end` actually closes around the
-`use|import|require Phoenix.X` directive rather than, say, an early
-unrelated `if` block followed by an unguarded directive later in the file.
-In the current codebase this is safe in practice (a mismatched or
-non-enclosing guard would fail to compile, since the directive would then be
-outside the `if` block and would try to load Phoenix unconditionally when
-this test's contract test itself doesn't verify compilation — and
-`mix verify.compile_no_optional` is the actual backstop for that). This is a
-minor gap in the contract test's own self-sufficiency, not a functional bug:
-a future refactor that keeps a stray `if Code.ensure_loaded?(SomeOtherThing)
-do` as the first line while adding an *unguarded* second Phoenix directive
-elsewhere in the same file would pass this test.
+`"if Code.ensure_loaded?("` textually, without proving the guard's argument
+matches the module actually referenced or that the guard's `end` encloses
+the directive. Safe in practice today because a mismatch would fail to
+compile, and `mix verify.compile_no_optional` is the real backstop.
 
-**Fix:** Optional hardening — assert the guard's `Code.ensure_loaded?`
-argument matches one of the module names found by `@directive_regex` on that
-file, or restrict the roster check to "guard present AND encloses every
-matched directive line" via a line-range comparison. Not required before
-shipping; `mix verify.compile_no_optional` remains the authoritative
-backstop this test exists to shift left.
+**Status: ACCEPTED, no change** (orchestrator, 2026-08-28). Recorded, not
+fixed; `mix verify.compile_no_optional` remains the authoritative guard.
 
 ---
 
-_Reviewed: 2026-08-28T14:52:19Z_
+_Reviewed: 2026-08-28T18:29:14Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
-
-
----
-
-## Orchestrator disposition (execute-phase, 2026-08-28)
-
-**WR-01 — FIXED.** `bin/classify-flake-run`'s `is_integer()` treated `-` as a
-valid character anywhere in the string, so `EXIT_CODE="1-2"` fell through to the
-numeric branch. Reproduced against a 3-header fixture log: pre-fix it classified
-`flaky`, which is the one verdict the classifier must never reach without
-evidence. `is_integer()` now accepts `-` only in leading position. Locked in by a
-new case in `flake_classifier_contract_test.exs` covering `1-2`, `-1-2`, `-`, and
-`1 2`, with a positive control asserting a well-formed `1` still reaches `flaky`
-so the guard rejects malformed input rather than disabling the branch. Verified
-non-vacuous: the test goes red when the script fix is reverted.
-
-**WR-02 — REJECTED (false positive).** The finding proposed making the Tier A
-evidence-bundle assertion symmetric (every scorecard JSON must have a matching
-`aria.yml`). Measured on the committed evidence: **372 JSON / 54 aria.yml, with
-318 JSON files legitimately having no `aria.yml`.** `aria.yml` files cover only
-the story cells; scorecards exist for many more. A symmetric assertion would have
-failed `verify-capture` on its first run. The existing one-directional check —
-every `aria.yml` has a scorecard, plus a non-zero floor on both counts — is
-correct as written and is what "complete bundle" means here. No change made.
-
-**IN-01 — ACCEPTED, no change.** `optional_deps_contract_test.exs`'s `guarded?/1`
-checks the first line textually rather than proving enclosure. `mix
-verify.compile_no_optional` remains the real backstop and runs in CI, so the
-weaker in-suite check costs nothing it was relied on for. Recorded, not fixed.
