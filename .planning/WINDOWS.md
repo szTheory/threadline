@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 16
 waived_count: 0
 fixed_count: 1
-total_count: 9
-last_updated: 2026-08-28T22:34:01.414Z
+total_count: 17
+last_updated: 2026-08-28T23:20:59.854Z
 ---
 
 # Broken Windows Ledger
@@ -24,6 +24,14 @@ last_updated: 2026-08-28T22:34:01.414Z
 | 7 | 198 | deviation | .github/rulesets/main.json |  | CR-05 (WARNING, carried-forward): the checked-in ruleset snapshot is never diffed against live GitHub state, so a bypass_actor added via the UI or enforcement flipped to evaluate would pass all three verify-branch-protection blocks silently -- directly undermines the accepted merge lock predicated on bypass_actors: []. | open |  | 2026-08-28T14:45:48.828Z |  |
 | 8 | 198 | deviation | .planning/phases/198-green-bringup/198-17-SUMMARY.md |  | verify.example_browser (desktop-chromium+mobile-chromium, full/unbounded) surfaces 28 pre-existing failures across 14 unrelated tests (find-mobile, phase-135/173/175/177-uat, screenshot-regression, screenshots, register) that CI's maxFailures:5 ceiling was masking -- previously invisible because the ceiling always aborted at the first 5. Unrelated to and not caused by this plan's 2-line fix (198-17); out of 198-17 scope; needs a follow-up gap-closure plan before the browser lane's next CI run can conclude success. | open |  | 2026-08-28T17:31:39.078Z |  |
 | 9 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 655 | New discovery (plan 198-27): mobile-chromium-only focus flake on #stress-dropdown-button (opens stress rendered widgets test), out of scope for 198-27's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T22:34:01.414Z |  |
+| 10 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 565 | New discovery (plan 198-28 post-merge re-validation): Exports queue Expired/File-unavailable text not found on both projects, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T23:00:49.827Z |  |
+| 11 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 38 | New discovery (plan 198-28 post-merge re-validation): exports dense state Expired/File-unavailable text not found on both projects, same shape as operator-accessibility.spec.ts:565 discovery, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T23:00:55.589Z |  |
+| 12 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 565 | CORRECTS entry #10: root cause established (plan 198-28 Task 3) — NOT a demo-seed content change (demo/seed/exports.ex was not touched by any plan this round). Actual cause: fix(198-25) commit e6f3cd5d changed the completed-expired export job's rendered label from Expired to Export expired (lowercase e), breaking this test's /Expired\|File unavailable/ regex (capital E). Still out of scope for 198-28's declared files; needs follow-up plan to update the regex/assertion to match the corrected canonical copy. | open |  | 2026-08-28T23:20:26.077Z |  |
+| 13 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 38 | CORRECTS entry #11: same root cause as entry #12 (fix(198-25) commit e6f3cd5d's Expired to Export expired label change broke this file's /Expired\|File unavailable/ regex, capital E). Not a seed-content change. Still out of scope for 198-28's declared files; needs follow-up plan to update the assertion. | open |  | 2026-08-28T23:20:32.409Z |  |
+| 14 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 108 | dense Timeline screenshot (both projects) left open per plan 198-28's Task 2 decision (no baseline regeneration). Diff spans the whole page layout (header + rows), not a single volatile field; visually consistent with the baseline predating multiple accumulated UI changes across prior phases, not this round's changes. Not maskable. See .planning/audits/198-round4-playwright.md cluster reconciliation. | open |  | 2026-08-28T23:20:39.892Z |  |
+| 15 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 115 | row-history drawer screenshot (both projects) left open per plan 198-28's Task 2 decision. Genuinely improved: locator was fixed from the full-viewport drawer container to the bounded .tl-drawer panel (desktop diff dropped from ratio 0.53 to 0.19, width now matches), but a residual height/content diff remains, not resolvable without baseline regeneration. See .planning/audits/198-round4-playwright.md. | open |  | 2026-08-28T23:20:46.296Z |  |
+| 16 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 127 | Exports screenshot (both projects) left open per plan 198-28's Task 2 decision. The getByRole assertion-rot cause was fixed (exact: true); the residual screenshot diff is a legitimate, already-shipped visual change from this round's own fix(198-25) e6f3cd5d (Expired -> Export expired label), which Task 2 explicitly forbids resolving via baseline regeneration. See .planning/audits/198-round4-playwright.md. | open |  | 2026-08-28T23:20:53.239Z |  |
+| 17 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 136 | Retention screenshot (both projects) left open per plan 198-28's Task 2 decision. Diff render shows a different retention-run row count/order between expected and received -- seeded retention-run history that varies with real pruner execution timing, not a single volatile field a mask locator can cover. Not resolvable without a seed-determinism fix (architectural, out of scope) or baseline regeneration (forbidden). See .planning/audits/198-round4-playwright.md. | open |  | 2026-08-28T23:20:59.854Z |  |
 
 ````json
 [
@@ -133,6 +141,102 @@ last_updated: 2026-08-28T22:34:01.414Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-28T22:34:01.414Z",
+    "resolved_at": null
+  },
+  {
+    "id": 10,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+    "line": 565,
+    "description": "New discovery (plan 198-28 post-merge re-validation): Exports queue Expired/File-unavailable text not found on both projects, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:00:49.827Z",
+    "resolved_at": null
+  },
+  {
+    "id": 11,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+    "line": 38,
+    "description": "New discovery (plan 198-28 post-merge re-validation): exports dense state Expired/File-unavailable text not found on both projects, same shape as operator-accessibility.spec.ts:565 discovery, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:00:55.589Z",
+    "resolved_at": null
+  },
+  {
+    "id": 12,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+    "line": 565,
+    "description": "CORRECTS entry #10: root cause established (plan 198-28 Task 3) — NOT a demo-seed content change (demo/seed/exports.ex was not touched by any plan this round). Actual cause: fix(198-25) commit e6f3cd5d changed the completed-expired export job's rendered label from Expired to Export expired (lowercase e), breaking this test's /Expired|File unavailable/ regex (capital E). Still out of scope for 198-28's declared files; needs follow-up plan to update the regex/assertion to match the corrected canonical copy.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:26.077Z",
+    "resolved_at": null
+  },
+  {
+    "id": 13,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+    "line": 38,
+    "description": "CORRECTS entry #11: same root cause as entry #12 (fix(198-25) commit e6f3cd5d's Expired to Export expired label change broke this file's /Expired|File unavailable/ regex, capital E). Not a seed-content change. Still out of scope for 198-28's declared files; needs follow-up plan to update the assertion.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:32.409Z",
+    "resolved_at": null
+  },
+  {
+    "id": 14,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+    "line": 108,
+    "description": "dense Timeline screenshot (both projects) left open per plan 198-28's Task 2 decision (no baseline regeneration). Diff spans the whole page layout (header + rows), not a single volatile field; visually consistent with the baseline predating multiple accumulated UI changes across prior phases, not this round's changes. Not maskable. See .planning/audits/198-round4-playwright.md cluster reconciliation.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:39.892Z",
+    "resolved_at": null
+  },
+  {
+    "id": 15,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+    "line": 115,
+    "description": "row-history drawer screenshot (both projects) left open per plan 198-28's Task 2 decision. Genuinely improved: locator was fixed from the full-viewport drawer container to the bounded .tl-drawer panel (desktop diff dropped from ratio 0.53 to 0.19, width now matches), but a residual height/content diff remains, not resolvable without baseline regeneration. See .planning/audits/198-round4-playwright.md.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:46.296Z",
+    "resolved_at": null
+  },
+  {
+    "id": 16,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+    "line": 127,
+    "description": "Exports screenshot (both projects) left open per plan 198-28's Task 2 decision. The getByRole assertion-rot cause was fixed (exact: true); the residual screenshot diff is a legitimate, already-shipped visual change from this round's own fix(198-25) e6f3cd5d (Expired -> Export expired label), which Task 2 explicitly forbids resolving via baseline regeneration. See .planning/audits/198-round4-playwright.md.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:53.239Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+    "line": 136,
+    "description": "Retention screenshot (both projects) left open per plan 198-28's Task 2 decision. Diff render shows a different retention-run row count/order between expected and received -- seeded retention-run history that varies with real pruner execution timing, not a single volatile field a mask locator can cover. Not resolvable without a seed-determinism fix (architectural, out of scope) or baseline regeneration (forbidden). See .planning/audits/198-round4-playwright.md.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:20:59.854Z",
     "resolved_at": null
   }
 ]

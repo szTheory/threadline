@@ -94,3 +94,51 @@
   timing issue, or non-determinism consistent with the mount-timing flake class 198-26 already
   documented for this same stress-preview surface). Needs a follow-up 198 (or successor-phase)
   gap-closure plan to diagnose and fix in the same disciplined, no-weakening manner as this plan.
+
+## Plan 198-28
+
+- **Status:** acknowledged (complete)
+- **Acknowledged at:** 2026-08-28 (Plan 198-28 execution)
+
+- Re-ran `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`
+  unbounded against the merged tree (post-198-23/24/25/26/27 HEAD
+  `8670d0215445dc8cd540ffd7942ded0479c1d72f`): **14 failed, 15 skipped, 311 passed (4.8m)**.
+  Re-derived every `seed-sensitive? = yes` row, established the CI-contributing (2) vs
+  local-only (8) split, got a blocking `checkpoint:decision` answered (option A — fix at cause,
+  regenerate no baseline), then fixed both CI-contributing rows at cause and improved (without
+  fully closing) one local-only row. Closing count: **12 failed, 15 skipped, 313 passed (4.4m)**.
+  Full diagnosis, teeth proofs, and reconciliation are in
+  `.planning/audits/198-round4-playwright.md`.
+- **Fixed at cause (2 rows, both CI-contributing, `operator-screenshots.spec.ts`):** a stale
+  `Actor: {type} / {id}` literal removed from the product in phase 186 (commit `3022e2e0`), long
+  before this round — never seed-sensitive despite 198-26's classification, confirmed by
+  recomputing the deterministic actor UUID directly; plus a `getByRole("heading", {name:
+  "Exports"})` strict-mode collision (same cause as cluster rows 21/22) reached only after the
+  Actor fix unblocked the rest of the test.
+- **Left open, with cause named, under the Task 2 no-regeneration decision (8 rows, all
+  local-only, `operator-screenshot-regression.spec.ts` — none of these ever bore on the CI
+  lane, since this file skips entirely under `process.env.CI`):** dense Timeline (whole-page
+  layout drift predating this round, not maskable), row-history (genuinely improved by fixing a
+  wrong-element locator — `data-testid` landed on the full-viewport drawer container, not the
+  bounded `.tl-drawer` panel — but a residual content/height diff remains), Exports (assertion-rot
+  half fixed; the screenshot diff is a legitimate, already-shipped visual change from this same
+  round's `fix(198-25): route export-expired label through canonical Presentation copy`, which
+  Task 2 explicitly forbids resolving via baseline regeneration), Retention (retention-run history
+  row count/order varies with real pruner execution timing, not a single volatile field).
+- **New discovery diagnosis corrected:** the two new out-of-cluster failures logged in Task 1
+  (`operator-accessibility.spec.ts:565:3`, `operator-prove-mobile.spec.ts:38:3`, both projects
+  each) are NOT a `demo/seed/exports.ex` content change as first hypothesized — `exports.ex` was
+  not touched by any plan this round. The real cause, established while diagnosing cluster
+  198-28's own Exports row: `fix(198-25)`'s label-copy change from `"Expired"` to
+  `"Export expired"` (lowercase `expired`) broke both files' `/Expired|File unavailable/` regex
+  (capital `E`), which no longer matches. Still out of this plan's declared `files_modified`, so
+  not fixed here — corrected diagnosis recorded in WINDOWS.md #10/#11 for the follow-up plan.
+- **Housekeeping correction:** cluster `198-28`'s row count was documented as "13 rows" in
+  198-26's and 198-27's headers, but the enumerated row list contains only 10 distinct rows.
+  This plan proceeds from the reconciled 10-row count rather than propagate the unverified 13
+  figure — see `.planning/audits/198-round4-playwright.md`'s housekeeping note.
+- **Checkpoint:** Task 2 (whether any committed PNG baseline under
+  `operator-screenshot-regression.spec.ts-snapshots/` may be regenerated) was answered under
+  auto-mode: option A — fix at cause, regenerate nothing, with a documented fallback to leaving a
+  row open (not force-fixing) where only a regeneration could close it. No baseline file was
+  written or modified; `git status --porcelain` on the snapshots directory is empty.
