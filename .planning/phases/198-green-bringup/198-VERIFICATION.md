@@ -1,378 +1,221 @@
 ---
 phase: 198-green-bringup
-verified: 2026-08-28T15:30:00Z
+verified: 2026-08-28T19:00:00Z
 status: gaps_found
-amendment_retracted: 2026-08-28 — the amendment rested on a false premise and was reverted; see the retraction section
-ci_measured: 2026-08-28 — PR #29, run 33183920952 FAILURE (6/13 checks red); GREEN-07 not met; 2 of 7 baseline-red jobs fixed
-score: 4/6 roadmap success criteria verified (11/12 requirements); criteria 3/4 open on GREEN-07
+supersedes: "Prior 198-VERIFICATION.md (round 1, verified 2026-08-28T15:30:00Z, including its now-retracted GREEN-07 amendment). Round-1 findings are reconciled, not discarded — see 'Reconciliation with Round 1' below. This report is authoritative."
+ci_measured:
+  round_1: "PR #29, run 33183920952, FAILURE (6/13 checks red)"
+  round_2: "PR #29, run 33197493051, FAILURE (11/14 checks red 3, aggregate red) — 13m29s wall clock"
+score: 3/6 roadmap success criteria verified (8/12 requirements Complete, 4 Pending) — DOWN from round 1's reported 4/6 (11/12) because round 1's GREEN-04 completion claim did not survive a real CI run
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: gaps_found
-  previous_score: 2/6 roadmap success criteria (9/12 requirements)
+  previous_status: gaps_found (round 1, both before and after its retracted amendment)
+  previous_score: "4/6 roadmap success criteria (11/12 requirements) — as claimed in round 1; this figure rested on local-only evidence for GREEN-04 and did not hold once measured against CI run 33197493051"
   gaps_closed:
-    - "SC2 / GREEN-04 — mix test now passes: 1398 tests, 0 failures (1 excluded), independently re-run twice (once by orchestrator, once by this verifier)"
-    - "SC6 / GREEN-11 — Flake Detection classifier is now reachable on the failure path: set +e added before set -uo pipefail, if: always() added to the Classify step; flake_classifier_contract_test.exs passes 10/10 including the WR-01 embedded-dash hardening"
-    - "GREEN-11 traceability defect — REQUIREMENTS.md now correctly shows GREEN-11 Complete (was incorrectly [x] before the fix existed; now [x] and true)"
-    - "CONTRIBUTING.md List 1 parity row (verify-capture / verify-mechanical) — landed by 198-12, closing the previously-unowned defect"
-    - "Code review round: WR-01 (is_integer() embedded-dash acceptance) fixed and locked in by a new contract-test case; WR-02 investigated and correctly rejected as a false positive on measured evidence (372 JSON / 54 aria.yml — a symmetric check would have broken verify-capture); IN-01 accepted as a documented, non-blocking limitation"
-    - "Post-merge regression (198-09's file-scope guard re-indenting ui.ex, breaking an A11Y-02 assertion) — found and fixed in 6970cff7, independently confirmed present in the current tree"
+    - "GREEN-11 (Flake Detection classifier reachable, WR-01 embedded-dash hardening) — closed in round 1, unchanged and re-confirmed this round via 198-CI-MEASUREMENT.md's local re-run; not touched by round-2 plans"
+    - "GREEN-08 (branch protection exact-match) — closed in round 1, no drift, re-confirmed"
+    - "GREEN-09/GREEN-10 (release-safety guards) — closed in round 1, unchanged"
+    - "PgBouncer transaction topology job — genuinely fixed this round (198-14), CONFIRMED green on measured CI run 33197493051 (round 1 had NOT fixed this; round 1's GREEN-04 completion claim was actually wrong on this exact job)"
+    - "Run test suite (min) — genuinely fixed this round (198-14/198-15), CONFIRMED green on measured CI run 33197493051"
+    - "Two of 198-17's five diagnosed Playwright failures (operator-coverage-readiness.spec.ts, operator-accessibility.spec.ts) — confirmed fixed and held on the measured CI run; the 5 red tests on that run are a disjoint, already-known set (part of the 28-failure discovery)"
   gaps_remaining:
-    - "SC3 (GREEN-07) — origin/main does not carry every local commit and its latest run does not conclude success. Unchanged in kind from the prior verification, now confirmed structurally blocked rather than merely unactioned: `main` is 39 commits ahead of `origin/main` (unpushed), and this repo's standing policy is to never push `.planning/`-carrying commits to public origin. No plan in this phase was authorized to push; 198-13 explicitly declined to under an orchestrator no-push constraint."
-    - "SC4 mergeability clause — PR #26 remains mergeStateStatus BLOCKED (not CLEAN), a direct, correctly-attributed consequence of SC3, not of GREEN-08 (which is itself verified met)."
+    - "GREEN-04 — still not met. A CI-measured Run test suite (current) failure was found (search_path ALTER missing at ci.yml:235-240), previously masked by the two now-fixed causes. This is a genuinely new discovery this round, not a round-1 miss that went unfixed — round 1's own CI run (33183920952) never reached this failure because verify.test failed first on that run."
+    - "GREEN-07 — still not met. CI required concluded failure on the round-2 measured run (3 of 12 dependencies red: Run test suite (current), Tier A capture lane, Example app browser E2E)."
+    - "SC3/SC4 (origin/main carries every commit, CI green, PR #26/29 mergeable) — still not met, same root cause as GREEN-07."
+    - "Tier A capture lane — still red. 198-16 diagnosed the cause (document-wide scrollHeight read couples scroll_cost to stress-lab catalog size) and halted by design: every remedy requires Tier-A page.* regeneration, which 198-CONTEXT.md forbids this milestone. The maintainer was asked this session and chose to KEEP the prohibition. This is an ACCEPTED, ratified halt — not scored as an unfixed engineering gap, but the phase goal remains unmet because of it."
+    - "Example app browser E2E — still red. 198-17 fixed its diagnosed 5 failures (confirmed held on the measured run) but surfaced 28 further pre-existing masked failures, deliberately deferred by maintainer decision this session (deferred-items.md, WINDOWS.md #8)."
   regressions: []
 gaps:
-  - truth: "SC3 / GREEN-07 — `git log origin/main..main` is empty and the latest `main` CI run concludes `success` in ≤20 min"
-    status: partial
-    reason: "The ≤20min clause is met by a wide margin (6m07s measured, unchanged since prior verification — no new run has occurred because nothing has been pushed). The other two clauses are not met: `git rev-list --count origin/main..main` = 39 (re-measured directly, not from a summary), and `gh run list --workflow=ci.yml --branch main --limit 1` still reports the same run (33138291361, conclusion failure) as the prior verification, because origin/main has not moved. This is not an engineering gap — every fix this phase could make (GREEN-04, GREEN-09, GREEN-10, GREEN-11, the compile-no-optional guard, the postgres service, the Tier A bundle assertion) is landed and locally green. What remains is a single irreversible action (push to public origin/main) that conflicts with this project's standing policy against publishing `.planning/`-carrying history, and that no plan or orchestrator run in this phase was authorized to perform. Closing this gap requires a maintainer decision: either accept the policy cost and authorize a push (at which point GREEN-07 becomes trivially verifiable — the fixing commits are proven locally green), or explicitly amend the phase/roadmap goal to decouple 'CI concludes green' from 'origin/main carries it' given the no-push policy this project already operates under."
+  - truth: "GREEN-04 — `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits"
+    status: failed
+    reason: "Local `mix test` is 1412/0 (1 excluded), verified twice and independently confirmed by this verifier's read of 198-CI-MEASUREMENT.md — but local evidence is explicitly NOT admissible for this requirement per its own text and per this phase's own D-01 ('green' is defined as fresh-clone-local AND CI, both reachable via `mix ci.all`). The measured CI run (33197493051) shows `Run test suite (current)` still fails: `mix verify.example`'s `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` hits `(undefined_table) relation \"audit_transactions\" does not exist` because `.github/workflows/ci.yml:235-240`'s db-prep step never runs the `ALTER DATABASE ... SET search_path` statement its sibling jobs at `:346-355` and `:500-509` both carry. This is a fourth measured location of the exact defect class GREEN-04 exists to close."
     artifacts:
-      - path: "git rev-list --count origin/main..main"
-        issue: "39 (re-verified directly at report time, not merely cited from SUMMARY)"
-      - path: "GitHub Actions run 33138291361 (origin/main, a97f527e)"
-        issue: "conclusion: failure — unchanged since prior verification, because origin/main has not moved"
+      - path: ".github/workflows/ci.yml"
+        issue: "Lines 235-240 (verify-test job, current lane's db-prep step) omit the ALTER DATABASE ... SET search_path statement present at :346-355 (verify-example-browser) and :500-509 (verify-capture)"
     missing:
-      - "A maintainer decision on whether/how to push given the standing .planning/-publication policy — this is the single remaining action; no further code changes are indicated by anything measured in this phase"
-  - truth: "SC4 — PR #26 is mergeable"
-    status: partial
-    reason: "Re-verified directly: `gh pr view 26 --json mergeStateStatus,state` = `{\"mergeStateStatus\":\"BLOCKED\",\"state\":\"OPEN\"}`. This is the same consequence recorded in the prior verification, unchanged because its root cause (SC3) is unchanged. GREEN-08 itself — the requirement text ('branch protection requires exactly the check names CI emits') — is independently verified met (unchanged ruleset, red→green pair on an identical SHA from the prior pass, no drift: `git diff origin/main -- .github/rulesets/main.json .github/workflows/branch-protection.yml` is empty)."
+      - "Add the missing ALTER DATABASE statement to ci.yml:235-240, matching the two sibling jobs, then re-measure on a real CI run (not local) before marking GREEN-04 Complete"
+  - truth: "GREEN-07 — `origin/main` carries every local commit and its latest CI run concludes `success` in ≤ 20 minutes"
+    status: failed
+    reason: "Time clause met (13m29s, well under 20min). Success clause not met: CI required concluded failure on run 33197493051 because 3 of 12 needs: dependencies were red (Run test suite (current), Tier A capture lane, Example app browser E2E). 4 of the originally-7 baseline-red jobs are now green (Compile without optional deps, Mechanical checker — round 1; PgBouncer transaction topology, Run test suite (min) — round 2)."
     artifacts:
-      - path: "PR #26"
-        issue: "mergeStateStatus BLOCKED — re-confirmed directly, not inferred"
+      - path: "GitHub Actions run 33197493051 (PR #29, ci/198-gap-closure)"
+        issue: "conclusion: failure; CI required aggregate: failure"
     missing:
-      - "Same as SC3 above — this clears automatically once origin/main's CI run concludes success on the pushed commits"
+      - "Fix the GREEN-04 search_path gap above (closes Run test suite (current))"
+      - "A maintainer decision on Tier A capture lane (accept the ratified halt as permanently out of GREEN-07's critical path this milestone, or revisit the page.* regeneration prohibition)"
+      - "A maintainer decision on the 28 masked Playwright failures (fix, further defer with an explicit successor plan, or narrow CI required's needs: to exclude these two lanes with an honest accounting of what that means for the aggregate's guarantee)"
+  - truth: "SC3/SC4 — origin/main..main empty (SC3) and PR mergeable (SC4)"
+    status: failed
+    reason: "Direct consequence of GREEN-07 above. main was pushed via ci/198-gap-closure and PR #29 (the direct-push-to-main path is refused by the repository ruleset, per GREEN-08 working as designed). PR #29 remains BLOCKED because CI required is red on run 33197493051."
+    artifacts:
+      - path: "PR #29"
+        issue: "mergeStateStatus BLOCKED (CI required red)"
+    missing:
+      - "Same as GREEN-07 above"
 deferred: []
 ---
 
-# Phase 198: Green Bringup — Verification Report (Post-Gap-Closure)
+# Phase 198: Green Bringup — Verification Report (Post-Gap-Closure, Round 2)
 
 **Phase Goal:** `origin/main` carries every local commit and its CI concludes green well inside a usable feedback loop; the red-test baseline that nobody re-derived is retired with each former failure fixed on its merits; branch protection requires exactly the checks CI emits; and the measurement sweep that sizes Phases 201 and 203 is on disk before either is planned.
+
 **Verified:** 2026-08-28
 **Status:** gaps_found
-**Re-verification:** Yes — after gap-closure plans 198-08 through 198-13 and a code review round (198-REVIEW.md)
+**Re-verification:** Yes — supersedes round-1 198-VERIFICATION.md (whose GREEN-07 amendment was itself made, then correctly retracted, mid-phase). This report covers gap-closure round 2 (plans 198-14 through 198-18) plus a fresh code-review pass with 2 new Critical findings.
 
-## Goal Achievement
+## Goal Achievement — the phase goal is NOT achieved
 
-### Roadmap Success Criteria
+CI on the real, measured PR run (`33197493051`) concludes `failure`. `origin/main` therefore does not carry a green-CI state of every local commit — the plainest possible reading of the phase's own headline sentence. This is scored honestly below rather than credited for the substantial, real engineering progress this round represents.
 
-| # | Criterion (reqs) | Status | Evidence |
+### Reconciliation with Round 1
+
+Round 1's VERIFICATION.md went through three states in sequence, all preserved here for the record rather than discarded:
+
+1. **Initial round-1 verdict (2026-08-28T15:30:00Z):** `gaps_found`, 4/6 success criteria (11/12 requirements), with GREEN-04 marked ✓ VERIFIED on **local-only** evidence (`mix test` 1398/0) and GREEN-07 marked ✗ FAILED because nothing had been pushed to `origin/main`.
+2. **Amendment (same day):** the maintainer was told pushing `main` would "publish the full `.planning/` history to public GitHub" and, on that premise, agreed to loosen GREEN-07's wording. **This premise was false** — `.planning/` was already tracked and public on `origin/main`, including this very phase's own plans 01–07 (`git ls-tree` showed 2191 already-public `.planning/` files at retraction time). The amendment was correctly retracted the same day once this was measured.
+3. **Post-retraction, measured (round 1's final state):** `main` was pushed as PR #29; CI run `33183920952` concluded `failure` (6/13 red). This is where round 1 actually ended: **GREEN-04's "Complete" mark from step 1 above did not survive the real CI run** — two causes invisible to any local `mix test` run (an ambient `examples/threadline_phoenix` deps-fetch dependency in `stress_router_test.exs`, and a `pgbouncer_topology_test.exs` unprefixed call site hidden behind the excluded `pgbouncer_topology` tag) turned out to be live defects. Round 1's closing document (embedded at the bottom of the superseded VERIFICATION.md as "MEASURED CI RESULT") correctly reopened GREEN-04 and stated the next real engineering work plainly.
+
+**This verifier's score line (3/6, 8/12) is therefore lower than round 1's *reported* 4/6 (11/12) not because round 2 regressed anything, but because round 1's reported score was itself wrong** — it counted GREEN-04 as satisfied on local evidence the phase's own D-01 explicitly disallows, and a real CI run proved that call incorrect within the same day. Round 2 (plans 14–18) then did real, confirmed engineering: it fixed 2 of the 3 causes round 1's own measured run exposed (`PgBouncer transaction topology`, `Run test suite (min)` — both independently confirmed green on run `33197493051`), leaving one newly-discovered third cause (the `ci.yml:235-240` search_path gap) still open. Net honest position: **more of the real defect surface is now fixed and independently confirmed than at any prior point in this phase**, but the requirement-level scoreboard has not yet crossed to "met" for GREEN-04 or GREEN-07.
+
+### Observable Truths
+
+| # | Truth | Status | Evidence |
 |---|---|---|---|
-| 1 | Preserved red logs + Credo histogram + concentration table + mechanical-sensitivity finding, `.credo.exs` unmodified, no scorecard touched (GREEN-01/02/03) | ✓ VERIFIED (unchanged) | See below |
-| 2 | `mix test` passes, no skips; milestone literals → shape assertions; formless guard fails in-diff (GREEN-04/05) | ✓ VERIFIED (was FAILED) | `mix test` — **1398 tests, 0 failures (1 excluded)**, re-run independently by this verifier |
-| 3 | `origin/main..main` empty; latest main run `success` ≤20min; every job `timeout-minutes`-bound; browser suite aborts early (GREEN-06/07) | ✗ FAILED (GREEN-06 met; GREEN-07 still not) | `origin/main..main` = **39 commits** (nothing pushed); origin's last run still `failure` |
-| 4 | Branch protection requires exactly the emitted names, verified after the matrix reported once; PR #26 mergeable (GREEN-08) | ⚠️ PARTIAL (unchanged) | GREEN-08 met and re-confirmed non-vacuous; PR #26 still BLOCKED |
-| 5 | Paid critic scoring untriggerable; exactly one gated Hex publish path (GREEN-09/10) | ✓ VERIFIED (unchanged) | Workflows still absent; single publish path re-confirmed |
-| 6 | Flake Detection classifies broken vs flaky, time-bounded, dedup issue; one worktree, no stale branches, archive tags (GREEN-11/12) | ✓ VERIFIED (was FAILED) | Classifier wiring fixed and re-run green; worktree/branch hygiene unchanged |
+| 1 | Measurement sweep (GREEN-01/02/03) on disk, `.credo.exs` unmodified, no scorecard touched | ✓ VERIFIED (unchanged since round 1) | `.planning/audits/198-ci-run-28214113903-logs.md` present; `git status --porcelain .planning/scorecards/` clean at round-1 verification time; not touched by any round-2 plan (198-14..18's `files_modified` lists confirm no scorecard/`.credo.exs` writes) |
+| 2 | `mix test` passes locally with no deterministically-failing tests | ✓ VERIFIED (local only) | 198-CI-MEASUREMENT.md Task 1: 1412 tests, 0 failures (1 excluded), two consecutive runs, byte-identical |
+| 3 | `mix test`-equivalent passes on real CI (the requirement's own admissible evidence) | ✗ FAILED | CI run 33197493051: `Run test suite (current)` failure — 9 `WalkthroughHappyPathTest` failures, all `undefined_table` on `audit_transactions`, root-caused to `ci.yml:235-240`'s missing `ALTER DATABASE ... SET search_path` |
+| 4 | Formless-page guard fails loudly on a legitimate new form (GREEN-05) | ✓ VERIFIED (unchanged since round 1) | Not touched by round-2 plans; round-1's re-run of `ui_form_policy_contract_test.exs` (13/13) stands, uncontradicted by anything measured this round |
+| 5 | Every job carries `timeout-minutes`; browser suite aborts early (GREEN-06) | ✓ VERIFIED (unchanged since round 1) | Not touched by round-2 plans; `git diff 74db148a..HEAD -- .github/workflows/` confirms no structural job changes beyond the round-2 diagnosis/fix commits, none of which removed a `timeout-minutes` bound |
+| 6 | `origin/main` carries every local commit and its latest CI run concludes `success` ≤20min (GREEN-06/07) | ✗ FAILED | `git push origin HEAD:ci/198-gap-closure` (direct push to `main` refused by ruleset, as designed); CI run 33197493051, wall clock 13m29s (time clause met), conclusion `failure` (success clause not met) |
+| 7 | Branch protection requires exactly the emitted check names; PR mergeable (GREEN-08) | ⚠️ PARTIAL — GREEN-08 itself ✓, mergeability ✗ | `.github/workflows/ci.yml` and `.github/rulesets/` byte-identical across the whole round-2 diff (`git diff 74db148a..HEAD` on those paths empty) — GREEN-08 unchanged and not retested this round, standing on round 1's red→green discrimination pair; `gh pr view 29 --json mergeStateStatus,state` → `BLOCKED`, downstream of GREEN-07 |
+| 8 | Paid critic scoring untriggerable; exactly one gated Hex publish path (GREEN-09/10) | ✓ VERIFIED (unchanged since round 1) | Not touched by round-2 plans |
+| 9 | Flake Detection classifies broken vs flaky, dedup issue; one worktree, no stale branches (GREEN-11/12) | ✓ VERIFIED (unchanged since round 1) | 198-CI-MEASUREMENT.md Task 1 re-ran the classifier's contract-test coverage as a byproduct of the full-suite run (1412/0 includes it); not touched by round-2 plans |
+| 10 | The static call-site sweep (198-14) enumerates EVERY Ecto call site against Threadline-owned schemas, with no escape hatch | ✗ FAILED — see analysis below (verification_focus #3) | 198-REVIEW.md CR-01, CR-02, independently reproduced by the orchestrator via `Regex.scan/2` this session |
 
-**Score:** 4/6 roadmap success criteria fully verified. 11/12 requirements verified (GREEN-07 the sole Pending item, correctly recorded as such in REQUIREMENTS.md).
-
----
-
-### Criterion 1 — measurement sweep (GREEN-01/02/03) — ✓ VERIFIED (unchanged)
-
-Not touched by the gap-closure plans; nothing in this phase's later work altered `.credo.exs`, the preserved logs, or the scorecards. Re-confirmed: `git status --porcelain .planning/scorecards/` empty; `.planning/audits/198-ci-run-28214113903-logs.md` still present and untouched.
+**Score:** 3/6 roadmap success criteria fully verified (Criteria 1, 5, unchanged-parts of 6). Criteria 2, 3, 4 (partially) not met. 8/12 requirements Complete (GREEN-01, 02, 03, 05, 06, 08[wiring only], 09, 10, 11, 12 — note GREEN-08's own text is met but its downstream mergeability consequence is not), 4/12 Pending (GREEN-04, GREEN-07, and the two success-criteria consequences these drive).
 
 ---
 
-### Criterion 2 — the red baseline (GREEN-04 ✓ / GREEN-05 ✓) — CLOSED
+### Requirements Coverage — reconciled against REQUIREMENTS.md on disk
 
-**GREEN-04 — ✓ VERIFIED.** Independently re-ran `mix test` from a clean invocation: **1398 tests, 0 failures (1 excluded)**, exit 0. (1398 rather than the orchestrator-reported 1397/1398 split reflects the WR-01 review fix, which added one regression-covering case — confirmed by reading the malformed-input classify-flake-run diagnostic lines emitted mid-run, matching the new test cases in `flake_classifier_contract_test.exs`.)
-
-Anti-laundering checks re-run directly by this verifier, not trusted from any summary:
-- `grep -n "search_path\|default_options" config/*.exs test/support/repo.ex lib/threadline/repo.ex` → no matches (no restored search_path, no repo-level default prefix)
-- `grep -rn "@tag :skip\|@moduletag :skip" test/` → no matches
-- `mix test test/threadline/storage_schema_prefix_contract_test.exs test/threadline/zero_skips_contract_test.exs test/threadline/phase06_nyquist_ci_contract_test.exs` → 25 tests, 0 failures (the guard tests that would catch laundering are themselves green, and the CONTRIBUTING List 1 parity contract — previously the one explicitly-unowned failure — now passes)
-
-The code review (198-REVIEW.md) independently confirmed 1:1 count matches between Ecto call sites and `repo_opts()` mentions across all 14 ported files, with no call site silently skipped — this verifier did not re-derive that count but the review's methodology (counting call sites vs. remediation-site mentions) is sound and its "no laundering found" conclusion is corroborated by the fact that the storage-schema mask contract test (a genuinely non-vacuous positive/negative pair, also independently reviewed) passes.
-
-**GREEN-05 — ✓ VERIFIED (unchanged).** `ui_form_policy_contract_test.exs` re-run: 13 tests, 0 failures (broader than the prior 3-test run because `ci_topology_contract_test.exs` was run alongside it this time — both green).
-
----
-
-### Criterion 3 — landed and fast (GREEN-06 ✓ / GREEN-07 still ✗) — NOT CLOSED
-
-**GREEN-06 — ✓ VERIFIED (unchanged).** No workflow job structure was removed by the gap-closure plans (only steps were added inside existing jobs, per the review's confirmation that no `id:` changed). Spot-checked timeout-minutes counts across all 5 workflow files — consistent with the prior AST-verified 24/24.
-
-**GREEN-07 — ✗ still FAILED, and this verifier re-derived the failure directly rather than trusting the orchestrator's measured-evidence block:**
-
-```
-$ git rev-list --count origin/main..main
-39
-$ gh run list --workflow=ci.yml --branch main --limit 1 --json conclusion,databaseId,headSha
-[{"conclusion":"failure","databaseId":33138291361,"headSha":"a97f527e..."}]
-$ gh pr view 26 --json mergeStateStatus,state
-{"mergeStateStatus":"BLOCKED","state":"OPEN"}
-```
-
-This is the central finding of this verification pass. **Every engineering fix this phase set out to make is done and independently confirmed green in the local tree**: the 80-failure test baseline is 0, the flake classifier is reachable, the branch-protection guard discriminates, the release/critic guards are intact, `mix ci.all`'s one remaining failure (`verify.example`'s demo-seed drift) is pre-existing, unrelated to any GREEN-xx requirement, and correctly filed as deferred debt (matching the pattern already carried across Phases 177/179/180/182).
-
-What is **not** done, and cannot be done by any further plan within this phase, is pushing those commits to `origin/main`. 198-13's own SUMMARY records this precisely: the orchestrator's honesty_constraints for that run explicitly forbade pushing, and — independent of that specific run's constraints — this project's standing operating policy (recorded in prior-session memory and consistent with `.planning/`'s size and public-repo status) is that `.planning/`-carrying commits are not pushed to public `origin` without a deliberate publication decision, exactly the same reasoning that keeps milestone tags local. **The phase's own goal text ("origin/main carries every local commit and its CI concludes green") is therefore in tension with this project's standing no-push posture for planning commits, and no plan in this phase was ever authorized to resolve that tension by pushing.**
-
-This is recorded as a gap, not a human-verification item, because the roadmap's own Success Criterion 3 is a factual claim about `origin/main`'s state, and that claim is objectively false right now, re-measured directly. It is a gap of a different character than GREEN-04/GREEN-11 were: those needed more engineering; this one needs a maintainer decision (authorize the push despite the policy cost, or amend the phase goal to match the project's actual publication posture) that no amount of further planning or code can substitute for. The Gaps Summary below states this plainly rather than routing it to `human_needed`, because the phase-level decision tree gives a measured, currently-false truth priority over the human-decision framing — but the practical next action **is** a human decision, not a task for `/gsd-plan-phase --gaps`.
-
----
-
-### Criterion 4 — branch protection (GREEN-08 ✓ / PR #26 mergeability still ✗) — UNCHANGED
-
-**GREEN-08 — ✓ VERIFIED, re-confirmed with no drift.** `git diff origin/main -- .github/rulesets/main.json .github/workflows/branch-protection.yml` is empty — the ruleset and its enforcing workflow are byte-identical to the prior verification's evidence. `bin/verify-branch-protection` exits 0. The red→green discrimination pair from the prior pass (`33138291397` fail → `33140020321` pass, same SHA) still stands as the strongest available evidence and nothing in the gap-closure plans touched this area (198-13 explicitly declined to, per its own honesty_constraints).
-
-**PR #26 mergeability — still ✗ FAILED, same root cause as GREEN-07** (see above). Re-confirmed directly: `BLOCKED`, `bypass_actors: []` still active, so nothing walks past the failing `CI required` context.
-
-**Carried-forward debt, unchanged, correctly tracked (not gaps for this phase):**
-- CR-03 (`branch-protection.yml:27-28` `permissions: contents: read` makes block (c) unfalsifiable in CI) — WARNING, recorded in `.planning/WINDOWS.md` #5, explicitly out of 198's scope per 198-13's disposition.
-- CR-04 (block (b) launders an API-scope failure into an empty `EMITTED_COUNT`, fails closed today) — WARNING, `.planning/WINDOWS.md` #6.
-- CR-05 (`.github/rulesets/main.json` never diffed against live state; `enforcement`/`bypass_actors` unasserted) — WARNING, `.planning/WINDOWS.md` #7.
-
-These three were reviewed in 198-REVIEW.md, correctly triaged as WARNING (not blockers to this phase's own requirement text), and deliberately deferred rather than silently dropped. They remain WARNINGs in this verification, not gaps — they don't block GREEN-08's literal text and are visible in WINDOWS.md for the ship gate.
-
----
-
-### Criterion 5 — release safety (GREEN-09/10) — ✓ VERIFIED (unchanged)
-
-Re-confirmed directly:
-- `ls .github/workflows/` → `branch-protection.yml browser-full.yml ci.yml flake-detection.yml release.yml` — no `ui-critic.yml`, no `hex-publish.yml`
-- `grep -rn "mix hex.publish" .github/` → only `release.yml:390,392` (plus a `--dry-run` help-text mention at line 24)
-- `grep -rniE "critic|billing" .github/workflows/*.yml` → no matches
-
----
-
-### Criterion 6 — flake lane and hygiene (GREEN-11 ✓ / GREEN-12 ✓) — CLOSED
-
-**GREEN-11 — ✓ VERIFIED, was the phase's most substantive fix.** Read `.github/workflows/flake-detection.yml:87-124` directly:
-- Line 88: `set +e` now precedes `set -uo pipefail` in the "Repeat the suite until failure" step, so `exit_code` is always written before the step's own `exit 0`.
-- Line 116: `Classify broken vs flaky` now carries `if: always()`, so it runs regardless of the repeat step's outcome.
-- The step comments explicitly document the CR-01 fix and reference `flake_classifier_contract_test.exs` as the guard against regression.
-
-Re-ran the extracted classifier's contract test directly: `mix test test/threadline/storage_schema_prefix_contract_test.exs test/threadline/zero_skips_contract_test.exs test/threadline/phase06_nyquist_ci_contract_test.exs` (25/0) plus observed the malformed-input diagnostic lines (`'1-2'`, `'-1-2'`, `'-'`, `'1 2'` all correctly routing to `unknown`, not `flaky`) mid-way through the full `mix test` run — confirming WR-01's fix (embedded-dash rejection) is live in the current tree, not just claimed in the review disposition.
-
-**GREEN-12 — ✓ VERIFIED (unchanged).** `git worktree list` → 1 entry. `git branch` → `main` only. Neither gap-closure plan touched worktree/branch state.
-
----
-
-### Requirements Coverage
-
-| Req | Description | Status | Evidence |
-|---|---|---|---|
-| GREEN-01 | Red run logs preserved in-repo | ✓ SATISFIED | Unchanged from prior pass |
-| GREEN-02 | Credo histogram + concentration from external config | ✓ SATISFIED | Unchanged from prior pass |
-| GREEN-03 | Mechanical sensitivity stated from evidence | ✓ SATISFIED | Unchanged from prior pass |
-| GREEN-04 | `mix test` passes, each failure fixed on its merits | ✓ SATISFIED | 1398/0, independently re-run by this verifier |
-| GREEN-05 | Formless guard fails in the same diff | ✓ SATISFIED | 13/13 re-run |
-| GREEN-06 | Every job `timeout-minutes`-bound; browser aborts early | ✓ SATISFIED | Unchanged, spot-checked |
-| GREEN-07 | `origin/main` complete and its CI green ≤20min | ✗ BLOCKED | 39 commits unpushed; origin's last run still `failure`; blocked on a maintainer push decision, not engineering |
-| GREEN-08 | Protection requires exactly the emitted names | ✓ SATISFIED | No drift; red→green pair still stands |
-| GREEN-09 | Paid scoring structurally untriggerable | ✓ SATISFIED | Re-confirmed absent |
-| GREEN-10 | Exactly one gated publish path | ✓ SATISFIED | Re-confirmed |
-| GREEN-11 | Broken vs flaky by name, bounded, dedup issue | ✓ SATISFIED | Wiring fix read directly in workflow file + test re-run |
-| GREEN-12 | One worktree, no stale branches, archive tags | ✓ SATISFIED | Unchanged |
-
-**REQUIREMENTS.md agreement:** checked directly — 11/12 rows marked Complete, GREEN-07 the sole `Pending`, agreeing row-for-row between the checkbox list (lines 11-22) and the status table (lines 130-141). This matches this verification's own independent findings exactly; no traceability defect found this pass (the prior pass's GREEN-11 traceability defect is now resolved because the underlying fix landed before the row was flipped).
-
-**Orphaned requirements:** none.
-
----
-
-### Anti-Patterns Found
-
-| File | Line | Pattern | Severity | Impact |
+| Req | Description | REQUIREMENTS.md status (as of this verification) | This verifier's independent finding | Agreement? |
 |---|---|---|---|---|
-| `.github/workflows/branch-protection.yml` | 27-28 | `permissions: contents: read` makes block (c) unfalsifiable in CI (CR-03) | ⚠️ Warning | Carried-forward debt, tracked in WINDOWS.md #5, out of this phase's scope by maintainer disposition |
-| `bin/verify-branch-protection` | 95-104 | API-scope failure laundered into empty `EMITTED_COUNT` (CR-04) | ℹ️ Info | Fails closed today; tracked in WINDOWS.md #6 |
-| `.github/rulesets/main.json` | — | Checked-in snapshot never diffed against live state (CR-05) | ⚠️ Warning | Tracked in WINDOWS.md #7 |
-| `bin/classify-flake-run` | 53-61 (pre-fix) | `is_integer()` accepted embedded-dash strings | — | **RESOLVED** — WR-01 fixed and locked in with a new contract-test case; re-verified live in the current tree |
-| `.github/workflows/ci.yml` | verify-capture step | One-directional evidence-bundle completeness check | — | **CORRECTLY REJECTED as a false positive** (WR-02) — measured evidence (372 JSON / 54 aria.yml) shows a symmetric check would break `verify-capture` |
+| GREEN-01 | Red run logs preserved in-repo | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-02 | Credo histogram + concentration, `.credo.exs` untouched | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-03 | Mechanical sensitivity stated from evidence | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-04 | `mix test` passes, each failure fixed on its merits | [ ] Pending, with an unusually thorough inline note citing run `33197493051` and the exact `ci.yml:235-240` cause | ✗ BLOCKED — confirmed by this verifier via the same run; REQUIREMENTS.md's own text is accurate and non-vacuous | Yes — correctly recorded as Pending, not over-claimed |
+| GREEN-05 | Formless guard fails loudly in-diff | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-06 | Every job `timeout-minutes`-bound; browser aborts early | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-07 | `origin/main` complete, CI green ≤20min | [ ] Pending, with the same run cited and an accurate 3-of-12-red breakdown | ✗ BLOCKED — confirmed | Yes — correctly recorded |
+| GREEN-08 | Branch protection requires exactly the emitted names | [x] Complete | ✓ SATISFIED (the requirement's own literal text — protection contexts match emitted names) — but this is a narrower claim than "PR is mergeable," which REQUIREMENTS.md does not claim for GREEN-08 | Yes — REQUIREMENTS.md does not over-claim mergeability under this ID |
+| GREEN-09 | Paid scoring structurally untriggerable | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-10 | Exactly one gated publish path | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-11 | Broken vs flaky by name, bounded, dedup issue | [x] Complete | ✓ SATISFIED, unchanged | Yes |
+| GREEN-12 | One worktree, no stale branches, archive tags | [x] Complete | ✓ SATISFIED, unchanged | Yes |
 
-No unreferenced `TBD`/`FIXME`/`XXX` debt markers found. No new laundering patterns (`search_path`, default prefix, skip tags) found in a direct re-scan of the current tree.
+**No over-claim or under-claim found in REQUIREMENTS.md.** This is a materially different finding from round 1's initial pass (which had briefly marked GREEN-04 Complete on local-only evidence, later self-corrected) — the current state on disk is honest, cites the exact measured run, and states the exact remaining cause. This is worth naming explicitly: **the traceability discipline this phase exists to enforce is now visibly working on itself.**
+
+**Plan → requirement traceability:** every plan's frontmatter `requirements:` field was checked against REQUIREMENTS.md's GREEN-01..12. All 12 IDs are claimed by at least one plan (198-01 → GREEN-01/02/03; 198-02 → none declared, credential audit, not requirement-bearing by design; 198-03 → GREEN-07/08; 198-04 → GREEN-04/05; 198-05 → GREEN-06/07; 198-06 → GREEN-09/10/11/12; 198-07 → GREEN-07/08/12; 198-08 → GREEN-04; 198-09 → GREEN-07; 198-10 → GREEN-07; 198-11 → GREEN-11; 198-12 → GREEN-04; 198-13 → none declared, closing/traceability plan; 198-14 → GREEN-04; 198-15 → GREEN-04; 198-16 → GREEN-04; 198-17 → GREEN-04; 198-18 → GREEN-07). **No orphaned requirement.** Plans 198-13/198-14/198-15/198-16/198-17 initially appeared to have empty `requirements:` in a shallow grep pass (an earlier automated scan in this session mis-parsed the YAML list-block syntax `requirements:\n  - GREEN-04` as empty) — re-checked directly by reading each file's frontmatter in full; all but 198-02 and 198-13 in fact declare a requirement.
 
 ---
 
-### Behavioral Spot-Checks
+### Focus Item — Must-Have Assessment: 198-14's static call-site sweep
+
+**198-14's must-have text (verbatim from its PLAN frontmatter):** *"A static contract test enumerates every Ecto call site in `test/**/*.exs` that names a Threadline-owned schema module and fails when any one of them omits `repo_opts` — and it does so by reading source, so a tag-excluded or environment-gated file is scanned exactly like a file that runs by default."*
+
+**Verdict: UNMET, as literally worded.** Two confirmed, reproduced escape hatches (198-REVIEW.md CR-01, CR-02; independently re-reproduced by this verifier and the orchestrator this session via `Regex.scan/2` against the actual compiled regex in `test/threadline/storage_schema_call_site_contract_test.exs`):
+
+1. **CR-01 — the receiver regex's `(?<![\w.])` lookbehind is blind to fully-qualified receivers.** `Threadline.Test.Repo.delete_all(...)` — the shape used at 73 real call sites across 9 files — produces zero regex matches. Confirmed: `Regex.scan(~r/(?<![\w.])(?:Repo|@repo|repo)\.(?:insert!|insert|delete_all)\(/x, "Threadline.Test.Repo.delete_all(AuditChange)")` → `[]`, versus `Regex.scan(same, "Repo.delete_all(AuditChange)")` → one match.
+2. **CR-02 — `insert_all` is absent from `@ecto_functions`**, and the function-name alternation requires an immediate literal `(`, so the `insert` entry cannot partial-match `insert_all(` either. Confirmed against the two real `insert_all` call sites in the tree (`timeline_live_test.exs:458`, `export_controller_test.exs:431`) — zero matches at either line.
+
+**Why this is UNMET rather than "met with caveats":** the must-have's own language is absolute — "enumerates *every* Ecto call site," "no permitted-file collection, no opt-out source marker, and no skipped-path constant" (moduledoc, quoted in 198-REVIEW.md). It is not worded as "enumerates every call site of the specific shapes exercised in this round's fixtures." A sweep whose own selling point is exhaustiveness, with two concrete, reproduced blind spots covering 75 real call sites, does not meet its own bar. The distinction that matters and is correctly preserved in the review: **no live offense exists today** (every one of those 75 sites currently carries `repo_opts()` or the older `storage_opts` binding) — so this is not a currently-manifesting regression, but it is a false completeness guarantee, which is precisely the "matches nothing, silently" failure class 198-CONTEXT.md's own D-05 anti-laundering framing was written to prevent. A future contributor writing `Threadline.Test.Repo.delete_all(AuditChange)` or `repo.insert_all(AuditChange, entries)` with no opts gets a green run and a real, silent, undetected regression of the exact defect class `pgbouncer_topology_test.exs` demonstrated reaches production.
+
+**This is treated as part of the GREEN-04 gap, not a separate blocker**, because GREEN-04's own text ("each former failure fixed on its merits") is satisfied for what the sweep does catch, and no live offense exists — but it is flagged here explicitly per the verification focus, and belongs in round 3's scope precisely because the review already scoped, reproduced, and specified concrete fixes (CR-01's regex change, CR-02's roster addition) that were deliberately NOT applied this session to avoid desynchronizing the tree from the CI run REQUIREMENTS.md cites.
+
+---
+
+### Anti-Patterns Found (this round's diff, `74db148a..HEAD`)
+
+| File | Line | Pattern | Severity | Status |
+|---|---|---|---|---|
+| `test/threadline/storage_schema_call_site_contract_test.exs` | 56-66 | CR-01: `(?<![\w.])` lookbehind blinds the sweep to fully-qualified `Threadline.Test.Repo.*` receivers (73 call sites, 9 files) | 🛑 Blocker (to the must-have's own exhaustiveness claim, not to GREEN-04's live-defect scope) | Diagnosed, fix specified, NOT applied (deliberate, to avoid desyncing from the cited CI run) |
+| `test/threadline/storage_schema_call_site_contract_test.exs` | 38-52 | CR-02: `insert_all` absent from `@ecto_functions`; 2 real call sites invisible | 🛑 Blocker (same qualification as CR-01) | Diagnosed, fix specified, NOT applied |
+| `test/threadline/storage_schema_call_site_contract_test.exs` | 170-192 | IN-02: `contains_unclosed?/3` uses a literal `"end"` substring match, not syntactic `do`/`end` balance tracking | ℹ️ Info | Not currently reproducible against real code; robustness gap only |
+| `.github/workflows/ci.yml` | 235-240 | GREEN-04's third, newly-measured cause: db-prep step omits the `ALTER DATABASE ... SET search_path` its siblings at :346-355/:500-509 carry | 🛑 Blocker | Diagnosed this round via the measured CI run; not yet fixed |
+
+No unreferenced `TBD`/`FIXME`/`XXX` debt markers found in the round-2 diff. No new laundering pattern (`search_path` restoration, default prefix, skip tags) — the round-1 anti-laundering re-scan stands, unchanged by anything in this diff.
+
+---
+
+### Probe / Behavioral Evidence
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Full suite green | `mix test` | 1398 tests, 0 failures (1 excluded) | ✓ PASS |
-| Compile clean | `mix compile --warnings-as-errors` | exit 0 | ✓ PASS |
-| Format clean | `mix verify.format` | exit 0 | ✓ PASS |
-| Credo clean | `mix verify.credo` | 2706 mods/funs, no issues | ✓ PASS |
-| No search_path/default-prefix laundering | `grep -n "search_path\|default_options" config/*.exs test/support/repo.ex lib/threadline/repo.ex` | no matches | ✓ PASS |
-| No skip tags | `grep -rn "@tag :skip\|@moduletag :skip" test/` | no matches | ✓ PASS |
-| Anti-laundering + parity guards green | `mix test .../storage_schema_prefix_contract_test.exs .../zero_skips_contract_test.exs .../phase06_nyquist_ci_contract_test.exs` | 25 tests, 0 failures | ✓ PASS |
-| Form-policy + CI-topology guards green | `mix test .../ui_form_policy_contract_test.exs .../ci_topology_contract_test.exs` | 13 tests, 0 failures | ✓ PASS |
-| Flake classifier wiring fix present | Read `.github/workflows/flake-detection.yml:87-124` directly | `set +e` present, `if: always()` present | ✓ PASS |
-| `mix ci.all` fails at exactly the documented, deferred point | `mix ci.all` | Fails at `verify.example`, 109 tests / 8 failures, matches `deferred-items.md` verbatim | ✓ PASS (expected, documented) |
-| `origin/main..main` empty | `git rev-list --count origin/main..main` | **39** | ✗ FAIL |
-| Latest `origin/main` CI green | `gh run list --workflow=ci.yml --branch main --limit 1` | `failure`, run 33138291361 (unchanged) | ✗ FAIL |
-| PR #26 mergeable | `gh pr view 26 --json mergeStateStatus,state` | `BLOCKED`, `OPEN` | ✗ FAIL |
-| Branch-protection ruleset no-drift | `git diff origin/main -- .github/rulesets/main.json .github/workflows/branch-protection.yml` | empty | ✓ PASS |
-| No paid-scoring / billing surface | `grep -rniE "critic|billing" .github/workflows/*.yml` | no matches | ✓ PASS |
-| Single publish path | `grep -rn "mix hex.publish" .github/` | `release.yml:390,392` only | ✓ PASS |
-| Worktree/branch hygiene | `git worktree list`; `git branch` | 1 entry; `main` only | ✓ PASS |
-| Post-merge regression fix present | `git show --stat 6970cff7` | fix commit present, addresses ui.ex re-indent / A11Y-02 | ✓ PASS |
+| Local suite green | `mix test` (per 198-CI-MEASUREMENT.md, ×2) | 1412 tests, 0 failures (1 excluded), byte-identical both runs | ✓ PASS (local only — inadmissible alone for GREEN-04 per D-01) |
+| CI `Run test suite (current)` | Measured run 33197493051 | 9 failures, `undefined_table` on `audit_transactions` | ✗ FAIL |
+| CI `Run test suite (min)` | Measured run 33197493051 | success, 4m26s | ✓ PASS (genuinely new this round) |
+| CI `PgBouncer transaction topology` | Measured run 33197493051 | success, 1m57s | ✓ PASS (genuinely new this round) |
+| CI `Tier A capture lane` | Measured run 33197493051 | failure — `scroll_cost` drift, exactly as 198-16 diagnosed and predicted | ✗ FAIL (expected-red, ratified halt) |
+| CI `Example app browser E2E` | Measured run 33197493051 | failure — 5/305/50, exactly the known 28-failure-set members, exactly as 198-17 predicted | ✗ FAIL (expected-red, deferred) |
+| CI `CI required` aggregate | Measured run 33197493051 | failure | ✗ FAIL |
+| CR-01 reproduction | `Regex.scan/2` against the live `@call_regex` | `Threadline.Test.Repo.delete_all(...)` → `[]` (no match) | ✗ FAIL — confirms the review finding |
+| CR-02 reproduction | `Regex.scan/2` against the live `@call_regex` | `repo.insert_all(...)` at both real call sites → `[]` (no match) | ✗ FAIL — confirms the review finding |
 
-### Probe Execution
+No `scripts/*/tests/probe-*.sh` exist for this project; the `mix verify.*`/`mix ci.*` aliases and the direct CI-run measurement above are the equivalent evidence.
 
-No `scripts/*/tests/probe-*.sh` exist and none is declared by any PLAN — this project's equivalents are the `mix verify.*` / `mix ci.*` aliases, exercised directly above. Step 7c: not applicable.
+---
+
+### SUMMARY claims not supported by the codebase
+
+1. **198-14-SUMMARY's claim that the sweep catches "any future Threadline-owned schema call site added anywhere under `test/`"** is not supported — two concrete, reproduced counterexamples exist (CR-01, CR-02). This is the review's own finding, not a new one, but it belongs here explicitly per this verification's focus: the SUMMARY's absolute wording does not match the code's actual behavior.
+2. **No other SUMMARY claim in plans 14-18 was found to be false.** 198-15's and 198-17's claims about their specific fixes holding on real CI were independently confirmed by the measured run (the two previously-failing Playwright specs no longer appear among the 5 failures; `Run test suite (min)` and `PgBouncer transaction topology` are both genuinely green). 198-16's halt claim is corroborated by the measured run reproducing the exact `scroll_cost` drift direction and magnitude. 198-18's CI-measurement claims match this verifier's own independent read of `198-CI-MEASUREMENT.md` and are not contradicted by anything found this pass.
+
+---
+
+### Human Verification Required
+
+None. Every truth in this phase resolves to a measured, on-disk, machine-checkable state (a CI run's JSON conclusion, a regex reproduction, a file diff) — no visual, UX, or subjective judgment call remains open.
+
+---
+
+## What Round 3 must do (ordered, derived from measured evidence)
+
+1. **Fix `ci.yml:235-240`** — add the `ALTER DATABASE threadline_phoenix_test SET search_path TO "$user", public, threadline;` statement to the `current`-lane db-prep step, matching `:346-355` and `:500-509`. This is the highest-leverage single fix: it is the only remaining cause standing between `Run test suite (current)` and green, and therefore the only remaining cause standing between GREEN-04 and Complete.
+2. **Fix the two sweep regex gaps (CR-01, CR-02)** in `test/threadline/storage_schema_call_site_contract_test.exs`, per the review's already-specified fixes: widen the lookbehind to admit `CamelCase.` chains before `Repo` while still rejecting `MyRepo`/`some_repo`; add `insert_all` (and the other listed missing Ecto.Repo callbacks) to `@ecto_functions`. Add the review's specified regression fixtures (`Threadline.Test.Repo.delete_all(AuditChange)` and `repo.insert_all(AuditChange, [...])` with no opts, both asserted `offense: true`) so this class has teeth going forward. No live offense exists today, so this carries no urgency risk, but it should land before round 3 declares GREEN-04 truly complete — the requirement's own bar is "each former failure fixed on its merits," and a sweep that silently can't see 75 real call sites is not that bar met, even though nothing is on fire.
+3. **Push and re-measure** — after (1) and ideally (2), push to a fresh `ci/198-*` branch/PR and observe a real CI run. Do not mark GREEN-04 or GREEN-07 Complete on local evidence; this phase's own history (round 1's initial GREEN-04 claim reopened within the same day) is the strongest available argument for that discipline.
+4. **Decision-dependent, in this order of urgency:**
+   - **Tier A capture lane** — the maintainer already ratified keeping the page.* regeneration prohibition this session. Round 3's job is not to re-litigate this but to decide whether `CI required` should keep `needs:`-ing this lane (permanently red until the prohibition lifts, meaning GREEN-07 can never close while it's in the aggregate) or be restructured — e.g., moved out of the required aggregate with an explicit, documented rationale, consistent with D-08's own "durable job-id contract" framing, rather than left as a silent permanent blocker to the phase's own stated exit condition.
+   - **The 28 masked Playwright failures** — same structural question. `deferred-items.md` and `WINDOWS.md #8` correctly log these as needing "a follow-up 198 (or successor-phase) gap-closure plan." Round 3 should either be that plan, or make an equally explicit decision to move `Example app browser E2E` out of `CI required`'s `needs:` with a stated rationale, since as currently constituted this lane's known-28-failure debt has the same practical effect as the Tier A halt: it structurally caps GREEN-07 at "cannot close."
+5. **Do not re-litigate GREEN-07's wording.** The round-1 amendment attempt was made on a false premise and correctly retracted; `origin/main` already carries `.planning/` publicly, so there is no policy conflict left to invoke. The remaining path to GREEN-07 is entirely the engineering and decision items above, not a wording change.
+
+---
+
+## Anti-Patterns / WINDOWS.md carried-forward debt (unchanged, not gaps for this phase)
+
+- CR-03 (`branch-protection.yml:27-28` `permissions: contents: read` makes block (c) unfalsifiable in CI) — WARNING, WINDOWS.md #5.
+- CR-04 (block (b) launders an API-scope failure into an empty `EMITTED_COUNT`) — WARNING, WINDOWS.md #6.
+- CR-05 (`.github/rulesets/main.json` never diffed against live state) — WARNING, WINDOWS.md #7.
+- IN-01 (`optional_deps_contract_test.exs`'s `guarded?/1` checks only the first line) — accepted, no change, `verify.compile_no_optional` is the real backstop.
+- IN-02 (`contains_unclosed?/3` substring-based `"end"` match) — Info, not currently reproducible against real code.
 
 ---
 
 ## Gaps Summary
 
-Phase 198's gap-closure work (plans 198-08 through 198-13, plus a code review round with three findings all correctly dispositioned — one fixed, one rejected as a false positive on measured evidence, one accepted as a documented limitation) closed two of the four gaps from the prior verification pass. This verifier independently re-ran the load-bearing checks rather than trusting any SUMMARY or the orchestrator's measured-evidence block, and confirms:
+Phase 198 has made substantial, independently-confirmed progress across two gap-closure rounds: of the 7 originally-red baseline jobs, **4 are now genuinely green** (`Compile without optional deps`, `Mechanical checker` — round 1; `PgBouncer transaction topology`, `Run test suite (min)` — round 2), each confirmed against a real, measured CI run rather than local evidence or SUMMARY narration. The measurement sweep (GREEN-01/02/03), release-safety guards (GREEN-09/10), branch-protection contract (GREEN-08's own text), and flake-detection wiring (GREEN-11/12) are all genuinely closed and unchanged by anything in this round.
 
-1. **GREEN-04 is genuinely closed.** `mix test` is 1398/0, re-run fresh by this verifier, with the anti-laundering guards (no restored `search_path`, no skip tags, no default-prefix, `zero_skips_contract_test` and `storage_schema_prefix_contract_test` both green) independently re-checked, not assumed.
-2. **GREEN-11 is genuinely closed.** The `set +e` / `if: always()` wiring fix is present in the actual workflow file, read directly by this verifier, and the classifier's malformed-input hardening (WR-01) is observably live — this verifier watched the correct `unknown` classifications emit mid-test-run for the new `1-2`/`-1-2`/`-`/`1 2` cases.
-3. **GREEN-08 has no drift** and remains proven non-vacuous by the red→green pair from the prior verification pass.
-4. **CR-03/04/05 remain correctly triaged as WARNING-severity carried-forward debt**, tracked in `.planning/WINDOWS.md`, deliberately out of scope — not silently dropped, not blockers to this phase's own requirement text.
+**The phase goal is not achieved.** `origin/main`'s branch-protected merge path (PR #29, the only route since direct pushes to `main` are ruleset-refused) carries a `CI required` aggregate that concluded `failure` on the last measured run. Three causes remain:
 
-**One gap remains, and it is structural rather than a defect in the work done:** GREEN-07 (`origin/main` carries every local commit and its CI concludes `success`) and its downstream consequence (PR #26 mergeable) are not met, re-confirmed by direct measurement (`git rev-list --count origin/main..main` = 39; origin's last CI run is still the same `failure` conclusion as the prior pass; PR #26 is still `BLOCKED`). This is not because any engineering task remains undone — every fixable local defect this phase targeted is fixed and independently re-verified green — but because closing it requires pushing `.planning/`-carrying commits to a public `origin/main`, and this project operates a standing policy against doing that without a deliberate publication decision (the same reasoning that keeps milestone tags local). No plan in this phase was authorized to make that call, and 198-13 explicitly and correctly declined to under an orchestrator no-push constraint rather than manufacture a false "success" by skipping the push-and-observe step.
+1. **`Run test suite (current)`** — a real, still-open engineering gap (missing `ALTER DATABASE` statement), newly discovered this round because fixing the two round-1 causes let the job progress far enough to reach it. Straightforward to fix; not yet fixed.
+2. **`Tier A capture lane`** — an accepted, ratified halt. The cause is fully diagnosed (198-16); every remedy requires a Tier-A evidence regeneration this milestone's own maintainer-confirmed policy forbids. Not an unfixed defect in the ordinary sense — a structural constraint the phase cannot resolve without a policy change outside this phase's authority.
+3. **`Example app browser E2E`** — 5 of the diagnosed failures are genuinely fixed and held (confirmed on the measured run); 28 further pre-existing, masked failures were discovered and deliberately deferred, logged with an explicit successor-plan pointer.
 
-**The phase's own headline goal text ("`origin/main` carries every local commit and its CI concludes green") is therefore only partially achievable under this project's current operating posture, independent of any further code changes.** The honest verdict is `gaps_found`, not `passed`: the roadmap's Success Criterion 3 is a factual claim about `origin/main`'s state, and re-measured directly, that claim is false. But the *nature* of the remaining action is a maintainer decision — authorize the push (accepting the `.planning/`-publication cost this repo has avoided before) or explicitly amend the phase's success criteria to match the project's actual no-push posture — not a task suitable for `/gsd-plan-phase --gaps`. Routing this through the gaps YAML is the mechanically correct signal per the verification decision tree (a measured-false truth outranks a human-decision framing), but the human next step is what actually resolves it.
+Additionally, the static call-site sweep introduced this round (198-14) does not meet its own stated must-have of exhaustive coverage — two reproduced regex blind spots (75 real call sites) exist, though no live offense results from them today. This is recorded as part of the GREEN-04 gap rather than a separate blocker, per the analysis above.
+
+**REQUIREMENTS.md's own record is accurate** — GREEN-04 and GREEN-07 are correctly marked Pending with precise, evidence-backed inline notes citing the exact measured run and cause. This is worth stating plainly: the traceability discipline this milestone exists to enforce is visibly working, including on itself, including through a self-correcting sequence (round 1's brief over-claim, caught and reopened within the same day).
 
 ---
 
 _Verified: 2026-08-28_
 _Verifier: Claude (gsd-verifier)_
-
----
-
-## Amendment — GREEN-07 and Success Criteria 3/4 (maintainer decision, 2026-08-28)
-
-**Decision:** amend the criteria to match the project's actual no-push posture,
-rather than authorize a push of `.planning/`-carrying commits to public
-`origin/main`.
-
-**Why the original wording was unsatisfiable.** GREEN-07 and Criterion 3 required
-`git log origin/main..main` to be empty. Meeting that literally means pushing all
-39 local commits, which carry the full `.planning/` history, to a public
-repository — an irreversible publication that conflicts with this project's
-standing policy that planning history is never pushed. The requirement was not
-hard; it was in direct conflict with a rule the project had already adopted. No
-plan in Phase 198 was authorized to resolve that conflict, and 198-13 correctly
-declined to push rather than manufacture a green claim.
-
-**What changed:**
-- **GREEN-07** now requires CI green in ≤ 20 min on a ref pushed to `origin` that
-  carries the source tree but not `.planning/`. Local `main` staying ahead by
-  planning-only commits is explicitly permitted.
-- **Criterion 3** drops the "`origin/main..main` is empty" clause for the same reason.
-- **Criterion 4** drops the "so PR #26 is mergeable" consequence clause. PR #26's
-  merge belongs to Phase 202, which the roadmap already scopes as "Merge PR #26
-  and publish". The branch-protection half (GREEN-08) was verified and stands.
-
-**What this amendment does NOT do.** It does not make GREEN-07 true. It changes
-what must be proven, not whether it has been proven. **GREEN-07 remains
-`Pending`**: no ref has been pushed and no remote CI run has concluded green, so
-there is still no evidence for the amended claim either. The CI repairs made in
-198-10 (postgres service on `verify-mechanical`, example-app schema resolution)
-are specifically the kind of defect that only a real CI run can confirm. Marking
-GREEN-07 complete on local evidence alone would be exactly the over-claiming this
-milestone exists to end.
-
-**Resulting status:** 5 of 6 success criteria verified (Criterion 4 is satisfied
-outright by the amendment, since GREEN-08 was already verified). 11 of 12
-requirements Complete. Phase 198 stays **PENDING** on GREEN-07 until a
-`.planning/`-free ref is pushed and its CI run concludes green — the natural home
-for which is `/gsd-pr-branch` plus Phase 202.
-
-
----
-
-## RETRACTION of the amendment above (2026-08-28)
-
-**The amendment recorded in the preceding section was made on a false premise and
-has been reverted. GREEN-07 and Success Criteria 3/4 are restored to their
-original wording.**
-
-**The false premise.** The orchestrator told the maintainer that pushing would
-"publish the full `.planning/` history to public GitHub," and the maintainer chose
-to amend the criteria on that basis. That claim was wrong. Measured:
-
-```
-gh repo view  → szTheory/threadline, visibility PUBLIC
-git ls-tree -r --name-only origin/main -- .planning | wc -l   → 2191
-git ls-tree -r --name-only origin/main -- .planning/phases    → includes
-    .planning/phases/198-green-bringup/198-01-PLAN.md … 198-07
-```
-
-`.planning/` is already fully tracked and published on `origin/main`, including
-Phase 198's own plans 01–07. Phase 198-07 landed on `origin/main` during this very
-phase — which is why `origin/main` is 41 commits behind rather than the 584 the
-roadmap describes from milestone open.
-
-**Root cause.** This project's standing policy is that *milestone tags* stay local
-(v1.31+). The orchestrator over-generalized that into "planning history is never
-pushed." Pushing `main` is an established operation here, already performed inside
-this phase.
-
-**Consequence.** GREEN-07's original wording was never in conflict with policy, so
-there was nothing to amend. The unpushed delta is 35 commits whose `.planning/`
-portion is more of exactly what is already public (16 phase files for plans 08–13,
-plus STATE/ROADMAP/REQUIREMENTS/WINDOWS). No new category of exposure. No local
-tags ride along.
-
-**Disposition:** amendment reverted; `main` pushed to `origin/main`; GREEN-07
-closes if and only if the resulting CI run concludes `success` in ≤ 20 minutes.
-
----
-
-## MEASURED CI RESULT — GREEN-07 remains Pending (2026-08-28)
-
-`main` could not be pushed directly: the ruleset requires a pull request (GREEN-08's
-branch protection working as designed). The 42 commits were pushed as
-`ci/198-gap-closure` and opened as **PR #29**, following the same `ci/*` convention
-as the already-merged `ci/v1_41-green-bringup` and `ci/198-05-verify`.
-
-**CI run 33183920952 concluded FAILURE.** 13 checks, 6 failing. `CI required` is red,
-so PR #29 is `BLOCKED`. **GREEN-07 is not met.**
-
-### What the gap closure actually fixed
-
-Comparing against baseline run 33138291361 (7 non-aggregate red jobs):
-
-| Job | Baseline | Now | Owner |
-|-----|----------|-----|-------|
-| Mechanical checker (committed scorecards) | ✗ | **✓ FIXED** | 198-10 postgres service |
-| Compile without optional deps | ✗ | **✓ FIXED** | 198-09 guards |
-| Run test suite (current) | ✗ | ✗ still red | — |
-| Run test suite (min) | ✗ | ✗ still red | — |
-| PgBouncer transaction topology | ✗ | ✗ still red | — |
-| Tier A capture lane | ✗ | ✗ still red | 198-10 fixed only the count assertion |
-| Example app browser E2E | ✗ | ✗ still red | 198-10's schema step insufficient |
-
-**2 of 7 fixed, not 7.** The local suite reaching 1398/0 did not translate to CI.
-
-### Why local green was not CI green — two are the same defect class this phase existed to fix
-
-1. **`stress_router_test.exs:310` (both test-suite jobs).** Shells into
-   `examples/threadline_phoenix` and runs `mix run`, which needs the example app's deps
-   fetched. It passes locally **only because** 198-13's executor happened to run
-   `mix deps.get` there. CI runs 1399 tests to the local 1398 — this test never
-   executed in any local verification run. Same failure shape as the storage-schema
-   defect: a test that is green only because of ambient local state.
-
-2. **`pgbouncer_topology_test.exs:21` — unprefixed `DELETE FROM "audit_changes"`.**
-   This is *exactly* the GREEN-04 defect class, missed because the file carries
-   `@moduletag :pgbouncer_topology`, which the default suite excludes ("Excluding tags:
-   [pgbouncer_topology: true]" appears in every local run). 198-12's sweep was driven by
-   the observed local failure list, so a tag-excluded file could never appear in it.
-
-3. **Tier A byte-stability drift** — `scroll_cost` 19.038 → 36.504 on
-   `page.coverage.error__light-1280.json`. Rendering differs between CI and local; 198-10
-   made the bundle-*count* assertion rot-proof but never addressed byte-stability.
-
-4. **Playwright** — 5 failures in `operator-coverage-readiness.spec.ts` and
-   `operator-accessibility.spec.ts`, 348 tests did not run. 198-10's schema-resolution
-   step was necessary but not sufficient.
-
-### Correction to this phase's own record
-
-198-13's SUMMARY and the requirement flip to Complete for GREEN-04 rested on the local
-1398/0 result. That result was real but not sufficient: **GREEN-04's own wording is
-"`mix test` passes with no deterministically-failing tests."** The pgbouncer file
-contains a deterministic failure of the target defect class that the default suite hides
-behind a tag. GREEN-04 should be treated as **not fully met** until that file is ported
-too, notwithstanding its Complete mark.
-
-**Next work is real engineering, not a decision:** port `pgbouncer_topology_test.exs` to
-`repo_opts/0`; make `stress_router_test.exs:310` either fetch the example deps or skip
-honestly when they are absent; then re-examine Tier A byte-stability and the Playwright
-readiness specs.
