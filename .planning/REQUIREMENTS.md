@@ -11,10 +11,10 @@
 - [x] **GREEN-01**: Maintainer can see the last red CI run's failing logs preserved in-repo before GitHub purges them at 90 days (run `28214113903`, ~62 days old at milestone open).
 - [x] **GREEN-02**: Maintainer can read a measured per-check Credo finding histogram and a per-file concentration table, produced from a full-default config held outside the repo, without `.credo.exs` being modified.
 - [x] **GREEN-03**: Maintainer can state, from evidence rather than inference, whether `verify.mechanical` is sensitive to rendered text content and text width or only to tokens, contrast, and element geometry.
-- [ ] **GREEN-04** *(reopened 2026-08-28 on measured CI evidence)*: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone. **Default-suite green (1398/0) but `test/threadline/pgbouncer_topology_test.exs:21` carries the same unprefixed-audit-table defect, hidden locally by `@moduletag :pgbouncer_topology`; CI run 33183920952 fails on it.**
+- [ ] **GREEN-04** *(still Pending — re-measured 2026-08-28 on CI run `33197493051`)*: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone. **The two previously-diagnosed causes (pgbouncer file, ambient stress-router dependency) are fixed — `PgBouncer transaction topology` and `Run test suite (min)` both concluded `success` on run `33197493051`. But `Run test suite (current)` still fails: fixing those two causes let this job reach a third, previously-masked one — `mix verify.example`'s `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` fails with `(undefined_table) relation "audit_transactions" does not exist`, because this job's own db-prep step (`ci.yml:235-240`) never runs the `ALTER DATABASE ... SET search_path` statement its sibling jobs (`ci.yml:346-355`, `500-509`) both carry. Local `mix test` is not admissible evidence for this requirement — see `198-CI-MEASUREMENT.md` for the measured run.**
 - [x] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
 - [x] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
-- [ ] **GREEN-07**: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes.
+- [ ] **GREEN-07** *(re-measured 2026-08-28 on CI run `33197493051`)*: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes. **Time clause met (13m29s ≤ 20min); success clause not met — `CI required` concluded `failure` (3 of 12 dependencies red: `Run test suite (current)`, `Tier A capture lane`, `Example app browser E2E`). 4 of the originally 7 red baseline jobs are now green; see `198-CI-MEASUREMENT.md` for the full three-way comparison.**
 - [x] **GREEN-08**: Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no pull request can be blocked on a check that cannot exist.
 - [x] **GREEN-09**: Paid critic scoring cannot be triggered from any workflow while it is parked — the input and the billing code path are absent, not merely defaulted off.
 - [x] **GREEN-10**: Exactly one Hex publish path exists, and it is the one gated by CI-green and release-shape verification.
@@ -130,10 +130,10 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-01 | Phase 198 | Complete |
 | GREEN-02 | Phase 198 | Complete |
 | GREEN-03 | Phase 198 | Complete |
-| GREEN-04 | Phase 198 | Pending (reopened — see CI run 33183920952) |
+| GREEN-04 | Phase 198 | Pending (Run test suite (current) still red — see CI run 33197493051) |
 | GREEN-05 | Phase 198 | Complete |
 | GREEN-06 | Phase 198 | Complete |
-| GREEN-07 | Phase 198 | Pending |
+| GREEN-07 | Phase 198 | Pending (CI required failure — see CI run 33197493051) |
 | GREEN-08 | Phase 198 | Complete |
 | GREEN-09 | Phase 198 | Complete |
 | GREEN-10 | Phase 198 | Complete |
