@@ -118,14 +118,14 @@ Plans:
 
 **Wave 1** *(fully parallel — disjoint files)*
 
-- [ ] 198-08-PLAN.md — **Tracer:** prove the `repo_opts/0` remediation shape on one file end-to-end, and make D-02 executable with a non-vacuous mask-regression guard (wave 1)
-- [ ] 198-09-PLAN.md — Guard the two unguarded optional-Phoenix modules so `verify.compile_no_optional` passes, plus a derived-roster contract test (wave 1)
-- [ ] 198-10-PLAN.md — `ci.yml` job-config defects: postgres service for `verify-mechanical`, rot-proof Tier A bundle assertion, example-app schema resolution (wave 1)
-- [ ] 198-11-PLAN.md — GREEN-11: extract the flake classifier into a tested `bin/classify-flake-run`, fix the wiring so it is reachable on the failure path (wave 1)
+- [x] 198-08-PLAN.md — **Tracer:** prove the `repo_opts/0` remediation shape on one file end-to-end, and make D-02 executable with a non-vacuous mask-regression guard (wave 1)
+- [x] 198-09-PLAN.md — Guard the two unguarded optional-Phoenix modules so `verify.compile_no_optional` passes, plus a derived-roster contract test (wave 1)
+- [x] 198-10-PLAN.md — `ci.yml` job-config defects: postgres service for `verify-mechanical`, rot-proof Tier A bundle assertion, example-app schema resolution (wave 1)
+- [x] 198-11-PLAN.md — GREEN-11: extract the flake classifier into a tested `bin/classify-flake-run`, fix the wiring so it is reachable on the failure path (wave 1)
 
 **Wave 2** *(blocked on 198-08)*
 
-- [ ] 198-12-PLAN.md — Port the remaining 14 files (66 defects), land the unowned CONTRIBUTING List 1 rows, drive `mix test` to 0 failures (wave 2)
+- [x] 198-12-PLAN.md — Port the remaining 14 files (66 defects), land the unowned CONTRIBUTING List 1 rows, drive `mix test` to 0 failures (wave 2)
 
 **Wave 3** *(blocked on 198-09, 198-10, 198-11, 198-12)*
 
