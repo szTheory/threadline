@@ -47,3 +47,27 @@
   the next CI run" is **not** expected to hold as a direct result of this plan alone — logged
   as WINDOWS.md entry #8 and needs a follow-up 198 (or successor-phase) gap-closure plan to
   diagnose and fix in the same disciplined, no-weakening manner as this plan.
+
+## Plan 198-23
+
+- **Status:** acknowledged
+- **Acknowledged at:** 2026-08-28 (Plan 198-23 execution)
+
+- Diagnosed and fixed the root cause of 7 of `mix verify.example`'s 9 (union, two-run) failures:
+  `ThreadlinePhoenix.Demo.Seed.RetentionTail.run/1` called `Threadline.Retention.purge/1` with no
+  `:cutoff` override, so the library's global-age default (real `DateTime.utc_now()` minus
+  `keep_days`) purged every organization's epoch-anchored demo fiction as collateral damage, not
+  just `offboarded-co`'s intended `-90 day` backdate — because real wall-clock time has now
+  drifted more than `keep_days` (30) past the frozen `Manifest.epoch()` (2026-05-27). Fixed by
+  passing an explicit, epoch-anchored `:cutoff` (the library's own documented
+  stricter-than-policy seam). Red-then-green proof and full diagnosis in
+  `.planning/audits/198-round4-demo-seed.md`. `mix verify.example` union failure count: 9 → 1
+  (both after-runs consistent).
+- **Remaining, out-of-scope, `undiagnosed`:** `ThreadlinePhoenixWeb.WalkthroughHappyPathTest`'s
+  `admin export status shows seeded job states` (`walkthrough_happy_path_test.exs:145`,
+  `assert html =~ "Export expired"`). Confirmed unrelated to the retention-purge cause above (the
+  failing label depends on a `Threadline.Governance.ExportJob` row and
+  `Threadline.OperatorSurface.Presentation`'s `expired?/2` check, a code path
+  `Threadline.Retention.purge/1` never touches). Root cause not established — needs a follow-up
+  198 (or successor-phase) gap-closure plan to diagnose and fix in the same disciplined,
+  no-weakening manner as this plan.
