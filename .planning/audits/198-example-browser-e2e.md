@@ -318,3 +318,61 @@ classification is supported by the evidence:
 
 **No scope expansion authorized or required.** Task 3 proceeds directly to
 implementing the two assertion rewrites at the identified cause.
+
+## Task 3 outcome: fix verified with teeth proof; a new, unrelated set of pre-existing failures discovered
+
+Both assertions were rewritten exactly as classified in §8/Task 2 (`"selected
+schema"` → `"public"`, the schema name the verdict heading still genuinely
+renders), with a red-then-green teeth proof executed for each:
+
+- `operator-coverage-readiness.spec.ts:142` (desktop-1024, `--grep desktop-1024`):
+  drifted to a nonsense string → **RED** (`1 failed`); restored to `"public"`
+  → **GREEN** (`1 passed`).
+- `operator-accessibility.spec.ts:411` (`--grep "keyboard reachable"`): drifted
+  → **RED** (`1 failed`, 2 passed unrelated); restored → **GREEN** (`3 passed`).
+
+`git diff examples/threadline_phoenix/e2e/tests/` shows only these two lines
+changed (plus explanatory comments) — no assertion deleted, no selector
+broadened, no retry added, no conditional guard. `git diff .github/` and
+`git diff examples/threadline_phoenix/e2e/playwright.config.ts` are both
+empty — no job id, check name, aggregate membership, timeout bound, or
+protection-file change of any kind.
+
+**Running the plan's own required verify command
+(`mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`,
+unbounded locally) surfaced a new, unrelated finding.** Neither of the two
+now-fixed specs appears anywhere in the failure output. But the full run —
+which CI's `maxFailures: 5` ceiling never allowed to complete, since it
+always aborted at the first 5 failures, and those 5 were always these two
+specs — does not exit 0:
+
+```
+28 failed
+15 skipped
+319 passed (14.2m)
+```
+
+The 28 failures span 14 distinct tests × 2 projects
+(`operator-find-mobile.spec.ts`, `operator-phase-135-uat.spec.ts`,
+`operator-phase-173-uat.spec.ts`, `operator-phase-175-uat.spec.ts`,
+`operator-phase-177-uat.spec.ts`, `operator-screenshot-regression.spec.ts`,
+`operator-screenshots.spec.ts`, `register.spec.ts`) — none in either file
+this plan touched. They are **pre-existing and unrelated**: they were always
+present but invisible to every prior CI run of this job, because the
+ceiling always hit its cap on the two now-fixed specs first (alphabetically
+and by execution order, `operator-accessibility`/`operator-coverage-readiness`
+sort before all 8 of the newly-visible spec files) and aborted before
+reaching them. Fixing the diagnosed cause did not make the lane green; it
+revealed the next layer of pre-existing red that the ceiling had been
+masking underneath it.
+
+**This is out of this plan's scope** (`files_modified` names exactly
+`ci.yml`, the two specs, and this artifact) and is **not diagnosed or fixed
+here** — no cause investigation, no assertion changes, for any of the 28.
+Logged to `.planning/phases/198-green-bringup/deferred-items.md` (Plan
+198-17 entry) and `.planning/WINDOWS.md` (entry #8) for a follow-up
+gap-closure plan. **The must-have backstop truth — "`Example app browser
+E2E (Playwright)` concludes success on the next CI run" — is not expected to
+hold as a direct result of this plan alone.** GREEN-04 Gap 4, narrowly
+defined as "the 5 failures from run 33183920952," is closed; the browser
+lane as a whole is not yet green.
