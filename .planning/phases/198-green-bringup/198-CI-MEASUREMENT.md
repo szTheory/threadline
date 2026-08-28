@@ -428,3 +428,89 @@ $ gh pr view 29 --json mergeStateStatus,state
 ```
 Unchanged from before this run — `CI required` is red, so the branch protection
 gate correctly still blocks the merge, exactly as designed.
+
+---
+
+## Round 3 (2026-08-28) — Local pre-push readiness signal (Plan 198-19)
+
+**Worktree base:** `ec9e7fdd` (contains merged 198-01 through 198-18, plus round-3
+plan 198-19's own two fixes: the `verify-test` current-lane db-prep step now sets
+`threadline` on the example-app database's search_path, and the call-site sweep's
+CR-01/CR-02 blind spots are closed).
+
+**IMPORTANT — inadmissible as CI proof.** Everything in this section is a local
+readiness signal only. It is NOT admissible as proof that GREEN-04 or GREEN-07 are
+met — that verdict belongs exclusively to the measured CI run recorded in plan
+198-21 (198-CONTEXT.md D-01). A green local run and a green CI run are not the same
+claim; CI's runner OS, Postgres version, and dependency resolution differ from this
+machine's.
+
+### `mix test`, run 1
+
+```
+Finished in 46.6 seconds (2.0s async, 44.6s sync)
+1420 tests, 0 failures (1 excluded)
+```
+
+### `mix test`, run 2 (independent, consecutive)
+
+```
+Finished in 48.1 seconds (2.4s async, 45.6s sync)
+1420 tests, 0 failures (1 excluded)
+```
+
+Both runs report **1420 tests, 0 failures (1 excluded)** — byte-identical
+pass/fail/excluded counts across the two runs.
+
+### `mix ci.all` step-by-step ledger
+
+Run as `DB_HOST=localhost MIX_ENV=test mix ci.all` against a freshly recreated
+`threadline_phoenix_test` database (dropped and recreated immediately before this
+run, exercising the same `createdb` idempotency the CI step relies on).
+
+| Step | Result |
+|------|--------|
+| `verify.format` | PASS — no output (clean) |
+| `verify.credo` | PASS — `2721 mods/funs, found no issues` (257 files) |
+| `compile --warnings-as-errors` | PASS (implicit — run continued past this step) |
+| `verify.compile_no_optional` | PASS (implicit — run continued past this step) |
+| `verify.test` | PASS — `1420 tests, 0 failures (1 excluded)` |
+| `verify.threadline` | PASS — `1/1 expected tables covered (0 violated)` |
+| `verify.example` | **FAIL** — `109 tests, 8 failures`, exit code 2 |
+| `verify.doc_contract` | not reached (ci.all halts at first failing step) |
+| `verify.critic_trust` | not reached |
+| `verify.mechanical` | not reached |
+| `verify.example_browser` | not reached |
+
+`mix ci.all` exited 1.
+
+### `verify.example` failure — known, previously-acknowledged deferral
+
+All 8 failures are `ThreadlinePhoenix.DemoContractTest` assertions against
+`mix demo.seed`-generated content (SEED-03 manifest-hero transactions, SEED-05
+delete-incident, D-05 persona actor attribution) — `Ecto.NoResultsError` and
+assertion-count mismatches, never a `Postgrex.Error 42P01 (undefined_table)`. Zero
+`undefined_table` / "does not exist" occurrences appear anywhere in this run's
+output (confirmed via `grep -c`). This is the exact class of failure
+`deferred-items.md`'s Plan 198-12 entry already acknowledges and defers — "the
+recurring 'example precommit demo-seed/walkthrough failures' pattern already
+acknowledged & deferred across Phases 177, 179, 180, and 182" — and is out of
+round 3's scope per that entry and per this plan's own read_first note.
+
+The specific failing test names are non-deterministic across runs (a second,
+independent `mix verify.example` run earlier in this plan's Task 1 execution
+produced a different 9-test failure set, including two `ThreadlinePhoenixWeb.
+WalkthroughHappyPathTest` content-assertion mismatches not present in this run) —
+consistent with order/seed-dependent demo-seed content, not a stable regression.
+In both independent local runs, the `undefined_table` failure class this plan's
+Task 1 targets was completely absent (0 occurrences), which is the honest scope of
+what Task 1's local fix can prove.
+
+### Honest limits of this local evidence
+
+This local evidence is **inadmissible** as proof that GREEN-04 or GREEN-07 are met.
+The authority for that verdict is the measured CI run in plan 198-21, not this
+worktree. Recorded here only as a pre-push readiness signal: local `mix test` is
+green (twice, byte-identical), and the one `mix ci.all` failure is the
+already-acknowledged, already-deferred example-app demo-seed content class — not a
+new defect and not the `undefined_table` defect this plan's Task 1 targets.
