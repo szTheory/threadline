@@ -292,7 +292,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 0/TBD | Not started | |
+| 198. Green Bringup | v1.41 | 6/7 | In Progress | |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

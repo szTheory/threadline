@@ -16,9 +16,9 @@
 - [ ] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
 - [ ] **GREEN-07**: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes.
 - [ ] **GREEN-08**: Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no pull request can be blocked on a check that cannot exist.
-- [ ] **GREEN-09**: Paid critic scoring cannot be triggered from any workflow while it is parked — the input and the billing code path are absent, not merely defaulted off.
-- [ ] **GREEN-10**: Exactly one Hex publish path exists, and it is the one gated by CI-green and release-shape verification.
-- [ ] **GREEN-11**: Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue instead of failing silently.
+- [x] **GREEN-09**: Paid critic scoring cannot be triggered from any workflow while it is parked — the input and the billing code path are absent, not merely defaulted off.
+- [x] **GREEN-10**: Exactly one Hex publish path exists, and it is the one gated by CI-green and release-shape verification.
+- [x] **GREEN-11**: Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue instead of failing silently.
 - [ ] **GREEN-12**: `git worktree list` shows one entry and no stale local branches remain; any unmerged branch is either landed or preserved under an archive tag with a recorded recommendation, never silently discarded.
 
 ### Decouple
@@ -135,9 +135,9 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-06 | Phase 198 | Pending |
 | GREEN-07 | Phase 198 | Pending |
 | GREEN-08 | Phase 198 | Pending |
-| GREEN-09 | Phase 198 | Pending |
-| GREEN-10 | Phase 198 | Pending |
-| GREEN-11 | Phase 198 | Pending |
+| GREEN-09 | Phase 198 | Complete |
+| GREEN-10 | Phase 198 | Complete |
+| GREEN-11 | Phase 198 | Complete |
 | GREEN-12 | Phase 198 | Pending |
 | DECOUPLE-01 | Phase 199 | Pending |
 | DECOUPLE-02 | Phase 199 | Pending |

@@ -2,17 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
+current_phase: 198
+current_phase_name: Green Bringup
 status: executing
-stopped_at: Phase 198 executing (7 plans, 5 waves)
-last_updated: "2026-08-27T21:44:26.664Z"
-last_activity: 2026-08-27
-last_activity_desc: Phase 198 execution resumed (wave continue)
-state_head: 3071d1bc103abd20bb10b721a115f2bddafe92c8
+stopped_at: Completed 198-06-PLAN.md
+last_updated: "2026-08-28T02:00:19.590Z"
+last_activity: 2026-08-28
+last_activity_desc: "198-06 complete: hazard workflows deleted, single gated publish path, branches archived"
+state_head: d1b3bc81fc077d80d95884f8517e01c086d8ef59
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -28,9 +30,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 6 of 7
-Status: Executing Phase 198
-Last activity: 2026-08-27 — Phase 198 execution resumed (wave continue)
+Plan: 7 of 7 (6 of 7 complete)
+Status: Ready to execute 198-07 (the push plan)
+Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, one gated publish path, archive tags created, single worktree
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -65,6 +67,12 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
 - **Posture thread**: `.planning/threads/2026-05-29-post-v1.29-posture.md`
 - **v1.28 pilot readiness**: `.planning/threads/2026-05-29-v1.28-pilot-readiness.md`
+
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
 
 ## Deferred Items
 
@@ -453,9 +461,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-08-27T18:59:19.504Z
-**Stopped at:** Phase 198 context gathered
-**Resume file:** .planning/phases/198-green-bringup/198-CONTEXT.md
+**Last session:** 2026-08-28T02:00:19.571Z
+**Stopped at:** Completed 198-06-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
