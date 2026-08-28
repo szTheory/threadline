@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 status: executing
-stopped_at: PR #29 open, CI red; next = port pgbouncer_topology_test.exs + fix stress_router_test example-deps dependency
+stopped_at: Plans 198-14..198-18 written and checked; next = /gsd-execute-phase 198 --gaps-only
 last_updated: "2026-08-28T15:05:00.000Z"
 last_activity: 2026-08-28
-last_activity_desc: Phase 198 gap closure merged to PR #29; CI run 33183920952 FAILURE — 2 of 7 baseline-red jobs fixed; GREEN-04 reopened, GREEN-07 unmet
+last_activity_desc: Phase 198 gap-closure round 2 planned — 5 plans (198-14..18) for the 4 measured CI failures + CI measurement; plan-checker PASS
 state_head: 72eaed3d
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 13
+  total_plans: 18
   completed_plans: 13
   percent: 92
 ---
@@ -28,8 +28,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 13 of 13
-Status: Phase 198 PENDING — 10/12 complete; PR #29 CI red (6/13). GREEN-07 unmet; GREEN-04 reopened (pgbouncer_topology_test unported)
+Plan: 13 of 18
+Status: Phase 198 PENDING — gap-closure round 2 PLANNED (198-14..18, checker PASS on all five); ready to execute
 Last activity: 2026-08-28 — Phase 198 gap closure complete; verification = gaps_found (GREEN-07 only)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
