@@ -192,3 +192,73 @@ guard were demonstrated red-then-green before commit (see the Plan 198-04 SUMMAR
 guard's needles are assembled by runtime string concatenation rather than written as
 literals, because the guard file is itself matched by the glob it scans — a literal would
 make it report itself, and the natural "fix" would be to exempt it from its own scan.
+
+---
+
+## Publish-path and secret-store decisions
+
+**Recorded by:** Plan 198-06, Task 2 (`checkpoint:decision`, `gate="blocking-human"`)
+**Presented:** 2026-08-27 · **Answered by the maintainer:** 2026-08-27
+**Binding decisions:** D-26 (single publish path), D-27 (Environment gate), D-34 step 3
+
+Both answers were given explicitly. Neither was inferred from silence, and neither was
+auto-selected — this checkpoint carried `gate="blocking-human"`, which is excluded from
+auto-mode resolution precisely because its consequences are irreversible in effect.
+
+### Decision 1 — legacy publish workflow: **DELETE** (2026-08-27)
+
+`.github/workflows/hex-publish.yml` is deleted, leaving `.github/workflows/release.yml` as
+the single publish path. D-26 as locked; confirmed, not assumed.
+
+**What was presented, and one correction to the planning-time framing.** The legacy workflow
+fires on `push: tags: v[0-9]+.[0-9]+.[0-9]+` and runs exactly two checks — a tag-name regex
+and a tag-vs-`mix.exs` `@version` match (`hex-publish.yml:32-50`) — then `mix hex.publish --yes`
+(`:61`). No CI gate at all. The gated path sits behind `gate-ci-green`, whose poll is 60 × 30s
+= **30 minutes by construction** (`release.yml:225-234`).
+
+The plan asserted flatly that the legacy path "wins the race by construction". Read against the
+files, that is true **conditionally**, and the condition is worth recording rather than
+flattening: `release.yml:6` states that tag pushes made with `GITHUB_TOKEN` do not fan out to
+other workflows, and release-please runs with `secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN`
+(`:97`, `:132`). So the race is live **precisely when the fine-grained PAT is configured** — the
+tag it creates does fan out, fires the ungated path, and publishes in about a minute while the
+gated path is still polling. With only `GITHUB_TOKEN` in use the legacy path is dormant today.
+
+That does not weaken the case for deletion; it sharpens it. A publish path whose safety depends
+on which token happens to be configured, with nothing asserting that configuration, is a hazard
+that is one secret away from live. Deleting it removes the dependency instead of documenting it.
+
+**What is lost:** the tag-triggered fallback. Recovery becomes `release.yml`'s `workflow_dispatch`
+(`:13-27`), which takes a tag and an expected version and additionally offers `dry_run` and
+`skip_distribution_sync` — a superset of what the deleted path could do.
+
+**What is kept, and must never be weakened:** all five pre-publish gates on the surviving path —
+the CI-green poll, the hard `needs: [release-ref, gate-ci-green]`, `bin/verify-release-shape` +
+`mix hex.build`, the already-published idempotency skip, and post-publish verification. The
+`production-hex` Environment reviewer gate added by Task 3 is added **in front of** these five,
+never in place of any of them.
+
+**Abort branch (restated, and still armed):** if `release.yml` cannot be shown green end to end,
+**both** files are kept and the phase stops — Plan 198-07 must not push. A broken single path is
+worse than a racy dual path. This branch was not taken; it remains the correct response if the
+surviving path is later found unprovable.
+
+### Decision 2 — paid critic API key in the repository secret store: **KEEP** (2026-08-27)
+
+`ANTHROPIC_API_KEY` is **not** revoked from the repository secret store. This is an explicit,
+dated maintainer decision with a stated rationale — not a residue of the workflow deletion, and
+not an open action item.
+
+**Rationale as given:** the workflow that consumed the secret is being deleted, so nothing in CI
+can reach it. The secret becomes inert rather than dangerous.
+
+**Why this is recorded as a decision rather than silently skipped.** Deleting a workflow does not
+revoke a secret, and threat row T-198-06-03 files a residual key as an Information Disclosure
+risk. The honest treatment is to answer the question, not to let the answer be implied by the
+deletion. The residual risk that remains, stated rather than glossed: the secret stays reachable
+by any future workflow, and by anyone who can add one. What GREEN-09 requires — and what Task 3
+enforces with a test over **all** workflow files, not a named one — is that no workflow references
+it. That guard covers a future re-reference, which is the reachable failure mode.
+
+**Status: closed.** No follow-up todo is created for revocation. Revisit only if CRITIC-02 is
+reconsidered, or if the key's blast radius changes.
