@@ -3,6 +3,15 @@
 # failures before they bite a release. Intentionally separate from ci.yml so
 # per-PR CI stays fast; trigger manually from the Actions tab or let the nightly
 # schedule run it on main.
+#
+# GREEN-11 / D-35. This lane classifies what it found BY NAME rather than filing
+# everything as "flaky":
+#   * a failure on the FIRST iteration means the suite is BROKEN, not flaky
+#   * a failure on a LATER iteration means FLAKY
+#   * output that does not match the expected shape is reported as UNKNOWN with
+#     the raw log attached — never silently downgraded to "flaky", which would
+#     let a broken suite be filed as an intermittent annoyance
+#   * no failure at all creates and updates nothing
 name: Flake Detection
 
 on:
@@ -17,8 +26,21 @@ permissions:
 jobs:
   # Job id is stable (relied on by docs/CI conventions); evolve `name:` freely.
   verify-flake:
-    name: Suite repeat-until-failure
+    name: Suite repeat-until-failure (broken vs flaky)
     runs-on: ubuntu-24.04
+    # `mix verify.flake` is `mix test --repeat-until-failure 50`, which MEASURED
+    # as 51 total suite runs (the initial run plus 50 repeats — verified locally,
+    # not inferred from the flag name). One full local suite run measured 72.9s,
+    # so a fully-green pass is ~62 minutes of test time before setup and compile.
+    # 120 leaves real headroom on a slower hosted runner.
+    #
+    # Honest caveat: a green 51-run pass has never actually been observed, because
+    # the suite is not green yet. Tighten this bound to the observed p95 once one
+    # completes rather than leaving it generous forever.
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: write
     env:
       DB_HOST: localhost
       MIX_ENV: test
@@ -57,5 +79,135 @@ jobs:
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
+      # Captures the exit code instead of failing here, so the classification and
+      # issue steps below still run. The job is failed deliberately at the end.
       - name: Repeat the suite until failure
-        run: mix verify.flake
+        id: repeat
+        run: |
+          set -uo pipefail
+          mix verify.flake 2>&1 | tee flake-detection.log
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      # Classification anchored on a STABLE MARKER, verified against real output
+      # rather than assumed. ExUnit prints exactly one
+      #   `Running ExUnit with seed: <n>, max_cases: <m>`
+      # header per suite run, so counting that line counts completed iterations.
+      # Measured locally before this was written:
+      #   all green, 3 repeats -> exit 0, 4 headers  (initial + 3)
+      #   fail on run 1        -> exit 2, 1 header
+      #   fail on run 3        -> exit 2, 3 headers
+      # If the header is absent entirely the suite never started (deps/compile
+      # failure, or ExUnit changed its banner) — that is UNKNOWN, not flaky.
+      - name: Classify broken vs flaky
+        id: classify
+        env:
+          EXIT_CODE: ${{ steps.repeat.outputs.exit_code }}
+        run: |
+          set -euo pipefail
+          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log || true)
+
+          if [ "$EXIT_CODE" = "0" ]; then
+            classification=pass
+          elif [ "$iterations" -eq 0 ]; then
+            classification=unknown
+          elif [ "$iterations" -eq 1 ]; then
+            classification=broken
+          else
+            classification=flaky
+          fi
+
+          echo "classification=$classification" >> "$GITHUB_OUTPUT"
+          echo "iterations=$iterations" >> "$GITHUB_OUTPUT"
+          echo "::notice::Flake Detection classification: $classification (completed iterations: $iterations, exit: $EXIT_CODE)"
+
+      # Always uploaded: the UNKNOWN branch is only actionable with the raw log,
+      # and attaching it unconditionally means the link in the issue never 404s.
+      - name: Upload raw repeat-until-failure log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flake-detection-log
+          path: flake-detection.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Create-or-update ONE tracking issue, never a new issue per run. `schedule`
+      # runs notify nobody, so without this a nightly failure is invisible; with a
+      # create-per-run it would be invisible for the opposite reason.
+      #
+      # The label is deliberately distinct from browser-full.yml's `ci-browser-full`
+      # so the two dedup streams do not merge into a single issue and mask each other.
+      #
+      # Dedup keys on the FIXED title prefix, while the classification rides in the
+      # title suffix and the body — so a lane that flips broken -> flaky still lands
+      # on the same issue instead of forking a second one.
+      - name: Open or update the flake tracking issue
+        if: steps.classify.outputs.classification != 'pass'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Flake Detection: test suite"
+          LABEL: ci-flake
+          CLASSIFICATION: ${{ steps.classify.outputs.classification }}
+          ITERATIONS: ${{ steps.classify.outputs.iterations }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # The label must exist before it can be applied or searched on.
+          gh label create "$LABEL" \
+            --description "Flake Detection lane: suite reported broken, flaky, or unknown" \
+            --color D93F0B 2>/dev/null || true
+
+          case "$CLASSIFICATION" in
+            broken)
+              headline="The suite is **broken**, not flaky — it failed on the FIRST iteration."
+              detail="A first-iteration failure is a deterministic failure. Do not triage this as an intermittent test; the suite does not pass even once."
+              ;;
+            flaky)
+              headline="The suite is **flaky** — it passed $((ITERATIONS - 1)) time(s), then failed on iteration ${ITERATIONS}."
+              detail="First failing iteration: ${ITERATIONS}. Earlier iterations passed, so this is genuinely intermittent."
+              ;;
+            *)
+              headline="Classification is **unknown** — the repeat-until-failure output did not match the expected shape."
+              detail="No \`Running ExUnit with seed:\` header was found, so the suite likely never started (dependency or compile failure), or ExUnit changed its banner. Deliberately NOT reported as flaky: guessing here is how a broken suite gets filed as an intermittent annoyance. Read the attached raw log."
+              ;;
+          esac
+
+          body="${headline}
+
+          ${detail}
+
+          - Classification: \`${CLASSIFICATION}\`
+          - Completed iterations before failure: \`${ITERATIONS}\`
+          - Run: ${RUN_URL}
+          - Commit: \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME})
+
+          The full \`mix verify.flake\` output is attached to the run as the
+          \`flake-detection-log\` artifact.
+
+          This issue is reused across runs — repeated failures accumulate here as
+          comments rather than opening a new issue each night."
+
+          existing=$(gh issue list \
+            --state open \
+            --label "$LABEL" \
+            --search "$TITLE_PREFIX in:title" \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create \
+              --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \
+              --label "$LABEL" \
+              --body "$body"
+          fi
+
+      # The job must still be red when the suite failed. Classification and issue
+      # filing above are reporting, not absolution.
+      - name: Fail the job if the suite did not pass
+        if: steps.classify.outputs.classification != 'pass'
+        run: |
+          echo "::error::Flake Detection classified this run as '${{ steps.classify.outputs.classification }}' after ${{ steps.classify.outputs.iterations }} iteration(s)."
+          exit 1
