@@ -74,12 +74,12 @@ shares cause with, seed-sensitive?.
 | 17 | `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | desktop-chromium | `expect(page).toHaveScreenshot` — `164476 pixels (ratio 0.15)` different, snapshot `timeline-dense.png` | **snapshot baseline divergence (out-of-cluster diagnosis, cluster 198-28's fix target).** A 15%-of-image pixel diff against the committed baseline. The page under test renders seeded Timeline rows (`table=ticket_replies` filter) — the baseline may be stale relative to either a UI change or seeded-content drift. Not further diagnosed here (D-39 forbids Tier-A `page.*` capture-lane work, and this file's screenshots are a distinct, non-Tier-A regression guard, but diagnosing pixel-level cause is cluster 198-28's declared scope). | row 18 | yes (screenshot content includes seeded Timeline rows) |
 | 18 | `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | mobile-chromium | identical mechanism to row 17 | identical mechanism to row 17 | row 17 | yes |
 | 19 | `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | desktop-chromium | `Expected an image 760px by 856px, received 1280px by 900px. 606326 pixels (ratio 0.53) are different` | **snapshot baseline divergence — dimension mismatch, not just pixel drift (out-of-cluster diagnosis, cluster 198-28's fix target).** The received screenshot is full-viewport size (1280×900), not the drawer's expected fixed overlay size (760×856) — suggesting either the drawer no longer renders as a bounded overlay, or the locator (`getByTestId("row-history-drawer")`) resolved to a different, larger element. The drawer's content is seeded row-history data. Not further diagnosed here; cluster 198-28's declared scope. | (none identified) | yes (drawer renders seeded row-history content) |
-| 20 | `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | mobile-chromium | identical mechanism to row 19 | identical mechanism to row 19 | row 19 | yes |
+| 20 | `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | mobile-chromium | `RE-ATTRIBUTED per 198-28's post-merge gate (see ## Post-merge re-validation (198-28)). Post-merge: getByTestId('row-history-drawer') — 79597 pixels (ratio 0.27) are different. No dimension mismatch reported (received image matches expected dimensions).` | **content-only pixel diff (re-attributed by 198-28's post-merge gate) — the pre-merge assumption of "identical mechanism to row 19" (a dimension mismatch) does not hold for mobile.** The drawer resolves at its expected size on mobile; the diff is pure pixel content against the seeded row-history data, not a locator/dimension defect. Distinct mechanism from row 19's desktop dimension mismatch. | row 19 (shares spec/test, not cause — see re-attribution) | yes (drawer renders seeded row-history content) |
 | 21 | `operator-screenshot-regression.spec.ts:127:3` | Exports readiness hierarchy stays stable | desktop-chromium | `strict mode violation: getByRole('heading', { name: 'Exports' }) resolved to 2 elements: 1) <h2 id="tl-shell-nav-prove" class="tl-shell-nav__label">Evidence & exports</h2> … 2) <h1 class="tl-page__title">Exports</h1>` | **assertion-rotted — same cause family as rows 1/2 (out-of-cluster diagnosis, cluster 198-28's fix target).** A shell-nav section label heading ("Evidence & exports") added alongside the v1.38 nav work now collides with the page's own `<h1>` "Exports" title under `getByRole`'s default substring name-matching. The screenshot comparison itself never runs — this assertion fails first. | row 1, row 2 (same "nav addition collides with pre-existing text/role assertion" family) | no |
 | 22 | `operator-screenshot-regression.spec.ts:127:3` | Exports readiness hierarchy stays stable | mobile-chromium | identical to row 21 | identical to row 21 | row 21 | no |
 | 23 | `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | desktop-chromium | `expect(page).toHaveScreenshot` — `59681 pixels (ratio 0.06)` different, snapshot `retention.png` | **snapshot baseline divergence (out-of-cluster diagnosis, cluster 198-28's fix target).** Retention page renders seeded retention-run evidence; not further diagnosed here. | row 24 | yes (retention page renders seeded retention-run rows) |
-| 24 | `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | mobile-chromium | identical mechanism to row 23 | identical mechanism to row 23 | row 23 | yes |
-| 25 | `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | desktop-chromium | `Expected pattern: /\/audit\/transactions\/[^/]+$/` `Received string: ".../users/log_in"` (post-click URL assertion, 15s timeout) | **non-deterministic (login/session-redirect timing flake) — confirmed by this plan's own before/after pair; different failure point than row 26.** This row disappeared in the after-run with no code change to this spec. Same symptom family as rows 9/14 (unexpected redirect to `/users/log_in`), though triggered by a transaction-link click mid-test rather than the initial login. | row 9, row 14 (row-9 family, broadly) | no |
+| 24 | `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | mobile-chromium | `RE-ATTRIBUTED per 198-28's post-merge gate (see ## Post-merge re-validation (198-28)). Post-merge: Expected an image 375px by 1918px, received 375px by 1761px. 107112 pixels (ratio 0.15) are different.` | **dimension mismatch (re-attributed by 198-28's post-merge gate) — the pre-merge assumption of "identical mechanism to row 23" (plain content diff) does not hold for mobile.** The rendered page is 157px shorter than the baseline expects (1918 -> 1761), consistent with the merged demo-seed pipeline (198-23's retention-purge cutoff fix and/or 198-25's `retention_runs.ex` rewrite) changing the seeded retention-run row count rendered at mobile width. Distinct mechanism from row 23's desktop plain-content diff. | row 23 (shares spec/test, not cause — see re-attribution) | yes (retention page renders seeded retention-run rows) |
+| 25 | `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | desktop-chromium | `RE-ATTRIBUTED per 198-28's post-merge gate (see ## Post-merge re-validation (198-28), "Additionally" note below the formal re-derivation table). Post-merge: getByText('Actor: user / 33123cc4-da21-5674-b030-e168cee90521') — Error: element(s) not found, identical to row 26's assertion and locator.` | **seed-content-wrong, same cause as row 26 (re-attributed post-merge; not part of the formal seed-sensitive=yes gate since this row was pre-merge-flagged `no`, but recorded here for honesty since its cause genuinely changed).** Pre-merge this row failed earlier, at a login/session-redirect timing flake — that symptom is gone post-merge; desktop now reaches the same "Actor:" assertion mobile always failed at, and fails identically. The pre-merge non-deterministic-timing label no longer describes this row's failure. | row 26 (now identical cause, re-attributed) | **yes** (re-attributed — reads the same seeded leaving-agent actor content as row 26; was `no` pre-merge under a since-superseded cause) |
 | 26 | `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | mobile-chromium | `Locator: getByText('Actor: user / 33123cc4-da21-5674-b030-e168cee90521')` `Error: element(s) not found` | **seed-content-wrong or seed-sensitive assertion (out-of-cluster diagnosis, cluster 198-28's fix target) — distinct cause from row 25 despite being the same test id.** This row got further into the test than the desktop run (no login/redirect failure) but the seeded leaving-agent actor's text is absent — this is the "leaving agent window" persona content plan 198-24 (same-wave sibling) is actively rewriting. **This row is a direct candidate for re-derivation after 198-24 merges** (see Pre-merge status below). | (none — distinct from row 25) | **yes** (reads seeded leaving-agent actor id/content) |
 
 **Union size: 29.** Compared against `deferred-items.md`'s recorded **28**: divergence of
@@ -692,3 +692,162 @@ its only remedy — Tier-A `page.*` scorecard regeneration — is forbidden for 
 milestone under D-39. No task in this plan touched the Tier A capture lane, its specs, or its
 scorecards. The honest target for this round remains: reduce the red `needs:` count from 3 to
 1, where the sole remaining red lane is the one D-39 forbids fixing.
+
+---
+
+# 198-28: cluster `198-28` post-merge re-validation and CI/local split — Task 1
+
+**Written per plan 198-28 (Gap 2, part 3 of 3), Task 1.** Every commit named in the plan's
+`<precondition>` (198-23, 198-24, 198-25, 198-26, 198-27) is confirmed present in this worktree's
+`git log --oneline` before any measurement below was taken.
+
+**Housekeeping note on the cluster's declared row count.** Plan 198-26's `## Cluster assignment`
+header states "`198-28` — 13 rows" but the enumerated row list beneath that header names exactly
+**10** distinct rows (17, 18, 19, 20, 21, 22, 23, 24, 25, 26) — five same-cause-family pairs. The
+same 10-row enumeration is what `## Full failure attribution`'s table actually contains for this
+cluster; no eleventh through thirteenth row exists anywhere in that table or in 198-27's new
+discovery (row 30, unassigned). This is an arithmetic error in the "13" figure stated in 198-26's
+and 198-27's headers (their own internal cross-checks — "assigned count equals the union size"
+— were computed against a union total that itself does not reconcile against the table's actual
+26 explicit rows: 4 + 12 + 13 = 29 was asserted, but 4 + 12 + 10 = 26 is what the table contains).
+This plan does not fabricate 3 additional rows to make the stated total true — doing so would be
+exactly the kind of unmeasured number-matching this round's `must_haves` forbid. **The reconciled,
+actually-enumerated cluster-198-28 row count used throughout this plan is 10, not 13.** This
+discrepancy is flagged here rather than silently propagated into Task 3's reconciliation
+arithmetic or into plan 198-29's prediction scorecard.
+
+## Post-merge re-validation (198-28)
+
+- **Post-merge HEAD (this measurement):** `8670d0215445dc8cd540ffd7942ded0479c1d72f`
+- **Pre-merge HEAD (198-26's inventory):** `d1154652887b181a49a476f6473005980272df4d`
+- **Pre-merge HEAD (198-27's inventory):** `eff08627a38b8e916f02ed05e9090870652e4b2f`
+
+Command: `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`, run
+from the repository root, **unbounded** (local run, `process.env.CI` unset), against the merged
+tree at the post-merge HEAD above. Full output captured to `/tmp/198-28-postmerge.log`.
+
+Verbatim summary line:
+
+```
+14 failed
+15 skipped
+311 passed (4.8m)
+```
+
+**Two new discoveries, out of this plan's declared `files_modified`, not part of cluster 198-28:**
+`operator-accessibility.spec.ts:565:3` ("keeps Exports queue and download states named and
+keyboard reachable") and `operator-prove-mobile.spec.ts:38:3` ("exports dense state keeps
+readiness hierarchy and ready-only primary action"), both failing on both projects (4 rows). Both
+assert `getByText(/Expired|File unavailable/)` is visible in an exports/download list and time out
+— consistent in shape with the merged demo-seed pipeline changing the seeded export-job state mix
+(198-25 rewrote `demo/seed/exports.ex`). Not diagnosed further here: neither file is in this
+plan's `files_modified` (`operator-screenshot-regression.spec.ts`, `operator-screenshots.spec.ts`
+only), so fixing or fully diagnosing them is out of scope under the same Rule-1/2 scope-boundary
+discipline 198-27 applied to its own new discovery. Logged as unassigned attribution rows below
+and a dated `deferred-items.md` entry, not silently absorbed into cluster 198-28's count.
+
+| # | Spec:line | Test title | Project | Verbatim message (key lines) | Cause | Cluster | seed-sensitive? |
+|---|---|---|---|---|---|---|---|
+| 31 | `operator-accessibility.spec.ts:565:3` | keeps Exports queue and download states named and keyboard reachable | desktop-chromium | `getByTestId('export-jobs').getByText(/Expired\|File unavailable/).first()` — `Error: element(s) not found` | **undiagnosed — out of this plan's scope** (file not in `files_modified`). Shape is consistent with 198-25's `demo/seed/exports.ex` rewrite changing which export-job states are seeded (no job currently in an Expired/File-unavailable state), but not confirmed by reading that seed module here. | **unassigned** — needs a follow-up 198 (or successor-phase) gap-closure plan | plausible (exports queue renders seeded export-job states) — undiagnosed |
+| 32 | `operator-accessibility.spec.ts:565:3` | keeps Exports queue and download states named and keyboard reachable | mobile-chromium | identical to row 31 | identical to row 31 | **unassigned** | plausible — undiagnosed |
+| 33 | `operator-prove-mobile.spec.ts:38:3` | exports dense state keeps readiness hierarchy and ready-only primary action | desktop-chromium | `getByText(/Expired\|File unavailable/).first()` — `Error: element(s) not found` | same shape as row 31; **undiagnosed — out of this plan's scope** | **unassigned** | plausible — undiagnosed |
+| 34 | `operator-prove-mobile.spec.ts:38:3` | exports dense state keeps readiness hierarchy and ready-only primary action | mobile-chromium | identical to row 33 | identical to row 33 | **unassigned** | plausible — undiagnosed |
+
+### Re-derivation table (the 7 `seed-sensitive? = yes` rows named by 198-26/198-27's own work order)
+
+Arithmetic: 198-26 named 7 `seed-sensitive? = yes` rows (17, 18, 19, 20, 23, 24, 26); 198-27 named
+0. **7 + 0 = 7**, matching the row count below.
+
+| Spec:line | Test title | Project | Pre-merge cause | Post-merge observed state | Re-attributed? |
+|---|---|---|---|---|---|
+| `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | desktop-chromium | snapshot baseline divergence, seeded Timeline rows (164476px, ratio 0.15) | still failing with the same cause — magnitude changed (179066px, ratio 0.16) consistent with merged seed content, mechanism unchanged | no |
+| `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | mobile-chromium | "identical mechanism to row 17" (not separately measured pre-merge) | still failing with the same cause (35216px, ratio 0.12) | no |
+| `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | desktop-chromium | dimension mismatch, 760x856 expected vs 1280x900 received (606326px, ratio 0.53) | still failing with the same cause — same dimension mismatch, near-identical magnitude (606501px, ratio 0.53) | no |
+| `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | mobile-chromium | "identical mechanism to row 19" (dimension mismatch assumed, not separately measured pre-merge) | failing with a different cause — no dimension mismatch on mobile; plain content diff (79597px, ratio 0.27) at the expected image size | **yes** |
+| `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | desktop-chromium | plain content diff, seeded retention-run rows (59681px, ratio 0.06) | still failing with the same cause — identical magnitude (59681px, ratio 0.06) | no |
+| `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | mobile-chromium | "identical mechanism to row 23" (plain content diff assumed, not separately measured pre-merge) | failing with a different cause — dimension mismatch, 375x1918 expected vs 375x1761 received (107112px, ratio 0.15); page 157px shorter | **yes** |
+| `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | mobile-chromium | seed-content-wrong: seeded leaving-agent actor text (`Actor: user / 33123cc4-...`) absent | still failing with the same cause — identical assertion, same locator, same missing text | no |
+
+## Divergences
+
+**Divergence count: 2** (both within the formal seed-sensitive=yes gate above: the mobile
+row-history row and the mobile Retention row). Both are re-attributed with a fresh post-merge
+cause and their `## Full failure attribution` rows (20 and 24 respectively) have been rewritten in
+place above.
+
+No test that 198-26 or 198-27 recorded as fixed is reported failing in this post-merge run — all
+16 of their combined closed rows (register.spec.ts, operator-find-mobile.spec.ts,
+operator-phase-135/173/175/177-uat.spec.ts) are absent from the 14-row post-merge failure list,
+confirmed directly against `/tmp/198-28-postmerge.log`.
+
+**Additionally, outside the formal seed-sensitive=yes gate (recorded for honesty, not required by
+the gate's own scope):** row 25 (`operator-screenshots.spec.ts:90:3`, desktop-chromium) was marked
+`seed-sensitive? = no` pre-merge, attributed to a non-deterministic login/session-redirect timing
+flake. Post-merge, desktop-chromium no longer exhibits that symptom — it now fails at the exact
+same assertion mobile always failed at (`getByText('Actor: user / 33123cc4-...')` not found,
+identical to row 26). This is a genuine cause change even though row 25 was never part of the
+formal re-derivation work order (it was pre-flagged `no`, not `yes`). Recorded and rewritten in
+place in `## Full failure attribution` above rather than silently carried forward under its stale
+non-deterministic-timing label — carrying a superseded cause forward would be exactly the kind of
+repudiation this plan's `must_haves` and threat register (T-198-28-06) exist to prevent.
+
+## CI-contributing versus local-only split (198-28)
+
+Deciding facts, read from source rather than assumed:
+
+- `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts:77-80` —
+  `test.skip(!!process.env.CI, "visual screenshot baselines are platform-sensitive; run this guard
+  locally before updating PNG snapshots")` at the `test.describe` level. `process.env.CI` is set
+  to a truthy value by GitHub Actions on every runner automatically (Actions' own documented
+  default environment, not something `.github/workflows/ci.yml`'s `verify-example-browser` job
+  needs to set explicitly), and `mix.exs`'s `verify_example_browser/1` (lines 193-208) passes the
+  full `System.get_env()` through to the underlying `run-e2e.sh`/Playwright invocation unchanged
+  — so this guard's `test.skip` fires on CI and **every test in this file is skipped there**.
+- `examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts` has **no** `test.skip`
+  anywhere referencing `process.env.CI` (confirmed: `grep -n "test.skip("` returns zero matches in
+  this file). Its `beforeEach` (line 77) returns early only when `process.env.OPERATOR_SCREENSHOT_DIR`
+  is unset — that early return skips the viewport-size setup, not the test itself — and `capture()`
+  (lines 41-52) gates only its *durable* screenshot write (the `OPERATOR_SCREENSHOT_DIR` copy) on
+  the same variable; the always-executed `page.screenshot({ path: testInfo.outputPath(...) })`
+  above it runs unconditionally. `.github/workflows/ci.yml`'s `verify-example-browser` job
+  (lines 295-380) sets no `OPERATOR_SCREENSHOT_DIR` env var at all, so on CI the durable-write
+  branch is skipped but **the test itself, and every assertion in it, still executes**.
+
+| Spec:line | Test title | Project | Runs on CI? | Deciding source line | Cause |
+|---|---|---|---|---|---|
+| `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | desktop-chromium | **no** | `operator-screenshot-regression.spec.ts:77` (`test.skip(!!process.env.CI, ...)`) | snapshot baseline divergence, seeded Timeline rows (179066px, ratio 0.16 vs 0.01 tolerance) |
+| `operator-screenshot-regression.spec.ts:108:3` | dense Timeline keeps row-first evidence stable | mobile-chromium | **no** | same | snapshot baseline divergence, seeded Timeline rows (35216px, ratio 0.12 vs 0.01 tolerance) |
+| `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | desktop-chromium | **no** | same | dimension mismatch, 760x856 expected vs 1280x900 received (606501px, ratio 0.53 vs 0.03 tolerance) |
+| `operator-screenshot-regression.spec.ts:115:3` | row-history drawer keeps as-of evidence stable | mobile-chromium | **no** | same | content-only pixel diff at expected dimensions, seeded row-history content (79597px, ratio 0.27 vs 0.03 tolerance) — re-attributed, see Divergences |
+| `operator-screenshot-regression.spec.ts:127:3` | Exports readiness hierarchy stays stable | desktop-chromium | **no** | same | assertion-rotted: `getByRole('heading', {name:'Exports'})` resolves 2 elements (`<h2 id="tl-shell-nav-prove">Evidence & exports</h2>` at `surface_header.ex:93` and the page `<h1>Exports</h1>`) — strict-mode violation, screenshot comparison never reached |
+| `operator-screenshot-regression.spec.ts:127:3` | Exports readiness hierarchy stays stable | mobile-chromium | **no** | same | **not** the desktop strict-mode collision — measured directly: on mobile the `getByRole` assertion passes (only one "Exports"-named heading resolves in the mobile-rendered DOM at that point) and the test reaches the screenshot comparison, which fails on dimension + content (375x3760 expected vs 375x3965 received, 177571px, ratio 0.12 vs 0.03 tolerance) |
+| `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | desktop-chromium | **no** | same | plain content diff, seeded retention-run rows (59681px, ratio 0.06 vs 0.01 tolerance) |
+| `operator-screenshot-regression.spec.ts:136:3` | Retention safety hierarchy stays stable | mobile-chromium | **no** | same | dimension mismatch, 375x1918 expected vs 375x1761 received (107112px, ratio 0.15 vs 0.01 tolerance) — re-attributed, see Divergences |
+| `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | desktop-chromium | **yes** | no `test.skip` in this file; `beforeEach`'s `OPERATOR_SCREENSHOT_DIR` gate only skips viewport setup, and `ci.yml`'s `verify-example-browser` job sets no such variable | seed-content-wrong (same as mobile row) — re-attributed, see Divergences |
+| `operator-screenshots.spec.ts:90:3` | admin investigation and governance surfaces | mobile-chromium | **yes** | same | seed-content-wrong: seeded leaving-agent actor text absent |
+
+**CI-contributing count: 2. Local-only count: 8. Arithmetic: 2 + 8 = 10, equal to the cluster's
+reconciled assigned row count (10, per the housekeeping note above).**
+
+**The recorded `runs on CI?` value for every `operator-screenshot-regression.spec.ts` row is
+`no`, justified by the describe-level `test.skip(!!process.env.CI, ...)` at line 77.**
+
+**Pixel-diff tolerance in effect, per row, read from `expectOperatorScreenshot`'s default
+(`playwright.config.ts` sets no global `toHaveScreenshot` threshold — `expect: { timeout: 15_000 }`
+only, confirmed at line 130) and each call site's explicit override:**
+
+- `expectOperatorScreenshot` default: `maxDiffPixelRatio: 0.01` (used by "dense Timeline" and
+  "Retention" — neither call site overrides it).
+- "row-history" and "Exports": explicit `maxDiffPixelRatio: 0.03`.
+
+Every visual-diff row above states its measured diff ratio directly against its governing
+tolerance; none is dispositioned as "close enough" without a number, and every measured ratio in
+this cluster (0.06 to 0.53) is well past its tolerance (0.01 or 0.03) — none is a near-threshold
+judgment call.
+
+**Fixing any of the 8 local-only rows above does not move `Example app browser E2E (Playwright)`
+toward CI success — that lane's CI-visible result is governed entirely by what runs when
+`process.env.CI` is set, and this entire spec file is skipped under that condition.** Only the 2
+CI-contributing `operator-screenshots.spec.ts` rows have any bearing on the CI lane's conclusion.
+This round's reporting must state the two counts separately and must not present a reduction in
+the local-only 8 as progress on the CI lane.
