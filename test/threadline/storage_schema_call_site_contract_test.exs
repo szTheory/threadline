@@ -28,6 +28,14 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
   the next silent regression (a second `pgbouncer_topology_test.exs`) would
   arrive (D-05).
 
+  **Receiver shapes recognised.** Two families: (1) a CamelCase module-chain
+  receiver ending in the literal `Repo` (the bare alias `Repo`, or a
+  fully-qualified chain like `Threadline.Test.Repo`), and (2) a variable/
+  attribute receiver — the module attribute `@repo` or the lowercase `repo`
+  binding. A receiver glued directly to a preceding word character
+  (`MyRepo`, `some_repo`) is never in either family and is not matched
+  (round 3, CR-01, 198-REVIEW.md).
+
   The owned-module roster is *derived* from
   `Threadline.StorageSchemaCase.owned_schema_modules/0` — the same list
   `clean_storage_schema!/2` cleans in FK-safe order — via
@@ -48,11 +56,14 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
   # the "get" alternative cannot partially match "get_by(" because the very
   # next character after "get" is "_", not "(").
   @ecto_functions ~w(
+    insert_all
+    insert_or_update! insert_or_update
     insert! insert
     update! update
     delete_all update_all
     delete! delete
     all
+    stream
     one! one
     get_by! get_by
     get! get
@@ -62,13 +73,18 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
     preload
   )
 
-  # Receiver shapes seen in this codebase: the bare `Repo` alias, a module
-  # attribute receiver (`@repo`, used by the `test/mix/tasks/` files), or a
-  # lowercase `repo` variable/param. The negative lookbehind keeps this from
-  # matching mid-identifier (e.g. "MyRepo.insert(" or "some_repo.insert(").
+  # Receiver shapes seen in this codebase: the bare `Repo` alias (optionally
+  # preceded by a chain of CamelCase module segments, e.g.
+  # `Threadline.Test.Repo`), a module attribute receiver (`@repo`, used by the
+  # `test/mix/tasks/` files), or a lowercase `repo` variable/param. The
+  # negative lookbehind is word-character-only (no `.`) so it still rejects a
+  # receiver glued to a preceding word character mid-identifier (e.g.
+  # "MyRepo.insert(" or "some_repo.insert(") while admitting a receiver
+  # preceded only by a `.` from a fully-qualified module chain
+  # (CR-01, 198-REVIEW.md).
   @call_regex ~r/
-    (?<![\w.])
-    (?:Repo|@repo|repo)
+    (?<![\w])
+    (?:(?:[A-Z][A-Za-z0-9_]*\.)*Repo|@repo|repo)
     \.
     (?:#{Enum.join(@ecto_functions, "|")})
     \(
@@ -362,6 +378,64 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
 
       assert [%{offense: false}, %{offense: true}] = scan_call_sites(source, @owned)
     end
+
+    # CR-01 (198-REVIEW.md): the fully-qualified receiver form used at 73 real
+    # call sites (Threadline.Test.Repo.*) must be visible to the sweep.
+    test "a fully-qualified Threadline.Test.Repo receiver is detected the same as Repo" do
+      offending_call = "Threadline.Test.Repo." <> "delete_all(AuditChange)"
+      assert [%{in_scope: true, offense: true}] = scan_call_sites(offending_call, @owned)
+    end
+
+    test "a fully-qualified Threadline.Test.Repo receiver with repo_opts() is not an offence" do
+      assert [%{in_scope: true, offense: false}] =
+               scan_call_sites(
+                 "Threadline.Test.Repo.delete_all(AuditChange, repo_opts())",
+                 @owned
+               )
+    end
+
+    # CR-01 boundary/adjacency edge: a receiver glued to a preceding word
+    # character (mid-identifier) must not match, even though it is only one
+    # character different from the fully-qualified `.Repo.` form above.
+    test "a MyRepo receiver (word-glued, not dot-glued) is not matched at all" do
+      offending_call = "MyRepo." <> "delete_all(AuditChange)"
+      assert [] = scan_call_sites(offending_call, @owned)
+    end
+
+    test "a some_repo receiver (word-glued, not dot-glued) is not matched at all" do
+      offending_call = "some_repo." <> "delete_all(AuditChange)"
+      assert [] = scan_call_sites(offending_call, @owned)
+    end
+
+    # CR-02 (198-REVIEW.md): insert_all/2,3 must be visible to the sweep.
+    test "an unprefixed repo.insert_all/2 call is an offence" do
+      offending_call = "repo." <> "insert_all(AuditChange, entries)"
+      assert [%{in_scope: true, offense: true}] = scan_call_sites(offending_call, @owned)
+    end
+
+    test "an @repo.insert_all/3 call with repo_opts() is not an offence" do
+      assert [%{in_scope: true, offense: false}] =
+               scan_call_sites(
+                 "@repo.insert_all(AuditChange, chunk, repo_opts())",
+                 @owned
+               )
+    end
+
+    # CR-02 ordering edge: insert_all( must resolve to the insert_all
+    # alternative, not partially match a shorter "insert" alternative, because
+    # the pattern anchors on a literal open paren immediately after the
+    # function-name alternation.
+    test "insert_all( is not mistaken for a partial match of insert(" do
+      offending_call = "repo." <> "insert_all(AuditChange, entries)"
+      assert [%{snippet: snippet}] = scan_call_sites(offending_call, @owned)
+      assert snippet =~ "insert_all("
+    end
+
+    test "get_by( is not mistaken for a partial match of get(" do
+      offending_call = "repo." <> "get_by(AuditChange, id: 1)"
+      assert [%{snippet: snippet}] = scan_call_sites(offending_call, @owned)
+      assert snippet =~ "get_by("
+    end
   end
 
   describe "real tree sweep" do
@@ -392,6 +466,14 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
                "detector's matching rule has silently stopped matching anything, which " <>
                "would let a real regression pass unnoticed. Expected many (transaction, " <>
                "change, action, evidence, export, retention, saved-view call sites)."
+
+      # CR-01 non-vacuity: a future regression that re-narrows the receiver
+      # regex back to rejecting fully-qualified module chains must fail here,
+      # not pass silently on the aliased Repo./repo. sites alone.
+      assert Enum.any?(results, &Regex.match?(~r/\.Repo\./, &1.snippet)),
+             "no scanned call site used a fully-qualified module-chain receiver " <>
+               "(e.g. Threadline.Test.Repo.*) — CR-01's fix may have regressed, or " <>
+               "the real-tree scan is no longer seeing the 9 files that use this form."
     end
   end
 end
