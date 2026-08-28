@@ -199,6 +199,14 @@ None - no external service configuration required.
 - Plans 198-26/27/28 can proceed independently; this plan touched only the operator-surface LiveView/Presentation label, two sibling root-library test files, `walkthrough_case.ex`, `walkthrough_evidence_test.exs`, and the shared audit file — no Playwright/e2e files touched, consistent with the parallel-execution boundary with plan 198-27.
 - No new `deferred-items.md` entry was needed — no residual failure remains; the one partial mitigation (D4's advisory-lock scope limit) is documented in the audit file and this SUMMARY's coverage block for a future maintainer's judgment, not left silent.
 
+## Self-Check: PASSED
+
+- All 6 key files confirmed present on disk (`ls -la`).
+- All 3 commits (`e6f3cd5d`, `c43bb578`, `b1652ade`) confirmed in `git log --oneline`.
+- `mix verify.example`: 109 tests, 0 failures, two consecutive runs (post-commit re-verification).
+- Root library `mix test`: 1422 tests, 0 failures.
+- `git diff -- .github/workflows/ci.yml mix.exs playwright.config.ts`: empty.
+
 ---
 *Phase: 198-green-bringup*
 *Completed: 2026-08-28*
