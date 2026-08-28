@@ -746,3 +746,28 @@ No check in this run was re-run, re-dispatched, or selectively retried for any
 reason. `attempt: 1` for the run as a whole. `gh run watch` observed the single
 run to its single, natural completion.
 new defect and not the `undefined_table` defect this plan's Task 1 targets.
+
+## Round 4 (2026-08-28) — Prediction stated before the push
+
+Written **before** `git push`, per plan 198-29 Task 1. One row per `ci-required`
+`needs:` member (12 members), plus the `CI required` aggregate itself, with a
+predicted conclusion and a one-line basis grounded in this round's own measured
+local evidence — never in hope.
+
+| `needs:` member | Check name | Predicted conclusion | Basis |
+|---|---|---|---|
+| `verify-format` | Check formatting | success | Unaffected by this round's changes (no formatting-relevant file touched by 198-23..28); green on every prior round. |
+| `verify-credo` | Run Credo (strict) | success | Unaffected; no lib-code style changed beyond 198-25's one-line label fix, already `mix credo --strict` clean per 198-25's own root-suite run. |
+| `verify-compile-no-optional` | Compile without optional deps | success | Unaffected; green on rounds 1-3, no optional-dep surface touched this round. |
+| `verify-test` | Run test suite (current) | **success** | `.planning/audits/198-round4-demo-seed.md`'s closing measurement (plan 198-25): `mix verify.example` — `109 tests, 0 failures` (two consecutive runs) — the demo-seed content-mismatch cause D-41 named is fixed at cause (`retention_tail.ex` cutoff, `export_status_live.ex` copy fix). Root `mix test`: `1422 tests, 0 failures, 1 excluded`, unchanged. |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | Unaffected; no Hex-publish-path or evaluator file touched this round. |
+| `verify-example-browser` | Example app browser E2E (Playwright) | **failure** | `.planning/audits/198-round4-playwright.md`'s `## Post-merge re-validation (198-28)` section: 198-28 closed both of cluster-198-28's CI-contributing rows (CI-contributing delta 2 → 0), but that same section recorded a **divergence count of 2** (the mobile row-history and mobile Retention rows re-attributed post-merge) and, separately, **4 new CI-contributing discovery rows** out of scope for this round — `operator-accessibility.spec.ts:565:3` and `operator-prove-mobile.spec.ts:38:3` (both desktop-chromium and mobile-chromium), neither file carrying a `test.skip(!!process.env.CI, ...)` guard (confirmed: `grep -n "test.skip\|process.env.CI"` returns zero matches in either file), so both run and fail on CI. These 4 rows, plus row 30's `operator-accessibility.spec.ts:655:3` mobile-only focus-timing flake (also un-skipped on CI), mean the lane is predicted red despite both formal clusters closing. |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | Unaffected; no Tier-A scorecard or mechanical-checker file touched this round (D-39 forbids Tier-A work entirely). |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | **failure** | D-39 — only remedy forbidden this milestone; untouched this round. `scroll_cost` drift is deterministic and reproducible per rounds 2/3's byte-identical measurements; no task in 198-23..28 touched the Tier A capture lane, its specs, or its scorecards. |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | Unaffected; green on rounds 2-3, no topology-test file touched this round. |
+| `verify-docs` | Build ExDoc (dev) | success | Unaffected; no doc-generation-relevant file touched this round. |
+| `verify-hex-package` | Hex package tarball | success | Unaffected; no package-manifest file touched this round. |
+| `verify-release-shape` | Release metadata (version / changelog) | success | Unaffected; no `CHANGELOG.md`/`mix.exs` version-metadata file touched this round. |
+| **`CI required`** (aggregate) | CI required | **failure** | Two `needs:` members (`verify-example-browser`, `verify-capture`) are predicted red; `re-actors/alls-green` fails the aggregate if any required job is not `success`. |
+
+**Predicted red-`needs:`-member count: 2** (`verify-example-browser`, `verify-capture`). This is stated honestly against the plan's own stated aspirational target of 1 — the plan's objective section assumed the Playwright lane would fully close this round, but `## Post-merge re-validation (198-28)`'s own recorded divergence count (2) and its logged new-discovery rows (out of this round's declared scope, per `deferred-items.md`'s Plan 198-27/198-28 entries and `WINDOWS.md` #10/#11) mean at least one further gap-closure round is needed on the Playwright lane specifically. A prediction that assumed the aspirational target without re-checking the evidence would be exactly the kind of unmeasured optimism this plan's `must_haves` forbid.
