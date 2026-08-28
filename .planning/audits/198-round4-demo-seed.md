@@ -285,3 +285,224 @@ The following loop is what fixed the `SEED-03` tracer cluster and is the loop pl
 (`198-CONTEXT.md`), local `mix verify.example` output is not admissible evidence that GREEN-04 or
 GREEN-07 are met — that verdict belongs exclusively to the measured CI run in plan 198-29.
 
+---
+
+## Plan 198-24: SEED-05, SEED-02/04, WALK-04, D-05, D-13 clusters
+
+**Starting state (before any 198-24 edit), measured fresh with the local Postgres running and
+`mix deps.get` re-run (the worktree started with unfetched deps):**
+
+```
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 9.5 seconds (0.00s async, 9.5s sync)
+13 tests, 0 failures
+```
+
+```
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 9.1 seconds (0.00s async, 9.1s sync)
+13 tests, 0 failures
+```
+
+**Finding, stated honestly:** all six describe blocks this plan was chartered to fix (`SEED-05
+delete incident`, `SEED-02 idempotency and SEED-04 reset recovery`, `SEED-04 org Y retention end
+state`, `WALK-04 redaction policy evidence`, `D-05 persona setup actor attribution`, `D-13
+in-window variety guarantee`) **already pass** — 13 tests, 0 failures, on two consecutive runs,
+before this plan touched anything. This is the expected, predicted side effect of plan 198-23's
+`retention_tail.ex` fix: its own inventory (`## Cause attribution`) already named rows 5, 8, 9
+(D-05, SEED-05, and — transitively via cause group A — the retention/redaction-adjacent clusters)
+as sharing cause group A, and its SUMMARY states the fix "fixed as a side effect" without crediting
+seven separate fixes. This plan's premise (that these clusters still had cluster-level test
+failures) does not hold; the failures were already fixed a plan earlier. This is recorded here
+per the fix protocol's instruction to state a truthful non-improvement plainly rather than force a
+process to look busier than the numbers support.
+
+**What this plan still does, and why:** a passing test is not the same claim as a rot-resistant
+one. Reading `demo_contract_test.exs` against this plan's own must-haves (vacuous-pass prevention,
+manifest-sourced literals, explicit boundary/set semantics) surfaced three genuine
+`assertion-rotted` weaknesses that happened not to be currently triggering a failure, but would
+mask a real regression if one occurred:
+
+1. **WALK-04 — `record.subject_ref == %{"policy" => "walk-demo-redaction-policy"}`** restated the
+   manifest's own declared value (already read into the local `subject_ref` variable two lines
+   above, from `Manifest.evidence_subject_ref(:redaction_policy)`) as a second, independently
+   hardcoded inline literal. If `Manifest.evidence_subject_ref(:redaction_policy)` is ever edited,
+   this assertion would silently keep comparing against the stale value instead of tracking the
+   manifest — exactly the version-pinned-literal rot class GREEN-04 calls out.
+2. **D-05 — the two backdating tests (`org_memberships` / null-actor) asserted only
+   `in_window_count == 0`,** with no assertion that the underlying row set was non-empty in the
+   first place. A seed regression that produced **zero** `org_memberships` (or zero null-actor)
+   `AuditChange` rows at all would make `in_window_count` trivially `0` and pass this test
+   vacuously, proving nothing about backdating.
+3. **D-05/D-13 boundary and ordering semantics were correct in behavior but implicit in source** —
+   nothing in the test named which side of the 24h boundary a `>=`-matched row falls on, and
+   nothing in the D-13 loop stated explicitly that the check is set-membership independent of
+   order (it already was, structurally, but not stated).
+
+**Fix applied** (`demo_contract_test.exs` only — no seed module needed a content change, since the
+seed content was already correct after 198-23's fix):
+
+- WALK-04: `record.subject_ref == subject_ref` (the manifest-sourced local variable), removing the
+  duplicate hardcoded literal.
+- D-05 (both backdating tests): added a preceding `total_count >= 1` assertion on the full
+  `org_memberships` / null-actor `AuditChange` row set, before asserting `in_window_count == 0`.
+- D-05 (actor_ref test): added the same preceding non-emptiness assertion for symmetry with the
+  other two D-05 tests, even though the existing single-query form could not pass vacuously on its
+  own (the query already filtered to non-null `actor_ref` rows, so zero total rows and zero
+  non-null-actor rows are the same failing case) — making all three D-05 tests structurally
+  consistent with the plan's must-have.
+- D-05 backdating tests: added a one-line comment stating the `>=` comparison is strict-inclusive
+  on the window's near edge, so a row landing exactly on `window_start` counts as **inside** the
+  window (and therefore fails the "outside" assertion).
+- D-13: added a one-line comment stating the per-op loop is a set-membership check independent of
+  emission order.
+
+**Red-then-green teeth proof — D-05 vacuous-pass guard (runtime, reproducible):**
+
+Script run via `mix run` under `MIX_ENV=test` against the real sandboxed test database
+(`Ecto.Adapters.SQL.Sandbox.unboxed_run`), simulating the exact seed regression the new guard
+exists to catch — a build where `org_memberships` `AuditChange` rows are never produced at all:
+
+```
+$ MIX_ENV=test mix run /tmp/teeth_proof_198_24.exs
+demo.seed complete
+Deleted 15 org_memberships AuditChange rows to simulate seed regression
+OLD-style assertion (in_window_count == 0): got 0 -- WOULD PASS (vacuously! no org_memberships rows exist at all)
+NEW guard (total_count >= 1): got 0 -- CORRECTLY FAILS (RED) -- catches the vacuous pass
+RAISED (expected): expected >=1 org_memberships AuditChange rows to exist, got 0
+demo.seed complete
+Reset.run/0 called again to restore normal demo state
+```
+
+This is the "red": under the simulated regression, the OLD assertion form (`in_window_count ==
+0` alone) is proven to pass when it should not. The "green" is the NEW guard's `total_count >= 1`
+raising in the same simulated state — proving the fix has teeth, not just different wording. After
+the script's own `Reset.run()` call restored normal demo state, the full suite was re-run twice
+more (below) confirming no regression was introduced by the script itself.
+
+**Static/structural teeth proof — WALK-04 manifest-read fix (no reproducible runtime red):**
+unlike the D-05 vacuous-pass case, there is no way to reproduce a "manifest value diverges from
+the test's hardcoded literal" failure without editing `manifest.ex` itself, which is out of this
+plan's declared scope (not in `files_modified`, and the fix's whole point is to make the test
+track the manifest automatically — editing the manifest to prove that would be circular). The
+proof offered here is structural rather than a run transcript, stated honestly as such:
+`grep -n 'subject_ref' demo_contract_test.exs` before this fix showed two independent literal
+sources for the same value (the query's `Manifest.evidence_subject_ref(:redaction_policy)` call
+and the assertion's separately-typed `%{"policy" => "walk-demo-redaction-policy"}`); after the fix,
+`grep` shows one source (the `subject_ref` local variable, itself sourced from the manifest call)
+used in both places. This is a falsifiable, verifiable code-structure claim, not a runtime
+red/green — documented as a distinct proof class per the plan's own honesty requirement not to
+fabricate a red where none is reproducible.
+
+**Verified describe blocks that needed no fix:** `SEED-05 delete incident` (already asserts by
+actor identity via `Manifest.user_id/1`, not a pinned row id), `SEED-02 idempotency and SEED-04
+reset recovery` (both tests already assert equality between two computed values or via
+`Reset.run()`'s own return value — no pinned literal fingerprint), and `SEED-04 org Y retention end
+state` (already pairs the emptiness assertion `org_y_audit_change_count(org_y_id) == 0` with a
+positive existence assertion `length(records) >= 1` on the retention-run evidence). Read and
+checked against this plan's must-haves; no change made, per the fix protocol's instruction not to
+edit what is already correct.
+
+**Post-fix verification (two consecutive runs, after all `demo_contract_test.exs` edits above):**
+
+```
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 4.5 seconds (0.00s async, 4.5s sync)
+13 tests, 0 failures
+```
+
+```
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 4.1 seconds (0.00s async, 4.1s sync)
+13 tests, 0 failures
+```
+
+**Disposition record:**
+
+- `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` —
+  `assertion-rotted` (hardening class, not currently-failing class). WALK-04's inline literal and
+  D-05's missing non-emptiness guards were assertion weaknesses that had not yet been triggered by
+  any observed seed regression, but matched the exact rot patterns GREEN-04's own must-haves name.
+  Fixed by reading the manifest-sourced variable and adding preceding non-emptiness assertions.
+  No seed module (`seed.ex`, `retention_tail.ex`, `retention_runs.ex`, `reset.ex`) required a
+  change — the seeded content was already correct for all six of this plan's chartered describe
+  blocks, confirmed by the pre-task 13/0 measurement above.
+
+## Measured after-count (198-24)
+
+Ran `mix verify.example` twice from the repository root, after all `demo_contract_test.exs` edits
+above (D-05/D-13 fixes included — see disposition record above; both tasks landed in the same
+commit since neither required a separate cluster of source-level fixes):
+
+```
+$ mix verify.example
+...
+Finished in 36.7 seconds (0.1s async, 36.6s sync)
+109 tests, 1 failure
+** (Mix) verify.example failed (2)
+```
+
+```
+$ mix verify.example
+...
+Finished in 16.5 seconds (0.1s async, 16.3s sync)
+109 tests, 1 failure
+** (Mix) verify.example failed (2)
+```
+
+**Before-count (plan 198-23's closing after-count): 1. After-count (this plan): 1 (both runs,
+consistent). Delta: 0.**
+
+Stated plainly, per the fix protocol's instruction not to claim an improvement the numbers do not
+support: **this plan does not lower `mix verify.example`'s measured failure count.** The single
+remaining failure on both after-runs is the identical failure plan 198-23 named and left
+untouched, unchanged by this plan's work:
+
+- `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` — `admin export status shows seeded job states`
+  (`walkthrough_happy_path_test.exs:145`, `assert html =~ "Export expired"`) — confirmed unrelated
+  to `demo_contract_test.exs`'s clusters (a `Governance.ExportJob` expiry-label bug in
+  `Threadline.OperatorSurface.Presentation`, not touched by anything this plan's `files_modified`
+  list authorized). Already logged in `deferred-items.md`'s Plan 198-23 entry; no new dated entry
+  added here since this is the same failure, not a newly-surfaced one.
+
+`grep -c "undefined_table"` over both after-run outputs: not present in either — the search_path
+defect closed in a prior round remains closed.
+
+This plan's actual, honestly-stated contribution is not a lower failure count (the six clusters it
+was chartered to fix were already green, per the "Starting state" measurement above) but three
+hardening fixes to `demo_contract_test.exs` that close vacuous-pass and literal-pin rot risk before
+either could mask a future regression — verified with a reproducible red-then-green teeth proof
+for the D-05 vacuous-pass guard and a structural proof for the WALK-04 manifest-read fix.
+
+No new `deferred-items.md` entry was required by this plan — the one residual failure was already
+dated and attributed under plan 198-23's entry, and this plan surfaced no new failure.
+
+**Non-deterministic timeout observed during this plan's own repeated verification runs.** While
+re-running `demo_contract_test.exs` to confirm the "two consecutive runs" acceptance criterion,
+one run (of six total local runs of this file during 198-24) hit:
+
+```
+1) test SEED-02 idempotency and SEED-04 reset recovery double demo.reset keeps heroes and
+   semantic fingerprint stable (ThreadlinePhoenix.DemoContractTest)
+   ** (ExUnit.TimeoutError) test timed out after 60000ms
+   ... Postgrex.Protocol.msg_recv ... Ecto.Adapters.SQL.Sandbox.unboxed_run ...
+   ThreadlinePhoenix.Demo.Reset.run/1
+```
+
+This is the same failure CLASS already named `undiagnosed`/`non-deterministic` in plan 198-23's
+inventory (row 1: an `ExUnit.TimeoutError` on a Postgrex receive during a `Reset`/`Seed`
+`insert_all`, consistent with connection-pool contention rather than a stable defect) — here
+triggered by `Reset.run/1` inside the `SEED-02`/`SEED-04` double-reset test rather than by
+`Seed.Exports.run/1`, but the same underlying symptom (a blocked `Postgrex.Protocol.msg_recv`
+during a bulk seed operation). The two immediately-following runs (and the two consecutive runs
+recorded above as this task's official "post-fix, two consecutive runs" evidence) both passed
+13/0. Recorded here as a discovery, per the fix protocol's step 6, rather than silently dropped —
+not attributed to this plan's edits (this test's assertions were not touched by 198-24; only the
+D-05/WALK-04 tests were edited, and this failure is in the SEED-02/04 test, unedited by this
+plan), and not something this plan's scope authorizes fixing (it would require tuning the test
+database connection pool size or Postgrex timeout configuration, outside `files_modified`).
+
