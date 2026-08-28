@@ -348,6 +348,11 @@ jobs:
           PGPASSWORD: postgres
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+          # The audit tables live in the dedicated `threadline` schema; the demo
+          # seed queries them unqualified, so `threadline` must be on the DB
+          # search_path (nothing in app config or a migration sets it).
+          psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
+            -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
 
       # Reduced pull-request lane (Phase 198, D-17). Runs ONLY the two
       # interactive Chromium projects. The remaining projects (the capture
