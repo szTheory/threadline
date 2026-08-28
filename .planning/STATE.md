@@ -6,7 +6,7 @@ status: executing
 stopped_at: Completed 198-13-PLAN.md (gap closure); phase 198 verification = gaps_found
 last_updated: "2026-08-28T15:05:00.000Z"
 last_activity: 2026-08-28
-last_activity_desc: Phase 198 gap closure complete (6/6 plans); suite 1398/0; GREEN-07 blocked on a maintainer push decision
+last_activity_desc: Phase 198 gap closure complete (6/6 plans); suite 1398/0; GREEN-07 criteria amended to no-push posture, still Pending
 state_head: 72eaed3d
 progress:
   total_phases: 7
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 Phase: 198 — Green Bringup — EXECUTING
 Plan: 13 of 13
-Status: Phase 198 PENDING — 11/12 requirements complete; GREEN-07 awaiting maintainer push decision
+Status: Phase 198 PENDING — 11/12 complete; GREEN-07 rescoped to a .planning/-free pushed ref, still awaiting remote CI evidence
 Last activity: 2026-08-28 — Phase 198 gap closure complete; verification = gaps_found (GREEN-07 only)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)

@@ -2,7 +2,8 @@
 phase: 198-green-bringup
 verified: 2026-08-28T15:30:00Z
 status: gaps_found
-score: 4/6 roadmap success criteria fully verified (11/12 requirements)
+amended: 2026-08-28 — GREEN-07 + criteria 3/4 rescoped to the no-push posture; GREEN-07 still Pending (no remote CI evidence)
+score: 5/6 roadmap success criteria verified after amendment (11/12 requirements); criterion 3 open on GREEN-07
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -229,3 +230,44 @@ Phase 198's gap-closure work (plans 198-08 through 198-13, plus a code review ro
 
 _Verified: 2026-08-28_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+## Amendment — GREEN-07 and Success Criteria 3/4 (maintainer decision, 2026-08-28)
+
+**Decision:** amend the criteria to match the project's actual no-push posture,
+rather than authorize a push of `.planning/`-carrying commits to public
+`origin/main`.
+
+**Why the original wording was unsatisfiable.** GREEN-07 and Criterion 3 required
+`git log origin/main..main` to be empty. Meeting that literally means pushing all
+39 local commits, which carry the full `.planning/` history, to a public
+repository — an irreversible publication that conflicts with this project's
+standing policy that planning history is never pushed. The requirement was not
+hard; it was in direct conflict with a rule the project had already adopted. No
+plan in Phase 198 was authorized to resolve that conflict, and 198-13 correctly
+declined to push rather than manufacture a green claim.
+
+**What changed:**
+- **GREEN-07** now requires CI green in ≤ 20 min on a ref pushed to `origin` that
+  carries the source tree but not `.planning/`. Local `main` staying ahead by
+  planning-only commits is explicitly permitted.
+- **Criterion 3** drops the "`origin/main..main` is empty" clause for the same reason.
+- **Criterion 4** drops the "so PR #26 is mergeable" consequence clause. PR #26's
+  merge belongs to Phase 202, which the roadmap already scopes as "Merge PR #26
+  and publish". The branch-protection half (GREEN-08) was verified and stands.
+
+**What this amendment does NOT do.** It does not make GREEN-07 true. It changes
+what must be proven, not whether it has been proven. **GREEN-07 remains
+`Pending`**: no ref has been pushed and no remote CI run has concluded green, so
+there is still no evidence for the amended claim either. The CI repairs made in
+198-10 (postgres service on `verify-mechanical`, example-app schema resolution)
+are specifically the kind of defect that only a real CI run can confirm. Marking
+GREEN-07 complete on local evidence alone would be exactly the over-claiming this
+milestone exists to end.
+
+**Resulting status:** 5 of 6 success criteria verified (Criterion 4 is satisfied
+outright by the amendment, since GREEN-08 was already verified). 11 of 12
+requirements Complete. Phase 198 stays **PENDING** on GREEN-07 until a
+`.planning/`-free ref is pushed and its CI run concludes green — the natural home
+for which is `/gsd-pr-branch` plus Phase 202.

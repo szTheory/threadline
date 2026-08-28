@@ -14,7 +14,7 @@
 - [x] **GREEN-04**: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone.
 - [x] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
 - [x] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
-- [ ] **GREEN-07**: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes.
+- [ ] **GREEN-07** *(amended 2026-08-28)*: The full CI suite concludes `success` in ≤ 20 minutes on a ref pushed to `origin` that carries the source tree but **not** `.planning/`. Local `main` may stay arbitrarily ahead of `origin/main` by planning-only commits, which this project never pushes.
 - [x] **GREEN-08**: Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no pull request can be blocked on a check that cannot exist.
 - [x] **GREEN-09**: Paid critic scoring cannot be triggered from any workflow while it is parked — the input and the billing code path are absent, not merely defaulted off.
 - [x] **GREEN-10**: Exactly one Hex publish path exists, and it is the one gated by CI-green and release-shape verification.

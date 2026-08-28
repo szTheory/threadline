@@ -65,7 +65,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 
 ### Phases
 
-- [ ] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged.
+- [ ] **Phase 198: Green Bringup** - CI concludes green in ≤ 20 min on a pushed `.planning/`-free ref (amended; planning commits are never pushed); the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged.
 - [ ] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
 - [ ] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release.
 - [ ] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius.
@@ -77,15 +77,15 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 
 ### Phase 198: Green Bringup
 
-**Goal**: `origin/main` carries every local commit and its CI concludes green well inside a usable feedback loop; the red-test baseline that nobody re-derived is retired with each former failure fixed on its merits; branch protection requires exactly the checks CI emits; and the measurement sweep that sizes Phases 201 and 203 is on disk before either is planned.
+**Goal** *(amended 2026-08-28 — see Criteria 3/4)*: CI concludes green well inside a usable feedback loop on a pushed, `.planning/`-free ref; the red-test baseline that nobody re-derived is retired with each former failure fixed on its merits; branch protection requires exactly the checks CI emits; and the measurement sweep that sizes Phases 201 and 203 is on disk before either is planned.
 **Depends on**: Nothing (first phase of v1.41)
 **Requirements**: GREEN-01, GREEN-02, GREEN-03, GREEN-04, GREEN-05, GREEN-06, GREEN-07, GREEN-08, GREEN-09, GREEN-10, GREEN-11, GREEN-12
 **Success Criteria** (what must be TRUE):
 
   1. Maintainer can read the last red run's failing logs from the repository after GitHub purges them, and can read a measured per-check Credo histogram, a per-file concentration table, and an evidence-backed statement of whether `verify.mechanical` is sensitive to text content and width or only to tokens, contrast, and geometry — with `.credo.exs` unmodified and no scorecard touched. (GREEN-01, GREEN-02, GREEN-03)
   2. `mix test` passes with no deterministically-failing tests, each former failure fixed rather than skipped — version-pinned milestone literals replaced by shape assertions that cannot rot at the next milestone, and a page that legitimately gains a form fails the formless-page guard loudly in the same diff instead of needing a hand-edited allowlist elsewhere. (GREEN-04, GREEN-05)
-  3. `git log origin/main..main` is empty and the latest `main` run concludes `success` in ≤ 20 minutes (target ≤ 12), with every job carrying a `timeout-minutes` bound and a systemically-broken browser suite aborting early rather than accumulating per-test timeouts. (GREEN-06, GREEN-07)
-  4. Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so PR #26 is mergeable and no future pull request can be blocked on a check that cannot exist. (GREEN-08)
+  3. *(amended 2026-08-28)* The full CI suite concludes `success` in ≤ 20 minutes (target ≤ 12) on a ref pushed to `origin` carrying the source tree but not `.planning/`, with every job carrying a `timeout-minutes` bound and a systemically-broken browser suite aborting early rather than accumulating per-test timeouts. `git log origin/main..main` is **not** required to be empty: planning-only commits are never pushed by policy. (GREEN-06, GREEN-07)
+  4. *(amended 2026-08-28)* Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no future pull request can be blocked on a check that cannot exist. PR #26's actual merge moves to Phase 202, which the roadmap already scopes as "Merge PR #26 and publish". (GREEN-08)
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
