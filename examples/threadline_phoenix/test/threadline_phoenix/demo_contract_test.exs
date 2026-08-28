@@ -260,7 +260,10 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         record = hd(records)
         assert record.subject == "redaction_policy"
-        assert record.subject_ref == %{"policy" => "walk-demo-redaction-policy"}
+        # Read from the manifest's own declared value (subject_ref above), never restate it
+        # as an inline literal here — an inline literal would silently rot the moment the
+        # manifest's declared subject_ref changes.
+        assert record.subject_ref == subject_ref
       end)
     end
   end
@@ -269,6 +272,19 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     test "org_memberships setup rows have non-null actor_ref on transaction" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
+
+        # Non-emptiness first: an empty org_memberships change set must fail this test,
+        # never pass it vacuously by virtue of there being nothing to check.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "org_memberships",
+              select: count(ac.id)
+            )
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 org_memberships AuditChange rows to exist, got #{total_count}"
 
         count =
           Repo.one!(
@@ -289,8 +305,24 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
+        # Non-emptiness first: with zero org_memberships rows at all, "0 in window" would
+        # pass vacuously without proving anything was actually backdated.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "org_memberships",
+              select: count(ac.id)
+            )
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 org_memberships AuditChange rows to exist, got #{total_count}"
+
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Boundary: `>=` is strict-inclusive on the window's near edge, so a row landing
+        # exactly on `window_start` counts as INSIDE the 24h window (and therefore would
+        # fail this "outside the window" assertion, not pass it).
         in_window_count =
           Repo.one!(
             from(ac in AuditChange,
@@ -310,8 +342,25 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
+        # Non-emptiness first: with zero null-actor rows at all, "0 in window" would pass
+        # vacuously without proving anything was actually backdated.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: is_nil(at.actor_ref),
+              select: count(ac.id)
+            )
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 null-actor AuditChange rows to exist, got #{total_count}"
+
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Boundary: `>=` is strict-inclusive on the window's near edge, so a row landing
+        # exactly on `window_start` counts as INSIDE the 24h window (and therefore would
+        # fail this "outside the window" assertion, not pass it).
         in_window_count =
           Repo.one!(
             from(ac in AuditChange,
@@ -335,6 +384,9 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Set-membership over the distinct operations present in the window, checked
+        # independently per op — not a positional/ordered check, so a change in seed
+        # emission order can never flip this assertion.
         for op <- ["insert", "update", "delete"] do
           count =
             Repo.one!(
