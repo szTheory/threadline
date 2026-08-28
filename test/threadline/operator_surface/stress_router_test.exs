@@ -262,6 +262,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute File.read!(@router_source) =~ forbidden
       refute File.read!(@example_router_source) =~ forbidden
+      refute File.read!(@stress_router_source) =~ forbidden
     end
 
     test "root operator macro source does not expose stress or story routes" do
@@ -297,21 +298,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Regex.scan(~r/threadline_operator_surface_stress\("\/__stress"/, source) |> length() ==
                2
 
-      {output, status} =
-        System.cmd(
-          "bash",
-          [
-            "-lc",
-            "cd examples/threadline_phoenix && MIX_ENV=test mix run --no-start -e 'routes = Phoenix.Router.routes(ThreadlinePhoenixWeb.Router); IO.puts(Enum.map(routes, & &1.path)); IO.puts(File.read!(\"../../lib/threadline/operator_surface/stress_router.ex\"))'"
-          ],
-          stderr_to_stdout: true
-        )
-
-      assert status == 0, output
-      assert output =~ "/audit"
-      assert output =~ "/audit/__stress"
-      assert output =~ "live_session :threadline_stress"
-      refute output =~ "stress" <> ": true"
+      # Runtime proof that the example app's compiled router actually EXPANDS
+      # and mounts /audit and /audit/__stress inside a distinct live_session
+      # (rather than merely containing the macro call source-statically, which
+      # the assertion above already covers) lives in
+      # examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts — the
+      # "requires authentication before rendering the stress lab" and
+      # "renders the real operator shell, theme scope, story metadata, and
+      # preview" cases, run via `mix verify.operator_stress` locally and by
+      # the `verify-example-browser` CI job (inside `ci-required`'s `needs:`
+      # list) on every PR. Before Phase 198-15 this test shelled out to
+      # `mix run --no-start` inside examples/threadline_phoenix, which made
+      # its outcome depend on whether that example app's dependencies had
+      # previously been fetched on the machine running `mix test` — an
+      # ambient-state dependency `mix test` in CI does not satisfy. See
+      # 198-15-SUMMARY.md for the full disposition and the red/green teeth
+      # proof that the successor guard still catches a broken route mount.
+      #
+      # The "live_session :threadline_stress" presence check that used to run
+      # against a subprocess-printed copy of stress_router.ex is redundant
+      # with "stress macro source keeps auth, coverage, and prod fail-closed
+      # hooks together" below, which asserts the same string directly against
+      # @stress_router_source with no subprocess. The "stress: true" negative
+      # check is folded into "source keeps stress routing off the public
+      # operator macro option surface" above, which now also checks
+      # @stress_router_source.
     end
 
     test "authenticated stress route renders the operator shell, theme, selected story, and preview",
