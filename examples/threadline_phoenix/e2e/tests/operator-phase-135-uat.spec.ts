@@ -78,8 +78,13 @@ test.describe("operator surface - Phase 135 automated UAT", () => {
     await page.goto("/audit/coverage");
 
     await expect(page).toHaveURL(/\/audit\/coverage$/);
-    await expect(page.getByRole("heading", { name: "Unsupported View" })).toBeVisible();
-    await expect(page.getByText("Coverage inspection is not available")).toBeVisible();
+    // Product contract: Threadline.OperatorSurface.Unsupported.descriptor(:coverage_unavailable)
+    // (unsupported.ex) renders this exact title + body — an honest "unavailable in this
+    // support lane" affordance, not an access-control denial.
+    await expect(page.getByRole("heading", { name: "Coverage unavailable" })).toBeVisible();
+    await expect(
+      page.getByText("Coverage is unavailable in this support lane"),
+    ).toBeVisible();
     await expect(page.getByTestId("coverage-table")).toHaveCount(0);
   });
 });

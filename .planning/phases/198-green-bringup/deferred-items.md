@@ -71,3 +71,26 @@
   `Threadline.Retention.purge/1` never touches). Root cause not established — needs a follow-up
   198 (or successor-phase) gap-closure plan to diagnose and fix in the same disciplined,
   no-weakening manner as this plan.
+
+## Plan 198-27
+
+- **Status:** acknowledged
+- **Acknowledged at:** 2026-08-28 (Plan 198-27 execution)
+
+- Fixed all 12 cluster-`198-27` rows assigned by `198-round4-playwright.md` at their attributed
+  causes (`operator-phase-135-uat.spec.ts`, `operator-phase-173-uat.spec.ts`,
+  `operator-phase-175-uat.spec.ts`, `operator-phase-177-uat.spec.ts`), with red-then-green teeth
+  proof for one failure per file. Full diagnosis, fixes, and reconciliation in
+  `.planning/audits/198-round4-playwright.md`.
+- **New discovery, out of this plan's scope, `undiagnosed`:** the post-fix unbounded measurement
+  surfaces a failure in `operator-accessibility.spec.ts:655:3` ("opens stress rendered widgets
+  with names, keyboard state, and focus entry"), mobile-chromium only (desktop-chromium passes):
+  `expect(locator('#stress-dropdown-button')).toBeFocused()` times out at 15s, receiving
+  "inactive" instead of "focused" after a click that is expected to move focus into the opened
+  dropdown menu. This file is not in plan 198-27's `files_modified` list (only the four
+  Phase-UAT specs and this audit file are), so diagnosing/fixing it is out of scope here — Rule
+  1/2 auto-fix authority does not extend to files outside the declared task boundary. Root cause
+  not established (could be a genuine focus-management regression, a mobile-viewport-specific
+  timing issue, or non-determinism consistent with the mount-timing flake class 198-26 already
+  documented for this same stress-preview surface). Needs a follow-up 198 (or successor-phase)
+  gap-closure plan to diagnose and fix in the same disciplined, no-weakening manner as this plan.
