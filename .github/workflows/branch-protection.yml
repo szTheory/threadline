@@ -1,0 +1,44 @@
+# Branch-protection contract verification (GREEN-08 / D-12).
+#
+# This lives in its OWN workflow rather than inside ci.yml on purpose. A job
+# restricted to `main` inside ci.yml would be a conditionally-skipped member of
+# `ci-required`'s `needs:` list on every pull request, and GitHub scores a
+# SKIPPED required check as PASSING. Keeping it separate means the aggregate
+# gate's needs list stays unconditional and this check cannot launder a pass.
+#
+# Deliberately NOT part of the required aggregate: it asserts a property of the
+# repository's live GitHub configuration, not of the commit under test, so
+# making it block pull requests would fail contributors for something they did
+# not change and cannot fix.
+#
+# The job id `verify-branch-protection` is STABLE and relied on by docs and by
+# `.planning/audits/198-branch-protection-migration.md`. Evolve `name:` freely;
+# do not rename the id.
+name: Branch Protection
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 06:30 UTC daily, ahead of the nightly flake lane.
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Job id is stable (see header). Evolve `name:` freely.
+  verify-branch-protection:
+    name: Branch protection contract (main)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Assert main's protection contract
+        env:
+          # The default GITHUB_TOKEN can read repository rules and check runs.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bin/verify-branch-protection

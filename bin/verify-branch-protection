@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# CI / local: assert `main`'s protection contract (GREEN-08 / D-12).
+#
+# Two halves, because a configuration assertion alone is not proof:
+#
+#   (a) the LIVE required-status-check contexts for `main` are exactly the
+#       singleton ["CI required"] — no more, no fewer, and never empty;
+#   (b) the name `CI required` has ACTUALLY been emitted as a check run on
+#       `main`'s head. A context can be required in protection without CI ever
+#       emitting it, which blocks every pull request forever waiting on a check
+#       nothing will ever post. Half (b) is the executable form of D-11's
+#       "verified after the matrix has reported once".
+#
+# A third block asserts classic branch protection is absent. GitHub evaluates
+# classic protection AND rulesets and applies the UNION, but the rules-for-a-
+# branch endpoint half (a) reads reports ONLY ruleset rules. Without this block
+# the script's own view of "what protects main" would be incomplete, and a stale
+# classic rule could silently re-arm the up-to-date requirement D-14 turns off
+# while half (a) still read green.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+BRANCH="main"
+EXPECTED_CONTEXT="CI required"
+
+# RESEARCH A4 flagged `jq` on the runner image as an assumption. Guard it
+# explicitly rather than relying on the assumption.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "bin/verify-branch-protection requires jq (JSON processor) and it is not on PATH." >&2
+  echo "Install it (macOS: brew install jq; ubuntu: apt-get install -y jq) and re-run." >&2
+  exit 1
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "bin/verify-branch-protection requires the gh CLI and it is not on PATH." >&2
+  exit 1
+fi
+
+# Repository slug from the environment (GitHub Actions sets GITHUB_REPOSITORY),
+# with a CLI fallback for local runs.
+REPO="${GITHUB_REPOSITORY:-}"
+if [[ -z "$REPO" ]]; then
+  REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)
+fi
+if [[ -z "$REPO" ]]; then
+  echo "Could not resolve the repository slug from GITHUB_REPOSITORY or 'gh repo view'." >&2
+  exit 1
+fi
+
+# --- Half (a): the live required-context list is exactly ["CI required"] -----
+#
+# Sorted exact string equality, not containment: a differing case, an extra
+# space, or an extra context must fail rather than fuzzily matching.
+RULES_JSON=$(gh api "repos/${REPO}/rules/branches/${BRANCH}" \
+  -H "Accept: application/vnd.github+json" 2>/dev/null || true)
+
+if [[ -z "$RULES_JSON" ]]; then
+  echo "Could not read the effective rules for ${REPO}@${BRANCH}." >&2
+  echo "Expected a required-status-checks rule listing exactly [\"${EXPECTED_CONTEXT}\"]." >&2
+  exit 1
+fi
+
+LIVE_CONTEXTS=$(printf '%s' "$RULES_JSON" | jq -r '
+  [ .[]
+    | select(.type == "required_status_checks")
+    | .parameters.required_status_checks[]?
+    | .context
+  ] | sort | join("\u001f")')
+EXPECTED_CONTEXTS=$(printf '%s\n' "$EXPECTED_CONTEXT" | jq -Rrs 'split("\n") | map(select(length > 0)) | sort | join("\u001f")')
+
+if [[ -z "$LIVE_CONTEXTS" ]]; then
+  echo "FAIL (a): ${REPO}@${BRANCH} has ZERO required status-check contexts." >&2
+  echo "  live:     (empty)" >&2
+  echo "  expected: [${EXPECTED_CONTEXT}]" >&2
+  echo "An unprotected branch must not read as passing." >&2
+  exit 1
+fi
+
+if [[ "$LIVE_CONTEXTS" != "$EXPECTED_CONTEXTS" ]]; then
+  echo "FAIL (a): required status-check contexts for ${REPO}@${BRANCH} do not match." >&2
+  echo "  live:     [$(printf '%s' "$LIVE_CONTEXTS" | tr '\037' '|')]" >&2
+  echo "  expected: [$(printf '%s' "$EXPECTED_CONTEXTS" | tr '\037' '|')]" >&2
+  exit 1
+fi
+
+# --- Half (b): the required name has actually been emitted on main's head ----
+HEAD_SHA=$(gh api "repos/${REPO}/commits/${BRANCH}" \
+  -H "Accept: application/vnd.github+json" --jq .sha 2>/dev/null || true)
+if [[ -z "$HEAD_SHA" ]]; then
+  echo "Could not resolve ${REPO}@${BRANCH}'s head commit." >&2
+  exit 1
+fi
+
+EMITTED_COUNT=$(gh api "repos/${REPO}/commits/${HEAD_SHA}/check-runs?per_page=100" \
+  -H "Accept: application/vnd.github+json" 2>/dev/null \
+  | jq --arg name "$EXPECTED_CONTEXT" '[.check_runs[]? | select(.name == $name)] | length' 2>/dev/null || echo "0")
+
+if [[ "${EMITTED_COUNT:-0}" -lt 1 ]]; then
+  echo "FAIL (b): no check run named \"${EXPECTED_CONTEXT}\" has ever been emitted on ${REPO}@${BRANCH}'s head (${HEAD_SHA})." >&2
+  echo "A required context that CI never emits blocks every pull request forever." >&2
+  echo "Either the aggregate job's \`name:\` drifted from the required context, or no run has completed on this head yet." >&2
+  exit 1
+fi
+
+# --- Third block: classic branch protection must not be stacking -------------
+CLASSIC_STATUS=$(gh api "repos/${REPO}/branches/${BRANCH}/protection" \
+  -H "Accept: application/vnd.github+json" >/dev/null 2>&1 && echo "present" || echo "absent")
+
+if [[ "$CLASSIC_STATUS" == "present" ]]; then
+  echo "FAIL (c): classic branch protection still exists on ${REPO}@${BRANCH}." >&2
+  echo "GitHub applies the UNION of classic protection and rulesets, but the" >&2
+  echo "rules-for-a-branch endpoint checked in half (a) reports ONLY ruleset rules —" >&2
+  echo "so a stale classic rule can silently re-arm requirements the ruleset relaxed." >&2
+  echo "See '## Classic protection disposition' in .planning/audits/198-branch-protection-migration.md." >&2
+  exit 1
+fi
+
+echo "Branch protection OK for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}], that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}, and no classic protection is stacking."
