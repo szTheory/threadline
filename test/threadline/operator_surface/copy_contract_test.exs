@@ -458,7 +458,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert actions_block =~
                ~S|<span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>|
 
-      for label <- ["Queued", "Processing", "Failed", "Expired", "File unavailable"] do
+      for label <- ["Queued", "Processing", "Failed", "Export expired", "File unavailable"] do
         assert status_label_block =~ label
       end
     end

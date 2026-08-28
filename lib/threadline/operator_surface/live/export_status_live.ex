@@ -486,7 +486,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         status in ~w(pending queued) -> "Queued"
         status in ~w(running processing) -> "Processing"
         status in ~w(failed error) -> "Failed"
-        status == "completed" and expired? -> "Expired"
+        status == "completed" and expired? -> "Export expired"
         status == "completed" -> "File unavailable"
         true -> Presentation.status_label(status)
       end
