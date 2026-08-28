@@ -11,7 +11,7 @@
 - [x] **GREEN-01**: Maintainer can see the last red CI run's failing logs preserved in-repo before GitHub purges them at 90 days (run `28214113903`, ~62 days old at milestone open).
 - [x] **GREEN-02**: Maintainer can read a measured per-check Credo finding histogram and a per-file concentration table, produced from a full-default config held outside the repo, without `.credo.exs` being modified.
 - [x] **GREEN-03**: Maintainer can state, from evidence rather than inference, whether `verify.mechanical` is sensitive to rendered text content and text width or only to tokens, contrast, and element geometry.
-- [x] **GREEN-04**: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone.
+- [ ] **GREEN-04** *(reopened 2026-08-28 on measured CI evidence)*: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone. **Default-suite green (1398/0) but `test/threadline/pgbouncer_topology_test.exs:21` carries the same unprefixed-audit-table defect, hidden locally by `@moduletag :pgbouncer_topology`; CI run 33183920952 fails on it.**
 - [x] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
 - [x] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
 - [ ] **GREEN-07**: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes.
@@ -130,7 +130,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-01 | Phase 198 | Complete |
 | GREEN-02 | Phase 198 | Complete |
 | GREEN-03 | Phase 198 | Complete |
-| GREEN-04 | Phase 198 | Complete |
+| GREEN-04 | Phase 198 | Pending (reopened — see CI run 33183920952) |
 | GREEN-05 | Phase 198 | Complete |
 | GREEN-06 | Phase 198 | Complete |
 | GREEN-07 | Phase 198 | Pending |

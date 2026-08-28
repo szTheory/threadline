@@ -3,6 +3,7 @@ phase: 198-green-bringup
 verified: 2026-08-28T15:30:00Z
 status: gaps_found
 amendment_retracted: 2026-08-28 — the amendment rested on a false premise and was reverted; see the retraction section
+ci_measured: 2026-08-28 — PR #29, run 33183920952 FAILURE (6/13 checks red); GREEN-07 not met; 2 of 7 baseline-red jobs fixed
 score: 4/6 roadmap success criteria verified (11/12 requirements); criteria 3/4 open on GREEN-07
 behavior_unverified: 0
 overrides_applied: 0
@@ -310,3 +311,68 @@ tags ride along.
 
 **Disposition:** amendment reverted; `main` pushed to `origin/main`; GREEN-07
 closes if and only if the resulting CI run concludes `success` in ≤ 20 minutes.
+
+---
+
+## MEASURED CI RESULT — GREEN-07 remains Pending (2026-08-28)
+
+`main` could not be pushed directly: the ruleset requires a pull request (GREEN-08's
+branch protection working as designed). The 42 commits were pushed as
+`ci/198-gap-closure` and opened as **PR #29**, following the same `ci/*` convention
+as the already-merged `ci/v1_41-green-bringup` and `ci/198-05-verify`.
+
+**CI run 33183920952 concluded FAILURE.** 13 checks, 6 failing. `CI required` is red,
+so PR #29 is `BLOCKED`. **GREEN-07 is not met.**
+
+### What the gap closure actually fixed
+
+Comparing against baseline run 33138291361 (7 non-aggregate red jobs):
+
+| Job | Baseline | Now | Owner |
+|-----|----------|-----|-------|
+| Mechanical checker (committed scorecards) | ✗ | **✓ FIXED** | 198-10 postgres service |
+| Compile without optional deps | ✗ | **✓ FIXED** | 198-09 guards |
+| Run test suite (current) | ✗ | ✗ still red | — |
+| Run test suite (min) | ✗ | ✗ still red | — |
+| PgBouncer transaction topology | ✗ | ✗ still red | — |
+| Tier A capture lane | ✗ | ✗ still red | 198-10 fixed only the count assertion |
+| Example app browser E2E | ✗ | ✗ still red | 198-10's schema step insufficient |
+
+**2 of 7 fixed, not 7.** The local suite reaching 1398/0 did not translate to CI.
+
+### Why local green was not CI green — two are the same defect class this phase existed to fix
+
+1. **`stress_router_test.exs:310` (both test-suite jobs).** Shells into
+   `examples/threadline_phoenix` and runs `mix run`, which needs the example app's deps
+   fetched. It passes locally **only because** 198-13's executor happened to run
+   `mix deps.get` there. CI runs 1399 tests to the local 1398 — this test never
+   executed in any local verification run. Same failure shape as the storage-schema
+   defect: a test that is green only because of ambient local state.
+
+2. **`pgbouncer_topology_test.exs:21` — unprefixed `DELETE FROM "audit_changes"`.**
+   This is *exactly* the GREEN-04 defect class, missed because the file carries
+   `@moduletag :pgbouncer_topology`, which the default suite excludes ("Excluding tags:
+   [pgbouncer_topology: true]" appears in every local run). 198-12's sweep was driven by
+   the observed local failure list, so a tag-excluded file could never appear in it.
+
+3. **Tier A byte-stability drift** — `scroll_cost` 19.038 → 36.504 on
+   `page.coverage.error__light-1280.json`. Rendering differs between CI and local; 198-10
+   made the bundle-*count* assertion rot-proof but never addressed byte-stability.
+
+4. **Playwright** — 5 failures in `operator-coverage-readiness.spec.ts` and
+   `operator-accessibility.spec.ts`, 348 tests did not run. 198-10's schema-resolution
+   step was necessary but not sufficient.
+
+### Correction to this phase's own record
+
+198-13's SUMMARY and the requirement flip to Complete for GREEN-04 rested on the local
+1398/0 result. That result was real but not sufficient: **GREEN-04's own wording is
+"`mix test` passes with no deterministically-failing tests."** The pgbouncer file
+contains a deterministic failure of the target defect class that the default suite hides
+behind a tag. GREEN-04 should be treated as **not fully met** until that file is ported
+too, notwithstanding its Complete mark.
+
+**Next work is real engineering, not a decision:** port `pgbouncer_topology_test.exs` to
+`repo_opts/0`; make `stress_router_test.exs:310` either fetch the example deps or skip
+honestly when they are absent; then re-examine Tier A byte-stability and the Playwright
+readiness specs.
