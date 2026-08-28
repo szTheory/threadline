@@ -11,15 +11,15 @@
 - [x] **GREEN-01**: Maintainer can see the last red CI run's failing logs preserved in-repo before GitHub purges them at 90 days (run `28214113903`, ~62 days old at milestone open).
 - [x] **GREEN-02**: Maintainer can read a measured per-check Credo finding histogram and a per-file concentration table, produced from a full-default config held outside the repo, without `.credo.exs` being modified.
 - [x] **GREEN-03**: Maintainer can state, from evidence rather than inference, whether `verify.mechanical` is sensitive to rendered text content and text width or only to tokens, contrast, and element geometry.
-- [ ] **GREEN-04**: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone.
-- [ ] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
-- [ ] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
+- [ ] **GREEN-04** *(reopened 2026-08-28 on measured CI evidence)*: `mix test` passes with no deterministically-failing tests, each former failure fixed on its merits rather than skipped — including replacing version-pinned milestone literals with shape assertions that cannot rot at the next milestone. **Default-suite green (1398/0) but `test/threadline/pgbouncer_topology_test.exs:21` carries the same unprefixed-audit-table defect, hidden locally by `@moduletag :pgbouncer_topology`; CI run 33183920952 fails on it.**
+- [x] **GREEN-05**: A page that legitimately gains a form causes the formless-page guard to fail loudly in the same diff, rather than requiring a hand-edited allowlist elsewhere.
+- [x] **GREEN-06**: Every CI job has a `timeout-minutes` bound, and a systemically-broken browser suite aborts early instead of accumulating per-test timeouts.
 - [ ] **GREEN-07**: `origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes.
-- [ ] **GREEN-08**: Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no pull request can be blocked on a check that cannot exist.
+- [x] **GREEN-08**: Branch protection requires exactly the check names CI emits, verified after the matrix has reported once, so no pull request can be blocked on a check that cannot exist.
 - [x] **GREEN-09**: Paid critic scoring cannot be triggered from any workflow while it is parked — the input and the billing code path are absent, not merely defaulted off.
 - [x] **GREEN-10**: Exactly one Hex publish path exists, and it is the one gated by CI-green and release-shape verification.
 - [x] **GREEN-11**: Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue instead of failing silently.
-- [ ] **GREEN-12**: `git worktree list` shows one entry and no stale local branches remain; any unmerged branch is either landed or preserved under an archive tag with a recorded recommendation, never silently discarded.
+- [x] **GREEN-12**: `git worktree list` shows one entry and no stale local branches remain; any unmerged branch is either landed or preserved under an archive tag with a recorded recommendation, never silently discarded.
 
 ### Decouple
 
@@ -130,15 +130,15 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-01 | Phase 198 | Complete |
 | GREEN-02 | Phase 198 | Complete |
 | GREEN-03 | Phase 198 | Complete |
-| GREEN-04 | Phase 198 | Pending |
-| GREEN-05 | Phase 198 | Pending |
-| GREEN-06 | Phase 198 | Pending |
+| GREEN-04 | Phase 198 | Pending (reopened — see CI run 33183920952) |
+| GREEN-05 | Phase 198 | Complete |
+| GREEN-06 | Phase 198 | Complete |
 | GREEN-07 | Phase 198 | Pending |
-| GREEN-08 | Phase 198 | Pending |
+| GREEN-08 | Phase 198 | Complete |
 | GREEN-09 | Phase 198 | Complete |
 | GREEN-10 | Phase 198 | Complete |
 | GREEN-11 | Phase 198 | Complete |
-| GREEN-12 | Phase 198 | Pending |
+| GREEN-12 | Phase 198 | Complete |
 | DECOUPLE-01 | Phase 199 | Pending |
 | DECOUPLE-02 | Phase 199 | Pending |
 | DECOUPLE-03 | Phase 199 | Pending |

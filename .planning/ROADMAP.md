@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 7 plans
+**Plans**: 18 plans (7 executed + 6 gap-closure + 5 gap-closure round 2)
 
 Plans:
 **Wave 1**
@@ -108,11 +108,64 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
+- [x] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
+- [x] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
+
+**Gap closure** *(after verification returned `gaps_found`: 2/6 success criteria, 9/12 requirements. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1** *(fully parallel — disjoint files)*
+
+- [x] 198-08-PLAN.md — **Tracer:** prove the `repo_opts/0` remediation shape on one file end-to-end, and make D-02 executable with a non-vacuous mask-regression guard (wave 1)
+- [x] 198-09-PLAN.md — Guard the two unguarded optional-Phoenix modules so `verify.compile_no_optional` passes, plus a derived-roster contract test (wave 1)
+- [x] 198-10-PLAN.md — `ci.yml` job-config defects: postgres service for `verify-mechanical`, rot-proof Tier A bundle assertion, example-app schema resolution (wave 1)
+- [x] 198-11-PLAN.md — GREEN-11: extract the flake classifier into a tested `bin/classify-flake-run`, fix the wiring so it is reachable on the failure path (wave 1)
+
+**Wave 2** *(blocked on 198-08)*
+
+- [x] 198-12-PLAN.md — Port the remaining 14 files (66 defects), land the unowned CONTRIBUTING List 1 rows, drive `mix test` to 0 failures (wave 2)
+
+**Wave 3** *(blocked on 198-09, 198-10, 198-11, 198-12)*
+
+- [x] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-04/CR-05 debt (wave 3)
+
+**Gap closure, round 2** *(after CI run 33183920952 on PR #29 concluded FAILURE — 6 of 13 checks red, only 2 of the 7 baseline-red jobs fixed. GREEN-04 reopened, GREEN-07 still Pending. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1** *(fully parallel — disjoint files)*
+
+- [x] 198-14-PLAN.md — **Tracer:** port `pgbouncer_topology_test.exs` through a real PgBouncer pool, and replace the observed-failure-list methodology with a static, run-independent call-site sweep (wave 1)
+- [x] 198-15-PLAN.md — Remove `stress_router_test.exs`'s ambient dependency on fetched example-app deps; keep or relocate the runtime route-mount proof with a teeth proof (wave 1)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 198-16-PLAN.md — Diagnose the Tier A `scroll_cost` byte-stability drift from evidence, decide the remedy at a checkpoint, fix at the cause or halt honestly (wave 2)
+
+**Wave 3** *(blocked on 198-16)*
+
+- [x] 198-17-PLAN.md — Attribute all 5 Playwright failures to causes, settle the "348 did not run" figure, fix at the cause without weakening a spec (wave 3)
+
+**Wave 4** *(blocked on Waves 1-3)*
+
+- [ ] 198-18-PLAN.md — Push, observe the CI run to completion, record run ID + per-check table + three-way job comparison, set GREEN-04/GREEN-07 from the measurement alone (wave 4)
+
+**Round-2 notes:**
+
+- The four engineering gaps are all GREEN-04; GREEN-07 is downstream of them and gets only a measurement plan. `origin/main` cannot be pushed directly — the ruleset requires a pull request, which is GREEN-08 working as designed. Work lands on `ci/198-gap-closure` (PR #29). **No branch-protection, ruleset, `enforcement`, or `bypass_actors` change is planned or permitted.**
+- **The structural lesson of round 1 is planned against, not just its symptoms.** 198-12's sweep was driven by the observed local failure list, which is blind to any tag-excluded or environment-gated test — `pgbouncer_topology_test.exs` carries `@moduletag :pgbouncer_topology` and is excluded from every local run. 198-14 therefore lands a source-level sweep that scans files whether or not they execute.
+- 198-15's defect is the same shape: a test that passed only because an executor had previously run `mix deps.get` in `examples/threadline_phoenix`. CI reported 1399 tests to local's 1398 — the test never ran locally at all.
+- 198-16 and 198-17 have genuinely unknown root causes, so both require a written diagnosis before any fix and both carry a maintainer checkpoint. **Both are permitted to halt honestly** rather than force green — a widened byte-stability gate or a loosened Playwright assertion would be exactly the laundering this phase exists to end.
+- The deferred `examples/threadline_phoenix` `DemoContractTest` demo-seed drift stays deferred. If it turns out to block 198-17, that surfaces at that plan's checkpoint as an explicit scope decision, never as silent absorption.
+- CR-03, CR-04, and CR-05 remain carried WARNING debt in `.planning/WINDOWS.md`, untouched.
+
+**Gap-closure notes:**
+
+- The four gaps are GREEN-04 (80 failures), GREEN-07 (`main` run concludes `failure`), GREEN-11 (classifier unreachable), and SC4 (PR #26 BLOCKED). SC4 clears as a **consequence** of the other three — **no branch-protection, ruleset, or `bypass_actors` change is planned or permitted**. GREEN-08 is met and proven non-vacuous by a red→green pair on an identical SHA.
+- Three of the eight red jobs were newly diagnosed after verification and are **not** in `198-VERIFICATION.md`'s gap list: the `ui.ex` / `theme_controller.ex` unguarded optional-Phoenix references, the missing `services: postgres` on `verify-mechanical`, and the rotted `expected 120 scorecard JSON` literal (actual: 366). Each has its own task.
+- Remediation shape for the 79 is **decided, not open**: `Threadline.StorageSchemaCase.repo_opts/0` at each call site (TRIAGE option 2), justified from the measured distribution — all 81 sites already accept an opts list, 10 of 15 files already import the helper via `DataCase`, and the idiom is already green in 5 sibling files.
+- **Two TRIAGE claims are falsified and must not be planned against:** there is no defective audit-table raw SQL (so option 3's stated objection is narrower than recorded), and `storage_schema_prefix_contract_test.exs` would NOT catch a repo-level default prefix — D-02 is currently policy-only and unenforced. Plan 198-08 adds the missing guard.
+- **Carried forward as debt, deliberately NOT planned:** CR-03 (`branch-protection.yml:27-28` `permissions: contents: read` makes block (c) unfalsifiable in CI) and CR-05 (`.github/rulesets/main.json` is a snapshot nothing diffs against live state). Both WARNING severity.
 
 **Notes carried from the approved plan:**
 
@@ -292,7 +345,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 6/7 | In Progress | |
+| 198. Green Bringup | v1.41 | 7/7 | In Progress | All plans executed. Not marked Complete: the phase goal "CI concludes green" is NOT met — `CI required` is red on the 79 deferred test-side defects (198-04). Origin is current and CI is 6m07s. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

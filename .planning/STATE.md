@@ -2,20 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 198
-current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-06-PLAN.md
-last_updated: "2026-08-28T02:00:19.590Z"
+stopped_at: Plans 198-14..198-18 written and checked; next = /gsd-execute-phase 198 --gaps-only
+last_updated: "2026-08-28T15:05:00.000Z"
 last_activity: 2026-08-28
-last_activity_desc: "198-06 complete: hazard workflows deleted, single gated publish path, branches archived"
-state_head: d1b3bc81fc077d80d95884f8517e01c086d8ef59
+last_activity_desc: Phase 198 gap-closure round 2 planned — 5 plans (198-14..18) for the 4 measured CI failures + CI measurement; plan-checker PASS
+state_head: 72eaed3d
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 7
-  completed_plans: 6
-  percent: 0
+  total_plans: 18
+  completed_plans: 13
+  percent: 92
 ---
 
 # Project State: Threadline
@@ -25,14 +23,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198
+**Current focus:** Phase 198 — Green Bringup (gap closure)
 
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 7 of 7 (6 of 7 complete)
-Status: Ready to execute 198-07 (the push plan)
-Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, one gated publish path, archive tags created, single worktree
+Plan: 13 of 18
+Status: Phase 198 PENDING — gap-closure round 2 PLANNED (198-14..18, checker PASS on all five); ready to execute
+Last activity: 2026-08-28 — Phase 198 gap closure complete; verification = gaps_found (GREEN-07 only)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -73,6 +71,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
+| Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
 
 ## Deferred Items
 
