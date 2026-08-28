@@ -385,16 +385,34 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Deterministic mechanical gate over the committed Tier A evidence. Pure
-  # Elixir — no DB, no browser — so it runs fast on every PR and blocks a change
-  # if the committed .planning/scorecards/*.json breach any MODE-A (WCAG /
-  # token conformance) or MODE-B (ratchet-floor) rule. The alias runs
-  # mechanical_checker_test.exs, whose real-evidence gate calls
-  # MechanicalChecker.run/1 over the committed scorecards.
+  # Deterministic mechanical gate over the committed Tier A evidence. Fast on
+  # every PR — no browser — and blocks a change if the committed
+  # .planning/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
+  # MODE-B (ratchet-floor) rule. The alias runs mechanical_checker_test.exs,
+  # whose real-evidence gate starts the application (and therefore the repo)
+  # to call MechanicalChecker.run/1 over the committed scorecards — it DOES
+  # need a database, unlike a purely arithmetic check.
   verify-mechanical:
     name: Mechanical checker (committed scorecards)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v5
 
