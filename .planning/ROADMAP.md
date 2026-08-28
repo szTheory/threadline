@@ -198,8 +198,8 @@ Plans:
 
 **Wave 3** *(blocked on 198-24 / 198-26)*
 
-- [ ] 198-25-PLAN.md — Fix the walkthrough happy-path and evidence-plane failures, including the `ExUnit.TimeoutError` at its cause, and close the local `mix verify.example` measurement (wave 3)
-- [ ] 198-27-PLAN.md — Fix the Phase 135/173/175/177 UAT spec cluster at cause and reconcile the cluster arithmetic (wave 3)
+- [x] 198-25-PLAN.md — Fix the walkthrough happy-path and evidence-plane failures, including the `ExUnit.TimeoutError` at its cause, and close the local `mix verify.example` measurement (wave 3)
+- [x] 198-27-PLAN.md — Fix the Phase 135/173/175/177 UAT spec cluster at cause and reconcile the cluster arithmetic (wave 3)
 
 **Wave 4** *(blocked on 198-24, 198-25, 198-26, 198-27 — the first point at which every demo-seed change is merged)*
 
