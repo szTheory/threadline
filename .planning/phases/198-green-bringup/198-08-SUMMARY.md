@@ -194,3 +194,10 @@ None - no external service configuration required.
 ---
 *Phase: 198-green-bringup*
 *Completed: 2026-08-28*
+
+## Self-Check: PASSED
+
+- FOUND: test/threadline/operator_surface/transaction_live_test.exs
+- FOUND: test/threadline/storage_schema_prefix_contract_test.exs
+- FOUND: .planning/phases/198-green-bringup/198-08-SUMMARY.md
+- FOUND commits: 7b4a4aaf, 1022b378, b1ecfbaf (git log --oneline)
