@@ -6,16 +6,16 @@ current_phase: 198
 current_phase_name: green-bringup
 status: executing
 stopped_at: Round 3 EXECUTED + verified — verification = gaps_found (10/12 requirements); GREEN-04/GREEN-07 Pending; next = /gsd-plan-phase 198 --gaps
-last_updated: "2026-08-28T18:55:55.529Z"
+last_updated: "2026-08-28T20:52:29.307Z"
 last_activity: 2026-08-28
 last_activity_desc: "Measured CI run 33204829086 on ci/198-round3 (PR #30, draft): CI required concluded failure (3/12 needs: red — verify-test/Run test suite (current), verify-capture/Tier A capture lane, verify-example-browser/Example app browser E2E; 13m29s, time clause met). Round-2 search_path cause for Run test suite (current) is CONFIRMED CLOSED (0 undefined_table occurrences); the job is red for a new, previously-masked cause (9 demo-seed content mismatches, predicted by D-41). Maintainer dispositions D-39/D-40/D-41 all KEEP their lanes in needs: — no gate narrowing. GREEN-04 and GREEN-07 both remain Pending."
-state_head: 5ee2eb6f048ece3b48de0f4d460af6d046e2b20d
+state_head: 3ba1932a17d978e784391e67a52038d8d01f0bc2
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 22
+  total_plans: 29
   completed_plans: 22
-  percent: 100
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — GAP-CLOSURE ROUND 3 EXECUTED
-Plan: 22 of 22
-Status: Phase 198 READY TO EXECUTE - 18/22 plans complete; round-3 gap-closure plans 198-19..22 created and checker-verified (0 blockers). Measured CI run 33197493051 (PR #29, ci/198-gap-closure) concluded failure at 13m29s. Round 3 must: (1) add the missing ALTER DATABASE ... SET search_path to ci.yml:235-240, (2) close the two call-site-sweep regex blind spots (fully-qualified Threadline.Test.Repo receivers; missing insert_all), (3) re-push and re-measure, (4) resolve the Tier-A regeneration prohibition and the 28 deferred browser failures.
-Last activity: 2026-08-28 - gap-closure round 3 planned: 198-19 (ci.yml search_path + CR-01/CR-02 sweep fixes), 198-20 (blocking-human checkpoint on CI required needs:), 198-21 (apply disposition + contract tests), 198-22 (push ci/198-round3 and measure one real CI run)
+Phase: 198 (green-bringup) — READY TO EXECUTE
+Plan: 22 of 29
+Status: Phase 198 READY TO EXECUTE - 22/29 plans complete; round-4 gap-closure plans 198-23..29 created and checker-verified (0 blockers, 1 warning resolved). Round 3's measured run 33204829086 left GREEN-04 and GREEN-07 Pending. Round 4 must: (1) fix the 9 demo-seed content mismatches in examples/threadline_phoenix that keep 'Run test suite (current)' red (D-41/C1), (2) fix the 28 masked Playwright failures across 14 spec files behind 'Example app browser E2E' (D-40/B1), separating the CI-contributing subset from local-only specs, (3) re-push ci/198-round4 and measure one real CI run. GREEN-07 CANNOT reach Complete this round: the third red lane (Tier A capture lane) has only one remedy, Tier-A page.* regeneration, forbidden all milestone by D-39. Honest target: 3 red needs: lanes down to 1.
+Last activity: 2026-08-28 - gap-closure round 4 planned: 198-23 (tracer: demo-seed failure inventory + SEED-03 fixes), 198-24/198-25 (remaining demo-seed + walkthrough clusters), 198-26/198-27/198-28 (28 masked Playwright failures, with a post-merge re-validation gate and a blocking checkpoint on PNG baseline regeneration), 198-29 (push ci/198-round4 and measure one real CI run)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
