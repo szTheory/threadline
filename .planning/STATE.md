@@ -2,18 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 198
-current_phase_name: Green Bringup
 status: executing
 stopped_at: Completed 198-07-PLAN.md
-last_updated: "2026-08-28T03:36:01.594Z"
+last_updated: "2026-08-28T13:59:24.790Z"
 last_activity: 2026-08-28
-last_activity_desc: "198-07 complete: origin/main current (6m07s CI), ruleset protection live, archive tags pushed; CI required still red"
-state_head: 7d3dd1f6735173dc6c7930fcd1de6008f74e687a
+last_activity_desc: Phase 198 (Green Bringup) gap-closure execution started
+state_head: 02e6070afa6afc6e93791795a49fb4b02a6b5c1f
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 7
+  total_plans: 13
   completed_plans: 7
   percent: 0
 ---
@@ -25,14 +23,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198
+**Current focus:** Phase 198 — Green Bringup (gap closure)
 
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 7 of 7 (7 of 7 complete)
-Status: All 198 plans executed — ready for phase verification. **`main` is locked**: ruleset `21702804` is live with `bypass_actors: []` and `CI required` is red, so nothing merges until the 79 test-side defects are retired or a bypass actor is added as an explicit decision.
-Last activity: 2026-08-28 — 198-07 complete: 636 commits fast-forwarded to a public origin/main, CI measured at 6m07s (was 1h33m), classic protection deleted and replaced by a committed ruleset verified by bin/verify-branch-protection, both archive tags durable on origin
+Plan: 8 of 13
+Status: Executing Phase 198 (gap-closure plans 198-08 .. 198-13)
+Last activity: 2026-08-28 — Phase 198 (Green Bringup) gap-closure execution started
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
