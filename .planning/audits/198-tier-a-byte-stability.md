@@ -368,3 +368,54 @@ milestone forbids, HALT and say so in the SUMMARY rather than regenerating."*
   milestone's deferred-items register explicitly forbids.
 - Per the plan's own must-haves, this is a legitimate halt condition, not a
   gap in the diagnosis.
+
+## Decision (Task 2) — AWAITING MAINTAINER; auto-mode did not auto-select
+
+This plan runs under auto-mode, whose default behavior for a
+`checkpoint:decision` is to auto-select the first listed remedy class. That
+default was **not applied here**, deliberately, because two independent
+things both require it:
+
+1. The plan's own must-have #4 states: *"If the only available remedy would
+   require regenerating Tier A `page.*` evidence in a way this milestone
+   forbids, the plan halts and says so rather than regenerating."* §6 above
+   shows that is exactly this case — every remedy, not just the maintainer's
+   preferred one, requires that regeneration.
+2. Auto-selecting remedy class **1** ("a removable nondeterministic input") —
+   the first-listed option per Task 2's own text — would be **factually
+   wrong**: §4 rules out nondeterminism explicitly (two runs are
+   byte-identical); there is no "removable nondeterministic input" to pin.
+   Auto-selecting it would misrepresent the diagnosis to satisfy the
+   auto-mode default, which is the opposite of what this diagnosis-first plan
+   exists to prevent.
+
+**Classification against the plan's four remedy classes:**
+
+| Class | Applies? | Why |
+|---|---|---|
+| 1. Removable nondeterministic input, no regeneration | **No** | Ruled out in §4 — the drift is deterministic, not flaky; there is no per-run randomness to pin. |
+| 2. CI-vs-local genuinely differ, unpinnable | **No** | Ruled out in §1/§4 — reproduces locally, identically, without CI. |
+| 3. Committed evidence is stale, remedy is regeneration | **Yes — but forbidden** | §5/§6: this is the identified cause. Both concrete remedy shapes (regenerate as-is, or fix the scope then regenerate) require Tier A `page.*` regeneration, which `198-CONTEXT.md`'s deferred-items register states is forbidden this milestone. |
+| 4. Cause not identified | **No, but same practical outcome** | The cause *was* identified (§4/§5). Functionally this plan lands in the same place as class 4 — no code change, GREEN-04 Gap 3 stays open — because class 3's remedy is currently unavailable, not because the cause is unknown. |
+
+**Recommendation for the maintainer:** treat this as a **class-3-blocked**
+outcome. Two forward paths exist, both outside this plan's authority:
+
+- **(a)** Explicitly authorize Tier A `page.*` regeneration for this specific
+  gap, accepting the blast radius stated in §6 remedy 1 (198 scorecards'
+  `scroll_cost` values recommitted, no formula change) as a stopgap — with the
+  known cost that it reopens the identical failure the next time any phase
+  registers a new stress-lab story, since the metric's scope defect (§4) is
+  untouched.
+- **(b)** Defer to when "the recapture constraint lifts" (the same trigger
+  `198-CONTEXT.md` already names for the related search_path wart), and at
+  that point fix remedy 2 (rescope `scrollCost`, regenerate the full 366-cell
+  bundle once, re-seed `mechanical_floors`) as a single durable pass rather
+  than two separate regenerations.
+
+No maintainer response was available synchronously to this executor run;
+Task 3 proceeds on the **halt path** (no code changes) per the plan's own
+stated fallback for exactly this situation, and this gap is recorded as still
+open. A future run of this plan (or a follow-up plan) should record the
+maintainer's actual verbatim choice in this section once made, per Task 2's
+original instruction, before Task 3 is re-attempted.
