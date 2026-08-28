@@ -107,3 +107,88 @@ Reproduced interactively via `mix run` scripts against the real `MIX_ENV=test` d
 This is confirmed as `seed-content-wrong`, attributable to one function:
 **`ThreadlinePhoenix.Demo.Seed.RetentionTail.run/1`** (specifically its unscoped call to
 `Threadline.Retention.purge/1`).
+`Threadline.Retention.purge/1`).
+
+---
+
+## Red-then-green teeth proof (tracer cluster)
+
+**Pre-fix (red).** Captured directly above in the "Two-run failure inventory" — both run 1 and
+run 2's verbatim output for rows 6, 7, 8 (and 9, in the sibling `SEED-05` describe block that
+shares the same cause) show the exact `Ecto.NoResultsError` / `assert count == 12 ... got 0`
+failures, taken from `mix verify.example` before any file in this task was edited.
+
+**Fix applied.** `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex`:
+added a `@retention_purge_cutoff_days_before_epoch` module attribute and a
+`retention_purge_cutoff/0` helper that computes `DateTime.add(Manifest.epoch(), -60, :day)`
+(`2026-03-28T12:00:00Z`) — strictly earlier than `offboarded-co`'s `-90 day` backdate
+(`2026-02-26T12:00:00Z`, so still purged) and strictly later than every other org's epoch-anchored
+fiction (earliest is the filler's `-14 day` bound, `2026-05-13T12:00:00Z`, so nothing else is
+purged). Passed as `Retention.purge(repo: Repo, cutoff: retention_purge_cutoff())` —
+`Threadline.Retention`'s own module doc documents `:cutoff` as exactly this "stricter than policy"
+override (`retention.ex:9-12`), so this uses an existing, intended library seam rather than adding
+new library surface. `enable_retention!/0`'s `keep_days: 30` config is unchanged (it remains the
+accurate, honest description of the library's own policy config; only this one seed-time call gets
+the stricter explicit override so the fictional epoch does not drift out of the real-world 30-day
+window as time passes).
+
+**Post-fix (green).** Verbatim `mix test` output for the target file after the fix, run twice
+consecutively from `examples/threadline_phoenix`:
+
+```
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 4.0 seconds (0.00s async, 4.0s sync)
+13 tests, 0 failures
+
+$ cd examples/threadline_phoenix && MIX_ENV=test mix test test/threadline_phoenix/demo_contract_test.exs
+...
+Finished in 4.0 seconds (0.00s async, 4.0s sync)
+13 tests, 0 failures
+```
+
+Both `describe "SEED-03 manifest heroes"` (3 tests) and `describe "SEED-03 leaving agent window"`
+(1 test) pass on both runs — as does every other describe block in the file (`SEED-05 delete
+incident`, `D-05 persona setup actor attribution`, `SEED-02/04`, `WALK-04`), all of which shared
+cause group A and are fixed as a side effect of the same one-line seed fix, exactly as the cause
+table predicted ("a single seed fix is not credited as N separate fixes").
+
+**Disposition record (per changed assertion/module):**
+
+- `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex` —
+  `seed-content-wrong`. The demo-seed's own retention-purge call was unscoped and collaterally
+  deleted other organizations' hero audit data; fixed by passing an explicit `:cutoff` anchored to
+  the demo's own epoch rather than relying on the library's real-wall-clock default. Justification:
+  `Threadline.Retention.purge/1` (`lib/threadline/retention.ex`) has no per-organization
+  scoping by design (confirmed by reading its `WHERE` clauses), and the manifest
+  (`manifest.ex`) declares hero tickets 4521/4518 and the leaving-agent window as a stable
+  narrative contract that this collateral deletion violated.
+- `examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs` — **no assertion
+  text was changed.** All three `SEED-03 manifest heroes` tests and the one `SEED-03 leaving agent
+  window` test were already correct, structural, non-pinned assertions (they query by manifest
+  constants and action names, not by literal counts or ordering); the failure was entirely in the
+  seed content, not in assertion rot. This satisfies the plan's edge-contract requirements without
+  any test-file edit: the window-membership query already uses explicit `>=`/`<=` bounds (line
+  129-130, inclusive both sides — stated here explicitly per the adjacency must-have, since the
+  test file itself does not narrate it), the leaving-agent count assertion already fails loudly on
+  zero (`assert count == 12`, not a vacuous `Enum.all?/2`), and there is no ambiguous-tie ordering
+  in any SEED-03 assertion (each query is either a single `Repo.one!` keyed on unique manifest
+  constants or a `count()` aggregate, never a positionally-compared list).
+
+**Files changed in Task 2:**
+`examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex` (one function
+added, one call-site option added). No change to `demo_contract_test.exs`, `seed.ex`,
+`seed/anchors.ex`, `seed/personas.ex`, `seed/support.ex`, or `manifest.ex` — the pre-declared
+`files_modified` footprint for this plan named those files as candidates, but the actual cause,
+once diagnosed, lived in `retention_tail.ex`, which is one of the "zero or more" seed-module
+files the plan's own action text authorized editing ("the demo-seed module(s) named by the
+diagnosis"). Logged as a Rule 1 deviation below.
+
+**Deletion counts sanity check.** Before the fix, `Retention.purge` (unscoped) deleted nearly all
+epoch-anchored `audit_changes` regardless of org — an inaccuracy in the evidence record itself
+(`Evidence.record_retention_run/3`'s `"narrative" => "org Y offboard"` claimed an org-Y-only
+purge while the underlying delete count included collateral damage from every org). After the
+fix, `Retention.purge`'s `deleted_changes`/`deleted_transactions` counts reflect **only**
+`offboarded-co`'s backdated footprint, made honest as a side effect of the same fix — not credited
+as a separate fix, but recorded here for completeness.
+
