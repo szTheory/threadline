@@ -5,7 +5,7 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: green-bringup
 status: executing
-stopped_at: Completed 198-22-PLAN.md (round-3 CI measurement); GREEN-04/GREEN-07 still Pending — two dedicated successor rounds required
+stopped_at: Round 3 EXECUTED + verified — verification = gaps_found (10/12 requirements); GREEN-04/GREEN-07 Pending; next = /gsd-plan-phase 198 --gaps
 last_updated: "2026-08-28T18:55:55.529Z"
 last_activity: 2026-08-28
 last_activity_desc: "Measured CI run 33204829086 on ci/198-round3 (PR #30, draft): CI required concluded failure (3/12 needs: red — verify-test/Run test suite (current), verify-capture/Tier A capture lane, verify-example-browser/Example app browser E2E; 13m29s, time clause met). Round-2 search_path cause for Run test suite (current) is CONFIRMED CLOSED (0 undefined_table occurrences); the job is red for a new, previously-masked cause (9 demo-seed content mismatches, predicted by D-41). Maintainer dispositions D-39/D-40/D-41 all KEEP their lanes in needs: — no gate narrowing. GREEN-04 and GREEN-07 both remain Pending."
