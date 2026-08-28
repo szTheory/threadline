@@ -163,7 +163,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 198-19-PLAN.md — **Tracer:** add the missing `ALTER DATABASE threadline_phoenix_test SET search_path` to `ci.yml`'s `current`-lane db-prep step, and close the call-site sweep's two reproduced regex blind spots (CR-01, CR-02) with red-then-green fixtures (wave 1)
+- [x] 198-19-PLAN.md — **Tracer:** add the missing `ALTER DATABASE threadline_phoenix_test SET search_path` to `ci.yml`'s `current`-lane db-prep step, and close the call-site sweep's two reproduced regex blind spots (CR-01, CR-02) with red-then-green fixtures (wave 1)
 
 **Wave 2** *(blocked on 198-19)*
 
