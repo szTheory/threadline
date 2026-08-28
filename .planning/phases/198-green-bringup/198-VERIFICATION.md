@@ -2,8 +2,8 @@
 phase: 198-green-bringup
 verified: 2026-08-28T15:30:00Z
 status: gaps_found
-amended: 2026-08-28 — GREEN-07 + criteria 3/4 rescoped to the no-push posture; GREEN-07 still Pending (no remote CI evidence)
-score: 5/6 roadmap success criteria verified after amendment (11/12 requirements); criterion 3 open on GREEN-07
+amendment_retracted: 2026-08-28 — the amendment rested on a false premise and was reverted; see the retraction section
+score: 4/6 roadmap success criteria verified (11/12 requirements); criteria 3/4 open on GREEN-07
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -271,3 +271,42 @@ outright by the amendment, since GREEN-08 was already verified). 11 of 12
 requirements Complete. Phase 198 stays **PENDING** on GREEN-07 until a
 `.planning/`-free ref is pushed and its CI run concludes green — the natural home
 for which is `/gsd-pr-branch` plus Phase 202.
+
+
+---
+
+## RETRACTION of the amendment above (2026-08-28)
+
+**The amendment recorded in the preceding section was made on a false premise and
+has been reverted. GREEN-07 and Success Criteria 3/4 are restored to their
+original wording.**
+
+**The false premise.** The orchestrator told the maintainer that pushing would
+"publish the full `.planning/` history to public GitHub," and the maintainer chose
+to amend the criteria on that basis. That claim was wrong. Measured:
+
+```
+gh repo view  → szTheory/threadline, visibility PUBLIC
+git ls-tree -r --name-only origin/main -- .planning | wc -l   → 2191
+git ls-tree -r --name-only origin/main -- .planning/phases    → includes
+    .planning/phases/198-green-bringup/198-01-PLAN.md … 198-07
+```
+
+`.planning/` is already fully tracked and published on `origin/main`, including
+Phase 198's own plans 01–07. Phase 198-07 landed on `origin/main` during this very
+phase — which is why `origin/main` is 41 commits behind rather than the 584 the
+roadmap describes from milestone open.
+
+**Root cause.** This project's standing policy is that *milestone tags* stay local
+(v1.31+). The orchestrator over-generalized that into "planning history is never
+pushed." Pushing `main` is an established operation here, already performed inside
+this phase.
+
+**Consequence.** GREEN-07's original wording was never in conflict with policy, so
+there was nothing to amend. The unpushed delta is 35 commits whose `.planning/`
+portion is more of exactly what is already public (16 phase files for plans 08–13,
+plus STATE/ROADMAP/REQUIREMENTS/WINDOWS). No new category of exposure. No local
+tags ride along.
+
+**Disposition:** amendment reverted; `main` pushed to `origin/main`; GREEN-07
+closes if and only if the resulting CI run concludes `success` in ≤ 20 minutes.
