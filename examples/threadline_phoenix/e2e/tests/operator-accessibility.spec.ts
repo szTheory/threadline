@@ -403,7 +403,12 @@ test.describe("operator accessibility baseline", () => {
       name: "Selected schema readiness",
     });
     await expect(readiness).toBeVisible();
-    await expect(readiness).toContainText("selected schema");
+    // 197-02 (commit 842bd737) intentionally dropped the verdict's
+    // self-labeling "selected schema: … · Checked …" meta line — the verdict
+    // heading itself still names the schema (coverage_live.ex
+    // verdict_heading/2). This test navigates to /audit/coverage with no
+    // `schema` param, so it defaults to "public" (coverage_live.ex:49).
+    await expect(readiness).toContainText("public");
 
     const schemaSelect = page.locator("#coverage-schema");
     await expect(schemaSelect).toBeVisible();

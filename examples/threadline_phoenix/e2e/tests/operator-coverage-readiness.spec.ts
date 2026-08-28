@@ -132,7 +132,14 @@ for (const viewport of viewports) {
         .getByRole("link", { name: "View activity" })
         .first();
 
-      await expect(verdict).toContainText("selected schema");
+      // 197-02 (commit 842bd737) intentionally dropped the verdict's
+      // self-labeling "selected schema: … · Checked …" meta line — the
+      // section is already marked by its aria-label, and the verdict
+      // heading itself still names the schema (coverage_live.ex
+      // verdict_heading/2). openCoverage() navigates to /audit/coverage with
+      // no `schema` param, so the schema defaults to "public"
+      // (coverage_live.ex:49) — assert that, not the retired copy.
+      await expect(verdict).toContainText("public");
       await expect(schemaSelect).toBeVisible();
       await expect(schemaSelect).toHaveAttribute("name", "schema");
       const optionValues = await schemaSelect.evaluate(

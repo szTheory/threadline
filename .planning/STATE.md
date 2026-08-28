@@ -3,19 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
-current_phase_name: Green Bringup
+current_phase_name: green-bringup
 status: executing
-stopped_at: Completed 198-06-PLAN.md
-last_updated: "2026-08-28T02:00:19.590Z"
+stopped_at: Gap-closure round 3 PLANNED (198-19..22, gap_closure:true); next = /gsd-execute-phase 198 --gaps-only
+last_updated: "2026-08-28T18:55:55.529Z"
 last_activity: 2026-08-28
-last_activity_desc: "198-06 complete: hazard workflows deleted, single gated publish path, branches archived"
-state_head: d1b3bc81fc077d80d95884f8517e01c086d8ef59
+last_activity_desc: "Phase 198 gap-closure round 3 planned (198-19..22); round 2 executed (plans 14-18): local suite 1412 tests/0 failures; measured CI run 33197493051 = failure at 13m29s; 4 of 7 baseline red jobs now green; GREEN-04/GREEN-07 remain Pending; verification = gaps_found"
+state_head: 5ee2eb6f048ece3b48de0f4d460af6d046e2b20d
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 7
-  completed_plans: 6
-  percent: 0
+  total_plans: 22
+  completed_plans: 18
+  percent: 82
 ---
 
 # Project State: Threadline
@@ -25,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198
+**Current focus:** Phase 198 — Green Bringup (gap closure)
 
 ## Current Position
 
-Phase: 198 — Green Bringup — EXECUTING
-Plan: 7 of 7 (6 of 7 complete)
-Status: Ready to execute 198-07 (the push plan)
-Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, one gated publish path, archive tags created, single worktree
+Phase: 198 (green-bringup) — READY TO EXECUTE
+Plan: 18 of 22
+Status: Phase 198 READY TO EXECUTE - 18/22 plans complete; round-3 gap-closure plans 198-19..22 created and checker-verified (0 blockers). Measured CI run 33197493051 (PR #29, ci/198-gap-closure) concluded failure at 13m29s. Round 3 must: (1) add the missing ALTER DATABASE ... SET search_path to ci.yml:235-240, (2) close the two call-site-sweep regex blind spots (fully-qualified Threadline.Test.Repo receivers; missing insert_all), (3) re-push and re-measure, (4) resolve the Tier-A regeneration prohibition and the 28 deferred browser failures.
+Last activity: 2026-08-28 - gap-closure round 3 planned: 198-19 (ci.yml search_path + CR-01/CR-02 sweep fixes), 198-20 (blocking-human checkpoint on CI required needs:), 198-21 (apply disposition + contract tests), 198-22 (push ci/198-round3 and measure one real CI run)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
+| Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
 
 ## Deferred Items
 
