@@ -167,7 +167,7 @@ Plans:
 
 **Wave 2** *(blocked on 198-19)*
 
-- [ ] 198-20-PLAN.md — Decision brief and **blocking maintainer `checkpoint:decision`** on whether `CI required` keeps `needs:`-ing `verify-capture` and `verify-example-browser`, with each option's honest consequence for what the merge gate still proves (wave 2)
+- [x] 198-20-PLAN.md — Decision brief and **blocking maintainer `checkpoint:decision`** on whether `CI required` keeps `needs:`-ing `verify-capture` and `verify-example-browser`, with each option's honest consequence for what the merge gate still proves (wave 2)
 
 **Wave 3** *(blocked on 198-20)*
 
