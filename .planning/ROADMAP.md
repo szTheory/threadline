@@ -189,7 +189,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 198-23-PLAN.md — **Tracer:** two-run `mix verify.example` failure inventory, fix the SEED-03 demo-seed clusters at cause with a red-then-green teeth proof, and write the fix protocol the expansion plans follow (wave 1)
+- [x] 198-23-PLAN.md — **Tracer:** two-run `mix verify.example` failure inventory, fix the SEED-03 demo-seed clusters at cause with a red-then-green teeth proof, and write the fix protocol the expansion plans follow (wave 1)
 
 **Wave 2** *(blocked on 198-23)*
 
