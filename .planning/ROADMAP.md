@@ -135,8 +135,8 @@ Plans:
 
 **Wave 1** *(fully parallel — disjoint files)*
 
-- [ ] 198-14-PLAN.md — **Tracer:** port `pgbouncer_topology_test.exs` through a real PgBouncer pool, and replace the observed-failure-list methodology with a static, run-independent call-site sweep (wave 1)
-- [ ] 198-15-PLAN.md — Remove `stress_router_test.exs`'s ambient dependency on fetched example-app deps; keep or relocate the runtime route-mount proof with a teeth proof (wave 1)
+- [x] 198-14-PLAN.md — **Tracer:** port `pgbouncer_topology_test.exs` through a real PgBouncer pool, and replace the observed-failure-list methodology with a static, run-independent call-site sweep (wave 1)
+- [x] 198-15-PLAN.md — Remove `stress_router_test.exs`'s ambient dependency on fetched example-app deps; keep or relocate the runtime route-mount proof with a teeth proof (wave 1)
 
 **Wave 2** *(blocked on Wave 1)*
 
