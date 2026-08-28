@@ -108,11 +108,11 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
+- [x] 198-06-PLAN.md — Irreversibility guards: branch/worktree triage + archive tags + register, delete the paid-critic and legacy-publish workflows with contract-test resurrection guards, Flake Detection broken-vs-flaky + dedup issue (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
+- [x] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
 
 **Notes carried from the approved plan:**
 
@@ -292,7 +292,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 6/7 | In Progress | |
+| 198. Green Bringup | v1.41 | 7/7 | In Progress | All plans executed. Not marked Complete: the phase goal "CI concludes green" is NOT met — `CI required` is red on the 79 deferred test-side defects (198-04). Origin is current and CI is 6m07s. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
