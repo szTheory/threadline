@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 10
 waived_count: 0
 fixed_count: 1
-total_count: 9
-last_updated: 2026-08-28T22:34:01.414Z
+total_count: 11
+last_updated: 2026-08-28T23:00:55.589Z
 ---
 
 # Broken Windows Ledger
@@ -24,6 +24,8 @@ last_updated: 2026-08-28T22:34:01.414Z
 | 7 | 198 | deviation | .github/rulesets/main.json |  | CR-05 (WARNING, carried-forward): the checked-in ruleset snapshot is never diffed against live GitHub state, so a bypass_actor added via the UI or enforcement flipped to evaluate would pass all three verify-branch-protection blocks silently -- directly undermines the accepted merge lock predicated on bypass_actors: []. | open |  | 2026-08-28T14:45:48.828Z |  |
 | 8 | 198 | deviation | .planning/phases/198-green-bringup/198-17-SUMMARY.md |  | verify.example_browser (desktop-chromium+mobile-chromium, full/unbounded) surfaces 28 pre-existing failures across 14 unrelated tests (find-mobile, phase-135/173/175/177-uat, screenshot-regression, screenshots, register) that CI's maxFailures:5 ceiling was masking -- previously invisible because the ceiling always aborted at the first 5. Unrelated to and not caused by this plan's 2-line fix (198-17); out of 198-17 scope; needs a follow-up gap-closure plan before the browser lane's next CI run can conclude success. | open |  | 2026-08-28T17:31:39.078Z |  |
 | 9 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 655 | New discovery (plan 198-27): mobile-chromium-only focus flake on #stress-dropdown-button (opens stress rendered widgets test), out of scope for 198-27's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T22:34:01.414Z |  |
+| 10 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 565 | New discovery (plan 198-28 post-merge re-validation): Exports queue Expired/File-unavailable text not found on both projects, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T23:00:49.827Z |  |
+| 11 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 38 | New discovery (plan 198-28 post-merge re-validation): exports dense state Expired/File-unavailable text not found on both projects, same shape as operator-accessibility.spec.ts:565 discovery, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis | open |  | 2026-08-28T23:00:55.589Z |  |
 
 ````json
 [
@@ -133,6 +135,30 @@ last_updated: 2026-08-28T22:34:01.414Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-28T22:34:01.414Z",
+    "resolved_at": null
+  },
+  {
+    "id": 10,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+    "line": 565,
+    "description": "New discovery (plan 198-28 post-merge re-validation): Exports queue Expired/File-unavailable text not found on both projects, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:00:49.827Z",
+    "resolved_at": null
+  },
+  {
+    "id": 11,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+    "line": 38,
+    "description": "New discovery (plan 198-28 post-merge re-validation): exports dense state Expired/File-unavailable text not found on both projects, same shape as operator-accessibility.spec.ts:565 discovery, likely seed-state shape changed by 198-25's exports seed rewrite; out of scope for 198-28's declared files, unassigned cluster, needs follow-up diagnosis",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-28T23:00:55.589Z",
     "resolved_at": null
   }
 ]

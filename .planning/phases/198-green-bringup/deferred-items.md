@@ -94,3 +94,34 @@
   timing issue, or non-determinism consistent with the mount-timing flake class 198-26 already
   documented for this same stress-preview surface). Needs a follow-up 198 (or successor-phase)
   gap-closure plan to diagnose and fix in the same disciplined, no-weakening manner as this plan.
+
+## Plan 198-28
+
+- **Status:** acknowledged (Task 1 only — plan halted at its Task 2 checkpoint)
+- **Acknowledged at:** 2026-08-28 (Plan 198-28 Task 1 execution)
+
+- Re-ran `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`
+  unbounded against the merged tree (post-198-23/24/25/26/27 HEAD
+  `8670d0215445dc8cd540ffd7942ded0479c1d72f`): **14 failed, 15 skipped, 311 passed (4.8m)**. Full
+  diagnosis, re-derivation of every `seed-sensitive? = yes` row, and the CI-contributing/local-only
+  split are in `.planning/audits/198-round4-playwright.md`.
+- **New discovery, out of this plan's scope, `undiagnosed`:** two new failures not previously
+  attributed to any cluster, both consistent in shape with 198-25's `demo/seed/exports.ex`
+  rewrite changing the seeded export-job state mix — `operator-accessibility.spec.ts:565:3`
+  ("keeps Exports queue and download states named and keyboard reachable", both projects) and
+  `operator-prove-mobile.spec.ts:38:3` ("exports dense state keeps readiness hierarchy and
+  ready-only primary action", both projects), all asserting `getByText(/Expired|File
+  unavailable/)` is visible and timing out. Neither file is in plan 198-28's `files_modified`
+  (`operator-screenshot-regression.spec.ts`, `operator-screenshots.spec.ts`,
+  `.planning/audits/198-round4-playwright.md` only), so diagnosing/fixing them is out of scope
+  here. Logged as WINDOWS.md entries #10 and #11. Needs a follow-up 198 (or successor-phase)
+  gap-closure plan to diagnose and fix in the same disciplined, no-weakening manner as this
+  round's other plans.
+- **Housekeeping correction:** cluster `198-28`'s row count was documented as "13 rows" in
+  198-26's and 198-27's headers, but the enumerated row list contains only 10 distinct rows.
+  This plan proceeds from the reconciled 10-row count rather than propagate the unverified 13
+  figure — see `.planning/audits/198-round4-playwright.md`'s housekeeping note.
+- **Checkpoint pending:** Task 2 (whether any committed PNG baseline under
+  `operator-screenshot-regression.spec.ts-snapshots/` may be regenerated) is a blocking
+  `checkpoint:decision` and has not been answered as of this entry. Task 3 (the actual fix) has
+  not run.
