@@ -171,11 +171,11 @@ Plans:
 
 **Wave 3** *(blocked on 198-20)*
 
-- [ ] 198-21-PLAN.md — Apply the recorded dispositions exactly, reconcile `CONTRIBUTING.md`'s CI Coverage claim in the same diff, and make the merge gate self-guarding with two derive-from-source contract tests (wave 3)
+- [x] 198-21-PLAN.md — Apply the recorded dispositions exactly, reconcile `CONTRIBUTING.md`'s CI Coverage claim in the same diff, and make the merge gate self-guarding with two derive-from-source contract tests (wave 3)
 
 **Wave 4** *(blocked on 198-21)*
 
-- [ ] 198-22-PLAN.md — Push `ci/198-round3`, observe one real CI run to completion, record the four-column measurement, set GREEN-04/GREEN-07 from that run alone (wave 4)
+- [x] 198-22-PLAN.md — Push `ci/198-round3`, observe one real CI run to completion, record the four-column measurement, set GREEN-04/GREEN-07 from that run alone (wave 4)
 
 **Round-3 notes:**
 
