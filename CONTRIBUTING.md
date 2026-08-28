@@ -427,6 +427,37 @@ This table is not documentation-on-trust:
 the actual `--project` flags in the workflows and fails if a project a workflow
 really runs is missing from this table.
 
+### `ci-required` needs: roster
+
+This is what the single required check `CI required` actually proves: every
+pull request merged to `main` proves each of the following jobs succeeded.
+`test/threadline/ci_topology_contract_test.exs` derives this list from
+`.github/workflows/ci.yml`'s `ci-required` job itself and fails in either
+drift direction — a job the aggregate requires but this list omits, or a job
+this list claims but the aggregate no longer requires (the silent-narrowing
+case, per D-42) — so a future edit to `needs:` cannot shrink this guarantee
+without also failing a test.
+
+- `verify-format`
+- `verify-credo`
+- `verify-compile-no-optional`
+- `verify-test`
+- `verify-hex-evaluator`
+- `verify-example-browser`
+- `verify-mechanical`
+- `verify-capture`
+- `verify-pgbouncer-topology`
+- `verify-docs`
+- `verify-hex-package`
+- `verify-release-shape`
+
+No `allowed-skips` or `allowed-failures` entry is documented here today,
+because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
+job above runs unconditionally. If either is ever introduced, it must be
+recorded here as `allowed-skips decision: D-NN` or `allowed-failures decision:
+D-NN`, citing the decision that authorized it; the roster contract test fails
+otherwise.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
