@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 13 plans (7 executed + 6 gap-closure)
+**Plans**: 18 plans (7 executed + 6 gap-closure + 5 gap-closure round 2)
 
 Plans:
 **Wave 1**
@@ -129,7 +129,35 @@ Plans:
 
 **Wave 3** *(blocked on 198-09, 198-10, 198-11, 198-12)*
 
-- [ ] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-04/CR-05 debt (wave 3)
+- [x] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-04/CR-05 debt (wave 3)
+
+**Gap closure, round 2** *(after CI run 33183920952 on PR #29 concluded FAILURE — 6 of 13 checks red, only 2 of the 7 baseline-red jobs fixed. GREEN-04 reopened, GREEN-07 still Pending. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1** *(fully parallel — disjoint files)*
+
+- [ ] 198-14-PLAN.md — **Tracer:** port `pgbouncer_topology_test.exs` through a real PgBouncer pool, and replace the observed-failure-list methodology with a static, run-independent call-site sweep (wave 1)
+- [ ] 198-15-PLAN.md — Remove `stress_router_test.exs`'s ambient dependency on fetched example-app deps; keep or relocate the runtime route-mount proof with a teeth proof (wave 1)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 198-16-PLAN.md — Diagnose the Tier A `scroll_cost` byte-stability drift from evidence, decide the remedy at a checkpoint, fix at the cause or halt honestly (wave 2)
+
+**Wave 3** *(blocked on 198-16)*
+
+- [ ] 198-17-PLAN.md — Attribute all 5 Playwright failures to causes, settle the "348 did not run" figure, fix at the cause without weakening a spec (wave 3)
+
+**Wave 4** *(blocked on Waves 1-3)*
+
+- [ ] 198-18-PLAN.md — Push, observe the CI run to completion, record run ID + per-check table + three-way job comparison, set GREEN-04/GREEN-07 from the measurement alone (wave 4)
+
+**Round-2 notes:**
+
+- The four engineering gaps are all GREEN-04; GREEN-07 is downstream of them and gets only a measurement plan. `origin/main` cannot be pushed directly — the ruleset requires a pull request, which is GREEN-08 working as designed. Work lands on `ci/198-gap-closure` (PR #29). **No branch-protection, ruleset, `enforcement`, or `bypass_actors` change is planned or permitted.**
+- **The structural lesson of round 1 is planned against, not just its symptoms.** 198-12's sweep was driven by the observed local failure list, which is blind to any tag-excluded or environment-gated test — `pgbouncer_topology_test.exs` carries `@moduletag :pgbouncer_topology` and is excluded from every local run. 198-14 therefore lands a source-level sweep that scans files whether or not they execute.
+- 198-15's defect is the same shape: a test that passed only because an executor had previously run `mix deps.get` in `examples/threadline_phoenix`. CI reported 1399 tests to local's 1398 — the test never ran locally at all.
+- 198-16 and 198-17 have genuinely unknown root causes, so both require a written diagnosis before any fix and both carry a maintainer checkpoint. **Both are permitted to halt honestly** rather than force green — a widened byte-stability gate or a loosened Playwright assertion would be exactly the laundering this phase exists to end.
+- The deferred `examples/threadline_phoenix` `DemoContractTest` demo-seed drift stays deferred. If it turns out to block 198-17, that surfaces at that plan's checkpoint as an explicit scope decision, never as silent absorption.
+- CR-03, CR-04, and CR-05 remain carried WARNING debt in `.planning/WINDOWS.md`, untouched.
 
 **Gap-closure notes:**
 
