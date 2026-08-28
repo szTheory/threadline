@@ -140,11 +140,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 198-16-PLAN.md — Diagnose the Tier A `scroll_cost` byte-stability drift from evidence, decide the remedy at a checkpoint, fix at the cause or halt honestly (wave 2)
+- [x] 198-16-PLAN.md — Diagnose the Tier A `scroll_cost` byte-stability drift from evidence, decide the remedy at a checkpoint, fix at the cause or halt honestly (wave 2)
 
 **Wave 3** *(blocked on 198-16)*
 
-- [ ] 198-17-PLAN.md — Attribute all 5 Playwright failures to causes, settle the "348 did not run" figure, fix at the cause without weakening a spec (wave 3)
+- [x] 198-17-PLAN.md — Attribute all 5 Playwright failures to causes, settle the "348 did not run" figure, fix at the cause without weakening a spec (wave 3)
 
 **Wave 4** *(blocked on Waves 1-3)*
 
