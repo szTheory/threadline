@@ -193,8 +193,8 @@ Plans:
 
 **Wave 2** *(blocked on 198-23)*
 
-- [ ] 198-24-PLAN.md — Fix the remaining `demo_contract_test.exs` clusters (SEED-05, SEED-02/04, WALK-04, D-05, D-13) at cause, boundary and ordering semantics made explicit (wave 2)
-- [ ] 198-26-PLAN.md — Attribute all 28 masked Playwright failures to named causes and assign clusters, then fix `register.spec.ts` + `operator-find-mobile.spec.ts` at cause (wave 2)
+- [x] 198-24-PLAN.md — Fix the remaining `demo_contract_test.exs` clusters (SEED-05, SEED-02/04, WALK-04, D-05, D-13) at cause, boundary and ordering semantics made explicit (wave 2)
+- [x] 198-26-PLAN.md — Attribute all 28 masked Playwright failures to named causes and assign clusters, then fix `register.spec.ts` + `operator-find-mobile.spec.ts` at cause (wave 2)
 
 **Wave 3** *(blocked on 198-24 / 198-26)*
 
