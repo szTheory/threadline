@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 18 plans (7 executed + 6 gap-closure + 5 gap-closure round 2)
+**Plans**: 22 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3)
 
 Plans:
 **Wave 1**
@@ -158,6 +158,32 @@ Plans:
 - 198-16 and 198-17 have genuinely unknown root causes, so both require a written diagnosis before any fix and both carry a maintainer checkpoint. **Both are permitted to halt honestly** rather than force green — a widened byte-stability gate or a loosened Playwright assertion would be exactly the laundering this phase exists to end.
 - The deferred `examples/threadline_phoenix` `DemoContractTest` demo-seed drift stays deferred. If it turns out to block 198-17, that surfaces at that plan's checkpoint as an explicit scope decision, never as silent absorption.
 - CR-03, CR-04, and CR-05 remain carried WARNING debt in `.planning/WINDOWS.md`, untouched.
+
+**Gap closure, round 3** *(after CI run 33197493051 on PR #29 concluded FAILURE — `CI required` red on 3 of 12 dependencies at 13m29s. 4 of the 7 baseline-red jobs are now genuinely green. GREEN-04 and GREEN-07 remain Pending; the other ten requirements are Complete and re-confirmed. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1**
+
+- [ ] 198-19-PLAN.md — **Tracer:** add the missing `ALTER DATABASE threadline_phoenix_test SET search_path` to `ci.yml`'s `current`-lane db-prep step, and close the call-site sweep's two reproduced regex blind spots (CR-01, CR-02) with red-then-green fixtures (wave 1)
+
+**Wave 2** *(blocked on 198-19)*
+
+- [ ] 198-20-PLAN.md — Decision brief and **blocking maintainer `checkpoint:decision`** on whether `CI required` keeps `needs:`-ing `verify-capture` and `verify-example-browser`, with each option's honest consequence for what the merge gate still proves (wave 2)
+
+**Wave 3** *(blocked on 198-20)*
+
+- [ ] 198-21-PLAN.md — Apply the recorded dispositions exactly, reconcile `CONTRIBUTING.md`'s CI Coverage claim in the same diff, and make the merge gate self-guarding with two derive-from-source contract tests (wave 3)
+
+**Wave 4** *(blocked on 198-21)*
+
+- [ ] 198-22-PLAN.md — Push `ci/198-round3`, observe one real CI run to completion, record the four-column measurement, set GREEN-04/GREEN-07 from that run alone (wave 4)
+
+**Round-3 notes:**
+
+- **Local evidence is inadmissible for GREEN-04 and GREEN-07** (D-01). Round 1 marked GREEN-04 Complete on local `mix test` and a real CI run refuted it the same day; that history is baked into 198-22's acceptance criteria, not only its prose.
+- **The two structurally-red lanes are a maintainer decision, not an executor one.** Removing a lane from `ci-required`'s `needs:` is rated one-way: `.github/rulesets/main.json` names only the single context `CI required`, so the gate's guarantee can shrink while the protection contract stays byte-identical. 198-20 gates it behind a `blocking-human` checkpoint and 198-21 lands a contract test so the next narrowing is a red test rather than an invisible YAML edit.
+- **The Tier-A `page.*` regeneration prohibition is not re-litigated** (maintainer-ratified twice). It appears in 198-20's option set only for completeness.
+- **GREEN-07's wording is not re-litigated.** The round-1 amendment rested on a false premise — `.planning/` was already tracked and public — and was correctly retracted.
+- Out of scope for round 3, recorded as such: CR-03/CR-04/CR-05 (WINDOWS.md #5/#6/#7), IN-01, IN-02, and plan 198-12's example-app `DemoContractTest` demo-seed deferral.
 
 **Gap-closure notes:**
 
