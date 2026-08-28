@@ -514,3 +514,235 @@ worktree. Recorded here only as a pre-push readiness signal: local `mix test` is
 green (twice, byte-identical), and the one `mix ci.all` failure is the
 already-acknowledged, already-deferred example-app demo-seed content class — not a
 new defect and not the `undefined_table` defect this plan's Task 1 targets.
+
+---
+
+## Round 3 (2026-08-28) — Measured CI run (Plan 198-22, gap-closure round 3)
+
+**Push.** Worktree HEAD `80bf701e7486962e538d16f213874cbba8f24115` (merge commit
+carrying all of 198-01 through 198-21, including 198-19's search_path fix and
+CR-01/CR-02 sweep closure, and 198-21's `needs:`-roster/ruleset-singleton
+contract tests) pushed to a **fresh** branch, distinct from round 2's
+`ci/198-gap-closure`:
+
+```
+$ git push origin HEAD:refs/heads/ci/198-round3
+ * [new branch]        HEAD -> ci/198-round3
+$ git ls-remote --heads origin ci/198-round3
+80bf701e7486962e538d16f213874cbba8f24115	refs/heads/ci/198-round3
+```
+
+`git ls-remote --heads origin ci/198-gap-closure` at the same time still resolves
+to round 2's SHA (`f748e43d7e4c1e63a0142569a55f57c7187e5cb1`) — the two branches
+are distinct refs; round 3's evidence cannot be confused with round 2's.
+
+`git log origin/main..HEAD --oneline | wc -l` at push time: **88** — `origin/main`
+does not yet carry these 88 commits; that gap closes only if/when this PR merges.
+
+Opened as a **draft** pull request against `main`, explicitly marked "DO NOT
+MERGE" in its body (a measurement vehicle, not a merge request):
+
+```
+$ gh pr create --draft --base main --head ci/198-round3 --title "ci(198): round-3 measurement — search_path fix + merge-gate self-guards" ...
+https://github.com/szTheory/threadline/pull/30
+```
+
+- **PR:** #30, state `OPEN`, `mergeStateStatus`: `BLOCKED` (unchanged from round
+  2's PR #29 pattern — `CI required` red blocks the merge, exactly as designed).
+
+### The run
+
+```
+$ gh run list --branch ci/198-round3 --limit 10 --json databaseId,conclusion,headSha,status,createdAt
+[{"createdAt":"2026-08-28T19:39:29Z","databaseId":33204829086,"headSha":"80bf701e7486962e538d16f213874cbba8f24115","status":"in_progress"}]
+```
+
+Exactly one run exists for this branch/head SHA — no ordering ambiguity; this run
+is authoritative by construction, not by selection among competitors.
+
+```
+$ gh run view 33204829086 --json status,conclusion,createdAt,updatedAt,attempt,headSha
+{"attempt":1,"conclusion":"failure","createdAt":"2026-08-28T19:39:29Z","headSha":"80bf701e7486962e538d16f213874cbba8f24115","status":"completed","updatedAt":"2026-08-28T19:52:58Z"}
+```
+
+- **Run ID:** `33204829086`
+- **Head SHA:** `80bf701e7486962e538d16f213874cbba8f24115` (matches the recorded
+  local head SHA exactly)
+- **Conclusion:** `failure`
+- **Attempt:** `1` — no rerun, re-dispatch, or selective retry occurred at any
+  point; `gh run watch` observed the single run to its single, natural completion
+  (background-watched to `--exit-status`, which correctly reported non-zero since
+  the run's own conclusion is `failure` — not a tooling error).
+- **Wall clock:** `19:39:29Z` → `19:52:58Z` = **13m29s** — byte-identical to
+  round 2's wall clock, and well inside the ≤20-minute clause on its own. As in
+  round 2, the *other* GREEN-07 clause (`CI required` must conclude `success`) is
+  what fails this run, not time.
+
+### Per-job table (all 13 jobs the run reported, `CI required` called out separately — 14 checks total, matching round 2's count)
+
+| Check | Conclusion | Duration (started→completed) |
+|---|---|---|
+| Check formatting | ✓ success | 19:39:32 → 19:39:50 (18s) |
+| Run Credo (strict) | ✓ success | 19:39:33 → 19:40:52 (1m19s) |
+| Compile without optional deps | ✓ success | 19:39:32 → 19:40:47 (1m15s) |
+| Run test suite (min) | ✓ success | 19:39:32 → 19:43:51 (4m19s) |
+| Run test suite (current) | ✗ **failure** | 19:39:32 → 19:46:53 (7m21s) |
+| Hex evaluator smoke (threadline from hex.pm) | ✓ success | 19:39:32 → 19:40:34 (1m2s) |
+| PgBouncer transaction topology | ✓ success | 19:39:32 → 19:41:23 (1m51s) |
+| Mechanical checker (committed scorecards) | ✓ success | 19:39:32 → 19:40:59 (1m27s) |
+| Tier A capture lane (byte-stable evidence) | ✗ **failure** | 19:39:32 → 19:47:22 (7m50s) |
+| Example app browser E2E (Playwright) | ✗ **failure** | 19:39:32 → 19:52:50 (13m18s) |
+| Build ExDoc (dev) | ✓ success | 19:39:32 → 19:40:58 (1m26s) |
+| Hex package tarball | ✓ success | 19:39:32 → 19:39:48 (16s) |
+| Release metadata (version / changelog) | ✓ success | 19:39:32 → 19:39:41 (9s) |
+| **`CI required` (aggregate)** | **✗ failure** | 19:52:53 → 19:52:57 (4s) |
+
+**Job-conclusion collection was non-empty: 14 conclusions collected (13 named
+jobs + the aggregate), not zero — this is treated as successful collection, not
+failed collection.**
+
+`CI required`'s own `re-actors/alls-green` step ("Decide whether all needed jobs
+succeeded") reported, verbatim from its own job-status summary:
+
+```
+❌ Some of the required to succeed jobs failed 😢😢😢
+✓ verify-format → 🟢 success [required to succeed]
+✓ verify-credo → 🟢 success [required to succeed]
+✓ verify-compile-no-optional → 🟢 success [required to succeed]
+❌ verify-test → 🔴 failure [required to succeed]
+✓ verify-hex-evaluator → 🟢 success [required to succeed]
+❌ verify-example-browser → 🔴 failure [required to succeed]
+✓ verify-mechanical → 🟢 success [required to succeed]
+❌ verify-capture → 🔴 failure [required to succeed]
+✓ verify-pgbouncer-topology → 🟢 success [required to succeed]
+✓ verify-docs → 🟢 success [required to succeed]
+✓ verify-hex-package → 🟢 success [required to succeed]
+✓ verify-release-shape → 🟢 success [required to succeed]
+```
+
+All 12 `needs:` members are accounted for by name in this output — 9 `success`,
+3 `failure` (`verify-test`, `verify-example-browser`, `verify-capture`). **Zero**
+members report `skipped` or `cancelled`. This is the empty-edge check the plan's
+must-haves require: a zero-length collection would be failed collection, not a
+pass — here the collection has exactly 12 entries, matching the `needs:` list's
+own cardinality, and none were laundered through `skipped`/`cancelled`.
+
+### Four-column baseline comparison — "N of 7 now green"
+
+Extending round 2's three-way table (baseline `33138291361`, round 1
+`33183920952`, round 2 `33197493051`) with round 3 (`33204829086`), all four
+columns fetched fresh (round 3 via `gh api .../actions/runs/33204829086/jobs`,
+carried from round 2's own three-way table for the first three columns, which
+were themselves independently fetched, not narrated):
+
+| Job | Baseline (33138291361) | Round 1 (33183920952) | Round 2 (33197493051) | Round 3 (33204829086) |
+|---|---|---|---|---|
+| Compile without optional deps | ✗ failure | ✓ success | ✓ success | ✓ success |
+| Mechanical checker (committed scorecards) | ✗ failure | ✓ success | ✓ success | ✓ success |
+| PgBouncer transaction topology | ✗ failure | ✗ failure | ✓ success | ✓ success |
+| Run test suite (min) | ✗ failure | ✗ failure | ✓ success | ✓ success |
+| Run test suite (current) | ✗ failure | ✗ failure | ✗ failure | ✗ failure (different cause — see below) |
+| Tier A capture lane (byte-stable evidence) | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged) |
+| Example app browser E2E (Playwright) | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged) |
+| **`CI required` (aggregate)** | ✗ failure | ✗ failure | ✗ failure | ✗ failure |
+
+**4 of the 7 originally-red baseline jobs are green as of round 3 — unchanged
+from round 2's count.** No new job crossed to green this round, and none
+regressed. This is the honest, expected outcome per D-41: round 3's own scope
+(198-19/198-21) targeted the *cause* of `Run test suite (current)`'s failure,
+not the job's conclusion — the search_path defect was fixed, but a different,
+previously-masked defect underneath it (the demo-seed content class) now
+determines the job's red conclusion. **3 of the 7 remain red, for three
+independently-classified reasons**, none of them "expected red without a
+citation":
+
+1. **`Run test suite (current)`** — **newly discovered cause, distinct from round
+   2's.** Round 2's cause (missing `ALTER DATABASE ... SET search_path` at
+   `ci.yml:235-240`) is **closed**: `grep -c "undefined_table"` against this
+   run's full job log returns **0**, and all 9 failing tests in `mix
+   verify.example`'s output are `Ecto.NoResultsError` / assertion-mismatch /
+   one `ExUnit.TimeoutError` against seeded-data shapes, never a
+   `Postgrex.Error 42P01 (undefined_table)`. This is the **8 demo-seed content
+   mismatches D-41 named in advance** ("`Run test suite (current)` is expected
+   to conclude FAILURE on plan 198-22's measured CI run for this reason, even
+   though the originally-named search_path cause is closed") — measured here as
+   **9** failures, not 8, consistent with 198-19-SUMMARY's own observation that
+   the failure count and specific test names are non-deterministic run-to-run
+   (demo-seed content ordering), not a stable regression. **Citation: D-41,
+   pointing to `deferred-items.md` Plan 198-12 entry** (demo-seed/walkthrough
+   content mismatches acknowledged and deferred across Phases 177, 179, 180,
+   182). Two stray Postgres-server-log lines reading `ERROR: relation
+   "audit_transactions" does not exist` do appear in this job's container-log
+   dump (`Stop containers` step, timestamped `19:43:37Z`, coincident with the
+   *root* `mix verify.test` step's own completion at `19:43:42Z`, not with the
+   `mix verify.example` step that starts afterward) — these are two isolated
+   database-server log lines, not test failures (the root suite step itself
+   reported `1423 tests, 0 failures, 1 excluded` immediately after), and most
+   plausibly correspond to the root suite's own negative-path contract tests
+   that intentionally query without the `threadline` schema prefix to prove
+   such access fails (e.g. `storage_schema_prefix_contract_test.exs`). Recorded
+   here verbatim rather than silently omitted, but not classified as a
+   `verify.example` test failure — none of the 9 named failures cite this
+   error.
+2. **`Tier A capture lane (byte-stable evidence)`** — **previously known and
+   deferred cause, unchanged. Citation: D-39, pointing to
+   `.planning/audits/198-tier-a-byte-stability.md`.** The byte-stability
+   assertion fails with `scroll_cost` drift values essentially identical to
+   round 2's: `18.803→40.8`, `19.85→41.953`, `19.038→36.504` (round 2 measured
+   `18.803→40.8`, `19.85→41.953`, `19.038→36.504` — byte-identical), confirming
+   the drift is deterministic and reproducible, not measurement noise, exactly
+   as 198-16 diagnosed. No remedy was attempted this round (Tier-A `page.*`
+   regeneration remains forbidden per D-39/the milestone-level prohibition).
+3. **`Example app browser E2E (Playwright)`** — **previously known and
+   deferred cause, unchanged. Citation: D-40, pointing to `deferred-items.md`
+   Plan 198-17 entry and `.planning/WINDOWS.md` #8.** `5 failed`, `305 did not
+   run`, `50 passed (10.8m)` — identical counts to round 2. All 5 failing
+   tests, by name, are members of the same 28-failure set: `[desktop-chromium]
+   › operator-find-mobile.spec.ts:48:3`, `:66:3`, `:103:3`,
+   `operator-phase-135-uat.spec.ts:76:3`, `operator-phase-173-uat.spec.ts:74:3`
+   — an exact name-for-name match against round 2's own 5-failure list. No fix
+   was attempted this round (out of 198-19's/198-21's scope per D-40).
+
+No lane was made non-blocking by the 198-20 decision (D-39/D-40/D-41 were all
+"keep in `needs:`"), so no job's absence from this table needs a
+non-blocking-by-decision citation — all three originally-red-and-still-red jobs
+are accounted for above by name.
+
+### Wall-clock ≤20-minute evaluation
+
+**Measured: 13m29s (19:39:29Z → 19:52:58Z).** `13m29s ≤ 20m00s` — **the
+≤20-minute clause is satisfied**, byte-identical to round 2's own 13m29s figure.
+This is not the clause blocking GREEN-07; the blocking clause is `CI required`'s
+`success` requirement, addressed next.
+
+### `CI required` conclusion
+
+**Literal string returned by `gh run view 33204829086 --json conclusion` for the
+`CI required` job: `"failure"`.** Is it exactly `success`? **No.**
+
+### `mergeStateStatus`
+
+```
+$ gh pr view 30 --json mergeStateStatus,state,number,url
+{"mergeStateStatus":"BLOCKED","number":30,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/30"}
+```
+
+### Headline claim — true, false, or true-subject-to-a-merge
+
+The phase goal's headline claim — "`origin/main` carries every local commit and
+its CI concludes green" — is **false** as of this measured run. Not
+true-subject-to-a-merge either: PR #30's `mergeStateStatus` is `BLOCKED`, not
+`CLEAN`/`UNSTABLE`, precisely because `CI required` concluded `failure` on this
+run, and branch protection (`.github/rulesets/main.json`, unchanged —
+`gh api repos/szTheory/threadline/rulesets/21702804 --jq
+'{enforcement, bypass_actors}'` returns `{"bypass_actors":[],"enforcement":"active"}`,
+identical to round 2) refuses the merge while that stands. `origin/main`
+remains 88 commits behind local `HEAD` (unchanged from the push-time count
+above — nothing has merged).
+
+### Re-run discipline
+
+No check in this run was re-run, re-dispatched, or selectively retried for any
+reason. `attempt: 1` for the run as a whole. `gh run watch` observed the single
+run to its single, natural completion.
+new defect and not the `undefined_table` defect this plan's Task 1 targets.
