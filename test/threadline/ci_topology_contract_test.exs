@@ -114,6 +114,61 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.doc_contract")
   end
 
+  # Globs BOTH extensions on purpose. GitHub Actions honours .yaml as well as
+  # .yml, so a guard that only globbed .yml could be defeated by a rename.
+  defp workflow_paths do
+    @repo_root
+    |> Path.join(".github/workflows/*.{yml,yaml}")
+    |> Path.wildcard()
+    |> Enum.map(&Path.relative_to(&1, @repo_root))
+    |> Enum.sort()
+  end
+
+  # GREEN-09 / D-24 / D-25 resurrection guard.
+  #
+  # Globs every workflow rather than naming ui-critic.yml, so re-introducing the
+  # paid lane under ANY filename is caught. The needle is built by concatenation
+  # because this file is itself read by nothing that scans for it — but the
+  # concatenation also keeps a naive `grep -rl ANTHROPIC .github/` gate honest if
+  # this guard is ever moved under .github/.
+  test "no workflow references the paid critic API key (GREEN-09 resurrection guard)" do
+    needle = "ANTHROPIC" <> "_API_KEY"
+    paths = workflow_paths()
+
+    refute paths == [],
+           "found no workflow files to scan — the glob is broken, and a broken glob " <>
+             "would launder a false pass for this guard"
+
+    for path <- paths do
+      refute String.contains?(read_rel!([path]), needle),
+             "#{path} references #{needle} — the paid critic lane must stay structurally " <>
+               "unreachable from CI (GREEN-09). Deleting the workflow, not defaulting its " <>
+               "score input to false, is what satisfies this requirement."
+    end
+  end
+
+  # GREEN-10 / D-26 / D-25 resurrection guard.
+  #
+  # Asserts LIST EQUALITY against a one-element list, not a count and not a bare
+  # refutation. A count would pass if the one publish path moved to the wrong
+  # workflow; a refutation would pass vacuously if the glob returned nothing.
+  # Both failure modes are real and both are excluded by equality.
+  test "exactly one workflow invokes the Hex publish command (GREEN-10 resurrection guard)" do
+    publishers =
+      Enum.filter(workflow_paths(), fn path ->
+        String.contains?(read_rel!([path]), "mix hex.publish")
+      end)
+
+    assert publishers == [".github/workflows/release.yml"],
+           "expected exactly one publish path, release.yml, but found: " <>
+             inspect(publishers) <>
+             ". release.yml is the only workflow carrying the five pre-publish gates " <>
+             "(CI-green poll, hard needs:, verify-release-shape + hex.build, the " <>
+             "already-published idempotency skip, and post-publish verification). A second " <>
+             "publish path races it and wins, because publishing is irreversible in effect " <>
+             "and the gated path polls for up to 30 minutes."
+  end
+
   test "adoption pilot backlog carries CI topology contract marker" do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
     assert String.contains?(doc, "CI-PGBOUNCER-TOPOLOGY-CONTRACT")

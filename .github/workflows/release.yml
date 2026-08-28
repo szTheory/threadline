@@ -286,7 +286,21 @@ jobs:
   publish-hex:
     name: Publish to Hex.pm
     runs-on: ubuntu-24.04
+    # D-27: a human click in front of the irreversible step. The `production-hex`
+    # Environment carries a required-reviewer rule, so this job PAUSES for approval
+    # before any publish. Hex.pm offers roughly a one-hour revert window and then a
+    # publish is a support request, so a compromised workflow change still cannot
+    # ship a release unattended.
+    #
+    # This gate is added IN FRONT OF the five existing pre-publish gates, never in
+    # place of any of them: gate-ci-green (needs:, below), the hard needs:
+    # dependency, verify-release-shape + hex.build, the already-published
+    # idempotency skip, and post-publish verification. Removing any of those to
+    # make a release go green is out of contract.
+    environment: production-hex
     # deps.get + hex.build + publish + a 36 x 10s (6 min) Hex-index poll.
+    # Note: approval wait time does NOT count against this bound — GitHub starts
+    # the job clock after the reviewer approves.
     timeout-minutes: 30
     needs: [release-ref, gate-ci-green]
     if: always() && needs.release-ref.result == 'success' && needs.gate-ci-green.result == 'success'
@@ -346,6 +360,23 @@ jobs:
 
       - name: Publish to Hex.pm
         if: env.DRY_RUN == 'true' || steps.idempotency.outputs.skip != 'true'
+        # ---------------------------------------------------------------------
+        # HEX AUTHENTICATION — TRUSTED-PUBLISHING SWAP POINT (D-27)
+        #
+        # Everything between this marker and the END marker is the ONLY place
+        # this pipeline authenticates to Hex.pm. It is deliberately one
+        # contiguous region so that migrating to Hex trusted publishing / OIDC
+        # is a single-block replacement rather than a diff spread across the job.
+        #
+        # Why a long-lived key is still here: Hex trusted publishing was
+        # announced but is not generally available, so the key stays and is
+        # MITIGATED rather than pretended away — scoped to publish-only, and
+        # reachable only after the `production-hex` required-reviewer approval
+        # declared at the top of this job.
+        #
+        # When Hex ships OIDC, replace this whole block with the OIDC exchange
+        # and add `id-token: write` to the job `permissions:`. Do not scatter
+        # the replacement; keep it one block so the next swap is as cheap.
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: |
@@ -354,6 +385,7 @@ jobs:
             echo "::error::Set repository secret HEX_API_KEY to enable publish."
             exit 1
           fi
+          # --- END HEX AUTHENTICATION SWAP POINT -------------------------------
           if [[ "$DRY_RUN" == "true" ]]; then
             mix hex.publish --dry-run --yes
           else
