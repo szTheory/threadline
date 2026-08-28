@@ -432,3 +432,77 @@ Finished in 4.1 seconds (0.00s async, 4.1s sync)
   change — the seeded content was already correct for all six of this plan's chartered describe
   blocks, confirmed by the pre-task 13/0 measurement above.
 
+## Measured after-count (198-24)
+
+Ran `mix verify.example` twice from the repository root, after all `demo_contract_test.exs` edits
+above (D-05/D-13 fixes included — see disposition record above; both tasks landed in the same
+commit since neither required a separate cluster of source-level fixes):
+
+```
+$ mix verify.example
+...
+Finished in 36.7 seconds (0.1s async, 36.6s sync)
+109 tests, 1 failure
+** (Mix) verify.example failed (2)
+```
+
+```
+$ mix verify.example
+...
+Finished in 16.5 seconds (0.1s async, 16.3s sync)
+109 tests, 1 failure
+** (Mix) verify.example failed (2)
+```
+
+**Before-count (plan 198-23's closing after-count): 1. After-count (this plan): 1 (both runs,
+consistent). Delta: 0.**
+
+Stated plainly, per the fix protocol's instruction not to claim an improvement the numbers do not
+support: **this plan does not lower `mix verify.example`'s measured failure count.** The single
+remaining failure on both after-runs is the identical failure plan 198-23 named and left
+untouched, unchanged by this plan's work:
+
+- `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` — `admin export status shows seeded job states`
+  (`walkthrough_happy_path_test.exs:145`, `assert html =~ "Export expired"`) — confirmed unrelated
+  to `demo_contract_test.exs`'s clusters (a `Governance.ExportJob` expiry-label bug in
+  `Threadline.OperatorSurface.Presentation`, not touched by anything this plan's `files_modified`
+  list authorized). Already logged in `deferred-items.md`'s Plan 198-23 entry; no new dated entry
+  added here since this is the same failure, not a newly-surfaced one.
+
+`grep -c "undefined_table"` over both after-run outputs: not present in either — the search_path
+defect closed in a prior round remains closed.
+
+This plan's actual, honestly-stated contribution is not a lower failure count (the six clusters it
+was chartered to fix were already green, per the "Starting state" measurement above) but three
+hardening fixes to `demo_contract_test.exs` that close vacuous-pass and literal-pin rot risk before
+either could mask a future regression — verified with a reproducible red-then-green teeth proof
+for the D-05 vacuous-pass guard and a structural proof for the WALK-04 manifest-read fix.
+
+No new `deferred-items.md` entry was required by this plan — the one residual failure was already
+dated and attributed under plan 198-23's entry, and this plan surfaced no new failure.
+
+**Non-deterministic timeout observed during this plan's own repeated verification runs.** While
+re-running `demo_contract_test.exs` to confirm the "two consecutive runs" acceptance criterion,
+one run (of six total local runs of this file during 198-24) hit:
+
+```
+1) test SEED-02 idempotency and SEED-04 reset recovery double demo.reset keeps heroes and
+   semantic fingerprint stable (ThreadlinePhoenix.DemoContractTest)
+   ** (ExUnit.TimeoutError) test timed out after 60000ms
+   ... Postgrex.Protocol.msg_recv ... Ecto.Adapters.SQL.Sandbox.unboxed_run ...
+   ThreadlinePhoenix.Demo.Reset.run/1
+```
+
+This is the same failure CLASS already named `undiagnosed`/`non-deterministic` in plan 198-23's
+inventory (row 1: an `ExUnit.TimeoutError` on a Postgrex receive during a `Reset`/`Seed`
+`insert_all`, consistent with connection-pool contention rather than a stable defect) — here
+triggered by `Reset.run/1` inside the `SEED-02`/`SEED-04` double-reset test rather than by
+`Seed.Exports.run/1`, but the same underlying symptom (a blocked `Postgrex.Protocol.msg_recv`
+during a bulk seed operation). The two immediately-following runs (and the two consecutive runs
+recorded above as this task's official "post-fix, two consecutive runs" evidence) both passed
+13/0. Recorded here as a discovery, per the fix protocol's step 6, rather than silently dropped —
+not attributed to this plan's edits (this test's assertions were not touched by 198-24; only the
+D-05/WALK-04 tests were edited, and this failure is in the SEED-02/04 test, unedited by this
+plan), and not something this plan's scope authorizes fixing (it would require tuning the test
+database connection pool size or Postgrex timeout configuration, outside `files_modified`).
+
