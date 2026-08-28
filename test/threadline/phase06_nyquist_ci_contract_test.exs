@@ -128,12 +128,24 @@ defmodule Threadline.Phase06NyquistCIContractTest do
   # doc alignment) with static-parse guards. Green-by-construction: they land
   # AFTER the Wave-2 workflow/doc edits, so no test is born red (D-27).
 
-  @workflow_files [
-    [".github", "workflows", "ci.yml"],
-    [".github", "workflows", "release.yml"],
-    [".github", "workflows", "flake-detection.yml"],
-    [".github", "workflows", "hex-publish.yml"]
-  ]
+  # Derived by glob, not hardcoded. The previous literal list broke the moment
+  # Phase 198 deleted ui-critic.yml and hex-publish.yml (File.Error on a missing
+  # path), and it had silently never covered browser-full.yml at all — so the
+  # :latest guard below was not actually checking every workflow it claimed to.
+  # A hardcoded filename list rots in both directions: it fails when a file goes
+  # away and under-asserts when one appears. Globbing fixes both.
+  defp workflow_files do
+    paths =
+      @repo_root
+      |> Path.join(".github/workflows/*.{yml,yaml}")
+      |> Path.wildcard()
+      |> Enum.sort()
+
+    refute paths == [],
+           "found no workflow files to scan — a broken glob would launder a false pass here"
+
+    paths
+  end
 
   # The canonical stable job keys, derived from ci.yml (order-independent set).
   defp ci_job_keys do
@@ -211,11 +223,10 @@ defmodule Threadline.Phase06NyquistCIContractTest do
 
   describe "CI-02 (Plan 192-04 Task 1, D-26): no mutable rolling image tags" do
     test "no workflow file pins a service image to the mutable :latest tag" do
-      for segments <- @workflow_files do
-        content = read_rel!(segments)
-
-        refute String.contains?(content, ":latest"),
-               "#{Path.join(segments)} must not pin any image to the rolling :latest tag"
+      for path <- workflow_files() do
+        refute String.contains?(File.read!(path), ":latest"),
+               "#{Path.relative_to(path, @repo_root)} must not pin any image to the " <>
+                 "rolling :latest tag"
       end
     end
   end
