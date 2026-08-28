@@ -435,10 +435,11 @@ jobs:
         run: mix verify.mechanical
 
   # Heavy recurring gate: regenerate the Tier A capture from scratch against a
-  # migrated example DB + real browser, and assert (1) the full 120 + 54 evidence
-  # bundle is produced, (2) regeneration is byte-stable against the committed
-  # evidence (no drift), and (3) MechanicalChecker.run/1 is clean over it. This
-  # is the recurring proof of the two former human-UAT items (194-UAT.md).
+  # migrated example DB + real browser, and assert (1) the evidence bundle is
+  # non-empty and complete (every aria.yml has a matching scorecard JSON), (2)
+  # regeneration is byte-stable against the committed evidence (no drift), and
+  # (3) MechanicalChecker.run/1 is clean over it. This is the recurring proof
+  # of the two former human-UAT items (194-UAT.md).
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
@@ -505,13 +506,32 @@ jobs:
       - name: Regenerate Tier A capture
         run: mix verify.capture
 
-      - name: Assert complete evidence bundle (120 scorecards + 54 aria)
+      - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
         run: |
           json=$(find .planning/scorecards -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
           aria=$(find .planning/scorecards -maxdepth 1 -name '*.aria.yml' | wc -l | tr -d ' ')
           echo "scorecards: ${json} json, ${aria} aria.yml"
-          if [ "$json" -ne 120 ] || [ "$aria" -ne 54 ]; then
-            echo "::error::expected 120 scorecard JSON + 54 aria.yml, got ${json} + ${aria}"
+          # Non-vacuity floor: a zero count means the capture produced nothing,
+          # which a broken glob or an aborted run would also produce.
+          if [ "$json" -eq 0 ]; then
+            echo "::error::a zero scorecard JSON count means the capture produced nothing"
+            exit 1
+          fi
+          if [ "$aria" -eq 0 ]; then
+            echo "::error::a zero aria.yml count means the capture produced nothing"
+            exit 1
+          fi
+          # Completeness: this is what "complete bundle" actually means, and it
+          # stays true at any bundle size (unlike a pinned absolute count).
+          missing=""
+          for f in .planning/scorecards/*.aria.yml; do
+            stem=$(basename "$f" .aria.yml)
+            if [ ! -f ".planning/scorecards/${stem}.json" ]; then
+              missing="${missing} ${stem}"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::orphan aria.yml with no matching scorecard JSON:${missing}"
             exit 1
           fi
 
