@@ -487,7 +487,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Queued"
         assert html =~ "Processing"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
         assert html =~ "Failed"
         refute html =~ "Download export"
 
@@ -517,7 +517,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         refute html =~ "Download export"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
       end
 
       test "shows the persisted failure reason for failed jobs", %{
@@ -626,7 +626,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Unavailable"
         assert html =~ "Download export"
         assert html =~ "Processing"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
         assert html =~ "File unavailable"
         assert html =~ "tl-secondary-ref"
         assert html =~ long_correlation

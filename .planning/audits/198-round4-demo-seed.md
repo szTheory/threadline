@@ -506,3 +506,311 @@ D-05/WALK-04 tests were edited, and this failure is in the SEED-02/04 test, uned
 plan), and not something this plan's scope authorizes fixing (it would require tuning the test
 database connection pool size or Postgrex timeout configuration, outside `files_modified`).
 
+---
+
+## Plan 198-25: walkthrough happy-path + evidence-plane clusters, ExUnit.TimeoutError diagnosis
+
+**Written per plan 198-25.** This round's own primary objective (per the executing agent's
+dispatch context) was the one residual failure plan 198-23/198-24 both named and left
+`undiagnosed`: `ThreadlinePhoenixWeb.WalkthroughHappyPathTest`'s
+`admin export status shows seeded job states` (`assert html =~ "Export expired"`).
+
+## Re-inventory after 198-23/198-24 (198-25)
+
+Ran the two target files fresh against the repository's shared local `threadline_phoenix_test`
+database, before any edit (after `mix deps.get` in both `examples/threadline_phoenix` and the
+repo root, both worktrees having started with unfetched deps):
+
+| # | Module | Test name | Line | Failure class | Verbatim message | Run 1? | Run 2? |
+|---|--------|-----------|------|----------------|-------------------|--------|--------|
+| 1 | `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` | `WALK-03-01 correlation filter surfaces hero #4521 close transaction` | `walkthrough_happy_path_test.exs:163` | `ExUnit.TimeoutError` | `test timed out after 60000ms` — stacktrace: `Postgrex.Protocol.msg_recv` blocked inside `ThreadlinePhoenix.Demo.Seed.Exports.run/1`'s `insert_all` into `threadline_export_jobs`, called from the test's own `setup` (`seed_demo_fiction!/0`) | yes | **no — non-deterministic, see diagnosis below** |
+| 2 | `ThreadlinePhoenixWeb.WalkthroughHappyPathTest` | `admin export status shows seeded job states` | `walkthrough_happy_path_test.exs:145` (assertion `:158`) | Assertion mismatch (`=~`) | `assert html =~ "Export expired" / right: "Export expired"` — string absent from the rendered page | yes | yes |
+
+`walkthrough_evidence_test.exs`'s three tests (`WALK-04-01`, `WALK-04-02`, `WALK-04-03`) were
+**already passing** on both runs (3 tests, 0 failures) — the predicted side effect of plans
+198-23/198-24's shared cause-group-A fix, exactly the same pattern 198-24 found for its own
+chartered clusters. This plan's premise that the evidence-plane tests still had cluster-level
+failures did not hold; per the fix protocol, this is stated plainly rather than credited as a
+fix.
+
+**Union baseline for this round: 2** (row 1's timeout marked non-deterministic per the same
+convention as 198-23's row 1; row 2 is the one real target).
+
+## Root-cause diagnosis: "Export expired" (assert html =~ "Export expired")
+
+Confirmed via direct source read, not the seed side plan 198-23/198-24 already ruled out:
+
+1. `lib/threadline/operator_surface/presentation.ex`'s `export_action_label/2` computes the
+   spec-correct `"Export expired"` label for a `status == "completed"` job whose `expires_at` has
+   passed — but **this function is never called from any LiveView template.** `grep -rn
+   "export_action_label" lib/` shows only its own definition; no caller.
+2. The actually-rendered page (`lib/threadline/operator_surface/live/export_status_live.ex`,
+   line ~308: `<span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>`)
+   calls a **separate, private, duplicate** function (`export_job_status_label/1`) that computes
+   the same completed+expired condition but returns the literal `"Expired"` instead.
+3. The product's own design record settles which string is correct: `.planning/milestones/
+   v1.31-phases/137-prove-cluster-polish/137-UI-SPEC.md`, `137-CONTEXT.md` (D-23), and
+   `137-01-PLAN.md` all specify `Export expired` as the intended copy for this state, and
+   `test/threadline/operator_surface/presentation_test.exs:84` already asserts
+   `Presentation.export_action_label(expired, now: @now) == "Export expired"` — i.e. the
+   `Presentation` module is the spec-correct, already-tested implementation; the LiveView's
+   private duplicate had silently drifted from it.
+
+**Attribution:** `assertion-rotted`-adjacent but at the **production-code** layer, not the seed
+or the example-app test: two parallel copy-label functions for the same state diverged, and the
+walkthrough test's expectation (`"Export expired"`) was the one that matched the documented spec,
+not the one the LiveView actually rendered. Per this plan's own `<measured_starting_state>`
+instruction to "diagnose the real cause ... wherever it genuinely lives" (D-01's ceiling still
+applies — this is a local readiness signal, not a GREEN-04 verdict), this was fixed in
+`lib/threadline/operator_surface/live/export_status_live.ex` — outside this plan's pre-declared
+`files_modified`, same authorized-by-diagnosis pattern 198-23 used for `retention_tail.ex`.
+
+**Fix applied:**
+- `lib/threadline/operator_surface/live/export_status_live.ex`: `export_job_status_label/1`'s
+  `status == "completed" and expired? -> "Expired"` branch changed to `"Export expired"`,
+  matching `Presentation.export_action_label/2` and the 137-series spec.
+- Three sibling assertions in the ROOT library's own test suite that had been written against the
+  drifted (incorrect) `"Expired"` string were updated to the spec-correct `"Export expired"` —
+  not weakened, made stricter/more specific:
+  `test/threadline/operator_surface/live/export_status_live_test.exs` (3 sites: lines ~490, ~520,
+  ~629, all `assert html =~ "Expired"` → `assert html =~ "Export expired"`) and
+  `test/threadline/operator_surface/copy_contract_test.exs` (1 site: the source-block literal
+  list `["Queued", "Processing", "Failed", "Expired", "File unavailable"]` → `"Export expired"`
+  replacing `"Expired"`).
+- Verified no other occurrence of the bare word `Expired` exists anywhere in `lib/` or `test/`
+  outside these four sites (`grep -rn '"Expired"' test/ lib/ examples/` before the fix showed
+  exactly these four call sites plus the one production line; one unrelated code-comment hit in
+  `test/threadline/export/cleanup_test.exs` is a comment, not an assertion).
+- Root library full suite (`mix test` at repo root): **1422 tests, 0 failures** after the fix —
+  no regression outside the four intentionally-updated sites.
+
+## Red-then-green teeth proof (198-25, happy path)
+
+**Pre-fix (red)**, `cd examples/threadline_phoenix && MIX_ENV=test mix test
+test/threadline_phoenix_web/walkthrough_happy_path_test.exs`:
+
+```
+  1) test §3 daily use (WALK-02-01..03) admin export status shows seeded job states (ThreadlinePhoenixWeb.WalkthroughHappyPathTest)
+     test/threadline_phoenix_web/walkthrough_happy_path_test.exs:145
+     Assertion with =~ failed
+     code:  assert html =~ "Export expired"
+     left:  "<!DOCTYPE html>...<" <> ...
+     right: "Export expired"
+     stacktrace:
+       test/threadline_phoenix_web/walkthrough_happy_path_test.exs:158: (test)
+
+Finished in 4.7 seconds (0.00s async, 4.7s sync)
+12 tests, 1 failure
+```
+
+**Fix applied** (see diagnosis above): one-line label-string change in
+`export_status_live.ex`, plus the three sibling root-library assertion updates.
+
+**Post-fix (green)**, two consecutive runs, isolated per-agent test database (see "Local
+multi-worktree DB isolation" discovery below for why this partition was used instead of the
+repo's default shared `threadline_phoenix_test`):
+
+```
+$ MIX_TEST_PARTITION=_198_25 MIX_ENV=test mix test test/threadline_phoenix_web/walkthrough_happy_path_test.exs
+Finished in 4.5 seconds (0.00s async, 4.5s sync)
+12 tests, 0 failures
+
+$ MIX_TEST_PARTITION=_198_25 MIX_ENV=test mix test test/threadline_phoenix_web/walkthrough_happy_path_test.exs
+Finished in 4.3 seconds (0.00s async, 4.3s sync)
+12 tests, 0 failures
+```
+
+`grep -c '@tag :skip' walkthrough_happy_path_test.exs` = `0`. `grep -c ':timer.sleep'` = `0`.
+`grep -c '^\s*test "'` = `12` (unchanged from pre-task). `git diff -- .github/workflows/ci.yml
+mix.exs` = empty.
+
+**Disposition record:** `lib/threadline/operator_surface/live/export_status_live.ex` —
+production bug (duplicate divergent label logic), fixed by making the rendered label match the
+already-correct, already-spec-tested `Presentation.export_action_label/2`. No change to
+`examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs`
+itself — the test's own expectation was already correct; the product code was wrong.
+
+## ExUnit.TimeoutError diagnosis (198-25)
+
+**Test:** `ThreadlinePhoenixWeb.WalkthroughHappyPathTest`, both `WALK-03-01 correlation filter
+surfaces hero #4521 close transaction` (this round's own run 1) and, in a targeted
+reproduction attempt, `WALK-01-07 support ticket reply via dev route returns
+audit_transaction_id` — both fail in the shared `setup` block (`seed_demo_fiction!/0`), not in
+the test body itself.
+
+**Operation that did not complete:** `ThreadlinePhoenix.Demo.Seed.Exports.run/1`'s
+`Repo.insert_all(ExportJob, rows, on_conflict: {:replace, [...]}, conflict_target: :id)` —
+confirmed via stacktrace (`Postgrex.Protocol.msg_recv` blocked inside `Ecto.Adapters.SQL.insert_all/9`).
+
+**Cause class: a lock/deadlock against the seeded transaction — directly confirmed, not
+inferred.** While reproducing the timeout in a targeted run, polling `pg_stat_activity` on the
+target database during the hang captured:
+
+```
+ pid  |        state        | wait_event_type |  wait_event   |  query (truncated)
+------+---------------------+------------------+---------------+------------------------------------
+24881 | active              | Lock             | transactionid | INSERT INTO "threadline_export_jobs" ...
+24886 | idle in transaction | Client           | ClientRead    | RELEASE SAVEPOINT postgrex_query
+```
+
+pid 24881 (the seed's own `insert_all`) was genuinely blocked in Postgres on a `transactionid`
+wait — waiting for another session's open transaction to end before it could take the row lock
+it needed for its `ON CONFLICT` upsert against the deterministic-UUID-keyed `ExportJob` rows
+(`ThreadlinePhoenix.Demo.Manifest.UUID` generates stable v5 UUIDs from fixed strings, so every
+`demo.seed` run targets the *same* primary keys). pid 24886 was an **orphaned, `idle in
+transaction` Postgres backend** — a session left over from an earlier connection whose owning
+BEAM process exited (or was forcibly disconnected, e.g. by `DBConnection`'s
+`ownership_timeout`) without the transaction ever committing or rolling back, mid-`RELEASE
+SAVEPOINT`. Terminating that stale backend (`SELECT pg_terminate_backend(24886)`) immediately
+unblocked the waiting insert and the test passed in 20s.
+
+**Root cause, stated plainly:** the timeout is not a seed-content defect, not a slow query on
+its own merits, and not a wait on data the seed never produces — it is exactly the plan's
+offered "lock/deadlock against the seeded transaction" class, caused by a **leaked Postgres
+session from an earlier abnormally-terminated test connection** blocking the deterministic-UUID
+upsert used by every subsequent `demo.seed`/`demo.reset` call against the same rows. This
+explains why the failure has been observed exactly this way across three rounds (198-23's row 1,
+198-24's `Reset.run/1` discovery, and this round) yet never reproduces reliably: it only
+manifests when some earlier connection in the same Postgres instance was killed mid-transaction
+(a `DBConnection.ConnectionError: owner ... timed out because it owned the connection for
+longer than 60000ms` was observed in this same session's logs immediately before the successful
+retry), not on every run.
+
+**Fix applied, and its honest limits:**
+- `examples/threadline_phoenix/test/support/walkthrough_case.ex`'s `seed_demo_fiction!/0` (the
+  shared helper used by both `walkthrough_happy_path_test.exs` and
+  `walkthrough_evidence_test.exs`) now wraps its `Reset.run()` + `Seed.run()` call in a
+  session-level PostgreSQL advisory lock (`pg_advisory_lock`/`pg_advisory_unlock`), the same
+  idiomatic pattern already used in this codebase for exactly this kind of mutual-exclusion
+  problem (`lib/threadline/retention/pruner.ex`, `lib/threadline/export/cleanup_task.ex`,
+  `test/support/async_helpers.ex`). This guarantees the two walkthrough files' own seed/reset
+  cycles can never race each other.
+- **Stated honestly:** this advisory lock does **not** address the actual, directly-observed
+  mechanism above (an externally-orphaned session from a *different*, already-disconnected
+  process holding a stale row lock) — an advisory lock only serializes cooperating callers, and
+  the blocking session in the captured evidence was not a cooperating caller, it was a zombie.
+  The real, complete fix for "a leaked connection can block a future seed run" is a
+  connection/session hygiene concern (e.g. a Postgres-side `idle_in_transaction_session_timeout`
+  reaper) that is out of this plan's scope — it would apply to every connection in the pool, not
+  just the demo-seed's, and risks side effects on unrelated tests using long-lived debugging
+  sessions (`IEx.pry`). **Forbidden remedies were not used**: no `@moduletag timeout:` was
+  raised (`grep -c 'timeout:' walkthrough_evidence_test.exs walkthrough_happy_path_test.exs`
+  shows no new occurrence versus the pre-task value), no `:timer.sleep/1` was added, no retry
+  was added.
+- Recorded as a discovery (fix protocol step 6) rather than a fully-closed fix, since a leaked
+  external session cannot be prevented by this plan's declared files.
+
+## Red-then-green teeth proof (198-25, evidence)
+
+`walkthrough_evidence_test.exs`'s three tests were already green before this plan (see
+re-inventory above) — no failure to fix. Per this plan's must-haves, the file was still read
+against the vacuous-pass and manifest-literal requirements, and two genuine `assertion-rotted`
+weaknesses were found and hardened (neither previously triggering a failure, both matching the
+exact rot classes GREEN-04 calls out):
+
+**1. WALK-04-01 — the "empty offboarded-co timeline" half was checking the wrong page and
+contained a vacuous refutation.**
+
+- **Red (structural, not a runtime failure):** the test navigated to `/audit` (which the
+  router mounts as the operator surface's Home page, `threadline_operator_surface("/",...)`),
+  not `/audit/timeline`. Dumping the actual response HTML showed `tl-home__*` classes (the
+  generic operator Home page), never any Timeline element. The one substantive check on that
+  page, `refute timeline_html =~ "View Incident"`, is provably vacuous:
+  `grep -rn "View Incident" lib/ examples/` (excluding the test itself) returns **zero matches
+  anywhere in the source** — that string is never rendered by any code path, so the refutation
+  could never fail regardless of what data existed.
+- **Green (fix):** routed the request to `/audit/timeline` instead (the same route
+  `WALK-01-06`/`WALK-02-02` already use for other personas), and replaced the vacuous refute
+  with a positive assertion (`assert timeline_html =~ "No captured changes"`) against the
+  Timeline LiveView's real empty-state title (`timeline_live.ex`'s `timeline_empty_title/2`,
+  case `:first_run -> "No captured changes in this window"`). Confirmed by dumping the new
+  response HTML and finding the literal title text present. Now paired, per the must-have, with
+  the already-present positive `retention_run` evidence assertion above it in the same test —
+  both halves are positive assertions, not one positive plus one vacuous refutation.
+
+**2. WALK-04-03 — the coverage-dashboard assertion matched the page's static CSS, not its
+data.**
+
+- **Red (structural, directly grep-verified, not a runtime failure):** the original assertion
+  `assert coverage_html =~ "covered"` (lowercase) is satisfied by the page's own embedded
+  stylesheet regardless of seeded data: `grep -n "table__row--covered\|table__row--uncovered"
+  lib/threadline/operator_surface/style.ex` shows both CSS class name strings are emitted
+  unconditionally in every render's `<style>` block. A database with **zero** covered and
+  **zero** uncovered tables would still render this CSS and pass the old assertion —  the exact
+  vacuous-pass shape this plan's must-have names.
+- **Green (fix):** replaced the assertion with the two actual, data-driven chip labels
+  (`coverage_live.ex`'s per-row loop text, not CSS): `assert coverage_html =~ "Covered"` and
+  `assert coverage_html =~ "Needs capture"`. `grep -c 'Needs capture\|"Covered"'
+  lib/threadline/operator_surface/style.ex` = `0` — confirmed these two strings appear nowhere
+  in the static stylesheet, only in the data-driven table rows. Running the test twice
+  consecutively confirms both strings are genuinely present in the seeded demo data (the
+  coverage snapshot legitimately has both covered and uncovered tables), so the new assertion is
+  provably non-vacuous, not merely reworded.
+
+**Post-fix verification, two consecutive runs (isolated database, see below):**
+
+```
+$ MIX_TEST_PARTITION=_198_25 MIX_ENV=test mix test test/threadline_phoenix_web/walkthrough_evidence_test.exs
+Finished in 0.9 seconds (0.00s async, 0.9s sync)
+3 tests, 0 failures
+
+$ MIX_TEST_PARTITION=_198_25 MIX_ENV=test mix test test/threadline_phoenix_web/walkthrough_evidence_test.exs
+Finished in 0.8 seconds (0.00s async, 0.8s sync)
+3 tests, 0 failures
+```
+
+`grep -c ':timer.sleep' walkthrough_evidence_test.exs` = `0`.
+
+## Local multi-worktree database isolation (discovery, environment-only)
+
+While diagnosing the above, running against the repository's default shared
+`threadline_phoenix_test` database (no `MIX_TEST_PARTITION`) intermittently produced unrelated
+transient errors — a `Postgrex.Error 42P01 undefined_table` for `audit_transactions` (the
+`threadline` schema was present but not on the connecting role's `search_path`; resolved locally
+by applying the same `ALTER DATABASE threadline_phoenix_test SET search_path TO "$user", public,
+threadline;` that `.github/workflows/ci.yml` already applies in CI — a local environment gap,
+not a code or CI defect), an `Ecto.StaleEntryError` on a `Threadline.Governance.RetentionRun`
+row, and a missing `"Running"` chip text on one run. All three cleared immediately when this
+plan's own verification runs were pointed at an isolated `MIX_TEST_PARTITION=_198_25` database
+instead of the shared one — consistent with this plan running concurrently, in a sibling git
+worktree, alongside another gap-closure plan's own test/seed activity against the identically-
+named shared database. **No code was changed for this** — it is a local multi-worktree
+development-environment note, not a product or seed defect, and does not affect the single-job,
+single-database CI environment plan 198-29 will measure. Recorded here per the fix protocol's
+discovery-logging step.
+
+## Measured after-count (198-25, closing)
+
+Ran `mix verify.example` twice from the repository root, on the shared `threadline_phoenix_test`
+database with the search_path fix applied (matching CI's own setup step) and no other stale
+sessions present (confirmed via `pg_stat_activity` immediately before each run):
+
+```
+$ mix verify.example
+...
+Finished in 36.6 seconds (0.1s async, 36.5s sync)
+109 tests, 0 failures
+```
+
+```
+$ mix verify.example
+...
+Finished in 14.7 seconds (0.1s async, 14.5s sync)
+109 tests, 0 failures
+```
+
+**Before-count (plan 198-24's closing count): 1. After-count (this plan): 0 (both runs,
+consistent). Delta: −1. The target state of 0 failures was reached.**
+
+`grep -c "undefined_table"` over both after-run outputs: not present in either — the search_path
+defect closed in a prior round remains closed (the `undefined_table` seen locally during this
+plan's diagnosis was traced to a missing role-level `ALTER DATABASE` on this specific worktree's
+freshly-created local database, not a regression of the fixed defect, and `mix verify.example`'s
+own CI/task definition already applies the search_path correctly upstream of `mix test`).
+
+`git diff -- .github/workflows/ci.yml mix.exs playwright.config.ts` is empty.
+
+**Per D-01 (198-CONTEXT.md): this 0-failure local measurement is a readiness signal only.**
+GREEN-04's verdict belongs exclusively to plan 198-29's measured CI run — this plan does not,
+and cannot, mark GREEN-04 Complete on its own output.
+
