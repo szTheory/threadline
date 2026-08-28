@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 status: executing
-stopped_at: Plans 198-14..198-18 written and checked; next = /gsd-execute-phase 198 --gaps-only
-last_updated: "2026-08-28T15:05:00.000Z"
+stopped_at: Gap-closure round 2 executed (198-14..18); CI measured red on run 33197493051; next = /gsd-plan-phase 198 --gaps
+last_updated: "2026-08-28T22:40:00.000Z"
 last_activity: 2026-08-28
-last_activity_desc: Phase 198 gap-closure round 2 planned — 5 plans (198-14..18) for the 4 measured CI failures + CI measurement; plan-checker PASS
+last_activity_desc: "Phase 198 gap-closure round 2 executed (plans 14-18): local suite 1412 tests/0 failures; measured CI run 33197493051 = failure at 13m29s; 4 of 7 baseline red jobs now green; GREEN-04/GREEN-07 remain Pending; verification = gaps_found"
 state_head: 72eaed3d
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 18
-  completed_plans: 13
+  completed_plans: 18
   percent: 92
 ---
 
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 13 of 18
-Status: Phase 198 PENDING — gap-closure round 2 PLANNED (198-14..18, checker PASS on all five); ready to execute
-Last activity: 2026-08-28 — Phase 198 gap closure complete; verification = gaps_found (GREEN-07 only)
+Plan: 18 of 18
+Status: Phase 198 PENDING - all 18 plans summarized; verification gaps_found. Measured CI run 33197493051 (PR #29, ci/198-gap-closure) concluded failure at 13m29s. Round 3 must: (1) add the missing ALTER DATABASE ... SET search_path to ci.yml:235-240, (2) close the two call-site-sweep regex blind spots (fully-qualified Threadline.Test.Repo receivers; missing insert_all), (3) re-push and re-measure, (4) resolve the Tier-A regeneration prohibition and the 28 deferred browser failures.
+Last activity: 2026-08-28 - gap-closure round 2 complete; verification gaps_found (GREEN-04 + GREEN-07 Pending on measured CI)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
