@@ -118,6 +118,29 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert exit_status2 == 0
       assert String.trim(output2) == "unknown"
     end
+
+    test "embedded dash is not an integer -> unknown, NOT flaky (198 review WR-01)" do
+      log = fixture_log(3)
+
+      # A dash is a sign only in leading position. "1-2" once slipped through the
+      # validator's character-class check and classified as `flaky` off a
+      # malformed exit code — the one verdict the classifier must never reach
+      # without evidence.
+      for malformed <- ["1-2", "-1-2", "-", "1 2"] do
+        {output, exit_status} = run_classifier(log, malformed)
+        assert exit_status == 0
+
+        assert String.trim(output) == "unknown",
+               "EXIT_CODE=#{inspect(malformed)} must classify as unknown, got #{String.trim(output)}"
+      end
+
+      # Positive control: a well-formed non-zero code over the same log still
+      # reaches `flaky`, so the guard above rejects malformed input rather than
+      # disabling the branch.
+      {ok_output, ok_status} = run_classifier(log, "1")
+      assert ok_status == 0
+      assert String.trim(ok_output) == "flaky"
+    end
   end
 
   describe "Test 1b: GITHUB_OUTPUT append behavior" do

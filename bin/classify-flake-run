@@ -51,12 +51,12 @@ fi
 LOG_FILE="$1"
 
 is_integer() {
-  # POSIX-portable non-negative-or-negative integer check; empty string fails.
+  # POSIX-portable integer check. A '-' is a sign only in leading position:
+  # an embedded dash ("1-2") is NOT an integer and must not classify.
   case "$1" in
-    '' ) return 1 ;;
-    *[!0-9-]* ) return 1 ;;
-    -* ) case "$1" in -[0-9]*) return 0 ;; *) return 1 ;; esac ;;
-    * ) return 0 ;;
+    '' | '-' ) return 1 ;;
+    -* ) case "${1#-}" in *[!0-9]* ) return 1 ;; * ) return 0 ;; esac ;;
+    *  ) case "$1"      in *[!0-9]* ) return 1 ;; * ) return 0 ;; esac ;;
   esac
 }
 
