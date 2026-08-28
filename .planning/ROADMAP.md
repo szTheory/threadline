@@ -129,7 +129,7 @@ Plans:
 
 **Wave 3** *(blocked on 198-09, 198-10, 198-11, 198-12)*
 
-- [ ] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-05 debt (wave 3)
+- [ ] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-04/CR-05 debt (wave 3)
 
 **Gap-closure notes:**
 
