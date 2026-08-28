@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 7 plans
+**Plans**: 13 plans (7 executed + 6 gap-closure)
 
 Plans:
 **Wave 1**
@@ -113,6 +113,31 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 198-07-PLAN.md — Land on origin/main inside the ≤20-min budget, migrate to a committed ruleset verified by `bin/verify-branch-protection`, push archive tags (wave 5)
+
+**Gap closure** *(after verification returned `gaps_found`: 2/6 success criteria, 9/12 requirements. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1** *(fully parallel — disjoint files)*
+
+- [ ] 198-08-PLAN.md — **Tracer:** prove the `repo_opts/0` remediation shape on one file end-to-end, and make D-02 executable with a non-vacuous mask-regression guard (wave 1)
+- [ ] 198-09-PLAN.md — Guard the two unguarded optional-Phoenix modules so `verify.compile_no_optional` passes, plus a derived-roster contract test (wave 1)
+- [ ] 198-10-PLAN.md — `ci.yml` job-config defects: postgres service for `verify-mechanical`, rot-proof Tier A bundle assertion, example-app schema resolution (wave 1)
+- [ ] 198-11-PLAN.md — GREEN-11: extract the flake classifier into a tested `bin/classify-flake-run`, fix the wiring so it is reachable on the failure path (wave 1)
+
+**Wave 2** *(blocked on 198-08)*
+
+- [ ] 198-12-PLAN.md — Port the remaining 14 files (66 defects), land the unowned CONTRIBUTING List 1 rows, drive `mix test` to 0 failures (wave 2)
+
+**Wave 3** *(blocked on 198-09, 198-10, 198-11, 198-12)*
+
+- [ ] 198-13-PLAN.md — `mix ci.all` green, land via PR, observe `main` CI `success` and PR #26 `CLEAN`, correct requirement traceability, register CR-03/CR-05 debt (wave 3)
+
+**Gap-closure notes:**
+
+- The four gaps are GREEN-04 (80 failures), GREEN-07 (`main` run concludes `failure`), GREEN-11 (classifier unreachable), and SC4 (PR #26 BLOCKED). SC4 clears as a **consequence** of the other three — **no branch-protection, ruleset, or `bypass_actors` change is planned or permitted**. GREEN-08 is met and proven non-vacuous by a red→green pair on an identical SHA.
+- Three of the eight red jobs were newly diagnosed after verification and are **not** in `198-VERIFICATION.md`'s gap list: the `ui.ex` / `theme_controller.ex` unguarded optional-Phoenix references, the missing `services: postgres` on `verify-mechanical`, and the rotted `expected 120 scorecard JSON` literal (actual: 366). Each has its own task.
+- Remediation shape for the 79 is **decided, not open**: `Threadline.StorageSchemaCase.repo_opts/0` at each call site (TRIAGE option 2), justified from the measured distribution — all 81 sites already accept an opts list, 10 of 15 files already import the helper via `DataCase`, and the idiom is already green in 5 sibling files.
+- **Two TRIAGE claims are falsified and must not be planned against:** there is no defective audit-table raw SQL (so option 3's stated objection is narrower than recorded), and `storage_schema_prefix_contract_test.exs` would NOT catch a repo-level default prefix — D-02 is currently policy-only and unenforced. Plan 198-08 adds the missing guard.
+- **Carried forward as debt, deliberately NOT planned:** CR-03 (`branch-protection.yml:27-28` `permissions: contents: read` makes block (c) unfalsifiable in CI) and CR-05 (`.github/rulesets/main.json` is a snapshot nothing diffs against live state). Both WARNING severity.
 
 **Notes carried from the approved plan:**
 
