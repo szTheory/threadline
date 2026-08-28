@@ -148,7 +148,7 @@ Plans:
 
 **Wave 4** *(blocked on Waves 1-3)*
 
-- [ ] 198-18-PLAN.md — Push, observe the CI run to completion, record run ID + per-check table + three-way job comparison, set GREEN-04/GREEN-07 from the measurement alone (wave 4)
+- [x] 198-18-PLAN.md — Push, observe the CI run to completion, record run ID + per-check table + three-way job comparison, set GREEN-04/GREEN-07 from the measurement alone (wave 4)
 
 **Round-2 notes:**
 
