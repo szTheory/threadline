@@ -203,7 +203,7 @@ Plans:
 
 **Wave 4** *(blocked on 198-24, 198-25, 198-26, 198-27 — the first point at which every demo-seed change is merged)*
 
-- [ ] 198-28-PLAN.md — **Post-merge re-validation gate** over both attribution tables, screenshot cluster split into CI-contributing versus local-only rows, **blocking maintainer `checkpoint:decision`** on PNG baseline regeneration, then fix within that decision (wave 4)
+- [x] 198-28-PLAN.md — **Post-merge re-validation gate** over both attribution tables, screenshot cluster split into CI-contributing versus local-only rows, **blocking maintainer `checkpoint:decision`** on PNG baseline regeneration, then fix within that decision (wave 4)
 
 **Wave 5** *(blocked on all round-4 fix plans)*
 
