@@ -74,6 +74,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.AuditTransaction
 
@@ -102,7 +103,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now(),
           actor_ref: %{"type" => "user", "id" => "breadcrumb_actor"}
-        })
+        }),
+        repo_opts()
       )
 
       {:ok, _lv, html} = live(conn, "/audit/actors/user/breadcrumb_actor")
@@ -123,7 +125,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now(),
           actor_ref: %{"type" => "user", "id" => "breadcrumb_current"}
-        })
+        }),
+        repo_opts()
       )
 
       {:ok, _lv, html} = live(conn, "/audit/actors/user/breadcrumb_current")
