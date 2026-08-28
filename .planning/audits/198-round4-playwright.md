@@ -851,3 +851,42 @@ toward CI success — that lane's CI-visible result is governed entirely by what
 CI-contributing `operator-screenshots.spec.ts` rows have any bearing on the CI lane's conclusion.
 This round's reporting must state the two counts separately and must not present a reduction in
 the local-only 8 as progress on the CI lane.
+
+## Baseline regeneration decision (198-28)
+
+**Decision requested:** May any committed PNG baseline under
+`examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts-snapshots/` be
+regenerated to resolve a cluster-198-28 failure?
+
+**Maintainer's verbatim answer:**
+
+> Decision: A — Fix at the product or spec cause; regenerate nothing.
+>
+> No committed PNG baseline under `operator-screenshot-regression.spec.ts-snapshots/` may be
+> regenerated. Not one, in either project. Do not run `--update-snapshots`, do not
+> delete-and-recreate a baseline, do not hand-edit one.
+>
+> The justification is exactly the one Task 1 identified: regenerating a baseline to make a diff
+> go away is evidence regeneration, the same category of remedy D-39 forbids for the Tier A
+> capture lane in this milestone. Task 1's own measurement also establishes that all 8 rows in
+> this file are local-only (the describe-level `test.skip(!!process.env.CI, ...)` at line 77
+> skips the whole file on CI), so option B would spend real evidence and change the
+> `Example app browser E2E (Playwright)` CI conclusion by exactly zero.
+>
+> Extending the masking locator list to cover newly-volatile seeded fields IS in bounds under A —
+> that is fixing at the spec cause, not regenerating evidence.
+>
+> Where a divergence is a legitimate, already-shipped visual change that A genuinely cannot
+> resolve without regenerating, do not force it. Fall back to option C behavior for that specific
+> row: leave it red and record the cause, the shipped change that explains it, and the fact that
+> resolving it would require a regeneration this run refused. An honestly-recorded red row is the
+> correct outcome; a quietly-regenerated baseline is not.
+
+**Date:** 2026-08-28
+**Chosen option:** A (with a per-row C fallback where A cannot resolve a divergence without
+regeneration — no such row's answer becomes B under any circumstance)
+
+**Consequence for Task 3:** No baseline file under
+`operator-screenshot-regression.spec.ts-snapshots/` may be written. Every one of this cluster's
+8 local-only rows must be fixed at its spec/product cause (including via the masking locator
+list) or left `open` with its cause named — never resolved by regenerating evidence.
