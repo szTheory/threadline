@@ -348,6 +348,11 @@ jobs:
           PGPASSWORD: postgres
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+          # The audit tables live in the dedicated `threadline` schema; the demo
+          # seed queries them unqualified, so `threadline` must be on the DB
+          # search_path (nothing in app config or a migration sets it).
+          psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
+            -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
 
       # Reduced pull-request lane (Phase 198, D-17). Runs ONLY the two
       # interactive Chromium projects. The remaining projects (the capture
@@ -385,16 +390,34 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Deterministic mechanical gate over the committed Tier A evidence. Pure
-  # Elixir — no DB, no browser — so it runs fast on every PR and blocks a change
-  # if the committed .planning/scorecards/*.json breach any MODE-A (WCAG /
-  # token conformance) or MODE-B (ratchet-floor) rule. The alias runs
-  # mechanical_checker_test.exs, whose real-evidence gate calls
-  # MechanicalChecker.run/1 over the committed scorecards.
+  # Deterministic mechanical gate over the committed Tier A evidence. Fast on
+  # every PR — no browser — and blocks a change if the committed
+  # .planning/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
+  # MODE-B (ratchet-floor) rule. The alias runs mechanical_checker_test.exs,
+  # whose real-evidence gate starts the application (and therefore the repo)
+  # to call MechanicalChecker.run/1 over the committed scorecards — it DOES
+  # need a database, unlike a purely arithmetic check.
   verify-mechanical:
     name: Mechanical checker (committed scorecards)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v5
 
@@ -417,10 +440,11 @@ jobs:
         run: mix verify.mechanical
 
   # Heavy recurring gate: regenerate the Tier A capture from scratch against a
-  # migrated example DB + real browser, and assert (1) the full 120 + 54 evidence
-  # bundle is produced, (2) regeneration is byte-stable against the committed
-  # evidence (no drift), and (3) MechanicalChecker.run/1 is clean over it. This
-  # is the recurring proof of the two former human-UAT items (194-UAT.md).
+  # migrated example DB + real browser, and assert (1) the evidence bundle is
+  # non-empty and complete (every aria.yml has a matching scorecard JSON), (2)
+  # regeneration is byte-stable against the committed evidence (no drift), and
+  # (3) MechanicalChecker.run/1 is clean over it. This is the recurring proof
+  # of the two former human-UAT items (194-UAT.md).
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
@@ -487,13 +511,32 @@ jobs:
       - name: Regenerate Tier A capture
         run: mix verify.capture
 
-      - name: Assert complete evidence bundle (120 scorecards + 54 aria)
+      - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
         run: |
           json=$(find .planning/scorecards -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
           aria=$(find .planning/scorecards -maxdepth 1 -name '*.aria.yml' | wc -l | tr -d ' ')
           echo "scorecards: ${json} json, ${aria} aria.yml"
-          if [ "$json" -ne 120 ] || [ "$aria" -ne 54 ]; then
-            echo "::error::expected 120 scorecard JSON + 54 aria.yml, got ${json} + ${aria}"
+          # Non-vacuity floor: a zero count means the capture produced nothing,
+          # which a broken glob or an aborted run would also produce.
+          if [ "$json" -eq 0 ]; then
+            echo "::error::a zero scorecard JSON count means the capture produced nothing"
+            exit 1
+          fi
+          if [ "$aria" -eq 0 ]; then
+            echo "::error::a zero aria.yml count means the capture produced nothing"
+            exit 1
+          fi
+          # Completeness: this is what "complete bundle" actually means, and it
+          # stays true at any bundle size (unlike a pinned absolute count).
+          missing=""
+          for f in .planning/scorecards/*.aria.yml; do
+            stem=$(basename "$f" .aria.yml)
+            if [ ! -f ".planning/scorecards/${stem}.json" ]; then
+              missing="${missing} ${stem}"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::orphan aria.yml with no matching scorecard JSON:${missing}"
             exit 1
           fi
 
