@@ -133,7 +133,14 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
-    await expect(page.getByText(`Actor: user / ${leavingAgentId}`)).toBeVisible();
+    // The `<:heading>Actor: {type} / {id}</:heading>` literal this assertion
+    // originally targeted was removed by commit 3022e2e0 ("feat(186-01): align
+    // actor activity detail surface") well before this round; the page now
+    // shows the actor id inside `<UI.ref>`'s truncated-with-full-in-title
+    // `.tl-secondary-ref` span (same pattern already used below for the
+    // evidence page's `walk-retention-offboarded-co` ref), not as literal
+    // visible text — `getByText` on the un-truncated UUID can never match.
+    await expect(page.locator(`.tl-secondary-ref[title="${leavingAgentId}"]`)).toBeVisible();
     await expect(page.getByRole("button", { name: "30d", pressed: true })).toBeVisible();
     await expect(page.locator("#transactions-list, .tl-empty")).toBeVisible();
     await capture(page, testInfo, "actor");
@@ -157,7 +164,7 @@ test.describe("operator surface screenshots", () => {
     await capture(page, testInfo, "retention");
 
     await page.goto("/audit/exports");
-    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports", exact: true })).toBeVisible();
     await expect(page.getByText("Completed").first()).toBeVisible();
     await expect(page.getByText("Failed").first()).toBeVisible();
     await expect(page.getByText("Queued").first()).toBeVisible();
