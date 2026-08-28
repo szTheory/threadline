@@ -201,9 +201,9 @@ Plans:
 - [ ] 198-25-PLAN.md — Fix the walkthrough happy-path and evidence-plane failures, including the `ExUnit.TimeoutError` at its cause, and close the local `mix verify.example` measurement (wave 3)
 - [ ] 198-27-PLAN.md — Fix the Phase 135/173/175/177 UAT spec cluster at cause and reconcile the cluster arithmetic (wave 3)
 
-**Wave 4** *(blocked on 198-27)*
+**Wave 4** *(blocked on 198-24, 198-25, 198-26, 198-27 — the first point at which every demo-seed change is merged)*
 
-- [ ] 198-28-PLAN.md — Screenshot cluster: split CI-contributing from local-only rows, **blocking maintainer `checkpoint:decision`** on PNG baseline regeneration, then fix within that decision (wave 4)
+- [ ] 198-28-PLAN.md — **Post-merge re-validation gate** over both attribution tables, screenshot cluster split into CI-contributing versus local-only rows, **blocking maintainer `checkpoint:decision`** on PNG baseline regeneration, then fix within that decision (wave 4)
 
 **Wave 5** *(blocked on all round-4 fix plans)*
 
@@ -215,6 +215,7 @@ Plans:
 - **Local evidence stays inadmissible** for GREEN-04 and GREEN-07 (D-01). Plans 198-23 … 198-28 produce readiness signals; only 198-29's measured run produces a verdict.
 - **No lane is narrowed anywhere.** `maxFailures`, the `--project` set, the spec roster, `mix verify.example`'s scope and `ci-required`'s `needs:` are all byte-unchanged; empty diffs on `ci.yml`, `.github/rulesets/main.json`, `CONTRIBUTING.md` and `playwright.config.ts` are acceptance criteria in every plan. D-42's same-diff interlock is restated as a standing prohibition.
 - **`operator-screenshot-regression.spec.ts` skips on CI** (`test.skip(!!process.env.CI, ...)`), so its failures are part of the 28 local failures but contribute nothing to the CI lane's red. Plan 198-28 splits and reports the two counts separately so a local-only win cannot be presented as CI progress.
+- **Same-wave seed/spec temporal coupling is declared and gated, not left implicit.** Plans execute in isolated worktrees, so 198-26 (wave 2) cannot see 198-24's demo-seed rewrites and 198-27 (wave 3) cannot see 198-25's. Rather than serialize the two workstreams into one chain, both inventory plans label their tables **pre-merge**, record the HEAD SHA they were taken at, and give every row a `seed-sensitive?` verdict. Plan 198-28 — the first plan that runs after every seed change has merged, and now `depends_on` all four predecessors explicitly — opens with a **post-merge re-validation gate**: it re-derives every `seed-sensitive? = yes` row from a fresh unbounded run, records a divergence count, and forbids fixing any row left un-re-attributed. 198-29 predicts from 198-28's re-validated figures, never from the pre-merge tables.
 - **The one one-way decision this round is PNG baseline regeneration**, gated behind 198-28's blocking checkpoint because regenerating evidence to match current output is precisely what D-39 forbids for Tier A.
 
 **Gap-closure notes:**
