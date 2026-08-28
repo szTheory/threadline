@@ -144,3 +144,95 @@ defmodule Threadline.StorageSchemaCaseContractTest do
     |> Repo.insert!(opts)
   end
 end
+
+defmodule Threadline.StorageSchemaMaskContractTest do
+  @moduledoc """
+  D-02 mask-regression guard (198-08 / T-198-08-01, T-198-08-02).
+
+  `Threadline.StorageSchemaPrefixContractTest` above only proves the schema
+  modules themselves carry no fixed `@schema_prefix`. It never observes a repo
+  options callback, and it never scans `test/support/repo.ex` or `config/`.
+  That is why a database-level `search_path`, or a `Threadline.Test.Repo`
+  `default_options/1` callback that injects a default prefix, could silently
+  re-mask the 79-test defect class this phase exists to retire, and nothing in
+  the suite would notice.
+
+  This module makes the forbidden shortcut a failing test instead of a policy
+  sentence. Test 1 is the load-bearing behavioural assertion; Test 2 is its
+  positive control (defeats vacuity — without it, Test 1 could also pass
+  against a dead connection or a renamed module); Tests 3 and 4 are source
+  refutations covering the two routes D-02 forbids.
+  """
+
+  use ExUnit.Case, async: false
+
+  alias Threadline.Capture.AuditTransaction
+  alias Threadline.StorageSchemaCase
+  alias Threadline.Test.Repo
+
+  @repo_path "test/support/repo.ex"
+
+  test "reading an audit table through Threadline.Test.Repo with NO options raises undefined_table (D-02 teeth)" do
+    assert_raise Postgrex.Error, ~r/undefined_table/, fn ->
+      Repo.all(AuditTransaction)
+    end
+
+    error =
+      try do
+        Repo.all(AuditTransaction)
+        nil
+      rescue
+        e in Postgrex.Error -> e
+      end
+
+    refute is_nil(error),
+           "D-02: expected the unprefixed read to raise Postgrex.Error; if it succeeds, a " <>
+             "repo-level default prefix or a database-level schema search parameter has been " <>
+             "restored, and the 79-test defect class this phase retired is silently re-masked."
+
+    assert error.postgres.code == :undefined_table,
+           "D-02: expected pg code 42P01 (undefined_table), got #{inspect(error.postgres.code)}"
+  end
+
+  test "the SAME read with Threadline.StorageSchemaCase.repo_opts() succeeds and returns a list (positive control)" do
+    result = Repo.all(AuditTransaction, StorageSchemaCase.repo_opts())
+
+    assert is_list(result),
+           "positive control failed: the prefixed read did not return a list. Without this " <>
+             "control, Test 1 above could also pass against a dead connection or a renamed " <>
+             "module rather than the D-02 mask actually being absent."
+  end
+
+  test "test/support/repo.ex declares no options callback that could inject a default prefix (D-02)" do
+    source = File.read!(@repo_path)
+
+    refute source =~ ~r/def(p)?\s+default_options\b/,
+           "D-02: #{@repo_path} must not define default_options/1 — an Ecto.Repo " <>
+             "default_options/1 callback is exactly the route by which a default `prefix:` " <>
+             "could be silently injected into every query, re-hiding the defect class this " <>
+             "phase exists to retire."
+  end
+
+  test "no config/*.exs file sets a schema search parameter on the repo connection (D-02)" do
+    paths = Path.wildcard("config/*.exs")
+
+    assert paths != [],
+           "found no config/*.exs files to scan — the glob is broken, and a broken glob " <>
+             "would launder a false pass for this guard"
+
+    for path <- paths do
+      stripped =
+        path
+        |> File.read!()
+        |> String.split("\n")
+        |> Enum.reject(fn line -> String.starts_with?(String.trim(line), "#") end)
+        |> Enum.join("\n")
+
+      refute stripped =~ ~r/search_path/i,
+             "D-02: #{path} references search_path — a database-level schema search " <>
+               "parameter on the repo connection is exactly the mask this phase retired. " <>
+               "Restoring it re-hides the 79-test defect class rather than fixing the call " <>
+               "sites."
+    end
+  end
+end
