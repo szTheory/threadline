@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 22 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3)
+**Plans**: 29 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4)
 
 Plans:
 **Wave 1**
@@ -184,6 +184,38 @@ Plans:
 - **The Tier-A `page.*` regeneration prohibition is not re-litigated** (maintainer-ratified twice). It appears in 198-20's option set only for completeness.
 - **GREEN-07's wording is not re-litigated.** The round-1 amendment rested on a false premise — `.planning/` was already tracked and public — and was correctly retracted.
 - Out of scope for round 3, recorded as such: CR-03/CR-04/CR-05 (WINDOWS.md #5/#6/#7), IN-01, IN-02, and plan 198-12's example-app `DemoContractTest` demo-seed deferral.
+
+**Gap closure, round 4** *(after CI run 33204829086 on PR #30 concluded FAILURE — `CI required` red on 3 of 12 dependencies at 13m29s, unchanged in count from round 3 though `Run test suite (current)`'s cause changed underneath it. 10/12 requirements Complete; GREEN-04 and GREEN-07 remain Pending. This round executes maintainer decisions C1 (D-41, fix the demo-seed failures) and B1 (D-40, fix the 28 masked Playwright failures). Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1**
+
+- [ ] 198-23-PLAN.md — **Tracer:** two-run `mix verify.example` failure inventory, fix the SEED-03 demo-seed clusters at cause with a red-then-green teeth proof, and write the fix protocol the expansion plans follow (wave 1)
+
+**Wave 2** *(blocked on 198-23)*
+
+- [ ] 198-24-PLAN.md — Fix the remaining `demo_contract_test.exs` clusters (SEED-05, SEED-02/04, WALK-04, D-05, D-13) at cause, boundary and ordering semantics made explicit (wave 2)
+- [ ] 198-26-PLAN.md — Attribute all 28 masked Playwright failures to named causes and assign clusters, then fix `register.spec.ts` + `operator-find-mobile.spec.ts` at cause (wave 2)
+
+**Wave 3** *(blocked on 198-24 / 198-26)*
+
+- [ ] 198-25-PLAN.md — Fix the walkthrough happy-path and evidence-plane failures, including the `ExUnit.TimeoutError` at its cause, and close the local `mix verify.example` measurement (wave 3)
+- [ ] 198-27-PLAN.md — Fix the Phase 135/173/175/177 UAT spec cluster at cause and reconcile the cluster arithmetic (wave 3)
+
+**Wave 4** *(blocked on 198-27)*
+
+- [ ] 198-28-PLAN.md — Screenshot cluster: split CI-contributing from local-only rows, **blocking maintainer `checkpoint:decision`** on PNG baseline regeneration, then fix within that decision (wave 4)
+
+**Wave 5** *(blocked on all round-4 fix plans)*
+
+- [ ] 198-29-PLAN.md — Push `ci/198-round4`, measure one real CI run, append the Round 4 section with prediction scorecard and a root cause per red check, set GREEN-04/GREEN-07 from that run alone (wave 5)
+
+**Round-4 notes:**
+
+- **What this round can and cannot close, stated up front:** `Run test suite (current)` and `Example app browser E2E (Playwright)` can both close. `Tier A capture lane (byte-stable evidence)` **cannot** — its only remedy is Tier-A `page.*` scorecard regeneration, forbidden for this entire milestone under D-39, and no plan touches it. **Therefore `CI required` cannot conclude `success` this round and GREEN-07 cannot reach Complete.** The honest target is 3 red `needs:` lanes down to 1. GREEN-04, which depends only on `Run test suite (current)`, *can* close.
+- **Local evidence stays inadmissible** for GREEN-04 and GREEN-07 (D-01). Plans 198-23 … 198-28 produce readiness signals; only 198-29's measured run produces a verdict.
+- **No lane is narrowed anywhere.** `maxFailures`, the `--project` set, the spec roster, `mix verify.example`'s scope and `ci-required`'s `needs:` are all byte-unchanged; empty diffs on `ci.yml`, `.github/rulesets/main.json`, `CONTRIBUTING.md` and `playwright.config.ts` are acceptance criteria in every plan. D-42's same-diff interlock is restated as a standing prohibition.
+- **`operator-screenshot-regression.spec.ts` skips on CI** (`test.skip(!!process.env.CI, ...)`), so its failures are part of the 28 local failures but contribute nothing to the CI lane's red. Plan 198-28 splits and reports the two counts separately so a local-only win cannot be presented as CI progress.
+- **The one one-way decision this round is PNG baseline regeneration**, gated behind 198-28's blocking checkpoint because regenerating evidence to match current output is precisely what D-39 forbids for Tier A.
 
 **Gap-closure notes:**
 
