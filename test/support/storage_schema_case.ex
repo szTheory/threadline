@@ -35,6 +35,17 @@ defmodule Threadline.StorageSchemaCase do
     SavedView
   ]
 
+  @doc """
+  The Threadline-owned schema modules, in FK-safe cleanup order.
+
+  This is the single source of truth shared by `clean_storage_schema!/2` (which
+  deletes rows in this order to respect foreign keys) and
+  `Threadline.StorageSchemaCallSiteContractTest`'s static call-site sweep
+  (which derives its in-scope module roster from this list). Neither consumer
+  re-types the list — do not add a second literal roster anywhere.
+  """
+  def owned_schema_modules, do: @cleanup_order
+
   def repo_opts(storage_schema_or_opts \\ [])
 
   def repo_opts(storage_schema) when is_binary(storage_schema) or is_atom(storage_schema) do
