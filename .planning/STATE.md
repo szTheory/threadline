@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 status: executing
-stopped_at: Round 3 EXECUTED + verified — verification = gaps_found (10/12 requirements); GREEN-04/GREEN-07 Pending; next = /gsd-plan-phase 198 --gaps
+stopped_at: Round 4 waves 1-4 EXECUTED + merged (198-23..28, 6/7 plans). 198-29 BLOCKED at Task 1: `git push origin HEAD:refs/heads/ci/198-round4` denied by the Claude Code permission classifier for both the executor and the orchestrator. Maintainer approved the push in-session; the harness still refuses. Needs a Bash allow-rule for `git push origin *:refs/heads/ci/198-*` or a manual push of f433ef3e. No CI run measured; GREEN-04/GREEN-07 remain Pending with NO verdict.
 last_updated: "2026-08-28T21:11:16.830Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 198 gap-closure round 4 execution started (198-23..29)
@@ -12,8 +12,8 @@ progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 29
-  completed_plans: 22
-  percent: 76
+  completed_plans: 28
+  percent: 97
 ---
 
 # Project State: Threadline
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 23 of 29
-Status: Executing Phase 198 (gap-closure round 4: 198-23..29)
-Last activity: 2026-08-28 — Phase 198 gap-closure round 4 execution started
+Plan: 29 of 29 (198-29 blocked)
+Status: Phase 198 gap-closure round 4 — 6/7 plans complete; 198-29 blocked on an unauthorized push
+Last activity: 2026-08-28 — waves 1-4 merged; 198-29 halted at blocking-human push gate
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
