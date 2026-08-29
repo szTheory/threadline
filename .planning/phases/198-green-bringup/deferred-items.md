@@ -142,3 +142,134 @@
   auto-mode: option A — fix at cause, regenerate nothing, with a documented fallback to leaving a
   row open (not force-fixing) where only a regeneration could close it. No baseline file was
   written or modified; `git status --porcelain` on the snapshots directory is empty.
+
+## Plan 198-29
+
+- **Status:** acknowledged (complete)
+- **Acknowledged at:** 2026-08-29 (Plan 198-29 execution, gap-closure round 4)
+
+Measured CI run `33253587315` (`ci/198-round4`, head
+`f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6`, PR #31 draft/DO NOT MERGE, `attempt: 1`)
+concluded `failure` with **3 of 12 `ci-required` `needs:` members red** — unchanged
+in count from round 3, against a stated target of 1. One dated entry per still-red
+lane follows, each naming its cause and the decision or successor work that owns it.
+Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI run`.
+
+### Still-red lane 1 — `verify-test` / `Run test suite (current)`
+
+- **NEW DEFECT, first surfaced on CI this round — candidate for a round-5 plan.**
+  `ThreadlinePhoenix.DemoResetTest` "prod mix demo.reset fails fast without
+  `DEMO_ALLOW_RESET=1`"
+  (`examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs:56`)
+  fails on CI with `** (ExUnit.TimeoutError) test timed out after 60000ms` at
+  `demo_reset_test.exs:69`. The job reports `109 tests, 1 failure`, then
+  `** (Mix) verify.example failed (2)`.
+- **Root cause:** line 69 is
+  `System.cmd("mix", ["demo.reset"], cd: @app_dir, env: [{"MIX_ENV", "prod"}], stderr_to_stdout: true)`.
+  On a cold CI checkout there is no `_build/prod`, so that child process must compile
+  the example app **and all its dependencies** under `MIX_ENV=prod` before reaching
+  the `DEMO_ALLOW_RESET` guard the test asserts on. That compile exceeds ExUnit's
+  60 000 ms default, and the test carries no `@tag timeout:` budget covering the
+  shell-out. Corroborating symptom in the same log: `Postgrex.Protocol ...
+  disconnected: ** (DBConnection.ConnectionError) owner #PID<0.820.0> (:proc_lib)
+  timed out because it owned the connection for longer than 60000ms`.
+- **Classification:** a **CI-only test-harness defect** (an unbudgeted shell-out),
+  **not** a demo-seed defect and **not** a product defect. It is NOT one of the
+  failures plans 198-23/24/25 targeted — those fixes held. The demo-seed
+  content-mismatch class D-41 named (8–9 `Ecto.NoResultsError`/assertion mismatches
+  across `DemoContractTest`, `WalkthroughHappyPathTest`, `WalkthroughEvidenceTest`)
+  is **gone**: 109 tests, and the single remaining failure is this timeout.
+- **Local-vs-CI disagreement, recorded side by side rather than resolved by
+  recency:** plan 198-25's closing local `mix verify.example` measured
+  `109 tests, 0 failures` twice (36.6 s and 14.7 s wall clock, warm `_build/prod`);
+  CI measured `109 tests, 1 failure` (96.1 s, cold build). Per D-01 the local figure
+  is a readiness signal only; the CI figure is the evidence.
+- **This defect is the sole blocker between the current state and GREEN-04.** Every
+  other assertion in the `verify-test` job passes, including the root suite
+  (`1423 tests, 0 failures, 1 excluded`).
+- **NOT fixed here by design.** 198-29's `files_modified` contract is
+  documentation-only; no source or test file was touched. **Flagged as a candidate
+  for a round-5 plan**, to be fixed at cause and without weakening the assertion
+  (a `@tag timeout:` budget sized for a cold prod compile, or pre-warming
+  `_build/prod` in the job — never `@tag :skip`, never deleting the prod-guard
+  assertion).
+
+### Still-red lane 2 — `verify-example-browser` / `Example app browser E2E (Playwright)`
+
+- Measured: `5 failed, 138 passed, 9 skipped, 188 did not run (5.4m)`, then
+  `** (Mix) verify.example_browser failed (1)`, with
+  `Testing stopped early after 5 maximum allowed failures.`
+  **The count is right-censored at 5** by
+  `examples/threadline_phoenix/e2e/playwright.config.ts:141`
+  (`maxFailures: process.env.CI ? 5 : 0`); round 3's 5 was capped identically, so
+  "5 vs 5" is a comparison of two caps, not evidence of no progress.
+- **Confirmed progress, measured on CI:** all five of round 3's failing tests now
+  pass (`operator-find-mobile.spec.ts:48/66/103`,
+  `operator-phase-135-uat.spec.ts:76`, `operator-phase-173-uat.spec.ts:74`), and
+  198-28's two CI-contributing rows pass (`operator-screenshots.spec.ts:90:3` and
+  `:174:3`). 198-26/27/28's fixes held.
+- **`operator-accessibility.spec.ts:565:3`** and **`operator-prove-mobile.spec.ts:38:3`**
+  (both desktop-chromium) — `getByText(/Expired|File unavailable/)` not found.
+  **Cause already established and unchanged: the Plan 198-28 entry above —
+  `fix(198-25)`'s label-copy change from `"Expired"` to `"Export expired"`
+  (lowercase `expired`) no longer matches the capital-`E` regex.** Owner: the
+  follow-up plan already recorded in `WINDOWS.md` #10/#11. Still out of any executed
+  plan's `files_modified`.
+- **NEW, un-inventoried CI-only failure —
+  `operator-responsive-mobile-first.spec.ts:577:5`** ("operator responsive matrix:
+  phone › keeps every operator route usable without root horizontal overflow"),
+  desktop-chromium. Verbatim:
+  `Locator: getByRole('heading', { name: 'Row history', exact: true })` →
+  `Error: element(s) not found`, at `operator-responsive-mobile-first.spec.ts:475`
+  (helper), reached from `:587`/`:584`. **`grep -c "operator-responsive-mobile-first"
+  .planning/audits/198-round4-playwright.md` returns 0** — this test appears in no
+  audit row from any plan this round. **Root cause NOT established**; diagnosing it
+  requires reading component source outside 198-29's documentation-only
+  `files_modified`, and guessing a cause would be the unmeasured attribution this
+  phase exists to prevent. **Candidate for a round-5 plan.**
+- **`operator-stress.spec.ts:277:5`, `page.home.happy` dark 1024px and
+  `page.timeline.empty` dark 1024px** — `toHaveScreenshot` diffs at
+  `operator-stress.spec.ts:293` against
+  `stress-page-home-happy-dark-1024-desktop-chromium.png` (`4779 pixels, ratio 0.02`)
+  and `stress-page-timeline-empty-dark-1024-desktop-chromium.png`
+  (`5823 pixels, ratio 0.02`), each against `maxDiffPixelRatio: 0.01`
+  (`operator-stress.spec.ts:294`); no dimension mismatch, content-only diffs at ~2×
+  tolerance. **Owner: D-39.** These are `page.*` ledger baselines — the same
+  forbidden-regeneration class as the Tier A capture lane. **Red by construction, not
+  by defect. No PNG baseline was regenerated and none may be for this milestone.**
+- **Methodological finding for round 5:** `198-round4-playwright.md`'s inventory was
+  built from **unbounded local** runs (`process.env.CI` unset, `maxFailures: 0`),
+  which covers a different population than a capped CI run. Only 2 of the 5 CI
+  failures appear anywhere in it. A local inventory is a weak predictor of which
+  tests a capped CI run will surface.
+
+### Still-red lane 3 — `verify-capture` / `Tier A capture lane (byte-stable evidence)`
+
+- Failing step `Assert byte-stable regeneration (no drift from committed evidence)`
+  (`.github/workflows/ci.yml:550-558`):
+  `::error::Tier A capture is not byte-stable, or committed evidence is stale.`
+- **198 scorecard files modified** per the step's own `git status --porcelain
+  .planning/scorecards/` output — 120 `page.*`, 78 `refute.*`.
+- The visible diff is **truncated at 200 lines by the workflow itself**
+  (`git diff -- .planning/scorecards/ | head -200`). Across the 15 files it does
+  show, every hunk is a single `scroll_cost` field, keyed deterministically by
+  viewport: 1280 `18.803→40.8`, 768 `19.038→36.504`, 375 `19.85→41.953` —
+  **byte-identical to rounds 2 and 3**, confirming deterministic drift, not noise.
+  The remaining 183 files (including all 78 `refute.*` cells) are **not visible**, so
+  no claim is made that the drift is confined to `scroll_cost` or to `page.*`.
+- **Owner: D-39**, citing `.planning/audits/198-tier-a-byte-stability.md`. The only
+  available remedy is Tier-A `page.*` scorecard regeneration, forbidden for this
+  entire milestone. **No remedy attempted, no scorecard regenerated, lane not removed
+  from `needs:`. Red by construction, not by defect.**
+
+### Prohibitions verified for this plan
+
+- No local result used as evidence for GREEN-04/GREEN-07 (D-01) — both statuses set
+  from run `33253587315`'s conclusion strings alone.
+- `ci-required`'s `needs:` list not narrowed (D-42) — `.github/` untouched;
+  `git diff` on `ci.yml`, `rulesets/main.json`, `CONTRIBUTING.md` and
+  `playwright.config.ts` is empty.
+- No Tier-A `page.*` evidence regenerated, no PNG baseline regenerated anywhere
+  (D-39).
+- No check re-run, re-dispatched, or selectively retried. `attempt: 1`.
+- No assertion weakened, no `@tag :skip` added, no allowlist widened.
