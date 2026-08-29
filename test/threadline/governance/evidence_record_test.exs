@@ -5,7 +5,7 @@ defmodule Threadline.Governance.EvidenceRecordTest do
   alias Threadline.Semantics.ActorRef
 
   setup do
-    Repo.delete_all(EvidenceRecord)
+    Repo.delete_all(EvidenceRecord, repo_opts())
     :ok
   end
 
@@ -63,9 +63,9 @@ defmodule Threadline.Governance.EvidenceRecordTest do
         detail: %{"status" => summary_status},
         schema_version: 1
       })
-      |> Repo.insert!()
+      |> Repo.insert!(repo_opts())
     end
 
-    assert Repo.aggregate(EvidenceRecord, :count) == 2
+    assert Repo.aggregate(EvidenceRecord, :count, repo_opts()) == 2
   end
 end

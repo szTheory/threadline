@@ -144,9 +144,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView)
-      Threadline.Test.Repo.delete_all(ExportJob)
-      Threadline.Test.Repo.delete_all(RetentionRun)
+      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
+      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
+      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "copy-contract-operator")
 
@@ -458,7 +458,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert actions_block =~
                ~S|<span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>|
 
-      for label <- ["Queued", "Processing", "Failed", "Expired", "File unavailable"] do
+      for label <- ["Queued", "Processing", "Failed", "Export expired", "File unavailable"] do
         assert status_label_block =~ label
       end
     end
@@ -568,7 +568,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             occurred_at: occurred_at,
             actor_ref: %{"type" => "user", "id" => "copy-contract-operator"},
             source: "support"
-          })
+          }),
+          repo_opts()
         )
 
       Threadline.Test.Repo.insert!(
@@ -581,7 +582,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data_after: %{"body" => "copy contract row"},
           changed_fields: nil,
           captured_at: occurred_at
-        })
+        }),
+        repo_opts()
       )
     end
 

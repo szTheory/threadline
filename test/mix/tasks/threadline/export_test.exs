@@ -15,7 +15,8 @@ defmodule Mix.Tasks.Threadline.ExportTest do
         AuditTransaction.changeset(%{
           txid: System.unique_integer([:positive]),
           occurred_at: DateTime.utc_now()
-        })
+        }),
+        repo_opts()
       )
 
     @repo.insert!(
@@ -27,7 +28,8 @@ defmodule Mix.Tasks.Threadline.ExportTest do
         data_after: %{},
         captured_at: DateTime.utc_now(),
         transaction_id: txn.id
-      })
+      }),
+      repo_opts()
     )
 
     out =

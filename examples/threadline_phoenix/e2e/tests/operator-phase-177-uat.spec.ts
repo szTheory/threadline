@@ -11,21 +11,17 @@ import { expect, Locator, Page, test } from "@playwright/test";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
-// The 12 Phase 177 group stories (stress_fixtures.ex @group_stories).
-const groupStories = [
-  "group.page-header.current",
-  "group.toolbar.current",
-  "group.data-panel.current",
-  "group.stats-chart-table.current",
-  "group.detail-header.current",
-  "group.modal-destructive.current",
-  "group.drawer-form.reference",
-  "group.toast-update.current",
-  "group.tabs-subviews.reference",
-  "group.empty-cta.current",
-  "group.permission-denied.current",
-  "group.offline.current",
-];
+// The Phase 177 group stories — resolved at RUNTIME from the story catalog
+// (stress_fixtures.ex's `category: "group"` registry) rather than a hard-coded
+// array, so this test does not rot when a group story is added or removed.
+async function resolveGroupStories(page: Page): Promise<string[]> {
+  await page.goto("/audit/__stress?category=group");
+  const ids = await page
+    .locator('[data-testid="stress-story-list"] .tl-stress__story-id')
+    .allTextContents();
+  expect(ids.length, "expected at least one group story in the catalog").toBeGreaterThan(0);
+  return ids.map((id) => id.trim());
+}
 
 // 320 proves the no-horizontal-scroll floor; 1440 the wide end. Matches the
 // viewports the manual UAT enumerated (stress_fixtures.ex @viewports).
@@ -79,32 +75,39 @@ test.describe("Phase 177 UAT #1 — group catalog holds together at every viewpo
     await login(page);
   });
 
-  for (const story of groupStories) {
-    test(`${story} stays within every viewport without horizontal scroll`, async ({
-      page,
-    }) => {
-      for (const width of viewportWidths) {
-        await test.step(`${width}px`, async () => {
-          await page.setViewportSize({ width, height: 900 });
-          await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
+  // Story list is resolved at runtime from the live catalog (resolveGroupStories),
+  // not a positionally-indexed or hard-coded array — this test does not rot when a
+  // group story is added, removed, or renamed in the registry.
+  test("every registered group story stays within every viewport without horizontal scroll", async ({
+    page,
+  }) => {
+    const stories = await resolveGroupStories(page);
 
-          const preview = page.getByTestId("stress-preview");
-          await expect(preview).toBeVisible();
-          // Theme comes from the running lane: the default run is dark; the
-          // `desktop-chromium-light` lane (THREADLINE_E2E_THEME=system, colorScheme
-          // light) re-runs this file for light/system coverage.
-          await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
-            "data-tl-theme",
-            /^(dark|light|system)$/,
-          );
+    for (const story of stories) {
+      await test.step(story, async () => {
+        for (const width of viewportWidths) {
+          await test.step(`${width}px`, async () => {
+            await page.setViewportSize({ width, height: 900 });
+            await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
 
-          // The load-bearing guarantee: no element pushes past the 320px floor.
-          await expectNoHorizontalOverflow(page);
-          await expectBoxWithinViewport(preview, width);
-        });
-      }
-    });
-  }
+            const preview = page.getByTestId("stress-preview");
+            await expect(preview).toBeVisible();
+            // Theme comes from the running lane: the default run is dark; the
+            // `desktop-chromium-light` lane (THREADLINE_E2E_THEME=system, colorScheme
+            // light) re-runs this file for light/system coverage.
+            await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
+              "data-tl-theme",
+              /^(dark|light|system)$/,
+            );
+
+            // The load-bearing guarantee: no element pushes past the 320px floor.
+            await expectNoHorizontalOverflow(page);
+            await expectBoxWithinViewport(preview, width);
+          });
+        }
+      });
+    }
+  });
 });
 
 // --- UAT #3: overlay motion + reduced-motion collapse -----------------------
@@ -140,6 +143,10 @@ test.describe("Phase 177 UAT #3 — overlay motion (default motion)", () => {
     await page.goto(`/audit/__stress?story=${motionStory}`);
     await page.getByRole("button", { name: "Show Modal" }).click();
 
+    // Threshold: the reduced-motion collapse floor is exactly "0.001s" (style.ex's
+    // media-query override). "Real" (non-collapsed) motion means strictly ABOVE that
+    // floor — anything that is not "0.001s" and not "0s" passes; "0.001s" itself or
+    // "0s" fails (that would mean default motion collapsed with no motion preference set).
     const duration = await transitionDuration(page.locator("#stress-modal-content"));
     expectEveryDuration(
       duration,
@@ -154,6 +161,8 @@ test.describe("Phase 177 UAT #3 — overlay motion (default motion)", () => {
     await page.goto(`/audit/__stress?story=${motionStory}`);
     await page.getByRole("button", { name: "Show Drawer" }).click();
 
+    // Threshold: same passing side as the modal test above — strictly above the
+    // "0.001s" reduced-motion collapse floor.
     const duration = await transitionDuration(page.locator("#stress-drawer-content"));
     expectEveryDuration(
       duration,
@@ -181,6 +190,10 @@ test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motio
     await page.goto(`/audit/__stress?story=${motionStory}`);
     await page.getByRole("button", { name: "Show Modal" }).click();
 
+    // Threshold: under reduced motion the collapse floor is exactly "0.001s" — the
+    // passing side is equality to that exact value, not merely "small". Any other
+    // value (including "0s", which would defeat the transitionend event LiveView's
+    // JS relies on) fails.
     const duration = await transitionDuration(page.locator("#stress-modal-content"));
     expectEveryDuration(
       duration,
@@ -193,6 +206,7 @@ test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motio
     await page.goto(`/audit/__stress?story=${motionStory}`);
     await page.getByRole("button", { name: "Show Drawer" }).click();
 
+    // Threshold: same passing side as the modal test above — exact equality to "0.001s".
     const duration = await transitionDuration(page.locator("#stress-drawer-content"));
     expectEveryDuration(
       duration,
@@ -225,9 +239,16 @@ test.describe("Phase 177 UAT #4 — reconnect/offline CSS contract", () => {
     await expect(page.locator(".threadline-ui").first()).toBeVisible();
 
     const result = await page.evaluate(() => {
+      // Product contract (style.ex): the CSS selector is scoped
+      // `[data-phx-main].phx-error .threadline-ui .tl-reconnect-banner` — LiveView's
+      // client JS toggles `.phx-error` on the `[data-phx-main]` root, an ANCESTOR of
+      // `.threadline-ui`, never on `.threadline-ui` itself. The simulation must match
+      // that real ancestor relationship or the attribute-selector chain never matches
+      // regardless of product behavior.
+      const main = document.querySelector("[data-phx-main]");
       const root = document.querySelector(".threadline-ui");
-      if (!root) {
-        return { error: "no .threadline-ui root on /audit" };
+      if (!main || !root) {
+        return { error: "no [data-phx-main] or .threadline-ui root on /audit" };
       }
 
       const banner = document.createElement("div");
@@ -246,9 +267,9 @@ test.describe("Phase 177 UAT #4 — reconnect/offline CSS contract", () => {
       });
 
       const connected = read();
-      root.classList.add("phx-error");
+      main.classList.add("phx-error");
       const errored = read();
-      root.classList.remove("phx-error");
+      main.classList.remove("phx-error");
 
       return { connected, errored };
     });

@@ -12,6 +12,23 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
 
   @org_y_backdate_days 90
 
+  # `Threadline.Retention.purge/1` is a library-level GLOBAL age-based delete
+  # (no per-organization scoping — see `lib/threadline/retention.ex`). Its
+  # default cutoff is `DateTime.utc_now() - keep_days`, anchored to REAL wall
+  # clock, never to this demo's frozen `Manifest.epoch()`. Left to that
+  # default, every org's epoch-anchored fiction (hero close/delete, the
+  # leaving-agent window, the globex sample) gets swept up as collateral
+  # damage once real time drifts more than `keep_days` past the epoch — which
+  # it now has (198-round4-demo-seed.md root-cause confirmation). Passing an
+  # explicit `:cutoff` anchored to the demo's own epoch (a stricter-than-policy
+  # override the library documents and supports) keeps the purge scoped to
+  # what the demo narrative actually intends to remove: `offboarded-co`'s
+  # `-90 day` backdated footprint. The chosen offset (`-60 days` from epoch)
+  # sits strictly between org Y's `-90 day` backdate (still purged) and the
+  # earliest other-org epoch-anchored timestamp (filler's `-14 day` bound,
+  # comfortably preserved).
+  @retention_purge_cutoff_days_before_epoch 60
+
   @doc false
   @spec run(map()) :: map()
   def run(ctx) do
@@ -20,7 +37,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
     enable_retention!()
 
     purge_result =
-      case Retention.purge(repo: Repo) do
+      case Retention.purge(repo: Repo, cutoff: retention_purge_cutoff()) do
         {:error, :disabled} ->
           raise "demo retention purge requires :threadline retention enabled"
 
@@ -32,6 +49,11 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
     assert_org_y_audit_empty!(org_y_id)
 
     ctx
+  end
+
+  # See the module-attribute comment above `@retention_purge_cutoff_days_before_epoch`.
+  defp retention_purge_cutoff do
+    DateTime.add(Manifest.epoch(), -@retention_purge_cutoff_days_before_epoch, :day)
   end
 
   @doc false

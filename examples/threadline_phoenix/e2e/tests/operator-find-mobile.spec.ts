@@ -105,7 +105,15 @@ test.describe("operator Find cluster mobile UAT", () => {
   }) => {
     await page.goto("/audit/coverage");
 
-    await expect(page.getByText("Add capture").first()).toBeVisible();
+    // The remediation command lives inside a native <details> row action
+    // (`tl-row-action--capture`, added for the v1.36 component retune) that
+    // renders collapsed by default — the summary ("Add capture") is visible
+    // immediately, but its body (including the remediation command) is
+    // hidden until the row is expanded. Click it open before asserting the
+    // command text is visible.
+    const addCapture = page.getByText("Add capture").first();
+    await expect(addCapture).toBeVisible();
+    await addCapture.click();
     await expect(page.getByText("mix threadline.gen.triggers --tables").first()).toBeVisible();
 
     await expectNoHorizontalOverflow(page);

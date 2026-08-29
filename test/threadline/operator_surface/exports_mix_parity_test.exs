@@ -34,6 +34,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     import Phoenix.ConnTest
     import ExUnit.CaptureIO
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -49,11 +50,11 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     setup do
-      @repo.delete_all(AuditChange)
-      @repo.delete_all(AuditTransaction)
+      @repo.delete_all(AuditChange, repo_opts())
+      @repo.delete_all(AuditTransaction, repo_opts())
 
       if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        @repo.delete_all(Threadline.Semantics.AuditAction)
+        @repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       end
 
       # Re-enable the Mix task so it can be invoked again in each test case.
@@ -218,7 +219,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -233,7 +235,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             op: "insert",
             data_after: %{"i" => i},
             captured_at: now
-          })
+          }),
+          repo_opts()
         )
       end
     end

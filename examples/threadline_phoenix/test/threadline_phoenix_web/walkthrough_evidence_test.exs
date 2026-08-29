@@ -36,12 +36,17 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       offboarded_timeline_conn =
         build_conn()
         |> login_demo(:support_offboarded)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       timeline_html = html_response(offboarded_timeline_conn, 200)
       refute timeline_html =~ "Forbidden"
-      refute timeline_html =~ "View Incident"
+      # Positive emptiness assertion (paired with the retention_run evidence
+      # assertion above): the offboarded-co timeline must actually render its
+      # "no captured changes" empty state, not merely fail to error. Routed to
+      # /audit/timeline (not /audit, which redirects to the generic operator
+      # Home page and carries no org-scoped emptiness signal at all).
+      assert timeline_html =~ "No captured changes"
     end
 
     test "WALK-04-02 redaction_policy evidence and #4521 row history shows [REDACTED]" do
@@ -82,7 +87,12 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       coverage_html = html_response(coverage_conn, 200)
       refute coverage_html =~ "Coverage view unavailable"
       assert coverage_html =~ "tickets" or coverage_html =~ "ticket_replies"
-      assert coverage_html =~ "covered"
+      # Non-vacuous coverage snapshot: both a non-empty covered set (chip label
+      # "Covered") and a non-empty uncovered set (chip label "Needs capture")
+      # must be present, so a database that is either all-covered or entirely
+      # empty of triggers cannot satisfy this assertion.
+      assert coverage_html =~ "Covered"
+      assert coverage_html =~ "Needs capture"
 
       evidence_conn =
         admin_conn()

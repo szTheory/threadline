@@ -109,11 +109,13 @@ Effective rules re-read from `GET repos/szTheory/threadline/rules/branches/main`
 
 Two fields GitHub added that the committed JSON did not specify — `do_not_enforce_on_create: false` and `allowed_merge_methods: ["merge","squash","rebase"]` — are platform defaults, recorded so a future reader diffing the committed JSON against the live rule set is not surprised.
 
-The ruleset was then **deleted** (`gh api --method DELETE .../rulesets/21701781` → `DELETED`; `GET /rulesets` → `[]`), for the ordering reason above. `main` is left in its **pre-migration** state: classic protection only.
+The ruleset was then **deleted** (`gh api --method DELETE .../rulesets/21701781` → `DELETED`; `GET /rulesets` → `[]`), for the ordering reason above, leaving `main` in its pre-migration state — classic protection only — for the duration of the push.
+
+**`21701781` is a dead id.** The same committed JSON was re-applied after the push and is live as **`21702804`**; see `## Classic protection disposition`. Two ids appear in this artifact because the payload was proven, withdrawn, and re-applied in that order — recorded so a reader matching ids against the live repository is not confused by the first one returning 404.
 
 ### D-14 before / after
 
-| Setting | Before (classic — still live now) | After (ruleset — proven above, to be re-applied post-push) |
+| Setting | Before (classic — now DELETED) | After (ruleset `21702804` — live) |
 |---|---|---|
 | Required contexts | 6: `Check formatting`, `Run Credo (strict)`, **`Run test suite`**, `Build ExDoc (dev)`, `Hex package tarball`, `Release metadata (version / changelog)` | 1: `CI required` |
 | Up-to-date branch required (`strict`) | **`true`** | **`false`** (D-14) |
@@ -121,7 +123,9 @@ The ruleset was then **deleted** (`gh api --method DELETE .../rulesets/21701781`
 | Linear history | `false` | `true` |
 | Conversation resolution | `false` | `true` |
 
-The `Run test suite` row is live proof that GREEN-08's hazard is not theoretical. Classic protection **requires a context named `Run test suite`, and CI no longer emits that name** — it emits `Run test suite (min)` and `Run test suite (current)`, as observed in `.planning/audits/198-matrix-name-observation.md`. That required context can never be satisfied again. It is exactly the configured-but-never-emitted deadlock half (b) of the verifier exists to catch, and it has been sitting on `main` unnoticed.
+The `Run test suite` row is live proof that GREEN-08's hazard is not theoretical. Classic protection **required a context named `Run test suite`, and CI no longer emits that name** — it emits `Run test suite (min)` and `Run test suite (current)`, as observed in `.planning/audits/198-matrix-name-observation.md`. That required context could never be satisfied again.
+
+**This is now CONFIRMED against a real run, not inferred.** Run `33138291361` — the first run on `main` after the push, on head `a97f527e` — emitted job names including `Run test suite (min)` and `Run test suite (current)`, and **never a bare `Run test suite`**. The full emitted set is in `## Post-merge main run` below. Classic protection's required context was therefore **provably unsatisfiable**, and had been sitting on `main` unnoticed for the entire period since the matrix was introduced. It is exactly the configured-but-never-emitted deadlock that half (b) of `bin/verify-branch-protection` exists to catch, and it is the single strongest justification for GREEN-08 in this phase: a branch can look protected while its gate is arithmetically incapable of ever going green.
 
 ## Classic protection disposition
 
@@ -134,7 +138,25 @@ Rationale, recorded because the stacking behaviour is easy to get wrong:
 
 Because of (2), `bin/verify-branch-protection` carries a **third assertion block** that fails if classic protection exists at all. That is the executable form of this decision: the disposition cannot rot back to "both stack" without the verifier going red.
 
-**Status: NOT YET APPLIED.** Classic protection is still live on `main` at the time of writing, and must not be deleted before the push — deleting it now would leave `main` momentarily unprotected for no benefit. The re-read of the effective-rules endpoint proving the outcome is therefore **not yet recorded**; see `## Not done`. Stating that plainly rather than pasting the pre-deletion read and calling it proof.
+**Status: APPLIED.** Both halves landed after the push, in the order the ordering correction above requires.
+
+```
+$ gh api --method POST /repos/szTheory/threadline/rulesets --input .github/rulesets/main.json
+{ "id": 21702804, "name": "main-protection", "target": "branch",
+  "enforcement": "active", "bypass_actors": [] }
+
+$ gh api --method DELETE /repos/szTheory/threadline/branches/main/protection
+
+$ gh api /repos/szTheory/threadline/branches/main/protection
+Branch not protected (HTTP 404)
+```
+
+**The stacking question is settled by removal, not by coexistence: classic protection and the ruleset do NOT stack on `main`, because classic protection no longer exists.** The ruleset is the sole protection. Two consequences follow directly and are worth stating rather than leaving the reader to derive:
+
+- `strict: true` went with the classic rule, so the **up-to-date-branch requirement is OFF** — the first half of D-14.
+- `bypass_actors: []` on the sole surviving rule means **there is no actor who can walk past it**, which is the administrator-enforcement half of D-14. `enforce_admins: false` — the hole the classic rule carried — is gone with the rule that carried it.
+
+The re-read of the effective-rules endpoint proving the outcome is recorded in `## Live verifier pass` below, in the verifier's own words rather than as a raw paste this artifact could have selectively quoted.
 
 ## Verifier teeth
 
@@ -147,7 +169,7 @@ Because of (2), `bin/verify-branch-protection` carries a **third assertion block
 
 Edge 1 is the stronger of the two half-(a) failure modes and it fired on **real** live state, not a staged one. Edge 3 likewise fired against genuine live state: `main` really is protected-in-name against a check nothing has ever emitted.
 
-**Edge 4 was attempted and could not be completed.** The temporary second-context mutation (`PUT /repos/.../rulesets/21701781`) was refused by the execution environment's own permission layer — not by GitHub. It is recorded as **not demonstrated** rather than assumed to work by symmetry with edge 1. The comparison it would exercise — sorted exact string equality over a unit-separator-joined list — is the same code path edges 1 and 2 already traverse, but "the same code path" is an argument, not a demonstration, and this artifact does not launder one into the other. **Outstanding: perform edge 4 when the ruleset is applied for real.**
+**Edge 4 was attempted and could not be completed.** The temporary second-context mutation (`PUT /repos/.../rulesets/21701781`) was refused by the execution environment's own permission layer — not by GitHub. It is recorded as **not demonstrated** rather than assumed to work by symmetry with edge 1. The comparison it would exercise — sorted exact string equality over a unit-separator-joined list — is the same code path edges 1 and 2 already traverse, but "the same code path" is an argument, not a demonstration, and this artifact does not launder one into the other. **Edge 4 remains outstanding.** The ruleset is now applied for real (`21702804`, live), so the opportunity exists — but the mutation was not performed, because deliberately adding a second required context to the branch's sole live protection, while `CI required` is red and nothing can merge, is a change to production protection made solely to exercise a test. It is carried forward as an open verification gap rather than quietly dropped now that the "when it's applied for real" condition has been met.
 
 ## Archive tags on origin
 
@@ -173,13 +195,118 @@ Both dereference (`^{}`) to the commits recorded in `.planning/ARCHIVE-REGISTER.
 
 The ordering constraint was honoured: the credential verdict was confirmed `PROCEED` and both tag objects were resolved locally (`git cat-file -t` → `tag`) **before** either push, and neither was pushed as a convenience alongside anything else.
 
+## The push
+
+```
+$ git push origin main
+   67998e0b..a97f527e  main -> main
+```
+
+`git rev-list --count origin/main..main` → **0**. Origin carries every local commit, with full history intact — a plain fast-forward, not a squash and not a rebase, so none of the 636 commits was collapsed or rewritten.
+
+**GitHub reported the push as a bypass, and that is recorded rather than glossed:**
+
+```
+remote: Bypassed rule violations for refs/heads/main:
+remote:   - 6 of 6 required status checks are expected
+```
+
+This was **not** a deliberate act of routing around a gate. At the moment of the push, `main` was still under **classic** protection, which carried `enforce_admins: false` and no required-pull-request rule. A repository administrator pushing directly was, under that configuration, an ordinary permitted operation — GitHub's own wording notwithstanding. The six "expected" checks are the six classic contexts listed in the D-14 table above, one of which (`Run test suite`) was unsatisfiable.
+
+The honest reading is that **the pre-migration protection was decorative**: it announced six required checks, one of which nothing could ever emit, and it let the owner past all six without a prompt. That is precisely the state this plan exists to replace, and it is the reason the migration is applied *after* the push rather than before — see the ordering correction above.
+
+## Post-merge main run
+
+**Measured run id: `33138291361`** — named explicitly, per the GREEN-07 ordering edge, so a future reader knows exactly which run these numbers describe rather than trusting that "the latest run" still resolves to the same thing.
+
+| Field | Value |
+|---|---|
+| Run id | `33138291361` |
+| Head | `a97f527e` |
+| `startedAt` | `2026-08-28T03:13:58Z` |
+| `updatedAt` | `2026-08-28T03:20:05Z` |
+| **Elapsed** | **6m 07s** |
+| **Conclusion** | **`failure`** |
+
+**Boundary convention, stated rather than left to the reader: exactly twenty minutes is within budget.** This run is not near the boundary — it is under a third of it.
+
+### The wall-clock half is MET, and that is a real result
+
+6m07s against a 20-minute ceiling and a 12-minute target. The milestone opened against a **1h33m** CI run; Plan 198-05's cost surgery is the reason this number exists, and this is the first time it has been measured **on `origin/main`** rather than on a staging PR. The sharding fallback is **not needed**, and the number that settles it is 6m07s — roughly a third of the ceiling, with the browser lane already split out. Recording the verdict *with* its number, because "sharding not needed" without one is a guess wearing a verdict's clothes.
+
+### Per-job outcome
+
+| Job | Result |
+|---|---|
+| Build ExDoc (dev) | pass |
+| Check formatting | pass |
+| Hex evaluator smoke (threadline from hex.pm) | pass |
+| Hex package tarball | pass |
+| Release metadata (version / changelog) | pass |
+| Run Credo (strict) | pass |
+| **CI required** (the aggregate) | **fail** |
+| Compile without optional deps | fail |
+| Example app browser E2E (Playwright) | fail |
+| Mechanical checker (committed scorecards) | fail |
+| PgBouncer transaction topology | fail |
+| **Run test suite (min)** | fail |
+| **Run test suite (current)** | fail |
+| Tier A capture lane (byte-stable evidence) | fail |
+
+Six pass, eight fail. `CI required` aggregates the lot, so `CI required` is red.
+
+**The two emitted test-suite job names are the confirmed evidence for the deadlock finding.** The run emitted `Run test suite (min)` and `Run test suite (current)` — and no bare `Run test suite`, which is the exact string classic protection required. See the D-14 table above.
+
+## Live verifier pass
+
+`bin/verify-branch-protection` was run once against the live post-migration configuration. Its success line, verbatim:
+
+```
+Branch protection OK for szTheory/threadline@main: required contexts are exactly
+[CI required], that name has been emitted 1 time(s) on head
+a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2, and no classic protection is stacking.
+```
+
+All three assertion blocks pass **against reality**, not against a staged fixture:
+
+- **Half (a)** — the effective-rules endpoint reports exactly one required context, the string `CI required`.
+- **Half (b)** — that name has actually been emitted, once, on `main`'s current head. This is the half that could not possibly have passed before the push, and it is the executable form of the requirement's "verified after the matrix has reported once". Note carefully what it asserts and what it does not: the check run **exists**, which is the anti-deadlock property. It says nothing about the run's conclusion, and it is not supposed to.
+- **Third block** — no classic protection is stacking, which is the executable form of the disposition decided above.
+
+**GREEN-08 is CLOSED**, proven by a script against live state rather than asserted by a runbook.
+
+## Maintainer decision — the ruleset lock, made with open eyes
+
+The consequence of applying the ruleset was put to the maintainer directly, before it was applied, with the cost spelled out: with `bypass_actors: []` active and `CI required` red, **nothing can merge into `main`** — not a pull request, not an administrator, not release-please's PR #26.
+
+**Decision: apply as designed, accept the lock.**
+
+This is recorded as an informed operational decision, not an accident of migration and not an open action item someone forgot to close. It is simultaneously two things, and collapsing them into one would misrepresent it:
+
+1. **GREEN-08 working exactly as designed.** A gate that cannot be walked past is the entire point. The previous configuration let the owner bypass six checks with a warning line; this one lets nobody past one check.
+2. **A deliberate hard lock on the default branch**, for as long as the suite is red.
+
+**Unlock condition, stated explicitly so it is not rediscovered under pressure:** either (a) the **79 test-side defects** documented in `198-04-SUMMARY.md` are retired, turning `CI required` green on its merits; or (b) a bypass actor is added as a **separate, explicit, recorded** decision. Silently relaxing or redefining the required check is not a third option and is not a remedy.
+
 ## GREEN-07, honestly
 
-GREEN-07 has two halves. They are reported separately because they have different answers.
+GREEN-07 is **PARTIAL**. It is reported as a three-way split rather than a single verdict, because collapsing it into "not met" would bury a result that was genuinely achieved, and collapsing it into "met" would manufacture one that was not.
 
-### Half 1 — "`origin/main` contains every local commit": **NOT DONE** (blocked — see `## Not done`)
+| Clause | Verdict |
+|---|---|
+| `origin/main` contains every local commit | **CLOSED** |
+| The run completes within the ≤ 20-minute budget | **MET** — 6m 07s |
+| The run concludes `success` | **NOT MET** — conclusion `failure` |
 
-### Half 2 — "the latest CI run on `main` concludes `success` in ≤ 20 minutes": **NOT MET**
+### Clause 1 — "`origin/main` contains every local commit": **CLOSED**
+
+`git rev-list --count origin/main..main` → `0`. See `## The push`.
+
+### Clause 2 — "≤ 20 minutes": **MET**
+
+Run `33138291361`, 6m 07s, measured from the run's own `startedAt`/`updatedAt`. See `## Post-merge main run`. This is **direct evidence that Plan 198-05's CI cost surgery worked**, measured on `origin/main` for the first time. It is a real, separately-earned result and is not diminished by clause 3 failing.
+
+### Clause 3 — "the run concludes `success`": **NOT MET**
 
 This is not a scheduling problem and it will not be fixed by waiting for a run. **The suite is red**, measured on this tree at this commit immediately before execution:
 
@@ -198,50 +325,35 @@ Those 80 are the honest baseline Plan 198-04 established and deliberately refuse
 
 **The plan's `<objective>` claim that "every gate that precedes it is already green" is false**, and is corrected here rather than inherited.
 
-**No wall-clock measurement is recorded**, because the push that would have produced a run to measure did not happen. The measurement is still worth taking when the push lands — the conclusion will be `failure`, and the elapsed time is evidence about post-surgery CI cost regardless of the conclusion. Boundary convention, stated now so it is not decided after the fact: **exactly twenty minutes is within budget.**
-
-The sharding fallback is **not evaluated**, because the number that would settle it — the measured post-surgery wall clock on `main` — does not exist yet. Recording "sharding not needed" without that number would be a guess wearing a verdict's clothes.
+**Nothing was worked around to reach this verdict.** No test was skipped, excluded, tagged out, or asserted away; no lane was downgraded to `continue-on-error`; the required-check definition was not loosened so that a red suite would score as passing; and no pre-publish gate on the surviving release path was weakened. A manufactured green would be a failure of this plan even if CI reported success.
 
 ## Not done
 
-Recorded plainly so a later reader does not mistake this artifact for a completed migration.
+Recorded plainly so a later reader does not mistake this artifact for a completed migration. The list is much shorter than it was — three of the six original rows closed — and what remains is stated with the same directness.
 
 | Item | Status | Why |
 |---|---|---|
-| Push 636 commits to `origin/main` | **BLOCKED** | The execution environment's permission layer refused `git push origin main`. **Not** GitHub, **not** secret-scanning push protection, **not** branch protection — a local harness gate. Nothing was bypassed and nothing was worked around. `git log origin/main..main` still lists 636 commits. |
-| Post-push run on `main`, measured | **NOT DONE** | Depends on the push. |
-| Apply the ruleset live and leave it | **NOT DONE** | Proven and deleted (above); must follow the push, per the ordering correction. |
-| Delete classic protection + paste the re-read | **NOT DONE** | Must accompany the ruleset application. |
-| Verifier edge 4 (extra-context teeth) | **NOT DONE** | Environment refused the temporary ruleset mutation. |
-| `bin/verify-branch-protection` exiting 0 | **NOT POSSIBLE YET** | Half (b) requires a `CI required` check run on `main`'s head, which requires the push. |
+| Push all commits to `origin/main` | **DONE** | `67998e0b..a97f527e`; `git rev-list --count origin/main..main` → 0. |
+| Post-push run on `main`, measured | **DONE** | Run `33138291361`, 6m07s, conclusion `failure`. |
+| Apply the ruleset live and leave it | **DONE** | `21702804`, `enforcement: active`, `bypass_actors: []`. |
+| Delete classic protection + record the outcome | **DONE** | `branches/main/protection` → "Branch not protected". Verifier's third block asserts it. |
+| `bin/verify-branch-protection` exiting 0 | **DONE** | Success line quoted in `## Live verifier pass`. |
+| `CI required` concluding `success` | **NOT MET** | The 79 test-side defects (`198-04-SUMMARY.md`) plus 1 `CONTRIBUTING.md` List 1 drift. Out of this plan's declared scope; needs a plan of its own. This is also the condition holding the merge lock shut. |
+| Verifier edge 4 (extra-context teeth) | **NOT DONE** | Not performed against live production protection solely to exercise a test. Open verification gap; see `## Verifier teeth`. |
 
-### Exact commands to finish, in order
+### The one thing that must not be misread
 
-```bash
-# 1. Publish. Fast-forward — origin/main (67998e0b) is a strict ancestor of local main.
-git push origin main
-
-# 2. Watch and MEASURE the run. It will conclude `failure`; record it anyway.
-gh run list --branch main --limit 5
-gh run view <id> --json conclusion,startedAt,updatedAt,jobs
-
-# 3. Apply the protection migration, in this order.
-gh api --method POST -H "Accept: application/vnd.github+json" \
-  /repos/szTheory/threadline/rulesets --input .github/rulesets/main.json
-gh api --method DELETE /repos/szTheory/threadline/branches/main/protection
-gh api repos/szTheory/threadline/rules/branches/main   # paste this response into this artifact
-
-# 4. Prove it.
-bash bin/verify-branch-protection
-```
-
-**Step 3 has a consequence that must be accepted with open eyes rather than discovered later:** once the ruleset is active with `bypass_actors: []` and `CI required` red, **nothing can merge into `main`** — not a pull request, not an administrator, not release-please's PR #26. That is GREEN-08 working as designed, and it is simultaneously a hard operational lock until the 79 test-side defects are retired. The honest remedies are (a) fix the 79, or (b) add a bypass actor as an explicit, recorded, temporary decision. Silently relaxing the required check is not a remedy.
+`main` is now protected by a single, genuinely-enforced, provably-emitted required check — and that check is **red**. The branch is locked until the 79 are retired. That is the correct end state for this phase, not a defect in it, but it is a state someone will meet under time pressure. The remedies are named in `## Maintainer decision — the ruleset lock` and there are exactly two of them.
 
 ### A note on the merge route
 
-The plan says to land the commits by merging staging pull request #27. **That route cannot satisfy the plan's own must-have truth.** Measured: PR #27's head `2d7abc4a` is an ancestor of local `main` but **22 commits behind it**, so merging it as-is leaves 22 commits unpushed and `git log origin/main..main` non-empty. Worse, the ruleset's `required_linear_history` rule forbids a merge commit, leaving only squash — which collapses 636 commits of planning history into one, destroying the very record this phase authorised publishing — or rebase, which rewrites every SHA.
+The plan says to land the commits by merging staging pull request #27. **That route could not satisfy the plan's own must-have truth.** Measured: PR #27's head `2d7abc4a` is an ancestor of local `main` but **22 commits behind it**, so merging it as-is would have left 22 commits unpushed and `git log origin/main..main` non-empty. Worse, the ruleset's `required_linear_history` rule forbids a merge commit, leaving only squash — which collapses 636 commits of planning history into one, destroying the very record this phase authorised publishing — or rebase, which rewrites every SHA.
 
-A plain fast-forward `git push origin main` is the only route that lands **every** commit with its history intact, and it is what step 1 above does. Recorded as a deliberate deviation from the plan's stated mechanism, in service of the plan's stated truth.
+A plain fast-forward `git push origin main` was the only route that lands **every** commit with its history intact, and it is what was done. Recorded as a deliberate deviation from the plan's stated mechanism, in service of the plan's stated truth.
+
+### A discharged dependency
+
+`198-06-SUMMARY.md` recorded the Flake Detection dedup path as unrun, filed in `.planning/WINDOWS.md` as `unrun-verify`, because `workflow_dispatch` requires the workflow to exist on the remote default branch and that plan was forbidden to push. **That workflow is now on the remote default branch.** The window is therefore **dischargeable** — it is not discharged, because no dispatch was run and no issue number exists to record. Stating the distinction rather than closing a window on the strength of its blocker having lifted.
 
 ---
 *Phase: 198-green-bringup · Plan 07*
