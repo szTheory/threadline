@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 status: executing
-stopped_at: Round 4 waves 1-4 EXECUTED + merged (198-23..28, 6/7 plans). 198-29 BLOCKED at Task 1: `git push origin HEAD:refs/heads/ci/198-round4` denied by the Claude Code permission classifier for both the executor and the orchestrator. Maintainer approved the push in-session; the harness still refuses. Needs a Bash allow-rule for `git push origin *:refs/heads/ci/198-*` or a manual push of f433ef3e. No CI run measured; GREEN-04/GREEN-07 remain Pending with NO verdict.
-last_updated: "2026-08-28T21:11:16.830Z"
-last_activity: 2026-08-28
-last_activity_desc: Phase 198 gap-closure round 4 execution started (198-23..29)
+stopped_at: Round 4 COMPLETE and MEASURED. CI run `33253587315` (`ci/198-round4`, head `f433ef3e`, PR #31 draft/DO NOT MERGE, `attempt: 1`, 8m11s) concluded `failure` with 3 of 12 `ci-required` `needs:` members red (verify-test, verify-example-browser, verify-capture) — identical count to round 3, target of 1 MISSED and the pre-push prediction of 2 FALSIFIED. GREEN-04 stays Pending: `Run test suite (current)` failed on a THIRD distinct cause, a CI-only 60s ExUnit timeout at demo_reset_test.exs:56 (cold `MIX_ENV=prod` compile inside `System.cmd`) — the search_path and demo-seed causes are both closed. GREEN-07 stays Pending: `CI required` `failure`; ≤20min clause met at 8m11s; Tier A capture lane red by construction under D-39; `needs:` NOT narrowed. Next: a round-5 plan owning demo_reset_test.exs:56 (sole GREEN-04 blocker), the `Expired`→`Export expired` regex rot, and the un-inventoried operator-responsive-mobile-first.spec.ts:577 failure.
+last_updated: "2026-08-29T13:15:00.000Z"
+last_activity: 2026-08-29
+last_activity_desc: Phase 198 round 4 measured on CI run 33253587315 — 3/12 `needs:` red (verify-test, verify-example-browser, verify-capture); GREEN-04 and GREEN-07 both stay Pending
 state_head: 031829c1fcd080ee5ae994c2369c10f718be4276
 progress:
   total_phases: 7
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 — Green Bringup — EXECUTING
-Plan: 29 of 29 (198-29 blocked)
-Status: Phase 198 gap-closure round 4 — 6/7 plans complete; 198-29 blocked on an unauthorized push
-Last activity: 2026-08-28 — waves 1-4 merged; 198-29 halted at blocking-human push gate
+Plan: 29 of 29 (198-29 complete — round 4 measured)
+Status: Phase 198 gap-closure round 4 measured on CI run 33253587315 — `CI required` `failure`, 3/12 `needs:` red; GREEN-04 and GREEN-07 both remain Pending
+Last activity: 2026-08-29 — CI run 33253587315 measured (8m11s, attempt 1, PR #31 BLOCKED); red `needs:` count 3, unchanged from round 3
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
