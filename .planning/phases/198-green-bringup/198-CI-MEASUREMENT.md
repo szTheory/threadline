@@ -771,3 +771,432 @@ local evidence — never in hope.
 | **`CI required`** (aggregate) | CI required | **failure** | Two `needs:` members (`verify-example-browser`, `verify-capture`) are predicted red; `re-actors/alls-green` fails the aggregate if any required job is not `success`. |
 
 **Predicted red-`needs:`-member count: 2** (`verify-example-browser`, `verify-capture`). This is stated honestly against the plan's own stated aspirational target of 1 — the plan's objective section assumed the Playwright lane would fully close this round, but `## Post-merge re-validation (198-28)`'s own recorded divergence count (2) and its logged new-discovery rows (out of this round's declared scope, per `deferred-items.md`'s Plan 198-27/198-28 entries and `WINDOWS.md` #10/#11) mean at least one further gap-closure round is needed on the Playwright lane specifically. A prediction that assumed the aspirational target without re-checking the evidence would be exactly the kind of unmeasured optimism this plan's `must_haves` forbid.
+
+## Round 4 (2026-08-29) — Measured CI run (Plan 198-29, gap-closure round 4)
+
+**Push.** Worktree HEAD `f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6` (carrying all of
+198-01 through 198-28, including this round's demo-seed fixes 198-23/24/25 and
+Playwright fixes 198-26/27/28, plus the locked pre-push prediction commit
+`f433ef3e docs(198-29): state Round 4 pre-push prediction`) pushed to a **fresh**
+branch, distinct from round 3's `ci/198-round3` and round 2's `ci/198-gap-closure`.
+
+**Concurrency edge — the three `ci/198-*` refs resolved at the same moment, provably distinct:**
+
+```
+$ git ls-remote --heads origin ci/198-round4 ci/198-round3 ci/198-gap-closure
+f748e43d7e4c1e63a0142569a55f57c7187e5cb1	refs/heads/ci/198-gap-closure
+80bf701e7486962e538d16f213874cbba8f24115	refs/heads/ci/198-round3
+f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6	refs/heads/ci/198-round4
+```
+
+Three distinct SHAs. Round 4's evidence cannot be confused with round 2's or round 3's.
+
+`git log origin/main..f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6 --oneline | wc -l`:
+**137** — `origin/main` (`a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2`) does not carry
+these 137 commits; that gap closes only if/when a PR merges.
+
+**Pull request — a measurement vehicle, not a merge request.**
+
+```
+$ gh pr view 31 --json number,state,isDraft,mergeStateStatus,url,headRefName
+{"headRefName":"ci/198-round4","isDraft":true,"mergeStateStatus":"BLOCKED","number":31,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/31"}
+```
+
+PR **#31**, `isDraft: true`, body opening with the literal string **DO NOT MERGE**:
+
+```
+**DO NOT MERGE.** This draft PR exists solely as a measurement vehicle for Phase 198 gap-closure round 4.
+```
+
+### The run
+
+```
+$ gh run list --branch ci/198-round4 --limit 10 --json databaseId,conclusion,headSha,status,createdAt,event
+[{"conclusion":"failure","createdAt":"2026-08-29T12:52:18Z","databaseId":33253587315,"event":"pull_request","headSha":"f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6","status":"completed"}]
+```
+
+**Ordering edge — satisfied by uniqueness, stated explicitly rather than left silent:**
+`gh run list --branch ci/198-round4` returned **exactly one** run for this head SHA.
+There are no competing run ids, so no most-recent-completed selection among rivals
+was needed; this run is authoritative by construction, not by choice.
+
+```
+$ gh run view 33253587315 --json status,conclusion,createdAt,updatedAt,attempt,headSha,event
+{"attempt":1,"conclusion":"failure","createdAt":"2026-08-29T12:52:18Z","event":"pull_request","headSha":"f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6","status":"completed","updatedAt":"2026-08-29T13:00:29Z"}
+```
+
+- **Run ID:** `33253587315`
+- **Head SHA:** `f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6` — character-for-character
+  identical to the pushed local head SHA above.
+- **Event:** `pull_request`
+- **Conclusion:** `failure`
+- **Attempt:** `1`
+- **Wall clock:** `12:52:18Z` → `13:00:29Z` = **8m11s**
+
+### (a) Per-job table
+
+All 13 named jobs the run reported, with `CI required` called out separately — 14
+checks total, matching rounds 2 and 3's count.
+
+| Check | Conclusion | Duration (started→completed) |
+|---|---|---|
+| Check formatting | ✓ success | 12:52:22 → 12:52:40 (18s) |
+| Run Credo (strict) | ✓ success | 12:52:20 → 12:53:35 (1m15s) |
+| Compile without optional deps | ✓ success | 12:52:20 → 12:53:20 (1m0s) |
+| Run test suite (min) | ✓ success | 12:52:21 → 12:56:49 (4m28s) |
+| Run test suite (current) | ✗ **failure** | 12:52:21 → 12:59:40 (7m19s) |
+| Hex evaluator smoke (threadline from hex.pm) | ✓ success | 12:52:21 → 12:53:23 (1m2s) |
+| PgBouncer transaction topology | ✓ success | 12:52:20 → 12:54:02 (1m42s) |
+| Mechanical checker (committed scorecards) | ✓ success | 12:52:21 → 12:53:48 (1m27s) |
+| Tier A capture lane (byte-stable evidence) | ✗ **failure** | 12:52:21 → 13:00:18 (7m57s) |
+| Example app browser E2E (Playwright) | ✗ **failure** | 12:52:21 → 13:00:22 (8m1s) |
+| Build ExDoc (dev) | ✓ success | 12:52:22 → 12:53:48 (1m26s) |
+| Hex package tarball | ✓ success | 12:52:20 → 12:52:41 (21s) |
+| Release metadata (version / changelog) | ✓ success | 12:52:20 → 12:52:27 (7s) |
+| **`CI required` (aggregate)** | **✗ failure** | 13:00:24 → 13:00:28 (4s) |
+
+**Empty edge — stated affirmatively rather than left silent: job-conclusion
+collection was NOT empty. 14 conclusions were collected (13 named jobs + the
+aggregate), and all 12 `ci-required` `needs:` members are accounted for by name in
+(b) below. A zero-length collection would have been recorded as failed collection,
+not as a pass; this collection is non-empty and complete, so neither GREEN-04's nor
+GREEN-07's empty-edge failure mode applies to this record.**
+
+### (b) Verbatim `re-actors/alls-green` output — all 12 `needs:` members
+
+From the `CI required` job's own "Decide whether all needed jobs succeeded" step
+(job id `99104195672`), verbatim:
+
+```
+# ❌ Some of the required to succeed jobs failed 😢😢😢
+✓ verify-format → 🟢 success [required to succeed]
+✓ verify-credo → 🟢 success [required to succeed]
+✓ verify-compile-no-optional → 🟢 success [required to succeed]
+❌ verify-test → 🔴 failure [required to succeed]
+✓ verify-hex-evaluator → 🟢 success [required to succeed]
+❌ verify-example-browser → 🔴 failure [required to succeed]
+✓ verify-mechanical → 🟢 success [required to succeed]
+❌ verify-capture → 🔴 failure [required to succeed]
+✓ verify-pgbouncer-topology → 🟢 success [required to succeed]
+✓ verify-docs → 🟢 success [required to succeed]
+✓ verify-hex-package → 🟢 success [required to succeed]
+✓ verify-release-shape → 🟢 success [required to succeed]
+```
+
+The same step's input payload records `allowed-failures: []` and
+`allowed-skips: []` — no member was pre-authorised to fail or skip.
+
+**Member counts: `success` 9, `failure` 3, `skipped` 0, `cancelled` 0. Sum: 12,
+equal to the `needs:` list's own cardinality.**
+
+**Adjacency edge (GREEN-07), stated explicitly:** a lane counts as met here only on
+the exact conclusion string `success`. `neutral`, `skipped` and `cancelled` are each
+recorded as **not-success**. This matters because `re-actors/alls-green` would score
+a `skipped` required check as passing — a green aggregate could therefore be
+manufactured by skipping a lane rather than fixing it, which is exactly the
+laundering D-09 rejects. On this run the point is moot in the maintainer's favour:
+zero members reported `skipped` or `cancelled`, so no member's verdict was laundered,
+and the aggregate's `failure` is traceable entirely to three genuine `failure`
+conclusions.
+
+### (c) Prediction scorecard
+
+Scored against `## Round 4 (2026-08-28) — Prediction stated before the push`, which
+was committed to disk in `f433ef3e` **before** `git push`. Nothing below has been
+retro-edited; a missed row is written as a miss.
+
+| `needs:` member | Check name | Predicted | Actual | Hit / miss |
+|---|---|---|---|---|
+| `verify-format` | Check formatting | success | success | hit |
+| `verify-credo` | Run Credo (strict) | success | success | hit |
+| `verify-compile-no-optional` | Compile without optional deps | success | success | hit |
+| `verify-test` | Run test suite (current) | **success** | **failure** | **MISS** |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | success | hit |
+| `verify-example-browser` | Example app browser E2E (Playwright) | failure | failure | hit |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | success | hit |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | failure | failure | hit |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | success | hit |
+| `verify-docs` | Build ExDoc (dev) | success | success | hit |
+| `verify-hex-package` | Hex package tarball | success | success | hit |
+| `verify-release-shape` | Release metadata (version / changelog) | success | success | hit |
+| **`CI required`** (aggregate) | CI required | failure | failure | hit |
+
+**Hit rate: 11/12 `needs:` members (12/13 rows including the aggregate).**
+
+**Two separate predictions were falsified this round, and both are recorded as
+misses without softening:**
+
+1. **The plan's honest target was to take the red-`needs:` count from 3 down to 1.
+   The measured count is 3. Delta against round 3: 0. The target was MISSED.**
+2. **The pre-push prediction, written after re-reading 198-28's post-merge
+   re-validation, said 2. The measured count is 3. That prediction is FALSIFIED.**
+   Its single wrong row is `verify-test`, predicted `success` on the strength of
+   198-25's closing local measurement of `109 tests, 0 failures` (twice,
+   consecutively). The measured CI conclusion is `failure`. The prediction was
+   wrong because it treated a *local* `mix verify.example` result as a reliable
+   proxy for the CI job's conclusion — which is precisely the substitution D-01
+   forbids as *evidence*, and which this round demonstrates is also unreliable as a
+   *forecast*. The cause is diagnosed in (f)(1) below: a CI-only, cold-build
+   timeout that a warm local `_build/prod` structurally cannot reproduce.
+
+**The pre-push prediction section above is left exactly as written. It is not
+amended, annotated, or corrected in place — a prediction edited after its scoring is
+not a prediction.**
+
+### (d) Five-column baseline comparison — "N of 7 now green"
+
+Extending round 3's four-column table (baseline `33138291361`, round 1
+`33183920952`, round 2 `33197493051`, round 3 `33204829086`) with round 4
+(`33253587315`, fetched fresh via `gh run view 33253587315 --json jobs`):
+
+| Job | Baseline (33138291361) | Round 1 (33183920952) | Round 2 (33197493051) | Round 3 (33204829086) | Round 4 (33253587315) |
+|---|---|---|---|---|---|
+| Compile without optional deps | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success |
+| Mechanical checker (committed scorecards) | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success |
+| PgBouncer transaction topology | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success |
+| Run test suite (min) | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success |
+| Run test suite (current) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (third distinct cause — see (f)(1)) |
+| Tier A capture lane (byte-stable evidence) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged, D-39) |
+| Example app browser E2E (Playwright) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (entirely different failing tests — see (f)(2)) |
+| **`CI required` (aggregate)** | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure |
+
+**4 of the 7 originally-red baseline jobs are green as of round 4 — unchanged from
+round 3's 4.** No job crossed to green this round, and none regressed.
+
+### (e) Red `needs:` count
+
+**Red `needs:` members: 3** — `verify-test`, `verify-example-browser`,
+`verify-capture`.
+
+**Round 3's count: 3. Delta: 0.**
+
+**This round's stated target was 1. The target was MISSED.** Two of the three lanes
+were expected to close: `verify-test` on the strength of 198-23/24/25, and
+`verify-example-browser` was already downgraded to "expected red" in the pre-push
+prediction. Neither closed. Progress *inside* two of the three lanes is real and
+measured (see (f)), but progress inside a lane is not the metric — the metric is the
+lane's conclusion string, and three lanes still conclude `failure`.
+
+### (f) Root cause for every still-red check
+
+Every red check below carries a named cause and a citation. No row reads "still red".
+
+#### (f)(1) `Run test suite (current)` — `verify-test`
+
+**Conclusion: `failure`. Failing step: `Verify Threadline Phoenix example`
+(`mix verify.example`).** The job's earlier root-suite step (`Run tests`,
+`mix verify.test`) **passed**, verbatim: `1423 tests, 0 failures, 1 excluded`.
+
+Failing step output, verbatim:
+
+```
+Finished in 96.1 seconds (0.6s async, 95.5s sync)
+109 tests, 1 failure
+** (Mix) verify.example failed (2)
+```
+
+The single failure, verbatim:
+
+```
+  1) test prod mix demo.reset fails fast without DEMO_ALLOW_RESET=1 (ThreadlinePhoenix.DemoResetTest)
+     test/threadline_phoenix/demo_reset_test.exs:56
+     ** (ExUnit.TimeoutError) test timed out after 60000ms. You can change the timeout:
+     ...
+     code: System.cmd(
+     stacktrace:
+       (elixir 1.17.3) lib/system.ex:1142: System.do_port_byte/3
+       (elixir 1.17.3) lib/system.ex:1131: System.do_cmd/3
+       test/threadline_phoenix/demo_reset_test.exs:69: (test)
+```
+
+**Cause — a CI-only test-harness defect, not a demo-seed defect and not a product
+defect.** `demo_reset_test.exs:69` is a `System.cmd("mix", ["demo.reset"], cd:
+@app_dir, env: [{"MIX_ENV", "prod"}], stderr_to_stdout: true)` — it shells out to a
+*separate* `MIX_ENV=prod` Mix invocation to prove that `mix demo.reset` refuses to
+run in prod without `DEMO_ALLOW_RESET=1`. On a cold CI checkout there is no
+`_build/prod`, so that child process must compile the example app **and all of its
+dependencies** in the `prod` environment before the `DEMO_ALLOW_RESET` guard it is
+asserting on is ever reached. That compile exceeds ExUnit's 60 000 ms default
+timeout, and the test carries no `@tag timeout:` budget covering the shell-out.
+A secondary symptom in the same log confirms the shape — the owning process held its
+Ecto connection past the ownership timeout while blocked on the port:
+`Postgrex.Protocol ... disconnected: ** (DBConnection.ConnectionError) owner
+#PID<0.820.0> (:proc_lib) timed out because it owned the connection for longer than
+60000ms`.
+
+**This is NOT one of the failures plans 198-23/24/25 targeted, and those fixes
+held.** The demo-seed content-mismatch class D-41 named — 8–9 `Ecto.NoResultsError`
+/ assertion mismatches in `DemoContractTest`, `WalkthroughHappyPathTest`,
+`WalkthroughEvidenceTest` — is **gone**: the job reports `109 tests, 1 failure`, and
+the one failure is this timeout. Round 3's own cause (`33204829086`: 9 demo-seed
+content failures) and round 2's (`33197493051`: missing `ALTER DATABASE ... SET
+search_path`) are both closed. This is the **third distinct cause** to hold this
+lane red across four rounds.
+
+**Ordering edge (GREEN-04) — the local and CI figures disagree, and both are shown
+side by side rather than the newer silently replacing the older:**
+
+| Measurement | Provenance | Result |
+|---|---|---|
+| Local `mix verify.example`, run 1 | Plan 198-25 closing measurement, repo root, warm `_build`, `.planning/audits/198-round4-demo-seed.md` (`Finished in 36.6 seconds`) | `109 tests, 0 failures` |
+| Local `mix verify.example`, run 2 | Plan 198-25 closing measurement, immediately consecutive (`Finished in 14.7 seconds`) | `109 tests, 0 failures` |
+| **CI `mix verify.example`** | **Run `33253587315`, job `Run test suite (current)` (`99103350741`), step `Verify Threadline Phoenix example` (`Finished in 96.1 seconds`)** | **`109 tests, 1 failure`** |
+
+The disagreement is explained, not averaged: locally `_build/prod` is already warm,
+so the child `mix demo.reset` returns in seconds and the assertion passes; the 36.6s
+and 14.7s local wall clocks against CI's 96.1s are themselves the signature of that
+warm/cold difference. **Per D-01 the local 0-failure figure is a readiness signal
+only. The CI figure is the evidence. GREEN-04 follows the CI figure.**
+
+#### (f)(2) `Example app browser E2E (Playwright)` — `verify-example-browser`
+
+**Conclusion: `failure`.** Step `Run example Playwright suite` →
+`** (Mix) verify.example_browser failed (1)`. Verbatim summary:
+
+```
+  5 failed
+  9 skipped
+  188 did not run
+  138 passed (5.4m)
+```
+
+**Read the count with its censoring, stated up front:** the log also records
+`Testing stopped early after 5 maximum allowed failures.`
+`examples/threadline_phoenix/e2e/playwright.config.ts:141` sets
+`maxFailures: process.env.CI ? 5 : 0`. **The "5 failed" figure is therefore
+right-censored at exactly 5 — it is a floor, not a census, and 188 tests never
+ran.** Round 3's count was also 5, under the same cap. **"5 vs 5, delta 0" must NOT
+be read as "no progress": both numbers are the cap.** What *can* be compared is
+composition, and it changed completely.
+
+**Round 3's five failing tests all pass on this run** — confirmed by name in run
+`33253587315`'s own log:
+
+| Round 3 failing test | Round 4 result |
+|---|---|
+| `operator-find-mobile.spec.ts:48:3` | `✓ 36 ... (765ms)` |
+| `operator-find-mobile.spec.ts:66:3` | `✓ 37 ... (774ms)` |
+| `operator-find-mobile.spec.ts:103:3` | `✓ 39 ... (535ms)` |
+| `operator-phase-135-uat.spec.ts:76:3` | `✓ 55 ... (512ms)` |
+| `operator-phase-173-uat.spec.ts:74:3` | `✓ 58 ... (1.1s)` |
+
+**198-28's two CI-contributing rows also pass:**
+`✓ 117 [desktop-chromium] › tests/operator-screenshots.spec.ts:90:3 › admin
+investigation and governance surfaces (8.7s)` and `✓ 118 ... :174:3 › empty and
+denied states (4.2s)`. **198-26/27/28's fixes held, measured on CI.** The lane is red
+on five *different* tests that the round-3 run's own `maxFailures: 5` cap prevented
+from ever executing.
+
+**Row-by-row cross-check against `.planning/audits/198-round4-playwright.md`
+`## Post-merge re-validation (198-28)` — was each failure in the CI-contributing set
+198-26/27/28 believed closed?**
+
+| # | Failing test (all `[desktop-chromium]`) | In 198-28's inventory? | Believed closed? | Prediction status |
+|---|---|---|---|---|
+| 1 | `operator-accessibility.spec.ts:565:3` › keeps Exports queue and download states named and keyboard reachable | **Yes** — rows 31/32, logged as **`unassigned` / new discovery, out of 198-28's `files_modified`** | **No** — explicitly recorded as needing a follow-up plan | **Predicted.** The pre-push prediction named this file and line by name. |
+| 2 | `operator-prove-mobile.spec.ts:38:3` › exports dense state keeps readiness hierarchy and ready-only primary action | **Yes** — rows 33/34, same `unassigned` disposition | **No** | **Predicted.** Also named by line in the pre-push prediction. |
+| 3 | `operator-responsive-mobile-first.spec.ts:577:5` › operator responsive matrix: phone › keeps every operator route usable without root horizontal overflow | **No** — `grep -c "operator-responsive-mobile-first" .planning/audits/198-round4-playwright.md` returns **0** | n/a — never inventoried | **Un-inventoried CI-only discovery.** |
+| 4 | `operator-stress.spec.ts:277:5` › ledger-owned stress screenshots › `page.home.happy` dark 1024px matches its ledger baseline | **No** — `grep -c "operator-stress" ...playwright.md` returns **0** | n/a | **Un-inventoried. Red by construction (D-39).** |
+| 5 | `operator-stress.spec.ts:277:5` › ledger-owned stress screenshots › `page.timeline.empty` dark 1024px matches its ledger baseline | **No** — same | n/a | **Un-inventoried. Red by construction (D-39).** |
+
+**Prediction-miss assessment for this lane, stated plainly: the lane's *conclusion*
+was predicted correctly (`failure`, a hit), but the *composition* was only 2/5
+predicted. Three of the five failing tests appear in no audit row anywhere in this
+round's inventory. The inventory in `198-round4-playwright.md` was built from
+*unbounded local* runs (`process.env.CI` unset, `maxFailures: 0`), and it is
+therefore a poor predictor of which five tests a capped CI run will surface: it
+covers a different, non-nested population (local runs skip
+`operator-screenshot-regression.spec.ts` never, CI skips it entirely; CI stops at 5,
+local does not stop). That is the most likely reason from the logs, and it is a
+methodological miss worth carrying into any round 5.**
+
+Per-failure causes:
+
+1. **`operator-accessibility.spec.ts:565:3`** — `Locator: getByTestId('export-jobs').getByText(/Expired|File unavailable/).first()` → `Error: element(s) not found`, at `operator-accessibility.spec.ts:612`. **Cause, already established and cited: `deferred-items.md`'s Plan 198-28 entry — `fix(198-25)`'s label-copy change from `"Expired"` to `"Export expired"` (lowercase `expired`) no longer matches the capital-`E` `/Expired|.../` regex.** Not a seed-content change (`demo/seed/exports.ex` was not touched); the corrected diagnosis is recorded in `WINDOWS.md` #10/#11. Out of 198-28's and 198-29's `files_modified`; owned by a follow-up plan.
+2. **`operator-prove-mobile.spec.ts:38:3`** — `Locator: getByText(/Expired|File unavailable/).first()` → `Error: element(s) not found`, at `operator-prove-mobile.spec.ts:60`. **Identical cause and citation to (1).**
+3. **`operator-responsive-mobile-first.spec.ts:577:5`** — `Locator: getByRole('heading', { name: 'Row history', exact: true })` → `Error: element(s) not found`, at `operator-responsive-mobile-first.spec.ts:475` (helper), reached from `:587` / `:584`. **Cause: not established.** The phone-viewport route-usability matrix opens the row-history drawer and asserts an exact `Row history` heading; that heading does not resolve at phone width within 15 s. This is an **un-inventoried CI-only failure**, first observed on this run. It is NOT diagnosed further here: 198-29's `files_modified` contract is documentation-only, and speculating a cause without reading the component would be exactly the unmeasured attribution this phase exists to prevent. **Recorded as a new dated `deferred-items.md` entry with its verbatim locator, owned by a round-5 plan.**
+4 & 5. **`operator-stress.spec.ts:277:5`, `page.home.happy` and `page.timeline.empty` (dark, 1024px)** — `expect(locator).toHaveScreenshot(expected) failed` at `operator-stress.spec.ts:293`, against `stress-page-home-happy-dark-1024-desktop-chromium.png` (`4779 pixels (ratio 0.02)`) and `stress-page-timeline-empty-dark-1024-desktop-chromium.png` (`5823 pixels (ratio 0.02)`), each against the call site's own `maxDiffPixelRatio: 0.01` (`operator-stress.spec.ts:294`). No dimension mismatch is reported — these are content-only diffs at matching dimensions, at roughly 2× their tolerance. **Cause and citation: these are `page.*` ledger baselines — the same D-39-forbidden regeneration class as the Tier A capture lane. Their only available remedy is regenerating committed `page.*` evidence, which D-39 forbids for this entire milestone. They are red by construction, not by defect, and nothing in this round may fix them.**
+
+#### (f)(3) `Tier A capture lane (byte-stable evidence)` — `verify-capture`
+
+**Conclusion: `failure`, exactly as predicted.** Failing step: `Assert byte-stable
+regeneration (no drift from committed evidence)`
+(`.github/workflows/ci.yml:550-558`), verbatim error:
+
+```
+::error::Tier A capture is not byte-stable, or committed evidence is stale.
+Regenerate locally with 'mix verify.capture' and commit the result.
+```
+
+**Scope of the drift, counted from the step's own `git status --porcelain
+.planning/scorecards/` output: 198 scorecard files modified — 120 `page.*` and 78
+`refute.*`. Sum 198; no other prefix appears.**
+
+**Honest limit on characterising that drift, stated rather than glossed:** the step
+prints `git diff -- .planning/scorecards/ | head -200` — the diff is **truncated at
+200 lines by the workflow itself**. The visible portion covers 15 files
+(`page.actor.happy__{dark,light}-{375,768,1280}`,
+`page.coverage.empty__{dark,light}-{375,768,1280}`,
+`page.coverage.error__dark-{375,768,1280}`, `page.coverage.error__light-1280`) and
+every visible hunk is a **single `scroll_cost` field**, keyed deterministically by
+viewport:
+
+| Viewport | Committed | Regenerated |
+|---|---|---|
+| 1280 | `18.803` | `40.8` |
+| 768 | `19.038` | `36.504` |
+| 375 | `19.85` | `41.953` |
+
+These are **byte-identical to rounds 2 and 3's measured values**, confirming the
+drift is deterministic and reproducible, not measurement noise, exactly as 198-16
+diagnosed. **The remaining 183 files — including all 78 `refute.*` cells — are not
+visible in the truncated diff, and this record therefore does NOT claim the drift is
+confined to `scroll_cost` or to `page.*` cells. It claims only what the log shows.**
+
+**Citation: D-39, pointing to `.planning/audits/198-tier-a-byte-stability.md`.** The
+only available remedy is Tier-A `page.*` scorecard regeneration, forbidden for this
+milestone. **No remedy was attempted, no scorecard was regenerated, and the lane was
+not removed from `needs:`. This lane is red by construction, not by defect.**
+
+### (g) Wall-clock ≤20-minute evaluation
+
+**Measured: 8m11s (`2026-08-29T12:52:18Z` → `2026-08-29T13:00:29Z`).**
+`8m11s ≤ 20m00s` — **the ≤20-minute clause is satisfied**, and by a wider margin
+than round 3's 13m29s (the Playwright lane finished 5m7s sooner, having stopped early
+at its 5-failure cap). **This is not the clause blocking GREEN-07.**
+
+### (h) `CI required` conclusion
+
+**Literal conclusion string: `"failure"`.**
+
+**Is it exactly `success`? No.**
+
+### (i) `mergeStateStatus`
+
+```
+$ gh pr view 31 --json number,state,isDraft,mergeStateStatus,url,headRefName
+{"headRefName":"ci/198-round4","isDraft":true,"mergeStateStatus":"BLOCKED","number":31,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/31"}
+```
+
+### (j) Headline claim — true, false, or true-subject-to-a-merge
+
+The phase goal's headline claim — "`origin/main` carries every local commit and its
+CI concludes green" — is **false** as of this measured run, and not
+true-subject-to-a-merge either. Two figures, not a narrative:
+
+- `git log origin/main..f433ef3e --oneline | wc -l` = **137**. `origin/main` does not
+  carry these commits.
+- PR #31's `mergeStateStatus` = **`BLOCKED`**, not `CLEAN`/`UNSTABLE`, because
+  `CI required` concluded `failure`. It is also `isDraft: true` by design.
+
+### (k) Re-run discipline
+
+**`attempt: 1`.** No check in this run was re-run, re-dispatched, or selectively
+retried, for any reason. The run was observed to its single natural completion. There
+was no second attempt to explain, because there was no second attempt.
+
+(For completeness and to avoid a false claim: Playwright's own in-suite
+`retries` produced `(retry #1)` lines for each failing spec — that is the test
+runner's configured per-test retry inside a single job execution, visible in the job
+log, and is not a workflow re-run, job re-dispatch, or `gh run rerun`. No GitHub
+Actions attempt beyond 1 exists for run `33253587315`.)
