@@ -273,3 +273,22 @@ Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI ru
   (D-39).
 - No check re-run, re-dispatched, or selectively retried. `attempt: 1`.
 - No assertion weakened, no `@tag :skip` added, no allowlist widened.
+
+## Round 5
+
+- **Status:** deferred
+- **Acknowledged at:** 2026-08-30 (Plan 198-36 execution, gap-closure round 5 review triage)
+
+**IN-01 — Row-history screenshot targets a content-sized element with no height guard.**
+`operator-screenshot-regression.spec.ts:117-131`'s retarget from `.tl-drawer-container` to
+`.tl-drawer` is correct and well-evidenced (REVIEW.md's own assessment); the finding is
+informational, suggesting a bounding-box height assertion be added before the screenshot so a
+future content addition that makes the panel taller than the viewport fails with a named cause
+instead of a raw pixel diff. Deferred rather than fixed in round 5 because it is genuinely
+non-urgent: `operator-screenshot-regression.spec.ts:77-78` skips entirely under CI
+(`test.skip(!!process.env.CI, ...)`), confirmed directly against the file, so **this finding does
+not bear on any measured lane** — it is stated here explicitly, not deferred silently on size.
+**Owner:** any future round-5-successor plan touching `operator-screenshot-regression.spec.ts`'s
+row-history story; no phase or plan number is currently assigned. See
+`.planning/phases/198-green-bringup/198-round5-review-triage.md` (IN-01 row) for the full
+disposition record and its verification citation.
