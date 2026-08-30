@@ -232,8 +232,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 198-34-PLAN.md — CR-01: **blocking maintainer `checkpoint:decision`** on which export status vocabulary survives, then one owner for the copy contract with every downstream assertion reconciled in the same change (wave 3)
-- [ ] 198-35-PLAN.md — Enforce the retention-cutoff invariant at compile time, correct the factually-wrong safety comment, assert cross-org survival directly, and disarm the retention env landmine (WR-03, WR-04, WR-05) (wave 3)
+- [x] 198-34-PLAN.md — CR-01: **blocking maintainer `checkpoint:decision`** on which export status vocabulary survives, then one owner for the copy contract with every downstream assertion reconciled in the same change (wave 3)
+- [x] 198-35-PLAN.md — Enforce the retention-cutoff invariant at compile time, correct the factually-wrong safety comment, assert cross-org survival directly, and disarm the retention env landmine (WR-03, WR-04, WR-05) (wave 3)
 
 **Wave 4** *(blocked on Wave 3)*
 
