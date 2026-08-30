@@ -207,7 +207,7 @@ Plans:
 
 **Wave 5** *(blocked on all round-4 fix plans)*
 
-- [ ] 198-29-PLAN.md — Push `ci/198-round4`, measure one real CI run, append the Round 4 section with prediction scorecard and a root cause per red check, set GREEN-04/GREEN-07 from that run alone (wave 5)
+- [x] 198-29-PLAN.md — Push `ci/198-round4`, measure one real CI run, append the Round 4 section with prediction scorecard and a root cause per red check, set GREEN-04/GREEN-07 from that run alone (wave 5)
 
 **Round-4 notes:**
 
@@ -222,7 +222,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 198-30-PLAN.md — **Tracer:** move the cold `MIX_ENV=prod` compile out of `demo_reset_test.exs:56`'s ExUnit budget (GREEN-04's sole blocker), and make the demo-seed advisory lock comprehensive and abnormal-exit-safe (WR-01, WR-02, IN-02, IN-03) (wave 1)
+- [x] 198-30-PLAN.md — **Tracer:** move the cold `MIX_ENV=prod` compile out of `demo_reset_test.exs:56`'s ExUnit budget (GREEN-04's sole blocker), and make the demo-seed advisory lock comprehensive and abnormal-exit-safe (WR-01, WR-02, IN-02, IN-03) (wave 1)
 
 **Wave 2** *(blocked on 198-30 — fully parallel, disjoint files)*
 
