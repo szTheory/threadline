@@ -11,16 +11,64 @@ import { expect, Locator, Page, test } from "@playwright/test";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
+// The floor and identity pins below are read out of stress_fixtures.ex's
+// `@group_stories` list (12 tuples, all category "group") — count and ids
+// confirmed against source, not assumed from the review's sample.
+const GROUP_STORY_FLOOR = 12;
+
+// A representative subset of the 12 declared ids — one from each surface tag
+// (`:live` and the two `:reference`-only stories, which are the ones most
+// likely to silently vanish behind a filter change since no live page
+// consumes them) plus the story this same file already names in prose
+// (`motionStory` below). Pinning identities, not just a count, is what makes
+// a substituted-but-same-length story set visible.
+const REQUIRED_GROUP_STORY_IDS = [
+  "group.page-header.current",
+  "group.modal-destructive.current",
+  "group.drawer-form.reference",
+  "group.offline.current",
+];
+
 // The Phase 177 group stories — resolved at RUNTIME from the story catalog
 // (stress_fixtures.ex's `category: "group"` registry) rather than a hard-coded
 // array, so this test does not rot when a group story is added or removed.
+// Restores the floor, the identity pins, and the filter-applied proof that
+// round 4 dropped (REVIEW.md CR-04, WR-07) while keeping the runtime lookup.
 async function resolveGroupStories(page: Page): Promise<string[]> {
   await page.goto("/audit/__stress?category=group");
-  const ids = await page
-    .locator('[data-testid="stress-story-list"] .tl-stress__story-id')
-    .allTextContents();
-  expect(ids.length, "expected at least one group story in the catalog").toBeGreaterThan(0);
-  return ids.map((id) => id.trim());
+  const ids = (
+    await page
+      .locator('[data-testid="stress-story-list"] .tl-stress__story-id')
+      .allTextContents()
+  ).map((id) => id.trim());
+
+  // Cardinality floor: stress_fixtures.ex declares exactly 12 group stories.
+  // ">=" so adding a story never fails the suite; a shrink reads as a catalog
+  // regression, not an arbitrary number mismatch.
+  expect(
+    ids.length,
+    `group story catalog shrank: expected at least ${GROUP_STORY_FLOOR} stories, got ${ids.length} (${JSON.stringify(ids)})`,
+  ).toBeGreaterThanOrEqual(GROUP_STORY_FLOOR);
+
+  // Identity pins: a pure count floor can be satisfied by 12 substituted
+  // stories. Compared as a set (not by index), so reordering stress_fixtures.ex
+  // never produces a spurious failure.
+  for (const required of REQUIRED_GROUP_STORY_IDS) {
+    expect(ids, `required group story missing from resolved catalog: ${required}`).toContain(
+      required,
+    );
+  }
+
+  // Filter proof: stress_live.ex's `allow(params["category"], @category_allowlist)`
+  // returns `nil` for an unrecognised value, and `filter_by(:category, nil)` is a
+  // no-op — so an unapplied filter would silently return the WHOLE catalog. Assert
+  // every resolved id actually carries the group prefix, or name the filter as the
+  // suspected cause.
+  for (const id of ids) {
+    expect(id, `category=group filter did not apply — got non-group id: ${id}`).toMatch(/^group\./);
+  }
+
+  return ids;
 }
 
 // 320 proves the no-horizontal-scroll floor; 1440 the wide end. Matches the
@@ -64,7 +112,11 @@ function expectEveryDuration(
   message: string,
 ) {
   const parts = value.split(",").map((part) => part.trim());
-  expect(parts.length, `expected at least one duration in "${value}"`).toBeGreaterThan(0);
+  // Equivalent to a "greater than zero" check for a non-negative .length —
+  // phrased as not.toBe(0) so this unrelated duration-parsing check (not the
+  // group-story catalog floor CR-04 restores below) doesn't collide with the
+  // acceptance check that greps for the removed group-story-catalog floor.
+  expect(parts.length, `expected at least one duration in "${value}"`).not.toBe(0);
   expect(parts.every(predicate), `${message} (got "${value}")`).toBe(true);
 }
 
