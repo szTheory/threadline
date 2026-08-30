@@ -207,6 +207,11 @@ None - no external service configuration required.
 - The demo seed/reset critical section is now provably connection-pinned; no product behavior, capture/query/auth semantics, or CI gate was touched.
 - This plan produces a readiness signal only (D-01). Plan 198-39 (blocking decision for GREEN-07/SC3's terminal disposition) and plan 198-40 (pre-push prediction + maintainer push + measured CI re-run) are next.
 
+## Self-Check: PASSED
+
+All `key-files.created`/modified paths confirmed present on disk; all four task/plan commit hashes
+(`76dbc373`, `709a87d8`, `0425d1e9`, `09db6cf0`) confirmed present in `git log --oneline --all`.
+
 ---
 *Phase: 198-green-bringup*
 *Completed: 2026-08-30*
