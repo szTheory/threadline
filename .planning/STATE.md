@@ -25,11 +25,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 — planned, ready to execute)
+**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 — executing)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — READY TO EXECUTE
+Phase: 198 (green-bringup) — EXECUTING
 Plan: 29 of 37 (198-01..198-29 complete; 198-30..198-37 planned — gap-closure round 5)
 Status: Phase 198 gap-closure round 5 PLANNED — 8 plans (198-30..198-37) in 5 waves, plan-checker VERIFICATION PASSED. Closes GREEN-04's sole blocker (demo_reset_test.exs:56 cold-compile budget), the two /Expired/ locator rows, a diagnose-first task for operator-responsive-mobile-first.spec.ts:577:5, and all 5 Critical + 11 Warning code-review findings. GREEN-07 cannot reach Complete this round — the Tier A lane and two operator-stress `page.*` diffs are red by construction under D-39
 Last activity: 2026-08-30 — gap-closure round 5 planned (198-30..198-37, commit c2f29994); plan-checker PASSED with one warning (fixed); decision coverage gate 42/42 after repairing D-42's unparseable bullet title
