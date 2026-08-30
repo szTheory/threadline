@@ -2,18 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
+current_phase: 198
+current_phase_name: green-bringup
 status: executing
 stopped_at: "Phase 198 round 4 CLOSED OUT as gaps_found. All 29 plans complete; CI run 33253587315 measured (attempt 1, failure, 8m11s). GREEN-04 + GREEN-07 remain Pending on measured evidence. Verification: goal FAILED, integrity PASS (0 laundering violations across all 6 vectors). Code review: 5 Critical / 11 Warning / 4 Info -- 2 hard constraints violated by round 4 itself (CR-01 export_status_live duplicate NOT removed, only one literal realigned, Presentation.export_action_label/2 still has zero callers in lib/; CR-02 the new non-vacuous coverage assertion is itself vacuous -- Covered/Needs capture are static dt labels). Round 5 required before the phase can close."
-last_updated: "2026-08-29T13:15:00.000Z"
+last_updated: "2026-08-30T19:29:26.557Z"
 last_activity: 2026-08-29
-last_activity_desc: Phase 198 round 4 measured on CI run 33253587315 — 3/12 `needs:` red (verify-test, verify-example-browser, verify-capture); GREEN-04 and GREEN-07 both stay Pending
-state_head: 031829c1fcd080ee5ae994c2369c10f718be4276
+last_activity_desc: "Phase 198 round 4 measured on CI run 33253587315 — 3/12 `needs:` red (verify-test, verify-example-browser, verify-capture); GREEN-04 and GREEN-07 both stay Pending"
+state_head: c2f299949c89eadfe8e8dbe93ba501d232d51e6b
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 29
+  total_plans: 37
   completed_plans: 29
-  percent: 100
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -23,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup (gap-closure round 4)
+**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 — planned, ready to execute)
 
 ## Current Position
 
-Phase: 198 — Green Bringup — EXECUTING
-Plan: 29 of 29 (198-29 complete — round 4 measured)
-Status: Phase 198 gap-closure round 4 measured on CI run 33253587315 — `CI required` `failure`, 3/12 `needs:` red; GREEN-04 and GREEN-07 both remain Pending
-Last activity: 2026-08-29 — CI run 33253587315 measured (8m11s, attempt 1, PR #31 BLOCKED); red `needs:` count 3, unchanged from round 3
+Phase: 198 (green-bringup) — READY TO EXECUTE
+Plan: 29 of 37 (198-01..198-29 complete; 198-30..198-37 planned — gap-closure round 5)
+Status: Phase 198 gap-closure round 5 PLANNED — 8 plans (198-30..198-37) in 5 waves, plan-checker VERIFICATION PASSED. Closes GREEN-04's sole blocker (demo_reset_test.exs:56 cold-compile budget), the two /Expired/ locator rows, a diagnose-first task for operator-responsive-mobile-first.spec.ts:577:5, and all 5 Critical + 11 Warning code-review findings. GREEN-07 cannot reach Complete this round — the Tier A lane and two operator-stress `page.*` diffs are red by construction under D-39
+Last activity: 2026-08-30 — gap-closure round 5 planned (198-30..198-37, commit c2f29994); plan-checker PASSED with one warning (fixed); decision coverage gate 42/42 after repairing D-42's unparseable bullet title
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
