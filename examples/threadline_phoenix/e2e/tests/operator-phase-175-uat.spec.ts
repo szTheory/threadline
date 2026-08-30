@@ -90,9 +90,15 @@ test.describe("Phase 175 UAT — runtime theme picker (real user flow)", () => {
     const shell = page.getByTestId("operator-nav-shell");
     await expect(shell).toBeVisible();
 
-    // Product contract (surface_header.ex): `operator-nav-shell` is now a `<nav>`
-    // landmark wrapping the actual native disclosure — `.tl-shell-nav__disclosure`
-    // is the `<details>` element; the toggle/panel behavior is unchanged.
+    // Product contract (surface_header.ex:57): `operator-nav-shell` is now a
+    // `<nav>` landmark wrapping the actual native disclosure — assert the
+    // landmark contract this comment already claimed (WR-08), not just the
+    // inner `<details>`.
+    expect(await shell.evaluate((el) => el.tagName)).toBe("NAV");
+    await expect(shell).toHaveAttribute("aria-label", "Audit navigation");
+
+    // `.tl-shell-nav__disclosure` is the `<details>` element; the toggle/panel
+    // behavior is unchanged.
     const disclosure = shell.locator(".tl-shell-nav__disclosure");
     expect(await disclosure.evaluate((el) => el.tagName)).toBe("DETAILS");
 

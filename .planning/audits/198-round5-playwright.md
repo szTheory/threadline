@@ -251,3 +251,78 @@ plan's file scope and the round's fixable-row list.
 
 ---
 
+## WR-08 — `operator-nav-shell` landmark contract restored
+
+**File:** `examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts:89-96`
+
+The prior round moved the tag assertion onto the inner `.tl-shell-nav__disclosure`
+(correct — that element genuinely is the `<details>`), but left the in-code comment's claim
+that `operator-nav-shell` "is now a `<nav>` landmark" entirely unasserted. Confirmed from
+`lib/threadline/operator_surface/components/surface_header.ex:57`:
+
+```elixir
+<nav class="tl-shell-nav" data-testid="operator-nav-shell" aria-label="Audit navigation">
+```
+
+Added:
+
+```ts
+expect(await shell.evaluate((el) => el.tagName)).toBe("NAV");
+await expect(shell).toHaveAttribute("aria-label", "Audit navigation");
+```
+
+alongside the pre-existing `.tl-shell-nav__disclosure` → `"DETAILS"` assertion, which is
+kept unchanged.
+
+## WR-09 — actor-page assertion regains its type check, strict-mode safety, and quoted selector
+
+**File:** `examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts:134-160`
+
+Three restorations, all additive:
+
+1. **Type assertion restored.** The original `Actor: user / ${leavingAgentId}` text check
+   covered both id and type; the prior round's replacement covered only id. Restored via
+   the `<:metadata key="Kind">` row (`lib/threadline/operator_surface/live/actor_live.ex:156`),
+   which `UI.kv` renders as `<dt class="tl-kv__key">Kind</dt><dd class="tl-kv__value">user</dd>`
+   (`lib/threadline/operator_surface/ui.ex:441-450`) — a locator scoped to the actual
+   product structure rather than a loose page-wide text regex.
+2. **`.first()` added.** `UI.ref` (`.tl-secondary-ref`) renders more than once on the actor
+   detail surface; without `.first()`, a duplicate render throws a Playwright strict-mode
+   violation instead of passing — the surrounding file already uses `.first()` elsewhere
+   for exactly this reason.
+3. **`JSON.stringify(leavingAgentId)`** quotes the seeded id before it is interpolated into
+   the CSS attribute selector, so a value containing a quote or backslash fails legibly
+   instead of silently producing an invalid selector.
+
+The pre-existing id assertion is kept, not weakened.
+
+## WR-11 — idempotent, state-asserted `<details>` expansion
+
+**File:** `examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts:103-120`
+
+The `<details class="tl-row-action tl-row-action--capture">` toggle
+(`lib/threadline/operator_surface/live/coverage_live.ex:197`) was expanded with an
+unconditional click and no assertion of the resulting state — order-dependent, and would
+fail with an opaque "element not visible" timeout (rather than a legible cause) if the
+product ever ships the row expanded by default. Fixed to read the `open` property first,
+click only when closed, assert the resulting `open` attribute, and assert the `<summary>`'s
+text so a renamed affordance fails with a named cause:
+
+```ts
+const row = page.locator("details.tl-row-action--capture").first();
+await expect(row.locator("summary")).toContainText("Add capture");
+if (!(await row.evaluate((el: HTMLDetailsElement) => el.open))) {
+  await row.locator("summary").click();
+}
+await expect(row).toHaveAttribute("open", "");
+await expect(page.getByText("mix threadline.gen.triggers --tables").first()).toBeVisible();
+```
+
+---
+
+## Local unbounded measurement vs. CI's capped figures
+
+Recorded in `198-31-SUMMARY.md` per the plan's `<verification>` requirement — the two
+populations (this plan's local unbounded run, `maxFailures: 0`, and CI run `33253587315`'s
+`maxFailures: 5`-capped run) sample different populations and are not nested; a delta
+between them is not by itself evidence of progress, and is not treated as such here.
