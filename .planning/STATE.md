@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: green-bringup
 status: executing
-stopped_at: "Phase 198 round 4 CLOSED OUT as gaps_found. All 29 plans complete; CI run 33253587315 measured (attempt 1, failure, 8m11s). GREEN-04 + GREEN-07 remain Pending on measured evidence. Verification: goal FAILED, integrity PASS (0 laundering violations across all 6 vectors). Code review: 5 Critical / 11 Warning / 4 Info -- 2 hard constraints violated by round 4 itself (CR-01 export_status_live duplicate NOT removed, only one literal realigned, Presentation.export_action_label/2 still has zero callers in lib/; CR-02 the new non-vacuous coverage assertion is itself vacuous -- Covered/Needs capture are static dt labels). Round 5 required before the phase can close."
-last_updated: "2026-08-30T19:29:26.557Z"
-last_activity: 2026-08-29
-last_activity_desc: "Phase 198 round 4 measured on CI run 33253587315 — 3/12 `needs:` red (verify-test, verify-example-browser, verify-capture); GREEN-04 and GREEN-07 both stay Pending"
-state_head: c2f299949c89eadfe8e8dbe93ba501d232d51e6b
+stopped_at: "Phase 198 round 5 measured (plan 198-37, all 37 plans in the phase now complete). CI run 33336651956 (attempt 1, failure, 11m8s) on ci/198-round5, PR #32 draft DO NOT MERGE. GREEN-04 now Complete — Run test suite (current) concluded success (198-30's setup_all fix closed round 4's cold-compile cause on CI itself). GREEN-07 remains Pending — CI required still failure, red needs: count fell from round 4's 3 to 2 (verify-example-browser, verify-capture), hitting this round's stated ceiling exactly; both remaining red lanes are red by construction under D-39 (Tier A capture lane + 3 operator-stress.spec.ts page.*/footgun.* ledger-baseline diffs, one newly-discovered) and are not closeable inside milestone v1.41. Pre-push prediction scored 13/13 hit at the conclusion level with one honest composition partial-miss recorded. Phase-level closeout (verification/audit) not yet run."
+last_updated: "2026-08-30T21:47:38Z"
+last_activity: 2026-08-30
+last_activity_desc: "Phase 198 round 5 measured on CI run 33336651956 — 2/12 `needs:` red (verify-example-browser, verify-capture); GREEN-04 now Complete, GREEN-07 stays Pending, red by construction under D-39"
+state_head: 15b0b9da9e1bda6151f03bafd544e2845cd64c4e
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 37
-  completed_plans: 29
+  completed_plans: 37
   percent: 0
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 — executing)
+**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 measured — phase closeout pending)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — EXECUTING
-Plan: 29 of 37 (198-01..198-29 complete; 198-30..198-37 planned — gap-closure round 5)
-Status: Phase 198 gap-closure round 5 PLANNED — 8 plans (198-30..198-37) in 5 waves, plan-checker VERIFICATION PASSED. Closes GREEN-04's sole blocker (demo_reset_test.exs:56 cold-compile budget), the two /Expired/ locator rows, a diagnose-first task for operator-responsive-mobile-first.spec.ts:577:5, and all 5 Critical + 11 Warning code-review findings. GREEN-07 cannot reach Complete this round — the Tier A lane and two operator-stress `page.*` diffs are red by construction under D-39
-Last activity: 2026-08-30 — gap-closure round 5 planned (198-30..198-37, commit c2f29994); plan-checker PASSED with one warning (fixed); decision coverage gate 42/42 after repairing D-42's unparseable bullet title
+Phase: 198 (green-bringup) — EXECUTING (all plans complete; phase-level closeout not yet run)
+Plan: 37 of 37 (198-01..198-37 complete — gap-closure round 5 measured on CI)
+Status: Round 5 measured on CI run `33336651956` (attempt 1, `failure`, 11m8s, `ci/198-round5`, PR #32 draft DO NOT MERGE). GREEN-04 now **Complete** — `Run test suite (current)` concluded `success` (198-30's `setup_all` fix closed round 4's cold-compile cause, confirmed on CI). GREEN-07 remains **Pending** — `CI required` still `failure`, red `needs:` count fell from round 4's 3 to 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly. Both remaining red lanes are red by construction under D-39 (Tier A capture lane's `scroll_cost` drift; 3 `operator-stress.spec.ts` ledger-baseline diffs — `page.home.happy`, `page.timeline.empty`, and a newly-discovered `footgun.transaction-page-left-push-desktop`) and are not closeable inside milestone v1.41. Pre-push prediction (committed before the push) scored 13/13 hit at the conclusion level, with one honest composition partial-miss (the third Playwright row wasn't named in advance). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the whole round is empty (D-42 — no gate narrowed, no evidence regenerated).
+Last activity: 2026-08-30 — gap-closure round 5 plan 198-37 executed: pre-push prediction committed (`14f923a7`), user pushed `ci/198-round5` by hand, CI run `33336651956` measured to completion, GREEN-04 set Complete and GREEN-07 kept Pending strictly from the measured run (`15b0b9da`)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
