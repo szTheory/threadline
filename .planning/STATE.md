@@ -5,15 +5,15 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: green-bringup
 status: executing
-stopped_at: "Phase 198 round 5 measured (plan 198-37, all 37 plans in the phase now complete). CI run 33336651956 (attempt 1, failure, 11m8s) on ci/198-round5, PR #32 draft DO NOT MERGE. GREEN-04 now Complete — Run test suite (current) concluded success (198-30's setup_all fix closed round 4's cold-compile cause on CI itself). GREEN-07 remains Pending — CI required still failure, red needs: count fell from round 4's 3 to 2 (verify-example-browser, verify-capture), hitting this round's stated ceiling exactly; both remaining red lanes are red by construction under D-39 (Tier A capture lane + 3 operator-stress.spec.ts page.*/footgun.* ledger-baseline diffs, one newly-discovered) and are not closeable inside milestone v1.41. Pre-push prediction scored 13/13 hit at the conclusion level with one honest composition partial-miss recorded. Phase-level closeout (verification/audit) not yet run."
-last_updated: "2026-08-30T21:47:38Z"
+stopped_at: "Phase 198 round 5 measured (plan 198-37, all 37 plans in the phase now complete). CI run 33336651956 (attempt 1, failure, 11m8s) on ci/198-round5, PR #32 draft DO NOT MERGE. GREEN-04 now Complete — Run test suite (current) concluded success (198-30's setup_all fix closed round 4's cold-compile cause on CI itself). GREEN-07 remains Pending — CI required still failure, red needs: count fell from round 4's 3 to 2 (verify-example-browser, verify-capture), hitting this round's stated ceiling exactly; both remaining red lanes are red by construction under D-39 (Tier A capture lane + 3 operator-stress.spec.ts page.*/footgun.* ledger-baseline diffs, one newly-discovered) and are not closeable inside milestone v1.41. Pre-push prediction scored 13/13 hit at the conclusion level with one honest composition partial-miss recorded. Phase-level closeout (verification/audit) not yet run. Round-6 gap-closure planned 2026-08-30 (plans 198-38..198-40, gap_closure: true): 198-38 fixes CR-01 by pinning the demo lock critical section with Repo.checkout/2 plus a connection-identity regression test; 198-39 is a blocking one-way checkpoint:decision for GREEN-07/SC3's terminal v1.41 disposition; 198-40 commits a pre-push prediction, halts for a maintainer git push, and re-measures CI. Plan-checker: 0 blockers, 1 warning (fixed). Not yet executed."
+last_updated: "2026-08-30T22:27:05.638Z"
 last_activity: 2026-08-30
 last_activity_desc: "Phase 198 round 5 measured on CI run 33336651956 — 2/12 `needs:` red (verify-example-browser, verify-capture); GREEN-04 now Complete, GREEN-07 stays Pending, red by construction under D-39"
-state_head: 15b0b9da9e1bda6151f03bafd544e2845cd64c4e
+state_head: 92412030cc209812259397cf68898ae90e8f043e
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 37
+  total_plans: 40
   completed_plans: 37
   percent: 0
 ---
@@ -29,10 +29,11 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — NOT CLOSED (all 37 plans complete; phase gates run; verification = gaps_found)
-Plan: 37 of 37 (198-01..198-37 complete — gap-closure round 5 measured on CI)
+Phase: 198 (green-bringup) — NOT CLOSED; round-6 gap-closure plans READY TO EXECUTE (verification = gaps_found)
+Plan: 37 of 40 complete (198-01..198-37 done through round 5; 198-38..198-40 planned 2026-08-30 as round-6 gap closure, not yet executed)
 Status: Round 5 measured on CI run `33336651956` (attempt 1, `failure`, 11m8s, `ci/198-round5`, PR #32 draft DO NOT MERGE). GREEN-04 now **Complete** — `Run test suite (current)` concluded `success` (198-30's `setup_all` fix closed round 4's cold-compile cause, confirmed on CI). GREEN-07 remains **Pending** — `CI required` still `failure`, red `needs:` count fell from round 4's 3 to 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly. Both remaining red lanes are red by construction under D-39 (Tier A capture lane's `scroll_cost` drift; 3 `operator-stress.spec.ts` ledger-baseline diffs — `page.home.happy`, `page.timeline.empty`, and a newly-discovered `footgun.transaction-page-left-push-desktop`) and are not closeable inside milestone v1.41. Pre-push prediction (committed before the push) scored 13/13 hit at the conclusion level, with one honest composition partial-miss (the third Playwright row wasn't named in advance). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the whole round is empty (D-42 — no gate narrowed, no evidence regenerated).
 Closeout gates (run 2026-08-30 after 198-37):
+
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
