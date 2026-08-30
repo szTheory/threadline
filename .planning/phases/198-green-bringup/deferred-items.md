@@ -292,3 +292,30 @@ not bear on any measured lane** — it is stated here explicitly, not deferred s
 row-history story; no phase or plan number is currently assigned. See
 `.planning/phases/198-green-bringup/198-round5-review-triage.md` (IN-01 row) for the full
 disposition record and its verification citation.
+
+## Round 6 — GREEN-07 milestone disposition
+
+- **Status:** accepted (terminal for v1.41)
+- **Acknowledged at:** 2026-08-30 (Plan 198-39 execution, gap-closure round 6, blocking-decision
+  checkpoint answered by the maintainer: option-a)
+
+GREEN-07 and roadmap success criterion 3 have failed five consecutive measured CI rounds for the
+same two reasons, neither a defect this phase can fix: `verify-capture` (Tier A capture lane,
+byte-stable evidence) and `verify-example-browser` (3 `operator-stress.spec.ts` ledger-baseline
+screenshot rows) are red **by construction** under standing decision D-39, which forbids their
+only mechanical remedy — Tier-A `page.*` baseline regeneration — for the whole of milestone
+v1.41. The maintainer selected option-a at the `198-39` blocking checkpoint, verbatim: "option-a".
+
+**Owner:** the v1.41 milestone record itself — GREEN-07 is accepted in place, not moved to a
+named future milestone (option (b) was explicitly not selected; no target milestone was named).
+
+**Unblock condition, `verify-capture`:** a milestone in which Tier-A `page.*` scorecard
+regeneration is authorized AND the `scroll_cost` coupling diagnosed in 198-16 (a document-wide
+`scrollHeight` read tied to the stress-lab catalog size) is addressed.
+
+**Unblock condition, `verify-example-browser`:** the same authorization, scoped to the three
+named `operator-stress.spec.ts` ledger baseline rows: `page.home.happy`, `page.timeline.empty`,
+`footgun.transaction-page-left-push-desktop`.
+
+Full record, options table, and the branch/PR disposition this decision also owns:
+`.planning/phases/198-green-bringup/198-39-DECISION.md`.

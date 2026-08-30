@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: green-bringup
 status: executing
-stopped_at: Completed 198-38-PLAN.md (CR-01/WR-01/IN-01 fixed and terminally dispositioned; readiness signal only per D-01, plan 198-40 owns measured CI verdict)
-last_updated: "2026-08-30T22:43:41.401Z"
+stopped_at: Completed 198-39-PLAN.md (GREEN-07/roadmap SC3 terminal disposition recorded — maintainer selected option-a, accepted-Pending for v1.41; propagated to REQUIREMENTS.md/ROADMAP.md/deferred-items.md/STATE.md; plan 198-40 owns the measured CI re-run)
+last_updated: "2026-08-30T22:50:23Z"
 last_activity: 2026-08-30
-last_activity_desc: "Plan 198-38 executed: CR-01/WR-01/IN-01 fixed and terminally dispositioned (Repo.checkout/2 pins the demo lock critical section; Demo.Seed delegates to the one canonical guard; red-then-green regression proof recorded). Readiness signal only per D-01 — plans 198-39/198-40 remain."
+last_activity_desc: "Plan 198-39 executed: GREEN-07 and roadmap SC3 given a terminal, maintainer-selected disposition (option-a — accepted as permanently Pending for v1.41) at a blocking checkpoint:decision. Disposition propagated identically into REQUIREMENTS.md, ROADMAP.md, deferred-items.md, STATE.md. origin/main gap re-measured live (202 commits) and PR #32/#26 dispositions recorded from live gh pr view. No push, no merge, no branch-protection edit. Plan 198-40 remains."
 state_head: 9e0e0c959c0cd33b83d5f79cea059b2f92c31a57
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 40
-  completed_plans: 38
+  completed_plans: 39
   percent: 0
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — NOT CLOSED; round-6 gap-closure plan 198-38 EXECUTED, 198-39/198-40 remain (verification = gaps_found as of round 5, pending re-verification)
-Plan: 38 of 40 complete (198-01..198-38 done; 198-38 closed CR-01/WR-01/IN-01 at cause with a red-then-green regression proof, readiness signal only per D-01; 198-39 is a blocking checkpoint:decision for GREEN-07/SC3's terminal disposition; 198-40 commits a pre-push prediction, halts for a maintainer push, and re-measures CI)
+Phase: 198 (green-bringup) — NOT CLOSED; round-6 gap-closure plans 198-38/198-39 EXECUTED, 198-40 remains (verification = gaps_found as of round 5, pending re-verification)
+Plan: 39 of 40 complete (198-01..198-39 done; 198-38 closed CR-01/WR-01/IN-01 at cause with a red-then-green regression proof, readiness signal only per D-01; 198-39 recorded GREEN-07/SC3's terminal disposition — maintainer selected option-a at the blocking checkpoint:decision, accepted as permanently Pending for v1.41, propagated to REQUIREMENTS.md/ROADMAP.md/deferred-items.md/STATE.md; 198-40 commits a pre-push prediction, halts for a maintainer push, and re-measures CI)
 Status: Round 5 measured on CI run `33336651956` (attempt 1, `failure`, 11m8s, `ci/198-round5`, PR #32 draft DO NOT MERGE). GREEN-04 now **Complete** — `Run test suite (current)` concluded `success` (198-30's `setup_all` fix closed round 4's cold-compile cause, confirmed on CI). GREEN-07 remains **Pending** — `CI required` still `failure`, red `needs:` count fell from round 4's 3 to 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly. Both remaining red lanes are red by construction under D-39 (Tier A capture lane's `scroll_cost` drift; 3 `operator-stress.spec.ts` ledger-baseline diffs — `page.home.happy`, `page.timeline.empty`, and a newly-discovered `footgun.transaction-page-left-push-desktop`) and are not closeable inside milestone v1.41. Pre-push prediction (committed before the push) scored 13/13 hit at the conclusion level, with one honest composition partial-miss (the third Playwright row wasn't named in advance). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the whole round is empty (D-42 — no gate narrowed, no evidence regenerated).
 Closeout gates (run 2026-08-30 after 198-37):
 
@@ -463,15 +463,16 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase ?]: [195-01]: verify.ui_critique is local-only (excluded from ci.all, exits 0 when ANTHROPIC_API_KEY absent, RUNNER-04). verify.critic_trust is pure-Elixir in ci.all before verify.mechanical. All 6 critic lenses seed validated:false. critic-scores/ tree is gitignored; .planning/golden/ is committed oracle.
 - [Phase 198]: [198-38]: Repo.checkout/2 chosen over pg_advisory_xact_lock/Repo.transaction/2 to pin the demo lock critical section — the guarded body issues many independent per-seed Repo.transaction/1 calls by design and an outer transaction would collapse them.
 - [Phase 198]: [198-38]: promote — Demo.Seed no longer maintains its own copy of the lock guard trio; Demo.Seed.run/0 delegates to Reset.with_demo_lock/1, eliminating the two-copies drift that produced CR-01.
+- [Phase 198]: [198-39]: option-a — maintainer accepted GREEN-07/roadmap SC3 as permanently Pending for v1.41 at a blocking checkpoint:decision; verify-capture and verify-example-browser stay red by construction under D-39 for the whole milestone; no gate narrowed, no baseline regenerated. See 198-39-DECISION.md.
 
 ### Blockers
 
-- None.
+- `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
 
 ## Session Continuity
 
-**Last session:** 2026-08-30T22:43:41.384Z
-**Stopped at:** Completed 198-38-PLAN.md (CR-01/WR-01/IN-01 fixed and terminally dispositioned; readiness signal only per D-01, plan 198-40 owns measured CI verdict)
+**Last session:** 2026-08-30T22:50:23Z
+**Stopped at:** Completed 198-39-PLAN.md (GREEN-07/roadmap SC3 terminal disposition recorded — maintainer selected option-a, accepted-Pending for v1.41; plan 198-40 owns the measured CI re-run)
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
