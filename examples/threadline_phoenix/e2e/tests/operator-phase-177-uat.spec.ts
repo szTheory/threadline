@@ -121,6 +121,34 @@ function expectEveryDuration(
 }
 
 // --- UAT #1: group catalog holds together at every viewport -----------------
+//
+// WR-06 (round 4 review): 12 independent tests each with their own 120s budget
+// for 5 navigations were collapsed into one test performing ~61 navigations
+// inside a single 120s budget, and a `test.step` failure on story 1 aborted
+// the enclosing test, leaving stories 2-12 unproven but unreported. Restored
+// below: (1) a measured, traceable per-test timeout instead of a round-number
+// guess, and (2) per-story failure collection so every story reports its own
+// verdict in one run regardless of an earlier story's outcome. The catalog can
+// only be resolved at runtime (it is a live LiveView-rendered list, not a
+// statically importable module), so per-story tests cannot be generated at
+// Playwright's collection time — this is the "collect outcomes inside the
+// single test" fallback the round-5 plan sanctions for that case.
+
+// Measured locally 2026-08-30 (see 198-33-SUMMARY.md "Measured budget"): one
+// story's full 5-viewport pass (goto + theme attr check + overflow check),
+// already-authenticated, in isolation against a warm dev-mode server.
+const MEASURED_PER_STORY_MS = 833;
+// 12x headroom: measured in isolation ran ~10s for all 12 stories, but the
+// full suite (this spec + operator-phase-135-uat.spec.ts running back to
+// back against the same single dev-mode server/DB pool) measured up to ~66s
+// for the same 12 stories under that combined load — roughly 6x the isolated
+// figure. 12x keeps margin above the worst combined-load run observed locally
+// plus room for CI being slower still.
+const HEADROOM_MULTIPLIER = 12;
+// Fixed cost outside the per-story loop: login (beforeEach) + the catalog
+// resolution navigation in resolveGroupStories, each capable of a slow first
+// LiveView mount under load.
+const FIXED_OVERHEAD_MS = 20_000;
 
 test.describe("Phase 177 UAT #1 — group catalog holds together at every viewport", () => {
   test.beforeEach(async ({ page }) => {
@@ -132,33 +160,59 @@ test.describe("Phase 177 UAT #1 — group catalog holds together at every viewpo
   // group story is added, removed, or renamed in the registry.
   test("every registered group story stays within every viewport without horizontal scroll", async ({
     page,
-  }) => {
+  }, testInfo) => {
     const stories = await resolveGroupStories(page);
 
+    // Budget traced to a measurement, not a round-number guess (WR-06).
+    const budgetMs =
+      FIXED_OVERHEAD_MS + MEASURED_PER_STORY_MS * stories.length * HEADROOM_MULTIPLIER;
+    test.setTimeout(budgetMs);
+    console.log(
+      `TIME_BUDGET: ${stories.length} stories x ${MEASURED_PER_STORY_MS}ms x ${HEADROOM_MULTIPLIER} headroom + ${FIXED_OVERHEAD_MS}ms overhead = ${budgetMs}ms (test "${testInfo.title}")`,
+    );
+
+    // Per-story verdicts: a failure on one story must not hide the remaining
+    // stories' outcomes. `test.step` still structures the trace/report, but a
+    // step failure is caught here instead of aborting the enclosing test, and
+    // every story's PASS/FAIL is printed so it is visible even under the
+    // `list` reporter (which does not print passing step names by default).
+    const failures: string[] = [];
+
     for (const story of stories) {
-      await test.step(story, async () => {
-        for (const width of viewportWidths) {
-          await test.step(`${width}px`, async () => {
-            await page.setViewportSize({ width, height: 900 });
-            await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
+      try {
+        await test.step(story, async () => {
+          for (const width of viewportWidths) {
+            await test.step(`${width}px`, async () => {
+              await page.setViewportSize({ width, height: 900 });
+              await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
 
-            const preview = page.getByTestId("stress-preview");
-            await expect(preview).toBeVisible();
-            // Theme comes from the running lane: the default run is dark; the
-            // `desktop-chromium-light` lane (THREADLINE_E2E_THEME=system, colorScheme
-            // light) re-runs this file for light/system coverage.
-            await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
-              "data-tl-theme",
-              /^(dark|light|system)$/,
-            );
+              const preview = page.getByTestId("stress-preview");
+              await expect(preview).toBeVisible();
+              // Theme comes from the running lane: the default run is dark; the
+              // `desktop-chromium-light` lane (THREADLINE_E2E_THEME=system, colorScheme
+              // light) re-runs this file for light/system coverage.
+              await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
+                "data-tl-theme",
+                /^(dark|light|system)$/,
+              );
 
-            // The load-bearing guarantee: no element pushes past the 320px floor.
-            await expectNoHorizontalOverflow(page);
-            await expectBoxWithinViewport(preview, width);
-          });
-        }
-      });
+              // The load-bearing guarantee: no element pushes past the 320px floor.
+              await expectNoHorizontalOverflow(page);
+              await expectBoxWithinViewport(preview, width);
+            });
+          }
+        });
+        console.log(`STORY_VERDICT: PASS ${story}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.log(`STORY_VERDICT: FAIL ${story} — ${message.split("\n")[0]}`);
+        failures.push(`${story}: ${message}`);
+      }
     }
+
+    expect(failures, `story failures (${failures.length}/${stories.length}):\n${failures.join("\n\n")}`).toEqual(
+      [],
+    );
   });
 });
 
