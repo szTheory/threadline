@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 29 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4)
+**Plans**: 37 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5)
 
 Plans:
 **Wave 1**
@@ -217,6 +217,41 @@ Plans:
 - **`operator-screenshot-regression.spec.ts` skips on CI** (`test.skip(!!process.env.CI, ...)`), so its failures are part of the 28 local failures but contribute nothing to the CI lane's red. Plan 198-28 splits and reports the two counts separately so a local-only win cannot be presented as CI progress.
 - **Same-wave seed/spec temporal coupling is declared and gated, not left implicit.** Plans execute in isolated worktrees, so 198-26 (wave 2) cannot see 198-24's demo-seed rewrites and 198-27 (wave 3) cannot see 198-25's. Rather than serialize the two workstreams into one chain, both inventory plans label their tables **pre-merge**, record the HEAD SHA they were taken at, and give every row a `seed-sensitive?` verdict. Plan 198-28 — the first plan that runs after every seed change has merged, and now `depends_on` all four predecessors explicitly — opens with a **post-merge re-validation gate**: it re-derives every `seed-sensitive? = yes` row from a fresh unbounded run, records a divergence count, and forbids fixing any row left un-re-attributed. 198-29 predicts from 198-28's re-validated figures, never from the pre-merge tables.
 - **The one one-way decision this round is PNG baseline regeneration**, gated behind 198-28's blocking checkpoint because regenerating evidence to match current output is precisely what D-39 forbids for Tier A.
+
+**Gap closure, round 5** *(after CI run 33253587315 on PR #31 concluded FAILURE — `CI required` red on 3 of 12 dependencies at 8m11s, red count unchanged from round 4 though `Run test suite (current)`'s cause changed underneath it for a third time. Verification returned `gaps_found` with **Integrity: PASS**. Code review returned 5 Critical, 11 Warning, 4 Info. 10/12 requirements Complete; GREEN-04 and GREEN-07 remain Pending. Run with `/gsd-execute-phase 198 --gaps-only`.)*
+
+**Wave 1**
+
+- [ ] 198-30-PLAN.md — **Tracer:** move the cold `MIX_ENV=prod` compile out of `demo_reset_test.exs:56`'s ExUnit budget (GREEN-04's sole blocker), and make the demo-seed advisory lock comprehensive and abnormal-exit-safe (WR-01, WR-02, IN-02, IN-03) (wave 1)
+
+**Wave 2** *(blocked on 198-30 — fully parallel, disjoint files)*
+
+- [ ] 198-31-PLAN.md — Re-anchor the two self-caused `/Expired/` locator rows to the canonical literal, establish the `operator-responsive-mobile-first.spec.ts:577:5` cause from evidence before fixing (or halt honestly), and close WR-08/WR-09/WR-11 (wave 2)
+- [ ] 198-32-PLAN.md — Restore the teeth round 4 removed: discriminating coverage-snapshot assertions (CR-02), the deleted negative timeline assertion (WR-10), and the manifest subject_ref literal pin (CR-03) (wave 2)
+- [ ] 198-33-PLAN.md — Restore the Phase-177 group-story floor, identity pins and filter proof (CR-04, WR-07), per-story verdicts under a measured budget (WR-06), and make the Phase-135 Coverage test role-discriminating (CR-05) (wave 2)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 198-34-PLAN.md — CR-01: **blocking maintainer `checkpoint:decision`** on which export status vocabulary survives, then one owner for the copy contract with every downstream assertion reconciled in the same change (wave 3)
+- [ ] 198-35-PLAN.md — Enforce the retention-cutoff invariant at compile time, correct the factually-wrong safety comment, assert cross-org survival directly, and disarm the retention env landmine (WR-03, WR-04, WR-05) (wave 3)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 198-36-PLAN.md — 20-row review triage ledger with a tree-verified disposition per finding, appended round-5 deferrals with owners, and an honest record of the two structurally-uncloseable items (wave 4)
+
+**Wave 5** *(blocked on all round-5 fix plans)*
+
+- [ ] 198-37-PLAN.md — Commit a falsifiable prediction, **user pushes `ci/198-round5` by hand** (`git push` is classifier-blocked in-session), measure one real CI run, set GREEN-04/GREEN-07 from that run alone (wave 5)
+
+**Round-5 notes:**
+
+- **What this round can and cannot close, stated up front:** `Run test suite (current)` **can** close — plan 198-30 removes the cold `MIX_ENV=prod` compile that round-4 verification identified as GREEN-04's sole remaining blocker. `Example app browser E2E (Playwright)` **cannot** — two of round 4's five red rows are `operator-stress.spec.ts` `page.*` ledger-baseline diffs. `Tier A capture lane` **cannot** — same D-39 class, 198 drifted scorecard files. **Therefore `CI required` cannot conclude `success` and GREEN-07 cannot reach Complete this round.** The honest target is 3 red `needs:` lanes down to 2, where both survivors are ones D-39 forbids fixing.
+- **The two structurally-uncloseable items are recorded, never attacked.** No plan narrows `ci-required`'s `needs:`, edits `.github/rulesets/main.json`, weakens `CONTRIBUTING.md`, touches `playwright.config.ts`, or regenerates a `page.*` baseline. Empty diffs across all five are acceptance criteria in every plan (D-39, D-42). The maintainer explicitly declined to make these lanes green by removing them from the aggregate.
+- **All 20 code-review findings are owned.** Every Critical and every Warning has a fixing task; plan 198-36 produces a 20-row ledger whose finding-id set is mechanically diffed against REVIEW.md, so no finding can leave the round unstated. `fixed` requires a tree-level check, not a SUMMARY citation.
+- **`operator-responsive-mobile-first.spec.ts:577:5` gets diagnosis before fix, with an explicit halt clause.** Round 4 recorded its cause as *not established*; 198-31 must establish it from the run-33253587315 artifact and product source, or halt and name the missing evidence. A speculative fix presented as a cause fix is the unmeasured attribution this phase exists to prevent.
+- **CR-01 is a maintainer decision, not an executor edit.** The reviewer's suggested fix changes product-visible copy locked by a Phase-186 contract test and asserted in four e2e specs. 198-34 gates it behind a `blocking-human` `checkpoint:decision` with both options' blast radius stated, and rates Option A one-way.
+- **The push is not automatable.** `git push` from an agent session is blocked by a local classifier and in-session approval does not lift it. 198-37 is `autonomous: false` and carries a `checkpoint:human-action` naming the exact commands the user runs, rather than pretending the push will succeed and halting mid-measurement as prior rounds did.
+- **Local evidence stays inadmissible** for GREEN-04 and GREEN-07 (D-01). Plans 198-30 … 198-36 produce readiness signals; only 198-37's measured run produces a verdict.
 
 **Gap-closure notes:**
 
