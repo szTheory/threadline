@@ -12,26 +12,21 @@ defmodule ThreadlinePhoenixWeb.WalkthroughCase do
 
   # Demo.Reset/Demo.Seed run outside the ExUnit sandbox (unboxed_run) and
   # upsert deterministic-UUID-keyed rows (see ThreadlinePhoenix.Demo.Manifest.UUID)
-  # with `on_conflict: :replace`. Two concurrent unboxed seed/reset cycles
-  # racing on the same primary-key rows take real Postgres row locks against
-  # each other; when scheduling happens to overlap this shows up as a blocked
-  # `Postgrex.Protocol.msg_recv` inside `insert_all`/`update!`, occasionally
-  # exceeding ExUnit's 60s default timeout (198-25 diagnosis: cause class
-  # "lock/deadlock against the seeded transaction"). A session-level advisory
-  # lock serializes this module's own seed/reset cycles so they can never
-  # contend with each other.
-  @demo_seed_lock_key :erlang.phash2("threadline_phoenix_demo_seed")
-
+  # with `on_conflict: :replace`. Reset.run/1 and Seed.run/0 serialize
+  # themselves via a namespaced, bounded, abnormal-exit-safe Postgres
+  # advisory lock (see ThreadlinePhoenix.Demo.Reset.with_demo_lock/1),
+  # covering every entry point — this module's callers, the other test
+  # modules that call Reset.run/1 / Seed.run/0 directly, and the
+  # `mix demo.reset` / `mix demo.seed` tasks. All five demo-seeding test
+  # modules are `async: false`, so ExUnit never runs two of them
+  # concurrently within one `mix test`; the surviving contention the lock
+  # guards against is cross-OS-process — a parallel CI lane, a developer
+  # running `mix demo.seed`, or a second `mix test` against the same
+  # database (WR-02).
   def seed_demo_fiction! do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
-      Repo.query!("SELECT pg_advisory_lock($1)", [@demo_seed_lock_key])
-
-      try do
-        assert :ok = Reset.run()
-        assert :ok = Seed.run()
-      after
-        Repo.query!("SELECT pg_advisory_unlock($1)", [@demo_seed_lock_key])
-      end
+      assert :ok = Reset.run()
+      assert :ok = Seed.run()
     end)
   end
 
