@@ -96,7 +96,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       # Non-vacuous coverage snapshot (CR-02, corrected). The verdict block's
       # <dt>Covered</dt> / <dt>Needs capture</dt> labels render unconditionally
       # regardless of counts (coverage_live.ex verdict-counts block), so a bare
-      # substring match on either label label passes even at covered_count == 0
+      # substring match on either label passes even at covered_count == 0
       # and uncovered_count == 0 — it discriminates nothing. Instead, pair each
       # <dt> label with its adjacent <dd> count and require that count be
       # strictly positive (a leading "0" digit cannot match `[1-9]`), so an
