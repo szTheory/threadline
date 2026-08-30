@@ -25,13 +25,17 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup (gap-closure round 5 measured — phase closeout pending)
+**Current focus:** Phase 198 — Green Bringup (round 5 measured + verified: gaps_found — CR-01 needs a round-6 fix or a recorded maintainer decision)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — EXECUTING (all plans complete; phase-level closeout not yet run)
+Phase: 198 (green-bringup) — NOT CLOSED (all 37 plans complete; phase gates run; verification = gaps_found)
 Plan: 37 of 37 (198-01..198-37 complete — gap-closure round 5 measured on CI)
 Status: Round 5 measured on CI run `33336651956` (attempt 1, `failure`, 11m8s, `ci/198-round5`, PR #32 draft DO NOT MERGE). GREEN-04 now **Complete** — `Run test suite (current)` concluded `success` (198-30's `setup_all` fix closed round 4's cold-compile cause, confirmed on CI). GREEN-07 remains **Pending** — `CI required` still `failure`, red `needs:` count fell from round 4's 3 to 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly. Both remaining red lanes are red by construction under D-39 (Tier A capture lane's `scroll_cost` drift; 3 `operator-stress.spec.ts` ledger-baseline diffs — `page.home.happy`, `page.timeline.empty`, and a newly-discovered `footgun.transaction-page-left-push-desktop`) and are not closeable inside milestone v1.41. Pre-push prediction (committed before the push) scored 13/13 hit at the conclusion level, with one honest composition partial-miss (the third Playwright row wasn't named in advance). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the whole round is empty (D-42 — no gate narrowed, no evidence regenerated).
+Closeout gates (run 2026-08-30 after 198-37):
+- **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
+- **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
+
 Last activity: 2026-08-30 — gap-closure round 5 plan 198-37 executed: pre-push prediction committed (`14f923a7`), user pushed `ci/198-round5` by hand, CI run `33336651956` measured to completion, GREEN-04 set Complete and GREEN-07 kept Pending strictly from the measured run (`15b0b9da`)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
