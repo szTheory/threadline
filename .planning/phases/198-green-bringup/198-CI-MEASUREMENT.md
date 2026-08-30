@@ -1200,3 +1200,45 @@ was no second attempt to explain, because there was no second attempt.
 runner's configured per-test retry inside a single job execution, visible in the job
 log, and is not a workflow re-run, job re-dispatch, or `gh run rerun`. No GitHub
 Actions attempt beyond 1 exists for run `33253587315`.)
+
+---
+
+## Round 5 (2026-08-30) — Prediction stated before the push
+
+Written **before** `git push`, per plan 198-37 Task 1. One row per `ci-required`'s 12 `needs:`
+members, plus the `CI required` aggregate itself, with a predicted conclusion and a one-line basis
+grounded in this round's own tree-level evidence — `198-round5-review-triage.md` (plan 198-36's
+20-row triage ledger) and the 198-30…198-36 SUMMARYs — never in plan promises.
+
+| `needs:` member | Check name | Predicted conclusion | Basis |
+|---|---|---|---|
+| `verify-format` | Check formatting | success | Unaffected; no formatting-relevant file touched by 198-30..36; green on every prior round. |
+| `verify-credo` | Run Credo (strict) | success | Unaffected; no lib-code style surface changed this round beyond the targeted fixes, all of which are within existing Credo-clean modules. |
+| `verify-compile-no-optional` | Compile without optional deps | success | Unaffected; green on rounds 1-4, no optional-dep surface touched this round. |
+| `verify-test` | Run test suite (current) | **success** | Round 4's sole GREEN-04 blocker (`demo_reset_test.exs:56`, `ExUnit.TimeoutError` from a cold `MIX_ENV=prod` compile inside the 60000ms per-test budget) was moved out of that budget by plan 198-30's `setup_all` restructure (198-round5-review-triage.md row IN-03: cold=30.3s/warm=0.73s/warm-guard-only=0.748s, inside the default). Both prior causes underneath it (missing `search_path` ALTER, demo-seed content mismatches) were already closed in rounds 2-4 and untouched since. Orchestrator-measured local figures at this merged head (readiness signal only, per D-01 — NOT admissible evidence): `mix test` 1433 tests, 0 failures (1 excluded); `mix verify.example` 109 tests, 0 failures. |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | Unaffected; no Hex-publish-path or evaluator file touched this round. |
+| `verify-example-browser` | Example app browser E2E (Playwright) | **failure** | `198-round5-review-triage.md`'s "Structurally uncloseable inside milestone v1.41" section names two `operator-stress.spec.ts` `page.*` ledger-baseline diffs (`page.home.happy`, `page.timeline.empty`, dark 1024px) whose only remedy is `page.*` baseline regeneration, forbidden by D-39 for the whole milestone — no round-5 plan's `files_modified` touches `operator-stress.spec.ts`'s baseline PNGs (confirmed empty by every round-5 plan's own verification section, restated in that ledger). The two `/Expired/` locator rows and the `operator-responsive-mobile-first.spec.ts:577:5` cause were fixed at cause by 198-31 (local pass confirmed both projects), but those closures cannot outweigh the two D-39-forced rows still present. **Carrying round 4's own methodological lesson forward explicitly:** the unbounded local Playwright inventory samples a different, non-nested population from CI's `maxFailures: 5`-capped run (`playwright.config.ts:141`), so this prediction is confident on the lane's *conclusion* (`failure`, forced by the two D-39 rows alone) but weakly grounded on its exact five-test *composition* — it is labelled as such rather than stated with false confidence, per round 4's f(2) finding. |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | Unaffected; no Tier-A scorecard or mechanical-checker file touched this round (D-39 forbids Tier-A work entirely). |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | **failure** | D-39 — only remedy (Tier-A `page.*` scorecard regeneration) forbidden this milestone; no round-5 plan touched the Tier A capture lane, its specs, or its scorecards. `scroll_cost` drift has been deterministic and byte-identical across rounds 2, 3, and 4. |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | Unaffected; green on rounds 2-4, no topology-test file touched this round. |
+| `verify-docs` | Build ExDoc (dev) | success | Unaffected; no doc-generation-relevant file touched this round. |
+| `verify-hex-package` | Hex package tarball | success | Unaffected; no package-manifest file touched this round. |
+| `verify-release-shape` | Release metadata (version / changelog) | success | Unaffected; no `CHANGELOG.md`/`mix.exs` version-metadata file touched this round. |
+| **`CI required`** (aggregate) | CI required | **failure** | Two `needs:` members (`verify-example-browser`, `verify-capture`) are predicted red; `re-actors/alls-green` fails the aggregate under `if: always()` if any required job is not `success`. |
+
+**Predicted red-`needs:`-member count: 2** (`verify-example-browser`, `verify-capture`) — down from
+round 4's measured 3, because `verify-test` is predicted to close this round on the strength of
+198-30's `setup_all` fix to its distinct, round-4-diagnosed cause.
+
+**The ceiling, stated plainly before the run:** `CI required` cannot conclude `success` this round.
+The Tier A capture lane and the two `operator-stress.spec.ts` `page.*` rows are red by construction
+under D-39 — no plan in this round attempted, or was permitted to attempt, their only available
+remedy (Tier-A evidence regeneration). **GREEN-07 therefore cannot reach Complete this round on any
+basis**, regardless of what the run measures for `verify-test` or any other lane. GREEN-04, by
+contrast, is the one requirement this round's evidence supports predicting closed — it depends only
+on `Run test suite (current)`'s own conclusion, and this round's fix targets that lane's own
+round-4-diagnosed cause directly.
+
+This prediction is committed **before** Task 2 raises the push checkpoint. A prediction that lands
+in the same commit as its result is not a prediction, and it will be scored — not amended — once the
+measured run in Task 3 completes.
