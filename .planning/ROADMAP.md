@@ -241,7 +241,7 @@ Plans:
 
 **Wave 5** *(blocked on all round-5 fix plans)*
 
-- [ ] 198-37-PLAN.md — Commit a falsifiable prediction, **user pushes `ci/198-round5` by hand** (`git push` is classifier-blocked in-session), measure one real CI run, set GREEN-04/GREEN-07 from that run alone (wave 5)
+- [x] 198-37-PLAN.md — Commit a falsifiable prediction, **user pushes `ci/198-round5` by hand** (`git push` is classifier-blocked in-session), measure one real CI run, set GREEN-04/GREEN-07 from that run alone (wave 5)
 
 **Round-5 notes:**
 
