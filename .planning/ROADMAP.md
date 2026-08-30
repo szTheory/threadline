@@ -243,6 +243,27 @@ Plans:
 
 - [x] 198-37-PLAN.md — Commit a falsifiable prediction, **user pushes `ci/198-round5` by hand** (`git push` is classifier-blocked in-session), measure one real CI run, set GREEN-04/GREEN-07 from that run alone (wave 5)
 
+#### Gap-closure round 6 (plans 198-38 .. 198-40)
+
+**Wave 1**
+
+- [ ] 198-38-PLAN.md — **Tracer:** pin the demo seed/reset critical section to one connection (`Repo.checkout/2`), promote `Demo.Reset.with_demo_lock/1` to the single canonical guard, add a connection-identity regression test with a red-then-green teeth proof, and give CR-01/WR-01/IN-01 terminal dispositions (wave 1)
+
+**Wave 2** *(blocked on 198-38)*
+
+- [ ] 198-39-PLAN.md — Blocking `checkpoint:decision`: maintainer selects GREEN-07 / roadmap SC3's terminal disposition for milestone v1.41, recorded in `198-39-DECISION.md` and propagated consistently into REQUIREMENTS.md, ROADMAP.md, deferred-items.md and STATE.md, plus the `origin/main` gap and PR #32 / PR #26 dispositions (wave 2)
+
+**Wave 3** *(blocked on 198-38 and 198-39)*
+
+- [ ] 198-40-PLAN.md — Commit a falsifiable Round 6 prediction, **maintainer pushes the measurement branch by hand** (`git push` is a human-authorized gate), measure one real CI run, re-prove GREEN-04 from that run alone, and state the nine carried-forward requirements explicitly (wave 3)
+
+**Round-6 notes:**
+
+- **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
+- **CR-01's regression test cannot run under `Sandbox.unboxed_run/2`.** Every existing test of that path does, which structurally masks the exact race; 198-38's test asserts connection identity under `Sandbox.mode(:auto)` instead, and must be observed red on the pre-fix tree.
+- **`pg_advisory_xact_lock` was evaluated and rejected**, on the record: the guarded body issues many independent `Repo.transaction/1` calls by design, each producing its own audit transaction, so an outer transaction would change the seeded audit trail's shape. `Repo.checkout/2` pins the connection without collapsing those boundaries.
+- **Nothing D-39 or D-42 protects is touched.** No baseline regenerated, no `needs:` narrowed, no gate edited, no test skipped or weakened, no prior round's prediction retro-edited. Empty-diff assertions over that exact path set are acceptance criteria in all three plans.
+
 **Round-5 notes:**
 
 - **What this round can and cannot close, stated up front:** `Run test suite (current)` **can** close — plan 198-30 removes the cold `MIX_ENV=prod` compile that round-4 verification identified as GREEN-04's sole remaining blocker. `Example app browser E2E (Playwright)` **cannot** — two of round 4's five red rows are `operator-stress.spec.ts` `page.*` ledger-baseline diffs. `Tier A capture lane` **cannot** — same D-39 class, 198 drifted scorecard files. **Therefore `CI required` cannot conclude `success` and GREEN-07 cannot reach Complete this round.** The honest target is 3 red `needs:` lanes down to 2, where both survivors are ones D-39 forbids fixing.
