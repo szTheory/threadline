@@ -30,7 +30,8 @@ defmodule ThreadlinePhoenix.Demo.Reset do
 
   @doc """
   Serializes demo seed/reset work against other demo seed/reset work, on this
-  connection or another (WR-01, WR-02).
+  connection or another (WR-01, WR-02), inside one checked-out connection
+  (CR-01, WR-01).
 
   Every demo seed/reset entry point takes this lock — `run/1` here,
   `Demo.Seed.run/0`, and the `mix demo.reset` / `mix demo.seed` tasks that
@@ -42,29 +43,56 @@ defmodule ThreadlinePhoenix.Demo.Reset do
   one `mix test`, so intra-run contention between this module's own callers
   cannot occur — that mechanism was disproven, not merely unlikely.
 
+  The entire guarded region — the `SET lock_timeout` statement, the
+  `pg_try_advisory_lock` retry loop, the caller's `fun.()` (including any
+  nested `with_demo_lock/1` call reached from within it, e.g. via
+  `Demo.Seed.run/0`), and the `pg_advisory_unlock` release — runs inside one
+  `Repo.checkout/2` call. That is an enforced property, not an assumed one:
+  every statement in the region is guaranteed to execute on the same
+  checked-out Postgres backend, so `SET lock_timeout` provably bounds the
+  connection that later attempts the lock (WR-01), and a nested acquire
+  reached from inside `fun.()` necessarily lands on the same backend as the
+  outer acquire, so Postgres advisory-lock session reentrancy actually
+  applies to it. `:timeout` is passed as `:infinity` on the checkout itself
+  so the connection-pool's own 15s default checkout-query timeout cannot cut
+  off the bounded 45s lock-retry wait; the lock-retry loop is still the
+  thing that actually bounds how long this function can run.
+
   Session-scoped, not transaction-scoped: the demo pipeline issues many
-  independent `Repo.transaction/1` calls by design (each producing its own
-  distinct audit transaction for the seeded fiction), so wrapping the whole
-  pipeline in one outer transaction would collapse them into a single
-  Postgres transaction and change the shape of the seeded audit trail.
-  Rather than relying on commit/rollback for release, the lock is released
-  unconditionally in `after`, and `pg_try_advisory_lock/2` is retried in a
-  bounded loop (never the blocking, unbounded `pg_advisory_lock/1`) so a
-  stranded peer surfaces as a named lock-timeout error within a bounded wait
-  rather than an unbounded hang (WR-01).
+  independent, separately-committed database transactions by design (each
+  producing its own distinct audit transaction for the seeded fiction), so
+  wrapping the whole pipeline in one outer transaction would collapse them
+  into a single Postgres transaction and change the shape of the seeded
+  audit trail. This is also why `pg_advisory_xact_lock/2` inside a wrapping
+  outer transaction — which would delete the manual unlock path and its leak
+  mode outright — was evaluated and rejected: it requires exactly the outer
+  transaction this module cannot introduce. `Repo.checkout/2` pins the
+  connection, which is the whole of what CR-01/WR-01 require, while leaving
+  each of the pipeline's inner database transactions its own commit
+  boundary. Rather than relying on
+  commit/rollback for release, the lock is released unconditionally in
+  `after`, and `pg_try_advisory_lock/2` is retried in a bounded loop (never
+  the blocking, unbounded `pg_advisory_lock/1`) so a stranded peer surfaces
+  as a named lock-timeout error within a bounded wait rather than an
+  unbounded hang (WR-01).
   """
   @spec with_demo_lock((-> any())) :: :ok
   def with_demo_lock(fun) do
-    acquire_demo_lock()
+    Repo.checkout(
+      fn ->
+        acquire_demo_lock()
 
-    try do
-      fun.()
-    after
-      Repo.query!("SELECT pg_advisory_unlock($1, $2)", [
-        @advisory_lock_classid,
-        @advisory_lock_objid
-      ])
-    end
+        try do
+          fun.()
+        after
+          Repo.query!("SELECT pg_advisory_unlock($1, $2)", [
+            @advisory_lock_classid,
+            @advisory_lock_objid
+          ])
+        end
+      end,
+      timeout: :infinity
+    )
 
     :ok
   end
