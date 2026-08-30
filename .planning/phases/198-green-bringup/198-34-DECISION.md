@@ -1,6 +1,6 @@
 # 198-34 Decision: Export status copy contract canonicalization (CR-01)
 
-**Status:** AWAITING MAINTAINER DECISION
+**Status:** DECIDED — option-b, retain-with-reason (2026-08-30)
 **Blocking task:** 198-34 Task 1 (`checkpoint:decision`, `gate="blocking-human"`)
 
 ## The problem
@@ -181,9 +181,26 @@ observed copy changes.
 
 ## Decision
 
-**Selected option:** _(awaiting maintainer)_
+**Selected option:** `option-b` — promote the rendered status vocabulary into `Presentation`.
 
-**Rationale:** _(awaiting maintainer)_
+**Rationale:** Option B closes CR-01's actual defect (two independently maintained copies of one
+copy contract) without changing a single user-visible string, and it is reversible. Option A was
+rejected on two concrete grounds recorded above: it collapses the operator-meaningful
+pending-vs-running distinction (`"Queued"` / `"Processing"` → one `"Preparing download"`), and its
+`:needs_attention` string `"Reopen source search"` is textually ambiguous with the unrelated,
+always-present reopen link at `export_status_live.ex:341` — a failed job's row would carry that
+same text twice with different roles. Copy changes locked by a Phase-186 contract test and
+asserted by four e2e specs are one-way once shipped; this is a green-bringup round, not the place
+to spend that.
 
-**Disposition of `export_action_label/2` (required if Option B):** _(awaiting maintainer — wire /
-delete / retain-with-reason)_
+**Disposition of `export_action_label/2` (required if Option B):** `retain-with-reason`.
+`Presentation` is public surface in a published Hex package, so deleting the function is a
+semver-visible breaking removal — disproportionate to a "no callers in `lib/`" observation. Keep
+`export_action_label/2` and its Phase-137 test unchanged in meaning, and add a `@doc` note stating
+explicitly that it is adopter-facing **action**-shaped copy, deliberately distinct from the
+`role="status"` label rendered by `export_status_label/2`, and that having no in-tree caller is
+intended rather than dead code. That converts the review's open finding into documented intent.
+
+**Decided by:** maintainer, 2026-08-30 (recorded by the phase-198 orchestrator at the
+`gate="blocking-human"` checkpoint for 198-34 Task 1).
+
