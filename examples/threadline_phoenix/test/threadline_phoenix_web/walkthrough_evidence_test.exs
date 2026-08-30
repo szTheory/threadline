@@ -47,6 +47,12 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       # /audit/timeline (not /audit, which redirects to the generic operator
       # Home page and carries no org-scoped emptiness signal at all).
       assert timeline_html =~ "No captured changes"
+      # Negative assertion (WR-10, restored): the two guard different failure
+      # modes. A page could render the empty-state banner alongside a stale
+      # incident link left over from another render path — that would satisfy
+      # the positive assertion above while still leaking a link into a
+      # supposedly-empty org-scoped timeline. Keep both.
+      refute timeline_html =~ "View Incident"
     end
 
     test "WALK-04-02 redaction_policy evidence and #4521 row history shows [REDACTED]" do
@@ -87,12 +93,16 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       coverage_html = html_response(coverage_conn, 200)
       refute coverage_html =~ "Coverage view unavailable"
       assert coverage_html =~ "tickets" or coverage_html =~ "ticket_replies"
-      # Non-vacuous coverage snapshot: both a non-empty covered set (chip label
-      # "Covered") and a non-empty uncovered set (chip label "Needs capture")
-      # must be present, so a database that is either all-covered or entirely
-      # empty of triggers cannot satisfy this assertion.
-      assert coverage_html =~ "Covered"
-      assert coverage_html =~ "Needs capture"
+      # Non-vacuous coverage snapshot (CR-02, corrected). The verdict block's
+      # <dt>Covered</dt> / <dt>Needs capture</dt> labels render unconditionally
+      # regardless of counts (coverage_live.ex verdict-counts block), so a bare
+      # substring match on either label label passes even at covered_count == 0
+      # and uncovered_count == 0 — it discriminates nothing. Instead, pair each
+      # <dt> label with its adjacent <dd> count and require that count be
+      # strictly positive (a leading "0" digit cannot match `[1-9]`), so an
+      # empty snapshot fails this assertion.
+      assert coverage_html =~ ~r/<dt>Covered<\/dt>\s*<dd>[1-9]\d*<\/dd>/
+      assert coverage_html =~ ~r/<dt>Needs capture<\/dt>\s*<dd>[1-9]\d*<\/dd>/
 
       evidence_conn =
         admin_conn()
