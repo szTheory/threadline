@@ -1,4 +1,4 @@
-import { expect, Page, test } from "@playwright/test";
+import { Browser, expect, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -12,6 +12,33 @@ async function login(page: Page, email: string) {
   await form.getByLabel("Password").fill(password);
   await form.getByRole("button", { name: /log in/i }).click();
   await expect(page).toHaveURL("/", { timeout: 30_000 });
+}
+
+// CR-05 fix: the admin half of the Coverage discrimination test needs a
+// genuinely distinct session, not the support session reused after a logout.
+// The example app's only logout affordance is a POST form
+// (components/layouts/app.html.heex) that is not rendered inside the mounted
+// operator surface, so — per the round-5 plan's stated fallback — a fresh
+// browser context (no shared cookies with the support session) stands in for
+// logout here.
+async function loginAsAdminInFreshContext(
+  browser: Browser,
+): Promise<{ page: Page; close: () => Promise<void> }> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await login(page, adminEmail);
+
+  // Identity proof: confirm this is really a distinct, unscoped admin session
+  // BEFORE trusting anything the Coverage page renders for it, so a silently
+  // failed identity switch cannot make the admin half pass on the support
+  // session. `timeline_live.ex` renders `data-testid="operator-scope"` only
+  // when `threadline_scope` is non-nil (support_read_only sessions, per
+  // `my_authorize_fn` in router.ex); admin's authorize_fn returns a bare `:ok`
+  // with no scope, so an admin session must never show that testid.
+  await page.goto("/audit/timeline");
+  await expect(page.getByTestId("operator-scope")).toHaveCount(0);
+
+  return { page, close: () => context.close() };
 }
 
 test.describe("operator surface - Phase 135 automated UAT", () => {
@@ -73,13 +100,44 @@ test.describe("operator surface - Phase 135 automated UAT", () => {
     await expect(page.locator(".tl-empty")).not.toContainText(/error|crash/i);
   });
 
-  test("support user is denied admin-only Coverage", async ({ page }) => {
+  // Renamed from "support user is denied admin-only Coverage" (CR-05): that name
+  // promised a denial the old assertions did not make — they asserted
+  // `Unsupported.descriptor(:coverage_unavailable)`, whose own body text reads
+  // "This is not a permissions issue," so the test passed identically whether
+  // authorization worked OR Coverage was dead for every role including admin.
+  // The admin half below is the load-bearing addition that makes this a role
+  // proof rather than a lane-capability observation.
+  test("Coverage is role-discriminating: support gets the unavailable lane, admin gets the table", async ({
+    page,
+    browser,
+  }) => {
     await login(page, supportAcmeEmail);
     await page.goto("/audit/coverage");
 
     await expect(page).toHaveURL(/\/audit\/coverage$/);
-    await expect(page.getByRole("heading", { name: "Unsupported View" })).toBeVisible();
-    await expect(page.getByText("Coverage inspection is not available")).toBeVisible();
+    // Product contract: Threadline.OperatorSurface.Unsupported.descriptor(:coverage_unavailable)
+    // (unsupported.ex) renders this exact title + body — an honest "unavailable in this
+    // support lane" affordance, not an access-control denial on its own. REVIEW.md IN-04
+    // confirms these strings match unsupported.ex verbatim; the semantics, not the
+    // strings, were the defect this test fixes.
+    await expect(page.getByRole("heading", { name: "Coverage unavailable" })).toBeVisible();
+    await expect(
+      page.getByText("Coverage is unavailable in this support lane"),
+    ).toBeVisible();
     await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+
+    // The load-bearing half (CR-05): a genuinely distinct identity — a fresh
+    // browser context sharing no cookies with the support session above — must
+    // see the admin-only Coverage table at the same route. Without this half,
+    // the assertions above pass identically in a world where Coverage is
+    // unavailable to every role, including admin.
+    const admin = await loginAsAdminInFreshContext(browser);
+    try {
+      await admin.page.goto("/audit/coverage");
+      await expect(admin.page).toHaveURL(/\/audit\/coverage$/);
+      await expect(admin.page.getByTestId("coverage-table")).toBeVisible();
+    } finally {
+      await admin.close();
+    }
   });
 });

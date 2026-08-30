@@ -36,11 +36,22 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       offboarded_timeline_conn =
         build_conn()
         |> login_demo(:support_offboarded)
-        |> get(~p"/audit")
+        |> get(~p"/audit/timeline")
         |> follow_audit_redirect()
 
       timeline_html = html_response(offboarded_timeline_conn, 200)
       refute timeline_html =~ "Forbidden"
+      # Positive emptiness assertion (paired with the retention_run evidence
+      # assertion above): the offboarded-co timeline must actually render its
+      # "no captured changes" empty state, not merely fail to error. Routed to
+      # /audit/timeline (not /audit, which redirects to the generic operator
+      # Home page and carries no org-scoped emptiness signal at all).
+      assert timeline_html =~ "No captured changes"
+      # Negative assertion (WR-10, restored): the two guard different failure
+      # modes. A page could render the empty-state banner alongside a stale
+      # incident link left over from another render path — that would satisfy
+      # the positive assertion above while still leaking a link into a
+      # supposedly-empty org-scoped timeline. Keep both.
       refute timeline_html =~ "View Incident"
     end
 
@@ -82,7 +93,16 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
       coverage_html = html_response(coverage_conn, 200)
       refute coverage_html =~ "Coverage view unavailable"
       assert coverage_html =~ "tickets" or coverage_html =~ "ticket_replies"
-      assert coverage_html =~ "covered"
+      # Non-vacuous coverage snapshot (CR-02, corrected). The verdict block's
+      # <dt>Covered</dt> / <dt>Needs capture</dt> labels render unconditionally
+      # regardless of counts (coverage_live.ex verdict-counts block), so a bare
+      # substring match on either label label passes even at covered_count == 0
+      # and uncovered_count == 0 — it discriminates nothing. Instead, pair each
+      # <dt> label with its adjacent <dd> count and require that count be
+      # strictly positive (a leading "0" digit cannot match `[1-9]`), so an
+      # empty snapshot fails this assertion.
+      assert coverage_html =~ ~r/<dt>Covered<\/dt>\s*<dd>[1-9]\d*<\/dd>/
+      assert coverage_html =~ ~r/<dt>Needs capture<\/dt>\s*<dd>[1-9]\d*<\/dd>/
 
       evidence_conn =
         admin_conn()

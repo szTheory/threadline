@@ -118,6 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @actor_live_path "lib/threadline/operator_surface/live/actor_live.ex"
     @evidence_live_path "lib/threadline/operator_surface/live/evidence_live.ex"
     @export_status_live_path "lib/threadline/operator_surface/live/export_status_live.ex"
+    @presentation_path "lib/threadline/operator_surface/presentation.ex"
     @policy_redaction_live_path "lib/threadline/operator_surface/live/policy_redaction_live.ex"
     @retention_live_path "lib/threadline/operator_surface/live/retention_history_live.ex"
 
@@ -144,9 +145,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView)
-      Threadline.Test.Repo.delete_all(ExportJob)
-      Threadline.Test.Repo.delete_all(RetentionRun)
+      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
+      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
+      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "copy-contract-operator")
 
@@ -442,9 +443,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "Phase 186 export source locks real completed downloads and non-ready status text" do
       source = source(@export_status_live_path)
+      presentation_source = source(@presentation_path)
       download_attrs = export_download_attrs_block(source)
       actions_block = export_job_actions_block(source)
-      status_label_block = export_job_status_label_block(source)
+      status_label_block = export_status_label_block(presentation_source)
 
       assert download_attrs =~ ~s(href: "\#{base_path}/exports/download/\#{job.id}")
       assert download_attrs =~ ~s(class: "tl-button tl-button--primary tl-button--compact")
@@ -456,9 +458,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert actions_block =~ "Download export"
 
       assert actions_block =~
-               ~S|<span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>|
+               ~S|<span class="tl-hint" role="status"><%= Presentation.export_status_label(job) %></span>|
 
-      for label <- ["Queued", "Processing", "Failed", "Expired", "File unavailable"] do
+      for label <- ["Queued", "Processing", "Failed", "Export expired", "File unavailable"] do
         assert status_label_block =~ label
       end
     end
@@ -550,11 +552,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       before_actions <> "Presentation.export_downloadable?(job)" <> after_actions
     end
 
-    defp export_job_status_label_block(source) do
-      source
-      |> String.split("defp export_job_status_label", parts: 2)
+    defp export_status_label_block(presentation_source) do
+      presentation_source
+      |> String.split("def export_status_label", parts: 2)
       |> List.last()
-      |> String.split("defp download_link_attrs", parts: 2)
+      |> String.split("@spec secondary_ref", parts: 2)
       |> List.first()
     end
 
@@ -568,7 +570,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             occurred_at: occurred_at,
             actor_ref: %{"type" => "user", "id" => "copy-contract-operator"},
             source: "support"
-          })
+          }),
+          repo_opts()
         )
 
       Threadline.Test.Repo.insert!(
@@ -581,7 +584,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data_after: %{"body" => "copy contract row"},
           changed_fields: nil,
           captured_at: occurred_at
-        })
+        }),
+        repo_opts()
       )
     end
 

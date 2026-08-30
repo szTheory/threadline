@@ -403,7 +403,12 @@ test.describe("operator accessibility baseline", () => {
       name: "Selected schema readiness",
     });
     await expect(readiness).toBeVisible();
-    await expect(readiness).toContainText("selected schema");
+    // 197-02 (commit 842bd737) intentionally dropped the verdict's
+    // self-labeling "selected schema: … · Checked …" meta line — the verdict
+    // heading itself still names the schema (coverage_live.ex
+    // verdict_heading/2). This test navigates to /audit/coverage with no
+    // `schema` param, so it defaults to "public" (coverage_live.ex:49).
+    await expect(readiness).toContainText("public");
 
     const schemaSelect = page.locator("#coverage-schema");
     await expect(schemaSelect).toBeVisible();
@@ -603,7 +608,10 @@ test.describe("operator accessibility baseline", () => {
     await expect(exportJobs.getByText(/Queued|Processing/).first()).toBeVisible();
     await expect(exportJobs.getByText("Export failed.").first()).toBeVisible();
     await expect(
-      exportJobs.getByText(/Expired|File unavailable/).first(),
+      // Anchored to the canonical rendered literal (export_status_live.ex:489,
+      // "Export expired") — plan 198-25 fixed the "Expired" -> "Export expired"
+      // product copy, which this partial-capital-E regex no longer matched.
+      exportJobs.getByText(/Export expired|File unavailable/).first(),
     ).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
