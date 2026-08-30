@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: green-bringup
 status: executing
-stopped_at: "Phase 198 round 5 measured (plan 198-37, all 37 plans in the phase now complete). CI run 33336651956 (attempt 1, failure, 11m8s) on ci/198-round5, PR #32 draft DO NOT MERGE. GREEN-04 now Complete — Run test suite (current) concluded success (198-30's setup_all fix closed round 4's cold-compile cause on CI itself). GREEN-07 remains Pending — CI required still failure, red needs: count fell from round 4's 3 to 2 (verify-example-browser, verify-capture), hitting this round's stated ceiling exactly; both remaining red lanes are red by construction under D-39 (Tier A capture lane + 3 operator-stress.spec.ts page.*/footgun.* ledger-baseline diffs, one newly-discovered) and are not closeable inside milestone v1.41. Pre-push prediction scored 13/13 hit at the conclusion level with one honest composition partial-miss recorded. Phase-level closeout (verification/audit) not yet run. Round-6 gap-closure planned 2026-08-30 (plans 198-38..198-40, gap_closure: true): 198-38 fixes CR-01 by pinning the demo lock critical section with Repo.checkout/2 plus a connection-identity regression test; 198-39 is a blocking one-way checkpoint:decision for GREEN-07/SC3's terminal v1.41 disposition; 198-40 commits a pre-push prediction, halts for a maintainer git push, and re-measures CI. Plan-checker: 0 blockers, 1 warning (fixed). Not yet executed."
-last_updated: "2026-08-30T22:27:05.638Z"
+stopped_at: Completed 198-38-PLAN.md (CR-01/WR-01/IN-01 fixed and terminally dispositioned; readiness signal only per D-01, plan 198-40 owns measured CI verdict)
+last_updated: "2026-08-30T22:43:41.401Z"
 last_activity: 2026-08-30
-last_activity_desc: "Phase 198 round 5 measured on CI run 33336651956 — 2/12 `needs:` red (verify-example-browser, verify-capture); GREEN-04 now Complete, GREEN-07 stays Pending, red by construction under D-39"
-state_head: 92412030cc209812259397cf68898ae90e8f043e
+last_activity_desc: "Plan 198-38 executed: CR-01/WR-01/IN-01 fixed and terminally dispositioned (Repo.checkout/2 pins the demo lock critical section; Demo.Seed delegates to the one canonical guard; red-then-green regression proof recorded). Readiness signal only per D-01 — plans 198-39/198-40 remain."
+state_head: 9e0e0c959c0cd33b83d5f79cea059b2f92c31a57
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 40
-  completed_plans: 37
+  completed_plans: 38
   percent: 0
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (green-bringup) — NOT CLOSED; round-6 gap-closure plans READY TO EXECUTE (verification = gaps_found)
-Plan: 37 of 40 complete (198-01..198-37 done through round 5; 198-38..198-40 planned 2026-08-30 as round-6 gap closure, not yet executed)
+Phase: 198 (green-bringup) — NOT CLOSED; round-6 gap-closure plan 198-38 EXECUTED, 198-39/198-40 remain (verification = gaps_found as of round 5, pending re-verification)
+Plan: 38 of 40 complete (198-01..198-38 done; 198-38 closed CR-01/WR-01/IN-01 at cause with a red-then-green regression proof, readiness signal only per D-01; 198-39 is a blocking checkpoint:decision for GREEN-07/SC3's terminal disposition; 198-40 commits a pre-push prediction, halts for a maintainer push, and re-measures CI)
 Status: Round 5 measured on CI run `33336651956` (attempt 1, `failure`, 11m8s, `ci/198-round5`, PR #32 draft DO NOT MERGE). GREEN-04 now **Complete** — `Run test suite (current)` concluded `success` (198-30's `setup_all` fix closed round 4's cold-compile cause, confirmed on CI). GREEN-07 remains **Pending** — `CI required` still `failure`, red `needs:` count fell from round 4's 3 to 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly. Both remaining red lanes are red by construction under D-39 (Tier A capture lane's `scroll_cost` drift; 3 `operator-stress.spec.ts` ledger-baseline diffs — `page.home.happy`, `page.timeline.empty`, and a newly-discovered `footgun.transaction-page-left-push-desktop`) and are not closeable inside milestone v1.41. Pre-push prediction (committed before the push) scored 13/13 hit at the conclusion level, with one honest composition partial-miss (the third Playwright row wasn't named in advance). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the whole round is empty (D-42 — no gate narrowed, no evidence regenerated).
 Closeout gates (run 2026-08-30 after 198-37):
 
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 |------|----------|-------|-------|
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
 | Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
+| Phase 198 P38 | 45min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -460,6 +461,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
 - [191-03]: ADOPT-01 install/version reconciliation — seven install pins flipped to three-segment ~> 0.9.0 (co-committed with four guard tests, no CI/release reddening); evaluating-threadline.md false 0.6.0 SSOT corrected to 0.9.0 + release-please marker/extra-files wiring (historical lines preserved); version_truth_doc_contract_test derives Families A/B/C from mix.exs @version and is registered in verify.doc_contract. Pre-existing v1_23_charter failure left deferred (charter truth out of this plan's task scope).
 - [Phase ?]: [195-01]: verify.ui_critique is local-only (excluded from ci.all, exits 0 when ANTHROPIC_API_KEY absent, RUNNER-04). verify.critic_trust is pure-Elixir in ci.all before verify.mechanical. All 6 critic lenses seed validated:false. critic-scores/ tree is gitignored; .planning/golden/ is committed oracle.
+- [Phase 198]: [198-38]: Repo.checkout/2 chosen over pg_advisory_xact_lock/Repo.transaction/2 to pin the demo lock critical section — the guarded body issues many independent per-seed Repo.transaction/1 calls by design and an outer transaction would collapse them.
+- [Phase 198]: [198-38]: promote — Demo.Seed no longer maintains its own copy of the lock guard trio; Demo.Seed.run/0 delegates to Reset.with_demo_lock/1, eliminating the two-copies drift that produced CR-01.
 
 ### Blockers
 
@@ -467,8 +470,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-08-28T02:00:19.571Z
-**Stopped at:** Completed 198-06-PLAN.md
+**Last session:** 2026-08-30T22:43:41.384Z
+**Stopped at:** Completed 198-38-PLAN.md (CR-01/WR-01/IN-01 fixed and terminally dispositioned; readiness signal only per D-01, plan 198-40 owns measured CI verdict)
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

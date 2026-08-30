@@ -247,7 +247,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 198-38-PLAN.md — **Tracer:** pin the demo seed/reset critical section to one connection (`Repo.checkout/2`), promote `Demo.Reset.with_demo_lock/1` to the single canonical guard, add a connection-identity regression test with a red-then-green teeth proof, and give CR-01/WR-01/IN-01 terminal dispositions (wave 1)
+- [x] 198-38-PLAN.md — **Tracer:** pin the demo seed/reset critical section to one connection (`Repo.checkout/2`), promote `Demo.Reset.with_demo_lock/1` to the single canonical guard, add a connection-identity regression test with a red-then-green teeth proof, and give CR-01/WR-01/IN-01 terminal dispositions (wave 1)
 
 **Wave 2** *(blocked on 198-38)*
 
