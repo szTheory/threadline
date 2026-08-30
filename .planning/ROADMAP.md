@@ -226,9 +226,9 @@ Plans:
 
 **Wave 2** *(blocked on 198-30 — fully parallel, disjoint files)*
 
-- [ ] 198-31-PLAN.md — Re-anchor the two self-caused `/Expired/` locator rows to the canonical literal, establish the `operator-responsive-mobile-first.spec.ts:577:5` cause from evidence before fixing (or halt honestly), and close WR-08/WR-09/WR-11 (wave 2)
-- [ ] 198-32-PLAN.md — Restore the teeth round 4 removed: discriminating coverage-snapshot assertions (CR-02), the deleted negative timeline assertion (WR-10), and the manifest subject_ref literal pin (CR-03) (wave 2)
-- [ ] 198-33-PLAN.md — Restore the Phase-177 group-story floor, identity pins and filter proof (CR-04, WR-07), per-story verdicts under a measured budget (WR-06), and make the Phase-135 Coverage test role-discriminating (CR-05) (wave 2)
+- [x] 198-31-PLAN.md — Re-anchor the two self-caused `/Expired/` locator rows to the canonical literal, establish the `operator-responsive-mobile-first.spec.ts:577:5` cause from evidence before fixing (or halt honestly), and close WR-08/WR-09/WR-11 (wave 2)
+- [x] 198-32-PLAN.md — Restore the teeth round 4 removed: discriminating coverage-snapshot assertions (CR-02), the deleted negative timeline assertion (WR-10), and the manifest subject_ref literal pin (CR-03) (wave 2)
+- [x] 198-33-PLAN.md — Restore the Phase-177 group-story floor, identity pins and filter proof (CR-04, WR-07), per-story verdicts under a measured budget (WR-06), and make the Phase-135 Coverage test role-discriminating (CR-05) (wave 2)
 
 **Wave 3** *(blocked on Wave 2)*
 
