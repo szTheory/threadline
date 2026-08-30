@@ -34,6 +34,10 @@ last_updated: 2026-08-29T13:12:40.719Z
 | 17 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 136 | Retention screenshot (both projects) left open per plan 198-28's Task 2 decision. Diff render shows a different retention-run row count/order between expected and received -- seeded retention-run history that varies with real pruner execution timing, not a single volatile field a mask locator can cover. Not resolvable without a seed-determinism fix (architectural, out of scope) or baseline regeneration (forbidden). See .planning/audits/198-round4-playwright.md. | open |  | 2026-08-28T23:20:59.854Z |  |
 | 18 | 198 | deviation | examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs | 56 | CI-only ExUnit.TimeoutError (60000ms) at demo_reset_test.exs:69 -- System.cmd shells out to a MIX_ENV=prod mix demo.reset that must cold-compile the example app and deps before reaching the DEMO_ALLOW_RESET guard, with no @tag timeout budget. Sole blocker between current state and GREEN-04 on measured CI run 33253587315. Passes locally (warm _build/prod, 109 tests 0 failures). Not fixed in 198-29 (documentation-only files_modified); candidate for a round-5 plan. | open |  | 2026-08-29T13:12:34.726Z |  |
 | 19 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts | 577 | Un-inventoried CI-only Playwright failure on run 33253587315: getByRole('heading', {name: 'Row history', exact: true}) not found at operator-responsive-mobile-first.spec.ts:475 (helper), reached from :587/:584. Appears in no row of .planning/audits/198-round4-playwright.md (grep -c returns 0). Root cause NOT established -- diagnosis requires source outside 198-29's documentation-only files_modified. Candidate for a round-5 plan. | open |  | 2026-08-29T13:12:40.719Z |  |
+| 20 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts | 565 | SETTLES entry #10/#12 (round 5): plan 198-31 fixed the /Expired\|File unavailable/ regex, re-anchoring it to /Export expired\|File unavailable/ (commit 82a517a0), matching the canonical Presentation.export_status_label/2 copy. Local re-run passed both projects (198-31-SUMMARY.md). Not a demo-seed content change; entries #10/#12's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:10.521Z |  |
+| 21 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 38 | SETTLES entry #11/#13 (round 5): plan 198-31 fixed the /Expired\|File unavailable/ regex, re-anchoring it to /Export expired\|File unavailable/ (commit 82a517a0), same cause and fix as entry #20 (accessibility spec). Local re-run passed both projects (198-31-SUMMARY.md). Entries #11/#13's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:16.948Z |  |
+| 22 | 198 | deviation | examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs | 56 | SETTLES entry #18 (round 5): plan 198-30 moved the cold MIX_ENV=prod mix compile out of the per-test ExUnit timeout budget into a setup_all block (commit 1fe99275), eliminating the 60000ms ExUnit.TimeoutError this entry recorded. Measured cold compile=30.3s, warm=0.73s, warm guard-only mix demo.reset=0.748s (comfortably inside the 60000ms default; no @tag timeout: needed). Local mix verify.example = 109/0 twice, per D-01 a readiness signal only -- the measured-CI re-run is plan 198-37's concern, not proven closed here. Entry #18's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:24.387Z |  |
+| 23 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts | 577 | SETTLES entry #19 (round 5): plan 198-31 established the cause (the shared expectOperatorChrome helper's mobile-nav-toggle click firing the row-history drawer's own phx-click-away, row_history_component.ex, dismissing the drawer and navigating away before the Row history heading assertion runs), confirmed by direct standalone reproduction outside the harness, and fixed at cause test-side with a scoped exerciseMobileNav opt-out for the row-history route (commit 887198c6). This was a fix at cause, not an honest halt -- no lib/ file was touched. Local re-run passed both projects across 3 repeated runs (.planning/audits/198-round5-playwright.md, 198-31-SUMMARY.md coverage D2). Entry #19's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:31.136Z |  |
 
 ````json
 [
@@ -263,6 +267,54 @@ last_updated: 2026-08-29T13:12:40.719Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-29T13:12:40.719Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+    "line": 565,
+    "description": "SETTLES entry #10/#12 (round 5): plan 198-31 fixed the /Expired|File unavailable/ regex, re-anchoring it to /Export expired|File unavailable/ (commit 82a517a0), matching the canonical Presentation.export_status_label/2 copy. Local re-run passed both projects (198-31-SUMMARY.md). Not a demo-seed content change; entries #10/#12's original text is unmodified per this ledger's append-only rule.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T21:16:10.521Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+    "line": 38,
+    "description": "SETTLES entry #11/#13 (round 5): plan 198-31 fixed the /Expired|File unavailable/ regex, re-anchoring it to /Export expired|File unavailable/ (commit 82a517a0), same cause and fix as entry #20 (accessibility spec). Local re-run passed both projects (198-31-SUMMARY.md). Entries #11/#13's original text is unmodified per this ledger's append-only rule.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T21:16:16.948Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs",
+    "line": 56,
+    "description": "SETTLES entry #18 (round 5): plan 198-30 moved the cold MIX_ENV=prod mix compile out of the per-test ExUnit timeout budget into a setup_all block (commit 1fe99275), eliminating the 60000ms ExUnit.TimeoutError this entry recorded. Measured cold compile=30.3s, warm=0.73s, warm guard-only mix demo.reset=0.748s (comfortably inside the 60000ms default; no @tag timeout: needed). Local mix verify.example = 109/0 twice, per D-01 a readiness signal only -- the measured-CI re-run is plan 198-37's concern, not proven closed here. Entry #18's original text is unmodified per this ledger's append-only rule.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T21:16:24.387Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "198",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+    "line": 577,
+    "description": "SETTLES entry #19 (round 5): plan 198-31 established the cause (the shared expectOperatorChrome helper's mobile-nav-toggle click firing the row-history drawer's own phx-click-away, row_history_component.ex, dismissing the drawer and navigating away before the Row history heading assertion runs), confirmed by direct standalone reproduction outside the harness, and fixed at cause test-side with a scoped exerciseMobileNav opt-out for the row-history route (commit 887198c6). This was a fix at cause, not an honest halt -- no lib/ file was touched. Local re-run passed both projects across 3 repeated runs (.planning/audits/198-round5-playwright.md, 198-31-SUMMARY.md coverage D2). Entry #19's original text is unmodified per this ledger's append-only rule.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-30T21:16:31.136Z",
     "resolved_at": null
   }
 ]
