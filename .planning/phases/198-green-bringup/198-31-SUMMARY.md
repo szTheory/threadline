@@ -162,6 +162,10 @@ None - no external service configuration required.
 - WR-08, WR-09, WR-11 are closed and can be removed from any open review-warning tracking.
 - Ready for the next round-5 plan (198-32 onward).
 
+## Self-Check: PASSED
+
+All key files verified present on disk (6 modified spec files, `.planning/audits/198-round5-playwright.md`, this SUMMARY.md). All 4 task commits (`82a517a0`, `887198c6`, `4fa1d2c9`, `605ba956`) verified present in `git log --oneline --all`.
+
 ---
 *Phase: 198-green-bringup*
 *Completed: 2026-08-30*
