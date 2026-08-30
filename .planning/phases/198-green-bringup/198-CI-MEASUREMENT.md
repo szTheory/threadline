@@ -1572,3 +1572,63 @@ $ git diff --stat ab412fdd..14f923a7 -- .github/ CONTRIBUTING.md examples/thread
 No gate was narrowed, no config weakened, no evidence regenerated across the full round-5 commit
 range. `CI required`'s guarantee is exactly as strong on this run as it was on round 4's; two lanes
 are red for the identical reasons cited above, not because the aggregate's meaning shrank.
+
+---
+
+## Round 6 (2026-08-30) — Prediction stated before the push
+
+Written **before** `git push`, per plan 198-40 Task 1. One row per `ci-required`'s 12 `needs:`
+members, plus the `CI required` aggregate itself, with a predicted conclusion and a one-line basis
+grounded in this round's own tree-level evidence — `198-38-SUMMARY.md`'s file list and plan-level
+verification, and `198-39-SUMMARY.md`'s planning-only file list — never in plan promises.
+
+Round 6's own commit set is small and precisely scoped: plan 198-38 touched four source/test files
+in `examples/threadline_phoenix/` (`demo/reset.ex`, `demo/seed.ex`, a new
+`demo/advisory_lock_pinning_test.exs`, and a comment-only fix in
+`walkthrough_evidence_test.exs`) plus one new planning file
+(`198-round6-review-triage.md`). Plan 198-39 touched only planning records
+(`REQUIREMENTS.md`, `ROADMAP.md`, `deferred-items.md`, `STATE.md`,
+`198-39-DECISION.md`) — no source, no test, no config file. No plan in this round touched
+`.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, or any `*.png`.
+
+| `needs:` member | Check name | Predicted conclusion | Basis |
+|---|---|---|---|
+| `verify-format` | Check formatting | success | Unaffected; neither 198-38 nor 198-39 touched a formatting-relevant file; green on every prior round. |
+| `verify-credo` | Run Credo (strict) | success | Unaffected; 198-38's `reset.ex`/`seed.ex` edits are within already Credo-clean modules, and 198-39 touched no lib code at all. |
+| `verify-compile-no-optional` | Compile without optional deps | success | Unaffected; no optional-dep surface touched this round; green on rounds 1-5. |
+| `verify-test` | Run test suite (current) | **success** | **The new-risk lane this round.** 198-38 changed shipped example-app source (`demo/reset.ex`, `demo/seed.ex`) exercised by `mix verify.example`, and added a new async:false test module that manipulates `Sandbox.mode`. 198-38-SUMMARY.md's own plan-level verification, re-run at the end of that plan, recorded: `cd examples/threadline_phoenix && MIX_ENV=test mix compile --warnings-as-errors` exit 0 no warnings; `cd examples/threadline_phoenix && MIX_ENV=test mix test` → `111 tests, 0 failures`; `mix verify.example` (repo root) → `111 tests, 0 failures` (up from round 5's measured 109 — the 2 new `advisory_lock_pinning_test.exs` tests, consistent with the file added); `mix format --check-formatted` exit 0; `MIX_ENV=dev mix demo.reset` exit 0. These are readiness signals only per D-01, not admissible evidence — this row is the one this round's evidence supports predicting, but it is the one CI must re-prove, not assume, per this plan's own objective. |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | Unaffected; no Hex-publish-path or evaluator file touched this round. |
+| `verify-example-browser` | Example app browser E2E (Playwright) | **failure** | **Cannot close, per D-39.** Neither 198-38 nor 198-39 touched `operator-stress.spec.ts`, its baselines, or any Playwright config; `git diff --stat -- '*.png'` is empty across both plans' commits (confirmed in both SUMMARYs). Predicting the same three rows round 5 measured — `page.home.happy`, `page.timeline.empty`, `footgun.transaction-page-left-push-desktop` — all dark 1024px, all `ciScreenshotAllowlist()`-driven ledger-baseline diffs. **Carrying round 5's own methodological lesson forward explicitly:** round 5's prediction under-enumerated this exact row set by one (the third row was un-cited in advance), so this composition prediction is stated with the same caveat — a per-test composition prediction for the browser lane is weakly grounded even when the *conclusion* (`failure`) is not, and an additional row of the identical class would not be a surprise. |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | Unaffected; no Tier-A scorecard or mechanical-checker file touched this round (D-39 forbids Tier-A work entirely). |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | **failure** | **Cannot close, per D-39.** No round-6 plan touched the Tier A capture lane, its specs, or its scorecards; `scroll_cost` drift has been deterministic and byte-identical across rounds 2 through 5. |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | Unaffected; green on rounds 2-5, no topology-test file touched this round. |
+| `verify-docs` | Build ExDoc (dev) | success | Unaffected; no doc-generation-relevant file touched this round. |
+| `verify-hex-package` | Hex package tarball | success | Unaffected; no package-manifest file touched this round. |
+| `verify-release-shape` | Release metadata (version / changelog) | success | Unaffected; no `CHANGELOG.md`/`mix.exs` version-metadata file touched this round. |
+| **`CI required`** (aggregate) | CI required | **failure** | Two `needs:` members (`verify-example-browser`, `verify-capture`) are predicted red; `re-actors/alls-green` fails the aggregate under `if: always()` if any required job is not `success`. |
+
+**Predicted red-`needs:`-member count: 2** (`verify-example-browser`, `verify-capture`) — unchanged
+from round 5's measured 2, because this round's only lib/test-affecting plan (198-38) is scoped to
+the `Run test suite (current)` lane, which is predicted to stay green on the strength of its own
+local verification, not to move either D-39-forced lane.
+
+**The ceiling, stated plainly before the run — restating the plan objective's own stated ceiling:**
+`CI required` cannot conclude `success` this round. The Tier A capture lane and the three
+`operator-stress.spec.ts` `page.*` rows are red by construction under D-39 — no plan in this round
+attempted, or was permitted to attempt, their only available remedy (Tier-A evidence regeneration).
+**GREEN-07 therefore cannot reach Complete this round on any basis**, and this is stated before the
+run rather than discovered after it. GREEN-04, by contrast, is re-proved this round — not assumed —
+because 198-38 changed the exact code `Run test suite (current)` exercises through `mix
+verify.example`; if it goes red, that is 198-38 regressing GREEN-04, and the honest response is to
+fix the cause, not to re-run the check.
+
+**Carried requirements, restated as a decision, not a prediction:** GREEN-01, GREEN-02, GREEN-03,
+GREEN-05, GREEN-06, GREEN-09, GREEN-10, GREEN-11, and GREEN-12 are already Complete and
+independently re-verified at round 5; round 6 plans no new work for them and predicts no change to
+their status. GREEN-07's status after this run follows `198-39-DECISION.md`'s recorded disposition
+(option-a, accepted-Pending for v1.41) regardless of what this run measures — the disposition
+explains the status, it does not, and cannot, satisfy the requirement on a measured `success`.
+
+This prediction is committed **before** Task 2 raises the push checkpoint. A prediction that lands
+in the same commit as its result is not a prediction, and it will be scored — not amended — once the
+measured run in Task 3 completes.
