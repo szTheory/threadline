@@ -12,10 +12,28 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
 
   @org_y_backdate_days 90
 
+  # Derived by grepping every `Manifest.epoch()` call site under
+  # `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/` and taking the
+  # most-negative (furthest-in-the-past) day offset applied to `audit_transactions` /
+  # `audit_changes` timestamps for an organization OTHER than org Y
+  # (`offboarded-co`). The two seeders that establish this bound:
+  #
+  #   - `personas.ex:99`  — `setup_ts = DateTime.add(Manifest.epoch(), -21, :day)`
+  #   - `temporal.ex:37`  — the same `-21` day offset, used as the fallback
+  #     backdate for any untracked null-actor transaction
+  #
+  # `filler.ex`'s `Support.random_days_ago_timestamp/0` only ever produces `0..13`
+  # days back (`:rand.uniform(14) - 1`), so it never reaches this bound. No other
+  # seeder writes an audit-table timestamp further back than `-21` days for a
+  # non-org-Y organization. (A prior version of this comment cited a "-14 day"
+  # filler bound — that number was never the true minimum; the guard below is the
+  # source of truth going forward, not this prose.)
+  @earliest_other_org_epoch_offset_days 21
+
   # `Threadline.Retention.purge/1` is a library-level GLOBAL age-based delete
   # (no per-organization scoping — see `lib/threadline/retention.ex`). Its
-  # default cutoff is `DateTime.utc_now() - keep_days`, anchored to REAL wall
-  # clock, never to this demo's frozen `Manifest.epoch()`. Left to that
+  # default cutoff is derived from the REAL wall clock at call time (`now -
+  # keep_days`), never from this demo's frozen `Manifest.epoch()`. Left to that
   # default, every org's epoch-anchored fiction (hero close/delete, the
   # leaving-agent window, the globex sample) gets swept up as collateral
   # damage once real time drifts more than `keep_days` past the epoch — which
@@ -25,9 +43,35 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   # what the demo narrative actually intends to remove: `offboarded-co`'s
   # `-90 day` backdated footprint. The chosen offset (`-60 days` from epoch)
   # sits strictly between org Y's `-90 day` backdate (still purged) and the
-  # earliest other-org epoch-anchored timestamp (filler's `-14 day` bound,
-  # comfortably preserved).
+  # true earliest other-org epoch-anchored offset of `-21 days` (see
+  # `@earliest_other_org_epoch_offset_days` above — `personas.ex:99` and
+  # `temporal.ex:37` — comfortably preserved with a 39-day margin).
   @retention_purge_cutoff_days_before_epoch 60
+
+  # Compile-time invariant guard (WR-03). The correctness of this module rests
+  # entirely on `@retention_purge_cutoff_days_before_epoch` sitting STRICTLY
+  # between `@earliest_other_org_epoch_offset_days` and `@org_y_backdate_days`.
+  # Equality on either side gives zero margin and must fail the build, not pass
+  # it — a cutoff exactly at the earliest other-org offset would purge that
+  # org's rows too; a cutoff exactly at org Y's backdate would leave org Y's
+  # footprint un-purged (surfacing later as a confusing "org Y not empty"
+  # assertion instead of naming the real cause here). This is a build-time
+  # `raise`, not a comment, so the invariant cannot silently drift from the
+  # numbers it is meant to protect.
+  unless @earliest_other_org_epoch_offset_days < @retention_purge_cutoff_days_before_epoch and
+           @retention_purge_cutoff_days_before_epoch < @org_y_backdate_days do
+    raise CompileError,
+      description: """
+      RetentionTail cutoff invariant violated (WR-03): \
+      @retention_purge_cutoff_days_before_epoch must sit STRICTLY between \
+      @earliest_other_org_epoch_offset_days and @org_y_backdate_days (equal is a \
+      violation, not a pass). Got \
+      earliest_other_org_epoch_offset_days=#{@earliest_other_org_epoch_offset_days}, \
+      retention_purge_cutoff_days_before_epoch=#{@retention_purge_cutoff_days_before_epoch}, \
+      org_y_backdate_days=#{@org_y_backdate_days}. Fix the offending module attribute in \
+      #{__ENV__.file} before recompiling.
+      """
+  end
 
   @doc false
   @spec run(map()) :: map()
@@ -37,12 +81,17 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
     enable_retention!()
 
     purge_result =
-      case Retention.purge(repo: Repo, cutoff: retention_purge_cutoff()) do
-        {:error, :disabled} ->
-          raise "demo retention purge requires :threadline retention enabled"
+      try do
+        case Retention.purge(repo: Repo, cutoff: retention_purge_cutoff()) do
+          {:error, :disabled} ->
+            raise "demo retention purge requires :threadline retention enabled"
 
-        result when is_map(result) ->
-          result
+          result when is_map(result) ->
+            result
+        end
+      rescue
+        e in ArgumentError ->
+          reraise_clock_skew_error(e, __STACKTRACE__)
       end
 
     record_evidence!(org_y_id, purge_result)
@@ -54,6 +103,33 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   # See the module-attribute comment above `@retention_purge_cutoff_days_before_epoch`.
   defp retention_purge_cutoff do
     DateTime.add(Manifest.epoch(), -@retention_purge_cutoff_days_before_epoch, :day)
+  end
+
+  # Makes `Threadline.Retention.Policy`'s latent `resolve_cutoff/2` raise legible
+  # (WR-03). That raise fires when the frozen, epoch-anchored requested cutoff is
+  # newer than the wall-clock-derived policy cutoff — which only happens when the
+  # machine's real clock reads earlier than `Manifest.epoch()` minus roughly
+  # `@org_y_backdate_days - @retention_purge_cutoff_days_before_epoch` days
+  # (clock skew), not from any error in this module's own arithmetic.
+  defp reraise_clock_skew_error(%ArgumentError{} = e, stacktrace) do
+    requested_cutoff = retention_purge_cutoff()
+    policy_cutoff = Threadline.Retention.Policy.cutoff_utc_datetime_usec!()
+
+    reraise %ArgumentError{
+              message: """
+              RetentionTail purge cutoff rejected by Threadline.Retention — likely clock \
+              skew, not a bug in this seeder (#{Exception.message(e)}).
+
+              requested (epoch-anchored) cutoff: #{inspect(requested_cutoff)}
+              policy (wall-clock-derived) cutoff: #{inspect(policy_cutoff)}
+
+              The requested cutoff is only newer than the policy cutoff when this \
+              machine's system clock reads earlier than roughly \
+              #{Manifest.epoch() |> DateTime.add(-(@org_y_backdate_days - @retention_purge_cutoff_days_before_epoch), :day) |> inspect()}. \
+              Check the system clock.
+              """
+            },
+            stacktrace
   end
 
   @doc false
