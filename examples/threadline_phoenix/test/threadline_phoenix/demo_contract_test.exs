@@ -249,6 +249,15 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         subject_ref = Manifest.evidence_subject_ref(:redaction_policy)
 
+        # Pin the manifest's declared value (CR-03, restored). This is a
+        # published demo contract, so a drift in
+        # `Manifest.evidence_subject_ref(:redaction_policy)` must be a
+        # deliberate, reviewed change — not one silently absorbed by a
+        # self-satisfying comparison further down. Verified against
+        # examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex
+        # before writing this literal.
+        assert subject_ref == %{"policy" => "walk-demo-redaction-policy"}
+
         records =
           Threadline.Evidence.list_subject_ref_history(
             "redaction_policy",
@@ -260,9 +269,13 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         record = hd(records)
         assert record.subject == "redaction_policy"
-        # Read from the manifest's own declared value (subject_ref above), never restate it
-        # as an inline literal here — an inline literal would silently rot the moment the
-        # manifest's declared subject_ref changes.
+        # Round-trip documentation, not a real assertion (CR-03): this compares
+        # a query result against the same value the query filtered on
+        # (Threadline.Evidence.list_subject_ref_history/3 puts both `subject`
+        # and `subject_ref` into the SQL WHERE clause), so every returned
+        # record satisfies this equality by construction. It cannot fail. Kept
+        # to document the query's filter contract; the load-bearing assertion
+        # is the manifest pin above.
         assert record.subject_ref == subject_ref
       end)
     end
