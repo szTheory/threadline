@@ -237,7 +237,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 198-36-PLAN.md — 20-row review triage ledger with a tree-verified disposition per finding, appended round-5 deferrals with owners, and an honest record of the two structurally-uncloseable items (wave 4)
+- [x] 198-36-PLAN.md — 20-row review triage ledger with a tree-verified disposition per finding, appended round-5 deferrals with owners, and an honest record of the two structurally-uncloseable items (wave 4)
 
 **Wave 5** *(blocked on all round-5 fix plans)*
 
