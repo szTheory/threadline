@@ -1242,3 +1242,333 @@ round-4-diagnosed cause directly.
 This prediction is committed **before** Task 2 raises the push checkpoint. A prediction that lands
 in the same commit as its result is not a prediction, and it will be scored — not amended — once the
 measured run in Task 3 completes.
+
+---
+
+## Round 5 (2026-08-30) — Measured CI run (Plan 198-37, gap-closure round 5)
+
+**Push.** The user pushed local branch `ci/198-round5` (HEAD `14f923a71c0901cd5f95fc3a72e0971b05861543`,
+carrying all of 198-01 through 198-36 plus this plan's own Task 1 prediction commit `14f923a7
+docs(198-37): state Round 5 pre-push prediction`) by hand — `git push` from the agent session is
+blocked by a local classifier, and this decision belongs to the person who owns the remote (T-198-37-01).
+
+```
+$ git ls-remote --heads origin ci/198-round5
+14f923a71c0901cd5f95fc3a72e0971b05861543	refs/heads/ci/198-round5
+```
+
+Matches the prepared local head SHA character for character. `git ls-remote --heads origin
+'ci/198-*'` at the same moment lists five refs, four distinct from round 5's own:
+
+```
+d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc	refs/heads/ci/198-05-verify
+f748e43d7e4c1e63a0142569a55f57c7187e5cb1	refs/heads/ci/198-gap-closure
+80bf701e7486962e538d16f213874cbba8f24115	refs/heads/ci/198-round3
+f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6	refs/heads/ci/198-round4
+14f923a71c0901cd5f95fc3a72e0971b05861543	refs/heads/ci/198-round5
+```
+
+`git log origin/main..14f923a7 --oneline | wc -l` = **186** — `origin/main`
+(`a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2`) does not carry these 186 commits; that gap closes only
+if/when a PR merges.
+
+**Pull request — a measurement vehicle, not a merge request.**
+
+```
+$ gh pr view 32 --json number,state,isDraft,mergeStateStatus,url,headRefName,body
+{"body":"Measurement vehicle for Phase 198 gap-closure round 5. DO NOT MERGE.","headRefName":"ci/198-round5","isDraft":true,"mergeStateStatus":"BLOCKED","number":32,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/32"}
+```
+
+PR **#32**, `isDraft: true`, body containing the literal string **DO NOT MERGE**.
+
+### The run
+
+**Ordering edge — satisfied by uniqueness, stated explicitly rather than left silent:**
+
+```
+$ gh run list --branch ci/198-round5 --limit 10 --json databaseId,conclusion,headSha,status,createdAt,event
+[{"conclusion":"failure","createdAt":"2026-08-30T21:31:21Z","databaseId":33336651956,"event":"pull_request","headSha":"14f923a71c0901cd5f95fc3a72e0971b05861543","status":"completed"}]
+```
+
+`gh run list --branch ci/198-round5` returned **exactly one** run for this head SHA. There are no
+competing run ids, so no most-recent-completed selection among rivals was needed; this run is
+authoritative by construction, not by choice.
+
+```
+$ gh run view 33336651956 --json status,conclusion,createdAt,updatedAt,attempt,headSha,event
+{"attempt":1,"conclusion":"failure","createdAt":"2026-08-30T21:31:21Z","event":"pull_request","headSha":"14f923a71c0901cd5f95fc3a72e0971b05861543","status":"completed","updatedAt":"2026-08-30T21:42:29Z"}
+```
+
+- **Run ID:** `33336651956`
+- **Head SHA:** `14f923a71c0901cd5f95fc3a72e0971b05861543` — character-for-character identical to the
+  pushed local head SHA above.
+- **Event:** `pull_request`
+- **Conclusion:** `failure`
+- **Attempt:** `1` — no rerun, re-dispatch, or selective retry occurred at any point; the run was
+  observed to its single, natural completion via a polling wait on `status == completed`, which
+  correctly ran to full length rather than concluding early.
+- **Wall clock:** `21:31:21Z` → `21:42:29Z` = **11m8s**
+
+### (a) Per-job table
+
+All 13 named jobs the run reported, with `CI required` called out separately — 14 checks total,
+matching every prior round's count.
+
+| Check | Conclusion | Duration (started → completed) |
+|---|---|---|
+| Check formatting | ✓ success | 21:31:23 → 21:31:43 (20s) |
+| Run Credo (strict) | ✓ success | 21:31:24 → 21:32:26 (1m2s) |
+| Compile without optional deps | ✓ success | 21:31:23 → 21:32:26 (1m3s) |
+| Run test suite (min) | ✓ success | 21:31:24 → 21:34:53 (3m29s) |
+| Run test suite (current) | ✓ **success** | 21:31:24 → 21:39:02 (7m38s) |
+| Hex evaluator smoke (threadline from hex.pm) | ✓ success | 21:31:24 → 21:32:26 (1m2s) |
+| PgBouncer transaction topology | ✓ success | 21:31:24 → 21:33:24 (2m0s) |
+| Mechanical checker (committed scorecards) | ✓ success | 21:31:23 → 21:32:51 (1m28s) |
+| Tier A capture lane (byte-stable evidence) | ✗ **failure** | 21:31:24 → 21:37:21 (5m57s) |
+| Example app browser E2E (Playwright) | ✗ **failure** | 21:31:23 → 21:42:23 (11m0s) |
+| Build ExDoc (dev) | ✓ success | 21:31:24 → 21:32:36 (1m12s) |
+| Hex package tarball | ✓ success | 21:31:24 → 21:31:42 (18s) |
+| Release metadata (version / changelog) | ✓ success | 21:31:24 → 21:31:31 (7s) |
+| **`CI required` (aggregate)** | **✗ failure** | 21:42:25 → 21:42:28 (3s) |
+
+**Empty edge — stated affirmatively rather than left silent: job-conclusion collection was NOT
+empty. 14 conclusions were collected (13 named jobs + the aggregate). A zero-length collection
+would have been recorded as failed collection, not as a pass; this collection is non-empty and
+complete.**
+
+### (b) Verbatim `re-actors/alls-green` output — all 12 `needs:` members
+
+From the `CI required` job's own "Decide whether all needed jobs succeeded" step (job id
+`99326011873`), verbatim:
+
+```
+# ❌ Some of the required to succeed jobs failed 😢😢😢
+✓ verify-format → 🟢 success [required to succeed]
+✓ verify-credo → 🟢 success [required to succeed]
+✓ verify-compile-no-optional → 🟢 success [required to succeed]
+✓ verify-test → 🟢 success [required to succeed]
+✓ verify-hex-evaluator → 🟢 success [required to succeed]
+❌ verify-example-browser → 🔴 failure [required to succeed]
+✓ verify-mechanical → 🟢 success [required to succeed]
+❌ verify-capture → 🔴 failure [required to succeed]
+✓ verify-pgbouncer-topology → 🟢 success [required to succeed]
+✓ verify-docs → 🟢 success [required to succeed]
+✓ verify-hex-package → 🟢 success [required to succeed]
+✓ verify-release-shape → 🟢 success [required to succeed]
+```
+
+The same step's input payload records `allowed-failures: []` and `allowed-skips: []` — no member
+was pre-authorised to fail or skip.
+
+**Member counts: `success` 10, `failure` 2, `skipped` 0, `cancelled` 0. Sum: 12, equal to the
+`needs:` list's own cardinality.**
+
+**Adjacency edge (GREEN-07), stated explicitly:** a lane counts as met here only on the exact
+conclusion string `success`. `neutral`, `skipped` and `cancelled` are each recorded as
+**not-success**. This matters because `re-actors/alls-green` would score a `skipped` required check
+as passing — a green aggregate could therefore be manufactured by skipping a lane rather than fixing
+it, which is exactly the laundering D-09 rejects. On this run the point is moot in the maintainer's
+favour: zero members reported `skipped` or `cancelled`, so no member's verdict was laundered, and the
+aggregate's `failure` is traceable entirely to two genuine `failure` conclusions.
+
+### (c) Prediction scorecard
+
+Scored against `## Round 5 (2026-08-30) — Prediction stated before the push`, which was committed to
+disk in `14f923a7` **before** `git push`. Nothing below has been retro-edited; a missed row is
+written as a miss, and a hit is written as a hit without softening either way.
+
+| `needs:` member | Check name | Predicted | Actual | Hit / miss |
+|---|---|---|---|---|
+| `verify-format` | Check formatting | success | success | hit |
+| `verify-credo` | Run Credo (strict) | success | success | hit |
+| `verify-compile-no-optional` | Compile without optional deps | success | success | hit |
+| `verify-test` | Run test suite (current) | success | **success** | **hit** |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | success | hit |
+| `verify-example-browser` | Example app browser E2E (Playwright) | failure | failure | hit (conclusion); composition partial miss — see below |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | success | hit |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | failure | failure | hit |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | success | hit |
+| `verify-docs` | Build ExDoc (dev) | success | success | hit |
+| `verify-hex-package` | Hex package tarball | success | success | hit |
+| `verify-release-shape` | Release metadata (version / changelog) | success | success | hit |
+| **`CI required`** (aggregate) | CI required | failure | failure | hit |
+
+**Conclusion-level hit rate: 13/13 (12/12 `needs:` members plus the aggregate).** Every predicted
+conclusion string was correct, including `verify-test`'s predicted `success` — 198-30's `setup_all`
+restructure closed the round-4-diagnosed cold-compile cause, confirmed on the measured CI job itself
+(see (f) below).
+
+**One composition-level partial miss, scored honestly rather than absorbed into the conclusion hit:**
+the prediction's basis for `verify-example-browser` named "the two `operator-stress.spec.ts` `page.*`
+rows" (`page.home.happy`, `page.timeline.empty`) from `198-round5-review-triage.md`'s "Structurally
+uncloseable" section. The measured run failed on those two rows **plus a third, un-cited row**:
+`footgun.transaction-page-left-push-desktop` dark 1024px (same `ciScreenshotAllowlist()` mechanism,
+same `toHaveScreenshot`-against-committed-baseline remedy class, same D-39 prohibition — see (f)(1)).
+The prediction explicitly flagged this exact failure mode in advance ("weakly grounded... labelled as
+such rather than stated with false confidence, per round 4's f(2) finding"), and that flag held: the
+lane's *conclusion* (`failure`) was predicted correctly with full confidence, but its *composition*
+(3 failing tests, not 2) was under-enumerated. This is recorded as a genuine partial miss, not
+retroactively folded into a clean hit.
+
+**A second, more consequential note the prediction correctly anticipated but is worth stating in its
+own right:** for the first time across all five rounds, this run's `Example app browser E2E` job did
+**not** hit `playwright.config.ts:141`'s `maxFailures: 5` cap. Only 3 tests failed — below the
+5-failure ceiling that right-censored every prior round's count — so the suite ran to its own natural
+end: `312 passed`, `3 failed`, `25 skipped` (Playwright-level `test.skip`, not a CI/workflow skip).
+This is the first round where the lane's failure count is a **census, not a floor**.
+
+### (d) Six-column baseline comparison — "N of 7 now green"
+
+Extending round 4's five-column table (baseline `33138291361`, round 1 `33183920952`, round 2
+`33197493051`, round 3 `33204829086`, round 4 `33253587315`) with round 5 (`33336651956`, fetched
+fresh via `gh run view 33336651956 --json jobs`):
+
+| Job | Baseline (33138291361) | Round 1 (33183920952) | Round 2 (33197493051) | Round 3 (33204829086) | Round 4 (33253587315) | Round 5 (33336651956) |
+|---|---|---|---|---|---|---|
+| Compile without optional deps | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| Mechanical checker (committed scorecards) | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| PgBouncer transaction topology | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success |
+| Run test suite (min) | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success |
+| Run test suite (current) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | **✓ success (198-30's fix — see (f))** |
+| Tier A capture lane (byte-stable evidence) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged, D-39) |
+| Example app browser E2E (Playwright) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (3 failures, no longer capped — D-39 class, see (f)(1)) |
+| **`CI required` (aggregate)** | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure |
+
+**5 of the 7 originally-red baseline jobs are green as of round 5 — up from round 4's 4.**
+`Run test suite (current)` crossed to green this round; no job regressed.
+
+### (e) Red `needs:` count
+
+**Red `needs:` members: 2** — `verify-example-browser`, `verify-capture`.
+
+**Round 4's count: 3. Delta: −1.**
+
+**This round's stated target was 2. The target was HIT exactly.** `verify-test` closed as predicted;
+the two remaining red lanes are both the ones D-39 forbids fixing, exactly as the plan's ceiling
+stated before the run.
+
+### (f) Root cause for every still-red check
+
+#### (f)(1) `Example app browser E2E (Playwright)` — `verify-example-browser`
+
+**Conclusion: `failure`.** Step `Run example Playwright suite` → `** (Mix) verify.example_browser
+failed (1)`. Verbatim summary:
+
+```
+##[notice]  3 failed
+  25 skipped
+  312 passed (8.3m)
+```
+
+All 3 failures, by name (all `[desktop-chromium]`, all `tests/operator-stress.spec.ts:277:5 ›
+ledger-owned stress screenshots ›`):
+
+```
+page.home.happy dark 1024px matches its ledger baseline
+page.timeline.empty dark 1024px matches its ledger baseline
+footgun.transaction-page-left-push-desktop dark 1024px matches its ledger baseline
+```
+
+Each fails identically — `expect(locator).toHaveScreenshot(expected) failed` against
+`getByTestId('stress-preview')`, with 4779–5823-pixel diffs (ratio ~0.02) against each row's
+committed baseline PNG at `maxDiffPixelRatio: 0.01` — a content-only diff at matching dimensions,
+roughly 2× tolerance, the same shape as round 4's two `page.*` failures.
+
+**Cause and citation — all three rows are the same D-39-forbidden class, confirmed by mechanism:**
+`operator-stress.spec.ts:276-296` generates one test per `ciScreenshotAllowlist()` entry and asserts
+`toHaveScreenshot(item.baseline_ref, ...)` against a committed snapshot PNG under
+`tests/operator-stress.spec.ts-snapshots/`. `page.home.happy` and `page.timeline.empty` are the two
+rows `198-round5-review-triage.md`'s "Structurally uncloseable inside milestone v1.41" section
+named in advance, citing `198-31-SUMMARY.md`'s "Next Phase Readiness" as the origin diagnosis.
+`footgun.transaction-page-left-push-desktop` (`operator-stress.spec.ts:167`) is the same mechanism —
+its own ledger-baseline screenshot — that this round's local un-inventoried evidence did not surface
+(a genuine methodological gap, scored honestly in (c) above), but its remedy is identical: baseline
+regeneration, forbidden by D-39 for this milestone. `git diff --stat ab412fdd..14f923a7 -- '*.png'`
+(the round's full commit range) is empty — no round-5 plan touched any baseline PNG, confirming the
+row was never in scope to fix.
+
+**A structural change worth recording plainly:** this is the first round where the lane's failure
+count is not right-censored by `playwright.config.ts:141`'s `maxFailures: 5`. `312 passed, 3 failed,
+25 skipped` is the suite's actual, complete result — not a floor. All of round 4's `verify-test`-side
+demo-seed and cold-compile fixes (198-23…198-30) and this round's Playwright fixes (198-31, 198-33)
+evidently closed enough of the population that the cap is no longer binding. **This is real,
+measured progress inside the lane even though its conclusion string is unchanged** — the same
+distinction round 4's f(2) drew between "conclusion" and "composition," now resolved in the
+maintainer's favour: composition improved from an opaque 5-failure floor to a fully-enumerated
+3-failure census, and all 3 are the identical, already-cited D-39 class.
+
+#### (f)(2) `Tier A capture lane (byte-stable evidence)` — `verify-capture`
+
+**Conclusion: `failure`, exactly as predicted.** Failing step: `Assert byte-stable regeneration (no
+drift from committed evidence)`, verbatim error:
+
+```
+::error::Tier A capture is not byte-stable, or committed evidence is stale.
+Regenerate locally with 'mix verify.capture' and commit the result.
+```
+
+**Scope of the drift, counted from the step's own `git status --porcelain .planning/scorecards/`
+output: 198 scorecard files modified — 120 `page.*` and 78 `refute.*`, identical composition to every
+prior round.**
+
+`scroll_cost` values, sampled from the visible diff — **byte-identical to rounds 2, 3, and 4**:
+
+| Viewport | Committed | Regenerated |
+|---|---|---|
+| 1280 | `18.803` | `40.8` |
+| 768 | `19.038` | `36.504` |
+| 375 | `19.85` | `41.953` |
+
+**Citation: D-39, pointing to `.planning/audits/198-tier-a-byte-stability.md`.** The only available
+remedy is Tier-A `page.*` scorecard regeneration, forbidden for this milestone. No remedy was
+attempted, no scorecard was regenerated, and the lane was not removed from `needs:`. This lane is red
+by construction, not by defect — unchanged from rounds 2 through 4.
+
+### (g) Wall-clock ≤20-minute evaluation
+
+**Measured: 11m8s (`2026-08-30T21:31:21Z` → `2026-08-30T21:42:29Z`).** `11m8s ≤ 20m00s` — **the
+≤20-minute clause is satisfied**, wider margin than round 3's 13m29s, narrower than round 4's 8m11s
+(the Playwright lane now runs its full, uncapped suite rather than stopping at 5 failures, which adds
+wall clock even as it removes ambiguity).
+
+### (h) `CI required` conclusion
+
+**Literal conclusion string: `"failure"`.**
+
+**Is it exactly `success`? No.**
+
+### (i) `mergeStateStatus`
+
+```
+$ gh pr view 32 --json number,state,isDraft,mergeStateStatus,url,headRefName
+{"headRefName":"ci/198-round5","isDraft":true,"mergeStateStatus":"BLOCKED","number":32,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/32"}
+```
+
+### (j) Headline claim — true, false, or true-subject-to-a-merge
+
+The phase goal's headline claim — "`origin/main` carries every local commit and its CI concludes
+green" — is **false** as of this measured run, and not true-subject-to-a-merge either. Two figures,
+not a narrative:
+
+- `git log origin/main..14f923a7 --oneline | wc -l` = **186**. `origin/main` does not carry these
+  commits.
+- PR #32's `mergeStateStatus` = **`BLOCKED`**, not `CLEAN`/`UNSTABLE`, because `CI required` concluded
+  `failure`. It is also `isDraft: true` by design.
+
+### (k) Re-run discipline
+
+**`attempt: 1`.** No check in this run was re-run, re-dispatched, or selectively retried, for any
+reason. The run was observed to its single natural completion via a wait on GitHub's own `status`
+field reaching `completed`. There was no second attempt to explain, because there was no second
+attempt.
+
+### (l) `.github/`, `CONTRIBUTING.md`, Playwright config, and scorecard invariants (D-42)
+
+```
+$ git diff --stat ab412fdd..14f923a7 -- .github/ CONTRIBUTING.md examples/threadline_phoenix/e2e/playwright.config.ts .planning/scorecards/ '*.png'
+(empty — exit 0)
+```
+
+No gate was narrowed, no config weakened, no evidence regenerated across the full round-5 commit
+range. `CI required`'s guarantee is exactly as strong on this run as it was on round 4's; two lanes
+are red for the identical reasons cited above, not because the aggregate's meaning shrank.
