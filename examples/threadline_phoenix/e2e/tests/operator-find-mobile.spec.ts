@@ -105,15 +105,22 @@ test.describe("operator Find cluster mobile UAT", () => {
   }) => {
     await page.goto("/audit/coverage");
 
-    // The remediation command lives inside a native <details> row action
-    // (`tl-row-action--capture`, added for the v1.36 component retune) that
-    // renders collapsed by default — the summary ("Add capture") is visible
+    // WR-11: the remediation command lives inside a native <details> row
+    // action (`tl-row-action--capture`, coverage_live.ex:197) that renders
+    // collapsed by default — the summary ("Add capture") is visible
     // immediately, but its body (including the remediation command) is
-    // hidden until the row is expanded. Click it open before asserting the
-    // command text is visible.
-    const addCapture = page.getByText("Add capture").first();
-    await expect(addCapture).toBeVisible();
-    await addCapture.click();
+    // hidden until the row is expanded. Make the expansion idempotent (read
+    // `open` before deciding to click, rather than always clicking, so a
+    // future `<details open>` default doesn't silently re-collapse the row)
+    // and assert the summary text plus the resulting open state, so a
+    // renamed affordance or a stale `open` default fails with a named cause
+    // instead of an opaque visibility timeout.
+    const row = page.locator("details.tl-row-action--capture").first();
+    await expect(row.locator("summary")).toContainText("Add capture");
+    if (!(await row.evaluate((el: HTMLDetailsElement) => el.open))) {
+      await row.locator("summary").click();
+    }
+    await expect(row).toHaveAttribute("open", "");
     await expect(page.getByText("mix threadline.gen.triggers --tables").first()).toBeVisible();
 
     await expectNoHorizontalOverflow(page);

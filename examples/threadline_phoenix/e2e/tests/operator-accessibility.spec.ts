@@ -608,7 +608,10 @@ test.describe("operator accessibility baseline", () => {
     await expect(exportJobs.getByText(/Queued|Processing/).first()).toBeVisible();
     await expect(exportJobs.getByText("Export failed.").first()).toBeVisible();
     await expect(
-      exportJobs.getByText(/Expired|File unavailable/).first(),
+      // Anchored to the canonical rendered literal (export_status_live.ex:489,
+      // "Export expired") — plan 198-25 fixed the "Expired" -> "Export expired"
+      // product copy, which this partial-capital-E regex no longer matched.
+      exportJobs.getByText(/Export expired|File unavailable/).first(),
     ).toBeVisible();
 
     await expectNoHorizontalOverflow(page);

@@ -140,7 +140,28 @@ test.describe("operator surface screenshots", () => {
     // `.tl-secondary-ref` span (same pattern already used below for the
     // evidence page's `walk-retention-offboarded-co` ref), not as literal
     // visible text — `getByText` on the un-truncated UUID can never match.
-    await expect(page.locator(`.tl-secondary-ref[title="${leavingAgentId}"]`)).toBeVisible();
+    //
+    // WR-09: three restorations over the prior round's replacement.
+    // (a) `.first()` — `UI.ref` (`.tl-secondary-ref`) renders more than once on
+    //     this surface (same component the exports page uses per-row); without
+    //     `.first()` a duplicate render throws a strict-mode violation instead
+    //     of passing, matching the pattern already used elsewhere in this file.
+    // (b) `JSON.stringify(leavingAgentId)` — the id flows from seeded data into
+    //     a CSS attribute selector; quoting it means a value containing a quote
+    //     or backslash fails legibly instead of producing a silently-wrong
+    //     selector.
+    // (c) the actor **type** assertion the original `Actor: user / ${id}` text
+    //     check covered alongside id — restored via the `<:metadata key="Kind">`
+    //     row (actor_live.ex:156, rendered `<dt>Kind</dt><dd>user</dd>` by
+    //     `UI.kv`, ui.ex:441-450) rather than a loose page-wide text regex.
+    const actorRef = page
+      .locator(`.tl-secondary-ref[title=${JSON.stringify(leavingAgentId)}]`)
+      .first();
+    await expect(actorRef).toBeVisible();
+    const kindRow = page.locator(".tl-kv__row", {
+      has: page.locator(".tl-kv__key", { hasText: "Kind" }),
+    });
+    await expect(kindRow.locator(".tl-kv__value")).toHaveText("user");
     await expect(page.getByRole("button", { name: "30d", pressed: true })).toBeVisible();
     await expect(page.locator("#transactions-list, .tl-empty")).toBeVisible();
     await capture(page, testInfo, "actor");
