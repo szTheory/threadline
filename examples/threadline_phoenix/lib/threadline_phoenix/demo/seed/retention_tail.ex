@@ -78,6 +78,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   def run(ctx) do
     org_y_id = Manifest.org_id(:offboarded_co)
     backdate_org_y_audit!(org_y_id)
+
+    prior_retention_env = Application.get_env(:threadline, :retention)
     enable_retention!()
 
     purge_result =
@@ -92,8 +94,18 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
       rescue
         e in ArgumentError ->
           reraise_clock_skew_error(e, __STACKTRACE__)
+      after
+        # Disarm the env landmine (WR-05). `enable_retention!/0` writes a global
+        # `keep_days` policy that any LATER `Retention.purge/1` call (an Oban job,
+        # a mix task, a follow-on seed step, a host application in the same VM)
+        # would otherwise inherit with no explicit `:cutoff` — reproducing the
+        # exact collateral-deletion bug this module exists to fix, anchored to
+        # this demo's ~90-day-stale epoch fiction instead of real data. Restored
+        # on both the success and failure paths via `after`.
+        Application.put_env(:threadline, :retention, prior_retention_env || [])
       end
 
+    assert_other_orgs_survived!(org_y_id)
     record_evidence!(org_y_id, purge_result)
     assert_org_y_audit_empty!(org_y_id)
 
@@ -110,7 +122,9 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   # newer than the wall-clock-derived policy cutoff — which only happens when the
   # machine's real clock reads earlier than `Manifest.epoch()` minus roughly
   # `@org_y_backdate_days - @retention_purge_cutoff_days_before_epoch` days
-  # (clock skew), not from any error in this module's own arithmetic.
+  # (clock skew), not from any error in this module's own arithmetic. We do NOT
+  # widen `keep_days` to dodge this — that would re-arm the WR-05 hazard the
+  # `after` block in `run/1` exists to prevent.
   defp reraise_clock_skew_error(%ArgumentError{} = e, stacktrace) do
     requested_cutoff = retention_purge_cutoff()
     policy_cutoff = Threadline.Retention.Policy.cutoff_utc_datetime_usec!()
@@ -314,6 +328,43 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
     if count != 0 do
       raise "expected org Y audit footprint to be purged, found #{count} audit_changes"
     end
+  end
+
+  # Direct cross-org survival assertion (WR-05). `assert_org_y_audit_empty!/1`
+  # only proves the purge bit org Y; nothing previously proved it did NOT also
+  # bite every other organization — `Retention.purge/1` is a globally
+  # time-scoped `DELETE`, not org-scoped (see `lib/threadline/retention.ex`
+  # lines ~131-164), so cross-org preservation is a coincidence of epoch
+  # offsets, not a constraint the library enforces. The org-scoping predicate
+  # mirrors `org_y_audit_changes_query/1` below: `audit_transactions.meta` is
+  # stamped with `"organization_id" => to_string(org.id)` by
+  # `Support.stamp_org_meta!/1` (see `seed/support.ex`), so we filter on the
+  # same JSON key here rather than inventing a new shape.
+  defp assert_other_orgs_survived!(org_y_id) do
+    count = other_org_audit_change_count(org_y_id)
+
+    if count == 0 do
+      raise """
+      retention purge (cutoff=#{inspect(retention_purge_cutoff())}) deleted every \
+      non-org-Y audit change — expected other organizations' epoch-anchored audit \
+      history to survive the purge, found zero. This is the round-4 \
+      collateral-deletion regression's exact signature: the cutoff swept every \
+      organization instead of only offboarded-co.
+      """
+    end
+  end
+
+  defp other_org_audit_change_count(org_y_id) when is_binary(org_y_id) do
+    Repo.aggregate(other_org_audit_changes_query(org_y_id), :count)
+  end
+
+  defp other_org_audit_changes_query(org_y_id) do
+    from(ac in AuditChange,
+      join: at in AuditTransaction,
+      on: ac.transaction_id == at.id,
+      where: fragment("?->>'organization_id' is not null", at.meta),
+      where: fragment("?->>'organization_id' != ?", at.meta, ^org_y_id)
+    )
   end
 
   defp org_y_audit_changes_query(org_id) do
