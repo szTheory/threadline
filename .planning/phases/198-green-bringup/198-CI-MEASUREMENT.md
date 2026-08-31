@@ -1632,3 +1632,395 @@ explains the status, it does not, and cannot, satisfy the requirement on a measu
 This prediction is committed **before** Task 2 raises the push checkpoint. A prediction that lands
 in the same commit as its result is not a prediction, and it will be scored — not amended — once the
 measured run in Task 3 completes.
+
+---
+
+## Round 6 (2026-08-31) — Measured CI run (Plan 198-40, gap-closure round 6)
+
+**Push.** The maintainer pushed local branch `ci/198-round6` (HEAD
+`23c16267d11a63858aad23eab63c9fbfc385ef4b`, carrying all of 198-01 through 198-39 plus this plan's
+own Task 1 prediction commit `23c16267 docs(198-40): state Round 6 pre-push prediction`) by hand —
+`git push` from the agent session is blocked by a local classifier, and this decision belongs to the
+person who owns the remote (T-198-40-01). The executor prepared the branch, printed the exact push
+and `gh pr create` commands, and halted; the maintainer ran both and reported back.
+
+```
+$ git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b
+$ git log ci/198-round6 --oneline | grep -E '76dbc373|709a87d8|0425d1e9|09db6cf0|9e0e0c95|6885d1ca|ef056e3d|cd552ede|23c16267'
+23c16267 docs(198-40): state Round 6 pre-push prediction
+cd552ede docs(198-39): complete plan — GREEN-07/SC3 disposition summary
+ef056e3d docs(198-39): record GREEN-07/SC3 terminal disposition (option-a) and propagate
+6885d1ca docs(198-38): complete plan — STATE/ROADMAP position update
+9e0e0c95 docs(198-38): append self-check result to plan summary
+09db6cf0 docs(198-38): plan summary — CR-01 pinned at cause, red-then-green proof recorded
+0425d1e9 docs(198-38): terminal disposition for CR-01, WR-01, IN-01; fix IN-01 typo
+709a87d8 test(198-38): connection-identity regression test for CR-01, red-then-green proof
+76dbc373 fix(198-38): pin demo lock critical section to one connection (CR-01, WR-01)
+```
+
+All eight named commits (six from 198-38, two from 198-39) plus the Task 1 prediction commit
+were confirmed present on the branch tip before the maintainer was asked to push.
+
+**Pull request — a measurement vehicle, not a merge request.**
+
+```
+$ gh pr view 33 --json number,state,isDraft,mergeStateStatus,url,headRefName,body
+{"body":"Measurement vehicle for Phase 198 gap-closure round 6. DO NOT MERGE.","headRefName":"ci/198-round6","isDraft":true,"mergeStateStatus":"BLOCKED","number":33,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/33"}
+```
+
+PR **#33**, `isDraft: true`, body containing the literal string **DO NOT MERGE**. PR #32
+(`ci/198-round5`) stays open per `198-39-DECISION.md`'s disposition as the round-5 evidence anchor —
+#33 is a new, separate measurement vehicle, not a replacement.
+
+**Trigger note, worth recording plainly:** `.github/workflows/ci.yml`'s own trigger block (`on:`
+`push: branches: [main]`, `pull_request: branches: [main]`, plus a `workflow_dispatch` for the
+release-please bootstrap job) means the `git push` to `ci/198-round6` — a non-`main` branch — by
+itself dispatched no run. It was opening the draft pull request against `main` that fired the
+`pull_request` trigger and started run `33344382035`. A future round that pushes a measurement
+branch without opening a PR would wait indefinitely on a run that never arrives.
+
+### The run
+
+**Ordering edge — satisfied by uniqueness, stated explicitly rather than left silent:**
+
+```
+$ gh run list --branch ci/198-round6 --limit 10 --json databaseId,conclusion,headSha,status,createdAt,event
+[{"conclusion":"failure","createdAt":"2026-08-31T00:22:12Z","databaseId":33344382035,"event":"pull_request","headSha":"23c16267d11a63858aad23eab63c9fbfc385ef4b","status":"completed"}]
+```
+
+`gh run list --branch ci/198-round6` returned **exactly one** run for this head SHA. There are no
+competing run ids, so no most-recent-completed selection among rivals was needed; this run is
+authoritative by construction, not by choice.
+
+```
+$ gh run view 33344382035 --json status,conclusion,createdAt,updatedAt,attempt,headSha,event
+{"attempt":1,"conclusion":"failure","createdAt":"2026-08-31T00:22:12Z","event":"pull_request","headSha":"23c16267d11a63858aad23eab63c9fbfc385ef4b","status":"completed","updatedAt":"2026-08-31T00:32:48Z"}
+```
+
+- **Run ID:** `33344382035`
+- **Head SHA:** `23c16267d11a63858aad23eab63c9fbfc385ef4b` — character-for-character identical to
+  the pushed local head SHA above, and to the SHA sealed in the Round 6 prediction section.
+- **Event:** `pull_request`
+- **Conclusion:** `failure`
+- **Attempt:** `1` — no rerun, re-dispatch, or selective retry occurred at any point; the run was
+  observed to its single, natural completion via a polling wait on `status == completed`.
+- **Wall clock:** `00:22:12Z` → `00:32:48Z` = **10m36s**
+
+### (a) Per-job table
+
+All 13 named jobs the run reported, with `CI required` called out separately — 14 checks total,
+matching every prior round's count. `Run test suite (min)` is a named job but not a `ci-required`
+`needs:` member (confirmed against `.github/workflows/ci.yml`'s 12-entry `needs:` list); it is
+listed here for completeness and excluded from the 12-member scorecard below.
+
+| Check | Conclusion | Duration (started → completed) |
+|---|---|---|
+| Check formatting | ✓ success | 00:22:15 → 00:22:30 (15s) |
+| Run Credo (strict) | ✓ success | 00:22:15 → 00:23:28 (1m13s) |
+| Compile without optional deps | ✓ success | 00:22:15 → 00:23:19 (1m4s) |
+| Run test suite (min) | ✓ success | 00:22:15 → 00:26:30 (4m15s) |
+| Run test suite (current) | ✓ **success** | 00:22:15 → 00:30:24 (8m9s) |
+| Hex evaluator smoke (threadline from hex.pm) | ✓ success | 00:22:15 → 00:23:18 (1m3s) |
+| PgBouncer transaction topology | ✓ success | 00:22:15 → 00:24:07 (1m52s) |
+| Mechanical checker (committed scorecards) | ✓ success | 00:22:15 → 00:23:39 (1m24s) |
+| Tier A capture lane (byte-stable evidence) | ✗ **failure** | 00:22:15 → 00:29:32 (7m17s) |
+| Example app browser E2E (Playwright) | ✗ **failure** | 00:22:15 → 00:32:39 (10m24s) |
+| Build ExDoc (dev) | ✓ success | 00:22:15 → 00:23:35 (1m20s) |
+| Hex package tarball | ✓ success | 00:22:15 → 00:22:30 (15s) |
+| Release metadata (version / changelog) | ✓ success | 00:22:15 → 00:22:19 (4s) |
+| **`CI required` (aggregate)** | **✗ failure** | 00:32:42 → 00:32:47 (5s) |
+
+**Empty edge — stated affirmatively rather than left silent: job-conclusion collection was NOT
+empty. 14 conclusions were collected (13 named jobs + the aggregate). A zero-length collection
+would have been recorded as failed collection, not as a pass; this collection is non-empty and
+complete.**
+
+### (b) Verbatim `re-actors/alls-green` output — all 12 `needs:` members
+
+From the `CI required` job's own "Decide whether all needed jobs succeeded" step (job id
+`99347003929`), verbatim:
+
+```
+# ❌ Some of the required to succeed jobs failed 😢😢😢
+✓ verify-format → 🟢 success [required to succeed]
+✓ verify-credo → 🟢 success [required to succeed]
+✓ verify-compile-no-optional → 🟢 success [required to succeed]
+✓ verify-test → 🟢 success [required to succeed]
+✓ verify-hex-evaluator → 🟢 success [required to succeed]
+❌ verify-example-browser → 🔴 failure [required to succeed]
+✓ verify-mechanical → 🟢 success [required to succeed]
+❌ verify-capture → 🔴 failure [required to succeed]
+✓ verify-pgbouncer-topology → 🟢 success [required to succeed]
+✓ verify-docs → 🟢 success [required to succeed]
+✓ verify-hex-package → 🟢 success [required to succeed]
+✓ verify-release-shape → 🟢 success [required to succeed]
+```
+
+The same step's input payload records `allowed-failures: []` and `allowed-skips: []` — no member
+was pre-authorised to fail or skip.
+
+**Member counts: `success` 10, `failure` 2, `skipped` 0, `cancelled` 0. Sum: 12, equal to the
+`needs:` list's own cardinality.**
+
+**Adjacency edge (GREEN-07), stated explicitly:** a lane counts as met here only on the exact
+conclusion string `success`. `neutral`, `skipped` and `cancelled` are each recorded as
+**not-success**. On this run the point is moot in the maintainer's favour: zero members reported
+`skipped` or `cancelled`, so no member's verdict was laundered, and the aggregate's `failure` is
+traceable entirely to two genuine `failure` conclusions — identical in kind to round 5.
+
+### (c) Prediction scorecard
+
+Scored against `## Round 6 (2026-08-30) — Prediction stated before the push`, which was committed
+to disk in `23c16267` **before** `git push`. Nothing below has been retro-edited; a missed row is
+written as a miss, and a hit is written as a hit without softening either way.
+
+| `needs:` member | Check name | Predicted | Actual | Hit / miss |
+|---|---|---|---|---|
+| `verify-format` | Check formatting | success | success | hit |
+| `verify-credo` | Run Credo (strict) | success | success | hit |
+| `verify-compile-no-optional` | Compile without optional deps | success | success | hit |
+| `verify-test` | Run test suite (current) | success | **success** | **hit** |
+| `verify-hex-evaluator` | Hex evaluator smoke (threadline from hex.pm) | success | success | hit |
+| `verify-example-browser` | Example app browser E2E (Playwright) | failure | failure | hit (conclusion); composition hit — see below |
+| `verify-mechanical` | Mechanical checker (committed scorecards) | success | success | hit |
+| `verify-capture` | Tier A capture lane (byte-stable evidence) | failure | failure | hit |
+| `verify-pgbouncer-topology` | PgBouncer transaction topology | success | success | hit |
+| `verify-docs` | Build ExDoc (dev) | success | success | hit |
+| `verify-hex-package` | Hex package tarball | success | success | hit |
+| `verify-release-shape` | Release metadata (version / changelog) | success | success | hit |
+| **`CI required`** (aggregate) | CI required | failure | failure | hit |
+
+**Conclusion-level hit rate: 13/13 (12/12 `needs:` members plus the aggregate).** Every predicted
+conclusion string was correct, including `verify-test`'s predicted `success` — the new-risk lane
+this round's objective named explicitly, re-proved on CI itself rather than assumed to have
+survived 198-38's change to shipped example-app source. Job log, verbatim: `Run tests` (root suite)
+→ `1434 tests, 0 failures, 1 excluded`; `Verify Threadline Phoenix example` → `111 tests, 0
+failures` (up from round 5's measured 109 — exactly the 2 new `advisory_lock_pinning_test.exs`
+tests 198-38 added, confirming the local figure this round's prediction cited); `Doc contract
+tests` → `128 tests, 0 failures`.
+
+**Composition scored as a genuine hit this round, in contrast to round 5's honest partial miss:**
+the prediction's basis for `verify-example-browser` named the same three rows round 5 measured —
+`page.home.happy`, `page.timeline.empty`, `footgun.transaction-page-left-push-desktop` — and
+flagged that a fourth or different row "would not be a surprise" given the weakly-grounded
+composition-prediction caveat carried forward from round 5. The measured run failed on **exactly**
+those three rows, in the same order, with the same `[desktop-chromium]` project tag, and the
+`[mobile-chromium]` project skipped the same three tests (light/system lane excludes them by
+design). Verbatim summary:
+
+```
+##[notice]  3 failed
+  25 skipped
+  312 passed (8.0m)
+```
+
+Failing rows, by name, all `tests/operator-stress.spec.ts:277:5 › ledger-owned stress screenshots ›`:
+
+```
+page.home.happy dark 1024px matches its ledger baseline
+page.timeline.empty dark 1024px matches its ledger baseline
+footgun.transaction-page-left-push-desktop dark 1024px matches its ledger baseline
+```
+
+`312 passed`, `3 failed`, `25 skipped` — byte-identical composition to round 5's measured result.
+The composition prediction is scored a genuine hit, not a coincidence smoothed into a claim of
+higher confidence than the prediction actually stated: the underlying caveat (weak grounding on an
+unbounded local Playwright run sampling a different population than CI's now-uncapped run) still
+holds as a methodological fact even though this round's specific guess happened to land exactly.
+
+### (d) Six-column baseline comparison — extended to seven
+
+Extending round 5's six-column table (baseline `33138291361`, round 1 `33183920952`, round 2
+`33197493051`, round 3 `33204829086`, round 4 `33253587315`, round 5 `33336651956`) with round 6
+(`33344382035`, fetched fresh via `gh run view 33344382035 --json jobs`):
+
+| Job | Baseline | Round 1 | Round 2 | Round 3 | Round 4 | Round 5 | Round 6 (33344382035) |
+|---|---|---|---|---|---|---|---|
+| Compile without optional deps | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| Mechanical checker (committed scorecards) | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| PgBouncer transaction topology | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| Run test suite (min) | ✗ failure | ✗ failure | ✓ success | ✓ success | ✓ success | ✓ success | ✓ success |
+| Run test suite (current) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✓ success | ✓ success (unchanged — re-proved after 198-38 touched its covered code) |
+| Tier A capture lane (byte-stable evidence) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged, D-39) |
+| Example app browser E2E (Playwright) | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure (unchanged, 3 failures, D-39) |
+| **`CI required` (aggregate)** | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure | ✗ failure |
+
+**5 of the 7 originally-red baseline jobs are green as of round 6 — unchanged from round 5.** No
+job moved in either direction this round; the two remaining red lanes are the identical D-39-forced
+pair round 5 measured.
+
+### (e) Red `needs:` count
+
+**Red `needs:` members: 2** — `verify-example-browser`, `verify-capture`.
+
+**Round 5's count: 2. Delta: 0.**
+
+**This round's stated target was "unchanged from round 5's 2." The target was HIT exactly.** No
+round-6 plan touched either D-39-forced lane, and neither moved.
+
+### (f) Root cause for every still-red check
+
+#### (f)(1) `Example app browser E2E (Playwright)` — `verify-example-browser`
+
+**Conclusion: `failure`, exactly as predicted, composition and all.** Step `Run example Playwright
+suite` → verbatim summary:
+
+```
+##[notice]  3 failed
+  25 skipped
+  312 passed (8.0m)
+```
+
+All 3 failures, by name (all `[desktop-chromium]`, all `tests/operator-stress.spec.ts:277:5 ›
+ledger-owned stress screenshots ›`):
+
+```
+page.home.happy dark 1024px matches its ledger baseline
+page.timeline.empty dark 1024px matches its ledger baseline
+footgun.transaction-page-left-push-desktop dark 1024px matches its ledger baseline
+```
+
+**Cause and citation — unchanged from round 5, same D-39-forbidden class, confirmed by
+mechanism:** `operator-stress.spec.ts:276-296` generates one test per `ciScreenshotAllowlist()`
+entry and asserts `toHaveScreenshot(item.baseline_ref, ...)` against a committed snapshot PNG under
+`tests/operator-stress.spec.ts-snapshots/`. Neither 198-38 nor 198-39 touched `operator-stress.spec.ts`,
+its snapshot directory, or any `*.png` — confirmed by `git diff --stat` in subsection (l) below. The
+only available remedy is baseline regeneration, forbidden by D-39 for this milestone. This lane's
+red conclusion and its exact 3-row composition are unchanged from round 5 because nothing in this
+round's commit set could have moved it, and nothing did.
+
+#### (f)(2) `Tier A capture lane (byte-stable evidence)` — `verify-capture`
+
+**Conclusion: `failure`, exactly as predicted.** Failing step: `Assert byte-stable regeneration (no
+drift from committed evidence)`, verbatim error:
+
+```
+::error::Tier A capture is not byte-stable, or committed evidence is stale.
+Regenerate locally with 'mix verify.capture' and commit the result.
+```
+
+**Scope of the drift, counted from the step's own `git status --porcelain .planning/scorecards/`
+output: 198 scorecard files modified — identical count to every prior round.**
+
+`scroll_cost` values, sampled from the visible diff — **byte-identical to rounds 2 through 5**:
+
+| Viewport | Committed | Regenerated |
+|---|---|---|
+| 1280 | `18.803` | `40.8` |
+| 768 | `19.038` | `36.504` |
+| 375 | `19.85` | `41.953` |
+
+**Citation: D-39, pointing to `.planning/audits/198-tier-a-byte-stability.md`.** No round-6 plan
+touched the Tier A capture lane, its specs, or its scorecards; the lane is red by construction, not
+by defect — unchanged from rounds 2 through 5.
+
+### (g) Wall-clock ≤20-minute evaluation
+
+**Measured: 10m36s (`2026-08-31T00:22:12Z` → `2026-08-31T00:32:48Z`).** `10m36s ≤ 20m00s` — **the
+≤20-minute clause is satisfied**, narrower than round 5's 11m8s, wider margin than round 4's 8m11s.
+
+### (h) `CI required` conclusion
+
+**Literal conclusion string: `"failure"`.**
+
+**Is it exactly `success`? No.**
+
+### (i) `mergeStateStatus`
+
+```
+$ gh pr view 33 --json number,state,isDraft,mergeStateStatus,url,headRefName
+{"headRefName":"ci/198-round6","isDraft":true,"mergeStateStatus":"BLOCKED","number":33,"state":"OPEN","url":"https://github.com/szTheory/threadline/pull/33"}
+```
+
+### (j) Headline claim — true, false, or true-subject-to-a-merge
+
+The phase goal's headline claim — "`origin/main` carries every local commit and its CI concludes
+green" — is **false** as of this measured run, and not true-subject-to-a-merge either. Two figures,
+not a narrative:
+
+- `git rev-list --count origin/main..23c16267` = **205** commits, measured live. `origin/main`
+  (`a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2`, unchanged since round 5) does not carry these
+  commits.
+- PR #33's `mergeStateStatus` = **`BLOCKED`**, not `CLEAN`/`UNSTABLE`, because `CI required`
+  concluded `failure`. It is also `isDraft: true` by design.
+
+### (k) Re-run discipline
+
+**`attempt: 1`.** No check in this run was re-run, re-dispatched, or selectively retried, for any
+reason. The run was observed to its single natural completion via a wait on GitHub's own `status`
+field reaching `completed`. There was no second attempt to explain, because there was no second
+attempt.
+
+### (l) `.github/`, `CONTRIBUTING.md`, Playwright config, and scorecard invariants (D-42)
+
+Computed over the round-6-specific commit range (round 5's pushed tip `14f923a7` to round 6's
+pushed tip `23c16267`), mirroring round 5's own methodology (`ab412fdd..14f923a7`):
+
+```
+$ git diff --stat 14f923a71c0901cd5f95fc3a72e0971b05861543..23c16267d11a63858aad23eab63c9fbfc385ef4b -- .github/ CONTRIBUTING.md examples/threadline_phoenix/e2e/playwright.config.ts .planning/scorecards/ '*.png'
+(empty — exit 0)
+```
+
+No gate was narrowed, no config weakened, no evidence regenerated across the full round-6 commit
+range. `CI required`'s guarantee is exactly as strong on this run as it was on round 5's; two lanes
+are red for the identical reasons cited above, not because the aggregate's meaning shrank.
+
+**Note on scope:** `git diff --stat` over the *entire* `origin/main..HEAD` gap (205 commits, spanning
+every plan since Phase 198 opened) is non-empty for `.github/workflows/ci.yml`,
+`.github/workflows/flake-detection.yml`, and `CONTRIBUTING.md` — expected and correct, because
+building and hardening exactly those CI gates is Phase 198's own subject matter across its first 37
+plans. D-42's invariant is scoped to *this round's own commits not narrowing or weakening what
+earlier rounds already built*, which is what the round-6-specific range above verifies; it is not a
+claim that `.github/` has never changed across the whole phase.
+
+### GREEN-04 — confirmed strictly from this run
+
+**`Run test suite (current)` concluded the literal string `success` on run `33344382035`.** This is
+the only admissible evidence for GREEN-04 (D-01); no local `mix test`, `mix ci.all`, `mix
+verify.example`, or `mix verify.example_browser` output is cited as evidence, only readiness signal.
+198-38 changed shipped example-app source (`demo/reset.ex`, `demo/seed.ex`) exercised by this exact
+lane through `mix verify.example`; the lane was re-proved here on CI, not inherited from round 5's
+measured `success` on a different, now-superseded head SHA. GREEN-04 remains **Complete**, now
+citing run `33344382035` in addition to round 5's `33336651956`.
+
+### GREEN-07 — status unchanged, per the maintainer's terminal disposition
+
+`CI required` concluded `failure` on this run — the exact, predicted, D-39-forced outcome the Round
+6 prediction stated as this round's ceiling before the push. This changes nothing about
+`198-39-DECISION.md`'s recorded disposition: the maintainer selected option-a at a blocking
+checkpoint, and GREEN-07 is accepted as permanently Pending for milestone v1.41. GREEN-07 is **not**
+marked Complete on this run's `failure` conclusion, and the disposition is not revisited by this
+plan — Task 3 records the measured outcome and cites the standing decision, it does not re-litigate
+it.
+
+### Carried requirements — restated as a decision, not re-derived
+
+GREEN-01, GREEN-02, GREEN-03, GREEN-05, GREEN-06, GREEN-09, GREEN-10, GREEN-11, and GREEN-12 are
+Complete and were independently re-verified in `198-VERIFICATION.md`'s round-5 section. Round 6
+planned no new work for them, touched none of their satisfying files (confirmed by 198-38's and
+198-39's own `key-files` lists in their SUMMARYs), and changes none of their statuses:
+
+- **GREEN-01** — last red CI run's failing logs preserved in-repo (run `28214113903`). Evidence:
+  `198-VERIFICATION.md` round-5 section.
+- **GREEN-02** — per-check Credo histogram + concentration table, `.credo.exs` unmodified. Evidence:
+  `198-VERIFICATION.md` round-5 section.
+- **GREEN-03** — `verify.mechanical` sensitivity to rendered text vs. tokens/contrast/geometry,
+  stated from evidence. Evidence: `198-VERIFICATION.md` round-5 section.
+- **GREEN-05** — formless-page guard fails loudly in the same diff on a legitimate new form.
+  Evidence: `198-VERIFICATION.md` round-5 section.
+- **GREEN-06** — every local commit reachable from `HEAD`; `timeout-minutes` bound on every CI job;
+  systemically-broken browser suite aborts early. Evidence: `198-VERIFICATION.md` round-5 section
+  and `198-39-DECISION.md`'s explicit clause separation (GREEN-06 unaffected by GREEN-07's
+  disposition).
+- **GREEN-09** — paid critic scoring structurally untriggerable (input and billing code path
+  absent). Evidence: `198-VERIFICATION.md` round-5 section.
+- **GREEN-10** — exactly one Hex publish path, gated by CI-green + release-shape verification.
+  Evidence: `198-VERIFICATION.md` round-5 section.
+- **GREEN-11** — Flake Detection distinguishes broken vs. flaky by name, time-bounded, deduplicated
+  tracking issue. Evidence: `198-VERIFICATION.md` round-5 section.
+- **GREEN-12** — `git worktree list` shows one entry, no stale local branches undocumented. Evidence:
+  `198-VERIFICATION.md` round-5 section.
+
+GREEN-04 is re-proved above (not carried) because 198-38 touched its covered code. GREEN-07's
+status follows `198-39-DECISION.md` exactly as stated above, not this round's raw `CI required`
+conclusion in isolation.
