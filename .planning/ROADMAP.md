@@ -251,11 +251,11 @@ Plans:
 
 **Wave 2** *(blocked on 198-38)*
 
-- [ ] 198-39-PLAN.md — Blocking `checkpoint:decision`: maintainer selects GREEN-07 / roadmap SC3's terminal disposition for milestone v1.41, recorded in `198-39-DECISION.md` and propagated consistently into REQUIREMENTS.md, ROADMAP.md, deferred-items.md and STATE.md, plus the `origin/main` gap and PR #32 / PR #26 dispositions (wave 2)
+- [x] 198-39-PLAN.md — Blocking `checkpoint:decision`: maintainer selects GREEN-07 / roadmap SC3's terminal disposition for milestone v1.41, recorded in `198-39-DECISION.md` and propagated consistently into REQUIREMENTS.md, ROADMAP.md, deferred-items.md and STATE.md, plus the `origin/main` gap and PR #32 / PR #26 dispositions (wave 2)
 
 **Wave 3** *(blocked on 198-38 and 198-39)*
 
-- [ ] 198-40-PLAN.md — Commit a falsifiable Round 6 prediction, **maintainer pushes the measurement branch by hand** (`git push` is a human-authorized gate), measure one real CI run, re-prove GREEN-04 from that run alone, and state the nine carried-forward requirements explicitly (wave 3)
+- [x] 198-40-PLAN.md — Commit a falsifiable Round 6 prediction, **maintainer pushes the measurement branch by hand** (`git push` is a human-authorized gate), measure one real CI run, re-prove GREEN-04 from that run alone, and state the nine carried-forward requirements explicitly (wave 3)
 
 **Round-6 notes:**
 
