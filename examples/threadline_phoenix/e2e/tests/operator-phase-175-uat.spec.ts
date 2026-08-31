@@ -89,18 +89,29 @@ test.describe("Phase 175 UAT — runtime theme picker (real user flow)", () => {
 
     const shell = page.getByTestId("operator-nav-shell");
     await expect(shell).toBeVisible();
-    expect(await shell.evaluate((el) => el.tagName)).toBe("DETAILS");
+
+    // Product contract (surface_header.ex:57): `operator-nav-shell` is now a
+    // `<nav>` landmark wrapping the actual native disclosure — assert the
+    // landmark contract this comment already claimed (WR-08), not just the
+    // inner `<details>`.
+    expect(await shell.evaluate((el) => el.tagName)).toBe("NAV");
+    await expect(shell).toHaveAttribute("aria-label", "Audit navigation");
+
+    // `.tl-shell-nav__disclosure` is the `<details>` element; the toggle/panel
+    // behavior is unchanged.
+    const disclosure = shell.locator(".tl-shell-nav__disclosure");
+    expect(await disclosure.evaluate((el) => el.tagName)).toBe("DETAILS");
 
     const toggle = shell.locator(".tl-shell-nav__toggle");
     const panel = shell.locator(".tl-shell-nav__panel");
 
     await expect(panel).toBeHidden();
     await toggle.click();
-    await expect(shell).toHaveAttribute("open", "");
+    await expect(disclosure).toHaveAttribute("open", "");
     await expect(panel).toBeVisible();
 
     await toggle.click();
-    await expect(shell).not.toHaveAttribute("open", "");
+    await expect(disclosure).not.toHaveAttribute("open", "");
     await expect(panel).toBeHidden();
   });
 });
@@ -121,7 +132,11 @@ test.describe("Phase 175 UAT — sticky topbar + timeline pager", () => {
 
     expect(await header.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
 
-    // At rest, main content begins below the header — not hidden underneath it.
+    // Threshold: main content's top edge must sit at or below the header's bottom
+    // edge (content clears the header, never underneath it). A 1px slack absorbs
+    // sub-pixel rounding only — main.top >= header.bottom - 1 is the passing side;
+    // anything less (main starting strictly above header.bottom - 1) is a fail
+    // (content genuinely hidden under the sticky header).
     const clear = await page.evaluate(() => {
       const h = document.querySelector(".tl-topbar");
       const m = document.querySelector("#tl-main");
@@ -139,6 +154,11 @@ test.describe("Phase 175 UAT — sticky topbar + timeline pager", () => {
     );
     await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
 
+    // Precondition (empty-edge pair, half 1 of 2): data is genuinely present before
+    // asserting the pager control — otherwise this test could pass vacuously against
+    // a seed that produced zero matches for this correlation id.
+    await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+
     const pager = page.locator(".tl-pager");
     await expect(pager).toBeVisible();
     await expect(pager.locator(".tl-pager__range")).toHaveAttribute("role", "status");
@@ -149,6 +169,18 @@ test.describe("Phase 175 UAT — sticky topbar + timeline pager", () => {
 
   test("pager hides entirely at zero matches (hide-at-zero, D-16)", async ({ page }) => {
     await page.goto("/audit/timeline?correlation_id=zzz-no-such-correlation-xyz");
+
+    // Precondition (empty-edge pair, half 2 of 2): the filter genuinely reaches zero
+    // matches — no rows rendered — before asserting the pager's absence. Without this,
+    // "pager count is 0" could pass vacuously if the page itself failed to render.
+    await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+
+    // Pager renders nothing at zero matches (UI.pager, D-16 hide-at-zero) — assert its
+    // absence together with the named positive empty-state affordance that replaces it,
+    // not merely a zero pager count.
     await expect(page.locator(".tl-pager")).toHaveCount(0);
+    const empty = page.locator(".tl-empty");
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText("No captured changes match this window");
   });
 });

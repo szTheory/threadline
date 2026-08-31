@@ -427,6 +427,37 @@ This table is not documentation-on-trust:
 the actual `--project` flags in the workflows and fails if a project a workflow
 really runs is missing from this table.
 
+### `ci-required` needs: roster
+
+This is what the single required check `CI required` actually proves: every
+pull request merged to `main` proves each of the following jobs succeeded.
+`test/threadline/ci_topology_contract_test.exs` derives this list from
+`.github/workflows/ci.yml`'s `ci-required` job itself and fails in either
+drift direction — a job the aggregate requires but this list omits, or a job
+this list claims but the aggregate no longer requires (the silent-narrowing
+case, per D-42) — so a future edit to `needs:` cannot shrink this guarantee
+without also failing a test.
+
+- `verify-format`
+- `verify-credo`
+- `verify-compile-no-optional`
+- `verify-test`
+- `verify-hex-evaluator`
+- `verify-example-browser`
+- `verify-mechanical`
+- `verify-capture`
+- `verify-pgbouncer-topology`
+- `verify-docs`
+- `verify-hex-package`
+- `verify-release-shape`
+
+No `allowed-skips` or `allowed-failures` entry is documented here today,
+because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
+job above runs unconditionally. If either is ever introduced, it must be
+recorded here as `allowed-skips decision: D-NN` or `allowed-failures decision:
+D-NN`, citing the decision that authorized it; the roster contract test fails
+otherwise.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
@@ -440,11 +471,13 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
+| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `.planning/scorecards/*.json` |
+| `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 
-Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below. Legacy tag-only fallback: [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml).
+Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
 
@@ -546,8 +579,6 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 | `release_version` | Must match `@version` in `mix.exs` at that ref |
 | `dry_run` | `mix hex.publish --dry-run --yes` only |
 | `skip_distribution_sync` | Publish without opening the doc sync PR |
-
-**Legacy fallback:** pushing tag **`v*.*.*`** still triggers [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml) (no CI gate, no doc sync).
 
 **Local manual runbook (optional):** `mix hex.publish --dry-run` / `mix hex.publish` with `mix hex.user auth` instead of CI.
 
