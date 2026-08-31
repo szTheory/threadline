@@ -76,28 +76,22 @@
   "remaining_tasks": [
     {
       "id": 11,
-      "name": "Read PR #34 round-3 CI result (run 33352757914, head 1257dc00) \u2014 the definitive run",
-      "status": "in_progress",
-      "detail": "Three runs exist. Round 1 (33351326371) proved Playwright green and cut Tier A drift 198->4. Round 2 (33352501118) adds scroll_cost quantization but will show PgBouncer topology RED \u2014 a known, already-fixed regression. Round 3 is definitive."
-    },
-    {
-      "id": 12,
       "name": "Apply maintainer ratification answers to 199-RATIFICATION.md, then flip the ratified entries",
       "status": "blocked_on_human"
     },
     {
-      "id": 13,
-      "name": "Discharge the 9 run-dependent checkpoints once CI required concludes success",
-      "status": "not_started"
+      "id": 12,
+      "name": "Decide whether to merge PR #34 \u2014 the only thing standing between GREEN-07 and Complete",
+      "status": "blocked_on_human"
     },
     {
-      "id": 14,
+      "id": 13,
       "name": "Sweep STATE.md open items: 10/12-vs-11/12 requirements count, missing 198-SECURITY.md, untriaged WR-01/IN-02",
       "status": "not_started"
     },
     {
-      "id": 15,
-      "name": "Decide whether GREEN-07 can close (needs origin/main to carry every local commit = a merge, not just this branch)",
+      "id": 14,
+      "name": "After a merge: re-measure on main and discharge 198-07 D3 (needs a run ON MAIN) and 198-18 D3",
       "status": "not_started"
     }
   ],
@@ -164,6 +158,14 @@
     }
   ],
   "uncommitted_files": [],
-  "next_action": "Run `gh run list --branch phase-199/scroll-cost-cause-fix --limit 3` and read the newest COMPLETED run (round 3, head 1257dc00). If `Tier A capture lane (byte-stable evidence)` is green, record it with `bin/record-ci-attestation <run_id>` and discharge the run-dependent checkpoints the job conclusions actually support. If still red, pull the drift diff \u2014 the scope fix is proven; the remaining lever is the quantization bucket (currently 0.5 in operator-tier-a-capture.spec.ts), and widening it needs a re-capture AND a floor re-seed in the SAME commit.",
-  "context_notes": "Two independent premises this session held were falsified by measurement, and both are recorded rather than quietly dropped. (1) The rescope does NOT make scroll_cost per-page: show_ui_matrix?/1 gates the primitives matrix, so a page.* preview renders chrome plus one paragraph and never the page under test. Distinct values went 7 -> 4, and after quantization all 120 page floors read exactly 0.5. The planned 'floors are not all identical' assertion was dropped rather than written to fail. (2) The footgun cell is a status:'reserved' placeholder whose PNG never contained a left-push layout, so the planned centering assertion would have invented coverage; the real invariant lives in operator-phase-178-uat.spec.ts and is now source-scan-pinned. The governing insight for scroll_cost: the old document-wide read only LOOKED environment-stable because it measured a fixed sidebar catalog rather than the page. Making it correct is what made it sensitive to genuine cross-environment rendering differences."
+  "next_action": "CI is green (run 33353447804). Two maintainer decisions gate everything else: answer 199-RATIFICATION.md (recommend ratifying 6, deferring 3), and decide on merging PR #34. After a merge, re-measure on main \u2014 198-07 D3 requires a run ON MAIN specifically, which a branch run cannot satisfy.",
+  "context_notes": "Two independent premises this session held were falsified by measurement, and both are recorded rather than quietly dropped. (1) The rescope does NOT make scroll_cost per-page: show_ui_matrix?/1 gates the primitives matrix, so a page.* preview renders chrome plus one paragraph and never the page under test. Distinct values went 7 -> 4, and after quantization all 120 page floors read exactly 0.5. The planned 'floors are not all identical' assertion was dropped rather than written to fail. (2) The footgun cell is a status:'reserved' placeholder whose PNG never contained a left-push layout, so the planned centering assertion would have invented coverage; the real invariant lives in operator-phase-178-uat.spec.ts and is now source-scan-pinned. The governing insight for scroll_cost: the old document-wide read only LOOKED environment-stable because it measured a fixed sidebar catalog rather than the page. Making it correct is what made it sensitive to genuine cross-environment rendering differences.",
+  "ci_green": {
+    "run": "33353447804",
+    "head": "7f9bc167",
+    "conclusion": "success",
+    "jobs": "14/14",
+    "duration": "10m25s",
+    "attestation": ".planning/audits/ci-attestation-33353447804.json"
+  }
 }
