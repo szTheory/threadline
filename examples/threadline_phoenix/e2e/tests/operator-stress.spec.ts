@@ -262,40 +262,269 @@ test("light/system Playwright lane includes the stress route spec", () => {
   );
 });
 
-test.describe("ledger-owned stress screenshots", () => {
+// ---------------------------------------------------------------------------
+// Ledger-owned Tier C stress cells — STRUCTURAL + GEOMETRY, baseline-free.
+//
+// These three `screenshot_allowlist.ci` cells were pixel-diffed against committed PNGs
+// (`toHaveScreenshot`, maxDiffPixelRatio 0.01). All three went red on CI run 33344382035
+// as stale-baseline drift from real, intended UI work in phases 195-197. The failures
+// named no defect, and the only available "fix" — re-recording the PNGs — asserts nothing
+// about whether the new pixels are correct.
+//
+// Measured before replacing them (stress_live.ex:194-225 plus show_ui_matrix?/1 at :794):
+// for a `page`/`footgun` cell the preview renders ONLY the header, the four-row ledger
+// `dl`, and one copy paragraph — the primitives matrix is gated to
+// foundation/primitive/form_control/group/state. So the retired baselines were
+// pixel-diffing stress-lab chrome plus a sentence, which is exactly why global token work
+// broke them: their real sensitivity was to the harness, not to these stories.
+//
+// WHAT IS NO LONGER ASSERTED ANYWHERE (D-23 honesty; see 198-TRIAGE.md): sub-threshold
+// visual drift inside the preview panel at dark/1024 — spacing, type scale, border radii,
+// and exact colour values that clear the luminance band below. Tier A mechanical
+// scorecards cover the `page.*` twins; nothing covers the stress-lab chrome itself.
+// ---------------------------------------------------------------------------
+
+const CI_CELL_VIEWPORT = 1024;
+// style.ex:4223 opens `@media (min-width: 1280px)`; :4248 sets the two-track template.
+const TWO_COLUMN_BREAKPOINT = 1280;
+
+// Dark/light separation band. Measured surfaces sit near the extremes, so this band
+// separates the themes with an order of magnitude of slack and pins no token value.
+const DARK_LUMINANCE_CEILING = 0.25;
+const LIGHT_LUMINANCE_FLOOR = 0.5;
+
+// Identity and copy owned by lib/threadline/operator_surface/stress_fixtures.ex
+// (`page_data/2` :summary, `assigns_for/1` :body) and by the ledger entry itself. Pinned
+// exactly: a legitimate change here fails with a one-line, reviewable source diff, unlike
+// a re-recorded PNG. The generic fallback these guard against is "Synthetic stress
+// fixture." (stress_live.ex:787).
+const CELL_CONTRACTS: Record<
+  string,
+  { scenario: string; body: string; status: string; fixtureKey: string }
+> = {
+  "page.home.happy": {
+    scenario: "Home page happy path",
+    body: "Home page happy path with synthetic lookup launchers and coverage status.",
+    status: "baseline",
+    fixtureKey: "page.home.happy",
+  },
+  "page.timeline.empty": {
+    scenario: "Timeline page empty path",
+    body: "Timeline empty state with no captured changes matching this synthetic window.",
+    status: "baseline",
+    fixtureKey: "page.timeline.empty",
+  },
+  "footgun.transaction-page-left-push-desktop": {
+    scenario: "Transaction page desktop centering baseline",
+    body: "Reserved for Phase 178. This baseline records the current issue; do not fix it in Phase 171.",
+    status: "reserved",
+    fixtureKey: "footgun.transaction_page.left_push_desktop",
+  },
+};
+
+// Placeholder copy the operator surface forbids (137-CONTEXT.md D-23). A pixel diff could
+// never state this rule, and the empty-state cell is exactly where it would regress.
+const FORBIDDEN_PLACEHOLDERS = [
+  /^\s*No data\s*$/im,
+  /^\s*No results\s*$/im,
+  /Nothing here/i,
+];
+
+async function ledgerTableValues(preview: Locator) {
+  return preview.locator(".tl-stress__ledger-table").evaluate((dl) =>
+    Object.fromEntries(
+      Array.from(dl.querySelectorAll(":scope > div")).map((row) => [
+        row.querySelector("dt")?.textContent?.trim() ?? "",
+        row.querySelector("dd")?.textContent?.trim() ?? "",
+      ]),
+    ),
+  );
+}
+
+// WCAG relative luminance of the first OPAQUE painted ancestor at or above #tl-main.
+// Walking up matters: .threadline-ui itself can compute to rgba(0,0,0,0), and a naive
+// read of a transparent background would pass vacuously against black.
+async function surfaceLuminance(page: Page): Promise<number> {
+  const value = await page.evaluate(() => {
+    let el: HTMLElement | null = document.querySelector("#tl-main");
+    while (el) {
+      const parts = getComputedStyle(el)
+        .backgroundColor.match(/[\d.]+/g)
+        ?.map(Number);
+      if (parts && (parts.length < 4 || parts[3] > 0)) {
+        const lin = (c: number) => {
+          const s = c / 255;
+          return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+        };
+        return 0.2126 * lin(parts[0]) + 0.7152 * lin(parts[1]) + 0.0722 * lin(parts[2]);
+      }
+      el = el.parentElement;
+    }
+    return null;
+  });
+
+  expect(
+    value,
+    "no opaque painted background at or above #tl-main — the theme check would pass vacuously",
+  ).not.toBeNull();
+
+  return value!;
+}
+
+async function gridTrackCount(page: Page, selector: string): Promise<number> {
+  return page
+    .locator(selector)
+    .evaluate((el) =>
+      getComputedStyle(el as HTMLElement)
+        .gridTemplateColumns.split(" ")
+        .map((v) => parseFloat(v))
+        .filter((n) => !Number.isNaN(n)).length,
+    );
+}
+
+// At 1024 `.tl-stress__layout` is a single 1fr track (two columns are gated to >=1280px),
+// so the preview must fill that track exactly — no left anchor, no spill.
+async function expectPreviewFillsItsTrack(page: Page, viewportWidth: number) {
+  const layout = await page.locator(".tl-stress__layout").boundingBox();
+  const preview = await page.getByTestId("stress-preview").boundingBox();
+  expect(layout && preview, "layout and preview must both have a box").toBeTruthy();
+
+  expect(
+    Math.abs(preview!.x - layout!.x),
+    "preview is left-pushed off its track",
+  ).toBeLessThanOrEqual(1);
+
+  expect(
+    Math.abs(preview!.x + preview!.width - (layout!.x + layout!.width)),
+    "preview does not fill, or overflows, its track",
+  ).toBeLessThanOrEqual(1);
+
+  expect(layout!.x + layout!.width).toBeLessThanOrEqual(viewportWidth + 1);
+
+  const internalOverflow = await page
+    .getByTestId("stress-preview")
+    .evaluate((el) => el.scrollWidth - el.clientWidth);
+
+  expect(
+    internalOverflow,
+    "preview content overflows the preview box horizontally",
+  ).toBeLessThanOrEqual(1);
+}
+
+test.describe("ledger-owned stress structural cells", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== "desktop-chromium",
-      "stress screenshot ratchet runs only on desktop-chromium",
+      "ledger-owned stress cells run once on desktop-chromium",
     );
 
-    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.setViewportSize({ width: CI_CELL_VIEWPORT, height: 900 });
     await login(page);
   });
 
   for (const item of ciScreenshotAllowlist()) {
-    test(`${item.story_id} ${item.theme} ${item.viewport}px matches its ledger baseline`, async ({
+    test(`${item.story_id} ${item.theme} ${item.viewport}px holds its ledger-declared structure and geometry`, async ({
       page,
     }) => {
+      const contract = CELL_CONTRACTS[item.story_id];
+      expect(
+        contract,
+        `screenshot_allowlist.ci carries ${item.story_id} but this spec declares no structural contract for it — add one rather than letting the cell run unasserted`,
+      ).toBeTruthy();
+
       await page.goto(
         `/audit/__stress?story=${item.story_id}&theme=${item.theme}&viewport=${item.viewport}`,
       );
+
       const preview = page.getByTestId("stress-preview");
       await expect(preview).toBeVisible();
       await expect(page.locator(".threadline-ui").first()).toHaveAttribute(
         "data-tl-theme",
         item.theme,
       );
-      await expect(page.getByTestId("stress-story-id")).toHaveText(
-        item.story_id,
+      await expect(page.getByTestId("stress-story-id")).toHaveText(item.story_id);
+
+      // Ledger identity actually reaches the rendered cell.
+      const values = await ledgerTableValues(preview);
+      expect(values["Ledger item"]).toBe(item.ledger_id);
+      expect(values["Fixture key"]).toBe(contract.fixtureKey);
+      expect(values["Status"]).toBe(contract.status);
+      await expect(preview.locator(".tl-stress__preview-title")).toHaveText(
+        contract.scenario,
+      );
+      await expect(preview.locator(".tl-chip")).toHaveText(
+        `${item.theme} / ${item.viewport}px`,
       );
 
-      await expect(preview).toHaveScreenshot(item.baseline_ref, {
-        maxDiffPixelRatio: 0.01,
-        mask: dynamicMasks(page),
+      // The fixture's own copy, not the generic fallback; and no loud-fail state.
+      await expect(preview.locator(".tl-stress__fixture-preview")).toHaveText(
+        contract.body,
+      );
+      await expect(page.getByTestId("stress-empty-state")).toHaveCount(0);
+      await expect(page.locator(".tl-alert--error")).toHaveCount(0);
+
+      // The theme param drives resolved tokens — asserted in both directions, so a
+      // stylesheet that stopped applying cannot pass by looking uniformly dark.
+      expect(await surfaceLuminance(page)).toBeLessThan(DARK_LUMINANCE_CEILING);
+      await page.goto(
+        `/audit/__stress?story=${item.story_id}&theme=light&viewport=${item.viewport}`,
+      );
+      await expect(page.getByTestId("stress-preview")).toBeVisible();
+      expect(
+        await surfaceLuminance(page),
+        "theme=light resolves to the same surface as theme=dark — the theme param is not driving tokens",
+      ).toBeGreaterThan(LIGHT_LUMINANCE_FLOOR);
+      await page.goto(
+        `/audit/__stress?story=${item.story_id}&theme=${item.theme}&viewport=${item.viewport}`,
+      );
+
+      // Geometry, plus the responsive contract the 1024 shot implicitly held.
+      await expectNoHorizontalOverflow(page);
+      await expectPreviewFillsItsTrack(page, CI_CELL_VIEWPORT);
+      expect(await gridTrackCount(page, ".tl-stress__layout")).toBe(1);
+
+      await page.setViewportSize({
+        width: TWO_COLUMN_BREAKPOINT,
+        height: 900,
       });
+      expect(
+        await gridTrackCount(page, ".tl-stress__layout"),
+        `.tl-stress__layout must become two-column at ${TWO_COLUMN_BREAKPOINT}px (style.ex:4223/4248)`,
+      ).toBe(2);
+      await page.setViewportSize({ width: CI_CELL_VIEWPORT, height: 900 });
     });
   }
+
+  test("page.timeline.empty states its emptiness instead of a bare placeholder", async ({
+    page,
+  }) => {
+    await page.goto(
+      "/audit/__stress?story=page.timeline.empty&theme=dark&viewport=1024",
+    );
+    const body = await page.getByTestId("stress-preview").innerText();
+
+    for (const pattern of FORBIDDEN_PLACEHOLDERS) {
+      expect(
+        body,
+        `empty cell fell back to a bare placeholder matching ${pattern}`,
+      ).not.toMatch(pattern);
+    }
+  });
+});
+
+// `footgun.transaction-page-left-push-desktop` is a `status: "reserved"` placeholder
+// (stress_fixtures.ex:665-672 -> assigns_for(%{status: "reserved"})), so its retired PNG
+// never contained a left-push layout at all. The real desktop-centering invariant lives on
+// the REAL transaction page in operator-phase-178-uat.spec.ts. Pin the pointer so this cell
+// cannot keep claiming coverage that has been deleted elsewhere.
+test("the left-push footgun's real invariant is still asserted in the Phase 178 spec", () => {
+  const spec = readFileSync(
+    resolve(process.cwd(), "tests/operator-phase-178-uat.spec.ts"),
+    "utf8",
+  );
+
+  expect(spec).toContain("expectCenteredWithinColumn");
+  expect(spec).toContain("DESKTOP_CENTERING_WIDTHS = [1024, 1440]");
 });
 
 test.describe("selected Tier C stress state packet", () => {
@@ -339,13 +568,42 @@ test.describe("selected Tier C stress state packet", () => {
   });
 });
 
-test("ledger CI screenshot allowlist is bounded and baseline-backed", () => {
+test("ledger CI stress allowlist is bounded, structurally backed, and pixel-free", () => {
   const ci = ciScreenshotAllowlist();
 
+  // The Tier C cell list stays bounded at 3 (MECH-05). Only what backs each cell changed.
   expect(ci).toHaveLength(3);
 
   for (const item of ci) {
-    expect(item.baseline_ref).toBeTruthy();
-    expect(existsSync(desktopSnapshotPath(item.baseline_ref))).toBe(true);
+    expect(
+      item.structural_ref,
+      `${item.story_id} must name the structural cell that asserts it`,
+    ).toBeTruthy();
+    expect(
+      CELL_CONTRACTS[item.story_id],
+      `${item.story_id} has no structural contract in this spec`,
+    ).toBeTruthy();
+
+    // Retirement is recorded, not silent.
+    const retired = item.pixel_baseline_retired;
+    expect(retired?.retired_baseline_ref).toBeTruthy();
+    expect(retired?.reason).toBeTruthy();
+    expect(retired?.evidence_ref).toBeTruthy();
+
+    // Anti-zombie: the retired PNG must be GONE. A re-recorded baseline reappearing on
+    // disk means the pixel lane was resurrected without a ledger change.
+    expect(
+      existsSync(desktopSnapshotPath(retired.retired_baseline_ref)),
+      `${retired.retired_baseline_ref} is back on disk — the retired pixel lane was resurrected silently`,
+    ).toBe(false);
   }
+
+  // Self-scan (the zero_skips_contract_test idiom, which is Elixir-only and cannot see
+  // this file): this spec may not reacquire a pixel-diff for the ledger-owned cells
+  // without failing here first.
+  const self = readFileSync(
+    resolve(process.cwd(), "tests/operator-stress.spec.ts"),
+    "utf8",
+  );
+  expect(self.includes("toHaveScreenshot" + "(")).toBe(false);
 });

@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
-current_phase_name: Green Bringup
+current_phase_name: green-bringup
 status: executing
-stopped_at: Completed 198-06-PLAN.md
-last_updated: "2026-08-28T02:00:19.590Z"
-last_activity: 2026-08-28
-last_activity_desc: "198-06 complete: hazard workflows deleted, single gated publish path, branches archived"
-state_head: d1b3bc81fc077d80d95884f8517e01c086d8ef59
+stopped_at: "Phase 198 round 6 complete and closed out. All 40 plans executed. CI run 33344382035 (attempt 1, failure, 10m36s) on ci/198-round6, PR #33 draft DO NOT MERGE. Round-6 prediction (sealed at 23c16267 before the push) scored 13/13 at the conclusion level plus a full 3-row browser-lane composition hit. GREEN-04 re-proved Complete strictly from the measured Run test suite (current) = success. GREEN-07 unchanged, Pending, carrying 198-39-DECISION.md option-a: accepted as permanently unmet for v1.41 by maintainer selection at a blocking one-way-door checkpoint. Round-6 closeout gates RUN: code review 0 Critical / 1 Warning / 1 Info (CR-01 confirmed fixed at cause by independent trace through ecto_sql); verification gaps_found, integrity PASS on six re-derived vectors, round 5's two gaps both closed. Phase NOT marked complete (verdict is gaps_found). OPEN: (1) requirements-complete count disagrees between artifacts — VERIFICATION.md says 10/12, REQUIREMENTS.md says 11/12; maintainer call, deliberately unreconciled. (2) security_enforcement is on and no 198-SECURITY.md exists — /gsd-secure-phase 198. (3) round-6 code-review WR-01/IN-02 have no triage-ledger or deferred-items row."
+last_updated: "2026-08-31T00:55:00Z"
+last_activity: 2026-08-31
+last_activity_desc: "Phase 198 round-6 closeout gates run — code review 0 Critical (CR-01 confirmed fixed at cause), verification gaps_found with integrity PASS on six re-derived vectors; phase NOT marked complete"
+state_head: 75cc0b0f30af18ed3e1bba14bbdb894fee1bb5ba
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 7
-  completed_plans: 6
+  total_plans: 40
+  completed_plans: 40
   percent: 0
 ---
 
@@ -25,14 +25,27 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198
+**Current focus:** Phase 198 — Green Bringup (round 6 measured on CI run `33344382035`: GREEN-04 re-proved Complete, GREEN-07 unchanged at accepted-Pending; all 40 plans executed, formal phase closeout/re-verification against round 6 not yet run)
 
 ## Current Position
 
-Phase: 198 — Green Bringup — EXECUTING
-Plan: 7 of 7 (6 of 7 complete)
-Status: Ready to execute 198-07 (the push plan)
-Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, one gated publish path, archive tags created, single worktree
+Phase: 198 (green-bringup) — all 40 plans EXECUTED and the round-6 closeout gates are now RUN. Phase is NOT marked complete: round-6 verification verdict is `gaps_found`.
+Plan: 40 of 40 complete (198-01..198-40 done; 198-38 closed CR-01/WR-01/IN-01 at cause with a red-then-green regression proof; 198-39 recorded GREEN-07/SC3's terminal disposition — maintainer selected option-a, accepted as permanently Pending for v1.41; 198-40 committed a pre-push prediction, halted for a maintainer push, and re-measured CI to completion)
+Status: Round 6 measured on CI run `33344382035` (attempt 1, `failure`, 10m36s, `ci/198-round6`, PR #33 draft DO NOT MERGE). GREEN-04 re-proved **Complete** — `Run test suite (current)` concluded `success` again on a fresh head SHA after 198-38 changed its covered code (not inherited from round 5). GREEN-07 remains **Pending**, unchanged — `CI required` still `failure`, red `needs:` count held at round 5's 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly; the `198-39-DECISION.md` option-a disposition (accepted-Pending for v1.41) is undisturbed. Round-6 prediction (committed `23c16267` before the push) scored 13/13 hit at the conclusion level, including a full 3-row composition hit on the browser lane (round 5's own composition prediction was a partial miss; round 6's identical guess landed exactly). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the round-6-specific commit range (`14f923a7..23c16267`) is empty (D-42 — no gate narrowed, no evidence regenerated).
+Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
+
+- **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
+- **Verification** (`198-VERIFICATION.md`, round 6): **gaps_found**. Integrity **PASS** on six independently re-derived vectors (CR-01 fix traced by direct code read; GREEN-07 disposition propagation confirmed append-only; D-42 diff empty over `1bda5d1c..HEAD`; `ci-required` `needs:` still names both red lanes; the sealed prediction at `23c16267` byte-identical before/after the push; run `33344382035` re-queried via `gh run view`). Round 5's two gaps are both CLOSED. Remaining: GREEN-07/SC3 is still literally unmet in CI (`CI required` = `failure`) — now a terminal maintainer-accepted gap rather than an open one; and GREEN-08's second clause (PR #26 mergeable) stays BLOCKED downstream of it.
+- **Score discrepancy, unreconciled and deliberately not silently fixed:** `198-VERIFICATION.md` frontmatter records `requirements_complete: 10`, counting GREEN-08 as not fully met because its PR-#26-mergeable clause is BLOCKED. `REQUIREMENTS.md` records GREEN-08 as `Complete` with a BLOCKED note, giving 11/12. Round 5 also said 11/12. Two artifacts therefore give two different answers to how many requirements are Complete. This is a maintainer call (the same class of disposition decision 198-39 established must not be executor-selected) and is left OPEN.
+
+Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, preserved):
+
+- **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
+- **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
+
+Last activity: 2026-08-30 — gap-closure round 5 plan 198-37 executed: pre-push prediction committed (`14f923a7`), user pushed `ci/198-round5` by hand, CI run `33336651956` measured to completion, GREEN-04 set Complete and GREEN-07 kept Pending strictly from the measured run (`15b0b9da`)
+
+Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -73,6 +86,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
+| Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
+| Phase 198 P38 | 45min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -454,15 +469,18 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
 - [191-03]: ADOPT-01 install/version reconciliation — seven install pins flipped to three-segment ~> 0.9.0 (co-committed with four guard tests, no CI/release reddening); evaluating-threadline.md false 0.6.0 SSOT corrected to 0.9.0 + release-please marker/extra-files wiring (historical lines preserved); version_truth_doc_contract_test derives Families A/B/C from mix.exs @version and is registered in verify.doc_contract. Pre-existing v1_23_charter failure left deferred (charter truth out of this plan's task scope).
 - [Phase ?]: [195-01]: verify.ui_critique is local-only (excluded from ci.all, exits 0 when ANTHROPIC_API_KEY absent, RUNNER-04). verify.critic_trust is pure-Elixir in ci.all before verify.mechanical. All 6 critic lenses seed validated:false. critic-scores/ tree is gitignored; .planning/golden/ is committed oracle.
+- [Phase 198]: [198-38]: Repo.checkout/2 chosen over pg_advisory_xact_lock/Repo.transaction/2 to pin the demo lock critical section — the guarded body issues many independent per-seed Repo.transaction/1 calls by design and an outer transaction would collapse them.
+- [Phase 198]: [198-38]: promote — Demo.Seed no longer maintains its own copy of the lock guard trio; Demo.Seed.run/0 delegates to Reset.with_demo_lock/1, eliminating the two-copies drift that produced CR-01.
+- [Phase 198]: [198-39]: option-a — maintainer accepted GREEN-07/roadmap SC3 as permanently Pending for v1.41 at a blocking checkpoint:decision; verify-capture and verify-example-browser stay red by construction under D-39 for the whole milestone; no gate narrowed, no baseline regenerated. See 198-39-DECISION.md.
 
 ### Blockers
 
-- None.
+- `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
 
 ## Session Continuity
 
-**Last session:** 2026-08-28T02:00:19.571Z
-**Stopped at:** Completed 198-06-PLAN.md
+**Last session:** 2026-08-30T22:50:23Z
+**Stopped at:** Completed 198-39-PLAN.md (GREEN-07/roadmap SC3 terminal disposition recorded — maintainer selected option-a, accepted-Pending for v1.41; plan 198-40 owns the measured CI re-run)
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

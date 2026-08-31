@@ -79,44 +79,51 @@ jobs:
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
-      # Captures the exit code instead of failing here, so the classification and
-      # issue steps below still run. The job is failed deliberately at the end.
+      # errexit-independent by construction (CR-01): GitHub runs every `run:`
+      # body as `bash -e {0}`, and `set -uo pipefail` alone does NOT clear that
+      # inherited `-e` — a failing `mix verify.flake` aborted this step before
+      # `exit_code` was ever written, which silently skipped classification and
+      # the issue step below it. `set +e` disables errexit explicitly so the
+      # write on line below always runs, and the step then exits 0 itself so a
+      # failing suite cannot fail (and thus skip) this step. The job is still
+      # failed deliberately, but only at the very end, after classification and
+      # issue handling have both run.
       - name: Repeat the suite until failure
         id: repeat
         run: |
+          set +e
           set -uo pipefail
           mix verify.flake 2>&1 | tee flake-detection.log
-          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          exit_code="${PIPESTATUS[0]}"
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      # Classification anchored on a STABLE MARKER, verified against real output
-      # rather than assumed. ExUnit prints exactly one
-      #   `Running ExUnit with seed: <n>, max_cases: <m>`
-      # header per suite run, so counting that line counts completed iterations.
-      # Measured locally before this was written:
-      #   all green, 3 repeats -> exit 0, 4 headers  (initial + 3)
-      #   fail on run 1        -> exit 2, 1 header
-      #   fail on run 3        -> exit 2, 3 headers
-      # If the header is absent entirely the suite never started (deps/compile
-      # failure, or ExUnit changed its banner) — that is UNKNOWN, not flaky.
+      # `if: always()` is the CR-01 fix: without it this step defaults to
+      # `success()` and is skipped whenever the repeat step above reports a
+      # failing suite — precisely the only path this classifier exists for.
+      # test/threadline/flake_classifier_contract_test.exs (Test 2) asserts
+      # this condition stays present.
+      #
+      # Classification logic itself lives in bin/classify-flake-run (extracted
+      # per CR-01/CR-02 so it is directly executable and unit-tested by
+      # test/threadline/flake_classifier_contract_test.exs rather than reachable
+      # only via this 120-minute nightly job). This step just supplies the
+      # inputs and derives `iterations` for the issue body below — no
+      # classification branching happens here.
       - name: Classify broken vs flaky
         id: classify
+        if: always()
         env:
           EXIT_CODE: ${{ steps.repeat.outputs.exit_code }}
         run: |
-          set -euo pipefail
-          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log || true)
+          set -uo pipefail
+          classification=$(bin/classify-flake-run flake-detection.log)
 
-          if [ "$EXIT_CODE" = "0" ]; then
-            classification=pass
-          elif [ "$iterations" -eq 0 ]; then
-            classification=unknown
-          elif [ "$iterations" -eq 1 ]; then
-            classification=broken
-          else
-            classification=flaky
+          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log 2>/dev/null || echo 0)
+          if ! printf '%s' "$iterations" | grep -Eq '^[0-9]+$'; then
+            iterations=0
           fi
 
-          echo "classification=$classification" >> "$GITHUB_OUTPUT"
           echo "iterations=$iterations" >> "$GITHUB_OUTPUT"
           echo "::notice::Flake Detection classification: $classification (completed iterations: $iterations, exit: $EXIT_CODE)"
 
@@ -141,8 +148,13 @@ jobs:
       # Dedup keys on the FIXED title prefix, while the classification rides in the
       # title suffix and the body — so a lane that flips broken -> flaky still lands
       # on the same issue instead of forking a second one.
+      # `if: always() && ...` gates this on the classification VALUE rather
+      # than the implicit success of everything before it (Task 2 item 4) —
+      # so a future step inserted between `repeat` and here that changes the
+      # default success chain cannot silently re-skip issue filing. Still does
+      # not fire when the classification is `pass`.
       - name: Open or update the flake tracking issue
-        if: steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE_PREFIX: "Flake Detection: test suite"
@@ -205,9 +217,10 @@ jobs:
           fi
 
       # The job must still be red when the suite failed. Classification and issue
-      # filing above are reporting, not absolution.
+      # filing above are reporting, not absolution. `always()` keeps this step
+      # reachable even if an earlier reporting step were to fail outright.
       - name: Fail the job if the suite did not pass
-        if: steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass'
         run: |
           echo "::error::Flake Detection classified this run as '${{ steps.classify.outputs.classification }}' after ${{ steps.classify.outputs.iterations }} iteration(s)."
           exit 1

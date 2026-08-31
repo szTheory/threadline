@@ -262,3 +262,70 @@ it. That guard covers a future re-reference, which is the reachable failure mode
 
 **Status: closed.** No follow-up todo is created for revocation. Revisit only if CRITIC-02 is
 reconsidered, or if the key's blast radius changes.
+
+---
+
+## Tier C pixel-baseline retirement (phase 199, 2026-08-31)
+
+### Triage row
+
+| test | category | disposition | evidence |
+|---|---|---|---|
+| `e2e/tests/operator-stress.spec.ts` → `ledger-owned stress screenshots` (n=3) | rotting assertion | **rewritten** — pixel-diff replaced by structural + geometry assertions; pixel coverage dropped with no successor | CI run `33344382035` (3 failed / 312 passed / 25 skipped); `.planning/audits/ci-attestation-33344382035.json` |
+
+### What was retired and why
+
+Three `screenshot_allowlist.ci` cells — `page.home.happy`, `page.timeline.empty`,
+`footgun.transaction-page-left-push-desktop` — were pixel-diffed at
+`maxDiffPixelRatio: 0.01` against committed PNGs. All three failed on run `33344382035`
+as stale-baseline drift from **intended** phase 195–197 UI work. They named no defect, and
+the only available "fix" — re-recording the images — asserts nothing about whether the new
+pixels are correct.
+
+The measurement that settles it: `show_ui_matrix?/1` (`stress_live.ex:794`) admits only
+`foundation primitive form_control group state`, so for a `page`/`footgun` cell the
+`stress-preview` panel renders **only** the preview header, the four-row ledger `dl`, and
+one copy paragraph. It never renders the page under test. The retired baselines were
+therefore pixel-diffing stress-lab chrome plus a sentence — which is exactly why global
+token work broke them, and why re-recording would have queued the same failure again.
+
+A separate correction worth recording, because it was wrong in this phase's own plan: the
+`footgun.transaction-page-left-push-desktop` cell is a `status: "reserved"` placeholder
+(`stress_fixtures.ex:665-672`). **Its PNG never contained a left-push layout.** Writing a
+centering assertion against that cell would have invented coverage that never existed. The
+real desktop-centering invariant lives on the real transaction page in
+`operator-phase-178-uat.spec.ts` (`expectCenteredWithinColumn`, widths 1024 and 1440), and
+this phase pins a source-scan to it so that invariant cannot be deleted while the cell
+still claims to be covered.
+
+### What is no longer asserted anywhere — the honest residual
+
+**Sub-threshold visual drift inside the preview panel at dark/1024**: spacing, type scale,
+border radii, and exact colour values that clear the structural checks' luminance band.
+Tier A mechanical scorecards cover the `page.*` twins on WCAG contrast and token
+conformance; **nothing** covers the stress-lab chrome itself.
+
+This is a genuine narrowing of coverage, not a like-for-like swap, and it is stated here
+rather than implied by the diff. What was gained in exchange is that the three cells now
+assert properties they never asserted before — ledger identity reaching the DOM, exact
+fixture copy rather than the generic fallback, both-direction theme resolution, horizontal
+containment, and the single-column-at-1024 / two-column-at-1280 responsive contract — none
+of which a pixel diff could state, and all of which are deterministic across machines.
+
+### Guards that keep the retirement honest
+
+- `screenshot_allowlist.ci` stays bounded at exactly **3** (MECH-05 unchanged). Each entry
+  now carries `structural_ref` plus a `pixel_baseline_retired` block whose `evidence_ref`
+  must resolve to a real file — asserted in `stress_ledger_test.exs`. A cell that merely
+  dropped `baseline_ref` would silently assert nothing while still counting toward the 3.
+- **Anti-zombie**: the retired PNGs must be absent from disk. A re-recorded baseline
+  reappearing means the pixel lane was resurrected without a ledger change.
+- **Self-scan**: `operator-stress.spec.ts` must contain no `toHaveScreenshot(`.
+- `critic_trust_test.exs` GATE-05 is untouched: each cell's `semantic_guard_stamp` still
+  ties it to a committed `page.*` Tier A scorecard. That was always the *refresh* gate
+  rather than a pixel assertion, and it is what remains of the semantic guarantee.
+
+**Note on why this section is hand-written.** `zero_skips_contract_test.exs` globs
+`test/**/*_test.exs` and is Elixir-only — it cannot see a Playwright change. The
+anti-laundering cap above does **not** cover this retirement, so the accounting is recorded
+here deliberately rather than assumed caught.

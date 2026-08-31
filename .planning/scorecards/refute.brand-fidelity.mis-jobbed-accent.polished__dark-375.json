@@ -98,7 +98,7 @@
     },
     {
       "selector": "button",
-      "color": "rgb(11, 16, 32)",
+      "color": "rgb(8, 16, 31)",
       "background_color": "rgb(79, 140, 255)",
       "font_size": "14px",
       "font_weight": "600"
@@ -198,15 +198,15 @@
     }
   ],
   "applied_colors": [
-    "rgb(11, 16, 32)",
     "rgb(163, 175, 194)",
-    "rgb(215, 222, 234)"
+    "rgb(215, 222, 234)",
+    "rgb(8, 16, 31)"
   ],
   "mode_b": {
     "type_size_count": 4,
     "interactive_control_count": 2,
     "card_nesting_depth": 0,
-    "scroll_cost": 20.207,
+    "scroll_cost": 1,
     "font_sizes": [
       "13px",
       "14px",

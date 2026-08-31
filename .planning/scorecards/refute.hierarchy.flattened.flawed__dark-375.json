@@ -93,22 +93,22 @@
       "selector": "h1",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
-      "font_size": "24px",
-      "font_weight": "500"
+      "font_size": "20px",
+      "font_weight": "600"
     },
     {
       "selector": "h2",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
-      "font_size": "20px",
+      "font_size": "16px",
       "font_weight": "500"
     },
     {
       "selector": "p",
       "color": "rgb(215, 222, 234)",
       "background_color": "rgba(0, 0, 0, 0)",
-      "font_size": "20px",
-      "font_weight": "500"
+      "font_size": "16px",
+      "font_weight": "400"
     }
   ],
   "element_styles": [
@@ -156,7 +156,7 @@
       "font_size": "14px",
       "font_weight": "500",
       "margin_top": "0px",
-      "margin_bottom": "4px",
+      "margin_bottom": "8px",
       "padding_top": "0px",
       "padding_bottom": "0px"
     },
@@ -165,10 +165,10 @@
       "border_radius": "0px",
       "box_shadow": "none",
       "transition_duration": "0s",
-      "font_size": "24px",
-      "font_weight": "500",
+      "font_size": "20px",
+      "font_weight": "600",
       "margin_top": "0px",
-      "margin_bottom": "4px",
+      "margin_bottom": "8px",
       "padding_top": "0px",
       "padding_bottom": "0px"
     },
@@ -177,7 +177,7 @@
       "border_radius": "0px",
       "box_shadow": "none",
       "transition_duration": "0s",
-      "font_size": "20px",
+      "font_size": "16px",
       "font_weight": "500",
       "margin_top": "0px",
       "margin_bottom": "8px",
@@ -189,10 +189,10 @@
       "border_radius": "0px",
       "box_shadow": "none",
       "transition_duration": "0s",
-      "font_size": "20px",
-      "font_weight": "500",
+      "font_size": "16px",
+      "font_weight": "400",
       "margin_top": "0px",
-      "margin_bottom": "0px",
+      "margin_bottom": "8px",
       "padding_top": "0px",
       "padding_bottom": "0px"
     }
@@ -202,16 +202,15 @@
     "rgb(215, 222, 234)"
   ],
   "mode_b": {
-    "type_size_count": 5,
+    "type_size_count": 4,
     "interactive_control_count": 0,
     "card_nesting_depth": 0,
-    "scroll_cost": 20.26,
+    "scroll_cost": 1,
     "font_sizes": [
       "13px",
       "14px",
       "16px",
-      "20px",
-      "24px"
+      "20px"
     ]
   },
   "a11y_summary": {

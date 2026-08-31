@@ -98,7 +98,7 @@
     },
     {
       "selector": "button",
-      "color": "rgb(247, 249, 252)",
+      "color": "rgb(255, 255, 255)",
       "background_color": "rgb(79, 140, 255)",
       "font_size": "14px",
       "font_weight": "600"
@@ -199,14 +199,14 @@
   ],
   "applied_colors": [
     "rgb(15, 23, 40)",
-    "rgb(247, 249, 252)",
+    "rgb(255, 255, 255)",
     "rgb(59, 71, 98)"
   ],
   "mode_b": {
     "type_size_count": 4,
     "interactive_control_count": 2,
     "card_nesting_depth": 0,
-    "scroll_cost": 19.338,
+    "scroll_cost": 1,
     "font_sizes": [
       "13px",
       "14px",

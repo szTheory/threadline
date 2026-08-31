@@ -110,7 +110,7 @@
     "type_size_count": 4,
     "interactive_control_count": 0,
     "card_nesting_depth": 0,
-    "scroll_cost": 19.064,
+    "scroll_cost": 0.5,
     "font_sizes": [
       "13px",
       "14px",

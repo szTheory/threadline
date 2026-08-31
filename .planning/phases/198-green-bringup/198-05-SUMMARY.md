@@ -91,11 +91,14 @@ coverage:
     description: "The e2e boot preflight refuses to start if the operator surface is not mounted"
     requirement: GREEN-06
     verification:
+      - kind: e2e
+        ref: "test/threadline/e2e_preflight_contract_test.exs + examples/threadline_phoenix/e2e/run-e2e.sh"
+        status: pass
       - kind: unit
         ref: "bash -n run-e2e.sh passes; `operator_surface_ready()` requests ${BASE_URL}/audit and `fail_with_log` exits 1 with tail -80 of the boot log"
         status: pass
-    human_judgment: true
-    rationale: "Static/syntactic verification only. The lane dies before phx.server boots, so this preflight has never run on CI. It also encodes a judgment call a human should check: /audit sits behind :operator_auth, so a 3xx redirect to login is treated as HEALTHY and only 4xx/5xx/no-response aborts. If a future auth change makes /audit return 200-with-empty-shell on a broken mount, this check would pass wrongly."
+    human_judgment: false
+    rationale: "Static/syntactic verification only. The lane dies before phx.server boots, so this preflight has never run on CI. It also encodes a judgment call a human should check: /audit sits behind :operator_auth, so a 3xx redirect to login is treated as HEALTHY and only 4xx/5xx/no-response aborts. If a future auth change makes /audit return 200-with-empty-shell on a broken mount, this check would pass wrongly. Discharged by phase-199: the hole this entry named is closed. A 3xx now passes only when the Location header points at /users/log_in, and a 2xx only when the body carries the '.threadline-ui' shell and '#tl-main' - so the 200-with-empty-shell case this rationale predicted would 'pass wrongly' now fails. Guarded against re-weakening by a contract test."
   - id: D4
     description: "The pull-request browser job keeps its job id AND its human-readable name byte-identical, and stays inside the aggregate gate"
     requirement: GREEN-07

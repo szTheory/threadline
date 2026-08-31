@@ -255,12 +255,30 @@ async function rawInputs(page: Page, cardSelector: string) {
       if (depth > cardNestingDepth) cardNestingDepth = depth;
     }
 
+    // Scroll cost is the PRODUCT surface's content height in viewports — scoped to
+    // `main` like every sibling field above, NOT `document.documentElement`. On
+    // /audit/__stress the document is ~98.5% harness-sidebar story catalog (35726px
+    // of 36374px measured; the preview itself is 502px), so a document-wide read
+    // grows with every newly registered story and carries no per-page signal at all.
+    // See .planning/audits/198-tier-a-byte-stability.md (198-16 diagnosis).
+    //
+    // Quantized to HALF-VIEWPORTS, deliberately. Once the read is scoped to real product
+    // content it becomes sensitive to real rendering differences: CI measured 0.654 where
+    // this machine measured 0.628 (~23px, one extra wrapped line) on four cells at the
+    // 375/768 breakpoints. At 3-decimal precision that value can be neither byte-stable
+    // nor ratcheted — CI's 0.654 would also breach a 0.628 floor. The old document-wide
+    // read only *looked* environment-stable because it was measuring a fixed sidebar
+    // rather than the page.
+    //
+    // A 0.5 bucket is ~19x the observed cross-environment delta, so both environments
+    // agree, while the metric still catches what a scroll-cost ratchet is actually for:
+    // gross bloat, a panel going from half a viewport to two. The honest claim is that
+    // this value is reproducible to half-viewport precision and no finer.
+    const SCROLL_COST_BUCKET = 0.5;
     const scrollCost =
       Math.round(
-        (document.documentElement.scrollHeight /
-          Math.max(window.innerHeight, 1)) *
-          1000,
-      ) / 1000;
+        main.scrollHeight / Math.max(window.innerHeight, 1) / SCROLL_COST_BUCKET,
+      ) * SCROLL_COST_BUCKET;
 
     const landmarkSel =
       'main, nav, header, footer, aside, [role="main"], [role="navigation"], ' +

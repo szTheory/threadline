@@ -1245,15 +1245,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # Primary action button: thread-blue owns the action job; worse rungs mis-job ember onto it.
+    #
+    # The foreground is paired with the CHOSEN background rather than with the theme.
+    # `var(--tl-color-bg)` (the previous value) and `var(--tl-color-on-accent)` both flip
+    # with the theme while these accent backgrounds do not, so in light mode either one
+    # puts near-white text on Ember (#FF8A5B) — 2.2:1, a MODE-A WCAG failure the checker
+    # reports against the `button` selector on the three
+    # `refute.brand-fidelity.mis-jobbed-accent.flawed__light-*` cells.
+    #
+    # That violation is NOT this twin's intended flaw. Per D-03 a flawed pole must stay
+    # mechanically clean so its flaw is isolated to perception (mis-jobbing Ember onto the
+    # action job) rather than leaking into the mechanical gate. Ember is a light mid-tone
+    # in both themes, so it always needs dark ink; thread-blue keeps the semantic
+    # on-accent token, which is what that token is calibrated for.
     defp refute_brand_button_style(story) do
-      bg =
+      {bg, fg} =
         case refute_rung(story) do
-          :r4 -> "var(--tl-color-thread-blue)"
-          :r3 -> "var(--tl-color-thread-blue)"
-          _ -> "var(--tl-color-ember)"
+          :r4 -> {"var(--tl-color-thread-blue)", "var(--tl-color-on-accent)"}
+          :r3 -> {"var(--tl-color-thread-blue)", "var(--tl-color-on-accent)"}
+          _ -> {"var(--tl-color-ember)", "var(--tl-color-threadline-black)"}
         end
 
-      "background: #{bg}; color: var(--tl-color-bg); border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"
+      "background: #{bg}; color: #{fg}; border: none; padding: var(--tl-space-2) var(--tl-space-4); border-radius: var(--tl-radius-sm); font-size: var(--tl-font-size-label); font-weight: 600; cursor: pointer;"
     end
 
     # Copy voice by (rung, scenario): r4/r3 operational; r2 adds a chatty line; r1 is

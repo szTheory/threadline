@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# record-ci-attestation — snapshot a measured GitHub Actions run into a committed,
+# machine-readable attestation.
+#
+# WHY THIS EXISTS
+#
+# Phase 198 established (D-01) that only a measured CI run is admissible evidence for
+# the GREEN-* requirements. That rule is sound, but the evidence itself was recorded by
+# hand: run IDs, per-job conclusions, and timings were transcribed into prose in
+# 198-CI-MEASUREMENT.md and REQUIREMENTS.md. Fifteen of Phase 198's 36 human-UAT
+# checkpoints existed only because a human had to go read a CI run and vouch for it.
+#
+# Hand-transcription has two failure modes that no reviewer reliably catches: a number
+# copied wrong, and a number that was right when copied and silently went stale. This
+# script removes both by committing the run's own reported conclusions, so a contract
+# test can check the prose against them offline, forever.
+#
+# It records what GitHub reported. It does not interpret, grade, or judge the run.
+#
+# USAGE
+#   bin/record-ci-attestation <run_id> [--out-dir DIR]
+#
+# Writes .planning/audits/ci-attestation-<run_id>.json (or DIR/…) and prints the path.
+#
+# Requires: gh (authenticated), jq.
+
+set -euo pipefail
+
+die() { printf 'record-ci-attestation: %s\n' "$*" >&2; exit 1; }
+
+RUN_ID=""
+OUT_DIR=".planning/audits"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out-dir)
+      [ $# -ge 2 ] || die "--out-dir requires a value"
+      OUT_DIR="$2"; shift 2 ;;
+    -h|--help)
+      sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)
+      die "unknown flag: $1" ;;
+    *)
+      [ -z "$RUN_ID" ] || die "expected exactly one run id (got '$RUN_ID' and '$1')"
+      RUN_ID="$1"; shift ;;
+  esac
+done
+
+[ -n "$RUN_ID" ] || die "usage: bin/record-ci-attestation <run_id> [--out-dir DIR]"
+
+# Guard the id explicitly: it is interpolated into a filename below, and a malformed
+# value should fail loudly here rather than produce a stray file.
+case "$RUN_ID" in
+  ''|*[!0-9]*) die "run id must be all digits, got: $RUN_ID" ;;
+esac
+
+command -v gh >/dev/null 2>&1 || die "gh is required and was not found on PATH"
+command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
+
+mkdir -p "$OUT_DIR"
+OUT_FILE="${OUT_DIR}/ci-attestation-${RUN_ID}.json"
+
+RAW="$(gh run view "$RUN_ID" \
+  --json databaseId,displayTitle,workflowName,headSha,headBranch,event,status,conclusion,createdAt,updatedAt,url,attempt,jobs \
+  2>/dev/null)" || die "gh run view $RUN_ID failed — is the id right and is gh authenticated?"
+
+[ -n "$RAW" ] || die "gh returned no data for run $RUN_ID"
+
+STATUS="$(printf '%s' "$RAW" | jq -r '.status // ""')"
+[ "$STATUS" = "completed" ] || die "run $RUN_ID is '$STATUS', not 'completed' — attest only finished runs"
+
+# Sort jobs by name so the committed file is stable across invocations; an attestation
+# that reorders on every run would produce noise diffs and teach reviewers to ignore it.
+printf '%s' "$RAW" | jq --arg tool "bin/record-ci-attestation" '{
+  schema: "threadline.ci-attestation/1",
+  recorded_by: $tool,
+  note: "Verbatim snapshot of what GitHub Actions reported for this run. Conclusions are recorded as-is; every non-success value (failure, cancelled, skipped, neutral) is preserved rather than normalised.",
+  run: {
+    id: .databaseId,
+    url: .url,
+    workflow: .workflowName,
+    title: .displayTitle,
+    branch: .headBranch,
+    head_sha: .headSha,
+    event: .event,
+    attempt: .attempt,
+    status: .status,
+    conclusion: .conclusion,
+    started_at: .createdAt,
+    completed_at: .updatedAt
+  },
+  totals: {
+    jobs: (.jobs | length),
+    success: ([.jobs[] | select(.conclusion == "success")] | length),
+    not_success: ([.jobs[] | select(.conclusion != "success")] | length)
+  },
+  jobs: [.jobs[] | {name, conclusion, status, started_at: .startedAt, completed_at: .completedAt}]
+    | sort_by(.name)
+}' > "$OUT_FILE"
+
+printf '%s\n' "$OUT_FILE"

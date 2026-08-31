@@ -90,13 +90,6 @@
       "font_weight": "600"
     },
     {
-      "selector": "label",
-      "color": "rgb(15, 23, 40)",
-      "background_color": "rgba(0, 0, 0, 0)",
-      "font_size": "14px",
-      "font_weight": "600"
-    },
-    {
       "selector": "p",
       "color": "rgb(59, 71, 98)",
       "background_color": "rgba(0, 0, 0, 0)",
@@ -125,10 +118,31 @@
       "font_weight": "600"
     },
     {
-      "selector": "span",
+      "selector": "p",
       "color": "rgb(59, 71, 98)",
       "background_color": "rgba(0, 0, 0, 0)",
       "font_size": "13px",
+      "font_weight": "400"
+    },
+    {
+      "selector": "label",
+      "color": "rgb(15, 23, 40)",
+      "background_color": "rgba(0, 0, 0, 0)",
+      "font_size": "14px",
+      "font_weight": "600"
+    },
+    {
+      "selector": "button",
+      "color": "rgb(15, 23, 40)",
+      "background_color": "rgb(238, 243, 250)",
+      "font_size": "13px",
+      "font_weight": "500"
+    },
+    {
+      "selector": "button",
+      "color": "rgb(59, 71, 98)",
+      "background_color": "rgba(0, 0, 0, 0)",
+      "font_size": "14px",
       "font_weight": "400"
     }
   ],
@@ -182,6 +196,18 @@
       "padding_bottom": "0px"
     },
     {
+      "selector": "p",
+      "border_radius": "0px",
+      "box_shadow": "none",
+      "transition_duration": "0s",
+      "font_size": "13px",
+      "font_weight": "400",
+      "margin_top": "0px",
+      "margin_bottom": "16px",
+      "padding_top": "0px",
+      "padding_bottom": "0px"
+    },
+    {
       "selector": "label",
       "border_radius": "0px",
       "box_shadow": "none",
@@ -267,15 +293,39 @@
     },
     {
       "selector": "input",
-      "border_radius": "0px",
+      "border_radius": "4px",
       "box_shadow": "none",
       "transition_duration": "0s",
       "font_size": "16px",
       "font_weight": "400",
       "margin_top": "0px",
       "margin_bottom": "0px",
-      "padding_top": "0px",
-      "padding_bottom": "0px"
+      "padding_top": "8px",
+      "padding_bottom": "8px"
+    },
+    {
+      "selector": "button",
+      "border_radius": "4px",
+      "box_shadow": "none",
+      "transition_duration": "0s",
+      "font_size": "13px",
+      "font_weight": "500",
+      "margin_top": "0px",
+      "margin_bottom": "0px",
+      "padding_top": "8px",
+      "padding_bottom": "8px"
+    },
+    {
+      "selector": "button",
+      "border_radius": "4px",
+      "box_shadow": "none",
+      "transition_duration": "0s",
+      "font_size": "14px",
+      "font_weight": "400",
+      "margin_top": "0px",
+      "margin_bottom": "0px",
+      "padding_top": "8px",
+      "padding_bottom": "8px"
     }
   ],
   "applied_colors": [
@@ -284,9 +334,9 @@
   ],
   "mode_b": {
     "type_size_count": 4,
-    "interactive_control_count": 3,
+    "interactive_control_count": 5,
     "card_nesting_depth": 0,
-    "scroll_cost": 18.803,
+    "scroll_cost": 1,
     "font_sizes": [
       "13px",
       "14px",
@@ -297,7 +347,7 @@
   "a11y_summary": {
     "headings": 2,
     "landmarks": 0,
-    "interactive_elements": 3
+    "interactive_elements": 5
   },
   "artifacts": {
     "screenshot": "examples/threadline_phoenix/e2e/artifacts/tier-a/refute.density.chrome-bloat.flawed__light-1280/screenshot.png",

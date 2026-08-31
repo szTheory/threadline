@@ -88,6 +88,79 @@ defmodule Threadline.OperatorSurface.PresentationTest do
     end
   end
 
+  describe "export status label" do
+    test "pending and queued statuses render Queued" do
+      for status <- ["pending", "queued"] do
+        job = %{status: status, expires_at: @future}
+        assert Presentation.export_status_label(job, now: @now) == "Queued"
+      end
+    end
+
+    test "running and processing statuses render Processing" do
+      for status <- ["running", "processing"] do
+        job = %{status: status, expires_at: @future}
+        assert Presentation.export_status_label(job, now: @now) == "Processing"
+      end
+    end
+
+    test "failed and error statuses render Failed" do
+      for status <- ["failed", "error"] do
+        job = %{status: status, expires_at: @future}
+        assert Presentation.export_status_label(job, now: @now) == "Failed"
+      end
+    end
+
+    test "completed jobs with an expired expires_at render Export expired" do
+      job = %{status: "completed", expires_at: @past}
+      assert Presentation.export_status_label(job, now: @now) == "Export expired"
+    end
+
+    test "completed jobs with a missing file (unexpired) render File unavailable" do
+      job = %{status: "completed", expires_at: @future}
+      assert Presentation.export_status_label(job, now: @now) == "File unavailable"
+    end
+
+    test "exact-equality expiry boundary at a frozen clock is treated as expired" do
+      job = %{status: "completed", expires_at: @now}
+
+      assert Presentation.export_status_label(job, now: @now) == "Export expired"
+    end
+
+    test "nil expires_at on a completed job falls back to File unavailable, not a raise or empty string" do
+      job = %{status: "completed", expires_at: nil}
+
+      assert Presentation.export_status_label(job, now: @now) == "File unavailable"
+    end
+
+    test "absent expires_at key on a completed job falls back to File unavailable" do
+      job = %{status: "completed"}
+
+      assert Presentation.export_status_label(job, now: @now) == "File unavailable"
+    end
+
+    test "nil status falls back to a named label, not a raise or empty string" do
+      job = %{status: nil, expires_at: @future}
+
+      assert Presentation.export_status_label(job, now: @now) == "Unknown"
+    end
+
+    test "unrecognised status falls back to a named, capitalized label" do
+      job = %{status: "mystery_state", expires_at: @future}
+
+      assert Presentation.export_status_label(job, now: @now) == "Mystery state"
+    end
+
+    test "atom status and its string equivalent resolve to the same label" do
+      atom_job = %{status: :pending, expires_at: @future}
+      string_job = %{status: "pending", expires_at: @future}
+
+      assert Presentation.export_status_label(atom_job, now: @now) ==
+               Presentation.export_status_label(string_job, now: @now)
+
+      assert Presentation.export_status_label(atom_job, now: @now) == "Queued"
+    end
+  end
+
   describe "secondary refs" do
     test "keeps the full value in title and truncates visible text" do
       value = "actor/user-01-abcdefghijklmnopqrstuvwxyz-0123456789"
