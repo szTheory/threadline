@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+#
+# compare-required-contexts — decide whether a branch's LIVE required status-check
+# contexts are exactly the expected set.
+#
+# WHY THIS IS A SEPARATE SCRIPT
+#
+# This comparison is the load-bearing half of `bin/verify-branch-protection`, and one of
+# its edges had never been demonstrated. Phase 198 recorded the gap honestly (198-07 D9):
+# the "live config carries an EXTRA context" case was refused by the execution environment
+# before the ruleset was live, and deliberately not retried afterwards, because adding a
+# second required context to the branch's sole live protection purely to exercise a test
+# is a change to production protection with no operational justification. The remaining
+# argument — "it shares a code path with the edges we did demonstrate" — is an argument,
+# not a demonstration.
+#
+# Splitting the pure decision out makes every edge drivable from fixtures with no network,
+# no token, and no mutation of live protection. This is the same shape as
+# `bin/classify-flake-run`, which `flake_classifier_contract_test.exs` drives directly.
+#
+# USAGE
+#   compare-required-contexts <expected-context> [<expected-context>...] < rules.json
+#
+# stdin: the JSON body of `GET repos/{owner}/{repo}/rules/branches/{branch}`.
+# exit 0 — the live contexts are exactly the expected set.
+# exit 1 — they differ (extra, missing, renamed, or none at all); reason on stderr.
+# exit 2 — usage or unreadable input.
+
+set -euo pipefail
+
+die() { printf 'compare-required-contexts: %s\n' "$*" >&2; exit 2; }
+
+[ $# -ge 1 ] || die "usage: compare-required-contexts <expected-context>... < rules.json"
+command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
+
+RULES_JSON=$(cat)
+
+[ -n "$RULES_JSON" ] || {
+  echo "FAIL: no rules JSON on stdin — the effective rules could not be read." >&2
+  echo "An unreadable protection config must not read as passing." >&2
+  exit 1
+}
+
+printf '%s' "$RULES_JSON" | jq empty 2>/dev/null || {
+  echo "FAIL: rules JSON on stdin is not valid JSON." >&2
+  exit 1
+}
+
+# Sorted exact string equality, not containment: a differing case, an extra space, or an
+# extra context must fail rather than fuzzily matching.
+LIVE=$(printf '%s' "$RULES_JSON" | jq -r '
+  [ .[]?
+    | select(.type == "required_status_checks")
+    | .parameters.required_status_checks[]?
+    | .context
+  ] | sort | join("")')
+
+EXPECTED=$(printf '%s\n' "$@" | jq -Rrs 'split("\n") | map(select(length > 0)) | sort | join("")')
+
+pretty() { printf '%s' "$1" | tr '\037' '|'; }
+
+if [ -z "$LIVE" ]; then
+  echo "FAIL: ZERO required status-check contexts." >&2
+  echo "  live:     (empty)" >&2
+  echo "  expected: [$(pretty "$EXPECTED")]" >&2
+  echo "An unprotected branch must not read as passing." >&2
+  exit 1
+fi
+
+if [ "$LIVE" != "$EXPECTED" ]; then
+  echo "FAIL: required status-check contexts do not match." >&2
+  echo "  live:     [$(pretty "$LIVE")]" >&2
+  echo "  expected: [$(pretty "$EXPECTED")]" >&2
+  exit 1
+fi
+
+echo "OK: required contexts are exactly [$(pretty "$EXPECTED")]"

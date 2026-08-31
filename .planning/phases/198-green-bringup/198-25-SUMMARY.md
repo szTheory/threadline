@@ -81,11 +81,14 @@ coverage:
   - id: D4
     description: "ExUnit.TimeoutError diagnosed via direct pg_stat_activity capture: an orphaned idle-in-transaction session blocking a deterministic-UUID upsert (lock/deadlock cause class), with an in-scope defensive advisory-lock hardening applied"
     verification:
+      - kind: integration
+        ref: "test/threadline/idle_transaction_reaper_contract_test.exs + config/test.exs"
+        status: pass
       - kind: other
         ref: ".planning/audits/198-round4-demo-seed.md#exuniontimeouterror-diagnosis-198-25 (live pg_stat_activity transcript)"
         status: pass
-    human_judgment: true
-    rationale: "The advisory lock closes contention between this plan's own two test files; it does not and cannot close the full class of an externally-orphaned session from an unrelated process, which is a connection-hygiene concern outside this plan's declared scope. A human/maintainer should judge whether that residual risk warrants a follow-up phase."
+    human_judgment: false
+    rationale: "The advisory lock closes contention between this plan's own two test files; it does not and cannot close the full class of an externally-orphaned session from an unrelated process, which is a connection-hygiene concern outside this plan's declared scope. A human/maintainer should judge whether that residual risk warrants a follow-up phase. Discharged by phase-199: the residual class this entry flagged - an externally-orphaned session no application lock can reach - is now reaped by Postgres itself via idle_in_transaction_session_timeout on the repo's connection parameters. Asserted live (SHOW returns 1min) rather than merely present in config. Only 'idle in transaction' is reaped, so slow-but-active work is untouched."
   - id: D5
     description: "mix verify.example measured at 109 tests, 0 failures on two consecutive runs — the target state named by this plan's must-haves"
     verification:

@@ -55,9 +55,12 @@ coverage:
     human_judgment: false
   - id: D3
     description: "Port recipe for the remaining 14 defective files is proven end-to-end and written down for 198-12"
-    verification: []
-    human_judgment: true
-    rationale: "The recipe's correctness for the other 14 files can only be confirmed when 198-12 applies it — this SUMMARY records the exact shape but a human/future-plan judgment call decides whether any of the 14 files need the storage_schema \\\\ \"threadline\" parameterization variant actor_live_test.exs used."
+    verification:
+      - kind: unit
+        ref: "test/threadline/storage_schema_call_site_contract_test.exs"
+        status: pass
+    human_judgment: false
+    rationale: "The recipe's correctness for the other 14 files can only be confirmed when 198-12 applies it — this SUMMARY records the exact shape but a human/future-plan judgment call decides whether any of the 14 files need the storage_schema \\\\ \"threadline\" parameterization variant actor_live_test.exs used. Discharged by phase-199: the recipe's correctness across the remaining files is no longer a judgment call. The real-tree sweep scans every file under test/ for unprefixed owned-schema call sites and fails on any, with anti-vacuity guards that fail if the glob or the matcher silently stops matching. 22/0."
 
 duration: 22min
 completed: 2026-08-28

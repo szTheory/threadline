@@ -56,17 +56,56 @@ fail_with_log() {
 # is routed and alive. A 4xx/5xx (or no response) means the operator surface is
 # broken, and without this check hundreds of Playwright tests would each burn
 # their own 120s timeout discovering the same thing.
+#
+# Phase 199 hardening. The status-class check alone was known-insufficient and said so:
+# a future auth change returning "200 with an empty shell" on a BROKEN mount would have
+# passed, and any 3xx counted even when it pointed somewhere other than login. Both
+# branches now have to prove something about the response, not just its status class.
 operator_surface_ready() {
-  local code
+  local response code body location
 
   command -v curl >/dev/null 2>&1 || return 0
 
-  code=$(curl --max-time 30 -o /dev/null -sS -w '%{http_code}' "${BASE_URL}/audit" 2>/dev/null || echo "000")
+  # -D - writes headers to stdout ahead of the body, so one request yields status,
+  # Location, and body together. A redirect is NOT followed: the redirect itself is the
+  # evidence we want, and following it would land us on the login page and assert nothing
+  # about /audit.
+  response=$(curl --max-time 30 -sS -D - -o - -w '\n__HTTP_CODE__%{http_code}' \
+    "${BASE_URL}/audit" 2>/dev/null || echo '__HTTP_CODE__000')
+
+  code=${response##*__HTTP_CODE__}
+  body=${response%__HTTP_CODE__*}
 
   case "$code" in
-    2??|3??) return 0 ;;
+    3??)
+      location=$(printf '%s' "$body" | tr -d '\r' | awk 'tolower($1) == "location:" { print $2; exit }')
+
+      case "$location" in
+        */users/log_in*)
+          return 0
+          ;;
+        *)
+          echo "GET ${BASE_URL}/audit redirected to '${location:-<no Location header>}', not the login page." >&2
+          echo "A 3xx only proves the mount is alive if it is the :operator_auth redirect." >&2
+          return 1
+          ;;
+      esac
+      ;;
+    2??)
+      # An authenticated-or-public 200 must actually carry the operator shell. These two
+      # markers are asserted by the Playwright suite itself (`.threadline-ui`, `#tl-main`),
+      # so a 200 without them is a shell that renders nothing the tests can drive.
+      if printf '%s' "$body" | grep -q 'threadline-ui' && printf '%s' "$body" | grep -q 'tl-main'; then
+        return 0
+      fi
+
+      echo "GET ${BASE_URL}/audit returned HTTP ${code} but the body carries no operator surface." >&2
+      echo "Expected the '.threadline-ui' shell and '#tl-main' region; got a 200 with neither," >&2
+      echo "which is a broken mount answering successfully — exactly what this check exists to catch." >&2
+      return 1
+      ;;
     *)
-      echo "GET ${BASE_URL}/audit returned HTTP ${code} (expected 2xx or a 3xx redirect to login)." >&2
+      echo "GET ${BASE_URL}/audit returned HTTP ${code} (expected 2xx with the operator shell, or a 3xx redirect to login)." >&2
       return 1
       ;;
   esac

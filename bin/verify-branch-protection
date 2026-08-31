@@ -61,26 +61,15 @@ if [[ -z "$RULES_JSON" ]]; then
   exit 1
 fi
 
-LIVE_CONTEXTS=$(printf '%s' "$RULES_JSON" | jq -r '
-  [ .[]
-    | select(.type == "required_status_checks")
-    | .parameters.required_status_checks[]?
-    | .context
-  ] | sort | join("\u001f")')
-EXPECTED_CONTEXTS=$(printf '%s\n' "$EXPECTED_CONTEXT" | jq -Rrs 'split("\n") | map(select(length > 0)) | sort | join("\u001f")')
-
-if [[ -z "$LIVE_CONTEXTS" ]]; then
-  echo "FAIL (a): ${REPO}@${BRANCH} has ZERO required status-check contexts." >&2
-  echo "  live:     (empty)" >&2
-  echo "  expected: [${EXPECTED_CONTEXT}]" >&2
-  echo "An unprotected branch must not read as passing." >&2
-  exit 1
-fi
-
-if [[ "$LIVE_CONTEXTS" != "$EXPECTED_CONTEXTS" ]]; then
-  echo "FAIL (a): required status-check contexts for ${REPO}@${BRANCH} do not match." >&2
-  echo "  live:     [$(printf '%s' "$LIVE_CONTEXTS" | tr '\037' '|')]" >&2
-  echo "  expected: [$(printf '%s' "$EXPECTED_CONTEXTS" | tr '\037' '|')]" >&2
+# The comparison itself lives in bin/compare-required-contexts so every edge - missing,
+# renamed, EXTRA, and none-at-all - can be exercised from fixtures without mutating live
+# production protection. Phase 198 (198-07 D9) recorded the extra-context edge as
+# undemonstrated for exactly that reason: adding a second required context to the sole
+# live protection purely to exercise a test is a production change with no operational
+# justification. Splitting the pure decision out is what closes it, and it is the same
+# shape as bin/classify-flake-run.
+if ! printf '%s' "$RULES_JSON" | "$(dirname "$0")/compare-required-contexts" "$EXPECTED_CONTEXT"; then
+  echo "FAIL (a): required status-check contexts for ${REPO}@${BRANCH} do not match (see above)." >&2
   exit 1
 fi
 

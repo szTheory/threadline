@@ -127,11 +127,14 @@ coverage:
   - id: D9
     description: "The verifier has teeth — it fails on a wrong live configuration, not only on a staged one"
     verification:
+      - kind: unit
+        ref: "test/threadline/branch_protection_comparison_contract_test.exs + bin/compare-required-contexts"
+        status: pass
       - kind: other
         ref: "Edge 1 (empty required-context list) RED on real live state; edge 3 (name never emitted on head) RED on real live state; edge 2 (singleton match) PASS"
         status: pass
-    human_judgment: true
-    rationale: "Edge 4 — the extra-context comparison — is NOT demonstrated. It was refused by the execution environment before the ruleset was live, and was deliberately not retried afterwards, because adding a second required context to the branch's sole live protection purely to exercise a test is a change to production protection with no operational justification. The comparison shares a code path with edges 1 and 2, but 'the same code path' is an argument, not a demonstration, and this is carried as an open verification gap rather than laundered into a pass."
+    human_judgment: false
+    rationale: "Edge 4 — the extra-context comparison — is NOT demonstrated. It was refused by the execution environment before the ruleset was live, and was deliberately not retried afterwards, because adding a second required context to the branch's sole live protection purely to exercise a test is a change to production protection with no operational justification. The comparison shares a code path with edges 1 and 2, but 'the same code path' is an argument, not a demonstration, and this is carried as an open verification gap rather than laundered into a pass. Discharged by phase-199: edge 4 is now demonstrated, not argued. The pure comparison was extracted into bin/compare-required-contexts (the bin/classify-flake-run pattern), so the extra-context case runs against fixtures with no network and nothing live touched - honouring this entry's own reason for refusing to mutate production protection."
 
 duration: ~1h 20m
 completed: 2026-08-28

@@ -8,7 +8,25 @@ repo_base = [
   username: "postgres",
   password: "postgres",
   database: "threadline_test",
-  pool_size: 2
+  pool_size: 2,
+  # Orphaned-session reaper (Phase 199, closing 198-25 D4).
+  #
+  # Plan 198-25 diagnosed an ExUnit.TimeoutError caused by a session left IDLE INSIDE A
+  # TRANSACTION by an unrelated process, holding a row lock that blocked a
+  # deterministic-UUID upsert. That plan added an advisory lock, which closes contention
+  # between its own two test files but — as its own summary recorded — "does not and
+  # cannot close the full class of an externally-orphaned session from an unrelated
+  # process." Only the database can reap a client that is no longer coming back.
+  #
+  # Postgres kills a session that has held an open transaction while IDLE for this long.
+  # It does NOT interrupt work in progress: a query that runs for ten minutes is `active`,
+  # not `idle in transaction`, so this cannot abort a slow-but-healthy test. It fires only
+  # on the orphan signature — BEGIN issued, client gone.
+  #
+  # 60s is deliberately generous: the whole suite finishes in ~35s, so no legitimate gap
+  # between statements comes close, while an orphan still clears within a single run
+  # instead of wedging every subsequent one until someone restarts Postgres by hand.
+  parameters: [idle_in_transaction_session_timeout: "60000"]
 ]
 
 # Transaction-mode PgBouncer: avoid named prepared statements (Ecto + Postgrex).
