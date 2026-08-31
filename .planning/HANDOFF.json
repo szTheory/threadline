@@ -5,8 +5,8 @@
   "phase_name": "zero-human-uat-ci-green",
   "phase_dir": ".planning/phases/198-green-bringup",
   "plan": null,
-  "task": null,
-  "total_tasks": null,
+  "task": 11,
+  "total_tasks": 15,
   "status": "paused",
   "note": "Phase 199 has no ROADMAP entry or PLAN files yet. It was executed directly from an approved plan file (~/.claude/plans/integration-e2e-automate-the-world-deep-glacier.md) because the work targets Phase 198's sealed artifacts. All artifacts live under .planning/phases/198-green-bringup/ and .planning/audits/. Formalizing 199 in ROADMAP.md is optional cleanup, not a blocker.",
   "branch": "phase-199/scroll-cost-cause-fix",
@@ -81,22 +81,22 @@
       "detail": "Three runs exist. Round 1 (33351326371) proved Playwright green and cut Tier A drift 198->4. Round 2 (33352501118) adds scroll_cost quantization but will show PgBouncer topology RED \u2014 a known, already-fixed regression. Round 3 is definitive."
     },
     {
-      "id": 11,
+      "id": 12,
       "name": "Apply maintainer ratification answers to 199-RATIFICATION.md, then flip the ratified entries",
       "status": "blocked_on_human"
     },
     {
-      "id": 12,
+      "id": 13,
       "name": "Discharge the 9 run-dependent checkpoints once CI required concludes success",
       "status": "not_started"
     },
     {
-      "id": 13,
+      "id": 14,
       "name": "Sweep STATE.md open items: 10/12-vs-11/12 requirements count, missing 198-SECURITY.md, untriaged WR-01/IN-02",
       "status": "not_started"
     },
     {
-      "id": 14,
+      "id": 15,
       "name": "Decide whether GREEN-07 can close (needs origin/main to carry every local commit = a merge, not just this branch)",
       "status": "not_started"
     }
