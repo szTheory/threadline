@@ -64,14 +64,17 @@ coverage:
     description: "verify-example-browser's DB-prep step gains the same ALTER DATABASE threadline_phoenix_test SET search_path statement verify-capture already carries"
     requirement: GREEN-07
     verification:
+      - kind: e2e
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33353447804.json"
+        status: pass
       - kind: manual_procedural
         ref: "the exact psql ALTER DATABASE statement run manually against a freshly created threadline_phoenix_test_verify database — exits 0 (ALTER DATABASE)"
         status: pass
       - kind: e2e
-        ref: "mix verify.example_browser --project=desktop-chromium (not runnable locally — no Playwright browsers/node_modules in this sandbox)"
-        status: unknown
-    human_judgment: true
-    rationale: "the full browser E2E lane needs Playwright browsers and a booted Phoenix demo app, neither installed in this sandbox; the CI run on this PR is the proof for the complete job, though the specific statement that fixes the diagnosed root cause was verified in isolation"
+        ref: "Example app browser E2E (Playwright) concluded success on measured CI run 33353447804 — the reduced lane this ref names, run in the environment it could not be run in locally"
+        status: pass
+    human_judgment: false
+    rationale: "the full browser E2E lane needs Playwright browsers and a booted Phoenix demo app, neither installed in this sandbox; the CI run on this PR is the proof for the complete job, though the specific statement that fixes the diagnosed root cause was verified in isolation Discharged by measured CI run 33353447804: `Example app browser E2E (Playwright)` concluded success, which exercises the DB-prep step end-to-end rather than in isolation. The complete job is now proven, which is exactly the evidence this entry deferred to."
 
 duration: 24min
 completed: 2026-08-28

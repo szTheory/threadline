@@ -66,9 +66,12 @@ coverage:
     human_judgment: false
   - id: D3
     description: "The must-have backstop truth ('Example app browser E2E (Playwright) concludes success on the next CI run') requires an actual next CI run to verify, and this plan's own full local reproduction found 28 additional, unrelated, pre-existing failures that will very likely keep the job red on that next run"
-    verification: []
-    human_judgment: true
-    rationale: "Whether the next real CI run of this job concludes success cannot be determined locally with certainty (CI environment differences are possible in principle), and this plan's own evidence (28 failures found in the full local reduced-lane run, none related to the diagnosed cause) makes a green next-run unlikely without further, separately-scoped work. A human/maintainer decision is needed on how to sequence the follow-up gap-closure plan this discovery requires."
+    verification:
+      - kind: e2e
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33353447804.json"
+        status: pass
+    human_judgment: false
+    rationale: "Whether the next real CI run of this job concludes success cannot be determined locally with certainty (CI environment differences are possible in principle), and this plan's own evidence (28 failures found in the full local reduced-lane run, none related to the diagnosed cause) makes a green next-run unlikely without further, separately-scoped work. A human/maintainer decision is needed on how to sequence the follow-up gap-closure plan this discovery requires. Discharged by measured CI run 33353447804: the backstop truth is now literally met - `Example app browser E2E (Playwright)` concluded success. The entry predicted this was unlikely without further scoped work, and it was right: the 3 stale ledger-baseline rows were retired for structural assertions (phase-199) before the lane could go green."
 
 duration: ~2h10min
 completed: 2026-08-28
