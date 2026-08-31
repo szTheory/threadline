@@ -65,14 +65,20 @@
       "name": "Draft 199-RATIFICATION.md for the 9 irreducible checkpoints",
       "status": "done",
       "commit": "9a9d80a8"
+    },
+    {
+      "id": 10,
+      "name": "Fix self-inflicted PgBouncer regression (reaper sent as startup parameter broke the topology lane)",
+      "status": "done",
+      "commit": "1257dc00"
     }
   ],
   "remaining_tasks": [
     {
-      "id": 10,
-      "name": "Read PR #34 round-2 CI result; confirm Tier A capture lane is green",
+      "id": 11,
+      "name": "Read PR #34 round-3 CI result (run 33352757914, head 1257dc00) \u2014 the definitive run",
       "status": "in_progress",
-      "detail": "Round 2 was pushed at 9a9d80a8 and was still running at pause. Round 1 (run 33351326371) already proved the Playwright lane green and cut Tier A drift 198 -> 4 files."
+      "detail": "Three runs exist. Round 1 (33351326371) proved Playwright green and cut Tier A drift 198->4. Round 2 (33352501118) adds scroll_cost quantization but will show PgBouncer topology RED \u2014 a known, already-fixed regression. Round 3 is definitive."
     },
     {
       "id": 11,
@@ -97,6 +103,11 @@
   ],
   "blockers": [
     {
+      "description": "Round 2 will show PgBouncer transaction topology failing \u2014 already fixed in 1257dc00, do not re-diagnose",
+      "type": "technical",
+      "workaround": "Read round 3 instead"
+    },
+    {
       "description": "9 UAT checkpoints need a green `CI required` run; the aggregate was still failing on Tier A capture as of round 1",
       "type": "external",
       "workaround": "Round 2 (quantized scroll_cost) is running now and is expected to close it"
@@ -115,7 +126,7 @@
   "async_jobs": [],
   "human_actions_pending": [
     {
-      "action": "Answer 199-RATIFICATION.md — one verbatim reply covering the nine items",
+      "action": "Answer 199-RATIFICATION.md \u2014 one verbatim reply covering the nine items",
       "context": "Executor recommends ratifying 6 and DEFERRING 3 (198-05 D7 now has a green browser duration to derive a real bound from; 198-01 D4 should wait until Phase 201 is planned; 198-27 D3 marks a genuinely open root cause). Ratifying the 6 leaves 3 recurring checkpoints, each deferred for a stated reason.",
       "blocking": true
     },
@@ -153,6 +164,6 @@
     }
   ],
   "uncommitted_files": [],
-  "next_action": "Run `gh pr checks 34` and read the round-2 result. If `Tier A capture lane (byte-stable evidence)` is green, record the run with `bin/record-ci-attestation <run_id>` and discharge the 9 run-dependent checkpoints. If it is still red, read the drift diff from the job log — the fix is the quantization bucket, not the scope.",
+  "next_action": "Run `gh run list --branch phase-199/scroll-cost-cause-fix --limit 3` and read the newest COMPLETED run (round 3, head 1257dc00). If `Tier A capture lane (byte-stable evidence)` is green, record it with `bin/record-ci-attestation <run_id>` and discharge the run-dependent checkpoints the job conclusions actually support. If still red, pull the drift diff \u2014 the scope fix is proven; the remaining lever is the quantization bucket (currently 0.5 in operator-tier-a-capture.spec.ts), and widening it needs a re-capture AND a floor re-seed in the SAME commit.",
   "context_notes": "Two independent premises this session held were falsified by measurement, and both are recorded rather than quietly dropped. (1) The rescope does NOT make scroll_cost per-page: show_ui_matrix?/1 gates the primitives matrix, so a page.* preview renders chrome plus one paragraph and never the page under test. Distinct values went 7 -> 4, and after quantization all 120 page floors read exactly 0.5. The planned 'floors are not all identical' assertion was dropped rather than written to fail. (2) The footgun cell is a status:'reserved' placeholder whose PNG never contained a left-push layout, so the planned centering assertion would have invented coverage; the real invariant lives in operator-phase-178-uat.spec.ts and is now source-scan-pinned. The governing insight for scroll_cost: the old document-wide read only LOOKED environment-stable because it measured a fixed sidebar catalog rather than the page. Making it correct is what made it sensitive to genuine cross-environment rendering differences."
 }
