@@ -339,7 +339,8 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     drifted =
       for {_name, sc} <- product_scoped_scorecards(),
           ledger_id = sc["ledger_id"],
-          recorded = get_in(floors, [ledger_id, "scroll_cost", "#{sc["theme"]}_#{sc["breakpoint"]}"]),
+          recorded =
+            get_in(floors, [ledger_id, "scroll_cost", "#{sc["theme"]}_#{sc["breakpoint"]}"]),
           not is_nil(recorded),
           measured = MechanicalChecker.measure_mode_b(sc)["scroll_cost"],
           measured != recorded,

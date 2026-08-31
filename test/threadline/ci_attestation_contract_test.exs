@@ -158,7 +158,8 @@ defmodule Threadline.CiAttestationContractTest do
         if conclusion != "success" do
           for {source, body} <- prose_documents(),
               String.contains?(body, run_id) do
-            refute body =~ ~r/run\s+`?#{run_id}`?[^.\n]{0,80}concluded\s+(the literal string\s+)?`?success`?/i,
+            refute body =~
+                     ~r/run\s+`?#{run_id}`?[^.\n]{0,80}concluded\s+(the literal string\s+)?`?success`?/i,
                    """
                    #{source} describes run #{run_id} as concluding success, but
                    ci-attestation-#{run_id}.json records its conclusion as #{inspect(conclusion)}.
