@@ -71,11 +71,12 @@ coverage:
     human_judgment: false
   - id: D4
     description: "The pooled topology test result closes GREEN-04 only once CI's verify-pgbouncer-topology job (not this local run) reports green"
-    verification: []
-    human_judgment: true
-    rationale: "Local green through a manually port-remapped docker-compose stack proves the code path is correct but is not the CI environment itself — CI run confirmation is the only evidence that fully closes this gap, per the plan's own stated success criteria."
-
-duration: ~75min
+    verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
+    human_judgment: false
+    rationale: "Local green through a manually port-remapped docker-compose stack proves the code path is correct but is not the CI environment itself — CI run confirmation is the only evidence that fully closes this gap, per the plan's own stated success criteria. Discharged by measured CI run 33344382035: 'PgBouncer transaction topology' concluded success - the CI-environment confirmation this entry required."duration: ~75min
 completed: 2026-08-28
 status: complete
 ---

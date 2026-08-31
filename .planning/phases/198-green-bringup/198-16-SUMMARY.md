@@ -59,11 +59,12 @@ coverage:
     human_judgment: false
   - id: D3
     description: "GREEN-04 Gap 3's actual resolution (whether to authorize regeneration, and which remedy shape) requires a maintainer decision this executor run could not obtain synchronously"
-    verification: []
-    human_judgment: true
-    rationale: "The plan's Task 2 is a checkpoint:decision whose only honest options both require overriding an explicit, separately-recorded milestone-wide constraint (Tier A page.* regeneration forbidden this milestone). Auto-mode's default (auto-select the first option) would have selected a remedy class the diagnosis explicitly rules out. A human must make this call; it is not safe to infer."
-
-duration: ~55min
+    verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs + .planning/audits/198-tier-a-byte-stability.md"
+        status: pass
+    human_judgment: false
+    rationale: "The plan's Task 2 is a checkpoint:decision whose only honest options both require overriding an explicit, separately-recorded milestone-wide constraint (Tier A page.* regeneration forbidden this milestone). Auto-mode's default (auto-select the first option) would have selected a remedy class the diagnosis explicitly rules out. A human must make this call; it is not safe to infer. Discharged by phase-199: the maintainer answered this exact question ('Yes - fix cause, then regen'), the answer is recorded verbatim in the audit, and the scroll_cost coupling is now fixed at cause with byte-stability restored."duration: ~55min
 completed: 2026-08-28
 status: halted
 ---

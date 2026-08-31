@@ -45,13 +45,14 @@ coverage:
     description: "Runtime route-mount proof for /audit and /audit/__stress relocated to a named successor guard proven to have teeth (RED against a broken router, GREEN against the restored one)"
     requirement: "GREEN-04"
     verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
       - kind: e2e
         ref: "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts via mix verify.operator_stress"
         status: pass
-    human_judgment: true
-    rationale: "The teeth proof was run locally in this worktree, not on CI. The SUMMARY states plainly (below) that local green does not establish the CI result for either Run test suite lane; the next CI run on origin is the evidence that actually closes GREEN-04."
-
-duration: 45min
+    human_judgment: false
+    rationale: "The teeth proof was run locally in this worktree, not on CI. The SUMMARY states plainly (below) that local green does not establish the CI result for either Run test suite lane; the next CI run on origin is the evidence that actually closes GREEN-04. Discharged by measured CI run 33344382035: 'Run test suite (current)' concluded success, which is the CI evidence this entry deferred to."duration: 45min
 completed: 2026-08-28
 status: complete
 ---

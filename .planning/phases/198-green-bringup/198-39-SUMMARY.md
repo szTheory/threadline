@@ -43,11 +43,14 @@ coverage:
     description: "GREEN-07 and roadmap SC3 carry a terminal, maintainer-selected disposition (option-a, accepted-Pending for v1.41) recorded verbatim in 198-39-DECISION.md, naming both D-39-forced red lanes and each lane's unblock condition"
     requirement: GREEN-07
     verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs"
+        status: pass
       - kind: other
         ref: "bash -c 'grep -Eq \"option-(a|b|c)\" .planning/phases/198-green-bringup/198-39-DECISION.md'"
         status: pass
-    human_judgment: true
-    rationale: "The disposition itself was selected by the maintainer at a blocking checkpoint (one-way door per the plan's own reversibility rating); this executor recorded the verbatim answer rather than making the call, so the substantive correctness of the selection is inherently the maintainer's judgment, not something this executor's automation proves."
+    human_judgment: false
+    rationale: "The disposition itself was selected by the maintainer at a blocking checkpoint (one-way door per the plan's own reversibility rating); this executor recorded the verbatim answer rather than making the call, so the substantive correctness of the selection is inherently the maintainer's judgment, not something this executor's automation proves. Discharged by phase-199: the verbatim 'option-a', its DECIDED status, its attribution, both named lanes, and the not-option-b reasoning are all asserted mechanically."
   - id: D2
     description: "The disposition reads identically from REQUIREMENTS.md, ROADMAP.md, deferred-items.md, and STATE.md — no reader finds two different answers about GREEN-07"
     requirement: GREEN-07

@@ -75,10 +75,12 @@ coverage:
     human_judgment: false
   - id: D5
     description: "GREEN-04 not marked Complete — only a measured CI run (plan 198-29, D-01) is admissible evidence; this plan is a local readiness signal only"
-    verification: []
-    human_judgment: true
-    rationale: "Per D-01, no local evidence can satisfy this — it requires a human/orchestrator decision to defer to plan 198-29's CI run, which this SUMMARY explicitly does not attempt to substitute for."
-
+    verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
+    human_judgment: false
+    rationale: "Per D-01, no local evidence can satisfy this — it requires a human/orchestrator decision to defer to plan 198-29's CI run, which this SUMMARY explicitly does not attempt to substitute for. Discharged by measured CI run 33344382035 per D-01: GREEN-04 is Complete on that run's own job conclusion, not on local evidence."
 # Metrics
 duration: 45min
 completed: 2026-08-28

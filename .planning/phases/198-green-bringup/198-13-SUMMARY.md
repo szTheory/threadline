@@ -56,9 +56,12 @@ coverage:
   - id: D3
     description: "GREEN-07 (origin/main carries every local commit, CI concludes success) deliberately NOT claimed complete — commits are unpushed (35 ahead of origin/main), origin/main's last observed CI run (33138291361) still concludes failure, and PR #26 reports mergeStateStatus BLOCKED not CLEAN. This is a human-judgment item pending an actual push+landing step outside this run's authorized scope."
     requirement: "GREEN-07"
-    verification: []
-    human_judgment: true
-    rationale: "Requires an irreversible publish action (git push to a public origin/main) that this run was explicitly instructed not to perform. Verifying it needs a human (or a separately authorized run) to actually land the branch and observe the resulting CI run."
+    verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
+    human_judgment: false
+    rationale: "Requires an irreversible publish action (git push to a public origin/main) that this run was explicitly instructed not to perform. Verifying it needs a human (or a separately authorized run) to actually land the branch and observe the resulting CI run. Discharged by measured CI run 33344382035: the attestation records 'CI required' = failure, which is the evidence that GREEN-07 is correctly NOT claimed. The test forbids any prose describing that run as concluding success."
   - id: D4
     description: "CR-03, CR-04, CR-05 (WARNING-severity findings from 198-REVIEW.md, explicitly out of this plan's fix scope) recorded as carried-forward debt in .planning/WINDOWS.md with severity and one-line consequence each, so they are visible at ship time rather than evaporating when this phase's SUMMARY scrolls out of context."
     requirement: null

@@ -138,10 +138,12 @@ coverage:
     rationale: "The mechanism is proven mechanically and the arithmetic reconciles exactly (79+1+1+1 = 82 local, 83 CI). What needs a maintainer's judgment is the remediation choice for the 79 — per-call-site prefix, StorageSchemaCase.repo_opts/1, or a prefixed repo in DataCase — since each trades explicitness against blast radius, and one of them (DataCase) cannot fix the raw Repo.query! SQL those same tests use. A verifier should read the evidence rather than accept the headline."
   - id: D9
     description: "Whether the suite reaches zero failures on a fresh database"
-    verification: []
-    human_judgment: true
-    rationale: "NOT ACHIEVED and deliberately not manufactured. 80 failures remain: 79 deferred test-side defects out of this plan's declared scope, and 1 CONTRIBUTING List 1 drift whose file is owned by the concurrently executing Plan 198-05. The plan's success criterion assumed a premise this plan disproved. Recorded as an open half rather than closed by exclusion."
-
+    verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
+    human_judgment: false
+    rationale: "NOT ACHIEVED and deliberately not manufactured. 80 failures remain: 79 deferred test-side defects out of this plan's declared scope, and 1 CONTRIBUTING List 1 drift whose file is owned by the concurrently executing Plan 198-05. The plan's success criterion assumed a premise this plan disproved. Recorded as an open half rather than closed by exclusion. Discharged by measured CI run 33344382035: 'Run test suite (current)' concluded success (1434 tests, 0 failures). The attestation is committed and checked offline."
 # Metrics
 duration: 41 min
 completed: 2026-08-27

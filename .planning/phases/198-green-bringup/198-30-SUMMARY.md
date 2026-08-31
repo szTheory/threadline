@@ -64,12 +64,13 @@ coverage:
     description: "mix verify.example run twice consecutively from repo root, both 109 tests / 0 failures — readiness signal only, explicitly not GREEN-04 evidence per D-01"
     verification:
       - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33344382035.json"
+        status: pass
+      - kind: integration
         ref: "mix verify.example (run 1 and run 2)"
         status: pass
-    human_judgment: true
-    rationale: "Per D-01 this local figure is a readiness signal only, not admissible GREEN-04 evidence — a measured CI run is required for that, which is out of scope for this plan."
-
-duration: 35min
+    human_judgment: false
+    rationale: "Per D-01 this local figure is a readiness signal only, not admissible GREEN-04 evidence — a measured CI run is required for that, which is out of scope for this plan. Discharged by measured CI run 33344382035: the measured run this entry deferred to now exists and is committed as a checkable attestation."duration: 35min
 completed: 2026-08-30
 status: complete
 ---

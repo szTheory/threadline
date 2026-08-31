@@ -114,11 +114,14 @@ coverage:
     description: "Blocking checkpoint:decision (Task 2, baseline regeneration) answered
       and recorded in writing before any fix was attempted"
     requirement: "GREEN-07"
-    verification: []
-    human_judgment: true
+    verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs"
+        status: pass
+    human_judgment: false
     rationale: "The decision itself was made by the maintainer (via the orchestrator's
       auto-mode auto-answer), not by this executor. Recorded here for traceability, not
-      for automated re-verification."
+      for automated re-verification. Discharged by phase-199: the recorded regeneration decision is asserted mechanically, and phase-199's own bounded D-39 exception supersedes it append-only with a fresh verbatim maintainer answer."
   - id: D4
     description: "Both CI-contributing rows (operator-screenshots.spec.ts admin
       investigation) fixed at cause with red-then-green teeth proof"

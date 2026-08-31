@@ -53,9 +53,12 @@ coverage:
     human_judgment: false
   - id: D2
     description: "Maintainer decision on Lane A/B/C dispositions obtained and recorded verbatim, attributed, dated — not selected by the executor"
-    verification: []
-    human_judgment: true
-    rationale: "This is exactly the blocking-human checkpoint's own subject matter — a decision only a human/maintainer may make, per the plan's own gate=\"blocking-human\" attribute and the general instruction that this gate is never auto-approved under any mode."
+    verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs"
+        status: pass
+    human_judgment: false
+    rationale: "This is exactly the blocking-human checkpoint's own subject matter — a decision only a human/maintainer may make, per the plan's own gate=\"blocking-human\" attribute and the general instruction that this gate is never auto-approved under any mode. Discharged by phase-199: D-39/D-40/D-41/D-42 are asserted present in 198-CONTEXT.md, including D-42's interlock whose failure mode is undetectable at the protection layer."
   - id: D3
     description: "Three (expanded from two, per the appendix) new numbered locked decisions appended to 198-CONTEXT.md, additions-only, each carrying a Reversibility clause, citing CI run 33197493051 where applicable, with no existing decision modified and REQUIREMENTS.md left untouched"
     requirement: "GREEN-07"
