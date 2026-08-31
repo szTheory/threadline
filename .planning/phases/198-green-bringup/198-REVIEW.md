@@ -2,120 +2,134 @@
 phase: 198-green-bringup
 reviewed: 2026-08-30T00:00:00Z
 depth: standard
-files_reviewed: 19
+files_reviewed: 4
 files_reviewed_list:
-  - lib/threadline/operator_surface/presentation.ex
-  - lib/threadline/operator_surface/live/export_status_live.ex
-  - test/threadline/operator_surface/presentation_test.exs
-  - test/threadline/operator_surface/copy_contract_test.exs
   - examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex
   - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex
-  - examples/threadline_phoenix/test/support/walkthrough_case.ex
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs
+  - examples/threadline_phoenix/test/threadline_phoenix/demo/advisory_lock_pinning_test.exs
   - examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs
-  - examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-phase-177-uat.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts
 findings:
-  critical: 1
+  critical: 0
   warning: 1
   info: 1
-  total: 3
+  total: 2
 status: issues_found
 ---
 
-# Phase 198 (green-bringup, gap-closure round 5): Code Review Report
+**Note:** The round-5 review is preserved unchanged at
+`.planning/phases/198-green-bringup/198-REVIEW-round5.md`. This file (`198-REVIEW.md`) now holds the
+round-6 gap-closure review (plans 198-38..198-40; 198-39/198-40 were docs-only, so only 198-38 touched
+source).
+
+# Phase 198 (green-bringup, gap-closure round 6): Code Review Report
 
 **Reviewed:** 2026-08-30
-**Depth:** standard (diff `11f1c883..HEAD`, plans 198-30 through 198-37)
-**Files Reviewed:** 19
-**Status:** issues_found
+**Depth:** standard (diff `1bda5d1c..HEAD`, plan 198-38)
+**Files Reviewed:** 4
+**Status:** issues_found (1 Warning, 1 Info — no Critical)
 
 ## Summary
 
-Round 5 is, on the whole, genuinely honest gap-closure work, and the majority of it checks out under direct re-derivation rather than trust in the round's own claims:
+Round 6's central claim — that CR-01 (round-5's unresolved Critical: the nested demo-seed advisory
+lock was not pinned to one physical connection) is fixed **at cause**, not merely reworded — holds up
+under direct tracing through the Ecto/DBConnection source, not just under trust of the plan's own
+narrative.
 
-- **CR-01 (round 4, `export_status_live.ex` duplicate label function)** — verified **actually fixed**, not merely realigned. The private `defp export_job_status_label/1` is gone; the template calls the new public `Presentation.export_status_label/2`; I hand-traced every branch (`Queued`/`Processing`/`Failed`/`Export expired`/`File unavailable`/fallback) against the deleted private function's old logic and they are identical, including the `nil`-status and `nil`/absent-`expires_at` edge cases and the exact-equality expiry boundary (`DateTime.compare(...) != :gt`, unchanged). `export_action_label/2` is correctly retained-with-reason per the maintainer's `198-34-DECISION.md`, with an honest `@doc` explaining why it has no in-tree caller.
-- **CR-02 (round 4, vacuous coverage-snapshot assertion)** — verified fixed. `coverage_live.ex:291-296` renders `<dt>Covered</dt><dd><%= @snapshot.covered_count %></dd>` unconditionally; the new regex `~r/<dt>Covered<\/dt>\s*<dd>[1-9]\d*<\/dd>/` correctly requires a strictly-positive leading digit, which a `0` count cannot satisfy. This is a real fix.
-- **CR-03 (round 4, tautological `subject_ref` assertion)** — verified fixed. The manifest-literal pin (`assert subject_ref == %{"policy" => "walk-demo-redaction-policy"}`) is restored ahead of the round-trip assertion, and the round-trip assertion's now-honest comment correctly documents that it is non-load-bearing by construction (the query filters on the same value).
-- **CR-04 / WR-07 (round 4, phase-177 group-story floor and filter-applied proof)** — verified fixed and verified correct against source: `stress_fixtures.ex` declares exactly 12 `"group.*"` entries; I confirmed all four of `REQUIRED_GROUP_STORY_IDS` (`group.page-header.current`, `group.modal-destructive.current`, `group.drawer-form.reference`, `group.offline.current`) are literal ids in that list, and `GROUP_STORY_FLOOR = 12` matches the declared count exactly.
-- **WR-08 / WR-09 (round 4, dropped `<nav>` landmark assertion, dropped actor-type assertion)** — both verified fixed and verified correct against source (`surface_header.ex:57` renders a `<nav aria-label="Audit navigation">`; `actor_live.ex:156` + `ui.ex:441-450` render `<div class="tl-kv__row"><dt class="tl-kv__key">Kind</dt><dd class="tl-kv__value">user</dd></div>`, which the restored `.tl-kv__row`/`.tl-kv__key`/`.tl-kv__value` selectors match exactly).
-- **WR-11 (round 4, order-dependent `<details>` click)** — verified fixed with a real idempotent read-before-click and a state assertion.
+**CR-01 verified fixed at cause.** `Reset.with_demo_lock/1` now wraps `acquire_demo_lock/0`, the
+caller's `fun.()`, and the `pg_advisory_unlock` release inside one `Repo.checkout(fn -> ... end,
+timeout: :infinity)` call (`reset.ex:80-98`). I traced this through
+`deps/ecto_sql/lib/ecto/adapters/sql.ex`: `Ecto.Adapters.SQL.checkout/3` →
+`checkout_or_transaction/4` stores the checked-out `%DBConnection{}` reference in the *process
+dictionary* under `{Ecto.Adapters.SQL, pool}` (`put_conn/2`) before invoking the callback, and — this
+is the load-bearing fact — a *nested* call to `Repo.checkout/2` (or `Repo.transaction/2`) from the
+same process resolves `get_conn_or_pool/2` against that same process-dictionary entry first
+(`sql.ex:1482-1493`) rather than re-checking-out from the pool. So when `fun.()` synchronously calls
+`Demo.Seed.run/0`, which calls `Reset.with_demo_lock/1` again, the nested `Repo.checkout/2` reuses the
+outer physical connection — it does not attempt a second pool checkout that could land on a different
+backend. The intervening `Repo.transaction/1` calls the seed pipeline performs (`Seed.Personas.run/1`
+etc.) go through the same process-dictionary lookup, so they run as nested transactions on the same
+pinned connection rather than releasing the pin — exactly what the new test's "intervening
+`Repo.transaction/1`" assertion checks. `Demo.Seed` no longer has a second, independently maintained
+copy of the guard (`grep -c 'defp with_demo_lock' seed.ex` → `0`, confirmed by direct read); it
+delegates via `Reset.with_demo_lock(fn -> ... end)` (`seed.ex:29`). Neither `mix demo.reset` nor `mix
+demo.seed`'s task modules (`lib/mix/tasks/demo.reset.ex`, `lib/mix/tasks/demo.seed.ex`) acquire the
+lock a third time — both simply call the already-guarded `Reset.run/1` / `Seed.run/0`. Release is
+guaranteed on every exit path from `fun.()`, including exceptions, by the `try/after` inside the
+checkout closure; if `acquire_demo_lock/0` itself raises (the bounded-retry timeout), that's correctly
+*outside* the `try`, since no lock was ever held in that case, so no spurious unlock is attempted. No
+`Task.async`/`spawn`/`send` was found anywhere in `lib/threadline_phoenix/demo/`, so there is no path
+that escapes the checked-out process and its process-dictionary pin.
 
-However, this round's own headline mechanism — the advisory-lock refactor that was supposed to close round-4's WR-01/WR-02 (session-scoped lock leaking on abnormal exit, guarding only some entry points) — introduces a new correctness bug of the same shape it was meant to fix. See CR-01 below.
+**The regression test is a real falsifier, not a tautology, per the plan's own honest disclosure.**
+`AdvisoryLockPinningTest`'s first test (`Repo.checked_out?()` true at the innermost point of a nested
+`with_demo_lock/1` call) is the deterministic gate, and I confirmed by direct reasoning through the
+same `sql.ex` source that on the pre-fix tree (no `Repo.checkout/2` at all, every statement an
+independent `Repo.query!/2`) `Repo.checked_out?()` would correctly read `false` throughout — matching
+the plan's own recorded red output. The second test's `pg_backend_pid()` identity assertion is
+correctly described in the plan/summary as *corroborating, not primary* — it is disclosed as having
+passed even pre-fix in one observed run (single sequential process usually reuses a connection from a
+small pool), which the executor reported honestly rather than suppressing. That non-determinism is a
+real property of the pre-fix code (it fails intermittently, not always), and the structural assertion
+is what actually encodes the defect deterministically — this is a legitimate, disclosed design choice,
+not a hidden weakness. The second test does still add real coverage beyond redundancy: its final
+`Repo.checkout(fn -> pg_try_advisory_lock ... end)` block, run *after* the outer guard has returned,
+proves the release actually reached the holding backend (a fresh acquire from a fresh checkout
+succeeds) — this specifically falsifies the "nested inner release strands the lock" half of CR-01's
+failure mode, which the structural test alone does not cover.
 
----
+**IN-01 verified fixed, comment-only.** `git diff` on `walkthrough_evidence_test.exs` shows exactly one
+changed line, `label label` → `label`, no assertion or executable line touched.
 
-## Critical Issues
-
-### CR-01: The "reentrant on the same session" claim for the nested demo-seed advisory lock is not guaranteed by Ecto's connection pool, and the untested path is exactly the one this round shipped
-
-**File:** `examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex:57-96`, `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex:9-19,53-91`
-
-**Issue:** `Demo.Reset.run/1` wraps its body in `with_demo_lock/1` (`reset.ex:83-93`), whose `fun` calls `Demo.Seed.run()` (`reset.ex:112`). `Demo.Seed.run/0` itself unconditionally calls its own `with_demo_lock/1` (`seed.ex:19-24`), which tries to acquire the *same* advisory lock pair (`Reset.advisory_lock_classid()`/`objid()`) a second time. `seed.ex:9-16`'s docstring states this is safe because Postgres advisory locks are "reentrant on the same session, so calling this from within `Reset.run/1` (which has already taken the lock) succeeds immediately and cannot deadlock."
-
-That claim depends on the outer acquire (`reset.ex`'s `acquire_demo_lock`) and the inner acquire (`seed.ex`'s `acquire_demo_lock`) running on the **same Postgres backend connection** — Postgres advisory-lock reentrancy is per-session (per-backend), not per-call. Neither `with_demo_lock/1` implementation pins a connection: each is a bare sequence of independent `Repo.query!/2` calls (`SET lock_timeout`, `SELECT pg_try_advisory_lock`, the caller's work, `SELECT pg_advisory_unlock`), and outside an explicit `Repo.transaction/2` or `Ecto.Adapters.SQL.Sandbox` checkout, every `Repo.query!/2` call independently checks a connection out of and back into the DBConnection pool. Ecto/DBConnection do not guarantee that sequential, non-transactional queries from one process reuse the same physical connection.
-
-Both real invocation paths of this code run *without* any such pinning:
-```elixir
-# lib/mix/tasks/demo.reset.ex
-Mix.Task.run("app.start")
-ThreadlinePhoenix.Demo.Reset.run(skip_assert: true)
-```
-`config/dev.exs:18` and `config/runtime.exs:37,54` set `pool_size: 10` for exactly this environment. So under real `mix demo.reset` / `mix demo.seed` usage — the two entry points this round's own docstring at `reset.ex:34-36` names as needing coverage — the outer lock acquired by `Reset.with_demo_lock/1` and the inner (re-)acquire attempted by `Seed.with_demo_lock/1` can land on two different backend sessions. When they do:
-
-1. The inner `pg_try_advisory_lock` sees the lock held by a *different* session and returns `false` (not an error — it's non-blocking by design), so `do_acquire_demo_lock/1` sleeps and retries for up to `90 * 500ms = 45s`, then raises: `"demo seed lock: timed out ... — another session is still holding the demo seed/reset lock"` — a false-positive crash, since the "other session" is this same call graph's own outer lock.
-2. Even when the inner acquire happens to land on the same connection as the outer one (Postgres correctly treats this as reentrant), the matching inner `pg_advisory_unlock` call is itself a separate, independently pooled `Repo.query!/2` call. If *that* one lands on a different connection than the one actually holding the lock, `pg_advisory_unlock` is a silent no-op (it only unlocks locks held by the calling session) — the lock is left held on the original connection, which is then returned to the idle pool. It will not be released until that specific physical connection is closed or the outer `with_demo_lock/1`'s own `after`-block unlock happens to land on it, meaning the lock can leak into the pool and cause the *next* `mix demo.reset` to reproduce (1) — precisely the "session-scoped lock leak poisons a pooled connection" failure mode (round-4 WR-01) this round's SUMMARY claims to have closed, reintroduced through the pooling behavior of the fix itself rather than an ExUnit process kill.
-
-This is why the round's own test suite cannot catch it: every test exercising `Reset.run/1`/`Seed.run/0` (`demo_reset_test.exs:41-64`, `demo_contract_test.exs`, `walkthrough_case.ex:17-19`) wraps the call in `Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn -> ... end)`. `unboxed_run/2` (`ecto_sql/lib/ecto/adapters/sql/sandbox.ex:624-633`) calls `checkout(repo, sandbox: false)`, which pins the calling process to one physical connection via `DBConnection.Ownership` for the whole block — so in every test, the nested acquire/release pair is guaranteed to land on the same connection as the outer one, masking exactly the scenario that breaks under the real `mix demo.reset`/`mix demo.seed` CLI paths (`pool_size: 10`, no Sandbox, no transaction wrapping).
-
-**Failure scenario:** A developer or CI job runs `mix demo.reset` against a running Phoenix app (`app.start` boots the full supervision tree, so other connections in the 10-connection pool may be in flight from Endpoint/LiveView/health-check traffic). The nested `Demo.Seed.run()` acquire happens to land on a different pooled connection than `Demo.Reset.run/1`'s own acquire. `mix demo.reset` hangs for 45 seconds and then crashes with `"another session is still holding the demo seed/reset lock"` — a confusing, self-inflicted false positive — or, worse, silently leaves the lock held on an idle pooled connection, so the *next* `mix demo.reset` reproduces the same failure deterministically until that connection cycles out of the pool.
-
-**Fix:** Pin one connection for the entire guarded region instead of relying on incidental pool behavior — e.g., wrap `with_demo_lock/1`'s body in `Repo.transaction/2` and use the transaction-scoped `pg_advisory_xact_lock` (auto-released on commit/rollback, no manual unlock needed, and reentrant *within* a transaction by construction):
-```elixir
-def with_demo_lock(fun) do
-  Repo.transaction(
-    fn ->
-      acquire_demo_lock()
-      fun.()
-    end,
-    timeout: :infinity
-  )
-  :ok
-end
-```
-or, if the existing design's multiple independent `Repo.transaction/1` calls inside `fun` must be preserved (per the module's own stated reason for avoiding one outer transaction), pin a single connection explicitly with `Repo.checkout/2` around the acquire+work+release sequence instead of transaction-wrapping it, and make `Demo.Seed.run/0` accept an option (e.g. `already_locked?: true`) so `Demo.Reset.run/1` can skip the nested acquire entirely rather than relying on incidental session reentrancy.
+**Residual risk found in the new test's `Sandbox.mode(Repo, :auto)` mid-suite switch — see WR-01
+below.** This is not a proven regression (I could not reproduce a failure, and the plan's own repeated
+`mix test` / `mix verify.example` runs report `0 failures`), but it rests on an ExUnit ordering
+guarantee (`async: false` modules run only after all `async: true` modules have finished) that the test
+file's own comment does not name, while `Ecto.Adapters.SQL.Sandbox`'s own docs carry an explicit
+warning about exactly this operation that the comment also does not cite.
 
 ---
 
 ## Warnings
 
-### WR-01: `SET lock_timeout` is set on a connection that is not guaranteed to be the one used for the following query, making the "defense in depth" comment's guarantee illusory
+### WR-01: Sandbox mode is switched process-globally mid-suite; the safety argument in the test's moduledoc doesn't name the actual mechanism the fix depends on
 
-**File:** `examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex:70-75`, `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex:63-68`
+**File:** `examples/threadline_phoenix/test/threadline_phoenix/demo/advisory_lock_pinning_test.exs:22-24,32-37`
 
-**Issue:** `acquire_demo_lock/1` issues `Repo.query!("SET lock_timeout = '45s'")` as its own independent, non-transactional query, then calls `do_acquire_demo_lock/1`, which issues a second independent `Repo.query!/2` for `pg_try_advisory_lock`. For the same connection-pooling reason as CR-01, these two calls are not guaranteed to run on the same backend session — the `SET lock_timeout` may silently apply to a connection that is never used again, while the connection that actually executes later queries in `fun.()` (including any blocking operation, however unlikely) runs with the default `lock_timeout` (typically unset/infinite). The comment at `reset.ex:71-73` describes this as bounding "any other blocking wait this connection might incur," but "this connection" is not a stable referent across the function.
+**Issue:** `Ecto.Adapters.SQL.Sandbox.mode/2`'s own docs (`deps/ecto_sql/lib/ecto/adapters/sql/sandbox.ex:497-500`) state: *"Whenever you change the mode to `:manual` or `:auto`, all existing connections are checked in. Therefore, it is recommended to set those modes before your test suite starts, as otherwise you will check in connections being used in any other test running concurrently."* This test module calls `Sandbox.mode(Repo, :auto)` in `setup` and `Sandbox.mode(Repo, :manual)` in `on_exit` — i.e., mid-suite, not before it starts — which is precisely the case the library's own doc warns about.
 
-**Fix:** Either drop the `SET lock_timeout` (it protects nothing today, since `pg_try_advisory_lock` never blocks and is the only query it precedes) or set it session-wide via `Repo.checkout/2` around the whole guarded region so "this connection" is actually one connection, consistent with the CR-01 fix.
+This is safe in practice **only** because ExUnit guarantees `async: false` modules run strictly after every `async: true` module has finished, so no other test process is holding a sandboxed connection open when this module's `setup`/`on_exit` fire, and ExUnit never runs two `async: false` modules concurrently with each other either. That is the actual mechanism the plan's own threat model (T-198-38-04) and this file's moduledoc rely on for safety — but the moduledoc/comment states only "the sandbox mode is process-global for the repo... so this module is `async: false`... so no other module inherits `:auto` mode" (lines 22-24, 32-37). That phrasing describes *inheriting a mode setting*, which understates the real risk documented by `Sandbox.mode/2` itself: a concurrently-running test's connection being **forcibly checked in out from under it**, not merely "inheriting" a mode value. A future reader relying on this comment to reason about safety would not learn the actual invariant being depended on (ExUnit's async-then-sync scheduling order), nor that this file is, per `grep -rln 'Sandbox.mode' test`, the *only* place in this test suite other than `test_helper.exs`'s one-time startup call that invokes `Sandbox.mode/2` mid-run — there is no established precedent elsewhere in this codebase to cross-check against.
+
+This did not fail in the plan's own repeated `mix test`/`mix verify.example 0 failures` runs, and is not a proven regression; it is a maintainability/robustness gap in the safety argument as documented, which is exactly the kind of implicit cross-module invariant that's easy to violate in a future refactor (e.g. a test-runner config change that partitions or reorders test execution, or a future `async: true` addition elsewhere that happens to still be finishing when this module's `setup` runs under a different ExUnit version's scheduling).
+
+**Fix:** Update the moduledoc/comment to name the actual invariant depended on, e.g.:
+
+```elixir
+# The sandbox mode is process-global for the repo, and Ecto.Adapters.SQL.Sandbox's
+# own docs warn that switching :auto/:manual mid-suite force-checks-in every
+# connection any OTHER concurrently-running test process currently owns — not
+# merely that a mode setting is "inherited." This module is therefore `async:
+# false`, relying on ExUnit's guarantee that async: false modules run only after
+# every async: true module has finished (and never concurrently with another
+# async: false module), so no other test process holds a connection open while
+# this module's setup/on_exit switch the mode. :manual is restored in on_exit so
+# the next module to run resumes ExUnit's normal per-test sandbox ownership.
+```
+
+Optionally, add a `mix test`/`--seed`-stability comment noting this assumption would need
+re-verification if the suite ever adopts test partitioning (`--partitions`) or a different ExUnit
+scheduler behavior.
 
 ---
 
 ## Info
 
-### IN-01: Minor typo in the corrected coverage-snapshot comment
+### IN-02 (round 6 numbering; distinct from round-5's IN-02 namespacing item): `Repo.checkout/2`'s `timeout: :infinity` silently also removes the pool's own checkout-queue timeout for the whole guarded region, including the entire seed pipeline
 
-**File:** `examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs:96`
+**File:** `examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex:79-98`
 
-**Issue:** The corrected comment explaining the CR-02 fix reads "...so a bare substring match on either label label passes..." — a duplicated word ("label label"). Purely cosmetic; does not affect the (correct) assertion it documents.
+**Issue:** `:timeout` passed to `Repo.checkout/2` is not a query timeout — it is `DBConnection.run/3`'s pool checkout/queue timeout, and it now bounds the entire guarded region (lock retry loop **plus** `Demo.Tables.truncate_sql()` **plus** the full `Demo.Seed.run/0` pipeline, since that whole body runs inside the same checkout closure via `fun.()`). Setting it to `:infinity` is a deliberate, documented tradeoff (the docstring correctly explains why: the 45s bounded lock-retry loop must not be truncated by the pool's 15s default), but one side effect worth naming explicitly is that if the seed pipeline itself ever hangs (e.g., a runaway query, a lock wait against unrelated app traffic sharing the same 10-connection pool), there is now no pool-level backstop timeout for that hang at all — only whatever timeout, if any, the individual `Repo.transaction/1` calls inside the pipeline carry. This is not a regression introduced carelessly (it's the necessary consequence of the correct fix), but the docstring's framing ("the lock-retry loop is still the thing that actually bounds how long this function can run," `reset.ex:57-59`) is true only for the *lock acquisition* phase, not for the pipeline body once the lock is held. Purely a documentation-completeness note.
 
-**Fix:** Remove the duplicated word.
+**Fix:** Consider a sentence in the docstring clarifying that `timeout: :infinity` removes the pool-checkout backstop for the whole guarded region including the seed pipeline body, not only the lock-retry wait — so a future reader tuning pipeline reliability knows where the actual bound (or lack of one) now lives.
 
 ---
 
