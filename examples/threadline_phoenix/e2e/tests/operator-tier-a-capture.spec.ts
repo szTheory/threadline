@@ -255,12 +255,15 @@ async function rawInputs(page: Page, cardSelector: string) {
       if (depth > cardNestingDepth) cardNestingDepth = depth;
     }
 
+    // Scroll cost is the PRODUCT surface's content height in viewports — scoped to
+    // `main` like every sibling field above, NOT `document.documentElement`. On
+    // /audit/__stress the document is ~98.5% harness-sidebar story catalog (35726px
+    // of 36374px measured; the preview itself is 502px), so a document-wide read
+    // grows with every newly registered story and carries no per-page signal at all.
+    // See .planning/audits/198-tier-a-byte-stability.md (198-16 diagnosis).
     const scrollCost =
-      Math.round(
-        (document.documentElement.scrollHeight /
-          Math.max(window.innerHeight, 1)) *
-          1000,
-      ) / 1000;
+      Math.round((main.scrollHeight / Math.max(window.innerHeight, 1)) * 1000) /
+      1000;
 
     const landmarkSel =
       'main, nav, header, footer, aside, [role="main"], [role="navigation"], ' +

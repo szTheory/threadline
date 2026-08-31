@@ -419,3 +419,136 @@ stated fallback for exactly this situation, and this gap is recorded as still
 open. A future run of this plan (or a follow-up plan) should record the
 maintainer's actual verbatim choice in this section once made, per Task 2's
 original instruction, before Task 3 is re-attempted.
+
+---
+
+## Decision (Task 2) — RESOLVED 2026-08-31, maintainer authorized option (b)
+
+The maintainer response this section was waiting for arrived on **2026-08-31**, during a
+`/gsd-verify-work 198` session that re-derived this diagnosis independently from CI run
+`33344382035` (round 6). The choice was made at an explicit options gate; the executor
+recorded it rather than selecting it.
+
+**The maintainer's verbatim selection:**
+
+> Yes — fix cause, then regen
+
+Presented as: *"Re-scope scrollCost to `[data-testid="stress-preview"]` (same fix Phase 194
+already applied to raw-input collection), then re-seed the 120 `mechanical_floors` values
+and regenerate scorecards in one diff."*
+
+This is **option (b)** from the Recommendation above — rescope, regenerate once, re-seed
+`mechanical_floors` as a single durable pass — and explicitly **not** option (a), the
+stopgap that recommits `scroll_cost` values without touching the scope defect. Option (a)
+was offered in the same gate ("Just regenerate") and was not selected.
+
+### Why this is not a D-39 violation
+
+`198-39-DECISION.md` (option-a, 2026-08-30) accepted GREEN-07 as permanently Pending for
+v1.41 and named the unblock condition per lane, verbatim:
+
+> **`verify-capture`** — unblocks in a milestone where Tier-A `page.*` scorecard
+> regeneration is authorized AND the `scroll_cost` coupling diagnosed in 198-16 is
+> addressed.
+
+Both halves are now satisfied: regeneration is authorized here, and the coupling is
+addressed at the cause. `198-39-DECISION.md` is **not** rewritten, renumbered, or
+retracted — this is an append-only superseding authorization taken under the condition
+that decision itself specified. The one option 198-39 warned against (option (c),
+"regeneration makes the lane green by changing the evidence rather than fixing the cause")
+is precisely the one not taken.
+
+### Evidence re-derived at the gate (independent of §1–§6 above)
+
+- `mechanical_floors` holds **120** `scroll_cost` values across 20 ledger entries that
+  collapse to **3 distinct numbers** — one per breakpoint, identical for every page.
+- The 120 committed `page.*` scorecards carry **7 distinct values, all within
+  `[18.697, 19.85]`**, clustered strictly by breakpoint
+  (1280→{18.697, 18.803}, 768→{18.984, 19.038, 19.064}, 375→{19.77, 19.85}).
+- Within-breakpoint spread across 20 different pages is **≤0.11** — roughly 100px of a
+  36374px document.
+
+A per-page metric whose value is fixed by breakpoint and not by page is not measuring the
+page. This is the numeric signature of the scope defect and is the strongest available
+statement that the metric carries no signal in its current form.
+
+### Scope of this authorization — bounded
+
+**In scope:** `operator-tier-a-capture.spec.ts`'s `scrollCost` read, the scorecards
+`mix verify.capture` regenerates, the 120 `mechanical_floors` values, and the guard tests
+that make the defect un-reintroducible.
+
+**Explicitly NOT authorized here:** the byte-identical defect in
+`operator-page-capture.spec.ts:251`, `operator-graded-capture.spec.ts:206`, and
+`operator-storybook-capture.spec.ts:192`. Regenerating the 144 `refute.*.graded.*` cells
+would change the `scroll_cost:` line `examples/threadline_phoenix/e2e/critic/bundle.ts:198`
+renders verbatim into the critic prompt, which can move per-lens Spearman/n and force
+`validated: false` re-scoring under `critic_trust_test.exs`. That is a separate
+authorization with a separate blast radius. Note that changing those three specs *without*
+regenerating them would be worse than leaving them — it would plant a 144-cell diff plus a
+critic-trust invalidation for whoever next runs `capture:graded`.
+
+**Recorded by:** phase-199 executor, 2026-08-31, from the maintainer's verbatim answer at
+the authorization gate.
+
+---
+
+## Post-fix measurement (phase-199, 2026-08-31) — including one falsified expectation
+
+The rescope landed and behaves exactly as §4 predicted numerically. Two further findings
+are recorded here because both contradict something a reader would reasonably assume, and
+one contradicts this phase's own plan.
+
+### The fix works, and its arithmetic checks out
+
+`main.scrollHeight / window.innerHeight` = `500 / 900` = **0.556**, matching §4's
+independently-derived prediction of `502 / 900 ≈ 0.558` to within the preview's own 2px of
+border. Regeneration is deterministic: two consecutive `mix verify.capture` runs produced
+an identical 198-file diff (156 `scroll_cost`-only + 42 refute content diffs), and **zero**
+`*.aria.yml` files changed — the expected result, since the aria writer was already
+`[data-testid="stress-preview"]`-scoped, and a useful independent tripwire that the capture
+scope moved only where intended.
+
+### FALSIFIED: the metric does **not** become per-page for `page.*` cells
+
+Phase 199's plan asserted that after the rescope `scroll_cost` would become "the first
+genuinely per-page MODE-B metric — the 20 entries will hold 20 different values instead of
+one repeated constant." **That is false, and the measurement says so plainly:**
+
+| | before | after |
+|---|---|---|
+| distinct values across 120 `page.*` cells | 7 | **4** |
+| all 20 pages at `dark_1280` | 18.803 (identical) | **0.556 (identical)** |
+| driven by | breakpoint | breakpoint |
+
+The metric got *more* degenerate, not less. The cause is a second scoping fact the original
+diagnosis had no reason to surface: `show_ui_matrix?/1` (`stress_live.ex:794`) admits only
+`foundation primitive form_control group state`, so for a `page.*` story the
+`stress-preview` panel renders just the preview header, the four-row ledger `dl`, and one
+copy paragraph. **It never renders the page under test.** Its height is therefore near
+constant regardless of which page the cell names.
+
+So the honest statement of what this fix achieved is narrower than the plan claimed, and
+worth stating precisely:
+
+- **Fixed:** `scroll_cost` no longer tracks the stress-lab story catalog, so committed
+  evidence stops silently rotting every time a phase registers a new story. That coupling
+  was the actual cause of the `verify-capture` byte-stability failure, and it is gone.
+- **Not fixed, and not claimed:** `scroll_cost` still carries no per-page signal for
+  `page.*` cells. It now measures a fixed harness panel instead of a growing harness
+  sidebar — a stable wrong thing rather than a drifting wrong thing.
+
+A consequence for the gate design: the "floors are not all identical" non-degeneracy
+assertion this phase intended to add **must not be written**, because the data cannot
+satisfy it. Asserting it would either fail immediately or invite someone to weaken it
+later. Making `scroll_cost` meaningful requires capturing `page.*` cells against real page
+content rather than the stress-preview panel — a separate change, out of this
+authorization's bounded scope, and recorded here rather than quietly absorbed.
+
+### The 144 `*.graded.*` cells legitimately still hold document-scoped values
+
+Post-fix, every regenerated cell reads < 1.0 while exactly **144** `refute.*.graded.*`
+cells still read ~40. That is correct and expected: they are produced by
+`operator-graded-capture.spec.ts`, which this authorization deliberately does not touch
+(see the scope note above). Any scope-guard assertion added for this metric must exclude
+them, or it will fail on evidence it was never authorized to regenerate.
