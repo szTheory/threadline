@@ -205,7 +205,7 @@
     "type_size_count": 6,
     "interactive_control_count": 0,
     "card_nesting_depth": 0,
-    "scroll_cost": 0.889,
+    "scroll_cost": 1,
     "font_sizes": [
       "12px",
       "13px",

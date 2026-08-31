@@ -552,3 +552,63 @@ cells still read ~40. That is correct and expected: they are produced by
 `operator-graded-capture.spec.ts`, which this authorization deliberately does not touch
 (see the scope note above). Any scope-guard assertion added for this metric must exclude
 them, or it will fail on evidence it was never authorized to regenerate.
+
+---
+
+## Round 2 (phase-199, 2026-08-31): the rescope exposed a second, smaller instability
+
+The rescope was measured on CI (run `33351326371`, PR #34) and **worked**: drift fell from
+**198 files to 4**. But those 4 did not match, and the reason is worth recording because it
+inverts the naive reading of the original diagnosis.
+
+### What CI saw
+
+| cell | local | CI | delta |
+|---|---|---|---|
+| `page.transaction.permission__{dark,light}-375` | 0.628 | 0.654 | +0.026 |
+| `refute.density.card-section-wrap.flawed__{dark,light}-768` | 0.889 | 0.916 | +0.027 |
+
+~23px, at the two narrow breakpoints only — the signature of one extra wrapped line from a
+font/layout difference between the runner and this machine. Not noise: the delta is
+consistent across all four cells and both themes.
+
+### The inversion
+
+The old document-wide metric was environment-stable **because** it measured a fixed sidebar
+catalog rather than the page. Scoping it to real product content is what made it correct —
+and correctness is exactly what made it sensitive to genuine cross-environment rendering
+differences. The original diagnosis ruled out remedy class 2 ("CI-vs-local genuinely
+differ") for the *old* metric, correctly; that class becomes live for the *new* one.
+
+### Why neither gate could hold it at 3-decimal precision
+
+Byte-stability fails, obviously. Less obviously, **so does the ratchet**: floors were seeded
+from local values, so CI measuring `0.654` against a `0.628` floor is `current > floor` — a
+MODE-B violation. Excluding the field from the byte-stability diff alone would therefore
+have moved the failure from one step to the next rather than fixing it.
+
+### Resolution — quantize to half-viewports (maintainer-selected)
+
+Presented as three options; the maintainer selected quantization. `scrollCost` is now
+rounded to the nearest **0.5 viewport** at capture.
+
+- The bucket is ~19x the observed cross-environment delta, and every observed value sits at
+  least **0.096** from a bucket edge — 3.5x the delta — so both environments agree with
+  margin.
+- The metric still does the job a scroll-cost ratchet exists for: catching gross bloat, a
+  panel going from half a viewport to two. It no longer pretends to resolve differences
+  finer than that.
+- The honest claim, and the one the code comment now makes: **this value is reproducible to
+  half-viewport precision and no finer.**
+
+### What is still true from the earlier finding
+
+Quantization does not restore per-page signal, and nothing here claims it does. The metric
+remains breakpoint-dominated because a `page.*` preview renders chrome plus one paragraph,
+never the page under test (`show_ui_matrix?/1`). Coarsening the units makes that more
+visible, not less. Giving `scroll_cost` real signal still requires capturing `page.*` cells
+against real page content, which remains out of scope.
+
+The alternative considered and not taken was removing `scroll_cost` from the gate entirely —
+defensible on the evidence (zero per-page signal, never caught a regression), but it removes
+a guard, and the coarse guard is worth more than no guard.
