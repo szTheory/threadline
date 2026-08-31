@@ -280,8 +280,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert sorted_keys(allowlist) == ["ci", "local_review"],
              "#{@ledger_path} screenshot_allowlist must contain ci and local_review arrays"
 
-      # Tier C pixel allowlist stays bounded at exactly 3 (MECH-05). Tier A mechanical
-      # coverage grows via committed scorecards, NOT by expanding the pixel-diff lane.
+      # Tier C cell list stays bounded at exactly 3 (MECH-05). Tier A mechanical coverage
+      # grows via committed scorecards, NOT by expanding this lane.
       assert length(allowlist["ci"]) == 3,
              "#{@ledger_path} Tier C ci screenshot allowlist must stay bounded at exactly 3 entries, got #{length(allowlist["ci"])}"
 
@@ -289,10 +289,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Map.has_key?(by_id, item["ledger_id"]),
                "screenshot #{lane} allowlist references unknown ledger_id #{inspect(item["ledger_id"])}"
 
-        for key <- ~w(story_id theme viewport baseline_ref) do
+        for key <- ~w(story_id theme viewport) do
           assert Map.has_key?(item, key),
                  "screenshot #{lane} allowlist item #{inspect(item)} is missing #{key}"
         end
+      end
+
+      # `local_review` is a local capture list and still points at PNG names.
+      for item <- allowlist["local_review"] do
+        assert Map.has_key?(item, "baseline_ref"),
+               "local_review allowlist item #{inspect(item)} is missing baseline_ref"
+      end
+
+      # The `ci` lane retired its pixel baselines in phase 199 (see 198-TRIAGE.md). Each
+      # cell must now name the structural cell that asserts it AND carry a recorded
+      # retirement — a cell that simply dropped baseline_ref would silently assert nothing
+      # while still counting toward the bounded 3.
+      for item <- allowlist["ci"] do
+        assert is_binary(item["structural_ref"]) and item["structural_ref"] != "",
+               "ci allowlist item #{inspect(item["story_id"])} must name a structural_ref"
+
+        retired = item["pixel_baseline_retired"]
+
+        assert is_map(retired),
+               "ci allowlist item #{inspect(item["story_id"])} must record pixel_baseline_retired"
+
+        for key <- ~w(retired_baseline_ref reason evidence_ref) do
+          assert is_binary(retired[key]) and retired[key] != "",
+                 "pixel_baseline_retired for #{inspect(item["story_id"])} is missing a non-empty #{key}"
+        end
+
+        # Non-vacuous: the cited evidence must actually exist on disk, so the retirement
+        # cannot point at a document nobody wrote.
+        assert File.exists?(retired["evidence_ref"]),
+               "pixel_baseline_retired.evidence_ref #{inspect(retired["evidence_ref"])} does not exist"
       end
     end
 
