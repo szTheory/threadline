@@ -60,6 +60,10 @@ command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
 
 mkdir -p "$OUT_DIR"
 OUT_FILE="${OUT_DIR}/ci-attestation-${RUN_ID}.json"
+TMP_FILE="$(mktemp "${OUT_DIR}/.ci-attestation-${RUN_ID}.XXXXXX")" ||
+  die "could not create temporary attestation in $OUT_DIR"
+cleanup() { rm -f "$TMP_FILE"; }
+trap cleanup EXIT
 
 RAW="$(gh run view "$RUN_ID" \
   --json databaseId,displayTitle,workflowName,headSha,headBranch,event,status,conclusion,createdAt,updatedAt,url,attempt,jobs \
@@ -97,6 +101,19 @@ printf '%s' "$RAW" | jq --arg tool "bin/record-ci-attestation" '{
   },
   jobs: [.jobs[] | {name, conclusion, status, started_at: .startedAt, completed_at: .completedAt}]
     | sort_by(.name)
-}' > "$OUT_FILE"
+}' > "$TMP_FILE"
+
+jq -e --argjson run_id "$RUN_ID" '
+  .schema == "threadline.ci-attestation/1" and
+  .recorded_by == "bin/record-ci-attestation" and
+  .run.id == $run_id and
+  .run.status == "completed" and
+  (.run.conclusion | type == "string") and
+  (.jobs | type == "array") and
+  .totals.jobs == (.jobs | length)
+' "$TMP_FILE" >/dev/null || die "rendered attestation failed schema validation"
+
+chmod 0644 "$TMP_FILE"
+mv -f -- "$TMP_FILE" "$OUT_FILE"
 
 printf '%s\n' "$OUT_FILE"
