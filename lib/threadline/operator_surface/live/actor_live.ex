@@ -251,7 +251,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    def handle_event("set-window", %{"hours" => hours_str}, socket) do
+    def handle_event("set-window", %{"hours" => hours_str}, socket) when is_binary(hours_str) do
       case Integer.parse(hours_str) do
         {hours, ""} when hours in @supported_window_hours ->
           set_window(socket, hours)
