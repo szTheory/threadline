@@ -2236,3 +2236,82 @@ The controlling ledger result is explicit:
 The green immutable candidate remains valid evidence for its own branch/run.
 It is not silently promoted into evidence that final mutable local `HEAD` has
 landed on `origin/main`.
+
+## Round 7 — Plan 42 no-mutation closeout
+
+**Task 1 captured:** `2026-09-08T19:35:50Z` through `2026-09-08T19:35:51Z`
+(UTC). This section appends to the Round 7 packet above; Rounds 1–6 and the
+earlier Round 7 evidence are unchanged.
+
+### Post-Plan-41 entry graph
+
+Plan 42 entered at `67e1b1170751ca0f86d0466216f2cb54e1f60e86`.
+That commit is the committed Plan 41 result: it contains Task 1 evidence commit
+`28d2543fd82467f564808092ce6f97dd9d7ec807`, Task 2 evidence commit
+`fe5a0e430640013cdf596bc6f208649618476691`, and the committed
+`198-41-SUMMARY.md`. It is recorded separately from the immutable PR #34/run
+33354216172 evidence subject
+`46213f9bc0ecbff356058d317c882d5a643ae86f`; the two subjects are not required
+or claimed to be equal.
+
+`git fetch origin main` left the observed remote-tracking SHA unchanged:
+
+| Observation | Value |
+|---|---|
+| `origin/main` before fetch | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` |
+| `origin/main` after fetch | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` |
+| `git rev-list --count origin/main..HEAD` | `233` |
+| `git rev-list --count HEAD..origin/main` | `0` |
+
+The first count is non-zero, so the first failing GREEN-07 predicate is exact
+ancestry: the measured `origin/main` does not contain every local commit. The
+reverse count is zero; `origin/main` is an ancestor of the Plan 42 entry SHA.
+
+### Two read-only ruleset snapshots
+
+Both `gh api repos/szTheory/threadline/rulesets/21702804` calls completed
+successfully. No request used PUT or another mutation method. Each digest is
+SHA-256 over the canonical, key-sorted compact JSON object
+`{name,target,enforcement,conditions,rules}` — every editable non-bypass field
+required by this closeout.
+
+| Snapshot | Response time (UTC) | HTTP success | Canonical digest |
+|---|---|---|---|
+| A | `2026-09-08T19:35:50Z` | yes | `d65ef5955bd63595aaee3372f8bae2b940e448617a9dde0974e6aeee95861372` |
+| B | `2026-09-08T19:35:51Z` | yes | `d65ef5955bd63595aaee3372f8bae2b940e448617a9dde0974e6aeee95861372` |
+
+The canonical digests match. Snapshot B separately reports:
+
+- enforcement: byte-exact `active`
+- bypass actors: `[]` (count `0`)
+- required-status contexts: `["CI required"]` (count `1`)
+- sole context: byte-exact `CI required`
+
+GREEN-08 has no observed ruleset drift: the complete editable-field projection
+is unchanged across the two reads, enforcement is active, the bypass roster is
+empty, and the only required context is byte-exact `CI required`.
+
+### Plan 42 closeout projection
+
+The entry observation necessarily precedes three later local commit categories:
+
+| Later local commit category | Contained by the already-observed `origin/main` SHA? |
+|---|---|
+| Plan 42 Task 1 evidence commit | No; it is created only after this evidence is written and verified |
+| Plan 42 Task 2 status commit | No; it is created only after the deterministic main-run observation and requirement note are written |
+| Required `198-42-SUMMARY.md` closeout commit | No; it is created only after both task commits and final self-check |
+
+All three remain inside GREEN-07's phrase “every local commit.” No earlier
+candidate SHA is treated as containing them, and no branch run is substituted
+for a landed-main run. Task 2 will append the fresh pre-Task-2 graph and the
+canonical main-run observation before committing its status result.
+
+- `remote mutation: none`
+- `ruleset mutation: none`
+- `bypass window: not opened`
+- `GREEN-07: Pending`
+
+Any future remote mutation is outside Plans 198-41 and 198-42 and requires a
+new `blocking-human` maintainer checkpoint before the first mutation. No push,
+ruleset PUT, bypass actor, merge, squash, rebase, force update, or PR mutation
+was performed here.
