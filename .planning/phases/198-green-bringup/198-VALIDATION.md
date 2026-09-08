@@ -1,113 +1,166 @@
 ---
 phase: 198
 slug: green-bringup
-# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-08-27
+validated: 2026-09-08
 ---
 
 # Phase 198 — Validation Strategy
 
-> Per-phase validation contract for feedback sampling during execution.
-> Seeded from `198-RESEARCH.md` § Validation Architecture. Task IDs are filled in by the planner.
-
----
+Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
+automated behavioral or contract proof. `GREEN-07` remains PARTIAL because its literal
+`origin/main` ancestry clause is false: at audit time `origin/main..HEAD` contained 237
+commits. No test, documentation edit, or local commit can make that remote-state clause
+true.
 
 ## Test Infrastructure
 
-| Property | Value |
-|----------|-------|
-| **Framework** | ExUnit (Elixir) |
-| **Config file** | `test/test_helper.exs` — `ExUnit.start()`, storage bootstrap, `Ecto.Migrator.run/3` at `:13`, `pgbouncer_topology` tag exclusion at `:39` |
-| **Quick run command** | `mix test test/threadline/<specific_test>.exs` |
-| **Full suite command** | `mix verify.test` (full gate chain: `mix ci.all`) |
-| **Estimated runtime** | `mix test` seconds-to-low-minutes; `mix ci.all` is itself under measurement (Success Criterion #3 target ≤ 20 min, goal ≤ 12) |
+| Layer | Framework / runner | Primary command | Role |
+|---|---|---|---|
+| Library and contract tests | ExUnit, `test/test_helper.exs` | `mix test <files>` | Behavioral, source-contract, evidence-contract, and script-fixture proof |
+| Example application | ExUnit in `examples/threadline_phoenix` | `MIX_ENV=test mix test <files>` | Demo/reset/walkthrough integration proof |
+| Browser | Playwright, `examples/threadline_phoenix/e2e/playwright.config.ts` | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium` | Browser behavior and capture lanes |
+| Workflow contracts | shell + YAML (`bash`, `yq`, `jq`) | commands embedded in PLAN verify blocks | Job bounds, gate topology, artifacts, and repository invariants |
+| Live GitHub state | `gh` + committed attestations | `bash bin/verify-branch-protection` | Required-context emission and ruleset observation |
 
----
+The local asdf shim required explicit audit-only environment selection because the
+untracked `.tool-versions` names only Node: `ASDF_ELIXIR_VERSION=1.19.5-otp-28
+ASDF_ERLANG_VERSION=28.4.1`. The file was not edited.
 
-## Sampling Rate
+## Requirement Coverage
 
-- **After every task commit:** targeted `mix test test/threadline/<touched_test>.exs` for test/triage tasks; `git diff --exit-code .credo.exs` for every measurement-plan task; `bin/verify-branch-protection` once it exists for protection tasks
-- **After every plan wave:** `mix ci.all`
-- **Before `/gsd-verify-work`:** full suite must be green on a **fresh** database (`mix test.reset`, per D-04) — a green run against the maintainer's existing DB does not count (D-01)
-- **Max feedback latency:** 20 s for targeted runs; `mix ci.all` bounded by the phase's own ≤ 20 min target
+| Requirement | Classification | Behavioral proof | Current result |
+|---|---|---|---|
+| GREEN-01 | COVERED | `phase198_nyquist_contract_test.exs` rejects missing/vacuous logs and missing staleness/job evidence | green |
+| GREEN-02 | COVERED | same test parses the Credo JSON, reconciles 377 issues to the report, and proves full-default > baseline | green |
+| GREEN-03 | COVERED | same test requires insensitive text variants plus failing token positive control and source-backed finding | green |
+| GREEN-04 | COVERED | current ExUnit contracts plus committed CI attestations; stale-schema, storage-prefix, demo, and walkthrough tests remain named below | green |
+| GREEN-05 | COVERED | `ui_form_policy_contract_test.exs` derives the complete LiveView roster and fails on undeclared/formless drift | green |
+| GREEN-06 | COVERED | `phase198_nyquist_contract_test.exs` derives every job and timeout bound and requires the CI-only Playwright failure cap | green |
+| GREEN-07 | PARTIAL | credential, topology, browser, attestation, and lifecycle contracts are green; literal remote ancestry is false | **manual-only blocker** |
+| GREEN-08 | COVERED | `ci_topology_contract_test.exs`, `branch_protection_comparison_contract_test.exs`, and live verifier | green |
+| GREEN-09 | COVERED | workflow-wide paid-key resurrection guard in `ci_topology_contract_test.exs` | green |
+| GREEN-10 | COVERED | exact-one-publisher behavioral source contract in `ci_topology_contract_test.exs` | green |
+| GREEN-11 | COVERED | six-row classifier behavior table plus workflow reachability/wiring contracts | green |
+| GREEN-12 | COVERED | archive-register rows resolve to annotated local tags; remote archive tags observed | green |
 
----
+## Complete Per-Task / Requirement Map
 
-## Per-Task Verification Map
+Every executed task is listed. A row may share one named command where the plan's tasks
+exercise the same behavior. `manual` means the plan intentionally used a human decision
+or live observation; it is not silently converted to machine coverage.
 
-Task IDs are assigned by the planner; this table carries the requirement→command binding each task must inherit.
+| Task IDs | Requirements | Verification owner | Status |
+|---|---|---|---|
+| 01-T1 | GREEN-01 | `phase198_nyquist_contract_test.exs` | green |
+| 01-T2 | GREEN-02 | `phase198_nyquist_contract_test.exs` | green |
+| 01-T3 | GREEN-03 | `phase198_nyquist_contract_test.exs` | green |
+| 02-T1, 02-T2 | GREEN-07 | credential artifacts + scanners | green component / requirement partial |
+| 02-T3 | GREEN-07 | `phase198_decision_attestation_test.exs`; recorded blocking-human authorization | green component / requirement partial |
+| 03-T1, 03-T2 | GREEN-08 | `ci_topology_contract_test.exs`; `bin/verify-branch-protection` | green |
+| 03-T3 | GREEN-07 | min-lane rehearsal artifact | green component / requirement partial |
+| 04-T1, 04-T2 | GREEN-04 | `mix test.reset`; `zero_skips_contract_test.exs` | green |
+| 04-T3 | GREEN-05 | `operator_surface/ui_form_policy_contract_test.exs` | green |
+| 05-T1, 05-T3 | GREEN-06 | Playwright config + derived workflow-bound contract | green |
+| 05-T2, 05-T4 | GREEN-07 | `ci_coverage_doc_contract_test.exs`; CI cache contract | green component / requirement partial |
+| 06-T1 | GREEN-12 | `phase198_nyquist_contract_test.exs` + remote tag query | green |
+| 06-T2 | GREEN-10 | recorded blocking-human publish decision + attestation test | green |
+| 06-T3 | GREEN-09, GREEN-10 | `ci_topology_contract_test.exs` | green |
+| 06-T4 | GREEN-11 | `flake_classifier_contract_test.exs` | green |
+| 07-T1 | GREEN-07, GREEN-12 | recorded blocking-human authorization | green components / GREEN-07 partial |
+| 07-T2 | GREEN-08 | `branch_protection_comparison_contract_test.exs`; live verifier | green |
+| 07-T3 | GREEN-07, GREEN-12 | remote ancestry/tag observation | GREEN-12 green; GREEN-07 partial |
+| 08-T1, 08-T2 | GREEN-04 | transaction LiveView + storage-prefix contracts | green |
+| 09-T1, 09-T2 | GREEN-07 | warnings-as-errors/no-optional compile + `optional_deps_contract_test.exs` | green component / requirement partial |
+| 10-T1, 10-T2, 10-T3 | GREEN-07 | mechanical, bundle-shape, and example-browser lanes | green components / requirement partial |
+| 11-T1, 11-T2, 11-T3 | GREEN-11 | `flake_classifier_contract_test.exs` | green |
+| 12-T1, 12-T2, 12-T3 | GREEN-04 | targeted directories + full ExUnit suite | green |
+| 13-T1, 13-T2, 13-T3 | GREEN-01..GREEN-12 | full gate and measured closeout; later rounds supersede remote observations | GREEN-07 partial; others green |
+| 14-T1, 14-T2, 14-T3 | GREEN-04 | PgBouncer integration + storage call-site contracts | green |
+| 15-T1, 15-T2, 15-T3 | GREEN-04 | stress-router, zero-skip, topology, and prefix contracts | green |
+| 16-T1, 16-T3 | GREEN-04 | byte-stability diagnosis + `mix verify.capture` | green |
+| 16-T2 | GREEN-04 | recorded human remedy decision; not reclassified | manual, satisfied |
+| 17-T1, 17-T3 | GREEN-04 | browser diagnosis artifact + real Playwright specs | green |
+| 17-T2 | GREEN-04 | recorded human remedy decision; not reclassified | manual, satisfied |
+| 18-T1, 18-T2 | GREEN-07 | local preflight + measured GitHub run | green components / requirement partial |
+| 18-T3 | GREEN-07 | human measurement interpretation | manual; requirement partial |
+| 19-T1, 19-T2, 19-T3 | GREEN-04 | YAML schema prep, storage sweep, full-suite record | green |
+| 20-T1, 20-T3 | GREEN-07 | aggregate-decision artifact + append-only decision record | green components / requirement partial |
+| 20-T2 | GREEN-07 | blocking-human aggregate membership decision | manual; requirement partial |
+| 21-T1, 21-T2 | GREEN-07, GREEN-08 | YAML/docs/ruleset parity contracts | GREEN-08 green; GREEN-07 partial |
+| 22-T1, 22-T2, 22-T3 | GREEN-04, GREEN-07 | measured round-3 run and requirement-state record | GREEN-04 green; GREEN-07 partial |
+| 23-T1, 23-T2, 23-T3 | GREEN-04 | seed diagnosis artifact + demo contract | green |
+| 24-T1, 24-T2 | GREEN-04 | demo contract and measured lane | green |
+| 25-T1, 25-T2 | GREEN-04 | walkthrough happy/evidence integration tests | green |
+| 26-T1, 26-T2, 26-T3 | GREEN-07 | full Playwright attribution + browser specs | green components / requirement partial |
+| 27-T1, 27-T2, 27-T3 | GREEN-07 | phase UAT Playwright specs + reconciliation artifact | green components / requirement partial |
+| 28-T1, 28-T3 | GREEN-07 | post-merge attribution + browser specs | green components / requirement partial |
+| 28-T2 | GREEN-07 | recorded baseline-regeneration decision | manual; requirement partial |
+| 29-T1, 29-T2, 29-T3 | GREEN-04, GREEN-07 | measured round-4 record | GREEN-04 green; GREEN-07 partial |
+| 30-T1, 30-T2 | GREEN-04 | demo reset, contract, walkthrough, and evidence tests | green |
+| 31-T1, 31-T2, 31-T3 | GREEN-07 | named Playwright regression specs | green components / requirement partial |
+| 32-T1, 32-T2 | GREEN-04 | walkthrough evidence + demo contract | green |
+| 33-T1, 33-T2, 33-T3 | GREEN-07 | Phase 177/135 Playwright behavior | green components / requirement partial |
+| 34-T1 | GREEN-07 | recorded export-copy blocking-human decision | manual; component satisfied |
+| 34-T2, 34-T3 | GREEN-07 | presentation/copy contracts + named Playwright specs | green components / requirement partial |
+| 35-T1, 35-T2 | GREEN-04 | demo retention contracts + walkthrough suites | green |
+| 36-T1, 36-T2 | GREEN-04, GREEN-07 | review-ledger ID equality + append-only deferral guard | GREEN-04 green; GREEN-07 partial |
+| 37-T1, 37-T3 | GREEN-04, GREEN-07 | round-5 prediction + measured run | GREEN-04 green; GREEN-07 partial |
+| 37-T2 | GREEN-07 | human push/PR checkpoint | manual; requirement partial |
+| 38-T1, 38-T2, 38-T3 | GREEN-04 | demo/reset/advisory-lock/walkthrough behavioral tests | green |
+| 39-T1 | GREEN-07 | blocking-human terminal disposition | manual; requirement partial |
+| 39-T2, 39-T3 | GREEN-07, GREEN-08 | decision attestation + live-state record | GREEN-08 green; GREEN-07 partial |
+| 40-T1, 40-T2, 40-T3 | GREEN-01..GREEN-12 | round-6 prediction/run/requirement reconciliation | GREEN-07 partial; others green |
+| 41-T1, 41-T2 | GREEN-07, GREEN-08 | run `33354216172` attestation + atomic-lifecycle proof | GREEN-08 green; GREEN-07 partial |
+| 42-T1, 42-T2 | GREEN-07, GREEN-08 | ruleset double-read + exact-SHA main selector | GREEN-08 green; GREEN-07 partial |
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 01-T1 | 01 | 1 | GREEN-01 | T-198-01-01 | Preserved logs pass the pre-push credential sweep | artifact check | `test -f .planning/audits/198-ci-run-28214113903-logs.md` | ❌ W0 | ⬜ pending |
-| 01-T2 | 01 | 1 | GREEN-02 | T-198-01-02 | Measurement never mutates the gate config | script + diff | `git diff --exit-code .credo.exs && test -f .planning/audits/198-credo-histogram.md` | ❌ W0 | ⬜ pending |
-| 01-T3 | 01 | 1 | GREEN-03 | T-198-01-03 | Probe cannot manufacture the Phase 201 floor | probe + finding | `test -z "$(git status --porcelain .planning/scorecards/)" && grep -q '^## Finding' .planning/audits/198-mechanical-sensitivity.md` | ❌ W0 | ⬜ pending |
-| 02-T1 | 02 | 1 | GREEN-07 (push gate) | T-198-02-01, T-198-02-02 | Full-history scan, redacted reports | scanner sweep | `test -f .planning/audits/198-gitleaks-history.json && test -f .planning/audits/198-trufflehog-verified.json` | ❌ W0 | ⬜ pending |
-| 02-T2 | 02 | 1 | GREEN-07 (push gate) | T-198-02-05 | Every finding classed in writing | register check | `grep -qE '^## VERDICT: (PROCEED\|ABORT)' .planning/audits/198-credential-audit.md` | ❌ W0 | ⬜ pending |
-| 02-T3 | 02 | 1 | GREEN-07 (push gate) | T-198-02-03 | Push protection live before first push | CLI + artifact | `grep -q '"secret_scanning_push_protection"' .planning/audits/198-credential-audit.md` | ❌ W0 | ⬜ pending |
-| 03-T1 | 03 | 2 | GREEN-08 | T-198-03-01, T-198-03-05 | Skipped-on-dependency-failure cannot score as pass | YAML contract + live API | `grep -q 'name: CI required' .github/workflows/ci.yml` and check-runs API returns ≥1 `CI required` | ⚠️ additive | ⬜ pending |
-| 03-T2 | 03 | 2 | GREEN-08 | T-198-03-05 | Required-check identity matches emitted name | observation artifact | `grep -q '^## Verdict' .planning/audits/198-matrix-name-observation.md` | ❌ W0 | ⬜ pending |
-| 03-T3 | 03 | 2 | GREEN-07 | — | Floor lane not downgraded | live run + grep | `grep -c 'continue-on-error' .github/workflows/ci.yml` == 0 | ⚠️ additive | ⬜ pending |
-| 04-T1 | 04 | 3 | GREEN-04 | T-198-04-03, T-198-04-05 | Stale DB fails once, loudly | full suite (fresh DB) | `mix test.reset` | ❌ W0 | ⬜ pending |
-| 04-T2 | 04 | 3 | GREEN-04 | T-198-04-01, T-198-04-02 | Zero laundering; guard not self-invalidating | unit | `mix test test/threadline/zero_skips_contract_test.exs` | ❌ W0 | ⬜ pending |
-| 04-T3 | 04 | 3 | GREEN-05 | T-198-04-04 | New page cannot be silently unguarded | unit | `mix test test/threadline/operator_surface/ui_form_policy_contract_test.exs` | ❌ W0 | ⬜ pending |
-| 05-T1 | 05 | 3 | GREEN-06 | T-198-05-05 | Broken suite aborts, traces retained | config + list | `grep -c 'name: "chromium"' examples/threadline_phoenix/e2e/playwright.config.ts` == 0 | ⚠️ additive | ⬜ pending |
-| 05-T2 | 05 | 3 | GREEN-06 | T-198-05-03 | Moved coverage is stated and asserted | doc contract | `mix test test/threadline/ci_coverage_doc_contract_test.exs` | ❌ W0 | ⬜ pending |
-| 05-T3 | 05 | 3 | GREEN-06 | T-198-05-02 | No job can hang unbounded | static YAML contract | job count == `timeout-minutes` count in ci.yml, release.yml, browser-full.yml | ⚠️ additive | ⬜ pending |
-| 05-T4 | 05 | 3 | GREEN-07 | T-198-05-01 | Lanes cannot share a cache entry | static YAML contract | `grep -c 'runner.os' .github/workflows/ci.yml` == 0 | ⚠️ additive | ⬜ pending |
-| 06-T1 | 06 | 4 | GREEN-12 | T-198-06-04 | Nothing deleted before its tag resolves | git + register check | `git worktree list \| wc -l` == 1; every `archive/*` tag resolves; `test -f .planning/ARCHIVE-REGISTER.md` | ❌ W0 | ⬜ pending |
-| 06-T2 | 06 | 4 | GREEN-10 | T-198-06-01, T-198-06-03 | One-way publish decision recorded | artifact check | `grep -q '^## Publish-path and secret-store decisions' .planning/phases/198-green-bringup/198-TRIAGE.md` | ❌ W0 | ⬜ pending |
-| 06-T3 | 06 | 4 | GREEN-09, GREEN-10 | T-198-06-01, T-198-06-02, T-198-06-06 | Paid path unreachable; one gated publish path | contract test | `mix test test/threadline/ci_topology_contract_test.exs` | ⚠️ additive | ⬜ pending |
-| 06-T4 | 06 | 4 | GREEN-11 | T-198-06-05 | Broken never mislabelled as flaky | live workflow + YAML | every job in flake-detection.yml bounded; classification branch present — dispatch verification see Manual-Only | ⚠️ additive | ⬜ pending |
-| 07-T1 | 07 | 5 | GREEN-07, GREEN-12 | T-198-07-04 | Irreversible step gated on steps 1–4 | artifact check | `grep -q '^## D-34 step 5 authorization' .planning/audits/198-branch-protection-migration.md` | ❌ W0 | ⬜ pending |
-| 07-T2 | 07 | 5 | GREEN-08 | T-198-07-01, T-198-07-02, T-198-07-03, T-198-07-05 | Contexts diff AND proof-of-emission | committed script | `bash bin/verify-branch-protection` | ❌ W0 | ⬜ pending |
-| 07-T3 | 07 | 5 | GREEN-07, GREEN-12 | T-198-07-04, T-198-07-06 | Green inside budget; tags durable off-laptop | git + `gh run view` | `git log origin/main..main` empty; run elapsed ≤ 20 min; `git ls-remote --tags origin 'refs/tags/archive/*'` non-empty | ❌ W0 (post-merge) | ⬜ pending |
+## Manual-Only / Escalated
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+| Behavior | Requirement | Why automation cannot close it | Required action |
+|---|---|---|---|
+| `origin/main` contains every local commit and its exact-head CI run is successful within budget | GREEN-07 | Live audit proved `origin/main..HEAD = 237`; a local test can observe but cannot merge or push. The phase explicitly forbids remote/ruleset mutation in Plans 41–42. | Maintainer-authorized merge/push, then re-run `git rev-list --count origin/main..HEAD`, select the newest exact-SHA `ci.yml` main push run, and require `CI required == success` within 20 minutes. |
 
----
+No `human_judgment: true` entry was converted merely by changing metadata. Recorded
+decisions count as automated coverage only where `phase198_decision_attestation_test.exs`
+has a named passing reference and the SUMMARY already records `human_judgment: false`.
+Local measurement evidence is not described as environment-stable; only committed CI
+attestations support CI-environment claims.
 
-## Wave 0 Requirements
+## Audit Execution
 
-- [ ] D-07's replacement for `test/**/formless_pages_test.exs` — self-declaring `@ui_form_policy` attribute + exhaustive `lib/threadline/operator_surface/live/*.ex` scan, with the non-empty-glob assertion (`version_truth_doc_contract_test.exs:59` idiom)
-- [ ] D-05 zero-exclusions assertion test — greps `test/**/*_test.exs` for `@tag :skip` / `@moduletag :skip` and asserts `ExUnit.configuration()[:exclude] == [pgbouncer_topology: true]`
-- [ ] `bin/verify-branch-protection` — new committed script (D-12), sibling to `bin/verify-release-shape`
-- [ ] Additive D-25 assertions inside existing `test/threadline/ci_topology_contract_test.exs`
-- [ ] D-23(c) CI-Coverage doc-contract test — asserts the `CONTRIBUTING.md` table's project list equals the actual `--project` flags in the workflow. Per CONTEXT.md, make it a plain `*_contract_test.exs` picked up by `mix test`, **not** a new `verify.*` step, so it survives Phase 204's deletion of `verify.doc_contract`
-- [ ] D-03 stale-schema tripwire in `test/test_helper.exs` (after `:13`) — scoped to `Threadline.Test.Repo`'s own database, never in `lib/`
-- [ ] Tracked evidence artifacts (not test files, but the mechanical evidence GREEN-01/02/03/12 point at): `198-TRIAGE.md`, `.planning/ARCHIVE-REGISTER.md`, `.planning/audits/*`
+| Check | Result |
+|---|---|
+| New Phase 198 Nyquist contract | 5 tests, 0 failures |
+| Targeted Phase 198 contract set | 65 tests, 0 failures |
+| Missing run-attestation regression | initially failed for run `33354216172`; fixture recorded; rerun green |
+| Workflow job bounds | `ci.yml` 13/13, `release.yml` 7/7, `browser-full.yml` 1/1 |
+| Branch-protection verifier | exact context `[CI required]`, emitted once on `origin/main` head |
+| Archive durability | two annotated local tags resolve; remote archive refs non-empty |
+| GREEN-07 ancestry | `origin/main..HEAD = 237`, `HEAD..origin/main = 0` — unmet |
 
-- [ ] `bin/verify-branch-protection` — new committed script (D-12), assigned to task **07-T2**
-- [ ] `.github/workflows/branch-protection.yml` — deliberately its own workflow, NOT a conditionally-skipped job inside the aggregate's `needs:` list
+## Validation Audit 2026-09-08
 
-**Constraint carried from CONTEXT.md `<code_context>`:** Phase 199 / DECOUPLE-01 requires `mix ci.all` to pass with `.planning/` renamed away — **no gate may read any artifact under `.planning/`.** Evidence artifacts are outputs, never test inputs.
-
-**Verified against the plan set (2026-08-27):** every `<automated>` command across Plans 01–07 targets `git`, `gh`, `mix`, `yq`/`jq`, `bash`, or a path under `.github/`, `bin/`, `test/`, `lib/`, `examples/` — the only `.planning/` paths appearing in a verify command are `test -f` / `grep` **artifact-existence** assertions inside plan-local task verification, none of which is wired into `mix ci.all` or any CI job. No gate reads `.planning/`.
-
----
-
-## Manual-Only Verifications
-
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Flake Detection classifies "broken" vs. "flaky" by name and dedupes its tracking issue | GREEN-11 | The classification heuristic only exercises on a live scheduled Actions run; no pre-merge assertion can reach it | Trigger via `workflow_dispatch` on the staging branch; confirm a run-1 failure is reported as *broken*, and that a second failure updates the existing issue rather than opening a new one |
-| GitHub's emitted check name for a matrix job carrying a static `name:` (`ci.yml:100-106`) | GREEN-08 | Genuinely unresolved by any authoritative source (research confidence: LOW); only observable once the matrix reports on origin | Push the matrix, then read `gh api repos/:owner/:repo/commits/main/check-runs` and record verbatim in `.planning/audits/198-matrix-name-observation.md`. This observation **is** GREEN-08's "verified after the matrix has reported once" (D-11) |
-| Credential-audit finding classification (D-29 Class A/B/C) | GREEN-07 gate | Class assignment is a judgment call with an abort branch; the scanners are automated but the disposition is not | Every finding gets a register row; Class A rotated **before** `git push`; any Class B **aborts** the push and escalates. Clicking "allow secret" on push protection is forbidden |
-
----
+| Metric | Count |
+|---|---:|
+| Requirements audited | 12 |
+| COVERED | 11 |
+| PARTIAL | 1 |
+| Genuine validation gaps found | 7 |
+| Gaps resolved with tests/fixture | 6 |
+| Escalated live-state gap | 1 |
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 20 s (targeted) / < 20 min (`mix ci.all`)
-- [ ] No gate reads any path under `.planning/` (Phase 199 DECOUPLE-01 forward-constraint)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All 42 PLANs and 42 SUMMARYs mapped through their tasks and requirements.
+- [x] Every automated test claimed green was executed in this audit.
+- [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
+- [x] No implementation file was modified.
+- [x] Manual decisions and environment-specific evidence retain their proof boundaries.
+- [x] `status: validated` set.
+- [ ] `nyquist_compliant: true` — blocked exclusively by GREEN-07's false remote ancestry clause.
 
-**Approval:** pending
+**Approval:** validated partial — 11/12 requirements covered; GREEN-07 escalated to the
+maintainer without weakening its literal success criteria.
