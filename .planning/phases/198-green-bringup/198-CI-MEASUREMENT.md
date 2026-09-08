@@ -2024,3 +2024,177 @@ planned no new work for them, touched none of their satisfying files (confirmed 
 GREEN-04 is re-proved above (not carried) because 198-38 touched its covered code. GREEN-07's
 status follows `198-39-DECISION.md` exactly as stated above, not this round's raw `CI required`
 conclusion in isolation.
+
+## Round 7 — live landing readiness and atomic-commit constraint
+
+**Captured:** `2026-09-08T19:20:03Z` (UTC). **Operation posture:** read-only. This
+section appends to, and does not revise, the sealed Round 1–6 record above.
+
+### Immutable evidence subject and local graph
+
+The immutable evidence subject is the pre-plan PR head
+`46213f9bc0ecbff356058d317c882d5a643ae86f`. It is not an alias for mutable
+local `HEAD`.
+
+| Observation | Fresh value |
+|---|---|
+| `git rev-parse HEAD` | `881fbc032a63046796b0b18c2d474767d651e222` |
+| `git rev-parse origin/main` | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` |
+| `git rev-list --count origin/main..HEAD` | `230` |
+| `git rev-list --count HEAD..origin/main` | `0` |
+
+The first count is non-zero: `origin/main` does not contain every local commit.
+The reverse count is zero: the observed `origin/main` is already an ancestor of
+local `HEAD`. These are directional facts, not interchangeable ahead/behind prose.
+
+### PR #34 and successful CI evidence
+
+`gh pr view 34 --json number,state,isDraft,baseRefName,headRefName,headRefOid,mergeStateStatus,mergeable,url`
+returned, at the capture time above:
+
+| Field | Value |
+|---|---|
+| number / state / draft | `34` / `OPEN` / `true` |
+| base / head branch | `main` / `phase-199/scroll-cost-cause-fix` |
+| `headRefOid` | `46213f9bc0ecbff356058d317c882d5a643ae86f` |
+| `mergeStateStatus` / `mergeable` | `CLEAN` / `MERGEABLE` |
+| URL | `https://github.com/szTheory/threadline/pull/34` |
+
+Run `33354216172` is pinned to the same immutable subject:
+
+| Field | Value |
+|---|---|
+| event / attempt | `pull_request` / `1` |
+| head SHA | `46213f9bc0ecbff356058d317c882d5a643ae86f` |
+| status / conclusion | `completed` / `success` |
+| created / updated | `2026-08-31T03:33:30Z` / `2026-08-31T03:43:52Z` |
+| elapsed | `622` seconds (`10m22s`) |
+| URL | `https://github.com/szTheory/threadline/actions/runs/33354216172` |
+
+The job collection is non-empty: 14 jobs were discovered, all completed with
+conclusion byte-exact `success`:
+
+| Job name | Conclusion |
+|---|---|
+| `Check formatting` | `success` |
+| `PgBouncer transaction topology` | `success` |
+| `Run test suite (current)` | `success` |
+| `Tier A capture lane (byte-stable evidence)` | `success` |
+| `Hex evaluator smoke (threadline from hex.pm)` | `success` |
+| `Run Credo (strict)` | `success` |
+| `Mechanical checker (committed scorecards)` | `success` |
+| `Example app browser E2E (Playwright)` | `success` |
+| `Compile without optional deps` | `success` |
+| `Hex package tarball` | `success` |
+| `Run test suite (min)` | `success` |
+| `Build ExDoc (dev)` | `success` |
+| `Release metadata (version / changelog)` | `success` |
+| `CI required` | `success` |
+
+This supersedes Round 6's CI-failure cause on its merits. It does not satisfy
+the separate exact-ancestry clause, because it is a pull-request run on the
+immutable subject rather than a run on `origin/main` containing the final local
+graph.
+
+### Ruleset 21702804 and PR #26
+
+The live ruleset query returned `id: 21702804`, `name: main-protection`,
+`enforcement: active`, `bypass_actors: []`, ref include exactly
+`refs/heads/main`, and no excluded refs. Its rules are
+`required_status_checks`, `non_fast_forward`, `deletion`,
+`required_linear_history`, and `pull_request`. The status-check rule has
+`strict_required_status_checks_policy: false` and exactly one emitted required
+context, byte-for-byte: `CI required`. The pull-request rule reports allowed
+method labels `merge`, `squash`, and `rebase`; those labels do not override the
+simultaneously active linear-history or exact-object-ancestry predicates.
+
+PR #26 was observed as number `26`, state `OPEN`, `isDraft: false`, base `main`,
+head `release-please--branches--main`, head SHA
+`8f52e3bc776af9d0d80bdb11832e5b33772ef0ee`, `mergeStateStatus: BLOCKED`, and
+`mergeable: MERGEABLE`. No temporary exception or bypass was created.
+
+### Merge-method and executor-lifecycle proof
+
+| Method | Git object effect | Locked predicate it cannot satisfy |
+|---|---|---|
+| Merge commit | Preserves the original branch commits as ancestors but adds a two-parent merge commit. | The active `required_linear_history` rule rejects the non-linear result. |
+| Squash | Creates one new commit whose tree may match, but whose identity replaces the original branch commits. | Every original local commit is not thereby an ancestor of `origin/main`. |
+| Rebase | Replays patches as new commit objects with new parent links and new identities. | Every original local commit is not thereby an ancestor of `origin/main`. |
+| Exact fast-forward | Can preserve identities and linearity, but only through the exact SHA available when the ref is updated. | Plan 41 must later create its Task 1 evidence commit, Task 2 commit, and `198-41-SUMMARY.md` closeout commit; an earlier update cannot contain commits that do not yet exist, so the final `origin/main..HEAD` remainder becomes non-empty again. |
+
+Thus there is no silent ordinary-merge route that satisfies all locked
+predicates, and a finite in-plan remote update would be self-invalidating under
+the executor's required atomic commits. This plan therefore performs no ref or
+ruleset mutation and retains D-39's honest Pending disposition.
+
+### GREEN-07 / GREEN-08 edge matrix — 10 lifted rows
+
+| # | Edge | Observable pass value | Observable fail value / disposition |
+|---:|---|---|---|
+| 1 | GREEN-07 boundary | elapsed seconds `<= 1200` (equality at exactly `1200` passes); target remains `<= 720` | `> 1200` fails; measured run is `622` |
+| 2 | GREEN-07 adjacency | conclusion byte-exact `success` | `neutral`, `skipped`, `cancelled`, `failure`, or any other value fails |
+| 3 | GREEN-07 empty | at least one job and exactly one `CI required` job are discovered | zero jobs or zero `CI required` check-runs fails evidence collection |
+| 4 | GREEN-07 encoding | check names and SHAs compare byte-for-byte | case-folding, trimming, prefix matching, or abbreviated-SHA substitution fails |
+| 5 | GREEN-07 ordering | matching main runs are ordered by creation identity before status evaluation | arbitrary API order or an unselected older run fails |
+| 6 | GREEN-07 precision | UTC timestamps retained and elapsed computed in integer seconds | rounded minutes used to decide the 20-minute boundary fail evidence precision |
+| 7 | GREEN-07 concurrency | newest matching run must be complete before its status is used | an older completed run cannot substitute for a newer incomplete matching run |
+| 8 | GREEN-08 empty | at least one required context exists | zero required contexts fails closed, never vacuously passes |
+| 9 | GREEN-08 encoding | sole context is byte-exact `CI required` | any renamed, additional, missing, or differently-cased context fails |
+| 10 | GREEN-08 concurrency | ruleset and PR #26 are observed read-only in the same capture packet | a temporary bypass, exception, or observation across a mutation is inadmissible |
+
+### Deterministic probe disposition — remaining 23 rows
+
+These rows remain satisfied by their executed Plan 198-01 through 198-40
+artifacts and are unaffected by the current live diff:
+
+| # | Probe row | Disposition |
+|---:|---|---|
+| 1 | GREEN-01 unclassified | already covered; unaffected |
+| 2 | GREEN-02 concurrency | already covered; unaffected |
+| 3 | GREEN-03 empty | already covered; unaffected |
+| 4 | GREEN-03 encoding | already covered; unaffected |
+| 5 | GREEN-04 boundary | already covered; unaffected |
+| 6 | GREEN-04 adjacency | already covered; unaffected |
+| 7 | GREEN-04 empty | already covered; unaffected |
+| 8 | GREEN-04 encoding | already covered; unaffected |
+| 9 | GREEN-04 ordering | already covered; unaffected |
+| 10 | GREEN-04 precision | already covered; unaffected |
+| 11 | GREEN-05 unclassified | already covered; unaffected |
+| 12 | GREEN-06 boundary | already covered; unaffected |
+| 13 | GREEN-06 adjacency | already covered; unaffected |
+| 14 | GREEN-06 empty | already covered; unaffected |
+| 15 | GREEN-06 ordering | already covered; unaffected |
+| 16 | GREEN-06 precision | already covered; unaffected |
+| 17 | GREEN-09 unclassified | already covered; unaffected |
+| 18 | GREEN-10 unclassified | already covered; unaffected |
+| 19 | GREEN-11 empty | already covered; unaffected |
+| 20 | GREEN-11 encoding | already covered; unaffected |
+| 21 | GREEN-12 adjacency | already covered; unaffected |
+| 22 | GREEN-12 empty | already covered; unaffected |
+| 23 | GREEN-12 ordering | already covered; unaffected |
+
+Accounting is exact: **10 lifted + 23 disposed = 33 emitted**. No probe row is
+silently dismissed.
+
+### Human-judgment boundary and retained prohibitions
+
+`198-UAT.md` records `pending: 36`. Nine are the irreducible Phase 199
+human-ratification rows grouped in `199-RATIFICATION.md`; the other 27 are
+pending UAT judgment rows. They are judgments or event-dependent observations,
+not implementation gaps, and this packet does not manufacture implementation
+tasks for them. In particular, coverage may be flipped only with
+`human_judgment: false` plus a named passing verification reference; argument
+alone is not proof. Likewise, local-history stability is not promoted into an
+environment-stability claim without cross-environment reproduction.
+
+The three prohibitions remain active:
+
+1. Do not report GREEN-07 Complete from a branch run, squash, or rebase when
+   `origin/main` does not contain every original local commit.
+2. Do not create a broad, unpinned, or lingering branch-protection bypass.
+3. Do not rewrite sealed Round 1–6 measurement or D-39 evidence; append
+   supersession evidence.
+
+No schema-push mechanism, schema change, UI surface, package, product API, or
+`COVERAGE.md` change is implicated. **Remote mutation: none. Ruleset mutation:
+none. GREEN-07: Pending under D-39.**
