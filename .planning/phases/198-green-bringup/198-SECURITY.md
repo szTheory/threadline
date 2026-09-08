@@ -1,14 +1,14 @@
 ---
 phase: "198"
 slug: "green-bringup"
-status: blocked
-threats_open: 13
+status: verified
+threats_open: 0
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
 threats_total: 213
-threats_closed: 173
-threats_open_total: 40
+threats_closed: 213
+threats_open_total: 0
 created: "2026-09-08"
 updated: "2026-09-08"
 ---
@@ -29,53 +29,43 @@ updated: "2026-09-08"
 
 ## Threat Register — Blocking Open
 
-| Threat ID | Category | Component | Severity | Disposition | Missing or failed mitigation | Status |
-|-----------|----------|-----------|----------|-------------|------------------------------|--------|
-| T-198-14-SC | Tampering | Plan 14 supply-chain boundary | high | accept | Accepted-risk candidate has no maintainer-approved entry in this file. | open |
-| T-198-15-SC | Tampering | Plan 15 supply-chain boundary | high | accept | Accepted-risk candidate has no maintainer-approved entry in this file. | open |
-| T-198-16-SC | Tampering | Plan 16 supply-chain boundary | high | accept | Accepted-risk candidate has no maintainer-approved entry in this file. | open |
-| T-198-17-SC | Tampering | Plan 17 supply-chain boundary | high | accept | Accepted-risk candidate has no maintainer-approved entry in this file. | open |
-| T-198-18-SC | Tampering | Plan 18 supply-chain boundary | high | accept | Accepted-risk candidate has no maintainer-approved entry in this file. | open |
-| T-198-30-SC | Tampering | Plan 30 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-31-SC | Tampering | Plan 31 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-32-SC | Tampering | Plan 32 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-33-SC | Tampering | Plan 33 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-34-SC | Tampering | Plan 34 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-35-SC | Tampering | Plan 35 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-36-SC | Tampering | Plan 36 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
-| T-198-37-SC | Tampering | Plan 37 supply-chain boundary | critical | accept | Declared severity `n/a` is unparseable and therefore fail-closed to critical; no accepted-risk entry exists. | open |
+No blocking threats remain. The 13 rows previously listed here were inaccurate supply-chain metadata, not accepted risks: locked dependency restoration may occur during verification, but no dependency graph mutation is committed. Their canonical plan entries now use evidence-backed `mitigate` dispositions and valid `low` severity.
 
 ## Threat Register — Non-Blocking Open
 
-| Threat ID | Category | Severity | Disposition | Reason open | Status |
-|-----------|----------|----------|-------------|-------------|--------|
-| T-198-01-04 | Repudiation | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-02-04 | Information Disclosure | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-03-02 | Tampering | medium | accept | Missing accepted-risk log entry; CR-03 confirms the risk remains active. | open — below high threshold |
-| T-198-04-03 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-04-05 | Tampering | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-05-05 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-09-03 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-10-04 | Spoofing | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-11-05 | Elevation of Privilege | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-13-02 | Information Disclosure | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-13-05 | Spoofing | medium | accept | Missing accepted-risk log entry and affected by CR-01. | open — below high threshold |
-| T-198-15-04 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-16-04 | Denial of Service | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-18-05 | Information Disclosure | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-19-02 | Elevation of Privilege | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-20-04 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-21-05 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-22-04 | Information Disclosure | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-29-05 | Information Disclosure | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-31-03 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-33-03 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-38-03 | Tampering | medium | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-38-05 | Elevation of Privilege | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-38-SC | Tampering | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-39-SC | Tampering | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-40-SC | Tampering | low | accept | Missing accepted-risk log entry. | open — below high threshold |
-| T-198-41-04 | Information Disclosure | low | accept | Missing accepted-risk log entry. | open — below high threshold |
+No non-blocking threats remain. Twelve rows were corrected to evidence-backed `mitigate` dispositions, and the 15 residual risks explicitly approved by the maintainer on 2026-09-08 are recorded in the accepted-risk log below.
+
+## Metadata Corrections
+
+These 25 entries were reviewed individually and corrected in their canonical `198-NN-PLAN.md` registers. They describe controls already present or non-applicable mutation paths, so recording them as unapproved accepted risks was inaccurate.
+
+| Threat ID | Corrected disposition | Evidence-backed control |
+|-----------|-----------------------|-------------------------|
+| T-198-01-04 | mitigate | The complete run log is already committed as durable evidence. |
+| T-198-03-02 | mitigate | The aggregate action is pinned to a full immutable commit SHA. |
+| T-198-04-03 | mitigate | The test-only query uses fixed metadata identifiers and reads no application data. |
+| T-198-09-03 | mitigate | The compile-time roster contract introduces no query, authentication, capture, or data-flow surface. |
+| T-198-10-04 | mitigate | PostgreSQL credentials are fixed test-only values scoped to an ephemeral hosted job. |
+| T-198-13-05 | mitigate | Classic branch-protection inspection is separate and fail-closed for every error except HTTP 404 absence. |
+| T-198-14-SC | mitigate | Verification may restore locked dependencies; no manifest or lockfile mutation is committed. |
+| T-198-15-04 | mitigate | The former subprocess shell boundary was removed when coverage moved to Playwright. |
+| T-198-15-SC | mitigate | Browser verification restores the committed lockfile only; no dependency graph mutation is committed. |
+| T-198-16-SC | mitigate | Browser verification restores committed locks and the lockfile-selected browser only. |
+| T-198-17-SC | mitigate | Browser verification restores committed locks and the lockfile-selected browser only. |
+| T-198-18-SC | mitigate | CI may restore lockfile-pinned dependencies; no dependency graph mutation is committed. |
+| T-198-21-05 | mitigate | Contract tests read repository-local files and add no permission, secret, or network surface. |
+| T-198-30-SC | mitigate | Demo-reset changes add, remove, or upgrade no dependency. |
+| T-198-31-SC | mitigate | Browser verification restores lockfile-pinned dependencies without graph mutation. |
+| T-198-32-SC | mitigate | Verification may restore declared Mix dependencies without graph mutation. |
+| T-198-33-SC | mitigate | Browser verification restores lockfile-pinned dependencies without graph mutation. |
+| T-198-34-SC | mitigate | CI restores lockfile-pinned dependencies and removes transient artifacts; no graph mutation is committed. |
+| T-198-35-SC | mitigate | Retention-tail changes add, remove, or upgrade no dependency. |
+| T-198-36-SC | mitigate | The plan changes planning Markdown only; manifests and lockfiles are unchanged. |
+| T-198-37-SC | mitigate | Observed CI may restore locked dependencies; committed changes contain no graph mutation. |
+| T-198-38-05 | mitigate | Every advisory-lock operation uses the shared namespaced class ID. |
+| T-198-38-SC | mitigate | Lock changes add, remove, or upgrade no dependency. |
+| T-198-39-SC | mitigate | The plan changes planning records only; manifests and lockfiles are unchanged. |
+| T-198-40-SC | mitigate | CI may restore locked dependencies; measurement records commit no graph mutation. |
 
 ## Repaired Mitigations Closed on Re-Audit
 
@@ -89,21 +79,21 @@ updated: "2026-09-08"
 
 ## Closed Register
 
-All 173 `mitigate` dispositions are closed by present implementation or immutable evidence. This compact index preserves the plan-level mapping; the source threat definitions remain canonical in each `198-NN-PLAN.md`.
+All 213 registered threats are closed: 173 previously verified mitigations, 25 metadata-corrected controls, and 15 explicitly accepted risks. This compact index preserves the plan-level mapping; the source threat definitions remain canonical in each `198-NN-PLAN.md`.
 
 | Plans | Closed threat IDs | Principal verified controls |
 |-------|-------------------|-----------------------------|
-| 01–05 | 18 | Credential sweeps and audit artifacts; Credo/mechanical checks; zero-skip and UI policy contracts; bounded CI/browser jobs and caches; immutable required-aggregate pin. |
-| 06–10 | 21 | Authoritative release-run selection; fail-closed protection inspection; release topology/classifier controls; active ruleset and emitted-context checks; storage-schema masks/call-site contracts; optional-dependency roster. |
-| 11–15 | 17 | Executable flake classifier; zero-skip/storage checks; ruleset and archive evidence; bounded storage scanner; stress-router and aggregate identity contracts. |
-| 16–20 | 21 | Tier-A byte stability; Playwright diagnosis/bounds; CI measurement ledger; exact demo DB target and credential scoping; aggregate decision evidence. |
-| 21–25 | 25 | CI topology/ruleset parity; exact run/SHA ledger; demo-seed and walkthrough red/green evidence; timeout override guard. |
-| 26–30 | 28 | Pinned Playwright/browser inventory; post-merge visual disposition; exact-SHA CI accounting; bounded namespaced demo lock and production reset guard. |
-| 31–35 | 12 | JSON-quoted selectors; discriminating walkthrough assertions; support/admin coverage; canonical presentation functions; exact retention-state restoration and cutoff checks. |
-| 36–40 | 22 | Tree-backed review ledger; exact-run prediction/measurement; pinned advisory-lock region; verbatim no-mutation decisions; append-only Round-6 evidence. |
-| 41–42 | 9 | Immutable subject/run ledger; atomic lifecycle proof; double ruleset digest; deterministic exact-main-SHA run selection; sealed Round-7 evidence. |
+| 01–05 | 24 | Credential sweeps and audit artifacts; Credo/mechanical checks; zero-skip and UI policy contracts; bounded CI/browser jobs and caches; immutable required-aggregate pin. |
+| 06–10 | 23 | Authoritative release-run selection; fail-closed protection inspection; release topology/classifier controls; active ruleset and emitted-context checks; storage-schema masks/call-site contracts; optional-dependency roster. |
+| 11–15 | 23 | Executable flake classifier; zero-skip/storage checks; ruleset and archive evidence; bounded storage scanner; stress-router and aggregate identity contracts. |
+| 16–20 | 28 | Tier-A byte stability; Playwright diagnosis/bounds; CI measurement ledger; exact demo DB target and credential scoping; aggregate decision evidence. |
+| 21–25 | 27 | CI topology/ruleset parity; exact run/SHA ledger; demo-seed and walkthrough red/green evidence; timeout override guard. |
+| 26–30 | 30 | Pinned Playwright/browser inventory; post-merge visual disposition; exact-SHA CI accounting; bounded namespaced demo lock and production reset guard. |
+| 31–35 | 19 | JSON-quoted selectors; discriminating walkthrough assertions; support/admin coverage; canonical presentation functions; exact retention-state restoration and cutoff checks. |
+| 36–40 | 29 | Tree-backed review ledger; exact-run prediction/measurement; pinned advisory-lock region; verbatim no-mutation decisions; append-only Round-6 evidence. |
+| 41–42 | 10 | Immutable subject/run ledger; atomic lifecycle proof; double ruleset digest; deterministic exact-main-SHA run selection; sealed Round-7 evidence. |
 
-Closed count check: `18 + 21 + 17 + 21 + 25 + 28 + 12 + 22 + 9 = 173`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 = 213`.
 
 ## Unregistered Review Flags
 
@@ -113,7 +103,23 @@ No unregistered open flags remain.
 
 ## Accepted Risks Log
 
-No accepted risks. The 40 `accept` dispositions above are candidates only and require explicit maintainer approval before they may be moved here.
+| Risk ID | Threat Ref | Rationale | Accepted By | Date |
+|---------|------------|-----------|-------------|------|
+| AR-198-01 | T-198-02-04 | Provider-candidate verification discloses bounded credential metadata only to the issuing provider that already holds the credential. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-02 | T-198-04-05 | The destructive database reset is explicit, test-only, and scoped to `Threadline.Test.Repo`. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-03 | T-198-05-05 | Failure artifacts contain synthetic test data only and expire after 14 days. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-04 | T-198-11-05 | The classifier job needs issue write access; repository contents remain read-only. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-05 | T-198-13-02 | D-30 authorizes permanent public planning disclosure after the D-28 sensitive-data scan. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-06 | T-198-16-04 | The browser verification capture is bounded to 35 minutes. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-07 | T-198-18-05 | D-30 authorizes permanent public planning disclosure after the D-28 sensitive-data scan. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-08 | T-198-19-02 | PostgreSQL superuser credentials are fixed test-only values in an ephemeral CI service. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-09 | T-198-20-04 | D-30 authorizes the public CI decision brief after the D-28 sensitive-data scan. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-10 | T-198-22-04 | D-30 and D-28 authorize public planning and CI diagnostics after sensitive-data review. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-11 | T-198-29-05 | D-30 authorizes permanent public planning disclosure after the D-28 sensitive-data scan. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-12 | T-198-31-03 | Playwright artifacts contain synthetic test data only and expire after 14 days. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-13 | T-198-33-03 | Administrative coverage artifacts contain fictional identities and synthetic data only. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-14 | T-198-38-03 | Reset capability is demo-only and guarded against production unless an explicit override is set. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-15 | T-198-41-04 | The durable capture contains public GitHub metadata and explicitly excludes secrets and tokens. | maintainer (explicit GSD-session approval) | 2026-09-08 |
 
 ## Security Audit Trail
 
@@ -121,12 +127,13 @@ No accepted risks. The 40 `accept` dispositions above are candidates only and re
 |------------|---------------|--------|------------|---------------|--------|
 | 2026-09-08 | 213 | 168 | 45 | 17 | gsd-security-auditor / Codex orchestrator |
 | 2026-09-08 | 213 | 173 | 40 | 13 | post-fix gsd-security-auditor / Codex orchestrator |
+| 2026-09-08 | 213 | 213 | 0 | 0 | maintainer-approved risk disposition / Codex orchestrator |
 
 ## Sign-Off
 
 - [x] All registered threats have a disposition.
-- [ ] Accepted risks are maintainer-approved and documented.
-- [ ] `threats_open: 0` confirmed.
-- [ ] `status: verified` set in frontmatter.
+- [x] Accepted risks are maintainer-approved and documented.
+- [x] `threats_open: 0` confirmed.
+- [x] `status: verified` set in frontmatter.
 
-**Approval:** blocked — all implementation mitigations are closed; resolve or explicitly accept the 40 risk candidates, then rerun `$gsd-secure-phase 198`.
+**Approval:** verified 2026-09-08 — 25 metadata corrections and 15 accepted risks explicitly approved by the maintainer.
