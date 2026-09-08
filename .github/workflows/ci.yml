@@ -768,7 +768,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Decide whether all needed jobs succeeded
-        uses: re-actors/alls-green@release/v1
+        # v1.2.2 / release/v1, pinned so the sole required-check decision cannot
+        # change without a reviewed repository commit.
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35
         with:
           jobs: ${{ toJSON(needs) }}
           # Extension point: the first `needs:` job that becomes conditionally

@@ -101,6 +101,19 @@ defmodule Threadline.CiTopologyContractTest do
     assert Regex.match?(~r/^  verify-docs:/m, yaml)
   end
 
+  test "the sole required-check decision pins alls-green immutably" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert Regex.match?(
+             ~r|uses: re-actors/alls-green@[0-9a-f]{40}$|m,
+             yaml
+           ),
+           "ci-required must execute alls-green from a reviewed full commit SHA"
+
+    refute String.contains?(yaml, "re-actors/alls-green@release/"),
+           "a mutable release ref can retarget the only branch-protection decision"
+  end
+
   test "verify-test job runs the phoenix-surface and sigra-reference proof path" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
