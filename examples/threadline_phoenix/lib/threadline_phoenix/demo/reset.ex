@@ -98,10 +98,6 @@ defmodule ThreadlinePhoenix.Demo.Reset do
   end
 
   defp acquire_demo_lock(attempts_left \\ @lock_retry_max_attempts) do
-    # Defense in depth: bounds any other blocking wait this connection might
-    # incur while holding/acquiring the lock, even though `pg_try_advisory_lock/2`
-    # itself never blocks — the retry loop below is what actually bounds the wait.
-    Repo.query!("SET lock_timeout = '45s'")
     do_acquire_demo_lock(attempts_left)
   end
 

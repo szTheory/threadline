@@ -44,6 +44,13 @@ defmodule ThreadlinePhoenix.Demo.AdvisoryLockPinningTest do
     pid
   end
 
+  test "the non-blocking advisory-lock helper does not mutate session lock_timeout" do
+    source = File.read!("lib/threadline_phoenix/demo/reset.ex")
+
+    refute source =~ "SET lock_timeout",
+           "session settings survive Repo.checkout and would leak into the connection pool"
+  end
+
   test "nested with_demo_lock/1 pins the whole guarded region to one checked-out connection" do
     refute Repo.checked_out?()
 
