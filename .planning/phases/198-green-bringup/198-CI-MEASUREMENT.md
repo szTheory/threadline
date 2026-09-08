@@ -2315,3 +2315,66 @@ Any future remote mutation is outside Plans 198-41 and 198-42 and requires a
 new `blocking-human` maintainer checkpoint before the first mutation. No push,
 ruleset PUT, bypass actor, merge, squash, rebase, force update, or PR mutation
 was performed here.
+
+### Deterministic main-run observation and final disposition
+
+**Task 2 captured:** `2026-09-08T19:38:22Z` (UTC). A second
+`git fetch origin main` left `origin/main` at
+`a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2`. The pre-Task-2 local HEAD was
+`b7140a0491fb0bcb8c2a81b85e0a7b7e796fc000`, the committed Task 1 evidence.
+
+| Observation | Value |
+|---|---|
+| final live `origin/main` SHA | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` |
+| Plan 42 pre-Task-2 HEAD | `b7140a0491fb0bcb8c2a81b85e0a7b7e796fc000` |
+| `git rev-list --count origin/main..HEAD` | `234` |
+| `git rev-list --count HEAD..origin/main` | `0` |
+
+The selector listed `push` runs for branch `main` scoped to the canonical
+workflow path `.github/workflows/ci.yml`, filtered only exact
+`headSha == a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2`, sorted all matches
+lexicographically by `[createdAt, databaseId]`, and chose the last record before
+examining status. This makes `databaseId` the deterministic tie-break for equal
+timestamps and prevents API input order, a non-CI workflow, or an older
+completed run from changing the result.
+
+The selected record was run `33138291361`, created
+`2026-08-28T03:13:58Z`, with status `completed` and workflow conclusion
+`failure`. Its job collection was non-empty (`14` jobs). Exactly one job was
+named byte-exact `CI required`; that job's own conclusion was `failure`.
+Therefore the aggregate observation is not successful—only a unique job with
+conclusion byte-exact `success` would qualify.
+
+main run observation: id=33138291361; status=completed; conclusion=failure; ci_required_count=1; ci_required_conclusion=failure
+
+GREEN-07 remains Pending. Its first failing predicate is exact ancestry:
+`origin/main..HEAD` is already non-empty before the Task 2 and summary commits
+exist. Run `33138291361` also concludes `failure`; neither it nor PR #34's
+successful branch run is described as proof of a successful landed-main run.
+
+GREEN-08 is re-proved from Task 1's two matching complete editable-field
+digests, active enforcement, empty bypass roster, and sole byte-exact
+`CI required` context. This is a live ruleset-integrity observation, not a
+ruleset mutation.
+
+The final local graph necessarily adds two further commit categories after this
+observation: the Plan 42 Task 2 status commit containing this section and the
+required `198-42-SUMMARY.md` closeout commit. Both postdate the already-measured
+`origin/main` SHA, as does Task 1 commit
+`b7140a0491fb0bcb8c2a81b85e0a7b7e796fc000`. Every one remains inside “every
+local commit”; no earlier SHA is credited with containing a future commit.
+
+`198-UAT.md` remains byte-identical at SHA-256
+`1383aa92e587ac9006ed45d6f7d411dffa31cec169584bde67b185ef631793f6`.
+Neither `198-07 D3` nor `198-18 D3` has a qualifying successful landed-main run,
+and no human-judgment row is reclassified. Coverage requires
+`human_judgment: false` plus a named passing verification reference; prose alone
+does not discharge it.
+
+- `remote mutation: none`
+- `ruleset mutation: none`
+- `bypass window: not opened`
+- `GREEN-07: Pending`
+
+Any future remote change remains outside this closeout and requires a fresh
+`blocking-human` maintainer checkpoint before its first mutation.

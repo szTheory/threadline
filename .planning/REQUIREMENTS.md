@@ -193,6 +193,27 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | STRUCT-05 | Phase 204 | Pending |
 | STRUCT-06 | Phase 204 | Pending |
 
+## Phase 198 Round 7 Plan 42 status note — 2026-09-08
+
+- **GREEN-07: Pending.** The first failing predicate is exact ancestry:
+  `origin/main` at `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` does not contain the
+  Round 7 planning, evidence, task-status, and required `198-42-SUMMARY.md`
+  closeout commits. The newest canonical `.github/workflows/ci.yml` `main`
+  push run for that exact SHA, selected deterministically by
+  `[createdAt, databaseId]`, is run `33138291361`; its workflow conclusion and
+  unique byte-exact `CI required` job conclusion are both `failure`. PR #34's
+  successful branch run is not a main run. D-39's accepted-Pending authority is
+  preserved; no remote mutation or bypass was attempted.
+- **GREEN-08: re-proved live.** Two read-only snapshots of ruleset `21702804`
+  produced the same canonical SHA-256 digest over
+  `{name,target,enforcement,conditions,rules}`:
+  `d65ef5955bd63595aaee3372f8bae2b940e448617a9dde0974e6aeee95861372`.
+  Enforcement is `active`, bypass actors are empty, and the only required
+  context is byte-exact `CI required`. No ruleset mutation occurred.
+- No other requirement status changes. GREEN-01..06 and GREEN-09..12, prior
+  evidence, the GREEN-08 PR #26 downstream note, and all human-judgment UAT rows
+  retain their existing dispositions verbatim.
+
 **Coverage:**
 
 - v1.41 requirements: 53 total (GREEN 12, DECOUPLE 8, SURFACE 11, RENDER 6, RELEASE 5, GATE 5, STRUCT 6)
