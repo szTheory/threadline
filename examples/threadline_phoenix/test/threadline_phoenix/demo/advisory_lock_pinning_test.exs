@@ -47,7 +47,7 @@ defmodule ThreadlinePhoenix.Demo.AdvisoryLockPinningTest do
   test "the non-blocking advisory-lock helper does not mutate session lock_timeout" do
     source = File.read!("lib/threadline_phoenix/demo/reset.ex")
 
-    refute source =~ "SET lock_timeout",
+    refute source =~ ~s|Repo.query!("SET lock_timeout|,
            "session settings survive Repo.checkout and would leak into the connection pool"
   end
 

@@ -43,17 +43,16 @@ defmodule ThreadlinePhoenix.Demo.Reset do
   one `mix test`, so intra-run contention between this module's own callers
   cannot occur — that mechanism was disproven, not merely unlikely.
 
-  The entire guarded region — the `SET lock_timeout` statement, the
-  `pg_try_advisory_lock` retry loop, the caller's `fun.()` (including any
+  The entire guarded region — the `pg_try_advisory_lock` retry loop, the
+  caller's `fun.()` (including any
   nested `with_demo_lock/1` call reached from within it, e.g. via
   `Demo.Seed.run/0`), and the `pg_advisory_unlock` release — runs inside one
   `Repo.checkout/2` call. That is an enforced property, not an assumed one:
   every statement in the region is guaranteed to execute on the same
-  checked-out Postgres backend, so `SET lock_timeout` provably bounds the
-  connection that later attempts the lock (WR-01), and a nested acquire
-  reached from inside `fun.()` necessarily lands on the same backend as the
-  outer acquire, so Postgres advisory-lock session reentrancy actually
-  applies to it. `:timeout` is passed as `:infinity` on the checkout itself
+  checked-out Postgres backend. A nested acquire reached from inside `fun.()`
+  necessarily lands on the same backend as the outer acquire, so Postgres
+  advisory-lock session reentrancy actually applies to it. `:timeout` is
+  passed as `:infinity` on the checkout itself
   so the connection-pool's own 15s default checkout-query timeout cannot cut
   off the bounded 45s lock-retry wait; the lock-retry loop is still the
   thing that actually bounds how long this function can run.
