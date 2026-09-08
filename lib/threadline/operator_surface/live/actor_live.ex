@@ -257,8 +257,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           set_window(socket, hours)
 
         _ ->
-          {:noreply,
-           put_flash(socket, :error, "Choose a supported actor activity window.")}
+          {:noreply, put_flash(socket, :error, "Choose a supported actor activity window.")}
       end
     end
 
