@@ -265,6 +265,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "forged actor-window values are rejected without terminating the LiveView", %{conn: conn} do
+      assert {:ok, lv, _html} = live(conn, "/audit/actors/user/window-validation")
+
+      for value <- ["abc", "-1", "999999999999999999999999", "24hours"] do
+        html = render_click(lv, "set-window", %{"hours" => value})
+        assert html =~ "Choose a supported actor activity window."
+        assert html =~ ~s|phx-value-hours="24"|
+      end
+
+      html = render_click(lv, "set-window", %{})
+      assert html =~ "Choose a supported actor activity window."
+    end
+
     test "unscoped actor rows render blast-radius summaries and copyable transaction refs", %{
       conn: conn
     } do

@@ -17,6 +17,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.StorageSchema
 
     @actor_kinds ~w(user admin service_account job system anonymous)a
+    @supported_window_hours [1, 24, 168, 720]
 
     def mount(%{"kind" => kind, "id" => id}, _session, socket) do
       repo =
@@ -251,7 +252,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("set-window", %{"hours" => hours_str}, socket) do
-      hours = String.to_integer(hours_str)
+      case Integer.parse(hours_str) do
+        {hours, ""} when hours in @supported_window_hours ->
+          set_window(socket, hours)
+
+        _ ->
+          {:noreply,
+           put_flash(socket, :error, "Choose a supported actor activity window.")}
+      end
+    end
+
+    def handle_event("set-window", _params, socket) do
+      {:noreply, put_flash(socket, :error, "Choose a supported actor activity window.")}
+    end
+
+    defp set_window(socket, hours) do
       from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
 
       page =
