@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-08T19:53:58Z
+reviewed: 2026-09-08T21:07:24Z
 depth: standard
 files_reviewed: 90
 files_reviewed_list:
@@ -95,90 +95,53 @@ files_reviewed_list:
   - test/threadline/storage_schema_prefix_contract_test.exs
   - test/threadline/zero_skips_contract_test.exs
 findings:
-  critical: 4
-  warning: 3
+  critical: 0
+  warning: 0
   info: 0
-  total: 7
-status: issues_found
+  total: 0
+status: clean
 ---
 
 # Phase 198: Code Review Report
 
-**Reviewed:** 2026-09-08T19:53:58Z
+**Reviewed:** 2026-09-08T21:07:24Z
 **Depth:** standard
 **Files Reviewed:** 90
-**Status:** issues_found
+**Status:** clean
 
 ## Narrative Findings (AI reviewer)
 
-The review scope is the sorted union of `key_files.created` / `key_files.modified` from all 42 Phase 198 summaries and the reliable diff `4a17d742a52995b850637a272640892b0be0aabc^..HEAD`, after the workflow's planning, lockfile, generated-file, and deleted-file exclusions. The summaries named 102 paths; the diff supplied 33 paths omitted from those summaries; 90 current source files remained after filtering.
+This final convergence iteration re-reviewed the exact 90-file scope persisted by the original Phase 198 review and inspected every fix commit from `4c4bcbc9` through `365659e9`. All four original Critical findings and all three original Warnings are fully resolved. Direct LiveView probes confirmed that non-string `hours` values (`24`, `nil`, `[]`, and `%{}`) take the safe fallback without changing the selected valid window or terminating the process. No regression or new issue was found in the reviewed scope.
 
-Seven present-HEAD defects were found. Five were introduced during Phase 198. CR-02 and WR-03 predate the supplied diff base but remain active in files inside the full Phase 198 source surface; they are called out as historical rather than attributed to the gap-closure plans. Plans 198-41 and 198-42 changed evidence/planning only and did not fix any finding below.
+All reviewed files meet quality standards. No issues found.
 
-Static validation run during this review: `actionlint` was available and reported no workflow syntax errors; `shellcheck` reported no diagnostics for the five reviewed shell scripts. Those tools do not exercise the semantic failure paths below. No application or browser test suite was run as part of this review.
+### Prior-finding resolution
 
-## Critical Issues
+| Finding | Resolution | Evidence |
+|---|---|---|
+| CR-01 | Resolved | `bin/verify-branch-protection` treats only an observed HTTP 404 as absence and fails closed for other API/transport outcomes; focused fixtures cover 403, 429, 500, and 503. |
+| CR-02 | Resolved | The release gate deterministically selects the newest main-branch push run by creation time and run ID, then requires that run itself to succeed. |
+| CR-03 | Resolved | The sole aggregate decision action is pinned to the full commit SHA `b5b5b37504aa4183270bd3d855c52a67f212be35`. |
+| CR-04 | Resolved | Attestations render and validate in a same-directory temporary file before atomic replacement; failed renders preserve existing evidence. |
+| WR-01 | Resolved | The session-scoped `SET lock_timeout` was removed; the bounded non-blocking advisory-lock retry loop remains. |
+| WR-02 | Resolved | `Application.fetch_env/2` distinguishes a prior value from absence, and the `after` block restores the corresponding state. |
+| WR-03 | Resolved | The parsing clause is binary-guarded and allowlists the four supported windows. Invalid strings, missing keys, `24`, `nil`, `[]`, and `%{}` all use the fallback, preserve a previously selected valid `168`-hour window, and leave the LiveView alive. |
 
-### CR-01 (BLOCKER): Classic-protection API failures are interpreted as proof that protection is absent
+## Verification
 
-**File:** `bin/verify-branch-protection:95-99`
-
-**Issue:** The command substitution maps every non-zero `gh api repos/.../protection` result to `absent`. A genuine 404 (no classic rule) is indistinguishable from a 401/403, rate limit, network failure, malformed repository slug, or GitHub outage. The workflow can therefore print “no classic protection is stacking” and pass precisely when it could not inspect classic protection. This defeats the script's stated fail-closed contract and can hide an extra required check or stale strict-up-to-date rule.
-
-**Fix:** Capture the HTTP status separately and accept only the documented not-found response as absence; treat every transport/auth/5xx response as an error. Prefer `gh api --silent --include` or a small tested helper that exposes the HTTP code without parsing unrelated stderr, and add fixtures for 404, 403, 429, and 5xx.
-
-### CR-02 (BLOCKER, pre-existing): The release gate accepts any old successful run even when the newest CI run failed
-
-**File:** `.github/workflows/release.yml:256-276`
-
-**Issue:** Runs are sorted newest-first, but after they all complete the gate calls `runs.find(...success)`. If a SHA has an older successful CI run and a newer completed rerun that failed, the old success is enough to publish. The same defect applies across workflow events/attempts on the SHA. This is a release-safety bypass: the guard does not establish that the selected/latest CI execution is green. `git blame` places this logic before the Phase 198 diff base, so this is a current-surface historical defect, not a regression from plans 198-41/42.
-
-**Fix:** Select one authoritative run deterministically (normally newest by `created_at`, tie-broken by `id`, and constrained to the intended event/ref where appropriate), wait only for that run, then require its conclusion to equal `success`. If it completes unsuccessfully, fail immediately and name its URL/conclusion rather than searching older runs.
-
-### CR-03 (BLOCKER): The sole required-check decision executes a mutable third-party action reference
-
-**File:** `.github/workflows/ci.yml:751-773`
-
-**Issue:** `CI required`, the only context protected by the main ruleset, delegates its entire pass/fail decision to `re-actors/alls-green@release/v1`. `release/v1` is a mutable ref rather than an immutable commit SHA. A compromised upstream account or retargeted ref can make this job exit successfully regardless of the twelve `needs` results, bypassing every required lane without changing this repository. Restricting the token to `contents: read` limits repository writes but does not protect the integrity of the status result the ruleset trusts.
-
-**Fix:** Pin the action to a reviewed full commit SHA and use dependency automation to propose explicit updates, or implement the small needs-result check inline from trusted workflow expressions/code so the branch-protection decision has no mutable third-party execution dependency.
-
-### CR-04 (BLOCKER): Attestation regeneration can destroy the previous evidence file on any rendering/write failure
-
-**File:** `bin/record-ci-attestation:61-100`
-
-**Issue:** The script redirects `jq` directly over the final `ci-attestation-${RUN_ID}.json`. Shell redirection opens and truncates an existing attestation before `jq` starts. If the GitHub response shape changes (for example `.jobs` is absent), `jq` fails, the filesystem fills, or the process is interrupted, the prior evidence is replaced by an empty or partial file. Because attestations are evidence artifacts and the same run ID intentionally maps to the same filename, this is a concrete data-loss/corruption path. The current recorder contract tests only check executability and refusal of in-flight runs; they do not falsify partial overwrite.
-
-**Fix:** Render into a `mktemp` file in the destination directory, validate the completed JSON and required schema/status fields, then atomically rename it over `OUT_FILE` only after success. Install an `EXIT` trap that removes the temporary file on every failure path.
-
-## Warnings
-
-### WR-01 (WARNING): The demo advisory-lock helper leaks a session-wide 45-second lock timeout into the connection pool
-
-**File:** `examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex:80-105`
-
-**Issue:** `SET lock_timeout = '45s'` is session-scoped. `Repo.checkout/2` pins the session but does not reset arbitrary PostgreSQL session parameters when returning that connection to the pool. Both successful execution and the acquisition-timeout path therefore leave `lock_timeout` changed for whichever unrelated query later borrows the connection. That later query can fail after 45 seconds even though it never opted into the demo lock policy. The acquisition-failure path is especially notable because it raises before entering the existing `try/after` release block.
-
-**Fix:** The lock operation uses non-blocking `pg_try_advisory_lock`, so remove this unrelated session setting. If it must remain, read the prior setting and restore it in an outer `after` that begins before acquisition and runs for acquisition failures as well as callback failures; use parameter-safe `set_config('lock_timeout', $1, false)` rather than interpolating SQL.
-
-### WR-02 (WARNING): Retention configuration restoration does not restore the “unset” state
-
-**File:** `examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex:82-105`
-
-**Issue:** When `:threadline, :retention` was absent before the seed, `Application.get_env/2` returns `nil`, but the `after` block restores it as an explicitly present empty list. Code using `Application.fetch_env/2`, `Application.get_all_env/1`, or configuration-presence checks observes a different state after seeding. This contradicts the comment's claim that the prior environment is restored on every path and can mask a missing host configuration.
-
-**Fix:** Preserve `Application.fetch_env(:threadline, :retention)` and, in `after`, call `put_env` for `{:ok, value}` or `delete_env` for `:error`.
-
-### WR-03 (WARNING, pre-existing): A forged actor-window event crashes the LiveView process
-
-**File:** `lib/threadline/operator_surface/live/actor_live.ex:253-255`
-
-**Issue:** `hours_str` is client-controlled LiveView event data, but `String.to_integer/1` is called without validation. A forged value such as `"abc"` raises `ArgumentError`; negative or extremely large values can request nonsensical windows or overflow `DateTime.add/3`. This lets any user who can reach the operator surface repeatedly terminate their own LiveView process and generate avoidable server errors. `git blame` places this handler before Phase 198, so it is a current-surface historical defect.
-
-**Fix:** Parse with `Integer.parse/1`, require the entire string to be consumed, and allowlist the supported windows (for example `[1, 6, 12, 24, 72, 168]`). On invalid input, leave the socket intact and show a validation flash instead of raising.
+- Root full suite: 1,481 tests, 0 failures, 1 excluded.
+- Root focused fix-regression suite: 59 tests, 0 failures.
+- Release CI gate contract: 1 test, 0 failures.
+- ActorLive wrong-type boundary probe: 1 test, 0 failures; exercised `24`, `nil`, `[]`, `%{}`, malformed strings, a missing key, valid selection, unchanged fallback state, and process liveness.
+- Phoenix demo lock/retention regression suite: 7 tests, 0 failures.
+- `mix compile --warnings-as-errors` passed.
+- `actionlint -shellcheck=''` passed for `.github/workflows/ci.yml` and `.github/workflows/release.yml`.
+- `shellcheck` passed for `bin/record-ci-attestation` and `bin/verify-branch-protection`.
+- `mix format --check-formatted` passed for the modified in-scope Elixir files.
+- `git diff --check fd56d8cc..HEAD` passed.
 
 ---
 
-_Reviewed: 2026-09-08T19:53:58Z_
+_Reviewed: 2026-09-08T21:07:24Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
