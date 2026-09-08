@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 40 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6) — all 40 executed
+**Plans**: 42 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7) — 40 executed, 2 planned
 
 Plans:
 **Wave 1**
@@ -256,6 +256,24 @@ Plans:
 **Wave 3** *(blocked on 198-38 and 198-39)*
 
 - [x] 198-40-PLAN.md — Commit a falsifiable Round 6 prediction, **maintainer pushes the measurement branch by hand** (`git push` is a human-authorized gate), measure one real CI run, re-prove GREEN-04 from that run alone, and state the nine carried-forward requirements explicitly (wave 3)
+
+#### Gap-closure round 7 (plans 198-41 .. 198-42)
+
+**Wave 1**
+
+- [ ] 198-41-PLAN.md — **Tracer:** append a live closure packet for PR #34 / run 33354216172 / ruleset 21702804, separate the immutable evidence subject from mutable HEAD, and prove the GSD atomic-commit lifecycle requires GREEN-07 to remain Pending (wave 1)
+
+**Wave 2** *(blocked on 198-41; read-only against GitHub)*
+
+- [ ] 198-42-PLAN.md — Measure the post-Plan-41 local graph, compare full canonical ruleset state without mutation, select the newest exact-SHA main run before status, re-prove GREEN-08, and preserve GREEN-07 Pending without changing UAT (wave 2)
+
+**Round-7 notes:**
+
+- **The round-6 verification snapshot is stale in one material respect, not silently discarded.** Phase 199's maintainer-authorized D-39 exception fixed the `scroll_cost` cause, regenerated the permitted evidence, and replaced the three stale browser pixel baselines with structural assertions. PR #34 head `46213f9bc0ecbff356058d317c882d5a643ae86f` now has a 14/14 green run (`33354216172`). GREEN-07 remains Pending because that evidence is on a branch and `origin/main` is still 228 commits behind.
+- **The terminal D-39 disposition remains controlling.** PR #34's SHA is an immutable evidence subject, not mutable local HEAD. Plan 198-41's evidence commits and summary, followed by Plan 198-42's evidence commits and summary, are themselves local commits; a push inside either plan necessarily precedes at least one of those commits and would make `git log origin/main..HEAD` non-empty again.
+- **Why no Round-7 merge route closes the literal requirement:** ruleset 21702804 requires linear history. A merge commit preserves original commit identities but violates that rule; squash and rebase preserve linearity but replace identities. An exact fast-forward can land only the SHA available at push time and cannot contain later GSD task/summary commits. Plans 198-41/42 therefore perform no push or ruleset mutation and preserve GREEN-07 Pending. Any future remote mutation requires a new explicit blocking maintainer checkpoint.
+- **No new implementation gap is manufactured from UAT.** The remaining human-judgment rows stay pending for ratification, and `198-07 D3` / `198-18 D3` remain unchanged because Round 7 produces no qualifying landed-main run.
+- **No package, schema-push, UI, or product external-API work exists in this round.** `COVERAGE.md` remains valid. The assumption-delta decision is `no-change`: the single emitted/required `CI required` contract and the derived evidence model are preserved.
 
 **Round-6 notes:**
 
