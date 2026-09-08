@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
-current_phase_name: green-bringup
+current_phase_name: Green Bringup
 status: executing
-stopped_at: "Phase 198 round 6 complete and closed out. All 40 plans executed. CI run 33344382035 (attempt 1, failure, 10m36s) on ci/198-round6, PR #33 draft DO NOT MERGE. Round-6 prediction (sealed at 23c16267 before the push) scored 13/13 at the conclusion level plus a full 3-row browser-lane composition hit. GREEN-04 re-proved Complete strictly from the measured Run test suite (current) = success. GREEN-07 unchanged, Pending, carrying 198-39-DECISION.md option-a: accepted as permanently unmet for v1.41 by maintainer selection at a blocking one-way-door checkpoint. Round-6 closeout gates RUN: code review 0 Critical / 1 Warning / 1 Info (CR-01 confirmed fixed at cause by independent trace through ecto_sql); verification gaps_found, integrity PASS on six re-derived vectors, round 5's two gaps both closed. Phase NOT marked complete (verdict is gaps_found). OPEN: (1) requirements-complete count disagrees between artifacts — VERIFICATION.md says 10/12, REQUIREMENTS.md says 11/12; maintainer call, deliberately unreconciled. (2) security_enforcement is on and no 198-SECURITY.md exists — /gsd-secure-phase 198. (3) round-6 code-review WR-01/IN-02 have no triage-ledger or deferred-items row."
-last_updated: "2026-09-08T19:12:28.975Z"
-last_activity: 2026-08-31
-last_activity_desc: Phase 198 round-6 closeout gates run — code review 0 Critical (CR-01 confirmed fixed at cause), verification gaps_found with integrity PASS on six re-derived vectors; phase NOT marked complete
-state_head: 8f384c173a8362a616c7bf472fbfdfc96917578d
+stopped_at: Completed 198-41-PLAN.md
+last_updated: "2026-09-08T19:29:43.297Z"
+last_activity: 2026-09-08
+last_activity_desc: Plan 198-41 completed — Round 7 live landing evidence and atomic-commit lifecycle proof recorded; GREEN-07 remains Pending
+state_head: fe5a0e430640013cdf596bc6f208649618476691
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 40
+  completed_plans: 41
   percent: 0
 ---
 
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup (round 6 measured on CI run `33344382035`: GREEN-04 re-proved Complete, GREEN-07 unchanged at accepted-Pending; all 40 plans executed, formal phase closeout/re-verification against round 6 not yet run)
+**Current focus:** Phase 198 — Green Bringup, Plan 198-42 read-only final measurement
 
 ## Current Position
 
-Phase: 198 (green-bringup) — READY TO EXECUTE
-Plan: 40 of 40 complete (198-01..198-40 done; 198-38 closed CR-01/WR-01/IN-01 at cause with a red-then-green regression proof; 198-39 recorded GREEN-07/SC3's terminal disposition — maintainer selected option-a, accepted as permanently Pending for v1.41; 198-40 committed a pre-push prediction, halted for a maintainer push, and re-measured CI to completion)
-Status: Round 6 measured on CI run `33344382035` (attempt 1, `failure`, 10m36s, `ci/198-round6`, PR #33 draft DO NOT MERGE). GREEN-04 re-proved **Complete** — `Run test suite (current)` concluded `success` again on a fresh head SHA after 198-38 changed its covered code (not inherited from round 5). GREEN-07 remains **Pending**, unchanged — `CI required` still `failure`, red `needs:` count held at round 5's 2 (`verify-example-browser`, `verify-capture`), hitting this round's stated ceiling exactly; the `198-39-DECISION.md` option-a disposition (accepted-Pending for v1.41) is undisturbed. Round-6 prediction (committed `23c16267` before the push) scored 13/13 hit at the conclusion level, including a full 3-row composition hit on the browser lane (round 5's own composition prediction was a partial miss; round 6's identical guess landed exactly). `git diff --stat` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, and `*.png` across the round-6-specific commit range (`14f923a7..23c16267`) is empty (D-42 — no gate narrowed, no evidence regenerated).
+Phase: 198 (Green Bringup) — EXECUTING
+Plan: 42 of 42
+Status: Ready to execute 198-42
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-08-30 — gap-closure round 5 plan 198-37 executed: pre-push prediction committed (`14f923a7`), user pushed `ci/198-round5` by hand, CI run `33336651956` measured to completion, GREEN-04 set Complete and GREEN-07 kept Pending strictly from the measured run (`15b0b9da`)
+Last activity: 2026-09-08 — Phase 198 execution started
 
 Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
 
@@ -88,6 +88,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
 | Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
 | Phase 198 P38 | 45min | 3 tasks | 5 files |
+| Phase 198 P41 | 7min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -472,6 +473,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: [198-38]: Repo.checkout/2 chosen over pg_advisory_xact_lock/Repo.transaction/2 to pin the demo lock critical section — the guarded body issues many independent per-seed Repo.transaction/1 calls by design and an outer transaction would collapse them.
 - [Phase 198]: [198-38]: promote — Demo.Seed no longer maintains its own copy of the lock guard trio; Demo.Seed.run/0 delegates to Reset.with_demo_lock/1, eliminating the two-copies drift that produced CR-01.
 - [Phase 198]: [198-39]: option-a — maintainer accepted GREEN-07/roadmap SC3 as permanently Pending for v1.41 at a blocking checkpoint:decision; verify-capture and verify-example-browser stay red by construction under D-39 for the whole milestone; no gate narrowed, no baseline regenerated. See 198-39-DECISION.md.
+- [Phase 198]: The successful PR run supersedes Round 6's red-lane cause but does not close GREEN-07's separate origin/main exact-ancestry clause. — The run is pinned to an immutable branch subject while final local HEAD includes later mandatory GSD commits.
+- [Phase 198]: No remote or ruleset mutation is attempted because mandatory evidence and summary commits postdate any finite in-plan push. — A pre-closeout ref update cannot contain commits that do not yet exist.
 
 ### Blockers
 
@@ -479,8 +482,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-08-30T22:50:23Z
-**Stopped at:** Completed 198-39-PLAN.md (GREEN-07/roadmap SC3 terminal disposition recorded — maintainer selected option-a, accepted-Pending for v1.41; plan 198-40 owns the measured CI re-run)
+**Last session:** 2026-09-08T19:29:43.252Z
+**Stopped at:** Completed 198-41-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

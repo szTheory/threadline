@@ -261,7 +261,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 198-41-PLAN.md — **Tracer:** append a live closure packet for PR #34 / run 33354216172 / ruleset 21702804, separate the immutable evidence subject from mutable HEAD, and prove the GSD atomic-commit lifecycle requires GREEN-07 to remain Pending (wave 1)
+- [x] 198-41-PLAN.md — **Tracer:** append a live closure packet for PR #34 / run 33354216172 / ruleset 21702804, separate the immutable evidence subject from mutable HEAD, and prove the GSD atomic-commit lifecycle requires GREEN-07 to remain Pending (wave 1)
 
 **Wave 2** *(blocked on 198-41; read-only against GitHub)*
 
@@ -478,7 +478,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 7/7 | In Progress | All plans executed. Not marked Complete: the phase goal "CI concludes green" is NOT met — `CI required` is red on the 79 deferred test-side defects (198-04). Origin is current and CI is 6m07s. |
+| 198. Green Bringup | v1.41 | 41/42 | In Progress | Plan 198-41 recorded the green PR/run evidence and proved the atomic-commit constraint; GREEN-07 remains Pending. Plan 198-42 is the remaining read-only final measurement. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
