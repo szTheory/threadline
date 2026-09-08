@@ -1,0 +1,105 @@
+defmodule Threadline.Phase198NyquistContractTest do
+  @moduledoc """
+  Durable offline contracts for Phase 198 evidence that previously had only
+  plan-local shell checks. These tests deliberately fail if the evidence is
+  missing, vacuous, internally inconsistent, or if the CI/archive invariants
+  regress.
+  """
+
+  use ExUnit.Case, async: true
+
+  @root File.cwd!()
+  @planning Path.join(@root, ".planning")
+
+  defp read!(relative), do: @root |> Path.join(relative) |> File.read!()
+
+  test "GREEN-01 preserves a non-vacuous historical CI failure record with its staleness caveat" do
+    path = Path.join(@planning, "audits/198-ci-run-28214113903-logs.md")
+    body = File.read!(path)
+
+    assert body =~ "28214113903"
+    assert body =~ ~r/predates.*ci\.yml/is
+    assert body =~ ~r/\|\s*Job(?: name)?\s*\|\s*Conclusion\s*\|/i
+
+    assert body =~ "```" or body =~ "## Status: LOGS UNAVAILABLE",
+           "the preserved run must contain either captured logs or an explicit loss record"
+  end
+
+  test "GREEN-02 full-default Credo evidence is non-empty and reconciles to its report" do
+    json_path = Path.join(@planning, "audits/198-credo-full-default.json")
+    report = read!(".planning/audits/198-credo-histogram.md")
+    issues = json_path |> File.read!() |> Jason.decode!() |> Map.fetch!("issues")
+
+    assert issues != [],
+           "the full-default run must contain findings or the measurement is vacuous"
+
+    assert report =~ "Per-check"
+    assert report =~ "Per-file"
+    assert report =~ "/tmp/198-full-default.credo.exs"
+
+    [_, baseline] =
+      Regex.run(~r/Baseline issue count \(`baseline_count`\) \| \*\*(\d+)\*\*/, report)
+
+    [_, full] = Regex.run(~r/Full-default issue count \| \*\*(\d+)\*\*/, report)
+
+    assert String.to_integer(full) == length(issues)
+    assert String.to_integer(full) > String.to_integer(baseline)
+  end
+
+  test "GREEN-03 mechanical probe demonstrates both insensitive variants and a failing control" do
+    report = read!(".planning/audits/198-mechanical-sensitivity.md")
+
+    for row <- ["control", "text-content", "text-width", "token", "empty directory"] do
+      assert report =~ row, "mechanical probe is missing the #{row} result"
+    end
+
+    assert report =~ ~r/text-content[\s\S]*?\{:ok, \[\]\}/
+    assert report =~ ~r/text-width[\s\S]*?\{:ok, \[\]\}/
+
+    assert report =~ ~r/token[\s\S]*?\{:error, /,
+           "the positive control must fail or the probe has no demonstrated teeth"
+
+    assert report =~ "## Finding"
+    assert report =~ "lib/threadline/operator_surface/mechanical_checker.ex"
+    assert report =~ ~r/`:\d+(?:-\d+)?`/
+  end
+
+  test "GREEN-06 every workflow job is bounded and browser runs fail fast" do
+    for relative <- [
+          ".github/workflows/ci.yml",
+          ".github/workflows/release.yml",
+          ".github/workflows/browser-full.yml"
+        ] do
+      yaml = read!(relative)
+      [_, jobs_block] = String.split(yaml, "\njobs:\n", parts: 2)
+      jobs = Regex.scan(~r/^  [a-z][a-z0-9-]+:\s*$/m, jobs_block) |> length()
+      timeouts = Regex.scan(~r/^    timeout-minutes:\s*\d+\s*$/m, jobs_block) |> length()
+
+      assert jobs > 0, "#{relative} contains no derived jobs"
+
+      assert timeouts == jobs,
+             "#{relative} has #{jobs} jobs but #{timeouts} timeout-minutes bounds"
+    end
+
+    playwright = read!("examples/threadline_phoenix/e2e/playwright.config.ts")
+    assert playwright =~ ~r/maxFailures:\s*process\.env\.CI\s*\?\s*[1-9]\d*\s*:\s*0/
+  end
+
+  test "GREEN-12 every archive-register row resolves to an annotated local tag" do
+    register = read!(".planning/ARCHIVE-REGISTER.md")
+
+    refs =
+      Regex.scan(~r/^\| `([^`]+)` \| `([0-9a-f]{40})` \|/m, register, capture: :all_but_first)
+
+    assert refs != [], "archive register has no rows"
+
+    for {ref, sha} <- Enum.map(refs, &List.to_tuple/1) do
+      tag = "archive/#{ref}"
+      {object, 0} = System.cmd("git", ["rev-parse", "#{tag}^{}"], stderr_to_stdout: true)
+      assert String.trim(object) == sha
+
+      {type, 0} = System.cmd("git", ["cat-file", "-t", tag], stderr_to_stdout: true)
+      assert String.trim(type) == "tag", "#{tag} must remain annotated"
+    end
+  end
+end
