@@ -149,5 +149,54 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
                "#{script} is not executable (mode #{Integer.to_string(mode, 8)})"
       end
     end
+
+    test "classic protection treats only HTTP 404 as absent and fails closed otherwise" do
+      verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
+
+      for {http_status, gh_exit, expected_exit} <- [
+            {404, 1, 0},
+            {403, 1, 1},
+            {429, 1, 1},
+            {500, 1, 1},
+            {503, 1, 1}
+          ] do
+        fake_bin =
+          Path.join(
+            System.tmp_dir!(),
+            "branch_protection_#{http_status}_#{System.unique_integer([:positive])}"
+          )
+
+        File.mkdir_p!(fake_bin)
+        fake_gh = Path.join(fake_bin, "gh")
+
+        File.write!(
+          fake_gh,
+          """
+          #!/usr/bin/env bash
+          case "$*" in
+            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required"}]}}]' ;;
+            *"commits/main"*) printf '%s' 'abc123' ;;
+            *"check-runs"*) printf '%s' '{"check_runs":[{"name":"CI required"}]}' ;;
+            *"branches/main/protection"*) printf 'HTTP/2.0 #{http_status} Test\\r\\n\\r\\n'; exit #{gh_exit} ;;
+            *) exit 2 ;;
+          esac
+          """
+        )
+
+        File.chmod!(fake_gh, 0o755)
+
+        {_output, exit_status} =
+          System.cmd("bash", [verifier],
+            env: [
+              {"GITHUB_REPOSITORY", "example/threadline"},
+              {"PATH", fake_bin <> ":" <> System.fetch_env!("PATH")}
+            ],
+            stderr_to_stdout: true
+          )
+
+        File.rm_rf!(fake_bin)
+        assert exit_status == expected_exit, "HTTP #{http_status} produced exit #{exit_status}"
+      end
+    end
   end
 end

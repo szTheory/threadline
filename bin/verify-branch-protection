@@ -93,8 +93,27 @@ if [[ "${EMITTED_COUNT:-0}" -lt 1 ]]; then
 fi
 
 # --- Third block: classic branch protection must not be stacking -------------
-CLASSIC_STATUS=$(gh api "repos/${REPO}/branches/${BRANCH}/protection" \
-  -H "Accept: application/vnd.github+json" >/dev/null 2>&1 && echo "present" || echo "absent")
+set +e
+CLASSIC_RESPONSE=$(gh api --include --silent \
+  "repos/${REPO}/branches/${BRANCH}/protection" \
+  -H "Accept: application/vnd.github+json" 2>&1)
+CLASSIC_EXIT=$?
+set -e
+
+if [[ "$CLASSIC_EXIT" -eq 0 ]]; then
+  CLASSIC_STATUS="present"
+else
+  CLASSIC_HTTP_STATUS=$(printf '%s\n' "$CLASSIC_RESPONSE" \
+    | awk '/^HTTP\/[0-9.]+ [0-9][0-9][0-9]/ { status=$2 } END { print status }')
+
+  if [[ "$CLASSIC_HTTP_STATUS" == "404" ]]; then
+    CLASSIC_STATUS="absent"
+  else
+    echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
+    echo "gh api exited ${CLASSIC_EXIT}; HTTP status: ${CLASSIC_HTTP_STATUS:-unavailable}." >&2
+    exit 1
+  fi
+fi
 
 if [[ "$CLASSIC_STATUS" == "present" ]]; then
   echo "FAIL (c): classic branch protection still exists on ${REPO}@${BRANCH}." >&2
