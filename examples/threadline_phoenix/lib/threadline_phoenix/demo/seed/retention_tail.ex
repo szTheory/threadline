@@ -79,7 +79,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
     org_y_id = Manifest.org_id(:offboarded_co)
     backdate_org_y_audit!(org_y_id)
 
-    prior_retention_env = Application.get_env(:threadline, :retention)
+    prior_retention_env = Application.fetch_env(:threadline, :retention)
     enable_retention!()
 
     purge_result =
@@ -102,7 +102,10 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
         # exact collateral-deletion bug this module exists to fix, anchored to
         # this demo's ~90-day-stale epoch fiction instead of real data. Restored
         # on both the success and failure paths via `after`.
-        Application.put_env(:threadline, :retention, prior_retention_env || [])
+        case prior_retention_env do
+          {:ok, value} -> Application.put_env(:threadline, :retention, value)
+          :error -> Application.delete_env(:threadline, :retention)
+        end
       end
 
     assert_other_orgs_survived!(org_y_id)
