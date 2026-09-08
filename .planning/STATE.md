@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-41-PLAN.md
-last_updated: "2026-09-08T19:29:43.297Z"
+stopped_at: Completed 198-42-PLAN.md
+last_updated: "2026-09-08T19:43:52.135Z"
 last_activity: 2026-09-08
-last_activity_desc: Plan 198-41 completed — Round 7 live landing evidence and atomic-commit lifecycle proof recorded; GREEN-07 remains Pending
-state_head: fe5a0e430640013cdf596bc6f208649618476691
+last_activity_desc: Plan 198-42 completed — read-only final measurement recorded; GREEN-08 live-reproved and GREEN-07 remains Pending
+state_head: 906902f131a72558d0ded1d0fd60f84fb3860b82
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 42
-  completed_plans: 41
+  completed_plans: 42
   percent: 0
 ---
 
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup, Plan 198-42 read-only final measurement
+**Current focus:** Phase 198 — Green Bringup verification after all 42 plans
 
 ## Current Position
 
 Phase: 198 (Green Bringup) — EXECUTING
 Plan: 42 of 42
-Status: Ready to execute 198-42
+Status: All 42 plans executed; ready for phase verification
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-08 — Phase 198 execution started
+Last activity: 2026-09-08 — Plan 198-42 completed the read-only final measurement; GREEN-08 is live-reproved and GREEN-07 remains Pending on exact ancestry
 
 Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
 
@@ -89,6 +89,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
 | Phase 198 P38 | 45min | 3 tasks | 5 files |
 | Phase 198 P41 | 7min | 2 tasks | 2 files |
+| Phase 198 P42 | 6min | 2 tasks | 5 files |
 
 ## Deferred Items
 
@@ -475,6 +476,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: [198-39]: option-a — maintainer accepted GREEN-07/roadmap SC3 as permanently Pending for v1.41 at a blocking checkpoint:decision; verify-capture and verify-example-browser stay red by construction under D-39 for the whole milestone; no gate narrowed, no baseline regenerated. See 198-39-DECISION.md.
 - [Phase 198]: The successful PR run supersedes Round 6's red-lane cause but does not close GREEN-07's separate origin/main exact-ancestry clause. — The run is pinned to an immutable branch subject while final local HEAD includes later mandatory GSD commits.
 - [Phase 198]: No remote or ruleset mutation is attempted because mandatory evidence and summary commits postdate any finite in-plan push. — A pre-closeout ref update cannot contain commits that do not yet exist.
+- [Phase 198]: GREEN-07 remains Pending because exact ancestry fails first and the canonical exact-SHA main run also concludes failure.
+- [Phase 198]: GREEN-08 is re-proved from two identical complete editable-field ruleset digests plus active enforcement, no bypass actors, and one byte-exact required context.
+- [Phase 198]: No remote or ruleset mutation is authorized; any future mutation requires a fresh blocking-human maintainer checkpoint.
 
 ### Blockers
 
@@ -482,8 +486,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-08T19:29:43.252Z
-**Stopped at:** Completed 198-41-PLAN.md
+**Last session:** 2026-09-08T19:43:52.101Z
+**Stopped at:** Completed 198-42-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

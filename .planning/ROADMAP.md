@@ -265,7 +265,7 @@ Plans:
 
 **Wave 2** *(blocked on 198-41; read-only against GitHub)*
 
-- [ ] 198-42-PLAN.md — Measure the post-Plan-41 local graph, compare full canonical ruleset state without mutation, select the newest exact-SHA main run before status, re-prove GREEN-08, and preserve GREEN-07 Pending without changing UAT (wave 2)
+- [x] 198-42-PLAN.md — Measure the post-Plan-41 local graph, compare full canonical ruleset state without mutation, select the newest exact-SHA main run before status, re-prove GREEN-08, and preserve GREEN-07 Pending without changing UAT (wave 2)
 
 **Round-7 notes:**
 
@@ -478,7 +478,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 41/42 | In Progress | Plan 198-41 recorded the green PR/run evidence and proved the atomic-commit constraint; GREEN-07 remains Pending. Plan 198-42 is the remaining read-only final measurement. |
+| 198. Green Bringup | v1.41 | 42/42 | In Progress | Plan 198-42 completed the read-only final measurement: GREEN-08 is live-reproved and GREEN-07 remains Pending on exact ancestry with no remote mutation. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
