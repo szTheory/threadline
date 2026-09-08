@@ -265,41 +265,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, put_flash(socket, :error, "Choose a supported actor activity window.")}
     end
 
-    defp set_window(socket, hours) do
-      from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
-
-      page =
-        Threadline.actor_history(
-          socket.assigns.actor_ref,
-          [
-            repo: socket.assigns.repo,
-            from: from_time,
-            scope: socket.assigns[:threadline_scope],
-            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-            surface: :actor_history,
-            params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
-          ] ++ storage_schema_opts(socket)
-        )
-
-      actor_summaries =
-        actor_summaries(
-          page.entries,
-          socket.assigns.repo,
-          socket.assigns[:threadline_scope],
-          storage_schema_opts(socket)
-        )
-
-      {:noreply,
-       socket
-       |> assign(:time_window_hours, hours)
-       |> assign(:from_time, from_time)
-       |> assign(:actor_summaries, actor_summaries)
-       |> assign(:next_cursor, page.next_cursor)
-       |> assign(:prev_cursor, page.prev_cursor)
-       |> assign(:shown_count, length(page.entries))
-       |> stream(:transactions, page.entries, reset: true)}
-    end
-
     def handle_event("next-page", _, socket) do
       if socket.assigns.next_cursor do
         page =
@@ -382,6 +347,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         {:noreply, socket}
       end
+    end
+
+    defp set_window(socket, hours) do
+      from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
+
+      page =
+        Threadline.actor_history(
+          socket.assigns.actor_ref,
+          [
+            repo: socket.assigns.repo,
+            from: from_time,
+            scope: socket.assigns[:threadline_scope],
+            scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+            surface: :actor_history,
+            params: %{actor_ref: socket.assigns.actor_ref, from: from_time}
+          ] ++ storage_schema_opts(socket)
+        )
+
+      actor_summaries =
+        actor_summaries(
+          page.entries,
+          socket.assigns.repo,
+          socket.assigns[:threadline_scope],
+          storage_schema_opts(socket)
+        )
+
+      {:noreply,
+       socket
+       |> assign(:time_window_hours, hours)
+       |> assign(:from_time, from_time)
+       |> assign(:actor_summaries, actor_summaries)
+       |> assign(:next_cursor, page.next_cursor)
+       |> assign(:prev_cursor, page.prev_cursor)
+       |> assign(:shown_count, length(page.entries))
+       |> stream(:transactions, page.entries, reset: true)}
     end
 
     defp safe_actor_kind(kind) when is_binary(kind) do

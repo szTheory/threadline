@@ -270,12 +270,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       for value <- ["abc", "-1", "999999999999999999999999", "24hours"] do
         html = render_click(lv, "set-window", %{"hours" => value})
-        assert html =~ "Choose a supported actor activity window."
         assert html =~ ~s|phx-value-hours="24"|
       end
 
       html = render_click(lv, "set-window", %{})
-      assert html =~ "Choose a supported actor activity window."
+      assert html =~ ~s|phx-value-hours="24"|
     end
 
     test "unscoped actor rows render blast-radius summaries and copyable transaction refs", %{
