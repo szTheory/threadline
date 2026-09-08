@@ -2198,3 +2198,41 @@ The three prohibitions remain active:
 No schema-push mechanism, schema change, UI surface, package, product API, or
 `COVERAGE.md` change is implicated. **Remote mutation: none. Ruleset mutation:
 none. GREEN-07: Pending under D-39.**
+
+### Atomic-commit lifecycle proof
+
+The table separates commit identity from the time at which that identity can
+exist. “Available to an in-task push” means a ref update performed at or after
+that row could include the object; it does not authorize such an update.
+
+| Lifecycle row | Commit / subject | Already contained by observed `origin/main`? | Exists early enough to be included by an in-task push? |
+|---|---|---|---|
+| Immutable PR/run evidence subject (pre-plan) | `46213f9bc0ecbff356058d317c882d5a643ae86f` | No | Yes, but it omits all later planning and execution commits |
+| Plan 41 planning/revision commit | `8f384c17` | No | Yes; it existed before execution began |
+| Pre-plan HEAD, including the final Plan 41 planning commit | `881fbc032a63046796b0b18c2d474767d651e222` | No | Yes; it existed before execution began |
+| HEAD observed when Plan 41 began | `881fbc032a63046796b0b18c2d474767d651e222` | No | Yes; same object as pre-plan HEAD, not the PR/run subject |
+| Task 1 evidence commit (the commit expected after Task 1, now actual) | `28d2543fd82467f564808092ce6f97dd9d7ec807` | No | Only after Task 1 completed; no earlier push could contain it |
+| Task 2 lifecycle-evidence commit | created only after this table is written and verified | No by construction at the observation point | Only after Task 2 completes; a push before this task cannot contain it |
+| Required `198-41-SUMMARY.md` closeout commit | created only after both task commits and the summary/self-check exist | No by construction at the observation point | No task-time push can contain a still-future closeout commit |
+
+This enumeration counts planning, evidence, task, and summary commits as local
+commits; none is omitted from “every local commit.” No SHA available before
+Task 1 can contain Task 1's later commit, Task 2's later commit, or the required
+summary closeout commit. Similarly, a push after Task 1 but before closeout
+cannot contain Task 2 or the summary commit. Therefore any finite push before
+closeout would leave `git log origin/main..HEAD` non-empty again as soon as the
+required later commit was created. A push after closeout cannot be part of this
+plan without requiring still another evidence commit describing that push, which
+repeats the same self-reference.
+
+The controlling ledger result is explicit:
+
+- `remote mutation: none`
+- `ruleset mutation: none`
+- `GREEN-07: Pending`
+- disposition authority: D-39, retained without asking the maintainer to
+  authorize an operation that cannot close the literal final-state predicate
+
+The green immutable candidate remains valid evidence for its own branch/run.
+It is not silently promoted into evidence that final mutable local `HEAD` has
+landed on `origin/main`.
