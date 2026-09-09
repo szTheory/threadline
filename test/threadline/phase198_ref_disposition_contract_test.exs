@@ -115,6 +115,208 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     end)
   end
 
+  test "round 11 fixture proves inventory, retire authority, controls, post-target, and final" do
+    with_round11_lifecycle(fn fixture ->
+      assert {_, 0} =
+               run_stage(
+                 "inventory",
+                 fixture.inventory,
+                 fixture.undecided_md,
+                 fixture.live_initial
+               )
+
+      assert {_, 0} =
+               run_stage("decision", fixture.decided, fixture.decided_md, fixture.live_initial)
+
+      for target <- fixture.targets do
+        assert {_, 0} =
+                 run_stage(
+                   "authority",
+                   fixture.decided,
+                   fixture.decided_md,
+                   fixture.live_initial,
+                   [
+                     "--target",
+                     target
+                   ]
+                 )
+
+        assert {_, 0} =
+                 run_stage(
+                   "post-target",
+                   fixture.post[target],
+                   fixture.decided_md,
+                   fixture.live_post[target],
+                   [
+                     "--target",
+                     target,
+                     "--register",
+                     fixture.register
+                   ]
+                 )
+      end
+
+      assert {_, 0} =
+               run_stage("controls", fixture.decided, fixture.decided_md, fixture.live_initial)
+
+      assert {output, 0} =
+               run_stage("final", fixture.final, fixture.decided_md, fixture.live_final, [
+                 "--register",
+                 fixture.register
+               ])
+
+      assert output =~ "live-derived namespaces empty"
+    end)
+  end
+
+  test "round 11 authority rejects silence, preserve, abort, stale digests, missing subjects, and outsiders" do
+    with_round11_lifecycle(fn fixture ->
+      assert_failed(
+        run_stage("authority", fixture.inventory, fixture.undecided_md, fixture.live_initial, [
+          "--target",
+          hd(fixture.targets)
+        ])
+      )
+
+      for option <- ["preserve all subjects", "abort"] do
+        {inventory, markdown} = lifecycle_decision_variant(fixture, option)
+
+        assert_failed(
+          run_stage("authority", inventory, markdown, fixture.live_initial, [
+            "--target",
+            hd(fixture.targets)
+          ])
+        )
+      end
+
+      stale_md = String.replace(fixture.decided_md, fixture.digest, String.duplicate("0", 64))
+      assert_failed(run_stage("decision", fixture.decided, stale_md, fixture.live_initial))
+
+      missing =
+        mutate_json_file(fixture.decided, fn doc ->
+          update_in(doc["preservation_subjects"], &tl/1)
+        end)
+
+      assert_failed(
+        run_stage("authority", missing, fixture.decided_md, fixture.live_initial, [
+          "--target",
+          hd(fixture.targets)
+        ])
+      )
+
+      File.rm(missing)
+
+      assert_failed(
+        run_stage("authority", fixture.decided, fixture.decided_md, fixture.live_initial, [
+          "--target",
+          "ci/198-unremembered"
+        ])
+      )
+    end)
+  end
+
+  test "round 11 controls fail on every immutable control or task-baseline drift" do
+    with_round11_lifecycle(fn fixture ->
+      paths = [
+        ["stable_controls", "origin_main_sha"],
+        ["stable_controls", "pr34", "head_sha"],
+        ["stable_controls", "ruleset_protection_digest"],
+        ["stable_controls", "required_contexts"],
+        ["stable_controls", "worktrees"],
+        ["task_baseline", "active_branch"],
+        ["task_baseline", "active_head_sha"],
+        ["task_baseline", "upstream"]
+      ]
+
+      for path <- paths do
+        live =
+          mutate_json_file(fixture.live_initial, fn doc ->
+            current = get_in_path(doc, path)
+            replacement = if is_list(current), do: [], else: String.duplicate("0", 40)
+            put_path(doc, path, replacement)
+          end)
+
+        assert_failed(run_stage("controls", fixture.decided, fixture.decided_md, live))
+        File.rm(live)
+      end
+    end)
+  end
+
+  test "round 11 refuses delete-before-preserve ordering and incomplete divergent preservation" do
+    with_round11_lifecycle(fn fixture ->
+      target = "ci/198-gap-closure"
+
+      reordered =
+        mutate_json_file(fixture.post[target], fn doc ->
+          [first | rest] = doc["command_receipts"]
+          put_in(doc["command_receipts"], [List.last(rest), first | Enum.drop(rest, -1)])
+        end)
+
+      assert_failed(
+        run_stage("post-target", reordered, fixture.decided_md, fixture.live_post[target], [
+          "--target",
+          target,
+          "--register",
+          fixture.register
+        ])
+      )
+
+      File.rm(reordered)
+
+      incomplete =
+        mutate_json_file(fixture.post[target], fn doc ->
+          update_in(doc["command_receipts"], fn receipts ->
+            Enum.reject(receipts, fn receipt ->
+              is_binary(receipt["subject_id"]) and
+                receipt["subject_id"] =~ "origin:ci/198-gap-closure"
+            end)
+          end)
+        end)
+
+      assert_failed(
+        run_stage("post-target", incomplete, fixture.decided_md, fixture.live_post[target], [
+          "--target",
+          target,
+          "--register",
+          fixture.register
+        ])
+      )
+
+      File.rm(incomplete)
+    end)
+  end
+
+  test "round 11 final derives both namespaces and rejects an unremembered live ref or GREEN-07 promotion" do
+    with_round11_lifecycle(fn fixture ->
+      extra =
+        mutate_json_file(fixture.live_final, fn doc ->
+          put_in(doc["target_universe"]["remote"], [
+            %{"branch" => "ci/198-unremembered", "sha" => String.duplicate("a", 40)}
+          ])
+        end)
+
+      assert_failed(
+        run_stage("final", fixture.final, fixture.decided_md, extra, [
+          "--register",
+          fixture.register
+        ])
+      )
+
+      File.rm(extra)
+
+      promoted = mutate_json_file(fixture.live_final, &put_in(&1["green07_status"], "Complete"))
+
+      assert_failed(
+        run_stage("final", fixture.final, fixture.decided_md, promoted, [
+          "--register",
+          fixture.register
+        ])
+      )
+
+      File.rm(promoted)
+    end)
+  end
+
   for path <- @required_paths do
     label = Enum.map_join(path, ".", &to_string/1)
 
@@ -299,6 +501,316 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       File.rm(path)
     end
   end
+
+  defp with_round11_lifecycle(fun) do
+    dir = Path.join(System.tmp_dir!(), "phase198-lifecycle-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+
+    try do
+      tracer = Path.join(@root, ".planning/audits/198-round11-ref-disposition.json")
+      source = tracer |> File.read!() |> Jason.decode!()
+      evidence_template = source["preservation_subjects"] |> hd() |> Map.fetch!("evidence")
+
+      prs = %{
+        "ci/198-gap-closure" =>
+          pr_fixture(29, "ci/198-gap-closure", "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", false),
+        "ci/198-round3" =>
+          pr_fixture(30, "ci/198-round3", "80bf701e7486962e538d16f213874cbba8f24115", true),
+        "ci/198-round4" =>
+          pr_fixture(31, "ci/198-round4", "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", true),
+        "ci/198-round5" =>
+          pr_fixture(32, "ci/198-round5", "14f923a71c0901cd5f95fc3a72e0971b05861543", true),
+        "ci/198-round6" =>
+          pr_fixture(33, "ci/198-round6", "23c16267d11a63858aad23eab63c9fbfc385ef4b", true)
+      }
+
+      subjects =
+        for {side, entries} <- [
+              {"local", source["target_universe"]["local"]},
+              {"origin", source["target_universe"]["remote"]}
+            ],
+            entry <- entries do
+          sha = entry["sha"]
+          branch = entry["branch"]
+
+          %{
+            "id" => "#{side}:#{branch}@#{sha}",
+            "branch" => branch,
+            "side" => side,
+            "sha" => sha,
+            "evidence" =>
+              evidence_template
+              |> Map.put("sha", sha)
+              |> Map.put("merge_base_head", sha)
+              |> Map.put("merge_base_main", sha),
+            "pull_request" => Map.get(prs, branch),
+            "recommendation" => %{
+              "action" => "retire",
+              "rationale" => "Fixture subject is fully preserved before retirement."
+            },
+            "archive_tag" => "archive/#{branch}/#{side}-#{String.slice(sha, 0, 12)}",
+            "restore_command" => "git branch #{branch} #{sha}"
+          }
+        end
+
+      base = %{
+        source
+        | "preservation_subjects" => subjects,
+          "decision" => nil,
+          "execution" => nil,
+          "command_receipts" => []
+      }
+
+      inventory = write_json(dir, "inventory.json", base)
+      digest = inventory_digest(inventory)
+      undecided_md = write_text(dir, "undecided.md", lifecycle_markdown(base, digest, nil))
+
+      decision = decision_payload("retire", digest, subjects)
+      decided_doc = %{base | "decision" => decision, "execution" => %{"status" => "authorized"}}
+      decided = write_json(dir, "decided.json", decided_doc)
+      decided_md = write_text(dir, "decided.md", lifecycle_markdown(base, digest, decision))
+      targets = subjects |> Enum.map(& &1["branch"]) |> Enum.uniq() |> Enum.sort()
+      live_initial_doc = live_fixture(base, prs)
+      live_initial = write_json(dir, "live-initial.json", live_initial_doc)
+
+      register =
+        write_text(
+          dir,
+          "register.md",
+          Enum.map_join(
+            subjects,
+            "\n",
+            &"<!-- archive-subject: #{&1["id"]}|#{&1["archive_tag"]}|#{&1["sha"]}|#{&1["restore_command"]} -->"
+          )
+        )
+
+      post =
+        Map.new(targets, fn target ->
+          receipts =
+            receipts_for(Enum.filter(subjects, &(&1["branch"] == target)), Map.get(prs, target))
+
+          doc = %{
+            decided_doc
+            | "execution" => %{"status" => "retiring", "target" => target},
+              "command_receipts" => receipts
+          }
+
+          {target, write_json(dir, "post-#{String.replace(target, "/", "-")}.json", doc)}
+        end)
+
+      live_post =
+        Map.new(targets, fn target ->
+          target_subjects = Enum.filter(subjects, &(&1["branch"] == target))
+          live = retire_from_live(live_initial_doc, target, target_subjects, Map.get(prs, target))
+          {target, write_json(dir, "live-post-#{String.replace(target, "/", "-")}.json", live)}
+        end)
+
+      final_receipts =
+        targets
+        |> Enum.flat_map(fn target ->
+          receipts_for(Enum.filter(subjects, &(&1["branch"] == target)), Map.get(prs, target))
+        end)
+        |> Enum.with_index(1)
+        |> Enum.map(fn {receipt, seq} -> Map.put(receipt, "seq", seq) end)
+
+      final_doc = %{
+        decided_doc
+        | "execution" => %{"status" => "complete"},
+          "command_receipts" => final_receipts
+      }
+
+      final = write_json(dir, "final.json", final_doc)
+
+      live_final_doc =
+        Enum.reduce(targets, live_initial_doc, fn target, live ->
+          retire_from_live(
+            live,
+            target,
+            Enum.filter(subjects, &(&1["branch"] == target)),
+            Map.get(prs, target)
+          )
+        end)
+
+      live_final = write_json(dir, "live-final.json", live_final_doc)
+
+      fun.(%{
+        dir: dir,
+        inventory: inventory,
+        undecided_md: undecided_md,
+        decided: decided,
+        decided_md: decided_md,
+        digest: digest,
+        subjects: subjects,
+        targets: targets,
+        live_initial: live_initial,
+        post: post,
+        live_post: live_post,
+        final: final,
+        live_final: live_final,
+        register: register,
+        base: base
+      })
+    after
+      File.rm_rf!(dir)
+    end
+  end
+
+  defp pr_fixture(number, branch, sha, draft) do
+    %{
+      "number" => number,
+      "state" => "OPEN",
+      "is_draft" => draft,
+      "merge_state" => "BLOCKED",
+      "head" => branch,
+      "base" => "main",
+      "head_sha" => sha
+    }
+  end
+
+  defp decision_payload(verbatim, digest, subjects) do
+    option = if String.starts_with?(verbatim, "preserve"), do: "preserve", else: verbatim
+
+    %{
+      "option" => option,
+      "verbatim" => verbatim,
+      "recorded_at" => "2026-09-09T22:00:00Z",
+      "inventory_sha256" => digest,
+      "subjects" =>
+        Enum.map(subjects, &Map.take(&1, ["id", "branch", "side", "sha", "archive_tag"]))
+    }
+  end
+
+  defp lifecycle_markdown(doc, digest, decision) do
+    controls = doc["stable_controls"]
+
+    markers =
+      Enum.map_join(doc["preservation_subjects"], "\n", fn subject ->
+        "<!-- subject: #{subject["id"]}|#{subject["archive_tag"]}|#{subject["restore_command"]} -->"
+      end)
+
+    decision_marker =
+      if decision do
+        "<!-- maintainer-decision-json\n#{Jason.encode!(decision)}\n-->"
+      else
+        "Status: undecided. No authority is granted."
+      end
+
+    """
+    # Phase 198 Round 11 ref disposition
+    <!-- schema: phase198-ref-disposition/v2; round: 11 -->
+    <!-- inventory-sha256: #{digest} -->
+    <!-- controls: #{controls["origin_main_sha"]}|34|#{controls["pr34"]["head_sha"]}|#{controls["ruleset_protection_digest"]}|#{controls["required_contexts_digest"]}|#{controls["worktree_list_digest"]} -->
+    #{markers}
+    Plan 52 is preserved but superseded as inapplicable because Plan 51 recorded verbatim abort and proved the exact-three scope incomplete.
+    ## Maintainer decision
+    #{decision_marker}
+    """
+  end
+
+  defp live_fixture(doc, prs) do
+    %{
+      "target_universe" => doc["target_universe"],
+      "stable_controls" => doc["stable_controls"],
+      "task_baseline" => doc["task_baseline"],
+      "pull_requests" => prs,
+      "local_tags" => [],
+      "remote_tags" => [],
+      "green07_status" => "Pending"
+    }
+  end
+
+  defp receipts_for(subjects, pr) do
+    preservation =
+      Enum.flat_map(subjects, fn subject ->
+        for type <- ["local-annotated-tag", "remote-single-tag", "archive-register-row"] do
+          %{
+            "type" => type,
+            "subject_id" => subject["id"],
+            "target" => subject["branch"],
+            "tag" => subject["archive_tag"],
+            "sha" => subject["sha"]
+          }
+        end
+      end)
+
+    target = hd(subjects)["branch"]
+
+    retirement =
+      if pr, do: [%{"type" => "pr-close", "target" => target, "pr" => pr["number"]}], else: []
+
+    retirement =
+      if Enum.any?(subjects, &(&1["side"] == "origin")),
+        do: retirement ++ [%{"type" => "remote-ref-delete", "target" => target}],
+        else: retirement
+
+    retirement =
+      if Enum.any?(subjects, &(&1["side"] == "local")),
+        do: retirement ++ [%{"type" => "local-ref-delete", "target" => target}],
+        else: retirement
+
+    (preservation ++ retirement)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {receipt, seq} -> Map.put(receipt, "seq", seq) end)
+  end
+
+  defp retire_from_live(live, target, subjects, pr) do
+    local_tags =
+      Enum.map(subjects, &%{"tag" => &1["archive_tag"], "sha" => &1["sha"], "annotated" => true})
+
+    remote_tags = Enum.map(subjects, &%{"tag" => &1["archive_tag"], "sha" => &1["sha"]})
+
+    live
+    |> update_in(
+      ["target_universe", "local"],
+      &Enum.reject(&1, fn entry -> entry["branch"] == target end)
+    )
+    |> update_in(
+      ["target_universe", "remote"],
+      &Enum.reject(&1, fn entry -> entry["branch"] == target end)
+    )
+    |> update_in(["local_tags"], &Enum.uniq(&1 ++ local_tags))
+    |> update_in(["remote_tags"], &Enum.uniq(&1 ++ remote_tags))
+    |> then(fn value ->
+      if pr, do: put_in(value, ["pull_requests", target, "state"], "CLOSED"), else: value
+    end)
+  end
+
+  defp lifecycle_decision_variant(fixture, verbatim) do
+    decision = decision_payload(verbatim, fixture.digest, fixture.subjects)
+    doc = fixture.decided |> File.read!() |> Jason.decode!() |> Map.put("decision", decision)
+    inventory = write_json(fixture.dir, "variant-#{String.replace(verbatim, " ", "-")}.json", doc)
+
+    markdown =
+      write_text(
+        fixture.dir,
+        "variant-#{String.replace(verbatim, " ", "-")}.md",
+        lifecycle_markdown(fixture.base, fixture.digest, decision)
+      )
+
+    {inventory, markdown}
+  end
+
+  defp write_json(dir, name, doc), do: write_text(dir, name, Jason.encode!(doc))
+
+  defp write_text(dir, name, content) do
+    path = Path.join(dir, name)
+    File.write!(path, content)
+    path
+  end
+
+  defp mutate_json_file(path, fun) do
+    mutated = path <> ".#{System.unique_integer([:positive])}.mutated"
+
+    path
+    |> File.read!()
+    |> Jason.decode!()
+    |> fun.()
+    |> then(&File.write!(mutated, Jason.encode!(&1)))
+
+    mutated
+  end
+
+  defp assert_failed({_output, status}), do: refute(status == 0)
 
   defp inventory_digest(path) do
     {canonical, 0} =
