@@ -324,7 +324,7 @@ Plans:
 
 **Wave 4** *(blocked on 198-53)*
 
-- [ ] 198-54-PLAN.md — Blocking-human maintainer decision over the exact complete subject set; only verbatim `retire` can authorize execution (wave 4)
+- [x] 198-54-PLAN.md — Blocking-human maintainer decision over the exact complete subject set; only verbatim `retire` can authorize execution (wave 4)
 
 **Wave 5** *(blocked on a validated `retire` from 198-54)*
 
@@ -541,7 +541,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 52/55 | In progress | Plan 198-52 has an executor-recognized non-execution supersession summary; additive Plans 198-53..55 re-inventory the complete namespace, obtain fresh blocking-human authority, and close GREEN-12 only after preservation-first proof. |
+| 198. Green Bringup | v1.41 | 54/55 | In progress | Plan 198-54 recorded fresh digest-bound `retire` authority over the exact complete subject set; Plan 198-55 must preserve every subject before retiring stale handles and closing GREEN-12. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

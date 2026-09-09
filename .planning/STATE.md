@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-53-PLAN.md
-last_updated: "2026-09-09T22:11:08.160Z"
+stopped_at: Completed 198-54-PLAN.md
+last_updated: "2026-09-09T22:31:05.051Z"
 last_activity: 2026-09-09
-last_activity_desc: Phase 198 Plan 53 completed the round-11 inventory and fixture-proven validator lifecycle; GREEN-12 awaits Plans 54-55
-state_head: 8ec31a7a2efba0e8d5e620a6ff1169c8ba885281
+last_activity_desc: Phase 198 Plan 54 recorded verbatim digest-bound retire authority; GREEN-12 awaits Plan 55 preservation-first execution
+state_head: b9d22dc0dd36502c83ca56dd2f9438445118e6ef
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 55
-  completed_plans: 53
+  completed_plans: 54
   percent: 0
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 (Green Bringup) — EXECUTING
-Plan: 53 of 55
-Status: Plan 53 complete; ready for Plan 54 fresh-authority checkpoint
+Plan: 54 of 55
+Status: Plan 54 complete; ready for Plan 55 preservation-first execution
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -98,6 +98,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P50 | 15 min | 2 tasks | 4 files |
 | Phase 198 P51 | 30 min | 2 tasks | 5 files |
 | Phase 198 P53 | 24 min | 2 tasks | 4 files |
+| Phase 198 P54 | 3 min | 1 tasks | 3 files |
 
 ## Deferred Items
 
@@ -500,6 +501,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: Plan 198-52 must not execute: six remote ci/198-* refs exist while its decision authority covers only three and its final predicate requires the complete namespace empty.
 - [Phase 198]: A preservation subject is keyed by side plus full SHA, so same-name local and origin refs never collapse. — Distinct handles require collision-free archive and restore paths.
 - [Phase 198]: Plan 52 remains preserved but superseded; round-11 production evidence grants no mutation authority. — Fresh exact-subject authority is deferred to Plan 54.
+- [Phase 198]: The maintainer selected retire verbatim for the exact nine round-11 side/SHA subjects bound to inventory digest 88888854b44111835d753261eb15332a7c98fae7922d65d0d46e6fc5423a4655.
+- [Phase 198]: Plan 54 grants authority only to Plan 55's preservation-first sequence; Plan 54 performed no external mutation.
 
 ### Blockers
 
@@ -507,8 +510,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-09T22:11:08.107Z
-**Stopped at:** Completed 198-53-PLAN.md
+**Last session:** 2026-09-09T22:31:05.010Z
+**Stopped at:** Completed 198-54-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
