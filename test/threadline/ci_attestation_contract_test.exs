@@ -248,4 +248,16 @@ defmodule Threadline.CiAttestationContractTest do
       File.rm_rf!(root)
     end
   end
+
+  test "the two post-repair attestations prove verify.example and browser coverage green" do
+    for run_id <- ~w(33353447804 33354216172) do
+      doc = Map.fetch!(attestations(), run_id)
+      assert doc["run"]["conclusion"] == "success"
+      jobs = Map.new(doc["jobs"], &{&1["name"], &1["conclusion"]})
+      assert jobs["Run test suite (current)"] == "success"
+      assert jobs["Example app browser E2E (Playwright)"] == "success"
+      assert jobs["Tier A capture lane (byte-stable evidence)"] == "success"
+      assert jobs["CI required"] == "success"
+    end
+  end
 end

@@ -102,4 +102,12 @@ defmodule Threadline.Phase198NyquistContractTest do
       assert String.trim(type) == "tag", "#{tag} must remain annotated"
     end
   end
+
+  test "Phase 198 evidence judgments are evaluated by the committed policy" do
+    script = Path.join(@root, "bin/verify-phase198-evidence")
+    policy = Path.join(@planning, "audits/198-automation-policy.json")
+    {output, status} = System.cmd(script, ["--policy", policy, "--format", "json"])
+    assert status == 0
+    assert Jason.decode!(output)["checks"]["failed"] == 0
+  end
 end
