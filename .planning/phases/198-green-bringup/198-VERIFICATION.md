@@ -55,6 +55,91 @@ No remote mutation occurs in this plan. Therefore the mechanically derived **fin
 
 Main CI observer state: `failure`
 
+## Current roadmap truth table
+
+Round 6's red-lane cause is preserved below but superseded in substance by the Phase 199 repair and PR #34's successful branch run. That branch result does not satisfy exact-main evidence. The current first failing predicate is live `origin/main` ancestry; only after that fails do we evaluate the exact-main observer, which also reports `failure`.
+
+| # | Roadmap success criterion | Current status | Evidence basis |
+|---|---|---|---|
+| 1 | Preserved red-run logs, Credo measurement, and scorecard-free mechanical probe | Complete | Carried forward from Plans 198-01/02 and all 192 entry coverage rows; this report-only plan changes none of their satisfying artifacts. |
+| 2 | Deterministic test failures fixed on merits and form-policy guard self-declares | Complete | GREEN-04 and GREEN-05 remain checked; focused current contracts pass and no product/test implementation changes here. |
+| 3 | `origin/main` contains every local commit and exact-main CI succeeds within 20 minutes; timeout/fail-fast contracts hold | Not met / terminal Pending | GREEN-06 remains Complete, but live-main vs entry local-main is `0/212`, live-main vs entry HEAD is `0/271`, and exact-main run `33138291361` concludes `failure`. Option-a remains the terminal v1.41 disposition. |
+| 4 | Required checks exactly match emitted names so PR #26 is mergeable | Partial | Ruleset `21702804` is active with no bypass actors and sole byte-exact context `CI required`, satisfying GREEN-08's check contract; PR #26 remains `BLOCKED` downstream of GREEN-07. |
+| 5 | Paid critic unreachable from workflows and exactly one gated Hex publisher | Complete | GREEN-09 and GREEN-10 remain checked on unchanged satisfying surfaces. |
+| 6 | Flake workflow distinguishes outcomes and deduplicates; branch/worktree/archive policy holds | Complete | GREEN-11 and GREEN-12 remain checked on unchanged satisfying surfaces. |
+
+## Current requirement table
+
+The authoritative checkbox score is **11/12 requirements Complete**. Automated UAT success is evidence about the evaluator and its references; it is not authority to change these requirement dispositions.
+
+| Requirement | Status | Current evidence or carried-forward basis |
+|---|---|---|
+| GREEN-01 | Complete | Preserved red-run log artifact and passing automated coverage row are unchanged. |
+| GREEN-02 | Complete | Credo measurement artifacts and passing automated coverage row are unchanged. |
+| GREEN-03 | Complete | Mechanical sensitivity probe and automated evidence-policy coverage are unchanged. |
+| GREEN-04 | Complete | Current focused contracts pass; committed CI attestation and suite evidence remain authoritative. |
+| GREEN-05 | Complete | Derived form-policy roster and its executable guard remain unchanged. |
+| GREEN-06 | Complete | Timeout and fail-fast contracts remain unchanged and automated. |
+| GREEN-07 | Pending | Live `origin/main` does not contain entry local `main` or entry HEAD; exact-main observer state is `failure`. PR #34 success is branch-only. |
+| GREEN-08 | Complete | Ruleset `21702804` is active, has no bypass actors, targets `refs/heads/main`, and requires only byte-exact `CI required`; roadmap criterion 4 remains partial because PR #26 is `BLOCKED`. |
+| GREEN-09 | Complete | Paid critic workflow/billing-path exclusion evidence is unchanged. |
+| GREEN-10 | Complete | Singleton gated Hex publish-path evidence is unchanged. |
+| GREEN-11 | Complete | Flake/browser issue-upsert and row-history automation evidence is unchanged. |
+| GREEN-12 | Complete | Worktree/branch/archive contract evidence is unchanged; this plan performs no branch or worktree mutation. |
+
+## UAT automation versus the product gap
+
+At entry there are zero remaining UAT automation gaps: the canonical classifier over summaries 198-01..46 reports 192 total, 192 auto-passed, zero present, and zero errors. The still-unmet product gap is GREEN-07's exact ancestry followed by exact-main CI. A 192/192 evaluator result therefore remains compatible with 11/12 requirements Complete.
+
+`198-UAT.md` is staged to name `198-47-SUMMARY.md` in its exhaustive source metadata. The final 47-summary UAT state is not asserted until the normal executor closeout creates that summary with explicit `coverage: []` and the post-summary classifier command passes.
+
+## Edge-probe assumption accounting
+
+All 33 unresolved probe rows are surfaced without silent dismissal: **10 in-scope + 23 unchanged-surface = 33**.
+
+- In scope: GREEN-07 boundary, adjacency, empty, encoding, ordering, precision, and concurrency; GREEN-08 empty, encoding, and concurrency. These are exercised by exact-SHA selection, non-empty job/context checks, byte-exact names, newest-run ordering, elapsed-time precision, and read-only snapshots.
+- Unchanged surface: GREEN-01 unclassified; GREEN-02 concurrency; GREEN-03 empty/encoding; GREEN-04 boundary/adjacency/empty/encoding/ordering/precision; GREEN-05 unclassified; GREEN-06 boundary/adjacency/empty/ordering/precision; GREEN-09/10 unclassified; GREEN-11 empty/encoding; GREEN-12 adjacency/empty/ordering. Their satisfying artifacts and automated evidence are not changed by this report-only plan.
+
+## Descriptor-less prohibitions
+
+| Prohibition | Result |
+|---|---|
+| Do not convert a passing automated UAT evaluator into a claim that GREEN-07 or the phase goal succeeded. | Preserved: GREEN-07 is Pending and the overall verdict remains `gaps_found`. |
+| Do not rewrite or silently reverse the maintainer's recorded option-a disposition in `198-39-DECISION.md`. | Preserved: the decision file is untouched and remains the terminal v1.41 authority. |
+| Do not weaken required checks, alter ruleset enforcement, mutate a remote ref, or substitute branch CI for exact-main CI. | Preserved: all observations were read-only; exact-main run `33138291361` remains distinct from PR #34 run `33354216172`. |
+
+## Multi-source coverage audit
+
+| Source | IDs | Coverage and disposition |
+|---|---|---|
+| GOAL | Phase goal | Plans 198-01..46 preserve measurement, baseline retirement, protection, and sizing; Plan 47 reports the remaining exact-main gap without claiming closure. |
+| REQ | GREEN-01..06, GREEN-09..12 | Complete and not reopened because their satisfying surfaces are unchanged. |
+| REQ | GREEN-07 | Live ancestry and exact-main CI re-derived; Pending preserved. |
+| REQ | GREEN-08 | Exact ruleset/context re-observed; requirement Complete while downstream roadmap outcome remains partial. |
+| RESEARCH | Exact GitHub evidence, newest-run selection, no weakening, append-only history | Implemented by the canonical exact-SHA observer, live read-only queries, and archived prior report. |
+| CONTEXT | D-01, D-08..D-14, D-39, D-42 | Exact-main evidence, sole aggregate context, active ruleset, accepted-Pending authority, and no-gate-diff interlock preserved. |
+| CONTEXT | D-02..D-07, D-15..D-38, D-40..D-41 | Already implemented and verified by Plans 198-01..46; no current gap touches them. |
+
+Deferred ideas and the no-target option-a disposition are excluded by explicit source authority, not silently omitted.
+
+## Planning-detector dispositions
+
+- **API detector / COVERAGE:** The deterministic API detector fires only on existing GitHub REST measurement prose. The reasoned `COVERAGE.md` declaration remains valid; no API coverage matrix is created because this plan introduces no product API or integration.
+- **Assumption delta:** `decision: no-change`; primary noun `exact origin/main state`. Older `fallback` and `optional` signals do not generalize identity or alter the singular required-context model.
+- **Schema push:** Not applicable. Detection found no schema path and this plan changes no schema or migration.
+
+## Plan 47 lifecycle closeout contract
+
+The four required categories remain distinct: (1) the committed plan/entry HEAD, (2) Task 1 evidence commit, (3) Task 2 report/UAT commit, and (4) required `198-47-SUMMARY.md` closeout commit. Only category 1 existed in the immutable entry snapshot. Categories 2–4 are later local commits, so the closeout report uses only the mechanically derived **final ancestry predicate: `origin/main..HEAD non-empty`**, never the entry numeric count as a final count.
+
+## No-mutation integrity statement
+
+This reconciliation performed no fetch, push, merge, branch/tag/worktree change, PR mutation, ruleset mutation, workflow edit, requirement edit, roadmap edit, or external write. It read public repository metadata only and captured no auth headers, environment values, tokens, or log bodies. `198-39-DECISION.md`, Round 1 through Round 8 evidence, `REQUIREMENTS.md`, `ROADMAP.md`, and the pre-closeout `STATE.md` remain untouched by Tasks 1–2. The only UAT change is the exhaustive source metadata addition for the required zero-entry summary.
+
+Overall verdict: `gaps_found`
+
+Any next state-changing step, if ever desired, requires a separate maintainer decision. Planning and reconciliation do not authorize a merge, push, temporary bypass, ruleset edit, or workflow change.
+
 ## Archived — Round 6 and earlier (preserved intact)
 
 # Phase 198: Green Bringup Verification Report (Round 6)
