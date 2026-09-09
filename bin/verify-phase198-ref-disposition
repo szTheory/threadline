@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+# Fail-closed Phase-198 ref inventory and mutation-authority verifier.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+die() { echo "verify-phase198-ref-disposition: $*" >&2; exit 1; }
+need() { command -v "$1" >/dev/null 2>&1 || die "$1 is required"; }
+sha256() { shasum -a 256 | awk '{print $1}'; }
+
+need jq
+need git
+need shasum
+
+stage="${1:-}"
+[[ "$stage" =~ ^(inventory|decision|authority|controls|post-target|final)$ ]] ||
+  die "stage must be inventory, decision, authority, controls, post-target, or final"
+shift || true
+
+inventory=""
+decision=""
+register=""
+target=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --inventory) [[ $# -ge 2 ]] || die "--inventory requires a value"; inventory="$2"; shift 2 ;;
+    --decision) [[ $# -ge 2 ]] || die "--decision requires a value"; decision="$2"; shift 2 ;;
+    --register) [[ $# -ge 2 ]] || die "--register requires a value"; register="$2"; shift 2 ;;
+    --target) [[ $# -ge 2 ]] || die "--target requires a value"; target="$2"; shift 2 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[[ -f "$inventory" ]] || die "inventory file is required"
+[[ -f "$decision" ]] || die "decision Markdown file is required"
+
+validate_schema() {
+  jq -e '
+    def exact($ks): (keys | sort) == ($ks | sort);
+    def sha: type == "string" and test("^[0-9a-f]{40}$");
+    def digest: type == "string" and test("^[0-9a-f]{64}$");
+    def ts: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$");
+    def count_pair: exact(["ahead","behind"]) and (.ahead|type)=="number" and .ahead>=0 and (.behind|type)=="number" and .behind>=0;
+    def commit: exact(["sha","subject"]) and (.sha|sha) and (.subject|type)=="string" and (.subject|length)>0;
+    def stat: exact(["added","deleted","path"]) and (.added|type)=="number" and (.deleted|type)=="number" and (.path|type)=="string";
+    def ref:
+      exact(["sha","merge_base_head","merge_base_main","ancestor_of_head","ancestor_of_main","vs_head","vs_main","unique_vs_head","unique_vs_main","diffstat_vs_head","diffstat_vs_main"])
+      and (.sha|sha) and (.merge_base_head|sha) and (.merge_base_main|sha)
+      and (.ancestor_of_head|type)=="boolean" and (.ancestor_of_main|type)=="boolean"
+      and (.vs_head|count_pair) and (.vs_main|count_pair)
+      and (.unique_vs_head|type)=="array" and all(.unique_vs_head[]; commit)
+      and (.unique_vs_main|type)=="array" and all(.unique_vs_main[]; commit)
+      and (.diffstat_vs_head|type)=="array" and all(.diffstat_vs_head[]; stat)
+      and (.diffstat_vs_main|type)=="array" and all(.diffstat_vs_main[]; stat);
+    def pr:
+      exact(["number","state","is_draft","merge_state","head","base","head_sha"])
+      and (.number|type)=="number" and (.state|type)=="string" and (.is_draft|type)=="boolean"
+      and (.merge_state|type)=="string" and (.head|type)=="string" and (.base|type)=="string" and (.head_sha|sha);
+    exact(["schema_version","observed_at","repository","provenance","target_universe","stable_controls","targets","decision","execution","command_receipts"])
+    and .schema_version==1 and (.observed_at|ts) and (.repository|type)=="string"
+    and (.provenance|exact(["active_branch","active_head_sha","upstream","upstream_sha","authority"]))
+    and (.provenance.active_head_sha|sha) and (.provenance.upstream_sha|sha) and .provenance.authority==false
+    and (.target_universe|exact(["local","remote"]))
+    and all(.target_universe.local[], .target_universe.remote[]; exact(["branch","sha"]) and (.branch|type)=="string" and (.sha|sha))
+    and (.stable_controls|exact(["origin_main_sha","pr34","ruleset_protection_digest","classic_protection","required_contexts","required_contexts_digest","worktrees","worktree_list_digest"]))
+    and (.stable_controls.origin_main_sha|sha) and (.stable_controls.pr34|pr) and .stable_controls.pr34.number==34
+    and (.stable_controls.ruleset_protection_digest|digest) and (.stable_controls.classic_protection=="absent" or .stable_controls.classic_protection=="present")
+    and (.stable_controls.required_contexts|type)=="array" and all(.stable_controls.required_contexts[]; type=="string")
+    and (.stable_controls.required_contexts_digest|digest)
+    and (.stable_controls.worktrees|type)=="array" and all(.stable_controls.worktrees[]; exact(["path","branch"]) and (.path|type)=="string" and (.branch|type)=="string")
+    and (.stable_controls.worktree_list_digest|digest)
+    and (.targets|type)=="array" and (.targets|length)==3
+    and all(.targets[];
+      exact(["branch","pr","evidence_purpose","observed_at","local","remote","pull_request","recommendation","archive_sha","restore_command"])
+      and (.branch|type)=="string" and (.pr|type)=="number" and (.evidence_purpose|type)=="string" and (.evidence_purpose|length)>0 and (.observed_at|ts)
+      and (.local|ref) and (.remote|ref) and (.pull_request|pr)
+      and (.recommendation|exact(["action","rationale"])) and (.recommendation.action=="retire" or .recommendation.action=="preserve") and (.recommendation.rationale|length)>0
+      and (.archive_sha|sha) and (.restore_command|type)=="string" and (.restore_command|length)>0)
+    and (.decision==null or (.decision|type)=="object")
+    and (.execution==null or (.execution|type)=="object")
+    and (.command_receipts|type)=="array"
+  ' "$inventory" >/dev/null || die "schema or required-field validation failed"
+
+  jq -e '
+    ([.targets[] | [.branch,.pr]] | sort) ==
+      ([ ["ci/198-gap-closure",29], ["ci/198-round5",32], ["ci/198-round6",33] ] | sort)
+    and ([.targets[].branch] | unique | length)==3
+    and all(.targets[];
+      .pull_request.number==.pr and .pull_request.head==.branch and .pull_request.base=="main"
+      and .pull_request.head_sha==.remote.sha
+      and .archive_sha==.local.sha
+      and .restore_command==("git branch " + .branch + " " + .local.sha)
+      and (if (.local.ancestor_of_head and .local.ancestor_of_main and .remote.ancestor_of_head and .remote.ancestor_of_main
+               and (.local.unique_vs_head|length)==0 and (.local.unique_vs_main|length)==0
+               and (.remote.unique_vs_head|length)==0 and (.remote.unique_vs_main|length)==0
+               and (.local.diffstat_vs_head|length)==0 and (.local.diffstat_vs_main|length)==0
+               and (.remote.diffstat_vs_head|length)==0 and (.remote.diffstat_vs_main|length)==0)
+           then .recommendation.action=="retire" else .recommendation.action=="preserve" end))
+    and ([.target_universe.local[] | [.branch,.sha]] | sort) == ([.targets[] | [.branch,.local.sha]] | sort)
+    and (. as $root | all(.targets[]; . as $t | any($root.target_universe.remote[]; .branch==$t.branch and .sha==$t.remote.sha)))
+    and (.stable_controls | has("active_head_sha") | not)
+    and (.stable_controls | has("upstream_sha") | not)
+  ' "$inventory" >/dev/null || die "target mapping, recommendation, universe, or provenance-boundary invariant failed"
+
+  local context_digest worktree_digest
+  context_digest=$(jq -cS '.stable_controls.required_contexts' "$inventory" | tr -d '\n' | sha256)
+  worktree_digest=$(jq -cS '.stable_controls.worktrees' "$inventory" | tr -d '\n' | sha256)
+  [[ "$context_digest" == "$(jq -r '.stable_controls.required_contexts_digest' "$inventory")" ]] || die "required-context digest mismatch"
+  [[ "$worktree_digest" == "$(jq -r '.stable_controls.worktree_list_digest' "$inventory")" ]] || die "worktree-list digest mismatch"
+}
+
+inventory_digest() { jq -cS 'del(.decision,.execution,.command_receipts)' "$inventory" | sha256; }
+
+validate_markdown() {
+  local digest controls_marker
+  digest=$(inventory_digest)
+  grep -Fq "<!-- inventory-sha256: ${digest} -->" "$decision" || die "Markdown inventory digest is absent or stale"
+  while IFS=$'\t' read -r branch pr local_sha remote_sha head_sha base recommendation; do
+    grep -Fq "<!-- target: ${branch}|${pr}|${local_sha}|${remote_sha}|${head_sha}|${base}|${recommendation} -->" "$decision" ||
+      die "Markdown/JSON target join mismatch for $branch"
+  done < <(jq -r '.targets[] | [.branch,.pr,.local.sha,.remote.sha,.pull_request.head_sha,.pull_request.base,.recommendation.action] | @tsv' "$inventory")
+  controls_marker=$(jq -r '.stable_controls | [.origin_main_sha,(.pr34.number|tostring),.pr34.head_sha,.ruleset_protection_digest,.required_contexts_digest,.worktree_list_digest] | join("|")' "$inventory")
+  grep -Fq "<!-- controls: ${controls_marker} -->" "$decision" || die "Markdown/JSON stable-control join mismatch"
+}
+
+live_compare() {
+  if [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]]; then
+    [[ -f "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" ]] || die "live fixture does not exist"
+    jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+      .target_universe==$live[0].target_universe and
+      .stable_controls==$live[0].stable_controls and
+      ([.targets[]|{branch,pr,local_sha:.local.sha,remote_sha:.remote.sha,pr_state:.pull_request.state,is_draft:.pull_request.is_draft,merge_state:.pull_request.merge_state,head:.pull_request.head,base:.pull_request.base,head_sha:.pull_request.head_sha}] | sort_by(.branch)) ==
+      ([$live[0].targets[]|{branch,pr,local_sha:.local.sha,remote_sha:.remote.sha,pr_state:.pull_request.state,is_draft:.pull_request.is_draft,merge_state:.pull_request.merge_state,head:.pull_request.head,base:.pull_request.base,head_sha:.pull_request.head_sha}] | sort_by(.branch))
+    ' "$inventory" >/dev/null || die "fixture live-state equality failed"
+    return
+  fi
+
+  need gh
+  local repo origin_main rules rules_digest contexts contexts_digest classic classic_output classic_exit
+  repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null) || die "could not resolve repository"
+  [[ "$repo" == "$(jq -r .repository "$inventory")" ]] || die "repository mismatch"
+  origin_main=$(git ls-remote --heads origin refs/heads/main | awk 'NF {print $1}')
+  [[ "$origin_main" == "$(jq -r .stable_controls.origin_main_sha "$inventory")" ]] || die "origin/main drifted"
+
+  local actual_local actual_remote
+  actual_local=$(git for-each-ref --format='%(refname:short) %(objectname)' 'refs/heads/ci/198-*' | sort | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<branch>[^ ]+) (?<sha>[0-9a-f]{40})$"))')
+  actual_remote=$(git ls-remote --heads origin 'refs/heads/ci/198-*' | sort -k2 | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<sha>[0-9a-f]{40})\\trefs/heads/(?<branch>.+)$"))')
+  jq -e --argjson local "$actual_local" --argjson remote "$actual_remote" '.target_universe.local==$local and .target_universe.remote==$remote' "$inventory" >/dev/null || die "complete ci/198-* target universe drifted"
+
+  while IFS=$'\t' read -r branch pr local_sha remote_sha state draft merge head base head_sha; do
+    [[ "$(git rev-parse "refs/heads/$branch" 2>/dev/null)" == "$local_sha" ]] || die "$branch local SHA drifted"
+    [[ "$(git ls-remote --heads origin "refs/heads/$branch" | awk 'NF {print $1}')" == "$remote_sha" ]] || die "$branch remote SHA drifted"
+    local pr_json
+    pr_json=$(gh pr view "$pr" --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid 2>/dev/null) || die "PR #$pr unavailable"
+    jq -e --argjson n "$pr" --arg state "$state" --argjson draft "$draft" --arg merge "$merge" --arg head "$head" --arg base "$base" --arg sha "$head_sha" \
+      '.number==$n and .state==$state and .isDraft==$draft and .mergeStateStatus==$merge and .headRefName==$head and .baseRefName==$base and .headRefOid==$sha' <<<"$pr_json" >/dev/null || die "PR #$pr drifted"
+  done < <(jq -r '.targets[] | [.branch,.pr,.local.sha,.remote.sha,.pull_request.state,.pull_request.is_draft,.pull_request.merge_state,.pull_request.head,.pull_request.base,.pull_request.head_sha] | @tsv' "$inventory")
+
+  local pr34_json
+  pr34_json=$(gh pr view 34 --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid 2>/dev/null) || die "PR #34 unavailable"
+  jq -e --argjson live "$pr34_json" '.stable_controls.pr34 == {number:$live.number,state:$live.state,is_draft:$live.isDraft,merge_state:$live.mergeStateStatus,head:$live.headRefName,base:$live.baseRefName,head_sha:$live.headRefOid}' "$inventory" >/dev/null || die "PR #34 drifted"
+
+  rules=$(gh api "repos/${repo}/rules/branches/main" 2>/dev/null) || die "effective rules unavailable"
+  set +e
+  classic_output=$(gh api --include --silent "repos/${repo}/branches/main/protection" 2>&1)
+  classic_exit=$?
+  set -e
+  if [[ $classic_exit -eq 0 ]]; then classic=present
+  elif grep -Eq '^HTTP/[0-9.]+ 404 ' <<<"$classic_output"; then classic=absent
+  else die "classic protection observation failed"; fi
+  rules_digest=$(jq -cnS --argjson rules "$(jq -cS . <<<"$rules")" --arg classic "$classic" '{classic_protection:$classic,effective_rules:$rules}' | tr -d '\n' | sha256)
+  contexts=$(jq -cS '[.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[]?.context] | unique | sort' <<<"$rules")
+  contexts_digest=$(printf '%s' "$contexts" | sha256)
+  [[ "$rules_digest" == "$(jq -r .stable_controls.ruleset_protection_digest "$inventory")" ]] || die "ruleset/protection drifted"
+  [[ "$contexts" == "$(jq -cS .stable_controls.required_contexts "$inventory")" && "$contexts_digest" == "$(jq -r .stable_controls.required_contexts_digest "$inventory")" ]] || die "required contexts drifted"
+
+}
+
+# Worktree comparison is kept separate because awk implementations disagree on an empty final record.
+live_worktree_compare() {
+  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] && return
+  local actual digest
+  actual=$(git worktree list --porcelain | awk 'BEGIN{RS="";FS="\n"}{p=b=""; for(i=1;i<=NF;i++){if($i~/^worktree /)p=substr($i,10); else if($i~/^branch /)b=substr($i,8)} printf "%s\t%s\n",p,b}' | jq -Rsc 'split("\n")[:-1] | map(split("\t") | {path:.[0],branch:.[1]}) | sort_by(.path)')
+  digest=$(printf '%s' "$actual" | jq -cS . | tr -d '\n' | sha256)
+  jq -e --argjson actual "$actual" '.stable_controls.worktrees==$actual' "$inventory" >/dev/null || die "worktree identities drifted"
+  [[ "$digest" == "$(jq -r .stable_controls.worktree_list_digest "$inventory")" ]] || die "worktree digest drifted"
+}
+
+validate_inventory() {
+  validate_schema
+  validate_markdown
+  [[ "$(jq -r '.decision==null and .execution==null and (.command_receipts|length)==0' "$inventory")" == true ]] ||
+    die "inventory stage forbids decision, execution, or write-side command receipts"
+  live_compare
+  live_worktree_compare
+}
+
+extract_decision() {
+  awk '/^<!-- maintainer-decision-json$/{on=1;next}/^-->$/{if(on){exit}}on' "$decision"
+}
+
+validate_decision() {
+  validate_schema
+  validate_markdown
+  live_compare
+  live_worktree_compare
+  local payload digest subjects
+  payload=$(extract_decision)
+  jq -e 'type=="object" and (keys|sort)==(["option","verbatim","recorded_at","inventory_sha256","subjects"]|sort)
+    and (.option=="retire" or .option=="preserve" or .option=="abort")
+    and (.verbatim|type)=="string" and (.recorded_at|type)=="string"' <<<"$payload" >/dev/null || die "maintainer decision is absent or malformed"
+  digest=$(inventory_digest)
+  [[ "$(jq -r .inventory_sha256 <<<"$payload")" == "$digest" ]] || die "decision inventory digest mismatch"
+  subjects=$(jq -cS '[.targets[]|{branch,pr,local_sha:.local.sha,remote_sha:.remote.sha,head:.pull_request.head,base:.pull_request.base,head_sha:.pull_request.head_sha}]' "$inventory")
+  [[ "$(jq -cS .subjects <<<"$payload")" == "$subjects" ]] || die "decision subjects mismatch"
+  case "$(jq -r .option <<<"$payload")" in
+    retire) [[ "$(jq -r .verbatim <<<"$payload")" == retire ]] || die "retire must be recorded verbatim" ;;
+    abort) [[ "$(jq -r .verbatim <<<"$payload")" == abort ]] || die "abort must be recorded verbatim" ;;
+    preserve) [[ "$(jq -r .verbatim <<<"$payload")" == preserve* ]] || die "preserve response must be verbatim" ;;
+  esac
+}
+
+case "$stage" in
+  inventory)
+    validate_inventory
+    echo "Phase 198 ref-disposition inventory OK: exactly 3 decision targets; 3 local and 6 remote ci/198-* refs; stable controls unchanged; no mutation receipt."
+    ;;
+  decision)
+    validate_decision
+    echo "Phase 198 ref-disposition decision OK."
+    ;;
+  authority)
+    [[ -n "$target" ]] || die "authority requires --target"
+    validate_decision
+    [[ "$(extract_decision | jq -r .option)" == retire ]] || die "only retire grants mutation authority"
+    jq -e --arg target "$target" 'any(.targets[]; .branch==$target)' "$inventory" >/dev/null || die "target is outside exact authority"
+    [[ "$(jq '.target_universe.remote|length' "$inventory")" -eq 3 ]] || die "full remote ci/198-* namespace is not the exact three-target authority set; replan before mutation"
+    echo "Authority OK for $target."
+    ;;
+  controls|post-target|final)
+    validate_decision
+    die "$stage requires Plan 52 execution receipts and is fail-closed before execution begins"
+    ;;
+esac
