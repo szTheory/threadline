@@ -81,6 +81,40 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     assert output =~ "3 local and 6 remote"
   end
 
+  test "round 11 keeps divergent local and remote tips as separate preservation subjects" do
+    with_round11_tracer(fn inventory, decision, live ->
+      assert {output, 0} = run_stage("inventory", inventory, decision, live)
+      assert output =~ "round 11"
+
+      subjects =
+        inventory |> File.read!() |> Jason.decode!() |> Map.fetch!("preservation_subjects")
+
+      assert Enum.map(subjects, & &1["side"]) |> Enum.sort() == ["local", "origin"]
+      assert subjects |> Enum.map(& &1["sha"]) |> Enum.uniq() |> length() == 2
+      assert subjects |> Enum.map(& &1["archive_tag"]) |> Enum.uniq() |> length() == 2
+    end)
+  end
+
+  test "round 11 rejects a missing, substituted, or collapsed divergent side" do
+    with_round11_tracer(fn inventory, decision, live ->
+      tracer_mutate(inventory, decision, live, fn doc ->
+        update_in(doc["preservation_subjects"], &tl/1)
+      end)
+
+      tracer_mutate(inventory, decision, live, fn doc ->
+        put_path(doc, ["preservation_subjects", 1, "sha"], String.duplicate("a", 40))
+      end)
+
+      tracer_mutate(inventory, decision, live, fn doc ->
+        put_path(
+          doc,
+          ["preservation_subjects", 1, "id"],
+          get_in_path(doc, ["preservation_subjects", 0, "id"])
+        )
+      end)
+    end)
+  end
+
   for path <- @required_paths do
     label = Enum.map_join(path, ".", &to_string/1)
 
@@ -163,6 +197,116 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       env: [{"PHASE198_REF_DISPOSITION_LIVE_FIXTURE", @inventory}],
       stderr_to_stdout: true
     )
+  end
+
+  defp run_stage(stage, inventory, decision, live, extra \\ []) do
+    System.cmd(
+      @script,
+      [stage, "--inventory", inventory, "--decision", decision] ++ extra,
+      env: [{"PHASE198_REF_DISPOSITION_LIVE_FIXTURE", live}],
+      stderr_to_stdout: true
+    )
+  end
+
+  defp with_round11_tracer(fun) do
+    prefix =
+      Path.join(System.tmp_dir!(), "phase198-round11-#{System.unique_integer([:positive])}")
+
+    inventory_path = prefix <> ".json"
+    decision_path = prefix <> ".md"
+    live_path = prefix <> "-live.json"
+
+    try do
+      source = @inventory |> File.read!() |> Jason.decode!()
+      target = hd(source["targets"])
+
+      subjects =
+        for side <- ["local", "origin"] do
+          evidence = if side == "local", do: target["local"], else: target["remote"]
+          sha = evidence["sha"]
+
+          %{
+            "id" => "#{side}:#{target["branch"]}@#{sha}",
+            "branch" => target["branch"],
+            "side" => side,
+            "sha" => sha,
+            "evidence" => evidence,
+            "pull_request" => target["pull_request"],
+            "recommendation" => target["recommendation"],
+            "archive_tag" => "archive/#{target["branch"]}/#{side}-#{String.slice(sha, 0, 12)}",
+            "restore_command" => "git branch #{target["branch"]} #{sha}"
+          }
+        end
+
+      inventory = %{
+        "schema_version" => 2,
+        "round" => 11,
+        "observed_at" => source["observed_at"],
+        "repository" => source["repository"],
+        "provenance" => source["provenance"],
+        "task_baseline" => source["provenance"] |> Map.drop(["authority"]),
+        "target_universe" => source["target_universe"],
+        "stable_controls" => source["stable_controls"],
+        "preservation_subjects" => subjects,
+        "decision" => nil,
+        "execution" => nil,
+        "command_receipts" => []
+      }
+
+      digest = inventory_digest(inventory)
+      controls = inventory["stable_controls"]
+
+      markers =
+        Enum.map_join(subjects, "\n", fn subject ->
+          "<!-- subject: #{subject["id"]}|#{subject["archive_tag"]}|#{subject["restore_command"]} -->"
+        end)
+
+      markdown = """
+      # Phase 198 Round 11 ref disposition
+
+      <!-- schema: phase198-ref-disposition/v2; round: 11 -->
+      <!-- inventory-sha256: #{digest} -->
+      <!-- controls: #{controls["origin_main_sha"]}|34|#{controls["pr34"]["head_sha"]}|#{controls["ruleset_protection_digest"]}|#{controls["required_contexts_digest"]}|#{controls["worktree_list_digest"]} -->
+      #{markers}
+
+      Plan 52 is preserved but superseded as inapplicable because Plan 51 recorded verbatim abort and proved the exact-three scope incomplete.
+
+      ## Maintainer decision
+
+      Status: undecided. No authority is granted.
+      """
+
+      File.write!(inventory_path, Jason.encode!(inventory))
+      File.write!(decision_path, markdown)
+      File.write!(live_path, Jason.encode!(inventory))
+      fun.(inventory_path, decision_path, live_path)
+    after
+      File.rm(inventory_path)
+      File.rm(decision_path)
+      File.rm(live_path)
+    end
+  end
+
+  defp tracer_mutate(inventory, decision, live, fun) do
+    path = inventory <> ".mutated"
+
+    try do
+      doc = inventory |> File.read!() |> Jason.decode!() |> fun.()
+      File.write!(path, Jason.encode!(doc))
+      assert {_output, status} = run_stage("inventory", path, decision, live)
+      refute status == 0
+    after
+      File.rm(path)
+    end
+  end
+
+  defp inventory_digest(doc) do
+    canonical =
+      doc
+      |> Map.drop(["decision", "execution", "command_receipts"])
+      |> Jason.encode!()
+
+    :crypto.hash(:sha256, canonical) |> Base.encode16(case: :lower)
   end
 
   defp mutate(fun) do
