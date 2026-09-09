@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 0 ]]; then
+  echo "usage: bin/verify-row-history-focus-red-control" >&2
+  exit 64
+fi
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MIX_BIN="${THREADLINE_ROW_HISTORY_PROVER_MIX_BIN:-mix}"
+CONTROL="obscure-date-input"
+SCENARIO="keeps row-history drawer dialog semantics and visible focus"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/threadline-row-history-focus.XXXXXX")"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+cd "$ROOT"
+
+ARGS=(
+  verify.example_browser
+  operator-accessibility.spec.ts
+  --project=mobile-chromium
+  --grep
+  "$SCENARIO"
+)
+
+set +e
+THREADLINE_ROW_HISTORY_RED_CONTROL="$CONTROL" \
+  "$MIX_BIN" "${ARGS[@]}" >"$TMP_DIR/red.log" 2>&1
+RED_STATUS=$?
+set -e
+
+if [[ "$RED_STATUS" -eq 0 ]]; then
+  echo "row-history RED control unexpectedly passed" >&2
+  cat "$TMP_DIR/red.log" >&2
+  exit 1
+fi
+
+if ! grep -Fq "expected non-obscured focus" "$TMP_DIR/red.log"; then
+  echo "row-history RED control failed outside expectNonObscuredFocused" >&2
+  cat "$TMP_DIR/red.log" >&2
+  exit 1
+fi
+
+echo "RED control failed at expectNonObscuredFocused as required"
+
+if ! env -u THREADLINE_ROW_HISTORY_RED_CONTROL \
+  "$MIX_BIN" "${ARGS[@]}" >"$TMP_DIR/green.log" 2>&1; then
+  echo "row-history clean control failed" >&2
+  cat "$TMP_DIR/green.log" >&2
+  exit 1
+fi
+
+echo "clean control passed"

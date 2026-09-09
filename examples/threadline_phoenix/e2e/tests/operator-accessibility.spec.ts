@@ -620,6 +620,17 @@ test.describe("operator accessibility baseline", () => {
   test("keeps row-history drawer dialog semantics and visible focus", async ({
     page,
   }) => {
+    const rowHistoryRedControl =
+      process.env.THREADLINE_ROW_HISTORY_RED_CONTROL;
+
+    if (
+      rowHistoryRedControl !== undefined &&
+      rowHistoryRedControl !== "" &&
+      rowHistoryRedControl !== "obscure-date-input"
+    ) {
+      throw new Error(`unknown row-history red control: ${rowHistoryRedControl}`);
+    }
+
     const { transactionHref, rowHistoryHref } =
       await discoverTransactionAndRowHistory(page);
 
@@ -651,8 +662,33 @@ test.describe("operator accessibility baseline", () => {
     const snapshot = dialog.getByLabel("View snapshot at");
     await expect(snapshot).toBeVisible();
     await snapshot.focus();
-    await expectNonObscuredFocused(snapshot, page);
-    await expectNoHorizontalOverflow(page);
+
+    if (rowHistoryRedControl === "obscure-date-input") {
+      await snapshot.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const obscurer = document.createElement("div");
+        obscurer.setAttribute("data-threadline-row-history-red-control", "");
+        Object.assign(obscurer.style, {
+          background: "transparent",
+          height: `${rect.height}px`,
+          left: `${rect.left}px`,
+          position: "fixed",
+          top: `${rect.top}px`,
+          width: `${rect.width}px`,
+          zIndex: "2147483647",
+        });
+        document.body.appendChild(obscurer);
+      });
+    }
+
+    try {
+      await expectNonObscuredFocused(snapshot, page);
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      await page
+        .locator("[data-threadline-row-history-red-control]")
+        .evaluateAll((elements) => elements.forEach((element) => element.remove()));
+    }
   });
 
   test("opens stress rendered widgets with names, keyboard state, and focus entry", async ({
