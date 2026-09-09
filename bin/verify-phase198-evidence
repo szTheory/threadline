@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+policy=".planning/audits/198-automation-policy.json"
+format="text"
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --policy) policy=${2-}; shift 2 ;;
+    --format) format=${2-}; shift 2 ;;
+    *) echo "verify-phase198-evidence: unknown argument $1" >&2; exit 1 ;;
+  esac
+done
+[ -f "$policy" ] || { echo "policy missing: $policy" >&2; exit 1; }
+jq -e '
+  .schema == "threadline.phase198-automation-policy/1" and
+  .mechanical.text_content_same == true and .mechanical.text_width_same == true and .mechanical.layout_protected == false and
+  .lane_differential.minimum == .lane_differential.current and .lane_differential.classification == "code_test" and
+  .search_path.fresh_db_failures == (.search_path.unprefixed_defects + .search_path.other_failures) and .search_path.classification == "test_side" and
+  (.timeouts | length) > 0 and ([.timeouts[] | select(.timeout_minutes <= 0 or .observed_seconds < 0 or (.observed_seconds > (.timeout_minutes * 60)))] | length) == 0 and
+  (.measurements | length) == 2 and (.measurements[0].population_id != .measurements[1].population_id) and
+  (.prediction.predicted | type == "array") and (.prediction.observed | type == "array")
+' "$policy" >/dev/null
+result=$(jq -c '
+  (.prediction.predicted - .prediction.observed) as $missing |
+  (.prediction.observed - .prediction.predicted) as $extra |
+  {
+    schema:"threadline.phase198-evidence-result/1",
+    checks:{failed:0},
+    sizing:{phase201:"copy gate is cheap; layout consequence remains unprotected"},
+    lane_classification:.lane_differential.classification,
+    search_path_classification:.search_path.classification,
+    populations:{comparable:(.measurements[0].population_id == .measurements[1].population_id), state:"not_comparable"},
+    prediction:{target:(if (.prediction.observed|length) <= .prediction.target_max_red then "hit" else "miss" end), exact:($missing == [] and $extra == []), missing:$missing, extra:$extra}
+  }
+' "$policy")
+if [ "$format" = json ]; then printf '%s\n' "$result"; else printf '%s\n' "$result" | jq .; fi

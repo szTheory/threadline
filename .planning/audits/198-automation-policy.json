@@ -1,0 +1,16 @@
+{
+  "schema": "threadline.phase198-automation-policy/1",
+  "mechanical": {"probe": ".planning/audits/198-mechanical-sensitivity.md", "text_content_same": true, "text_width_same": true, "layout_protected": false},
+  "lane_differential": {"minimum": {"tests": 1382, "failures": 83}, "current": {"tests": 1382, "failures": 83}, "classification": "code_test"},
+  "search_path": {"fresh_db_failures": 82, "unprefixed_defects": 79, "other_failures": 3, "classification": "test_side"},
+  "timeouts": [
+    {"job": "verify-example-browser", "timeout_minutes": 18, "observed_seconds": 625},
+    {"job": "verify-capture", "timeout_minutes": 35, "observed_seconds": 720},
+    {"job": "browser-full", "timeout_minutes": 50, "observed_seconds": 625}
+  ],
+  "measurements": [
+    {"id": "round4-ci", "population_id": "ci-capped-desktop-mobile", "cap": 5},
+    {"id": "round4-local", "population_id": "local-unbounded-all-projects", "cap": 0}
+  ],
+  "prediction": {"target_max_red": 1, "predicted": ["verify-capture", "verify-example-browser"], "observed": ["verify-capture", "verify-example-browser", "operator-accessibility"]}
+}
