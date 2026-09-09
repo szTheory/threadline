@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-47-PLAN.md
-last_updated: "2026-09-09T16:47:20.696Z"
+stopped_at: Completed 198-48-PLAN.md
+last_updated: "2026-09-09T17:14:11.604Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 198 execution started
-state_head: 658d117f85953631f7d41dd8e2da3f1f64506480
+state_head: 0d45066fbc7842513c74c3d2f8d222ad8cd7a165
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 52
-  completed_plans: 47
+  completed_plans: 48
   percent: 0
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (Green Bringup) — READY TO EXECUTE
-Plan: 47 of 47
+Phase: 198 (Green Bringup) — EXECUTING
+Plan: 2 of 52
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -93,6 +93,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P41 | 7min | 2 tasks | 2 files |
 | Phase 198 P42 | 6min | 2 tasks | 5 files |
 | Phase 198 P47 | 9 min | 2 tasks | 3 files |
+| Phase 198 P48 | 18 min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -484,6 +485,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: No remote or ruleset mutation is authorized; any future mutation requires a fresh blocking-human maintainer checkpoint.
 - [Phase 198]: GREEN-07 remains Pending on exact ancestry and exact-main CI; PR #34 is branch-only evidence. — Preserve the requirement own predicate and the maintainer selected option-a disposition.
 - [Phase 198]: GREEN-08 remains Complete for the exact required-context contract while roadmap criterion 4 remains partial. — Ruleset 21702804 is correct, but PR #26 remains BLOCKED downstream of GREEN-07.
+- [Phase 198]: Phase 198 freezes its exact evidence compatibility contract while Phase 199 retains the generalized classifier. — Keeps gap closure repository-portable without absorbing the next phase scope.
+- [Phase 198]: Operator login redirects must match BASE_URL scheme, host, effective port, and exact path. — A login-looking cross-origin Location is not proof that the local operator mount exists.
 
 ### Blockers
 
@@ -491,8 +494,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-09T14:39:34.664Z
-**Stopped at:** Completed 198-47-PLAN.md
+**Last session:** 2026-09-09T17:14:11.562Z
+**Stopped at:** Completed 198-48-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
