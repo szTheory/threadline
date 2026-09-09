@@ -58,5 +58,84 @@ pull-request, tag, `main`, ruleset, protection, or other mutation authority.
 
 ## Maintainer decision
 
-**Status: undecided.** `decision` and `execution` are null and command receipts are empty. This
-record offers evidence only and does not imply a choice.
+The maintainer's fresh verbatim response was:
+
+> retire
+
+`retire` authorizes only Plan 55's preservation-first retirement of the exact nine subjects bound
+to inventory digest `88888854b44111835d753261eb15332a7c98fae7922d65d0d46e6fc5423a4655`.
+It does not itself mutate any branch, pull request, tag, `main`, ruleset, or protection setting.
+
+<!-- maintainer-decision-json
+{
+  "option": "retire",
+  "verbatim": "retire",
+  "recorded_at": "2026-09-09T22:26:50Z",
+  "inventory_sha256": "88888854b44111835d753261eb15332a7c98fae7922d65d0d46e6fc5423a4655",
+  "subjects": [
+    {
+      "id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "branch": "ci/198-gap-closure",
+      "side": "local",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "archive_tag": "archive/ci/198-gap-closure/local-ffcff0d16133"
+    },
+    {
+      "id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "branch": "ci/198-gap-closure",
+      "side": "origin",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "archive_tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c"
+    },
+    {
+      "id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "branch": "ci/198-05-verify",
+      "side": "origin",
+      "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "archive_tag": "archive/ci/198-05-verify/origin-d941ae1050c6"
+    },
+    {
+      "id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "branch": "ci/198-round3",
+      "side": "origin",
+      "sha": "80bf701e7486962e538d16f213874cbba8f24115",
+      "archive_tag": "archive/ci/198-round3/origin-80bf701e7486"
+    },
+    {
+      "id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "branch": "ci/198-round4",
+      "side": "origin",
+      "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "archive_tag": "archive/ci/198-round4/origin-f433ef3ea6fd"
+    },
+    {
+      "id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5",
+      "side": "local",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "archive_tag": "archive/ci/198-round5/local-14f923a71c09"
+    },
+    {
+      "id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5",
+      "side": "origin",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "archive_tag": "archive/ci/198-round5/origin-14f923a71c09"
+    },
+    {
+      "id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6",
+      "side": "local",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "archive_tag": "archive/ci/198-round6/local-23c16267d11a"
+    },
+    {
+      "id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6",
+      "side": "origin",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "archive_tag": "archive/ci/198-round6/origin-23c16267d11a"
+    }
+  ]
+}
+-->
