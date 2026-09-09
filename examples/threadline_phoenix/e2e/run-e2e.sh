@@ -8,6 +8,8 @@ REQUESTED_PORT="${PORT:-${THREADLINE_E2E_PORT:-}}"
 PORT="${REQUESTED_PORT:-4002}"
 HOST="${E2E_HOST:-127.0.0.1}"
 LOG_FILE="${TMPDIR:-/tmp}/threadline_phoenix_e2e.log"
+BASE_URL="${E2E_BASE_URL:-}"
+CURL_BIN="${THREADLINE_E2E_CURL:-curl}"
 
 export DB_HOST="${DB_HOST:-localhost}"
 export DB_PORT="${DB_PORT:-5432}"
@@ -62,15 +64,20 @@ fail_with_log() {
 # passed, and any 3xx counted even when it pointed somewhere other than login. Both
 # branches now have to prove something about the response, not just its status class.
 operator_surface_ready() {
-  local response code body location
+  local response code body headers location location_count
 
-  command -v curl >/dev/null 2>&1 || return 0
+  [[ -n "$BASE_URL" ]] || {
+    echo "E2E_BASE_URL is empty; cannot validate the operator redirect origin." >&2
+    return 1
+  }
+
+  command -v "$CURL_BIN" >/dev/null 2>&1 || return 0
 
   # -D - writes headers to stdout ahead of the body, so one request yields status,
   # Location, and body together. A redirect is NOT followed: the redirect itself is the
   # evidence we want, and following it would land us on the login page and assert nothing
   # about /audit.
-  response=$(curl --max-time 30 -sS -D - -o - -w '\n__HTTP_CODE__%{http_code}' \
+  response=$("$CURL_BIN" --max-time 30 -sS -D - -o - -w '\n__HTTP_CODE__%{http_code}' \
     "${BASE_URL}/audit" 2>/dev/null || echo '__HTTP_CODE__000')
 
   code=${response##*__HTTP_CODE__}
@@ -78,18 +85,23 @@ operator_surface_ready() {
 
   case "$code" in
     3??)
-      location=$(printf '%s' "$body" | tr -d '\r' | awk 'tolower($1) == "location:" { print $2; exit }')
+      headers=${body%%$'\r\n\r\n'*}
+      location_count=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'BEGIN { IGNORECASE=1 } /^Location:[[:space:]]*/ { count++ } END { print count+0 }')
 
-      case "$location" in
-        */users/log_in*)
-          return 0
-          ;;
-        *)
-          echo "GET ${BASE_URL}/audit redirected to '${location:-<no Location header>}', not the login page." >&2
-          echo "A 3xx only proves the mount is alive if it is the :operator_auth redirect." >&2
-          return 1
-          ;;
-      esac
+      if [[ "$location_count" -ne 1 ]]; then
+        echo "GET ${BASE_URL}/audit returned ${location_count} Location headers; expected exactly one." >&2
+        return 1
+      fi
+
+      location=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'BEGIN { IGNORECASE=1 } /^Location:[[:space:]]*/ { sub(/^[^:]+:[[:space:]]*/, ""); print }')
+
+      if login_target_valid "$BASE_URL" "$location"; then
+        return 0
+      fi
+
+      echo "GET ${BASE_URL}/audit redirected to '${location:-<no Location header>}', not the local login page." >&2
+      echo "A 3xx only proves the mount is alive when scheme, host, and effective port match." >&2
+      return 1
       ;;
     2??)
       # An authenticated-or-public 200 must actually carry the operator shell. These two
@@ -110,6 +122,69 @@ operator_surface_ready() {
       ;;
   esac
 }
+
+url_origin() {
+  local url="$1" scheme authority host port rest
+
+  [[ "$url" != *'\\'* && "$url" != *$'\r'* && "$url" != *$'\n'* && "$url" != *$'\t'* && "$url" != *' '* ]] || return 1
+  [[ "$url" =~ ^(https?)://([^/?#]+) ]] || return 1
+
+  scheme="${BASH_REMATCH[1],,}"
+  authority="${BASH_REMATCH[2]}"
+  [[ "$authority" != *'@'* ]] || return 1
+
+  if [[ "$authority" =~ ^([A-Za-z0-9.-]+):([0-9]+)$ ]]; then
+    host="${BASH_REMATCH[1],,}"
+    port="${BASH_REMATCH[2]}"
+  elif [[ "$authority" =~ ^[A-Za-z0-9.-]+$ ]]; then
+    host="${authority,,}"
+    [[ "$scheme" == "https" ]] && port=443 || port=80
+  else
+    return 1
+  fi
+
+  [[ -n "$host" && "$port" -ge 1 && "$port" -le 65535 ]] || return 1
+  printf '%s|%s|%s' "$scheme" "$host" "$port"
+}
+
+login_target_valid() {
+  local base="$1" target="$2" base_origin target_origin rest path
+
+  [[ -n "$target" && "$target" != *'\\'* && "$target" != *$'\r'* && "$target" != *$'\n'* && "$target" != *$'\t'* && "$target" != *' '* ]] || return 1
+
+  if [[ "$target" == /* ]]; then
+    [[ "$target" != //* ]] || return 1
+    path="${target%%[?#]*}"
+    [[ "$path" != *'%'* ]] || return 1
+    [[ "$path" == "/users/log_in" ]]
+    return
+  fi
+
+  base_origin=$(url_origin "$base") || return 1
+  target_origin=$(url_origin "$target") || return 1
+  [[ "$base_origin" == "$target_origin" ]] || return 1
+
+  rest="${target#*://}"
+  rest="${rest#*/}"
+  if [[ "$target" != *://*/* ]]; then
+    path="/"
+  else
+    path="/${rest%%[?#]*}"
+  fi
+
+  [[ "$path" != *'%'* ]] || return 1
+  [[ "$path" == "/users/log_in" ]]
+}
+
+if [[ "${THREADLINE_E2E_PREFLIGHT_ONLY:-0}" == "1" ]]; then
+  if operator_surface_ready; then
+    if [[ -n "${THREADLINE_E2E_PLAYWRIGHT_SENTINEL:-}" ]]; then
+      "$THREADLINE_E2E_PLAYWRIGHT_SENTINEL"
+    fi
+    exit 0
+  fi
+  exit 1
+fi
 
 port_owner() {
   if command -v lsof >/dev/null 2>&1; then
