@@ -116,6 +116,18 @@ or live observation; it is not silently converted to machine coverage.
 | 40-T1, 40-T2, 40-T3 | GREEN-01..GREEN-12 | round-6 prediction/run/requirement reconciliation | GREEN-07 partial; others green |
 | 41-T1, 41-T2 | GREEN-07, GREEN-08 | run `33354216172` attestation + atomic-lifecycle proof | GREEN-08 green; GREEN-07 partial |
 | 42-T1, 42-T2 | GREEN-07, GREEN-08 | ruleset double-read + exact-SHA main selector | GREEN-08 green; GREEN-07 partial |
+| 43-T1 | GREEN-11 | `ci_issue_upsert_contract_test.exs` create-then-update and hostile-input fixtures | green |
+| 43-T2 | GREEN-06 | `playwright_fail_fast_contract_test.exs`; hermetic seven-failure smoke stops at five and retains traces | green |
+| 43-T3 | GREEN-10 | `release_control_plane_contract_test.exs`; offline production-Hex gate/publisher contract | green |
+| 44-T1 | GREEN-03, GREEN-06, GREEN-07 | `phase198_automation_policy_test.exs` + `bin/verify-phase198-evidence`; evaluator correctness only | GREEN-03/GREEN-06 green components; GREEN-07 partial |
+| 44-T2 | GREEN-07 | `main_ci_observer_contract_test.exs`; exact-SHA selection and explicit non-success states | green component / requirement partial |
+| 44-T3 | GREEN-04 | `ci_attestation_contract_test.exs` + `phase198_nyquist_contract_test.exs` | green |
+| 45-T1 | GREEN-11 | named row-history mobile E2E reproduction/audit; historical failure did not reproduce on the current tree | green with recorded no-op deviation |
+| 45-T2 | GREEN-11 | row-history mobile 10/10 plus desktop/mobile cross-project evidence in `198-45-SUMMARY.md` | green |
+| 46-T1 | GREEN-03, GREEN-04, GREEN-06, GREEN-07, GREEN-10, GREEN-11 | canonical classifier over the 15 former human coverage rows | green automation components; GREEN-07 requirement partial |
+| 46-T2 | GREEN-03, GREEN-04, GREEN-06, GREEN-07, GREEN-10, GREEN-11 | `phase198_zero_human_uat_contract_test.exs` + generated 192/192 UAT ledger | green evaluator; GREEN-07 requirement partial |
+| 47-T1 | GREEN-07, GREEN-08 | exact-main observer + zero-human contract + immutable entry snapshot | GREEN-08 green; GREEN-07 partial |
+| 47-T2 | GREEN-07, GREEN-08 | 12-row disposition reconciliation + 47-summary classifier closeout | GREEN-08 green; GREEN-07 partial |
 
 ## Manual-Only / Escalated
 
@@ -175,7 +187,7 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 
 ## Validation Sign-Off
 
-- [x] All 42 PLANs and 42 SUMMARYs mapped through their tasks and requirements.
+- [x] All 47 PLANs and 47 SUMMARYs mapped through their tasks and requirements.
 - [x] Every automated test claimed green was executed in this audit.
 - [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
 - [x] No implementation file was modified.
