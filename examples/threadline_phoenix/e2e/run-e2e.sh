@@ -86,14 +86,14 @@ operator_surface_ready() {
   case "$code" in
     3??)
       headers=${body%%$'\r\n\r\n'*}
-      location_count=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'BEGIN { IGNORECASE=1 } /^Location:[[:space:]]*/ { count++ } END { print count+0 }')
+      location_count=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'tolower($0) ~ /^location:[[:space:]]*/ { count++ } END { print count+0 }')
 
       if [[ "$location_count" -ne 1 ]]; then
         echo "GET ${BASE_URL}/audit returned ${location_count} Location headers; expected exactly one." >&2
         return 1
       fi
 
-      location=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'BEGIN { IGNORECASE=1 } /^Location:[[:space:]]*/ { sub(/^[^:]+:[[:space:]]*/, ""); print }')
+      location=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'tolower($0) ~ /^location:[[:space:]]*/ { sub(/^[^:]+:[[:space:]]*/, ""); print }')
 
       if login_target_valid "$BASE_URL" "$location"; then
         return 0

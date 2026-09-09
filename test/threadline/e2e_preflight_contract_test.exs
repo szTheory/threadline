@@ -16,6 +16,14 @@ defmodule Threadline.E2ePreflightContractTest do
     end
   end
 
+  test "Phoenix-style lowercase and mixed-case Location headers are accepted" do
+    for header_name <- ["location", "LoCaTiOn"] do
+      result = run_preflight("http://example.test", 302, [{header_name, "/users/log_in"}], "")
+      assert result.status == 0, "expected #{header_name} header to pass: #{result.output}"
+      assert result.playwright_started
+    end
+  end
+
   test "cross-origin and ambiguous login-looking redirects fail before Playwright" do
     invalid = [
       "//example.test/users/log_in",
