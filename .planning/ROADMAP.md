@@ -298,7 +298,7 @@ Plans:
 
 **Wave 3** *(blocked on 198-46)*
 
-- [ ] 198-47-PLAN.md — **Tracer:** reconcile stale Round 6 verification with current exact-main, ruleset, PR, and 192/192 automated-UAT evidence; preserve GREEN-07 Pending and perform no remote mutation (wave 3)
+- [x] 198-47-PLAN.md — **Tracer:** reconcile stale Round 6 verification with current exact-main, ruleset, PR, and 192/192 automated-UAT evidence; preserve GREEN-07 Pending and perform no remote mutation (wave 3)
 
 **Round-9 notes:**
 
