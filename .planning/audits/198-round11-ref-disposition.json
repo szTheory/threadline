@@ -1,18 +1,18 @@
 {
   "schema_version": 2,
   "round": 11,
-  "observed_at": "2026-09-09T21:50:00Z",
+  "observed_at": "2026-09-09T22:05:00Z",
   "repository": "szTheory/threadline",
   "provenance": {
     "active_branch": "phase-199/scroll-cost-cause-fix",
-    "active_head_sha": "41d2078d074c73d75227cf9b129094eeaee701d6",
+    "active_head_sha": "19e5920b2785b40bca26c238032eeb7874144b69",
     "upstream": "origin/phase-199/scroll-cost-cause-fix",
     "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f",
     "authority": false
   },
   "task_baseline": {
     "active_branch": "phase-199/scroll-cost-cause-fix",
-    "active_head_sha": "41d2078d074c73d75227cf9b129094eeaee701d6",
+    "active_head_sha": "19e5920b2785b40bca26c238032eeb7874144b69",
     "upstream": "origin/phase-199/scroll-cost-cause-fix",
     "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
   },
@@ -47,7 +47,7 @@
       "branch": "ci/198-gap-closure",
       "side": "local",
       "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
-      "evidence": {"sha": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_head": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_main": "ffcff0d1613381950cfb6baad93e90aee19dcece", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 268}, "vs_main": {"ahead": 0, "behind": 169}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "evidence": {"sha": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_head": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_main": "ffcff0d1613381950cfb6baad93e90aee19dcece", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 270}, "vs_main": {"ahead": 0, "behind": 169}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
       "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
       "recommendation": {"action": "retire", "rationale": "The local tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the origin tip differs."},
       "archive_tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
@@ -58,11 +58,67 @@
       "branch": "ci/198-gap-closure",
       "side": "origin",
       "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
-      "evidence": {"sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_head": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_main": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 248}, "vs_main": {"ahead": 0, "behind": 149}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "evidence": {"sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_head": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_main": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 250}, "vs_main": {"ahead": 0, "behind": 149}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
       "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
       "recommendation": {"action": "retire", "rationale": "The origin tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the local tip differs."},
       "archive_tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
       "restore_command": "git branch ci/198-gap-closure f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "branch": "ci/198-05-verify", "side": "origin", "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "evidence": {"sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "merge_base_head": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "merge_base_main": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 332}, "vs_main": {"ahead": 0, "behind": 231}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": null,
+      "recommendation": {"action": "retire", "rationale": "The remote-only tip is an ancestor of current HEAD and local main with no unique commit or diffstat; no pull request is associated."},
+      "archive_tag": "archive/ci/198-05-verify/origin-d941ae1050c6", "restore_command": "git branch ci/198-05-verify d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"
+    },
+    {
+      "id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "branch": "ci/198-round3", "side": "origin", "sha": "80bf701e7486962e538d16f213874cbba8f24115",
+      "evidence": {"sha": "80bf701e7486962e538d16f213874cbba8f24115", "merge_base_head": "80bf701e7486962e538d16f213874cbba8f24115", "merge_base_main": "80bf701e7486962e538d16f213874cbba8f24115", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 225}, "vs_main": {"ahead": 0, "behind": 124}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 30, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round3", "base": "main", "head_sha": "80bf701e7486962e538d16f213874cbba8f24115"},
+      "recommendation": {"action": "retire", "rationale": "The remote-only round-3 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round3/origin-80bf701e7486", "restore_command": "git branch ci/198-round3 80bf701e7486962e538d16f213874cbba8f24115"
+    },
+    {
+      "id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "branch": "ci/198-round4", "side": "origin", "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "evidence": {"sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "merge_base_head": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "merge_base_main": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 176}, "vs_main": {"ahead": 0, "behind": 75}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 31, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round4", "base": "main", "head_sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"},
+      "recommendation": {"action": "retire", "rationale": "The remote-only round-4 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round4/origin-f433ef3ea6fd", "restore_command": "git branch ci/198-round4 f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"
+    },
+    {
+      "id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5", "side": "local", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "evidence": {"sha": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_head": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_main": "14f923a71c0901cd5f95fc3a72e0971b05861543", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 127}, "vs_main": {"ahead": 0, "behind": 26}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 32, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round5", "base": "main", "head_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      "recommendation": {"action": "retire", "rationale": "The local round-5 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round5/local-14f923a71c09", "restore_command": "git branch ci/198-round5 14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5", "side": "origin", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "evidence": {"sha": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_head": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_main": "14f923a71c0901cd5f95fc3a72e0971b05861543", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 127}, "vs_main": {"ahead": 0, "behind": 26}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 32, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round5", "base": "main", "head_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      "recommendation": {"action": "retire", "rationale": "The origin round-5 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round5/origin-14f923a71c09", "restore_command": "git branch ci/198-round5 14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6", "side": "local", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "evidence": {"sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_head": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_main": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 108}, "vs_main": {"ahead": 0, "behind": 7}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 33, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round6", "base": "main", "head_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"},
+      "recommendation": {"action": "retire", "rationale": "The local round-6 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round6/local-23c16267d11a", "restore_command": "git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6", "side": "origin", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "evidence": {"sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_head": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_main": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 108}, "vs_main": {"ahead": 0, "behind": 7}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 33, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round6", "base": "main", "head_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"},
+      "recommendation": {"action": "retire", "rationale": "The origin round-6 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round6/origin-23c16267d11a", "restore_command": "git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b"
     }
   ],
   "decision": null,

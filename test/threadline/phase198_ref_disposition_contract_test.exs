@@ -189,7 +189,14 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         )
       end
 
-      stale_md = String.replace(fixture.decided_md, fixture.digest, String.duplicate("0", 64))
+      stale_md =
+        Regex.replace(
+          ~r/<!-- inventory-sha256: [0-9a-f]{64}/,
+          File.read!(fixture.decided_md),
+          "<!-- inventory-sha256: #{String.duplicate("0", 64)}"
+        )
+
+      stale_md = write_text(fixture.dir, "stale-digest.md", stale_md)
       assert_failed(run_stage("decision", fixture.decided, stale_md, fixture.live_initial))
 
       missing =
@@ -447,7 +454,12 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         "repository" => source["repository"],
         "provenance" => source["provenance"],
         "task_baseline" => source["provenance"] |> Map.drop(["authority"]),
-        "target_universe" => source["target_universe"],
+        "target_universe" => %{
+          "local" =>
+            Enum.filter(source["target_universe"]["local"], &(&1["branch"] == target["branch"])),
+          "remote" =>
+            Enum.filter(source["target_universe"]["remote"], &(&1["branch"] == target["branch"]))
+        },
         "stable_controls" => source["stable_controls"],
         "preservation_subjects" => subjects,
         "decision" => nil,
@@ -480,7 +492,15 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       """
 
       File.write!(decision_path, markdown)
-      File.write!(live_path, Jason.encode!(inventory))
+
+      live = %{
+        "target_universe" => inventory["target_universe"],
+        "stable_controls" => inventory["stable_controls"],
+        "task_baseline" => inventory["task_baseline"],
+        "pull_requests" => %{target["branch"] => target["pull_request"]}
+      }
+
+      File.write!(live_path, Jason.encode!(live))
       fun.(inventory_path, decision_path, live_path)
     after
       File.rm(inventory_path)

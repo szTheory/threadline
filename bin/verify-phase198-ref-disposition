@@ -90,6 +90,9 @@ validate_schema_v2() {
     and ([.preservation_subjects[].archive_tag]|unique|length)==(.preservation_subjects|length)
     and (. as $root | all(.preservation_subjects[];
       . as $s | any((if $s.side=="local" then $root.target_universe.local else $root.target_universe.remote end)[]; .branch==$s.branch and .sha==$s.sha)))
+    and (. as $root | all(.preservation_subjects[]|select(.pull_request!=null); . as $s |
+      $s.pull_request.head==$s.branch and $s.pull_request.base=="main"
+      and any($root.target_universe.remote[]; .branch==$s.pull_request.head and .sha==$s.pull_request.head_sha)))
     and (.decision==null or (.decision|type)=="object")
     and (.execution==null or (.execution|type)=="object") and (.command_receipts|type)=="array"
   ' "$inventory" >/dev/null || die "round-11 schema or preservation-subject validation failed"
@@ -120,6 +123,9 @@ live_compare_v2() {
     jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
       .target_universe==$live[0].target_universe and .stable_controls==$live[0].stable_controls
       and .task_baseline==$live[0].task_baseline
+      and all(.preservation_subjects[]; . as $s |
+        if $s.pull_request==null then ($live[0].pull_requests|has($s.branch)|not)
+        else $live[0].pull_requests[$s.branch]==$s.pull_request end)
     ' "$inventory" >/dev/null || die "round-11 fixture live-state equality failed"
     return
   fi
@@ -129,6 +135,22 @@ live_compare_v2() {
   actual_local=$(git for-each-ref --format='%(refname:short) %(objectname)' 'refs/heads/ci/198-*' | sort | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<branch>[^ ]+) (?<sha>[0-9a-f]{40})$"))')
   actual_remote=$(git ls-remote --heads origin 'refs/heads/ci/198-*' | sort -k2 | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<sha>[0-9a-f]{40})\\trefs/heads/(?<branch>.+)$"))')
   jq -e --argjson local "$actual_local" --argjson remote "$actual_remote" '.target_universe.local==$local and .target_universe.remote==$remote' "$inventory" >/dev/null || die "complete ci/198-* target universe drifted"
+
+  local id branch sha mb_head mb_main counts_head counts_main baseline_head pr_json
+  baseline_head=$(jq -r .task_baseline.active_head_sha "$inventory")
+  while IFS=$'\t' read -r id branch sha mb_head mb_main counts_head counts_main; do
+    [[ "$(git merge-base "$sha" "$baseline_head")" == "$mb_head" ]] || die "$id baseline-HEAD merge base drifted"
+    [[ "$(git merge-base "$sha" main)" == "$mb_main" ]] || die "$id local-main merge base drifted"
+    [[ "$(git rev-list --left-right --count "$sha"..."$baseline_head" | tr $'\t' '|')" == "$counts_head" ]] || die "$id baseline-HEAD ancestry counts drifted"
+    [[ "$(git rev-list --left-right --count "$sha"...main | tr $'\t' '|')" == "$counts_main" ]] || die "$id local-main ancestry counts drifted"
+    [[ "$(git rev-list --count "$sha" --not "$baseline_head")" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.unique_vs_head|length' "$inventory")" ]] || die "$id unique-commit evidence drifted"
+    [[ "$(git diff --numstat "$baseline_head"..."$sha" | wc -l | tr -d ' ')" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.diffstat_vs_head|length' "$inventory")" ]] || die "$id numstat evidence drifted"
+  done < <(jq -r '.preservation_subjects[] | [.id,.branch,.sha,.evidence.merge_base_head,.evidence.merge_base_main,((.evidence.vs_head.ahead|tostring)+"|"+(.evidence.vs_head.behind|tostring)),((.evidence.vs_main.ahead|tostring)+"|"+(.evidence.vs_main.behind|tostring))] | @tsv' "$inventory")
+
+  while IFS=$'\t' read -r branch number state draft merge head base head_sha; do
+    pr_json=$(gh pr view "$number" --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid 2>/dev/null) || die "PR #$number unavailable"
+    jq -e --argjson n "$number" --arg state "$state" --argjson draft "$draft" --arg merge "$merge" --arg head "$head" --arg base "$base" --arg sha "$head_sha" '.number==$n and .state==$state and .isDraft==$draft and .mergeStateStatus==$merge and .headRefName==$head and .baseRefName==$base and .headRefOid==$sha' <<<"$pr_json" >/dev/null || die "PR #$number drifted"
+  done < <(jq -r '[.preservation_subjects[]|select(.pull_request!=null)|.pull_request]|unique_by(.number)[]|[.head,(.number|tostring),.state,.is_draft,.merge_state,.head,.base,.head_sha]|@tsv' "$inventory")
 }
 
 live_compare_controls_v2() {
@@ -157,8 +179,157 @@ live_compare_controls_v2() {
 validate_inventory_v2() {
   validate_schema_v2
   validate_markdown_v2
+  complete_subjects_v2
   [[ "$(jq -r '.decision==null and .execution==null and (.command_receipts|length)==0' "$inventory")" == true ]] || die "inventory stage forbids decision, execution, or write-side command receipts"
   live_compare_v2
+}
+
+complete_subjects_v2() {
+  jq -e '
+    ([.target_universe.local[] | {id:("local:"+.branch+"@"+.sha),branch,side:"local",sha}] +
+     [.target_universe.remote[] | {id:("origin:"+.branch+"@"+.sha),branch,side:"origin",sha}] | sort_by(.id)) ==
+    ([.preservation_subjects[] | {id,branch,side,sha}] | sort_by(.id))
+  ' "$inventory" >/dev/null || die "preservation subjects do not exactly cover the complete initial namespace"
+}
+
+extract_decision_v2() {
+  awk '/^<!-- maintainer-decision-json$/{on=1;next}/^-->$/{if(on){exit}}on' "$decision"
+}
+
+validate_decision_v2() {
+  validate_schema_v2
+  validate_markdown_v2
+  complete_subjects_v2
+  local payload digest subjects option verbatim
+  payload=$(extract_decision_v2)
+  jq -e '
+    type=="object" and (keys|sort)==(["option","verbatim","recorded_at","inventory_sha256","subjects"]|sort)
+    and (.option=="retire" or .option=="preserve" or .option=="abort")
+    and (.verbatim|type)=="string" and (.recorded_at|type)=="string"
+  ' <<<"$payload" >/dev/null || die "round-11 maintainer decision is absent or malformed"
+  digest=$(inventory_digest)
+  [[ "$(jq -r .inventory_sha256 <<<"$payload")" == "$digest" ]] || die "decision inventory digest mismatch"
+  subjects=$(jq -cS '[.preservation_subjects[]|{id,branch,side,sha,archive_tag}]' "$inventory")
+  [[ "$(jq -cS .subjects <<<"$payload")" == "$subjects" ]] || die "decision subjects mismatch"
+  [[ "$(jq -cS .decision "$inventory")" == "$(jq -cS . <<<"$payload")" ]] || die "JSON/Markdown decision mismatch"
+  option=$(jq -r .option <<<"$payload"); verbatim=$(jq -r .verbatim <<<"$payload")
+  case "$option" in
+    retire) [[ "$verbatim" == retire ]] || die "retire must be recorded verbatim" ;;
+    abort) [[ "$verbatim" == abort ]] || die "abort must be recorded verbatim" ;;
+    preserve) [[ "$verbatim" == preserve\ * ]] || die "preserve response must be recorded verbatim" ;;
+  esac
+}
+
+validate_fixture_controls_v2() {
+  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || { live_compare_controls_v2; return; }
+  jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+    .stable_controls==$live[0].stable_controls and .task_baseline==$live[0].task_baseline
+  ' "$inventory" >/dev/null || die "stable controls or task-local baseline drifted"
+}
+
+validate_receipt_shape_v2() {
+  jq -e '
+    (.command_receipts|type)=="array"
+    and ([.command_receipts[].seq] == (if (.command_receipts|length)==0 then [] else [range(1;(.command_receipts|length)+1)] end))
+    and all(.command_receipts[];
+      (.type|IN("local-annotated-tag","remote-single-tag","archive-register-row","pr-close","remote-ref-delete","local-ref-delete"))
+      and (.target|type)=="string"
+      and (if (.type|IN("local-annotated-tag","remote-single-tag","archive-register-row"))
+           then ((.subject_id|type)=="string" and (.tag|type)=="string" and (.sha|type)=="string")
+           elif .type=="pr-close" then (.pr|type)=="number"
+           else true end))
+  ' "$inventory" >/dev/null || die "command receipt shape or sequence ordering is invalid"
+}
+
+validate_subject_preservation_v2() {
+  local subject_id="$1" marker
+  jq -e --arg id "$subject_id" '
+    . as $root | (.preservation_subjects[]|select(.id==$id)) as $s |
+    ([.command_receipts[]|select(.subject_id==$id and .type=="local-annotated-tag" and .tag==$s.archive_tag and .sha==$s.sha)]|length)==1 and
+    ([.command_receipts[]|select(.subject_id==$id and .type=="remote-single-tag" and .tag==$s.archive_tag and .sha==$s.sha)]|length)==1 and
+    ([.command_receipts[]|select(.subject_id==$id and .type=="archive-register-row" and .tag==$s.archive_tag and .sha==$s.sha)]|length)==1 and
+    ([.command_receipts[]|select(.subject_id==$id and .type=="local-annotated-tag")][0].seq <
+     [.command_receipts[]|select(.subject_id==$id and .type=="remote-single-tag")][0].seq) and
+    ([.command_receipts[]|select(.subject_id==$id and .type=="remote-single-tag")][0].seq <
+     [.command_receipts[]|select(.subject_id==$id and .type=="archive-register-row")][0].seq)
+  ' "$inventory" >/dev/null || die "subject $subject_id lacks ordered local-tag, remote-tag, and register preservation"
+  [[ -f "$register" ]] || die "archive register is required"
+  marker=$(jq -r --arg id "$subject_id" '.preservation_subjects[]|select(.id==$id)|"<!-- archive-subject: \(.id)|\(.archive_tag)|\(.sha)|\(.restore_command) -->"' "$inventory")
+  grep -Fq "$marker" "$register" || die "archive register does not join subject $subject_id"
+}
+
+validate_live_tags_v2() {
+  local subject_id="$1"
+  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || die "mutation-stage live validation requires the explicit data-only adapter"
+  jq -e --arg id "$subject_id" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+    (.preservation_subjects[]|select(.id==$id)) as $s |
+    any($live[0].local_tags[]; .tag==$s.archive_tag and .sha==$s.sha and .annotated==true) and
+    any($live[0].remote_tags[]; .tag==$s.archive_tag and .sha==$s.sha)
+  ' "$inventory" >/dev/null || die "live peeled archive tags do not preserve subject $subject_id"
+}
+
+validate_post_target_v2() {
+  [[ -n "$target" ]] || die "post-target requires --target"
+  validate_decision_v2
+  [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
+  validate_fixture_controls_v2
+  validate_receipt_shape_v2
+  jq -e --arg target "$target" 'any(.preservation_subjects[];.branch==$target)' "$inventory" >/dev/null || die "target is outside exact authority"
+
+  local subject_id max_preserve pr expected_pr_close
+  while IFS= read -r subject_id; do
+    validate_subject_preservation_v2 "$subject_id"
+    validate_live_tags_v2 "$subject_id"
+  done < <(jq -r --arg target "$target" '.preservation_subjects[]|select(.branch==$target)|.id' "$inventory")
+
+  max_preserve=$(jq -r --arg target "$target" '[.command_receipts[]|select(.target==$target and (.type|IN("local-annotated-tag","remote-single-tag","archive-register-row")))|.seq]|max' "$inventory")
+  jq -e --arg target "$target" --argjson max "$max_preserve" '
+    all(.command_receipts[]|select(.target==$target and (.type|IN("pr-close","remote-ref-delete","local-ref-delete"))); .seq>$max)
+  ' "$inventory" >/dev/null || die "retirement receipt precedes complete target preservation"
+
+  jq -e --arg target "$target" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+    all($live[0].target_universe.local[], $live[0].target_universe.remote[]; .branch!=$target)
+  ' "$inventory" >/dev/null || die "target still exists in a live local or remote namespace"
+
+  pr=$(jq -c --arg target "$target" '[.preservation_subjects[]|select(.branch==$target and .pull_request!=null)|.pull_request][0] // null' "$inventory")
+  expected_pr_close=$(jq -r --arg target "$target" '[.command_receipts[]|select(.target==$target and .type=="pr-close")]|length' "$inventory")
+  if [[ "$pr" == null ]]; then
+    [[ "$expected_pr_close" -eq 0 ]] || die "null PR association must not invent a close receipt"
+  else
+    [[ "$expected_pr_close" -eq 1 ]] || die "associated PR requires exactly one close receipt"
+    jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+      $live[0].pull_requests[$target].state=="CLOSED" and
+      any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
+    ' "$inventory" >/dev/null || die "associated PR is not closed with an exact receipt"
+  fi
+}
+
+validate_final_v2() {
+  validate_decision_v2
+  [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
+  validate_fixture_controls_v2
+  validate_receipt_shape_v2
+  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || die "final validation requires the explicit data-only adapter"
+  jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+    ($live[0].target_universe.local|length)==0 and ($live[0].target_universe.remote|length)==0 and
+    $live[0].green07_status=="Pending"
+  ' "$inventory" >/dev/null || die "final requires live-derived empty namespaces and GREEN-07 Pending"
+  local subject_id target
+  while IFS= read -r subject_id; do validate_subject_preservation_v2 "$subject_id"; validate_live_tags_v2 "$subject_id"; done < <(jq -r '.preservation_subjects[].id' "$inventory")
+  while IFS= read -r target; do
+    jq -e --arg target "$target" '
+      (.preservation_subjects|map(select(.branch==$target))|map(.side)) as $sides |
+      (if ($sides|index("origin")) then any(.command_receipts[];.target==$target and .type=="remote-ref-delete") else true end) and
+      (if ($sides|index("local")) then any(.command_receipts[];.target==$target and .type=="local-ref-delete") else true end)
+    ' "$inventory" >/dev/null || die "final deletion receipts are incomplete for $target"
+    local pr
+    pr=$(jq -c --arg target "$target" '[.preservation_subjects[]|select(.branch==$target and .pull_request!=null)|.pull_request][0] // null' "$inventory")
+    if [[ "$pr" != null ]]; then
+      jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+        $live[0].pull_requests[$target].state=="CLOSED" and any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
+      ' "$inventory" >/dev/null || die "final PR closure is incomplete for $target"
+    fi
+  done < <(jq -r '[.preservation_subjects[].branch]|unique[]' "$inventory")
 }
 
 validate_schema() {
@@ -353,8 +524,33 @@ if [[ "$schema_version" == 2 ]]; then
       validate_inventory_v2
       echo "Phase 198 ref-disposition round 11 inventory OK: complete live namespace joined to distinct side/SHA preservation subjects; no mutation authority or receipt."
       ;;
-    decision|authority|controls|post-target|final)
-      die "$stage is fail-closed until the round-11 lifecycle contract is implemented"
+    decision)
+      validate_decision_v2
+      live_compare_v2
+      echo "Phase 198 ref-disposition round 11 decision OK."
+      ;;
+    authority)
+      [[ -n "$target" ]] || die "authority requires --target"
+      validate_decision_v2
+      live_compare_v2
+      [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
+      jq -e --arg target "$target" 'any(.preservation_subjects[];.branch==$target)' "$inventory" >/dev/null || die "target is outside exact authority"
+      echo "Round 11 authority OK for $target."
+      ;;
+    controls)
+      validate_decision_v2
+      [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
+      validate_fixture_controls_v2
+      validate_receipt_shape_v2
+      echo "Round 11 stable controls OK."
+      ;;
+    post-target)
+      validate_post_target_v2
+      echo "Round 11 post-target preservation and retirement ordering OK for $target."
+      ;;
+    final)
+      validate_final_v2
+      echo "Round 11 final OK: live-derived namespaces empty; every subject remains archive/register joined; GREEN-07 Pending."
       ;;
   esac
   exit 0
