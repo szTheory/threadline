@@ -1,144 +1,187 @@
 ---
 phase: 198-green-bringup
-verified: 2026-09-09T14:28:00Z
+verified: 2026-09-09T15:26:26Z
 status: gaps_found
-round: 9
-requirements_total: 12
-requirements_complete: 11
-requirements_pending: [GREEN-07]
-supersedes: "Round 6 is archived intact below. This authoritative section reconciles the immutable Plan 47 entry snapshot with Round 8 artifacts and live read-only GitHub evidence."
-entry_snapshot_head: 653af47447ef824f22688d8153801abfb4c0d1e9
-entry_snapshot_live_main: a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2
-entry_snapshot_uat: "46 summaries; 192 total; 192 auto-passed; 0 present; 0 errors"
+round: 10
+score: 2/6 must-haves verified
+behavior_unverified: 0
+overrides_applied: 0
+requirements_verified: 8/12
+requirements_failed: [GREEN-04, GREEN-06, GREEN-07, GREEN-12]
+security_status: blocked
+security_blocking_open: 5
+review_findings: {critical: 2, warning: 1, info: 0}
+re_verification:
+  previous_status: gaps_found
+  previous_score: 4/6
+  gaps_closed: []
+  gaps_remaining:
+    - "origin/main ancestry and exact-main CI are not green"
+  regressions:
+    - "Required tests added after the last green branch run are not portable to a clean GitHub runner"
+    - "Browser mount preflight accepts an unrelated cross-origin redirect"
+    - "Three merged Phase-198 measurement branches remain locally and remotely with open PRs"
 gaps:
-  - requirement: GREEN-07
-    status: pending
-    first_failing_predicate: "live origin/main does not contain local main"
-    next_predicate: "the newest canonical exact-origin/main-SHA CI run concludes failure"
+  - truth: "The current test lane is green and portable on the clean CI runner"
+    status: failed
+    reason: "Two required tests rely on state absent from the default GitHub checkout: a developer-global GSD executable and annotated archive tags/full history."
+    artifacts:
+      - path: "test/threadline/phase198_zero_human_uat_contract_test.exs"
+        issue: "Requires gsd-tools from PATH or ~/.codex; CI installs neither."
+      - path: "test/threadline/phase198_nyquist_contract_test.exs"
+        issue: "Resolves annotated archive tags, but verify-test uses the default shallow actions/checkout configuration."
+      - path: ".github/workflows/ci.yml"
+        issue: "verify-test does not install a project-owned classifier or fetch archive tag objects."
+    missing:
+      - "Use a committed project-owned coverage classifier in the required test lane."
+      - "Fetch the registered annotated tags/history required by the archive contract."
+  - truth: "origin/main carries every local commit and its exact-main CI concludes success within the budget"
+    status: failed
+    reason: "Live origin/main is 280 commits behind HEAD, and the canonical run for the exact remote-main SHA concludes failure."
+    artifacts:
+      - path: "bin/observe-main-ci"
+        issue: "Correctly reports failure for run 33138291361; the observer cannot make the remote predicate true."
+    missing:
+      - "A separately authorized landing operation that makes origin/main contain the intended commits."
+      - "A successful canonical CI run on that exact main SHA within 20 minutes."
+  - truth: "Required checks make PR #26 mergeable and a broken browser mount aborts early"
+    status: failed
+    reason: "The exact required-context contract is correct, but PR #26 is BLOCKED; the browser preflight also accepts an unrelated cross-origin /users/log_in redirect."
+    artifacts:
+      - path: "examples/threadline_phoenix/e2e/run-e2e.sh"
+        issue: "The */users/log_in* match does not require a local or same-origin redirect."
+    missing:
+      - "Require a relative local login target or validate an absolute target against BASE_URL."
+      - "Satisfy GREEN-07 so the correctly configured required check can become green on main."
+  - truth: "Repository hygiene leaves one worktree and no stale local Phase-198 branches"
+    status: failed
+    reason: "One worktree exists, but ci/198-gap-closure, ci/198-round5, and ci/198-round6 remain as old merged local branches; all three remote refs and PRs #29/#32/#33 also remain open."
+    artifacts:
+      - path: ".planning/ARCHIVE-REGISTER.md"
+        issue: "Documents two older archived refs but does not disposition the three surviving Phase-198 measurement branches."
+    missing:
+      - "Record a current keep/close/archive recommendation and retire stale local branches without silently discarding unmerged work."
+  - truth: "Phase 198 satisfies its plan-authored security gate"
+    status: failed
+    reason: "198-SECURITY.md is blocked with 5 high-severity blocking threats and 8 total open threats."
+    artifacts:
+      - path: ".planning/phases/198-green-bringup/198-SECURITY.md"
+        issue: "T-198-44-02, T-198-44-05, T-198-45-01, T-198-45-02, and T-198-46-01 remain blocking."
+    missing:
+      - "Close or explicitly authorize the five blocking security controls; do not infer acceptance for the two new accept dispositions."
+deferred:
+  - truth: "The required test suite must not depend on a developer-global GSD executable"
+    addressed_in: "Phase 199"
+    evidence: "Phase 199 goal explicitly requires every test and CI gate to be self-contained in the source tree."
 human_verification: []
 ---
 
-# Phase 198: Green Bringup Verification Report (Authoritative Round 9)
+# Phase 198: Green Bringup Verification Report (Authoritative Round 10)
 
-**Phase goal:** `origin/main` carries every local commit and its CI concludes green well inside a usable feedback loop; the retired red-test baseline, branch protection, and measurement sweep remain evidenced by the executed Phase 198 plan set.
-**Verified:** 2026-09-09T14:28:00Z
+**Phase Goal:** `origin/main` carries every local commit and its CI concludes green well inside a usable feedback loop; the red baseline is retired on its merits; branch protection requires exactly emitted checks; and the Phase-201/203 measurements are on disk.
+**Verified:** 2026-09-09T15:26:26Z
 **Status:** `gaps_found`
+**Re-verification:** Yes — the Round-9 report was checked against the current tree, live read-only GitHub state, the current security audit, and the current code review.
 
-This section is authoritative. Every SHA, numeric ancestry count, and classifier count below is an **immutable Plan 47 entry snapshot** captured before Task 1 changed this report. Later lifecycle commits are accounted for by category, not guessed into the entry counts.
+The phase goal is not achieved. The strongest disproof is live: `origin/main..HEAD` contains 280 commits and exact-main run `33138291361` concludes `failure`. The current security and review gates add independent blockers that were absent from the previous authoritative section.
 
-## Immutable Plan 47 entry snapshot
+## Goal Achievement
 
-| Evidence | Entry observation | Disposition |
-|---|---|---|
-| Plan 47 entry HEAD | `653af47447ef824f22688d8153801abfb4c0d1e9` | Already committed before this task. |
-| Entry local `main` | `a6c37e61b7fc950a8339980fa2523a74af35656a` | Contains live remote main and is 212 commits ahead at entry. |
-| Local tracking `origin/main` | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` | Recorded separately; no fetch or ref update was performed. |
-| Live remote `main` | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` | Read with `git ls-remote --heads origin main`; it does not contain entry local `main` or entry HEAD. |
-| Live-main vs entry local-main graph | `0` live-only / `212` local-main-only | GREEN-07 exact ancestry fails first. |
-| Live-main vs entry HEAD graph | `0` live-only / `271` entry-HEAD-only | Entry count only; it is not a closeout count. |
-| Exact-main observer | Main CI observer state: `failure`; selected run `33138291361`; status `completed`; workflow conclusion `failure`; `14` jobs; byte-exact aggregate count `1`; aggregate conclusion `failure` | Canonical result for the exact live remote SHA. No older run or branch run was substituted. |
-| PR #34 | OPEN draft; base `main`; head `phase-199/scroll-cost-cause-fix`; head SHA `46213f9bc0ecbff356058d317c882d5a643ae86f`; merge state `CLEAN` | Run `33354216172`, attempt 1, completed `success` with 14 jobs and `CI required=success` in 10m22s is **branch-only green evidence**, never exact-main evidence. |
-| PR #26 | OPEN; base `main`; merge state `BLOCKED` | Downstream roadmap outcome remains blocked. |
-| Ruleset `21702804` | `main-protection`; enforcement `active`; bypass actors `[]`; include `refs/heads/main`; required status contexts exactly `["CI required"]` | GREEN-08's byte-exact required-check contract is Complete. |
-| Entry UAT classifier | 46 summaries; `192/192` auto-passed; `0` present; `0` errors | Automation coverage is complete at entry; it does not promote GREEN-07. |
+### Observable Truths
 
-## Plan 47 lifecycle and ancestry
-
-| Lifecycle category | Entry state | Closeout consequence |
-|---|---|---|
-| Plan/entry commit and entry HEAD | Exists at `653af47447ef824f22688d8153801abfb4c0d1e9` | Supplies the immutable entry counts above. |
-| Mandatory Task 1 evidence commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
-| Mandatory Task 2 report/UAT commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
-| Required `198-47-SUMMARY.md` closeout commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
-
-No remote mutation occurs in this plan. Therefore the mechanically derived **final ancestry predicate: `origin/main..HEAD non-empty`**. Its exact final numeric count is deliberately not guessed from the entry snapshot.
-
-Main CI observer state: `failure`
-
-## Current roadmap truth table
-
-Round 6's red-lane cause is preserved below but superseded in substance by the Phase 199 repair and PR #34's successful branch run. That branch result does not satisfy exact-main evidence. The current first failing predicate is live `origin/main` ancestry; only after that fails do we evaluate the exact-main observer, which also reports `failure`.
-
-| # | Roadmap success criterion | Current status | Evidence basis |
+| # | Roadmap truth | Status | Evidence |
 |---|---|---|---|
-| 1 | Preserved red-run logs, Credo measurement, and scorecard-free mechanical probe | Complete | Carried forward from Plans 198-01/02 and all 192 entry coverage rows; this report-only plan changes none of their satisfying artifacts. |
-| 2 | Deterministic test failures fixed on merits and form-policy guard self-declares | Complete | GREEN-04 and GREEN-05 remain checked; focused current contracts pass and no product/test implementation changes here. |
-| 3 | `origin/main` contains every local commit and exact-main CI succeeds within 20 minutes; timeout/fail-fast contracts hold | Not met / terminal Pending | GREEN-06 remains Complete, but live-main vs entry local-main is `0/212`, live-main vs entry HEAD is `0/271`, and exact-main run `33138291361` concludes `failure`. Option-a remains the terminal v1.41 disposition. |
-| 4 | Required checks exactly match emitted names so PR #26 is mergeable | Partial | Ruleset `21702804` is active with no bypass actors and sole byte-exact context `CI required`, satisfying GREEN-08's check contract; PR #26 remains `BLOCKED` downstream of GREEN-07. |
-| 5 | Paid critic unreachable from workflows and exactly one gated Hex publisher | Complete | GREEN-09 and GREEN-10 remain checked on unchanged satisfying surfaces. |
-| 6 | Flake workflow distinguishes outcomes and deduplicates; branch/worktree/archive policy holds | Complete | GREEN-11 and GREEN-12 remain checked on unchanged satisfying surfaces. |
+| 1 | Red-run logs, Credo histogram/concentration, and mechanical-sensitivity measurement are durable without modifying `.credo.exs` or scorecards | ✓ VERIFIED | All four audit artifacts exist and are substantive; Credo JSON contains 377 issues; the reports contain the required tables/findings. No current `.credo.exs` or scorecard diff exists. |
+| 2 | `mix test` has no deterministic failures and the form-policy guard is self-declaring | ✗ FAILED | Focused local tests pass only in this developer environment. `phase198_zero_human_uat_contract_test.exs` reaches outside the repository for GSD, while `phase198_nyquist_contract_test.exs` requires tags unavailable in CI's default shallow checkout. Both are in `mix verify.test`, so the current required lane is not portable. |
+| 3 | `origin/main` contains all local commits and exact-main CI succeeds within 20 minutes, with bounded jobs/fail-fast | ✗ FAILED | Live remote main remains `a97f527e...`; HEAD is 280 commits ahead. Exact-SHA observer selects run `33138291361`, which completed in about 6m07s but concluded `failure`; `CI required` is also `failure`. All workflow jobs do have timeout bounds. |
+| 4 | Branch protection requires exactly emitted checks so PR #26 is mergeable | ✗ FAILED | Ruleset `21702804` correctly requires only byte-exact `CI required`, with no bypass actors, and `bin/verify-branch-protection` passes. Nevertheless PR #26 is OPEN/BLOCKED, so the complete roadmap outcome is false. |
+| 5 | Paid critic scoring is workflow-untriggerable and exactly one gated Hex publisher exists | ✓ VERIFIED | No workflow invokes the paid critic path; only `.github/workflows/release.yml` invokes `mix hex.publish --yes`, behind its release gates. |
+| 6 | Flake handling is bounded/deduplicated and repository branch/worktree hygiene is complete | ✗ FAILED | Flake/issue-upsert/fail-fast contracts pass and there is one worktree, but three old merged Phase-198 local branches remain. Their remote refs and PRs #29/#32/#33 also remain open; they are not in the archive register. |
 
-## Current requirement table
+**Score:** 2/6 roadmap truths verified.
 
-The authoritative checkbox score is **11/12 requirements Complete**. Automated UAT success is evidence about the evaluator and its references; it is not authority to change these requirement dispositions.
+### Required Artifacts and Key Links
 
-| Requirement | Status | Current evidence or carried-forward basis |
+| Artifact/link | Status | Details |
 |---|---|---|
-| GREEN-01 | Complete | Preserved red-run log artifact and passing automated coverage row are unchanged. |
-| GREEN-02 | Complete | Credo measurement artifacts and passing automated coverage row are unchanged. |
-| GREEN-03 | Complete | Mechanical sensitivity probe and automated evidence-policy coverage are unchanged. |
-| GREEN-04 | Complete | Current focused contracts pass; committed CI attestation and suite evidence remain authoritative. |
-| GREEN-05 | Complete | Derived form-policy roster and its executable guard remain unchanged. |
-| GREEN-06 | Complete | Timeout and fail-fast contracts remain unchanged and automated. |
-| GREEN-07 | Pending | Live `origin/main` does not contain entry local `main` or entry HEAD; exact-main observer state is `failure`. PR #34 success is branch-only. |
-| GREEN-08 | Complete | Ruleset `21702804` is active, has no bypass actors, targets `refs/heads/main`, and requires only byte-exact `CI required`; roadmap criterion 4 remains partial because PR #26 is `BLOCKED`. |
-| GREEN-09 | Complete | Paid critic workflow/billing-path exclusion evidence is unchanged. |
-| GREEN-10 | Complete | Singleton gated Hex publish-path evidence is unchanged. |
-| GREEN-11 | Complete | Flake/browser issue-upsert and row-history automation evidence is unchanged. |
-| GREEN-12 | Complete | Worktree/branch/archive contract evidence is unchanged; this plan performs no branch or worktree mutation. |
+| Measurement artifacts → Phase 201/203 sizing | ✓ VERIFIED | Real JSON/Markdown data exists; reports contain explicit sizing sections. |
+| `.github/workflows/ci.yml` → `CI required` → ruleset | ✓ VERIFIED | `ci-required` still needs the real job roster; live protection requires exactly `CI required`, emitted once on remote main. |
+| Required test lane → zero-human UAT classifier | ✗ NOT WIRED PORTABLY | Test calls a global Codex/GSD installation not installed by CI. |
+| Required test lane → archive tag contract | ✗ NOT WIRED PORTABLY | Contract needs annotated tags; checkout has no `fetch-depth: 0` or explicit tag fetch. |
+| Browser preflight → local authentication mount | ⚠️ PARTIAL | Preflight is invoked, but its substring check accepts a cross-origin redirect. |
+| Exact remote SHA → main workflow run → aggregate conclusion | ✓ FLOWING | `bin/observe-main-ci` selects exact SHA `a97f527e...`, run `33138291361`, 14 jobs, one aggregate, result `failure`. |
 
-## UAT automation versus the product gap
+### Behavioral Spot-Checks
 
-At entry there are zero remaining UAT automation gaps: the canonical classifier over summaries 198-01..46 reports 192 total, 192 auto-passed, zero present, and zero errors. The still-unmet product gap is GREEN-07's exact ancestry followed by exact-main CI. A 192/192 evaluator result therefore remains compatible with 11/12 requirements Complete.
+| Behavior | Command | Result | Status |
+|---|---|---|---|
+| Current focused Phase-198 contracts | `mix test` over observer/UAT/policy/Nyquist files | 12 tests, 0 failures locally | ✓ PASS locally; does not refute clean-runner defects |
+| Flake/upsert/fail-fast/topology/release/form contracts | focused `mix test` invocation | 32 tests, 0 failures | ✓ PASS |
+| Canonical UAT classification | classify all 47 summaries | 47 summaries; 192/192 automated; 0 present; 0 errors | ✓ PASS evaluator only |
+| Exact-main observation | `bash bin/observe-main-ci --sha a97f527e... --format json` | state/conclusion/aggregate all `failure` | ✗ FAIL requirement |
+| Protection parity | `bash bin/verify-branch-protection` | exactly `[CI required]`, emitted once, no stacked classic protection | ✓ PASS |
+| Evidence-policy evaluator | `bash bin/verify-phase198-evidence ...` | exit 0; also honestly reports prediction target miss and non-exact composition | ✓ PASS with security limitations below |
 
-`198-UAT.md` is staged to name `198-47-SUMMARY.md` in its exhaustive source metadata. The final 47-summary UAT state is not asserted until the normal executor closeout creates that summary with explicit `coverage: []` and the post-summary classifier command passes.
+### Probe Execution
 
-## Edge-probe assumption accounting
+No conventional `scripts/**/tests/probe-*.sh` probes exist. Phase-declared executable checks were covered by the focused contracts and `bin/verify-phase198-evidence`; SUMMARY pass narration was not used as probe evidence.
 
-All 33 unresolved probe rows are surfaced without silent dismissal: **10 in-scope + 23 unchanged-surface = 33**.
+### Requirements Coverage
 
-- In scope: GREEN-07 boundary, adjacency, empty, encoding, ordering, precision, and concurrency; GREEN-08 empty, encoding, and concurrency. These are exercised by exact-SHA selection, non-empty job/context checks, byte-exact names, newest-run ordering, elapsed-time precision, and read-only snapshots.
-- Unchanged surface: GREEN-01 unclassified; GREEN-02 concurrency; GREEN-03 empty/encoding; GREEN-04 boundary/adjacency/empty/encoding/ordering/precision; GREEN-05 unclassified; GREEN-06 boundary/adjacency/empty/ordering/precision; GREEN-09/10 unclassified; GREEN-11 empty/encoding; GREEN-12 adjacency/empty/ordering. Their satisfying artifacts and automated evidence are not changed by this report-only plan.
-
-## Descriptor-less prohibitions
-
-| Prohibition | Result |
-|---|---|
-| Do not convert a passing automated UAT evaluator into a claim that GREEN-07 or the phase goal succeeded. | Preserved: GREEN-07 is Pending and the overall verdict remains `gaps_found`. |
-| Do not rewrite or silently reverse the maintainer's recorded option-a disposition in `198-39-DECISION.md`. | Preserved: the decision file is untouched and remains the terminal v1.41 authority. |
-| Do not weaken required checks, alter ruleset enforcement, mutate a remote ref, or substitute branch CI for exact-main CI. | Preserved: all observations were read-only; exact-main run `33138291361` remains distinct from PR #34 run `33354216172`. |
-
-## Multi-source coverage audit
-
-| Source | IDs | Coverage and disposition |
+| Requirement | Status | Evidence |
 |---|---|---|
-| GOAL | Phase goal | Plans 198-01..46 preserve measurement, baseline retirement, protection, and sizing; Plan 47 reports the remaining exact-main gap without claiming closure. |
-| REQ | GREEN-01..06, GREEN-09..12 | Complete and not reopened because their satisfying surfaces are unchanged. |
-| REQ | GREEN-07 | Live ancestry and exact-main CI re-derived; Pending preserved. |
-| REQ | GREEN-08 | Exact ruleset/context re-observed; requirement Complete while downstream roadmap outcome remains partial. |
-| RESEARCH | Exact GitHub evidence, newest-run selection, no weakening, append-only history | Implemented by the canonical exact-SHA observer, live read-only queries, and archived prior report. |
-| CONTEXT | D-01, D-08..D-14, D-39, D-42 | Exact-main evidence, sole aggregate context, active ruleset, accepted-Pending authority, and no-gate-diff interlock preserved. |
-| CONTEXT | D-02..D-07, D-15..D-38, D-40..D-41 | Already implemented and verified by Plans 198-01..46; no current gap touches them. |
+| GREEN-01 | ✓ VERIFIED | Preserved 1.2 MB failed-run log is present and readable. |
+| GREEN-02 | ✓ VERIFIED | Credo JSON/histogram/concentration artifacts exist; 377 findings reconcile at the top level. |
+| GREEN-03 | ✓ VERIFIED | Mechanical report contains executed finding and Phase-201 sizing implication. |
+| GREEN-04 | ✗ FAILED | The latest required test additions have no hosted-run proof and contain two deterministic clean-runner dependencies identified by CR-01/CR-02. |
+| GREEN-05 | ✓ VERIFIED | Derived form-policy contract is present; focused contract passes. |
+| GREEN-06 | ✗ FAILED | Timeout/failure-cap contracts pass, but a cross-origin login redirect can bypass the operator-mount preflight and defer failure into browser timeouts. |
+| GREEN-07 | ✗ FAILED / Pending | 280 local-only commits; exact-main aggregate is `failure`. The 198-39 option-a disposition records acceptance of non-achievement, not success. |
+| GREEN-08 | ✓ VERIFIED narrowly | Live ruleset and emitted context match exactly. This does not make roadmap SC4 true while PR #26 is blocked. |
+| GREEN-09 | ✓ VERIFIED | Paid critic billing path is absent from workflows. |
+| GREEN-10 | ✓ VERIFIED | Exactly one workflow publisher exists and the release control-plane contract passes. |
+| GREEN-11 | ✓ VERIFIED | Flake classifier and deduplicating issue-upsert contracts pass. |
+| GREEN-12 | ✗ FAILED | One worktree, but three old merged local Phase-198 branches and their open remote PRs remain. |
 
-Deferred ideas and the no-target option-a disposition are excluded by explicit source authority, not silently omitted.
+**Requirement score:** 8/12 independently verified. `REQUIREMENTS.md` still records 11/12 Complete, but those checkboxes predate the current review findings and are not verification evidence.
 
-## Planning-detector dispositions
+### Security Gate
 
-- **API detector / COVERAGE:** The deterministic API detector fires only on existing GitHub REST measurement prose. The reasoned `COVERAGE.md` declaration remains valid; no API coverage matrix is created because this plan introduces no product API or integration.
-- **Assumption delta:** `decision: no-change`; primary noun `exact origin/main state`. Older `fallback` and `optional` signals do not generalize identity or alter the singular required-context model.
-- **Schema push:** Not applicable. Detection found no schema path and this plan changes no schema or migration.
+`198-SECURITY.md` is authoritative for the phase threat register: `status: blocked`, 231/239 closed, 8 open, 5 blocking. The blocking rows are T-198-44-02 (strict evaluator schema/evidence joins), T-198-44-05 (declared read-only command allowlist), T-198-45-01 (trace/focus/geometry evidence), T-198-45-02 (missing red-control proof), and T-198-46-01 (exact 15-entry/unchanged-entry guard). Three lower-severity rows also remain open. The two new `accept` dispositions have no explicit maintainer acceptance and are not treated as approved.
 
-## Plan 47 lifecycle closeout contract
+These gaps primarily undermine the trustworthiness and safety completeness of the new Round-8 automation layer. A 192/192 classifier result therefore proves that the current classifier accepted every declared row; it does not prove the classifier's schema, negative controls, and exact-row coverage meet the plan-authored threat model.
 
-The four required categories remain distinct: (1) the committed plan/entry HEAD, (2) Task 1 evidence commit, (3) Task 2 report/UAT commit, and (4) required `198-47-SUMMARY.md` closeout commit. Only category 1 existed in the immutable entry snapshot. Categories 2–4 are later local commits, so the closeout report uses only the mechanically derived **final ancestry predicate: `origin/main..HEAD non-empty`**, never the entry numeric count as a final count.
+### Validation Gate
 
-## No-mutation integrity statement
+`198-VALIDATION.md` is `status: validated` but explicitly `nyquist_compliant: false`. Its post-Plan-47 audit independently leaves GREEN-07 escalated because remote ancestry and exact-main CI are false. This agrees with the live re-check above; validation coverage is not goal completion.
 
-This reconciliation performed no fetch, push, merge, branch/tag/worktree change, PR mutation, ruleset mutation, workflow edit, requirement edit, roadmap edit, or external write. It read public repository metadata only and captured no auth headers, environment values, tokens, or log bodies. `198-39-DECISION.md`, Round 1 through Round 8 evidence, `REQUIREMENTS.md`, `ROADMAP.md`, and the pre-closeout `STATE.md` remain untouched by Tasks 1–2. The only UAT change is the exhaustive source metadata addition for the required zero-entry summary.
+### Code Review and Test Quality
 
-Overall verdict: `gaps_found`
+| Finding | Severity | Verification disposition |
+|---|---|---|
+| Global GSD classifier dependency in required ExUnit suite | Critical | Confirmed directly in code and absent from `verify-test` setup. BLOCKER. |
+| Archive-tag contract under shallow checkout | Critical | Confirmed directly in code/workflow. BLOCKER. |
+| Cross-origin redirect accepted by browser preflight | Warning | Confirmed by `*/users/log_in*` case pattern. Weakens GREEN-06 fail-fast claim. |
 
-Any next state-changing step, if ever desired, requires a separate maintainer decision. Planning and reconciliation do not authorize a merge, push, temporary bypass, ruleset edit, or workflow change.
+The requirement-linked focused tests contain no disabled test declarations. Their assertions are value/behavioral level, but local success is environment-assisted: this workstation has the global GSD runtime and full tag history that the clean runner lacks. That is a fixture/environment reliance defect, not proof of portability.
+
+### Anti-Patterns
+
+No unreferenced `TBD`, `FIXME`, or `XXX` blockers were found in the current Phase-198 observer/evaluator/test/workflow files inspected. The material anti-pattern is hidden ambient state: tests pass because this checkout has developer-global tooling and full git metadata.
+
+### Decision Coverage
+
+All 42 trackable `198-CONTEXT.md` decisions are reported honored by the non-blocking decision-coverage checker. This does not override failed outcome evidence or the security/review gates.
+
+### Human Verification
+
+N/A — CI/tooling/foundation phase. The failures are observable programmatically; no visual or manual-UAT item is needed. Any remote mutation or risk acceptance requires a new explicit maintainer decision, but that is remediation authorization, not a verification test.
+
+### Gaps Summary
+
+Five grouped blockers remain: clean-runner test portability, live origin/main plus exact-main CI, the blocked PR/browser-preflight outcome, stale Phase-198 branches, and the blocked security register. Phase 199 explicitly owns source-tree self-containment, so the global-GSD dependency is also listed as deferred there; it remains a present defect and does not improve this phase's verdict.
+
+**Overall verdict: `gaps_found`.** Phase 198 must not be represented as goal-achieved or passed. No remote state was mutated during this verification.
 
 ## Archived — Round 6 and earlier (preserved intact)
 
