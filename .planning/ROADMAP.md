@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 47 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8 + 1 gap-closure round 9) — 46 executed, 1 planned
+**Plans**: 55 plans — 51 executed, Plan 52 preserved as inapplicable after the Plan-51 `abort`, 3 additive round-11 plans ready
 
 Plans:
 **Wave 1**
@@ -306,6 +306,38 @@ Plans:
 - Plan 198-47 is report-only. It preserves prior evidence and the 198-39 disposition, adds its zero-deliverable summary to the UAT source set, and performs no push, merge, ruleset, workflow, requirement, or state mutation.
 - Entry ancestry is immutable evidence, not a final count. The closeout accounts separately for task and summary commits and re-runs the canonical classifier after `198-47-SUMMARY.md` exists.
 
+#### Gap-closure round 10 — automated evidence hardening and stale-ref disposition (plans 198-48 through 198-52)
+
+**Waves 1-3**
+
+- [x] 198-48-PLAN.md — Make coverage evidence repository-portable, require full archive history in CI, and reject foreign login redirects before Playwright (wave 1)
+- [x] 198-49-PLAN.md — Enforce strict evidence joins and restrict exact-main GitHub observation to fixed read-only operations (wave 1)
+- [x] 198-50-PLAN.md — Prove row-history focus sensitivity with a deterministic RED control and durable measured geometry evidence (wave 1)
+- [x] 198-51-PLAN.md — Inventory three proposed stale-ref targets and record the maintainer's verbatim `abort` after discovering a six-ref remote namespace (wave 2)
+- [ ] 198-52-PLAN.md — **Inapplicable; preserved as superseded history.** Its exact-three authority and all-namespace-empty final predicate cannot both be satisfied after Plan 51's `abort` (wave 3)
+
+#### Gap-closure round 11 — complete stale-ref scope and preservation-first disposition (plans 198-53 through 198-55)
+
+**Wave 4** *(blocked only on completed Plan 198-51; supersedes Plan 52 without editing it)*
+
+- [ ] 198-53-PLAN.md — **Tracer:** replace the branch-name assumption with a complete six-ref/distinct-object inventory, retain round-10 compatibility, and seal a fresh decision packet without mutation (wave 4)
+
+**Wave 5** *(blocked on 198-53)*
+
+- [ ] 198-54-PLAN.md — Blocking-human maintainer decision over the exact complete subject set; only verbatim `retire` can authorize execution (wave 5)
+
+**Wave 6** *(blocked on a validated `retire` from 198-54)*
+
+- [ ] 198-55-PLAN.md — Preserve every distinct tip with verified local/origin annotated tags and D-31 register rows, then retire exact stale handles and prove GREEN-12 from live-derived empty namespaces (wave 6)
+
+**Round-11 notes:**
+
+- Plan 52 remains on disk and unexecuted. Round 11 appends a superseding contract because its preconditions cannot genuinely be satisfied; Plans 48-51 and their completed evidence are untouched.
+- The live remote namespace currently contains six `ci/198-*` refs while the local namespace contains three. `ci/198-gap-closure` has divergent local/remote tips, so preservation authority is object-based (side + full SHA), not branch-name-based.
+- No branch, PR, tag, `main`, ruleset, protection, required-check, or workflow mutation is inferred. Plan 54 is a `blocking-human` decision even in auto mode; `preserve` or `abort` leaves Plan 55 blocked and GREEN-12 Pending.
+- GREEN-07 remains Pending under D-39 and current exact-main evidence. Round 11 cannot merge, push main, alter protection, or restate roadmap criterion 3 as met.
+- The deterministic API detector found no external API integration and the supported ORM schema scan found no matching paths, so no COVERAGE.md or schema-push task is required. The assumption-delta detector fired; Plans 53-55 promote the preservation subject (side + SHA) over branch name as the primary identity.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -509,7 +541,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 51/52 | Blocked | Plan 198-51 recorded `abort`; Plan 198-52 cannot execute because six remote `ci/198-*` refs exist while mutation authority covers only three. GREEN-12 remains Pending. |
+| 198. Green Bringup | v1.41 | 51/55 | In progress | Plan 198-52 is preserved as inapplicable; additive Plans 198-53..55 re-inventory the complete namespace, obtain fresh blocking-human authority, and close GREEN-12 only after preservation-first proof. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
