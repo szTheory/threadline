@@ -1,47 +1,61 @@
 ---
 phase: 198-green-bringup
-verified: 2026-08-31T00:00:00Z
+verified: 2026-09-09T14:28:00Z
 status: gaps_found
-round: 6
+round: 9
 requirements_total: 12
-requirements_complete: 10
-supersedes: "Round 5 section of this same file (verified 2026-08-30, gaps_found, 11/12 requirements, 4/6 SC verified / 1 partial / 1 failed, integrity PASS with one new unresolved Critical CR-01). Round-5 (and earlier rounds') content is PRESERVED VERBATIM below under 'ARCHIVED — Round 5 and earlier' and is reconciled, not discarded. This Round 6 section is authoritative."
-ci_measured:
-  round_1: "PR #29, run 33183920952, FAILURE (6/13 checks red)"
-  round_2: "PR #29, run 33197493051, FAILURE — 13m29s"
-  round_3: "PR #30 (draft, DO NOT MERGE), run 33204829086, FAILURE — 13m29s, 3/12 needs: red"
-  round_4: "PR #31 (draft, DO NOT MERGE), run 33253587315, attempt 1, head f433ef3e, FAILURE — 8m11s, 3/12 needs: red"
-  round_5: "PR #32 (draft, DO NOT MERGE), run 33336651956, attempt 1, head 14f923a7, FAILURE — 11m8s, 2/12 needs: red"
-  round_6: "PR #33 (draft, DO NOT MERGE), run 33344382035, attempt 1, head 23c16267d11a63858aad23eab63c9fbfc385ef4b, FAILURE — 10m36s, 2/12 needs: red (unchanged from round 5) — independently re-confirmed via `gh run view 33344382035 --json ...`"
-score: "10/12 requirements Complete (GREEN-07 accepted-Pending by terminal maintainer decision, not Complete). 4/6 roadmap success criteria fully verified, 1 partial, 1 given a terminal not-met disposition — unchanged in kind from round 5, now with a recorded terminal disposition rather than an open gap."
-behavior_unverified: 0
-overrides_applied: 0
-integrity_verdict: "PASS — independently re-derived on all applicable vectors for round 6. (1) CR-01 fix independently traced through Ecto/DBConnection source and confirmed at cause: Reset.with_demo_lock/1 now wraps acquire, fun.(), and release in one Repo.checkout/2 call; nested Repo.checkout/2 calls from the same process resolve against the process-dictionary-pinned connection, not a fresh pool checkout — verified by direct code read, not taken from the review's or plan's word. Demo.Seed no longer maintains a second copy of the guard (`defp with_demo_lock` count in seed.ex = 0; delegates via `Reset.with_demo_lock/1`). A genuine behavioral regression test (advisory_lock_pinning_test.exs) exercises the invariant with a real DBConnection.ConnectionPool path (Sandbox.mode :auto, not unboxed_run/2) and asserts connection identity across a nested acquire and an intervening Repo.transaction/1 — this is a real falsifier, not a tautology. (2) GREEN-07/roadmap-SC3 now carries a terminal, maintainer-selected disposition (option-a, 198-39-DECISION.md) rather than being silently carried forward — independently confirmed propagated into REQUIREMENTS.md, ROADMAP.md, deferred-items.md, and STATE.md with append-only edits (no existing line rewritten). (3) D-42 diff over the full round-6 range (`git diff --stat 1bda5d1c..HEAD -- .github/ CONTRIBUTING.md examples/threadline_phoenix/e2e/playwright.config.ts .planning/scorecards/ '*.png'`) independently re-run: empty. (4) `ci-required`'s `needs:` list in `.github/workflows/ci.yml` still names `verify-capture` and `verify-example-browser` — not narrowed. (5) Round-6 prediction (committed at `23c16267`, before the push) independently confirmed unedited: diffing the prediction section's exact text between commit `23c16267` and HEAD shows zero removed/changed lines, only new content appended after it. (6) Run `33344382035` independently re-queried via `gh run view --json attempt,conclusion,createdAt,updatedAt,headSha,jobs`: attempt 1, conclusion failure, headSha matches the sealed prediction's SHA character-for-character, `Run test suite (current)` = success, `Tier A capture lane` = failure, `Example app browser E2E (Playwright)` = failure, `CI required` = failure — all matching 198-CI-MEASUREMENT.md's Round 6 section exactly. No laundering found on any of these six re-derived vectors. One residual, non-blocking observation: the round-6 code review itself (198-REVIEW.md, run against diff 1bda5d1c..HEAD after 198-38) found 0 Critical but 1 new Warning (WR-01, round-6 numbering — a Sandbox.mode/2 mid-suite-switch comment that understates the actual ExUnit-ordering invariant it depends on) and 1 new Info (IN-02 — a docstring-completeness note about Repo.checkout's timeout: :infinity scope). Neither has a dedicated triage-ledger entry or deferred-items.md row; both are non-blocking (doc/comment-quality only, no code-behavior defect, no failing test) and are noted below as an open item rather than silently absorbed."
-re_verification:
-  previous_status: gaps_found (round 5)
-  previous_score: "11/12 requirements Complete; two named gaps — (1) GREEN-07 structurally unmet under D-39 with no terminal disposition, (2) CR-01 unresolved with no round-6 plan, no maintainer decision, no deferred-items.md entry"
-  gaps_closed:
-    - "CR-01 (nested demo-seed advisory-lock acquisition not connection-pinned) — fixed at cause by plan 198-38: Reset.with_demo_lock/1 now wraps the entire guarded region in one Repo.checkout/2 call. Independently re-derived by direct code read and by tracing Ecto/DBConnection's process-dictionary connection-pinning mechanism, not taken on the plan's or review's word. A genuine red-then-green regression test (advisory_lock_pinning_test.exs) exercises the exact invariant CR-01 named."
-    - "GREEN-07 / roadmap SC3's lack of a terminal disposition — closed by plan 198-39: the maintainer selected option-a at a blocking checkpoint, accepting GREEN-07 and roadmap SC3 as permanently Pending for milestone v1.41. This is a recorded, terminal disposition — not a pass, and not correctly described as a pass anywhere in the propagated records (independently confirmed in REQUIREMENTS.md, ROADMAP.md, deferred-items.md, STATE.md)."
-  gaps_remaining:
-    - "GREEN-07 / roadmap SC3 itself remains unmet in the literal sense the roadmap states it (`CI required` concludes `success`) — this is now a closed, terminal, maintainer-accepted gap rather than an open one, but it is still correctly not counted as Complete or as a passed truth. `verify-capture` and `verify-example-browser` (3 named `operator-stress.spec.ts` rows) remain red by construction under D-39."
-    - "roadmap SC4 / GREEN-08 second clause: PR #26 (release-please) mergeStateStatus remains BLOCKED, downstream of GREEN-07's disposition — unchanged since round 3, now explicitly cited to 198-39-DECISION.md rather than left as an unexplained consequence."
-  regressions: []
+requirements_complete: 11
+requirements_pending: [GREEN-07]
+supersedes: "Round 6 is archived intact below. This authoritative section reconciles the immutable Plan 47 entry snapshot with Round 8 artifacts and live read-only GitHub evidence."
+entry_snapshot_head: 653af47447ef824f22688d8153801abfb4c0d1e9
+entry_snapshot_live_main: a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2
+entry_snapshot_uat: "46 summaries; 192 total; 192 auto-passed; 0 present; 0 errors"
 gaps:
-  - truth: "origin/main carries every local commit and the latest CI run concludes success in <=20 minutes (roadmap SC3, GREEN-07)"
-    status: failed
-    reason: "CI required concluded the literal string failure on measured run 33344382035 (independently re-confirmed via gh run view). 2 of 12 needs: members are red: verify-example-browser (3 operator-stress.spec.ts screenshot rows) and verify-capture (Tier A scorecard byte-stability), unchanged from round 5. Both remain red by construction under D-39. This is not a defect any round-6 plan attempted or was expected to close: the maintainer explicitly accepted this outcome at a blocking decision checkpoint (198-39-DECISION.md, option-a) rather than leaving it open or silently carrying it. The gap is recorded here because the roadmap success criterion, read literally, is still not true in the codebase/CI — a terminal maintainer decision changes the disposition (accepted, not left open) but does not make the criterion true. GREEN-08's second clause (PR #26 mergeable) is a downstream consequence of this same gap and is not independently actionable."
-    artifacts:
-      - path: ".github/workflows/ci.yml"
-        issue: "verify-capture and verify-example-browser jobs correctly remain required and correctly remain red; no config issue — evidence gap, not wiring gap, and now has a terminal disposition"
-    missing:
-      - "Nothing actionable within milestone v1.41 — the standing maintainer decision (198-39-DECISION.md) accepts this in place. The unblock condition (a future milestone authorizing Tier-A page.* regeneration and addressing the 198-16 scroll_cost coupling) is recorded in deferred-items.md."
-deferred:
-  - truth: "GREEN-07 / roadmap SC3 (CI concludes success)"
-    addressed_in: "A future milestone (none named — option-a explicitly accepted in place for v1.41, not deferred to a named target)"
-    evidence: "198-39-DECISION.md and deferred-items.md 'Round 6 — GREEN-07 milestone disposition': unblock conditions for verify-capture and verify-example-browser recorded; no target milestone assigned by design (option-b, which would have required one, was explicitly not selected)"
+  - requirement: GREEN-07
+    status: pending
+    first_failing_predicate: "live origin/main does not contain local main"
+    next_predicate: "the newest canonical exact-origin/main-SHA CI run concludes failure"
 human_verification: []
 ---
+
+# Phase 198: Green Bringup Verification Report (Authoritative Round 9)
+
+**Phase goal:** `origin/main` carries every local commit and its CI concludes green well inside a usable feedback loop; the retired red-test baseline, branch protection, and measurement sweep remain evidenced by the executed Phase 198 plan set.
+**Verified:** 2026-09-09T14:28:00Z
+**Status:** `gaps_found`
+
+This section is authoritative. Every SHA, numeric ancestry count, and classifier count below is an **immutable Plan 47 entry snapshot** captured before Task 1 changed this report. Later lifecycle commits are accounted for by category, not guessed into the entry counts.
+
+## Immutable Plan 47 entry snapshot
+
+| Evidence | Entry observation | Disposition |
+|---|---|---|
+| Plan 47 entry HEAD | `653af47447ef824f22688d8153801abfb4c0d1e9` | Already committed before this task. |
+| Entry local `main` | `a6c37e61b7fc950a8339980fa2523a74af35656a` | Contains live remote main and is 212 commits ahead at entry. |
+| Local tracking `origin/main` | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` | Recorded separately; no fetch or ref update was performed. |
+| Live remote `main` | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` | Read with `git ls-remote --heads origin main`; it does not contain entry local `main` or entry HEAD. |
+| Live-main vs entry local-main graph | `0` live-only / `212` local-main-only | GREEN-07 exact ancestry fails first. |
+| Live-main vs entry HEAD graph | `0` live-only / `271` entry-HEAD-only | Entry count only; it is not a closeout count. |
+| Exact-main observer | Main CI observer state: `failure`; selected run `33138291361`; status `completed`; workflow conclusion `failure`; `14` jobs; byte-exact aggregate count `1`; aggregate conclusion `failure` | Canonical result for the exact live remote SHA. No older run or branch run was substituted. |
+| PR #34 | OPEN draft; base `main`; head `phase-199/scroll-cost-cause-fix`; head SHA `46213f9bc0ecbff356058d317c882d5a643ae86f`; merge state `CLEAN` | Run `33354216172`, attempt 1, completed `success` with 14 jobs and `CI required=success` in 10m22s is **branch-only green evidence**, never exact-main evidence. |
+| PR #26 | OPEN; base `main`; merge state `BLOCKED` | Downstream roadmap outcome remains blocked. |
+| Ruleset `21702804` | `main-protection`; enforcement `active`; bypass actors `[]`; include `refs/heads/main`; required status contexts exactly `["CI required"]` | GREEN-08's byte-exact required-check contract is Complete. |
+| Entry UAT classifier | 46 summaries; `192/192` auto-passed; `0` present; `0` errors | Automation coverage is complete at entry; it does not promote GREEN-07. |
+
+## Plan 47 lifecycle and ancestry
+
+| Lifecycle category | Entry state | Closeout consequence |
+|---|---|---|
+| Plan/entry commit and entry HEAD | Exists at `653af47447ef824f22688d8153801abfb4c0d1e9` | Supplies the immutable entry counts above. |
+| Mandatory Task 1 evidence commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
+| Mandatory Task 2 report/UAT commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
+| Required `198-47-SUMMARY.md` closeout commit | Does not exist at entry | Required later local commit; excluded from the entry numeric ahead count. |
+
+No remote mutation occurs in this plan. Therefore the mechanically derived **final ancestry predicate: `origin/main..HEAD non-empty`**. Its exact final numeric count is deliberately not guessed from the entry snapshot.
+
+Main CI observer state: `failure`
+
+## Archived — Round 6 and earlier (preserved intact)
 
 # Phase 198: Green Bringup Verification Report (Round 6)
 
