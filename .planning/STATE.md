@@ -4,16 +4,16 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
-status: verifying
+status: executing
 stopped_at: Completed 198-47-PLAN.md
-last_updated: "2026-09-09T14:39:34.720Z"
+last_updated: "2026-09-09T16:47:20.696Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 198 execution started
-state_head: b688a9c800a05f682e35cba1fe9b6625522989bf
+state_head: 658d117f85953631f7d41dd8e2da3f1f64506480
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 47
+  total_plans: 52
   completed_plans: 47
   percent: 0
 ---
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (Green Bringup) — EXECUTING
+Phase: 198 (Green Bringup) — READY TO EXECUTE
 Plan: 47 of 47
-Status: Phase complete — ready for verification
+Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
