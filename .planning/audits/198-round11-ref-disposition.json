@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "round": 11,
+  "observed_at": "2026-09-09T21:50:00Z",
+  "repository": "szTheory/threadline",
+  "provenance": {
+    "active_branch": "phase-199/scroll-cost-cause-fix",
+    "active_head_sha": "41d2078d074c73d75227cf9b129094eeaee701d6",
+    "upstream": "origin/phase-199/scroll-cost-cause-fix",
+    "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f",
+    "authority": false
+  },
+  "task_baseline": {
+    "active_branch": "phase-199/scroll-cost-cause-fix",
+    "active_head_sha": "41d2078d074c73d75227cf9b129094eeaee701d6",
+    "upstream": "origin/phase-199/scroll-cost-cause-fix",
+    "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
+  },
+  "target_universe": {
+    "local": [
+      {"branch": "ci/198-gap-closure", "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"},
+      {"branch": "ci/198-round5", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      {"branch": "ci/198-round6", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"}
+    ],
+    "remote": [
+      {"branch": "ci/198-05-verify", "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"},
+      {"branch": "ci/198-gap-closure", "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      {"branch": "ci/198-round3", "sha": "80bf701e7486962e538d16f213874cbba8f24115"},
+      {"branch": "ci/198-round4", "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"},
+      {"branch": "ci/198-round5", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      {"branch": "ci/198-round6", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"}
+    ]
+  },
+  "stable_controls": {
+    "origin_main_sha": "a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2",
+    "pr34": {"number": 34, "state": "OPEN", "is_draft": true, "merge_state": "CLEAN", "head": "phase-199/scroll-cost-cause-fix", "base": "main", "head_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"},
+    "ruleset_protection_digest": "1040e93d8ae5e79672757f6acbfaeae1e7cb27c6db2d01cb7483c081fd94dcc4",
+    "classic_protection": "absent",
+    "required_contexts": ["CI required"],
+    "required_contexts_digest": "f02c07a558af08ef0d048996463adb29c61dcffd28c940b6562356f2293efcc3",
+    "worktrees": [{"path": "/Users/jon/projects/threadline", "branch": "refs/heads/phase-199/scroll-cost-cause-fix"}],
+    "worktree_list_digest": "5253096fa066c0e3507f2a91e5a76ef2217191b63d76c90d6344ca2300ac5c1a"
+  },
+  "preservation_subjects": [
+    {
+      "id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "branch": "ci/198-gap-closure",
+      "side": "local",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "evidence": {"sha": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_head": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_main": "ffcff0d1613381950cfb6baad93e90aee19dcece", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 268}, "vs_main": {"ahead": 0, "behind": 169}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      "recommendation": {"action": "retire", "rationale": "The local tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the origin tip differs."},
+      "archive_tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "restore_command": "git branch ci/198-gap-closure ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "branch": "ci/198-gap-closure",
+      "side": "origin",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "evidence": {"sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_head": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_main": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 248}, "vs_main": {"ahead": 0, "behind": 149}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      "recommendation": {"action": "retire", "rationale": "The origin tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the local tip differs."},
+      "archive_tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "restore_command": "git branch ci/198-gap-closure f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    }
+  ],
+  "decision": null,
+  "execution": null,
+  "command_receipts": []
+}

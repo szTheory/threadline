@@ -253,7 +253,8 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         "command_receipts" => []
       }
 
-      digest = inventory_digest(inventory)
+      File.write!(inventory_path, Jason.encode!(inventory))
+      digest = inventory_digest(inventory_path)
       controls = inventory["stable_controls"]
 
       markers =
@@ -276,7 +277,6 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       Status: undecided. No authority is granted.
       """
 
-      File.write!(inventory_path, Jason.encode!(inventory))
       File.write!(decision_path, markdown)
       File.write!(live_path, Jason.encode!(inventory))
       fun.(inventory_path, decision_path, live_path)
@@ -300,11 +300,9 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     end
   end
 
-  defp inventory_digest(doc) do
-    canonical =
-      doc
-      |> Map.drop(["decision", "execution", "command_receipts"])
-      |> Jason.encode!()
+  defp inventory_digest(path) do
+    {canonical, 0} =
+      System.cmd("jq", ["-cS", "del(.decision,.execution,.command_receipts)", path])
 
     :crypto.hash(:sha256, canonical) |> Base.encode16(case: :lower)
   end
