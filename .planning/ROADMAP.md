@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 46 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8) — 46 executed
+**Plans**: 47 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8 + 1 gap-closure round 9) — 46 executed, 1 planned
 
 Plans:
 **Wave 1**
@@ -293,6 +293,18 @@ Plans:
 - **Automatic does not mean automatically green.** Event-dependent states emit `success`, `failure`, `incomplete`, or `not_observed`; the automation may pass because it reports the evidence correctly while GREEN-07 remains Pending under its unchanged exact-main predicates.
 - **Release approval is operational control, not UAT.** The production-hex required-reviewer rule remains intact; its wiring is tested without publishing, approving, dispatching, or mutating the GitHub Environment.
 - **No gate weakening or evidence laundering.** Required-check membership, failure caps, assertions, historical misses, and D-39 remain intact unless their own automated evidence supports a change.
+
+#### Gap-closure round 9 — current-state verification reconciliation (plan 198-47)
+
+**Wave 3** *(blocked on 198-46)*
+
+- [ ] 198-47-PLAN.md — **Tracer:** reconcile stale Round 6 verification with current exact-main, ruleset, PR, and 192/192 automated-UAT evidence; preserve GREEN-07 Pending and perform no remote mutation (wave 3)
+
+**Round-9 notes:**
+
+- The latest UAT ledger is complete and fully automated, but evaluator coverage does not convert an unmet product requirement into success. GREEN-07 remains Pending unless exact `origin/main` ancestry and exact-main CI satisfy the requirement.
+- Plan 198-47 is report-only. It preserves prior evidence and the 198-39 disposition, adds its zero-deliverable summary to the UAT source set, and performs no push, merge, ruleset, workflow, requirement, or state mutation.
+- Entry ancestry is immutable evidence, not a final count. The closeout accounts separately for task and summary commits and re-runs the canonical classifier after `198-47-SUMMARY.md` exists.
 
 **Round-6 notes:**
 
