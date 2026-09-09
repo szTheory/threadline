@@ -52,11 +52,52 @@ active local tip before Plan 52 starts.
 
 ## Maintainer decision
 
-**Status: pending.** No recommendation, auto-advance setting, silence, D-39 disposition, or
-branch ancestry constitutes mutation authority.
+**Status: decided — abort (`2026-09-09T18:20:16Z`).** No recommendation, auto-advance setting,
+silence, D-39 disposition, or branch ancestry constitutes mutation authority.
+
+The maintainer's verbatim response was:
+
+> abort
+
+`abort` grants no mutation authority. All local branches, remote refs, pull requests, tags,
+`origin/main`, rulesets, and protection settings remain outside this plan's authority.
 
 <!-- maintainer-decision-json
-null
+{
+  "option": "abort",
+  "verbatim": "abort",
+  "recorded_at": "2026-09-09T18:20:16Z",
+  "inventory_sha256": "fca235d9eeaac4dd89e44adf9c0b474b77f3e7a0f0cc8f4697dba0adcc99f73b",
+  "subjects": [
+    {
+      "branch": "ci/198-gap-closure",
+      "pr": 29,
+      "local_sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "remote_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "head": "ci/198-gap-closure",
+      "base": "main",
+      "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "branch": "ci/198-round5",
+      "pr": 32,
+      "local_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "remote_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "head": "ci/198-round5",
+      "base": "main",
+      "head_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "branch": "ci/198-round6",
+      "pr": 33,
+      "local_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "remote_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "head": "ci/198-round6",
+      "base": "main",
+      "head_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    }
+  ]
+}
 -->
 
 The decision applies only to the exact three pinned `(branch, PR, local SHA, remote SHA, PR head
