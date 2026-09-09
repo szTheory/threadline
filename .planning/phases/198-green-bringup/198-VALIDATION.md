@@ -12,7 +12,7 @@ validated: 2026-09-08
 
 Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
 automated behavioral or contract proof. `GREEN-07` remains PARTIAL because its literal
-`origin/main` ancestry clause is false: at audit time `origin/main..HEAD` contained 237
+`origin/main` ancestry clause is false: at the latest audit `origin/main..HEAD` contained 275
 commits. No test, documentation edit, or local commit can make that remote-state clause
 true.
 
@@ -141,6 +141,9 @@ attestations support CI-environment claims.
 | Archive durability | two annotated local tags resolve; remote archive refs non-empty |
 | GREEN-07 ancestry | `origin/main..HEAD = 237`, `HEAD..origin/main = 0` — unmet |
 
+The ancestry row above records the initial validation audit. A fresh post-Plan-47 audit
+is recorded below so the historical count is not silently rewritten.
+
 ## Validation Audit 2026-09-08
 
 | Metric | Count |
@@ -151,6 +154,24 @@ attestations support CI-environment claims.
 | Genuine validation gaps found | 7 |
 | Gaps resolved with tests/fixture | 6 |
 | Escalated live-state gap | 1 |
+
+## Validation Audit 2026-09-09 (post-Plan-47)
+
+| Metric | Result |
+|---|---|
+| Gap audited | GREEN-07 literal `origin/main` ancestry and exact-main CI |
+| Focused behavioral command | `ASDF_ELIXIR_VERSION=1.19.5-otp-28 ASDF_ERLANG_VERSION=28.4.1 mix test test/threadline/main_ci_observer_contract_test.exs test/threadline/phase198_zero_human_uat_contract_test.exs` |
+| Focused behavioral result | 4 tests, 0 failures |
+| Live remote main | `a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2` |
+| Local HEAD | `ab4895261b0f37e4de322b1280926bd0a22c92c5` |
+| Fresh ancestry result | `origin/main..HEAD = 275`; `HEAD..origin/main = 0`; `HEAD` is not an ancestor of live `origin/main` |
+| Exact-main observer | state `failure`; run `33138291361`; 14 jobs; exactly one byte-exact `CI required`, conclusion `failure` |
+| Resolution | ESCALATED — remote-state/manual-only blocker; no local test can satisfy the false ancestry predicate |
+
+The focused tests prove that the observer rejects stale-run substitution and requires a
+non-empty job set with exactly one successful aggregate before returning success. They
+do not, and cannot, turn branch or local-only evidence into proof that live
+`origin/main` contains `HEAD`.
 
 ## Validation Sign-Off
 
