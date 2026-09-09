@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-49-PLAN.md
-last_updated: "2026-09-09T17:33:25.199Z"
+stopped_at: Completed 198-50-PLAN.md
+last_updated: "2026-09-09T17:51:41.374Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 198 execution started
-state_head: 52248ea20192bb27f90dfc446b31e10091898c0c
+state_head: 5831e9b5eb920ef5ebc19af2c77f5173af2bcaff
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 52
-  completed_plans: 49
+  completed_plans: 50
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 (Green Bringup) — EXECUTING
-Plan: 3 of 52
+Plan: 4 of 52
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -95,6 +95,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P47 | 9 min | 2 tasks | 3 files |
 | Phase 198 P48 | 18 min | 3 tasks | 8 files |
 | Phase 198 P49 | 15 min | 2 tasks | 5 files |
+| Phase 198 P50 | 15 min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -490,6 +491,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: Operator login redirects must match BASE_URL scheme, host, effective port, and exact path. — A login-looking cross-origin Location is not proof that the local operator mount exists.
 - [Phase 198]: Evidence subjects, not copied narrative prose, are the primary keys for policy joins.
 - [Phase 198]: The GitHub boundary accepts only list-main-runs and view-run-jobs symbolic operations and constructs every argv token internally.
+- [Phase 198]: [198-50] Treat the opt-in obscurer as proof of current assertion sensitivity, not proof of the historical failure's cause.
+- [Phase 198]: [198-50] Keep the red-control environment read inside the single named scenario and reject unknown non-empty values explicitly.
+- [Phase 198]: [198-50] Persist synthetic DOM identifiers and geometry only; exclude field values, cookies, headers, credentials, and environment data.
 
 ### Blockers
 
@@ -497,8 +501,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-09T17:33:25.156Z
-**Stopped at:** Completed 198-49-PLAN.md
+**Last session:** 2026-09-09T17:51:41.335Z
+**Stopped at:** Completed 198-50-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
