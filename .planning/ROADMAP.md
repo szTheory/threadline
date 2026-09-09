@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 46 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8) — 42 executed, 4 planned
+**Plans**: 46 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8) — 46 executed
 
 Plans:
 **Wave 1**
@@ -279,13 +279,13 @@ Plans:
 
 **Wave 1** *(fully parallel — disjoint implementation files)*
 
-- [ ] 198-43-PLAN.md — **Tracer:** extract fixture-testable CI issue upsert, exercise Playwright fail-fast/trace retention hermetically, and prove the release control plane without publishing or live-event observation (wave 1)
-- [ ] 198-44-PLAN.md — Encode sizing, lane/root-cause, timeout, population, prediction, attestation, and requirements-consistency policy as deterministic evaluators, including an exact-SHA read-only main-CI observer (wave 1)
-- [ ] 198-45-PLAN.md — Establish and fix the unresolved mobile row-history focus failure at cause with red-control and repeated focused E2E proof (wave 1)
+- [x] 198-43-PLAN.md — **Tracer:** extract fixture-testable CI issue upsert, exercise Playwright fail-fast/trace retention hermetically, and prove the release control plane without publishing or live-event observation (wave 1)
+- [x] 198-44-PLAN.md — Encode sizing, lane/root-cause, timeout, population, prediction, attestation, and requirements-consistency policy as deterministic evaluators, including an exact-SHA read-only main-CI observer (wave 1)
+- [x] 198-45-PLAN.md — Establish and fix the unresolved mobile row-history focus failure at cause with red-control and repeated focused E2E proof (wave 1)
 
 **Wave 2** *(blocked on 198-43, 198-44, and 198-45)*
 
-- [ ] 198-46-PLAN.md — Attach executable evidence to all 15 former human coverage rows, regenerate UAT with zero pending checkpoints, supersede the ratification proposal, and install a zero-human regression gate (wave 2)
+- [x] 198-46-PLAN.md — Attach executable evidence to all 15 former human coverage rows, regenerate UAT with zero pending checkpoints, supersede the ratification proposal, and install a zero-human regression gate (wave 2)
 
 **Round-8 notes:**
 

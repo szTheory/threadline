@@ -4,17 +4,17 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
-status: planned
-stopped_at: Planned gap-closure round 8 (198-43 through 198-46)
-last_updated: "2026-09-09T00:38:20.366Z"
+status: executing
+stopped_at: Executed gap-closure round 8 (198-43 through 198-46); zero-human UAT gate green
+last_updated: "2026-09-08T21:00:00-04:00"
 last_activity: 2026-09-08
-last_activity_desc: Phase 198 round-8 planning complete — 4 zero-human-UAT gap plans ready
-state_head: 8491ea43ca0d392fcae37d142879d6c8b6587d1c
+last_activity_desc: Phase 198 round-8 execution complete — 192 coverage rows automated, zero human UAT pending
+state_head: b1aff236
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 46
-  completed_plans: 42
+  completed_plans: 46
   percent: 0
 ---
 
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — execute zero-human-UAT gap closure plans 198-43 through 198-46
+**Current focus:** Phase 198 — round-8 zero-human UAT closure executed; requirement state remains authoritative
 
 ## Current Position
 
-Phase: 198 (Green Bringup) — READY TO EXECUTE
-Plan: 42 of 46
-Status: 42 plans executed; 4 gap-closure plans ready to execute
+Phase: 198 (Green Bringup) — ROUND 8 EXECUTED
+Plan: 46 of 46
+Status: 46 plans executed; zero-human UAT contract green; GREEN-07 remains Pending under its recorded terminal disposition
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -42,6 +42,8 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
+
+Last activity: 2026-09-08 — Executed round 8: all 15 former human checkpoints now reference integration, E2E, smoke, observer, or evidence-policy automation; the canonical classifier reports 46 summaries / 192 coverage rows / 0 present / 0 errors; generated UAT has zero pending or issue rows; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
