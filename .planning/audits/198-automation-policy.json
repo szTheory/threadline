@@ -1,16 +1,136 @@
 {
-  "schema": "threadline.phase198-automation-policy/1",
-  "mechanical": {"probe": ".planning/audits/198-mechanical-sensitivity.md", "text_content_same": true, "text_width_same": true, "layout_protected": false},
-  "lane_differential": {"minimum": {"tests": 1382, "failures": 83}, "current": {"tests": 1382, "failures": 83}, "classification": "code_test"},
-  "search_path": {"fresh_db_failures": 82, "unprefixed_defects": 79, "other_failures": 3, "classification": "test_side"},
+  "schema": "threadline.phase198-automation-policy/2",
+  "evidence": [
+    {
+      "id": "mechanical-probe",
+      "path": ".planning/audits/198-mechanical-sensitivity.md",
+      "subject": "GREEN-03",
+      "contains": ["control == text-content : true", "control == text-width   : true"]
+    },
+    {
+      "id": "minimum-lane-run",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "Run test suite (min)",
+      "contains": ["1382 tests / 83 failures"]
+    },
+    {
+      "id": "current-lane-run",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "Run test suite (current)",
+      "contains": ["1382 tests / 83 failures"]
+    },
+    {
+      "id": "search-path-diagnosis",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "79 call-site defects",
+      "contains": ["79+3=82"]
+    },
+    {
+      "id": "timeout-example-browser",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "verify-example-browser",
+      "contains": ["verify-example-browser job bound 18"]
+    },
+    {
+      "id": "timeout-capture",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "verify-capture",
+      "contains": ["verify-capture 35"]
+    },
+    {
+      "id": "timeout-browser-full",
+      "path": ".planning/phases/198-green-bringup/198-UAT.md",
+      "subject": "browser-full",
+      "contains": ["browser-full 50"]
+    },
+    {
+      "id": "population-ci",
+      "path": ".planning/phases/198-green-bringup/deferred-items.md",
+      "subject": "capped CI run",
+      "contains": ["capped CI run"]
+    },
+    {
+      "id": "population-local",
+      "path": ".planning/audits/198-round4-playwright.md",
+      "subject": "unbounded local run",
+      "contains": ["unbounded local run"]
+    },
+    {
+      "id": "round4-prediction",
+      "path": ".planning/audits/198-round4-playwright.md",
+      "subject": "operator-accessibility",
+      "contains": ["verify-example-browser", "operator-accessibility"]
+    }
+  ],
+  "mechanical": {
+    "id": "GREEN-03",
+    "evidence_id": "mechanical-probe",
+    "text_content_same": true,
+    "text_width_same": true,
+    "layout_protected": false
+  },
+  "lane_differential": {
+    "minimum": {
+      "id": "Run test suite (min)",
+      "evidence_id": "minimum-lane-run",
+      "tests": 1382,
+      "failures": 83
+    },
+    "current": {
+      "id": "Run test suite (current)",
+      "evidence_id": "current-lane-run",
+      "tests": 1382,
+      "failures": 83
+    },
+    "classification": "code_test"
+  },
+  "search_path": {
+    "id": "79 call-site defects",
+    "evidence_id": "search-path-diagnosis",
+    "fresh_db_failures": 82,
+    "unprefixed_defects": 79,
+    "other_failures": 3,
+    "classification": "test_side"
+  },
   "timeouts": [
-    {"job": "verify-example-browser", "timeout_minutes": 18, "observed_seconds": 625},
-    {"job": "verify-capture", "timeout_minutes": 35, "observed_seconds": 720},
-    {"job": "browser-full", "timeout_minutes": 50, "observed_seconds": 625}
+    {
+      "id": "verify-example-browser",
+      "evidence_id": "timeout-example-browser",
+      "timeout_minutes": 18,
+      "observed_seconds": 625
+    },
+    {
+      "id": "verify-capture",
+      "evidence_id": "timeout-capture",
+      "timeout_minutes": 35,
+      "observed_seconds": 720
+    },
+    {
+      "id": "browser-full",
+      "evidence_id": "timeout-browser-full",
+      "timeout_minutes": 50,
+      "observed_seconds": 625
+    }
   ],
   "measurements": [
-    {"id": "round4-ci", "population_id": "ci-capped-desktop-mobile", "cap": 5},
-    {"id": "round4-local", "population_id": "local-unbounded-all-projects", "cap": 0}
+    {
+      "id": "round4-ci",
+      "evidence_id": "population-ci",
+      "population_id": "capped CI run",
+      "cap": 5
+    },
+    {
+      "id": "round4-local",
+      "evidence_id": "population-local",
+      "population_id": "unbounded local run",
+      "cap": 0
+    }
   ],
-  "prediction": {"target_max_red": 1, "predicted": ["verify-capture", "verify-example-browser"], "observed": ["verify-capture", "verify-example-browser", "operator-accessibility"]}
+  "prediction": {
+    "subject_id": "operator-accessibility",
+    "evidence_id": "round4-prediction",
+    "target_max_red": 1,
+    "predicted": ["verify-capture", "verify-example-browser"],
+    "observed": ["verify-capture", "verify-example-browser", "operator-accessibility"]
+  }
 }

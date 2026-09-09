@@ -102,6 +102,18 @@ defmodule Threadline.Phase198AutomationPolicyTest do
         get_in(policy, ["measurements", Access.at(0), "population_id"])
       )
       |> put_in(["measurements", Access.at(1), "cap"], 5)
+      |> update_in(["evidence"], fn evidence ->
+        Enum.map(evidence, fn
+          %{"id" => "population-local"} = source ->
+            source
+            |> Map.put("path", ".planning/phases/198-green-bringup/deferred-items.md")
+            |> Map.put("subject", "capped CI run")
+            |> Map.put("contains", ["capped CI run"])
+
+          source ->
+            source
+        end)
+      end)
 
     assert {out, 0} = run_policy(comparable)
     assert Jason.decode!(out)["populations"] == %{"comparable" => true, "state" => "equal"}

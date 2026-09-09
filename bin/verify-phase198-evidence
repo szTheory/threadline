@@ -1,35 +1,179 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 policy=".planning/audits/198-automation-policy.json"
 format="text"
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --policy) policy=${2-}; shift 2 ;;
-    --format) format=${2-}; shift 2 ;;
-    *) echo "verify-phase198-evidence: unknown argument $1" >&2; exit 1 ;;
+    --policy)
+      [ "$#" -ge 2 ] || { echo "verify-phase198-evidence: --policy requires a value" >&2; exit 1; }
+      policy=$2
+      shift 2
+      ;;
+    --format)
+      [ "$#" -ge 2 ] || { echo "verify-phase198-evidence: --format requires a value" >&2; exit 1; }
+      format=$2
+      shift 2
+      ;;
+    *)
+      echo "verify-phase198-evidence: unknown argument $1" >&2
+      exit 1
+      ;;
   esac
 done
+
+case "$format" in
+  json | text) ;;
+  *) echo "verify-phase198-evidence: --format must be json or text" >&2; exit 1 ;;
+esac
+
 [ -f "$policy" ] || { echo "policy missing: $policy" >&2; exit 1; }
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+
+# Validate the complete schema and every semantic invariant before reading evidence.
 jq -e '
-  .schema == "threadline.phase198-automation-policy/1" and
-  .mechanical.text_content_same == true and .mechanical.text_width_same == true and .mechanical.layout_protected == false and
-  .lane_differential.minimum == .lane_differential.current and .lane_differential.classification == "code_test" and
-  .search_path.fresh_db_failures == (.search_path.unprefixed_defects + .search_path.other_failures) and .search_path.classification == "test_side" and
-  (.timeouts | length) > 0 and ([.timeouts[] | select(.timeout_minutes <= 0 or .observed_seconds < 0 or (.observed_seconds > (.timeout_minutes * 60)))] | length) == 0 and
-  (.measurements | length) == 2 and (.measurements[0].population_id != .measurements[1].population_id) and
-  (.prediction.predicted | type == "array") and (.prediction.observed | type == "array")
-' "$policy" >/dev/null
+  def keys_are($allowed): (keys | sort) == ($allowed | sort);
+  def nonempty_string: type == "string" and length > 0;
+  def natural: type == "number" and floor == . and . >= 0;
+  def positive: natural and . > 0;
+  def all_unique: length == (group_by(.) | length);
+  def evidence_join($id; $subject):
+    ([.evidence[] | select(.id == $id and .subject == $subject)] | length) == 1;
+
+  . as $root |
+  keys_are(["schema", "evidence", "mechanical", "lane_differential", "search_path", "timeouts", "measurements", "prediction"]) and
+  .schema == "threadline.phase198-automation-policy/2" and
+
+  (.evidence | type == "array" and length > 0) and
+  ([.evidence[].id] | all_unique) and
+  (all(.evidence[];
+    keys_are(["id", "path", "subject", "contains"]) and
+    (.id | nonempty_string) and
+    (.path | nonempty_string and startswith(".") and (contains("..") | not)) and
+    (.subject | nonempty_string) and
+    (.contains | type == "array" and length > 0 and all(.[]; nonempty_string))
+  )) and
+
+  (.mechanical | keys_are(["id", "evidence_id", "text_content_same", "text_width_same", "layout_protected"])) and
+  (.mechanical.id | nonempty_string) and
+  (.mechanical.evidence_id | nonempty_string) and
+  .mechanical.text_content_same == true and
+  .mechanical.text_width_same == true and
+  .mechanical.layout_protected == false and
+  evidence_join(.mechanical.evidence_id; .mechanical.id) and
+
+  (.lane_differential | keys_are(["minimum", "current", "classification"])) and
+  (all([.lane_differential.minimum, .lane_differential.current][];
+    keys_are(["id", "evidence_id", "tests", "failures"]) and
+    (.id | nonempty_string) and (.evidence_id | nonempty_string) and
+    (.tests | positive) and (.failures | natural)
+  )) and
+  .lane_differential.minimum.id != .lane_differential.current.id and
+  .lane_differential.minimum.tests == .lane_differential.current.tests and
+  .lane_differential.minimum.failures == .lane_differential.current.failures and
+  .lane_differential.classification == "code_test" and
+  evidence_join(.lane_differential.minimum.evidence_id; .lane_differential.minimum.id) and
+  evidence_join(.lane_differential.current.evidence_id; .lane_differential.current.id) and
+
+  (.search_path | keys_are(["id", "evidence_id", "fresh_db_failures", "unprefixed_defects", "other_failures", "classification"])) and
+  (.search_path.id | nonempty_string) and (.search_path.evidence_id | nonempty_string) and
+  (.search_path.fresh_db_failures | natural) and
+  (.search_path.unprefixed_defects | natural) and
+  (.search_path.other_failures | natural) and
+  .search_path.fresh_db_failures == (.search_path.unprefixed_defects + .search_path.other_failures) and
+  .search_path.classification == "test_side" and
+  evidence_join(.search_path.evidence_id; .search_path.id) and
+
+  (.timeouts | type == "array" and length > 0) and
+  ([.timeouts[].id] | all_unique) and
+  (all(.timeouts[];
+    keys_are(["id", "evidence_id", "timeout_minutes", "observed_seconds"]) and
+    (.id | nonempty_string) and (.evidence_id | nonempty_string) and
+    (.timeout_minutes | positive) and (.observed_seconds | natural) and
+    .observed_seconds <= (.timeout_minutes * 60)
+  )) and
+  (all(.timeouts[]; . as $timeout | $root | evidence_join($timeout.evidence_id; $timeout.id))) and
+
+  (.measurements | type == "array" and length == 2) and
+  ([.measurements[].id] | all_unique) and
+  (all(.measurements[];
+    keys_are(["id", "evidence_id", "population_id", "cap"]) and
+    (.id | nonempty_string) and (.evidence_id | nonempty_string) and
+    (.population_id | nonempty_string) and (.cap | natural)
+  )) and
+  (all(.measurements[]; . as $measurement | $root | evidence_join($measurement.evidence_id; $measurement.population_id))) and
+
+  (.prediction | keys_are(["subject_id", "evidence_id", "target_max_red", "predicted", "observed"])) and
+  (.prediction.subject_id | nonempty_string) and (.prediction.evidence_id | nonempty_string) and
+  (.prediction.target_max_red | natural) and
+  (.prediction.predicted | type == "array" and all(.[]; nonempty_string) and all_unique) and
+  (.prediction.observed | type == "array" and all(.[]; nonempty_string) and all_unique) and
+  evidence_join(.prediction.evidence_id; .prediction.subject_id)
+' "$policy" >/dev/null || {
+  echo "verify-phase198-evidence: policy schema or invariant validation failed" >&2
+  exit 1
+}
+
+# Evidence paths are repository-relative, regular files, and contain both the joined
+# subject identity and every declared discriminator. NUL framing preserves boundaries.
+while IFS= read -r -d '' evidence_path &&
+      IFS= read -r -d '' subject &&
+      IFS= read -r -d '' contains_json; do
+  absolute_path="$repo_root/${evidence_path#./}"
+  [ -f "$absolute_path" ] || {
+    echo "verify-phase198-evidence: evidence path missing: $evidence_path" >&2
+    exit 1
+  }
+
+  grep -Fq -- "$subject" "$absolute_path" || {
+    echo "verify-phase198-evidence: evidence subject not found: $subject in $evidence_path" >&2
+    exit 1
+  }
+
+  while IFS= read -r discriminator; do
+    grep -Fq -- "$discriminator" "$absolute_path" || {
+      echo "verify-phase198-evidence: evidence discriminator not found: $discriminator in $evidence_path" >&2
+      exit 1
+    }
+  done < <(printf '%s' "$contains_json" | jq -r '.[]')
+done < <(jq -j '.evidence[] | .path, "\u0000", .subject, "\u0000", (.contains | tojson), "\u0000"' "$policy")
+
 result=$(jq -c '
-  (.prediction.predicted - .prediction.observed) as $missing |
-  (.prediction.observed - .prediction.predicted) as $extra |
+  (.prediction.predicted | sort) as $predicted |
+  (.prediction.observed | sort) as $observed |
+  ($predicted - $observed) as $missing |
+  ($observed - $predicted) as $extra |
+  ($predicted - $missing) as $intersection |
+  (.measurements[0].population_id == .measurements[1].population_id) as $comparable |
   {
-    schema:"threadline.phase198-evidence-result/1",
-    checks:{failed:0},
-    sizing:{phase201:"copy gate is cheap; layout consequence remains unprotected"},
-    lane_classification:.lane_differential.classification,
-    search_path_classification:.search_path.classification,
-    populations:{comparable:(.measurements[0].population_id == .measurements[1].population_id), state:"not_comparable"},
-    prediction:{target:(if (.prediction.observed|length) <= .prediction.target_max_red then "hit" else "miss" end), exact:($missing == [] and $extra == []), missing:$missing, extra:$extra}
+    schema: "threadline.phase198-evidence-result/2",
+    checks: {failed: 0},
+    sizing: {phase201: "copy gate is cheap; layout consequence remains unprotected"},
+    lane_classification: .lane_differential.classification,
+    search_path_classification: .search_path.classification,
+    populations: {
+      comparable: $comparable,
+      state: (if $comparable then
+        if .measurements[0].cap == .measurements[1].cap then "equal" else "different" end
+      else "not_comparable" end)
+    },
+    prediction: {
+      target: (if ($observed | length) <= .prediction.target_max_red then "hit" else "miss" end),
+      composition: (if $missing == [] and $extra == [] then "exact"
+        elif ($intersection | length) > 0 then "partial" else "miss" end),
+      predicted: $predicted,
+      observed: $observed,
+      intersection: $intersection,
+      extra: $extra,
+      missing: $missing
+    }
   }
 ' "$policy")
-if [ "$format" = json ]; then printf '%s\n' "$result"; else printf '%s\n' "$result" | jq .; fi
+
+if [ "$format" = "json" ]; then
+  printf '%s\n' "$result"
+else
+  printf '%s\n' "$result" | jq .
+fi
