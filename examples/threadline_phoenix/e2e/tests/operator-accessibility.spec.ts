@@ -619,7 +619,7 @@ test.describe("operator accessibility baseline", () => {
 
   test("keeps row-history drawer dialog semantics and visible focus", async ({
     page,
-  }) => {
+  }, testInfo) => {
     const rowHistoryRedControl =
       process.env.THREADLINE_ROW_HISTORY_RED_CONTROL;
 
@@ -682,12 +682,86 @@ test.describe("operator accessibility baseline", () => {
     }
 
     try {
+      const geometry = await snapshot.evaluate((input) => {
+        const active = document.activeElement;
+        const dialogElement = input.closest('[role="dialog"]');
+        const rect = (element: Element | null) => {
+          if (!element) return null;
+          const bounds = element.getBoundingClientRect();
+
+          return {
+            bottom: bounds.bottom,
+            height: bounds.height,
+            left: bounds.left,
+            right: bounds.right,
+            top: bounds.top,
+            width: bounds.width,
+          };
+        };
+
+        const inputRect = input.getBoundingClientRect();
+        const style = window.getComputedStyle(input);
+
+        return {
+          activeElement: active
+            ? {
+                ariaLabel: active.getAttribute("aria-label"),
+                id: active.id || null,
+                name: active.getAttribute("name"),
+                role: active.getAttribute("role"),
+                tag: active.tagName,
+                testId: active.getAttribute("data-testid"),
+                type: active.getAttribute("type"),
+              }
+            : null,
+          dialogRect: rect(dialogElement),
+          dialogScroll: dialogElement
+            ? { left: dialogElement.scrollLeft, top: dialogElement.scrollTop }
+            : null,
+          documentScroll: { left: window.scrollX, top: window.scrollY },
+          inputRect: rect(input),
+          visible:
+            inputRect.width > 0 &&
+            inputRect.height > 0 &&
+            style.display !== "none" &&
+            style.visibility !== "hidden",
+          windowViewport: {
+            height: window.innerHeight,
+            width: window.innerWidth,
+          },
+        };
+      });
+
+      const focusEvidence = {
+        ...geometry,
+        attempt: {
+          repeatEachIndex: testInfo.repeatEachIndex,
+          retry: testInfo.retry,
+          workerIndex: testInfo.workerIndex,
+        },
+        project: testInfo.project.name,
+        trace: {
+          outputDirectory: testInfo.outputDir.split(/[\\/]/).pop(),
+          setting: "retain-on-failure",
+        },
+        viewport: page.viewportSize(),
+      };
+
+      await testInfo.attach("row-history-focus-geometry", {
+        body: Buffer.from(JSON.stringify(focusEvidence, null, 2)),
+        contentType: "application/json",
+      });
+
       await expectNonObscuredFocused(snapshot, page);
       await expectNoHorizontalOverflow(page);
     } finally {
-      await page
-        .locator("[data-threadline-row-history-red-control]")
-        .evaluateAll((elements) => elements.forEach((element) => element.remove()));
+      const redControl = page.locator(
+        "[data-threadline-row-history-red-control]",
+      );
+      await redControl.evaluateAll((elements) =>
+        elements.forEach((element) => element.remove()),
+      );
+      await expect(redControl).toHaveCount(0);
     }
   });
 
