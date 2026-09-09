@@ -1,0 +1,693 @@
+{
+  "schema_version": 1,
+  "scope": "phase-198-only",
+  "general_classifier_owner": "phase-199",
+  "baseline_numbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47"
+  ],
+  "allowed_closeout_numbers": [
+    "48",
+    "49",
+    "50",
+    "51",
+    "52"
+  ],
+  "final_state_numbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51",
+    "52"
+  ],
+  "baseline_counts": {
+    "summaries": 47,
+    "coverage_entries": 192,
+    "automated_passes": 192,
+    "present": 0,
+    "errors": 0
+  },
+  "summaries": [
+    {
+      "number": "01",
+      "path": ".planning/phases/198-green-bringup/198-01-SUMMARY.md",
+      "sha256": "d947b5c97687da209643c3378886b221fbb24a3aa8b6443b4c80ee9e089bb18f",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "1074a7a2fd1ed394d27cad430ea5fa41df1b316a425abde8ca1198ff7e57c8ec"
+    },
+    {
+      "number": "02",
+      "path": ".planning/phases/198-green-bringup/198-02-SUMMARY.md",
+      "sha256": "02828445266e988505ea788b1d62f942ef9be2d053582b9f40b8a7ecb8d977cc",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6"
+      ],
+      "verification_state_sha256": "46292c8cf6833c66827c127ca083c526894938b6450b9dcf8bb4ae58da4d2fba"
+    },
+    {
+      "number": "03",
+      "path": ".planning/phases/198-green-bringup/198-03-SUMMARY.md",
+      "sha256": "78362542bbc2d8ae3b246157c3e6a79464e8cb855518038f15986a2f5db6aeb9",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8"
+      ],
+      "verification_state_sha256": "53ed02c324c719fcd4cc70327c0fe7a57f22bb52ac69d7827e9f9b43d48e8898"
+    },
+    {
+      "number": "04",
+      "path": ".planning/phases/198-green-bringup/198-04-SUMMARY.md",
+      "sha256": "b117449d195ac46c8dfe587a3d1263fd3f27e77d70ab8d88088fac151c5078ac",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8",
+        "D9"
+      ],
+      "verification_state_sha256": "c48d9271b151f6f98b96f95a799b9249307c9605b888e7102ffb1a007d345717"
+    },
+    {
+      "number": "05",
+      "path": ".planning/phases/198-green-bringup/198-05-SUMMARY.md",
+      "sha256": "79a4af69d48b0401776287548e1fec46b4f748893f21d628372e2b454ec27d4c",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8"
+      ],
+      "verification_state_sha256": "8c1ee2c77c8a48600352a2d86ca9527a41119d0fee017a3133306efd3518f9ab"
+    },
+    {
+      "number": "06",
+      "path": ".planning/phases/198-green-bringup/198-06-SUMMARY.md",
+      "sha256": "c816ff83c4bf4e25fbe7ed09946d72eaa50a7a4784567cc6fb339205569d9bb6",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "3f509d9047f56743b7203bf2ca728948eeb2c18ab7045436e48c2e9e82dca772"
+    },
+    {
+      "number": "07",
+      "path": ".planning/phases/198-green-bringup/198-07-SUMMARY.md",
+      "sha256": "6f876f9ced23a9a0e576ce020a90b4cc74baad61ac8e75c10dde634e3b9cd5be",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8",
+        "D9"
+      ],
+      "verification_state_sha256": "661d52d4a9938b4da1855759f413af0e974f11c4579a081497a0df725c6b4730"
+    },
+    {
+      "number": "08",
+      "path": ".planning/phases/198-green-bringup/198-08-SUMMARY.md",
+      "sha256": "479f44ad61b63e3f46663cc9e36aceb952811e2fdfc739572a8377f09f1598b6",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "59f7b66cf892084fdba502626d2c7350485428fdbd2de50e416ce4a98159528a"
+    },
+    {
+      "number": "09",
+      "path": ".planning/phases/198-green-bringup/198-09-SUMMARY.md",
+      "sha256": "eea40553541a0c210ad36779533a9ca489b3cd5ef3977b34a28c23e1bd4e5de2",
+      "coverage_ids": [
+        "D1",
+        "D2"
+      ],
+      "verification_state_sha256": "21f35ffbbd8d9306ac23f2bc877e8785f0962913a7858d526817b864fa72a838"
+    },
+    {
+      "number": "10",
+      "path": ".planning/phases/198-green-bringup/198-10-SUMMARY.md",
+      "sha256": "691ea7acd87cb492156dc906b5d20d6f020922992610629ae9c5e65d6718e31a",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "aab6901ea19fb4f2015e6c7e98ed244175ee4deb5160a4be91fe7dfe3e4c221e"
+    },
+    {
+      "number": "11",
+      "path": ".planning/phases/198-green-bringup/198-11-SUMMARY.md",
+      "sha256": "7d3ca8ab8d40c42e89e43711f7bf015688b29460bdf75a30c3423bc912b5a900",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "1a4f1507fff5a73994577fd105cdc3f9368c90b60a9a24fcefe1698705994127"
+    },
+    {
+      "number": "12",
+      "path": ".planning/phases/198-green-bringup/198-12-SUMMARY.md",
+      "sha256": "31bb2734f695163823b82bf35d14d9b377fe1db57f50069fd724a2f1986ebe78",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "a92315ca7ca2a25cb83ec4455f2af8801dc75d1cdbc5c311a344117583aea20d"
+    },
+    {
+      "number": "13",
+      "path": ".planning/phases/198-green-bringup/198-13-SUMMARY.md",
+      "sha256": "71fc4b2f60baeade37db9e59e67e33129944680c3912e004c72d1226e975be86",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "e79f214ccc407e97f90c39db781fb738a70e6cd99645545f9bb6dd3e75937969"
+    },
+    {
+      "number": "14",
+      "path": ".planning/phases/198-green-bringup/198-14-SUMMARY.md",
+      "sha256": "187b378ef904df89b527eed1425ffc81950a3654cfcaf1e94beaeb04bd3121a7",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "c2ad153d293af007787eae6b2dda69c7104346945c5c3af2224aec3aff835228"
+    },
+    {
+      "number": "15",
+      "path": ".planning/phases/198-green-bringup/198-15-SUMMARY.md",
+      "sha256": "4fb887d2a7f681a3c4c770c3f9ee70d41d05c0b8c31174228ccc880c04904d9f",
+      "coverage_ids": [
+        "D1",
+        "D2"
+      ],
+      "verification_state_sha256": "b045821f6d46c26497d23ffd82d10f2c1a19d0734f28164891581fd1686dcc8f"
+    },
+    {
+      "number": "16",
+      "path": ".planning/phases/198-green-bringup/198-16-SUMMARY.md",
+      "sha256": "81cdb06b5fb483e11e90571781e8a1a875e39518bfc2a65653991cc646ff146b",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "d8411d2a13316783be6c5127a97cf52e22f4986efb11e8c735d05202369040e7"
+    },
+    {
+      "number": "17",
+      "path": ".planning/phases/198-green-bringup/198-17-SUMMARY.md",
+      "sha256": "005b32daa3fc35fdc989bb3f2ba5ee6c8e767a7e0d82ab55baf9fda66035830b",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "fcfdb56da9adb7c4ad3b12a3c31906bb63cd49249bc202000865ba4cbd6c8e5f"
+    },
+    {
+      "number": "18",
+      "path": ".planning/phases/198-green-bringup/198-18-SUMMARY.md",
+      "sha256": "b04a34a87ba0bea44adf558635f9071e3cedf33293184db0c30a3a83a1dd25ca",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "dcad81f15f147746a333ec49511f25cf00f89218cd2142a570830b7c87977d40"
+    },
+    {
+      "number": "19",
+      "path": ".planning/phases/198-green-bringup/198-19-SUMMARY.md",
+      "sha256": "72bc62005bb4f42c965b79b981e069c4865499c7b77ade5adbde299dcf7d84dc",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "38aac8e45ff7489a5691a06f94f133a9ed92b89ffd35cc1f54f6a37c810e1c9e"
+    },
+    {
+      "number": "20",
+      "path": ".planning/phases/198-green-bringup/198-20-SUMMARY.md",
+      "sha256": "03546a846aa79e98c45dd15dc559cc03fdd66bf4a90311c8025662152453caae",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "6da36bfff88c4bc1129a15b0ec69067d93ce1e909e03ff2cbf21318592ad3e01"
+    },
+    {
+      "number": "21",
+      "path": ".planning/phases/198-green-bringup/198-21-SUMMARY.md",
+      "sha256": "c22411065ace69a467d0aeca918bba5e1460b933eb56b7e6856d53f2b7d201b0",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "7ee5f02a84a03b2cb1a0b81a30c174a8f6fabb240650798ae52dcdc9a7f7d349"
+    },
+    {
+      "number": "22",
+      "path": ".planning/phases/198-green-bringup/198-22-SUMMARY.md",
+      "sha256": "06b43a29395e6c5544788e3df5f6857b920f1a0c350202e93d56970900aa670d",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "f7876c74eb3a1ec1077861ac74088767a277ebdcb8d1110197fb4d4c51b08197"
+    },
+    {
+      "number": "23",
+      "path": ".planning/phases/198-green-bringup/198-23-SUMMARY.md",
+      "sha256": "ff726477c283b619f80e974cc0ef061979be643992ea26144b07c6a712471aa7",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "27bda3fd37d446b721f1217c4a33dee04868ce2475533b7b9f16033e31b7459d"
+    },
+    {
+      "number": "24",
+      "path": ".planning/phases/198-green-bringup/198-24-SUMMARY.md",
+      "sha256": "471b8e4afa3bbd29b631ef6965e1ec94237f71bdc6b4294b6a8c09419b9659a8",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "8b487636cf709f28de0c902c56aa6e968dd7470f5cac2d1aa0a2de6399a40b20"
+    },
+    {
+      "number": "25",
+      "path": ".planning/phases/198-green-bringup/198-25-SUMMARY.md",
+      "sha256": "8fe2c4c22d092cf5732d9221ce29569b2f5c61ba39d00b897c2f6637a36e6647",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6"
+      ],
+      "verification_state_sha256": "c2b3b95d3cb0cff58f48c0089d7188624cb6960617f31f51ff84b09e07526538"
+    },
+    {
+      "number": "26",
+      "path": ".planning/phases/198-green-bringup/198-26-SUMMARY.md",
+      "sha256": "b9eb521521912156cfffefd3f35e652271131037d8df93536d499880b377559d",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "87c95bd0c2b9d0aa5fe9db3f825a9ed35e99f22ce97b2706a4bcaf011b63c896"
+    },
+    {
+      "number": "27",
+      "path": ".planning/phases/198-green-bringup/198-27-SUMMARY.md",
+      "sha256": "ac6e69cceaedbb74b70044afc588c1f4bd0548ab1fa2d16028ecaa0b804162f3",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "01135edb73c4f345396f45040cafe4c5268cc8840ac31ada116ad624c77b14c8"
+    },
+    {
+      "number": "28",
+      "path": ".planning/phases/198-green-bringup/198-28-SUMMARY.md",
+      "sha256": "6631f7bf5b9f1bc789facdb11e95cb327e2e48a4f153dde4717b491f713f2b99",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "896a264eab936f56fba2e418ccebb9c24d15dfa2be73df64515eb3ed76ee779c"
+    },
+    {
+      "number": "29",
+      "path": ".planning/phases/198-green-bringup/198-29-SUMMARY.md",
+      "sha256": "9295daf51ca25ec3230bd570945e153ab7b1253b3f571378291de2d81a852809",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "0140f1d3c6f18800a3e62430e866ddb501e2f92da2e445680bf37e59effe73e9"
+    },
+    {
+      "number": "30",
+      "path": ".planning/phases/198-green-bringup/198-30-SUMMARY.md",
+      "sha256": "cb935175e38006d78e5623eb7bd5ff08e718ccfc060138c414615b4d2062bea0",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "dc30cced83a552047a8fb2e5be53dd2804c2697913a928ffe6f945bb8be47b88"
+    },
+    {
+      "number": "31",
+      "path": ".planning/phases/198-green-bringup/198-31-SUMMARY.md",
+      "sha256": "4cbed598c97382b1c2a46476e8499ced5d292775188c2a3ee22c131f15ab0bfe",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "665410a66d0b79c0987fa71e5da65af32dcf7a1b32744ff7867a4c982a252435"
+    },
+    {
+      "number": "32",
+      "path": ".planning/phases/198-green-bringup/198-32-SUMMARY.md",
+      "sha256": "04b379c3a0c1e7ea1e7cd62b650374903a8161303894404b225441e36f533eae",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "00100fb80a283bf0a0823fd46af55d87c21ce0d0992f97fa471e262531abf10f"
+    },
+    {
+      "number": "33",
+      "path": ".planning/phases/198-green-bringup/198-33-SUMMARY.md",
+      "sha256": "bb814b7375cd056e8e353008fe6dad5e9f710af3db4e219994e7a0c5d67d3fca",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "6fdd24bc19ed3094f846b65efd162bdb1ed99cf59ff435aa4641964830f3ea95"
+    },
+    {
+      "number": "34",
+      "path": ".planning/phases/198-green-bringup/198-34-SUMMARY.md",
+      "sha256": "399ba4a02687d61363ce078d1902cbd1d29371d80d7ca8c27bf5ba556dd5d7a5",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "fe05465361c4c8e329444b93a07a4324dad26ecb9d6d6fadb72f529e66e8f89f"
+    },
+    {
+      "number": "35",
+      "path": ".planning/phases/198-green-bringup/198-35-SUMMARY.md",
+      "sha256": "e459af3c797f3d8758638880af6060d8283943a9813e9342667eb4d3d0c2379e",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6"
+      ],
+      "verification_state_sha256": "2a57a5f00799ffdcc685c501471a0213986aaa2cce9c4503018dfbeea804ef38"
+    },
+    {
+      "number": "36",
+      "path": ".planning/phases/198-green-bringup/198-36-SUMMARY.md",
+      "sha256": "92ef692b9b79f890711fdd7b825e2e0f9196236586b9ce4c24a4801961b175c2",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "e7e7a42a7cf9562b899309098baa326892b72ab0ef750f904cbb993bd740ec9a"
+    },
+    {
+      "number": "37",
+      "path": ".planning/phases/198-green-bringup/198-37-SUMMARY.md",
+      "sha256": "b06f93c522b4f4ae4d1758da83f728519d19e14bbd7371621bc562e4f8f02a60",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "1c0dd1bd12182b862317bf4c6cd9ab4edc96d04ed0acc9421fb0314bb1af959f"
+    },
+    {
+      "number": "38",
+      "path": ".planning/phases/198-green-bringup/198-38-SUMMARY.md",
+      "sha256": "f8146fb0a29f8ed71253500bed466f13bef93a740946d38edaa575b1199ca44b",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "d088eda7d5202dbff9e69d766a74ecfc45e0729149b477a7645fca938c1e1dbb"
+    },
+    {
+      "number": "39",
+      "path": ".planning/phases/198-green-bringup/198-39-SUMMARY.md",
+      "sha256": "6eb547856404d1fccaf939bdbc812211506357dce5272377d9cdddd48da29a34",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ],
+      "verification_state_sha256": "d625c6478bc493e9fff62167b92ba70bc8efa9b7fcb5c9be87d1258727a0df70"
+    },
+    {
+      "number": "40",
+      "path": ".planning/phases/198-green-bringup/198-40-SUMMARY.md",
+      "sha256": "35b07d2f2d5f31fd4334be5d61e6005811cecf4cbe1e088fbcd3c3b5d2062a1a",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6"
+      ],
+      "verification_state_sha256": "9a4d21795b93d8e11eb2732350faf3536963e6bba14dd6300db55dfba0d26048"
+    },
+    {
+      "number": "41",
+      "path": ".planning/phases/198-green-bringup/198-41-SUMMARY.md",
+      "sha256": "c973b557265c05f8e675f1acc5e8ee81dbe9289890eadfa9c20a5ff6c70c30c4",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "af6d4f016c0ad07e313a3c363322dc11ec8217f34954984c2eed36c30026b232"
+    },
+    {
+      "number": "42",
+      "path": ".planning/phases/198-green-bringup/198-42-SUMMARY.md",
+      "sha256": "5bf1ee5ca88b1db71927e2be2215d64dd5dde487fd440ce08910844fdff5badb",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5"
+      ],
+      "verification_state_sha256": "9914e8e843786e5c64d05dc35992ebc756fad2bd55c6638277e0fa70a6cb2747"
+    },
+    {
+      "number": "43",
+      "path": ".planning/phases/198-green-bringup/198-43-SUMMARY.md",
+      "sha256": "f9c56d51466024481b0e4693c1ab30f6eeb5efa2d004c2bc671ac8eb2243b7e8",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "69867037b9dd0746895e96406fe738e8ded4d84034381b74688842802959ea09"
+    },
+    {
+      "number": "44",
+      "path": ".planning/phases/198-green-bringup/198-44-SUMMARY.md",
+      "sha256": "c06c06f8165ad7febb781b8f60bb41e5d03f64273d8a26b55957144e76ce0c07",
+      "coverage_ids": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "verification_state_sha256": "523e2675bff044bdfc0c1b72c84798ef8c91b52599dabeb57420dfa72099c511"
+    },
+    {
+      "number": "45",
+      "path": ".planning/phases/198-green-bringup/198-45-SUMMARY.md",
+      "sha256": "e53e8f6da342e30d83e15b66296df36dd9772c04241b4c2d9ec4315795ebbdab",
+      "coverage_ids": [
+        "D1"
+      ],
+      "verification_state_sha256": "f1e1876b76dea852769ef8c4a7e783fb0832cbae8c766c5b21a15605fdffe97a"
+    },
+    {
+      "number": "46",
+      "path": ".planning/phases/198-green-bringup/198-46-SUMMARY.md",
+      "sha256": "1989ded3c9c6a0e096d9e8a531d4889af29b92945ae5ddccfdfa7a39666d63ba",
+      "coverage_ids": [
+        "D1",
+        "D2"
+      ],
+      "verification_state_sha256": "95ab9ca77b4d37ec75e2cde304bc9d4022b2f9e55607673f798026f48028b30d"
+    },
+    {
+      "number": "47",
+      "path": ".planning/phases/198-green-bringup/198-47-SUMMARY.md",
+      "sha256": "29748e458e24d7a98a8f583b1695e914a458290d6f2413df535bc3171c09f7d3",
+      "coverage_ids": [
+
+      ],
+      "verification_state_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

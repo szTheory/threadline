@@ -1,12 +1,12 @@
 defmodule Threadline.Phase198ZeroHumanUatContractTest do
   use ExUnit.Case, async: false
 
-  @root File.cwd!()
   @phase_dir ".planning/phases/198-green-bringup"
   @manifest ".planning/audits/198-summary-coverage-manifest.json"
   @delta ".planning/audits/198-plan46-coverage-delta.json"
   @baseline_numbers Enum.map(1..47, &Integer.to_string(&1) |> String.pad_leading(2, "0"))
   @closeout_numbers Enum.map(48..52, &Integer.to_string/1)
+  @plan46_numbers Enum.map(1..45, &Integer.to_string(&1) |> String.pad_leading(2, "0"))
   @exact_delta MapSet.new([
                  "198-01:D4",
                  "198-03:D7",
@@ -42,6 +42,12 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
     expected = Map.new(manifest["summaries"], &{&1["number"], &1})
     assert expected |> Map.keys() |> Enum.sort() == @baseline_numbers
+
+    actual_entry_count =
+      Enum.sum(for number <- @baseline_numbers, do: summary_path(number) |> File.read!() |> coverage_entries() |> map_size())
+
+    assert actual_entry_count == manifest["baseline_counts"]["coverage_entries"]
+    assert actual_entry_count == 192
 
     for number <- @baseline_numbers do
       relative = summary_path(number)
@@ -105,7 +111,9 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       "cookie" => "session=example"
     }
 
-    assert length(disclosure_errors(unsafe)) == 3
+    for {key, value} <- unsafe do
+      assert disclosure_errors(%{key => value}) != []
+    end
   end
 
   defp discover_numbers(dir) do
@@ -131,22 +139,33 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
   defp coverage_entries(body) do
     yaml = frontmatter(body)
+    [_, coverage_tail] = String.split(yaml, ~r/^coverage:[ \t]*/m, parts: 2)
+    [head | lines] = String.split(coverage_tail, "\n")
 
-    case Regex.run(~r/^coverage:\s*(.*)$\n((?:^[ \t].*\n?)*)/m, yaml) do
-      [_, "[]", _] -> %{}
-      [_, _, block] ->
+    case String.trim(head) do
+      "[]" ->
+        %{}
+
+      _ ->
+        block = lines |> Enum.take_while(&(&1 == "" or String.match?(&1, ~r/^\s/))) |> Enum.join("\n")
+
         Regex.scan(~r/^  - id:\s*([^\s]+)\n((?:(?!^  - id:)[\s\S])*)/m, block,
           capture: :all_but_first
         )
         |> Map.new(fn [id, entry] -> {id, normalize_entry("  - id: #{id}\n" <> entry)} end)
-
-      nil ->
-        flunk("summary has no coverage field")
     end
   end
 
   defp normalize_entry(entry) do
     entry
+    |> String.replace(
+      ~r/verification:\s*\[\{kind:\s*([^,]+),\s*ref:\s*("[^"]*"),\s*status:\s*([^}\]]+)\}\]/,
+      "verification:\n      - kind: \\1\n        ref: \\2\n        status: \\3"
+    )
+    |> String.replace(
+      ~r/- \{kind:\s*([^,]+),\s*ref:\s*("[^"]*"),\s*status:\s*([^}]+)\}/,
+      "- kind: \\1\n        ref: \\2\n        status: \\3"
+    )
     |> String.replace("\r\n", "\n")
     |> String.split("\n")
     |> Enum.map(&String.trim_trailing/1)
@@ -177,7 +196,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   end
 
   defp coverage_at_tree(tree) do
-    @baseline_numbers
+    @plan46_numbers
     |> Enum.flat_map(fn number ->
       path = summary_path(number)
       {body, 0} = System.cmd("git", ["show", "#{tree}:#{path}"], stderr_to_stdout: true)
