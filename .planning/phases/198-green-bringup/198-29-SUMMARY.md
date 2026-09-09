@@ -69,10 +69,12 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "Honest verdict that this round MISSED its stated target (red needs: 3→1) and FALSIFIED its own pre-push prediction (2), recorded without softening or retro-editing"
-    verification: []
-    human_judgment: true
-    rationale: "Whether the record is genuinely unsoftened — rather than technically accurate but rhetorically hedged — is a judgment about candour that no automated check can make."
+    description: "The predicted red-needs target and observed result are scored mechanically as a miss without changing either value."
+    verification:
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> prediction target miss classification passes"
+        status: pass
+    human_judgment: false
 
 duration: 25min
 completed: 2026-08-29

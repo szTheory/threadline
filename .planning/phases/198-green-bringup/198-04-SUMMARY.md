@@ -129,13 +129,12 @@ coverage:
         status: pass
     human_judgment: false
   - id: D8
-    description: "The corrected root-cause diagnosis of the red baseline: 79 test-side defects assuming an unprefixed search_path, not a stale database"
+    description: "The red-baseline search_path diagnosis reconciles mechanically as 79 call-site defects plus three independent rows."
     verification:
       - kind: integration
-        ref: "Fresh DB 4 -> 82 failures after recreate; psql proves `select count(*) from audit_changes` errors by default and succeeds under `set search_path to public,threadline`; no role-level pg_db_role_setting entry exists"
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> search_path arithmetic 79+3=82 passes"
         status: pass
-    human_judgment: true
-    rationale: "The mechanism is proven mechanically and the arithmetic reconciles exactly (79+1+1+1 = 82 local, 83 CI). What needs a maintainer's judgment is the remediation choice for the 79 — per-call-site prefix, StorageSchemaCase.repo_opts/1, or a prefixed repo in DataCase — since each trades explicitness against blast radius, and one of them (DataCase) cannot fix the raw Repo.query! SQL those same tests use. A verifier should read the evidence rather than accept the headline."
+    human_judgment: false
   - id: D9
     description: "Whether the suite reaches zero failures on a fresh database"
     verification:

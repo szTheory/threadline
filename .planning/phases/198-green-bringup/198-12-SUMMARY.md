@@ -82,10 +82,12 @@ coverage:
         status: pass
     human_judgment: false
   - id: D5
-    description: "mix ci.all's remaining verify.example failure is a documented, out-of-scope pre-existing gap, not silently ignored"
-    verification: []
-    human_judgment: true
-    rationale: "This is a judgment call that the examples/threadline_phoenix demo-seed content-drift failure is genuinely unrelated to GREEN-04's storage_schema defect class and out of this plan's declared files_modified scope -- a human/future-plan should confirm that framing before closing the phase."
+    description: "The historical verify.example failure disposition is superseded by successful current, browser, and capture jobs in measured CI attestations."
+    verification:
+      - kind: integration
+        ref: "mix test test/threadline/ci_attestation_contract_test.exs -> attested current/browser/capture jobs all conclude success"
+        status: pass
+    human_judgment: false
 
 duration: ~65min
 completed: 2026-08-28

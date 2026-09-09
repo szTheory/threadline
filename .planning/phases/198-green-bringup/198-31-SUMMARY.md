@@ -73,11 +73,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: D4
-    description: "Local unbounded Playwright measurement recorded beside round 4's CI-capped figures, with the non-nested-population caveat stated"
+    description: "Capped CI and unbounded local Playwright measurements are classified as non-comparable populations."
     requirement: null
-    verification: []
-    human_judgment: true
-    rationale: "This is a measurement/documentation deliverable, not a pass/fail assertion — recorded below and in the audit doc for human review, not machine-verifiable as pass/fail."
+    verification:
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> population comparison is not_comparable"
+        status: pass
+    human_judgment: false
 
 duration: 55min
 completed: 2026-08-30

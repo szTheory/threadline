@@ -23,7 +23,9 @@ coverage:
     description: "The row-history drawer preserves dialog semantics, visible keyboard focus, non-obscuration, and zero horizontal overflow."
     requirement: GREEN-11
     verification:
-      - {kind: e2e, ref: "operator-accessibility row-history on mobile-chromium --repeat-each=10: 10/10 pass; cross-project row-history selection: 2/2 pass", status: pass}
+      - kind: e2e
+        ref: "operator-accessibility row-history on mobile-chromium --repeat-each=10: 10/10 pass; cross-project row-history selection: 2/2 pass"
+        status: pass
     human_judgment: false
 duration: 4 min
 completed: 2026-09-08

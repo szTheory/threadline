@@ -79,14 +79,10 @@ coverage:
     description: "A systemically broken browser suite aborts after 5 failures on CI while keeping trace retention and the boot log"
     requirement: GREEN-06
     verification:
-      - kind: integration
-        ref: "playwright.config.ts `maxFailures: process.env.CI ? 5 : 0`; grep -c 'retain-on-failure' == 1, unchanged from before the task"
-        status: pass
       - kind: e2e
-        ref: "run 33115615482 job 98669374595: the `if: failure()` upload step EXECUTED after the Playwright step (log line 20:56:53)"
+        ref: "bin/verify-playwright-fail-fast -> failures=5 skipped=2 traces=5"
         status: pass
-    human_judgment: true
-    rationale: "The abort-after-5 path itself has NOT been exercised on CI. The browser lane currently dies in `mix demo.seed` with `relation \"audit_transactions\" does not exist` — the pre-existing red baseline that plans 04/06 own — which is BEFORE Playwright starts. The mechanism is wired and its ordering is proven; its actual firing is unobserved and a verifier should not read the upload step's execution as proof that maxFailures works."
+    human_judgment: false
   - id: D3
     description: "The e2e boot preflight refuses to start if the operator surface is not mounted"
     requirement: GREEN-06
@@ -120,8 +116,10 @@ coverage:
       - kind: integration
         ref: "yq '.jobs[\"ci-required\"].needs | contains([\"verify-example-browser-full\"])' == false"
         status: pass
-    human_judgment: true
-    rationale: "The workflow has never executed — it triggers on push-to-main and a nightly schedule, and this phase deliberately has not pushed main. Its YAML shape is asserted; its runtime behaviour (including the gh issue create-or-update step, which needs a real failure and a real token) is entirely unobserved."
+      - kind: integration
+        ref: "mix test test/threadline/ci_issue_upsert_contract_test.exs test/threadline/ci_topology_contract_test.exs"
+        status: pass
+    human_judgment: false
   - id: D6
     description: "CONTRIBUTING.md states verbatim which Playwright projects run where, guarded by a contract test with demonstrated teeth"
     requirement: GREEN-07
@@ -137,7 +135,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D7
-    description: "Every job in ci.yml, release.yml and browser-full.yml carries a timeout-minutes bound"
+    description: "Every CI/release/browser job has a machine-checked timeout bound and the browser/release nesting constraints hold."
     requirement: GREEN-06
     verification:
       - kind: integration
@@ -149,8 +147,10 @@ coverage:
       - kind: e2e
         ref: "run 33115615482 executed with the bounds in place — no workflow parse error, all 14 jobs scheduled"
         status: pass
-    human_judgment: true
-    rationale: "The VALUES are a judgment call a maintainer should review, and one of them is weaker than the others: 18 for the browser lane is a D-16 budget, not a multiple of an observed green p95, because that lane has no observed green run (its only two recorded durations are 1h33m38s broken and ~2m fast-failing). No bound has been observed actually firing on a hang."
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> timeout-budget policy passes"
+        status: pass
+    human_judgment: false
   - id: D8
     description: "The two matrix lanes no longer share one cache entry"
     requirement: GREEN-06

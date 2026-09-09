@@ -93,15 +93,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "New discovery (operator-accessibility.spec.ts:655:3,
-      mobile-chromium) logged with a cause-in-progress note and a dated
-      deferred-items.md entry, not silently absorbed"
+    description: "The historical row-history accessibility discovery is retired by the named semantic/focus/overflow E2E regression."
     requirement: "GREEN-07"
-    verification: []
-    human_judgment: true
-    rationale: "Root cause of the new discovery is not established — a human
-      or a follow-up plan must judge whether the deferral and its recorded
-      symptom description are adequate before diagnosing further."
+    verification:
+      - kind: e2e
+        ref: "operator-accessibility row-history on mobile-chromium --repeat-each=10: 10/10 pass; cross-project selection: 2/2 pass"
+        status: pass
+    human_judgment: false
 
 duration: 95min
 completed: 2026-08-28

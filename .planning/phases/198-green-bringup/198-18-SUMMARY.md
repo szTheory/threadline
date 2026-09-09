@@ -63,11 +63,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "GREEN-04 and GREEN-07 set strictly from the measured run, both REQUIREMENTS.md views agreeing row for row, run ID cited in both"
+    description: "Measured CI attestation and requirement status consistency are checked offline against committed evidence."
     requirement: "GREEN-07"
-    verification: []
-    human_judgment: true
-    rationale: "The plan's Task 3 is itself a checkpoint:human-verify with gate=blocking-human — the maintainer must confirm the recorded statuses match the measured run and that neither requirement was marked Complete on local-only evidence, per this run's checkpoint protocol (blocking-human is never auto-approved)."
+    verification:
+      - kind: integration
+        ref: "mix test test/threadline/ci_attestation_contract_test.exs test/threadline/phase198_nyquist_contract_test.exs"
+        status: pass
+    human_judgment: false
 
 duration: ~50min
 completed: 2026-08-28

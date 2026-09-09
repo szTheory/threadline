@@ -17,17 +17,26 @@ requirements-completed: [GREEN-03, GREEN-04, GREEN-06, GREEN-07]
 coverage:
   - id: D1
     description: "Sizing, differential diagnosis, search_path arithmetic, timeout budgets, populations, and prediction outcomes are evaluated from versioned data."
-    verification: [{kind: integration, ref: "mix test test/threadline/phase198_automation_policy_test.exs", status: pass}]
+    verification:
+      - kind: integration
+        ref: "mix test test/threadline/phase198_automation_policy_test.exs"
+        status: pass
     human_judgment: false
   - id: D2
     description: "Exact-SHA main CI reports not_observed, incomplete, failure, or success without substituting an older run."
     requirement: GREEN-07
-    verification: [{kind: integration, ref: "mix test test/threadline/main_ci_observer_contract_test.exs", status: pass}]
+    verification:
+      - kind: integration
+        ref: "mix test test/threadline/main_ci_observer_contract_test.exs"
+        status: pass
     human_judgment: false
   - id: D3
     description: "Committed post-repair attestations prove required test, browser, capture, and aggregate jobs green."
     requirement: GREEN-04
-    verification: [{kind: unit, ref: "mix test test/threadline/ci_attestation_contract_test.exs test/threadline/phase198_nyquist_contract_test.exs", status: pass}]
+    verification:
+      - kind: unit
+        ref: "mix test test/threadline/ci_attestation_contract_test.exs test/threadline/phase198_nyquist_contract_test.exs"
+        status: pass
     human_judgment: false
 duration: 6 min
 completed: 2026-09-08

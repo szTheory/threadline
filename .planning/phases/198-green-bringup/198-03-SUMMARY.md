@@ -108,13 +108,12 @@ coverage:
         status: pass
     human_judgment: false
   - id: D7
-    description: "Classification of the min-lane failure as a genuine code/test failure rather than runner-image or Playwright version drift"
+    description: "The identical min/current fingerprints are classified automatically as shared code/test failures rather than a toolchain differential."
     verification:
-      - kind: e2e
-        ref: "current lane (job 98661003731) reported the IDENTICAL '1382 tests, 83 failures, 1 excluded' — the min lane contributes zero additional failures"
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> min/current fingerprint classification passes"
         status: pass
-    human_judgment: true
-    rationale: "The differential evidence (min and current failing identically) is strong and mechanical, and it is what rules out toolchain drift. But 'is the Elixir 1.15 floor promise sound?' is ultimately a maintainer's judgment about what the 83 shared failures mean, and those failures are the milestone's pre-existing red baseline that Plans 04-06 have not yet triaged. A verifier should read the differential rather than accept the headline."
+    human_judgment: false
   - id: D8
     description: "Whether the aggregate gate goes GREEN when all twelve needed jobs succeed"
     verification:

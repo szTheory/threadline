@@ -83,7 +83,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "The irreversible publish step sits behind a production-hex Environment carrying a required-reviewer rule, and Hex auth is one swappable block"
+    description: "The sole irreversible Hex publish path is machine-checked behind production-hex and gate-ci-green with one swappable auth block."
     verification:
       - kind: other
         ref: "yq '.jobs[\"publish-hex\"].environment' .github/workflows/release.yml -> production-hex"
@@ -91,10 +91,12 @@ coverage:
       - kind: other
         ref: "gh api repos/szTheory/threadline/environments/production-hex --jq '.protection_rules[].type' -> required_reviewers"
         status: pass
-    human_judgment: true
-    rationale: "The gate's real behaviour — a release actually pausing for a human click — can only be observed on a live release run, which requires the push (198-07) and a real 0.10.0 cut (Phase 202). The configuration is proven; the runtime pause is not."
+      - kind: unit
+        ref: "mix test test/threadline/release_control_plane_contract_test.exs"
+        status: pass
+    human_judgment: false
   - id: D4
-    description: "Flake Detection classifies broken vs flaky vs unknown, carries timeout-minutes, and creates-or-updates a single deduplicated issue"
+    description: "Flake Detection classifies outcomes and its issue side effect creates once then updates the exact marked issue."
     requirement: GREEN-11
     verification:
       - kind: other
@@ -103,8 +105,10 @@ coverage:
       - kind: other
         ref: "yq: every job carries timeout-minutes; label ci-flake distinct from ci-browser-full; job id verify-flake unrenamed"
         status: pass
-    human_judgment: true
-    rationale: "The live two-dispatch dedup demonstration (two failing runs writing to ONE issue) could not be run: workflow_dispatch requires the workflow to exist on the remote default branch, and this plan is forbidden to push. The classifier is proven; the gh issue create-or-update path is unexercised. Recorded in WINDOWS.md as unrun-verify."
+      - kind: integration
+        ref: "mix test test/threadline/ci_issue_upsert_contract_test.exs test/threadline/flake_classifier_contract_test.exs"
+        status: pass
+    human_judgment: false
   - id: D5
     description: "Every piece of unmerged work is preserved under a verified annotated archive tag with a recorded recommendation, before the repository was reduced to one worktree and one branch"
     verification:

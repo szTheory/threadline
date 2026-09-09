@@ -24,19 +24,25 @@ coverage:
     description: "Browser-full and flake tracking create once and update the same issue thereafter."
     requirement: GREEN-11
     verification:
-      - {kind: integration, ref: "mix test test/threadline/ci_issue_upsert_contract_test.exs", status: pass}
+      - kind: integration
+        ref: "mix test test/threadline/ci_issue_upsert_contract_test.exs"
+        status: pass
     human_judgment: false
   - id: D2
     description: "Playwright CI stops a seven-failure synthetic suite at five and retains five traces."
     requirement: GREEN-06
     verification:
-      - {kind: e2e, ref: "bin/verify-playwright-fail-fast -> failures=5 skipped=2 traces=5", status: pass}
+      - kind: e2e
+        ref: "bin/verify-playwright-fail-fast -> failures=5 skipped=2 traces=5"
+        status: pass
     human_judgment: false
   - id: D3
     description: "The only Hex publisher remains behind production-hex and gate-ci-green with one auth region."
     requirement: GREEN-10
     verification:
-      - {kind: unit, ref: "mix test test/threadline/release_control_plane_contract_test.exs", status: pass}
+      - kind: unit
+        ref: "mix test test/threadline/release_control_plane_contract_test.exs"
+        status: pass
     human_judgment: false
 duration: 8 min
 completed: 2026-09-08

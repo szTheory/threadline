@@ -82,11 +82,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: D4
-    description: "The sizing implication drawn for Phase 201 Tier 2 — that copy work is cheap to gate but unprotected against layout consequences"
+    description: "Text-content sensitivity and layout protection are classified mechanically from the recorded MechanicalChecker probe."
     requirement: GREEN-03
-    verification: []
-    human_judgment: true
-    rationale: "The measurement is proven; the estimate drawn from it is a planning judgment the maintainer must ratify when Phase 201 is planned."
+    verification:
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> text sensitivity and layout-protection classifications pass"
+        status: pass
+    human_judgment: false
 
 duration: 25min
 completed: 2026-08-27

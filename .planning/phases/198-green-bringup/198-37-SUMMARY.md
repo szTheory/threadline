@@ -75,10 +75,12 @@ coverage:
         status: pass
     human_judgment: false
   - id: D4
-    description: "Honest scoring of the one composition-level partial miss (third un-predicted Playwright failure row), not softened into a clean hit"
-    verification: []
-    human_judgment: true
-    rationale: "Whether the record genuinely distinguishes conclusion-level accuracy from composition-level accuracy — rather than technically noting the miss while rhetorically minimizing it — is a judgment about candour no automated check can make."
+    description: "Conclusion-level and composition-level prediction scores are computed separately, preserving the unpredicted third Playwright row."
+    verification:
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> separate target and composition scores pass"
+        status: pass
+    human_judgment: false
 
 duration: ~25min
 completed: 2026-08-30

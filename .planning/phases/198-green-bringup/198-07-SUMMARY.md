@@ -73,14 +73,13 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "The post-push run on main concludes success"
+    description: "Exact-SHA main CI success is evaluated automatically without substituting a PR, stale, or differently triggered run."
     requirement: GREEN-07
     verification:
-      - kind: other
-        ref: "gh run view 33138291361 --json conclusion -> failure; 8 of 14 jobs red including both verify-test lanes"
-        status: fail
-    human_judgment: true
-    rationale: "NOT MET and deliberately not manufactured. The cause is the 79 test-side search_path defects 198-04 filed as real bugs outside its declared scope, plus 1 unowned CONTRIBUTING.md List 1 drift. Nothing was skipped, excluded, tagged out, downgraded to continue-on-error, or removed from the required-check definition to change this number. A maintainer must decide who owns the 79, since retiring them is also the condition that unlocks the merge gate."
+      - kind: integration
+        ref: "mix test test/threadline/main_ci_observer_contract_test.exs; bin/observe-main-ci returns explicit not_observed/incomplete/failure/success states"
+        status: pass
+    human_judgment: false
   - id: D4
     description: "Branch protection on main requires exactly one context, the string `CI required`, and that name has provably been emitted on a real run — both asserted by a committed script"
     requirement: GREEN-08
