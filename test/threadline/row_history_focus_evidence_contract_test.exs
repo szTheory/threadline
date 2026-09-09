@@ -4,6 +4,7 @@ defmodule Threadline.RowHistoryFocusEvidenceContractTest do
   @script "bin/verify-row-history-focus-red-control"
   @spec_path "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"
   @config "examples/threadline_phoenix/e2e/playwright.config.ts"
+  @audit ".planning/audits/198-row-history-focus-regression.md"
   @scenario "keeps row-history drawer dialog semantics and visible focus"
   @flag "THREADLINE_ROW_HISTORY_RED_CONTROL"
   @control "obscure-date-input"
@@ -95,6 +96,63 @@ defmodule Threadline.RowHistoryFocusEvidenceContractTest do
 
     refute File.read!(@script) =~
              ~r/(?:update-snapshots|updateSnapshots|--retries|--timeout|--workers)/
+  end
+
+  test "the scenario attaches synthetic focus and geometry evidence without masking assertions" do
+    source = File.read!(@spec_path)
+    scenario = source |> String.split(~s|test("#{@scenario}"|, parts: 2) |> List.last()
+
+    scenario =
+      scenario |> String.split(~s|test("opens stress rendered widgets|, parts: 2) |> List.first()
+
+    for token <- [
+          ~s|testInfo.attach("row-history-focus-geometry"|,
+          "project",
+          "repeatEachIndex",
+          "retry",
+          "activeElement",
+          "dialogRect",
+          "inputRect",
+          "viewport",
+          "documentScroll",
+          "dialogScroll",
+          "visible",
+          "trace",
+          "outputDirectory"
+        ] do
+      assert scenario =~ token, "missing structured evidence token #{inspect(token)}"
+    end
+
+    assert scenario =~ "await expectNonObscuredFocused(snapshot, page)"
+    assert scenario =~ "await expectNoHorizontalOverflow(page)"
+    assert scenario =~ ~s|toHaveAttribute("aria-modal", "true")|
+    assert scenario =~ ~s|"aria-labelledby"|
+    refute scenario =~ ~r/(?:waitForTimeout|force:\s*true|test\.slow|test\.setTimeout|retries)/
+    assert scenario =~ ~s|toHaveCount(0)|
+  end
+
+  test "the durable audit reconciles exact commands and honest RED and GREEN results" do
+    audit = File.read!(@audit)
+
+    for command <- [
+          "bash bin/verify-row-history-focus-red-control",
+          ~s|mix verify.example_browser operator-accessibility.spec.ts --project=mobile-chromium --grep "#{@scenario}" --repeat-each=10|,
+          ~s|mix verify.example_browser operator-accessibility.spec.ts operator-responsive-mobile-first.spec.ts --project=desktop-chromium --grep "row-history"|
+        ] do
+      assert audit =~ command, "missing exact evidence command #{inspect(command)}"
+    end
+
+    for token <- [
+          "known_bad_expected_failures: 1",
+          "clean_passes: 1",
+          "mobile_repeat_passes: 10",
+          "desktop_adjacency_passes: 1",
+          "historical_failure_cause: not-established"
+        ] do
+      assert audit =~ token, "missing durable result #{inspect(token)}"
+    end
+
+    refute audit =~ "proves the historical cause"
   end
 
   defp occurrences(text, needle), do: length(String.split(text, needle)) - 1
