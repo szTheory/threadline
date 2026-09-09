@@ -165,11 +165,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The label must exist before it can be applied or searched on.
-          gh label create "$LABEL" \
-            --description "Flake Detection lane: suite reported broken, flaky, or unknown" \
-            --color D93F0B 2>/dev/null || true
-
           case "$CLASSIFICATION" in
             broken)
               headline="The suite is **broken**, not flaky — it failed on the FIRST iteration."
@@ -185,7 +180,10 @@ jobs:
               ;;
           esac
 
-          body="${headline}
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          cat > "$body_file" <<EOF
+          ${headline}
 
           ${detail}
 
@@ -198,23 +196,13 @@ jobs:
           \`flake-detection-log\` artifact.
 
           This issue is reused across runs — repeated failures accumulate here as
-          comments rather than opening a new issue each night."
-
-          existing=$(gh issue list \
-            --state open \
-            --label "$LABEL" \
-            --search "$TITLE_PREFIX in:title" \
-            --json number \
-            --jq '.[0].number // empty')
-
-          if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "$body"
-          else
-            gh issue create \
-              --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \
-              --label "$LABEL" \
-              --body "$body"
-          fi
+          comments rather than opening a new issue each night.
+          EOF
+          bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
+            --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \
+            --body-file "$body_file" --label "$LABEL" \
+            --label-description "Flake Detection lane: suite reported broken, flaky, or unknown" \
+            --label-color D93F0B
 
       # The job must still be red when the suite failed. Classification and issue
       # filing above are reporting, not absolution. `always()` keeps this step

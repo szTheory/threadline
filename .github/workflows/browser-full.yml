@@ -127,20 +127,10 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
-
-          # The label must exist before it can be applied or searched on.
-          gh label create "$LABEL" \
-            --description "Failures of the full-project-set browser lane (browser-full.yml)" \
-            --color B60205 2>/dev/null || true
-
-          existing=$(gh issue list \
-            --state open \
-            --label "$LABEL" \
-            --search "$TITLE_PREFIX in:title" \
-            --json number \
-            --jq '.[0].number // empty')
-
-          body="The full-project-set browser lane failed on \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME}).
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          cat > "$body_file" <<EOF
+          The full-project-set browser lane failed on \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME}).
 
           Run: ${RUN_URL}
 
@@ -148,13 +138,9 @@ jobs:
           reduced pull-request lane (\`verify-example-browser\`) no longer runs. See
           \"## CI Coverage\" in CONTRIBUTING.md for exactly which projects those are.
           Diagnostics (traces + boot log) are attached to the run as
-          \`browser-full-e2e-diagnostics\`."
-
-          if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "$body"
-          else
-            gh issue create \
-              --title "$TITLE_PREFIX" \
-              --label "$LABEL" \
-              --body "$body"
-          fi
+          \`browser-full-e2e-diagnostics\`.
+          EOF
+          bin/upsert-ci-issue --marker "$TITLE_PREFIX" --title "$TITLE_PREFIX" \
+            --body-file "$body_file" --label "$LABEL" \
+            --label-description "Failures of the full-project-set browser lane (browser-full.yml)" \
+            --label-color B60205
