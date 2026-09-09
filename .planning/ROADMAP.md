@@ -509,7 +509,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 42/42 | In Progress | Plan 198-42 completed the read-only final measurement: GREEN-08 is live-reproved and GREEN-07 remains Pending on exact ancestry with no remote mutation. |
+| 198. Green Bringup | v1.41 | 51/52 | Blocked | Plan 198-51 recorded `abort`; Plan 198-52 cannot execute because six remote `ci/198-*` refs exist while mutation authority covers only three. GREEN-12 remains Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
