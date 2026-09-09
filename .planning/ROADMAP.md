@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 55 plans — 51 executed, Plan 52 preserved as inapplicable after the Plan-51 `abort`, 3 additive round-11 plans ready
+**Plans**: 55 plans — 51 executed, Plan 52 completed by a non-execution supersession tombstone after the Plan-51 `abort`, 3 additive round-11 plans ready
 
 Plans:
 **Wave 1**
@@ -314,25 +314,25 @@ Plans:
 - [x] 198-49-PLAN.md — Enforce strict evidence joins and restrict exact-main GitHub observation to fixed read-only operations (wave 1)
 - [x] 198-50-PLAN.md — Prove row-history focus sensitivity with a deterministic RED control and durable measured geometry evidence (wave 1)
 - [x] 198-51-PLAN.md — Inventory three proposed stale-ref targets and record the maintainer's verbatim `abort` after discovering a six-ref remote namespace (wave 2)
-- [ ] 198-52-PLAN.md — **Inapplicable; preserved as superseded history.** Its exact-three authority and all-namespace-empty final predicate cannot both be satisfied after Plan 51's `abort` (wave 3)
+- [x] 198-52-PLAN.md — **Inapplicable; completed by non-execution supersession tombstone.** Its exact-three authority and all-namespace-empty final predicate cannot both be satisfied after Plan 51's `abort`; no task or mutation ran (wave 3)
 
 #### Gap-closure round 11 — complete stale-ref scope and preservation-first disposition (plans 198-53 through 198-55)
 
-**Wave 4** *(blocked only on completed Plan 198-51; supersedes Plan 52 without editing it)*
+**Wave 3** *(blocked only on completed Plan 198-51; Plan 52 is non-runnable via its append-only supersession summary)*
 
-- [ ] 198-53-PLAN.md — **Tracer:** replace the branch-name assumption with a complete six-ref/distinct-object inventory, retain round-10 compatibility, and seal a fresh decision packet without mutation (wave 4)
+- [ ] 198-53-PLAN.md — **Tracer:** replace the branch-name assumption with a complete six-ref/distinct-object inventory, retain round-10 compatibility, and seal a fresh decision packet without mutation (wave 3)
 
-**Wave 5** *(blocked on 198-53)*
+**Wave 4** *(blocked on 198-53)*
 
-- [ ] 198-54-PLAN.md — Blocking-human maintainer decision over the exact complete subject set; only verbatim `retire` can authorize execution (wave 5)
+- [ ] 198-54-PLAN.md — Blocking-human maintainer decision over the exact complete subject set; only verbatim `retire` can authorize execution (wave 4)
 
-**Wave 6** *(blocked on a validated `retire` from 198-54)*
+**Wave 5** *(blocked on a validated `retire` from 198-54)*
 
-- [ ] 198-55-PLAN.md — Preserve every distinct tip with verified local/origin annotated tags and D-31 register rows, then retire exact stale handles and prove GREEN-12 from live-derived empty namespaces (wave 6)
+- [ ] 198-55-PLAN.md — Preserve every distinct tip with verified local/origin annotated tags and D-31 register rows, then retire exact stale handles and prove GREEN-12 from live-derived empty namespaces (wave 5)
 
 **Round-11 notes:**
 
-- Plan 52 remains on disk and unexecuted. Round 11 appends a superseding contract because its preconditions cannot genuinely be satisfied; Plans 48-51 and their completed evidence are untouched.
+- Plan 52 remains on disk and unexecuted, with `198-52-SUMMARY.md` as the executor-recognized non-execution supersession record. Round 11 supplies the replacement contract because Plan 52's preconditions cannot genuinely be satisfied; Plans 48-51 and their completed evidence are untouched.
 - The live remote namespace currently contains six `ci/198-*` refs while the local namespace contains three. `ci/198-gap-closure` has divergent local/remote tips, so preservation authority is object-based (side + full SHA), not branch-name-based.
 - No branch, PR, tag, `main`, ruleset, protection, required-check, or workflow mutation is inferred. Plan 54 is a `blocking-human` decision even in auto mode; `preserve` or `abort` leaves Plan 55 blocked and GREEN-12 Pending.
 - GREEN-07 remains Pending under D-39 and current exact-main evidence. Round 11 cannot merge, push main, alter protection, or restate roadmap criterion 3 as met.
@@ -541,7 +541,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 51/55 | In progress | Plan 198-52 is preserved as inapplicable; additive Plans 198-53..55 re-inventory the complete namespace, obtain fresh blocking-human authority, and close GREEN-12 only after preservation-first proof. |
+| 198. Green Bringup | v1.41 | 52/55 | In progress | Plan 198-52 has an executor-recognized non-execution supersession summary; additive Plans 198-53..55 re-inventory the complete namespace, obtain fresh blocking-human authority, and close GREEN-12 only after preservation-first proof. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
