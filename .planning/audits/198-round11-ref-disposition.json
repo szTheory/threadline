@@ -192,6 +192,83 @@
       }
     ]
   },
-  "execution": null,
-  "command_receipts": []
+  "execution": {
+    "status": "retiring",
+    "started_at": "2026-09-09T22:35:59Z",
+    "task1_baseline": {
+      "active_branch": "phase-199/scroll-cost-cause-fix",
+      "active_head_sha": "29004314d96358cf87de0a6ed095ad6312b89d37",
+      "upstream": "origin/phase-199/scroll-cost-cause-fix",
+      "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
+    },
+    "task2_baseline": null,
+    "completed_targets": ["ci/198-gap-closure"],
+    "final_live_state": null
+  },
+  "command_receipts": [
+    {
+      "seq": 1,
+      "type": "local-annotated-tag",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 2,
+      "type": "remote-single-tag",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 3,
+      "type": "archive-register-row",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 4,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 5,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 6,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 7,
+      "type": "pr-close",
+      "target": "ci/198-gap-closure",
+      "pr": 29
+    },
+    {
+      "seq": 8,
+      "type": "remote-ref-delete",
+      "target": "ci/198-gap-closure"
+    },
+    {
+      "seq": 9,
+      "type": "local-ref-delete",
+      "target": "ci/198-gap-closure"
+    }
+  ]
 }

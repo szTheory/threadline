@@ -139,3 +139,40 @@ It does not itself mutate any branch, pull request, tag, `main`, ruleset, or pro
   ]
 }
 -->
+
+## Ordered execution receipts
+
+Execution began at `2026-09-09T22:35:59Z` after a fresh live authority check. Task 1 pinned this
+no-mutation baseline: branch `phase-199/scroll-cost-cause-fix`, HEAD
+`29004314d96358cf87de0a6ed095ad6312b89d37`, upstream
+`origin/phase-199/scroll-cost-cause-fix`, upstream SHA
+`46213f9bc0ecbff356058d317c882d5a643ae86f`.
+
+<!-- execution-start: 2026-09-09T22:35:59Z|phase-199/scroll-cost-cause-fix|29004314d96358cf87de0a6ed095ad6312b89d37|origin/phase-199/scroll-cost-cause-fix|46213f9bc0ecbff356058d317c882d5a643ae86f -->
+
+1. `local-annotated-tag` — `archive/ci/198-gap-closure/local-ffcff0d16133` peels to `ffcff0d1613381950cfb6baad93e90aee19dcece`.
+<!-- receipt: 1|local-annotated-tag|local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece|archive/ci/198-gap-closure/local-ffcff0d16133|ffcff0d1613381950cfb6baad93e90aee19dcece -->
+
+2. `remote-single-tag` — pushed only `archive/ci/198-gap-closure/local-ffcff0d16133`; its remote peeled object is `ffcff0d1613381950cfb6baad93e90aee19dcece`.
+<!-- receipt: 2|remote-single-tag|local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece|archive/ci/198-gap-closure/local-ffcff0d16133|ffcff0d1613381950cfb6baad93e90aee19dcece -->
+
+3. `archive-register-row` — D-31 row joins the local divergent subject, archive tag, exact SHA, and restore command.
+<!-- receipt: 3|archive-register-row|local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece|archive/ci/198-gap-closure/local-ffcff0d16133|ffcff0d1613381950cfb6baad93e90aee19dcece -->
+
+4. `local-annotated-tag` — `archive/ci/198-gap-closure/origin-f748e43d7e4c` peels to `f748e43d7e4c1e63a0142569a55f57c7187e5cb1`.
+<!-- receipt: 4|local-annotated-tag|origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1|archive/ci/198-gap-closure/origin-f748e43d7e4c|f748e43d7e4c1e63a0142569a55f57c7187e5cb1 -->
+
+5. `remote-single-tag` — pushed only `archive/ci/198-gap-closure/origin-f748e43d7e4c`; its remote peeled object is `f748e43d7e4c1e63a0142569a55f57c7187e5cb1`.
+<!-- receipt: 5|remote-single-tag|origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1|archive/ci/198-gap-closure/origin-f748e43d7e4c|f748e43d7e4c1e63a0142569a55f57c7187e5cb1 -->
+
+6. `archive-register-row` — D-31 row joins the origin divergent subject, archive tag, exact SHA, and restore command.
+<!-- receipt: 6|archive-register-row|origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1|archive/ci/198-gap-closure/origin-f748e43d7e4c|f748e43d7e4c1e63a0142569a55f57c7187e5cb1 -->
+
+7. `pr-close` — closed exact associated stale PR #29 without deleting its branch through the PR operation.
+<!-- receipt: 7|pr-close|ci/198-gap-closure|29 -->
+
+8. `remote-ref-delete` — deleted only `refs/heads/ci/198-gap-closure` after both archive objects were verified.
+<!-- receipt: 8|remote-ref-delete|ci/198-gap-closure -->
+
+9. `local-ref-delete` — non-force deleted only local `ci/198-gap-closure` after both archive objects were verified.
+<!-- receipt: 9|local-ref-delete|ci/198-gap-closure -->
