@@ -1,20 +1,103 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 GH_BIN=${GH_BIN:-gh}
-sha="" format=text
-while [ "$#" -gt 0 ]; do case "$1" in --sha) sha=${2-}; shift 2;; --format) format=${2-}; shift 2;; *) echo "observe-main-ci: unknown argument $1" >&2; exit 1;; esac; done
-printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$' || { echo "observe-main-ci: --sha must be 40 lowercase hex" >&2; exit 1; }
-runs=$("$GH_BIN" run list --workflow .github/workflows/ci.yml --branch main --event push --limit 100 --json databaseId,headSha,status,conclusion,createdAt)
+sha=""
+format=text
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --sha)
+      [ "$#" -ge 2 ] || { echo "observe-main-ci: --sha requires a value" >&2; exit 1; }
+      sha=$2
+      shift 2
+      ;;
+    --format)
+      [ "$#" -ge 2 ] || { echo "observe-main-ci: --format requires a value" >&2; exit 1; }
+      format=$2
+      shift 2
+      ;;
+    *)
+      echo "observe-main-ci: unknown argument $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+case "$format" in
+  json | text) ;;
+  *) echo "observe-main-ci: --format must be json or text" >&2; exit 1 ;;
+esac
+
+printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$' || {
+  echo "observe-main-ci: --sha must be 40 lowercase hex" >&2
+  exit 1
+}
+
+# The GitHub boundary is intentionally closed over two symbolic read operations.
+# Callers cannot provide flags, verbs, resource paths, or arbitrary extra arguments.
+gh_read() {
+  local operation=$1
+  case "$operation" in
+    list-main-runs)
+      [ "$#" -eq 1 ] || { echo "observe-main-ci: list-main-runs takes no arguments" >&2; return 1; }
+      "$GH_BIN" run list \
+        --workflow .github/workflows/ci.yml \
+        --branch main \
+        --event push \
+        --limit 100 \
+        --json databaseId,headSha,status,conclusion,createdAt
+      ;;
+    view-run-jobs)
+      [ "$#" -eq 2 ] || { echo "observe-main-ci: view-run-jobs requires one run ID" >&2; return 1; }
+      local run_id=$2
+      printf '%s' "$run_id" | grep -Eq '^[0-9]+$' || {
+        echo "observe-main-ci: run databaseId must be decimal digits" >&2
+        return 1
+      }
+      "$GH_BIN" run view "$run_id" --json jobs
+      ;;
+    *)
+      echo "observe-main-ci: rejected unknown read operation: $operation" >&2
+      return 1
+      ;;
+  esac
+}
+
+runs=$(gh_read list-main-runs)
 row=$(printf '%s' "$runs" | jq -c --arg sha "$sha" '[.[] | select(.headSha == $sha)] | sort_by([.createdAt,.databaseId]) | last // null')
-if [ "$row" = null ]; then result=$(jq -cn --arg sha "$sha" '{schema:"threadline.main-ci-observation/1",sha:$sha,state:"not_observed",selected_id:null,status:null,conclusion:null,jobs:0,ci_required_count:0,ci_required_conclusion:null}');
+
+if [ "$row" = null ]; then
+  result=$(jq -cn --arg sha "$sha" '{schema:"threadline.main-ci-observation/1",sha:$sha,state:"not_observed",selected_id:null,status:null,conclusion:null,jobs:0,ci_required_count:0,ci_required_conclusion:null}')
 else
-  id=$(printf '%s' "$row" | jq -r .databaseId); status=$(printf '%s' "$row" | jq -r .status); conclusion=$(printf '%s' "$row" | jq -r '.conclusion // ""')
-  count=0; aggregate=""; jobs_count=0; state=incomplete
+  id=$(printf '%s' "$row" | jq -r .databaseId)
+  printf '%s' "$id" | grep -Eq '^[0-9]+$' || {
+    echo "observe-main-ci: selected run databaseId must be decimal digits" >&2
+    exit 1
+  }
+  status=$(printf '%s' "$row" | jq -r .status)
+  conclusion=$(printf '%s' "$row" | jq -r '.conclusion // ""')
+  count=0
+  aggregate=""
+  jobs_count=0
+  state=incomplete
+
   if [ "$status" = completed ]; then
-    jobs=$("$GH_BIN" run view "$id" --json jobs); jobs_count=$(printf '%s' "$jobs" | jq -e '.jobs | length'); count=$(printf '%s' "$jobs" | jq '[.jobs[] | select(.name == "CI required")] | length')
+    jobs=$(gh_read view-run-jobs "$id")
+    jobs_count=$(printf '%s' "$jobs" | jq -e '.jobs | length')
+    count=$(printf '%s' "$jobs" | jq '[.jobs[] | select(.name == "CI required")] | length')
     [ "$count" -eq 1 ] && aggregate=$(printf '%s' "$jobs" | jq -r '[.jobs[] | select(.name == "CI required")][0].conclusion // ""')
-    if [ "$conclusion" = success ] && [ "$jobs_count" -gt 0 ] && [ "$count" -eq 1 ] && [ "$aggregate" = success ]; then state=success; else state=failure; fi
+    if [ "$conclusion" = success ] && [ "$jobs_count" -gt 0 ] && [ "$count" -eq 1 ] && [ "$aggregate" = success ]; then
+      state=success
+    else
+      state=failure
+    fi
   fi
   result=$(jq -cn --arg sha "$sha" --argjson id "$id" --arg status "$status" --arg conclusion "$conclusion" --arg state "$state" --argjson jobs "$jobs_count" --argjson count "$count" --arg aggregate "$aggregate" '{schema:"threadline.main-ci-observation/1",sha:$sha,state:$state,selected_id:$id,status:$status,conclusion:(if ($conclusion|length)>0 then $conclusion else null end),jobs:$jobs,ci_required_count:$count,ci_required_conclusion:(if ($aggregate|length)>0 then $aggregate else null end)}')
 fi
-if [ "$format" = json ]; then printf '%s\n' "$result"; else printf '%s\n' "$result" | jq .; fi
+
+if [ "$format" = json ]; then
+  printf '%s\n' "$result"
+else
+  printf '%s\n' "$result" | jq .
+fi
