@@ -176,3 +176,76 @@ no-mutation baseline: branch `phase-199/scroll-cost-cause-fix`, HEAD
 
 9. `local-ref-delete` — non-force deleted only local `ci/198-gap-closure` after both archive objects were verified.
 <!-- receipt: 9|local-ref-delete|ci/198-gap-closure -->
+
+Task 2 pinned a fresh no-mutation baseline after the tracer commit: branch
+`phase-199/scroll-cost-cause-fix`, HEAD `ce5bd1ffeaa1d5af7c98df4c6847c49642a3a9c6`, upstream
+`origin/phase-199/scroll-cost-cause-fix`, upstream SHA
+`46213f9bc0ecbff356058d317c882d5a643ae86f`.
+<!-- task2-baseline: phase-199/scroll-cost-cause-fix|ce5bd1ffeaa1d5af7c98df4c6847c49642a3a9c6|origin/phase-199/scroll-cost-cause-fix|46213f9bc0ecbff356058d317c882d5a643ae86f -->
+
+10. `local-annotated-tag` — `archive/ci/198-05-verify/origin-d941ae1050c6` peels to `d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc`.
+<!-- receipt: 10|local-annotated-tag|origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc|archive/ci/198-05-verify/origin-d941ae1050c6|d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc -->
+11. `remote-single-tag` — pushed only that tag; remote peeled SHA matches exactly.
+<!-- receipt: 11|remote-single-tag|origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc|archive/ci/198-05-verify/origin-d941ae1050c6|d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc -->
+12. `archive-register-row` — D-31 row joins the remote-only subject without fabricating a PR.
+<!-- receipt: 12|archive-register-row|origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc|archive/ci/198-05-verify/origin-d941ae1050c6|d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc -->
+13. `remote-ref-delete` — deleted only remote `ci/198-05-verify`; no PR-close receipt exists because the subject has no PR.
+<!-- receipt: 13|remote-ref-delete|ci/198-05-verify -->
+14. `local-annotated-tag` — round-3 archive peels to its exact origin subject SHA.
+<!-- receipt: 14|local-annotated-tag|origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115|archive/ci/198-round3/origin-80bf701e7486|80bf701e7486962e538d16f213874cbba8f24115 -->
+15. `remote-single-tag` — pushed only the round-3 archive tag; remote peeled SHA matches.
+<!-- receipt: 15|remote-single-tag|origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115|archive/ci/198-round3/origin-80bf701e7486|80bf701e7486962e538d16f213874cbba8f24115 -->
+16. `archive-register-row` — D-31 row joins the round-3 origin subject.
+<!-- receipt: 16|archive-register-row|origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115|archive/ci/198-round3/origin-80bf701e7486|80bf701e7486962e538d16f213874cbba8f24115 -->
+17. `pr-close` — closed exact associated stale PR #30.
+<!-- receipt: 17|pr-close|ci/198-round3|30 -->
+18. `remote-ref-delete` — deleted only remote `ci/198-round3` after preservation.
+<!-- receipt: 18|remote-ref-delete|ci/198-round3 -->
+19. `local-annotated-tag` — round-4 archive peels to its exact origin subject SHA.
+<!-- receipt: 19|local-annotated-tag|origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6|archive/ci/198-round4/origin-f433ef3ea6fd|f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6 -->
+20. `remote-single-tag` — pushed only the round-4 archive tag; remote peeled SHA matches.
+<!-- receipt: 20|remote-single-tag|origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6|archive/ci/198-round4/origin-f433ef3ea6fd|f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6 -->
+21. `archive-register-row` — D-31 row joins the round-4 origin subject.
+<!-- receipt: 21|archive-register-row|origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6|archive/ci/198-round4/origin-f433ef3ea6fd|f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6 -->
+22. `pr-close` — closed exact associated stale PR #31.
+<!-- receipt: 22|pr-close|ci/198-round4|31 -->
+23. `remote-ref-delete` — deleted only remote `ci/198-round4` after preservation.
+<!-- receipt: 23|remote-ref-delete|ci/198-round4 -->
+24-26. Round-5 local subject: local annotated tag, exact single-tag push, and D-31 register join all equal `14f923a71c0901cd5f95fc3a72e0971b05861543`.
+<!-- receipt: 24|local-annotated-tag|local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/local-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+<!-- receipt: 25|remote-single-tag|local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/local-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+<!-- receipt: 26|archive-register-row|local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/local-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+27-29. Round-5 origin subject: independent local annotated tag, exact single-tag push, and D-31 register join equal the same SHA.
+<!-- receipt: 27|local-annotated-tag|origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/origin-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+<!-- receipt: 28|remote-single-tag|origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/origin-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+<!-- receipt: 29|archive-register-row|origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543|archive/ci/198-round5/origin-14f923a71c09|14f923a71c0901cd5f95fc3a72e0971b05861543 -->
+30. `pr-close` — closed exact stale PR #32.
+<!-- receipt: 30|pr-close|ci/198-round5|32 -->
+31. `remote-ref-delete` — deleted only remote `ci/198-round5` after both tag/register paths passed.
+<!-- receipt: 31|remote-ref-delete|ci/198-round5 -->
+32. `local-ref-delete` — non-force deleted only local `ci/198-round5` after preservation.
+<!-- receipt: 32|local-ref-delete|ci/198-round5 -->
+33-35. Round-6 local subject: local annotated tag, exact single-tag push, and D-31 register join all equal `23c16267d11a63858aad23eab63c9fbfc385ef4b`.
+<!-- receipt: 33|local-annotated-tag|local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/local-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+<!-- receipt: 34|remote-single-tag|local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/local-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+<!-- receipt: 35|archive-register-row|local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/local-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+36-38. Round-6 origin subject: independent local annotated tag, exact single-tag push, and D-31 register join equal the same SHA.
+<!-- receipt: 36|local-annotated-tag|origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/origin-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+<!-- receipt: 37|remote-single-tag|origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/origin-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+<!-- receipt: 38|archive-register-row|origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/origin-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+39. `pr-close` — closed exact stale PR #33.
+<!-- receipt: 39|pr-close|ci/198-round6|33 -->
+40. `remote-ref-delete` — deleted only remote `ci/198-round6` after both tag/register paths passed.
+<!-- receipt: 40|remote-ref-delete|ci/198-round6 -->
+41. `local-ref-delete` — non-force deleted only local `ci/198-round6` after preservation.
+<!-- receipt: 41|local-ref-delete|ci/198-round6 -->
+
+## Final GREEN-12 verdict
+
+**Complete at `2026-09-09T23:01:06Z`.** Live-derived local and origin `ci/198-*` branch sets are
+empty. PRs #29-#33 are closed. All nine preservation subjects have matching local annotated tags,
+origin peeled objects, and D-31 register joins. Exactly one worktree remains. `origin/main`, PR
+#34, required contexts, ruleset/protection, and the Task 2 active branch/upstream baseline are
+unchanged. GREEN-07 remains Pending.
+
+<!-- final-live-state: local=0|remote=0|closed-prs=29,30,31,32,33|archive-subjects=9|worktrees=1|green07=Pending|controls=unchanged -->
