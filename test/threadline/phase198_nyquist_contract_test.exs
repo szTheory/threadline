@@ -95,11 +95,19 @@ defmodule Threadline.Phase198NyquistContractTest do
 
     for {ref, sha} <- Enum.map(refs, &List.to_tuple/1) do
       tag = "archive/#{ref}"
-      {object, 0} = System.cmd("git", ["rev-parse", "#{tag}^{}"], stderr_to_stdout: true)
-      assert String.trim(object) == sha
+      assert_archive_tag!(tag, sha)
+    end
+  end
 
-      {type, 0} = System.cmd("git", ["cat-file", "-t", tag], stderr_to_stdout: true)
-      assert String.trim(type) == "tag", "#{tag} must remain annotated"
+  test "GREEN-12 archive diagnostics identify missing and lightweight refs" do
+    assert_raise ExUnit.AssertionError, ~r/archive\/missing-contract-fixture.*missing tag object/s, fn ->
+      assert_archive_tag!("archive/missing-contract-fixture", String.duplicate("0", 40))
+    end
+
+    {head, 0} = System.cmd("git", ["rev-parse", "HEAD"], stderr_to_stdout: true)
+
+    assert_raise ExUnit.AssertionError, ~r/HEAD.*annotated tag/s, fn ->
+      assert_archive_tag!("HEAD", String.trim(head))
     end
   end
 
@@ -109,5 +117,22 @@ defmodule Threadline.Phase198NyquistContractTest do
     {output, status} = System.cmd(script, ["--policy", policy, "--format", "json"])
     assert status == 0
     assert Jason.decode!(output)["checks"]["failed"] == 0
+  end
+
+  defp assert_archive_tag!(tag, expected_sha) do
+    case System.cmd("git", ["rev-parse", "--verify", "#{tag}^{}"], stderr_to_stdout: true) do
+      {object, 0} ->
+        assert String.trim(object) == expected_sha,
+               "#{tag} resolves to #{String.trim(object)}, expected #{expected_sha}"
+
+      {output, _status} ->
+        flunk("#{tag}: missing tag object (#{String.trim(output)})")
+    end
+
+    case System.cmd("git", ["cat-file", "-t", tag], stderr_to_stdout: true) do
+      {"tag\n", 0} -> :ok
+      {type, 0} -> flunk("#{tag}: expected annotated tag, got #{String.trim(type)}")
+      {output, _status} -> flunk("#{tag}: missing tag object (#{String.trim(output)})")
+    end
   end
 end

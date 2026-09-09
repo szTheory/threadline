@@ -127,6 +127,26 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.doc_contract")
   end
 
+  test "verify-test checkout includes complete history and annotated tags" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert [_, block] =
+             Regex.run(
+               ~r/^  verify-test:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n)/m,
+               yaml
+             ),
+           "verify-test job is missing"
+
+    assert Regex.match?(
+             ~r/^      - uses: actions\/checkout@v5\n        with:\n          fetch-depth: 0\s*$/m,
+             block
+           ),
+           "verify-test must fetch full history so archive tag objects are present"
+
+    refute Regex.match?(~r/^\s+fetch-tags:\s*false\s*$/m, block),
+           "verify-test must not disable tag fetching"
+  end
+
   # Globs BOTH extensions on purpose. GitHub Actions honours .yaml as well as
   # .yml, so a guard that only globbed .yml could be defeated by a rename.
   defp workflow_paths do
