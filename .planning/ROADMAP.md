@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 42 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7) — 40 executed, 2 planned
+**Plans**: 46 plans (7 executed + 6 gap-closure + 5 gap-closure round 2 + 4 gap-closure round 3 + 7 gap-closure round 4 + 8 gap-closure round 5 + 3 gap-closure round 6 + 2 gap-closure round 7 + 4 gap-closure round 8) — 42 executed, 4 planned
 
 Plans:
 **Wave 1**
@@ -274,6 +274,25 @@ Plans:
 - **Why no Round-7 merge route closes the literal requirement:** ruleset 21702804 requires linear history. A merge commit preserves original commit identities but violates that rule; squash and rebase preserve linearity but replace identities. An exact fast-forward can land only the SHA available at push time and cannot contain later GSD task/summary commits. Plans 198-41/42 therefore perform no push or ruleset mutation and preserve GREEN-07 Pending. Any future remote mutation requires a new explicit blocking maintainer checkpoint.
 - **No new implementation gap is manufactured from UAT.** The remaining human-judgment rows stay pending for ratification, and `198-07 D3` / `198-18 D3` remain unchanged because Round 7 produces no qualifying landed-main run.
 - **No package, schema-push, UI, or product external-API work exists in this round.** `COVERAGE.md` remains valid. The assumption-delta decision is `no-change`: the single emitted/required `CI required` contract and the derived evidence model are preserved.
+
+#### Gap-closure round 8 — zero-human UAT (plans 198-43 .. 198-46)
+
+**Wave 1** *(fully parallel — disjoint implementation files)*
+
+- [ ] 198-43-PLAN.md — **Tracer:** extract fixture-testable CI issue upsert, exercise Playwright fail-fast/trace retention hermetically, and prove the release control plane without publishing or live-event observation (wave 1)
+- [ ] 198-44-PLAN.md — Encode sizing, lane/root-cause, timeout, population, prediction, attestation, and requirements-consistency policy as deterministic evaluators, including an exact-SHA read-only main-CI observer (wave 1)
+- [ ] 198-45-PLAN.md — Establish and fix the unresolved mobile row-history focus failure at cause with red-control and repeated focused E2E proof (wave 1)
+
+**Wave 2** *(blocked on 198-43, 198-44, and 198-45)*
+
+- [ ] 198-46-PLAN.md — Attach executable evidence to all 15 former human coverage rows, regenerate UAT with zero pending checkpoints, supersede the ratification proposal, and install a zero-human regression gate (wave 2)
+
+**Round-8 notes:**
+
+- **Maintainer policy: zero seconds of recurring human verification/UAT.** The 15 remaining checkpoints are automation gaps, not a ratification queue. Integration, E2E, smoke, fixture, and evidence-contract tests replace each prompt.
+- **Automatic does not mean automatically green.** Event-dependent states emit `success`, `failure`, `incomplete`, or `not_observed`; the automation may pass because it reports the evidence correctly while GREEN-07 remains Pending under its unchanged exact-main predicates.
+- **Release approval is operational control, not UAT.** The production-hex required-reviewer rule remains intact; its wiring is tested without publishing, approving, dispatching, or mutating the GitHub Environment.
+- **No gate weakening or evidence laundering.** Required-check membership, failure caps, assertions, historical misses, and D-39 remain intact unless their own automated evidence supports a change.
 
 **Round-6 notes:**
 
