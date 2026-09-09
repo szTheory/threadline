@@ -1,3 +1,11 @@
+# SUPERSEDED — zero-human Phase 198 UAT
+
+**Status: SUPERSEDED on 2026-09-08.** The user directed a shift-left integration/E2E/smoke policy with a goal of zero seconds of human verification or UAT. Plans 198-43 through 198-46 replaced every checkpoint below with executable control-path, evidence-policy, observer, or focused E2E verification and installed a repository contract requiring all Phase 198 coverage to classify as automated and passing.
+
+This proposal is retained verbatim below as historical context. It is not active work and must not be used to reintroduce recurring human ratification.
+
+---
+
 # 199-RATIFICATION — the nine irreducible Phase 198 checkpoints
 
 **Status: AWAITING MAINTAINER.** Drafted by the phase-199 executor; not decided.
