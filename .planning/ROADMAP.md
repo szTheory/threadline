@@ -328,7 +328,7 @@ Plans:
 
 **Wave 5** *(blocked on a validated `retire` from 198-54)*
 
-- [ ] 198-55-PLAN.md — Preserve every distinct tip with verified local/origin annotated tags and D-31 register rows, then retire exact stale handles and prove GREEN-12 from live-derived empty namespaces (wave 5)
+- [x] 198-55-PLAN.md — Preserve every distinct tip with verified local/origin annotated tags and D-31 register rows, then retire exact stale handles and prove GREEN-12 from live-derived empty namespaces (wave 5)
 
 **Round-11 notes:**
 
@@ -541,7 +541,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 54/55 | In progress | Plan 198-54 recorded fresh digest-bound `retire` authority over the exact complete subject set; Plan 198-55 must preserve every subject before retiring stale handles and closing GREEN-12. |
+| 198. Green Bringup | v1.41 | 55/55 | In progress | All plans complete; Plan 198-55 preserved every round-11 subject before retiring the exact stale handles and proved GREEN-12 from live empty namespaces. Ready for phase verification. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

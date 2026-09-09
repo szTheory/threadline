@@ -150,7 +150,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-09 | Phase 198 | Gaps Found |
 | GREEN-10 | Phase 198 | Gaps Found |
 | GREEN-11 | Phase 198 | Gaps Found |
-| GREEN-12 | Phase 198 | Gaps Found |
+| GREEN-12 | Phase 198 | Complete |
 | GREEN-01, 02, 03, 05, 06, 09, 10, 11, 12 (round 6) | Phase 198 | Carried forward unchanged — no new work, no satisfying files touched — see 198-CI-MEASUREMENT.md Round 6 section |
 | DECOUPLE-01 | Phase 199 | Pending |
 | DECOUPLE-02 | Phase 199 | Pending |
