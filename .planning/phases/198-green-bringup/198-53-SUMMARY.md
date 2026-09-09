@@ -122,7 +122,21 @@ status: complete
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Corrected stale state plan position**
+
+- **Found during:** Sequential closeout
+- **Issue:** `state.advance-plan` parsed the legacy body position as Plan 1 and advanced it to Plan
+  2 even though 53 of 55 canonical summaries exist.
+- **Fix:** Reconciled the disk-backed position to Plan 53 of 55 and made Plan 54 the explicit next
+  authority checkpoint; removed the superseded Plan-52 scope conflict from active blockers.
+- **Files modified:** `.planning/STATE.md`
+- **Verification:** 53 matching summary files exist for 55 plan files; Plans 54-55 have no summary.
+
+**Total deviations:** 1 auto-fixed (1 state synchronization bug).
+**Impact on plan:** Metadata now reports actual sequential progress; no product or external state
+changed.
 
 ## Issues Encountered
 

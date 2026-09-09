@@ -320,7 +320,7 @@ Plans:
 
 **Wave 3** *(blocked only on completed Plan 198-51; Plan 52 is non-runnable via its append-only supersession summary)*
 
-- [ ] 198-53-PLAN.md — **Tracer:** replace the branch-name assumption with a complete six-ref/distinct-object inventory, retain round-10 compatibility, and seal a fresh decision packet without mutation (wave 3)
+- [x] 198-53-PLAN.md — **Tracer:** replace the branch-name assumption with a complete six-ref/distinct-object inventory, retain round-10 compatibility, and seal a fresh decision packet without mutation (wave 3)
 
 **Wave 4** *(blocked on 198-53)*
 

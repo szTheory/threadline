@@ -4,17 +4,17 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
-status: blocked
-stopped_at: Completed 198-51-PLAN.md with abort; 198-52 blocked
-last_updated: "2026-09-09T21:41:19.151Z"
+status: executing
+stopped_at: Completed 198-53-PLAN.md
+last_updated: "2026-09-09T22:11:08.160Z"
 last_activity: 2026-09-09
-last_activity_desc: Phase 198 Plan 51 recorded abort; Plan 52 blocked pending corrected scope and authority
-state_head: 2a3bc56f9075361ed754f217b6edbf79e9dd4844
+last_activity_desc: Phase 198 Plan 53 completed the round-11 inventory and fixture-proven validator lifecycle; GREEN-12 awaits Plans 54-55
+state_head: 8ec31a7a2efba0e8d5e620a6ff1169c8ba885281
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 55
-  completed_plans: 51
+  completed_plans: 53
   percent: 0
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (Green Bringup) — READY TO EXECUTE
-Plan: 51 of 52
-Status: Plan 51 completed with `abort`; Plan 52 is not authorized to execute
+Phase: 198 (Green Bringup) — EXECUTING
+Plan: 53 of 55
+Status: Plan 53 complete; ready for Plan 54 fresh-authority checkpoint
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -97,6 +97,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P49 | 15 min | 2 tasks | 5 files |
 | Phase 198 P50 | 15 min | 2 tasks | 4 files |
 | Phase 198 P51 | 30 min | 2 tasks | 5 files |
+| Phase 198 P53 | 24 min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -497,16 +498,17 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: [198-50] Persist synthetic DOM identifiers and geometry only; exclude field values, cookies, headers, credentials, and environment data.
 - [Phase 198]: Plan 198-51: maintainer selected abort verbatim; no branch, PR, tag, main, ruleset, or protection mutation authority was granted.
 - [Phase 198]: Plan 198-52 must not execute: six remote ci/198-* refs exist while its decision authority covers only three and its final predicate requires the complete namespace empty.
+- [Phase 198]: A preservation subject is keyed by side plus full SHA, so same-name local and origin refs never collapse. — Distinct handles require collision-free archive and restore paths.
+- [Phase 198]: Plan 52 remains preserved but superseded; round-11 production evidence grants no mutation authority. — Fresh exact-subject authority is deferred to Plan 54.
 
 ### Blockers
 
 - `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
-- Phase 198 Plan 52 blocked by Plan 51 abort and scope mismatch: 6 remote ci/198-* refs exist, but exact mutation authority names only 3.
 
 ## Session Continuity
 
-**Last session:** 2026-09-09T18:24:01.490Z
-**Stopped at:** Completed 198-51-PLAN.md with abort; 198-52 blocked
+**Last session:** 2026-09-09T22:11:08.107Z
+**Stopped at:** Completed 198-53-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

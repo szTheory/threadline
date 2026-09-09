@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 22
+open_count: 23
 waived_count: 0
 fixed_count: 1
-total_count: 23
-last_updated: 2026-08-30T21:30:00.000Z
+total_count: 24
+last_updated: 2026-09-09T22:11:55.348Z
 ---
 
 # Broken Windows Ledger
@@ -38,6 +38,7 @@ last_updated: 2026-08-30T21:30:00.000Z
 | 21 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 38 | SETTLES entry #11/#13 (round 5): plan 198-31 fixed the /Expired\|File unavailable/ regex, re-anchoring it to /Export expired\|File unavailable/ (commit 82a517a0), same cause and fix as entry #20 (accessibility spec). Local re-run passed both projects (198-31-SUMMARY.md). Entries #11/#13's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:16.948Z |  |
 | 22 | 198 | deviation | examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs | 56 | SETTLES entry #18 (round 5): plan 198-30 moved the cold MIX_ENV=prod mix compile out of the per-test ExUnit timeout budget into a setup_all block (commit 1fe99275), eliminating the 60000ms ExUnit.TimeoutError this entry recorded. Measured cold compile=30.3s, warm=0.73s, warm guard-only mix demo.reset=0.748s (comfortably inside the 60000ms default; no @tag timeout: needed). Local mix verify.example = 109/0 twice, per D-01 a readiness signal only -- the measured-CI re-run is plan 198-37's concern, not proven closed here. Entry #18's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:24.387Z |  |
 | 23 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts | 577 | SETTLES entry #19 (round 5): plan 198-31 established the cause (the shared expectOperatorChrome helper's mobile-nav-toggle click firing the row-history drawer's own phx-click-away, row_history_component.ex, dismissing the drawer and navigating away before the Row history heading assertion runs), confirmed by direct standalone reproduction outside the harness, and fixed at cause test-side with a scoped exerciseMobileNav opt-out for the row-history route (commit 887198c6). This was a fix at cause, not an honest halt -- no lib/ file was touched. Local re-run passed both projects across 3 repeated runs (.planning/audits/198-round5-playwright.md, 198-31-SUMMARY.md coverage D2). Entry #19's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:31.136Z |  |
+| 24 | 198 | deviation | .planning/STATE.md |  | state.advance-plan parsed legacy body position and required reconciliation to Plan 53 of 55 | open |  | 2026-09-09T22:11:55.348Z |  |
 
 ````json
 [
@@ -315,6 +316,18 @@ last_updated: 2026-08-30T21:30:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-30T21:16:31.136Z",
+    "resolved_at": null
+  },
+  {
+    "id": 24,
+    "kind": "deviation",
+    "phase": "198",
+    "file": ".planning/STATE.md",
+    "line": null,
+    "description": "state.advance-plan parsed legacy body position and required reconciliation to Plan 53 of 55",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T22:11:55.348Z",
     "resolved_at": null
   }
 ]
