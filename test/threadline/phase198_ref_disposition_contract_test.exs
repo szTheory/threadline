@@ -169,6 +169,92 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     end)
   end
 
+  test "production lifecycle stages reject fixture adapters and disabled live observation" do
+    with_round11_lifecycle(fn fixture ->
+      target = hd(fixture.targets)
+
+      invocations = [
+        {"decision", fixture.decided, fixture.live_initial, []},
+        {"authority", fixture.decided, fixture.live_initial, ["--target", target]},
+        {"controls", fixture.decided, fixture.live_initial, []},
+        {"post-target", fixture.post[target], fixture.live_post[target],
+         ["--target", target, "--register", fixture.register]},
+        {"final", fixture.final, fixture.live_final, ["--register", fixture.register]}
+      ]
+
+      for {stage, inventory, live, extra} <- invocations do
+        {fixture_output, fixture_status} =
+          run_production_stage(stage, inventory, fixture.decided_md, extra,
+            PHASE198_REF_DISPOSITION_LIVE_FIXTURE: live
+          )
+
+        refute fixture_status == 0
+        assert fixture_output =~ ~s("stage":"#{stage}")
+        assert fixture_output =~ ~s("operation":"fixture-boundary")
+
+        {disabled_output, disabled_status} =
+          run_production_stage(stage, inventory, fixture.decided_md, extra,
+            PHASE198_REF_DISPOSITION_DISABLE_LIVE: "1"
+          )
+
+        refute disabled_status == 0
+        assert disabled_output =~ ~s("stage":"#{stage}")
+        assert disabled_output =~ ~s("retryable":false)
+      end
+    end)
+  end
+
+  test "fixture decision requires pristine execution state and zero receipts" do
+    with_round11_lifecycle(fn fixture ->
+      pristine =
+        mutate_json_file(fixture.decided, fn doc ->
+          doc
+          |> Map.put("execution", nil)
+          |> Map.put("command_receipts", [])
+        end)
+
+      assert {_, 0} =
+               run_stage("decision", pristine, fixture.decided_md, fixture.live_initial)
+
+      for mutation <- [
+            &Map.put(&1, "execution", %{}),
+            &Map.put(&1, "execution", %{"status" => "authorized"}),
+            &Map.put(&1, "command_receipts", [%{"type" => "archive-register-row"}])
+          ] do
+        tainted = mutate_json_file(pristine, mutation)
+        assert_failed(run_stage("decision", tainted, fixture.decided_md, fixture.live_initial))
+        File.rm(tainted)
+      end
+
+      File.rm(pristine)
+    end)
+  end
+
+  test "bounded live failure is structured and cannot fall back to committed evidence" do
+    with_round11_lifecycle(fn fixture ->
+      pristine =
+        mutate_json_file(fixture.decided, fn doc ->
+          doc
+          |> Map.put("execution", nil)
+          |> Map.put("command_receipts", [])
+        end)
+
+      {output, status} =
+        run_production_stage("decision", pristine, fixture.decided_md, [],
+          PHASE198_REF_DISPOSITION_LIVE_DEADLINE_SECONDS: "0"
+        )
+
+      refute status == 0
+      assert output =~ ~s("stage":"decision")
+      assert output =~ ~s("operation":"deadline")
+      assert output =~ ~s("elapsed_ms":)
+      assert output =~ ~s("deadline_ms":0)
+      assert output =~ ~s("retryable":true)
+      refute output =~ "decision OK"
+      File.rm(pristine)
+    end)
+  end
+
   test "round 11 authority rejects silence, preserve, abort, stale digests, missing subjects, and outsiders" do
     with_round11_lifecycle(fn fixture ->
       assert_failed(
@@ -411,8 +497,17 @@ defmodule Threadline.Phase198RefDispositionContractTest do
   defp run_stage(stage, inventory, decision, live, extra \\ []) do
     System.cmd(
       @script,
-      [stage, "--inventory", inventory, "--decision", decision] ++ extra,
+      ["fixture-#{stage}", "--inventory", inventory, "--decision", decision] ++ extra,
       env: [{"PHASE198_REF_DISPOSITION_LIVE_FIXTURE", live}],
+      stderr_to_stdout: true
+    )
+  end
+
+  defp run_production_stage(stage, inventory, decision, extra, env) do
+    System.cmd(
+      @script,
+      [stage, "--inventory", inventory, "--decision", decision] ++ extra,
+      env: Enum.map(env, fn {key, value} -> {to_string(key), value} end),
       stderr_to_stdout: true
     )
   end
