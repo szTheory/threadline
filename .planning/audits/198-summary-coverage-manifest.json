@@ -2,8 +2,8 @@
   "schema_version": 1,
   "scope": "phase-198-only",
   "general_classifier_owner": "phase-199",
-  "audited_final_plan_number": 60,
-  "terminal_certification_plan_number": 61,
+  "audited_final_plan_number": 61,
+  "terminal_certification_plan_number": 62,
   "baseline_numbers": [
     "01",
     "02",
@@ -66,7 +66,8 @@
     "57",
     "58",
     "59",
-    "60"
+    "60",
+    "61"
   ],
   "final_state_numbers": [
     "01",
@@ -128,7 +129,8 @@
     "57",
     "58",
     "59",
-    "60"
+    "60",
+    "61"
   ],
   "baseline_counts": {
     "summaries": 47,
