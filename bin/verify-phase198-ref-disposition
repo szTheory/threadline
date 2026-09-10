@@ -346,11 +346,49 @@ validate_fixture_controls_v2() {
   ' "$inventory" >/dev/null || die "stable controls or task-local baseline drifted"
 }
 
-validate_receipt_shape_v2() {
-  if [[ "$fixture_mode" != true ]]; then
-    jq -e '
+is_canonical_completed_round11() {
+  local canonical_inventory_rel=".planning/audits/198-round11-ref-disposition.json"
+  local canonical_decision_rel=".planning/audits/198-round11-ref-disposition.md"
+  local canonical_inventory="$ROOT/$canonical_inventory_rel"
+  local canonical_decision="$ROOT/$canonical_decision_rel"
+  local inventory_blob="a4fc711dca3b2e0779bd0a2abf4ed551e61e8c93"
+  local decision_blob="5b97c7873bd51a7aa43be1686b71a001f3c31225"
+  local inventory_sha="6b39204b95dcf1dbd42c6885bd4d0d0f6c861ef4d7286b18822edf6c721c6591"
+  local decision_sha="70589513acd68de861d74f928ec302a6b455ad0e5c548b3383fa723c50b0ef19"
+
+  [[ "$fixture_mode" != true ]] || return 1
+  [[ "$inventory" == "$canonical_inventory_rel" || "$inventory" == "$canonical_inventory" ]] || return 1
+  [[ "$decision" == "$canonical_decision_rel" || "$decision" == "$canonical_decision" ]] || return 1
+  [[ ! -L "$inventory" && ! -L "$decision" ]] || return 1
+  [[ "$(realpath "$inventory")" == "$canonical_inventory" ]] || return 1
+  [[ "$(realpath "$decision")" == "$canonical_decision" ]] || return 1
+  [[ "$(git rev-parse "HEAD:$canonical_inventory_rel" 2>/dev/null)" == "$inventory_blob" ]] || return 1
+  [[ "$(git rev-parse "HEAD:$canonical_decision_rel" 2>/dev/null)" == "$decision_blob" ]] || return 1
+  [[ "$(git hash-object "$inventory")" == "$inventory_blob" ]] || return 1
+  [[ "$(git hash-object "$decision")" == "$decision_blob" ]] || return 1
+  [[ "$(sha256 <"$inventory")" == "$inventory_sha" ]] || return 1
+  [[ "$(sha256 <"$decision")" == "$decision_sha" ]] || return 1
+
+  jq -e '
+    .schema_version==2 and .round==11
+    and .decision.option=="retire" and .decision.verbatim=="retire"
+    and .execution.status=="complete"
+    and .execution.completed_targets==["ci/198-gap-closure","ci/198-05-verify","ci/198-round3","ci/198-round4","ci/198-round5","ci/198-round6"]
+    and .execution.final_live_state=={
+      local_ci_198_refs:[], remote_ci_198_refs:[], closed_pull_requests:[29,30,31,32,33],
+      verified_archive_subjects:9, worktree_count:1, green07_status:"Pending",
+      stable_controls_unchanged:true
+    }
+    and (.preservation_subjects|length)==9
+    and (.command_receipts|length)==41
+  ' "$inventory" >/dev/null || return 1
+}
+
+validate_legacy_receipt_shape_v2() {
+  jq -e '
       def exact($ks): (keys | sort) == ($ks | sort);
       (.command_receipts|type)=="array"
+      and (.command_receipts|length)==41
       and ([.command_receipts[].seq] == [range(1;(.command_receipts|length)+1)])
       and (. as $root | all(.command_receipts[]; . as $r |
         if IN(.type;"local-annotated-tag","remote-single-tag","archive-register-row") then
@@ -365,10 +403,10 @@ validate_receipt_shape_v2() {
           exact(["seq","type","target"])
           and any($root.preservation_subjects[];.branch==$r.target)
         else false end))
-    ' "$inventory" >/dev/null || die "legacy command receipt shape or sequence ordering is invalid"
-    return
-  fi
+  ' "$inventory" >/dev/null || die "legacy command receipt shape or sequence ordering is invalid"
+}
 
+validate_strict_receipt_shape_v2() {
   jq -e '
     def exact($ks): (keys | sort) == ($ks | sort);
     def ts: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$");
@@ -432,6 +470,14 @@ validate_receipt_shape_v2() {
   ' "$inventory" >/dev/null || die "command receipt shape or sequence ordering is invalid"
 }
 
+validate_receipt_shape_v2() {
+  if is_canonical_completed_round11; then
+    validate_legacy_receipt_shape_v2
+  else
+    validate_strict_receipt_shape_v2
+  fi
+}
+
 validate_subject_preservation_v2() {
   local subject_id="$1" marker
   jq -e --arg id "$subject_id" '
@@ -473,8 +519,8 @@ validate_post_target_v2() {
   [[ -n "$target" ]] || die "post-target requires --target"
   validate_decision_v2
   [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
-  validate_fixture_controls_v2
   validate_receipt_shape_v2
+  validate_fixture_controls_v2
   jq -e --arg target "$target" 'any(.preservation_subjects[];.branch==$target)' "$inventory" >/dev/null || die "target is outside exact authority"
 
   local subject_id max_preserve pr expected_pr_close
@@ -519,8 +565,8 @@ validate_post_target_v2() {
 validate_final_v2() {
   validate_decision_v2
   [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
-  validate_fixture_controls_v2
   validate_receipt_shape_v2
+  validate_fixture_controls_v2
   if [[ "$fixture_mode" == true ]]; then
     jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
       ($live[0].target_universe.local|length)==0 and ($live[0].target_universe.remote|length)==0 and

@@ -136,8 +136,10 @@ defmodule Threadline.Phase198RefDispositionContractTest do
   end
 
   @tag :receipt_identity
-  test "a byte-identical production copy cannot select legacy receipt compatibility" do
-    dir = Path.join(System.tmp_dir!(), "phase198-round11-copy-#{System.unique_integer([:positive])}")
+  test "production compatibility is canonical-only and every future receipt is strict" do
+    dir =
+      Path.join(System.tmp_dir!(), "phase198-round11-copy-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(dir)
 
     inventory = Path.join(dir, "198-round11-ref-disposition.json")
@@ -145,18 +147,70 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     File.cp!(Path.join(@root, ".planning/audits/198-round11-ref-disposition.json"), inventory)
     File.cp!(Path.join(@root, ".planning/audits/198-round11-ref-disposition.md"), decision)
 
-    try do
-      {output, status} =
-        run_production_stage(
-          "final",
-          inventory,
-          decision,
-          ["--register", Path.join(@root, ".planning/ARCHIVE-REGISTER.md")],
-          []
-        )
+    register = Path.join(@root, ".planning/ARCHIVE-REGISTER.md")
 
-      refute status == 0
-      assert output =~ "command receipt shape or sequence ordering is invalid"
+    try do
+      assert_strict_production_failure(inventory, decision, register)
+
+      alias_inventory = Path.join(dir, "inventory-alias.json")
+      alias_decision = Path.join(dir, "decision-alias.md")
+
+      File.ln_s!(
+        Path.join(@root, ".planning/audits/198-round11-ref-disposition.json"),
+        alias_inventory
+      )
+
+      File.ln_s!(
+        Path.join(@root, ".planning/audits/198-round11-ref-disposition.md"),
+        alias_decision
+      )
+
+      assert_strict_production_failure(alias_inventory, alias_decision, register)
+
+      altered =
+        mutate_json_file(inventory, fn doc ->
+          put_in(doc["execution"]["status"], "retiring")
+        end)
+
+      assert_strict_production_failure(altered, decision, register)
+
+      strict =
+        mutate_json_file(inventory, fn doc ->
+          Map.put(doc, "command_receipts", strict_receipts(doc))
+        end)
+
+      assert {output, 0} =
+               run_production_stage("final", strict, decision, ["--register", register], [])
+
+      assert output =~ "Round 11 final OK"
+
+      strict_mutations = [
+        &Map.put(&1, "force", true),
+        &Map.put(&1, "argv", Enum.join(&1["argv"], " ")),
+        &Map.update!(&1, "argv", fn argv -> argv ++ ["refs/tags/extra"] end),
+        &Map.update!(&1, "argv", fn argv -> List.insert_at(argv, 1, "--mirror") end),
+        &Map.update!(&1, "argv", fn argv -> List.replace_at(argv, -1, "refs/tags/*") end),
+        fn receipt -> Map.put(receipt, "started_at", receipt["completed_at"]) end,
+        &Map.put(&1, "completed_at", "not-a-timestamp"),
+        &Map.put(&1, "exit_status", 1),
+        fn receipt -> Map.put(receipt, "before", receipt["after"]) end,
+        &Map.update!(&1, "argv", fn [_ | rest] -> ["false" | rest] end)
+      ]
+
+      for mutation <- strict_mutations do
+        invalid =
+          mutate_json_file(strict, fn doc ->
+            update_in(doc["command_receipts"], fn [first | rest] ->
+              [mutation.(first) | rest]
+            end)
+          end)
+
+        assert_strict_production_failure(invalid, decision, register)
+        File.rm!(invalid)
+      end
+
+      File.rm!(altered)
+      File.rm!(strict)
     after
       File.rm_rf!(dir)
     end
@@ -1171,6 +1225,45 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         else: ["git", "branch", "-d", target]
 
     receipt_base(type, target, argv, %{"ref" => ref, "sha" => sha}, %{"ref" => ref, "sha" => nil})
+  end
+
+  defp strict_receipts(doc) do
+    Enum.map(doc["command_receipts"], fn receipt ->
+      strict =
+        case receipt["type"] do
+          type
+          when type in ["local-annotated-tag", "remote-single-tag", "archive-register-row"] ->
+            subject =
+              Enum.find(doc["preservation_subjects"], &(&1["id"] == receipt["subject_id"]))
+
+            strict_preservation_receipt(type, subject)
+
+          "pr-close" ->
+            subject =
+              Enum.find(
+                doc["preservation_subjects"],
+                &(&1["branch"] == receipt["target"] and &1["pull_request"] != nil)
+              )
+
+            strict_pr_receipt(receipt["target"], subject["pull_request"])
+
+          type when type in ["remote-ref-delete", "local-ref-delete"] ->
+            subjects =
+              Enum.filter(doc["preservation_subjects"], &(&1["branch"] == receipt["target"]))
+
+            strict_ref_delete_receipt(type, receipt["target"], subjects)
+        end
+
+      Map.put(strict, "seq", receipt["seq"])
+    end)
+  end
+
+  defp assert_strict_production_failure(inventory, decision, register) do
+    {output, status} =
+      run_production_stage("final", inventory, decision, ["--register", register], [])
+
+    refute status == 0
+    assert output =~ "command receipt shape or sequence ordering is invalid"
   end
 
   defp receipt_base(type, target, argv, before_state, after_state) do
