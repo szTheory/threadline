@@ -182,7 +182,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
       assert {:error, _} = validate_round15_disposition(mutated)
     end
 
-    for {index, pin} <- Enum.with_index(disposition["supersedes"]) do
+    for {pin, index} <- Enum.with_index(disposition["supersedes"]) do
       for key <- Map.keys(pin) do
         mutated =
           update_in(
@@ -268,7 +268,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   test "round-15 history pins reject identity, order, omission, addition, and worktree substitution" do
     disposition = load_round15_disposition!()
 
-    for {index, pin} <- Enum.with_index(@supersedes), field <- ~w(kind path commit blob sha256) do
+    for {pin, index} <- Enum.with_index(@supersedes), field <- ~w(kind path commit blob sha256) do
       replacement =
         if field == "sha256", do: String.duplicate("0", 64), else: pin[field] <> "-changed"
 
@@ -296,7 +296,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
              |> put_in(["supersedes"], @supersedes ++ [hd(@supersedes)])
              |> validate_round15_disposition()
 
-    for {index, pin} <- Enum.with_index(@supersedes) do
+    for {pin, index} <- Enum.with_index(@supersedes) do
       worktree_sha =
         Path.join(@root, pin["path"])
         |> File.read!()
@@ -752,6 +752,139 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
       },
       "supersedes" => @supersedes
     }
+  end
+
+  defp duplicate_member_fixtures(raw) do
+    root =
+      for {key, value} <- [
+            {"decision", ~s("mitigated")},
+            {"decided_by", ~s("YOUR_NAME")},
+            {"historical_evidence_reconstructed", "true"}
+          ],
+          fixture <- [
+            String.replace(raw, "{", ~s({"#{key}":#{value},), global: false),
+            append_root_member(raw, key, value)
+          ] do
+        {key, fixture}
+      end
+
+    green_original = ~s("green_07": {"status": "accepted-Pending", "changed": false})
+
+    green = [
+      {"status",
+       String.replace(
+         raw,
+         green_original,
+         ~s("green_07": {"status":"Complete", "status": "accepted-Pending", "changed": false}),
+         global: false
+       )},
+      {"status",
+       String.replace(
+         raw,
+         green_original,
+         ~s("green_07": {"status": "accepted-Pending", "changed": false, "status":"Complete"}),
+         global: false
+       )}
+    ]
+
+    authorization =
+      nested_duplicate_pair(
+        raw,
+        ~s("authorization_source": {),
+        ~s(  },\n  "decision_time_bounds"),
+        "commit",
+        ~s("0000000000000000000000000000000000000000")
+      )
+
+    bounds =
+      nested_duplicate_pair(
+        raw,
+        ~s("decision_time_bounds": {),
+        ~s(  },\n  "supersedes"),
+        "authorization_commit",
+        ~s("0000000000000000000000000000000000000000")
+      )
+
+    supersedes =
+      Enum.flat_map(@supersedes, fn pin ->
+        line =
+          raw
+          |> String.split("\n")
+          |> Enum.find(&String.contains?(&1, ~s("path": "#{pin["path"]}")))
+          |> String.trim()
+          |> String.trim_trailing(",")
+
+        evil = ~s("0000000000000000000000000000000000000000")
+        first = String.replace(line, "{", ~s({"commit":#{evil},), global: false)
+        last = String.replace_suffix(line, "}", ~s(,"commit":#{evil}}))
+
+        [
+          {"commit", String.replace(raw, line, first, global: false)},
+          {"commit", String.replace(raw, line, last, global: false)}
+        ]
+      end)
+
+    root ++ green ++ authorization ++ bounds ++ supersedes
+  end
+
+  defp append_root_member(raw, key, value) do
+    raw
+    |> String.trim_trailing()
+    |> String.replace_suffix("}", ~s(,"#{key}":#{value}}))
+    |> Kernel.<>("\n")
+  end
+
+  defp nested_duplicate_pair(raw, opening, following, key, value) do
+    first = String.replace(raw, opening, opening <> ~s(\n    "#{key}": #{value},), global: false)
+
+    last =
+      String.replace(
+        raw,
+        following,
+        ~s(    ,"#{key}": #{value}\n) <> following,
+        global: false
+      )
+
+    [{key, first}, {key, last}]
+  end
+
+  defp validate_round15_history_and_time! do
+    disposition = load_round15_disposition!()
+    disposition_bytes = File.read!(@round15_disposition_path)
+    disposition_commit = first_commit_containing(@round15_disposition_path, disposition_bytes)
+
+    pins_valid? =
+      Enum.all?(@supersedes, fn pin ->
+        git_blob_pin(pin["commit"], pin["path"]) == {:ok, pin["blob"], pin["sha256"]}
+      end)
+
+    with true <- pins_valid?,
+         {:ok, @authorization_blob, @authorization_sha256} <-
+           git_blob_pin(
+             @authorization_commit,
+             ".planning/audits/198-round15-security-authorization.txt"
+           ),
+         true <- commit_time(@plan65_origin_commit) == @plan65_origin_time,
+         true <- commit_time(@authorization_commit) == @authorization_time,
+         true <- disposition["decided_at"] == @authorization_time,
+         true <- ancestor?(@plan65_origin_commit, @authorization_commit),
+         true <- ancestor?(@authorization_commit, disposition_commit),
+         :lt <-
+           DateTime.compare(parse_time!(@plan65_origin_time), parse_time!(@authorization_time)),
+         ordering when ordering in [:lt, :eq] <-
+           DateTime.compare(
+             parse_time!(@authorization_time),
+             parse_time!(commit_time(disposition_commit))
+           ) do
+      :ok
+    else
+      _ -> {:error, :invalid_git_history_or_time_bounds}
+    end
+  end
+
+  defp parse_time!(value) do
+    {:ok, datetime, 0} = DateTime.from_iso8601(value)
+    datetime
   end
 
   defp first_commit_containing(path, expected_bytes) do
