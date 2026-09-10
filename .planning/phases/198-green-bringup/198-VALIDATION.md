@@ -5,16 +5,16 @@ status: validated
 nyquist_compliant: false
 wave_0_complete: true
 created: 2026-08-27
-validated: 2026-09-08
+validated: 2026-09-10
 ---
 
 # Phase 198 — Validation Strategy
 
 Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
-automated behavioral or contract proof. `GREEN-07` remains PARTIAL because its literal
-`origin/main` ancestry clause is false: at the latest audit `origin/main..HEAD` contained 275
-commits. No test, documentation edit, or local commit can make that remote-state clause
-true.
+automated behavioral or contract proof across all 60 plans. `GREEN-07` remains PARTIAL
+under its accepted-Pending terminal disposition because its literal `origin/main`
+ancestry clause is false: at the latest audit `origin/main..HEAD` contained 355 commits.
+No test, documentation edit, or local commit can make that remote-state clause true.
 
 ## Test Infrastructure
 
@@ -45,7 +45,7 @@ ASDF_ERLANG_VERSION=28.4.1`. The file was not edited.
 | GREEN-09 | COVERED | workflow-wide paid-key resurrection guard in `ci_topology_contract_test.exs` | green |
 | GREEN-10 | COVERED | exact-one-publisher behavioral source contract in `ci_topology_contract_test.exs` | green |
 | GREEN-11 | COVERED | six-row classifier behavior table plus workflow reachability/wiring contracts | green |
-| GREEN-12 | COVERED | archive-register rows resolve to annotated local tags; remote archive tags observed | green |
+| GREEN-12 | COVERED | round-11 lifecycle, prohibition-resolution, and terminal-certification contracts prove nine archive/register joins, empty stale namespaces, and unchanged protected controls | green |
 
 ## Complete Per-Task / Requirement Map
 
@@ -128,12 +128,25 @@ or live observation; it is not silently converted to machine coverage.
 | 46-T2 | GREEN-03, GREEN-04, GREEN-06, GREEN-07, GREEN-10, GREEN-11 | `phase198_zero_human_uat_contract_test.exs` + generated 192/192 UAT ledger | green evaluator; GREEN-07 requirement partial |
 | 47-T1 | GREEN-07, GREEN-08 | exact-main observer + zero-human contract + immutable entry snapshot | GREEN-08 green; GREEN-07 partial |
 | 47-T2 | GREEN-07, GREEN-08 | 12-row disposition reconciliation + 47-summary classifier closeout | GREEN-08 green; GREEN-07 partial |
+| 48-T1, 48-T2, 48-T3 | GREEN-04, GREEN-06 | repository-owned coverage, full-history archive checkout, and bounded browser mount preflight contracts | green |
+| 49-T1, 49-T2 | GREEN-03, GREEN-04, GREEN-07 | strict evidence-policy observer and discriminating red-control contracts | GREEN-03/GREEN-04 green; GREEN-07 partial |
+| 50-T1, 50-T2 | GREEN-06 | row-history focus red-control and evidence contracts; canonical `e2e`/`unit` coverage metadata | green |
+| 51-T1, 51-T2 | GREEN-12 | complete read-only namespace inventory and explicit no-authority abort | green component |
+| 52-T1, 52-T2 | GREEN-12 | superseded non-execution tombstone; no tasks executed | intentionally non-executed |
+| 53-T1, 53-T2 | GREEN-12 | round-11 lifecycle validator and 88-test hardened trust-boundary suite | green |
+| 54-T1 | GREEN-12 | digest-bound blocking-human retirement authority | green component |
+| 55-T1, 55-T2 | GREEN-12 | preservation-first retirement, live final validation, and archive/register joins | green |
+| 56-T1, 56-T2 | GREEN-04 | exact manifest-driven summary discovery and mutation fixtures | green |
+| 57-T1, 57-T2 | GREEN-12 | production/fixture separation, decision purity, bounded live reads, and argv-safe receipt contracts | green |
+| 58-T1, 58-T2 | GREEN-12 | typed prohibition ledger and anti-fabrication fixtures | green; one historical judgment deferred |
+| 59-T1, 59-T2 | GREEN-04, GREEN-12 | exact `cannot-attest` persistence and anti-laundering contract | green mechanical record; historical claim open |
+| 60-T1, 60-T2 | GREEN-04, GREEN-12 | exact audited-summary set and terminal-certification integrity contract | green |
 
 ## Manual-Only / Escalated
 
 | Behavior | Requirement | Why automation cannot close it | Required action |
 |---|---|---|---|
-| `origin/main` contains every local commit and its exact-head CI run is successful within budget | GREEN-07 | Live audit proved `origin/main..HEAD = 237`; a local test can observe but cannot merge or push. The phase explicitly forbids remote/ruleset mutation in Plans 41–42. | Maintainer-authorized merge/push, then re-run `git rev-list --count origin/main..HEAD`, select the newest exact-SHA `ci.yml` main push run, and require `CI required == success` within 20 minutes. |
+| `origin/main` contains every local commit and its exact-head CI run is successful within budget | GREEN-07 | Live audit proves `origin/main..HEAD = 355`; a local test can observe but cannot merge or push. D-39 records the accepted-Pending terminal disposition. | A separately authorized merge/push would be required before re-running exact-main ancestry and CI checks; Phase 198 does not infer or perform it. |
 
 No `human_judgment: true` entry was converted merely by changing metadata. Recorded
 decisions count as automated coverage only where `phase198_decision_attestation_test.exs`
@@ -185,9 +198,24 @@ non-empty job set with exactly one successful aggregate before returning success
 do not, and cannot, turn branch or local-only evidence into proof that live
 `origin/main` contains `HEAD`.
 
+## Validation Audit 2026-09-10 (post-Plan-60)
+
+| Metric | Result |
+|---|---|
+| Requirements audited | 12: 11 COVERED, GREEN-07 PARTIAL/accepted-Pending |
+| Plan/task map | 60 plans; 155 authored tasks; 153 executed; Plan 52's 2 tasks intentionally tombstoned |
+| Automated gap found and filled | Terminal certificate could be downgraded to truncated `bootstrap`; fixed by `e82264f3` |
+| Terminal contract | 5 tests, 0 failures |
+| Exact final summary gate | 9 tests, 0 failures |
+| Combined focused Phase-198 contracts | 117 tests, 0 failures |
+| Full repository suite | 1,619 tests, 0 failures, 1 excluded |
+| Canonical summary coverage | 225 entries; 0 pending; 0 schema errors after `198-50:D1` kind correction `99378036` |
+| Current ancestry | `origin/main..HEAD = 355`; `HEAD..origin/main = 0`; GREEN-07 remains Pending |
+| Result | PARTIAL only because GREEN-07 is an external-state/manual-only predicate |
+
 ## Validation Sign-Off
 
-- [x] All 47 PLANs and 47 SUMMARYs mapped through their tasks and requirements.
+- [x] All 60 PLANs and 60 SUMMARYs mapped through their tasks and requirements.
 - [x] Every automated test claimed green was executed in this audit.
 - [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
 - [x] No implementation file was modified.
@@ -195,5 +223,5 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 - [x] `status: validated` set.
 - [ ] `nyquist_compliant: true` — blocked exclusively by GREEN-07's false remote ancestry clause.
 
-**Approval:** validated partial — 11/12 requirements covered; GREEN-07 escalated to the
-maintainer without weakening its literal success criteria.
+**Approval:** validated partial — 11/12 requirements covered; GREEN-07 remains
+accepted-Pending without weakening its literal success criteria.
