@@ -6,8 +6,8 @@ threats_open: 0
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
-threats_total: 316
-threats_closed: 314
+threats_total: 322
+threats_closed: 320
 threats_open_total: 2
 created: "2026-09-08"
 updated: "2026-09-10"
@@ -15,8 +15,8 @@ updated: "2026-09-10"
 
 # Phase 198 — Security
 
-> ASVS L1 verification of the plan-authored STRIDE register through Plan 65.
-> The 2026-09-10 post-Plan-65 re-audit verifies the exact `szTheory`
+> ASVS L1 verification of the plan-authored STRIDE register through Plan 66.
+> The 2026-09-10 post-Plan-66 re-audit verifies the exact `szTheory`
 > authorization, recursive duplicate-member rejection before map conversion,
 > immutable Git provenance, bounded decision time, exact scope, and non-secret
 > rationale. No blocking findings remain. T-198-55-03 and T-198-62-SC remain
@@ -59,6 +59,11 @@ canonical-verdict separation, and bounded non-secret rationale evidence. The
 post-Plan-65 audit closed the remaining Plan-64 blockers and all six Plan-65
 threats. T-198-55-02 is closed only through the narrowly scoped, attributable
 accepted-risk decision recorded as AR-198-16 below.
+The post-Plan-66 audit additionally closed all six Plan-66 threats through
+duplicate-safe ordered-object manifest decoding, content-bound post-terminal
+summary roles, explicit lifecycle enforcement, fixed mutation oracles, bounded
+disclosure, and the strict summary-frontmatter grammar added during CR-05
+remediation.
 
 ## Metadata Corrections
 
@@ -104,7 +109,7 @@ These 25 entries were reviewed individually and corrected in their canonical `19
 
 ## Closed Register
 
-Of 316 registered threats, 314 are closed. This compact index preserves the
+Of 322 registered threats, 320 are closed. This compact index preserves the
 plan-level mapping; the source threat definitions remain canonical in each
 `198-NN-PLAN.md`.
 
@@ -125,8 +130,9 @@ plan-level mapping; the source threat definitions remain canonical in each
 | 62 | 7 | Canonical legacy identity, strict-default receipt enforcement, terminal reseal, and production-path adversarial coverage; one low accepted-risk disposition remains unapproved/open. |
 | 64 | 5 | Immutable Plan-63 history, canonical-verdict separation, bounded non-secret rationale, attributable signer binding, and recursive duplicate-member rejection. |
 | 65 | 6 | Exact authorization bytes and identity, both-order recursive duplicate fixtures, commit-derived bounded decision time, immutable history pins, exact scope/exclusions, and bounded non-secret rationale. |
+| 66 | 6 | Duplicate-safe manifest decoding, content-bound summaries 63–65, disjoint 01–61/62/63–65/66 roles, lifecycle-safe final enforcement, fixed mutation oracles, strict summary grammar, and bounded repository-relative disclosure. |
 
-Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 33 + 24 + 7 + 5 + 6 = 314`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 33 + 24 + 7 + 5 + 6 + 6 = 320`.
 
 ## Unregistered Review Flags
 
@@ -170,6 +176,7 @@ delta review found no new issues. No unregistered open flags remain.
 | 2026-09-10 | 305 | 302 | 3 | 1 | post-Plan-62 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 310 | 305 | 5 | 3 | post-Plan-64 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 316 | 314 | 2 | 0 | post-Plan-65 gsd-security-auditor / Codex orchestrator |
+| 2026-09-10 | 322 | 320 | 2 | 0 | post-Plan-66 gsd-security-auditor / Codex orchestrator |
 
 ## Sign-Off
 
@@ -181,5 +188,7 @@ delta review found no new issues. No unregistered open flags remain.
 **Approval:** passed 2026-09-10 — the exact `szTheory` authorization accepts
 only T-198-55-02's residual historical-evidence uncertainty; the Plan-64
 attribution and duplicate-member blockers and all Plan-65 threats are closed.
+All Plan-66 threats are also closed by the exact post-terminal policy and its
+adversarial parser/lifecycle coverage.
 T-198-55-03 and T-198-62-SC remain open below the blocking threshold and were
 not accepted.
