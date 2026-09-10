@@ -240,6 +240,147 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
+  test "each content-bound post-terminal summary fails closed under file mutations" do
+    for number <- @post_terminal_numbers do
+      assert_summary_fixture_rejected!(
+        fn root ->
+          File.rm!(Path.join(root, "198-#{number}-SUMMARY.md"))
+        end,
+        ~r/missing post-terminal summary #{number}/
+      )
+
+      assert_summary_fixture_rejected!(
+        fn root ->
+          File.rename!(
+            Path.join(root, "198-#{number}-SUMMARY.md"),
+            Path.join(root, "198-0#{number}-SUMMARY.md")
+          )
+        end,
+        ~r/0#{number}/
+      )
+
+      assert_summary_fixture_rejected!(
+        fn root ->
+          File.rename!(
+            Path.join(root, "198-#{number}-SUMMARY.md"),
+            Path.join(root, "198-#{number}-copy-SUMMARY.md")
+          )
+        end,
+        ~r/198-#{number}-copy-SUMMARY\.md/
+      )
+
+      assert_summary_fixture_rejected!(
+        fn root ->
+          path = Path.join(root, "198-#{number}-SUMMARY.md")
+          File.write!(path, File.read!(path) <> "\n")
+        end,
+        ~r/changed/
+      )
+
+      assert_summary_fixture_rejected!(
+        fn root ->
+          path = Path.join(root, "198-#{number}-SUMMARY.md")
+
+          File.write!(
+            path,
+            String.replace(File.read!(path), "phase: 198-green-bringup", "phase: 199",
+              global: false
+            )
+          )
+        end,
+        ~r/changed|wrong phase/
+      )
+    end
+
+    assert_summary_fixture_rejected!(
+      fn root ->
+        File.write!(Path.join(root, "198-67-SUMMARY.md"), summary_body("[]"))
+      end,
+      ~r/67/
+    )
+  end
+
+  test "post-terminal manifest schema rejects identity, order, membership, and role mutations" do
+    manifest = read_json!(@manifest)
+    policy = manifest["post_terminal_policy"]
+
+    mutations = [
+      put_in(manifest, ["post_terminal_policy", "numbers"], ~w(63 65 64)),
+      put_in(manifest, ["post_terminal_policy", "summaries"], Enum.reverse(policy["summaries"])),
+      put_in(manifest, ["post_terminal_policy", "summaries", Access.at(0), "number"], "64"),
+      put_in(manifest, ["post_terminal_policy", "summaries", Access.at(0), "path"], "wrong"),
+      put_in(
+        manifest,
+        ["post_terminal_policy", "summaries", Access.at(0), "sha256"],
+        String.duplicate("0", 64)
+      ),
+      update_in(manifest, ["post_terminal_policy"], &Map.delete(&1, "numbers")),
+      put_in(manifest, ["post_terminal_policy", "extra"], true),
+      update_in(manifest, ["post_terminal_policy", "summaries"], &tl/1),
+      update_in(manifest, ["post_terminal_policy", "summaries"], &(&1 ++ [List.last(&1)])),
+      put_in(manifest, ["post_terminal_policy", "policy_repair_summary", "number"], "65"),
+      put_in(
+        manifest,
+        ["post_terminal_policy", "policy_repair_summary", "terminal_certification"],
+        true
+      ),
+      put_in(
+        manifest,
+        ["post_terminal_policy", "policy_repair_summary", "excluded_from_audited_final_state"],
+        false
+      )
+    ]
+
+    for mutated <- mutations do
+      assert_raise ExUnit.AssertionError, fn ->
+        validate_manifest_json!(Jason.encode!(mutated))
+      end
+    end
+  end
+
+  test "duplicate manifest members are rejected recursively in both orders before map conversion" do
+    raw = File.read!(@manifest)
+
+    for {key, fixture} <- post_terminal_duplicate_fixtures(raw) do
+      assert {:error, {:duplicate_member, ^key}} = decode_unique_ordered_json(fixture)
+    end
+  end
+
+  test "Plan 66 is optional only before final mode and fails closed whenever present" do
+    root = complete_phase_fixture!()
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    assert validate_summary_set!(root, :normal) == :ok
+
+    assert_raise ExUnit.AssertionError, ~r/missing policy repair summary 66/, fn ->
+      validate_summary_set!(root, :final)
+    end
+
+    write_repair_summary!(root)
+    assert validate_summary_set!(root, :final) == :ok
+
+    for {mutation, reason} <- repair_summary_mutations() do
+      path = Path.join(root, "198-66-SUMMARY.md")
+      original = File.read!(path)
+      File.write!(path, mutation.(original))
+      assert_raise ExUnit.AssertionError, reason, fn -> validate_summary_set!(root, :normal) end
+      File.write!(path, original)
+    end
+
+    File.rename!(Path.join(root, "198-66-SUMMARY.md"), Path.join(root, "198-066-SUMMARY.md"))
+
+    assert_raise ExUnit.AssertionError, ~r/066/, fn ->
+      validate_summary_set!(root, :normal)
+    end
+
+    File.rename!(Path.join(root, "198-066-SUMMARY.md"), Path.join(root, "198-66-SUMMARY.md"))
+    File.write!(Path.join(root, "198-67-SUMMARY.md"), summary_body("[]"))
+
+    assert_raise ExUnit.AssertionError, ~r/67/, fn ->
+      validate_summary_set!(root, :final)
+    end
+  end
+
   defp discover_numbers(dir) do
     dir
     |> Path.join("198-*-SUMMARY.md")
