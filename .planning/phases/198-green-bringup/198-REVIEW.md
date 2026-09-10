@@ -1,8 +1,8 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T21:38:12Z
+reviewed: 2026-09-10T22:22:04Z
 depth: standard
-files_reviewed: 108
+files_reviewed: 109
 files_reviewed_list:
   - .github/rulesets/main.json
   - .github/workflows/branch-protection.yml
@@ -109,14 +109,15 @@ files_reviewed_list:
   - test/threadline/storage_schema_prefix_contract_test.exs
   - test/threadline/zero_skips_contract_test.exs
   - test/threadline/phase198_prohibition_resolution_contract_test.exs
+  - .planning/audits/198-summary-coverage-manifest.json
   - .planning/audits/198-round14-security-disposition.json
   - .planning/audits/198-round15-security-authorization.txt
   - .planning/audits/198-round15-security-disposition.json
 findings:
-  critical: 4
+  critical: 5
   warning: 3
   info: 0
-  total: 7
+  total: 8
 status: issues_found
 ---
 
@@ -291,5 +292,77 @@ None.
 ---
 
 _Plan 65 delta reviewed: 2026-09-10T21:38:12Z_
+_Reviewer: the agent (gsd-code-reviewer)_
+_Depth: standard_
+
+## Plan 66 Delta Review
+
+**Reviewed:** 2026-09-10T22:22:04Z
+**Depth:** standard
+**Files Reviewed:** 2
+**Status:** issues_found
+
+### Delta Summary
+
+Plan 66 preserves the 01-61 audited namespace, the sole Plan-62 terminal role,
+and the exact bytes of summaries 63-65. Its ordinary, final-mode, and combined
+security-disposition suites pass (14, 14, and 34 tests respectively). However,
+the only unhashed member of the new policy, `198-66-SUMMARY.md`, is validated by
+a lossy regex parser that accepts contradictory duplicate YAML fields. The
+claimed fail-closed repair-summary boundary is therefore not established.
+
+### Critical Issues
+
+### CR-05: Duplicate Plan-66 frontmatter fields bypass the semantic boundary
+
+**Classification:** BLOCKER
+**File:** `/Users/jon/projects/threadline/test/threadline/phase198_zero_human_uat_contract_test.exs:527-536`
+
+**Issue:** Plan 66 cannot be content-hashed before its execution summary is
+created, so `validate_summary_semantics!/4` is the authorization boundary for
+that file. The function accepts `phase` and `plan` when *any* matching line is
+present, selects only the first `status` match, and delegates coverage parsing
+to `coverage_entries/1`, which splits on the first `coverage` member and then
+collapses repeated coverage IDs with `Map.new/1` at lines 745-770. A summary
+containing both `phase: 198-green-bringup` and `phase: 199`, both `plan: 66` and
+`plan: 65`, or `status: complete` followed by `status: halted` passes these
+identity/status checks. Repeated coverage members or IDs can likewise hide a
+conflicting value. A downstream YAML consumer may select the other value or
+reject the document, recreating the parser-differential ambiguity Plan 66 was
+supposed to eliminate. The current mutation matrix changes one canonical field
+at a time and therefore positively misses this both-values-present case. This
+leaves the high-severity T-198-66-04 lifecycle boundary unmitigated.
+
+**Fix:** Parse a strictly delimited frontmatter document with duplicate-preserving
+semantics, reject duplicate top-level keys and duplicate coverage IDs before any
+map construction, and then validate exact scalar values. If retaining the
+repository's constrained regex parser, first require the opening delimiter at
+byte zero, exactly one `phase`, `plan`, `coverage`, and `status` member, and
+unique coverage IDs. Add malicious-first and malicious-last fixtures for every
+identity/status/coverage field plus repeated coverage IDs, and assert the
+duplicate-specific rejection occurs before value validation.
+
+### Boundary Checks That Passed
+
+- The Plan-66 implementation commits modify only the declared manifest and
+  focused contract; the executor adds the standard summary and metadata files.
+- Summaries 01-61, terminal Plan 62, and post-terminal summaries 63-65 were not
+  modified by the delta. The three new manifest digests match their tracked
+  summary bytes.
+- The new JSON decoder rejects duplicate members recursively before conversion
+  to maps, including both member orders at the manifest root, policy object,
+  each 63-65 record, and the Plan-66 repair record.
+- Allowed membership is built from fixed role records rather than wildcard
+  discovery, and Plan 67 or later remains rejected in both normal and final
+  modes.
+- SECURITY and VERIFICATION were not changed by the task commits; GREEN-07 and
+  the named risk dispositions remain unchanged.
+- Independent commands passed: ordinary focused summary contract (14 tests),
+  final-mode focused summary contract (14 tests), and the combined Plan-66 plus
+  Plan-65 security-disposition contracts (34 tests), all with zero failures.
+
+---
+
+_Plan 66 delta reviewed: 2026-09-10T22:22:04Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
