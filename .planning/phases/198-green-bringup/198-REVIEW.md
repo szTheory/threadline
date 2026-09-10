@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T22:34:51Z
+reviewed: 2026-09-10T22:45:14Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -425,6 +425,63 @@ YAML parser remains the safer alternative. `198-VALIDATION.md`'s iteration-2
   resolves the same YAML document to `phase: 199`.
 - Role constants remain exact: audited-final 01-61, sole terminal 62,
   content-bound post-terminal 63-65, and non-terminal repair summary 66.
+
+### CR-05 Iteration-3 Re-review: REMAINS OPEN
+
+**Reviewed:** 2026-09-10T22:45:14Z
+**Repair commit:** `91c98280`
+**Validation update:** `b8b9955b`
+
+Iteration 3 rejects the requested reserved aliases at 1, 2, 4, and 8 spaces
+and tabs, including plain, quoted, spaced, tagged, anchored, explicit-key,
+flow-map, and merge-key spellings. It retains duplicate plain-root rejection,
+pre-map repeated coverage-ID rejection, and the exact 01-61/62/63-65/66 role
+partition. Two parser differentials remain in the explicit grammar:
+
+1. The `:root` state still accepts arbitrary indented mappings. Lines 933-947
+   reject only reserved aliases or a short unsupported-syntax pattern list;
+   otherwise `next_frontmatter_context/2` returns the unchanged `:root`. A
+   document beginning with ` arbitrary: value` followed by all canonical fields
+   therefore passes the contract and its phase predicate. Ruby Psych accepts the
+   same YAML but resolves it to `%{"arbitrary" => "value"}` without the later
+   canonical phase/plan/status fields. The repair blocks a leading-indented
+   *reserved* key but still allows another valid root mapping to hide the entire
+   canonical contract from a YAML consumer.
+
+2. Coverage-entry fields are neither structurally scoped nor duplicate-checked.
+   `coverage_errors/2` at lines 1083-1097 accepts an entry if a
+   `human_judgment: false` line occurs anywhere at any indentation. A coverage
+   entry containing `human_judgment: false` followed by
+   `human_judgment: true`, plus an otherwise passing verification item, satisfies
+   every contract predicate. Psych resolves the same entry to
+   `human_judgment: true`. The same weakness permits the accepted false value to
+   be nested under an unrelated mapping while the actual entry-level value is
+   true. Although repeated coverage IDs are now rejected before `Map.new/1`,
+   this field-level path still uses selective regex trust rather than the
+   promised explicit coverage-entry grammar.
+
+CR-05 remains a **BLOCKER**. Reject every indented non-comment line while the
+state is `:root`. For coverage blocks, parse and enforce exact indentation and
+allowed keys per state, reject duplicate `id`, `human_judgment`, `verification`,
+`kind`, `ref`, and `status` fields before value validation, and require each
+predicate at its exact structural depth. Add both-order duplicate
+`human_judgment` fixtures and nested-decoy fixtures, in addition to a leading
+indented non-reserved root mapping. `198-VALIDATION.md`'s iteration-3
+`CR-05 FILLED` conclusion is not supported by the current grammar.
+
+**Fresh iteration-3 verification:**
+
+- Final-mode focused summary contract: 18 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 38 tests, 0 failures.
+- Targeted root probe: the contract records all canonical keys and accepts the
+  canonical phase predicate, while Psych resolves the document to only the
+  leading arbitrary mapping.
+- Targeted coverage probe: the contract sees `human_judgment: false`, one pass
+  status, and one reference; Psych resolves the duplicate field to
+  `human_judgment: true`.
+- Canonical nested verification `status` remains allowed only after the
+  `verification_item` transition and is still checked for all-pass values, but
+  that control does not repair the two gaps above.
 
 ### Boundary Checks That Passed
 
