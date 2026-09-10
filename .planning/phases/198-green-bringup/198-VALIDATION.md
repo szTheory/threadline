@@ -11,7 +11,7 @@ validated: 2026-09-10
 # Phase 198 — Validation Strategy
 
 Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
-automated behavioral or contract proof across all 62 plans. `GREEN-07` remains PARTIAL
+automated behavioral or contract proof across all 65 plans. `GREEN-07` remains PARTIAL
 under its accepted-Pending terminal disposition because its literal `origin/main`
 ancestry clause is false: at the latest audit `origin/main..HEAD` contained 355 commits.
 No test, documentation edit, or local commit can make that remote-state clause true.
@@ -45,7 +45,7 @@ ASDF_ERLANG_VERSION=28.4.1`. The file was not edited.
 | GREEN-09 | COVERED | workflow-wide paid-key resurrection guard in `ci_topology_contract_test.exs` | green |
 | GREEN-10 | COVERED | exact-one-publisher behavioral source contract in `ci_topology_contract_test.exs` | green |
 | GREEN-11 | COVERED | six-row classifier behavior table plus workflow reachability/wiring contracts | green |
-| GREEN-12 | COVERED | round-11 lifecycle, prohibition-resolution, and terminal-certification contracts prove nine archive/register joins, empty stale namespaces, and unchanged protected controls | green |
+| GREEN-12 | COVERED | round-11 lifecycle, prohibition-resolution, terminal-certification, and round-15 disposition/security-projection contracts prove nine archive/register joins, empty stale namespaces, unchanged protected controls, and narrowly attributable risk handling | green |
 
 ## Complete Per-Task / Requirement Map
 
@@ -147,6 +147,10 @@ or live observation; it is not silently converted to machine coverage.
 | 62-T1 | GREEN-12 | canonical receipt-identity and strict-default production contract | green |
 | 62-T2 | GREEN-04 | exact-summary and terminal-certification contracts | green |
 | 62-T3 | GREEN-04, GREEN-12 | production final, branch protection, terminal-focused, and 1,623-test full suite | green |
+| 63-T1 | GREEN-12 | exact recorded blocking-human non-acceptance and halted summary | manual, satisfied decline branch; later superseded only for T-198-55-02 |
+| 63-T2 | GREEN-12 | conditional positive-disposition task | intentionally non-executed after the Task-1 decline branch |
+| 64-T1, 64-T2 | GREEN-12 | `phase198_prohibition_resolution_contract_test.exs`; canonical classifier 2/2 auto-passed | green mechanical record; placeholder authority rejected and preserved as immutable history |
+| 65-T1, 65-T2 | GREEN-12 | `phase198_prohibition_resolution_contract_test.exs`; canonical classifier 2/2 auto-passed | green |
 
 ## Manual-Only / Escalated
 
@@ -245,9 +249,22 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Production state | Final validator and branch-protection verifier both passed read-only |
 | Result | No automated coverage gap; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
+## Validation Audit 2026-09-10 (post-Plan-65)
+
+| Metric | Result |
+|---|---|
+| Requirements audited | 12: 11 COVERED, GREEN-07 PARTIAL/accepted-Pending |
+| Plan/task map | 65 plans; 167 authored tasks; 163 executed; Plan 52's 2 tombstoned tasks and Plan 63's 2 halted-branch tasks were not executed |
+| Plan-64/65 classifier boundary | `uat classify-coverage` reports 4/4 entries auto-passed, `human_judgment: false`, each with at least one passing verification reference |
+| Round-15 disposition and canonical security projection | 20 tests, 0 failures |
+| New adversarial gap filled | Canonical security could drift from the exact round-15 disposition; a document-contract test now rejects blocking-status regression, changed signer, widened acceptance, closure of excluded findings, and inconsistent threat totals |
+| Security result | `status: passed`, 316 total / 314 closed / 2 non-blocking open / 0 blocking open; only T-198-55-02 is accepted by `szTheory` |
+| Preserved exclusions | T-198-55-03 and T-198-62-SC remain open/not accepted; GREEN-07 remains accepted-Pending |
+| Result | No remaining automatable validation gap; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement because literal remote ancestry is external state |
+
 ## Validation Sign-Off
 
-- [x] All 62 PLANs and 62 SUMMARYs mapped through their tasks and requirements.
+- [x] All 65 PLANs and 65 SUMMARYs mapped through their tasks and requirements.
 - [x] Every automated test claimed green was executed in this audit.
 - [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
 - [x] No implementation file was modified.
