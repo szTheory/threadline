@@ -4,6 +4,14 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   @root Path.expand("../..", __DIR__)
   @ledger_path Path.join(@root, ".planning/audits/198-round12-prohibition-resolution.json")
   @disposition_path Path.join(@root, ".planning/audits/198-round14-security-disposition.json")
+  @round15_authorization_path Path.join(
+                                @root,
+                                ".planning/audits/198-round15-security-authorization.txt"
+                              )
+  @round15_disposition_path Path.join(
+                              @root,
+                              ".planning/audits/198-round15-security-disposition.json"
+                            )
   @plan63_summary_path Path.join(
                          @root,
                          ".planning/phases/198-green-bringup/198-63-SUMMARY.md"
@@ -16,6 +24,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     "round11_markdown" => Path.join(@root, ".planning/audits/198-round11-ref-disposition.md")
   }
   @cannot_attest_verbatim "cannot-attest by szTheory"
+  @round15_verbatim "accept-risk by szTheory: I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained."
 
   @prohibitions [
     {"P-198-53-01", "198-53-PLAN.md",
@@ -29,6 +38,19 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     {"P-198-55-03", "198-55-PLAN.md",
      "Do not relabel GREEN-07 or roadmap criterion 3 as met from repository-hygiene work."}
   ]
+
+  test "round-15 authorization flows through a raw duplicate-aware v2 disposition" do
+    assert File.read!(@round15_authorization_path) == @round15_verbatim <> "\n"
+
+    assert {:ok, disposition} =
+             @round15_disposition_path
+             |> File.read!()
+             |> decode_unique_ordered_json()
+
+    assert disposition["schema_version"] == "threadline.phase198.security-disposition.v2"
+    assert disposition["verbatim"] == @round15_verbatim
+    assert disposition["decided_by"] == "szTheory"
+  end
 
   test "round-14 disposition persists the exact narrow T-198-55-02 acceptance" do
     disposition = load_disposition!()
