@@ -35,8 +35,8 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     manifest = read_json!(@manifest)
     assert manifest["scope"] == "phase-198-only"
     assert manifest["general_classifier_owner"] == "phase-199"
-    assert @audited_final_plan_number == 60
-    assert @terminal_certification_plan_number == 61
+    assert @audited_final_plan_number == 61
+    assert @terminal_certification_plan_number == 62
     assert manifest["baseline_numbers"] == @baseline_numbers
     assert manifest["audited_final_plan_number"] == @audited_final_plan_number
     assert manifest["terminal_certification_plan_number"] == @terminal_certification_plan_number
@@ -103,17 +103,17 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
-  test "isolated discovery fixtures enforce audited final timing and the sole Plan 61 exception" do
+  test "isolated discovery fixtures enforce audited final timing and the sole Plan 62 exception" do
     root = phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
 
     assert validate_summary_set!(root, :normal) == :ok
 
-    assert_raise ExUnit.AssertionError, ~r/missing audited.*56.*57.*58.*59.*60/s, fn ->
+    assert_raise ExUnit.AssertionError, ~r/missing audited.*56.*57.*58.*59.*60.*61/s, fn ->
       validate_summary_set!(root, :final)
     end
 
-    for number <- 56..60, do: write_summary!(root, Integer.to_string(number), "[]")
+    for number <- 56..61, do: write_summary!(root, Integer.to_string(number), "[]")
     assert validate_summary_set!(root, :final) == :ok
 
     File.rm!(Path.join(root, "198-58-SUMMARY.md"))
@@ -132,7 +132,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
     File.rm!(malformed)
 
-    for illegal <- ~w(00 048 62) do
+    for illegal <- ~w(00 048 63) do
       write_summary!(root, illegal, "[]")
 
       assert_raise ExUnit.AssertionError, ~r/#{illegal}/, fn ->
@@ -146,10 +146,10 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     assert validate_summary_set!(root, :final) == :ok
   end
 
-  test "Plan 61 remains outside the audited set and must carry mechanical passing coverage" do
+  test "Plan 62 remains outside the audited set and must carry mechanical passing coverage" do
     root = phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
-    for number <- 56..60, do: write_summary!(root, Integer.to_string(number), "[]")
+    for number <- 56..61, do: write_summary!(root, Integer.to_string(number), "[]")
 
     invalid_entries = [
       "  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration",
@@ -160,7 +160,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     for entry <- invalid_entries do
       write_summary!(root, @terminal_certification_number, "\n" <> entry)
 
-      assert_raise ExUnit.AssertionError, ~r/198-61-SUMMARY\.md:D1/, fn ->
+      assert_raise ExUnit.AssertionError, ~r/198-62-SUMMARY\.md:D1/, fn ->
         validate_summary_set!(root, :normal)
       end
     end

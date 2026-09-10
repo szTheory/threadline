@@ -2,7 +2,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   use ExUnit.Case, async: false
 
   @root Path.expand("../..", __DIR__)
-  @record_path Path.join(@root, ".planning/audits/198-round12-terminal-certification.md")
+  @record_path Path.join(@root, ".planning/audits/198-round13-terminal-certification.md")
 
   @source_paths [
     ".planning/audits/198-summary-coverage-manifest.json",
@@ -10,6 +10,10 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     ".planning/phases/198-green-bringup/198-57-SUMMARY.md",
     ".planning/phases/198-green-bringup/198-58-SUMMARY.md",
     ".planning/phases/198-green-bringup/198-59-SUMMARY.md",
+    ".planning/phases/198-green-bringup/198-60-SUMMARY.md",
+    ".planning/phases/198-green-bringup/198-61-SUMMARY.md",
+    ".planning/audits/198-round11-ref-disposition.json",
+    ".planning/audits/198-round11-ref-disposition.md",
     ".planning/audits/198-round12-prohibition-resolution.json",
     ".planning/audits/198-round12-prohibition-resolution.md",
     ".planning/phases/198-green-bringup/198-SECURITY.md",
@@ -188,6 +192,8 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     assert Map.keys(record["open_findings"]) |> Enum.sort() ==
              ~w(T-198-55-02 T-198-55-03)
 
+    refute Map.has_key?(record["open_findings"], "T-198-57-04")
+
     assert record["open_findings"]["T-198-55-02"] == %{
              "severity" => "high",
              "blocking" => true,
@@ -215,16 +221,16 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     assert {:error, _reason} = validate_record(downgraded)
   end
 
-  test "source manifest fixes audited summaries at 01 through 60 with Plan 61 non-recursive" do
+  test "source manifest fixes audited summaries at 01 through 61 with Plan 62 non-recursive" do
     manifest =
       @root
       |> Path.join(".planning/audits/198-summary-coverage-manifest.json")
       |> File.read!()
       |> Jason.decode!()
 
-    assert manifest["audited_final_plan_number"] == 60
-    assert manifest["terminal_certification_plan_number"] == 61
-    assert manifest["final_state_numbers"] == Enum.map(1..60, &pad_number/1)
+    assert manifest["audited_final_plan_number"] == 61
+    assert manifest["terminal_certification_plan_number"] == 62
+    assert manifest["final_state_numbers"] == Enum.map(1..61, &pad_number/1)
 
     summaries =
       @root
@@ -232,9 +238,9 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       |> Path.wildcard()
       |> Enum.map(&Path.basename/1)
 
-    audited = Enum.map(1..60, &"198-#{pad_number(&1)}-SUMMARY.md")
+    audited = Enum.map(1..61, &"198-#{pad_number(&1)}-SUMMARY.md")
     assert Enum.all?(audited, &(&1 in summaries))
-    refute "198-61-SUMMARY.md" in audited
+    refute "198-62-SUMMARY.md" in audited
   end
 
   defp validate_record(record) do
@@ -265,10 +271,10 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       record["purpose"] != "phase-198-terminal-certification" ->
         {:error, :purpose}
 
-      record["audited_summaries"] != Enum.map(1..60, &pad_number/1) ->
+      record["audited_summaries"] != Enum.map(1..61, &pad_number/1) ->
         {:error, :summary_set}
 
-      record["certification_summary"] != %{"number" => "61", "recursive" => false} ->
+      record["certification_summary"] != %{"number" => "62", "recursive" => false} ->
         {:error, :certification_exception}
 
       record["canonical_hooks"] != "not_run_executor_owned_by_orchestrator" ->
