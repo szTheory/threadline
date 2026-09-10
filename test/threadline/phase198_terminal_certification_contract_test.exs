@@ -19,6 +19,8 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   @expected_commands [
     "PHASE198_SUMMARY_SET=final mix test test/threadline/phase198_zero_human_uat_contract_test.exs",
     "mix test test/threadline/phase198_ref_disposition_contract_test.exs test/threadline/phase198_prohibition_resolution_contract_test.exs test/threadline/phase198_zero_human_uat_contract_test.exs",
+    "bin/verify-phase198-ref-disposition final --inventory .planning/audits/198-round11-ref-disposition.json --decision .planning/audits/198-round11-ref-disposition.md --register .planning/ARCHIVE-REGISTER.md",
+    "bin/verify-branch-protection",
     "mix test test/threadline/phase198_terminal_certification_contract_test.exs test/threadline/phase198_ref_disposition_contract_test.exs test/threadline/phase198_prohibition_resolution_contract_test.exs test/threadline/phase198_zero_human_uat_contract_test.exs",
     "mix test"
   ]
@@ -100,6 +102,45 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     end
   end
 
+  @tag :immutable_source_identity
+  test "every sealed source is an immutable blob at the unique certified head" do
+    record = load_record!(@record_path)
+    head = record["certified_head"]
+
+    assert is_binary(head)
+
+    for {path, source} <- record["sources"] do
+      assert source["path"] == path
+      assert source["commit"] == head
+      assert source["blob"] =~ ~r/^[0-9a-f]{40}$/
+      assert source["sha256"] =~ ~r/^[0-9a-f]{64}$/
+    end
+
+    assert :ok = validate_record(record)
+  end
+
+  test "terminal record requires the exact two unresolved findings" do
+    record = load_record!(@record_path)
+
+    assert Map.keys(record["open_findings"]) |> Enum.sort() ==
+             ~w(T-198-55-02 T-198-55-03)
+
+    assert record["open_findings"]["T-198-55-02"] == %{
+             "severity" => "high",
+             "blocking" => true,
+             "status" => "open",
+             "accepted" => false,
+             "receipt_evidence_reconstructed" => false
+           }
+
+    assert record["open_findings"]["T-198-55-03"]["severity"] == "medium"
+    assert record["open_findings"]["T-198-55-03"]["blocking"] == false
+    assert record["open_findings"]["T-198-55-03"]["status"] == "open"
+    assert record["open_findings"]["T-198-55-03"]["accepted"] == false
+    assert record["open_findings"]["T-198-55-03"]["receipt_evidence_reconstructed"] == false
+    assert record["requirements"] == %{"GREEN-07" => "accepted-Pending"}
+  end
+
   test "persisted terminal certification cannot downgrade to bootstrap" do
     record = load_record!(@record_path)
 
@@ -111,16 +152,16 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     assert {:error, _reason} = validate_record(downgraded)
   end
 
-  test "source manifest fixes audited summaries at 01 through 59 with Plan 60 non-recursive" do
+  test "source manifest fixes audited summaries at 01 through 60 with Plan 61 non-recursive" do
     manifest =
       @root
       |> Path.join(".planning/audits/198-summary-coverage-manifest.json")
       |> File.read!()
       |> Jason.decode!()
 
-    assert manifest["audited_final_plan_number"] == 59
-    assert manifest["terminal_certification_plan_number"] == 60
-    assert manifest["final_state_numbers"] == Enum.map(1..59, &pad_number/1)
+    assert manifest["audited_final_plan_number"] == 60
+    assert manifest["terminal_certification_plan_number"] == 61
+    assert manifest["final_state_numbers"] == Enum.map(1..60, &pad_number/1)
 
     summaries =
       @root
@@ -128,9 +169,9 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       |> Path.wildcard()
       |> Enum.map(&Path.basename/1)
 
-    audited = Enum.map(1..59, &"198-#{pad_number(&1)}-SUMMARY.md")
+    audited = Enum.map(1..60, &"198-#{pad_number(&1)}-SUMMARY.md")
     assert Enum.all?(audited, &(&1 in summaries))
-    refute "198-60-SUMMARY.md" in audited
+    refute "198-61-SUMMARY.md" in audited
   end
 
   defp validate_record(record) do
