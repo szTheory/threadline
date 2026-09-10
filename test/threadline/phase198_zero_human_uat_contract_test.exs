@@ -435,7 +435,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     ]
 
     for {canonical, aliases} <- canonical_fields,
-        {alias_line, field} <- aliases,
+        {alias_line, _field} <- aliases,
         fixture <- [
           String.replace(original, canonical, alias_line <> "\n" <> canonical, global: false),
           String.replace(original, canonical, canonical <> "\n" <> alias_line, global: false)
@@ -443,7 +443,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       File.write!(path, fixture)
 
       assert_raise ExUnit.AssertionError,
-                   ~r/reserved frontmatter alias #{field}/,
+                   ~r/unsupported root frontmatter syntax/,
                    fn -> validate_summary_set!(root, :normal) end
     end
 
@@ -472,7 +472,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
         ] do
       File.write!(path, fixture)
 
-      assert_raise ExUnit.AssertionError, ~r/reserved frontmatter alias phase/, fn ->
+      assert_raise ExUnit.AssertionError, ~r/unsupported root frontmatter syntax/, fn ->
         validate_summary_set!(root, :normal)
       end
     end
@@ -517,9 +517,9 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
             String.replace(original, canonical, canonical <> "\n" <> alias_syntax, global: false)
           ] do
         assert_raise ExUnit.AssertionError,
-                     ~r/(?:reserved frontmatter alias #{field}|unsupported indented frontmatter syntax)/,
+                     ~r/indented frontmatter outside a recognized block/,
                      fn ->
-                       frontmatter(fixture)
+                       strict_frontmatter!(fixture, "fixture")
                      end
       end
     end
@@ -527,15 +527,102 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     assert validate_summary_set!(root, :final) == :ok
   end
 
+  test "indented mappings require an active recognized root block" do
+    body = File.read!(summary_path("66"))
+
+    for indentation <- [" ", "  ", "    ", "        ", "\t"],
+        fixture <- [
+          String.replace(
+            body,
+            "phase: 198-green-bringup",
+            indentation <> "shadow: true\nphase: 198-green-bringup",
+            global: false
+          ),
+          String.replace(
+            body,
+            "phase: 198-green-bringup",
+            "phase: 198-green-bringup\n" <> indentation <> "shadow: true",
+            global: false
+          )
+        ] do
+      assert_raise ExUnit.AssertionError,
+                   ~r/indented frontmatter outside a recognized block/,
+                   fn -> strict_frontmatter!(fixture, "fixture") end
+    end
+  end
+
+  test "coverage entry and verification item fields are exact before semantic trust" do
+    body = File.read!(summary_path("66"))
+
+    entry_duplicates = [
+      {"description", ~r/^    description:.*$/m, "    description: conflicting"},
+      {"requirement", ~r/^    requirement:.*$/m, "    requirement: GREEN-12"},
+      {"verification", ~r/^    verification:$/m, "    verification:"},
+      {"human_judgment", ~r/^    human_judgment:.*$/m, "    human_judgment: true"}
+    ]
+
+    for {field, canonical_pattern, conflicting} <- entry_duplicates do
+      [canonical] = Regex.run(canonical_pattern, body)
+
+      for fixture <- [
+            String.replace(body, canonical, conflicting <> "\n" <> canonical, global: false),
+            String.replace(body, canonical, canonical <> "\n" <> conflicting, global: false)
+          ] do
+        assert_raise ExUnit.AssertionError, ~r/duplicate field #{field}/, fn ->
+          strict_frontmatter!(fixture, "fixture")
+        end
+      end
+    end
+
+    verification_duplicates = [
+      {"ref", ~r/^        ref:.*$/m, "        ref: \"conflicting\""},
+      {"status", ~r/^        status:.*$/m, "        status: fail"}
+    ]
+
+    for {field, canonical_pattern, conflicting} <- verification_duplicates do
+      [canonical] = Regex.run(canonical_pattern, body)
+
+      for fixture <- [
+            String.replace(body, canonical, conflicting <> "\n" <> canonical, global: false),
+            String.replace(body, canonical, canonical <> "\n" <> conflicting, global: false)
+          ] do
+        assert_raise ExUnit.AssertionError, ~r/duplicate field #{field}/, fn ->
+          strict_frontmatter!(fixture, "fixture")
+        end
+      end
+    end
+
+    unknown_entry =
+      String.replace(
+        body,
+        "    human_judgment: false",
+        "    surprise: true\n    human_judgment: false",
+        global: false
+      )
+
+    unknown_item =
+      String.replace(body, "        status: pass", "        surprise: true\n        status: pass",
+        global: false
+      )
+
+    assert_raise ExUnit.AssertionError, ~r/unknown coverage field surprise/, fn ->
+      strict_frontmatter!(unknown_entry, "fixture")
+    end
+
+    assert_raise ExUnit.AssertionError, ~r/unknown verification field surprise/, fn ->
+      strict_frontmatter!(unknown_item, "fixture")
+    end
+  end
+
   test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
     root = complete_phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
 
     passing =
-      "  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass"
+      "  - id: D1\n    description: passing\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: false"
 
     conflicting =
-      "  - id: D1\n    human_judgment: true\n    verification:\n      - kind: integration\n        status: fail"
+      "  - id: D1\n    description: conflicting\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"conflicting\"\n        status: fail\n    human_judgment: true"
 
     for coverage <- [passing <> "\n" <> conflicting, conflicting <> "\n" <> passing] do
       write_repair_summary!(root, "\n" <> coverage)
@@ -686,7 +773,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   end
 
   defp validate_summary_semantics!(body, path, number, allowed_statuses) do
-    yaml = frontmatter(body)
+    yaml = strict_frontmatter!(body, path)
     assert Regex.match?(~r/^phase:\s*198-green-bringup\s*$/m, yaml), "#{path} has wrong phase"
     assert Regex.match?(~r/^plan:\s*#{Regex.escape(number)}\s*$/m, yaml), "#{path} has wrong plan"
 
@@ -748,17 +835,17 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       {&String.replace(&1, "status: complete", "status: halted", global: false),
        ~r/invalid status/},
       {&String.replace(&1, "coverage: []", "coverage:\n  malformed", global: false),
-       ~r/malformed coverage block/},
+       ~r/malformed coverage block|coverage content precedes/},
       {&String.replace(
          &1,
          "coverage: []",
-         "coverage:\n  - id: D1\n    human_judgment: true\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass",
+         "coverage:\n  - id: D1\n    description: human fixture\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: true",
          global: false
        ), ~r/is human/},
       {&String.replace(
          &1,
          "coverage: []",
-         "coverage:\n  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: fail",
+         "coverage:\n  - id: D1\n    description: failing fixture\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: fail\n    human_judgment: false",
          global: false
        ), ~r/is not all-pass/}
     ]
@@ -906,122 +993,180 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   defp frontmatter(body) do
     case Regex.run(~r/\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|\z)/, body, capture: :all_but_first) do
       [yaml] ->
-        keys = constrained_frontmatter_keys!(yaml)
-
-        case duplicate_key(keys) do
-          nil -> yaml
-          key -> flunk("duplicate frontmatter field #{key}")
-        end
+        yaml
 
       _ ->
         flunk("summary has no strictly delimited YAML frontmatter")
     end
   end
 
-  defp constrained_frontmatter_keys!(yaml) do
+  defp strict_frontmatter!(body, path) do
+    yaml = frontmatter(body)
+
+    root_fields =
+      ~w(phase plan subsystem tags requires provides affects actuals tech-stack key-files key-decisions patterns-established requirements-completed requirements-pending coverage duration completed status)
+
+    block_fields =
+      ~w(requires provides actuals tech-stack key-files key-decisions patterns-established coverage)
+
+    {keys, blocks, _current} =
+      yaml
+      |> String.split(~r/\r?\n/)
+      |> Enum.reduce({[], %{}, nil}, fn line, {keys, blocks, current} ->
+        cond do
+          line == "" or String.match?(line, ~r/^\s*#/) ->
+            {keys, blocks, current}
+
+          Regex.match?(~r/^[^ \t]/, line) ->
+            case Regex.run(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]*(.*))$/, line,
+                   capture: :all_but_first
+                 ) do
+              [key, value] ->
+                assert key in root_fields, "#{path} has unknown root frontmatter field #{key}"
+                next = if value == "" and key in block_fields, do: key, else: nil
+                {[key | keys], Map.put_new(blocks, key, []), next}
+
+              _ ->
+                flunk("#{path} has unsupported root frontmatter syntax: #{line}")
+            end
+
+          current == nil ->
+            flunk("#{path} has indented frontmatter outside a recognized block: #{line}")
+
+          String.contains?(line, "\t") ->
+            flunk("#{path} has unsupported tab indentation in #{current}: #{line}")
+
+          true ->
+            assert_block_line!(current, line, path)
+            {keys, Map.update!(blocks, current, &(&1 ++ [line])), current}
+        end
+      end)
+
+    case duplicate_key(Enum.reverse(keys)) do
+      nil -> :ok
+      key -> flunk("duplicate frontmatter field #{key}")
+    end
+
+    if Map.get(blocks, "coverage", []) != [] do
+      validate_strict_coverage_block!(blocks["coverage"], path)
+    end
+
     yaml
-    |> String.split(~r/\r?\n/)
-    |> Enum.reduce({[], :root}, fn line, {keys, context} ->
-      cond do
-        line == "" or String.match?(line, ~r/^\s*#/) ->
-          {keys, context}
-
-        match = Regex.run(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]|$)/, line) ->
-          [_, key] = match
-          {[key | keys], if(key == "coverage", do: :coverage, else: :root)}
-
-        String.match?(line, ~r/^[ \t]/) ->
-          case reserved_frontmatter_alias(line) do
-            "status" ->
-              if context == :verification_item and is_structurally_valid_coverage_status(line) do
-                {keys, context}
-              else
-                flunk("reserved frontmatter alias status: #{line}")
-              end
-
-            nil ->
-              if unsupported_indented_frontmatter_syntax?(line) do
-                flunk("unsupported indented frontmatter syntax: #{line}")
-              else
-                {keys, next_frontmatter_context(line, context)}
-              end
-
-            key ->
-              flunk("reserved frontmatter alias #{key}: #{line}")
-          end
-
-        true ->
-          case reserved_frontmatter_alias(line) do
-            nil -> flunk("unsupported top-level frontmatter syntax: #{line}")
-            key -> flunk("reserved frontmatter alias #{key}: #{line}")
-          end
-      end
-    end)
-    |> elem(0)
-    |> Enum.reverse()
   end
 
-  defp next_frontmatter_context(line, context) do
-    cond do
-      context in [:coverage, :coverage_entry, :verification, :verification_item] and
-          String.match?(line, ~r/^  - id:\s*[^\s]+/) ->
-        :coverage_entry
+  defp assert_block_line!("coverage", _line, _path), do: :ok
 
-      context in [:coverage_entry, :verification, :verification_item] and
-          String.match?(line, ~r/^    verification:(?:[ \t]|$)/) ->
-        :verification
+  defp assert_block_line!(block, line, path) do
+    valid =
+      case block do
+        "requires" ->
+          String.match?(line, ~r/^  - phase:\s*.+$/) or
+            String.match?(line, ~r/^    provides:\s*.+$/)
 
-      context in [:verification, :verification_item] and
-          String.match?(line, ~r/^      - kind:(?:[ \t]|$)/) ->
-        :verification_item
+        block when block in ["provides", "key-decisions", "patterns-established"] ->
+          String.match?(line, ~r/^  -\s+.+$/)
 
-      true ->
-        context
+        block when block in ["actuals", "tech-stack"] ->
+          String.match?(line, ~r/^  [A-Za-z_][A-Za-z0-9_-]*:\s*.*$/)
+
+        "key-files" ->
+          String.match?(line, ~r/^  [A-Za-z_][A-Za-z0-9_-]*:\s*.*$/) or
+            String.match?(line, ~r/^    -\s+.+$/)
+      end
+
+    assert valid, "#{path} has invalid #{block} block line: #{line}"
+  end
+
+  defp validate_strict_coverage_block!(lines, path) do
+    entries = split_yaml_items!(lines, ~r/^  - id:\s*[^\s]+\s*$/, "#{path} coverage")
+    ids = Enum.map(entries, &validate_strict_coverage_entry!(&1, path))
+
+    case duplicate_key(ids) do
+      nil -> :ok
+      id -> flunk("duplicate coverage id #{id}")
     end
   end
 
-  defp is_structurally_valid_coverage_status(line) do
-    String.match?(line, ~r/^        status:\s*[^\s]+\s*$/)
+  defp validate_strict_coverage_entry!([id_line | lines], path) do
+    [_, id] = Regex.run(~r/^  - id:\s*([^\s]+)\s*$/, id_line)
+
+    {fields, verification_lines, _in_verification} =
+      Enum.reduce(lines, {[], [], false}, fn line,
+                                             {fields, verification_lines, in_verification} ->
+        case Regex.run(~r/^    ([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]*(.*))$/, line,
+               capture: :all_but_first
+             ) do
+          [field, value] ->
+            assert field in ~w(description requirement verification human_judgment),
+                   "#{path}:#{id} has unknown coverage field #{field}"
+
+            assert field != "verification" or value == "",
+                   "#{path}:#{id} verification must be a block"
+
+            {[field | fields], verification_lines, field == "verification"}
+
+          _ ->
+            assert in_verification, "#{path}:#{id} has invalid coverage entry line: #{line}"
+            {fields, verification_lines ++ [line], true}
+        end
+      end)
+
+    assert_exact_fields!(
+      Enum.reverse(fields),
+      ~w(description requirement verification human_judgment),
+      "#{path}:#{id} coverage entry"
+    )
+
+    verification_lines
+    |> split_yaml_items!(~r/^      - kind:\s*.+$/, "#{path}:#{id} verification")
+    |> Enum.each(&validate_strict_verification_item!(&1, "#{path}:#{id}"))
+
+    id
   end
 
-  defp reserved_frontmatter_alias(line) do
-    stripped = String.trim_leading(line)
-    fields = "phase|plan|status|coverage"
+  defp validate_strict_verification_item!([kind_line | lines], owner) do
+    assert String.match?(kind_line, ~r/^      - kind:\s*[^\s].*$/)
 
-    patterns = [
-      ~r/^(#{fields})\s*:/,
-      ~r/^"(#{fields})"\s*:/,
-      ~r/^'(#{fields})'\s*:/,
-      ~r/^!![^\s]+\s+(#{fields})\s*:/,
-      ~r/^&[^\s]+\s+(#{fields})\s*:/,
-      ~r/^\?\s*["']?(#{fields})["']?\s*$/,
-      ~r/^\{\s*["']?(#{fields})["']?\s*:/
-    ]
+    fields =
+      Enum.map(lines, fn line ->
+        case Regex.run(~r/^        ([A-Za-z_][A-Za-z0-9_-]*):\s*.+$/, line,
+               capture: :all_but_first
+             ) do
+          [field] ->
+            assert field in ~w(ref status), "#{owner} has unknown verification field #{field}"
+            field
 
-    Enum.find_value(patterns, fn pattern ->
-      case Regex.run(pattern, stripped, capture: :all_but_first) do
-        [field] -> field
-        _ -> nil
-      end
-    end)
+          _ ->
+            flunk("#{owner} has invalid verification line: #{line}")
+        end
+      end)
+
+    assert_exact_fields!(["kind" | fields], ~w(kind ref status), "#{owner} verification item")
   end
 
-  defp unsupported_indented_frontmatter_syntax?(line) do
-    stripped = String.trim_leading(line)
+  defp split_yaml_items!(lines, start_pattern, owner) do
+    {items, current} =
+      Enum.reduce(lines, {[], []}, fn line, {items, current} ->
+        if String.match?(line, start_pattern) do
+          {if(current == [], do: items, else: [current | items]), [line]}
+        else
+          assert current != [], "#{owner} content precedes its first item: #{line}"
+          {items, current ++ [line]}
+        end
+      end)
 
-    String.starts_with?(line, "\t") or
-      Enum.any?(
-        [
-          ~r/^"[^"]+"\s*:/,
-          ~r/^'[^']+'\s*:/,
-          ~r/^!![^\s]+\s+(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
-          ~r/^&[^\s]+\s+(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
-          ~r/^\?\s*(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*$/,
-          ~r/^\{\s*(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
-          ~r/^<<\s*:/
-        ],
-        &String.match?(stripped, &1)
-      )
+    items = Enum.reverse(if(current == [], do: items, else: [current | items]))
+    assert items != [], "#{owner} has no items"
+    items
+  end
+
+  defp assert_exact_fields!(actual, expected, owner) do
+    case duplicate_key(actual) do
+      nil -> :ok
+      field -> flunk("#{owner} has duplicate field #{field}")
+    end
+
+    assert Enum.sort(actual) == Enum.sort(expected), "#{owner} fields are not exact"
   end
 
   defp indent_each_line(value, indentation) do
