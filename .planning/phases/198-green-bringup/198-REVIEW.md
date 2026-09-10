@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T22:22:04Z
+reviewed: 2026-09-10T22:29:46Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -341,6 +341,45 @@ byte zero, exactly one `phase`, `plan`, `coverage`, and `status` member, and
 unique coverage IDs. Add malicious-first and malicious-last fixtures for every
 identity/status/coverage field plus repeated coverage IDs, and assert the
 duplicate-specific rejection occurs before value validation.
+
+### CR-05 Repair Re-review: REMAINS OPEN
+
+**Reviewed:** 2026-09-10T22:29:46Z
+**Repair commit:** `acd34cd4`
+**Validation update:** `aa095569`
+
+The repair adds effective malicious-first and malicious-last fixtures for plain
+unquoted `phase`, `plan`, `status`, and `coverage` keys. It also checks duplicate
+plain `D1` coverage IDs before `Map.new/1`, and both fresh requested suites pass.
+Those changes close the originally demonstrated literal duplicate cases, but do
+not close the YAML parser-differential defect.
+
+The duplicate detector at
+`test/threadline/phase198_zero_human_uat_contract_test.exs:799-809` recognizes
+only unquoted keys matching `[A-Za-z_][A-Za-z0-9_-]*`. A valid YAML member such
+as `"phase": 199` is therefore invisible to the detector. A document containing
+the accepted unquoted `phase: 198-green-bringup` followed by `"phase": 199`
+passes the contract's key scan and phase predicate, while a standard YAML parser
+resolves the resulting `phase` value to `199`. The reverse order is likewise not
+rejected as a duplicate; it merely changes which external consumer value wins.
+This is the same both-values-present ambiguity CR-05 identified, expressed with
+a valid YAML key spelling instead of an identical byte spelling. The new fixtures
+at lines 396-420 exercise only plain-key duplication, so they cannot detect it.
+
+CR-05 remains a **BLOCKER**. Use a duplicate-preserving YAML parser and compare
+decoded scalar keys, or reject every YAML key spelling outside the one canonical
+unquoted form before performing the duplicate check. Add both-order quoted-key
+fixtures for all four protected fields and require the duplicate/noncanonical-key
+failure before identity, status, or coverage validation. Consequently,
+`198-VALIDATION.md`'s `CR-05 FILLED` conclusion is not supported by the current
+contract.
+
+**Fresh repair verification:**
+
+- Final-mode focused summary contract: 16 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 36 tests, 0 failures.
+- Role constants remain exact: audited-final 01-61, sole terminal 62,
+  content-bound post-terminal 63-65, and non-terminal repair summary 66.
 
 ### Boundary Checks That Passed
 
