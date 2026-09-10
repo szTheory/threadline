@@ -709,5 +709,40 @@
       ],
       "verification_state_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
-  ]
+  ],
+  "post_terminal_policy": {
+    "policy": "explicit-content-bound-repair-summaries",
+    "audited_final_state_unchanged": true,
+    "terminal_certification_unchanged": true,
+    "numbers": [
+      "63",
+      "64",
+      "65"
+    ],
+    "summaries": [
+      {
+        "number": "63",
+        "path": ".planning/phases/198-green-bringup/198-63-SUMMARY.md",
+        "sha256": "12fc1b775f7822b74bbc5d8648e15eb37ae5387dff726dded9ca6bc7e2e2c23c"
+      },
+      {
+        "number": "64",
+        "path": ".planning/phases/198-green-bringup/198-64-SUMMARY.md",
+        "sha256": "76e9ed1735d3885114c7de09cdb721bac2ce34a5f9cc7d3696eb46d2ef0fe4da"
+      },
+      {
+        "number": "65",
+        "path": ".planning/phases/198-green-bringup/198-65-SUMMARY.md",
+        "sha256": "9542156d7a2aaf0209a7e48920fed1b581163e5fd2e07b8ce4248eb2ed5d87b0"
+      }
+    ],
+    "policy_repair_summary": {
+      "number": "66",
+      "path": ".planning/phases/198-green-bringup/198-66-SUMMARY.md",
+      "role": "post-terminal-policy-repair-execution-summary",
+      "required_in_final_mode": true,
+      "excluded_from_audited_final_state": true,
+      "terminal_certification": false
+    }
+  }
 }

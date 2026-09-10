@@ -135,6 +135,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
 
     for number <- 56..61, do: write_summary!(root, Integer.to_string(number), "[]")
+    write_repair_summary!(root)
     assert validate_summary_set!(root, :final) == :ok
 
     File.rm!(Path.join(root, "198-58-SUMMARY.md"))
@@ -153,7 +154,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
     File.rm!(malformed)
 
-    for illegal <- ~w(00 048 63) do
+    for illegal <- ~w(00 048 67) do
       write_summary!(root, illegal, "[]")
 
       assert_raise ExUnit.AssertionError, ~r/#{illegal}/, fn ->
@@ -190,8 +191,12 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       "\n  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"focused test\"\n        status: pass"
 
     write_summary!(root, @terminal_certification_number, passing)
+    write_repair_summary!(root)
     assert validate_summary_set!(root, :final) == :ok
-    assert discover_numbers(root) -- @final_state_numbers == [@terminal_certification_number]
+
+    assert discover_numbers(root) --
+             (@final_state_numbers ++ @post_terminal_numbers ++ [@policy_repair_number]) ==
+             [@terminal_certification_number]
   end
 
   test "coverage accepts only an explicit empty list or structurally valid entries" do
@@ -382,7 +387,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     root = Path.join(System.tmp_dir!(), "phase198-summary-#{System.unique_integer([:positive])}")
     File.mkdir_p!(root)
 
-    for number <- @baseline_numbers ++ ~w(48 49 50 51 52 53 54 55) do
+    for number <- @baseline_numbers ++ ~w(48 49 50 51 52 53 54 55 63 64 65) do
       File.cp!(summary_path(number), Path.join(root, "198-#{number}-SUMMARY.md"))
     end
 
@@ -391,6 +396,13 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
   defp write_summary!(dir, number, coverage) do
     File.write!(Path.join(dir, "198-#{number}-SUMMARY.md"), summary_body(coverage))
+  end
+
+  defp write_repair_summary!(dir) do
+    File.write!(
+      Path.join(dir, "198-#{@policy_repair_number}-SUMMARY.md"),
+      "---\nphase: 198-green-bringup\nplan: 66\ncoverage: []\nstatus: complete\n---\n# Fixture\n"
+    )
   end
 
   defp summary_body(coverage),
