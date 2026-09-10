@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 61 plans — 60 executed, 1 additive round-13 gap plan ready
+**Plans**: 62 plans — 61 executed, 1 additive round-14 gap plan ready
 
 Plans:
 **Wave 1**
@@ -379,6 +379,20 @@ Plans:
 - The real production final ref-disposition command and `bin/verify-branch-protection` are read-only gates. No branch, PR, tag, ruleset, protection, workflow, or other external mutation is authorized.
 - T-198-55-02 remains blocking because `cannot-attest` supplied no historical command-method proof. T-198-55-03 remains open below threshold. Neither risk is accepted, and GREEN-07 remains accepted-Pending.
 
+#### Gap-closure round 14 — canonical-only legacy receipt compatibility (plan 198-62)
+
+**Wave 11** *(blocked on completed Plan 198-61 and the authoritative post-Plan-61 security report)*
+
+- [ ] 198-62-PLAN.md — **Tracer:** bind weak legacy receipt validation to the exact immutable completed Round-11 JSON/Markdown identity, require strict receipts everywhere else, and reseal exact summaries 01-61 with Plan 62 as the sole non-recursive exception (wave 11)
+
+**Round-14 notes:**
+
+- The compatibility exception is selected only by the canonical Round-11 paths, exact committed blobs and digests, matching JSON/Markdown decision join, and exact completed execution state. A copy, alias, one-byte mutation, incomplete state, or future schema-v2 record cannot inherit it.
+- Every other production or synthetic receipt requires literal argv, `force=false`, ordered timestamps, zero exit, before/after identities, and operation-specific one-object semantics. Fixture stages remain explicit and cannot authorize production.
+- The new terminal certificate audits summaries 01-61, names Plan 62 as the sole non-recursive exception, seals every source to one `certified_head`, and records the exact six passing summary/focused/live/branch-protection/terminal/full lanes.
+- T-198-57-04 closes only from the new passing adversarial controls. T-198-55-02 remains high/blocking/open/not accepted, T-198-55-03 remains medium/nonblocking/open/not accepted, and GREEN-07 remains accepted-Pending.
+- Canonical security and phase-verification hooks remain orchestrator-owned. No branch, PR, tag, ruleset, protection, workflow, release, or other external mutation is authorized.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -582,7 +596,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 60/61 | In progress | Round-13 Plan 198-61 is planned to repair immutable terminal source identity and classic-protection 404 decoding, reseal exact summaries/tests, then hand off ordered canonical security/phase re-audits while T-198-55-02 remains blocking, T-198-55-03 remains open below threshold, and GREEN-07 remains Pending. |
+| 198. Green Bringup | v1.41 | 61/62 | In progress | Round-14 Plan 198-62 is planned to constrain legacy receipt compatibility to the immutable completed Round-11 artifact, reseal exact summaries/tests, then hand off ordered canonical security/phase re-audits while T-198-55-02 remains blocking, T-198-55-03 remains open below threshold, and GREEN-07 remains Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
