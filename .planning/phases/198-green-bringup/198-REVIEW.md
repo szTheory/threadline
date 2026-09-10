@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T23:03:18Z
+reviewed: 2026-09-10T23:10:21Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -575,6 +575,52 @@ while a null coverage identity passes.
   non-human, referenced, all-pass entry; Psych resolves the same ID to `nil`.
 - The exact audited-final 01-61, terminal 62, content-bound 63-65, and repair 66
   roles remain unchanged.
+
+### CR-05 Iteration-6 Re-review: RESOLVED
+
+**Reviewed:** 2026-09-10T23:10:21Z
+**Repair commit:** `b96eba0d`
+**Validation update:** `ca2e1934`
+
+The complete coverage-leaf schema closes the remaining parser differential.
+Coverage IDs must now match the canonical positive, non-zero `D[1-9][0-9]*`
+grammar before collection or duplicate detection. Descriptions and references
+are JSON-decoded double-quoted strings and must remain nonempty after trimming.
+Requirements are bound to the parsed plan (`GREEN-12` for Plans 64-65 and
+`GREEN-04` for Plan 66). Kinds and verification statuses use finite bare enums,
+and `human_judgment` accepts only bare YAML booleans.
+
+Adversarial review found no remaining accepted null, tilde, quoted,
+single-quoted, tagged, anchored, flow, block, malformed, zero, or zero-padded
+alias for a trusted Plan-66 coverage leaf. Exact field-cardinality checks reject
+missing, extra, and duplicate coverage-entry and verification-item fields before
+the later regex-based coverage map is constructed. Coverage entries split only
+on canonical two-space `- id:` records; verification items split only on
+canonical six-space `- kind:` records, so fields cannot leak across entries or
+items. The real D1/D2 records provide positive multi-entry and
+multi-verification coverage.
+
+The preceding structural controls also remain effective: indented content needs
+an active recognized block, scalar/inline roots cannot open blocks, metadata
+block shapes use explicit indentation allowlists, root identity/status aliases
+fail, duplicate root keys fail before semantic trust, and Plan 67 or later is
+still outside the authorized namespace. No concrete parser-differential bypass
+remains within the constrained Plan-66 summary grammar.
+
+**Fresh iteration-6 verification:**
+
+- Final-mode focused summary contract: 24 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 44 tests,
+  0 failures.
+- Broader targeted set including the Phase-198 Nyquist contract: 51 tests,
+  0 failures.
+- `git diff --check` passes for both repair commits; only the focused contract
+  and orchestrator-owned validation artifact changed.
+- Exact roles remain unchanged: audited-final 01-61, sole terminal 62,
+  content-bound post-terminal 63-65, and non-terminal repair summary 66.
+
+CR-05 is **RESOLVED**. The historical finding and five repair iterations remain
+above as an append-only review trail; they are not current blockers.
 
 ### Boundary Checks That Passed
 
