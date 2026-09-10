@@ -569,7 +569,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 55/59 | In progress | Round-12 gap plans 198-56 through 198-59 are planned to restore GREEN-04, harden live authority/receipt controls, resolve five prohibition tiers honestly, and rerun canonical security/phase verification while GREEN-07 remains Pending. |
+| 198. Green Bringup | v1.41 | 55/60 | In progress | Round-12 gap plans 198-56 through 198-60 are planned to restore GREEN-04, harden live authority/receipt controls, resolve five prohibition tiers honestly, terminally certify exact summaries and tests, and hand off ordered canonical security/phase re-audits while GREEN-07 remains Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
