@@ -343,7 +343,7 @@ Plans:
 **Wave 6** *(independent code paths after completed Plan 198-55)*
 
 - [x] 198-56-PLAN.md — **Tracer:** expand the exact audited Phase-198 summary namespace through Plan 59, declare the non-recursive Plan-60 certification exception, and preserve strict mechanical coverage (wave 6)
-- [ ] 198-57-PLAN.md — **Tracer:** separate fixture lifecycle tests from production live authority, re-read protected controls independently, bound GitHub availability, and require exact argv-safe one-object receipts (wave 6)
+- [x] 198-57-PLAN.md — **Tracer:** separate fixture lifecycle tests from production live authority, re-read protected controls independently, bound GitHub availability, and require exact argv-safe one-object receipts (wave 6)
 
 **Wave 7** *(blocked on the hardened validator)*
 
