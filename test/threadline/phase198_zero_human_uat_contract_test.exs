@@ -3,11 +3,12 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
   @phase_dir ".planning/phases/198-green-bringup"
   @manifest ".planning/audits/198-summary-coverage-manifest.json"
+  @manifest_data @manifest |> File.read!() |> Jason.decode!()
   @delta ".planning/audits/198-plan46-coverage-delta.json"
   @baseline_numbers Enum.map(1..47, &(Integer.to_string(&1) |> String.pad_leading(2, "0")))
   @closeout_start 48
-  @audited_final_plan_number 59
-  @terminal_certification_plan_number 60
+  @audited_final_plan_number @manifest_data["audited_final_plan_number"]
+  @terminal_certification_plan_number @manifest_data["terminal_certification_plan_number"]
   @closeout_numbers Enum.map(@closeout_start..@audited_final_plan_number, &Integer.to_string/1)
   @final_state_numbers @baseline_numbers ++ @closeout_numbers
   @terminal_certification_number Integer.to_string(@terminal_certification_plan_number)
@@ -34,6 +35,8 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     manifest = read_json!(@manifest)
     assert manifest["scope"] == "phase-198-only"
     assert manifest["general_classifier_owner"] == "phase-199"
+    assert @audited_final_plan_number == 59
+    assert @terminal_certification_plan_number == 60
     assert manifest["baseline_numbers"] == @baseline_numbers
     assert manifest["audited_final_plan_number"] == @audited_final_plan_number
     assert manifest["terminal_certification_plan_number"] == @terminal_certification_plan_number
@@ -103,6 +106,8 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   test "isolated discovery fixtures enforce audited final timing and the sole Plan 60 exception" do
     root = phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
+
+    assert validate_summary_set!(root, :normal) == :ok
 
     assert_raise ExUnit.AssertionError, ~r/missing audited.*56.*57.*58.*59/s, fn ->
       validate_summary_set!(root, :final)
