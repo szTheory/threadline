@@ -11,7 +11,7 @@ validated: 2026-09-10
 # Phase 198 — Validation Strategy
 
 Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
-automated behavioral or contract proof across all 61 plans. `GREEN-07` remains PARTIAL
+automated behavioral or contract proof across all 62 plans. `GREEN-07` remains PARTIAL
 under its accepted-Pending terminal disposition because its literal `origin/main`
 ancestry clause is false: at the latest audit `origin/main..HEAD` contained 355 commits.
 No test, documentation edit, or local commit can make that remote-state clause true.
@@ -144,6 +144,9 @@ or live observation; it is not silently converted to machine coverage.
 | 61-T1 | GREEN-04 | exact-summary and immutable terminal source-identity contracts | green |
 | 61-T2 | GREEN-12 | real classic-adapter tri-state fixtures and full ref-disposition contract | green |
 | 61-T3 | GREEN-04, GREEN-12 | strict terminal certificate, production final, branch protection, and 1,622-test full suite | green |
+| 62-T1 | GREEN-12 | canonical receipt-identity and strict-default production contract | green |
+| 62-T2 | GREEN-04 | exact-summary and terminal-certification contracts | green |
+| 62-T3 | GREEN-04, GREEN-12 | production final, branch protection, terminal-focused, and 1,623-test full suite | green |
 
 ## Manual-Only / Escalated
 
@@ -229,9 +232,22 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Production final | Passed read-only; transient deadline failures remained fail-closed and a bounded retry passed |
 | Result | No automated coverage gap; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
+## Validation Audit 2026-09-10 (post-Plan-62)
+
+| Metric | Result |
+|---|---|
+| Plan/task map | 62 plans; 161 authored tasks; 159 executed; Plan 52's 2 tasks intentionally tombstoned |
+| Plan-62 task coverage | 3/3 COVERED |
+| Receipt and ref-disposition contracts | 1 focused plus 90 full tests, 0 failures |
+| Summary and terminal contracts | 9 plus 7 tests, 0 failures |
+| Terminal-focused lane | 114 tests, 0 failures |
+| Full repository suite | 1,623 tests, 0 failures, 1 excluded |
+| Production state | Final validator and branch-protection verifier both passed read-only |
+| Result | No automated coverage gap; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+
 ## Validation Sign-Off
 
-- [x] All 61 PLANs and 61 SUMMARYs mapped through their tasks and requirements.
+- [x] All 62 PLANs and 62 SUMMARYs mapped through their tasks and requirements.
 - [x] Every automated test claimed green was executed in this audit.
 - [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
 - [x] No implementation file was modified.
