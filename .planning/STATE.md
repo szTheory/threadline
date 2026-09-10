@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: planned
-stopped_at: Planned 198-61-PLAN.md
-last_updated: "2026-09-10T03:58:08.138Z"
+stopped_at: Completed 198-61-PLAN.md
+last_updated: "2026-09-10T04:40:53.563Z"
 last_activity: 2026-09-10
 last_activity_desc: Planned Phase 198 round-13 gap closure for immutable terminal source identity, explicit classic-protection state, and terminal reseal
-state_head: 07c61cf0e1773cfa3fcc659ca4bfa02686a4702d
+state_head: a131b65ad3957303c4a200e415d886968d2e29a4
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 61
-  completed_plans: 60
+  completed_plans: 61
   percent: 0
 ---
 
@@ -105,6 +105,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P58 | 9 min | 2 tasks | 4 files |
 | Phase 198 P59 | 6 min | 2 tasks | 4 files |
 | Phase 198 P60 | 18 min | 2 tasks | 3 files |
+| Phase 198 P61 | 24 min | 3 tasks | 7 files |
 
 ## Deferred Items
 
@@ -521,6 +522,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: T-198-55-03 remains open below threshold because no missing per-operation receipt fields were supplied.
 - [Phase 198]: Phase 198 terminal certification audits summaries 01-59 while Plan 60 remains the sole tested non-recursive summary exception.
 - [Phase 198]: Terminal evidence preserves T-198-55-03 open below threshold and GREEN-07 accepted-Pending; canonical re-audits remain orchestrator-owned.
+- [Phase 198]: Every Phase-198 terminal source is authorized only by exact certified_head equality plus certified_head:path blob identity and digest.
+- [Phase 198]: Classic protection communicates only absent or present; all other HTTP, transport, malformed, or unknown states fail closed.
+- [Phase 198]: T-198-55-02 and T-198-55-03 remain open and not accepted; GREEN-07 remains accepted-Pending.
 
 ### Blockers
 
@@ -528,8 +532,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-10T03:07:30.822Z
-**Stopped at:** Completed 198-60-PLAN.md
+**Last session:** 2026-09-10T04:40:53.526Z
+**Stopped at:** Completed 198-61-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

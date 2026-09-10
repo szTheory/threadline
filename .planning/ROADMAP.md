@@ -370,7 +370,7 @@ Plans:
 
 **Wave 10** *(blocked on completed Plan 198-60 and the authoritative Round-12 reports)*
 
-- [ ] 198-61-PLAN.md — **Tracer:** bind terminal sources to immutable commit/blob identities, make classic protection absent/present/error explicit through the production adapter, then reseal exact summaries 01-60 and the focused/full lanes with Plan 61 as the sole non-recursive exception (wave 10)
+- [x] 198-61-PLAN.md — **Tracer:** bind terminal sources to immutable commit/blob identities, make classic protection absent/present/error explicit through the production adapter, then reseal exact summaries 01-60 and the focused/full lanes with Plan 61 as the sole non-recursive exception (wave 10)
 
 **Round-13 notes:**
 
