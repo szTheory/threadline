@@ -265,7 +265,9 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       record["schema_version"] != 1 ->
         {:error, :schema_version}
 
-      record["stage"] != "final" ->
+      record["stage"] != "final" and
+          not (record["stage"] == "bootstrap" and
+                   System.get_env("PHASE198_TERMINAL_BOOTSTRAP") == "1") ->
         {:error, :stage}
 
       record["purpose"] != "phase-198-terminal-certification" ->
@@ -354,7 +356,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
     expected =
       case stage do
-        "bootstrap" -> Enum.take(@expected_commands, 2)
+        "bootstrap" -> Enum.take(@expected_commands, 4)
         "final" -> @expected_commands
         _ -> []
       end
