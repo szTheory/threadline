@@ -275,7 +275,21 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Combined security projection | Plan-66 summary contract plus Plan-65 prohibition/security-disposition contract — 36 tests, 0 failures |
 | Full repository suite | 1,642 tests, 0 failures, 1 excluded |
 | Proof boundary | Local deterministic tests establish the current-tree GREEN-04 parser/summary contract only; they do not establish cross-environment reproducibility or satisfy GREEN-07 |
-| Result | CR-05 FILLED; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+| Result | Initial CR-05 plain-key duplicate gap filled; re-review found a quoted-key parser differential addressed in iteration 2 below |
+
+## Validation Audit 2026-09-10 (post-Plan-66 CR-05 iteration 2)
+
+| Metric | Result |
+|---|---|
+| Re-review gap | Valid YAML double-quoted or single-quoted top-level keys could alias `phase`, `plan`, `status`, or `coverage` while evading the plain-key duplicate counter |
+| Constrained grammar | Every non-comment, non-indented top-level line must use the canonical plain key grammar `[A-Za-z_][A-Za-z0-9_-]*:`; unsupported YAML syntax is rejected before duplicate counting or semantic value checks |
+| Both-order quoted-key matrix | Double-quoted and single-quoted aliases for `phase`, `plan`, `status`, and `coverage` are inserted malicious-first and malicious-last; all 16 fixtures require the unsupported-syntax failure |
+| Equivalent syntax matrix | Spaced-key, tagged-key, anchored-key, explicit-key, and flow-map forms are inserted before and after canonical `phase`; all 10 fixtures fail at the constrained grammar boundary |
+| Preserved compatibility and roles | All tracked canonical summaries remain readable; audited-final 01-61, terminal 62, content-bound 63-65, and repair-summary 66 roles are unchanged |
+| Focused final-mode contract | 17 tests, 0 failures |
+| Combined security projection | 37 tests, 0 failures |
+| Full repository suite | 1,643 tests, 0 failures, 1 excluded |
+| Result | CR-05 FILLED after adversarial re-review; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
 ## Validation Sign-Off
 
