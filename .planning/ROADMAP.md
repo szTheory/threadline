@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 64 plans — 62 executed, 1 halted by explicit non-acceptance, 1 additive round-16 security-disposition plan ready
+**Plans**: 65 plans — 63 executed, 1 halted by explicit non-acceptance, 1 additive round-17 security-disposition repair plan ready
 
 Plans:
 **Wave 1**
@@ -420,6 +420,19 @@ Plans:
 - T-198-55-03 remains open/not accepted, T-198-62-SC receives no inferred acceptance, and GREEN-07 remains accepted-Pending.
 - The plan persists and tests the input only. Canonical security owns the verdict and runs before canonical phase verification.
 
+#### Gap-closure round 17 — attributable, duplicate-safe superseding disposition (plan 198-65)
+
+**Wave 13** *(depends on completed Plan 198-64; Plans 63 and 64 remain immutable superseded history)*
+
+- [ ] 198-65-PLAN.md — Capture exact `szTheory` authority in an append-only v2 record, reject duplicate JSON members recursively before map conversion, pin decision time/history to immutable Git objects, then route canonical security before verification (wave 13)
+
+**Round-17 notes:**
+
+- Canonical security rejected Plan 64's placeholder signer and lossy duplicate-member boundary; neither defect is rounded away.
+- The new exact `szTheory` response supersedes only T-198-55-02's prior disposition. Plan63's decline and Plan64's invalid attempt remain byte-preserved history.
+- T-198-55-03 and T-198-62-SC remain open/not accepted, and GREEN-07 remains accepted-Pending.
+- Canonical security remains the verdict owner and runs before canonical phase verification.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -623,7 +636,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 62/64 | In progress | Round-15 Plan 198-63 halted on explicit non-acceptance. A later exact maintainer response now authorizes Round-16 Plan 198-64 to persist only T-198-55-02's residual-risk acceptance. Canonical security remains first; T-198-55-03 stays open/not accepted and GREEN-07 remains accepted-Pending. |
+| 198. Green Bringup | v1.41 | 63/65 | In progress | Plan 198-64 completed but canonical security rejected its placeholder attribution and duplicate-member ambiguity. Round-17 Plan 198-65 records exact `szTheory` authority append-only, adds recursive pre-map duplicate rejection and immutable time/history pins, then routes security before verification. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
