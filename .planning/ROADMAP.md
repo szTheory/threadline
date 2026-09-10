@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 55 plans — 51 executed, Plan 52 completed by a non-execution supersession tombstone after the Plan-51 `abort`, 3 additive round-11 plans ready
+**Plans**: 59 plans — 55 executed, 4 additive round-12 gap plans ready
 
 Plans:
 **Wave 1**
@@ -338,6 +338,30 @@ Plans:
 - GREEN-07 remains Pending under D-39 and current exact-main evidence. Round 11 cannot merge, push main, alter protection, or restate roadmap criterion 3 as met.
 - The deterministic API detector found no external API integration and the supported ORM schema scan found no matching paths, so no COVERAGE.md or schema-push task is required. The assumption-delta detector fired; Plans 53-55 promote the preservation subject (side + SHA) over branch name as the primary identity.
 
+#### Gap-closure round 12 — restore the required lane and close validator/security evidence gaps (plans 198-56 through 198-59)
+
+**Wave 6** *(independent code paths after completed Plan 198-55)*
+
+- [ ] 198-56-PLAN.md — **Tracer:** expand the exact Phase-198 summary namespace through the final Plan 59 without weakening closeout validation, then restore the focused/required test lane (wave 6)
+- [ ] 198-57-PLAN.md — **Tracer:** separate fixture lifecycle tests from production live authority, re-read protected controls independently, bound GitHub availability, and require exact argv-safe one-object receipts (wave 6)
+
+**Wave 7** *(blocked on the hardened validator)*
+
+- [ ] 198-58-PLAN.md — Create an immutable round-12 five-prohibition ledger: four test-tier resolutions and one honest pending historical-method judgment, with anti-fabrication checks (wave 7)
+
+**Wave 8** *(blocking-human; blocked on Plans 56-58)*
+
+- [ ] 198-59-PLAN.md — Record a verbatim maintainer attestation or cannot-attest outcome for the unreconstructable Plan-55 command method, then require final summary/full tests plus canonical security and phase re-audits (wave 8)
+
+**Round-12 notes:**
+
+- GREEN-04 regressed only because the repository-owned summary allowlist stopped at Plan 52. Plan 56 makes the manifest's exact final plan number authoritative, validates the already-created 53-55 summaries, and reserves 56-59 without allowing any other number.
+- The completed round-11 Markdown/JSON evidence remains immutable. Validator changes are TDD-driven; new prohibition/security resolution evidence uses a separate round-12 schema.
+- Fixture/data-only state never satisfies production decision, authority, controls, post-target, or final stages. Production stages independently re-read live Git/GitHub identities and protected controls within a bounded observation budget.
+- Historical argv was not captured in round 11 and will not be invented. Plan 59 is `blocking-human` even in auto mode; `cannot-attest` truthfully leaves the dependent finding open rather than accepting risk.
+- After Plan 59's summary exists, exact 01-59 discovery, focused contracts, full `mix test`, `$gsd-secure-phase 198`, and Phase-198 verification must all rerun. Canonical reports determine the verdict; no plan manually forces them green.
+- GREEN-07 remains accepted-Pending. No round-12 plan merges, pushes main, changes CI membership, rulesets, protection, required contexts, PRs, tags, or branch state.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -541,7 +565,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 55/55 | In progress | All plans complete; Plan 198-55 preserved every round-11 subject before retiring the exact stale handles and proved GREEN-12 from live empty namespaces. Ready for phase verification. |
+| 198. Green Bringup | v1.41 | 55/59 | In progress | Round-12 gap plans 198-56 through 198-59 are planned to restore GREEN-04, harden live authority/receipt controls, resolve five prohibition tiers honestly, and rerun canonical security/phase verification while GREEN-07 remains Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
