@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T22:29:46Z
+reviewed: 2026-09-10T22:34:51Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -378,6 +378,51 @@ contract.
 
 - Final-mode focused summary contract: 16 tests, 0 failures.
 - Combined summary plus Plan-65 security-disposition contracts: 36 tests, 0 failures.
+- Role constants remain exact: audited-final 01-61, sole terminal 62,
+  content-bound post-terminal 63-65, and non-terminal repair summary 66.
+
+### CR-05 Iteration-2 Re-review: REMAINS OPEN
+
+**Reviewed:** 2026-09-10T22:34:51Z
+**Repair commit:** `e1e54913`
+**Validation update:** `593ab9f4`
+
+Iteration 2 correctly rejects double-quoted and single-quoted aliases for all
+four protected keys in both orders. It also rejects the tested spaced, tagged,
+anchored, explicit-key, and flow-map forms, while preserving the earlier plain
+duplicate and pre-map repeated-coverage-ID protections. The constrained grammar
+still contains a parser-differential escape, however.
+
+At
+`test/threadline/phase198_zero_human_uat_contract_test.exs:872-891`, every line
+beginning with one space is accepted without inspecting whether it is actually
+nested under `coverage`. A frontmatter document beginning with
+` phase: 199`, followed by the canonical unindented fields, therefore yields
+only `phase`, `plan`, `coverage`, and `status` to the contract's key counter and
+passes its canonical phase predicate. Ruby Psych, used as an independent YAML
+parser probe, accepts that same document and resolves it to `%{"phase" => 199}`;
+the later canonical lines do not restore the identity observed by that parser.
+This is a valid leading-indented root mapping, not one of the invalid `phase :`
+fixtures added by iteration 2. The inverse placement may be rejected by some
+parsers, but one accepted ordering is sufficient to preserve the ambiguity.
+
+CR-05 remains a **BLOCKER**. The constrained parser must track structural
+context: indentation is allowed only for the value block of an immediately
+preceding canonical block-valued key such as `coverage`, at the exact supported
+indentation and syntax. In particular, reject any indented line before the first
+canonical top-level key and any indented mapping outside an explicitly parsed
+block. Add malicious-first leading-indented aliases for each protected key and
+require grammar rejection before duplicate/value parsing. A duplicate-preserving
+YAML parser remains the safer alternative. `198-VALIDATION.md`'s iteration-2
+`CR-05 FILLED` conclusion is not supported while this input passes the contract.
+
+**Fresh iteration-2 verification:**
+
+- Final-mode focused summary contract: 17 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 37 tests, 0 failures.
+- Direct grammar probe: the contract records only canonical keys and accepts the
+  canonical phase predicate for the leading-indented fixture, while Psych
+  resolves the same YAML document to `phase: 199`.
 - Role constants remain exact: audited-final 01-61, sole terminal 62,
   content-bound post-terminal 63-65, and non-terminal repair summary 66.
 
