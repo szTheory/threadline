@@ -100,6 +100,17 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     end
   end
 
+  test "persisted terminal certification cannot downgrade to bootstrap" do
+    record = load_record!(@record_path)
+
+    downgraded =
+      record
+      |> Map.put("stage", "bootstrap")
+      |> Map.update!("commands", &Enum.take(&1, 2))
+
+    assert {:error, _reason} = validate_record(downgraded)
+  end
+
   test "source manifest fixes audited summaries at 01 through 59 with Plan 60 non-recursive" do
     manifest =
       @root
@@ -144,7 +155,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       record["schema_version"] != 1 ->
         {:error, :schema_version}
 
-      record["stage"] not in ["bootstrap", "final"] ->
+      record["stage"] != "final" ->
         {:error, :stage}
 
       record["purpose"] != "phase-198-terminal-certification" ->
