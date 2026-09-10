@@ -14,9 +14,80 @@ need git
 need shasum
 
 stage="${1:-}"
-[[ "$stage" =~ ^(inventory|decision|authority|controls|post-target|final)$ ]] ||
-  die "stage must be inventory, decision, authority, controls, post-target, or final"
+[[ "$stage" =~ ^(inventory|decision|authority|controls|post-target|final|fixture-inventory|fixture-decision|fixture-authority|fixture-controls|fixture-post-target|fixture-final)$ ]] ||
+  die "stage must be inventory, decision, authority, controls, post-target, final, or an explicit fixture-* stage"
 shift || true
+
+fixture_mode=false
+if [[ "$stage" == fixture-* ]]; then
+  fixture_mode=true
+  stage="${stage#fixture-}"
+fi
+
+now_ms() { perl -MTime::HiRes=time -e 'printf "%.0f", time()*1000'; }
+
+observation_failure() {
+  local operation="$1" elapsed_ms="$2" deadline_ms="$3" retryable="$4" reason="$5"
+  printf '{"error":"live-observation-failed","stage":"%s","operation":"%s","elapsed_ms":%s,"deadline_ms":%s,"retryable":%s,"reason":"%s"}\n' \
+    "$stage" "$operation" "$elapsed_ms" "$deadline_ms" "$retryable" "$reason" >&2
+  exit 1
+}
+
+require_production_live() {
+  [[ "$stage" =~ ^(decision|authority|controls|post-target|final)$ ]] || return 0
+  if [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]]; then
+    observation_failure fixture-boundary 0 0 false fixture-adapter-is-test-only
+  fi
+  if [[ "${PHASE198_REF_DISPOSITION_DISABLE_LIVE:-}" == 1 ]]; then
+    observation_failure live-disabled 0 0 false production-live-observation-is-required
+  fi
+  local deadline="${PHASE198_REF_DISPOSITION_LIVE_DEADLINE_SECONDS:-30}"
+  [[ "$deadline" =~ ^[0-9]+$ ]] || observation_failure deadline 0 0 false invalid-deadline
+  (( deadline > 0 && deadline <= 120 )) || observation_failure deadline 0 "$((deadline * 1000))" true deadline-exhausted
+}
+
+bounded_capture() {
+  local operation="$1"; shift
+  local deadline="${PHASE198_REF_DISPOSITION_LIVE_DEADLINE_SECONDS:-30}"
+  local attempts="${PHASE198_REF_DISPOSITION_LIVE_ATTEMPTS:-2}"
+  [[ "$deadline" =~ ^[1-9][0-9]*$ && "$attempts" =~ ^[1-9][0-9]*$ ]] ||
+    observation_failure "$operation" 0 0 false invalid-budget
+  (( deadline <= 120 && attempts <= 3 )) ||
+    observation_failure "$operation" 0 "$((deadline * 1000))" false budget-exceeds-cap
+
+  local started current elapsed remaining output status attempt
+  started=$(now_ms)
+  for ((attempt=1; attempt<=attempts; attempt++)); do
+    current=$(now_ms); elapsed=$((current - started)); remaining=$((deadline * 1000 - elapsed))
+    (( remaining > 0 )) || observation_failure "$operation" "$elapsed" "$((deadline * 1000))" true deadline-exhausted
+    set +e
+    output=$(perl -e '$ms=shift; $SIG{ALRM}=sub{exit 124}; alarm(($ms+999)/1000); exec @ARGV' "$remaining" "$@" 2>&1)
+    status=$?
+    set -e
+    if [[ $status -eq 0 ]]; then printf '%s' "$output"; return 0; fi
+    [[ $status -eq 124 ]] && break
+  done
+  current=$(now_ms); elapsed=$((current - started))
+  observation_failure "$operation" "$elapsed" "$((deadline * 1000))" true "subprocess-exit-${status}"
+}
+
+observe() {
+  local operation="$1"; shift
+  case "$operation" in
+    repo) [[ $# -eq 0 ]] || die "invalid repo observation"; bounded_capture repo gh repo view --json nameWithOwner --jq .nameWithOwner ;;
+    origin-main) [[ $# -eq 0 ]] || die "invalid origin-main observation"; bounded_capture origin-main git ls-remote --heads origin refs/heads/main ;;
+    local-namespace) [[ $# -eq 0 ]] || die "invalid local-namespace observation"; bounded_capture local-namespace git for-each-ref '--format=%(refname:short) %(objectname)' 'refs/heads/ci/198-*' ;;
+    remote-namespace) [[ $# -eq 0 ]] || die "invalid remote-namespace observation"; bounded_capture remote-namespace git ls-remote --heads origin 'refs/heads/ci/198-*' ;;
+    pr) [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || die "invalid PR observation"; bounded_capture "pr-$1" gh pr view "$1" --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid ;;
+    rules) [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid rules observation"; bounded_capture rules gh api "repos/$1/rules/branches/main" ;;
+    classic) [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid classic observation"; bounded_capture classic gh api --include --silent "repos/$1/branches/main/protection" ;;
+    worktrees) [[ $# -eq 0 ]] || die "invalid worktree observation"; bounded_capture worktrees git worktree list --porcelain ;;
+    local-tag-type) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture local-tag-type git cat-file -t "refs/tags/$1" ;;
+    local-tag-peel) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture local-tag-peel git rev-parse "refs/tags/$1^{}" ;;
+    remote-tag) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture remote-tag git ls-remote origin "refs/tags/$1" "refs/tags/$1^{}" ;;
+    *) die "unapproved live observation: $operation" ;;
+  esac
+}
 
 inventory=""
 decision=""
@@ -36,6 +107,13 @@ done
 [[ -f "$decision" ]] || die "decision Markdown file is required"
 
 schema_version=$(jq -r '.schema_version // empty' "$inventory")
+
+if [[ "$fixture_mode" == true ]]; then
+  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" && -f "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" ]] ||
+    die "fixture-* stages require an explicit test fixture"
+else
+  require_production_live
+fi
 
 validate_schema_v2() {
   jq -e '
@@ -118,7 +196,7 @@ validate_markdown_v2() {
 }
 
 live_compare_v2() {
-  if [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]]; then
+  if [[ "$fixture_mode" == true ]]; then
     [[ -f "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" ]] || die "live fixture does not exist"
     jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
       .target_universe==$live[0].target_universe and .stable_controls==$live[0].stable_controls
@@ -132,8 +210,8 @@ live_compare_v2() {
 
   live_compare_controls_v2
   local actual_local actual_remote
-  actual_local=$(git for-each-ref --format='%(refname:short) %(objectname)' 'refs/heads/ci/198-*' | sort | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<branch>[^ ]+) (?<sha>[0-9a-f]{40})$"))')
-  actual_remote=$(git ls-remote --heads origin 'refs/heads/ci/198-*' | sort -k2 | jq -Rsc 'split("\n")[:-1] | map(capture("^(?<sha>[0-9a-f]{40})\\trefs/heads/(?<branch>.+)$"))')
+  actual_local=$(observe local-namespace | sort | jq -Rsc 'split("\n") | map(select(length>0)) | map(capture("^(?<branch>[^ ]+) (?<sha>[0-9a-f]{40})$"))')
+  actual_remote=$(observe remote-namespace | sort -k2 | jq -Rsc 'split("\n") | map(select(length>0)) | map(capture("^(?<sha>[0-9a-f]{40})\\trefs/heads/(?<branch>.+)$"))')
   jq -e --argjson local "$actual_local" --argjson remote "$actual_remote" '.target_universe.local==$local and .target_universe.remote==$remote' "$inventory" >/dev/null || die "complete ci/198-* target universe drifted"
 
   local id branch sha mb_head mb_main counts_head counts_main baseline_head pr_json
@@ -148,7 +226,7 @@ live_compare_v2() {
   done < <(jq -r '.preservation_subjects[] | [.id,.branch,.sha,.evidence.merge_base_head,.evidence.merge_base_main,((.evidence.vs_head.ahead|tostring)+"|"+(.evidence.vs_head.behind|tostring)),((.evidence.vs_main.ahead|tostring)+"|"+(.evidence.vs_main.behind|tostring))] | @tsv' "$inventory")
 
   while IFS=$'\t' read -r branch number state draft merge head base head_sha; do
-    pr_json=$(gh pr view "$number" --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid 2>/dev/null) || die "PR #$number unavailable"
+    pr_json=$(observe pr "$number")
     jq -e --argjson n "$number" --arg state "$state" --argjson draft "$draft" --arg merge "$merge" --arg head "$head" --arg base "$base" --arg sha "$head_sha" '.number==$n and .state==$state and .isDraft==$draft and .mergeStateStatus==$merge and .headRefName==$head and .baseRefName==$base and .headRefOid==$sha' <<<"$pr_json" >/dev/null || die "PR #$number drifted"
   done < <(jq -r '[.preservation_subjects[]|select(.pull_request!=null)|.pull_request]|unique_by(.number)[]|[.head,(.number|tostring),.state,.is_draft,.merge_state,.head,.base,.head_sha]|@tsv' "$inventory")
 }
@@ -156,16 +234,16 @@ live_compare_v2() {
 live_compare_controls_v2() {
   need gh
   local repo origin_main rules rules_digest contexts contexts_digest classic classic_output classic_exit
-  repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null) || die "could not resolve repository"
+  repo=$(observe repo)
   [[ "$repo" == "$(jq -r .repository "$inventory")" ]] || die "repository mismatch"
-  origin_main=$(git ls-remote --heads origin refs/heads/main | awk 'NF {print $1}')
+  origin_main=$(observe origin-main | awk 'NF {print $1}')
   [[ "$origin_main" == "$(jq -r .stable_controls.origin_main_sha "$inventory")" ]] || die "origin/main drifted"
   local pr34_json
-  pr34_json=$(gh pr view 34 --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid 2>/dev/null) || die "PR #34 unavailable"
+  pr34_json=$(observe pr 34)
   jq -e --argjson live "$pr34_json" '.stable_controls.pr34 == {number:$live.number,state:$live.state,is_draft:$live.isDraft,merge_state:$live.mergeStateStatus,head:$live.headRefName,base:$live.baseRefName,head_sha:$live.headRefOid}' "$inventory" >/dev/null || die "PR #34 drifted"
-  rules=$(gh api "repos/${repo}/rules/branches/main" 2>/dev/null) || die "effective rules unavailable"
+  rules=$(observe rules "$repo")
   set +e
-  classic_output=$(gh api --include --silent "repos/${repo}/branches/main/protection" 2>&1); classic_exit=$?
+  classic_output=$(observe classic "$repo"); classic_exit=$?
   set -e
   if [[ $classic_exit -eq 0 ]]; then classic=present; elif grep -Eq '^HTTP/[0-9.]+ 404 ' <<<"$classic_output"; then classic=absent; else die "classic protection observation failed"; fi
   rules_digest=$(jq -cnS --argjson rules "$(jq -cS . <<<"$rules")" --arg classic "$classic" '{classic_protection:$classic,effective_rules:$rules}' | tr -d '\n' | sha256)
@@ -180,8 +258,10 @@ validate_inventory_v2() {
   validate_schema_v2
   validate_markdown_v2
   complete_subjects_v2
-  [[ "$(jq -r '.decision==null and .execution==null and (.command_receipts|length)==0' "$inventory")" == true ]] || die "inventory stage forbids decision, execution, or write-side command receipts"
-  live_compare_v2
+  if [[ "$fixture_mode" == true ]]; then
+    [[ "$(jq -r '.decision==null and .execution==null and (.command_receipts|length)==0' "$inventory")" == true ]] || die "fixture inventory forbids decision, execution, or write-side command receipts"
+    live_compare_v2
+  fi
 }
 
 complete_subjects_v2() {
@@ -200,6 +280,10 @@ validate_decision_v2() {
   validate_schema_v2
   validate_markdown_v2
   complete_subjects_v2
+  if [[ "$stage" =~ ^(decision|authority|controls)$ ]]; then
+    [[ "$(jq -r '.execution==null and (.command_receipts|length)==0' "$inventory")" == true ]] ||
+      die "decision requires null execution and zero command receipts"
+  fi
   local payload digest subjects option verbatim
   payload=$(extract_decision_v2)
   jq -e '
@@ -221,7 +305,7 @@ validate_decision_v2() {
 }
 
 validate_fixture_controls_v2() {
-  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || { live_compare_controls_v2; return; }
+  [[ "$fixture_mode" == true ]] || { live_compare_controls_v2; return; }
   jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
     .stable_controls==$live[0].stable_controls and .task_baseline==$live[0].task_baseline
   ' "$inventory" >/dev/null || die "stable controls or task-local baseline drifted"
@@ -260,12 +344,22 @@ validate_subject_preservation_v2() {
 
 validate_live_tags_v2() {
   local subject_id="$1"
-  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || die "mutation-stage live validation requires the explicit data-only adapter"
-  jq -e --arg id "$subject_id" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
-    (.preservation_subjects[]|select(.id==$id)) as $s |
-    any($live[0].local_tags[]; .tag==$s.archive_tag and .sha==$s.sha and .annotated==true) and
-    any($live[0].remote_tags[]; .tag==$s.archive_tag and .sha==$s.sha)
-  ' "$inventory" >/dev/null || die "live peeled archive tags do not preserve subject $subject_id"
+  if [[ "$fixture_mode" == true ]]; then
+    jq -e --arg id "$subject_id" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+      (.preservation_subjects[]|select(.id==$id)) as $s |
+      any($live[0].local_tags[]; .tag==$s.archive_tag and .sha==$s.sha and .annotated==true) and
+      any($live[0].remote_tags[]; .tag==$s.archive_tag and .sha==$s.sha)
+    ' "$inventory" >/dev/null || die "fixture peeled archive tags do not preserve subject $subject_id"
+    return
+  fi
+  local tag expected type peeled remote
+  tag=$(jq -r --arg id "$subject_id" '.preservation_subjects[]|select(.id==$id)|.archive_tag' "$inventory")
+  expected=$(jq -r --arg id "$subject_id" '.preservation_subjects[]|select(.id==$id)|.sha' "$inventory")
+  type=$(observe local-tag-type "$tag")
+  peeled=$(observe local-tag-peel "$tag")
+  remote=$(observe remote-tag "$tag")
+  [[ "$type" == tag && "$peeled" == "$expected" ]] || die "live annotated tag does not preserve subject $subject_id"
+  grep -Fq "$expected" <<<"$remote" || die "remote peeled tag does not preserve subject $subject_id"
 }
 
 validate_post_target_v2() {
@@ -287,9 +381,14 @@ validate_post_target_v2() {
     all(.command_receipts[]|select(.target==$target and (.type|IN("pr-close","remote-ref-delete","local-ref-delete"))); .seq>$max)
   ' "$inventory" >/dev/null || die "retirement receipt precedes complete target preservation"
 
-  jq -e --arg target "$target" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
-    all($live[0].target_universe.local[], $live[0].target_universe.remote[]; .branch!=$target)
-  ' "$inventory" >/dev/null || die "target still exists in a live local or remote namespace"
+  if [[ "$fixture_mode" == true ]]; then
+    jq -e --arg target "$target" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+      all($live[0].target_universe.local[], $live[0].target_universe.remote[]; .branch!=$target)
+    ' "$inventory" >/dev/null || die "target still exists in fixture local or remote namespace"
+  else
+    ! observe local-namespace | awk '{print $1}' | grep -Fxq "$target" || die "target still exists in live local namespace"
+    ! observe remote-namespace | sed 's#^[^[:space:]]*[[:space:]]refs/heads/##' | grep -Fxq "$target" || die "target still exists in live remote namespace"
+  fi
 
   pr=$(jq -c --arg target "$target" '[.preservation_subjects[]|select(.branch==$target and .pull_request!=null)|.pull_request][0] // null' "$inventory")
   expected_pr_close=$(jq -r --arg target "$target" '[.command_receipts[]|select(.target==$target and .type=="pr-close")]|length' "$inventory")
@@ -297,10 +396,16 @@ validate_post_target_v2() {
     [[ "$expected_pr_close" -eq 0 ]] || die "null PR association must not invent a close receipt"
   else
     [[ "$expected_pr_close" -eq 1 ]] || die "associated PR requires exactly one close receipt"
-    jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
-      $live[0].pull_requests[$target].state=="CLOSED" and
-      any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
-    ' "$inventory" >/dev/null || die "associated PR is not closed with an exact receipt"
+    if [[ "$fixture_mode" == true ]]; then
+      jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+        $live[0].pull_requests[$target].state=="CLOSED" and
+        any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
+      ' "$inventory" >/dev/null || die "associated PR is not closed with an exact receipt"
+    else
+      local live_pr
+      live_pr=$(observe pr "$(jq -r .number <<<"$pr")")
+      [[ "$(jq -r .state <<<"$live_pr")" == CLOSED ]] || die "associated PR is not live-closed"
+    fi
   fi
 }
 
@@ -309,11 +414,15 @@ validate_final_v2() {
   [[ "$(jq -r .decision.option "$inventory")" == retire ]] || die "only retire grants mutation authority"
   validate_fixture_controls_v2
   validate_receipt_shape_v2
-  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] || die "final validation requires the explicit data-only adapter"
-  jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
-    ($live[0].target_universe.local|length)==0 and ($live[0].target_universe.remote|length)==0 and
-    $live[0].green07_status=="Pending"
-  ' "$inventory" >/dev/null || die "final requires live-derived empty namespaces and GREEN-07 Pending"
+  if [[ "$fixture_mode" == true ]]; then
+    jq -e --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+      ($live[0].target_universe.local|length)==0 and ($live[0].target_universe.remote|length)==0 and
+      $live[0].green07_status=="Pending"
+    ' "$inventory" >/dev/null || die "fixture final requires empty namespaces and GREEN-07 Pending"
+  else
+    [[ -z "$(observe local-namespace)" && -z "$(observe remote-namespace)" ]] || die "final requires live-derived empty namespaces"
+    grep -Eq 'GREEN-07.*Pending|\| GREEN-07 \|[^|]*\| Pending \|' .planning/REQUIREMENTS.md || die "final requires GREEN-07 Pending"
+  fi
   local subject_id target
   while IFS= read -r subject_id; do validate_subject_preservation_v2 "$subject_id"; validate_live_tags_v2 "$subject_id"; done < <(jq -r '.preservation_subjects[].id' "$inventory")
   while IFS= read -r target; do
@@ -325,9 +434,15 @@ validate_final_v2() {
     local pr
     pr=$(jq -c --arg target "$target" '[.preservation_subjects[]|select(.branch==$target and .pull_request!=null)|.pull_request][0] // null' "$inventory")
     if [[ "$pr" != null ]]; then
-      jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
-        $live[0].pull_requests[$target].state=="CLOSED" and any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
-      ' "$inventory" >/dev/null || die "final PR closure is incomplete for $target"
+      if [[ "$fixture_mode" == true ]]; then
+        jq -e --arg target "$target" --argjson pr "$pr" --slurpfile live "$PHASE198_REF_DISPOSITION_LIVE_FIXTURE" '
+          $live[0].pull_requests[$target].state=="CLOSED" and any(.command_receipts[];.target==$target and .type=="pr-close" and .pr==$pr.number)
+        ' "$inventory" >/dev/null || die "final PR closure is incomplete for $target"
+      else
+        local live_pr
+        live_pr=$(observe pr "$(jq -r .number <<<"$pr")")
+        [[ "$(jq -r .state <<<"$live_pr")" == CLOSED ]] || die "final PR is not live-closed for $target"
+      fi
     fi
   done < <(jq -r '[.preservation_subjects[].branch]|unique[]' "$inventory")
 }
@@ -476,9 +591,9 @@ live_compare() {
 
 # Worktree comparison is kept separate because awk implementations disagree on an empty final record.
 live_worktree_compare() {
-  [[ -n "${PHASE198_REF_DISPOSITION_LIVE_FIXTURE:-}" ]] && return
+  [[ "$fixture_mode" == true ]] && return
   local actual digest
-  actual=$(git worktree list --porcelain | awk 'BEGIN{RS="";FS="\n"}{p=b=""; for(i=1;i<=NF;i++){if($i~/^worktree /)p=substr($i,10); else if($i~/^branch /)b=substr($i,8)} printf "%s\t%s\n",p,b}' | jq -Rsc 'split("\n")[:-1] | map(split("\t") | {path:.[0],branch:.[1]}) | sort_by(.path)')
+  actual=$(observe worktrees | awk 'BEGIN{RS="";FS="\n"}{p=b=""; for(i=1;i<=NF;i++){if($i~/^worktree /)p=substr($i,10); else if($i~/^branch /)b=substr($i,8)} printf "%s\t%s\n",p,b}' | jq -Rsc 'split("\n") | map(select(length>0)) | map(split("\t") | {path:.[0],branch:.[1]}) | sort_by(.path)')
   digest=$(printf '%s' "$actual" | jq -cS . | tr -d '\n' | sha256)
   jq -e --argjson actual "$actual" '.stable_controls.worktrees==$actual' "$inventory" >/dev/null || die "worktree identities drifted"
   [[ "$digest" == "$(jq -r .stable_controls.worktree_list_digest "$inventory")" ]] || die "worktree digest drifted"

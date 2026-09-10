@@ -681,7 +681,7 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       undecided_md = write_text(dir, "undecided.md", lifecycle_markdown(base, digest, nil))
 
       decision = decision_payload("retire", digest, subjects)
-      decided_doc = %{base | "decision" => decision, "execution" => %{"status" => "authorized"}}
+      decided_doc = %{base | "decision" => decision, "execution" => nil}
       decided = write_json(dir, "decided.json", decided_doc)
       decided_md = write_text(dir, "decided.md", lifecycle_markdown(base, digest, decision))
       targets = subjects |> Enum.map(& &1["branch"]) |> Enum.uniq() |> Enum.sort()
