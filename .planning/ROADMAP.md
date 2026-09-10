@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 63 plans — 62 executed, 1 additive round-15 security-disposition plan ready
+**Plans**: 64 plans — 62 executed, 1 halted by explicit non-acceptance, 1 additive round-16 security-disposition plan ready
 
 Plans:
 **Wave 1**
@@ -407,6 +407,19 @@ Plans:
 - The non-acceptance branch stops before writing an artifact and leaves canonical security blocked. A positive branch creates only a narrow deterministic disposition record and its contract test.
 - GREEN-07 remains accepted-Pending. No branch, PR, tag, ruleset, protection, workflow, release, scorecard, CI, schema, or other external mutation is authorized.
 
+#### Gap-closure round 16 — explicit narrow risk acceptance (plan 198-64)
+
+**Wave 13** *(autonomous persistence of the new exact maintainer response; blocked on halted Plan 198-63)*
+
+- [ ] 198-64-PLAN.md — Persist and mechanically validate the exact narrow T-198-55-02 risk acceptance, preserving the prior decline as history and routing canonical security before verification (wave 13)
+
+**Round-16 notes:**
+
+- The exact new response supersedes Plan 63's prior decline only for T-198-55-02. The earlier halted summary remains immutable history.
+- This is risk acceptance of residual uncertainty, not attestation, mitigation, or reconstructed historical argv/non-force evidence.
+- T-198-55-03 remains open/not accepted, T-198-62-SC receives no inferred acceptance, and GREEN-07 remains accepted-Pending.
+- The plan persists and tests the input only. Canonical security owns the verdict and runs before canonical phase verification.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -610,7 +623,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 62/63 | In progress | Round-15 Plan 198-63 is ready for a blocking maintainer choice: identify genuine contemporaneous historical evidence, explicitly accept only T-198-55-02's residual risk, or stop without acceptance. Canonical security remains first, T-198-55-03 remains open below threshold, and GREEN-07 remains accepted-Pending. |
+| 198. Green Bringup | v1.41 | 62/64 | In progress | Round-15 Plan 198-63 halted on explicit non-acceptance. A later exact maintainer response now authorizes Round-16 Plan 198-64 to persist only T-198-55-02's residual-risk acceptance. Canonical security remains first; T-198-55-03 stays open/not accepted and GREEN-07 remains accepted-Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
