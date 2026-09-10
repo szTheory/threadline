@@ -420,6 +420,64 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
+  test "Plan 66 rejects YAML key aliases outside the constrained frontmatter grammar" do
+    root = complete_phase_fixture!()
+    on_exit(fn -> File.rm_rf!(root) end)
+    write_repair_summary!(root)
+    path = Path.join(root, "198-66-SUMMARY.md")
+    original = File.read!(path)
+
+    canonical_fields = [
+      {"phase: 198-green-bringup", [{~s("phase": 199), "phase"}, {~s('phase': 199), "phase"}]},
+      {"plan: 66", [{~s("plan": 65), "plan"}, {~s('plan': 65), "plan"}]},
+      {"status: complete", [{~s("status": halted), "status"}, {~s('status': halted), "status"}]},
+      {"coverage: []", [{~s("coverage": []), "coverage"}, {~s('coverage': []), "coverage"}]}
+    ]
+
+    for {canonical, aliases} <- canonical_fields,
+        {alias_line, field} <- aliases,
+        fixture <- [
+          String.replace(original, canonical, alias_line <> "\n" <> canonical, global: false),
+          String.replace(original, canonical, canonical <> "\n" <> alias_line, global: false)
+        ] do
+      File.write!(path, fixture)
+
+      assert_raise ExUnit.AssertionError,
+                   ~r/unsupported top-level frontmatter syntax.*#{field}/,
+                   fn -> validate_summary_set!(root, :normal) end
+    end
+
+    equivalent_aliases = [
+      "phase : 199",
+      "!!str phase: 199",
+      "&identity phase: 199",
+      "? phase\n: 199",
+      "{phase: 199}"
+    ]
+
+    for alias_syntax <- equivalent_aliases,
+        fixture <- [
+          String.replace(
+            original,
+            "phase: 198-green-bringup",
+            alias_syntax <> "\nphase: 198-green-bringup",
+            global: false
+          ),
+          String.replace(
+            original,
+            "phase: 198-green-bringup",
+            "phase: 198-green-bringup\n" <> alias_syntax,
+            global: false
+          )
+        ] do
+      File.write!(path, fixture)
+
+      assert_raise ExUnit.AssertionError, ~r/unsupported top-level frontmatter syntax/, fn ->
+        validate_summary_set!(root, :normal)
+      end
+    end
+  end
+
   test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
     root = complete_phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
@@ -799,9 +857,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   defp frontmatter(body) do
     case Regex.run(~r/\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|\z)/, body, capture: :all_but_first) do
       [yaml] ->
-        keys =
-          Regex.scan(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]|$)/m, yaml, capture: :all_but_first)
-          |> List.flatten()
+        keys = constrained_frontmatter_keys!(yaml)
 
         case duplicate_key(keys) do
           nil -> yaml
@@ -811,6 +867,28 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       _ ->
         flunk("summary has no strictly delimited YAML frontmatter")
     end
+  end
+
+  defp constrained_frontmatter_keys!(yaml) do
+    yaml
+    |> String.split(~r/\r?\n/)
+    |> Enum.reduce([], fn line, keys ->
+      cond do
+        line == "" or String.match?(line, ~r/^\s*#/) ->
+          keys
+
+        String.match?(line, ~r/^ /) ->
+          keys
+
+        match = Regex.run(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]|$)/, line) ->
+          [_, key] = match
+          [key | keys]
+
+        true ->
+          flunk("unsupported top-level frontmatter syntax: #{line}")
+      end
+    end)
+    |> Enum.reverse()
   end
 
   defp coverage_entries(body) do
