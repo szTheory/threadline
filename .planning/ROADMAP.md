@@ -65,7 +65,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 
 ### Phases
 
-- [ ] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged.
+- [x] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged. (completed 2026-09-10)
 - [ ] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
 - [ ] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release.
 - [ ] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius.
@@ -636,7 +636,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 63/65 | In progress | Plan 198-64 completed but canonical security rejected its placeholder attribution and duplicate-member ambiguity. Round-17 Plan 198-65 records exact `szTheory` authority append-only, adds recursive pre-map duplicate rejection and immutable time/history pins, then routes security before verification. |
+| 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

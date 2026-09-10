@@ -1,48 +1,35 @@
 ---
 phase: 198-green-bringup
-verified: 2026-09-10T21:50:38Z
-status: gaps_found
-round: 15
-score: 5/6 must-haves verified
+verified: 2026-09-10T23:51:35Z
+status: passed
+score: 6/6 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-requirements_verified: 10/12
-requirements_failed: [GREEN-04]
+requirements_verified: 11/12
+requirements_failed: []
 requirements_pending: [GREEN-07]
 security_status: passed
 security_blocking_open: 0
 re_verification:
   previous_status: gaps_found
-  previous_score: 6/6
+  previous_score: 5/6
   gaps_closed:
-    - "The enabled security gate now passes at its configured high-severity threshold: T-198-55-02 is narrowly accepted by szTheory, the Plan-64 attribution and duplicate-member blockers are closed, and T-198-55-03 plus T-198-62-SC remain open, nonblocking, and unaccepted."
-  gaps_remaining:
-    - "The exact Phase-198 summary-boundary contract rejects the newly present 198-63, 198-64, and 198-65 summaries, so the repository test suite has a deterministic failure and roadmap criterion 2 / GREEN-04 no longer holds on the current tree."
-  regressions:
-    - "test/threadline/phase198_zero_human_uat_contract_test.exs:82 fails because its allowed namespace ends at Plan 62 while Plans 63-65 added normal summary files."
-gaps:
-  - truth: "mix test passes with no deterministically-failing tests"
-    status: failed
-    reason: "The committed Phase-198 summary discovery contract deterministically rejects the normal 198-63-SUMMARY.md, 198-64-SUMMARY.md, and 198-65-SUMMARY.md files as unexpected. A fresh exact test run reports 1 test, 1 failure."
-    artifacts:
-      - path: "test/threadline/phase198_zero_human_uat_contract_test.exs"
-        issue: "validate_summary_set!/2 permits summaries 01-61 plus the sole Plan-62 exception and therefore fails against the current 65-summary phase directory."
-      - path: ".planning/audits/198-summary-coverage-manifest.json"
-        issue: "The manifest still declares audited_final_plan_number 61 and terminal_certification_plan_number 62, with no explicit post-terminal policy for Plans 63-65."
-    missing:
-      - "Define and enforce an honest post-terminal summary policy for Plans 63-65 without weakening the immutable 01-61 audit or Plan-62 terminal-certification boundary."
-      - "Add mutation coverage proving missing, renamed, modified, malformed, and extra post-terminal summaries still fail closed, then restore a green full mix test run."
+    - "The post-terminal summary boundary now preserves audited summaries 01-61 and sole terminal certificate 62, content-binds normal summaries 63-65, validates repair summary 66 in final mode without making it terminal, and rejects 67 or later."
+    - "CR-05 is resolved: the Plan-66 constrained frontmatter grammar rejects duplicate, aliased, mis-indented, structurally misplaced, empty, null-like, and otherwise noncanonical trusted fields before lossy map construction or semantic trust."
+    - "The final-mode focused contracts and the unfiltered repository suite pass with nonzero test counts, restoring GREEN-04 on the current tree."
+  gaps_remaining: []
+  regressions: []
 human_verification: []
 ---
 
-# Phase 198: Green Bringup Verification Report (Authoritative Round 15)
+# Phase 198: Green Bringup Verification Report (Post-Plan-66 Final)
 
 **Phase Goal:** `origin/main` carries every local commit and its CI concludes green inside the feedback budget; the red baseline is retired on its merits; branch protection requires exactly emitted checks; and the Phase-201/203 measurements are durable.
-**Verified:** 2026-09-10T21:50:38Z
-**Status:** `gaps_found`
-**Re-verification:** Yes — after Plan 65, the canonical security audit, and the post-Plan-65 validation audit.
+**Verified:** 2026-09-10T23:51:35Z
+**Status:** `passed`
+**Re-verification:** Yes — after Plan 66, six CR-05 repair/review iterations, Nyquist re-validation, and the post-Plan-66 security audit.
 
-Plan 65 closes the prior security blocker correctly and narrowly. It does not reconstruct missing Plan-55 evidence, broaden acceptance, close the two excluded findings, or promote GREEN-07. However, fresh goal-backward verification found a separate deterministic regression: the exact Phase-198 summary discovery test still treats Plan 62 as the last allowed summary and rejects the now-present Plan 63-65 summaries. Because roadmap criterion 2 explicitly requires `mix test` to pass, Phase 198 cannot yet pass verification.
+Phase 198 now passes its repository-verifiable goal under the roadmap's explicit terminal disposition. GREEN-04 is green again on the current tree. GREEN-07 is not restated as complete: literal `origin/main` ancestry is still false and the requirement remains accepted-Pending under D-39. Local deterministic success is not represented as cross-environment reproducibility or exact-main CI proof.
 
 ## Goal Achievement
 
@@ -50,99 +37,117 @@ Plan 65 closes the prior security blocker correctly and narrowly. It does not re
 
 | # | Roadmap truth | Status | Evidence |
 |---|---|---|---|
-| 1 | Red-run logs, Credo histogram/concentration, and mechanical-sensitivity measurements are durable without modifying `.credo.exs` or scorecards | ✓ VERIFIED | Fresh `phase198_nyquist_contract_test.exs` run passed 7/7, including non-vacuous GREEN-01 evidence, reconciled full-default Credo evidence, and insensitive/positive-control mechanical fixtures. |
-| 2 | `mix test` has no deterministic failures and the form-policy guard is self-declaring | ✗ FAILED | Fresh exact run of `phase198_zero_human_uat_contract_test.exs:82` failed 1/1: `unexpected Phase 198 summary numbers: ["63", "64", "65"]`. This is a committed deterministic test failure, irrespective of the earlier CI measurement that originally completed GREEN-04. |
-| 3 | Main ancestry/CI is green and bounded, or its explicit terminal disposition remains honest | ✓ VERIFIED (terminal disposition) | Fresh local read: `origin/main..HEAD = 408`, `HEAD..origin/main = 0`, and `HEAD` is not an ancestor of `origin/main`. GREEN-07 therefore remains literally unmet and accepted-Pending under D-39; it is not restated as complete. |
-| 4 | Protection requires exactly emitted checks; the downstream merge state is represented honestly | ✓ VERIFIED | Existing branch-protection and CI topology artifacts remain substantive and unchanged; the post-Plan-65 Nyquist audit retains GREEN-08 coverage. The downstream merge outcome remains constrained by GREEN-07. |
-| 5 | Paid critic triggering is absent and exactly one gated Hex publish path exists | ✓ VERIFIED | Workflow source and active contracts still locate the sole Hex publisher in `release.yml` behind its gates and retain the workflow-wide paid-key resurrection guard. |
-| 6 | Flake handling is bounded/deduplicated and repository hygiene preserves all unmerged work | ✓ VERIFIED | Fresh Nyquist contracts passed; one worktree exists; local and remote `ci/198-*` namespaces are empty; archive/register contracts pass. Plan 65's accepted risk remains confined to the missing Plan-55 historical method evidence. |
+| 1 | Red-run logs, Credo histogram/concentration, and mechanical-sensitivity measurements are durable without modifying `.credo.exs` or scorecards | ✓ VERIFIED | Fresh `phase198_nyquist_contract_test.exs` execution passed inside the 51-test focused run, including non-vacuous GREEN-01 evidence, full-default Credo reconciliation, insensitive text variants, and a token positive control. No Plan-66 or repair commit changed `.credo.exs` or scorecards. |
+| 2 | `mix test` has no deterministic failures and the form-policy guard is self-declaring | ✓ VERIFIED | Fresh unfiltered root `mix test`: 1,650 tests, 0 failures, 1 excluded. The formerly failing final summary contract independently passed and the root suite exercised the form-policy contracts without failure. |
+| 3 | Main ancestry/CI is green and bounded, or its explicit terminal disposition remains honest | ✓ VERIFIED (terminal disposition) | Fresh Git read: `origin/main..HEAD = 439`, `HEAD..origin/main = 0`, and `HEAD` is not an ancestor of `origin/main`. GREEN-07 therefore remains literally unmet and accepted-Pending under D-39; no local result is substituted for remote exact-main evidence. |
+| 4 | Protection requires exactly emitted checks; the downstream merge state is represented honestly | ✓ VERIFIED | Previously passing topology/protection artifacts and root-suite contracts remain present and green. No Plan-66 implementation or CR-05 repair commit changed workflows, rulesets, or protection files. The downstream merge outcome remains constrained by GREEN-07. |
+| 5 | Paid critic triggering is absent and exactly one gated Hex publish path exists | ✓ VERIFIED | Quick source regression finds no paid-key/critic path and finds the sole `mix hex.publish` invocation pair in `.github/workflows/release.yml` under its established gates; the root contracts pass. |
+| 6 | Flake handling is bounded/deduplicated and repository hygiene preserves all unmerged work | ✓ VERIFIED | Root contracts pass; all workflow jobs retain timeout bounds; one worktree exists; local and remote `ci/198-*` namespaces are empty. Security acceptance remains confined to the missing Plan-55 historical method evidence. |
 
-**Score:** 5/6 roadmap truths verified. There are no present-but-behavior-unverified truths.
+**Score:** 6/6 roadmap truths verified. There are no present-but-behavior-unverified truths.
+
+### Plan 66 Boundary Truths
+
+| Truth | Status | Evidence |
+|---|---|---|
+| Audited-final summaries remain exactly 01-61 and Plan 62 remains the sole terminal certificate | ✓ VERIFIED | Removing `post_terminal_policy` from the current manifest yields an exact structural match to `3aa85543^`; final-mode tests assert the exact disjoint role constants. |
+| Plans 63-65 are only the ordered, content-bound post-terminal set | ✓ VERIFIED | Manifest records exact number/path/SHA-256 triples; fresh hashes match all three records; identity/status/coverage and missing/renamed/modified/malformed/extra mutations pass fail-closed tests. |
+| Plan 66 is a non-terminal repair summary, optional pre-summary and required in final mode | ✓ VERIFIED | Manifest fixes number/path/role and sets `excluded_from_audited_final_state: true`, `terminal_certification: false`; fresh `PHASE198_SUMMARY_SET=final` execution passes. |
+| Plan 67 or later is rejected | ✓ VERIFIED | The final-mode lifecycle test adds `198-67-SUMMARY.md` and requires rejection; the current real directory contains exactly summaries 01-66. |
+| Manifest duplicates fail before map conversion | ✓ VERIFIED | Raw JSON is decoded to `Jason.OrderedObject`, recursively duplicate-checked at root, policy, each 63-65 record, and repair record in both orders, then converted. |
+| CR-05 parser differentials are closed | ✓ VERIFIED | Actual grammar enforces strictly delimited frontmatter, canonical root syntax, context-scoped indentation, exact field cardinality, canonical `D[1-9][0-9]*` IDs, exact requirement binding, finite enums, and JSON-decoded nonempty descriptions/refs. Adversarial matrices pass. |
+| Security and evidence boundaries remain unchanged | ✓ VERIFIED | GREEN-07 remains accepted-Pending; only T-198-55-02 is accepted by `szTheory`; T-198-55-03 and T-198-62-SC remain open, nonblocking, and unaccepted. |
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |---|---|---|---|
-| `.planning/audits/198-round15-security-authorization.txt` | Exact attributable authorization bytes | ✓ VERIFIED | Exact one-line `szTheory` response plus LF; Git-bound at authorization commit `5f77f321bc90c0add078ea083c06d5add575ae25`. |
-| `.planning/audits/198-round15-security-disposition.json` | Narrow, duplicate-safe, immutable v2 disposition | ✓ VERIFIED | Exact T-198-55-02 scope, `historical_evidence_reconstructed: false`, exclusions `[T-198-55-03, T-198-62-SC]`, GREEN-07 unchanged, six immutable history pins, and commit-derived time bounds. |
-| `test/threadline/phase198_prohibition_resolution_contract_test.exs` | Recursive pre-map duplicate rejection and canonical security projection | ✓ VERIFIED | Fresh focused run: 20 tests, 0 failures. Tests cover both duplicate orders at root, nested objects, and supersedes array objects; malformed/schema/time/history/scope/verdict mutations fail closed. |
-| `.planning/phases/198-green-bringup/198-SECURITY.md` | Enabled security verdict | ✓ VERIFIED | `status: passed`, 316 total / 314 closed / 2 nonblocking open / 0 blocking open. AR-198-16 accepts only T-198-55-02 by `szTheory`; T-198-55-03 and T-198-62-SC are not accepted. |
-| `.planning/phases/198-green-bringup/198-VALIDATION.md` | Current Nyquist audit | ✓ VERIFIED WITH PARTIAL REQUIREMENT | Maps all 65 plans and records 11 covered requirements plus accepted-Pending GREEN-07. Its Plan-64/65 classifier and security projection claims are independently reproduced below. Its statement that there is no remaining automatable validation gap is superseded by this verifier's fresh summary-discovery failure. |
-| `.planning/audits/198-summary-coverage-manifest.json` | Exact summary namespace contract | ⚠️ STALE | It intentionally seals summaries 01-61 and Plan 62, but the active test has no post-terminal disposition for normal summaries 63-65 and now rejects the real phase directory. |
-| `test/threadline/phase198_zero_human_uat_contract_test.exs` | Exact summary discovery with mutation teeth | ✗ REGRESSED | Substantive and wired into `mix test`, but fails on the current repository state at line 82. |
+| `.planning/audits/198-summary-coverage-manifest.json` | Immutable historical namespace plus exact 63-65 policy and repair-summary 66 role | ✓ VERIFIED | Valid JSON; prior content is unchanged after deleting the new policy; records 63-65 match tracked SHA-256 bytes; repair role is explicit and non-terminal. |
+| `test/threadline/phase198_zero_human_uat_contract_test.exs` | Fail-closed real-directory, manifest, mutation, and constrained-frontmatter enforcement | ✓ VERIFIED | 1,602 substantive lines; 24 active tests; final-mode execution passes. The validator builds membership from fixed role records, not discovered filenames. |
+| `.planning/phases/198-green-bringup/198-66-SUMMARY.md` | Valid non-terminal repair execution summary | ✓ VERIFIED | Exact phase 198 / plan 66 / complete identity with two non-human, passing, referenced GREEN-04 coverage entries; classifier reports 2/2 auto-passed and zero errors. |
+| `.planning/phases/198-green-bringup/198-REVIEW.md` | Adversarial CR-05 disposition | ✓ VERIFIED | Append-only history retains all five narrowed re-review failures and records iteration 6 as `RESOLVED`, consistent with the current grammar and fresh tests. |
+| `.planning/phases/198-green-bringup/198-VALIDATION.md` | Current Nyquist audit | ✓ VERIFIED WITH EXPLICIT PARTIAL | Maps all 66 plans and all 12 requirements; 11 are covered and GREEN-07 alone remains PARTIAL/accepted-Pending. CR-05 iteration-6 evidence matches current tests. |
+| `.planning/phases/198-green-bringup/198-SECURITY.md` | Enabled post-Plan-66 security verdict | ✓ VERIFIED | `status: passed`; 322 total / 320 closed / 2 open total / 0 blocking. All six Plan-66 threats are closed. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |---|---|---|---|---|
-| Exact `szTheory` response | Authorization commit | Byte-exact text, blob ID, SHA-256, and first-containing commit | ✓ WIRED | Fresh focused contract validates all identities and ancestry. |
-| Raw v2 JSON | Plain disposition map | `Jason.decode(..., objects: :ordered_objects)` → recursive duplicate walk → map conversion | ✓ WIRED | Duplicate-specific errors occur before lossy map conversion at root, nested, and array-object levels. |
-| V2 disposition | Canonical security verdict | Narrow projection contract and canonical security audit | ✓ WIRED | Only T-198-55-02 is accepted; excluded findings remain open and absent from the Accepted Risks Log. |
-| Plan-64/65 summaries | Canonical coverage classifier | `uat classify-coverage --summary ...` | ✓ WIRED | Fresh results: 2/2 auto-passed for each summary, `human_judgment: false`, nonempty passing references, zero errors. |
-| Phase directory summaries | Exact summary-set contract | `discover_numbers/1` → `validate_summary_set!/2` | ✗ NOT WIRED TO CURRENT STATE | The link reaches the test, but the allowed set ends at Plan 62 and rejects Plans 63-65. |
+| Manifest historical roles | Summaries 01-61 and terminal 62 | Exact arrays, existing digest/coverage checks, disjoint role assertions | ✓ WIRED | Historical manifest content remains unchanged outside the additive policy. |
+| Manifest post-terminal records | Summaries 63-65 | Fixed number/path/digest then identity/status/coverage validation | ✓ WIRED | All three fresh digests match; mutation fixtures do not derive expectations from ambient files. |
+| Repair role | `198-66-SUMMARY.md` | Literal number/path plus final-mode presence and strict semantic parser | ✓ WIRED | Final mode passes on the real directory; malformed, renamed, absent-final, and 67+ fixtures fail. |
+| Raw manifest JSON | Plain policy map | Ordered-object decode -> recursive duplicate rejection -> map conversion | ✓ WIRED | Duplicate-specific rejection precedes schema/value checks at every required object depth and in both orders. |
+| Plan-66 frontmatter bytes | Coverage classifier and semantic boundary | Constrained structural grammar -> exact fields -> decoded/canonical leaves -> coverage map | ✓ WIRED | CR-05's plain, quoted, indented, structural, empty/null, and scalar-alias bypasses are covered and rejected. |
+| Round-15 risk disposition | Canonical security verdict | Prohibition contract and canonical projection | ✓ WIRED | Only T-198-55-02 is accepted; excluded findings remain open and absent from the accepted-risk log. |
 
 ### Data-Flow Trace (Level 4)
 
-No rendered data applies. The security decision flows from exact maintainer bytes through immutable Git object identities and a duplicate-aware decoder into the canonical audit. The failing summary contract reads the real Phase-198 directory—not a mock—which is why the newly present summaries expose the stale boundary.
+No rendered data applies. Authorization flows from fixed manifest roles to exact tracked paths and digests, then through strict summary semantics. Ambient wildcard discovery is used only to detect missing or unauthorized files; it does not define allowed membership. Security disposition flows from exact `szTheory` bytes and immutable Git identity to the canonical audit without reconstructing historical evidence.
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Exact Plan-65 disposition and canonical security projection | `mix test test/threadline/phase198_prohibition_resolution_contract_test.exs` | 20 tests, 0 failures | ✓ PASS |
-| Durable Phase-198 evidence and archive controls | `mix test test/threadline/phase198_nyquist_contract_test.exs` | 7 tests, 0 failures | ✓ PASS |
-| Summary namespace against current phase directory | `PHASE198_SUMMARY_SET=final mix test test/threadline/phase198_zero_human_uat_contract_test.exs:82` | 1 test, 1 failure; summaries 63, 64, 65 reported unexpected | ✗ FAIL |
-| Combined focused Phase-198 contracts | Three Phase-198 contract files | 36 tests, 1 failure, same summary-boundary regression | ✗ FAIL |
-| Plan-64 coverage classification | `gsd-tools uat classify-coverage --summary .../198-64-SUMMARY.md` | 2/2 auto-passed, zero errors | ✓ PASS |
-| Plan-65 coverage classification | `gsd-tools uat classify-coverage --summary .../198-65-SUMMARY.md` | 2/2 auto-passed, zero errors | ✓ PASS |
-| Current ancestry | `git rev-list --count origin/main..HEAD`; reverse count; ancestor predicate | 408 ahead, 0 behind, ancestor predicate false | ✓ PASS (truthful accepted-Pending state) |
+| Final summary roles, CR-05 grammar, security projection, and Nyquist evidence | `PHASE198_SUMMARY_SET=final ... mix test phase198_zero_human_uat_contract_test.exs phase198_prohibition_resolution_contract_test.exs phase198_nyquist_contract_test.exs` | 51 tests, 0 failures | ✓ PASS |
+| Unfiltered repository regression suite | `... /opt/homebrew/bin/mix test` | 1,650 tests, 0 failures, 1 excluded | ✓ PASS |
+| Summary 63 classification | `gsd-tools uat classify-coverage --summary .../198-63-SUMMARY.md` | halted summary, explicit empty coverage, zero errors | ✓ PASS |
+| Summaries 64-65 classification | same classifier per summary | each 2/2 auto-passed, `human_judgment: false`, nonempty passing refs, zero errors | ✓ PASS |
+| Summary 66 classification | same classifier | 2/2 auto-passed, `human_judgment: false`, GREEN-04-bound passing refs, zero errors | ✓ PASS |
+| Current ancestry | `git rev-list --count` plus `git merge-base --is-ancestor HEAD origin/main` | 439 ahead, 0 behind, ancestor predicate false | ✓ PASS (truthful accepted-Pending state) |
 
 ### Probe Execution
 
-No conventional `scripts/**/tests/probe-*.sh` or Plan-65 probe applies. The declared focused Mix contract and canonical classifier checks were run directly.
+No conventional `scripts/**/tests/probe-*.sh` or Plan-66 probe is declared. The phase-declared Mix contracts and canonical coverage classifier were executed directly.
 
 ### Requirements Coverage
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| GREEN-01 | ✓ SATISFIED | Fresh Nyquist evidence contract passed. |
-| GREEN-02 | ✓ SATISFIED | Fresh Nyquist contract reconciled the nonempty full-default Credo JSON to the histogram/report. |
-| GREEN-03 | ✓ SATISFIED | Fresh Nyquist contract requires both insensitive text variants and a failing token positive control. This is local determinism evidence only; it is not represented as cross-environment byte reproducibility. |
-| GREEN-04 | ✗ FAILED / REOPENED | The current committed root suite contains a deterministic failing summary-discovery test. Earlier successful CI measurements do not prove the newer tree is green. |
-| GREEN-05 | ✓ SATISFIED | Self-declaring form-policy contract remains present and previously verified; no Plan-65 files touch its implementation or roster. |
-| GREEN-06 | ✓ SATISFIED | Fresh Nyquist contract derives job timeout bounds and Playwright fail-fast configuration. |
-| GREEN-07 | PENDING (accepted terminally) | Literal ancestry is false: local HEAD is 408 commits ahead of `origin/main`. D-39 remains the only disposition; no local evidence is substituted for cross-environment/main CI proof. |
-| GREEN-08 | ✓ SATISFIED narrowly | Required-context and ruleset contracts remain intact; downstream mergeability remains constrained by GREEN-07. |
-| GREEN-09 | ✓ SATISFIED | Paid critic trigger/input path remains structurally absent under committed workflow contracts. |
-| GREEN-10 | ✓ SATISFIED | Exactly one gated Hex publish workflow remains. |
-| GREEN-11 | ✓ SATISFIED | Classifier implementation and deduplicated issue wiring remain present and covered. |
-| GREEN-12 | ✓ SATISFIED | Fresh 20-test risk-disposition suite and 7-test Nyquist suite pass; security accepts only T-198-55-02 by `szTheory`, while T-198-55-03 and T-198-62-SC remain open/nonblocking/unaccepted. |
+| GREEN-01 | ✓ SATISFIED | Fresh Nyquist evidence contract passed inside the 51-test focused run. |
+| GREEN-02 | ✓ SATISFIED | Fresh Nyquist contract reconciled the nonempty full-default Credo evidence. |
+| GREEN-03 | ✓ SATISFIED | Fresh Nyquist contract requires insensitive text variants and a failing token positive control. This is local determinism evidence, not cross-environment byte reproducibility. |
+| GREEN-04 | ✓ SATISFIED / RECLOSED | Final-mode summary contract passes and the fresh unfiltered root suite reports 1,650 tests, 0 failures, 1 excluded. No failing test was skipped or filtered away. |
+| GREEN-05 | ✓ SATISFIED | Root suite passes the derived self-declaring form-policy contracts; Plan 66 does not change their source or roster. |
+| GREEN-06 | ✓ SATISFIED | Fresh Nyquist contract derives job timeout bounds and the browser fail-fast constraint. |
+| GREEN-07 | PENDING (accepted terminally) | Literal ancestry remains false (`origin/main..HEAD = 439`). D-39 remains the terminal disposition; local test success is not promoted to exact-main CI evidence. |
+| GREEN-08 | ✓ SATISFIED narrowly | Existing topology/protection contracts pass in the root suite and protected files are untouched; downstream mergeability remains constrained by GREEN-07. |
+| GREEN-09 | ✓ SATISFIED | Paid critic trigger/input path remains structurally absent under passing workflow contracts. |
+| GREEN-10 | ✓ SATISFIED | Exactly one gated Hex publisher remains in `release.yml`. |
+| GREEN-11 | ✓ SATISFIED | Flake classifier and deduplicated issue wiring contracts pass in the root suite. |
+| GREEN-12 | ✓ SATISFIED | Focused security/prohibition and Nyquist contracts pass; one worktree and empty `ci/198-*` branch namespaces remain. Only T-198-55-02 is accepted by `szTheory`. |
 
-**Coverage:** 10 satisfied, 1 failed/reopened, 1 accepted-Pending. All twelve IDs are claimed; none is orphaned.
+**Coverage:** 11 satisfied, 1 accepted-Pending, 0 failed. All twelve IDs are claimed by phase plans; none is orphaned.
+
+### Prohibition Verification
+
+| Prohibition | Status | Evidence |
+|---|---|---|
+| Do not rewrite/enlarge audited 01-61 or generalize terminal 62 | ✓ VERIFIED | Historical manifest equality check passes after removing the additive policy; final-mode role assertions pass. |
+| Do not derive authorization from wildcard discovery | ✓ VERIFIED | `validate_summary_set!/2` constructs the allowed set from fixed manifest roles; unauthorized neighbor fixtures fail. |
+| Do not promote local evidence, GREEN-07, or security dispositions | ✓ VERIFIED | Ancestry remains false and documented Pending; security remains exactly 322/320/2/0 with only the narrow T-198-55-02 acceptance. |
 
 ### Test Quality Audit
 
 | Test file | Linked requirements | Active | Skipped | Circular | Assertion level | Verdict |
 |---|---|---:|---:|---|---|---|
-| `phase198_prohibition_resolution_contract_test.exs` | GREEN-12 | 20 | 0 | No | Exact value, mutation, Git identity, and behavioral boundary assertions | PASS |
-| `phase198_nyquist_contract_test.exs` | GREEN-01/02/03/06/12 | 7 | 0 | No | Non-vacuity, reconciliation, positive control, workflow derivation, archive behavior | PASS |
-| `phase198_zero_human_uat_contract_test.exs` | GREEN-04 | 9 | 0 | No | Exact namespace and mutation assertions against real phase files | FAIL — strong test exposed stale allowed set |
+| `phase198_zero_human_uat_contract_test.exs` | GREEN-04 | 24 | 0 | No | Exact value, structural grammar, raw duplicate, content digest, and adversarial lifecycle assertions | PASS |
+| `phase198_prohibition_resolution_contract_test.exs` | GREEN-12 | 20 | 0 | No | Exact signer/Git identity, raw duplicate, mutation, and canonical security projection assertions | PASS |
+| `phase198_nyquist_contract_test.exs` | GREEN-01/02/03/06/12 | 7 | 0 | No | Non-vacuity, reconciliation, positive control, workflow derivation, and archive behavior | PASS |
 
-No disabled requirement-linked tests were found. Fixture writes are isolated mutation setup and do not generate expected values from the system under test. The failing test is not misleading: its exact assertion catches a real mismatch between the sealed namespace and the current phase directory.
+No disabled requirement-linked tests or unreferenced debt markers were found. `File.write!` calls in the summary contract mutate isolated temporary fixtures and do not generate expected values from the system under test. Expected post-terminal members and hashes come from the normative manifest, while malicious inputs are independently constructed.
 
 ### Security Gate
 
-The security gate now passes at the configured `block_on: high` threshold:
+The enabled `block_on: high` gate passes with 322 registered threats, 320 closed, 2 open total, and 0 blocking open:
 
-- T-198-55-02 is accepted only for the exact unavailable historical argv/non-force uncertainty, by the attributable signer `szTheory` at immutable commit `5f77f321...`.
-- No historical evidence, mitigation, attestation, or reconstructed method is claimed.
+- T-198-55-02 is accepted only for the exact unavailable historical argv/non-force uncertainty by `szTheory` at immutable commit `5f77f321...`; it reconstructs no evidence.
 - T-198-55-03 remains medium/open/nonblocking/not accepted.
 - T-198-62-SC remains low/open/nonblocking/not accepted.
-- All Plan-64 blockers and all six Plan-65 threats are closed by current mechanical evidence.
+- T-198-66-01 through T-198-66-06 are closed by duplicate-safe manifest decoding, content-bound roles, strict lifecycle/grammar enforcement, fixed mutation oracles, and bounded disclosure.
 
 ### Anti-Patterns Found
 
-No unreferenced `TBD`, `FIXME`, or `XXX` markers, disabled tests, circular oracles, stubs, or placeholder runtime implementations were found in the Plan-65 delta. The `YOUR_NAME` literal remains only in immutable rejected Plan-64 history and negative fixtures; it is not the accepted signer.
+No `TBD`, `FIXME`, `XXX`, skipped requirement tests, circular oracle, runtime stub, or placeholder implementation was found in the Plan-66 implementation. Matches on `on_exit` are ordinary ExUnit cleanup, and fixture writes are intentional isolated mutation tests. The implementation commits are confined to the focused contract and manifest; CR-05 repair commits change only the focused contract.
 
 ### Decision Coverage
 
@@ -150,19 +155,17 @@ All 42 trackable `198-CONTEXT.md` decisions are honored by shipped artifacts (`4
 
 ### Human Verification Required
 
-N/A — infrastructure/CI/repository-hygiene phase. The remaining failure is deterministic and programmatically reproducible; manual UAT would add no evidence.
+N/A — infrastructure/CI/repository-hygiene phase. All remaining acceptance evidence is programmatically checkable. GREEN-07 already has an explicit terminal maintainer disposition and is not awaiting a new UAT decision.
 
 ### Deferred Items
 
-None. Phase 199 expects a green, trustworthy Phase-198 baseline and does not specifically authorize weakening or ignoring the Phase-198 summary namespace. The regression therefore remains an actionable Phase-198 gap.
+None. GREEN-07 remains explicitly accepted-Pending rather than silently deferred or restated as complete.
 
 ### Gaps Summary
 
-The former security blocker is genuinely closed without broadening the user's authorization. The phase remains blocked for a new, narrower reason: Plans 63-65 added valid summary artifacts after the previously certified Plan-62 terminal boundary, but `phase198_zero_human_uat_contract_test.exs` still rejects every summary above 62. This deterministically violates roadmap criterion 2 and GREEN-04.
-
-The repair must preserve the immutable audit of summaries 01-61 and the special Plan-62 terminal certificate while defining an explicit, mutation-tested policy for post-terminal summaries 63-65. Merely deleting the test, widening the set without negative fixtures, or treating Phase 199 as an excuse to ignore the current failure would weaken the evidence contract.
+No actionable phase gap remains. Plan 66 closes the prior deterministic summary-boundary failure without widening audited or terminal truth. CR-05 is mechanically resolved by the current constrained grammar and adversarial suite. The security gate passes narrowly, and the unfiltered root suite is green. The only literal unmet requirement is GREEN-07, preserved under its existing roadmap terminal disposition.
 
 ---
 
-_Verified: 2026-09-10T21:50:38Z_
+_Verified: 2026-09-10T23:51:35Z_
 _Verifier: the agent (gsd-verifier)_
