@@ -2,13 +2,13 @@
 phase: "198"
 slug: "green-bringup"
 status: blocked
-threats_open: 9
+threats_open: 1
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
 threats_total: 273
-threats_closed: 262
-threats_open_total: 11
+threats_closed: 271
+threats_open_total: 2
 created: "2026-09-08"
 updated: "2026-09-10"
 ---
@@ -16,9 +16,10 @@ updated: "2026-09-10"
 # Phase 198 — Security
 
 > ASVS L1 verification of the plan-authored STRIDE register through Plan 55.
-> The 2026-09-10 re-audit closed the former Plan 44–47 findings from implementation
-> evidence, then found nine blocking and two non-blocking gaps in the round-11
-> ref-disposition validator. The audit itself was read-only.
+> The 2026-09-10 round-12 re-audit verifies the hardened ref-disposition
+> controls and closes nine of eleven prior findings. One blocking historical
+> command-method claim and one non-blocking historical receipt gap remain open;
+> neither is accepted risk. The audit itself was read-only.
 
 ## Trust Boundaries
 
@@ -34,27 +35,19 @@ updated: "2026-09-10"
 
 | Threat ID | Severity | Expected mitigation | Audit result |
 |-----------|----------|---------------------|--------------|
-| T-198-52-01 | high | Re-read live identities before authority | Fixture mode bypasses Git/GitHub reads and can satisfy `authority`. |
-| T-198-52-02 | critical | Enforce exact literal, non-force, one-object commands | Receipts omit command argv, refspec, and force state. |
-| T-198-52-04 | critical | Re-read stable controls after each mutation | Mutation stages accept fixture-supplied controls. |
-| T-198-53-06 | high | Prevent fixtures from satisfying live authority | The positive lifecycle fixture currently proves fixture-backed `authority`. |
-| T-198-54-02 | high | Bind decisions only after a fresh live comparison | `decision` accepts the same fixture substitution. |
-| T-198-54-04 | high | Reject execution fields and receipts during decision | `validate_decision_v2` does not reject either. |
-| T-198-55-01 | high | Revalidate live identities before every target | Fixture-backed equality can produce the required zero exit. |
-| T-198-55-02 | high | Make exact one-object Git/GitHub argv auditable | Receipts contain abstract operation types but no argv fields. |
-| T-198-55-06 | high | Independently live-check protected controls | Mutation stages accept fixture-supplied controls. |
+| T-198-55-02 | high | Auditable proof that completed Plan-55 mutations used exact one-object, non-force argv and no prohibited bulk/history/protection methods | The hardened schema protects future operations, but historical argv was not captured; `cannot-attest by szTheory` explicitly leaves the mapped prohibition pending and is not risk acceptance. |
 
 ## Threat Register — Non-Blocking Open
 
 | Threat ID | Severity | Expected mitigation | Audit result |
 |-----------|----------|---------------------|--------------|
-| T-198-53-05 | low | Document bounded live-GitHub-read availability | No accepted-risk entry or mitigation evidence exists. |
 | T-198-55-03 | medium | Persist argv-safe receipts with timestamps and before/after identities | Current receipts contain sequence/type/target and limited object fields only. |
 
-The 2026-09-10 re-audit closed T-198-44-02, T-198-44-03, T-198-44-05,
-T-198-45-01, T-198-45-02, T-198-46-01, T-198-46-05, and T-198-47-06
-from implementation evidence in Plans 48–51. The 15 maintainer-approved residual
-risks from 2026-09-08 remain recorded below; no new risk acceptance was inferred.
+The round-12 re-audit closed T-198-52-01, T-198-52-02, T-198-52-04,
+T-198-53-05, T-198-53-06, T-198-54-02, T-198-54-04, T-198-55-01, and
+T-198-55-06 from the Plan-57 enforcement boundary and its focused tests. The
+15 maintainer-approved residual risks from 2026-09-08 remain recorded below;
+no new risk acceptance was inferred.
 
 ## Metadata Corrections
 
@@ -100,7 +93,7 @@ These 25 entries were reviewed individually and corrected in their canonical `19
 
 ## Closed Register
 
-Of 273 registered threats, 262 are closed. This compact index preserves the
+Of 273 registered threats, 271 are closed. This compact index preserves the
 plan-level mapping; the source threat definitions remain canonical in each
 `198-NN-PLAN.md`.
 
@@ -115,10 +108,10 @@ plan-level mapping; the source threat definitions remain canonical in each
 | 31–35 | 19 | JSON-quoted selectors; discriminating walkthrough assertions; support/admin coverage; canonical presentation functions; exact retention-state restoration and cutoff checks. |
 | 36–40 | 29 | Tree-backed review ledger; exact-run prediction/measurement; pinned advisory-lock region; verbatim no-mutation decisions; append-only Round-6 evidence. |
 | 41–42 | 10 | Immutable subject/run ledger; atomic lifecycle proof; double ruleset digest; deterministic exact-main-SHA run selection; sealed Round-7 evidence. |
-| 43–47 | 18 | Safe issue upsert and release gates; exact-main observer boundaries; row-history synchronization; zero-human evaluator integrity; read-only Plan-47 reconciliation. |
-| 48–55 | 31 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, and fail-closed namespace checks; eleven round-11 enforcement gaps remain open above. |
+| 43–47 | 26 | Safe issue upsert and release gates; exact-main observer boundaries; row-history synchronization; zero-human evaluator integrity; read-only Plan-47 reconciliation; all former open findings closed by Plans 48–51. |
+| 48–55 | 32 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, and hardened fail-closed namespace/receipt checks; two historical findings remain open above. |
 
-Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 18 + 31 = 262`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 = 271`.
 
 ## Unregistered Review Flags
 
@@ -155,13 +148,15 @@ No unregistered open flags remain.
 | 2026-09-08 | 213 | 213 | 0 | 0 | maintainer-approved risk disposition / Codex orchestrator |
 | 2026-09-09 | 239 | 231 | 8 | 5 | post-Plan-47 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 273 | 262 | 11 | 9 | post-Plan-55 gsd-security-auditor / Codex orchestrator |
+| 2026-09-10 | 273 | 271 | 2 | 1 | post-Plan-60 gsd-security-auditor / Codex orchestrator |
 
 ## Sign-Off
 
 - [x] All registered threats have a plan-authored disposition.
 - [x] Accepted risks are maintainer-approved and documented.
 - [ ] `threats_open: 0` confirmed.
-- [x] `status: blocked` set in frontmatter while nine high/critical threats remain open.
+- [x] `status: blocked` set in frontmatter while one high-severity threat remains open.
 
-**Approval:** blocked 2026-09-10 — nine high/critical mitigations remain open;
-two lower-severity threats also remain open. No new risk acceptance was inferred.
+**Approval:** blocked 2026-09-10 — one high-severity historical command-method
+claim and one medium historical receipt gap remain open. No new risk acceptance
+was inferred.
