@@ -2,24 +2,25 @@
 phase: "198"
 slug: "green-bringup"
 status: blocked
-threats_open: 1
+threats_open: 3
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
-threats_total: 305
-threats_closed: 302
-threats_open_total: 3
+threats_total: 310
+threats_closed: 305
+threats_open_total: 5
 created: "2026-09-08"
 updated: "2026-09-10"
 ---
 
 # Phase 198 — Security
 
-> ASVS L1 verification of the plan-authored STRIDE register through Plan 55.
-> The 2026-09-10 round-12 re-audit verifies the hardened ref-disposition
-> controls and closes the production receipt-boundary gap. One blocking
-> historical claim and two non-blocking findings remain open; none is accepted
-> risk. The audit itself was read-only.
+> ASVS L1 verification of the plan-authored STRIDE register through Plan 64.
+> The 2026-09-10 post-Plan-64 re-audit preserves the hardened ref-disposition
+> controls but rejects the proposed T-198-55-02 acceptance: `YOUR_NAME` is not
+> an attributable maintainer identity, and duplicate JSON members are not
+> rejected before decoding. Three blocking and two non-blocking findings remain
+> open; none is newly accepted risk. The audit itself was read-only.
 
 ## Trust Boundaries
 
@@ -36,6 +37,8 @@ updated: "2026-09-10"
 | Threat ID | Severity | Expected mitigation | Audit result |
 |-----------|----------|---------------------|--------------|
 | T-198-55-02 | high | Auditable proof that completed Plan-55 mutations used exact one-object, non-force argv and no prohibited bulk/history/protection methods | The hardened schema protects future operations, but historical argv was not captured; `cannot-attest by szTheory` explicitly leaves the mapped prohibition pending and is not risk acceptance. |
+| T-198-64-01 | high | Bind the proposed accepted-risk decision to an attributable maintainer identity | The artifact and its test require literal placeholder `YOUR_NAME`; identity must not be inferred, so the proposed acceptance is invalid. |
+| T-198-64-02 | high | Reject duplicate JSON member names recursively before converting the disposition to maps | `Jason.decode!/1` normalizes object members before exact-key validation; conflicting duplicate root or nested members can bypass the claimed exact-schema boundary. |
 
 ## Threat Register — Non-Blocking Open
 
@@ -48,7 +51,9 @@ The round-12 re-audit closed T-198-52-01, T-198-52-02, T-198-52-04,
 T-198-53-05, T-198-53-06, T-198-54-02, T-198-54-04, T-198-55-01, and
 T-198-55-06 from the Plan-57 enforcement boundary and its focused tests. The
 15 maintainer-approved residual risks from 2026-09-08 remain recorded below;
-no new risk acceptance was inferred.
+no new risk acceptance was inferred. The post-Plan-64 audit closed
+T-198-64-03, T-198-64-04, and T-198-64-05 from immutable Git history,
+canonical-verdict separation, and bounded non-secret rationale evidence.
 
 ## Metadata Corrections
 
@@ -94,7 +99,7 @@ These 25 entries were reviewed individually and corrected in their canonical `19
 
 ## Closed Register
 
-Of 305 registered threats, 302 are closed. This compact index preserves the
+Of 310 registered threats, 305 are closed. This compact index preserves the
 plan-level mapping; the source threat definitions remain canonical in each
 `198-NN-PLAN.md`.
 
@@ -113,14 +118,18 @@ plan-level mapping; the source threat definitions remain canonical in each
 | 48–55 | 32 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, and hardened fail-closed namespace/receipt checks; two historical findings remain open above. |
 | 56–61 | 24 | Exact summary discovery, live/fixture separation, typed prohibition evidence, non-attestation integrity, terminal certification, explicit classic-protection states, and the Plan-62-scoped closure of T-198-57-04. |
 | 62 | 7 | Canonical legacy identity, strict-default receipt enforcement, terminal reseal, and production-path adversarial coverage; one low accepted-risk disposition remains unapproved/open. |
+| 64 | 3 | Immutable Plan-63 history, canonical-verdict separation, and bounded non-secret rationale; signer attribution and duplicate-member rejection remain open above. |
 
-Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 + 24 + 7 = 302`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 + 24 + 7 + 3 = 305`.
 
 ## Unregistered Review Flags
 
-The previously unregistered CR-04, WR-01, and WR-03 findings are resolved. The converged 90-file code review reports zero Critical, Warning, or Info findings.
-
-No unregistered open flags remain.
+The previously unregistered pre-Plan-64 CR-04, WR-01, and WR-03 findings are
+resolved. The Plan-64 delta review adds CR-03, CR-04, WR-02, and WR-03; these
+map respectively to T-198-64-01, T-198-64-02, and T-198-64-03. The current
+timestamp and immutable Plan-63 Git object close T-198-64-03 at ASVS L1, while
+the attribution and duplicate-member findings remain blocking above. No
+unregistered open flags remain.
 
 ## Accepted Risks Log
 
@@ -154,14 +163,16 @@ No unregistered open flags remain.
 | 2026-09-10 | 273 | 271 | 2 | 1 | post-Plan-60 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 297 | 294 | 3 | 2 | post-Plan-61 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 305 | 302 | 3 | 1 | post-Plan-62 gsd-security-auditor / Codex orchestrator |
+| 2026-09-10 | 310 | 305 | 5 | 3 | post-Plan-64 gsd-security-auditor / Codex orchestrator |
 
 ## Sign-Off
 
 - [x] All registered threats have a plan-authored disposition.
 - [x] Accepted risks are maintainer-approved and documented.
 - [ ] `threats_open: 0` confirmed.
-- [x] `status: blocked` set in frontmatter while one high-severity threat remains open.
+- [x] `status: blocked` set in frontmatter while three high-severity threats remain open.
 
-**Approval:** blocked 2026-09-10 — one high-severity historical command-method
-claim and two non-blocking findings remain open. No new risk acceptance was
-inferred.
+**Approval:** blocked 2026-09-10 — the historical command-method finding,
+placeholder signer attribution, and duplicate-member ambiguity remain
+high-severity blockers; two additional findings remain open below the blocking
+threshold. No new risk acceptance was inferred.
