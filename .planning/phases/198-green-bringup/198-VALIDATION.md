@@ -321,7 +321,22 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Focused final-mode contract | 20 tests, 0 failures |
 | Combined security projection | 40 tests, 0 failures |
 | Full repository suite | 1,646 tests, 0 failures, 1 excluded |
-| Result | CR-05 FILLED after context-scoped iteration 4; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+| Result | Structural grammar closed; iteration 5 below closes the narrowed verification-reference and scalar-decoding gap found by re-review |
+
+## Validation Audit 2026-09-10 (post-Plan-66 CR-05 iteration 5)
+
+| Metric | Result |
+|---|---|
+| Re-review gap | Structurally present `ref` values could still use empty, null-like, unquoted, single-quoted, malformed, or block-scalar YAML forms before the regex-based semantic check trusted their presence |
+| Canonical ref grammar | Every verification `ref` must be a JSON-compatible double-quoted string that decodes successfully to non-empty, non-whitespace text; malformed escapes and unsupported scalar forms fail before field-set or semantic trust |
+| Ref adversarial matrix | First and last Plan-66 verification records reject empty/whitespace strings, `null`/`Null`/`NULL`/`~`, unquoted and single-quoted text, unterminated/malformed escapes, and `|`/`>` block indicators; multiline block aliases also fail |
+| Control scalar grammar | `kind` is restricted to the canonical coverage kinds, verification `status` to `pass`/`fail`/`pending`, and `human_judgment` to bare `true`/`false`; quoted, tagged, boolean-like, null-like, and tilde aliases fail |
+| Identity/status scalars | Root `phase`, `plan`, and `status` require canonical plain scalar shapes before the existing exact phase/plan/allowed-status checks; quoted, null-like, boolean, tilde, and zero-padded plan aliases cannot satisfy the boundary |
+| Positive control | The tracked Plan-66 summary and all exact 63-66 post-terminal semantic paths retain their canonical quoted references and pass final-mode validation |
+| Focused final-mode contract | 22 tests, 0 failures |
+| Combined security projection | 42 tests, 0 failures |
+| Full repository suite | 1,648 tests, 0 failures, 1 excluded |
+| Result | CR-05 FILLED after scalar-decoding iteration 5; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
 ## Validation Sign-Off
 
