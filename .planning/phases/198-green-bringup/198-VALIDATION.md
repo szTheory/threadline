@@ -289,7 +289,23 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Focused final-mode contract | 17 tests, 0 failures |
 | Combined security projection | 37 tests, 0 failures |
 | Full repository suite | 1,643 tests, 0 failures, 1 excluded |
-| Result | CR-05 FILLED after adversarial re-review; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+| Result | Quoted top-level aliases rejected; iteration 3 below closes the remaining indented-alias differential found by re-review |
+
+## Validation Audit 2026-09-10 (post-Plan-66 CR-05 iteration 3)
+
+| Metric | Result |
+|---|---|
+| Re-review gap | Potentially root-equivalent reserved YAML aliases were ignored whenever they began with indentation, including tabs |
+| Explicit context grammar | The scanner tracks root, coverage-entry, verification, and verification-item states. The sole indented reserved key accepted is canonical eight-space `status:` inside a recognized coverage verification item; its value remains subject to the existing all-pass validator |
+| Indentation matrix | `phase`, `plan`, `status`, and `coverage` aliases are tested at 1, 2, 4, and 8 spaces plus a tab, malicious-first and malicious-last |
+| Alias syntax matrix | Plain, double-quoted, single-quoted, spaced-key, tagged, anchored, explicit-key, and flow-map forms—including quoted keys behind tags, anchors, explicit-key markers, and flow maps—are rejected before scalar, coverage, or map trust |
+| Repository YAML parser | No YAML library is present in `mix.exs` or `mix.lock`; the audit therefore uses an explicit minimal accepted grammar rather than adding a dependency or claiming full YAML parsing |
+| Compatibility control | Existing indented multiline frontmatter text remains accepted unless it is key-shaped reserved/unsupported syntax; all 47 immutable baseline summaries parse and retain their digest/coverage checks |
+| Preserved compatibility and roles | The real final-mode directory passes; audited-final 01-61, terminal 62, content-bound 63-65, and repair-summary 66 roles remain exact |
+| Focused final-mode contract | 18 tests, 0 failures |
+| Combined security projection | 38 tests, 0 failures |
+| Full repository suite | 1,644 tests, 0 failures, 1 excluded |
+| Result | CR-05 FILLED after three adversarial iterations; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
 ## Validation Sign-Off
 
