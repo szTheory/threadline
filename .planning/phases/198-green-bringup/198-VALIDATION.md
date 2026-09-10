@@ -11,7 +11,7 @@ validated: 2026-09-10
 # Phase 198 — Validation Strategy
 
 Phase 198 is validated but not Nyquist-compliant. Eleven requirements have current
-automated behavioral or contract proof across all 65 plans. `GREEN-07` remains PARTIAL
+automated behavioral or contract proof across all 66 plans. `GREEN-07` remains PARTIAL
 under its accepted-Pending terminal disposition because its literal `origin/main`
 ancestry clause is false: at the latest audit `origin/main..HEAD` contained 355 commits.
 No test, documentation edit, or local commit can make that remote-state clause true.
@@ -151,6 +151,7 @@ or live observation; it is not silently converted to machine coverage.
 | 63-T2 | GREEN-12 | conditional positive-disposition task | intentionally non-executed after the Task-1 decline branch |
 | 64-T1, 64-T2 | GREEN-12 | `phase198_prohibition_resolution_contract_test.exs`; canonical classifier 2/2 auto-passed | green mechanical record; placeholder authority rejected and preserved as immutable history |
 | 65-T1, 65-T2 | GREEN-12 | `phase198_prohibition_resolution_contract_test.exs`; canonical classifier 2/2 auto-passed | green |
+| 66-T1, 66-T2 | GREEN-04 | `phase198_zero_human_uat_contract_test.exs`; exact 01-61/62/63-65/66 role boundary, duplicate-safe frontmatter/coverage parsing, and final-mode lifecycle fixtures | green |
 
 ## Manual-Only / Escalated
 
@@ -262,9 +263,23 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Preserved exclusions | T-198-55-03 and T-198-62-SC remain open/not accepted; GREEN-07 remains accepted-Pending |
 | Result | No remaining automatable validation gap; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement because literal remote ancestry is external state |
 
+## Validation Audit 2026-09-10 (post-Plan-66)
+
+| Metric | Result |
+|---|---|
+| Gap audited | CR-05: contradictory duplicate Plan-66 YAML frontmatter fields and repeated coverage IDs could be collapsed or selectively trusted by the constrained parser |
+| Plan/task map | 66 plans; 169 authored tasks; 165 executed; Plan 52's 2 tombstoned tasks and Plan 63's 2 halted-branch tasks were not executed |
+| Behavioral protection added | Malicious-first and malicious-last duplicates for `phase`, `plan`, `status`, and `coverage`, plus repeated `D1` coverage entries in both orders; every fixture requires the duplicate-specific rejection before scalar or entry validation |
+| Preserved role boundary | Audited-final summaries remain exactly 01-61; Plan 62 remains the sole terminal certificate; content-bound post-terminal summaries remain exactly 63-65; Plan 66 remains the non-terminal policy-repair summary |
+| Focused final-mode contract | `PHASE198_SUMMARY_SET=final ... mix test test/threadline/phase198_zero_human_uat_contract_test.exs` — 16 tests, 0 failures |
+| Combined security projection | Plan-66 summary contract plus Plan-65 prohibition/security-disposition contract — 36 tests, 0 failures |
+| Full repository suite | 1,642 tests, 0 failures, 1 excluded |
+| Proof boundary | Local deterministic tests establish the current-tree GREEN-04 parser/summary contract only; they do not establish cross-environment reproducibility or satisfy GREEN-07 |
+| Result | CR-05 FILLED; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+
 ## Validation Sign-Off
 
-- [x] All 65 PLANs and 65 SUMMARYs mapped through their tasks and requirements.
+- [x] All 66 PLANs and 66 SUMMARYs mapped through their tasks and requirements.
 - [x] Every automated test claimed green was executed in this audit.
 - [x] New tests are behavioral and contain non-vacuity/positive-control assertions.
 - [x] No implementation file was modified.
