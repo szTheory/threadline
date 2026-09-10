@@ -147,9 +147,9 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     for number <- 56..59, do: write_summary!(root, Integer.to_string(number), "[]")
 
     invalid_entries = [
-      "  - id: D1\n    human_judgment: false\n    verification:\n      - ref: \"focused test\"",
-      "  - id: D1\n    human_judgment: false\n    verification:\n      - ref: \"focused test\"\n        status: fail",
-      "  - id: D1\n    human_judgment: true\n    verification:\n      - ref: \"focused test\"\n        status: pass"
+      "  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration",
+      "  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"focused test\"\n        status: fail",
+      "  - id: D1\n    human_judgment: true\n    verification:\n      - kind: integration\n        ref: \"focused test\"\n        status: pass"
     ]
 
     for entry <- invalid_entries do
@@ -161,7 +161,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
 
     passing =
-      "\n  - id: D1\n    human_judgment: false\n    verification:\n      - ref: \"focused test\"\n        status: pass"
+      "\n  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"focused test\"\n        status: pass"
 
     write_summary!(root, @terminal_certification_number, passing)
     assert validate_summary_set!(root, :final) == :ok
