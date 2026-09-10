@@ -1,26 +1,27 @@
 ---
 phase: "198"
 slug: "green-bringup"
-status: blocked
-threats_open: 3
+status: passed
+threats_open: 0
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
-threats_total: 310
-threats_closed: 305
-threats_open_total: 5
+threats_total: 316
+threats_closed: 314
+threats_open_total: 2
 created: "2026-09-08"
 updated: "2026-09-10"
 ---
 
 # Phase 198 — Security
 
-> ASVS L1 verification of the plan-authored STRIDE register through Plan 64.
-> The 2026-09-10 post-Plan-64 re-audit preserves the hardened ref-disposition
-> controls but rejects the proposed T-198-55-02 acceptance: `YOUR_NAME` is not
-> an attributable maintainer identity, and duplicate JSON members are not
-> rejected before decoding. Three blocking and two non-blocking findings remain
-> open; none is newly accepted risk. The audit itself was read-only.
+> ASVS L1 verification of the plan-authored STRIDE register through Plan 65.
+> The 2026-09-10 post-Plan-65 re-audit verifies the exact `szTheory`
+> authorization, recursive duplicate-member rejection before map conversion,
+> immutable Git provenance, bounded decision time, exact scope, and non-secret
+> rationale. No blocking findings remain. T-198-55-03 and T-198-62-SC remain
+> open below the blocking threshold and were not accepted. The audit itself was
+> read-only.
 
 ## Trust Boundaries
 
@@ -34,11 +35,11 @@ updated: "2026-09-10"
 
 ## Threat Register — Blocking Open
 
-| Threat ID | Severity | Expected mitigation | Audit result |
-|-----------|----------|---------------------|--------------|
-| T-198-55-02 | high | Auditable proof that completed Plan-55 mutations used exact one-object, non-force argv and no prohibited bulk/history/protection methods | The hardened schema protects future operations, but historical argv was not captured; `cannot-attest by szTheory` explicitly leaves the mapped prohibition pending and is not risk acceptance. |
-| T-198-64-01 | high | Bind the proposed accepted-risk decision to an attributable maintainer identity | The artifact and its test require literal placeholder `YOUR_NAME`; identity must not be inferred, so the proposed acceptance is invalid. |
-| T-198-64-02 | high | Reject duplicate JSON member names recursively before converting the disposition to maps | `Jason.decode!/1` normalizes object members before exact-key validation; conflicting duplicate root or nested members can bypass the claimed exact-schema boundary. |
+None. The post-Plan-65 re-audit closed the three prior high-severity blockers:
+T-198-55-02 is accepted only for the exact residual uncertainty authorized by
+`szTheory`; T-198-64-01 is closed by attributable signer binding; and
+T-198-64-02 is closed by recursive duplicate-member rejection before map
+conversion.
 
 ## Threat Register — Non-Blocking Open
 
@@ -51,9 +52,13 @@ The round-12 re-audit closed T-198-52-01, T-198-52-02, T-198-52-04,
 T-198-53-05, T-198-53-06, T-198-54-02, T-198-54-04, T-198-55-01, and
 T-198-55-06 from the Plan-57 enforcement boundary and its focused tests. The
 15 maintainer-approved residual risks from 2026-09-08 remain recorded below;
-no new risk acceptance was inferred. The post-Plan-64 audit closed
+the only new acceptance is the exact `szTheory` authorization for
+T-198-55-02. The post-Plan-64 audit closed
 T-198-64-03, T-198-64-04, and T-198-64-05 from immutable Git history,
-canonical-verdict separation, and bounded non-secret rationale evidence.
+canonical-verdict separation, and bounded non-secret rationale evidence. The
+post-Plan-65 audit closed the remaining Plan-64 blockers and all six Plan-65
+threats. T-198-55-02 is closed only through the narrowly scoped, attributable
+accepted-risk decision recorded as AR-198-16 below.
 
 ## Metadata Corrections
 
@@ -99,7 +104,7 @@ These 25 entries were reviewed individually and corrected in their canonical `19
 
 ## Closed Register
 
-Of 310 registered threats, 305 are closed. This compact index preserves the
+Of 316 registered threats, 314 are closed. This compact index preserves the
 plan-level mapping; the source threat definitions remain canonical in each
 `198-NN-PLAN.md`.
 
@@ -115,21 +120,20 @@ plan-level mapping; the source threat definitions remain canonical in each
 | 36–40 | 29 | Tree-backed review ledger; exact-run prediction/measurement; pinned advisory-lock region; verbatim no-mutation decisions; append-only Round-6 evidence. |
 | 41–42 | 10 | Immutable subject/run ledger; atomic lifecycle proof; double ruleset digest; deterministic exact-main-SHA run selection; sealed Round-7 evidence. |
 | 43–47 | 26 | Safe issue upsert and release gates; exact-main observer boundaries; row-history synchronization; zero-human evaluator integrity; read-only Plan-47 reconciliation; all former open findings closed by Plans 48–51. |
-| 48–55 | 32 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, and hardened fail-closed namespace/receipt checks; two historical findings remain open above. |
+| 48–55 | 33 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, hardened fail-closed namespace/receipt checks, and the narrowly accepted Plan-55 historical-evidence uncertainty; one historical finding remains open above. |
 | 56–61 | 24 | Exact summary discovery, live/fixture separation, typed prohibition evidence, non-attestation integrity, terminal certification, explicit classic-protection states, and the Plan-62-scoped closure of T-198-57-04. |
 | 62 | 7 | Canonical legacy identity, strict-default receipt enforcement, terminal reseal, and production-path adversarial coverage; one low accepted-risk disposition remains unapproved/open. |
-| 64 | 3 | Immutable Plan-63 history, canonical-verdict separation, and bounded non-secret rationale; signer attribution and duplicate-member rejection remain open above. |
+| 64 | 5 | Immutable Plan-63 history, canonical-verdict separation, bounded non-secret rationale, attributable signer binding, and recursive duplicate-member rejection. |
+| 65 | 6 | Exact authorization bytes and identity, both-order recursive duplicate fixtures, commit-derived bounded decision time, immutable history pins, exact scope/exclusions, and bounded non-secret rationale. |
 
-Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 + 24 + 7 + 3 = 305`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 33 + 24 + 7 + 5 + 6 = 314`.
 
 ## Unregistered Review Flags
 
 The previously unregistered pre-Plan-64 CR-04, WR-01, and WR-03 findings are
-resolved. The Plan-64 delta review adds CR-03, CR-04, WR-02, and WR-03; these
-map respectively to T-198-64-01, T-198-64-02, and T-198-64-03. The current
-timestamp and immutable Plan-63 Git object close T-198-64-03 at ASVS L1, while
-the attribution and duplicate-member findings remain blocking above. No
-unregistered open flags remain.
+resolved. The Plan-64 delta findings CR-03, CR-04, WR-02, and WR-03 map to
+T-198-64-01, T-198-64-02, and T-198-64-03 and are now closed. The Plan-65
+delta review found no new issues. No unregistered open flags remain.
 
 ## Accepted Risks Log
 
@@ -150,6 +154,7 @@ unregistered open flags remain.
 | AR-198-13 | T-198-33-03 | Administrative coverage artifacts contain fictional identities and synthetic data only. | maintainer (explicit GSD-session approval) | 2026-09-08 |
 | AR-198-14 | T-198-38-03 | Reset capability is demo-only and guarded against production unless an explicit override is set. | maintainer (explicit GSD-session approval) | 2026-09-08 |
 | AR-198-15 | T-198-41-04 | The durable capture contains public GitHub metadata and explicitly excludes secrets and tokens. | maintainer (explicit GSD-session approval) | 2026-09-08 |
+| AR-198-16 | T-198-55-02 | The exact historical argv and non-force method evidence for completed Plan 198-55 mutations was not retained; acceptance is limited solely to that residual uncertainty and reconstructs no evidence. | szTheory (exact authorization at commit `5f77f321bc90c0add078ea083c06d5add575ae25`) | 2026-09-10 |
 
 ## Security Audit Trail
 
@@ -164,15 +169,17 @@ unregistered open flags remain.
 | 2026-09-10 | 297 | 294 | 3 | 2 | post-Plan-61 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 305 | 302 | 3 | 1 | post-Plan-62 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 310 | 305 | 5 | 3 | post-Plan-64 gsd-security-auditor / Codex orchestrator |
+| 2026-09-10 | 316 | 314 | 2 | 0 | post-Plan-65 gsd-security-auditor / Codex orchestrator |
 
 ## Sign-Off
 
 - [x] All registered threats have a plan-authored disposition.
 - [x] Accepted risks are maintainer-approved and documented.
-- [ ] `threats_open: 0` confirmed.
-- [x] `status: blocked` set in frontmatter while three high-severity threats remain open.
+- [x] `threats_open: 0` confirmed.
+- [x] `status: passed` set in frontmatter with no high-severity threats open.
 
-**Approval:** blocked 2026-09-10 — the historical command-method finding,
-placeholder signer attribution, and duplicate-member ambiguity remain
-high-severity blockers; two additional findings remain open below the blocking
-threshold. No new risk acceptance was inferred.
+**Approval:** passed 2026-09-10 — the exact `szTheory` authorization accepts
+only T-198-55-02's residual historical-evidence uncertainty; the Plan-64
+attribution and duplicate-member blockers and all Plan-65 threats are closed.
+T-198-55-03 and T-198-62-SC remain open below the blocking threshold and were
+not accepted.
