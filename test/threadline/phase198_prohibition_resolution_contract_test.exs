@@ -136,11 +136,15 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     ledger = load_ledger!()
 
     mutations = [
-      &update_row(&1, "P-198-53-01", fn row -> Map.put(row, "statement", row["statement"] <> " altered") end),
+      &update_row(&1, "P-198-53-01", fn row ->
+        Map.put(row, "statement", row["statement"] <> " altered")
+      end),
       &put_in(&1, ["immutable_sources", "round11_json", "sha256"], String.duplicate("0", 64)),
       &update_row(&1, "P-198-53-02", fn row -> Map.put(row, "tier", "judgment") end),
       &update_row(&1, "P-198-55-02", fn row ->
-        update_in(row["evidence"], fn [first | rest] -> [Map.put(first, "result", "unknown") | rest] end)
+        update_in(row["evidence"], fn [first | rest] ->
+          [Map.put(first, "result", "unknown") | rest]
+        end)
       end),
       &update_row(&1, "P-198-55-03", fn row -> Map.put(row, "threat_ids", []) end)
     ]
@@ -190,9 +194,131 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     @ledger_path |> File.read!() |> Jason.decode!()
   end
 
-  # Task 2 deliberately begins with this permissive implementation so the
-  # anti-fabrication fixtures prove RED before the strict validator is added.
-  defp validate_resolution(_ledger), do: :ok
+  defp validate_resolution(ledger) do
+    rows = ledger["prohibitions"] || []
+    row = Enum.find(rows, &(&1["id"] == "P-198-55-01")) || %{}
+
+    cond do
+      forbidden_receipt_claim?(row) ->
+        {:error, :fabricated_historical_receipt}
+
+      source_rows(rows) != @prohibitions ->
+        {:error, :source_mutation}
+
+      not immutable_sources_valid?(ledger) ->
+        {:error, :source_digest_mutation}
+
+      not tiers_valid?(rows) ->
+        {:error, :tier_mutation}
+
+      not evidence_valid?(rows) ->
+        {:error, :evidence_mutation}
+
+      not threat_maps_valid?(rows) ->
+        {:error, :threat_map_mutation}
+
+      not finding_valid?(ledger) ->
+        {:error, :finding_mutation}
+
+      true ->
+        validate_judgment(row)
+    end
+  end
+
+  defp source_rows(rows) do
+    Enum.map(rows, &{&1["id"], &1["source_plan"], &1["statement"]})
+  end
+
+  defp immutable_sources_valid?(ledger) do
+    Enum.all?(@source_paths, fn {key, path} ->
+      source = get_in(ledger, ["immutable_sources", key]) || %{}
+      source["path"] == Path.relative_to(path, @root) and source["sha256"] == sha256(path)
+    end)
+  end
+
+  defp tiers_valid?(rows) do
+    Enum.all?(rows, fn row ->
+      case row["id"] do
+        "P-198-55-01" -> row["tier"] == "judgment"
+        _ -> row["tier"] == "test" and row["status"] == "pass"
+      end
+    end)
+  end
+
+  defp evidence_valid?(rows) do
+    Enum.all?(rows, fn row ->
+      case row["id"] do
+        "P-198-55-01" ->
+          row["evidence"] == []
+
+        _ ->
+          row["evidence"] != [] and
+            Enum.all?(row["evidence"], fn evidence ->
+              evidence["result"] == "pass" and
+                evidence["command"] ==
+                  "mix test test/threadline/phase198_ref_disposition_contract_test.exs" and
+                is_binary(evidence["test"])
+            end)
+      end
+    end)
+  end
+
+  defp threat_maps_valid?(rows) do
+    expected = %{
+      "P-198-53-01" => ["T-198-53-01", "T-198-53-06", "T-198-54-02", "T-198-54-04", "T-198-58-01"],
+      "P-198-53-02" => ["T-198-53-02", "T-198-58-01"],
+      "P-198-55-01" => ["T-198-55-02", "T-198-55-03", "T-198-58-02", "T-198-58-03"],
+      "P-198-55-02" => ["T-198-55-02", "T-198-55-05", "T-198-58-01"],
+      "P-198-55-03" => ["T-198-55-06", "T-198-58-01"]
+    }
+
+    Enum.all?(rows, &(&1["threat_ids"] == expected[&1["id"]]))
+  end
+
+  defp finding_valid?(ledger) do
+    finding = get_in(ledger, ["findings", "T-198-55-03"]) || %{}
+
+    finding["severity"] == "medium" and
+      finding["blocking_threshold"] == "high" and
+      finding["classification"] == "irrecoverable_below_threshold" and
+      finding["status"] == "open" and
+      finding["blocking"] == false and
+      finding["accepted"] == false
+  end
+
+  defp validate_judgment(%{"status" => "pending", "resolution" => nil}), do: :ok
+
+  defp validate_judgment(%{"status" => "pending", "resolution" => resolution}) do
+    if exact_attestation?(resolution, "cannot-attest"),
+      do: :ok,
+      else: {:error, :invalid_attestation}
+  end
+
+  defp validate_judgment(%{"status" => "resolved", "resolution" => resolution}) do
+    cond do
+      exact_attestation?(resolution, "cannot-attest") ->
+        {:error, :cannot_attest_must_remain_open}
+
+      exact_attestation?(resolution, "attested") ->
+        :ok
+
+      true ->
+        {:error, :invalid_attestation}
+    end
+  end
+
+  defp validate_judgment(_row), do: {:error, :invalid_attestation}
+
+  defp exact_attestation?(resolution, expected_outcome) when is_map(resolution) do
+    Map.keys(resolution) |> Enum.sort() ==
+      Enum.sort(["outcome", "verbatim", "recorded_at", "signer"]) and
+      resolution["outcome"] == expected_outcome and
+      Enum.all?(["verbatim", "recorded_at", "signer"], fn field ->
+        is_binary(resolution[field]) and String.trim(resolution[field]) != ""
+      end)
+  end
+
+  defp exact_attestation?(_resolution, _expected_outcome), do: false
 
   defp update_row(ledger, id, fun) do
     update_in(ledger["prohibitions"], fn rows ->
