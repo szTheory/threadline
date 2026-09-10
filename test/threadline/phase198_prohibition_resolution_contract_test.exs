@@ -66,17 +66,26 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     end
   end
 
-  test "historical command-method prohibition remains pending judgment without fabricated receipts" do
+  test "historical command-method prohibition resolves only from the exact signed attestation" do
     ledger = load_ledger!()
     row = Enum.find(ledger["prohibitions"], &(&1["id"] == "P-198-55-01"))
 
     assert row["tier"] == "judgment"
-    assert row["status"] == "pending"
-    assert row["resolution"] == nil
+    assert row["status"] == "resolved"
+
+    assert row["resolution"] == %{
+             "outcome" => "attested",
+             "verbatim" =>
+               "attest by szTheory: I confirm every successful Plan 55 mutation targeted one exact object/ref/PR without force and used none of the prohibited wildcard, mirror, all-tags, rebase, squash, branch-switch, merge, ruleset, or protection operations",
+             "recorded_at" => "2026-09-10T02:06:01Z",
+             "signer" => "szTheory"
+           }
+
     assert row["evidence"] == []
     assert row["risk_accepted"] == false
     assert row["historical_limitation"] =~ "cannot establish which command operands were typed"
     refute forbidden_receipt_claim?(row)
+    assert :ok = validate_resolution(ledger)
   end
 
   test "round-11 sources are digest-pinned and the receipt gap stays open below threshold" do
@@ -110,7 +119,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
 
     for row <- ledger["prohibitions"] do
       assert row["tier"] in ["test", "judgment"]
-      assert row["status"] in ["pass", "pending"]
+      assert row["status"] in ["pass", "pending", "resolved"]
       assert is_list(row["threat_ids"]) and row["threat_ids"] != []
       assert Enum.all?(row["threat_ids"], &String.starts_with?(&1, "T-198-"))
     end
