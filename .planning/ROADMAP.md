@@ -397,7 +397,7 @@ Plans:
 
 **Wave 12** *(blocking-human; blocked on completed Plan 198-62 and authoritative Round-14 verification)*
 
-- [ ] 198-63-PLAN.md — Choose genuine pre-existing historical evidence, explicit narrow risk acceptance, or an honest stop for T-198-55-02; mechanically persist only a positive disposition, then route canonical security before verification (wave 12)
+- [x] 198-63-PLAN.md — Choose genuine pre-existing historical evidence, explicit narrow risk acceptance, or an honest stop for T-198-55-02; mechanically persist only a positive disposition, then route canonical security before verification (wave 12)
 
 **Round-15 notes:**
 
@@ -411,7 +411,7 @@ Plans:
 
 **Wave 12** *(autonomous persistence of the new exact maintainer response; depends on completed Plan 198-62, with halted Plan 198-63 retained as immutable decision history)*
 
-- [ ] 198-64-PLAN.md — Persist and mechanically validate the exact narrow T-198-55-02 risk acceptance, preserving the prior decline as history and routing canonical security before verification (wave 12)
+- [x] 198-64-PLAN.md — Persist and mechanically validate the exact narrow T-198-55-02 risk acceptance, preserving the prior decline as history and routing canonical security before verification (wave 12)
 
 **Round-16 notes:**
 
