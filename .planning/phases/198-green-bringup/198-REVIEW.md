@@ -1,8 +1,8 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T21:06:56Z
+reviewed: 2026-09-10T21:38:12Z
 depth: standard
-files_reviewed: 106
+files_reviewed: 108
 files_reviewed_list:
   - .github/rulesets/main.json
   - .github/workflows/branch-protection.yml
@@ -110,6 +110,8 @@ files_reviewed_list:
   - test/threadline/zero_skips_contract_test.exs
   - test/threadline/phase198_prohibition_resolution_contract_test.exs
   - .planning/audits/198-round14-security-disposition.json
+  - .planning/audits/198-round15-security-authorization.txt
+  - .planning/audits/198-round15-security-disposition.json
 findings:
   critical: 4
   warning: 3
@@ -243,5 +245,51 @@ The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix pa
 ---
 
 _Plan 64 delta reviewed: 2026-09-10T21:06:56Z_
+_Reviewer: the agent (gsd-code-reviewer)_
+_Depth: standard_
+
+## Plan 65 Delta Review
+
+**Reviewed:** 2026-09-10T21:38:12Z
+**Depth:** standard
+**Files Reviewed:** 3
+**Status:** clean delta; prior Phase 198 findings remain preserved above
+
+### Delta Summary
+
+Plan 65 resolves all four Plan 64 delta findings without rewriting the rejected v1 record or earlier decision history. The independently rerun focused suite reports 19 tests and zero failures. No new blocker or warning was found in the Plan 65 delta.
+
+### Resolution Assessment
+
+#### CR-03: RESOLVED — attribution no longer uses placeholder text
+
+The new authorization is exactly one UTF-8 line naming `szTheory`, and the v2 disposition derives the same signer and verbatim response from authorization commit `5f77f321bc90c0add078ea083c06d5add575ae25`. That commit resolves the authorization path to blob `4173c528fd26c46b7217650fafa6e851334f367c` and SHA-256 `183c98eb9b0529867ac6231e870aacaea93397f4488dd28cfe93aa32a97686d6`. The rejected `YOUR_NAME` record remains append-only history and is explicitly pinned as `plan64-invalid-disposition` rather than reused as authority.
+
+#### CR-04: RESOLVED — duplicate members fail before map conversion
+
+`decode_unique_ordered_json/1` asks Jason for `Jason.OrderedObject` values, recursively visits ordered objects and lists, rejects repeated decoded member names, and calls `ordered_to_plain/1` only after the complete tree passes. Fixtures exercise malicious-first and malicious-last duplicates for root security fields, `green_07`, `authorization_source`, `decision_time_bounds`, and every object in `supersedes`; each must return the duplicate-specific error.
+
+#### WR-02: RESOLVED — decision time is commit-derived and bounded
+
+`decided_at` and `authorization_committed_at` equal the normalized committer time of the pinned authorization commit. The test resolves both timestamps from Git, proves plan-origin → authorization → first disposition commit ancestry, and enforces origin time < authorization time <= disposition commit time.
+
+#### WR-03: RESOLVED — superseded history is pinned by complete immutable bytes
+
+The v2 record pins the complete Plan 63 plan and decline plus the relevant Plan 64 plan, rejected disposition, summary, and rejecting security audit by exact path, commit, blob, and SHA-256. Validation reads `commit:path` blob bytes and checks every pin and ordered row, so the old substring checks are no longer the trust basis for supersession history.
+
+### Additional Boundary Checks
+
+- Exact authorization bytes, Unicode punctuation, signer, rationale, scope, exclusions, and GREEN-07 state are fixed by whole-object equality after duplicate-safe decoding.
+- T-198-55-03 and T-198-62-SC remain excluded; the record claims neither reconstructed evidence nor mitigation.
+- Plan 65's implementation commits do not modify SECURITY, VERIFICATION, Plans 63/64, their summaries, or the rejected Round-14 disposition.
+- The v2 schema cannot carry local closed, mitigated, attested, evidenced, status, or verdict fields. Canonical security remains the next verdict-writing step, before phase verification.
+
+### New Findings
+
+None.
+
+---
+
+_Plan 65 delta reviewed: 2026-09-10T21:38:12Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
