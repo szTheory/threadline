@@ -34,7 +34,7 @@ coverage:
       - kind: e2e
         ref: "bash bin/verify-row-history-focus-red-control: expected RED at expectNonObscuredFocused, then clean GREEN"
         status: pass
-      - kind: test
+      - kind: unit
         ref: "row_history_focus_evidence_contract_test.exs: 5 tests, 0 failures"
         status: pass
     human_judgment: false
