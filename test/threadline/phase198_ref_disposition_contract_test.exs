@@ -86,6 +86,17 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         refute status == 0, "#{failure} unexpectedly produced a protection state: #{output}"
         refute output in ["absent\n", "present\n"]
       end
+
+      for invalid <- ["", "unknown", "absent\npresent", "present extra"] do
+        {output, status} =
+          System.cmd(@script, ["fixture-classic-consumer", invalid],
+            env: env,
+            stderr_to_stdout: true
+          )
+
+        refute status == 0
+        assert output =~ "unknown state"
+      end
     end)
   end
 

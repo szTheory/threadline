@@ -14,7 +14,7 @@ need git
 need shasum
 
 stage="${1:-}"
-[[ "$stage" =~ ^(inventory|decision|authority|controls|post-target|final|fixture-inventory|fixture-decision|fixture-authority|fixture-controls|fixture-post-target|fixture-final|fixture-classic-adapter)$ ]] ||
+[[ "$stage" =~ ^(inventory|decision|authority|controls|post-target|final|fixture-inventory|fixture-decision|fixture-authority|fixture-controls|fixture-post-target|fixture-final|fixture-classic-adapter|fixture-classic-consumer)$ ]] ||
   die "stage must be inventory, decision, authority, controls, post-target, final, or an explicit fixture-* stage"
 shift || true
 
@@ -85,8 +85,11 @@ observe() {
       [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid classic observation"
       bounded_capture classic sh -c '
         output=$(gh api --include --silent "$1" 2>&1); status=$?
-        if [ "$status" -eq 0 ] || printf "%s" "$output" | grep -Eq "^HTTP/[0-9.]+ 404 "; then
-          printf "%s" "$output"; exit 0
+        if [ "$status" -eq 0 ]; then
+          printf "present\\n"; exit 0
+        fi
+        if printf "%s\\n" "$output" | grep -Eq "^HTTP/[0-9.]+[[:space:]]+404([[:space:]]|$)"; then
+          printf "absent\\n"; exit 0
         fi
         printf "%s" "$output" >&2; exit "$status"
       ' phase198-classic "repos/$1/branches/main/protection"
@@ -103,11 +106,24 @@ observe() {
   esac
 }
 
+consume_classic_state() {
+  [[ $# -eq 1 ]] || die "classic protection state is required"
+  case "$1" in
+    absent|present) printf '%s\n' "$1" ;;
+    *) die "classic protection observer returned an unknown state" ;;
+  esac
+}
+
 if [[ "$fixture_mode" == true && "$stage" == classic-adapter ]]; then
   [[ $# -eq 1 ]] || die "fixture-classic-adapter requires owner/repository"
   LIVE_STAGE_STARTED_MS=$(now_ms)
-  classic_output=$(observe classic "$1")
-  if [[ $? -eq 0 ]]; then printf 'present\n'; else printf 'absent\n'; fi
+  consume_classic_state "$(observe classic "$1")"
+  exit 0
+fi
+
+if [[ "$fixture_mode" == true && "$stage" == classic-consumer ]]; then
+  [[ $# -eq 1 ]] || die "fixture-classic-consumer requires one state token"
+  consume_classic_state "$1"
   exit 0
 fi
 
@@ -255,7 +271,7 @@ live_compare_v2() {
 
 live_compare_controls_v2() {
   need gh
-  local repo origin_main rules rules_digest contexts contexts_digest classic classic_output classic_exit
+  local repo origin_main rules rules_digest contexts contexts_digest classic
   repo=$(observe repo)
   [[ "$repo" == "$(jq -r .repository "$inventory")" ]] || die "repository mismatch"
   origin_main=$(observe origin-main | awk 'NF {print $1}')
@@ -264,10 +280,7 @@ live_compare_controls_v2() {
   pr34_json=$(observe pr 34)
   jq -e --argjson live "$pr34_json" '.stable_controls.pr34 == {number:$live.number,state:$live.state,is_draft:$live.isDraft,merge_state:$live.mergeStateStatus,head:$live.headRefName,base:$live.baseRefName,head_sha:$live.headRefOid}' "$inventory" >/dev/null || die "PR #34 drifted"
   rules=$(observe rules "$repo")
-  set +e
-  classic_output=$(observe classic "$repo"); classic_exit=$?
-  set -e
-  if [[ $classic_exit -eq 0 ]]; then classic=present; elif grep -Eq '^HTTP/[0-9.]+ 404 ' <<<"$classic_output"; then classic=absent; else die "classic protection observation failed"; fi
+  classic=$(consume_classic_state "$(observe classic "$repo")")
   rules_digest=$(jq -cnS --argjson rules "$(jq -cS . <<<"$rules")" --arg classic "$classic" '{classic_protection:$classic,effective_rules:$rules}' | tr -d '\n' | sha256)
   contexts=$(jq -cS '[.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[]?.context] | unique | sort' <<<"$rules")
   contexts_digest=$(printf '%s' "$contexts" | sha256)
@@ -621,7 +634,7 @@ live_compare() {
   fi
 
   need gh
-  local repo origin_main rules rules_digest contexts contexts_digest classic classic_output classic_exit
+  local repo origin_main rules rules_digest contexts contexts_digest classic
   repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null) || die "could not resolve repository"
   [[ "$repo" == "$(jq -r .repository "$inventory")" ]] || die "repository mismatch"
   origin_main=$(git ls-remote --heads origin refs/heads/main | awk 'NF {print $1}')
@@ -646,13 +659,7 @@ live_compare() {
   jq -e --argjson live "$pr34_json" '.stable_controls.pr34 == {number:$live.number,state:$live.state,is_draft:$live.isDraft,merge_state:$live.mergeStateStatus,head:$live.headRefName,base:$live.baseRefName,head_sha:$live.headRefOid}' "$inventory" >/dev/null || die "PR #34 drifted"
 
   rules=$(gh api "repos/${repo}/rules/branches/main" 2>/dev/null) || die "effective rules unavailable"
-  set +e
-  classic_output=$(gh api --include --silent "repos/${repo}/branches/main/protection" 2>&1)
-  classic_exit=$?
-  set -e
-  if [[ $classic_exit -eq 0 ]]; then classic=present
-  elif grep -Eq '^HTTP/[0-9.]+ 404 ' <<<"$classic_output"; then classic=absent
-  else die "classic protection observation failed"; fi
+  classic=$(consume_classic_state "$(observe classic "$repo")")
   rules_digest=$(jq -cnS --argjson rules "$(jq -cS . <<<"$rules")" --arg classic "$classic" '{classic_protection:$classic,effective_rules:$rules}' | tr -d '\n' | sha256)
   contexts=$(jq -cS '[.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[]?.context] | unique | sort' <<<"$rules")
   contexts_digest=$(printf '%s' "$contexts" | sha256)
