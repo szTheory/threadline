@@ -555,8 +555,8 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     body = File.read!(summary_path("66"))
 
     entry_duplicates = [
-      {"description", ~r/^    description:.*$/m, "    description: conflicting"},
-      {"requirement", ~r/^    requirement:.*$/m, "    requirement: GREEN-12"},
+      {"description", ~r/^    description:.*$/m, "    description: \"conflicting\""},
+      {"requirement", ~r/^    requirement:.*$/m, "    requirement: GREEN-04"},
       {"verification", ~r/^    verification:$/m, "    verification:"},
       {"human_judgment", ~r/^    human_judgment:.*$/m, "    human_judgment: true"}
     ]
@@ -697,15 +697,138 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
+  test "Plan 66 coverage leaf scalars reject aliases across D1 and D2" do
+    body = File.read!(summary_path("66"))
+
+    leaf_cases = [
+      {~r/^    description:.*$/m,
+       [
+         ~s(""),
+         ~s("   "),
+         "null",
+         "~",
+         "unquoted",
+         "'single'",
+         "!!str value",
+         "&value text",
+         "|",
+         ">",
+         ~s("bad\\q")
+       ], ~r/(?:description is empty|description is not a canonical double-quoted string)/},
+      {~r/^    requirement:.*$/m,
+       [
+         "null",
+         "~",
+         ~s("GREEN-04"),
+         "'GREEN-04'",
+         "!!str GREEN-04",
+         "&req GREEN-04",
+         "[GREEN-04]",
+         "|",
+         ">",
+         "GREEN-4"
+       ], ~r/non-canonical requirement scalar/},
+      {~r/^      - kind:.*$/m,
+       [
+         "null",
+         "~",
+         ~s("integration"),
+         "'integration'",
+         "!!str integration",
+         "&kind integration",
+         "[integration]",
+         "|",
+         ">"
+       ], ~r/non-canonical kind scalar/},
+      {~r/^        status:.*$/m,
+       [
+         "null",
+         "~",
+         ~s("pass"),
+         "'pass'",
+         "!!str pass",
+         "&status pass",
+         "[pass]",
+         "|",
+         ">",
+         "true"
+       ], ~r/non-canonical status scalar/},
+      {~r/^    human_judgment:.*$/m,
+       [
+         "null",
+         "~",
+         ~s("false"),
+         "'false'",
+         "!!bool false",
+         "&human false",
+         "[false]",
+         "|",
+         ">",
+         "no"
+       ], ~r/non-canonical human_judgment scalar/}
+    ]
+
+    for {pattern, aliases, reason} <- leaf_cases,
+        canonical <- [
+          List.first(Regex.scan(pattern, body) |> List.flatten()),
+          List.last(Regex.scan(pattern, body) |> List.flatten())
+        ],
+        alias_value <- aliases do
+      [prefix] = Regex.run(~r/^\s*(?:- )?[A-Za-z_][A-Za-z0-9_-]*:\s*/, canonical)
+      fixture = String.replace(body, canonical, prefix <> alias_value, global: false)
+
+      assert_raise ExUnit.AssertionError, reason, fn ->
+        strict_frontmatter!(fixture, "fixture")
+      end
+    end
+  end
+
+  test "coverage IDs reject null-like aliases and semantic duplicates before maps" do
+    for id <- ~w(D1 D2) do
+      canonical = strict_coverage_entry(id, "canonical #{id}")
+      conflicting = strict_coverage_entry(id, "conflicting #{id}")
+
+      for entries <- [canonical <> "\n" <> conflicting, conflicting <> "\n" <> canonical] do
+        assert_raise ExUnit.AssertionError, ~r/duplicate coverage id #{id}/, fn ->
+          strict_frontmatter!(repair_summary_body(entries), "fixture")
+        end
+      end
+
+      for alias_id <- [
+            "null",
+            "Null",
+            "NULL",
+            "~",
+            ~s("#{id}"),
+            "'#{id}'",
+            "!!str #{id}",
+            "&id #{id}",
+            "[#{id}]",
+            "|",
+            ">",
+            "D0",
+            "D01"
+          ] do
+        aliased = strict_coverage_entry(alias_id, "aliased #{id}")
+
+        for entries <- [aliased <> "\n" <> canonical, canonical <> "\n" <> aliased] do
+          assert_raise ExUnit.AssertionError, ~r/non-canonical coverage id/, fn ->
+            strict_frontmatter!(repair_summary_body(entries), "fixture")
+          end
+        end
+      end
+    end
+  end
+
   test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
     root = complete_phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
 
     passing =
-      "  - id: D1\n    description: passing\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: false"
+      "  - id: D1\n    description: \"passing\"\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: false"
 
     conflicting =
-      "  - id: D1\n    description: conflicting\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"conflicting\"\n        status: fail\n    human_judgment: true"
+      "  - id: D1\n    description: \"conflicting\"\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"conflicting\"\n        status: fail\n    human_judgment: true"
 
     for coverage <- [passing <> "\n" <> conflicting, conflicting <> "\n" <> passing] do
       write_repair_summary!(root, "\n" <> coverage)
@@ -910,6 +1033,14 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     )
   end
 
+  defp repair_summary_body(entries) do
+    "---\nphase: 198-green-bringup\nplan: 66\ncoverage:\n#{entries}\nstatus: complete\n---\n"
+  end
+
+  defp strict_coverage_entry(id, description) do
+    "  - id: #{id}\n    description: #{Jason.encode!(description)}\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: false"
+  end
+
   defp repair_summary_mutations do
     [
       {&String.replace(&1, "phase: 198-green-bringup", "phase: 199", global: false),
@@ -922,13 +1053,13 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       {&String.replace(
          &1,
          "coverage: []",
-         "coverage:\n  - id: D1\n    description: human fixture\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: true",
+         "coverage:\n  - id: D1\n    description: \"human fixture\"\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass\n    human_judgment: true",
          global: false
        ), ~r/is human/},
       {&String.replace(
          &1,
          "coverage: []",
-         "coverage:\n  - id: D1\n    description: failing fixture\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: fail\n    human_judgment: false",
+         "coverage:\n  - id: D1\n    description: \"failing fixture\"\n    requirement: GREEN-04\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: fail\n    human_judgment: false",
          global: false
        ), ~r/is not all-pass/}
     ]
@@ -1132,7 +1263,8 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
 
     if Map.get(blocks, "coverage", []) != [] do
-      validate_strict_coverage_block!(blocks["coverage"], path)
+      [_, plan] = Regex.run(~r/^plan:\s*([^\s]+)\s*$/m, yaml)
+      validate_strict_coverage_block!(blocks["coverage"], path, plan)
     end
 
     yaml
@@ -1161,9 +1293,9 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     assert valid, "#{path} has invalid #{block} block line: #{line}"
   end
 
-  defp validate_strict_coverage_block!(lines, path) do
-    entries = split_yaml_items!(lines, ~r/^  - id:\s*[^\s]+\s*$/, "#{path} coverage")
-    ids = Enum.map(entries, &validate_strict_coverage_entry!(&1, path))
+  defp validate_strict_coverage_block!(lines, path, plan) do
+    entries = split_yaml_items!(lines, ~r/^  - id:/, "#{path} coverage")
+    ids = Enum.map(entries, &validate_strict_coverage_entry!(&1, path, plan))
 
     case duplicate_key(ids) do
       nil -> :ok
@@ -1171,8 +1303,15 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
-  defp validate_strict_coverage_entry!([id_line | lines], path) do
-    [_, id] = Regex.run(~r/^  - id:\s*([^\s]+)\s*$/, id_line)
+  defp validate_strict_coverage_entry!([id_line | lines], path, plan) do
+    id =
+      case Regex.run(~r/^  - id:\s*(D[1-9]\d*)\s*$/, id_line) do
+        [_, value] -> value
+        _ -> flunk("#{path} has non-canonical coverage id")
+      end
+
+    expected_requirement =
+      Map.get(%{"64" => "GREEN-12", "65" => "GREEN-12", "66" => "GREEN-04"}, plan)
 
     {fields, verification_lines, _in_verification} =
       Enum.reduce(lines, {[], [], false}, fn line,
@@ -1187,9 +1326,20 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
             assert field != "verification" or value == "",
                    "#{path}:#{id} verification must be a block"
 
-            if field == "human_judgment" do
-              assert value in ~w(true false),
-                     "#{path}:#{id} has non-canonical human_judgment scalar"
+            case field do
+              "description" ->
+                validate_canonical_string!(value, "#{path}:#{id} description")
+
+              "requirement" ->
+                assert expected_requirement != nil and value == expected_requirement,
+                       "#{path}:#{id} has non-canonical requirement scalar"
+
+              "human_judgment" ->
+                assert value in ~w(true false),
+                       "#{path}:#{id} has non-canonical human_judgment scalar"
+
+              "verification" ->
+                :ok
             end
 
             {[field | fields], verification_lines, field == "verification"}
@@ -1300,6 +1450,16 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
       _ ->
         flunk("#{owner} has non-canonical verification ref")
+    end
+  end
+
+  defp validate_canonical_string!(value, owner) do
+    case Jason.decode(value) do
+      {:ok, decoded} when is_binary(decoded) ->
+        assert decoded != "" and String.trim(decoded) != "", "#{owner} is empty"
+
+      _ ->
+        flunk("#{owner} is not a canonical double-quoted string")
     end
   end
 
