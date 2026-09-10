@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: executing
-stopped_at: Completed 198-64-PLAN.md
-last_updated: "2026-09-10T22:07:26.189Z"
+stopped_at: Completed 198-66-PLAN.md
+last_updated: "2026-09-10T22:18:36.774Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 198 execution resumed (wave continue)
-state_head: 9714637bcdc6a9b4b7da93b78e74afa696f47ca2
+state_head: 669533080f0c9431c19e2fb4d5ba60d273a183b5
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 66
-  completed_plans: 65
+  completed_plans: 66
   percent: 0
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 198 (Green Bringup) — READY TO EXECUTE
-Plan: 1 of 65
-Status: Ready to execute
+Phase: 198 (Green Bringup) — POST-EXECUTION GATES
+Plan: 66 of 66
+Status: Awaiting canonical security, validation, and verification
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -108,6 +108,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P61 | 24 min | 3 tasks | 7 files |
 | Phase 198 P62 | 33 min | 3 tasks | 7 files |
 | Phase 198 P64 | 3 min | 2 tasks | 3 files |
+| Phase 198 P66 | 9 min | 2 tasks | 3 files |
 
 ## Deferred Items
 
@@ -532,6 +533,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: [198-62] T-198-55-02 and T-198-55-03 remain open and not accepted; T-198-57-04 is absent from terminal open findings; GREEN-07 remains accepted-Pending.
 - [Phase 198]: The maintainer accepted only T-198-55-02's residual historical argv/non-force proof uncertainty with literal signer YOUR_NAME; no evidence or mitigation is claimed.
 - [Phase 198]: Plan 63's decline remains immutable history, while canonical security retains sole authority to change the threat verdict before phase verification runs.
+- [Phase 198]: Summaries 01-61 remain the immutable audited-final set; Plan 62 remains the sole terminal-certification exception.
+- [Phase 198]: Summaries 63-65 require exact content-bound manifest records; Plan 66 is an explicit non-terminal final-mode repair summary.
+- [Phase 198]: Plan 66 restores only current-tree GREEN-04 determinism; GREEN-07 remains accepted-Pending and security dispositions remain unchanged.
 
 ### Blockers
 
@@ -539,8 +543,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-10T21:02:34.425Z
-**Stopped at:** Completed 198-64-PLAN.md
+**Last session:** 2026-09-10T22:18:36.732Z
+**Stopped at:** Completed 198-66-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

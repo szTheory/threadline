@@ -424,7 +424,7 @@ Plans:
 
 **Wave 13** *(depends on completed Plan 198-64; Plans 63 and 64 remain immutable superseded history)*
 
-- [ ] 198-65-PLAN.md — Capture exact `szTheory` authority in an append-only v2 record, reject duplicate JSON members recursively before map conversion, pin decision time/history to immutable Git objects, then route canonical security before verification (wave 13)
+- [x] 198-65-PLAN.md — Capture exact `szTheory` authority in an append-only v2 record, reject duplicate JSON members recursively before map conversion, pin decision time/history to immutable Git objects, then route canonical security before verification (wave 13)
 
 **Round-17 notes:**
 
