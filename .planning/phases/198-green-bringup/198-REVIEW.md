@@ -1,8 +1,8 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-09T15:18:49Z
+reviewed: 2026-09-10T21:06:56Z
 depth: standard
-files_reviewed: 104
+files_reviewed: 106
 files_reviewed_list:
   - .github/rulesets/main.json
   - .github/workflows/branch-protection.yml
@@ -108,11 +108,13 @@ files_reviewed_list:
   - test/threadline/storage_schema_call_site_contract_test.exs
   - test/threadline/storage_schema_prefix_contract_test.exs
   - test/threadline/zero_skips_contract_test.exs
+  - test/threadline/phase198_prohibition_resolution_contract_test.exs
+  - .planning/audits/198-round14-security-disposition.json
 findings:
-  critical: 2
-  warning: 1
+  critical: 4
+  warning: 3
   info: 0
-  total: 3
+  total: 7
 status: issues_found
 ---
 
@@ -184,5 +186,62 @@ esac
 ---
 
 _Reviewed: 2026-09-09T15:18:49Z_
+_Reviewer: the agent (gsd-code-reviewer)_
+_Depth: standard_
+
+## Plan 64 Delta Review
+
+**Reviewed:** 2026-09-10T21:06:56Z
+**Depth:** standard
+**Files Reviewed:** 2
+**Status:** issues_found
+
+### Delta Summary
+
+The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix passes (13 tests, 0 failures), but the accepted-risk record is not attributable to an identifiable maintainer. The parser also permits duplicate JSON members that can be interpreted differently by downstream consumers. Two additional test gaps weaken the claimed timestamp provenance and immutable supersession history.
+
+### Critical Issues
+
+### CR-03: Placeholder text is persisted as the maintainer identity
+
+**Classification:** BLOCKER
+**File:** `/Users/jon/projects/threadline/.planning/audits/198-round14-security-disposition.json:6-7`
+
+**Issue:** The security disposition records `YOUR_NAME` as both the signer and the signer embedded in the verbatim response. `YOUR_NAME` is template text, not an identifiable maintainer identity. The test then hard-codes that same placeholder at `phase198_prohibition_resolution_contract_test.exs:11,57,403`, so it positively certifies the attribution defect instead of detecting it. This leaves Plan 64's high-severity spoofing threat unmitigated and makes the accepted-risk audit entry non-attributable.
+
+**Fix:** Obtain a new explicit acceptance containing the maintainer's actual chosen identity, preserve that response verbatim, and update `decided_by` and the test constants to that exact identity. Do not infer or silently substitute an identity.
+
+### CR-04: Duplicate JSON members bypass the exact-schema boundary
+
+**Classification:** BLOCKER
+**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:372-386`
+
+**Issue:** `load_disposition!/0` decodes directly into a map before validation. Duplicate object members are therefore collapsed before the exact-key comparison runs. With the repository's Jason version, a document containing a canonical member followed by a conflicting duplicate can decode to the canonical first value and pass this suite; consumers with last-value semantics can observe the conflicting value instead. This permits parser-differential ambiguity for security-sensitive fields such as `decision`, `threat_id`, `accepted_scope`, and nested `green_07` while the contract claims an exact, fail-closed object shape.
+
+**Fix:** Decode with `objects: :ordered_objects`, recursively reject duplicate member names at every object level, and only then convert to maps for canonical-value validation. Add fixtures with conflicting duplicate root and nested members in both orders.
+
+### Warnings
+
+### WR-02: Timestamp validation proves syntax but not decision-time provenance
+
+**Classification:** WARNING
+**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:115-133`
+
+**Issue:** The validator accepts any real seconds-resolution UTC timestamp. It does not prove that `decided_at` was recorded during Plan 64 execution, so a syntactically valid date from years before the decision or far in the future passes despite the plan's explicit execution-time requirement. The current value is plausible, but the contract cannot detect later timestamp substitution.
+
+**Fix:** Bind `decided_at` to trusted execution boundaries—for example, require it to fall between the recorded Plan 64 start/completion instants and not after the artifact commit time—and add past/future valid-RFC3339 mutation cases.
+
+### WR-03: Substring checks do not prove Plan 63 remained immutable
+
+**Classification:** WARNING
+**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:178-184`
+
+**Issue:** The supersession test checks only that three substrings occur somewhere in the Plan 63 summary. A rewritten summary can retain `status: halted`, `coverage: []`, and the quoted response while altering attribution, scope, chronology, or other decision history, and the test will still pass. That is weaker than the claimed immutable-decision-supersession guarantee.
+
+**Fix:** Pin the Plan 63 summary to its known commit/blob identity or SHA-256 and compare the complete bytes. If semantic validation is also desired, parse the frontmatter and assert the relevant fields rather than searching the whole document for unanchored substrings.
+
+---
+
+_Plan 64 delta reviewed: 2026-09-10T21:06:56Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
