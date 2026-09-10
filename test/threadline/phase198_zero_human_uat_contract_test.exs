@@ -3,15 +3,16 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
   @phase_dir ".planning/phases/198-green-bringup"
   @manifest ".planning/audits/198-summary-coverage-manifest.json"
-  @manifest_data @manifest |> File.read!() |> Jason.decode!()
   @delta ".planning/audits/198-plan46-coverage-delta.json"
   @baseline_numbers Enum.map(1..47, &(Integer.to_string(&1) |> String.pad_leading(2, "0")))
   @closeout_start 48
-  @audited_final_plan_number @manifest_data["audited_final_plan_number"]
-  @terminal_certification_plan_number @manifest_data["terminal_certification_plan_number"]
+  @audited_final_plan_number 61
+  @terminal_certification_plan_number 62
   @closeout_numbers Enum.map(@closeout_start..@audited_final_plan_number, &Integer.to_string/1)
   @final_state_numbers @baseline_numbers ++ @closeout_numbers
   @terminal_certification_number Integer.to_string(@terminal_certification_plan_number)
+  @post_terminal_numbers ~w(63 64 65)
+  @policy_repair_number "66"
   @plan46_numbers Enum.map(1..45, &(Integer.to_string(&1) |> String.pad_leading(2, "0")))
   @exact_delta MapSet.new([
                  "198-01:D4",
@@ -77,6 +78,26 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       assert record["verification_state_sha256"] == verification_digest(entries)
       assert coverage_errors(entries, relative) == []
     end
+  end
+
+  test "manifest declares the exact content-bound post-terminal repair policy" do
+    manifest = read_json!(@manifest)
+    assert_post_terminal_policy!(manifest)
+
+    assert Map.keys(manifest) |> Enum.sort() ==
+             Enum.sort([
+               "schema_version",
+               "scope",
+               "general_classifier_owner",
+               "audited_final_plan_number",
+               "terminal_certification_plan_number",
+               "baseline_numbers",
+               "allowed_closeout_numbers",
+               "final_state_numbers",
+               "baseline_counts",
+               "summaries",
+               "post_terminal_policy"
+             ])
   end
 
   test "summary discovery rejects missing, renamed, modified, and out-of-namespace files" do
@@ -230,8 +251,13 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   defp validate_summary_set!(dir, mode) do
     manifest = read_json!(@manifest)
     assert_manifest_namespace!(manifest)
+    policy = assert_post_terminal_policy!(manifest)
     discovered = discover_numbers(dir)
-    allowed = @final_state_numbers ++ [@terminal_certification_number]
+
+    allowed =
+      @final_state_numbers ++
+        [@terminal_certification_number] ++ policy["numbers"] ++ [@policy_repair_number]
+
     unexpected = discovered -- allowed
     missing_baseline = @baseline_numbers -- discovered
 
@@ -247,6 +273,9 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
       assert missing == [] and extra == [],
              "final Phase 198 state has missing audited summaries #{inspect(missing)} and extra audited summaries #{inspect(extra)}"
+
+      assert @policy_repair_number in discovered,
+             "final Phase 198 state is missing policy repair summary #{@policy_repair_number}"
     end
 
     for number <- @closeout_numbers ++ [@terminal_certification_number],
@@ -254,6 +283,12 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
         path = Path.join(dir, "198-#{number}-SUMMARY.md") do
       entries = path |> File.read!() |> coverage_entries()
       assert coverage_errors(entries, path) == []
+    end
+
+    validate_post_terminal_summaries!(dir, discovered, policy)
+
+    if @policy_repair_number in discovered do
+      validate_repair_summary!(Path.join(dir, "198-#{@policy_repair_number}-SUMMARY.md"))
     end
 
     :ok
@@ -272,6 +307,75 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     assert Enum.uniq(manifest["final_state_numbers"]) == manifest["final_state_numbers"]
     assert Enum.all?(manifest["final_state_numbers"], &String.match?(&1, ~r/^\d{2}$/))
     assert List.first(manifest["allowed_closeout_numbers"]) == Integer.to_string(@closeout_start)
+  end
+
+  defp assert_post_terminal_policy!(manifest) do
+    expected = %{
+      "policy" => "explicit-content-bound-repair-summaries",
+      "audited_final_state_unchanged" => true,
+      "terminal_certification_unchanged" => true,
+      "numbers" => @post_terminal_numbers,
+      "summaries" => [
+        %{
+          "number" => "63",
+          "path" => ".planning/phases/198-green-bringup/198-63-SUMMARY.md",
+          "sha256" => "12fc1b775f7822b74bbc5d8648e15eb37ae5387dff726dded9ca6bc7e2e2c23c"
+        },
+        %{
+          "number" => "64",
+          "path" => ".planning/phases/198-green-bringup/198-64-SUMMARY.md",
+          "sha256" => "76e9ed1735d3885114c7de09cdb721bac2ce34a5f9cc7d3696eb46d2ef0fe4da"
+        },
+        %{
+          "number" => "65",
+          "path" => ".planning/phases/198-green-bringup/198-65-SUMMARY.md",
+          "sha256" => "9542156d7a2aaf0209a7e48920fed1b581163e5fd2e07b8ce4248eb2ed5d87b0"
+        }
+      ],
+      "policy_repair_summary" => %{
+        "number" => "66",
+        "path" => ".planning/phases/198-green-bringup/198-66-SUMMARY.md",
+        "role" => "post-terminal-policy-repair-execution-summary",
+        "required_in_final_mode" => true,
+        "excluded_from_audited_final_state" => true,
+        "terminal_certification" => false
+      }
+    }
+
+    assert manifest["post_terminal_policy"] == expected,
+           "manifest post_terminal_policy does not match the normative contract"
+
+    expected
+  end
+
+  defp validate_post_terminal_summaries!(dir, discovered, policy) do
+    for record <- policy["summaries"] do
+      number = record["number"]
+      assert number in discovered, "missing post-terminal summary #{number}"
+
+      path = Path.join(dir, Path.basename(record["path"]))
+      body = File.read!(path)
+      assert Path.basename(path) == Path.basename(record["path"])
+      assert digest(body) == record["sha256"], "#{path} changed"
+      validate_summary_semantics!(body, path, number, ["complete", "halted"])
+    end
+  end
+
+  defp validate_repair_summary!(path) do
+    body = File.read!(path)
+    validate_summary_semantics!(body, path, @policy_repair_number, ["complete"])
+  end
+
+  defp validate_summary_semantics!(body, path, number, allowed_statuses) do
+    yaml = frontmatter(body)
+    assert Regex.match?(~r/^phase:\s*198-green-bringup\s*$/m, yaml), "#{path} has wrong phase"
+    assert Regex.match?(~r/^plan:\s*#{Regex.escape(number)}\s*$/m, yaml), "#{path} has wrong plan"
+
+    [_, status] = Regex.run(~r/^status:\s*([^\s]+)\s*$/m, yaml)
+    assert status in allowed_statuses, "#{path} has invalid status #{status}"
+
+    entries = coverage_entries(body)
+    assert coverage_errors(entries, path) == []
   end
 
   defp phase_fixture! do
@@ -293,7 +397,66 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     do: "---\ncoverage: #{coverage}\nstatus: complete\n---\n# Fixture\n"
 
   defp summary_path(number), do: Path.join(@phase_dir, "198-#{number}-SUMMARY.md")
-  defp read_json!(relative), do: relative |> File.read!() |> Jason.decode!()
+
+  defp read_json!(relative) do
+    raw = File.read!(relative)
+    assert {:ok, value} = decode_unique_ordered_json(raw)
+    value
+  end
+
+  defp decode_unique_ordered_json(raw) when is_binary(raw) do
+    with {:ok, ordered} <- Jason.decode(raw, objects: :ordered_objects),
+         :ok <- reject_duplicate_members(ordered) do
+      {:ok, ordered_to_plain(ordered)}
+    end
+  end
+
+  defp reject_duplicate_members(%Jason.OrderedObject{values: members}) do
+    keys = Enum.map(members, &elem(&1, 0))
+
+    case duplicate_key(keys) do
+      nil -> Enum.reduce_while(members, :ok, &reject_member_duplicates/2)
+      key -> {:error, {:duplicate_member, key}}
+    end
+  end
+
+  defp reject_duplicate_members(values) when is_list(values) do
+    Enum.reduce_while(values, :ok, fn value, :ok ->
+      case reject_duplicate_members(value) do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp reject_duplicate_members(_scalar), do: :ok
+
+  defp reject_member_duplicates({_key, value}, :ok) do
+    case reject_duplicate_members(value) do
+      :ok -> {:cont, :ok}
+      error -> {:halt, error}
+    end
+  end
+
+  defp duplicate_key(keys) do
+    keys
+    |> Enum.reduce_while(MapSet.new(), fn key, seen ->
+      if MapSet.member?(seen, key),
+        do: {:halt, key},
+        else: {:cont, MapSet.put(seen, key)}
+    end)
+    |> case do
+      %MapSet{} -> nil
+      key -> key
+    end
+  end
+
+  defp ordered_to_plain(%Jason.OrderedObject{values: members}) do
+    Map.new(members, fn {key, value} -> {key, ordered_to_plain(value)} end)
+  end
+
+  defp ordered_to_plain(values) when is_list(values), do: Enum.map(values, &ordered_to_plain/1)
+  defp ordered_to_plain(scalar), do: scalar
 
   defp frontmatter(body) do
     case String.split(body, "---", parts: 3) do
