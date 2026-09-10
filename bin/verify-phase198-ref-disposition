@@ -347,6 +347,28 @@ validate_fixture_controls_v2() {
 }
 
 validate_receipt_shape_v2() {
+  if [[ "$fixture_mode" != true ]]; then
+    jq -e '
+      def exact($ks): (keys | sort) == ($ks | sort);
+      (.command_receipts|type)=="array"
+      and ([.command_receipts[].seq] == [range(1;(.command_receipts|length)+1)])
+      and (. as $root | all(.command_receipts[]; . as $r |
+        if IN(.type;"local-annotated-tag","remote-single-tag","archive-register-row") then
+          exact(["seq","type","subject_id","target","tag","sha"])
+          and any($root.preservation_subjects[];
+            .id==$r.subject_id and .branch==$r.target and .archive_tag==$r.tag and .sha==$r.sha)
+        elif .type=="pr-close" then
+          exact(["seq","type","target","pr"])
+          and any($root.preservation_subjects[];
+            .branch==$r.target and .pull_request.number==$r.pr)
+        elif IN(.type;"remote-ref-delete","local-ref-delete") then
+          exact(["seq","type","target"])
+          and any($root.preservation_subjects[];.branch==$r.target)
+        else false end))
+    ' "$inventory" >/dev/null || die "legacy command receipt shape or sequence ordering is invalid"
+    return
+  fi
+
   jq -e '
     def exact($ks): (keys | sort) == ($ks | sort);
     def ts: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$");
