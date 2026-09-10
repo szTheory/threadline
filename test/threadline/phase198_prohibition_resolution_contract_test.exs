@@ -261,7 +261,8 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   defp rfc3339_seconds_utc?(_value), do: false
 
   defp contains_forbidden_disposition_key?(value) when is_map(value) do
-    forbidden = ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced)
+    forbidden =
+      ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced)
 
     Enum.any?(value, fn {key, nested} ->
       key in forbidden or contains_forbidden_disposition_key?(nested)
