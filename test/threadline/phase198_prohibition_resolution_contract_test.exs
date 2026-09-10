@@ -3,6 +3,14 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
 
   @root Path.expand("../..", __DIR__)
   @ledger_path Path.join(@root, ".planning/audits/198-round12-prohibition-resolution.json")
+  @disposition_path Path.join(@root, ".planning/audits/198-round14-security-disposition.json")
+  @plan63_summary_path Path.join(
+                         @root,
+                         ".planning/phases/198-green-bringup/198-63-SUMMARY.md"
+                       )
+  @risk_acceptance_verbatim "accept-risk by YOUR_NAME: I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained."
+  @risk_acceptance_rationale "I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained."
+  @accepted_scope "The residual uncertainty for T-198-55-02 caused solely by the unavailable exact historical argv and non-force method evidence for completed Plan 198-55 mutations."
   @source_paths %{
     "round11_json" => Path.join(@root, ".planning/audits/198-round11-ref-disposition.json"),
     "round11_markdown" => Path.join(@root, ".planning/audits/198-round11-ref-disposition.md")
@@ -21,6 +29,41 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     {"P-198-55-03", "198-55-PLAN.md",
      "Do not relabel GREEN-07 or roadmap criterion 3 as met from repository-hygiene work."}
   ]
+
+  test "round-14 disposition persists the exact narrow T-198-55-02 acceptance" do
+    disposition = load_disposition!()
+
+    assert Map.keys(disposition) |> Enum.sort() ==
+             Enum.sort([
+               "schema_version",
+               "phase",
+               "threat_id",
+               "decision",
+               "verbatim",
+               "decided_by",
+               "decided_at",
+               "historical_evidence_reconstructed",
+               "rationale",
+               "accepted_scope",
+               "excluded_threats",
+               "green_07"
+             ])
+
+    assert disposition["schema_version"] == "threadline.phase198.security-disposition.v1"
+    assert disposition["phase"] == "198"
+    assert disposition["threat_id"] == "T-198-55-02"
+    assert disposition["decision"] == "accept-risk"
+    assert disposition["verbatim"] == @risk_acceptance_verbatim
+    assert disposition["decided_by"] == "YOUR_NAME"
+    assert rfc3339_seconds_utc?(disposition["decided_at"])
+    assert disposition["historical_evidence_reconstructed"] == false
+    assert disposition["rationale"] == @risk_acceptance_rationale
+    assert disposition["accepted_scope"] == @accepted_scope
+    assert disposition["excluded_threats"] == ["T-198-55-03", "T-198-62-SC"]
+    assert disposition["green_07"] == %{"status" => "accepted-Pending", "changed" => false}
+
+    refute contains_forbidden_disposition_key?(disposition)
+  end
 
   test "ledger copies exactly five source prohibitions with stable identities" do
     ledger = load_ledger!()
@@ -202,6 +245,33 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
 
     @ledger_path |> File.read!() |> Jason.decode!()
   end
+
+  defp load_disposition! do
+    assert File.exists?(@disposition_path),
+           "round-14 security disposition is absent; create it only after observing this RED"
+
+    @disposition_path |> File.read!() |> Jason.decode!()
+  end
+
+  defp rfc3339_seconds_utc?(value) when is_binary(value) do
+    Regex.match?(~r/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/, value) and
+      match?({:ok, _datetime, 0}, DateTime.from_iso8601(value))
+  end
+
+  defp rfc3339_seconds_utc?(_value), do: false
+
+  defp contains_forbidden_disposition_key?(value) when is_map(value) do
+    forbidden = ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced)
+
+    Enum.any?(value, fn {key, nested} ->
+      key in forbidden or contains_forbidden_disposition_key?(nested)
+    end)
+  end
+
+  defp contains_forbidden_disposition_key?(value) when is_list(value),
+    do: Enum.any?(value, &contains_forbidden_disposition_key?/1)
+
+  defp contains_forbidden_disposition_key?(_value), do: false
 
   defp validate_resolution(ledger) do
     rows = ledger["prohibitions"] || []
