@@ -290,6 +290,18 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
         end,
         ~r/changed|wrong phase/
       )
+
+      assert_summary_fixture_rejected!(
+        fn root ->
+          path = Path.join(root, "198-#{number}-SUMMARY.md")
+
+          File.write!(
+            path,
+            "---\nphase: 198-green-bringup\nplan: #{number}\ncoverage:\n  malformed\nstatus: complete\n---\n"
+          )
+        end,
+        ~r/changed|malformed coverage/
+      )
     end
 
     assert_summary_fixture_rejected!(
@@ -535,6 +547,27 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     root
   end
 
+  defp complete_phase_fixture! do
+    root = phase_fixture!()
+
+    for number <- ~w(56 57 58 59 60 61 62) do
+      File.cp!(summary_path(number), Path.join(root, "198-#{number}-SUMMARY.md"))
+    end
+
+    root
+  end
+
+  defp assert_summary_fixture_rejected!(mutation, reason) do
+    root = complete_phase_fixture!()
+
+    try do
+      mutation.(root)
+      assert_raise ExUnit.AssertionError, reason, fn -> validate_summary_set!(root, :normal) end
+    after
+      File.rm_rf!(root)
+    end
+  end
+
   defp write_summary!(dir, number, coverage) do
     File.write!(Path.join(dir, "198-#{number}-SUMMARY.md"), summary_body(coverage))
   end
@@ -546,6 +579,30 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     )
   end
 
+  defp repair_summary_mutations do
+    [
+      {&String.replace(&1, "phase: 198-green-bringup", "phase: 199", global: false),
+       ~r/wrong phase/},
+      {&String.replace(&1, "plan: 66", "plan: 65", global: false), ~r/wrong plan/},
+      {&String.replace(&1, "status: complete", "status: halted", global: false),
+       ~r/invalid status/},
+      {&String.replace(&1, "coverage: []", "coverage:\n  malformed", global: false),
+       ~r/malformed coverage block/},
+      {&String.replace(
+         &1,
+         "coverage: []",
+         "coverage:\n  - id: D1\n    human_judgment: true\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass",
+         global: false
+       ), ~r/is human/},
+      {&String.replace(
+         &1,
+         "coverage: []",
+         "coverage:\n  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: fail",
+         global: false
+       ), ~r/is not all-pass/}
+    ]
+  end
+
   defp summary_body(coverage),
     do: "---\ncoverage: #{coverage}\nstatus: complete\n---\n# Fixture\n"
 
@@ -555,6 +612,29 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     raw = File.read!(relative)
     assert {:ok, value} = decode_unique_ordered_json(raw)
     value
+  end
+
+  defp validate_manifest_json!(raw) do
+    assert {:ok, manifest} = decode_unique_ordered_json(raw)
+    assert_manifest_namespace!(manifest)
+    assert_post_terminal_policy!(manifest)
+
+    assert Map.keys(manifest) |> Enum.sort() ==
+             Enum.sort([
+               "schema_version",
+               "scope",
+               "general_classifier_owner",
+               "audited_final_plan_number",
+               "terminal_certification_plan_number",
+               "baseline_numbers",
+               "allowed_closeout_numbers",
+               "final_state_numbers",
+               "baseline_counts",
+               "summaries",
+               "post_terminal_policy"
+             ])
+
+    :ok
   end
 
   defp decode_unique_ordered_json(raw) when is_binary(raw) do
@@ -610,6 +690,57 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
   defp ordered_to_plain(values) when is_list(values), do: Enum.map(values, &ordered_to_plain/1)
   defp ordered_to_plain(scalar), do: scalar
+
+  defp post_terminal_duplicate_fixtures(raw) do
+    root = [
+      {"scope", String.replace(raw, "{", ~s({"scope":"wrong",), global: false)},
+      {"scope", append_root_member(raw, "scope", ~s("wrong"))}
+    ]
+
+    policy = [
+      {"policy",
+       String.replace(
+         raw,
+         ~s("post_terminal_policy": {),
+         ~s("post_terminal_policy": {\n    "policy":"wrong",),
+         global: false
+       )},
+      {"policy",
+       String.replace(
+         raw,
+         ~s("policy": "explicit-content-bound-repair-summaries",),
+         ~s("policy": "explicit-content-bound-repair-summaries",\n    "policy":"wrong",),
+         global: false
+       )}
+    ]
+
+    records =
+      for number <- @post_terminal_numbers,
+          fixture <- duplicate_number_pair(raw, number) do
+        {"number", fixture}
+      end
+
+    repair =
+      for fixture <- duplicate_number_pair(raw, @policy_repair_number) do
+        {"number", fixture}
+      end
+
+    root ++ policy ++ records ++ repair
+  end
+
+  defp duplicate_number_pair(raw, number) do
+    [marker] = Regex.run(~r/^\s*"number": "#{Regex.escape(number)}",$/m, raw)
+    [_, indentation] = Regex.run(~r/^(\s*)/, marker)
+
+    [
+      String.replace(raw, marker, ~s(#{indentation}"number":"wrong",\n#{marker}), global: false),
+      String.replace(raw, marker, ~s(#{marker}\n#{indentation}"number":"wrong",), global: false)
+    ]
+  end
+
+  defp append_root_member(raw, key, value) do
+    String.replace(raw, ~r/\n}\s*\z/, ~s(,\n  "#{key}":#{value}\n}\n))
+  end
 
   defp frontmatter(body) do
     case String.split(body, "---", parts: 3) do
